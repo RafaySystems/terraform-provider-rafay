@@ -28,10 +28,11 @@ func New(_ string) func() *schema.Provider {
 				},
 			},
 			ResourcesMap: map[string]*schema.Resource{
+				"rafay_project": resourceProject(),
+
 				/*
 					"rafay_group": resourceGroup(),
 
-					"rafay_project": resourceProject(),
 
 					"rafay_cluster_blueprint": resourceClusterBlueprint(),
 

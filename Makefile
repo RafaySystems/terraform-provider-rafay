@@ -1,97 +1,38 @@
+TEST?=$$(go list ./... | grep -v 'vendor')
+HOSTNAME=registry.terraform.io
+NAMESPACE=rafay
+NAME=rafay
+BINARY=terraform-provider-${NAME}
+VERSION=0.3
+OS_ARCH=darwin_amd64
 
-default: all
+default: install
 
-all:  check-fmt install_deps vet test
-
-
-.PHONY: vendor
-vendor:
-	GOPROXY=direct GOPRIVATE=github.com/RafaySystems/* go mod vendor
-
-generate:
-	go generate ./...
-	$(MAKE) check
-
-.PHONY: tidy
-tidy:
-	GOPROXY=direct GOPRIVATE=github.com/RafaySystems/* go mod tidy
-
-.PHONY: check
-check:
-	go fmt ./...
-	go vet ./...
-
-	$(MAKE) tidy
-
-IMG ?= rctl:latest-${BUILD_NUMBER}
+build:
+	go build -o ${BINARY}
 
 
-.PHONY: generate_info_file
-generate_info_file:
-	echo "TAG=$(TAG)" > $(BUILD_INFO_FILE)
-	echo "ORG=$(ORG)" >> $(BUILD_INFO_FILE)
-	echo "TIME=$(TS)" >> $(BUILD_INFO_FILE)
+release:
+	GOOS=darwin GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_darwin_amd64
+	GOOS=freebsd GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_freebsd_386
+	GOOS=freebsd GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_freebsd_amd64
+	GOOS=freebsd GOARCH=arm go build -o ./bin/${BINARY}_${VERSION}_freebsd_arm
+	GOOS=linux GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_linux_386
+	GOOS=linux GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_linux_amd64
+	GOOS=linux GOARCH=arm go build -o ./bin/${BINARY}_${VERSION}_linux_arm
+	GOOS=openbsd GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_openbsd_386
+	GOOS=openbsd GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_openbsd_amd64
+	GOOS=solaris GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_solaris_amd64
+	GOOS=windows GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_windows_386
+	GOOS=windows GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_windows_amd64
 
-.PHONY: docker-build
-docker-build:
-	docker build . -t ${IMG} \
-		--build-arg BUILD_USR=${BUILD_USER} \
-		--build-arg BUILD_PWD=${BUILD_PASSWORD} \
-		--build-arg VERSION=${VERSION} \
-		--build-arg DATE_TIME="${DATE_TIME}" \
-		--build-arg BUILD_NUM="${BUILD_NUMBER}" \
-		--build-arg GIT_BRANCH="${GIT_BRANCH}" \
-		;
+install: build
+	mkdir -p ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
+	mv ${BINARY} ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 
-.PHONY: build
-build: docker-build
-	$(MAKE) generate_info_file
-	./build-tools/copy_from_docker.sh ${IMG} ${BUILD_FOLDER}
+test: 
+	go test -i $(TEST) || exit 1                                                   
+	echo $(TEST) | xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4                    
 
-test: install_deps vet
-	$(info ******************** running tests ********************)
-	go test -v -coverprofile=coverage.out ./...
-
-.PHONY: install_deps
-install_deps:
-	$(info ******************** downloading dependencies ********************)
-	go get -v ./...
-
-.PHONY: vet
-vet:
-	$(info ******************** vetting ********************)
-	go vet ./...
-
-.PHONY: check-fmt
-check-fmt:
-	$(info ******************** checking formatting ********************)
-	@test -z $(shell gofmt -l $(SRC)) || (gofmt -d $(SRC); exit 1)
-
-.PHONY: fmt
-fmt:
-	$(info ******************** running formatting ********************)
-	@test -z $(shell gofmt -w $(SRC)) || exit 1
-
-.PHONY: clean
-clean:
-	$(info ******************** cleaning compiled binaries ********************)
-	rm -rf $(BIN)
-
-.PHONY: install
-install: check-fmt vet
-	$(info ******************** installing binary ********************)
-	go build -ldflags=$(LDFLAGS) -o bin/rctl
-	$(info packing binary)
-	upx bin/rctl
-	mv bin/rctl ${GOPATH}/bin
-
-# not used by the Jenkins build. Used to upload binaries to github release
-.PHONY: compile
-compile:
-	$(info ******************** compiling binaries ********************)
-	gox \
-		-output=$(BIN)/{{.Dir}}_{{.OS}}_{{.Arch}} \
-		-ldflags=$(LDFLAGS) \
-		;
-
-
+testacc: 
+	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m   

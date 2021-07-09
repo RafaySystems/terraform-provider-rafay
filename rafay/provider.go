@@ -33,8 +33,6 @@ func New(_ string) func() *schema.Provider {
 				"rafay_group":   resourceGroup(),
 
 				/*
-					"rafay_group": resourceGroup(),
-
 
 					"rafay_cluster_blueprint": resourceClusterBlueprint(),
 

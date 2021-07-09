@@ -28,3 +28,16 @@ Run the following command to initialize the workspace and apply the sample confi
 ```shell
 $ terraform init && terraform apply
 ```
+
+## Debug
+
+```shell
+export TF_LOG=TRACE
+export TF_LOG_PATH=log.txt
+```
+
+List terraform states
+```shell
+terraform state
+terraform state show <name>
+```

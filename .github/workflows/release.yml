@@ -29,6 +29,9 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.14
+      - name: Granting private modules access
+        run: |
+          git config --global url."https://${{ secrets.RCTL_GO_MODULES_TOKEN }}:x-oauth-basic@github.com/RafaySystems".insteadOf "https://github.com/RafaySystems"
       -
         name: Import GPG key
         id: import_gpg

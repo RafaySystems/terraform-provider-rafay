@@ -1,4 +1,4 @@
 resource "rafay_project" "project" {
-  name        = "dev1"
-  description = "dev1-description"
+  name        = "dev4"
+  description = "dev4-description"
 }

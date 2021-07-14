@@ -75,8 +75,8 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 		log.Printf("create group error %s", err.Error())
 		return diag.FromErr(err)
 	}
-	//make sure group exists? might not be necessary 
-	resp, err := group.GetGroupByName(d.Get("group").(string))
+	//make sure group project association gets created 
+	resp, err := groupassociation.GetProjectAssociatedWithGroup((d.Get("group").(string)), d.Get("project").(string), err)
 	if err != nil {
 		log.Printf("create group failed to get group, error %s", err.Error())
 		return diag.FromErr(err)
@@ -92,7 +92,7 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 		return diags
 	}
 
-	log.Printf("resource greoup created %s", g.ID)
+	log.Printf("resource group project association created %s", g.ID)
 	d.SetId(g.ID)
 
 	return diags
@@ -142,16 +142,18 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 
 func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	//TODO implement update project
-	var diags diag.Diagnostics
-	log.Printf("resource group update id %s", d.Id())
-	return diags
+	err := commands.UpdateGroupAssociation(nil, d.Get("group").(string), d.Get("project").(string), d.Get("roles"), d.Get("namespace"))
+	if err != nil {
+		log.Printf("update group association error %s", err.Error())
+		return diag.FromErr(err)
+	}
 }
 
 func resourceGroupAssociationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	log.Printf("resource group delete id %s", d.Id())
-	err := group.DeleteGroupById(d.Id())
+	log.Printf("resource group association delete id %s", d.Id())
+	err := commands.DeleteGroupAssociation(nil, d.Get("group"), d.Get("project"))
 	if err != nil {
 		log.Printf("delete group error %s", err.Error())
 		return diag.FromErr(err)

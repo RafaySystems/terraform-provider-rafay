@@ -7,6 +7,12 @@ terraform {
   }
 }
 
+variable "rafay_config_file" {
+  description = "rafay provider config file for authentication"
+  sensitive   = true
+  default     = "/Users/stephanbenny/Downloads/rafay_qa-benny_at_rafay.co.json"
+}
+
 provider "rafay" {
-  provider_config_file = var.provider_config_file
+  provider_config_file = var.rafay_config_file
 }

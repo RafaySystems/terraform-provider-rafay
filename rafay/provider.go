@@ -3,6 +3,7 @@ package rafay
 import (
 	"context"
 	"crypto/tls"
+	"log"
 	"net/http"
 	"path/filepath"
 
@@ -32,8 +33,6 @@ func New(_ string) func() *schema.Provider {
 				"rafay_group":   resourceGroup(),
 
 				/*
-					"rafay_group": resourceGroup(),
-
 
 					"rafay_cluster_blueprint": resourceClusterBlueprint(),
 
@@ -77,6 +76,7 @@ func providerConfigure(ctx context.Context, rd *schema.ResourceData) (interface{
 	config_file := rd.Get("provider_config_file").(string)
 	ignoreTlsError := rd.Get("ignore_insecure_tls_error").(bool)
 
+	log.Printf("rafay provider config file %s", config_file)
 	var diags diag.Diagnostics
 
 	configPath := filepath.Dir(config_file)
@@ -87,6 +87,7 @@ func providerConfigure(ctx context.Context, rd *schema.ResourceData) (interface{
 	err := rctlconfig.InitConfig(cliCtx)
 
 	if err != nil {
+		log.Printf("rafay provider config init error %s", err.Error())
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "Unable to create rafay provider",

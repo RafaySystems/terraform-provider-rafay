@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"log"
 
 	"github.com/RafaySystems/terraform-provider-rafay/rafay"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
@@ -33,15 +35,15 @@ func main() {
 	flag.Parse()
 
 	opts := &plugin.ServeOpts{ProviderFunc: rafay.New(version)}
-	/*
-		if debugMode {
-			err := plugin.Debug(context.Background(), "registry.terraform.io/rafay/rafay", opts)
 
-			if err != nil {
-				log.Fatal(err.Error())
-			}
-			return
+	if debugMode {
+		err := plugin.Debug(context.Background(), "registry.terraform.io/rafay/rafay", opts)
+
+		if err != nil {
+			log.Fatal(err.Error())
 		}
-	*/
+		return
+	}
+
 	plugin.Serve(opts)
 }

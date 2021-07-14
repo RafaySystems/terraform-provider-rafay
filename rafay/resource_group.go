@@ -2,11 +2,14 @@ package rafay
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/group"
+	"github.com/RafaySystems/rctl/pkg/models"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -44,25 +47,31 @@ func resourceGroup() *schema.Resource {
 func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	log.Printf("resource greoup create %s", d.Get("name").(string))
 	err := group.CreateGroup(d.Get("name").(string), d.Get("description").(string))
 	if err != nil {
+		log.Printf("create group error %s", err.Error())
 		return diag.FromErr(err)
 	}
 
 	resp, err := group.GetGroupByName(d.Get("name").(string))
 	if err != nil {
+		log.Printf("create group failed to get group, error %s", err.Error())
 		return diag.FromErr(err)
 	}
 
-	p, err := group.NewGroupFromResponse([]byte(resp))
+	g, err := group.NewGroupFromResponse([]byte(resp))
 	if err != nil {
+		log.Printf("create group failed to parse get response, error %s", err.Error())
 		return diag.FromErr(err)
-	} else if p == nil {
+	} else if g == nil {
+		log.Printf("create group failed to parse get response")
 		d.SetId("")
 		return diags
 	}
 
-	d.SetId(p.ID)
+	log.Printf("resource greoup created %s", g.ID)
+	d.SetId(g.ID)
 
 	return diags
 }
@@ -74,6 +83,14 @@ func getGroupById(id string) (string, error) {
 	return auth.AuthAndRequest(uri, "GET", nil)
 }
 
+func getGroupFromResponse(json_data []byte) (*models.Group, error) {
+	var gr models.Group
+	if err := json.Unmarshal(json_data, &gr); err != nil {
+		return nil, err
+	}
+	return &gr, nil
+}
+
 func resourceGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -83,15 +100,18 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 
-	p, err := group.NewGroupFromResponse([]byte(resp))
+	p, err := getGroupFromResponse([]byte(resp))
 	if err != nil {
+		log.Printf("get group by id, error %s", err.Error())
 		return diag.FromErr(err)
 	} else if p == nil {
+		log.Printf("get group response parse error")
 		d.SetId("")
 		return diags
 	}
 
 	if err := d.Set("name", p.Name); err != nil {
+		log.Printf("get group set name error %s", err.Error())
 		return diag.FromErr(err)
 	}
 
@@ -101,14 +121,17 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, m interface{
 func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	//TODO implement update project
 	var diags diag.Diagnostics
+	log.Printf("resource group update id %s", d.Id())
 	return diags
 }
 
 func resourceGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	log.Printf("resource group delete id %s", d.Id())
 	err := group.DeleteGroupById(d.Id())
 	if err != nil {
+		log.Printf("delete group error %s", err.Error())
 		return diag.FromErr(err)
 	}
 

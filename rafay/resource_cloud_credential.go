@@ -2,12 +2,11 @@ package rafay
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
-	"github.com/RafaySystems/rctl/pkg/config"
-//	"github.com/RafaySystems/rctl/pkg/models"
-//	"github.com/RafaySystems/rctl/pkg/project"
+	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/pkg/cloudprovider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -15,18 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-/* type cloudProviderType int
-
-const (
-        CredTypeClusterProvisioning cloudProviderType = 1
-        CredTypeDataBackup          cloudProviderType = 2
-}*/
-
 func resourceCloudCredential() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCloudCredentialCreate,
 		ReadContext:   resourceCloudCredentialRead,
-//		UpdateContext: resourceCloudCredentialUpdate,
+		UpdateContext: resourceCloudCredentialUpdate,
 		DeleteContext: resourceCloudCredentialDelete,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -42,19 +34,23 @@ func resourceCloudCredential() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"projectname": {
+				Type:	schema.TypeString,
+				Required: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"roleARN": {
+			"rolearn": {
 				Type: schema.TypeString,
 				Required: true,
 			},
-			"credType": {
+			"credtype": {
 				Type: schema.TypeInt,
 				Required: true,
 			},
-			"externalId": {
+			"externalid": {
 				Type: schema.TypeString,
 				Optional: true,
 			},
@@ -65,60 +61,60 @@ func resourceCloudCredential() *schema.Resource {
 func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	p := config.GetConfig().ProjectID
-
-	log.Printf("create cloud cred with name %s", d.Get("name").(string))
-//	_, err := cloudprovider.CreateAWSCloudRoleCredentials(d.Get("name").(string), p, d.Get("roleARN").(string), d.Get("externalId").(string), d.Get("credType").(cloudProviderType))
-	_, err := cloudprovider.CreateAWSCloudRoleCredentials(d.Get("name").(string), p, d.Get("roleARN").(string), d.Get("externalId").(string), 1 )
-	if err != nil {
-		log.Printf("create cloud credential error %s", err.Error())
-		return diag.FromErr(err)
+	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+        if err != nil {
+                fmt.Print("project  does not exist")
+		return diags
 	}
 
-	c, err := cloudprovider.GetCloudProvider(d.Get("name").(string), p )
+        project, err := project.NewProjectFromResponse([]byte(resp))
+        if err != nil {
+                fmt.Printf("project  does not exist")
+		return diags
+        }
+
+	log.Printf("create cloud cred with name %s, %s", d.Get("name").(string), project.ID )
+	s, err := cloudprovider.CreateAWSCloudRoleCredentials(d.Get("name").(string), project.ID, d.Get("rolearn").(string), d.Get("externalid").(string), 1 )
 	if err != nil {
-		log.Printf("get cloudprovider after creation failed, error %s", err.Error())
+		log.Printf("create cloud credential error %s %s", err.Error(),s)
 		return diag.FromErr(err)
 	}
-
-		log.Printf("get cloudprovider after creation %s",c.ID )
+        log.Printf("resource cloud credential created %s", s.ID)
+        d.SetId(s.ID)
 
 	return diags
 }
 
-
 func resourceCloudCredentialRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+        if err != nil {
+                fmt.Print("project does not exist")
+                return diags
+        }
 
-	log.Printf("resource project read id %s", d.Id())
-	//resp, err := project.GetProjectByName(d.Get("name").(string))
-	resp, err := getProjectById(d.Id())
+        project, err := project.NewProjectFromResponse([]byte(resp))
+        if err != nil {
+                fmt.Printf("project does not exist")
+                return diags
+        }
+	c, err := cloudprovider.GetCloudProvider(d.Get("name").(string), project.ID )
 	if err != nil {
-		log.Printf("get project by id, error %s", err.Error())
+		log.Printf("error while getCloudprovider %s", err.Error())
 		return diag.FromErr(err)
 	}
+        if err := d.Set("name", c.Name); err != nil {
+                log.Printf("get group set name error %s", err.Error())
+                return diag.FromErr(err)
+        }
 
-	p, err := getProjectFromResponse([]byte(resp))
-	if err != nil {
-		log.Printf("get project response error %s", err.Error())
-		return diag.FromErr(err)
-	} else if p == nil {
-		d.SetId("")
-		return diags
-	}
+	return diags
+}
 
-	if err := d.Set("name", p.Name); err != nil {
-		log.Printf("read project set name error %s", err.Error())
-		return diag.FromErr(err)
-	}
+func resourceCloudCredentialUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 
-	if len(p.Description) > 0 {
-		if err := d.Set("description", p.Description); err != nil {
-			log.Printf("read project set description error %s", err.Error())
-			return diag.FromErr(err)
-		}
-	}
-
+	var diags diag.Diagnostics
+	log.Printf("get cloudprovider " )
 	return diags
 }
 
@@ -126,10 +122,22 @@ func resourceCloudCredentialDelete(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 	log.Printf("resource project delete id %s", d.Id())
 
-	err := cloudprovider.DeleteCloudProvider(d.Get("name").(string),d.Id())
-	if err != nil {
-		log.Printf("delete project error %s", err.Error())
-		return diag.FromErr(err)
+        resp, err := project.GetProjectByName(d.Get("projectname").(string))
+        if err != nil {
+                fmt.Print("project  does not exist")
+                return diags
+        }
+
+        project, err := project.NewProjectFromResponse([]byte(resp))
+        if err != nil {
+                fmt.Printf("project  does not exist")
+                return diags
+        }
+
+	errDel := cloudprovider.DeleteCloudProvider(d.Get("name").(string),project.ID)
+	if errDel != nil {
+		log.Printf("delete project error %s", errDel.Error())
+		return diag.FromErr(errDel)
 	}
 
 	return diags

@@ -9,6 +9,8 @@ import (
 
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/group"
+	"github.com/RafaySystems/rctl/pkg/groupassociation"
+	"github.com/RafaySystems/rctl/pkg/commands"
 	"github.com/RafaySystems/rctl/pkg/models"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -33,11 +35,29 @@ func resourceGroupAssociation() *schema.Resource {
 		//add in all the parameters needed for create association group function
 		//also still need to edit resources/rafay_groupassociation files
 		Schema: map[string]*schema.Schema{
-			"name": {
+			"group": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
+			"project": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"roles": {//figure out best way to declare schema type []string, two diff methods in roles and namespaces 
+				Type:     schema.TypeList.String(),
+				Required: true,
+				ForceNew: true,
+			},
+			"namespaces": { 
+				Type:     schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},//add in the rest of the schema from the struct on rctl 
+			//call rctl function to create new group with association, make sure you get the right commands 
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -50,13 +70,13 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 	var diags diag.Diagnostics
 
 	log.Printf("resource greoup create %s", d.Get("name").(string))
-	err := group.GetProjectAssociatedWithGroup(d.Get("name").(string), d.Get("description").(string))
+	err := commands.CreateGroupAssociation(nil, d.Get("group").(string), d.Get("project").(string), d.Get("roles"), d.Get("namespace"))
 	if err != nil {
 		log.Printf("create group error %s", err.Error())
 		return diag.FromErr(err)
 	}
-
-	resp, err := group.GetGroupByName(d.Get("name").(string))
+	//make sure group exists? might not be necessary 
+	resp, err := group.GetGroupByName(d.Get("group").(string))
 	if err != nil {
 		log.Printf("create group failed to get group, error %s", err.Error())
 		return diag.FromErr(err)

@@ -7,10 +7,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/RafaySystems/rctl/pkg/config"
-	"github.com/RafaySystems/rctl/pkg/group"
-	"github.com/RafaySystems/rctl/pkg/groupassociation"
 	"github.com/RafaySystems/rctl/pkg/commands"
+	"github.com/RafaySystems/rctl/pkg/config"
+	"github.com/RafaySystems/rctl/pkg/groupassociation"
 	"github.com/RafaySystems/rctl/pkg/models"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -45,19 +44,23 @@ func resourceGroupAssociation() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"roles": {//figure out best way to declare schema type []string, two diff methods in roles and namespaces 
-				Type:     schema.TypeList.String(),
+			"roles": { //figure out best way to declare schema type []string, two diff methods in roles and namespaces
+				Type:     schema.TypeSet,
 				Required: true,
-				ForceNew: true,
-			},
-			"namespaces": { 
-				Type:     schema.TypeList,
+				Set:      schema.HashString,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
+				},
+			},
+			"namespaces": {
+				Type:     schema.TypeSet,
 				Required: true,
-				ForceNew: true,
-			},//add in the rest of the schema from the struct on rctl 
-			//call rctl function to create new group with association, make sure you get the right commands 
+				Set:      schema.HashString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			}, //add in the rest of the schema from the struct on rctl
+			//call rctl function to create new group with association, make sure you get the right commands
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -69,32 +72,32 @@ func resourceGroupAssociation() *schema.Resource {
 func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	log.Printf("resource greoup create %s", d.Get("name").(string))
-	err := commands.CreateGroupAssociation(nil, d.Get("group").(string), d.Get("project").(string), d.Get("roles"), d.Get("namespace"))
+	log.Printf("resource group create %s", d.Get("name").(string))
+	err := commands.CreateGroupAssociation(nil, d.Get("group").(string), d.Get("project").(string), d.Get("roles").(list), d.Get("namespace").(list))
 	if err != nil {
 		log.Printf("create group error %s", err.Error())
 		return diag.FromErr(err)
 	}
-	//make sure group project association gets created 
-	resp, err := groupassociation.GetProjectAssociatedWithGroup((d.Get("group").(string)), d.Get("project").(string), err)
+	//make sure group project association gets created
+	resp, err := groupassociation.GetProjectAssociatedWithGroup(d.Get("project").(string))
 	if err != nil {
-		log.Printf("create group failed to get group, error %s", err.Error())
+		log.Printf("create group failed to get group, error %s, %s", err.Error(), resp)
 		return diag.FromErr(err)
 	}
+	/*
+		g, err := group.NewGroupFromResponse([]byte(resp))
+		if err != nil {
+			log.Printf("create group failed to parse get response, error %s", err.Error())
+			return diag.FromErr(err)
+		} else if g == nil {
+			log.Printf("create group failed to parse get response")
+			d.SetId("")
+			return diags
+		}
 
-	g, err := group.NewGroupFromResponse([]byte(resp))
-	if err != nil {
-		log.Printf("create group failed to parse get response, error %s", err.Error())
-		return diag.FromErr(err)
-	} else if g == nil {
-		log.Printf("create group failed to parse get response")
-		d.SetId("")
-		return diags
-	}
-
-	log.Printf("resource group project association created %s", g.ID)
-	d.SetId(g.ID)
-
+		log.Printf("resource group project association created %s", g.ID)
+		d.SetId(g.ID)
+	*/
 	return diags
 }
 
@@ -142,18 +145,20 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 
 func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	//TODO implement update project
-	err := commands.UpdateGroupAssociation(nil, d.Get("group").(string), d.Get("project").(string), d.Get("roles"), d.Get("namespace"))
+	var diags diag.Diagnostics
+	err := commands.UpdateGroupAssociation(nil, d.Get("group").(string), d.Get("project").(string), d.Get("roles").(list), d.Get("namespace").(list))
 	if err != nil {
 		log.Printf("update group association error %s", err.Error())
 		return diag.FromErr(err)
 	}
+	return diags
 }
 
 func resourceGroupAssociationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	log.Printf("resource group association delete id %s", d.Id())
-	err := commands.DeleteGroupAssociation(nil, d.Get("group"), d.Get("project"))
+	err := commands.DeleteGroupAssociation(nil, d.Get("group").(string), d.Get("project").(string))
 	if err != nil {
 		log.Printf("delete group error %s", err.Error())
 		return diag.FromErr(err)

@@ -1,1 +1,1 @@
-variable "provider_config_file" {}
+#variable "provider_config_file" {}

@@ -16,14 +16,55 @@ description: |-
 terraform {
   required_providers {
     rafay = {
-      version = ">= 0.1"
-      source  = "rafay/rafay"
+      version = ">= 0.0.9"
+      source  = "RafaySystems/rafay"
     }
   }
 }
 
 provider "rafay" {
   provider_config_file = var.provider_config_file # Rafay provider config file (defaults to ~/.rafay/cli/config.json)
+}
+```
+## Authentication
+
+The Rafay provider offers a flexible means of providing credentials for
+authentication. The following methods are supported, in this order, and
+explained below:
+
+- Environment variables
+- Credentials/configuration file
+
+
+### Environment Variables
+
+You can provide your credentials via the `RCTL_REST_ENDPOINT`, `RCTL_API_KEY`,
+`RCTL_API_SECRET` and `RCTL_PROJECT` environment variables, representing your Rafay 
+Console Endpoint, Rafay Access Key, Rafay Secret Key and Rafay Project respectively.  
+
+```terraform
+provider "rafay" {}
+```
+
+Usage:
+
+```sh
+$ export RCTL_API_KEY="rafayaccesskey"
+$ export RCTL_API_SECRET="rafaysecretkey"
+$ export RCTL_REST_ENDPOINT="console.rafay.dev
+$ export RCTL_PROJECT="defaultproject"
+$ terraform plan
+```
+
+### Credentials/configuration file
+
+You can use an [Rafay credentials or configuration file](https://docs.rafay.co/cli/config/#config-file) to specify your credentials. You can specify a location of the configuration file in the Terraform configuration by providing the `provider_config_file`  
+
+Usage:
+
+```terraform
+provider "rafay" {
+  provider_config_file = "/Users/tf_user/rafay_config.json"
 }
 ```
 

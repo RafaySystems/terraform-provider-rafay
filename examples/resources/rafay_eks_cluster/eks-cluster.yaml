@@ -4,8 +4,8 @@ metadata:
   labels:
     env: dev
     type: eks-workloads
-  name: demo-terraform
-  project: dev4
+  name: demo-terraform2
+  project: dev3
 spec:
   type: eks
   blueprint: default
@@ -14,7 +14,7 @@ spec:
 apiVersion: rafay.io/v1alpha5
 kind: ClusterConfig
 metadata:
-  name: demo-terraform
+  name: demo-terraform2
   region: us-west-1
   version: "1.18"
   tags:

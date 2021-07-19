@@ -127,8 +127,6 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 
 	YamlConfigFilePath := d.Get("yamlfilepath").(string)
 
-	log.Printf("yaml file path  %s", YamlConfigFilePath)
-
 	fileBytes, err := utils.ReadYAMLFileContents(YamlConfigFilePath)
 	if err != nil {
 		return diag.FromErr(err)
@@ -172,6 +170,20 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 		}
 	}
 
+        // get project details
+        resp, err := project.GetProjectByName(d.Get("projectname").(string))
+        if err != nil {
+                fmt.Print("project does not exist")
+                return diags
+        }
+        project, err := project.NewProjectFromResponse([]byte(resp))
+        if err != nil {
+                fmt.Printf("project does not exist")
+                return diags
+        }
+
+	c.ProjectID = project.ID
+
 	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
 	if len(errs) > 0 {
 		for _, err := range errs {
@@ -181,22 +193,10 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 	}
 	// Make request
 	for clusterName, configBytes := range configMap {
-		log.Println("create cluster:", clusterName, "config:", string(configBytes))
-		if err := clusterctl.Apply(logger, c, clusterName, configBytes, true); err != nil {
+		log.Println("create cluster:", clusterName, "config:", string(configBytes),"projectID :",c.ProjectID)
+		if err := clusterctl.Apply(logger, c, clusterName, configBytes, false); err != nil {
 			return diag.FromErr(fmt.Errorf("error performing apply on cluster %s: %s", clusterName, err))
 		}
-	}
-
-	// get project details
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-	if err != nil {
-		fmt.Print("project does not exist")
-		return diags
-	}
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
 	}
 
 	s, err := cluster.GetCluster(d.Get("name").(string), project.ID)
@@ -224,11 +224,15 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		fmt.Printf("project does not exist")
 		return diags
 	}
-	_, err = cluster.GetCluster(d.Get("name").(string), project.ID)
+	c, err := cluster.GetCluster(d.Get("name").(string), project.ID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
 	}
+	if err := d.Set("name", c.Name); err != nil {
+                log.Printf("get group set name error %s", err.Error())
+                return diag.FromErr(err)
+        }
 
 	return diags
 }

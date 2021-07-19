@@ -17,7 +17,7 @@ terraform {
   required_providers {
     rafay = {
       version = ">= 0.1"
-      source  = "rafay/rafay"
+      source  = "RafaySystems/rafay"
     }
   }
 }
@@ -34,7 +34,6 @@ provider "rafay" {
 
 - **ignore_insecure_tls_error** (Boolean)
 - **provider_config_file** (String)
-
 ## Authentication
 
 The Rafay provider offers a flexible means of providing credentials for

@@ -1,0 +1,37 @@
+kind: Cluster
+metadata:
+  # cluster labels
+  labels:
+    env: dev
+    type: eks-workloads
+  name: demo-terraform2
+  project: dev3
+spec:
+  type: eks
+  blueprint: default
+  cloudprovider: <cloud-credential>
+---
+apiVersion: rafay.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: demo-terraform2
+  region: us-west-1
+  version: "1.18"
+  tags:
+    'demo': 'true'
+nodeGroups:
+  - name: nodegroup-1
+    instanceType: t3.xlarge
+    desiredCapacity: 2
+    volumeType: gp3
+    volumeSize: 50
+    privateNetworking: true
+    volumeEncrypted: true
+    volumeKmsKeyID: f12c2166-21dc-418f-881a-f95c28dbce22
+    #amiFamily: Ubuntu2004
+    iam:
+      withAddonPolicies:
+              albIngress: true
+              autoScaler: true
+              imageBuilder: true
+              efs: true

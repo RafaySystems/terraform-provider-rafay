@@ -31,28 +31,9 @@ func New(_ string) func() *schema.Provider {
 			ResourcesMap: map[string]*schema.Resource{
 				"rafay_project": resourceProject(),
 				"rafay_group":   resourceGroup(),
-				"rafay_cloud_credential":	resourceCloudCredential(),
         "rafay_groupassociation": resourceGroupAssociation(),
-
-				/*
-
-					"rafay_cluster_blueprint": resourceClusterBlueprint(),
-
-					"rafay_cloudaccount_aws": resourceCloudAccountAws(),
-					"rafay_cluster_aws":      resourceClusterAws(),
-
-					"rafay_cluster_eks": resourceClusterEks(),
-
-					"rafay_cloudaccount_azure": resourceCloudAccountAzure(),
-					"rafay_cluster_azure":      resourceClusterAzure(),
-
-					"rafay_cloudaccount_gcp": resourceCloudAccountGcp(),
-					"rafay_cluster_gcp":      resourceClusterGcp(),
-
-					"rafay_cluster_mks": resourceClusterMks(),
-
-					"rafay_cluster_import": resourceClusterImport(),
-				*/
+				"rafay_cloud_credential":	resourceCloudCredential(),
+        "rafay_eks_cluster":	resourceEKSCluster(),
 			},
 			DataSourcesMap: map[string]*schema.Resource{
 				/*

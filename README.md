@@ -49,7 +49,7 @@ provider "rafay" {
 Run the following command to build the provider
 
 ```shell
-$ go build -o terraform-provider-hashicups
+$ make
 ```
 
 ## Test sample configuration

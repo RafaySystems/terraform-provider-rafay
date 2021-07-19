@@ -10,7 +10,7 @@ terraform {
 variable "rafay_config_file" {
   description = "rafay provider config file for authentication"
   sensitive   = true
-  default = "/Users/krishna/Downloads/Neridiosys-shreekrishna@rafay.co.json"
+  default     = "<rafay-config-json-file>"
 }
 
 provider "rafay" {

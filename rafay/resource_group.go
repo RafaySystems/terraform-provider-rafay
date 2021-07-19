@@ -70,7 +70,7 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, m interfac
 		return diags
 	}
 
-	log.Printf("resource greoup created %s", g.ID)
+	log.Printf("resource group created %s", g.ID)
 	d.SetId(g.ID)
 
 	return diags

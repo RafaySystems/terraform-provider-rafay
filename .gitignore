@@ -30,6 +30,7 @@ vendor/
 ### Go Patch ###
 /vendor/
 /Godeps/
+/dist
 
 **/.terraform/
 **/terraform.tfstate
@@ -130,5 +131,21 @@ modules.xml
 ### VisualStudioCode Patch ###
 # Ignore all local history of files
 .history
+
+/.idea/
+.DS_Store
+
+terraform.tfplan
+terraform.tfstate
+*.backup
+.terraform/
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+terraform.tfvars
+
+kubeconfig_*
+
+.local
+
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,code,visualstudiocode,go

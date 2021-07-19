@@ -9,7 +9,7 @@ metadata:
 spec:
   type: eks
   blueprint: default
-  cloudprovider: krishna
+  cloudprovider: <cloud-credential>
 ---
 apiVersion: rafay.io/v1alpha5
 kind: ClusterConfig

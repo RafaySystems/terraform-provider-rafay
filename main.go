@@ -37,7 +37,7 @@ func main() {
 	opts := &plugin.ServeOpts{ProviderFunc: rafay.New(version)}
 
 	if debugMode {
-		err := plugin.Debug(context.Background(), "registry.terraform.io/rafay/rafay", opts)
+		err := plugin.Debug(context.Background(), "registry.terraform.io/RafaySystems/rafay", opts)
 
 		if err != nil {
 			log.Fatal(err.Error())

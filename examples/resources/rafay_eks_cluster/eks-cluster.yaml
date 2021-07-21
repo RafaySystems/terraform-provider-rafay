@@ -4,17 +4,17 @@ metadata:
   labels:
     env: dev
     type: eks-workloads
-  name: demo-terraform2
+  name: demo-terraform3
   project: dev3
 spec:
   type: eks
   blueprint: default
-  cloudprovider: krishna
+  cloudprovider: krishnarolearn
 ---
 apiVersion: rafay.io/v1alpha5
 kind: ClusterConfig
 metadata:
-  name: demo-terraform2
+  name: demo-terraform3
   region: us-west-1
   version: "1.18"
   tags:

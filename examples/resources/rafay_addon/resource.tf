@@ -3,7 +3,7 @@ resource "rafay_addon" "addon" {
   projectname = "dev3"
   namespace   = "testing"
   addontype   = "NativeYaml"
-  yamlfilepath = "/Users/krishna/Downloads/metallb-cm-final.yml"
+  yamlfilepath = "<file-path/addon.yml>"
   chartfile   = ""
   valuesfile  = ""
   versionname = "v2"

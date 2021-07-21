@@ -29,11 +29,11 @@ func New(_ string) func() *schema.Provider {
 				},
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"rafay_project": resourceProject(),
-				"rafay_group":   resourceGroup(),
-        "rafay_groupassociation": resourceGroupAssociation(),
-				"rafay_cloud_credential":	resourceCloudCredential(),
-        "rafay_eks_cluster":	resourceEKSCluster(),
+				"rafay_project":          resourceProject(),
+				"rafay_group":            resourceGroup(),
+				"rafay_groupassociation": resourceGroupAssociation(),
+				"rafay_cloud_credential": resourceCloudCredential(),
+				"rafay_eks_cluster":      resourceEKSCluster(),
 			},
 			DataSourcesMap: map[string]*schema.Resource{
 				/*
@@ -56,17 +56,19 @@ func New(_ string) func() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, rd *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
 	config_file := rd.Get("provider_config_file").(string)
 	ignoreTlsError := rd.Get("ignore_insecure_tls_error").(bool)
 
 	log.Printf("rafay provider config file %s", config_file)
-	var diags diag.Diagnostics
-
-	configPath := filepath.Dir(config_file)
-	fileName := filepath.Base(config_file)
 	cliCtx := rctlcontext.GetContext()
-	cliCtx.ConfigFile = fileName
-	cliCtx.ConfigDir = configPath
+	if config_file != "" {
+		configPath := filepath.Dir(config_file)
+		fileName := filepath.Base(config_file)
+		cliCtx.ConfigFile = fileName
+		cliCtx.ConfigDir = configPath
+	}
 	err := rctlconfig.InitConfig(cliCtx)
 
 	if err != nil {

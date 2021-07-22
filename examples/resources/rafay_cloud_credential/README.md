@@ -1,4 +1,4 @@
-
+```
 For Cluster-Provisioning with AccessKey
   1.AWS :
     required items in resource.tf
@@ -17,7 +17,9 @@ For Cluster-Provisioning with AccessKey
       -> type  = "cluster-provisioning".
       -> providertype = "GCP".
       -> credfile = "<filepath>/gcp-credential.json".
-  
+ ```
+
+```
 For Cluster-Provisioning with RoleARN
     1. AWS :
       required items in resource.tf
@@ -36,7 +38,9 @@ For Cluster-Provisioning with RoleARN
         -> type  = "cluster-provisioning".
         -> providertype = "GCP".
         -> credfile = "<filepath>/gcp-credential.json".
-  
+```
+
+```
 For Data-Backup with AccessKey
     1. MINIO:
       required items in resource.tf
@@ -48,3 +52,4 @@ For Data-Backup with AccessKey
         -> accesskey = "xxxxxxxxxxx" ,  // your access key
         -> secretkey = "yyyyyyyyyyy" ,  // your secret key.
   
+```

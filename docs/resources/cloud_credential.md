@@ -14,12 +14,17 @@ description: |-
 
 ```terraform
 resource "rafay_cloud_credential" "credential" {
-  name        = "testingaws2"
-  projectname = "dev3"
-  description = "description"
-  rolearn     = "xxxxxxx"
-  credtype    = 1
-  externalid  = "yyyyyy"
+  name         = "testingaws2"
+  projectname  = "dev3"
+  description  = "description"
+  providertype = "AWS"
+  rolearn      = "xxxxxxx"
+  credtype     = 1
+  externalid   = "yyyyyy"
+  type         = 1
+  accesskey    = "12334234"
+  secretkey    = "sdfkls"
+  credfile     = "filepath"
 }
 ```
 
@@ -28,10 +33,15 @@ resource "rafay_cloud_credential" "credential" {
 
 ### Required
 
-- **credtype** (Number)
+- **accesskey** (String)
+- **credfile** (String)
+- **credtype** (String)
 - **name** (String)
 - **projectname** (String)
+- **providertype** (String)
 - **rolearn** (String)
+- **secretkey** (String)
+- **type** (String)
 
 ### Optional
 

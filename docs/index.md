@@ -46,8 +46,8 @@ explained below:
 
 ### Environment Variables
 
-You can provide your credentials via the `RCTL_REST_ENDPOINT`, `RCTL_API_KEY`,
-`RCTL_API_SECRET` and `RCTL_PROJECT` environment variables, representing your Rafay
+Provide credentials via the `RCTL_REST_ENDPOINT`, `RCTL_API_KEY`,
+`RCTL_API_SECRET` and `RCTL_PROJECT` environment variables, representing the Rafay
 Console Endpoint, Rafay Access Key, Rafay Secret Key and Rafay Project respectively.
 
 ```terraform
@@ -66,7 +66,7 @@ $ terraform plan
 
 ### Credentials/configuration file
 
-You can use an [Rafay credentials or configuration file](https://docs.rafay.co/cli/config/#config-file) to specify your credentials. You can specify a location of the configuration file in the Terraform configuration by providing the `provider_config_file`  
+Use [Rafay credentials or configuration file](https://docs.rafay.co/cli/config/#config-file) to specify your credentials. Specify a location of the configuration file in the Terraform configuration by providing the `provider_config_file`  
 
 Usage:
 
@@ -75,3 +75,6 @@ provider "rafay" {
   provider_config_file = "/Users/tf_user/rafay_config.json"
 }
 ```
+
+You can also provide configuration file via `RAFAY_PROVIDER_CONFIG` environment variable.
+If provider_config_file is not set or empty, then provider will use default path  `~/.rafay/cli/config.json`

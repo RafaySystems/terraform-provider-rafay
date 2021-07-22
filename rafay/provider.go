@@ -5,7 +5,9 @@ import (
 	"crypto/tls"
 	"log"
 	"net/http"
+	"os/user"
 	"path/filepath"
+	"strings"
 
 	rctlconfig "github.com/RafaySystems/rctl/pkg/config"
 	rctlcontext "github.com/RafaySystems/rctl/pkg/context"
@@ -55,6 +57,18 @@ func New(_ string) func() *schema.Provider {
 	}
 }
 
+func expandHomeDir(path string) (string, error) {
+	if len(path) == 0 || path[0] != '~' {
+		return path, nil
+	}
+
+	usr, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(usr.HomeDir, path[1:]), nil
+}
+
 func providerConfigure(ctx context.Context, rd *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -64,11 +78,29 @@ func providerConfigure(ctx context.Context, rd *schema.ResourceData) (interface{
 	log.Printf("rafay provider config file %s", config_file)
 	cliCtx := rctlcontext.GetContext()
 	if config_file != "" {
-		configPath := filepath.Dir(config_file)
-		fileName := filepath.Base(config_file)
-		cliCtx.ConfigFile = fileName
-		cliCtx.ConfigDir = configPath
+		var err error
+
+		config_file = strings.TrimSpace(config_file)
+		if config_file[0] == '~' {
+			config_file, err = expandHomeDir(config_file)
+		} else {
+			config_file, err = filepath.Abs(config_file)
+		}
+
+		if err == nil {
+			log.Printf("rafay provider config file absolute path %s", config_file)
+			configPath := filepath.Dir(config_file)
+			fileName := filepath.Base(config_file)
+			cliCtx.ConfigFile = fileName
+			cliCtx.ConfigDir = configPath
+		} else {
+			log.Println("failed to get rafay provider config absolute path error:", err)
+			log.Println("provider will use default config file ~/.rafay/cli/config.json")
+		}
+	} else {
+		log.Println("provider will use default config file ~/.rafay/cli/config.json")
 	}
+
 	err := rctlconfig.InitConfig(cliCtx)
 
 	if err != nil {

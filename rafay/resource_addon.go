@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 	"path/filepath"
+	"io/ioutil"
 
 	"github.com/RafaySystems/rctl/pkg/addon"
 	"github.com/RafaySystems/rctl/pkg/project"
@@ -59,10 +60,26 @@ func resourceAddon() *schema.Resource {
 				Type: schema.TypeString,
 				Required: true,
 			},
-                        "valuesfile": {
-                                Type: schema.TypeString,
-                                Required: true,
-                        },
+            "valuesfile": {        
+				Type: schema.TypeString,
+                Required: true,
+			},
+			"configmap": {
+				Type: schema.TypeString,
+				Optional: true,
+			},
+			"configuration": {
+				Type: schema.TypeString,
+				Optional: true,
+			},
+			"secret": {
+				Type: schema.TypeString,
+				Optional: true,
+			},
+			"statefulset": {
+				Type: schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -75,32 +92,43 @@ func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interfac
 	valuesfile := d.Get("valuesfile").(string)
 
 
-        // get project details
-        resp, err := project.GetProjectByName(d.Get("projectname").(string))
-        if err != nil {
-                fmt.Print("project does not exist")
-                return diag.FromErr(err)
-        }
-        project, err := project.NewProjectFromResponse([]byte(resp))
-        if err != nil {
-                fmt.Printf("project does not exist")
-                return diag.FromErr(err)
-        }
-	if "NativeYaml" == d.Get("addontype").(string) {
+    // get project details
+    resp, err := project.GetProjectByName(d.Get("projectname").(string))
+    if err != nil {
+        fmt.Print("project does not exist")
+        return diag.FromErr(err)
+    }
+    project, err := project.NewProjectFromResponse([]byte(resp))
+    if err != nil {
+        fmt.Printf("project does not exist")
+        return diag.FromErr(err)
+    }
+	if "nativeYaml" == d.Get("addontype").(string) {
 		_, errCreate := addon.CreateAddon(d.Get("namespace").(string), d.Get("name").(string), project.ID, "NativeYaml" )
 		if errCreate != nil {
 			log.Printf("Error while CreateAddon %s",err.Error())
 			return diag.FromErr(errCreate)
 		}
-	} else if "Helm"  == d.Get("addontype").(string) {
-                _, errCreate := addon.CreateAddon(d.Get("namespace").(string), d.Get("name").(string), project.ID, "Helm" )
-                if errCreate != nil {
-                        log.Printf("Error while CreateAddon %s",err.Error())
-                        return diag.FromErr(errCreate)
-                }
-
+	} else if "helm"  == d.Get("addontype").(string) {
+        _, errCreate := addon.CreateAddon(d.Get("namespace").(string), d.Get("name").(string), project.ID, "Helm" )
+        if errCreate != nil {
+            log.Printf("Error while CreateAddon %s",err.Error())
+            return diag.FromErr(errCreate)
+        }
+	} else if "helm3" == d.Get("addontype").(string) {
+		_, errCreate := addon.CreateAddon(d.Get("namespace").(string), d.Get("name").(string), project.ID, "Helm3" )
+        if errCreate != nil {
+            log.Printf("Error while CreateAddon %s",err.Error())
+            return diag.FromErr(errCreate)
+        }
+	} else if "alertmanager" == d.Get("addontype").(string) {
+		_, errCreate := addon.CreateManagedAddon( d.Get("name").(string), project.ID )
+		if errCreate != nil {
+			log.Printf("Error while CreateManageaddon %s",err.Error())
+			return diag.FromErr(errCreate)
+		}
 	} else {
-		log.Printf("addontype must be NativaYaml/Helm" )
+		log.Printf("addontype must be nativaYaml/helm/helm3/alertmanager" )
 		return diags
 	}
 	addonVersionName := d.Get("versionname").(string)
@@ -110,7 +138,7 @@ func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interfac
 		log.Printf("error while GetAddon %s", err.Error())
 		return diag.FromErr(err)
 	}
-	if "NativeYaml" == d.Get("addontype").(string) {
+	if "nativeYaml" == d.Get("addontype").(string) {
 		if !utils.FileExists(YamlConfigFilePath) {
 			log.Printf("file %s does not exist", YamlConfigFilePath)
 			return diags
@@ -124,22 +152,77 @@ func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Printf("error while createAddonVersion() %s", errversion.Error() )
 			return diag.FromErr(errversion)
 		}
-	} else if "Helm" == d.Get("addontype").(string) {
+	} else if "helm" == d.Get("addontype").(string) {
 		if !utils.FileExists(chartfile) {
-			log.Printf("file %s does not exist", YamlConfigFilePath)
+			log.Printf("file %s does not exist", chartfile)
 			return diags
 		}
-		if !utils.FileExists(valuesfile) {
-			log.Printf("file %s does not exist", YamlConfigFilePath)
+		if valuesfile == "" {
+			log.Printf("Valuesfile cannot be empty" )
 			return diags
 		}
 
-               errversion := addon.CreateAddonVersion(s.ID, addonVersionName, project.ID, chartfile ,valuesfile, "", models.RepoArtifactMeta{} )
-                if errversion != nil {
-                        log.Printf("error while createAddonVersion() %s", errversion.Error() )
-                        return diag.FromErr(errversion)
-                }
+        errversion := addon.CreateAddonVersion(s.ID, addonVersionName, project.ID, chartfile ,valuesfile, "", models.RepoArtifactMeta{} )
+        if errversion != nil {
+            log.Printf("error while createAddonVersion() %s", errversion.Error() )
+            return diag.FromErr(errversion)
+        }
+	} else if "helm3" == d.Get("addontype").(string) {
+		if !utils.FileExists(chartfile) {
+			log.Printf("file %s does not exist", chartfile)
+			return diags
+		}
+		if valuesfile == "" {
+			log.Printf("Valuesfile cannot be empty" )
+			return diags
+		}
+		errversion := addon.CreateAddonVersion(s.ID, addonVersionName, project.ID, chartfile ,valuesfile, "", models.RepoArtifactMeta{} )
+        if errversion != nil {
+            log.Printf("error while createAddonVersion() %s", errversion.Error() )
+            return diag.FromErr(errversion)
+        }
+	} else if "alertmanager" == d.Get("addontype").(string) {
+		configmap := d.Get("configmap").(string)
+		configuration := d.Get("configuration").(string)
+		secret := d.Get("secret").(string)
+		statefulset := d.Get("statefulset").(string)
 
+		if configmap == "" && configuration == "" && secret == "" && statefulset == "" {
+			log.Printf("for alertmanager addons, you must provide one or more of the fields")
+			return diags
+		}
+		var cm, s, st, c []byte
+		var err error
+
+		if configmap != "" {
+			cm, err = ioutil.ReadFile(configmap)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+		}
+		if configuration != "" {
+			c, err = ioutil.ReadFile(configuration)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+		}
+		if secret != "" {
+			s, err = ioutil.ReadFile(secret)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+		}
+		if statefulset != "" {
+			st, err = ioutil.ReadFile(statefulset)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+		}
+		_, errversion := addon.CreateManagedAddonVersion(d.Get("name").(string), d.Get("versionname").(string), string(cm), string(c), string(s), string(st), project.ID)
+		if err != nil {
+			log.Printf("error While createManageaddonversion %s",errversion.Error() )
+			return diag.FromErr(errversion)
+		}
 	}
 	log.Printf("resource eks cluster created %s", s.ID)
 	d.SetId(s.ID)

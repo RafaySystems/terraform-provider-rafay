@@ -1,9 +1,11 @@
 package rafay
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
+	"os/exec"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
@@ -55,6 +57,10 @@ func resourceImportCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"kube_congif_path": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -67,21 +73,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	var diags diag.Diagnostics
 
 	log.Printf("create import cluster resource")
-	//c := config.GetConfig()
-	//logger := glogger.GetLogger()
 
-	/*YamlConfigFilePath := d.Get("yamlfilepath").(string)
-
-	fileBytes, err := utils.ReadYAMLFileContents(YamlConfigFilePath)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	// split the file and update individual resources
-	y, uerr := utils.SplitYamlAndGetListByKind(fileBytes)
-	if uerr != nil {
-		return diag.FromErr(err)
-	}*/
 	//create imported cluster
 	resp, err := cluster.NewImportCluster(d.Get("name").(string), d.Get("blueprint").(string), d.Get("location").(string), d.Get("projectname").(string))
 	if err != nil {
@@ -109,93 +101,29 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	//then retrieve bootstrap yaml file, call GetBootstrapFile() -> make sure this function downloads the bootstrap file locally (i think the url request does)
-	_, err = cluster.GetBootstrapFile(d.Get("name").(string), project_id)
+	bootsrap_filepath, err := cluster.GetBootstrapFile(d.Get("name").(string), project_id)
 	if err != nil {
 		log.Printf("bootstrap yaml file was not obtained correctly, error %s", err.Error())
 		return diag.FromErr(err)
 	}
 	//figure out how to apply bootstrap yaml file to created cluster STILL NEED TO COMPLETE
+	//add kube_config file as optional schema, call os/exec to cal kubectl apply on the filepath to kube config
+	cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kube_congif_path").(string), "apply", "-f", bootsrap_filepath)
+	var out bytes.Buffer
+
+	cmd.Stdout = &out
+	log.Println("load client", "id", project_id, "command", cmd)
+	err = cmd.Run()
+	if err != nil {
+		log.Println("command", "id", project_id, "error", err, "out", out.String())
+	}
 
 	//set ID for imported cluster id, d.SetID()
 	d.SetId(cluster_resp.ID)
 	return diags
-	/*
-		var rafayConfigs, clusterConfigs [][]byte
-		rafayConfigs = y["Cluster"]
-		clusterConfigs = y["ClusterConfig"]
-		if len(rafayConfigs) > 1 {
-			return diag.FromErr(fmt.Errorf("%s", "only one cluster per config is supported"))
-		}
-		for _, yi := range rafayConfigs {
-			log.Println("rafayConfig:", string(yi))
-			name, project, err := findResourceNameFromConfig(yi)
-			if err != nil {
-				return diag.FromErr(fmt.Errorf("%s", "failed to get cluster name"))
-			}
-			log.Println("rafayConfig name:", name, "project:", project)
-			if name != d.Get("name").(string) {
-				return diag.FromErr(fmt.Errorf("%s", "cluster name does not match config file "))
-			}
-			if project != d.Get("projectname").(string) {
-				return diag.FromErr(fmt.Errorf("%s", "project name does not match config file"))
-			}
-		}
-
-		for _, yi := range clusterConfigs {
-			log.Println("clusterConfig", string(yi))
-			name, _, err := findResourceNameFromConfig(yi)
-			if err != nil {
-				return diag.FromErr(fmt.Errorf("%s", "failed to get cluster name"))
-			}
-			if name != d.Get("name").(string) {
-				return diag.FromErr(fmt.Errorf("%s", "ClusterConfig name does not match config file"))
-			}
-		}
-
-		// get project details
-		resp, err := project.GetProjectByName(d.Get("projectname").(string))
-		if err != nil {
-			fmt.Print("project does not exist")
-			return diags
-		}
-		project, err := project.NewProjectFromResponse([]byte(resp))
-		if err != nil {
-			fmt.Printf("project does not exist")
-			return diags
-		}
-
-		// override config project
-		c.ProjectID = project.ID
-
-		configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
-		if len(errs) > 0 {
-			for _, err := range errs {
-				log.Println("error in collateConfigsByName", err)
-			}
-			return diag.FromErr(fmt.Errorf("%s", "failed in collateConfigsByName"))
-		}
-
-		// Make request
-		for clusterName, configBytes := range configMap {
-			log.Println("create cluster:", clusterName, "config:", string(configBytes), "projectID :", c.ProjectID)
-			if err := clusterctl.Apply(logger, c, clusterName, configBytes, false); err != nil {
-				return diag.FromErr(fmt.Errorf("error performing apply on cluster %s: %s", clusterName, err))
-			}
-		}
-
-		s, err := cluster.GetCluster(d.Get("name").(string), project.ID)
-		if err != nil {
-			log.Printf("error while getCluster %s", err.Error())
-			return diag.FromErr(err)
-		}
-
-		log.Printf("resource eks cluster created %s", s.ID)
-		d.SetId(s.ID)
-	*/
 
 }
 
-//NOT COMPLETE!!!!!
 func resourceImportClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
@@ -274,7 +202,7 @@ func resourceImportClusterDelete(ctx context.Context, d *schema.ResourceData, m 
 		return diags
 	}
 	project_id := p.ID
-
+	//delete cluster once project id is retrieved correctly
 	err = cluster.DeleteCluster(d.Get("name").(string), project_id)
 	if err != nil {
 		fmt.Print("cluster was not deleted")

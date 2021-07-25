@@ -1,4 +1,8 @@
 resource "rafay_import_cluster" "import_cluster" {
-  name        = "dev1"
-  description = "dev1-description"
+  clustername      = "dev1"
+  projectname      = "dev1-description"
+  blueprint        = ""
+  location         = ""
+  kube_config_path = ""
+  description      = ""
 }

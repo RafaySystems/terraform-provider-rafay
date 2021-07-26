@@ -51,7 +51,7 @@ func resourceBluePrint() *schema.Resource {
 		DeleteContext: resourceBluePrintDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
+			Create: schema.DefaultTimeout(10 * time.Minute),
 			Update: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
@@ -138,6 +138,7 @@ func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m inte
 		addons[a.Name] = a.Version
 		addonDependency[a.Name] = a.DependsOn
 	}
+	log.Printf("addon len %d",len(b.Spec.Addons))
 	if b.Spec.Blueprint == "" {
 		fmt.Errorf(" Blueprint name cannot be empty ")
 		return diags
@@ -155,20 +156,26 @@ func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	errCreate := blueprint.CreateBlueprint(b.Spec.Blueprint , project.ID )
 	if errCreate != nil {
-		log.Printf("Error While creating blueprint %s, %s", b.Metadata.Name, errCreate.Error() )
+		log.Printf("Error While creating blueprint %s, %s", b.Spec.Blueprint, errCreate.Error() )
 		return  diag.FromErr(errCreate)
 	}
 	errVersion := blueprint.CreateBlueprintVersion(b.Spec.Blueprint, project.ID, b.Metadata.Name, b.Spec.RafayIngress, addons, addonDependency, b.Spec.PspScope, b.Spec.Psps )
 	if errVersion != nil {
-		log.Printf("Error While creating blueprintversion %s, %s", b.Metadata.Name, errVersion.Error() )
+		log.Printf("Error While creating blueprintversion %s, %s", b.Spec.Blueprint, errVersion.Error() )
 		return diag.FromErr(errVersion)
 	}
-	d.SetId(b.Spec.Blueprint ) 
+	errpublish := blueprint.PublishBlueprint(b.Spec.Blueprint, b.Metadata.Name, project.ID)
+	if errpublish != nil {
+		log.Printf("Error While publish blueprintversion %s, %s", b.Spec.Blueprint, errpublish.Error() )
+                return diag.FromErr(errpublish)
+	}
+	d.SetId(b.Spec.Blueprint )
 	return diags
 }
 
 func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	 log.Printf("Read Blueprint %s", d.Id() )
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
 		fmt.Print("project name missing in the resource")
@@ -202,6 +209,7 @@ func resourceBluePrintUpdate(ctx context.Context, d *schema.ResourceData, m inte
 func resourceBluePrintDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	 log.Printf("Read Blueprint1 %s", d.Get("name").(string) )
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
 		fmt.Print("project  does not exist")

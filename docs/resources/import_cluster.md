@@ -14,10 +14,10 @@ description: |-
 
 ```terraform
 resource "rafay_import_cluster" "import_cluster" {
-  clustername      = "dev1"
-  projectname      = "dev1-description"
-  blueprint        = ""
-  location         = ""
+  clustername      = "terraform-importcluster"
+  projectname      = "dev1-proj"
+  blueprint        = "default"
+  location         = "losangeles-us"
   kube_config_path = ""
   description      = ""
 }
@@ -36,7 +36,7 @@ resource "rafay_import_cluster" "import_cluster" {
 
 - **description** (String)
 - **id** (String) The ID of this resource.
-- **kube_congif_path** (String)
+- **kube_config_path** (String)
 - **location** (String)
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 

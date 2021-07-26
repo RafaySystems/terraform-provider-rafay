@@ -1,8 +1,8 @@
 resource "rafay_import_cluster" "import_cluster" {
-  clustername      = "dev1"
-  projectname      = "dev1-description"
-  blueprint        = ""
-  location         = ""
+  clustername      = "terraform-importcluster"
+  projectname      = "dev1-proj"
+  blueprint        = "default"
+  location         = "losangeles-us"
   kube_config_path = ""
   description      = ""
 }

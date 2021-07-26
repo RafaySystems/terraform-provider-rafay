@@ -28,10 +28,10 @@ type configResourceType struct {
 */
 func resourceImportCluster() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceEKSClusterCreate,
-		ReadContext:   resourceEKSClusterRead,
-		UpdateContext: resourceEKSClusterUpdate,
-		DeleteContext: resourceEKSClusterDelete,
+		CreateContext: resourceImportClusterCreate,
+		ReadContext:   resourceImportClusterRead,
+		UpdateContext: resourceImportClusterUpdate,
+		DeleteContext: resourceImportClusterDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -57,7 +57,7 @@ func resourceImportCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"kube_congif_path": {
+			"kube_config_path": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -75,7 +75,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	log.Printf("create import cluster resource")
 
 	//create imported cluster
-	resp, err := cluster.NewImportCluster(d.Get("name").(string), d.Get("blueprint").(string), d.Get("location").(string), d.Get("projectname").(string))
+	resp, err := cluster.NewImportCluster(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), d.Get("projectname").(string))
 	if err != nil {
 		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
 		return diag.FromErr(err)
@@ -108,7 +108,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	//figure out how to apply bootstrap yaml file to created cluster STILL NEED TO COMPLETE
 	//add kube_config file as optional schema, call os/exec to cal kubectl apply on the filepath to kube config
-	if d.Get("kube_congif_path").(string) != "" {
+	if (d.Get("kube_congif_path").(string)) != "" {
 		cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kube_congif_path").(string), "apply", "-f", bootsrap_filepath)
 		var out bytes.Buffer
 

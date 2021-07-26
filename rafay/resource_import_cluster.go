@@ -73,15 +73,8 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	var diags diag.Diagnostics
 
 	log.Printf("create import cluster resource")
-
-	//create imported cluster
-	resp, err := cluster.NewImportCluster(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), d.Get("projectname").(string))
-	if err != nil {
-		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
-		return diag.FromErr(err)
-	}
-	//get project id with project name, p.id used to refer to project id -> need p.ID for calling getCluster and GetBootstrapFile
-	resp, err = project.GetProjectByName(d.Get("name").(string))
+	//get project id with project name, p.id used to refer to project id -> need p.ID for calling getCluster and GetBootstrapFile and NewImportCluster
+	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
 		log.Printf("project does not exist, error %s", err.Error())
 		return diag.FromErr(err)
@@ -94,22 +87,31 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		return diags
 	}
 	project_id := p.ID
+
+	//create imported cluster
+	resp, err = cluster.NewImportCluster(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id)
+	if err != nil {
+		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
+		return diag.FromErr(err)
+	}
+
 	//make sure new imported cluster was created by calling get cluster and checking for no errors
-	cluster_resp, err := cluster.GetCluster(d.Get("name").(string), project_id)
+	cluster_resp, err := cluster.GetCluster(d.Get("clustername").(string), project_id)
 	if err != nil {
 		log.Printf("imported cluster was not created, error %s", err.Error())
 		return diag.FromErr(err)
 	}
+
 	//then retrieve bootstrap yaml file, call GetBootstrapFile() -> make sure this function downloads the bootstrap file locally (i think the url request does)
-	bootsrap_filepath, err := cluster.GetBootstrapFile(d.Get("name").(string), project_id)
+	bootsrap_filepath, err := cluster.GetBootstrapFile(d.Get("clustername").(string), project_id)
 	if err != nil {
 		log.Printf("bootstrap yaml file was not obtained correctly, error %s", err.Error())
 		return diag.FromErr(err)
 	}
 	//figure out how to apply bootstrap yaml file to created cluster STILL NEED TO COMPLETE
 	//add kube_config file as optional schema, call os/exec to cal kubectl apply on the filepath to kube config
-	if (d.Get("kube_congif_path").(string)) != "" {
-		cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kube_congif_path").(string), "apply", "-f", bootsrap_filepath)
+	if (d.Get("kube_config_path").(string)) != "" {
+		cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kube_config_path").(string), "apply", "-f", bootsrap_filepath)
 		var out bytes.Buffer
 
 		cmd.Stdout = &out
@@ -139,12 +141,12 @@ func resourceImportClusterRead(ctx context.Context, d *schema.ResourceData, m in
 		fmt.Printf("project does not exist")
 		return diags
 	}
-	c, err := cluster.GetCluster(d.Get("name").(string), project.ID)
+	c, err := cluster.GetCluster(d.Get("clustername").(string), project.ID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
 	}
-	if err := d.Set("name", c.Name); err != nil {
+	if err := d.Set("clustername", c.Name); err != nil {
 		log.Printf("get group set name error %s", err.Error())
 		return diag.FromErr(err)
 	}
@@ -157,7 +159,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	log.Printf("update imported cluster resource")
 
 	//retrieve project_id from project name for calling get_cluster
-	resp, err := project.GetProjectByName(d.Get("name").(string))
+	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
 		log.Printf("project does not exist, error %s", err.Error())
 		return diag.FromErr(err)
@@ -171,7 +173,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	project_id := p.ID
 	//retrieve cluster_details from get cluster to pass into update cluster
-	cluster_resp, err := cluster.GetCluster(d.Get("name").(string), project_id)
+	cluster_resp, err := cluster.GetCluster(d.Get("clustername").(string), project_id)
 	if err != nil {
 		log.Printf("imported cluster was not created, error %s", err.Error())
 		return diag.FromErr(err)
@@ -191,7 +193,7 @@ func resourceImportClusterDelete(ctx context.Context, d *schema.ResourceData, m 
 	log.Printf("resource imported cluster delete id %s", d.Id())
 
 	//get project id with project name, p.id used to refer to project id -> need p.ID for calling deleteCluster
-	resp, err := project.GetProjectByName(d.Get("name").(string))
+	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
 		log.Printf("project does not exist, error %s", err.Error())
 		return diag.FromErr(err)
@@ -205,7 +207,7 @@ func resourceImportClusterDelete(ctx context.Context, d *schema.ResourceData, m 
 	}
 	project_id := p.ID
 	//delete cluster once project id is retrieved correctly
-	err = cluster.DeleteCluster(d.Get("name").(string), project_id)
+	err = cluster.DeleteCluster(d.Get("clustername").(string), project_id)
 	if err != nil {
 		fmt.Print("cluster was not deleted")
 		return diags

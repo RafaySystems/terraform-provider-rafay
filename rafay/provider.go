@@ -36,6 +36,8 @@ func New(_ string) func() *schema.Provider {
 				"rafay_groupassociation": resourceGroupAssociation(),
 				"rafay_cloud_credential": resourceCloudCredential(),
 				"rafay_eks_cluster":      resourceEKSCluster(),
+        "rafay_addon":            resourceAddon(),
+
 			},
 			DataSourcesMap: map[string]*schema.Resource{
 				/*

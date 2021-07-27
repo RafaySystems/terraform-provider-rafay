@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"io/ioutil"
 	"os"
+	"strings"
 	"github.com/RafaySystems/rctl/pkg/blueprint"
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/utils"
@@ -71,9 +72,9 @@ func resourceBluePrint() *schema.Resource {
 				Optional: true,
 			},
 			"projectname": {
-                                Type:     schema.TypeString,
-                                Required: true,
-                        },
+                Type:     schema.TypeString,
+                Required: true,
+            },
 		},
 	}
 }
@@ -169,13 +170,17 @@ func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m inte
 		log.Printf("Error While publish blueprintversion %s, %s", b.Spec.Blueprint, errpublish.Error() )
                 return diag.FromErr(errpublish)
 	}
-	d.SetId(b.Spec.Blueprint )
+	d.SetId(b.Spec.Blueprint + "@" + b.Metadata.Name )
 	return diags
 }
 
 func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	 log.Printf("Read Blueprint %s", d.Id() )
+	log.Printf("Read Blueprint %s", d.Id() )
+	s := strings.Split(d.Id(), "@")
+	if len(s) < 2 {
+		return diag.FromErr(fmt.Errorf("Invalid blueprint Id"))
+	}
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
 		fmt.Print("project name missing in the resource")
@@ -187,12 +192,12 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 		fmt.Printf("project does not exist")
 		return diags
 	}
-	_,errGet := blueprint.GetBlueprint(d.Get("name").(string), project.ID )
+	_,errGet := blueprint.GetBlueprint(s[0], project.ID )
 	if errGet != nil {
 		fmt.Printf("error while get blueprint %s", errGet.Error() )
                 return diag.FromErr(errGet)
 	}
-	if err := d.Set("name", d.Get("name").(string) ); err != nil {
+	if err := d.Set("name", s[0] ); err != nil {
 		log.Printf("set name error %s", err.Error())
 		return diag.FromErr(err)
 	}

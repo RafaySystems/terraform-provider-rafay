@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
@@ -94,7 +96,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
 		return diag.FromErr(err)
 	}
-
+	//if error with get cluster add a sleep to wait for cluster creation
 	//make sure new imported cluster was created by calling get cluster and checking for no errors
 	cluster_resp, err := cluster.GetCluster(d.Get("clustername").(string), project_id)
 	if err != nil {
@@ -103,21 +105,39 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	}
 
 	//then retrieve bootstrap yaml file, call GetBootstrapFile() -> make sure this function downloads the bootstrap file locally (i think the url request does)
-	bootsrap_filepath, err := cluster.GetBootstrapFile(d.Get("clustername").(string), project_id)
+	bootsrap_file, err := cluster.GetBootstrapFile(d.Get("clustername").(string), project_id)
 	if err != nil {
 		log.Printf("bootstrap yaml file was not obtained correctly, error %s", err.Error())
 		return diag.FromErr(err)
 	}
+	log.Println("bootstrap_filepath got correctly: \n", bootsrap_file)
+	//write bootstrap file into bootstrap file path
+	f, err := os.Create("bootstrap.yaml")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer f.Close()
+
+	_, err2 := f.WriteString(bootsrap_file)
+
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+	//pass in bootstrap file path into exec command
+	bootstrap_filepath, _ := filepath.Abs("bootstrap.yaml")
 	//figure out how to apply bootstrap yaml file to created cluster STILL NEED TO COMPLETE
 	//add kube_config file as optional schema, call os/exec to cal kubectl apply on the filepath to kube config
 	if (d.Get("kube_config_path").(string)) != "" {
-		cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kube_config_path").(string), "apply", "-f", bootsrap_filepath)
+		cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kube_config_path").(string), "apply", "-f", bootstrap_filepath)
 		var out bytes.Buffer
 
-		cmd.Stdout = &out
+		//cmd.Stdout = &out
 		log.Println("load client", "id", project_id, "command", cmd)
-		err = cmd.Run()
+		b, err := cmd.CombinedOutput()
 		if err != nil {
+			log.Println("kubectl command got messed up: ", string(b))
 			log.Println("command", "id", project_id, "error", err, "out", out.String())
 		}
 	}

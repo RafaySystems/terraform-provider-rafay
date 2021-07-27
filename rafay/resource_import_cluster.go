@@ -18,16 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-/*
-type configMetadata struct {
-	Name    string `yaml:"name"`
-	Project string `yaml:"project"`
-}
-
-type configResourceType struct {
-	Meta *configMetadata `yaml:"metadata"`
-}
-*/
 func resourceImportCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceImportClusterCreate,
@@ -55,11 +45,15 @@ func resourceImportCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"blueprint_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"location": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"kube_config_path": {
+			"kubeconfig_path": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -96,12 +90,23 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
 		return diag.FromErr(err)
 	}
+
+	time.Sleep(10 * time.Second)
 	//if error with get cluster add a sleep to wait for cluster creation
 	//make sure new imported cluster was created by calling get cluster and checking for no errors
 	cluster_resp, err := cluster.GetCluster(d.Get("clustername").(string), project_id)
 	if err != nil {
 		log.Printf("imported cluster was not created, error %s", err.Error())
 		return diag.FromErr(err)
+	}
+
+	if d.Get("blueprint_version").(string) != "" {
+		cluster_resp.ClusterBlueprintVersion = d.Get("blueprint_version").(string)
+		err = cluster.UpdateCluster(cluster_resp)
+		if err != nil {
+			log.Printf("setting cluster blueprint version failed, error %s", err.Error())
+			return diag.FromErr(err)
+		}
 	}
 
 	//then retrieve bootstrap yaml file, call GetBootstrapFile() -> make sure this function downloads the bootstrap file locally (i think the url request does)
@@ -123,21 +128,23 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	_, err2 := f.WriteString(bootsrap_file)
 
 	if err2 != nil {
-		log.Fatal(err2)
+		log.Printf("bootstrap yaml file was not written correctly, error %s", err2.Error())
+		return diag.FromErr(err2)
 	}
 	//pass in bootstrap file path into exec command
 	bootstrap_filepath, _ := filepath.Abs("bootstrap.yaml")
 	//figure out how to apply bootstrap yaml file to created cluster STILL NEED TO COMPLETE
 	//add kube_config file as optional schema, call os/exec to cal kubectl apply on the filepath to kube config
-	if (d.Get("kube_config_path").(string)) != "" {
-		cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kube_config_path").(string), "apply", "-f", bootstrap_filepath)
+	if (d.Get("kubeconfig_path").(string)) != "" {
+		cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kubeconfig_path").(string), "apply", "-f", bootstrap_filepath)
 		var out bytes.Buffer
 
 		//cmd.Stdout = &out
 		log.Println("load client", "id", project_id, "command", cmd)
 		b, err := cmd.CombinedOutput()
 		if err != nil {
-			log.Println("kubectl command got messed up: ", string(b))
+			fmt.Print("failed to apply bootstrap yaml to cluster")
+			log.Println("kubectl command failed to apply bootstrap yaml file", string(b))
 			log.Println("command", "id", project_id, "error", err, "out", out.String())
 		}
 	}
@@ -198,6 +205,14 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 		log.Printf("imported cluster was not created, error %s", err.Error())
 		return diag.FromErr(err)
 	}
+	// read the blueprint name
+	if d.Get("blueprint").(string) != "" {
+		cluster_resp.ClusterBlueprint = d.Get("blueprint").(string)
+	}
+	// read the blueprint version
+	if d.Get("blueprint_version").(string) != "" {
+		cluster_resp.ClusterBlueprintVersion = d.Get("blueprint_version").(string)
+	}
 	//update cluster to send updated cluster details to core
 	err = cluster.UpdateCluster(cluster_resp)
 	if err != nil {
@@ -225,12 +240,14 @@ func resourceImportClusterDelete(ctx context.Context, d *schema.ResourceData, m 
 		d.SetId("")
 		return diags
 	}
+
 	project_id := p.ID
 	//delete cluster once project id is retrieved correctly
 	err = cluster.DeleteCluster(d.Get("clustername").(string), project_id)
 	if err != nil {
 		fmt.Print("cluster was not deleted")
-		return diags
+		log.Printf("cluster was not deleted, error %s", err.Error())
+		return diag.FromErr(err)
 	}
 
 	return diags

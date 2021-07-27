@@ -14,12 +14,13 @@ description: |-
 
 ```terraform
 resource "rafay_import_cluster" "import_cluster" {
-  clustername      = "terraform-importcluster"
-  projectname      = "dev1-proj"
-  blueprint        = "default"
-  location         = "losangeles-us"
-  kube_config_path = "/Users/sougat/Downloads/kubeconfig.txt"
-  description      = ""
+  clustername       = "terraform-importcluster"
+  projectname       = "dev-proj"
+  blueprint         = "default"
+  blueprint_version = ""
+  location          = "losangeles-us"
+  kubeconfig_path   = "<file-path/kubeconfig.yaml>"
+  description       = ""
 }
 ```
 
@@ -34,9 +35,10 @@ resource "rafay_import_cluster" "import_cluster" {
 
 ### Optional
 
+- **blueprint_version** (String)
 - **description** (String)
 - **id** (String) The ID of this resource.
-- **kube_config_path** (String)
+- **kubeconfig_path** (String)
 - **location** (String)
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 

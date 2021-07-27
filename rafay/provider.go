@@ -36,19 +36,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_eks_cluster":      resourceEKSCluster(),
 				"rafay_import_cluster":   resourceImportCluster(),
 			},
-			DataSourcesMap: map[string]*schema.Resource{
-				/*
-					"rafay_apikey":            dataSourceUser(),
-					"rafay_project":           dataSourceProject(),
-					"rafay_group":             dataSourceGroup(),
-					"rafay_cluster_blueprint": dataSourceClusterBlueprint(),
-
-					"rafay_cloudaccount_aws":     dataSourceCloudAccountAws(),
-					"rafay_cloudaccount_azure":   dataSourceCloudAccountAzure(),
-					"rafay_cloudaccount_gcp":     dataSourceCloudAccountGcp(),
-					"rafay_cloudaccount_vsphere": dataSourceCloudAccountVsphere(),
-				*/
-			},
+			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,
 		}
 

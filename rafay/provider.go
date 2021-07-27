@@ -5,7 +5,9 @@ import (
 	"crypto/tls"
 	"log"
 	"net/http"
+	"os/user"
 	"path/filepath"
+	"strings"
 
 	rctlconfig "github.com/RafaySystems/rctl/pkg/config"
 	rctlcontext "github.com/RafaySystems/rctl/pkg/context"
@@ -29,30 +31,13 @@ func New(_ string) func() *schema.Provider {
 				},
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"rafay_project": resourceProject(),
-				"rafay_group":   resourceGroup(),
-				"rafay_cloud_credential":	resourceCloudCredential(),
-				"rafay_eks_cluster":	resourceEKSCluster(),
-				"rafay_addon": resourceAddon(),
-				/*
+				"rafay_project":          resourceProject(),
+				"rafay_group":            resourceGroup(),
+				"rafay_groupassociation": resourceGroupAssociation(),
+				"rafay_cloud_credential": resourceCloudCredential(),
+				"rafay_eks_cluster":      resourceEKSCluster(),
+        "rafay_addon":            resourceAddon(),
 
-					"rafay_cluster_blueprint": resourceClusterBlueprint(),
-
-					"rafay_cloudaccount_aws": resourceCloudAccountAws(),
-					"rafay_cluster_aws":      resourceClusterAws(),
-
-					"rafay_cluster_eks": resourceClusterEks(),
-
-					"rafay_cloudaccount_azure": resourceCloudAccountAzure(),
-					"rafay_cluster_azure":      resourceClusterAzure(),
-
-					"rafay_cloudaccount_gcp": resourceCloudAccountGcp(),
-					"rafay_cluster_gcp":      resourceClusterGcp(),
-
-					"rafay_cluster_mks": resourceClusterMks(),
-
-					"rafay_cluster_import": resourceClusterImport(),
-				*/
 			},
 			DataSourcesMap: map[string]*schema.Resource{
 				/*
@@ -74,18 +59,50 @@ func New(_ string) func() *schema.Provider {
 	}
 }
 
+func expandHomeDir(path string) (string, error) {
+	if len(path) == 0 || path[0] != '~' {
+		return path, nil
+	}
+
+	usr, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(usr.HomeDir, path[1:]), nil
+}
+
 func providerConfigure(ctx context.Context, rd *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
 	config_file := rd.Get("provider_config_file").(string)
 	ignoreTlsError := rd.Get("ignore_insecure_tls_error").(bool)
 
 	log.Printf("rafay provider config file %s", config_file)
-	var diags diag.Diagnostics
-
-	configPath := filepath.Dir(config_file)
-	fileName := filepath.Base(config_file)
 	cliCtx := rctlcontext.GetContext()
-	cliCtx.ConfigFile = fileName
-	cliCtx.ConfigDir = configPath
+	if config_file != "" {
+		var err error
+
+		config_file = strings.TrimSpace(config_file)
+		if config_file[0] == '~' {
+			config_file, err = expandHomeDir(config_file)
+		} else {
+			config_file, err = filepath.Abs(config_file)
+		}
+
+		if err == nil {
+			log.Printf("rafay provider config file absolute path %s", config_file)
+			configPath := filepath.Dir(config_file)
+			fileName := filepath.Base(config_file)
+			cliCtx.ConfigFile = fileName
+			cliCtx.ConfigDir = configPath
+		} else {
+			log.Println("failed to get rafay provider config absolute path error:", err)
+			log.Println("provider will use default config file ~/.rafay/cli/config.json")
+		}
+	} else {
+		log.Println("provider will use default config file ~/.rafay/cli/config.json")
+	}
+
 	err := rctlconfig.InitConfig(cliCtx)
 
 	if err != nil {

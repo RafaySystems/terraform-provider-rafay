@@ -1,5 +1,5 @@
 resource "rafay_eks_cluster" "cluster" {
-  name         = "demo-terraform2"
-  projectname  = "dev3"
+  name         = "demo-terraform"
+  projectname  = "dev"
   yamlfilepath = "<file-path/eks-cluster.yaml>"
 }

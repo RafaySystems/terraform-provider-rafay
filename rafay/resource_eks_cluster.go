@@ -170,18 +170,19 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 		}
 	}
 
-        // get project details
-        resp, err := project.GetProjectByName(d.Get("projectname").(string))
-        if err != nil {
-                fmt.Print("project does not exist")
-                return diags
-        }
-        project, err := project.NewProjectFromResponse([]byte(resp))
-        if err != nil {
-                fmt.Printf("project does not exist")
-                return diags
-        }
+	// get project details
+	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	if err != nil {
+		fmt.Print("project does not exist")
+		return diags
+	}
+	project, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		fmt.Printf("project does not exist")
+		return diags
+	}
 
+	// override config project
 	c.ProjectID = project.ID
 
 	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
@@ -191,9 +192,10 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 		}
 		return diag.FromErr(fmt.Errorf("%s", "failed in collateConfigsByName"))
 	}
+
 	// Make request
 	for clusterName, configBytes := range configMap {
-		log.Println("create cluster:", clusterName, "config:", string(configBytes),"projectID :",c.ProjectID)
+		log.Println("create cluster:", clusterName, "config:", string(configBytes), "projectID :", c.ProjectID)
 		if err := clusterctl.Apply(logger, c, clusterName, configBytes, false); err != nil {
 			return diag.FromErr(fmt.Errorf("error performing apply on cluster %s: %s", clusterName, err))
 		}
@@ -230,9 +232,9 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	if err := d.Set("name", c.Name); err != nil {
-                log.Printf("get group set name error %s", err.Error())
-                return diag.FromErr(err)
-        }
+		log.Printf("get group set name error %s", err.Error())
+		return diag.FromErr(err)
+	}
 
 	return diags
 }

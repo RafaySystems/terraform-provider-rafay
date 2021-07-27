@@ -2,7 +2,7 @@ terraform {
   required_providers {
     rafay = {
       version = ">= 0.1"
-      source  = "rafay/rafay"
+      source  = "RafaySystems/rafay"
     }
   }
 }

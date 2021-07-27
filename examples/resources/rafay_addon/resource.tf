@@ -7,8 +7,8 @@ resource "rafay_addon" "addon" {
   chartfile   = ""
   valuesfile  = ""
   versionname = "v2"
-  configmap   = "/Users/krishna/Downloads/alertmanager-configMap.yaml"
-  configuration = "/Users/krishna/Downloads/alertmanager-configuration.yaml"
-  secret      = "/Users/krishna/Downloads/alertmanager-secret.yaml"
-  statefulset = "/Users/krishna/Downloads/alertmanager-statefulSet.yaml"
+  configmap   = "<file-path/alertmanager-configMap.yaml>"
+  configuration = "<file-path/alertmanager-configuration.yaml>"
+  secret      = "<file-path/alertmanager-secret.yaml>"
+  statefulset = "<file-path/alertmanager-statefulSet.yaml>"
 }

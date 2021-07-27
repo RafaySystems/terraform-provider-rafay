@@ -31,42 +31,15 @@ func New(_ string) func() *schema.Provider {
 				},
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"rafay_project": resourceProject(),
-				"rafay_group":   resourceGroup(),
-				"rafay_cloud_credential":	resourceCloudCredential(),
-				"rafay_eks_cluster":	resourceEKSCluster(),
+				"rafay_project":          resourceProject(),
+				"rafay_group":            resourceGroup(),
+				"rafay_groupassociation": resourceGroupAssociation(),
+				"rafay_cloud_credential": resourceCloudCredential(),
+				"rafay_eks_cluster":      resourceEKSCluster(),
 				"rafay_addon":            resourceAddon(),
-				"rafay_blueprint": resourceBluePrint(),
-				/*
-
-					"rafay_cluster_blueprint": resourceClusterBlueprint(),
-
-					"rafay_cloudaccount_aws": resourceCloudAccountAws(),
-					"rafay_cluster_aws":      resourceClusterAws(),
-
-					"rafay_cluster_eks": resourceClusterEks(),
-
-					"rafay_cloudaccount_azure": resourceCloudAccountAzure(),
-					"rafay_cluster_azure":      resourceClusterAzure(),
-
-					"rafay_cloudaccount_gcp": resourceCloudAccountGcp(),
-					"rafay_cluster_gcp":      resourceClusterGcp(),
-        */
-
+				"rafay_blueprint":        resourceBluePrint(),
 			},
-			DataSourcesMap: map[string]*schema.Resource{
-				/*
-					"rafay_apikey":            dataSourceUser(),
-					"rafay_project":           dataSourceProject(),
-					"rafay_group":             dataSourceGroup(),
-					"rafay_cluster_blueprint": dataSourceClusterBlueprint(),
-
-					"rafay_cloudaccount_aws":     dataSourceCloudAccountAws(),
-					"rafay_cloudaccount_azure":   dataSourceCloudAccountAzure(),
-					"rafay_cloudaccount_gcp":     dataSourceCloudAccountGcp(),
-					"rafay_cloudaccount_vsphere": dataSourceCloudAccountVsphere(),
-				*/
-			},
+			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,
 		}
 

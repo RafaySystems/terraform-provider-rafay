@@ -38,6 +38,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_eks_cluster":      resourceEKSCluster(),
 				"rafay_addon":            resourceAddon(),
 				"rafay_blueprint":        resourceBluePrint(),
+        "rafay_import_cluster":   resourceImportCluster(),
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,

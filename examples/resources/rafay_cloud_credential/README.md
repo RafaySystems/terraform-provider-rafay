@@ -2,7 +2,7 @@
 For Cluster-Provisioning with AccessKey
   1.AWS :
     required items in resource.tf
-      -> name  = ""    , cloudProvider Name.
+      -> name  = "NewName"    , cloudProvider Name.
       -> projectname = "defaultproject".
       -> type  = "cluster-provisioning"
       -> providertype = "AWS".

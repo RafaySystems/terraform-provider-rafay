@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"io/ioutil"
 
 	"github.com/RafaySystems/rctl/pkg/cloudprovider"
 	"github.com/RafaySystems/rctl/pkg/project"
@@ -42,17 +43,37 @@ func resourceCloudCredential() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"providertype": {
+				Type:	 schema.TypeString,
+				Required: true,
+			},
 			"rolearn": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 			"credtype": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"externalid": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"type": {
+				Type:	  schema.TypeString,
+				Required: true,
+			},
+			"accesskey": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"secretkey": {
+				Type:	  schema.TypeString,
+				Required: true,
+			},
+			"credfile": {
+				Type:	schema.TypeString,
+				Required: true,
 			},
 		},
 	}
@@ -72,15 +93,64 @@ func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, 
 		fmt.Printf("project does not exist")
 		return diags
 	}
-
-	log.Printf("create cloud credential with name %s, %s", d.Get("name").(string), project.ID)
-	s, err := cloudprovider.CreateAWSCloudRoleCredentials(d.Get("name").(string), project.ID, d.Get("rolearn").(string), d.Get("externalid").(string), 1)
-	if err != nil {
-		log.Printf("create cloud credential error %s", err.Error())
-		return diag.FromErr(err)
+	if d.Get("type").(string) == "cluster-provisioning" {
+		if d.Get("providertype").(string) == "AWS" {
+			if d.Get("credtype").(string)  == "rolearn" {
+				log.Printf("create cloud credential with name %s, %s", d.Get("name").(string), project.ID)
+				s, err := cloudprovider.CreateAWSCloudRoleCredentials(d.Get("name").(string), project.ID, d.Get("rolearn").(string), d.Get("externalid").(string), 1 )
+				if err != nil {
+					log.Printf("create cloud credential error %s", err.Error())
+					return diag.FromErr(err)
+				}
+				d.SetId(s.ID)
+			} else {
+				s, err := cloudprovider.CreateAWSCloudAccessKeyCredentials(d.Get("name").(string), project.ID, d.Get("accesskey").(string), d.Get("secretkey").(string), "", 0 )
+				if err != nil {
+					log.Printf("create cloud credential error %s", err.Error())
+					return diag.FromErr(err)
+                                }
+				d.SetId(s.ID)
+			}
+		} else if d.Get("providertype").(string) == "GCP" {
+			credFile := d.Get("credfile").(string)
+			byteContents, err := ioutil.ReadFile(credFile)
+			if err != nil {
+				log.Printf("Error while reading GCP jsonfile  %s", err.Error())
+				return diag.FromErr(err)
+			}
+			s,err := cloudprovider.CreateGCPCloudRoleCredentials(d.Get("name").(string),project.ID, string(byteContents))
+			if err != nil {
+				log.Printf("Error while creatGCPRole()  %s", err.Error())
+				return diag.FromErr(err)
+			}
+			d.SetId(s.ID)
+		} else {
+			log.Printf("error provider name is not correct")
+			return diags
+		}
+	} else if d.Get("type").(string) == "data-backup" {
+		if d.Get("providertype").(string) == "MINIO" {
+			if d.Get("credtype").(string) == "rolearn" {
+				s, err := cloudprovider.CreateMinioCloudRoleCredentials(d.Get("name").(string), project.ID , d.Get("rolearn").(string) , d.Get("externalid").(string))
+				if err  != nil {
+					log.Printf("create cloud credential error %s", err.Error())
+					return diag.FromErr(err)
+				}
+				d.SetId(s.ID)
+			} else {
+				s, err := cloudprovider.CreateMinioCloudAccessKeyCredentials(d.Get("name").(string), project.ID , d.Get("accesskey").(string) , d.Get("secretkey").(string) , "")
+				if err  != nil {
+					log.Printf("create cloud credential error %s", err.Error())
+					return diag.FromErr(err)
+				}
+				d.SetId(s.ID)
+			}
+		}
+	} else {
+		log.Printf("type is not correct ( cluster-provisioning or data-backup")
+		return diags
 	}
-	log.Printf("resource cloud credential created %s", s.ID)
-	d.SetId(s.ID)
+	log.Printf("resource cloud credential created ")
 
 	return diags
 }

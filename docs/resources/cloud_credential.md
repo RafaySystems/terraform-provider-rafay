@@ -14,16 +14,16 @@ description: |-
 
 ```terraform
 resource "rafay_cloud_credential" "credential" {
-  name         = "testingaws2"
+  name         = "testinggcp2"
   projectname  = "dev3"
   description  = "description"
   providertype = "GCP"
-  rolearn      = "xxxxxxx"
+  rolearn      = ""
   credtype     = "access"
-  externalid   = "yyyyyy"
+  externalid   = ""
   type         = "cluster-provisioning"
-  accesskey    = "12334234"
-  secretkey    = "sdfkls"
+  accesskey    = ""
+  secretkey    = ""
   credfile     = "/Users/krishna/Downloads/Neridiosys-shreekrishna@rafay.co.json"
 }
 ```
@@ -33,21 +33,21 @@ resource "rafay_cloud_credential" "credential" {
 
 ### Required
 
-- **accesskey** (String)
-- **credfile** (String)
 - **credtype** (String)
 - **name** (String)
 - **projectname** (String)
 - **providertype** (String)
-- **rolearn** (String)
-- **secretkey** (String)
 - **type** (String)
 
 ### Optional
 
+- **accesskey** (String)
+- **credfile** (String)
 - **description** (String)
 - **externalid** (String)
 - **id** (String) The ID of this resource.
+- **rolearn** (String)
+- **secretkey** (String)
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 <a id="nestedblock--timeouts"></a>

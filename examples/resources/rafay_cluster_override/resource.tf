@@ -3,5 +3,4 @@ resource "rafay_groupassociation" "groupassociation" {
   projectname    = "dev1-proj"
   cluster_override_filepath      = "PROJECT_READ_ONLY"
 }
-#avaliable roles: ["ADMIN", "PROJECT_ADMIN", "PROJECT_READ_ONLY", "INFRA_ADMIN", "INFRA_READ_ONLY", "NAMESPACE_READ_ONLY", "NAMESPACE_ADMIN"]
-#avaliable namespaces as for your configuration, only provide when selected roles are namespace options
+#cluster_override_filepath is the local filepath to the override.yaml file we want to add 

@@ -188,7 +188,7 @@ func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData,
 	var namespace []string
 	//schema List returns interface
 	//convert roles interface to passable list for function
-	rolesList := d.Get("roles").(*schema.Set).List()
+	rolesList := d.Get("roles").([]interface{})
 	roles := make([]string, len(rolesList))
 	for i, raw := range rolesList {
 		roles[i] = raw.(string)

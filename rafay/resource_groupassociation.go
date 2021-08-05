@@ -82,7 +82,7 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 	//create group association
 	log.Printf("resource group assocation create %s", d.Get("group").(string))
 	log.Println("roles: ", roles, "namespace: ", namespace)
-	err := commands.CreateGroupAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace)
+	err := commands.CreateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace)
 	if err != nil {
 		log.Printf("create group association error %s", err.Error())
 		return diag.FromErr(err)
@@ -188,7 +188,7 @@ func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData,
 	var namespace []string
 	//schema List returns interface
 	//convert roles interface to passable list for function
-	rolesList := d.Get("roles").(*schema.Set).List()
+	rolesList := d.Get("roles").([]interface{})
 	roles := make([]string, len(rolesList))
 	for i, raw := range rolesList {
 		roles[i] = raw.(string)
@@ -214,7 +214,7 @@ func resourceGroupAssociationDelete(ctx context.Context, d *schema.ResourceData,
 	//delete association with group name and project name
 	//both should be parsed correctly from the response in read function
 	log.Printf("group name: %s, project name: %s", d.Get("group").(string), d.Get("project").(string))
-	err := commands.DeleteGroupAssociation(nil, d.Get("group").(string), d.Get("project").(string))
+	err := commands.DeleteProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string))
 	if err != nil {
 		log.Printf("delete group error %s", err.Error())
 		return diag.FromErr(err)

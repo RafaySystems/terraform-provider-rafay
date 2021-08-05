@@ -51,8 +51,8 @@ func resourceClusterOverrideCreate(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 	filePath := d.Get("cluster_override_filepath").(string)
 	var co commands.ClusterOverrideYamlConfig
+	//make sure this is the correct file path
 	log.Println("filepath: ", filePath)
-
 	log.Printf("create cluster override resource")
 	//get project id with project name, p.id used to refer to project id -> need p.ID for calling createClusterOverride and getClusterOverride
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
@@ -71,22 +71,17 @@ func resourceClusterOverrideCreate(ctx context.Context, d *schema.ResourceData, 
 	//open file path and retirve config spec from yaml file (from run function in commands/create_cluster_override.go)
 	//read and capture file from file path
 	if f, err := os.Open(filePath); err == nil {
-		// capture the entire file
 		c, err := ioutil.ReadAll(f)
-		//log.GetLogger().Debugf("file is:\n%s", c)
 		if err != nil {
 			log.Println("error cpaturing file")
 		}
-
 		//implement createClusterOverride from commands/create_cluster_override.go -> then call clusteroverride.CreateClusterOverride
 		clusterOverrideDefinition := c
-
 		err = yaml.Unmarshal(clusterOverrideDefinition, &co)
 		if err != nil {
 			log.Printf("Failed Unmarshal correctly")
 		}
-
-		// check if project is provided
+		//get cluster override spec from yaml file
 		spec, err := getClusterOverrideSpecFromYamlConfigSpec(co, filePath)
 		if err != nil {
 			log.Printf("Failed to get ClusterOverrideSpecFromYamlConfigSpec")
@@ -98,22 +93,16 @@ func resourceClusterOverrideCreate(ctx context.Context, d *schema.ResourceData, 
 		} else {
 			log.Printf("Successfully created cluster override: %s\n", co.Metadata.Name)
 		}
-
 	} else {
 		log.Println("Couldn't open file, err: ", err)
 	}
-
-	//retrieve cotype variable (must change) -> format cluster_override_spec to access Type variable
-
 	//get cluster override to ensure cluster override was created properly
-
 	getClus_resp, err := clusteroverride.GetClusterOverride(co.Metadata.Name, projectId, co.Spec.Type)
 	if err != nil {
 		log.Println("get cluster override failed: ", getClus_resp, err)
 	} else {
 		log.Println("got newly created cluster override: ", co.Metadata.Name)
 	}
-
 	//set id to metadata.Name
 	d.SetId(co.Metadata.Name)
 	return diags
@@ -123,8 +112,6 @@ func resourceClusterOverrideRead(ctx context.Context, d *schema.ResourceData, m 
 	var diags diag.Diagnostics
 	filePath := d.Get("cluster_override_filepath").(string)
 	var co commands.ClusterOverrideYamlConfig
-	log.Println("filepath: ", filePath)
-
 	log.Printf("create cluster override resource")
 	//get project id with project name, p.id used to refer to project id -> need p.ID for calling createClusterOverride and getClusterOverride
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
@@ -154,8 +141,7 @@ func resourceClusterOverrideRead(ctx context.Context, d *schema.ResourceData, m 
 		if err != nil {
 			log.Printf("Failed Unmarshal correctly")
 		}
-
-		// check if project is provided
+		//get cluster override spec from yaml file
 		_, err = getClusterOverrideSpecFromYamlConfigSpec(co, filePath)
 		if err != nil {
 			log.Printf("Failed to get ClusterOverrideSpecFromYamlConfigSpec")
@@ -178,7 +164,6 @@ func resourceClusterOverrideUpdate(ctx context.Context, d *schema.ResourceData, 
 	log.Printf("update cluster override resource")
 	filePath := d.Get("cluster_override_filepath").(string)
 	createIfNotPresent := false //this is how it is set in commands/update_cluster_override
-
 	//retrieve project_id from project name
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
@@ -193,16 +178,14 @@ func resourceClusterOverrideUpdate(ctx context.Context, d *schema.ResourceData, 
 	}
 	project_id := p.ID
 	//update cluster implemented from commmands/update_cluster_override -> will call UpdateClusterOverride from cluster_override.go
-	// open file and unmarshal the data
+	// open and read file then unmarshal the data
 	if f, err := os.Open(filePath); err == nil {
 		// capture the entire file
 		c, err := ioutil.ReadAll(f)
-		//log.GetLogger().Debugf("file is:\n%s", c)
 		if err != nil {
 			log.Println("error reading file")
 			return diags
 		}
-
 		clusterOverrideDefinition := c
 		var co commands.ClusterOverrideYamlConfig
 		err = yaml.Unmarshal(clusterOverrideDefinition, &co)
@@ -210,7 +193,7 @@ func resourceClusterOverrideUpdate(ctx context.Context, d *schema.ResourceData, 
 			log.Println("error unmarshalling Cluster Override")
 			return diags
 		}
-		// check if project is provided
+		// get cluster override spec from yaml file
 		spec, err := getClusterOverrideSpecFromYamlConfigSpec(co, filePath)
 		if err != nil {
 			log.Println("error getting Cluster Override Spec From Yaml Config Spec")
@@ -224,9 +207,7 @@ func resourceClusterOverrideUpdate(ctx context.Context, d *schema.ResourceData, 
 		} else {
 			log.Printf("Successfully created/updated cluster override: %s\n", co.Metadata.Name)
 		}
-
 		return diags
-
 	} else {
 		log.Println("error opening file")
 		return diags
@@ -238,7 +219,6 @@ func resourceClusterOverrideDelete(ctx context.Context, d *schema.ResourceData, 
 	log.Printf("resource cluster override delete id %s", d.Id())
 	var co commands.ClusterOverrideYamlConfig
 	filePath := d.Get("cluster_override_filepath").(string)
-
 	//get project id with project name, p.id used to refer to project id -> need p.ID for calling deleteClusterOverride
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
@@ -252,26 +232,20 @@ func resourceClusterOverrideDelete(ctx context.Context, d *schema.ResourceData, 
 		d.SetId("")
 		return diags
 	}
-
 	project_id := p.ID
 	//open, read, and unmarshal file to retrieve ClusterOverrideYamlConfig Struct to pass in type for delete cluster
 	if f, err := os.Open(filePath); err == nil {
-		// capture the entire file
 		c, err := ioutil.ReadAll(f)
-		//log.GetLogger().Debugf("file is:\n%s", c)
 		if err != nil {
 			log.Println("error cpaturing file")
 		}
-
-		//implement createClusterOverride from commands/create_cluster_override.go -> then call clusteroverride.CreateClusterOverride
 		clusterOverrideDefinition := c
-
 		err = yaml.Unmarshal(clusterOverrideDefinition, &co)
 		if err != nil {
 			log.Printf("Failed Unmarshal correctly")
 		}
 	}
-	//format cluster_override_spec to access Type variable
+	//delete cluster override
 	err = clusteroverride.DeleteClusterOverride(co.Metadata.Name, project_id, co.Spec.Type)
 	if err != nil {
 		fmt.Print("cluster was not deleted")

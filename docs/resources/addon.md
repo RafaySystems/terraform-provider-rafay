@@ -14,18 +14,18 @@ description: |-
 
 ```terraform
 resource "rafay_addon" "addon" {
-  name          = "testing2"
+  name          = "testing6a"
   projectname   = "dev3"
   namespace     = "testing"
-  addontype     = "alertmanager"
-  yamlfilepath  = "<file-path/addon.yml>"
-  chartfile     = ""
-  valuesfile    = ""
+  addontype     = "helm3"
+  yamlfilepath  = ""
+  chartfile     = "/Users/krishna/Downloads/velero-2.13.6.tgz"
+  valuesfile    = "/Users/krishna/Downloads/gh-custom-values.yml"
   versionname   = "v2"
-  configmap     = "<file-path/alertmanager-configMap.yaml>"
-  configuration = "<file-path/alertmanager-configuration.yaml>"
-  secret        = "<file-path/alertmanager-secret.yaml>"
-  statefulset   = "<file-path/alertmanager-statefulSet.yaml>"
+  configmap     = ""
+  configuration = ""
+  secret        = ""
+  statefulset   = ""
 }
 ```
 
@@ -35,22 +35,22 @@ resource "rafay_addon" "addon" {
 ### Required
 
 - **addontype** (String)
-- **chartfile** (String)
 - **name** (String)
-- **namespace** (String)
 - **projectname** (String)
-- **valuesfile** (String)
 - **versionname** (String)
-- **yamlfilepath** (String)
 
 ### Optional
 
+- **chartfile** (String)
 - **configmap** (String)
 - **configuration** (String)
 - **id** (String) The ID of this resource.
+- **namespace** (String)
 - **secret** (String)
 - **statefulset** (String)
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- **valuesfile** (String)
+- **yamlfilepath** (String)
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

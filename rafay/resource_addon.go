@@ -32,19 +32,11 @@ func resourceAddon() *schema.Resource {
 
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
-			"yamlfilepath": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 			"projectname": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"namespace": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -56,13 +48,21 @@ func resourceAddon() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"namespace": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"yamlfilepath": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"chartfile": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"valuesfile": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"configmap": {
 				Type:     schema.TypeString,
@@ -102,28 +102,37 @@ func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interfac
 		fmt.Printf("project does not exist")
 		return diag.FromErr(err)
 	}
-	if d.Get("addontype").(string) == "nativeYaml" {
+	if d.Get("addontype").(string) == "yaml" {
+		if d.Get("namespace").(string) == "" {
+			return diag.FromErr(fmt.Errorf("namespace cannot be empty for yaml "))
+		}
 		_, errCreate := addon.CreateAddon(d.Get("namespace").(string), d.Get("name").(string), project.ID, "NativeYaml")
 		if errCreate != nil {
-			log.Printf("Error while CreateAddon %s", err.Error())
+			log.Printf("Error while CreateAddon %s", errCreate.Error())
 			return diag.FromErr(errCreate)
 		}
 	} else if d.Get("addontype").(string) == "helm" {
+		if d.Get("namespace").(string) == "" {
+			return diag.FromErr(fmt.Errorf("namespace cannot be empty for helm"))
+		}
 		_, errCreate := addon.CreateAddon(d.Get("namespace").(string), d.Get("name").(string), project.ID, "Helm")
 		if errCreate != nil {
-			log.Printf("Error while CreateAddon %s", err.Error())
+			log.Printf("Error while CreateAddon %s", errCreate.Error())
 			return diag.FromErr(errCreate)
 		}
 	} else if d.Get("addontype").(string) == "helm3" {
-		_, errCreate := addon.CreateAddon(d.Get("namespace").(string), d.Get("name").(string), project.ID, "Helm3")
+		if d.Get("namespace").(string) == "" {
+			return diag.FromErr(fmt.Errorf("namespace cannot be empty for helm3"))
+		}
+		_, errCreate := addon.CreateAddon(d.Get("namespace").(string), d.Get("name").(string), project.ID, "NativeHelm")
 		if errCreate != nil {
-			log.Printf("Error while CreateAddon %s", err.Error())
+			log.Printf("Error while CreateAddon %s", errCreate.Error())
 			return diag.FromErr(errCreate)
 		}
 	} else if d.Get("addontype").(string) == "alertmanager" {
 		_, errCreate := addon.CreateManagedAddon(d.Get("name").(string), project.ID)
 		if errCreate != nil {
-			log.Printf("Error while CreateManageaddon %s", err.Error())
+			log.Printf("Error while CreateManageaddon %s", errCreate.Error())
 			return diag.FromErr(errCreate)
 		}
 	} else {

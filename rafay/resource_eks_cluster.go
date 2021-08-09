@@ -55,6 +55,22 @@ func resourceEKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"blueprintflag": {
+				Type:	  schema.TypeString,
+				Optional: true,
+			},
+			"alertflag": {
+				Type: 	  schema.TypeString,
+				Optional: true,
+			},
+			"blueprintname": {
+				Type:	  schema.TypeString,
+				Optional: true,
+			},
+			"blueprintversion": {
+				Type:	  schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -242,7 +258,59 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("update EKS cluster resource")
-	return diags
+
+        resp, err := project.GetProjectByName(d.Get("projectname").(string))
+        if err != nil {
+                log.Printf("project does not exist, error %s", err.Error())
+                return diag.FromErr(err)
+        }
+        p, err := project.NewProjectFromResponse([]byte(resp))
+        if err != nil {
+                return diag.FromErr(err)
+        } else if p == nil {
+                d.SetId("")
+                return diags
+        }
+        project_id := p.ID
+        //retrieve cluster_details from get cluster to pass into update cluster
+        cluster_resp, err := cluster.GetCluster(d.Get("name").(string), project_id)
+        if err != nil {
+                log.Printf("imported cluster was not created, error %s", err.Error())
+                return diag.FromErr(err)
+        }
+
+	if  d.Get("blueprintflag").(string) == "1" {
+		// read the blueprint name 
+		log.Printf("cluster blueprint  %s", cluster_resp.ClusterBlueprint)
+		if d.Get("blueprintname").(string) != "" {
+			cluster_resp.ClusterBlueprint = d.Get("blueprintname").(string)
+		}
+		// read the blueprint version
+		log.Printf("cluster blueprint version  %s", cluster_resp.ClusterBlueprintVersion)
+		if d.Get("blueprintversion").(string) != "" {
+		        cluster_resp.ClusterBlueprintVersion = d.Get("blueprintversion").(string)
+		}
+		//update cluster to send updated cluster details to core
+		err = cluster.UpdateCluster(cluster_resp)
+		if err != nil {
+			log.Printf("cluster was not updated, error %s", err.Error())
+			return diag.FromErr(err)
+		}
+		err = cluster.PublishClusterBlueprint(d.Get("name").(string), project_id)
+		if err  != nil {
+			log.Printf("cluster was not published, error %s", err.Error())
+			return diag.FromErr(err)
+		}
+	}
+
+	if d.Get("alertflag").(string) == "1" {
+		erralert := cluster.UpdateClusterAlertNotification( cluster_resp, true, false)
+		if erralert != nil {
+			log.Printf("cluster was not updated for alertNotification, error %s", erralert.Error())
+                        return diag.FromErr(erralert)
+		}
+	}
+        return diags
 }
 
 func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

@@ -18,6 +18,7 @@ resource "rafay_groupassociation" "groupassociation" {
   project    = "dev1-proj"
   roles      = ["PROJECT_READ_ONLY"]
   namespaces = []
+  users      = ["sougat@rafay.co"]
 }
 #avaliable roles: ["ADMIN", "PROJECT_ADMIN", "PROJECT_READ_ONLY", "INFRA_ADMIN", "INFRA_READ_ONLY", "NAMESPACE_READ_ONLY", "NAMESPACE_ADMIN"]
 #avaliable namespaces as for your configuration, only provide when selected roles are namespace options
@@ -37,6 +38,7 @@ resource "rafay_groupassociation" "groupassociation" {
 - **id** (String) The ID of this resource.
 - **namespaces** (List of String)
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- **users** (List of String)
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

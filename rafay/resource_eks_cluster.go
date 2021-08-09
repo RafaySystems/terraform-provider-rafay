@@ -225,6 +225,7 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 			if strings.Contains(check.Provision.Status, "FAILED") {
 				return diag.FromErr(fmt.Errorf("Failed to create cluster while cluster provisioning"))
 			}
+			time.Sleep(40 * time.Second)
 		}
 	}
 

@@ -55,6 +55,12 @@ func resourceGroupAssociation() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+			"users": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
@@ -78,7 +84,6 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 			namespace[i] = raw.(string)
 		}
 	}
-
 	//create group association
 	log.Printf("resource group assocation create %s", d.Get("group").(string))
 	log.Println("roles: ", roles, "namespace: ", namespace)
@@ -118,6 +123,23 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 	} else if p == nil {
 		d.SetId("")
 		return diags
+	}
+	//create user association to group if users are included in resources 
+	if d.Get("users") != nil {
+		//convert users interface to passable list for function create
+		usersList := d.Get("users").([]interface{})
+		users = make([]string, len(userseList))
+		for i, raw := range usersList {
+			users[i] = raw.(string)
+		}
+		//call create user association 
+		err = commands.CreateUserAssociation(nil, d.Get("group").(string), users)
+		if err != nil{
+			log.Println("user association DID NOT WORK")
+		} else {
+			log.Println("user association was created properly to group")
+		}
+
 	}
 	//creating association id by combining group and project id
 	d.SetId(currGroup.ID + "-" + p.ID)

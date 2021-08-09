@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"strings"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/clusterctl"
@@ -54,6 +55,10 @@ func resourceEKSCluster() *schema.Resource {
 			"projectname": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"waitflag": {
+				Type:	  schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -205,6 +210,22 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 	if err != nil {
 		log.Printf("error while getCluster %s", err.Error())
 		return diag.FromErr(err)
+	}
+	if d.Get("waitflag").(string) == "1" {
+		log.Printf("Cluster Provision may take upto 15-20 Minutes")
+		for {
+			check, errGet := cluster.GetCluster(d.Get("name").(string), project.ID )
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				return diag.FromErr(errGet)
+			}
+			if check.Status == "READY" {
+				break
+			}
+			if strings.Contains(check.Provision.Status, "FAILED") {
+				return diag.FromErr(fmt.Errorf("Failed to create cluster while cluster provisioning"))
+			}
+		}
 	}
 
 	log.Printf("resource eks cluster created %s", s.ID)

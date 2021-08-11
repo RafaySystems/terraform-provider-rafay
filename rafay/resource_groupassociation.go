@@ -56,7 +56,14 @@ func resourceGroupAssociation() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"users": {
+			"addUsers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"removeUsers": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Schema{
@@ -126,7 +133,7 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 		return diags
 	}
 	//create user association to group if users are included in resources
-	if d.Get("users") != nil {
+	if d.Get("addUsers") != nil {
 		//convert users interface to passable list for function create
 		usersList := d.Get("users").([]interface{})
 		users := make([]string, len(usersList))
@@ -229,6 +236,29 @@ func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData,
 		log.Printf("update group association error %s", err.Error())
 		return diag.FromErr(err)
 	}
+	if d.Get("removeUsers") != nil || d.Get("addUsers") != nil {
+		//convert remove users interface to passable list for function create
+		removeUsersList := d.Get("removeUsers").([]interface{})
+		removeUsers := make([]string, len(removeUsersList))
+		for i, raw := range removeUsersList {
+			removeUsers[i] = raw.(string)
+		}
+		//convert remove users interface to passable list for function create
+		addUsersList := d.Get("addUsers").([]interface{})
+		addUsers := make([]string, len(addUsersList))
+		for i, raw := range addUsersList {
+			addUsers[i] = raw.(string)
+		}
+
+		//call create user association
+		err = commands.UpdateUserAssociation(nil, d.Get("group").(string), addUsers, removeUsers)
+		if err != nil {
+			log.Println("user association DID NOT WORK")
+		} else {
+			log.Println("user association was created properly to group")
+		}
+
+	}
 	return diags
 }
 
@@ -242,9 +272,9 @@ func resourceGroupAssociationDelete(ctx context.Context, d *schema.ResourceData,
 		log.Printf("delete group error %s", err.Error())
 		return diag.FromErr(err)
 	}
-	if d.Get("users") != nil {
+	if d.Get("removeUsers") != nil {
 		//convert users interface to passable list for function create
-		usersList := d.Get("users").([]interface{})
+		usersList := d.Get("removeUsers").([]interface{})
 		users := make([]string, len(usersList))
 		for i, raw := range usersList {
 			users[i] = raw.(string)

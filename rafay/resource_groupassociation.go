@@ -286,7 +286,6 @@ func resourceGroupAssociationDelete(ctx context.Context, d *schema.ResourceData,
 		} else {
 			log.Println("user association was created properly to group")
 		}
-
 	}
 	return diags
 }

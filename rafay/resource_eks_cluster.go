@@ -28,6 +28,15 @@ type configResourceType struct {
 	Meta *configMetadata `yaml:"metadata"`
 }
 
+type blueprintSpec struct {
+	Blueprint	string `yaml:"blueprint"`
+	Blueprintversion string `yaml:"blueprintversion"`
+}
+
+type blueprintType struct {
+	Spec  *blueprintSpec  `yaml:"spec"`
+}
+
 func resourceEKSCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceEKSClusterCreate,
@@ -55,22 +64,6 @@ func resourceEKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"blueprintflag": {
-				Type:	  schema.TypeString,
-				Optional: true,
-			},
-			"alertflag": {
-				Type: 	  schema.TypeString,
-				Optional: true,
-			},
-			"blueprintname": {
-				Type:	  schema.TypeString,
-				Optional: true,
-			},
-			"blueprintversion": {
-				Type:	  schema.TypeString,
-				Optional: true,
-			},
 		},
 	}
 }
@@ -87,6 +80,19 @@ func findResourceNameFromConfig(configBytes []byte) (string, string, error) {
 	return config.Meta.Name, config.Meta.Project, nil
 }
 
+func findBlueprintName(configBytes []byte )(string,string, error ) {
+	var blueprint blueprintType
+	if err := yaml.Unmarshal(configBytes, &blueprint); err != nil {
+		return "","", nil
+	}else if blueprint.Spec == nil {
+		return "","",  fmt.Errorf("%s","Invalid resource: No spec found")
+	}else if blueprint.Spec.Blueprint == "" {
+		return "","",  fmt.Errorf("%s","Invalid resource: No name specified in spec")
+	}
+
+	return blueprint.Spec.Blueprint ,blueprint.Spec.Blueprintversion, nil
+
+}
 func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]byte, []error) {
 	var errs []error
 	configsMap := make(map[string][][]byte)
@@ -259,56 +265,67 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 	var diags diag.Diagnostics
 	log.Printf("update EKS cluster resource")
 
-        resp, err := project.GetProjectByName(d.Get("projectname").(string))
-        if err != nil {
-                log.Printf("project does not exist, error %s", err.Error())
-                return diag.FromErr(err)
-        }
-        p, err := project.NewProjectFromResponse([]byte(resp))
-        if err != nil {
-                return diag.FromErr(err)
-        } else if p == nil {
-                d.SetId("")
-                return diags
-        }
-        project_id := p.ID
-        //retrieve cluster_details from get cluster to pass into update cluster
-        cluster_resp, err := cluster.GetCluster(d.Get("name").(string), project_id)
-        if err != nil {
-                log.Printf("imported cluster was not created, error %s", err.Error())
-                return diag.FromErr(err)
-        }
-
-	if  d.Get("blueprintflag").(string) == "1" {
-		// read the blueprint name 
-		log.Printf("cluster blueprint  %s", cluster_resp.ClusterBlueprint)
-		if d.Get("blueprintname").(string) != "" {
-			cluster_resp.ClusterBlueprint = d.Get("blueprintname").(string)
-		}
-		// read the blueprint version
-		log.Printf("cluster blueprint version  %s", cluster_resp.ClusterBlueprintVersion)
-		if d.Get("blueprintversion").(string) != "" {
-		        cluster_resp.ClusterBlueprintVersion = d.Get("blueprintversion").(string)
-		}
-		//update cluster to send updated cluster details to core
-		err = cluster.UpdateCluster(cluster_resp)
-		if err != nil {
-			log.Printf("cluster was not updated, error %s", err.Error())
-			return diag.FromErr(err)
-		}
-		err = cluster.PublishClusterBlueprint(d.Get("name").(string), project_id)
-		if err  != nil {
-			log.Printf("cluster was not published, error %s", err.Error())
-			return diag.FromErr(err)
-		}
+	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+    if err != nil {
+        return diag.FromErr(fmt.Errorf("project does not exist") )
+    }
+    project, err := project.NewProjectFromResponse([]byte(resp))
+    if err != nil {
+        return diag.FromErr(fmt.Errorf("project does not exist"))
 	}
 
-	if d.Get("alertflag").(string) == "1" {
-		erralert := cluster.UpdateClusterAlertNotification( cluster_resp, true, false)
-		if erralert != nil {
-			log.Printf("cluster was not updated for alertNotification, error %s", erralert.Error())
-                        return diag.FromErr(erralert)
-		}
+	cluster_resp, err := cluster.GetCluster(d.Get("name").(string), project.ID)
+	if err != nil {
+		log.Printf("error in get cluster %s", err.Error())
+		return diag.FromErr(err)
+	}
+
+    YamlConfigFilePath := d.Get("yamlfilepath").(string)
+
+    fileBytes, err := utils.ReadYAMLFileContents(YamlConfigFilePath)
+    if err != nil {
+        return diag.FromErr(err)
+    }
+
+	y, uerr := utils.SplitYamlAndGetListByKind(fileBytes)
+    if uerr != nil {
+        return diag.FromErr(err)
+    }
+
+    var rafayConfigs  [][]byte
+    rafayConfigs = y["Cluster"]
+    if len(rafayConfigs) > 1 {
+        return diag.FromErr(fmt.Errorf("%s", "only one cluster per config is supported"))
+    }
+
+	var blueprintName, blueprintversion string
+	for _, yi :=  range rafayConfigs {
+		var err error
+        blueprintName,blueprintversion, err = findBlueprintName(yi)
+        if err != nil {
+            return diag.FromErr(fmt.Errorf("%s", "failed to get blueprint name"))
+        }
+        log.Printf("blueprint name %s", blueprintName)
+    }
+
+	if cluster_resp.ClusterBlueprint == blueprintName  {
+		return diag.FromErr(fmt.Errorf("%s", "Blueprint name not changed"))
+	} else  {
+		cluster_resp.ClusterBlueprint = blueprintName
+	}
+	if blueprintversion != "" {
+		cluster_resp.ClusterBlueprintVersion = blueprintversion
+	}
+
+	erru := cluster.UpdateCluster(cluster_resp)
+	if erru != nil {
+		log.Printf("cluster was not updated, error %s", erru.Error())
+		return diag.FromErr(erru)
+	}
+	errp := cluster.PublishClusterBlueprint(d.Get("name").(string), project.ID)
+	if errp  != nil {
+		log.Printf("cluster was not published, error %s", errp.Error())
+		return diag.FromErr(errp)
 	}
         return diags
 }

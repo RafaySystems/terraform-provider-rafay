@@ -17,6 +17,7 @@ resource "rafay_eks_cluster" "cluster" {
   name         = "demo-terraform"
   projectname  = "dev"
   yamlfilepath = "<file-path/eks-cluster.yaml>"
+  waitflag     = "1"
 }
 ```
 
@@ -33,6 +34,7 @@ resource "rafay_eks_cluster" "cluster" {
 
 - **id** (String) The ID of this resource.
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- **waitflag** (String)
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

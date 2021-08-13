@@ -17,14 +17,14 @@ resource "rafay_cloud_credential" "credential" {
   name         = "testinggcp2"
   projectname  = "dev3"
   description  = "description"
-  providertype = "GCP"
+  providertype = "<AWS/GCP/MINIO>"
   rolearn      = ""
   credtype     = "access"
   externalid   = ""
   type         = "cluster-provisioning"
   accesskey    = ""
   secretkey    = ""
-  credfile     = "/Users/krishna/Downloads/Neridiosys-shreekrishna@rafay.co.json"
+  credfile     = "<filepath/cred.json>"
 }
 ```
 
@@ -115,3 +115,4 @@ For Data-Backup with AccessKey
         -> secretkey = "yyyyyyyyyyy" ,  // your secret key.
 
 ```
+

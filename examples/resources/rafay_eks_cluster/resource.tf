@@ -1,6 +1,6 @@
 resource "rafay_eks_cluster" "cluster" {
-  name         = "demo-terraform1"
-  projectname  = "dev3"
-  yamlfilepath = "<file-path/eks-cluster.yaml>"
+  name         = "demo-terraform"
+  projectname  = "dev"
+  yamlfilepath = "<filepath/eks-cluster.yaml>"
   waitflag     = "1"
 }

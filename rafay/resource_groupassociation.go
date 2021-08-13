@@ -143,9 +143,9 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 		//call create user association
 		err = commands.CreateUserAssociation(nil, d.Get("group").(string), users)
 		if err != nil {
-			log.Println("user association DID NOT WORK")
+			log.Println("user association create DID NOT WORK")
 		} else {
-			log.Println("user association was created properly to group")
+			log.Println("user association create was created properly to group")
 		}
 
 	}
@@ -252,10 +252,12 @@ func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData,
 
 		//call create user association
 		err = commands.UpdateUserAssociation(nil, d.Get("group").(string), addUsers, removeUsers)
+		log.Println("users to add: ", addUsers)
+		log.Println("users to delete: ", removeUsers)
 		if err != nil {
-			log.Println("user association DID NOT WORK")
+			log.Println("user association update DID NOT WORK: ", err)
 		} else {
-			log.Println("user association was created properly to group")
+			log.Println("user association update was created properly to group")
 		}
 
 	}
@@ -282,9 +284,9 @@ func resourceGroupAssociationDelete(ctx context.Context, d *schema.ResourceData,
 		//call create user association
 		err = commands.DeleteUsersAssociation(nil, d.Get("group").(string), users)
 		if err != nil {
-			log.Println("user association DID NOT WORK")
+			log.Println("user association delete DID NOT WORK")
 		} else {
-			log.Println("user association was created properly to group")
+			log.Println("user association delete was created properly to group")
 		}
 	}
 	return diags

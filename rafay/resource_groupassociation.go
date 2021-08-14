@@ -56,6 +56,20 @@ func resourceGroupAssociation() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"add_users": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"remove_users": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -78,7 +92,6 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 			namespace[i] = raw.(string)
 		}
 	}
-
 	//create group association
 	log.Printf("resource group assocation create %s", d.Get("group").(string))
 	log.Println("roles: ", roles, "namespace: ", namespace)
@@ -118,6 +131,23 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 	} else if p == nil {
 		d.SetId("")
 		return diags
+	}
+	//create user association to group if users are included in resources
+	if d.Get("add_users") != nil {
+		//convert users interface to passable list for function create
+		usersList := d.Get("add_users").([]interface{})
+		users := make([]string, len(usersList))
+		for i, raw := range usersList {
+			users[i] = raw.(string)
+		}
+		//call create user association
+		err = commands.CreateUserAssociation(nil, d.Get("group").(string), users)
+		if err != nil {
+			log.Println("user association create DID NOT WORK")
+		} else {
+			log.Println("user association create was created properly to group")
+		}
+
 	}
 	//creating association id by combining group and project id
 	d.SetId(currGroup.ID + "-" + p.ID)
@@ -201,10 +231,35 @@ func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData,
 			namespace[i] = raw.(string)
 		}
 	}
-	err := commands.UpdateGroupAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace)
+	err := commands.UpdateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace)
 	if err != nil {
 		log.Printf("update group association error %s", err.Error())
 		return diag.FromErr(err)
+	}
+	if d.Get("remove_users") != nil || d.Get("add_users") != nil {
+		//convert remove users interface to passable list for function create
+		removeUsersList := d.Get("remove_users").([]interface{})
+		removeUsers := make([]string, len(removeUsersList))
+		for i, raw := range removeUsersList {
+			removeUsers[i] = raw.(string)
+		}
+		//convert remove users interface to passable list for function create
+		addUsersList := d.Get("add_users").([]interface{})
+		addUsers := make([]string, len(addUsersList))
+		for i, raw := range addUsersList {
+			addUsers[i] = raw.(string)
+		}
+
+		//call create user association
+		err = commands.UpdateUserAssociation(nil, d.Get("group").(string), addUsers, removeUsers)
+		log.Println("users to add: ", addUsers)
+		log.Println("users to delete: ", removeUsers)
+		if err != nil {
+			log.Println("user association update DID NOT WORK: ", err)
+		} else {
+			log.Println("user association update was created properly to group")
+		}
+
 	}
 	return diags
 }
@@ -218,6 +273,21 @@ func resourceGroupAssociationDelete(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		log.Printf("delete group error %s", err.Error())
 		return diag.FromErr(err)
+	}
+	if d.Get("remove_users") != nil {
+		//convert users interface to passable list for function create
+		usersList := d.Get("remove_users").([]interface{})
+		users := make([]string, len(usersList))
+		for i, raw := range usersList {
+			users[i] = raw.(string)
+		}
+		//call create user association
+		err = commands.DeleteUsersAssociation(nil, d.Get("group").(string), users)
+		if err != nil {
+			log.Println("user association delete DID NOT WORK")
+		} else {
+			log.Println("user association delete was created properly to group")
+		}
 	}
 	return diags
 }

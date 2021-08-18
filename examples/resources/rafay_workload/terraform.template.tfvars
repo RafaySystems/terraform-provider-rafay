@@ -1,0 +1,1 @@
+provider_config_file = "/Users/cangadala/Downloads/rafay_qa-cangadala@rafay.co.json"

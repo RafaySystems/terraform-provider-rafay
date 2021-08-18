@@ -1,0 +1,823 @@
+2021-08-18T10:37:51.133-0700 [DEBUG] Adding temp file log sink: /var/folders/71/cvrk6fbn5yq0bwm859fh0rgr0000gn/T/terraform-log335757010
+2021-08-18T10:37:51.134-0700 [INFO]  Terraform version: 1.0.3
+2021-08-18T10:37:51.134-0700 [INFO]  Go runtime version: go1.16.6
+2021-08-18T10:37:51.134-0700 [INFO]  CLI args: []string{"/usr/local/bin/terraform", "init"}
+2021-08-18T10:37:51.134-0700 [TRACE] Stdout is a terminal of width 127
+2021-08-18T10:37:51.134-0700 [TRACE] Stderr is a terminal of width 127
+2021-08-18T10:37:51.134-0700 [TRACE] Stdin is a terminal
+2021-08-18T10:37:51.134-0700 [DEBUG] Attempting to open CLI config file: /Users/cangadala/.terraformrc
+2021-08-18T10:37:51.134-0700 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
+2021-08-18T10:37:51.134-0700 [DEBUG] checking for credentials in "/Users/cangadala/.terraform.d/plugins"
+2021-08-18T10:37:51.134-0700 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
+2021-08-18T10:37:51.134-0700 [DEBUG] will search for provider plugins in /Users/cangadala/.terraform.d/plugins
+2021-08-18T10:37:51.134-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at /Users/cangadala/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
+2021-08-18T10:37:51.134-0700 [DEBUG] ignoring non-existing provider search directory /Users/cangadala/Library/Application Support/io.terraform/plugins
+2021-08-18T10:37:51.134-0700 [DEBUG] ignoring non-existing provider search directory /Library/Application Support/io.terraform/plugins
+2021-08-18T10:37:51.135-0700 [INFO]  CLI command args: []string{"init"}
+2021-08-18T10:37:51.139-0700 [TRACE] Meta.Backend: no config given or present on disk, so returning nil config
+2021-08-18T10:37:51.139-0700 [TRACE] Meta.Backend: backend has not previously been initialized in this working directory
+2021-08-18T10:37:51.139-0700 [DEBUG] New state was assigned lineage "e02799a0-9f3e-82ea-4fc2-51ec704c3c0c"
+2021-08-18T10:37:51.139-0700 [TRACE] Meta.Backend: using default local state only (no backend configuration, and no existing initialized backend)
+2021-08-18T10:37:51.139-0700 [TRACE] Meta.Backend: instantiated backend of type <nil>
+2021-08-18T10:37:51.139-0700 [DEBUG] checking for provisioner in "."
+2021-08-18T10:37:51.141-0700 [DEBUG] checking for provisioner in "/usr/local/bin"
+2021-08-18T10:37:51.141-0700 [DEBUG] checking for provisioner in "/Users/cangadala/.terraform.d/plugins"
+2021-08-18T10:37:51.141-0700 [INFO]  Failed to read plugin lock file .terraform/plugins/darwin_amd64/lock.json: open .terraform/plugins/darwin_amd64/lock.json: no such file or directory
+2021-08-18T10:37:51.141-0700 [TRACE] Meta.Backend: backend <nil> does not support operations, so wrapping it in a local backend
+2021-08-18T10:37:51.141-0700 [TRACE] backend/local: state manager for workspace "default" will:
+ - read initial snapshot from terraform.tfstate
+ - write new snapshots to terraform.tfstate
+ - create any backup at terraform.tfstate.backup
+2021-08-18T10:37:51.141-0700 [TRACE] statemgr.Filesystem: reading initial snapshot from terraform.tfstate
+2021-08-18T10:37:51.141-0700 [TRACE] statemgr.Filesystem: snapshot file has nil snapshot, but that's okay
+2021-08-18T10:37:51.141-0700 [TRACE] statemgr.Filesystem: read nil snapshot
+2021-08-18T10:37:51.141-0700 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
+2021-08-18T10:37:51.141-0700 [TRACE] getproviders.SearchLocalDirectory: failed to resolve symlinks for .terraform/providers: lstat .terraform: no such file or directory
+2021-08-18T10:37:51.141-0700 [TRACE] providercache.fillMetaCache: error while scanning directory .terraform/providers: cannot search .terraform/providers: lstat .terraform/providers: no such file or directory
+2021-08-18T10:37:51.141-0700 [TRACE] providercache.Dir.InstallPackage: installing registry.terraform.io/rafay/rafay v0.3.0 from /Users/cangadala/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
+2021-08-18T10:37:51.142-0700 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
+2021-08-18T10:37:51.142-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at .terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64
+2021-08-18T10:37:51.142-0700 [TRACE] providercache.fillMetaCache: including .terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64 as a candidate package for registry.terraform.io/rafay/rafay 0.3.0
+2021-08-18T10:37:51.336-0700 [DEBUG] Adding temp file log sink: /var/folders/71/cvrk6fbn5yq0bwm859fh0rgr0000gn/T/terraform-log015452932
+2021-08-18T10:37:51.336-0700 [INFO]  Terraform version: 1.0.3
+2021-08-18T10:37:51.336-0700 [INFO]  Go runtime version: go1.16.6
+2021-08-18T10:37:51.336-0700 [INFO]  CLI args: []string{"/usr/local/bin/terraform", "apply"}
+2021-08-18T10:37:51.336-0700 [TRACE] Stdout is a terminal of width 127
+2021-08-18T10:37:51.336-0700 [TRACE] Stderr is a terminal of width 127
+2021-08-18T10:37:51.336-0700 [TRACE] Stdin is a terminal
+2021-08-18T10:37:51.336-0700 [DEBUG] Attempting to open CLI config file: /Users/cangadala/.terraformrc
+2021-08-18T10:37:51.336-0700 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
+2021-08-18T10:37:51.336-0700 [DEBUG] checking for credentials in "/Users/cangadala/.terraform.d/plugins"
+2021-08-18T10:37:51.336-0700 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
+2021-08-18T10:37:51.336-0700 [DEBUG] will search for provider plugins in /Users/cangadala/.terraform.d/plugins
+2021-08-18T10:37:51.336-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at /Users/cangadala/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
+2021-08-18T10:37:51.337-0700 [DEBUG] ignoring non-existing provider search directory /Users/cangadala/Library/Application Support/io.terraform/plugins
+2021-08-18T10:37:51.337-0700 [DEBUG] ignoring non-existing provider search directory /Library/Application Support/io.terraform/plugins
+2021-08-18T10:37:51.337-0700 [INFO]  CLI command args: []string{"apply"}
+2021-08-18T10:37:51.338-0700 [TRACE] Meta.Backend: no config given or present on disk, so returning nil config
+2021-08-18T10:37:51.338-0700 [TRACE] Meta.Backend: backend has not previously been initialized in this working directory
+2021-08-18T10:37:51.338-0700 [DEBUG] New state was assigned lineage "af5a0f8e-a3a1-ba99-5304-bd991e34185f"
+2021-08-18T10:37:51.338-0700 [TRACE] Meta.Backend: using default local state only (no backend configuration, and no existing initialized backend)
+2021-08-18T10:37:51.338-0700 [TRACE] Meta.Backend: instantiated backend of type <nil>
+2021-08-18T10:37:51.339-0700 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
+2021-08-18T10:37:51.339-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at .terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64
+2021-08-18T10:37:51.339-0700 [TRACE] providercache.fillMetaCache: including .terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64 as a candidate package for registry.terraform.io/rafay/rafay 0.3.0
+2021-08-18T10:37:51.434-0700 [DEBUG] checking for provisioner in "."
+2021-08-18T10:37:51.435-0700 [DEBUG] checking for provisioner in "/usr/local/bin"
+2021-08-18T10:37:51.435-0700 [DEBUG] checking for provisioner in "/Users/cangadala/.terraform.d/plugins"
+2021-08-18T10:37:51.435-0700 [INFO]  Failed to read plugin lock file .terraform/plugins/darwin_amd64/lock.json: open .terraform/plugins/darwin_amd64/lock.json: no such file or directory
+2021-08-18T10:37:51.435-0700 [TRACE] Meta.Backend: backend <nil> does not support operations, so wrapping it in a local backend
+2021-08-18T10:37:51.436-0700 [INFO]  backend/local: starting Apply operation
+2021-08-18T10:37:51.436-0700 [TRACE] backend/local: requesting state manager for workspace "default"
+2021-08-18T10:37:51.436-0700 [TRACE] backend/local: state manager for workspace "default" will:
+ - read initial snapshot from terraform.tfstate
+ - write new snapshots to terraform.tfstate
+ - create any backup at terraform.tfstate.backup
+2021-08-18T10:37:51.436-0700 [TRACE] backend/local: requesting state lock for workspace "default"
+2021-08-18T10:37:51.436-0700 [TRACE] statemgr.Filesystem: preparing to manage state snapshots at terraform.tfstate
+2021-08-18T10:37:51.436-0700 [TRACE] statemgr.Filesystem: no previously-stored snapshot exists
+2021-08-18T10:37:51.436-0700 [TRACE] statemgr.Filesystem: locking terraform.tfstate using fcntl flock
+2021-08-18T10:37:51.436-0700 [TRACE] statemgr.Filesystem: writing lock metadata to .terraform.tfstate.lock.info
+2021-08-18T10:37:51.436-0700 [TRACE] backend/local: reading remote state for workspace "default"
+2021-08-18T10:37:51.436-0700 [TRACE] statemgr.Filesystem: reading latest snapshot from terraform.tfstate
+2021-08-18T10:37:51.436-0700 [TRACE] statemgr.Filesystem: snapshot file has nil snapshot, but that's okay
+2021-08-18T10:37:51.436-0700 [TRACE] statemgr.Filesystem: read nil snapshot
+2021-08-18T10:37:51.436-0700 [TRACE] backend/local: retrieving local state snapshot for workspace "default"
+2021-08-18T10:37:51.436-0700 [TRACE] backend/local: building context for current working directory
+2021-08-18T10:37:51.437-0700 [TRACE] terraform.NewContext: starting
+2021-08-18T10:37:51.437-0700 [TRACE] terraform.NewContext: loading provider schemas
+2021-08-18T10:37:51.437-0700 [TRACE] LoadSchemas: retrieving schema for provider type "registry.terraform.io/rafay/rafay"
+2021-08-18T10:37:51.437-0700 [DEBUG] created provider logger: level=trace
+2021-08-18T10:37:51.437-0700 [INFO]  provider: configuring client automatic mTLS
+2021-08-18T10:37:51.475-0700 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay]
+2021-08-18T10:37:51.479-0700 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=5611
+2021-08-18T10:37:51.479-0700 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay
+2021-08-18T10:37:51.513-0700 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2021-08-18T10:37:51.513-0700
+2021-08-18T10:37:51.551-0700 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/var/folders/71/cvrk6fbn5yq0bwm859fh0rgr0000gn/T/plugin022537974 network=unix timestamp=2021-08-18T10:37:51.551-0700
+2021-08-18T10:37:51.551-0700 [DEBUG] provider: using plugin: version=5
+2021-08-18T10:37:51.603-0700 [TRACE] GRPCProvider: GetProviderSchema
+2021-08-18T10:37:51.603-0700 [TRACE] provider.stdio: waiting for stdio data
+2021-08-18T10:37:51.605-0700 [TRACE] GRPCProvider: Close
+2021-08-18T10:37:51.606-0700 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2021-08-18T10:37:51.608-0700 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=5611
+2021-08-18T10:37:51.608-0700 [DEBUG] provider: plugin exited
+2021-08-18T10:37:51.608-0700 [TRACE] terraform.NewContext: complete
+2021-08-18T10:37:51.608-0700 [TRACE] backend/local: finished building terraform.Context
+2021-08-18T10:37:51.608-0700 [TRACE] backend/local: requesting interactive input, if necessary
+2021-08-18T10:37:51.608-0700 [TRACE] Context.Input: Prompting for provider arguments
+2021-08-18T10:37:51.608-0700 [TRACE] Context.Input: Provider provider.rafay declared at providers.tf:16,1-17
+2021-08-18T10:37:51.608-0700 [TRACE] Context.Input: Input for provider.rafay: map[string]cty.Value{}
+2021-08-18T10:37:51.608-0700 [TRACE] backend/local: running validation operation
+2021-08-18T10:37:51.608-0700 [INFO]  terraform: building graph: GraphTypeValidate
+2021-08-18T10:37:51.608-0700 [TRACE] Executing graph transform *terraform.ConfigTransformer
+2021-08-18T10:37:51.608-0700 [TRACE] ConfigTransformer: Starting for path:
+2021-08-18T10:37:51.608-0700 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
+  rafay_workload.workload - *terraform.NodeValidatableResource
+  ------
+2021-08-18T10:37:51.608-0700 [TRACE] Executing graph transform *terraform.RootVariableTransformer
+2021-08-18T10:37:51.608-0700 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
+  rafay_workload.workload - *terraform.NodeValidatableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.608-0700 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
+2021-08-18T10:37:51.608-0700 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
+2021-08-18T10:37:51.608-0700 [TRACE] Executing graph transform *terraform.LocalTransformer
+2021-08-18T10:37:51.608-0700 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
+2021-08-18T10:37:51.608-0700 [TRACE] Executing graph transform *terraform.OutputTransformer
+2021-08-18T10:37:51.608-0700 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
+2021-08-18T10:37:51.608-0700 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceTransformer
+2021-08-18T10:37:51.608-0700 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceTransformer (no changes)
+2021-08-18T10:37:51.608-0700 [TRACE] Executing graph transform *terraform.StateTransformer
+2021-08-18T10:37:51.608-0700 [TRACE] StateTransformer: state is empty, so nothing to do
+2021-08-18T10:37:51.608-0700 [TRACE] Completed graph transform *terraform.StateTransformer (no changes)
+2021-08-18T10:37:51.608-0700 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_workload.workload" (*terraform.NodeValidatableResource) config from resource.tf:1,1-37
+2021-08-18T10:37:51.609-0700 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_workload.workload
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.graphTransformerMulti
+2021-08-18T10:37:51.609-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:16,1-17
+2021-08-18T10:37:51.609-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_workload.workload - *terraform.NodeValidatableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.609-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
+2021-08-18T10:37:51.609-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_workload.workload
+2021-08-18T10:37:51.609-0700 [DEBUG] ProviderTransformer: "rafay_workload.workload" (*terraform.NodeValidatableResource) needs provider["registry.terraform.io/rafay/rafay"]
+2021-08-18T10:37:51.609-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_workload.workload - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.609-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_workload.workload - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_workload.workload
+2021-08-18T10:37:51.609-0700 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2021-08-18T10:37:51.609-0700 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
+2021-08-18T10:37:51.609-0700 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
+2021-08-18T10:37:51.609-0700 [DEBUG] ReferenceTransformer: "rafay_workload.workload" references: []
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_workload.workload - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.attachDataResourceDependsOnTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.attachDataResourceDependsOnTransformer (no changes)
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.CountBoundaryTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.CountBoundaryTransformer with new graph:
+  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload - *terraform.NodeValidatableResource
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_workload.workload - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
+  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload - *terraform.NodeValidatableResource
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload - *terraform.NodeValidatableResource
+  rafay_workload.workload - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
+2021-08-18T10:37:51.609-0700 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
+  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload - *terraform.NodeValidatableResource
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload - *terraform.NodeValidatableResource
+  rafay_workload.workload - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.609-0700 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
+2021-08-18T10:37:51.610-0700 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
+  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    rafay_workload.workload - *terraform.NodeValidatableResource
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    rafay_workload.workload - *terraform.NodeValidatableResource
+  rafay_workload.workload - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.610-0700 [DEBUG] Starting graph walk: walkValidate
+2021-08-18T10:37:51.610-0700 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
+2021-08-18T10:37:51.610-0700 [TRACE] vertex "var.rafay_config_file": visit complete
+2021-08-18T10:37:51.610-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
+2021-08-18T10:37:51.610-0700 [DEBUG] created provider logger: level=trace
+2021-08-18T10:37:51.610-0700 [INFO]  provider: configuring client automatic mTLS
+2021-08-18T10:37:51.650-0700 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay]
+2021-08-18T10:37:51.655-0700 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=5612
+2021-08-18T10:37:51.655-0700 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay
+2021-08-18T10:37:51.692-0700 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2021-08-18T10:37:51.692-0700
+2021-08-18T10:37:51.734-0700 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/var/folders/71/cvrk6fbn5yq0bwm859fh0rgr0000gn/T/plugin231313963 network=unix timestamp=2021-08-18T10:37:51.734-0700
+2021-08-18T10:37:51.734-0700 [DEBUG] provider: using plugin: version=5
+2021-08-18T10:37:51.783-0700 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
+2021-08-18T10:37:51.783-0700 [TRACE] provider.stdio: waiting for stdio data
+2021-08-18T10:37:51.783-0700 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
+2021-08-18T10:37:51.783-0700 [TRACE] GRPCProvider: GetProviderSchema
+2021-08-18T10:37:51.784-0700 [TRACE] GRPCProvider: ValidateProviderConfig
+2021-08-18T10:37:51.785-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
+2021-08-18T10:37:51.786-0700 [TRACE] vertex "rafay_workload.workload": starting visit (*terraform.NodeValidatableResource)
+2021-08-18T10:37:51.786-0700 [TRACE] GRPCProvider: ValidateResourceConfig
+2021-08-18T10:37:51.787-0700 [TRACE] vertex "rafay_workload.workload": visit complete
+2021-08-18T10:37:51.787-0700 [TRACE] vertex "meta.count-boundary (EachMode fixup)": starting visit (*terraform.NodeCountBoundary)
+2021-08-18T10:37:51.787-0700 [TRACE] vertex "meta.count-boundary (EachMode fixup)": visit complete
+2021-08-18T10:37:51.787-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": starting visit (*terraform.graphNodeCloseProvider)
+2021-08-18T10:37:51.787-0700 [TRACE] GRPCProvider: Close
+2021-08-18T10:37:51.788-0700 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2021-08-18T10:37:51.790-0700 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=5612
+2021-08-18T10:37:51.791-0700 [DEBUG] provider: plugin exited
+2021-08-18T10:37:51.791-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": visit complete
+2021-08-18T10:37:51.791-0700 [TRACE] vertex "root": starting visit (*terraform.nodeCloseModule)
+2021-08-18T10:37:51.791-0700 [TRACE] vertex "root": visit complete
+2021-08-18T10:37:51.791-0700 [INFO]  backend/local: apply calling Plan
+2021-08-18T10:37:51.791-0700 [INFO]  terraform: building graph: GraphTypePlan
+2021-08-18T10:37:51.791-0700 [TRACE] Executing graph transform *terraform.ConfigTransformer
+2021-08-18T10:37:51.791-0700 [TRACE] ConfigTransformer: Starting for path:
+2021-08-18T10:37:51.791-0700 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
+  rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+  ------
+2021-08-18T10:37:51.791-0700 [TRACE] Executing graph transform *terraform.RootVariableTransformer
+2021-08-18T10:37:51.791-0700 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
+  rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.791-0700 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
+2021-08-18T10:37:51.791-0700 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
+2021-08-18T10:37:51.791-0700 [TRACE] Executing graph transform *terraform.LocalTransformer
+2021-08-18T10:37:51.791-0700 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
+2021-08-18T10:37:51.791-0700 [TRACE] Executing graph transform *terraform.OutputTransformer
+2021-08-18T10:37:51.791-0700 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
+2021-08-18T10:37:51.791-0700 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceTransformer
+2021-08-18T10:37:51.791-0700 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceTransformer (no changes)
+2021-08-18T10:37:51.791-0700 [TRACE] Executing graph transform *terraform.StateTransformer
+2021-08-18T10:37:51.791-0700 [TRACE] StateTransformer: state is empty, so nothing to do
+2021-08-18T10:37:51.791-0700 [TRACE] Completed graph transform *terraform.StateTransformer (no changes)
+2021-08-18T10:37:51.791-0700 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2021-08-18T10:37:51.791-0700 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2021-08-18T10:37:51.791-0700 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
+2021-08-18T10:37:51.791-0700 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
+2021-08-18T10:37:51.791-0700 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
+2021-08-18T10:37:51.791-0700 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_workload.workload (expand)" (*terraform.nodeExpandPlannableResource) config from resource.tf:1,1-37
+2021-08-18T10:37:51.791-0700 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_workload.workload (expand)
+2021-08-18T10:37:51.791-0700 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
+2021-08-18T10:37:51.791-0700 [TRACE] Executing graph transform *terraform.graphTransformerMulti
+2021-08-18T10:37:51.791-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
+2021-08-18T10:37:51.791-0700 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:16,1-17
+2021-08-18T10:37:51.791-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.791-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
+2021-08-18T10:37:51.791-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
+2021-08-18T10:37:51.791-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
+2021-08-18T10:37:51.792-0700 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_workload.workload (expand)
+2021-08-18T10:37:51.792-0700 [DEBUG] ProviderTransformer: "rafay_workload.workload (expand)" (*terraform.nodeExpandPlannableResource) needs provider["registry.terraform.io/rafay/rafay"]
+2021-08-18T10:37:51.792-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.792-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
+2021-08-18T10:37:51.792-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
+2021-08-18T10:37:51.792-0700 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.792-0700 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
+2021-08-18T10:37:51.792-0700 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
+2021-08-18T10:37:51.792-0700 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
+2021-08-18T10:37:51.792-0700 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
+2021-08-18T10:37:51.792-0700 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_workload.workload (expand)
+2021-08-18T10:37:51.792-0700 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
+2021-08-18T10:37:51.792-0700 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
+2021-08-18T10:37:51.792-0700 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
+2021-08-18T10:37:51.792-0700 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2021-08-18T10:37:51.792-0700 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
+2021-08-18T10:37:51.792-0700 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
+2021-08-18T10:37:51.792-0700 [DEBUG] ReferenceTransformer: "rafay_workload.workload (expand)" references: []
+2021-08-18T10:37:51.792-0700 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.792-0700 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
+2021-08-18T10:37:51.792-0700 [TRACE] AttachDependenciesTransformer: rafay_workload.workload depends on []
+2021-08-18T10:37:51.792-0700 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
+2021-08-18T10:37:51.792-0700 [TRACE] Executing graph transform *terraform.attachDataResourceDependsOnTransformer
+2021-08-18T10:37:51.792-0700 [TRACE] Completed graph transform *terraform.attachDataResourceDependsOnTransformer (no changes)
+2021-08-18T10:37:51.792-0700 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2021-08-18T10:37:51.792-0700 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2021-08-18T10:37:51.792-0700 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
+2021-08-18T10:37:51.792-0700 [TRACE] ForcedCBDTransformer: "rafay_workload.workload (expand)" (*terraform.nodeExpandPlannableResource) has no CBD descendent, so skipping
+2021-08-18T10:37:51.793-0700 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
+2021-08-18T10:37:51.793-0700 [TRACE] Executing graph transform *terraform.CountBoundaryTransformer
+2021-08-18T10:37:51.793-0700 [TRACE] Completed graph transform *terraform.CountBoundaryTransformer with new graph:
+  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.793-0700 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
+2021-08-18T10:37:51.793-0700 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
+  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+  rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.793-0700 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
+2021-08-18T10:37:51.793-0700 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
+  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+  rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.793-0700 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
+2021-08-18T10:37:51.793-0700 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
+  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+  rafay_workload.workload (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:51.793-0700 [DEBUG] Starting graph walk: walkPlan
+2021-08-18T10:37:51.793-0700 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
+2021-08-18T10:37:51.793-0700 [TRACE] vertex "var.rafay_config_file": visit complete
+2021-08-18T10:37:51.793-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
+2021-08-18T10:37:51.794-0700 [DEBUG] created provider logger: level=trace
+2021-08-18T10:37:51.794-0700 [INFO]  provider: configuring client automatic mTLS
+2021-08-18T10:37:51.835-0700 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay]
+2021-08-18T10:37:51.839-0700 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=5613
+2021-08-18T10:37:51.839-0700 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay
+2021-08-18T10:37:51.874-0700 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2021-08-18T10:37:51.874-0700
+2021-08-18T10:37:51.914-0700 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/var/folders/71/cvrk6fbn5yq0bwm859fh0rgr0000gn/T/plugin135050288 network=unix timestamp=2021-08-18T10:37:51.914-0700
+2021-08-18T10:37:51.914-0700 [DEBUG] provider: using plugin: version=5
+2021-08-18T10:37:51.967-0700 [TRACE] provider.stdio: waiting for stdio data
+2021-08-18T10:37:51.967-0700 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
+2021-08-18T10:37:51.967-0700 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
+2021-08-18T10:37:51.967-0700 [TRACE] GRPCProvider: GetProviderSchema
+2021-08-18T10:37:51.969-0700 [TRACE] GRPCProvider: ValidateProviderConfig
+2021-08-18T10:37:51.970-0700 [TRACE] GRPCProvider: ConfigureProvider
+2021-08-18T10:37:51.970-0700 [INFO]  provider.terraform-provider-rafay: 2021/08/18 10:37:51 rafay provider config file /Users/cangadala/Downloads/rafay_qa-cangadala@rafay.co.json: timestamp=2021-08-18T10:37:51.970-0700
+2021-08-18T10:37:51.970-0700 [INFO]  provider.terraform-provider-rafay: 2021/08/18 10:37:51 rafay provider config file absolute path /Users/cangadala/Downloads/rafay_qa-cangadala@rafay.co.json: timestamp=2021-08-18T10:37:51.970-0700
+2021-08-18T10:37:51.971-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
+2021-08-18T10:37:51.971-0700 [TRACE] vertex "rafay_workload.workload (expand)": starting visit (*terraform.nodeExpandPlannableResource)
+2021-08-18T10:37:51.971-0700 [TRACE] vertex "rafay_workload.workload (expand)": expanding dynamic subgraph
+2021-08-18T10:37:51.971-0700 [TRACE] vertex "rafay_workload.workload (expand)": entering dynamic subgraph
+2021-08-18T10:37:51.971-0700 [TRACE] vertex "rafay_workload.workload": starting visit (*terraform.NodePlannableResource)
+2021-08-18T10:37:51.971-0700 [TRACE] vertex "rafay_workload.workload": expanding dynamic subgraph
+2021-08-18T10:37:51.971-0700 [TRACE] Executing graph transform *terraform.ResourceCountTransformer
+2021-08-18T10:37:51.971-0700 [TRACE] ResourceCountTransformer: adding rafay_workload.workload as *terraform.NodePlannableResourceInstance
+2021-08-18T10:37:51.971-0700 [TRACE] Completed graph transform *terraform.ResourceCountTransformer with new graph:
+  rafay_workload.workload - *terraform.NodePlannableResourceInstance
+  ------
+2021-08-18T10:37:51.971-0700 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceCountTransformer
+2021-08-18T10:37:51.971-0700 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceCountTransformer (no changes)
+2021-08-18T10:37:51.971-0700 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2021-08-18T10:37:51.971-0700 [DEBUG] Resource instance state not found for node "rafay_workload.workload", instance rafay_workload.workload
+2021-08-18T10:37:51.971-0700 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2021-08-18T10:37:51.971-0700 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2021-08-18T10:37:51.971-0700 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2021-08-18T10:37:51.971-0700 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2021-08-18T10:37:51.971-0700 [DEBUG] ReferenceTransformer: "rafay_workload.workload" references: []
+2021-08-18T10:37:51.971-0700 [TRACE] Completed graph transform *terraform.ReferenceTransformer (no changes)
+2021-08-18T10:37:51.971-0700 [TRACE] Executing graph transform *terraform.RootTransformer
+2021-08-18T10:37:51.971-0700 [TRACE] Completed graph transform *terraform.RootTransformer (no changes)
+2021-08-18T10:37:51.971-0700 [TRACE] vertex "rafay_workload.workload": entering dynamic subgraph
+2021-08-18T10:37:51.971-0700 [TRACE] vertex "rafay_workload.workload": starting visit (*terraform.NodePlannableResourceInstance)
+2021-08-18T10:37:51.971-0700 [TRACE] readResourceInstanceState: reading state for rafay_workload.workload
+2021-08-18T10:37:51.971-0700 [TRACE] readResourceInstanceState: no state present for rafay_workload.workload
+2021-08-18T10:37:51.971-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to prevRunState for rafay_workload.workload
+2021-08-18T10:37:51.971-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_workload.workload
+2021-08-18T10:37:51.971-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to refreshState for rafay_workload.workload
+2021-08-18T10:37:51.972-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_workload.workload
+2021-08-18T10:37:51.972-0700 [TRACE] NodeAbstractResourceInstance.refresh for rafay_workload.workload
+2021-08-18T10:37:51.972-0700 [DEBUG] refresh: rafay_workload.workload: no state, so not refreshing
+2021-08-18T10:37:51.972-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to refreshState for rafay_workload.workload
+2021-08-18T10:37:51.972-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_workload.workload
+2021-08-18T10:37:51.972-0700 [TRACE] Re-validating config for "rafay_workload.workload"
+2021-08-18T10:37:51.972-0700 [TRACE] GRPCProvider: ValidateResourceConfig
+2021-08-18T10:37:51.972-0700 [TRACE] GRPCProvider: PlanResourceChange
+2021-08-18T10:37:51.973-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to workingState for rafay_workload.workload
+2021-08-18T10:37:51.973-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: writing state object for rafay_workload.workload
+2021-08-18T10:37:51.973-0700 [TRACE] writeChange: recorded Create change for rafay_workload.workload
+2021-08-18T10:37:51.973-0700 [TRACE] vertex "rafay_workload.workload": visit complete
+2021-08-18T10:37:51.973-0700 [TRACE] vertex "rafay_workload.workload": dynamic subgraph completed successfully
+2021-08-18T10:37:51.973-0700 [TRACE] vertex "rafay_workload.workload": visit complete
+2021-08-18T10:37:51.973-0700 [TRACE] vertex "rafay_workload.workload (expand)": dynamic subgraph completed successfully
+2021-08-18T10:37:51.973-0700 [TRACE] vertex "rafay_workload.workload (expand)": visit complete
+2021-08-18T10:37:51.973-0700 [TRACE] vertex "meta.count-boundary (EachMode fixup)": starting visit (*terraform.NodeCountBoundary)
+2021-08-18T10:37:51.973-0700 [TRACE] vertex "meta.count-boundary (EachMode fixup)": visit complete
+2021-08-18T10:37:51.973-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": starting visit (*terraform.graphNodeCloseProvider)
+2021-08-18T10:37:51.973-0700 [TRACE] GRPCProvider: Close
+2021-08-18T10:37:51.974-0700 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2021-08-18T10:37:51.975-0700 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=5613
+2021-08-18T10:37:51.975-0700 [DEBUG] provider: plugin exited
+2021-08-18T10:37:51.975-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": visit complete
+2021-08-18T10:37:51.975-0700 [TRACE] vertex "root": starting visit (*terraform.nodeCloseModule)
+2021-08-18T10:37:51.975-0700 [TRACE] vertex "root": visit complete
+2021-08-18T10:37:51.975-0700 [DEBUG] command: asking for input: "\nDo you want to perform these actions?"
+2021-08-18T10:37:53.991-0700 [INFO]  backend/local: apply calling Apply
+2021-08-18T10:37:53.991-0700 [INFO]  terraform: building graph: GraphTypeApply
+2021-08-18T10:37:53.991-0700 [TRACE] Executing graph transform *terraform.ConfigTransformer
+2021-08-18T10:37:53.991-0700 [TRACE] ConfigTransformer: Starting for path:
+2021-08-18T10:37:53.991-0700 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
+  rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  ------
+2021-08-18T10:37:53.991-0700 [TRACE] Executing graph transform *terraform.RootVariableTransformer
+2021-08-18T10:37:53.991-0700 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
+  rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:53.991-0700 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
+2021-08-18T10:37:53.991-0700 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
+2021-08-18T10:37:53.991-0700 [TRACE] Executing graph transform *terraform.LocalTransformer
+2021-08-18T10:37:53.991-0700 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
+2021-08-18T10:37:53.991-0700 [TRACE] Executing graph transform *terraform.OutputTransformer
+2021-08-18T10:37:53.991-0700 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
+2021-08-18T10:37:53.992-0700 [TRACE] Executing graph transform *terraform.DiffTransformer
+2021-08-18T10:37:53.992-0700 [TRACE] DiffTransformer starting
+2021-08-18T10:37:53.992-0700 [TRACE] DiffTransformer: found Create change for rafay_workload.workload
+2021-08-18T10:37:53.992-0700 [TRACE] DiffTransformer: rafay_workload.workload will be represented by rafay_workload.workload
+2021-08-18T10:37:53.992-0700 [TRACE] DiffTransformer complete
+2021-08-18T10:37:53.992-0700 [TRACE] Completed graph transform *terraform.DiffTransformer with new graph:
+  rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:53.992-0700 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2021-08-18T10:37:53.992-0700 [DEBUG] Resource state not found for node "rafay_workload.workload", instance rafay_workload.workload
+2021-08-18T10:37:53.992-0700 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2021-08-18T10:37:53.992-0700 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
+2021-08-18T10:37:53.992-0700 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
+2021-08-18T10:37:53.992-0700 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
+2021-08-18T10:37:53.992-0700 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_workload.workload (expand)" (*terraform.nodeExpandApplyableResource) config from resource.tf:1,1-37
+2021-08-18T10:37:53.992-0700 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_workload.workload (expand)
+2021-08-18T10:37:53.992-0700 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_workload.workload" (*terraform.NodeApplyableResourceInstance) config from resource.tf:1,1-37
+2021-08-18T10:37:53.992-0700 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_workload.workload
+2021-08-18T10:37:53.992-0700 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
+2021-08-18T10:37:53.992-0700 [TRACE] Executing graph transform *terraform.graphTransformerMulti
+2021-08-18T10:37:53.992-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
+2021-08-18T10:37:53.992-0700 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:16,1-17
+2021-08-18T10:37:53.992-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:53.992-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
+2021-08-18T10:37:53.992-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
+2021-08-18T10:37:53.992-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
+2021-08-18T10:37:53.992-0700 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_workload.workload (expand)
+2021-08-18T10:37:53.992-0700 [DEBUG] ProviderTransformer: "rafay_workload.workload (expand)" (*terraform.nodeExpandApplyableResource) needs provider["registry.terraform.io/rafay/rafay"]
+2021-08-18T10:37:53.992-0700 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_workload.workload
+2021-08-18T10:37:53.992-0700 [DEBUG] ProviderTransformer: "rafay_workload.workload" (*terraform.NodeApplyableResourceInstance) needs provider["registry.terraform.io/rafay/rafay"]
+2021-08-18T10:37:53.992-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:53.992-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
+2021-08-18T10:37:53.992-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
+2021-08-18T10:37:53.992-0700 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:53.992-0700 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
+2021-08-18T10:37:53.992-0700 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
+2021-08-18T10:37:53.992-0700 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
+2021-08-18T10:37:53.992-0700 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_workload.workload (expand)
+2021-08-18T10:37:53.992-0700 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_workload.workload
+2021-08-18T10:37:53.992-0700 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
+2021-08-18T10:37:53.992-0700 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
+2021-08-18T10:37:53.993-0700 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
+2021-08-18T10:37:53.993-0700 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
+2021-08-18T10:37:53.993-0700 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2021-08-18T10:37:53.993-0700 [DEBUG] ReferenceTransformer: "rafay_workload.workload (expand)" references: []
+2021-08-18T10:37:53.993-0700 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
+2021-08-18T10:37:53.993-0700 [DEBUG] ReferenceTransformer: "rafay_workload.workload" references: []
+2021-08-18T10:37:53.993-0700 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
+2021-08-18T10:37:53.993-0700 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:53.993-0700 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
+2021-08-18T10:37:53.993-0700 [TRACE] AttachDependenciesTransformer: rafay_workload.workload depends on []
+2021-08-18T10:37:53.993-0700 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
+2021-08-18T10:37:53.993-0700 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
+2021-08-18T10:37:53.993-0700 [TRACE] ForcedCBDTransformer: "rafay_workload.workload" (*terraform.NodeApplyableResourceInstance) has no CBD descendent, so skipping
+2021-08-18T10:37:53.993-0700 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
+2021-08-18T10:37:53.993-0700 [TRACE] Executing graph transform *terraform.DestroyEdgeTransformer
+2021-08-18T10:37:53.993-0700 [TRACE] Completed graph transform *terraform.DestroyEdgeTransformer (no changes)
+2021-08-18T10:37:53.993-0700 [TRACE] Executing graph transform *terraform.CBDEdgeTransformer
+2021-08-18T10:37:53.993-0700 [TRACE] Completed graph transform *terraform.CBDEdgeTransformer (no changes)
+2021-08-18T10:37:53.993-0700 [TRACE] Executing graph transform *terraform.pruneUnusedNodesTransformer
+2021-08-18T10:37:53.993-0700 [TRACE] Completed graph transform *terraform.pruneUnusedNodesTransformer (no changes)
+2021-08-18T10:37:53.993-0700 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2021-08-18T10:37:53.993-0700 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2021-08-18T10:37:53.993-0700 [TRACE] Executing graph transform *terraform.CountBoundaryTransformer
+2021-08-18T10:37:53.993-0700 [TRACE] Completed graph transform *terraform.CountBoundaryTransformer with new graph:
+  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:53.993-0700 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
+2021-08-18T10:37:53.993-0700 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
+  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:53.993-0700 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
+2021-08-18T10:37:53.993-0700 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
+  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:53.993-0700 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
+2021-08-18T10:37:53.994-0700 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
+  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+  rafay_workload.workload - *terraform.NodeApplyableResourceInstance
+    rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+  rafay_workload.workload (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2021-08-18T10:37:53.994-0700 [DEBUG] Starting graph walk: walkApply
+2021-08-18T10:37:53.994-0700 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
+2021-08-18T10:37:53.994-0700 [TRACE] vertex "var.rafay_config_file": visit complete
+2021-08-18T10:37:53.994-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
+2021-08-18T10:37:53.994-0700 [DEBUG] created provider logger: level=trace
+2021-08-18T10:37:53.994-0700 [INFO]  provider: configuring client automatic mTLS
+2021-08-18T10:37:54.036-0700 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay]
+2021-08-18T10:37:54.040-0700 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=5614
+2021-08-18T10:37:54.040-0700 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay
+2021-08-18T10:37:54.073-0700 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2021-08-18T10:37:54.073-0700
+2021-08-18T10:37:54.112-0700 [DEBUG] provider.terraform-provider-rafay: plugin address: network=unix address=/var/folders/71/cvrk6fbn5yq0bwm859fh0rgr0000gn/T/plugin766169429 timestamp=2021-08-18T10:37:54.112-0700
+2021-08-18T10:37:54.112-0700 [DEBUG] provider: using plugin: version=5
+2021-08-18T10:37:54.161-0700 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
+2021-08-18T10:37:54.161-0700 [TRACE] provider.stdio: waiting for stdio data
+2021-08-18T10:37:54.161-0700 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
+2021-08-18T10:37:54.161-0700 [TRACE] GRPCProvider: GetProviderSchema
+2021-08-18T10:37:54.162-0700 [TRACE] GRPCProvider: ValidateProviderConfig
+2021-08-18T10:37:54.163-0700 [TRACE] GRPCProvider: ConfigureProvider
+2021-08-18T10:37:54.163-0700 [INFO]  provider.terraform-provider-rafay: 2021/08/18 10:37:54 rafay provider config file /Users/cangadala/Downloads/rafay_qa-cangadala@rafay.co.json: timestamp=2021-08-18T10:37:54.163-0700
+2021-08-18T10:37:54.163-0700 [INFO]  provider.terraform-provider-rafay: 2021/08/18 10:37:54 rafay provider config file absolute path /Users/cangadala/Downloads/rafay_qa-cangadala@rafay.co.json: timestamp=2021-08-18T10:37:54.163-0700
+2021-08-18T10:37:54.164-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
+2021-08-18T10:37:54.164-0700 [TRACE] vertex "rafay_workload.workload (expand)": starting visit (*terraform.nodeExpandApplyableResource)
+2021-08-18T10:37:54.164-0700 [TRACE] vertex "rafay_workload.workload (expand)": expanding dynamic subgraph
+2021-08-18T10:37:54.164-0700 [TRACE] vertex "rafay_workload.workload (expand)": entering dynamic subgraph
+2021-08-18T10:37:54.164-0700 [TRACE] vertex "rafay_workload.workload": starting visit (*terraform.NodeApplyableResource)
+2021-08-18T10:37:54.164-0700 [TRACE] vertex "rafay_workload.workload": visit complete
+2021-08-18T10:37:54.164-0700 [TRACE] vertex "rafay_workload.workload (expand)": dynamic subgraph completed successfully
+2021-08-18T10:37:54.164-0700 [TRACE] vertex "rafay_workload.workload (expand)": visit complete
+2021-08-18T10:37:54.164-0700 [TRACE] vertex "rafay_workload.workload": starting visit (*terraform.NodeApplyableResourceInstance)
+2021-08-18T10:37:54.164-0700 [TRACE] readDiff: Read Create change from plan for rafay_workload.workload
+2021-08-18T10:37:54.164-0700 [TRACE] readResourceInstanceState: reading state for rafay_workload.workload
+2021-08-18T10:37:54.164-0700 [TRACE] readResourceInstanceState: no state present for rafay_workload.workload
+2021-08-18T10:37:54.164-0700 [TRACE] readDiff: Read Create change from plan for rafay_workload.workload
+2021-08-18T10:37:54.164-0700 [TRACE] Re-validating config for "rafay_workload.workload"
+2021-08-18T10:37:54.164-0700 [TRACE] GRPCProvider: ValidateResourceConfig
+2021-08-18T10:37:54.164-0700 [TRACE] GRPCProvider: PlanResourceChange
+2021-08-18T10:37:54.165-0700 [TRACE] checkPlannedChange: Verifying that actual change (action Create) matches planned change (action Create)
+2021-08-18T10:37:54.165-0700 [TRACE] readResourceInstanceState: reading state for rafay_workload.workload
+2021-08-18T10:37:54.165-0700 [TRACE] readResourceInstanceState: no state present for rafay_workload.workload
+2021-08-18T10:37:54.165-0700 [INFO]  Starting apply for rafay_workload.workload
+2021-08-18T10:37:54.165-0700 [DEBUG] rafay_workload.workload: applying the planned Create change
+2021-08-18T10:37:54.165-0700 [TRACE] GRPCProvider: ApplyResourceChange
+2021-08-18T10:37:54.166-0700 [INFO]  provider.terraform-provider-rafay: 2021/08/18 10:37:54 YamlConfigFile /Users/cangadala/Downloads/exampleworkload.yaml: timestamp=2021-08-18T10:37:54.166-0700
+2021-08-18T10:37:54.168-0700 [DEBUG] provider.terraform-provider-rafay: PANIC: reflect: reflect.Value.Set using unaddressable value [recovered]
+2021-08-18T10:37:54.168-0700 [DEBUG] provider.terraform-provider-rafay: 	panic: reflect: reflect.Value.Set using unaddressable value
+2021-08-18T10:37:54.168-0700 [DEBUG] provider.terraform-provider-rafay: 
+2021-08-18T10:37:54.168-0700 [DEBUG] provider.terraform-provider-rafay: goroutine 26 [running]:
+2021-08-18T10:37:54.168-0700 [DEBUG] provider.terraform-provider-rafay: gopkg.in/yaml%2ev3.handleErr(0xc000913358)
+2021-08-18T10:37:54.168-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/gopkg.in/yaml.v3@v3.0.0-20210107192922-496545a6307b/yaml.go:294 +0x8d
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: panic(0x1ecb4e0, 0xc000451e90)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/usr/local/Cellar/go/1.16.5/libexec/src/runtime/panic.go:965 +0x1b9
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: reflect.flag.mustBeAssignableSlow(0x98)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/usr/local/Cellar/go/1.16.5/libexec/src/reflect/value.go:260 +0x138
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: reflect.flag.mustBeAssignable(...)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/usr/local/Cellar/go/1.16.5/libexec/src/reflect/value.go:247
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: reflect.Value.Set(0x1ecb4e0, 0xc000170540, 0x98, 0x1ecb4e0, 0xc000451e80, 0x98)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/usr/local/Cellar/go/1.16.5/libexec/src/reflect/value.go:1558 +0x3b
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: gopkg.in/yaml%2ev3.(*decoder).scalar(0xc0002949a0, 0xc000a212c0, 0x1ecb4e0, 0xc000170540, 0x98, 0x1ecb4e0)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/gopkg.in/yaml.v3@v3.0.0-20210107192922-496545a6307b/decode.go:581 +0x15bf
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: gopkg.in/yaml%2ev3.(*decoder).unmarshal(0xc0002949a0, 0xc000a212c0, 0x1ecb4e0, 0xc000170540, 0x98, 0xc000170540)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/gopkg.in/yaml.v3@v3.0.0-20210107192922-496545a6307b/decode.go:503 +0x2ae
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: gopkg.in/yaml%2ev3.(*decoder).mappingStruct(0xc0002949a0, 0xc000a21180, 0x2057060, 0xc000170540, 0x99, 0x84)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/gopkg.in/yaml.v3@v3.0.0-20210107192922-496545a6307b/decode.go:902 +0xa95
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: gopkg.in/yaml%2ev3.(*decoder).mapping(0xc0002949a0, 0xc000a21180, 0x2057060, 0xc000170540, 0x99, 0x2057060)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/gopkg.in/yaml.v3@v3.0.0-20210107192922-496545a6307b/decode.go:781 +0xe95
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: gopkg.in/yaml%2ev3.(*decoder).unmarshal(0xc0002949a0, 0xc000a21180, 0x2057060, 0xc000170540, 0x99, 0xc00015eab0)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/gopkg.in/yaml.v3@v3.0.0-20210107192922-496545a6307b/decode.go:505 +0x2da
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: gopkg.in/yaml%2ev3.(*decoder).document(0xc0002949a0, 0xc000a210e0, 0x2057060, 0xc000170540, 0x99, 0x0)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/gopkg.in/yaml.v3@v3.0.0-20210107192922-496545a6307b/decode.go:522 +0x7c
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: gopkg.in/yaml%2ev3.(*decoder).unmarshal(0xc0002949a0, 0xc000a210e0, 0x2057060, 0xc000170540, 0x99, 0x101679b)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/gopkg.in/yaml.v3@v3.0.0-20210107192922-496545a6307b/decode.go:493 +0x38f
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: gopkg.in/yaml%2ev3.unmarshal(0xc00033a200, 0x84, 0x200, 0x2057060, 0xc000170540, 0x0, 0x0, 0x0)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/gopkg.in/yaml.v3@v3.0.0-20210107192922-496545a6307b/yaml.go:167 +0x35f
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: gopkg.in/yaml%2ev3.Unmarshal(...)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/gopkg.in/yaml.v3@v3.0.0-20210107192922-496545a6307b/yaml.go:89
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: github.com/RafaySystems/terraform-provider-rafay/rafay.resourceWorkloadCreate(0x228e768, 0xc000a4cf00, 0xc00019bd80, 0x20039c0, 0x2a8b8e0, 0xc000451be0, 0x169010a, 0xc000846d20)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/src/github.com/RafaySystems/terraform-provider-rafay/rafay/resource_workload.go:146 +0x63d
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.(*Resource).create(0xc00031aee0, 0x228e6f8, 0xc000a540c0, 0xc00019bd80, 0x20039c0, 0x2a8b8e0, 0x0, 0x0, 0x0)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/github.com/hashicorp/terraform-plugin-sdk/v2@v2.7.0/helper/schema/resource.go:330 +0x17f
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.(*Resource).Apply(0xc00031aee0, 0x228e6f8, 0xc000a540c0, 0xc000291880, 0xc000846d20, 0x20039c0, 0x2a8b8e0, 0x0, 0x0, 0x0, ...)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/github.com/hashicorp/terraform-plugin-sdk/v2@v2.7.0/helper/schema/resource.go:456 +0x67b
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.(*GRPCProviderServer).ApplyResourceChange(0xc0000e0c60, 0x228e6f8, 0xc000a540c0, 0xc000a1d4a0, 0xc000a540c0, 0x20264e0, 0xc0002e7c00)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/github.com/hashicorp/terraform-plugin-sdk/v2@v2.7.0/helper/schema/grpc_provider.go:955 +0x8ef
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: github.com/hashicorp/terraform-plugin-go/tfprotov5/server.(*server).ApplyResourceChange(0xc0006462e0, 0x228e7a0, 0xc000a540c0, 0xc0002913b0, 0xc0006462e0, 0xc0002e7c50, 0xc000a34ba0)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/github.com/hashicorp/terraform-plugin-go@v0.3.0/tfprotov5/server/server.go:332 +0xb5
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/tfplugin5._Provider_ApplyResourceChange_Handler(0x20264e0, 0xc0006462e0, 0x228e7a0, 0xc0002e7c50, 0xc000a4c900, 0x0, 0x228e7a0, 0xc0002e7c50, 0xc0000fe840, 0x142)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/github.com/hashicorp/terraform-plugin-go@v0.3.0/tfprotov5/internal/tfplugin5/tfplugin5_grpc.pb.go:380 +0x214
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: google.golang.org/grpc.(*Server).processUnaryRPC(0xc00002fdc0, 0x229c5b8, 0xc000a8c300, 0xc000a26200, 0xc0004dc7b0, 0x2a730c0, 0x0, 0x0, 0x0)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/google.golang.org/grpc@v1.32.0/server.go:1194 +0x52b
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: google.golang.org/grpc.(*Server).handleStream(0xc00002fdc0, 0x229c5b8, 0xc000a8c300, 0xc000a26200, 0x0)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/google.golang.org/grpc@v1.32.0/server.go:1517 +0xd0c
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: google.golang.org/grpc.(*Server).serveStreams.func1.2(0xc0004aa3c0, 0xc00002fdc0, 0x229c5b8, 0xc000a8c300, 0xc000a26200)
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/google.golang.org/grpc@v1.32.0/server.go:859 +0xab
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: created by google.golang.org/grpc.(*Server).serveStreams.func1
+2021-08-18T10:37:54.169-0700 [DEBUG] provider.terraform-provider-rafay: 	/Users/cangadala/code/pkg/mod/google.golang.org/grpc@v1.32.0/server.go:857 +0x1fd
+2021-08-18T10:37:54.171-0700 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2021-08-18T10:37:54.171-0700 [ERROR] plugin.(*GRPCProvider).ApplyResourceChange: error="rpc error: code = Unavailable desc = transport is closing"
+2021-08-18T10:37:54.171-0700 [TRACE] maybeTainted: rafay_workload.workload encountered an error during creation, so it is now marked as tainted
+2021-08-18T10:37:54.171-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to workingState for rafay_workload.workload
+2021-08-18T10:37:54.171-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_workload.workload
+2021-08-18T10:37:54.171-0700 [TRACE] evalApplyProvisioners: rafay_workload.workload is tainted, so skipping provisioning
+2021-08-18T10:37:54.171-0700 [TRACE] maybeTainted: rafay_workload.workload was already tainted, so nothing to do
+2021-08-18T10:37:54.171-0700 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=5614 error="exit status 2"
+2021-08-18T10:37:54.171-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to workingState for rafay_workload.workload
+2021-08-18T10:37:54.171-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_workload.workload
+2021-08-18T10:37:54.171-0700 [TRACE] statemgr.Filesystem: reading latest snapshot from terraform.tfstate
+2021-08-18T10:37:54.171-0700 [TRACE] statemgr.Filesystem: snapshot file has nil snapshot, but that's okay
+2021-08-18T10:37:54.171-0700 [TRACE] statemgr.Filesystem: read nil snapshot
+2021-08-18T10:37:54.171-0700 [TRACE] statemgr.Filesystem: no original state snapshot to back up
+2021-08-18T10:37:54.171-0700 [TRACE] statemgr.Filesystem: state has changed since last snapshot, so incrementing serial to 1
+2021-08-18T10:37:54.171-0700 [TRACE] statemgr.Filesystem: writing snapshot at terraform.tfstate
+2021-08-18T10:37:54.191-0700 [TRACE] vertex "rafay_workload.workload": visit complete
+2021-08-18T10:37:54.191-0700 [TRACE] dag/walk: upstream of "meta.count-boundary (EachMode fixup)" errored, so skipping
+2021-08-18T10:37:54.191-0700 [TRACE] dag/walk: upstream of "provider[\"registry.terraform.io/rafay/rafay\"] (close)" errored, so skipping
+2021-08-18T10:37:54.191-0700 [TRACE] dag/walk: upstream of "root" errored, so skipping
+2021-08-18T10:37:54.192-0700 [TRACE] statemgr.Filesystem: reading latest snapshot from terraform.tfstate
+2021-08-18T10:37:54.192-0700 [TRACE] statemgr.Filesystem: read snapshot with lineage "179f4c24-4f8b-ee5e-cf54-3ac21fd2a53f" serial 1
+2021-08-18T10:37:54.192-0700 [TRACE] statemgr.Filesystem: no original state snapshot to back up
+2021-08-18T10:37:54.193-0700 [TRACE] statemgr.Filesystem: no state changes since last snapshot
+2021-08-18T10:37:54.193-0700 [TRACE] statemgr.Filesystem: writing snapshot at terraform.tfstate
+2021-08-18T10:37:54.200-0700 [TRACE] statemgr.Filesystem: removing lock metadata file .terraform.tfstate.lock.info
+2021-08-18T10:37:54.201-0700 [TRACE] statemgr.Filesystem: unlocking terraform.tfstate using fcntl flock
+2021-08-18T10:37:54.202-0700 [DEBUG] provider: plugin exited

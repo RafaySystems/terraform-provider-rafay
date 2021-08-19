@@ -43,13 +43,6 @@ func resourceRepositories() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"delete_repositories": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
 		},
 	}
 }
@@ -322,19 +315,12 @@ func resourceRepositoriesDelete(ctx context.Context, d *schema.ResourceData, m i
 	}
 	projectId := p.ID
 	//get project id with project name, p.id used to refer to project id -> need p.ID for calling DeleteRepository
-	if d.Get("delete_repositories") != nil {
-		deleterepositoriesList := d.Get("delete_repositories").([]interface{})
-		deleterepositories := make([]string, len(deleterepositoriesList))
-		for i, raw := range deleterepositoriesList {
-			deleterepositories[i] = raw.(string)
-		}
-		// delete the specified repositories
-		for _, r := range deleterepositories {
-			if err := repository.DeleteRepository(r, projectId); err != nil {
-				log.Println("error deleting repositories")
-			}
-			log.Println("Deleted repositories: ", r)
-		}
+	//convert namesapce interface to passable list for function
+	err = repository.DeleteRepository(d.Id(), projectId)
+	if err != nil {
+		log.Println("error deleting agent")
+	} else {
+		log.Println("Deleted agent: ", d.Id())
 	}
 	return diags
 }

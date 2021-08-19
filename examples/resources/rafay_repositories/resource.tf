@@ -1,4 +1,4 @@
-resource "rafay_cluster_override" "cluster_override" {
+resource "rafay_repositories" "repositories" {
   projectname               = "dev1-proj"
   repository_filepath = "/Users/sougat/Downloads/repository.yaml>"
 }

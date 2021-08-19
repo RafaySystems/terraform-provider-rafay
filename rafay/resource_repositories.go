@@ -150,53 +150,6 @@ func resourceRepositoriesCreate(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceRepositoriesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	/*
-		filePath := d.Get("cluster_override_filepath").(string)
-		var co commands.ClusterOverrideYamlConfig
-		log.Printf("create cluster override resource")
-		//get project id with project name, p.id used to refer to project id -> need p.ID for calling createClusterOverride and getClusterOverride
-		resp, err := project.GetProjectByName(d.Get("projectname").(string))
-		if err != nil {
-			log.Printf("project does not exist, error %s", err.Error())
-			return diag.FromErr(err)
-		}
-		p, err := project.NewProjectFromResponse([]byte(resp))
-		if err != nil {
-			return diag.FromErr(err)
-		} else if p == nil {
-			d.SetId("")
-			return diags
-		}
-		projectId := p.ID
-		//open file path and retirve config spec from yaml file (from run function in commands/create_cluster_override.go)
-		//read and capture file from file path
-		if f, err := os.Open(filePath); err == nil {
-			// capture the entire file
-			c, err := ioutil.ReadAll(f)
-			if err != nil {
-				log.Println("error cpaturing file")
-			}
-			//unmarshal yaml file to get correct specs
-			clusterOverrideDefinition := c
-			err = yaml.Unmarshal(clusterOverrideDefinition, &co)
-			if err != nil {
-				log.Printf("Failed Unmarshal correctly")
-			}
-			//get cluster override spec from yaml file
-			_, err = getClusterOverrideSpecFromYamlConfigSpec(co, filePath)
-			if err != nil {
-				log.Printf("Failed to get ClusterOverrideSpecFromYamlConfigSpec")
-			}
-		} else {
-			log.Println("Couldn't open file, err: ", err)
-		}
-		//get cluster override to ensure cluster override was created properly
-		getClus_resp, err := clusteroverride.GetClusterOverride(co.Metadata.Name, projectId, co.Spec.Type)
-		if err != nil {
-			log.Println("get cluster override failed: ", getClus_resp, err)
-		} else {
-			log.Println("got newly created cluster override: ", co.Metadata.Name)
-		}*/
 	return diags
 }
 
@@ -300,7 +253,7 @@ func resourceRepositoriesDelete(ctx context.Context, d *schema.ResourceData, m i
 	var diags diag.Diagnostics
 	log.Printf("deleting repositories")
 
-	//convert namesapce interface to passable list for function
+	//get project id with project name, p.id used to refer to project id -> need p.ID for calling DeleteRepository
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
 		log.Printf("project does not exist, error %s", err.Error())
@@ -314,8 +267,7 @@ func resourceRepositoriesDelete(ctx context.Context, d *schema.ResourceData, m i
 		return diags
 	}
 	projectId := p.ID
-	//get project id with project name, p.id used to refer to project id -> need p.ID for calling DeleteRepository
-	//convert namesapce interface to passable list for function
+	//delete repository
 	err = repository.DeleteRepository(d.Id(), projectId)
 	if err != nil {
 		log.Println("error deleting agent")

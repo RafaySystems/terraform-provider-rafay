@@ -75,7 +75,7 @@ func resourceAgentCreate(ctx context.Context, d *schema.ResourceData, m interfac
 		if err != nil {
 			log.Println("error cpaturing file")
 		}
-		//implement createClusterOverride from commands/create_cluster_override.go -> then call clusteroverride.CreateClusterOverride
+		//implement createClusterOverride from commands/create_agent.go -> then call clusteroverride.Createagent
 		agentDefinition := c
 		err = yaml.Unmarshal(agentDefinition, &agentYaml)
 		if err != nil {
@@ -140,7 +140,7 @@ func resourceAgentDelete(ctx context.Context, d *schema.ResourceData, m interfac
 		return diags
 	}
 	projectId := p.ID
-	//convert namesapce interface to passable list for function
+	//delete agent
 	err = agent.DeleteAgent(d.Id(), projectId)
 	if err != nil {
 		log.Println("error deleting agent")

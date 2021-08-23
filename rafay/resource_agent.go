@@ -43,13 +43,6 @@ func resourceAgent() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"delete_agents": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
 		},
 	}
 }
@@ -82,7 +75,7 @@ func resourceAgentCreate(ctx context.Context, d *schema.ResourceData, m interfac
 		if err != nil {
 			log.Println("error cpaturing file")
 		}
-		//implement createClusterOverride from commands/create_cluster_override.go -> then call clusteroverride.CreateClusterOverride
+		//implement createClusterOverride from commands/create_agent.go -> then call clusteroverride.Createagent
 		agentDefinition := c
 		err = yaml.Unmarshal(agentDefinition, &agentYaml)
 		if err != nil {
@@ -120,53 +113,6 @@ func resourceAgentCreate(ctx context.Context, d *schema.ResourceData, m interfac
 
 func resourceAgentRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	/*
-		filePath := d.Get("cluster_override_filepath").(string)
-		var co commands.ClusterOverrideYamlConfig
-		log.Printf("create cluster override resource")
-		//get project id with project name, p.id used to refer to project id -> need p.ID for calling createClusterOverride and getClusterOverride
-		resp, err := project.GetProjectByName(d.Get("projectname").(string))
-		if err != nil {
-			log.Printf("project does not exist, error %s", err.Error())
-			return diag.FromErr(err)
-		}
-		p, err := project.NewProjectFromResponse([]byte(resp))
-		if err != nil {
-			return diag.FromErr(err)
-		} else if p == nil {
-			d.SetId("")
-			return diags
-		}
-		projectId := p.ID
-		//open file path and retirve config spec from yaml file (from run function in commands/create_cluster_override.go)
-		//read and capture file from file path
-		if f, err := os.Open(filePath); err == nil {
-			// capture the entire file
-			c, err := ioutil.ReadAll(f)
-			if err != nil {
-				log.Println("error cpaturing file")
-			}
-			//unmarshal yaml file to get correct specs
-			clusterOverrideDefinition := c
-			err = yaml.Unmarshal(clusterOverrideDefinition, &co)
-			if err != nil {
-				log.Printf("Failed Unmarshal correctly")
-			}
-			//get cluster override spec from yaml file
-			_, err = getClusterOverrideSpecFromYamlConfigSpec(co, filePath)
-			if err != nil {
-				log.Printf("Failed to get ClusterOverrideSpecFromYamlConfigSpec")
-			}
-		} else {
-			log.Println("Couldn't open file, err: ", err)
-		}
-		//get cluster override to ensure cluster override was created properly
-		getClus_resp, err := clusteroverride.GetClusterOverride(co.Metadata.Name, projectId, co.Spec.Type)
-		if err != nil {
-			log.Println("get cluster override failed: ", getClus_resp, err)
-		} else {
-			log.Println("got newly created cluster override: ", co.Metadata.Name)
-		}*/
 	return diags
 }
 
@@ -194,20 +140,12 @@ func resourceAgentDelete(ctx context.Context, d *schema.ResourceData, m interfac
 		return diags
 	}
 	projectId := p.ID
-	//convert namesapce interface to passable list for function
-	if d.Get("delete_agents") != nil {
-		deleteAgentsList := d.Get("delete_agents").([]interface{})
-		deleteAgents := make([]string, len(deleteAgentsList))
-		for i, raw := range deleteAgentsList {
-			deleteAgents[i] = raw.(string)
-		}
-		// delete the specified agents
-		for _, a := range deleteAgents {
-			if err := agent.DeleteAgent(a, projectId); err != nil {
-				log.Println("error deleting agent")
-			}
-			log.Println("Deleted agent: ", a)
-		}
+	//delete agent
+	err = agent.DeleteAgent(d.Id(), projectId)
+	if err != nil {
+		log.Println("error deleting agent")
+	} else {
+		log.Println("Deleted agent: ", d.Id())
 	}
 	return diags
 }

@@ -1,1 +1,1 @@
-provider_config_file = "/Users/cangadala/Downloads/rafay_qa-cangadala@rafay.co.json"
+provider_config_file = "<rafay-config-json-file>"

@@ -158,7 +158,7 @@ func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interfac
 		addonID = s.ID
 		d.SetId(s.ID)
 	}
-	if d.Get("addontype").(string) == "nativeYaml" {
+	if d.Get("addontype").(string) == "yaml" {
 		if !utils.FileExists(YamlConfigFilePath) {
 			log.Printf("file %s does not exist", YamlConfigFilePath)
 			return diags

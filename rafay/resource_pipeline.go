@@ -51,9 +51,6 @@ func resourcePipelineCreate(ctx context.Context, d *schema.ResourceData, m inter
 	var diags diag.Diagnostics
 	filePath := d.Get("pipeline_filepath").(string)
 	var p commands.PipelineYamlConfig
-	//make sure this is the correct file path
-	log.Println("filepath: ", filePath)
-	log.Printf("create gitops agent resource")
 	//get project id with project name, p.id used to refer to project id -> need p.ID for calling createPipeline
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
@@ -258,7 +255,7 @@ func resourcePipelineCreate(ctx context.Context, d *schema.ResourceData, m inter
 		}
 		err = pipeline.CreatePipeline(p.Metadata.Name, projId, spec)
 		if err != nil {
-			log.Println("Failed to create Pipeline: ", p.Metadata.Name)
+			log.Println("Failed to create Pipeline: ", p.Metadata.Name, "err: ", err)
 			return diags
 		} else {
 			log.Println("Successfully created pipeline: ", p.Metadata.Name)
@@ -279,7 +276,6 @@ func resourcePipelineUpdate(ctx context.Context, d *schema.ResourceData, m inter
 	filePath := d.Get("pipeline_filepath").(string)
 	var p commands.PipelineYamlConfig
 	createIfNotPresent := false
-	log.Println("update pipeline starting")
 	//get project id with project name, p.id used to refer to project id -> need p.ID for calling UpdatePipeline
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
@@ -499,8 +495,7 @@ func resourcePipelineUpdate(ctx context.Context, d *schema.ResourceData, m inter
 func resourcePipelineDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("resource pipeline id %s", d.Id())
-
-	//get project id with project name, p.id used to refer to project id -> need p.ID for calling DeleteAgent
+	//get project id with project name, p.id used to refer to project id -> need p.ID for calling Deletepipeline
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
 		log.Printf("project does not exist, error %s", err.Error())
@@ -514,7 +509,7 @@ func resourcePipelineDelete(ctx context.Context, d *schema.ResourceData, m inter
 		return diags
 	}
 	projectId := p.ID
-	//delete agent
+	//delete pipeline
 	err = pipeline.DeletePipeline(d.Id(), projectId)
 	if err != nil {
 		log.Println("error deleting pipeline")

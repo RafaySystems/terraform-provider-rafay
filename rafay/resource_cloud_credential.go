@@ -3,11 +3,13 @@ package rafay
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cloudprovider"
 	"github.com/RafaySystems/rctl/pkg/project"
+	"github.com/RafaySystems/rctl/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -42,15 +44,35 @@ func resourceCloudCredential() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"rolearn": {
+			"providertype": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 			"credtype": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Required: true,
 			},
+			"type": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"rolearn": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"externalid": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"accesskey": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"secretkey": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"credfile": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -72,15 +94,84 @@ func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, 
 		fmt.Printf("project does not exist")
 		return diags
 	}
-
-	log.Printf("create cloud credential with name %s, %s", d.Get("name").(string), project.ID)
-	s, err := cloudprovider.CreateAWSCloudRoleCredentials(d.Get("name").(string), project.ID, d.Get("rolearn").(string), d.Get("externalid").(string), 1)
-	if err != nil {
-		log.Printf("create cloud credential error %s", err.Error())
-		return diag.FromErr(err)
+	if d.Get("type").(string) == "cluster-provisioning" {
+		if d.Get("providertype").(string) == "AWS" {
+			if d.Get("credtype").(string) == "rolearn" {
+				if d.Get("rolearn").(string) == "" {
+					return diag.FromErr(fmt.Errorf("RoleARN cannot be empty"))
+				}
+				log.Printf("create cloud credential with name %s, %s", d.Get("name").(string), project.ID)
+				s, err := cloudprovider.CreateAWSCloudRoleCredentials(d.Get("name").(string), project.ID, d.Get("rolearn").(string), d.Get("externalid").(string), 1)
+				if err != nil {
+					log.Printf("create cloud credential error %s", err.Error())
+					return diag.FromErr(err)
+				}
+				d.SetId(s.ID)
+			} else {
+				if d.Get("accesskey").(string) == "" {
+					return diag.FromErr(fmt.Errorf("accesskey cannot be empty"))
+				}
+				if d.Get("secretkey").(string) == "" {
+					return diag.FromErr(fmt.Errorf("secretkey cannot be empty"))
+				}
+				s, err := cloudprovider.CreateAWSCloudAccessKeyCredentials(d.Get("name").(string), project.ID, d.Get("accesskey").(string), d.Get("secretkey").(string), "", 0)
+				if err != nil {
+					log.Printf("create cloud credential error %s", err.Error())
+					return diag.FromErr(err)
+				}
+				d.SetId(s.ID)
+			}
+		} else if d.Get("providertype").(string) == "GCP" {
+			credFile := d.Get("credfile").(string)
+			if !utils.FileExists(credFile) {
+				log.Printf("file %s not exist", credFile)
+				return diags
+			}
+			byteContents, err := ioutil.ReadFile(credFile)
+			if err != nil {
+				log.Printf("Error while reading GCP jsonfile  %s", err.Error())
+				return diag.FromErr(err)
+			}
+			s, err := cloudprovider.CreateGCPCloudRoleCredentials(d.Get("name").(string), project.ID, string(byteContents))
+			if err != nil {
+				log.Printf("Error while creatGCPRole()  %s", err.Error())
+				return diag.FromErr(err)
+			}
+			d.SetId(s.ID)
+		} else {
+			return diag.FromErr(fmt.Errorf("providertype is not correct for cluster-provisioning,( use AWS or GCP )"))
+		}
+	} else if d.Get("type").(string) == "data-backup" {
+		if d.Get("providertype").(string) == "MINIO" {
+			if d.Get("credtype").(string) == "rolearn" {
+				if d.Get("rolearn").(string) == "" {
+					return diag.FromErr(fmt.Errorf("RoleARN cannot be empty"))
+				}
+				s, err := cloudprovider.CreateMinioCloudRoleCredentials(d.Get("name").(string), project.ID, d.Get("rolearn").(string), d.Get("externalid").(string))
+				if err != nil {
+					log.Printf("create cloud credential error %s", err.Error())
+					return diag.FromErr(err)
+				}
+				d.SetId(s.ID)
+			} else {
+				if d.Get("accesskey").(string) == "" {
+					return diag.FromErr(fmt.Errorf("accesskey cannot be empty"))
+				}
+				if d.Get("secretkey").(string) == "" {
+					return diag.FromErr(fmt.Errorf("secretkey cannot be empty"))
+				}
+				s, err := cloudprovider.CreateMinioCloudAccessKeyCredentials(d.Get("name").(string), project.ID, d.Get("accesskey").(string), d.Get("secretkey").(string), "")
+				if err != nil {
+					log.Printf("create cloud credential error %s", err.Error())
+					return diag.FromErr(err)
+				}
+				d.SetId(s.ID)
+			}
+		}
+	} else {
+		return diag.FromErr(fmt.Errorf("type is not correct ( cluster-provisioning or data-backup )"))
 	}
-	log.Printf("resource cloud credential created %s", s.ID)
-	d.SetId(s.ID)
+	log.Printf("resource cloud credential created ")
 
 	return diags
 }

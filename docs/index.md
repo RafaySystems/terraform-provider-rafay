@@ -63,18 +63,13 @@ $ export RCTL_REST_ENDPOINT="console.rafay.dev
 $ export RCTL_PROJECT="defaultproject"
 $ terraform plan
 ```
-
 ### Credentials/configuration file
-
 Use [Rafay credentials or configuration file](https://docs.rafay.co/cli/config/#config-file) to specify your credentials. Specify a location of the configuration file in the Terraform configuration by providing the `provider_config_file`  
-
 Usage:
-
 ```terraform
 provider "rafay" {
   provider_config_file = "/Users/tf_user/rafay_config.json"
 }
 ```
-
 You can also provide configuration file via `RAFAY_PROVIDER_CONFIG` environment variable.
 If provider_config_file is not set or empty, then provider will use default path  `~/.rafay/cli/config.json`

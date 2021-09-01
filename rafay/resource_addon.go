@@ -60,6 +60,14 @@ func resourceAddon() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"namespace": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"yamlfilepath": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"chartfile": {
 				Type:     schema.TypeString,
 				Optional: true,

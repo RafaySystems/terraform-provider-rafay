@@ -14,7 +14,7 @@ description: |-
 
 ```terraform
 resource "rafay_addon" "addon" {
-  name          = "testing2"
+  name          = "testing"
   projectname   = "dev3"
   namespace     = "testing"
   addontype     = "<yaml/helm/helm3/alertmanager>"

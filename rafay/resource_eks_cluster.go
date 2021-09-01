@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 	"time"
+	"strings"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/clusterctl"
@@ -101,7 +102,6 @@ func findBlueprintName(configBytes []byte) (string, string, error) {
 	}
 
 	return blueprint.Spec.Blueprint, blueprint.Spec.Blueprintversion, nil
-
 }
 func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]byte, []error) {
 	var errs []error
@@ -293,6 +293,7 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 	log.Printf("update EKS cluster resource")
 
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("project does not exist"))
 	}

@@ -37,9 +37,50 @@ type blueprintVersionYamlConfig struct {
 			Version   string   `yaml:"version"`
 			DependsOn []string `yaml:"dependsOn"`
 		} `yaml:"addons"`
-		Psps         []string `yaml:"psps"`
-		PspScope     string   `yaml:"pspScope"`
-		RafayIngress bool     `yaml:"rafayIngress"`
+		Psps                       []string `yaml:"psps"`
+		PspScope                   string   `yaml:"pspScope"`
+		RafayIngress               *bool    `yaml:"rafayIngress"`
+		RafayMonitoringAndAlerting *bool    `yaml:"rafayMonitoringAndAlerting"`
+		Kubevirt                   bool     `yaml:"kubevirt"`
+		DriftAction                string   `yaml:"driftAction"`
+		PrometheusCustomization    struct {
+			NodeExporter struct {
+				Disable         bool `yaml:"disable"`
+				DiscoveryConfig struct {
+					Namespace string            `yaml:"namespace"`
+					Resource  string            `yaml:"resource"`
+					Labels    map[string]string `yaml:"labels"`
+				} `yaml:"discoveryConfig"`
+			} `yaml:"nodeExporter"`
+			HelmExporter struct {
+				Disable         bool `yaml:"disable"`
+				DiscoveryConfig struct {
+					Namespace string            `yaml:"namespace"`
+					Resource  string            `yaml:"resource"`
+					Labels    map[string]string `yaml:"labels"`
+				} `yaml:"discoveryConfig"`
+			} `yaml:"helmExporter"`
+			KubeStateMetrics struct {
+				Disable         bool `yaml:"disable"`
+				DiscoveryConfig struct {
+					Namespace string            `yaml:"namespace"`
+					Resource  string            `yaml:"resource"`
+					Labels    map[string]string `yaml:"labels"`
+				} `yaml:"discoveryConfig"`
+			} `yaml:"kubeStateMetrics"`
+			PrometheusAdapter struct {
+				Disable bool `yaml:"disable"`
+			} `yaml:"prometheusAdapter"`
+			MetricsServer struct {
+				Disable bool `yaml:"disable"`
+			} `yaml:"metricsServer"`
+			Resources struct {
+				Limits struct {
+					Memory string `yaml:"memory"`
+					CPU    string `yaml:"cpu"`
+				} `yaml:"limits"`
+			} `yaml:"resources"`
+		} `yaml:"prometheusCustomization"`
 	} `yaml:"spec"`
 }
 
@@ -163,7 +204,7 @@ func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m inte
 		log.Printf("Error While creating blueprint %s, %s", b.Spec.Blueprint, errCreate.Error())
 		return diag.FromErr(errCreate)
 	}
-	errVersion := blueprint.CreateBlueprintVersion(b.Spec.Blueprint, project.ID, b.Metadata.Name, b.Spec.RafayIngress, addons, addonDependency, b.Spec.PspScope, b.Spec.Psps)
+	errVersion := blueprint.CreateBlueprintVersion(b.Spec.Blueprint, project.ID, b.Metadata.Name, b.Spec.RafayIngress, b.Spec.RafayMonitoringAndAlerting, b.Spec.Kubevirt, addons, addonDependency, b.Spec.PspScope, b.Spec.Psps, b.Spec.DriftAction, b.Spec.PrometheusCustomization)
 	if errVersion != nil {
 		log.Printf("Error While creating blueprintversion %s, %s", b.Spec.Blueprint, errVersion.Error())
 		return diag.FromErr(errVersion)

@@ -26,6 +26,7 @@ resource "rafay_addon" "addon" {
   configuration = ""
   secret        = ""
   statefulset   = ""
+  yamlfileversion = ""
 }
 ```
 
@@ -38,6 +39,7 @@ resource "rafay_addon" "addon" {
 - **name** (String)
 - **projectname** (String)
 - **versionname** (String)
+- **yamlfileversion** (String)
 
 ### Optional
 

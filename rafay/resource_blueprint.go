@@ -103,6 +103,10 @@ func resourceBluePrint() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"yamlfileversion": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -247,7 +251,92 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 
 func resourceBluePrintUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("update EKS cluster resource")
+
+	YamlConfigFilePath := d.Get("yamlfilepath").(string)
+	log.Printf("YamlConfigFile %s", YamlConfigFilePath)
+
+	if !utils.FileExists(YamlConfigFilePath) {
+		log.Printf("file %s not exist", YamlConfigFilePath)
+		return diags
+	}
+	if filepath.Ext(YamlConfigFilePath) != ".yml" && filepath.Ext(YamlConfigFilePath) != ".yaml" {
+		log.Printf("file must a yaml file, file type is %s", filepath.Ext(YamlConfigFilePath))
+		return diags
+	}
+	f, err := os.Open(YamlConfigFilePath)
+	if err != nil {
+		log.Printf("Error while open Yaml %s", YamlConfigFilePath)
+		return diag.FromErr(err)
+	}
+	c, err := ioutil.ReadAll(f)
+	if err != nil {
+		log.Printf("error while Reading file")
+		return diag.FromErr(err)
+	}
+	var b blueprintVersionYamlConfig
+	err = yaml.Unmarshal(c, &b)
+	if err != nil {
+		log.Printf("error while unmarshal Yaml file ")
+		return diag.FromErr(err)
+	}
+	if b.Metadata.Project == "" {
+		log.Printf("project name should not be empty")
+		return diags
+	}
+	// get project details
+	log.Printf("project Name %s", b.Metadata.Project)
+	resp, err := project.GetProjectByName(b.Metadata.Project)
+	if err != nil {
+		fmt.Print("project does not exist")
+		return diag.FromErr(err)
+	}
+	project, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		fmt.Printf("project does not exist")
+		return diag.FromErr(err)
+	}
+	addonDependency := make(map[string][]string)
+	addons := make(map[string]string, len(b.Spec.Addons))
+	for _, a := range b.Spec.Addons {
+		if a.Version == "" {
+			err = fmt.Errorf("version field is empty for addon %s", a.Name)
+			return diag.FromErr(err)
+		}
+		if a.Name == "" {
+			err = fmt.Errorf("name field is empty for addon version %s", a.Version)
+			return diag.FromErr(err)
+		}
+		addons[a.Name] = a.Version
+		addonDependency[a.Name] = a.DependsOn
+	}
+	log.Printf("addon len %d", len(b.Spec.Addons))
+	if b.Spec.Blueprint == "" {
+		err = fmt.Errorf(" Blueprint name cannot be empty ")
+		return diag.FromErr(err)
+	}
+	if b.Metadata.Name == "" {
+		err = fmt.Errorf(" Blueprint Metadataname cannot be empty ")
+		return diag.FromErr(err)
+	}
+	if b.Spec.PspScope == "" {
+		err = fmt.Errorf("psp scope must be supplied and must be one of %s or %s", ClusterScoped, NamespaceScoped)
+		return diag.FromErr(err)
+	} else if b.Spec.PspScope != ClusterScoped && b.Spec.PspScope != NamespaceScoped {
+		err = fmt.Errorf("psp scope must be one of %s or %s, current value is %s", ClusterScoped, NamespaceScoped, b.Spec.PspScope)
+		return diag.FromErr(err)
+	}
+
+	errVersion := blueprint.CreateBlueprintVersion(b.Spec.Blueprint, project.ID, b.Metadata.Name, b.Spec.RafayIngress, addons, addonDependency, b.Spec.PspScope, b.Spec.Psps)
+	if errVersion != nil {
+		log.Printf("Error While creating blueprintversion %s, %s", b.Spec.Blueprint, errVersion.Error())
+		return diag.FromErr(errVersion)
+	}
+	errpublish := blueprint.PublishBlueprint(b.Spec.Blueprint, b.Metadata.Name, project.ID)
+	if errpublish != nil {
+		log.Printf("Error While publish blueprintversion %s, %s", b.Spec.Blueprint, errpublish.Error())
+		return diag.FromErr(errpublish)
+	}
+
 	return diags
 }
 

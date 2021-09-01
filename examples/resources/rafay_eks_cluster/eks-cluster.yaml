@@ -10,6 +10,7 @@ spec:
   type: eks
   blueprint: default
   cloudprovider: <cloud-credential>
+  # blueprintversion: v1
 ---
 apiVersion: rafay.io/v1alpha5
 kind: ClusterConfig

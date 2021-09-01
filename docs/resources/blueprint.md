@@ -17,7 +17,8 @@ resource "rafay_blueprint" "blueprint" {
   name         = "rctl-test-blueprint"
   projectname  = "dev3"
   yamlfilepath = "<file-path/blueprint.yaml>"
-  description  = "blue print with terraform provider"
+  description  = "blueprint with terraform provider"
+  yamlfileversion = ""
 }
 ```
 
@@ -29,6 +30,7 @@ resource "rafay_blueprint" "blueprint" {
 - **name** (String)
 - **projectname** (String)
 - **yamlfilepath** (String)
+- **yamlfileversion** (String)
 
 ### Optional
 

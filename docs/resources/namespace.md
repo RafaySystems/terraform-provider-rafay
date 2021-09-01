@@ -16,7 +16,7 @@ description: |-
 resource "rafay_namespace" "namespace" {
   name        = "ns-dev1"
   description = "ns-dev1-description"
-  projectname = "benny-eks-wz-testing"
+  projectname = "test-project"
 }
 ```
 

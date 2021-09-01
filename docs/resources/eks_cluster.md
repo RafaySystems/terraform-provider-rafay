@@ -14,9 +14,10 @@ description: |-
 
 ```terraform
 resource "rafay_eks_cluster" "cluster" {
-  name         = "demo-terraform"
-  projectname  = "dev"
-  yamlfilepath = "<file-path/eks-cluster.yaml>"
+  name            = "demo-terraform"
+  projectname     = "dev"
+  yamlfilepath    = "<file-path/eks-cluster.yaml>"
+  yamlfileversion = ""
 }
 ```
 
@@ -28,11 +29,13 @@ resource "rafay_eks_cluster" "cluster" {
 - **name** (String)
 - **projectname** (String)
 - **yamlfilepath** (String)
+- **yamlfileversion** (String)
 
 ### Optional
 
 - **id** (String) The ID of this resource.
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- **waitflag** (String)
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

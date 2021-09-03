@@ -14,8 +14,9 @@ description: |-
 
 ```terraform
 resource "rafay_workload" "workload" {
-  yamlfilepath = "/Users/cangadala/Downloads/terraformworkload/exampleworkload.yaml"
-  projectname  = "dev-proj-new"
+  workloadname         = "rctl-test-workload"
+  yamlfilepath = "/Users/cangadala/Downloads/exampleworkload.yaml"
+  projectname  = "dev-proj-example"
 }
 ```
 

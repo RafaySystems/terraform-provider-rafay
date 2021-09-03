@@ -17,14 +17,14 @@ resource "rafay_cloud_credential" "credential" {
   name         = "testinggcp2"
   projectname  = "dev3"
   description  = "description"
-  providertype = "<AWS/GCP/MINIO>"
-  rolearn      = ""
-  credtype     = "access"
-  externalid   = ""
   type         = "cluster-provisioning"
+  providertype = "GCP"
+  credtype     = "access"
+  rolearn      = ""
+  externalid   = ""
   accesskey    = ""
   secretkey    = ""
-  credfile     = "<filepath/cred.json>"
+  credfile     = "/Users/krishna/Downloads/Neridiosys-shreekrishna@rafay.co.json"
 }
 ```
 
@@ -59,60 +59,4 @@ Optional:
 - **delete** (String)
 - **update** (String)
 
-Example:
-```
-For Cluster-Provisioning with AccessKey
-  1.AWS :
-    required items in resource.tf
-      -> name  = "NewName"    , cloudProvider Name.
-      -> projectname = "defaultproject".
-      -> type  = "cluster-provisioning"
-      -> providertype = "AWS".
-      -> credtype = "accesskey"
-      -> accesskey = "xxxxxxxxxxx" ,  // your access key
-      -> secretkey = "yyyyyyyyyyy" ,  // your secret key.
-
-  2.GCP :
-    required items in resource.tf
-      -> name  = ""    , cloudProvider Name.
-      -> projectname = "defaultproject".
-      -> type  = "cluster-provisioning".
-      -> providertype = "GCP".
-      -> credfile = "<filepath>/gcp-credential.json".
- ```
-
-```
-For Cluster-Provisioning with RoleARN
-    1. AWS :
-      required items in resource.tf
-        -> name  = ""    , cloudProvider Name.
-        -> projectname = "defaultproject".
-        -> type  = "cluster-provisioning"
-        -> providertype = "AWS".
-        -> credtype = "rolearn".
-        -> rolearn = "yyyyyyyyyyyyyyyyy",   // your roleARN value.
-        -> externalid = "iiiiiiiiiiiii",    // your externalID value.
-
-    2. GCP:
-      required items in resource.tf
-        -> name  = ""    , cloudProvider Name.
-        -> projectname = "defaultproject".
-        -> type  = "cluster-provisioning".
-        -> providertype = "GCP".
-        -> credfile = "<filepath>/gcp-credential.json".
-```
-
-```
-For Data-Backup with AccessKey
-    1. MINIO:
-      required items in resource.tf
-        -> name  = ""    , cloudProvider Name.
-        -> projectname = "defaultproject".
-        -> type  = "data-backup".
-        -> providertype = "MINIO".
-        -> credtype = "accesskey"
-        -> accesskey = "xxxxxxxxxxx" ,  // your access key
-        -> secretkey = "yyyyyyyyyyy" ,  // your secret key.
-
-```
 

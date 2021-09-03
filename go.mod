@@ -17,7 +17,7 @@ require (
 replace (
 	//github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
 	//github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
-	github.com/RafaySystems/rctl => ../rctl
+	//github.com/RafaySystems/rctl => ../rctl
 	k8s.io/api => k8s.io/api v0.18.4
 	k8s.io/apimachinery => k8s.io/apimachinery v0.18.4
 )

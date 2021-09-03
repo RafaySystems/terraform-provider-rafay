@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/clusterctl"
@@ -23,6 +23,7 @@ import (
 type configMetadata struct {
 	Name    string `yaml:"name"`
 	Project string `yaml:"project"`
+	Version string `yaml:"version"`
 }
 
 type configResourceType struct {
@@ -30,12 +31,12 @@ type configResourceType struct {
 }
 
 type blueprintSpec struct {
-	Blueprint	string `yaml:"blueprint"`
+	Blueprint        string `yaml:"blueprint"`
 	Blueprintversion string `yaml:"blueprintversion"`
 }
 
 type blueprintType struct {
-	Spec  *blueprintSpec  `yaml:"spec"`
+	Spec *blueprintSpec `yaml:"spec"`
 }
 
 func resourceEKSCluster() *schema.Resource {
@@ -57,6 +58,10 @@ func resourceEKSCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"yamlfileversion": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -66,44 +71,43 @@ func resourceEKSCluster() *schema.Resource {
 				Required: true,
 			},
 			"waitflag": {
-				Type:	  schema.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 		},
 	}
 }
 
-func findResourceNameFromConfig(configBytes []byte) (string, string, error) {
+func findResourceNameFromConfig(configBytes []byte) (string, string, string, error) {
 	var config configResourceType
 	if err := yaml.Unmarshal(configBytes, &config); err != nil {
-		return "", "", nil
+		return "", "", "", nil
 	} else if config.Meta == nil {
-		return "", "", fmt.Errorf("%s", "Invalid resource: No metadata found")
+		return "", "", "", fmt.Errorf("%s", "Invalid resource: No metadata found")
 	} else if config.Meta.Name == "" {
-		return "", "", fmt.Errorf("%s", "Invalid resource: No name specified in metadata")
+		return "", "", "", fmt.Errorf("%s", "Invalid resource: No name specified in metadata")
 	}
-	return config.Meta.Name, config.Meta.Project, nil
+	return config.Meta.Name, config.Meta.Project, config.Meta.Version, nil
 }
 
-func findBlueprintName(configBytes []byte )(string,string, error ) {
+func findBlueprintName(configBytes []byte) (string, string, error) {
 	var blueprint blueprintType
 	if err := yaml.Unmarshal(configBytes, &blueprint); err != nil {
-		return "","", nil
-	}else if blueprint.Spec == nil {
-		return "","",  fmt.Errorf("%s","Invalid resource: No spec found")
-	}else if blueprint.Spec.Blueprint == "" {
-		return "","",  fmt.Errorf("%s","Invalid resource: No name specified in spec")
+		return "", "", nil
+	} else if blueprint.Spec == nil {
+		return "", "", fmt.Errorf("%s", "Invalid resource: No spec found")
+	} else if blueprint.Spec.Blueprint == "" {
+		return "", "", fmt.Errorf("%s", "Invalid resource: No name specified in spec")
 	}
 
-	return blueprint.Spec.Blueprint ,blueprint.Spec.Blueprintversion, nil
-
+	return blueprint.Spec.Blueprint, blueprint.Spec.Blueprintversion, nil
 }
 func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]byte, []error) {
 	var errs []error
 	configsMap := make(map[string][][]byte)
 	// First find all rafay spec configurations
 	for _, config := range rafayConfigs {
-		name, _, err := findResourceNameFromConfig(config)
+		name, _, _, err := findResourceNameFromConfig(config)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -116,7 +120,7 @@ func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]b
 	}
 	// Then append the cluster specific configurations
 	for _, config := range clusterConfigs {
-		name, _, err := findResourceNameFromConfig(config)
+		name, _, _, err := findResourceNameFromConfig(config)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -173,7 +177,7 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 	}
 	for _, yi := range rafayConfigs {
 		log.Println("rafayConfig:", string(yi))
-		name, project, err := findResourceNameFromConfig(yi)
+		name, project, _, err := findResourceNameFromConfig(yi)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("%s", "failed to get cluster name"))
 		}
@@ -188,7 +192,7 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 
 	for _, yi := range clusterConfigs {
 		log.Println("clusterConfig", string(yi))
-		name, _, err := findResourceNameFromConfig(yi)
+		name, _, _, err := findResourceNameFromConfig(yi)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("%s", "failed to get cluster name"))
 		}
@@ -236,7 +240,7 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 	if d.Get("waitflag").(string) == "1" {
 		log.Printf("Cluster Provision may take upto 15-20 Minutes")
 		for {
-			check, errGet := cluster.GetCluster(d.Get("name").(string), project.ID )
+			check, errGet := cluster.GetCluster(d.Get("name").(string), project.ID)
 			if errGet != nil {
 				log.Printf("error while getCluster %s", errGet.Error())
 				return diag.FromErr(errGet)
@@ -288,12 +292,13 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 	log.Printf("update EKS cluster resource")
 
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-    if err != nil {
-        return diag.FromErr(fmt.Errorf("project does not exist") )
-    }
-    project, err := project.NewProjectFromResponse([]byte(resp))
-    if err != nil {
-        return diag.FromErr(fmt.Errorf("project does not exist"))
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("project does not exist"))
+	}
+	project, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("project does not exist"))
 	}
 
 	cluster_resp, err := cluster.GetCluster(d.Get("name").(string), project.ID)
@@ -302,54 +307,76 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 
-    YamlConfigFilePath := d.Get("yamlfilepath").(string)
+	YamlConfigFilePath := d.Get("yamlfilepath").(string)
 
-    fileBytes, err := utils.ReadYAMLFileContents(YamlConfigFilePath)
-    if err != nil {
-        return diag.FromErr(err)
-    }
+	fileBytes, err := utils.ReadYAMLFileContents(YamlConfigFilePath)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	y, uerr := utils.SplitYamlAndGetListByKind(fileBytes)
-    if uerr != nil {
-        return diag.FromErr(err)
-    }
+	if uerr != nil {
+		return diag.FromErr(err)
+	}
 
-    var rafayConfigs  [][]byte
-    rafayConfigs = y["Cluster"]
-    if len(rafayConfigs) > 1 {
-        return diag.FromErr(fmt.Errorf("%s", "only one cluster per config is supported"))
-    }
+	rafayConfigs := y["Cluster"]
+	if len(rafayConfigs) > 1 {
+		return diag.FromErr(fmt.Errorf("%s", "only one cluster per config is supported"))
+	}
 
 	var blueprintName, blueprintversion string
-	for _, yi :=  range rafayConfigs {
+	for _, yi := range rafayConfigs {
 		var err error
-        blueprintName,blueprintversion, err = findBlueprintName(yi)
-        if err != nil {
-            return diag.FromErr(fmt.Errorf("%s", "failed to get blueprint name"))
-        }
-        log.Printf("blueprint name %s", blueprintName)
-    }
+		blueprintName, blueprintversion, err = findBlueprintName(yi)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("%s", "failed to get blueprint name"))
+		}
+		log.Printf("blueprint name %s", blueprintName)
+	}
 
-	if cluster_resp.ClusterBlueprint == blueprintName  {
-		return diag.FromErr(fmt.Errorf("%s", "Blueprint name not changed"))
-	} else  {
+	if cluster_resp.ClusterBlueprint != blueprintName || cluster_resp.ClusterBlueprintVersion != blueprintversion {
 		cluster_resp.ClusterBlueprint = blueprintName
-	}
-	if blueprintversion != "" {
-		cluster_resp.ClusterBlueprintVersion = blueprintversion
+
+		if blueprintversion != "" {
+			cluster_resp.ClusterBlueprintVersion = blueprintversion
+		}
+
+		erru := cluster.UpdateCluster(cluster_resp)
+		if erru != nil {
+			log.Printf("cluster was not updated, error %s", erru.Error())
+			return diag.FromErr(erru)
+		}
+		errp := cluster.PublishClusterBlueprint(d.Get("name").(string), project.ID)
+		if errp != nil {
+			log.Printf("cluster was not published, error %s", errp.Error())
+			return diag.FromErr(errp)
+		}
 	}
 
-	erru := cluster.UpdateCluster(cluster_resp)
-	if erru != nil {
-		log.Printf("cluster was not updated, error %s", erru.Error())
-		return diag.FromErr(erru)
+	var versionstr, name string
+	clusterConfigs := y["ClusterConfig"]
+	for _, yi := range clusterConfigs {
+		log.Println("clusterConfig", string(yi))
+		name, _, versionstr, err = findResourceNameFromConfig(yi)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("%s", "failed to get cluster name"))
+		}
+		if name != d.Get("name").(string) {
+			return diag.FromErr(fmt.Errorf("%s", "ClusterConfig name does not match config file"))
+		}
 	}
-	errp := cluster.PublishClusterBlueprint(d.Get("name").(string), project.ID)
-	if errp  != nil {
-		log.Printf("cluster was not published, error %s", errp.Error())
-		return diag.FromErr(errp)
+
+	log.Println("versionstr ", versionstr)
+	if versionstr != "" {
+		logger := glogger.GetLogger()
+		err = cluster.UpgradeClusterEks(d.Get("name").(string),
+			versionstr, project.ID, logger)
+		if err != nil {
+			log.Println("cluster upgrade response ", err)
+		}
 	}
-        return diags
+
+	return diags
 }
 
 func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

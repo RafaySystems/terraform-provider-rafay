@@ -14,18 +14,19 @@ description: |-
 
 ```terraform
 resource "rafay_addon" "addon" {
-  name          = "testing"
-  projectname   = "dev3"
-  namespace     = "testing"
-  addontype     = "<yaml/helm/helm3/alertmanager>"
-  yamlfilepath  = ""
-  chartfile     = ""
-  valuesfile    = ""
-  versionname   = ""
-  configmap     = ""
-  configuration = ""
-  secret        = ""
-  statefulset   = ""
+  name            = "testing2"
+  projectname     = "dev3"
+  namespace       = "testing"
+  addontype       = "<yaml/helm/helm3/alertmanager>"
+  yamlfilepath    = ""
+  chartfile       = ""
+  valuesfile      = ""
+  versionname     = ""
+  configmap       = ""
+  configuration   = ""
+  secret          = ""
+  statefulset     = ""
+  yamlfileversion = ""
 }
 ```
 
@@ -38,6 +39,7 @@ resource "rafay_addon" "addon" {
 - **name** (String)
 - **projectname** (String)
 - **versionname** (String)
+- **yamlfileversion** (String)
 
 ### Optional
 

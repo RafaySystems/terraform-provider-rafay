@@ -14,9 +14,8 @@ description: |-
 
 ```terraform
 resource "rafay_workload" "workload" {
-  name         = "rctl-test-workload"
-  yamlfilepath = "/Users/cangadala/Downloads/exampleworkload.yaml"
-  description  = "workload with terraform provider"
+  yamlfilepath = "/Users/cangadala/Downloads/terraformworkload/exampleworkload.yaml"
+  projectname  = "dev-proj-new"
 }
 ```
 
@@ -25,12 +24,14 @@ resource "rafay_workload" "workload" {
 
 ### Required
 
+- **projectname** (String)
 - **yamlfilepath** (String)
 
 ### Optional
 
 - **id** (String) The ID of this resource.
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- **workloadname** (String)
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

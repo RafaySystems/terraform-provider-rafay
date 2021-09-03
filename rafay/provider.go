@@ -40,6 +40,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_blueprint":        resourceBluePrint(),
 				"rafay_import_cluster":   resourceImportCluster(),
 				"rafay_cluster_override": resourceClusterOverride(),
+				"rafay_workload":         resourceWorkload(),
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,

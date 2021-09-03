@@ -6,7 +6,6 @@ import (
 	"log"
 	"strings"
 	"time"
-	"strings"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/clusterctl"

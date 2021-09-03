@@ -18,7 +18,7 @@ resource "rafay_eks_cluster" "cluster" {
   projectname     = "dev"
   yamlfilepath    = "<file-path/eks-cluster.yaml>"
   yamlfileversion = ""
-  waitflag     = "1"
+  waitflag        = "1"
 }
 ```
 

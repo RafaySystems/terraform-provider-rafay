@@ -204,12 +204,15 @@ func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m inte
 		log.Printf("Error While creating blueprint %s, %s", b.Spec.Blueprint, errCreate.Error())
 		return diag.FromErr(errCreate)
 	}
-	errVersion := blueprint.CreateBlueprintVersion(b.Spec.Blueprint, project.ID, b.Metadata.Name, b.Spec.RafayIngress, b.Spec.RafayMonitoringAndAlerting, b.Spec.Kubevirt, addons, addonDependency, b.Spec.PspScope, b.Spec.Psps, b.Spec.DriftAction, b.Spec.PrometheusCustomization)
+	errVersion := blueprint.CreateBlueprintVersion(b.Spec.Blueprint,
+		project.ID, b.Metadata.Name, "", b.Spec.RafayIngress, b.Spec.RafayMonitoringAndAlerting,
+		b.Spec.Kubevirt, addons, addonDependency, b.Spec.PspScope, b.Spec.Psps, b.Spec.DriftAction,
+		b.Spec.PrometheusCustomization, "", "", "")
 	if errVersion != nil {
 		log.Printf("Error While creating blueprintversion %s, %s", b.Spec.Blueprint, errVersion.Error())
 		return diag.FromErr(errVersion)
 	}
-	errpublish := blueprint.PublishBlueprint(b.Spec.Blueprint, b.Metadata.Name, project.ID)
+	errpublish := blueprint.PublishBlueprint(b.Spec.Blueprint, b.Metadata.Name, "", project.ID)
 	if errpublish != nil {
 		log.Printf("Error While publish blueprintversion %s, %s", b.Spec.Blueprint, errpublish.Error())
 		return diag.FromErr(errpublish)
@@ -326,12 +329,15 @@ func resourceBluePrintUpdate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
-	errVersion := blueprint.CreateBlueprintVersion(b.Spec.Blueprint, project.ID, b.Metadata.Name, b.Spec.RafayIngress, addons, addonDependency, b.Spec.PspScope, b.Spec.Psps)
+	errVersion := blueprint.CreateBlueprintVersion(b.Spec.Blueprint, project.ID, b.Metadata.Name, "",
+		b.Spec.RafayIngress, b.Spec.RafayMonitoringAndAlerting, b.Spec.Kubevirt,
+		addons, addonDependency, b.Spec.PspScope, b.Spec.Psps, b.Spec.DriftAction,
+		b.Spec.PrometheusCustomization, "", "", "")
 	if errVersion != nil {
 		log.Printf("Error While creating blueprintversion %s, %s", b.Spec.Blueprint, errVersion.Error())
 		return diag.FromErr(errVersion)
 	}
-	errpublish := blueprint.PublishBlueprint(b.Spec.Blueprint, b.Metadata.Name, project.ID)
+	errpublish := blueprint.PublishBlueprint(b.Spec.Blueprint, b.Metadata.Name, "", project.ID)
 	if errpublish != nil {
 		log.Printf("Error While publish blueprintversion %s, %s", b.Spec.Blueprint, errpublish.Error())
 		return diag.FromErr(errpublish)

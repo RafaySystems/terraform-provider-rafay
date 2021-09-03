@@ -32,6 +32,7 @@ resource "rafay_agent" "agent" {
 
 - **id** (String) The ID of this resource.
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- **workloadname** (String)
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

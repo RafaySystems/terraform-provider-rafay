@@ -169,6 +169,7 @@ func resourceWorkloadCreate(ctx context.Context, d *schema.ResourceData, m inter
 		log.Printf("failed to publish workload %s", wlid)
 		return diag.FromErr(err)
 	}
+	log.Printf("Workload published successfully")
 
 	d.SetId(wlid)
 	return diags
@@ -267,7 +268,6 @@ func resourceWorkloadUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		if d.Get("workloadname") != nil {
 			payloadFile = utils.FullPath(YamlConfigFilePath, payloadFile)
 			if _, err := os.Stat(payloadFile); os.IsNotExist(err) {
-				log.Printf("inside blank and rafay")
 				log.Printf("Payload file doesn't exist '%s'", payloadFile)
 				return diag.FromErr(err)
 			}
@@ -291,11 +291,8 @@ func resourceWorkloadUpdate(ctx context.Context, d *schema.ResourceData, m inter
 		}
 		wlType := wl.Type
 		payloadFile := utils.FullPath(YamlConfigFilePath, wl.PayloadFile)
-		log.Printf("payloadfile %s", payloadFile)
-		log.Printf("wl payloadfile %s", wl.PayloadFile)
 
 		if _, err := os.Stat(payloadFile); wl.PayloadFile != "" && os.IsNotExist(err) {
-			log.Printf("inside helm/nativeyaml and hel3")
 			log.Printf("Payload file doesn't exist '%s'", payloadFile)
 			return diag.FromErr(err)
 		}

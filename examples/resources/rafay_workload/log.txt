@@ -1,0 +1,32 @@
+2021-09-03T03:43:18.883-0700 [DEBUG] Adding temp file log sink: /var/folders/71/cvrk6fbn5yq0bwm859fh0rgr0000gn/T/terraform-log383793675
+2021-09-03T03:43:18.883-0700 [INFO]  Terraform version: 1.0.5
+2021-09-03T03:43:18.883-0700 [INFO]  Go runtime version: go1.16.6
+2021-09-03T03:43:18.883-0700 [INFO]  CLI args: []string{"/usr/local/bin/terraform", "read"}
+2021-09-03T03:43:18.883-0700 [TRACE] Stdout is a terminal of width 127
+2021-09-03T03:43:18.883-0700 [TRACE] Stderr is a terminal of width 127
+2021-09-03T03:43:18.883-0700 [TRACE] Stdin is a terminal
+2021-09-03T03:43:18.884-0700 [DEBUG] Attempting to open CLI config file: /Users/cangadala/.terraformrc
+2021-09-03T03:43:18.884-0700 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
+2021-09-03T03:43:18.884-0700 [DEBUG] checking for credentials in "/Users/cangadala/.terraform.d/plugins"
+2021-09-03T03:43:18.884-0700 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
+2021-09-03T03:43:18.884-0700 [DEBUG] will search for provider plugins in /Users/cangadala/.terraform.d/plugins
+2021-09-03T03:43:18.885-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at /Users/cangadala/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
+2021-09-03T03:43:18.885-0700 [DEBUG] ignoring non-existing provider search directory /Users/cangadala/Library/Application Support/io.terraform/plugins
+2021-09-03T03:43:18.885-0700 [DEBUG] ignoring non-existing provider search directory /Library/Application Support/io.terraform/plugins
+2021-09-03T03:43:18.886-0700 [INFO]  CLI command args: []string{"read"}
+2021-09-03T03:43:23.682-0700 [DEBUG] Adding temp file log sink: /var/folders/71/cvrk6fbn5yq0bwm859fh0rgr0000gn/T/terraform-log905632637
+2021-09-03T03:43:23.682-0700 [INFO]  Terraform version: 1.0.5
+2021-09-03T03:43:23.682-0700 [INFO]  Go runtime version: go1.16.6
+2021-09-03T03:43:23.682-0700 [INFO]  CLI args: []string{"/usr/local/bin/terraform", "-help"}
+2021-09-03T03:43:23.682-0700 [TRACE] Stdout is a terminal of width 127
+2021-09-03T03:43:23.682-0700 [TRACE] Stderr is a terminal of width 127
+2021-09-03T03:43:23.682-0700 [TRACE] Stdin is a terminal
+2021-09-03T03:43:23.682-0700 [DEBUG] Attempting to open CLI config file: /Users/cangadala/.terraformrc
+2021-09-03T03:43:23.682-0700 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
+2021-09-03T03:43:23.682-0700 [DEBUG] checking for credentials in "/Users/cangadala/.terraform.d/plugins"
+2021-09-03T03:43:23.682-0700 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
+2021-09-03T03:43:23.682-0700 [DEBUG] will search for provider plugins in /Users/cangadala/.terraform.d/plugins
+2021-09-03T03:43:23.683-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at /Users/cangadala/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
+2021-09-03T03:43:23.683-0700 [DEBUG] ignoring non-existing provider search directory /Users/cangadala/Library/Application Support/io.terraform/plugins
+2021-09-03T03:43:23.683-0700 [DEBUG] ignoring non-existing provider search directory /Library/Application Support/io.terraform/plugins
+2021-09-03T03:43:23.683-0700 [INFO]  CLI command args: []string{"-help"}

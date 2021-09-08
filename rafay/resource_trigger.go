@@ -69,14 +69,14 @@ func resourceTriggerCreate(ctx context.Context, d *schema.ResourceData, m interf
 		return diags
 	}
 	projectId := p.ID
-	//open file path and retirve config spec from yaml file (from run function in commands/create_agent.go)
+	//open file path and retirve config spec from yaml file (from run function in commands/create_trigger.go)
 	//read and capture file from file path
 	if f, err := os.Open(filePath); err == nil {
 		c, err := ioutil.ReadAll(f)
 		if err != nil {
 			log.Println("error cpaturing file")
 		}
-		//implement createClusterOverride from commands/create_agent.go -> then call clusteroverride.Createagent
+		//implement createTrigger from commands/create_trigger.go -> then call trigger.CreateTrigger
 		triggerDefinition := c
 		// unmarshal the data
 		err = yaml.Unmarshal(triggerDefinition, &t)
@@ -166,10 +166,9 @@ func resourceTriggerUpdate(ctx context.Context, d *schema.ResourceData, m interf
 	filePath := d.Get("trigger_filepath").(string)
 	var t commands.TriggerYamlConfig
 	//make sure this is the correct file path
-	//make sure this is the correct file path
 	log.Println("filepath: ", filePath)
-	log.Printf("create gitops trigger resource")
-	//get project id with project name, p.id used to refer to project id -> need p.ID for calling createAgent
+	log.Printf("update gitops trigger resource")
+	//get project id with project name, p.id used to refer to project id -> need p.ID for calling updateTrigger
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
 		log.Printf("project does not exist, error %s", err.Error())
@@ -183,14 +182,14 @@ func resourceTriggerUpdate(ctx context.Context, d *schema.ResourceData, m interf
 		return diags
 	}
 	projectId := p.ID
-	//open file path and retirve config spec from yaml file (from run function in commands/create_repositories.go)
+	//open file path and retirve config spec from yaml file (from run function in commands/update_trigger.go)
 	//read and capture file from file path
 	if f, err := os.Open(filePath); err == nil {
 		c, err := ioutil.ReadAll(f)
 		if err != nil {
 			log.Println("error cpaturing file")
 		}
-		//implement createClusterOverride from commands/create_cluster_override.go -> then call clusteroverride.CreateClusterOverride
+		//implement updateTrigger from commands/update_trigger.go -> then call trigger.UpdateTrigger
 		triggerDefinition := c
 		// unmarshal the data
 		err = yaml.Unmarshal(triggerDefinition, &t)
@@ -236,7 +235,7 @@ func resourceTriggerUpdate(ctx context.Context, d *schema.ResourceData, m interf
 			spec.RepositoryConfig.Helm.ChartName = t.Spec.RepositoryConfig.Helm.ChartName
 			spec.RepositoryConfig.Helm.Revision = t.Spec.RepositoryConfig.Helm.Revision
 		} else {
-			log.Println("Failed to create/update Trigger. Required respositoryConfig.git or respositoryConfig.helm")
+			log.Println("Failed to update Trigger. Required respositoryConfig.git or respositoryConfig.helm")
 		}
 		for _, v := range t.Spec.Variables {
 			spec.Variables = append(spec.Variables, models.InlineVariableSpec{
@@ -245,12 +244,12 @@ func resourceTriggerUpdate(ctx context.Context, d *schema.ResourceData, m interf
 				Value: v.Value,
 			})
 		}
-
+		//update trigger
 		err = trigger.UpdateTrigger(t.Metadata.Name, projectId, spec, createIfNotPresent)
 		if err != nil {
 			log.Println("Failed to update Trigger: \n", t.Metadata.Name)
 		} else {
-			log.Println("Successfully created/updated Trigger: \n", t.Metadata.Name)
+			log.Println("Successfully updated Trigger: \n", t.Metadata.Name)
 		}
 	}
 	return diags
@@ -258,7 +257,7 @@ func resourceTriggerUpdate(ctx context.Context, d *schema.ResourceData, m interf
 
 func resourceTriggerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("resource agent delete id %s", d.Id())
+	log.Printf("resource trigger delete id %s", d.Id())
 
 	//get project id with project name, p.id used to refer to project id -> need p.ID for calling DeleteTrigger
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
@@ -277,7 +276,7 @@ func resourceTriggerDelete(ctx context.Context, d *schema.ResourceData, m interf
 	//delete Trigger
 	err = trigger.DeleteTrigger(d.Id(), projectId)
 	if err != nil {
-		log.Println("error deleting trigger")
+		log.Println("error deleting trigger", err)
 	} else {
 		log.Println("Deleted trigger: ", d.Id())
 	}

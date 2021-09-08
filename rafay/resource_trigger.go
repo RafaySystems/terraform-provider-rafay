@@ -144,7 +144,7 @@ func resourceTriggerCreate(ctx context.Context, d *schema.ResourceData, m interf
 		//create trigger
 		err = trigger.CreateTrigger(t.Metadata.Name, projId, spec)
 		if err != nil {
-			log.Println("Failed to create Trigger: \n", t.Metadata.Name)
+			log.Println("Failed to create Trigger: \n", t.Metadata.Name, "err: ", err)
 		} else {
 			log.Println("Successfully created trigger: \n", t.Metadata.Name)
 		}
@@ -162,13 +162,13 @@ func resourceTriggerRead(ctx context.Context, d *schema.ResourceData, m interfac
 func resourceTriggerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	createIfNotPresent := false
-	log.Println("update repository")
-	filePath := d.Get("repository_filepath").(string)
+	log.Println("update trigger")
+	filePath := d.Get("trigger_filepath").(string)
 	var t commands.TriggerYamlConfig
 	//make sure this is the correct file path
 	//make sure this is the correct file path
 	log.Println("filepath: ", filePath)
-	log.Printf("create gitops agent resource")
+	log.Printf("create gitops trigger resource")
 	//get project id with project name, p.id used to refer to project id -> need p.ID for calling createAgent
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {

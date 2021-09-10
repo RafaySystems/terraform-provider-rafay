@@ -34,7 +34,6 @@ provider "rafay" {
 
 - **ignore_insecure_tls_error** (Boolean)
 - **provider_config_file** (String)
-
 ## Authentication
 
 The Rafay provider offers a flexible means of providing credentials for
@@ -74,4 +73,3 @@ provider "rafay" {
 ```
 You can also provide configuration file via `RAFAY_PROVIDER_CONFIG` environment variable.
 If provider_config_file is not set or empty, then provider will use default path  `~/.rafay/cli/config.json`
-

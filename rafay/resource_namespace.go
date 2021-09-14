@@ -2,7 +2,6 @@ package rafay
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -10,10 +9,10 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/RafaySystems/rctl/pkg/commands"
 	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/namespace"
 	"github.com/RafaySystems/rctl/pkg/project"
-	"github.com/RafaySystems/rctl/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -47,7 +46,7 @@ func resourceNamespace() *schema.Resource {
 	}
 }
 
-//why is this not importable from rctl?
+//remove and make proper changes in rctl (make sure to point to right version release)
 type namespaceYamlConfig struct {
 	Kind     string `yaml:"kind"`
 	Metadata struct {
@@ -108,7 +107,7 @@ func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 		nstype = n.Spec.Type
 
 		filepath = n.Spec.NamespaceFromFile
-		nst, err = convertNamespaceYAMLToModel(&n, nstype, filepath, filePath)
+		nst, err = commands.ConvertNamespaceYAMLToModel(&n, nstype, filepath, filePath)
 		if err != nil {
 			log.Printf("Failed to create namespace:%s\n", n.Metadata.Name)
 		}
@@ -126,6 +125,55 @@ func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 func resourceNamespaceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	var n commands.NamespaceYamlConfig
+	var nstype string
+	var filepath string
+	filePath := d.Get("namespace_filepath").(string)
+	//make sure this is the correct file path
+	log.Println("filepath: ", filePath)
+	log.Printf("update namespace resource")
+	//get project id with project name, p.id used to refer to project id -> need p.ID for calling Create Namespace
+	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	if err != nil {
+		log.Printf("project does not exist, error %s", err.Error())
+		return diag.FromErr(err)
+	}
+	p, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		return diag.FromErr(err)
+	} else if p == nil {
+		d.SetId("")
+		return diags
+	}
+	projectId := p.ID
+	//open file path and retirve config spec from yaml file (from run function in commands/create_repositories.go)
+	//read and capture file from file path
+	if f, err := os.Open(filePath); err == nil {
+		// capture the entire file
+		c, err := ioutil.ReadAll(f)
+		if err != nil {
+			log.Println("error reading file")
+		}
+		//unmarshal the data
+		err = yaml.Unmarshal(c, &n)
+		if err != nil {
+			log.Println("error unmarhsalling data")
+		}
+		nstype = n.Spec.Type
+
+		filepath = n.Spec.NamespaceFromFile
+		nst, err := commands.ConvertNamespaceYAMLToModel(&n, nstype, filepath, filePath)
+		if err != nil {
+			log.Printf("Failed to create namespace:\n", n.Metadata.Name)
+		}
+		// updaqte the namespace
+		err = namespace.UpdateNamespace(nst, d.Id(), projectId)
+		if err != nil {
+			log.Printf("Failed to update namespace:\n", n.Metadata.Name, err)
+		} else {
+			log.Printf("Successfully updated namespace:\n", n.Metadata.Name)
+		}
+	}
 	return diags
 }
 func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -134,52 +182,24 @@ func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interf
 }
 func resourceNamespaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	//get project id with project name, p.id used to refer to project id -> need p.ID for calling Create Namespace
+	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	if err != nil {
+		log.Printf("project does not exist, error %s", err.Error())
+		return diag.FromErr(err)
+	}
+	p, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		return diag.FromErr(err)
+	} else if p == nil {
+		d.SetId("")
+		return diags
+	}
+	projectId := p.ID
+	//Delete namespace
+	err = namespace.DeleteNamespace(string(d.Id()), projectId)
+	if err != nil {
+		log.Println("error delete namespace: ", err)
+	}
 	return diags
-}
-
-func convertNamespaceYAMLToModel(nsYaml *namespaceYamlConfig, nstype string, filepath string, path string) (*models.Namespace, error) {
-	var ns models.Namespace
-	ns.Metadata.Name = nsYaml.Metadata.Name
-	ns.Kind = nsYaml.Kind
-	ns.Metadata.Labels = nsYaml.Metadata.Labels
-	ns.Spec.Type = nsYaml.Spec.Type
-	ns.Metadata.Annotations = nsYaml.Metadata.Annotations
-	ns.Spec.ResourceQuota = nsYaml.Spec.ResourceQuota
-	ns.Spec.LimitRange = nsYaml.Spec.LimitRange
-	ns.Spec.Placement = nsYaml.Spec.Placement
-	ns.Spec.PSP = nsYaml.Spec.PSP
-	ns.Metadata.Description = nsYaml.Metadata.Description
-
-	if nsYaml.Spec.RepositoryRef != "" && nsYaml.Spec.NamespaceFromFile != "" {
-		log.Println("invalid config: both repo and file were provided")
-	}
-	ns.Spec.RepositoryRef = nsYaml.Spec.RepositoryRef
-	ns.Spec.RepoArtifactMeta = nsYaml.Spec.RepoArtifactMeta
-	if nsYaml.Spec.NamespaceFromFile != "" {
-		nsFileContent, err := getNamespaceFromFile(filepath, path)
-		if err != nil {
-			return nil, fmt.Errorf("invalid config: error fetching the content of the value file from the location provided %s: Error: %s", path, err.Error())
-		}
-		ns.Spec.NamespaceFromFile = nsFileContent
-	}
-	if ns.Spec.RepositoryRef != "" && (ns.Spec.RepoArtifactMeta.Git == nil || len(ns.Spec.RepoArtifactMeta.Git.RepoArtifactFiles) == 0) {
-		return nil, fmt.Errorf("invalid config: exactly one repo artifact file should be provided.\"")
-	}
-
-	return &ns, nil
-}
-
-func getNamespaceFromFile(filepath string, path string) (string, error) {
-	{
-		nsFileLocation := utils.FullPath(path, filepath)
-		if _, err := os.Stat(nsFileLocation); os.IsNotExist(err) {
-			return "", fmt.Errorf("namespace file doesn't exist '%s'", nsFileLocation)
-		}
-		nsFileContent, err := ioutil.ReadFile(nsFileLocation)
-		if err != nil {
-			return "", fmt.Errorf("error in reading the namespace file %s: %s\n", nsFileLocation, err)
-		}
-		return string(nsFileContent), nil
-
-	}
 }

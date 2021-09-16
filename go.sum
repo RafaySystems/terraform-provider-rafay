@@ -56,8 +56,8 @@ github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbt
 github.com/PuerkitoBio/urlesc v0.0.0-20160726150825-5bd2802263f2/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV/sSk/8dngufqelfh6jnri85riMAaF/M=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
-github.com/RafaySystems/rctl v1.6.0-beta9 h1:bSdtr7QYwDos4lR2Q8RuW8BoRk691uqeeF8X9N/b06A=
-github.com/RafaySystems/rctl v1.6.0-beta9/go.mod h1:ImzHLMjkmLRYDY9U+DFPqy/0K2AOIP85kwcyY322w9M=
+github.com/RafaySystems/rctl v1.6.0-beta15 h1:53aU9R38uhWUiFVSja61J6iNABEscPXDKOrRVQRrpBs=
+github.com/RafaySystems/rctl v1.6.0-beta15/go.mod h1:ImzHLMjkmLRYDY9U+DFPqy/0K2AOIP85kwcyY322w9M=
 github.com/acomagu/bufpipe v1.0.3 h1:fxAGrHZTgQ9w5QqVItgzwj235/uYZYgbXitB+dLupOk=
 github.com/acomagu/bufpipe v1.0.3/go.mod h1:mxdxdup/WdsKVreO5GpW4+M/1CE2sMG4jeGJ2sYmHc4=
 github.com/agext/levenshtein v1.2.1/go.mod h1:JEDfjyjHDjOF/1e4FlBE/PkbqA9OfWu2ki2W0IB5558=

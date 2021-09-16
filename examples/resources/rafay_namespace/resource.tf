@@ -1,5 +1,4 @@
 resource "rafay_namespace" "namespace" {
-  name        = "ns-dev1"
-  description = "ns-dev1-description"
-  projectname = "test-project"
+  projectname        = "dev1-proj"
+  namespace_filepath = "/Users/sougat/Downloads/Upload-NS/upload_spec_label.yaml"
 }

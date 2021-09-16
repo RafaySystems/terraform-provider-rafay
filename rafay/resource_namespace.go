@@ -46,31 +46,10 @@ func resourceNamespace() *schema.Resource {
 	}
 }
 
-//remove and make proper changes in rctl (make sure to point to right version release)
-type namespaceYamlConfig struct {
-	Kind     string `yaml:"kind"`
-	Metadata struct {
-		Name        string            `yaml:"name"`
-		Labels      map[string]string `yaml:"labels"`
-		Annotations map[string]string `yaml:"annotations"`
-		Description string            `yaml:"description"`
-	} `yaml:"metadata"`
-	Spec struct {
-		Type              string                  `yaml:"type"`
-		ResourceQuota     map[string]interface{}  `yaml:"resourceQuota"`
-		LimitRange        map[string]interface{}  `yaml:"limitRange"`
-		Placement         map[string]interface{}  `yaml:"placement"`
-		PSP               string                  `yaml:"psp"`
-		RepositoryRef     string                  `protobuf:"bytes,4,opt,name=repositoryRef,proto3" json:"repoRef,omitempty" yaml:"repoRef"`
-		NamespaceFromFile string                  `yaml:"namespaceFromFile"`
-		RepoArtifactMeta  models.RepoArtifactMeta `protobuf:"bytes,4,opt,name=repoArtifactMeta,proto3" yaml:"repoArtifactMeta,omitempty"`
-	} `yaml:"spec"`
-}
-
 func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	filePath := d.Get("namespace_filepath").(string)
-	var n namespaceYamlConfig
+	var n commands.NamespaceYamlConfig
 	var nst *models.Namespace
 	var nstype string
 	var filepath string
@@ -102,7 +81,7 @@ func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 		//unmarshal the data
 		err = yaml.Unmarshal(c, &n)
 		if err != nil {
-			log.Println("error unmarhsalling data")
+			log.Println("error unmarhsalling data: ", err)
 		}
 		nstype = n.Spec.Type
 
@@ -164,14 +143,14 @@ func resourceNamespaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 		filepath = n.Spec.NamespaceFromFile
 		nst, err := commands.ConvertNamespaceYAMLToModel(&n, nstype, filepath, filePath)
 		if err != nil {
-			log.Printf("Failed to create namespace:\n", n.Metadata.Name)
+			log.Println("Failed to create namespace:\n", n.Metadata.Name)
 		}
 		// updaqte the namespace
 		err = namespace.UpdateNamespace(nst, d.Id(), projectId)
 		if err != nil {
-			log.Printf("Failed to update namespace:\n", n.Metadata.Name, err)
+			log.Println("Failed to update namespace:\n", n.Metadata.Name, err)
 		} else {
-			log.Printf("Successfully updated namespace:\n", n.Metadata.Name)
+			log.Println("Successfully updated namespace:\n", n.Metadata.Name)
 		}
 	}
 	return diags

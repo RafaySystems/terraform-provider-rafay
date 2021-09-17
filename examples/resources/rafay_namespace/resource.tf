@@ -1,4 +1,5 @@
 resource "rafay_namespace" "namespace" {
-  projectname        = "dev1-proj"
-  namespace_filepath = "/Users/sougat/Downloads/Upload-NS/upload_spec_label.yaml"
+  projectname        = "<project-name>"
+  namespace_filepath = "<absolute_filepath_namespace.yaml>"
 }
+#namespace_filepath is the local filepath to the namespace.yaml file we want to add 

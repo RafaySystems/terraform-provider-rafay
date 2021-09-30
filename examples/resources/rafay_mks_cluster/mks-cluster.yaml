@@ -1,0 +1,53 @@
+kind: Cluster
+metadata:
+  # cluster labels
+  labels:
+    env: dev
+    type: eks-workloads
+  name: demo-terraform-mks
+  project: dev3
+spec:
+  type: mks
+  blueprint: default
+  config:
+    location: sanjose-us
+    k8sVersion: "v1.20.8"
+    operating_system: "Ubuntu18.04"
+    autoApproveNodes: false
+    defaultStorageClass: "HostPath"
+    highAvailability: false
+    dedicatedMastersEnabled: false
+    storageClasses:
+    - name: Local
+      storagePath: "/var/openebs/local/"
+    - name: GlusterFs
+      storagePath: ""
+    nodes:
+    - hostname: rctl-conjurer-scp
+      ipAddress: 158.101.18.98
+      ipv6Address: "2001:8003:e01d:9000:397f:b318:cef7:f80"
+      sshPrivateKeyPath: "/Users/krishna/.ssh/id_rsa"
+      sshPort: 22
+      sshUserName: ubuntu
+      networkInterface: eth0
+      storageDeviceLocation: "/dev/sda2"
+      roles:
+        - Master
+        - Worker
+    - hostname: rctl-conjurer-scp2
+      ipAddress: 129.146.23.62 
+      ipv6Address: "2001:8003:e01d:9000:397f:b318:cef7:f81"
+      sshPrivateKeyPath: "/Users/krishna/.ssh/id_rsa"
+      sshPort: 22
+      sshUserName: ubuntu
+      networkInterface: eth1
+      storageDeviceLocation: ""
+      roles:
+        - Worker
+  proxySettings:
+    enabled: false
+    httpProxy: "http://10.50.51.31:8080"
+    httpsProxy: "http://10.50.51.31:8080"
+    rootCA: '"172.168.9.1","127.0.0.1"'
+    tlsTermination: false
+

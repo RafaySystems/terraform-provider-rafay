@@ -46,6 +46,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_pipeline":         resourcePipeline(),
 				"rafay_trigger":          resourceTrigger(),
 				"rafay_namespace":        resourceNamespace(),
+				"rafay_mks_cluster":      resourceMKSCluster(),
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,

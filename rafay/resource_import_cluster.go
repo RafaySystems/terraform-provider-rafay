@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
+	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/project"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -61,6 +62,10 @@ func resourceImportCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"waitflag": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -85,19 +90,31 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	project_id := p.ID
 
 	//create imported cluster
-	resp, err = cluster.NewImportCluster(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id)
+	_, err = cluster.NewImportCluster(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id)
 	if err != nil {
 		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
 		return diag.FromErr(err)
 	}
 
-	time.Sleep(10 * time.Second)
-	//if error with get cluster add a sleep to wait for cluster creation
-	//make sure new imported cluster was created by calling get cluster and checking for no errors
-	cluster_resp, err := cluster.GetCluster(d.Get("clustername").(string), project_id)
-	if err != nil {
-		log.Printf("imported cluster was not created, error %s", err.Error())
-		return diag.FromErr(err)
+	time.Sleep(30 * time.Second)
+	var cluster_resp *models.ClusterDetails
+	if d.Get("waitflag").(string) == "1" {
+		log.Printf("Cluster provision may take upto 15-20 Minutes")
+		for {
+			cluster_resp, err = cluster.GetCluster(d.Get("clustername").(string), project_id)
+			if err == nil {
+				break
+			} else {
+				log.Printf("imported cluster is not ready, error %s", err.Error())
+			}
+			time.Sleep(30 * time.Second)
+		}
+	} else {
+		cluster_resp, err = cluster.GetCluster(d.Get("clustername").(string), project_id)
+		if err != nil {
+			log.Printf("imported cluster is not ready, error %s", err.Error())
+			return diag.FromErr(err)
+		}
 	}
 
 	if d.Get("blueprint_version").(string) != "" {

@@ -41,6 +41,7 @@ resource "rafay_import_cluster" "import_cluster" {
 - **kubeconfig_path** (String)
 - **location** (String)
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- **waitflag** (String)
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

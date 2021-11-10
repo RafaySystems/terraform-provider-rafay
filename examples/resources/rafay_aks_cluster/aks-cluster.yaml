@@ -1,0 +1,35 @@
+apiVersion: rafay.io/v1alpha1
+kind: Cluster
+metadata:
+  name: my-cluster
+  project: defaultproject
+spec:
+  type: aks
+  blueprint: minimal
+  cloudprovider: my-cloud-creds
+  clusterConfig:
+    apiVersion: rafay.io/v1alpha1
+    kind: aksClusterConfig
+    metadata:
+      name: my-cluster
+    spec:
+      resourceGroupName: my-rg
+      managedCluster:
+        type: Microsoft.ContainerService/managedClusters
+        apiVersion: "2021-05-01"
+        location: eastus2
+        identity:
+          type: SystemAssigned
+        properties:
+          dnsPrefix: my-cluster-dns
+          kubernetesVersion: 1.21.1
+      nodePools:
+      - type: Microsoft.ContainerService/managedClusters/agentPools
+        apiVersion: "2021-05-01"
+        location: eastus2
+        name: agentpooly
+        properties:
+          count: 1
+          maxPods: 30
+          mode: System
+          vmSize: Standard_B2s

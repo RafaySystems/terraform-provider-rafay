@@ -1,7 +1,7 @@
-resource "rafay_eks_cluster" "cluster" {
-  name            = "demo-terraform"
-  projectname     = "dev"
-  yamlfilepath    = "<file-path/aks-cluster.yaml>"
-  yamlfileversion = ""
+resource "rafay_aks_cluster" "cluster" {
+  name            = "demo-cluster-aks"
+  projectname     = "dev3"
+  yamlfilepath    = "/Users/krishna/code/src/github.com/RafaySystems/terraform-provider-rafay/examples/resources/rafay_aks_cluster/aks-cluster.yaml"
+  yamlfileversion = "1"
   waitflag        = "0"
 }

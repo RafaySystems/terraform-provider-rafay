@@ -1,17 +1,17 @@
 apiVersion: rafay.io/v1alpha1
 kind: Cluster
 metadata:
-  name: my-cluster
-  project: defaultproject
+  name: demo-cluster-aks
+  project: dev3
 spec:
   type: aks
-  blueprint: minimal
-  cloudprovider: my-cloud-creds
+  blueprint: default
+  cloudprovider: krishnaAzureCred
   clusterConfig:
     apiVersion: rafay.io/v1alpha1
     kind: aksClusterConfig
     metadata:
-      name: my-cluster
+      name: demo-cluster-aks
     spec:
       resourceGroupName: my-rg
       managedCluster:

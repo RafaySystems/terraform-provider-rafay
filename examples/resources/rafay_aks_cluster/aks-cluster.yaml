@@ -1,23 +1,23 @@
 apiVersion: rafay.io/v1alpha1
 kind: Cluster
 metadata:
-  name: demo-cluster-aks
-  project: dev3
+  name: demo-terraform
+  project: dev
 spec:
   type: aks
   blueprint: default
-  cloudprovider: krishnaAzureCred
+  cloudprovider: <cloud-credential>
   clusterConfig:
     apiVersion: rafay.io/v1alpha1
     kind: aksClusterConfig
     metadata:
-      name: demo-cluster-aks
+      name: demo-terraform
     spec:
       resourceGroupName: my-rg
       managedCluster:
         type: Microsoft.ContainerService/managedClusters
         apiVersion: "2021-05-01"
-        location: eastus2
+        location: eastus
         identity:
           type: SystemAssigned
         properties:

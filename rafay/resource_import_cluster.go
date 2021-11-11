@@ -85,7 +85,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	project_id := p.ID
 
 	//create imported cluster
-	resp, err = cluster.NewImportCluster(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id)
+	resp, err = cluster.NewImportCluster(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string))
 	if err != nil {
 		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
 		return diag.FromErr(err)

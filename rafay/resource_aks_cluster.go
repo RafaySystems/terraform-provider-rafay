@@ -2,12 +2,16 @@ package rafay
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
+	"github.com/RafaySystems/rctl/pkg/clusterctl"
+	"github.com/RafaySystems/rctl/pkg/config"
+	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/utils"
 
@@ -16,7 +20,6 @@ import (
 	"github.com/go-yaml/yaml"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
-
 
 type clusterYamlConfig struct {
 	Kind     string `yaml:"kind"`
@@ -77,16 +80,40 @@ func resourceAKSCluster() *schema.Resource {
 	}
 }
 
-func resourceAKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func aksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte, dryRun bool) []error {
+	var errs []error
+	logger := glogger.GetLogger()
+	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
+	// Make request
+	for clusterName, configBytes := range configMap {
+		if err := clusterctl.Apply(logger, config, clusterName, configBytes, dryRun); err != nil {
+			errs = append(errs, fmt.Errorf(`Error performing apply on cluster "%s": %s`, clusterName, err))
+			continue
+		}
+	}
+	return errs
+}
+
+func resourceAKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	log.Printf("create AKS cluster resource")
+	rctlCfg := config.GetConfig()
 
 	YamlConfigFilePath := d.Get("yamlfilepath").(string)
 
 	fileBytes, err := utils.ReadYAMLFileContents(YamlConfigFilePath)
 	if err != nil {
 		return diag.FromErr(err)
+	}
+
+	// split the file and update individual resources
+	cfgList, err := utils.SplitYamlAndGetListByKind(fileBytes)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	if len(cfgList) > 1 {
+		fmt.Printf("found more than one cluster config in %s", YamlConfigFilePath)
+		return diags
 	}
 
 	var c clusterYamlConfig
@@ -122,9 +149,20 @@ func resourceAKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 		return diags
 	}
 
-	if err = cluster.NewAKSCluster(c.Metadata.Name, c.Spec.Blueprint, c.Spec.BlueprintVersion, c.Spec.CloudProvider, project.ID, string(fileBytes), nil); err != nil {
-                return diag.FromErr(err)
-        }
+	// clusters
+	if _, ok := cfgList["Cluster"]; ok {
+		if errs := aksClusterCTL(rctlCfg, cfgList["Cluster"], cfgList["ClusterConfig"], false); len(errs) > 0 {
+			s := ""
+			for index, err := range errs {
+				if index != 0 {
+					s += "\n"
+				}
+				s += err.Error()
+			}
+			return diag.FromErr(errors.New(s))
+		}
+	}
+
 	s, errGet := cluster.GetCluster(d.Get("name").(string), project.ID)
 	if errGet != nil {
 		log.Printf("error while getCluster %s", errGet.Error())
@@ -143,16 +181,21 @@ func resourceAKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 				break
 			}
 			if strings.Contains(check.Provision.Status, "FAILED") {
-				return diag.FromErr(fmt.Errorf("Failed to create cluster while cluster provisioning"))
+				return diag.FromErr(fmt.Errorf("Failed to create/update cluster while provisioning cluster %s", d.Get("name").(string)))
 			}
 			time.Sleep(40 * time.Second)
 		}
 	}
 
-	log.Printf("resource aks cluster created %s", s.ID)
+	log.Printf("resource aks cluster created/updated %s", s.ID)
 	d.SetId(s.ID)
 
 	return diags
+}
+
+func resourceAKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("create AKS cluster resource")
+	return resourceAKSClusterUpsert(ctx, d, m)
 }
 
 func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -182,7 +225,6 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
 	log.Printf("update EKS cluster resource")
 
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
@@ -195,7 +237,7 @@ func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(fmt.Errorf("project does not exist"))
 	}
 
-	cluster_resp, err := cluster.GetCluster(d.Get("name").(string), project.ID)
+	_, err = cluster.GetCluster(d.Get("name").(string), project.ID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
@@ -209,30 +251,11 @@ func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 	}
 
 	var c clusterYamlConfig
-        if err = yaml.Unmarshal(fileBytes, &c); err != nil {
-                return diag.FromErr(err)
-        }
-
-	if cluster_resp.ClusterBlueprint != c.Spec.Blueprint || cluster_resp.ClusterBlueprintVersion != c.Spec.BlueprintVersion {
-		cluster_resp.ClusterBlueprint = c.Spec.Blueprint
-
-		if c.Spec.BlueprintVersion != "" {
-			cluster_resp.ClusterBlueprintVersion = c.Spec.BlueprintVersion
-		}
-
-		erru := cluster.UpdateCluster(cluster_resp)
-		if erru != nil {
-			log.Printf("cluster was not updated, error %s", erru.Error())
-			return diag.FromErr(erru)
-		}
-		errp := cluster.PublishClusterBlueprint(d.Get("name").(string), project.ID)
-		if errp != nil {
-			log.Printf("cluster was not published, error %s", errp.Error())
-			return diag.FromErr(errp)
-		}
+	if err = yaml.Unmarshal(fileBytes, &c); err != nil {
+		return diag.FromErr(err)
 	}
 
-	return diags
+	return resourceAKSClusterUpsert(ctx, d, m)
 }
 
 func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

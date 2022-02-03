@@ -1,35 +1,50 @@
 apiVersion: rafay.io/v1alpha1
 kind: Cluster
 metadata:
-  name: demo-terraform
-  project: dev
+  name: demo-aks-cluster
+  project: demo-project
 spec:
-  type: aks
-  blueprint: default
-  cloudprovider: <cloud-credential>
+  blueprint: default-aks
+  cloudprovider: demo-azure
   clusterConfig:
     apiVersion: rafay.io/v1alpha1
     kind: aksClusterConfig
     metadata:
-      name: demo-terraform
+      name: demo-aks-cluster
     spec:
-      resourceGroupName: my-rg
       managedCluster:
-        type: Microsoft.ContainerService/managedClusters
         apiVersion: "2021-05-01"
-        location: eastus
         identity:
           type: SystemAssigned
+        location: centralindia
         properties:
-          dnsPrefix: my-cluster-dns
-          kubernetesVersion: 1.21.1
+          apiServerAccessProfile:
+            enablePrivateCluster: true
+          dnsPrefix: demo-test-dns
+          kubernetesVersion: 1.21.2
+          networkProfile:
+            loadBalancerSku: standard
+            networkPlugin: kubenet
+        sku:
+          name: Basic
+          tier: Free
+        type: Microsoft.ContainerService/managedClusters
       nodePools:
-      - type: Microsoft.ContainerService/managedClusters/agentPools
-        apiVersion: "2021-05-01"
-        location: eastus2
-        name: agentpooly
+      - apiVersion: "2021-05-01"
+        location: centralindia
+        name: primary
         properties:
           count: 1
-          maxPods: 30
+          enableAutoScaling: true
+          maxCount: 1
+          maxPods: 40
+          minCount: 1
           mode: System
-          vmSize: Standard_B2s
+          orchestratorVersion: 1.21.2
+          osType: Linux
+          type: VirtualMachineScaleSets
+          vmSize: Standard_DS2_v2
+        type: Microsoft.ContainerService/managedClusters/agentPools
+      resourceGroupName: demo-terraform
+  proxyconfig: {}
+  type: aks

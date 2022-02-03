@@ -135,7 +135,7 @@ func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]b
 	// Remove any configs that don't have the tail end (cluster related configs)
 	result := make(map[string][]byte)
 	for name, configs := range configsMap {
-		if len(configs) <= 1 {
+		if len(configs) <= 0 {
 			errs = append(errs, fmt.Errorf(`no "ClusterConfig" found for cluster "%s"`, name))
 			continue
 		}

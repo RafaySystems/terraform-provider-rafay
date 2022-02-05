@@ -159,8 +159,8 @@ func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Printf("error while GetAddon %s", err.Error())
 			return diag.FromErr(err)
 		}
-		addonID = s.ID
-		d.SetId(s.ID)
+		addonID = s.Metadata.ID
+		d.SetId(addonID)
 	}
 	if d.Get("addontype").(string) == "yaml" {
 		if !utils.FileExists(YamlConfigFilePath) {

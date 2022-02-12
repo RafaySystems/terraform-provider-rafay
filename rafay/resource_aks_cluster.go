@@ -52,12 +52,12 @@ func clusterAKSConfigNodePoolsFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"name": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Required:    true,
 			Description: "The AKS node group name",
 		},
 		"location": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Required:    true,
 			Description: "The AKS node pool locations",
 		},
 		"count": {
@@ -161,7 +161,7 @@ func clusterAKSConfigFields() map[string]*schema.Schema {
 		},
 		"location": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Required: true,
 		},
 		"dnsprefix": {
 			Type:     schema.TypeString,
@@ -215,7 +215,7 @@ func clusterAKSConfigFields() map[string]*schema.Schema {
 		},
 		"resource_group_name": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Required: true,
 		},
 		"node_pools": {
 			Type:        schema.TypeList,
@@ -254,7 +254,7 @@ func resourceAKSCluster() *schema.Resource {
 			},
 			"blueprint": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 			"blueprintversion": {
 				Type:     schema.TypeString,
@@ -262,7 +262,7 @@ func resourceAKSCluster() *schema.Resource {
 			},
 			"cloudprovider": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 			"cluster_config": {
 				Type:        schema.TypeList,
@@ -564,6 +564,12 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	log.Printf("Cluster Provision may take upto 15-20 Minutes")
 	for {
 		time.Sleep(60 * time.Second)
+		check, errGet := cluster.GetCluster(d.Get("name").(string), project.ID)
+		if errGet != nil {
+			log.Printf("error while getCluster %s", errGet.Error())
+			return diag.FromErr(errGet)
+		}
+
 		statusResp, err := aksClusterCTLStatus(res.TaskSetID)
 		if err != nil {
 			log.Println("status response parse error", err)
@@ -577,7 +583,10 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 			return diag.FromErr(err)
 		}
 		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-			break
+			if check.Status == "READY" {
+				break
+			}
+			log.Println("task completed but cluster is not ready")
 		}
 		if strings.Contains(sres.Status, "STATUS_FAILED") {
 			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s", d.Get("name").(string)))

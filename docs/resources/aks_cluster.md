@@ -14,11 +14,50 @@ description: |-
 
 ```terraform
 resource "rafay_aks_cluster" "cluster" {
-  name            = "demo-terraform"
-  projectname     = "dev"
-  yamlfilepath    = "<file-path/aks-cluster.yaml>"
-  yamlfileversion = "0"
-  waitflag        = "1"
+  name        = "demo-terraform"
+  projectname = "dev"
+  blueprint   = "default-aks"
+  #blueprintversion = ""
+  cloudprovider = "azure"
+  cluster_config {
+    resource_group_name = "dev-demo"
+    #identity_type          = "SystemAssigned"
+    location               = "centralindia"
+    enable_private_cluster = true
+    dnsprefix              = "demo-test-dns"
+    kubernetesversion      = "1.21.7"
+    #loadbalancer_sku       = "standard"
+    network_plugin = "kubenet"
+    #network_policy         = "calico"
+    #sku_name               = "Basic"
+    #sku_tier               = "Free"
+    #tags = {
+    #   cluster-id     = "Terraform Default Tags"
+    #   owner          = "Alt Owner"
+    #}
+    #type                   = "Microsoft.ContainerService/managedClusters"
+    node_pools {
+      location             = "centralindia"
+      name                 = "primary"
+      count                = 1
+      enable_autoscaling   = true
+      max_count            = 2
+      max_pods             = 40
+      min_count            = 1
+      mode                 = "System"
+      orchestrator_version = "1.21.7"
+      os_type              = "Linux"
+      vm_size              = "Standard_DS2_v2"
+      type                 = "Microsoft.ContainerService/managedClusters/agentPools"
+      #availability_zones   = ["1", "2"]
+      #apiversion           = ""
+      #property_type        = "VirtualMachineScaleSets"
+      #node_labels = {
+      #     cluster-label = "Terraform-Label"
+      #     owner  = "Alt Owner"
+      #}
+    }
+  }
 }
 ```
 
@@ -29,14 +68,60 @@ resource "rafay_aks_cluster" "cluster" {
 
 - **name** (String)
 - **projectname** (String)
-- **yamlfilepath** (String)
-- **yamlfileversion** (String)
 
 ### Optional
 
+- **blueprint** (String)
+- **blueprintversion** (String)
+- **cloudprovider** (String)
+- **cluster_config** (Block List) The AKS cluster config to use (see [below for nested schema](#nestedblock--cluster_config))
 - **id** (String) The ID of this resource.
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- **waitflag** (String)
+
+<a id="nestedblock--cluster_config"></a>
+### Nested Schema for `cluster_config`
+
+Optional:
+
+- **apiversion** (String) API Version
+- **dnsprefix** (String)
+- **enable_private_cluster** (Boolean)
+- **identity_type** (String)
+- **kubernetesversion** (String)
+- **loadbalancer_sku** (String)
+- **location** (String)
+- **network_plugin** (String)
+- **network_policy** (String)
+- **node_pools** (Block List) The AKS node pools to use (see [below for nested schema](#nestedblock--cluster_config--node_pools))
+- **resource_group_name** (String)
+- **sku_name** (String)
+- **sku_tier** (String)
+- **tags** (Map of String) The AKS cluster tags
+- **type** (String) Type
+
+<a id="nestedblock--cluster_config--node_pools"></a>
+### Nested Schema for `cluster_config.node_pools`
+
+Optional:
+
+- **apiversion** (String) API Version
+- **availability_zones** (List of String) The AKS node pool availability zones
+- **count** (Number) The AKS node pool count
+- **enable_autoscaling** (Boolean) Is AKS node pool auto scaling enabled?
+- **location** (String) The AKS node pool locations
+- **max_count** (Number) The AKS node pool max count
+- **max_pods** (Number) The AKS node pool max pods
+- **min_count** (Number) The AKS node pool min count
+- **mode** (String) The AKS node pool mode
+- **name** (String) The AKS node group name
+- **node_labels** (Map of String) The AKS node pool labels
+- **orchestrator_version** (String) The AKS node pool orchestrator version
+- **os_type** (String) Enable AKS node pool os type
+- **property_type** (String) The AKS node pool type
+- **type** (String) The AKS node pool type
+- **vm_size** (String) The AKS node pool vm size
+
+
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

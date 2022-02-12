@@ -430,7 +430,7 @@ func expandClusterAKSConfig(p []interface{}) *AKSClusterConfig {
 	return obj
 }
 
-func process_inputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	projectName := d.Get("projectname").(string)
 	resp, err := project.GetProjectByName(projectName)
 	if err != nil {
@@ -483,18 +483,9 @@ func process_inputs(ctx context.Context, d *schema.ResourceData, m interface{}) 
 
 func resourceAKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("resourceAKSClusterUpsert")
-	YamlConfigFilePath := d.Get("yamlfilepath").(string)
-	if YamlConfigFilePath == "" {
-		// use non spec file path
-		return process_inputs(ctx, d, m)
-	}
 
-	fileBytes, err := utils.ReadYAMLFileContents(YamlConfigFilePath)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	return processInputs(ctx, d, m)
 
-	return process_filebytes(ctx, d, m, fileBytes)
 }
 
 func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{}, fileBytes []byte) diag.Diagnostics {

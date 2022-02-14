@@ -610,7 +610,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 			log.Println("task completed but cluster is not ready")
 		}
 		if strings.Contains(sres.Status, "STATUS_FAILED") {
-			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s", d.Get("name").(string)))
+			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", d.Get("name").(string), statusResp))
 		}
 	}
 	log.Printf("resource aks cluster created/updated %s", s.ID)

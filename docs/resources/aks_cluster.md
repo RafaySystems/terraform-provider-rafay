@@ -14,48 +14,21 @@ description: |-
 
 ```terraform
 resource "rafay_aks_cluster" "cluster" {
-  name        = "demo-terraform"
-  projectname = "dev"
-  blueprint   = "default-aks"
-  #blueprintversion = ""
+  name          = "demo-terraform"
+  projectname   = "dev"
   cloudprovider = "azure"
   cluster_config {
     resource_group_name = "dev-demo"
-    #identity_type          = "SystemAssigned"
-    location               = "centralindia"
-    enable_private_cluster = true
-    dnsprefix              = "demo-test-dns"
-    kubernetesversion      = "1.21.7"
-    #loadbalancer_sku       = "standard"
-    network_plugin = "kubenet"
-    #network_policy         = "calico"
-    #sku_name               = "Basic"
-    #sku_tier               = "Free"
-    #tags = {
-    #   cluster-id     = "Terraform Default Tags"
-    #   owner          = "Alt Owner"
-    #}
-    #type                   = "Microsoft.ContainerService/managedClusters"
+    location            = "centralindia"
+    kubernetesversion   = "1.21.7"
     node_pools {
-      location             = "centralindia"
       name                 = "primary"
       count                = 1
-      enable_autoscaling   = true
-      max_count            = 2
+      max_count            = 1
       max_pods             = 40
       min_count            = 1
-      mode                 = "System"
       orchestrator_version = "1.21.7"
-      os_type              = "Linux"
       vm_size              = "Standard_DS2_v2"
-      type                 = "Microsoft.ContainerService/managedClusters/agentPools"
-      #availability_zones   = ["1", "2"]
-      #apiversion           = ""
-      #property_type        = "VirtualMachineScaleSets"
-      #node_labels = {
-      #     cluster-label = "Terraform-Label"
-      #     owner  = "Alt Owner"
-      #}
     }
   }
 }
@@ -66,15 +39,15 @@ resource "rafay_aks_cluster" "cluster" {
 
 ### Required
 
-- **blueprint** (String)
-- **cloudprovider** (String)
-- **name** (String)
-- **projectname** (String)
+- **cloudprovider** (String) Cloud credentials provider used to create and manage the cluster.
+- **cluster_config** (Block List, Min: 1) AKS specific cluster configuration (see [below for nested schema](#nestedblock--cluster_config))
+- **name** (String) AKS Cluster name
+- **projectname** (String) Project for the cluster
 
 ### Optional
 
-- **blueprintversion** (String)
-- **cluster_config** (Block List) The AKS cluster config to use (see [below for nested schema](#nestedblock--cluster_config))
+- **blueprint** (String) Blueprint to be associated with the cluster. Default will be default-aks
+- **blueprintversion** (String) Blueprint version to be associated with the cluster. Default will be the latest version
 - **id** (String) The ID of this resource.
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
@@ -83,49 +56,49 @@ resource "rafay_aks_cluster" "cluster" {
 
 Required:
 
-- **location** (String)
-- **resource_group_name** (String)
+- **kubernetesversion** (String) AKS cluster Kubernetes Version
+- **location** (String) AKS cluster location
+- **node_pools** (Block List, Min: 1) The AKS node pools (see [below for nested schema](#nestedblock--cluster_config--node_pools))
+- **resource_group_name** (String) Name of the Azure resource group.
 
 Optional:
 
 - **apiversion** (String) API Version
-- **dnsprefix** (String)
-- **enable_private_cluster** (Boolean)
-- **identity_type** (String)
-- **kubernetesversion** (String)
-- **loadbalancer_sku** (String)
-- **network_plugin** (String)
-- **network_policy** (String)
-- **node_pools** (Block List) The AKS node pools to use (see [below for nested schema](#nestedblock--cluster_config--node_pools))
-- **sku_name** (String)
-- **sku_tier** (String)
+- **dnsprefix** (String) Prefix for hostnames that are created. If not specified, generate a hostname using the managed cluster and resource group names.
+- **enable_private_cluster** (Boolean) By using a private cluster, you can ensure network traffic between your API server and your node pools remains on the private network only.
+- **identity_type** (String) Identity type for the AKS cluster. For more information see use managed identities in AKS. Valid values are SystemAssigned, UserAssigned, None.
+- **loadbalancer_sku** (String) Azure Load Balancer SKU selection for your cluster. Accepted values: basic or standard
+- **network_plugin** (String) Network plugin used for building the Kubernetes network. Valid values are azure, kubenet.
+- **network_policy** (String) Network policy used for building the Kubernetes network. Valid values are calico, azure.
+- **sku_name** (String) The name of a managed cluster SKU.
+- **sku_tier** (String) Enable a paid managed cluster service with a financially backed SLA. Valid values are Paid, Free.
 - **tags** (Map of String) The AKS cluster tags
-- **type** (String) Type
+- **type** (String) Metadata type for AKS managed cluster.
 
 <a id="nestedblock--cluster_config--node_pools"></a>
 ### Nested Schema for `cluster_config.node_pools`
 
 Required:
 
-- **location** (String) The AKS node pool locations
-- **name** (String) The AKS node group name
+- **name** (String) The AKS node pool name
 
 Optional:
 
 - **apiversion** (String) API Version
-- **availability_zones** (List of String) The AKS node pool availability zones
-- **count** (Number) The AKS node pool count
-- **enable_autoscaling** (Boolean) Is AKS node pool auto scaling enabled?
-- **max_count** (Number) The AKS node pool max count
-- **max_pods** (Number) The AKS node pool max pods
-- **min_count** (Number) The AKS node pool min count
-- **mode** (String) The AKS node pool mode
+- **availability_zones** (List of String) The list of Availability zones to use for nodes. This can only be specified if the AgentPoolType property is VirtualMachineScaleSets.
+- **count** (Number) Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 1000 (inclusive) for user pools and in the range of 1 to 1000 (inclusive) for system pools. The default value is 1.
+- **enable_autoscaling** (Boolean) Whether to enable auto-scaler
+- **location** (String) The AKS node pool location
+- **max_count** (Number) The maximum number of nodes for auto-scaling
+- **max_pods** (Number) The maximum number of pods that can run on a node
+- **min_count** (Number) The minimum number of nodes for auto-scaling
+- **mode** (String) The mode for a node pool which defines a node pool's primary function. If set as 'System', AKS prefers system pods scheduling to node pools with mode System. Accepted values: System, User
 - **node_labels** (Map of String) The AKS node pool labels
-- **orchestrator_version** (String) The AKS node pool orchestrator version
-- **os_type** (String) Enable AKS node pool os type
-- **property_type** (String) The AKS node pool type
+- **orchestrator_version** (String) The AKS node pool Kubernetes version
+- **os_type** (String) AKS node pool OS type
+- **property_type** (String) The AKS node pool property type. Valid values are VirtualMachineScaleSets, AvailabilitySet.
 - **type** (String) The AKS node pool type
-- **vm_size** (String) The AKS node pool vm size
+- **vm_size** (String) The AKS node pool VM size
 
 
 

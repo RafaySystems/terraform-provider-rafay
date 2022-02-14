@@ -63,7 +63,7 @@ Required:
 
 Optional:
 
-- **apiversion** (String) API Version
+- **apiversion** (String) Azure resource api version.
 - **dnsprefix** (String) Prefix for hostnames that are created. If not specified, generate a hostname using the managed cluster and resource group names.
 - **enable_private_cluster** (Boolean) By using a private cluster, you can ensure network traffic between your API server and your node pools remains on the private network only.
 - **identity_type** (String) Identity type for the AKS cluster. For more information see use managed identities in AKS. Valid values are SystemAssigned, UserAssigned, None.
@@ -84,7 +84,7 @@ Required:
 
 Optional:
 
-- **apiversion** (String) API Version
+- **apiversion** (String) Azure resource api version.
 - **availability_zones** (List of String) The list of Availability zones to use for nodes. This can only be specified if the AgentPoolType property is VirtualMachineScaleSets.
 - **count** (Number) Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 1000 (inclusive) for user pools and in the range of 1 to 1000 (inclusive) for system pools. The default value is 1.
 - **enable_autoscaling** (Boolean) Whether to enable auto-scaler

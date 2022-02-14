@@ -135,7 +135,7 @@ func clusterAKSConfigNodePoolsFields() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Default:     "2021-05-01",
-			Description: "API Version",
+			Description: "Azure resource api version.",
 		},
 		"availability_zones": {
 			Type:        schema.TypeList,
@@ -225,7 +225,7 @@ func clusterAKSConfigFields() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Default:     "2021-05-01",
-			Description: "API Version",
+			Description: "Azure resource api version.",
 		},
 		"resource_group_name": {
 			Type:        schema.TypeString,

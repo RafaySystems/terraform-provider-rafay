@@ -3,7 +3,7 @@
 page_title: "rafay_aks_cluster Resource - terraform-provider-rafay"
 subcategory: ""
 description: |-
-
+  
 ---
 
 # rafay_aks_cluster (Resource)
@@ -46,3 +46,5 @@ Optional:
 - **create** (String)
 - **delete** (String)
 - **update** (String)
+
+

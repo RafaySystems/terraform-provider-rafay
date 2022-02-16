@@ -370,7 +370,7 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 	if versionstr != "" {
 		logger := glogger.GetLogger()
 		err = cluster.UpgradeClusterEks(d.Get("name").(string),
-			versionstr, project.ID, logger)
+			versionstr, project.ID, "", nil, false, logger)
 		if err != nil {
 			log.Println("cluster upgrade response ", err)
 		}

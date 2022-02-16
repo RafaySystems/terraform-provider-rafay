@@ -207,7 +207,7 @@ func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m inte
 	errVersion := blueprint.CreateBlueprintVersion(b.Spec.Blueprint,
 		project.ID, b.Metadata.Name, "", b.Spec.RafayIngress, b.Spec.RafayMonitoringAndAlerting,
 		b.Spec.Kubevirt, addons, addonDependency, b.Spec.PspScope, b.Spec.Psps, b.Spec.DriftAction,
-		b.Spec.PrometheusCustomization, "", "", "", "", "")
+		b.Spec.PrometheusCustomization, "", "", "", "", "", false)
 	if errVersion != nil {
 		log.Printf("Error While creating blueprintversion %s, %s", b.Spec.Blueprint, errVersion.Error())
 		return diag.FromErr(errVersion)
@@ -332,7 +332,7 @@ func resourceBluePrintUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	errVersion := blueprint.CreateBlueprintVersion(b.Spec.Blueprint, project.ID, b.Metadata.Name, "",
 		b.Spec.RafayIngress, b.Spec.RafayMonitoringAndAlerting, b.Spec.Kubevirt,
 		addons, addonDependency, b.Spec.PspScope, b.Spec.Psps, b.Spec.DriftAction,
-		b.Spec.PrometheusCustomization, "", "", "", "", "")
+		b.Spec.PrometheusCustomization, "", "", "", "", "", false)
 	if errVersion != nil {
 		log.Printf("Error While creating blueprintversion %s, %s", b.Spec.Blueprint, errVersion.Error())
 		return diag.FromErr(errVersion)

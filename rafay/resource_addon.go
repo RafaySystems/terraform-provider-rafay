@@ -159,8 +159,8 @@ func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Printf("error while GetAddon %s", err.Error())
 			return diag.FromErr(err)
 		}
-		addonID = s.ID
-		d.SetId(s.ID)
+		addonID = s.Metadata.ID
+		d.SetId(addonID)
 	}
 	if d.Get("addontype").(string) == "yaml" {
 		if !utils.FileExists(YamlConfigFilePath) {
@@ -171,7 +171,7 @@ func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Printf("file must a yaml file, file type is %s", filepath.Ext(YamlConfigFilePath))
 			return diags
 		}
-		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, YamlConfigFilePath, "", "", models.RepoArtifactMeta{})
+		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, YamlConfigFilePath, "", "", models.RepoArtifactMeta{}, "", models.RepoArtifactMeta{})
 		if errversion != nil {
 			log.Println("error while createAddonVersion() ", errversion.Error())
 			return diag.FromErr(errversion)
@@ -186,7 +186,7 @@ func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interfac
 			return diags
 		}
 
-		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, chartfile, valuesfile, "", models.RepoArtifactMeta{})
+		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, chartfile, valuesfile, "", models.RepoArtifactMeta{}, "", models.RepoArtifactMeta{})
 		if errversion != nil {
 			log.Printf("error while createAddonVersion() %s", errversion.Error())
 			return diag.FromErr(errversion)
@@ -200,7 +200,7 @@ func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Printf("Valuesfile cannot be empty")
 			return diags
 		}
-		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, chartfile, valuesfile, "", models.RepoArtifactMeta{})
+		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, chartfile, valuesfile, "", models.RepoArtifactMeta{}, "", models.RepoArtifactMeta{})
 		if errversion != nil {
 			log.Printf("error while createAddonVersion() %s", errversion.Error())
 			return diag.FromErr(errversion)
@@ -282,7 +282,7 @@ func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{
 			log.Printf("error in getAddon %s", err.Error())
 			return diag.FromErr(err)
 		}
-		if err := d.Set("name", c.Name); err != nil {
+		if err := d.Set("name", c.Metadata.Name); err != nil {
 			log.Printf("set name error %s", err.Error())
 			return diag.FromErr(err)
 		}
@@ -325,7 +325,7 @@ func resourceAddonUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Printf("error while GetAddon %s", err.Error())
 			return diag.FromErr(err)
 		}
-		addonID = s.ID
+		addonID = s.Metadata.ID
 	}
 	if d.Get("addontype").(string) == "yaml" {
 		if !utils.FileExists(YamlConfigFilePath) {
@@ -336,7 +336,7 @@ func resourceAddonUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Printf("file must a yaml file, file type is %s", filepath.Ext(YamlConfigFilePath))
 			return diags
 		}
-		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, YamlConfigFilePath, "", "", models.RepoArtifactMeta{})
+		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, YamlConfigFilePath, "", "", models.RepoArtifactMeta{}, "", models.RepoArtifactMeta{})
 		if errversion != nil {
 			log.Printf("error while createAddonVersion() %s", errversion.Error())
 			return diag.FromErr(errversion)
@@ -351,7 +351,7 @@ func resourceAddonUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 			return diags
 		}
 
-		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, chartfile, valuesfile, "", models.RepoArtifactMeta{})
+		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, chartfile, valuesfile, "", models.RepoArtifactMeta{}, "", models.RepoArtifactMeta{})
 		if errversion != nil {
 			log.Printf("error while createAddonVersion() %s", errversion.Error())
 			return diag.FromErr(errversion)
@@ -365,7 +365,7 @@ func resourceAddonUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Printf("Valuesfile cannot be empty")
 			return diags
 		}
-		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, chartfile, valuesfile, "", models.RepoArtifactMeta{})
+		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, chartfile, valuesfile, "", models.RepoArtifactMeta{}, "", models.RepoArtifactMeta{})
 		if errversion != nil {
 			log.Printf("error while createAddonVersion() %s", errversion.Error())
 			return diag.FromErr(errversion)

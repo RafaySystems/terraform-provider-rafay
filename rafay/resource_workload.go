@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/url"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/config"
-	"github.com/RafaySystems/rctl/pkg/project"
-	"github.com/RafaySystems/rctl/pkg/workload"
 
-	"github.com/RafaySystems/rctl/utils"
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
+	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/appspb"
+	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/RafaySystems/rctl/pkg/versioninfo"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -34,315 +34,283 @@ func resourceWorkload() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema: map[string]*schema.Schema{
-			"yamlfilepath": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"projectname": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"workloadname": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-		},
+		Schema:        resource.WorkloadSchema.Schema,
 	}
-}
-
-func validateValuesFiles(path string) error {
-	if path == "" {
-		return nil
-	}
-	allValuesFiles := strings.Split(path, ",")
-	for _, valuesFileFullPath := range allValuesFiles {
-		if _, err := os.Stat(valuesFileFullPath); os.IsNotExist(err) {
-			return fmt.Errorf("values file doesn't exist '%s'", valuesFileFullPath)
-		}
-	}
-	return nil
 }
 
 func resourceWorkloadCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	return resourceWorkloadUpsert(ctx, d, m)
+}
+func resourceWorkloadUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("workload create starts here")
 
-	YamlConfigFilePath := d.Get("yamlfilepath").(string)
-	log.Printf("YamlConfigFile %s", YamlConfigFilePath)
-
-	wl, file, err := workload.GetWorkload(YamlConfigFilePath)
+	wl, err := expandWorkload(d)
 	if err != nil {
-		log.Printf("Get workload command call failed")
 		return diag.FromErr(err)
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	payloadFile := wl.PayloadFile
-	projectId, _ := config.GetProjectIdByName(wl.Project)
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 	if err != nil {
-		log.Printf("Project by name '%s' is not present (or you don't have access to it yet). Please use valid project in meta file.", wl.Project)
-		return diag.FromErr(err)
-	}
-	if projectId == "" {
-		projectId = config.GetConfig().ProjectID
-	}
-	if projectId == "" {
-		log.Printf("project context couldn't be determined. Please use --project argument or init rctl with the project context using \"rctl config set project <project name>\"")
 		return diag.FromErr(err)
 	}
 
-	wl.Project = projectId
-	switch wl.Type {
-	case "", "Rafay":
-		//This is a deprecated method of using the CLI to support backward compatible commands - using the input file as payload for V1 workload
-		if payloadFile == "" {
-			log.Printf("payloadfile is not part of the input file. This is a deprecated method of using this command. Assuming it is a Wizard workload payload and proceeding...")
-			payloadFile = file
-		} else {
-			//Verify that the payloadFile pointed in the metafile exists considering its fullPath relative to input meta file
-			payloadFile = utils.FullPath(file, payloadFile)
-			if _, err := os.Stat(payloadFile); os.IsNotExist(err) {
-				log.Printf("payload file doesn't exist '%s'", payloadFile)
-				return diag.FromErr(err)
-
-			}
-		}
-		params := url.Values{}
-		params.Add("cli_call", "true")
-		uri := fmt.Sprintf("/config/v1/projects/%s/workloads/?", projectId) + params.Encode()
-		resp, err := auth.PostRequestFromFile(uri, payloadFile)
-		if err != nil {
-			log.Printf("failed to create workload from %s, resp %s", payloadFile, resp)
-			return diag.FromErr(err)
-
-		}
-		log.Printf("End %s resp %s", file, resp)
-	case "Helm", "NativeYaml", "Helm3":
-		valuesFileFullPath := utils.FullPaths(YamlConfigFilePath, wl.ValuesFile)
-		// if it's git repo or helm repo
-		if wl.RepositoryRef != "" {
-			log.Printf("Creating helmInGitRepo, YamlInGitRepo or HelmInHelmRepo workload {%v}", wl)
-			workload.CreateWorkloadWithRepo(wl, valuesFileFullPath)
-			return nil
-		}
-
-		if payloadFile == "" {
-			log.Printf("payload file information doesn't exist. A field by the name 'payload' is required which points to the payload location")
-			return diag.FromErr(err)
-		}
-
-		payloadFileFullPath := utils.FullPath(YamlConfigFilePath, payloadFile)
-		if _, err := os.Stat(payloadFileFullPath); os.IsNotExist(err) {
-			log.Printf("Payload file doesn't exist '%s'", payloadFileFullPath)
-			return diag.FromErr(err)
-		}
-		err = validateValuesFiles(valuesFileFullPath)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		log.Printf("Creating helm or native yaml workload {%v}", wl)
-		err := workload.CreateV2Workload(wl, payloadFileFullPath, valuesFileFullPath)
-		//err := createLocalWorkload(wl, payloadFileFullPath, valuesFileFullPath)
-		if err != nil {
-			log.Printf("v2Workload create failed")
-			return diag.FromErr(err)
-		}
-	default:
-		log.Printf("unsupported workload type %s. Supported types Helm, NativeYaml, Helm3, (Wizard workloads if empty), ", wl.Type)
-		return diag.FromErr(err)
-	}
-
-	log.Printf("Workload created successfully")
-
-	//get workloadId
-	wlid, err := workload.GetWorkloadId(wl.Name, projectId)
+	err = client.AppsV3().Workload().Apply(ctx, wl, options.ApplyOptions{})
 	if err != nil {
-		log.Printf("Get workloadid failed")
 		return diag.FromErr(err)
 	}
 
-	//publish workload
-	uri := fmt.Sprintf("/config/v1/projects/%s/workloads/%s/publish/", projectId, wlid)
-	_, err = auth.AuthAndRequest(uri, "POST", "")
-	if err != nil {
-		log.Printf("failed to publish workload %s", wlid)
-		return diag.FromErr(err)
-	}
-	log.Printf("Workload published successfully")
-
-	d.SetId(wlid)
+	d.SetId(wl.Metadata.Name)
 	return diags
 }
 
 func resourceWorkloadRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	//find projectid
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-	if err != nil {
-		log.Printf("project does not exist, error %s", err.Error())
-		return diag.FromErr(err)
-	}
-	p, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		return diag.FromErr(err)
-	} else if p == nil {
-		return diags
-	}
-	projectId := p.ID
 
-	//call get
-	auth := config.GetConfig().GetAppAuthProfile()
-	uri := fmt.Sprintf("/config/v1/projects/%s/workloads/%s/?", projectId, d.Id())
-	resp, err = auth.AuthAndRequest(uri, "GET", nil)
+	log.Println("resourceWorkloadRead ")
+
+	tfWorkloadState, err := expandWorkload(d)
 	if err != nil {
-		log.Printf("Failed to get workload %s", d.Id())
+		return diag.FromErr(err)
+	}
+
+	// XXX Debug
+	// w1 := spew.Sprintf("%+v", tfWorkloadState)
+	// log.Println("resourceWorkloadRead tfWorkloadState", w1)
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	wl, err := client.AppsV3().Workload().Get(ctx, options.GetOptions{
+		Name:    tfWorkloadState.Metadata.Name,
+		Project: tfWorkloadState.Metadata.Project,
+	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// XXX Debug
+	// w1 = spew.Sprintf("%+v", wl)
+	// log.Println("resourceWorkloadRead wl", w1)
+
+	err = flattenWorkload(d, wl)
+	if err != nil {
+		return diag.FromErr(err)
 	}
 	return diags
 
 }
 
 func resourceWorkloadUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	//TODO implement update workload
+	return resourceWorkloadUpsert(ctx, d, m)
+}
+
+func resourceWorkloadDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	log.Printf("Two arguments were passed. This is a deprecated method of using the command (workload update name file) allowed by legacy RCTL version")
-	YamlConfigFilePath := d.Get("yamlfilepath").(string)
-	log.Printf("YamlConfigFile %s", YamlConfigFilePath)
-
-	wl, file, err := workload.GetWorkload(YamlConfigFilePath)
-	if err != nil {
-		log.Printf("Get workload command call failed")
-		return diag.FromErr(err)
-	}
-	if file == "" {
-		log.Printf("Get file command call failed")
-		return diag.FromErr(err)
-	}
-
-	if wl.PayloadFile == "" && wl.ValuesFile == "" && wl.Clusters == "" && wl.Labels == "" && wl.Locations == "" {
-		log.Printf("workload values empty")
-		return diag.FromErr(err)
-	}
-
-	if wl.Name == "" {
-		log.Printf("invalid input. Workload name can't be determined. Please check the input file")
-		return diags
-	}
-
-	//projectid
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-	if err != nil {
-		log.Printf("project does not exist, error %s", err.Error())
-		return diag.FromErr(err)
-	}
-	p, err := project.NewProjectFromResponse([]byte(resp))
+	wl, err := expandWorkload(d)
 	if err != nil {
 		return diag.FromErr(err)
-	} else if p == nil {
-		return diags
 	}
-	projectId := p.ID
 
-	//Project ID input order: Flag/Arguments > Meta File > Config File
-	if projectId == "" && wl.Project != "" {
-		projectId, err = config.GetProjectIdByName(wl.Project)
-		if err != nil {
-			log.Printf("project by name '%s' is not present (or you don't have access to it yet). Please use valid project in meta file", wl.Project)
-			return diag.FromErr(err)
-		}
-	}
-	if projectId == "" {
-		projectId = config.GetConfig().ProjectID
-	}
-	if projectId == "" {
-		log.Printf("project context couldn't be determined. Please use --project argument or init rctl with the project context using \"rctl config set project <project name>\"")
-		return diag.FromErr(err)
-	}
-	wlid := d.Id()
-	wl.Project = projectId
-	switch wl.Type {
-	case "", "Rafay":
-		payloadFile := wl.PayloadFile
-		//Using meta file pointing to the actual payload, verify that the file exists considering relative path of the input meta file
-		if d.Get("workloadname") != nil {
-			payloadFile = utils.FullPath(YamlConfigFilePath, payloadFile)
-			if _, err := os.Stat(payloadFile); os.IsNotExist(err) {
-				log.Printf("Payload file doesn't exist '%s'", payloadFile)
-				return diag.FromErr(err)
-			}
-		}
-		params := url.Values{}
-		params.Add("cli_call", "true")
-		uri := fmt.Sprintf("/config/v1/projects/%s/workloads/%s/?%s", projectId, wlid, params.Encode())
-		auth := config.GetConfig().GetAppAuthProfile()
-
-		resp, err = auth.RequestFromFile(uri, "PUT", payloadFile)
-		if err != nil {
-			log.Printf("Failed to update workload %s from %s", wl.Name, payloadFile)
-			return diag.FromErr(err)
-		}
-
-	case "Helm", "NativeYaml", "Helm3":
-		if wl.RepositoryRef != "" {
-			log.Printf("Creating helmInGitRepo, YamlInGitRepo or HelmInHelmRepo workload {%v}", wl)
-			workload.UpdateWorkloadWithRepo(wl, wlid)
-			return diag.FromErr(err)
-		}
-		wlType := wl.Type
-		payloadFile := utils.FullPath(YamlConfigFilePath, wl.PayloadFile)
-
-		if _, err := os.Stat(payloadFile); wl.PayloadFile != "" && os.IsNotExist(err) {
-			log.Printf("Payload file doesn't exist '%s'", payloadFile)
-			return diag.FromErr(err)
-		}
-		valuesFile := utils.FullPaths(YamlConfigFilePath, wl.ValuesFile)
-		err = validateValuesFiles(valuesFile)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		if wlType == "Helm3" {
-			wlType = "NativeHelm"
-		}
-		workload.UpdateV2Workload(nil, wlid, projectId, wlType, payloadFile, valuesFile, wl)
-
-	}
-	//publish workload
 	auth := config.GetConfig().GetAppAuthProfile()
-	uri := fmt.Sprintf("/config/v1/projects/%s/workloads/%s/publish/", projectId, wlid)
-	_, err = auth.AuthAndRequest(uri, "POST", "")
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 	if err != nil {
-		log.Printf("failed to publish workload %s", wlid)
+		return diag.FromErr(err)
+	}
+
+	err = client.AppsV3().Workload().Delete(ctx, options.DeleteOptions{
+		Name:    wl.Metadata.Name,
+		Project: wl.Metadata.Project,
+	})
+
+	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	return diags
 }
 
-func resourceWorkloadDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	//find projectid
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-	if err != nil {
-		log.Printf("project does not exist, error %s", err.Error())
-		return diag.FromErr(err)
+func expandWorkload(in *schema.ResourceData) (*appspb.Workload, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "expandWorkload empty input")
 	}
-	p, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		return diag.FromErr(err)
-	} else if p == nil {
-		d.SetId("")
-		return diags
-	}
-	projectId := p.ID
+	obj := &appspb.Workload{}
 
-	//call delete
-	auth := config.GetConfig().GetAppAuthProfile()
-	uri := fmt.Sprintf("/config/v1/projects/%s/workloads/%s/", projectId, d.Id())
-	_, err = auth.AuthAndRequest(uri, "DELETE", "")
-	if err != nil {
-		log.Printf("Failed to delete workload %s", d.Id())
+	if v, ok := in.Get("metadata").([]interface{}); ok {
+		obj.Metadata = expandMetaData(v)
 	}
 
-	return diags
+	if v, ok := in.Get("spec").([]interface{}); ok {
+		objSpec, err := expandWorkloadSpec(v)
+		if err != nil {
+			return nil, err
+		}
+		obj.Spec = objSpec
+	}
+
+	obj.ApiVersion = "apps.k8smgmt.io/v3"
+	obj.Kind = "Workload"
+	return obj, nil
+}
+
+func expandDrift(p []interface{}) *commonpb.DriftSpec {
+	obj := &commonpb.DriftSpec{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["action"].(string); ok && len(v) > 0 {
+		obj.Action = v
+	}
+
+	return obj
+}
+
+func expandWorkloadSpec(p []interface{}) (*appspb.WorkloadSpec, error) {
+	obj := &appspb.WorkloadSpec{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, fmt.Errorf("%s", "expandWorkloadSpec empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+		obj.Namespace = v
+	}
+
+	if v, ok := in["placement"].([]interface{}); ok {
+		obj.Placement = expandPlacement(v)
+	}
+
+	if v, ok := in["version"].(string); ok {
+		obj.Version = v
+	}
+
+	if v, ok := in["drift"].([]interface{}); ok {
+		obj.Drift = expandDrift(v)
+	}
+
+	if v, ok := in["artifact"].([]interface{}); ok {
+		objArtifact, err := ExpandArtifactSpec(v)
+		if err != nil {
+			return nil, err
+		}
+		obj.Artifact = objArtifact
+	}
+
+	return obj, nil
+}
+
+// Flatteners
+
+func flattenWorkload(d *schema.ResourceData, in *appspb.Workload) error {
+	if in == nil {
+		return nil
+	}
+
+	err := d.Set("metadata", flattenMetaData(in.Metadata))
+	if err != nil {
+		return err
+	}
+
+	v, ok := d.Get("spec").([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+
+	// XXX Debug
+	// w1 := spew.Sprintf("%+v", v)
+	// log.Println("flattenWorkload before ", w1)
+	var ret []interface{}
+	ret, err = flattenWorkloadSpec(in.Spec, v)
+	if err != nil {
+		return err
+	}
+	// XXX Debug
+	// w1 = spew.Sprintf("%+v", ret)
+	// log.Println("flattenWorkload after ", w1)
+
+	err = d.Set("spec", ret)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func flattenDrift(in *commonpb.DriftSpec) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+
+	obj["enabled"] = in.Enabled
+
+	if len(in.Action) > 0 {
+		obj["action"] = in.Action
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenWorkloadSpec(in *appspb.WorkloadSpec, p []interface{}) ([]interface{}, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "flattenWorkloadSpec empty input")
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Namespace) > 0 {
+		obj["namespace"] = in.Namespace
+	}
+
+	if in.Placement != nil {
+		obj["placement"] = flattenPlacement(in.Placement)
+	}
+
+	if in.Drift != nil {
+		obj["drift"] = flattenDrift(in.Drift)
+	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	v, ok := obj["artifact"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	// XXX Debug
+	// w1 := spew.Sprintf("%+v", v)
+	// log.Println("flattenWorkloadSpec before ", w1)
+
+	var ret []interface{}
+	var err error
+	ret, err = FlattenArtifactSpec(in.Artifact, v)
+	if err != nil {
+		log.Println("FlattenArtifactSpec error ", err)
+		return nil, err
+	}
+
+	// XXX Debug
+	// w1 = spew.Sprintf("%+v", ret)
+	// log.Println("flattenWorkloadSpec after ", w1)
+
+	obj["artifact"] = ret
+
+	return []interface{}{obj}, nil
 }

@@ -14,8 +14,34 @@ description: |-
 
 ```terraform
 resource "rafay_workload" "workload" {
-  yamlfilepath = "<file-path/example.yaml>"
-  projectname  = "dev-proj-example"
+  metadata {
+    name    = "benny-workload1"
+    project = "upgrade"
+    labels = {
+      env  = "dev"
+      name = "app"
+    }
+  }
+  spec {
+    namespace = "benny-test1"
+    placement {
+      selector = "rafay.dev/clusterName=hardik-qc-mks-3"
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    artifact {
+      type = "Yaml"
+      artifact {
+        paths {
+          name = "yaml/qc_app_yaml_with_annotations.yaml"
+        }
+        repository = "release-check-ssh"
+        revision   = "main"
+      }
+    }
+  }
 }
 ```
 
@@ -24,14 +50,179 @@ resource "rafay_workload" "workload" {
 
 ### Required
 
-- **projectname** (String)
-- **yamlfilepath** (String)
+- **metadata** (Block List, Min: 1, Max: 1) Metadata of the workload resource (see [below for nested schema](#nestedblock--metadata))
+- **spec** (Block List, Min: 1, Max: 1) Specification of the workload resource (see [below for nested schema](#nestedblock--spec))
 
 ### Optional
 
 - **id** (String) The ID of this resource.
+- **resource_path** (Block List, Max: 1) relative path of the resource spec (see [below for nested schema](#nestedblock--resource_path))
 - **timeouts** (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- **workloadname** (String)
+
+<a id="nestedblock--metadata"></a>
+### Nested Schema for `metadata`
+
+Optional:
+
+- **annotations** (Map of String) annotations of the resource
+- **description** (String) description of the resource
+- **labels** (Map of String) labels of the resource
+- **name** (String) name of the resource
+- **project** (String) Project of the resource
+
+
+<a id="nestedblock--spec"></a>
+### Nested Schema for `spec`
+
+Optional:
+
+- **artifact** (Block List, Max: 1) workload artifact specification (see [below for nested schema](#nestedblock--spec--artifact))
+- **drift** (Block List, Max: 1) drift specification of the workload resource (see [below for nested schema](#nestedblock--spec--drift))
+- **namespace** (String) namespace of the workload resource
+- **placement** (Block List, Max: 1) placement specification of the workload resource (see [below for nested schema](#nestedblock--spec--placement))
+- **version** (String) version of the workload resource
+
+<a id="nestedblock--spec--artifact"></a>
+### Nested Schema for `spec.artifact`
+
+Optional:
+
+- **artifact** (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--artifact--artifact))
+- **options** (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--artifact--options))
+- **type** (String) type of the artifact
+
+<a id="nestedblock--spec--artifact--artifact"></a>
+### Nested Schema for `spec.artifact.artifact`
+
+Optional:
+
+- **chart_name** (String) name of the chart
+- **chart_path** (Block List, Max: 1) relative path to chart file in the git repository (see [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
+- **chart_version** (String) version of the chart
+- **configmap** (Block List, Max: 1) relative paths to alert manager configmap file (see [below for nested schema](#nestedblock--spec--artifact--artifact--configmap))
+- **configuration** (Block List, Max: 1) relative paths to alert manager configuration file (see [below for nested schema](#nestedblock--spec--artifact--artifact--configuration))
+- **paths** (Block List) relative paths to file in the git repository (see [below for nested schema](#nestedblock--spec--artifact--artifact--paths))
+- **repository** (String) name of the helm repository
+- **revision** (String) branch or tag in the git repository
+- **secret** (Block List, Max: 1) relative paths to alert manager secret file (see [below for nested schema](#nestedblock--spec--artifact--artifact--secret))
+- **statefulset** (Block List, Max: 1) relative paths to alert manager statefulset file (see [below for nested schema](#nestedblock--spec--artifact--artifact--statefulset))
+- **values_paths** (Block List) relative paths to values files (see [below for nested schema](#nestedblock--spec--artifact--artifact--values_paths))
+
+<a id="nestedblock--spec--artifact--artifact--chart_path"></a>
+### Nested Schema for `spec.artifact.artifact.values_paths`
+
+Optional:
+
+- **name** (String) relative path of a artifact
+
+
+<a id="nestedblock--spec--artifact--artifact--configmap"></a>
+### Nested Schema for `spec.artifact.artifact.values_paths`
+
+Optional:
+
+- **name** (String) relative path of a artifact
+
+
+<a id="nestedblock--spec--artifact--artifact--configuration"></a>
+### Nested Schema for `spec.artifact.artifact.values_paths`
+
+Optional:
+
+- **name** (String) relative path of a artifact
+
+
+<a id="nestedblock--spec--artifact--artifact--paths"></a>
+### Nested Schema for `spec.artifact.artifact.values_paths`
+
+Optional:
+
+- **name** (String) relative path of a artifact
+
+
+<a id="nestedblock--spec--artifact--artifact--secret"></a>
+### Nested Schema for `spec.artifact.artifact.values_paths`
+
+Optional:
+
+- **name** (String) relative path of a artifact
+
+
+<a id="nestedblock--spec--artifact--artifact--statefulset"></a>
+### Nested Schema for `spec.artifact.artifact.values_paths`
+
+Optional:
+
+- **name** (String) relative path of a artifact
+
+
+<a id="nestedblock--spec--artifact--artifact--values_paths"></a>
+### Nested Schema for `spec.artifact.artifact.values_paths`
+
+Optional:
+
+- **name** (String) relative path of a artifact
+
+
+
+<a id="nestedblock--spec--artifact--options"></a>
+### Nested Schema for `spec.artifact.options`
+
+Optional:
+
+- **atomic** (Boolean) deploy Helm artifact with atomic flag
+- **clean_up_on_fail** (Boolean) cleanup deployed resources when chart fails to deploy
+- **description** (String) custom description for the release
+- **disable_open_api_validation** (Boolean) disable OpenAPI validation while deploying the YAML
+- **force** (Boolean) deploy YAML artifact with force flag
+- **keep_history** (Boolean) keep release history after uninstalling
+- **max_history** (Number) limit Helm artifact history
+- **no_hooks** (Boolean) deploy Helm artifact without hooks
+- **render_sub_chart_notes** (Boolean) render sub chart notes
+- **reset_values** (Boolean) reset existing helm values
+- **reuse_values** (Boolean) reuse existing values
+- **set_string** (List of String) pass custom helm values as key=value
+- **skip_cr_ds** (Boolean) skip deploying crds
+- **timeout** (String) timeout for waiting for the resources to become ready
+- **wait** (Boolean) deploy Helm artifact with wait flag
+
+
+
+<a id="nestedblock--spec--drift"></a>
+### Nested Schema for `spec.drift`
+
+Optional:
+
+- **action** (String) flag to specify if sharing is enabled for resource
+- **enabled** (Boolean) flag to specify if drift reconcillation is enabled for resource
+
+
+<a id="nestedblock--spec--placement"></a>
+### Nested Schema for `spec.placement`
+
+Optional:
+
+- **labels** (Block List) list of labels for placement (see [below for nested schema](#nestedblock--spec--placement--labels))
+- **selector** (String) Kubernetes style label selector
+
+<a id="nestedblock--spec--placement--labels"></a>
+### Nested Schema for `spec.placement.labels`
+
+Optional:
+
+- **key** (String) Key of the placement label
+- **value** (String) Value of the placement label
+
+
+
+
+<a id="nestedblock--resource_path"></a>
+### Nested Schema for `resource_path`
+
+Required:
+
+- **name** (String) relative path of the resource spec
+
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

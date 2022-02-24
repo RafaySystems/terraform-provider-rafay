@@ -1,0 +1,355 @@
+package rafay
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+)
+
+type artifactTranspose struct {
+	Type string `json:"type,omitempty"`
+
+	Artifact struct {
+		Repository    string  `protobuf:"bytes,1,opt,name=repository,proto3" json:"repository,omitempty"`
+		Revision      string  `protobuf:"bytes,2,opt,name=revision,proto3" json:"revision,omitempty"`
+		ChartPath     *File   `protobuf:"bytes,3,opt,name=chart_path,proto3" json:"chart_path,omitempty"`
+		ValuesPaths   []*File `protobuf:"bytes,4,rep,name=values_paths,proto3" json:"values_paths,omitempty"`
+		ChartName     string  `protobuf:"bytes,2,opt,name=chart_name,proto3" json:"chart_name,omitempty"`
+		ChartVersion  string  `protobuf:"bytes,3,opt,name=chart_version,proto3" json:"chart_version,omitempty"`
+		Paths         []*File `protobuf:"bytes,3,rep,name=paths,proto3" json:"paths,omitempty"`
+		Configmap     *File   `protobuf:"bytes,1,opt,name=configmap,proto3" json:"configmap,omitempty"`
+		Secret        *File   `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
+		Configuration *File   `protobuf:"bytes,3,opt,name=configuration,proto3" json:"configuration,omitempty"`
+		Statefulset   *File   `protobuf:"bytes,4,opt,name=statefulset,proto3" json:"statefulset,omitempty"`
+	} `json:"artifact,omitempty"`
+
+	Options struct {
+		Atomic                   bool     `protobuf:"varint,1,opt,name=atomic,proto3" json:"atomic,omitempty"`
+		Wait                     bool     `protobuf:"varint,2,opt,name=wait,proto3" json:"wait,omitempty"`
+		Force                    bool     `protobuf:"varint,3,opt,name=force,proto3" json:"force,omitempty"`
+		NoHooks                  bool     `protobuf:"varint,4,opt,name=no_hooks,proto3" json:"noHooks,omitempty"`
+		MaxHistory               int32    `protobuf:"zigzag32,5,opt,name=max_history,proto3" json:"maxHistory,omitempty"`
+		RenderSubChartNotes      bool     `protobuf:"varint,6,opt,name=render_sub_chart_notes,proto3" json:"renderSubChartNotes,omitempty"`
+		ResetValues              bool     `protobuf:"varint,7,opt,name=reset_values,proto3" json:"resetValues,omitempty"`
+		ReuseValues              bool     `protobuf:"varint,8,opt,name=reuse_values,proto3" json:"reuseValues,omitempty"`
+		SetString                []string `protobuf:"bytes,9,rep,name=set_string,proto3" json:"setString,omitempty"`
+		SkipCRDs                 bool     `protobuf:"varint,10,opt,name=skip_cr_ds,proto3" json:"skipCRDs,omitempty"`
+		Timeout                  string   `protobuf:"bytes,11,opt,name=timeout,proto3" json:"timeout,omitempty"`
+		CleanUpOnFail            bool     `protobuf:"varint,12,opt,name=clean_up_on_fail,proto3" json:"cleanUpOnFail,omitempty"`
+		Description              string   `protobuf:"bytes,13,opt,name=description,proto3" json:"description,omitempty"`
+		DisableOpenAPIValidation bool     `protobuf:"varint,14,opt,name=disable_open_api_validation,proto3" json:"disableOpenAPIValidation,omitempty"`
+		KeepHistory              bool     `protobuf:"varint,15,opt,name=keep_history,proto3" json:"keepHistory,omitempty"`
+	} `json:"options,omitempty"`
+}
+
+// ExpandArtifact expands tf state to ArtifactSpec
+func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSpec, error) {
+	if len(ap) == 0 || ap[0] == nil {
+		return nil, fmt.Errorf("%s", "expandArtifact empty input")
+	}
+
+	obj := commonpb.ArtifactSpec{}
+	at := artifactTranspose{}
+	at.Type = artifactType
+
+	inp := ap[0].(map[string]interface{})
+	if vp, ok := inp["artifact"].([]interface{}); ok && len(vp) > 0 {
+		if len(vp) == 0 || vp[0] == nil {
+			return nil, fmt.Errorf("%s", "expandArtifact empty artifact")
+		}
+		in := vp[0].(map[string]interface{})
+
+		if v, ok := in["chart_name"].(string); ok && len(v) > 0 {
+			at.Artifact.ChartName = v
+		}
+
+		if v, ok := in["chart_path"].([]interface{}); ok && len(v) > 0 {
+			at.Artifact.ChartPath = expandFile(v)
+		}
+
+		if v, ok := in["chart_version"].(string); ok && len(v) > 0 {
+			at.Artifact.ChartVersion = v
+		}
+
+		if v, ok := in["configmap"].([]interface{}); ok && len(v) > 0 {
+			at.Artifact.Configmap = expandFile(v)
+		}
+
+		if v, ok := in["configuration"].([]interface{}); ok && len(v) > 0 {
+			at.Artifact.Configuration = expandFile(v)
+		}
+
+		if v, ok := in["paths"].([]interface{}); ok && len(v) > 0 {
+			at.Artifact.Paths = expandFiles(v)
+		}
+
+		if v, ok := in["repository"].(string); ok && len(v) > 0 {
+			at.Artifact.Repository = v
+		}
+
+		if v, ok := in["revision"].(string); ok && len(v) > 0 {
+			at.Artifact.Revision = v
+		}
+
+		if v, ok := in["secret"].([]interface{}); ok && len(v) > 0 {
+			at.Artifact.Secret = expandFile(v)
+		}
+
+		if v, ok := in["statefulset"].([]interface{}); ok && len(v) > 0 {
+			at.Artifact.Statefulset = expandFile(v)
+		}
+
+		if v, ok := in["values_paths"].([]interface{}); ok && len(v) > 0 {
+			at.Artifact.ValuesPaths = expandFiles(v)
+		}
+
+		if v, ok := in["revision"].(string); ok && len(v) > 0 {
+			at.Artifact.Revision = v
+		}
+	}
+
+	if vp, ok := inp["options"].([]interface{}); ok && len(vp) > 0 {
+		if len(vp) == 0 || vp[0] == nil {
+			log.Println("expandArtifact empty options")
+		} else {
+			in := vp[0].(map[string]interface{})
+			if v, ok := in["atomic"].(bool); ok {
+				at.Options.Atomic = v
+			}
+			if v, ok := in["clean_up_on_fail"].(bool); ok {
+				at.Options.CleanUpOnFail = v
+			}
+			if v, ok := in["description"].(string); ok && len(v) > 0 {
+				at.Options.Description = v
+			}
+			if v, ok := in["disable_open_api_validation"].(bool); ok {
+				at.Options.DisableOpenAPIValidation = v
+			}
+			if v, ok := in["force"].(bool); ok {
+				at.Options.Force = v
+			}
+			if v, ok := in["keep_history"].(bool); ok {
+				at.Options.KeepHistory = v
+			}
+			if v, ok := in["max_history"].(int32); ok {
+				at.Options.MaxHistory = v
+			}
+			if v, ok := in["no_hooks"].(bool); ok {
+				at.Options.NoHooks = v
+			}
+			if v, ok := in["render_sub_chart_notes"].(bool); ok {
+				at.Options.RenderSubChartNotes = v
+			}
+			if v, ok := in["reset_values"].(bool); ok {
+				at.Options.ResetValues = v
+			}
+			if v, ok := in["reuse_values"].(bool); ok {
+				at.Options.ResetValues = v
+			}
+			if v, ok := in["skip_cr_ds"].(bool); ok {
+				at.Options.ResetValues = v
+			}
+			if v, ok := in["set_string"].([]string); ok && len(v) > 0 {
+				at.Options.SetString = v
+			}
+			if v, ok := in["timeout"].(string); ok && len(v) > 0 {
+				at.Options.Timeout = v
+			}
+			if v, ok := in["wait"].(bool); ok {
+				at.Options.Wait = v
+			}
+		}
+	}
+
+	// XXX Debug
+	// s := spew.Sprintf("%+v", at)
+	// log.Println("expandArtifact at", s)
+
+	jsonSpec, err := json.Marshal(at)
+	if err != nil {
+		return nil, err
+	}
+
+	// XXX Debug
+	// log.Println("expandArtifact jsonSpec ", string(jsonSpec))
+
+	err = obj.UnmarshalJSON(jsonSpec)
+	if err != nil {
+		log.Println("expandArtifact artifact UnmarshalJSON error ", err)
+		return nil, err
+	}
+
+	// XXX Debug
+	// s1 := spew.Sprintf("%+v", obj)
+	// log.Println("expandArtifact obj", s1)
+
+	return &obj, nil
+}
+
+func ExpandArtifactSpec(p []interface{}) (*commonpb.ArtifactSpec, error) {
+	var err error
+	var obj *commonpb.ArtifactSpec
+
+	if len(p) == 0 || p[0] == nil {
+		return nil, fmt.Errorf("%s", "ExpandArtifactSpec empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		artifactType := v
+		obj, err = ExpandArtifact(artifactType, p)
+		if err != nil {
+			return nil, err
+		}
+
+	}
+
+	return obj, nil
+}
+
+// Flatten
+
+// FlattenArtifact ArtifactSpec to TF State
+func FlattenArtifact(at *artifactTranspose, p []interface{}) ([]interface{}, error) {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(at.Artifact.Repository) > 0 {
+		obj["repository"] = at.Artifact.Repository
+	}
+
+	if len(at.Artifact.Revision) > 0 {
+		obj["revision"] = at.Artifact.Revision
+	}
+
+	if at.Artifact.ChartPath != nil {
+		obj["chart_path"] = flattenFile(at.Artifact.ChartPath)
+	}
+
+	if at.Artifact.ValuesPaths != nil {
+		obj["values_paths"] = flattenFiles(at.Artifact.ValuesPaths)
+	}
+
+	if len(at.Artifact.ChartName) > 0 {
+		obj["chart_name"] = at.Artifact.ChartName
+	}
+
+	if len(at.Artifact.ChartVersion) > 0 {
+		obj["chart_version"] = at.Artifact.ChartVersion
+	}
+
+	if at.Artifact.Paths != nil {
+		obj["paths"] = flattenFiles(at.Artifact.Paths)
+	}
+
+	if at.Artifact.Configmap != nil {
+		obj["configmap"] = flattenFile(at.Artifact.Configmap)
+	}
+
+	if at.Artifact.Secret != nil {
+		obj["secret"] = flattenFile(at.Artifact.Secret)
+	}
+
+	if at.Artifact.Configuration != nil {
+		obj["configuration"] = flattenFile(at.Artifact.Configuration)
+	}
+
+	if at.Artifact.Statefulset != nil {
+		obj["statefulset"] = flattenFile(at.Artifact.Statefulset)
+	}
+
+	return []interface{}{obj}, nil
+}
+
+// FlattenArtifactOptions ArtifactSpec to TF State
+func FlattenArtifactOptions(at *artifactTranspose, p []interface{}) ([]interface{}, error) {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["atomic"] = at.Options.Atomic
+	obj["wait"] = at.Options.Wait
+	obj["force"] = at.Options.Force
+	obj["no_hooks"] = at.Options.NoHooks
+	obj["max_history"] = at.Options.MaxHistory
+	obj["render_sub_chart_notes"] = at.Options.RenderSubChartNotes
+	obj["reset_values"] = at.Options.ResetValues
+	obj["reuse_values"] = at.Options.ReuseValues
+	if len(at.Options.SetString) > 0 {
+		obj["set_string"] = toArrayInterface(at.Options.SetString)
+	}
+	obj["skip_cr_ds"] = at.Options.SkipCRDs
+	if len(at.Options.Timeout) > 0 {
+		obj["timeout"] = at.Options.Timeout
+	}
+	obj["clean_up_on_fail"] = at.Options.CleanUpOnFail
+	if len(at.Options.Description) > 0 {
+		obj["description"] = at.Options.Description
+	}
+	obj["disable_open_api_validation"] = at.Options.DisableOpenAPIValidation
+	obj["keep_history"] = at.Options.KeepHistory
+
+	return []interface{}{obj}, nil
+}
+
+// FlattenArtifactSpec ArtifactSpec to TF State
+func FlattenArtifactSpec(in *commonpb.ArtifactSpec, p []interface{}) ([]interface{}, error) {
+	if in == nil {
+		log.Println("FlattenArtifactSpec empty input")
+		return nil, fmt.Errorf("%s", "FlattenArtifactSpec empty input")
+	}
+
+	// XXX Debug
+	// ob := spew.Sprintf("%+v", p)
+	// log.Println("FlattenArtifactSpec p", ob)
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Type) > 0 {
+		obj["type"] = in.Type
+	}
+
+	jsonBytes, err := in.MarshalJSON()
+	if err != nil {
+		log.Println("FlattenArtifactSpec MarshalJSON error", err)
+		return nil, fmt.Errorf("%s %+v", "FlattenArtifactSpec MarshalJSON error", err)
+	}
+
+	at := artifactTranspose{}
+	err = json.Unmarshal(jsonBytes, &at)
+	if err != nil {
+		return nil, fmt.Errorf("%s %+v", "FlattenArtifactSpec json unmarshal error", err)
+	}
+
+	// XXX Debug
+	// log.Println("FlattenArtifactSpec jsonBytes:", string(jsonBytes))
+	// s1 := spew.Sprintf("%+v", at)
+	// log.Println("FlattenArtifactSpec at", s1)
+
+	v, ok := obj["artifact"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	FlattenArtifact(&at, v)
+
+	v, ok = obj["options"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	FlattenArtifactOptions(&at, v)
+
+	// XXX Debug
+	// ob = spew.Sprintf("%+v", p)
+	// log.Println("FlattenArtifactSpec obj", ob)
+
+	return []interface{}{obj}, nil
+}

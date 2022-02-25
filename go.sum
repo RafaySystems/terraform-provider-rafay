@@ -100,8 +100,8 @@ github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbt
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV/sSk/8dngufqelfh6jnri85riMAaF/M=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/RafaySystems/rafay-common v1.10.0-beta8/go.mod h1:rRuH3OGpdPtuwZDQ3PsJi6qKG8eaPbyrNAqCv3KMX4E=
-github.com/RafaySystems/rafay-common v1.11.0-terraform-3 h1:7V/LaVk+2BxPmXpJ1AzakuufpqovKxssKpXzJKpJx2o=
-github.com/RafaySystems/rafay-common v1.11.0-terraform-3/go.mod h1:AGQowMsi3Y050HntAxKH6R2hCi07z4dMBDze/G0UnD0=
+github.com/RafaySystems/rafay-common v1.11.0-beta3 h1:OepQqPxlI1MqExGQw0QWiIz+NWqO7d95SPqZIlszmxs=
+github.com/RafaySystems/rafay-common v1.11.0-beta3/go.mod h1:VmAs/90G62HrgMtb1nNXOUJwNKkCI0xyahxaP+gFk/8=
 github.com/RafaySystems/rctl v1.11.0-beta1 h1:WDuyeclT7a+lQXtBsaI4EpyF1ZBZbi/K/VfToF7dtfQ=
 github.com/RafaySystems/rctl v1.11.0-beta1/go.mod h1:deQJit9I1CdBuppjlP2c32cDP6hTVgyXWR3n0UOac9A=
 github.com/RoaringBitmap/roaring v0.6.1/go.mod h1:WZ83fjBF/7uBHi6QoFyfGL4+xuV4Qn+xFkm4+vSzrhE=

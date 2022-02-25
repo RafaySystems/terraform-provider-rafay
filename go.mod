@@ -3,7 +3,7 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.16
 
 require (
-	github.com/RafaySystems/rafay-common v1.11.0-terraform-3
+	github.com/RafaySystems/rafay-common v1.11.0-beta3
 	//github.com/RafaySystems/rafay-common v1.10.0-tf-schema-beta1
 	github.com/RafaySystems/rctl v1.11.0-beta1
 	github.com/go-yaml/yaml v2.1.0+incompatible

@@ -86,8 +86,8 @@ func aksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte,
 	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
 	// Make request
 	for clusterName, configBytes := range configMap {
-		if err := clusterctl.Apply(logger, config, clusterName, configBytes, dryRun); err != nil {
-			errs = append(errs, fmt.Errorf(`Error performing apply on cluster "%s": %s`, clusterName, err))
+		if _, err := clusterctl.Apply(logger, config, clusterName, configBytes, dryRun); err != nil {
+			errs = append(errs, fmt.Errorf(`error performing apply on cluster "%s": %s`, clusterName, err))
 			continue
 		}
 	}

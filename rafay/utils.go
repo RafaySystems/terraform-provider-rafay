@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 type File struct {
@@ -226,6 +227,24 @@ func expandFiles(p []interface{}) []*File {
 	return obj
 }
 
+func expandResourceQuantity(p []interface{}) *commonpb.ResourceQuantity {
+	obj := &commonpb.ResourceQuantity{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["memory"].(*resource.Quantity); ok {
+		obj.Memory = v
+	}
+
+	if v, ok := in["cpu"].(*resource.Quantity); ok {
+		obj.Cpu = v
+	}
+
+	return obj
+}
+
 // Flatteners
 
 func flattenMetaData(in *commonpb.Metadata) []interface{} {
@@ -310,4 +329,33 @@ func flattenFiles(input []*File) []interface{} {
 	}
 
 	return out
+}
+
+func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if in.Memory != nil {
+		obj["memory"] = in.GetMemory()
+	}
+
+	if in.Cpu != nil {
+		obj["cpu"] = in.GetCpu()
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenRatio(in *commonpb.ResourceRatio) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["memory"] = in.Memory
+	obj["cpu"] = in.Cpu
+
+	return []interface{}{obj}
 }

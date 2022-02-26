@@ -227,7 +227,7 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 	// Make request
 	for clusterName, configBytes := range configMap {
 		log.Println("create cluster:", clusterName, "config:", string(configBytes), "projectID :", c.ProjectID)
-		if err := clusterctl.Apply(logger, c, clusterName, configBytes, false); err != nil {
+		if _, err := clusterctl.Apply(logger, c, clusterName, configBytes, false); err != nil {
 			return diag.FromErr(fmt.Errorf("error performing apply on cluster %s: %s", clusterName, err))
 		}
 	}

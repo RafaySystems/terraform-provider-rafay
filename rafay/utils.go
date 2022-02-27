@@ -265,6 +265,48 @@ func expandResourceQuantity(p []interface{}) *commonpb.ResourceQuantity {
 	return &obj
 }
 
+func expandProjectMeta(p []interface{}) []*commonpb.ProjectMeta {
+	if len(p) == 0 {
+		return []*commonpb.ProjectMeta{}
+	}
+	out := make([]*commonpb.ProjectMeta, len(p))
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := commonpb.ProjectMeta{}
+
+		if v, ok := in["name"].(string); ok {
+			obj.Name = v
+		}
+		if v, ok := in["id"].(string); ok {
+			obj.Id = v
+		}
+
+		out[i] = &obj
+	}
+
+	log.Println("expandProjectMeta out", out)
+	return out
+}
+
+func expandSharingSpec(p []interface{}) *commonpb.SharingSpec {
+	obj := commonpb.SharingSpec{}
+	if len(p) == 0 || p[0] == nil {
+		return &obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["projects"].([]interface{}); ok {
+		obj.Projects = expandProjectMeta(v)
+	}
+
+	log.Println("expandSharingSpec obj", obj)
+	return &obj
+}
+
 // Flatteners
 
 func flattenMetaData(in *commonpb.Metadata) []interface{} {
@@ -413,6 +455,40 @@ func flattenRatio(in *commonpb.ResourceRatio) []interface{} {
 	obj := make(map[string]interface{})
 	obj["memory"] = in.Memory
 	obj["cpu"] = in.Cpu
+
+	return []interface{}{obj}
+}
+
+func flattenProjectMeta(input []*commonpb.ProjectMeta) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		obj := map[string]interface{}{}
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.Id) > 0 {
+			obj["id"] = in.Id
+		}
+		out[i] = obj
+	}
+
+	return out
+}
+
+func flattenSharingSpec(in *commonpb.SharingSpec) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["enabled"] = in.Enabled
+	if len(in.Projects) > 0 {
+		obj["projects"] = flattenProjectMeta(in.Projects)
+	}
 
 	return []interface{}{obj}
 }

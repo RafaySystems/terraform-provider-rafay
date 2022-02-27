@@ -3,17 +3,19 @@ package rafay
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"path/filepath"
+	"os"
 	"time"
 
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
+	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/addon"
-	"github.com/RafaySystems/rctl/pkg/models"
-	"github.com/RafaySystems/rctl/pkg/project"
-	"github.com/RafaySystems/rctl/utils"
+	"github.com/RafaySystems/rctl/pkg/config"
+	"github.com/RafaySystems/rctl/pkg/versioninfo"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -31,416 +33,310 @@ func resourceAddon() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"projectname": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"addontype": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"versionname": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"namespace": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"yamlfilepath": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"yamlfileversion": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"chartfile": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"valuesfile": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"configmap": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"configuration": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"secret": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"statefulset": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-		},
+		Schema:        resource.AddonSchema.Schema,
 	}
 }
 
 func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("addon create starts")
+	diags := resourceAddonUpsert(ctx, d, m)
+	if diags.HasError() {
+		tflog := os.Getenv("TF_LOG")
+		if tflog == "TRACE" || tflog == "DEBUG" {
+			ctx = context.WithValue(ctx, "debug", "true")
+		}
+		log.Printf("addon create got error, perform cleanup")
+		ns, err := expandAddon(d)
+		if err != nil {
+			log.Printf("addon expandAddon error")
+			return diag.FromErr(err)
+		}
+		auth := config.GetConfig().GetAppAuthProfile()
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		err = client.InfraV3().Addon().Delete(ctx, options.DeleteOptions{
+			Name:    ns.Metadata.Name,
+			Project: ns.Metadata.Project,
+		})
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	return diags
+}
+
+func resourceAddonUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("addon update starts")
+	return resourceAddonUpsert(ctx, d, m)
+}
+
+func resourceAddonUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	log.Printf("addon upsert starts")
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
 
-	YamlConfigFilePath := d.Get("yamlfilepath").(string)
-	chartfile := d.Get("chartfile").(string)
-	valuesfile := d.Get("valuesfile").(string)
-
-	// get project details
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	addon, err := expandAddon(d)
 	if err != nil {
-		fmt.Print("project does not exist")
+		log.Printf("addon expandAddon error")
 		return diag.FromErr(err)
 	}
-	project, err := project.NewProjectFromResponse([]byte(resp))
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 	if err != nil {
-		fmt.Printf("project does not exist")
 		return diag.FromErr(err)
 	}
-	if d.Get("addontype").(string) == "yaml" {
-		if d.Get("namespace").(string) == "" {
-			return diag.FromErr(fmt.Errorf("namespace cannot be empty for yaml "))
-		}
-		_, errCreate := addon.CreateAddon(d.Get("namespace").(string), d.Get("name").(string), project.ID, "NativeYaml")
-		if errCreate != nil {
-			log.Printf("Error while CreateAddon %s", errCreate.Error())
-			return diag.FromErr(errCreate)
-		}
-	} else if d.Get("addontype").(string) == "helm" {
-		if d.Get("namespace").(string) == "" {
-			return diag.FromErr(fmt.Errorf("namespace cannot be empty for helm"))
-		}
-		_, errCreate := addon.CreateAddon(d.Get("namespace").(string), d.Get("name").(string), project.ID, "Helm")
-		if errCreate != nil {
-			log.Printf("Error while CreateAddon %s", errCreate.Error())
-			return diag.FromErr(errCreate)
-		}
-	} else if d.Get("addontype").(string) == "helm3" {
-		if d.Get("namespace").(string) == "" {
-			return diag.FromErr(fmt.Errorf("namespace cannot be empty for helm3"))
-		}
-		_, errCreate := addon.CreateAddon(d.Get("namespace").(string), d.Get("name").(string), project.ID, "NativeHelm")
-		if errCreate != nil {
-			log.Printf("Error while CreateAddon %s", errCreate.Error())
-			return diag.FromErr(errCreate)
-		}
-	} else if d.Get("addontype").(string) == "alertmanager" {
-		_, errCreate := addon.CreateManagedAddon(d.Get("name").(string), project.ID)
-		if errCreate != nil {
-			log.Printf("Error while CreateManageaddon %s", errCreate.Error())
-			return diag.FromErr(errCreate)
-		}
-	} else {
-		log.Printf("addontype must be nativaYaml/helm/helm3/alertmanager")
-		return diags
+
+	err = client.InfraV3().Addon().Apply(ctx, addon, options.ApplyOptions{})
+	if err != nil {
+		// XXX Debug
+		n1 := spew.Sprintf("%+v", addon)
+		log.Println("addon apply addon:", n1)
+		log.Printf("addon apply error")
+		return diag.FromErr(err)
 	}
-	addonVersionName := d.Get("versionname").(string)
-	var addonID string
-	if d.Get("addontype").(string) == "alertmanager" {
-		_, err := addon.GetManagedAddon(d.Get("name").(string), project.ID)
-		if err != nil {
-			log.Printf("error while GetAddon %s", err.Error())
-			return diag.FromErr(err)
-		}
-		d.SetId(d.Get("name").(string))
 
-	} else {
-		s, err := addon.GetAddon(d.Get("name").(string), project.ID)
-		if err != nil {
-			log.Printf("error while GetAddon %s", err.Error())
-			return diag.FromErr(err)
-		}
-		addonID = s.Metadata.ID
-		d.SetId(addonID)
+	d.SetId(addon.Metadata.Name)
+	return diags
+
+}
+
+func resourceAddonDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
 	}
-	if d.Get("addontype").(string) == "yaml" {
-		if !utils.FileExists(YamlConfigFilePath) {
-			log.Printf("file %s does not exist", YamlConfigFilePath)
-			return diags
-		}
-		if filepath.Ext(YamlConfigFilePath) != ".yml" && filepath.Ext(YamlConfigFilePath) != ".yaml" {
-			log.Printf("file must a yaml file, file type is %s", filepath.Ext(YamlConfigFilePath))
-			return diags
-		}
-		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, YamlConfigFilePath, "", "", models.RepoArtifactMeta{}, "", models.RepoArtifactMeta{})
-		if errversion != nil {
-			log.Println("error while createAddonVersion() ", errversion.Error())
-			return diag.FromErr(errversion)
-		}
-	} else if d.Get("addontype").(string) == "helm" {
-		if !utils.FileExists(chartfile) {
-			log.Printf("file %s does not exist", chartfile)
-			return diags
-		}
-		if valuesfile == "" {
-			log.Printf("Valuesfile cannot be empty")
-			return diags
-		}
 
-		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, chartfile, valuesfile, "", models.RepoArtifactMeta{}, "", models.RepoArtifactMeta{})
-		if errversion != nil {
-			log.Printf("error while createAddonVersion() %s", errversion.Error())
-			return diag.FromErr(errversion)
-		}
-	} else if d.Get("addontype").(string) == "helm3" {
-		if !utils.FileExists(chartfile) {
-			log.Printf("file %s does not exist", chartfile)
-			return diags
-		}
-		if valuesfile == "" {
-			log.Printf("Valuesfile cannot be empty")
-			return diags
-		}
-		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, chartfile, valuesfile, "", models.RepoArtifactMeta{}, "", models.RepoArtifactMeta{})
-		if errversion != nil {
-			log.Printf("error while createAddonVersion() %s", errversion.Error())
-			return diag.FromErr(errversion)
-		}
-	} else if d.Get("addontype").(string) == "alertmanager" {
-		configmap := d.Get("configmap").(string)
-		configuration := d.Get("configuration").(string)
-		secret := d.Get("secret").(string)
-		statefulset := d.Get("statefulset").(string)
-
-		if configmap == "" && configuration == "" && secret == "" && statefulset == "" {
-			log.Printf("for alertmanager addons, you must provide one or more of the fields")
-			return diags
-		}
-		var cm, s, st, c []byte
-		var err error
-
-		if configmap != "" {
-			cm, err = ioutil.ReadFile(configmap)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-		}
-		if configuration != "" {
-			c, err = ioutil.ReadFile(configuration)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-		}
-		if secret != "" {
-			s, err = ioutil.ReadFile(secret)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-		}
-		if statefulset != "" {
-			st, err = ioutil.ReadFile(statefulset)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-		}
-		_, errversion := addon.CreateManagedAddonVersion(d.Get("name").(string), d.Get("versionname").(string), "", string(cm), string(c), string(s), string(st), project.ID)
-		if err != nil {
-			log.Printf("error While createManageaddonversion %s", errversion.Error())
-			return diag.FromErr(errversion)
-		}
+	addon, err := expandAddon(d)
+	if err != nil {
+		return diag.FromErr(err)
 	}
-	log.Printf("resource addon created ")
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = client.InfraV3().Addon().Delete(ctx, options.DeleteOptions{
+		Name:    addon.Metadata.Name,
+		Project: addon.Metadata.Project,
+	})
+
+	if err != nil {
+		//v3 spec gave error try v2
+		return resourceAddonV2Delete(ctx, addon)
+	}
 
 	return diags
 }
 
 func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-	if err != nil {
-		fmt.Print("project name missing in the resource")
-		return diags
+
+	log.Println("resourceAddonRead ")
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
 	}
-
-	project, err := project.NewProjectFromResponse([]byte(resp))
+	tfAddonState, err := expandAddon(d)
 	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
-	}
-	if d.Get("addontype").(string) == "alertmanager" {
-		_, err := addon.GetManagedAddon(d.Get("name").(string), project.ID)
-		if err != nil {
-			log.Printf("error in getAddon %s", err.Error())
-			return diag.FromErr(err)
-		}
-		if err := d.Set("name", d.Get("name").(string)); err != nil {
-			log.Printf("set name error %s", err.Error())
-			return diag.FromErr(err)
-		}
-	} else {
-		c, err := addon.GetAddon(d.Get("name").(string), project.ID)
-		if err != nil {
-			log.Printf("error in getAddon %s", err.Error())
-			return diag.FromErr(err)
-		}
-		if err := d.Set("name", c.Metadata.Name); err != nil {
-			log.Printf("set name error %s", err.Error())
-			return diag.FromErr(err)
-		}
-	}
-
-	return diags
-}
-
-func resourceAddonUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	log.Printf("update addon resource")
-	YamlConfigFilePath := d.Get("yamlfilepath").(string)
-	chartfile := d.Get("chartfile").(string)
-	valuesfile := d.Get("valuesfile").(string)
-
-	// get project details
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-	if err != nil {
-		fmt.Print("project does not exist")
-		return diag.FromErr(err)
-	}
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
 		return diag.FromErr(err)
 	}
 
-	addonVersionName := d.Get("versionname").(string)
-	var addonID string
-	if d.Get("addontype").(string) == "alertmanager" {
-		_, err := addon.GetManagedAddon(d.Get("name").(string), project.ID)
-		if err != nil {
-			log.Printf("error while GetAddon %s", err.Error())
-			return diag.FromErr(err)
-		}
-	} else {
-		s, err := addon.GetAddon(d.Get("name").(string), project.ID)
-		if err != nil {
-			log.Printf("error while GetAddon %s", err.Error())
-			return diag.FromErr(err)
-		}
-		addonID = s.Metadata.ID
+	// XXX Debug
+	// w1 := spew.Sprintf("%+v", tfAddonState)
+	// log.Println("resourceAddonRead tfAddonState", w1)
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
 	}
-	if d.Get("addontype").(string) == "yaml" {
-		if !utils.FileExists(YamlConfigFilePath) {
-			log.Printf("file %s does not exist", YamlConfigFilePath)
-			return diags
-		}
-		if filepath.Ext(YamlConfigFilePath) != ".yml" && filepath.Ext(YamlConfigFilePath) != ".yaml" {
-			log.Printf("file must a yaml file, file type is %s", filepath.Ext(YamlConfigFilePath))
-			return diags
-		}
-		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, YamlConfigFilePath, "", "", models.RepoArtifactMeta{}, "", models.RepoArtifactMeta{})
-		if errversion != nil {
-			log.Printf("error while createAddonVersion() %s", errversion.Error())
-			return diag.FromErr(errversion)
-		}
-	} else if d.Get("addontype").(string) == "helm" {
-		if !utils.FileExists(chartfile) {
-			log.Printf("file %s does not exist", chartfile)
-			return diags
-		}
-		if valuesfile == "" {
-			log.Printf("Valuesfile cannot be empty")
-			return diags
-		}
 
-		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, chartfile, valuesfile, "", models.RepoArtifactMeta{}, "", models.RepoArtifactMeta{})
-		if errversion != nil {
-			log.Printf("error while createAddonVersion() %s", errversion.Error())
-			return diag.FromErr(errversion)
-		}
-	} else if d.Get("addontype").(string) == "helm3" {
-		if !utils.FileExists(chartfile) {
-			log.Printf("file %s does not exist", chartfile)
-			return diags
-		}
-		if valuesfile == "" {
-			log.Printf("Valuesfile cannot be empty")
-			return diags
-		}
-		errversion := addon.CreateAddonVersion(addonID, addonVersionName, "", project.ID, chartfile, valuesfile, "", models.RepoArtifactMeta{}, "", models.RepoArtifactMeta{})
-		if errversion != nil {
-			log.Printf("error while createAddonVersion() %s", errversion.Error())
-			return diag.FromErr(errversion)
-		}
-	} else if d.Get("addontype").(string) == "alertmanager" {
-		configmap := d.Get("configmap").(string)
-		configuration := d.Get("configuration").(string)
-		secret := d.Get("secret").(string)
-		statefulset := d.Get("statefulset").(string)
-
-		if configmap == "" && configuration == "" && secret == "" && statefulset == "" {
-			log.Printf("for alertmanager addons, you must provide one or more of the fields")
-			return diags
-		}
-		var cm, s, st, c []byte
-		var err error
-
-		if configmap != "" {
-			cm, err = ioutil.ReadFile(configmap)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-		}
-		if configuration != "" {
-			c, err = ioutil.ReadFile(configuration)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-		}
-		if secret != "" {
-			s, err = ioutil.ReadFile(secret)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-		}
-		if statefulset != "" {
-			st, err = ioutil.ReadFile(statefulset)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-		}
-		_, errversion := addon.CreateManagedAddonVersion(d.Get("name").(string), d.Get("versionname").(string), "", string(cm), string(c), string(s), string(st), project.ID)
-		if err != nil {
-			log.Printf("error While createManageaddonversion %s", errversion.Error())
-			return diag.FromErr(errversion)
-		}
+	addon, err := client.InfraV3().Addon().Get(ctx, options.GetOptions{
+		Name:    tfAddonState.Metadata.Name,
+		Project: tfAddonState.Metadata.Project,
+	})
+	if err != nil {
+		return diag.FromErr(err)
 	}
-	log.Printf("resource addon updated ")
 
+	// XXX Debug
+	// w1 = spew.Sprintf("%+v", wl)
+	// log.Println("resourceAddonRead wl", w1)
+
+	err = flattenAddon(d, addon)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	return diags
+
 }
 
-func resourceAddonDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func expandAddon(in *schema.ResourceData) (*infrapb.Addon, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "expand addon empty input")
+	}
+	obj := &infrapb.Addon{}
+
+	if v, ok := in.Get("metadata").([]interface{}); ok {
+		obj.Metadata = expandMetaData(v)
+	}
+
+	if v, ok := in.Get("spec").([]interface{}); ok {
+		objSpec, err := expandAddonSpec(v)
+		if err != nil {
+			return nil, err
+		}
+		log.Println("expandAddonSpec got spec")
+		obj.Spec = objSpec
+	}
+
+	obj.ApiVersion = "infra.k8smgmt.io/v3"
+	obj.Kind = "Addon"
+	return obj, nil
+}
+
+func expandAddonSpec(p []interface{}) (*infrapb.AddonSpec, error) {
+	obj := &infrapb.AddonSpec{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, fmt.Errorf("%s", "expandAddonSpec empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+		obj.Namespace = v
+	}
+
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+
+	if v, ok := in["artifact"].([]interface{}); ok {
+		objArtifact, err := ExpandArtifactSpec(v)
+		if err != nil {
+			return nil, err
+		}
+		obj.Artifact = objArtifact
+	}
+	if v, ok := in["sharing"].([]interface{}); ok {
+		obj.Sharing = expandSharingSpec(v)
+	}
+
+	return obj, nil
+}
+
+// Flatteners
+
+func flattenAddon(d *schema.ResourceData, in *infrapb.Addon) error {
+	if in == nil {
+		return nil
+	}
+
+	err := d.Set("metadata", flattenMetaData(in.Metadata))
+	if err != nil {
+		return err
+	}
+
+	v, ok := d.Get("spec").([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+
+	// XXX Debug
+	// w1 := spew.Sprintf("%+v", v)
+	// log.Println("flattenWorkload before ", w1)
+	var ret []interface{}
+	ret, err = flattenAddonSpec(in.Spec, v)
+	if err != nil {
+		return err
+	}
+	// XXX Debug
+	// w1 = spew.Sprintf("%+v", ret)
+	// log.Println("flattenWorkload after ", w1)
+
+	err = d.Set("spec", ret)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func flattenAddonSpec(in *infrapb.AddonSpec, p []interface{}) ([]interface{}, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "flattenAddonSpec empty input")
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Namespace) > 0 {
+		obj["namespace"] = in.Namespace
+	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	v, ok := obj["artifact"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	// XXX Debug
+	// w1 := spew.Sprintf("%+v", v)
+	// log.Println("flattenAddonSpec before ", w1)
+
+	var ret []interface{}
+	var err error
+	ret, err = FlattenArtifactSpec(in.Artifact, v)
+	if err != nil {
+		log.Println("FlattenArtifactSpec error ", err)
+		return nil, err
+	}
+
+	// XXX Debug
+	// w1 = spew.Sprintf("%+v", ret)
+	// log.Println("flattenAddonSpec after ", w1)
+
+	obj["artifact"] = ret
+
+	if len(in.Sharing.Projects) > 0 {
+		obj["version"] = in.Version
+	}
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
+
+	return []interface{}{obj}, nil
+}
+
+func resourceAddonV2Delete(ctx context.Context, addonp *infrapb.Addon) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("resource cluster delete id %s", d.Id())
 
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	projectId, err := config.GetProjectIdByName(addonp.Metadata.Project)
 	if err != nil {
-		fmt.Print("project  does not exist")
-		return diags
+		return diag.FromErr(err)
 	}
 
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project  does not exist")
-		return diags
-	}
-	if d.Get("addontype").(string) == "alertmanager" {
-		errDel := addon.DeleteManagedAddon(d.Get("name").(string), project.ID)
+	if addonp.Spec.Artifact != nil && addonp.Spec.Artifact.GetType() == "alertmanager" {
+		errDel := addon.DeleteManagedAddon(addonp.Metadata.Name, projectId)
 		if errDel != nil {
 			log.Printf("delete addon error %s", errDel.Error())
 			return diag.FromErr(errDel)
 		}
 	} else {
-		errDel := addon.DeleteAddon(d.Get("name").(string), project.ID)
+		errDel := addon.DeleteAddon(addonp.Metadata.Name, projectId)
 		if errDel != nil {
 			log.Printf("delete addon error %s", errDel.Error())
 			return diag.FromErr(errDel)

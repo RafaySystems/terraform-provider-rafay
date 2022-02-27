@@ -6,6 +6,7 @@ require (
 	github.com/RafaySystems/rafay-common v1.11.0-beta3
 	//github.com/RafaySystems/rafay-common v1.10.0-tf-schema-beta1
 	github.com/RafaySystems/rctl v1.12.0-beta2
+	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/hashicorp/terraform-plugin-docs v0.4.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.1

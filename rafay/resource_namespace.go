@@ -14,9 +14,8 @@ import (
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/config"
-	"github.com/RafaySystems/rctl/pkg/namespace"
-	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -37,7 +36,7 @@ type namespaceSpecTranspose struct {
 		Repository string `protobuf:"bytes,1,opt,name=repository,proto3" json:"repository,omitempty"`
 		Revision   string `protobuf:"bytes,2,opt,name=revision,proto3" json:"revision,omitempty"`
 		Path       *File  `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
-	}
+	} `json:"artifact,omitempty"`
 }
 
 func resourceNamespace() *schema.Resource {
@@ -60,7 +59,33 @@ func resourceNamespace() *schema.Resource {
 
 func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("namespace create starts")
-	return resourceNamespaceUpsert(ctx, d, m)
+	diags := resourceNamespaceUpsert(ctx, d, m)
+	if diags.HasError() {
+		tflog := os.Getenv("TF_LOG")
+		if tflog == "TRACE" || tflog == "DEBUG" {
+			ctx = context.WithValue(ctx, "debug", "true")
+		}
+		log.Printf("namespace create got error, perform cleanup")
+		ns, err := expandNamespace(d)
+		if err != nil {
+			log.Printf("namespace expandNamespace error")
+			return diag.FromErr(err)
+		}
+		auth := config.GetConfig().GetAppAuthProfile()
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		err = client.InfraV3().Namespace().Delete(ctx, options.DeleteOptions{
+			Name:    ns.Metadata.Name,
+			Project: ns.Metadata.Project,
+		})
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	return diags
 }
 
 func resourceNamespaceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -78,6 +103,7 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 
 	ns, err := expandNamespace(d)
 	if err != nil {
+		log.Printf("namespace expandNamespace error")
 		return diag.FromErr(err)
 	}
 
@@ -89,6 +115,10 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 
 	err = client.InfraV3().Namespace().Apply(ctx, ns, options.ApplyOptions{})
 	if err != nil {
+		// XXX Debug
+		n1 := spew.Sprintf("%+v", ns)
+		log.Println("rnamespace apply ns:", n1)
+		log.Printf("namespace apply error")
 		return diag.FromErr(err)
 	}
 
@@ -119,6 +149,52 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 
 func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	log.Printf("namespace read starts")
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
+
+	nsTFState, err := expandNamespace(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// XXX Debug
+	n1 := spew.Sprintf("%+v", nsTFState)
+	log.Println("resourceNamespaceRead nsTFState ", n1)
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	ns, err := client.InfraV3().Namespace().Get(ctx, options.GetOptions{
+		Name:    nsTFState.Metadata.Name,
+		Project: nsTFState.Metadata.Project,
+	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	log.Println("resourceNamespaceRead remoteState ", ns)
+	// XXX Debug
+	// n1 = spew.Sprintf("%+v", ns)
+	// log.Println("resourceNamespaceRead ns", n1)
+	if ns.Spec.ResourceQuotas != nil && ns.Spec.ResourceQuotas.Requests != nil && ns.Spec.ResourceQuotas.Requests.Memory != nil {
+		log.Println("resourceNamespaceRead ns.Spec.ResourceQuotas Memory", ns.Spec.ResourceQuotas.Requests.Memory)
+	}
+
+	err = flattenNamespace(d, ns)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return diags
+}
+
+func resourceNamespaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
 
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
@@ -140,7 +216,7 @@ func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	ns, err := client.InfraV3().Namespace().Get(ctx, options.GetOptions{
+	err = client.InfraV3().Namespace().Delete(ctx, options.DeleteOptions{
 		Name:    nsTFState.Metadata.Name,
 		Project: nsTFState.Metadata.Project,
 	})
@@ -148,39 +224,6 @@ func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	// XXX Debug
-	// n1 = spew.Sprintf("%+v", ns)
-	// log.Println("resourceNamespaceRead ns", n1)
-
-	err = flattenNamespace(d, ns)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return diags
-}
-
-func resourceNamespaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	//get project id with project name, p.id used to refer to project id -> need p.ID for calling Create Namespace
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-	if err != nil {
-		log.Printf("project does not exist, error %s", err.Error())
-		return diag.FromErr(err)
-	}
-	p, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		return diag.FromErr(err)
-	} else if p == nil {
-		d.SetId("")
-		return diags
-	}
-	projectId := p.ID
-	//Delete namespace
-	err = namespace.DeleteNamespace(string(d.Id()), projectId)
-	if err != nil {
-		log.Println("error delete namespace: ", err)
-	}
 	return diags
 }
 
@@ -199,10 +242,11 @@ func expandNamespace(in *schema.ResourceData) (*infrapb.Namespace, error) {
 		if err != nil {
 			return nil, err
 		}
+		log.Println("expandNamespace got spec")
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "apps.k8smgmt.io/v3"
+	obj.ApiVersion = "infra.k8smgmt.io/v3"
 	obj.Kind = "Namespace"
 	return obj, nil
 }
@@ -229,7 +273,9 @@ func expandNamespaceSpec(p []interface{}) (*infrapb.NamespaceSpec, error) {
 	}
 
 	if v, ok := in["resource_quotas"].([]interface{}); ok {
+		log.Println("resource_quotas v", v)
 		nst.ResourceQuotas = expandNamespaceResourceQuotas(v)
+		log.Println("nst.ResourceQuotas ", nst.ResourceQuotas)
 	}
 
 	if v, ok := in["limit_range"].([]interface{}); ok {
@@ -238,25 +284,26 @@ func expandNamespaceSpec(p []interface{}) (*infrapb.NamespaceSpec, error) {
 
 	if vp, ok := in["artifact"].([]interface{}); ok && len(vp) > 0 {
 		if len(vp) == 0 || vp[0] == nil {
-			return nil, fmt.Errorf("%s", "expandArtifact empty artifact")
-		}
-		ina := vp[0].(map[string]interface{})
+			log.Println("expandArtifact empty artifact")
+		} else {
+			ina := vp[0].(map[string]interface{})
 
-		if v, ok := ina["path"].([]interface{}); ok && len(v) > 0 {
-			nst.Artifact.Path = expandFile(v)
-		}
+			if v, ok := ina["path"].([]interface{}); ok && len(v) > 0 {
+				nst.Artifact.Path = expandFile(v)
+			}
 
-		if v, ok := ina["repository"].(string); ok && len(v) > 0 {
-			nst.Artifact.Repository = v
-		}
+			if v, ok := ina["repository"].(string); ok && len(v) > 0 {
+				nst.Artifact.Repository = v
+			}
 
-		if v, ok := ina["revision"].(string); ok && len(v) > 0 {
-			nst.Artifact.Revision = v
+			if v, ok := ina["revision"].(string); ok && len(v) > 0 {
+				nst.Artifact.Revision = v
+			}
 		}
 	}
 	// XXX Debug
-	// s := spew.Sprintf("%+v", at)
-	// log.Println("expandNamespaceSpec at", s)
+	s := spew.Sprintf("%+v", nst)
+	log.Println("expandNamespaceSpec nst", s)
 
 	jsonSpec, err := json.Marshal(nst)
 	if err != nil {
@@ -264,7 +311,7 @@ func expandNamespaceSpec(p []interface{}) (*infrapb.NamespaceSpec, error) {
 	}
 
 	// XXX Debug
-	// log.Println("expandNamespaceSpec jsonSpec ", string(jsonSpec))
+	log.Println("expandNamespaceSpec jsonSpec ", string(jsonSpec))
 
 	err = obj.UnmarshalJSON(jsonSpec)
 	if err != nil {
@@ -272,10 +319,11 @@ func expandNamespaceSpec(p []interface{}) (*infrapb.NamespaceSpec, error) {
 		return nil, err
 	}
 
-	// XXX Debug
-	// s1 := spew.Sprintf("%+v", obj)
-	// log.Println("expandNamespaceSpec obj", s1)
+	if obj.ResourceQuotas != nil && obj.ResourceQuotas.Requests != nil && obj.ResourceQuotas.Requests.Memory != nil {
+		log.Println("expandNamespaceSpec Obj Memory ", obj.ResourceQuotas.Requests.Memory)
+	}
 
+	log.Println("expandNamespaceSpec Obj", obj)
 	return &obj, nil
 }
 
@@ -302,12 +350,16 @@ func expandNamespaceResourceQuotas(p []interface{}) *infrapb.NamespaceResourceQu
 
 	in := p[0].(map[string]interface{})
 	if v, ok := in["requests"].([]interface{}); ok {
+		log.Println("requests v", v)
 		obj.Requests = expandResourceQuantity(v)
 	}
 
 	if v, ok := in["limits"].([]interface{}); ok {
+		log.Println("limits v", v)
 		obj.Limits = expandResourceQuantity(v)
 	}
+
+	log.Println("expandNamespaceResourceQuotas obj ", obj)
 	return obj
 }
 
@@ -395,16 +447,16 @@ func flattenNamespace(d *schema.ResourceData, in *infrapb.Namespace) error {
 	}
 
 	// XXX Debug
-	// w1 := spew.Sprintf("%+v", v)
-	// log.Println("flattenWorkload before ", w1)
+	w1 := spew.Sprintf("%+v", v)
+	log.Println("flattenNamespaceSpec before ", w1)
 	var ret []interface{}
 	ret, err = flattenNamespaceSpec(in.Spec, v)
 	if err != nil {
 		return err
 	}
 	// XXX Debug
-	// w1 = spew.Sprintf("%+v", ret)
-	// log.Println("flattenWorkload after ", w1)
+	w1 = spew.Sprintf("%+v", ret)
+	log.Println("flattenNamespaceSpec after ", w1)
 
 	err = d.Set("spec", ret)
 	if err != nil {
@@ -500,9 +552,11 @@ func flattenNamespaceSpec(in *infrapb.NamespaceSpec, p []interface{}) ([]interfa
 
 	jsonBytes, err := in.MarshalJSON()
 	if err != nil {
-		log.Println("FlattenArtifactSpec MarshalJSON error", err)
-		return nil, fmt.Errorf("%s %+v", "FlattenArtifactSpec MarshalJSON error", err)
+		log.Println("flattenNamespaceSpec MarshalJSON error", err)
+		return nil, fmt.Errorf("%s %+v", "flattenNamespaceSpec MarshalJSON error", err)
 	}
+
+	log.Println("flattenNamespaceSpec jsonBytes ", string(jsonBytes))
 
 	nsat := namespaceSpecTranspose{}
 	err = json.Unmarshal(jsonBytes, &nsat)
@@ -537,19 +591,19 @@ func flattenNamespaceSpec(in *infrapb.NamespaceSpec, p []interface{}) ([]interfa
 		v = []interface{}{}
 	}
 	// XXX Debug
-	// w1 := spew.Sprintf("%+v", v)
-	// log.Println("flattenNamespaceSpec before ", w1)
+	w1 := spew.Sprintf("%+v", v)
+	log.Println("flattenNamespaceArtifact before ", w1)
 
 	var ret []interface{}
 	ret, err = flattenNamespaceArtifact(&nsat, v)
 	if err != nil {
-		log.Println("flattenNamespaceSpec error ", err)
+		log.Println("flattenNamespaceArtifact error ", err)
 		return nil, err
 	}
 
 	// XXX Debug
-	// w1 = spew.Sprintf("%+v", ret)
-	// log.Println("flattenNamespaceSpec after ", w1)
+	w1 = spew.Sprintf("%+v", ret)
+	log.Println("flattenNamespaceArtifact after ", w1)
 
 	obj["artifact"] = ret
 

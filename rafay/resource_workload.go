@@ -40,7 +40,33 @@ func resourceWorkload() *schema.Resource {
 }
 
 func resourceWorkloadCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return resourceWorkloadUpsert(ctx, d, m)
+	diags := resourceWorkloadUpsert(ctx, d, m)
+	if diags.HasError() {
+		tflog := os.Getenv("TF_LOG")
+		if tflog == "TRACE" || tflog == "DEBUG" {
+			ctx = context.WithValue(ctx, "debug", "true")
+		}
+		log.Printf("workload create got error, perform cleanup")
+		wl, err := expandWorkload(d)
+		if err != nil {
+			log.Printf("workload expandNamespace error")
+			return diag.FromErr(err)
+		}
+		auth := config.GetConfig().GetAppAuthProfile()
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		err = client.AppsV3().Workload().Delete(ctx, options.DeleteOptions{
+			Name:    wl.Metadata.Name,
+			Project: wl.Metadata.Project,
+		})
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	return diags
 }
 func resourceWorkloadUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -136,7 +162,10 @@ func resourceWorkloadUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceWorkloadDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
 	wl, err := expandWorkload(d)
 	if err != nil {
 		return diag.FromErr(err)

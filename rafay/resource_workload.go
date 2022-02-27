@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/config"
@@ -39,11 +40,41 @@ func resourceWorkload() *schema.Resource {
 }
 
 func resourceWorkloadCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return resourceWorkloadUpsert(ctx, d, m)
+	diags := resourceWorkloadUpsert(ctx, d, m)
+	if diags.HasError() {
+		tflog := os.Getenv("TF_LOG")
+		if tflog == "TRACE" || tflog == "DEBUG" {
+			ctx = context.WithValue(ctx, "debug", "true")
+		}
+		log.Printf("workload create got error, perform cleanup")
+		wl, err := expandWorkload(d)
+		if err != nil {
+			log.Printf("workload expandNamespace error")
+			return diag.FromErr(err)
+		}
+		auth := config.GetConfig().GetAppAuthProfile()
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		err = client.AppsV3().Workload().Delete(ctx, options.DeleteOptions{
+			Name:    wl.Metadata.Name,
+			Project: wl.Metadata.Project,
+		})
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	return diags
 }
 func resourceWorkloadUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("workload create starts here")
+	log.Printf("workload create starts")
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
 
 	wl, err := expandWorkload(d)
 	if err != nil {
@@ -59,6 +90,32 @@ func resourceWorkloadUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	err = client.AppsV3().Workload().Apply(ctx, wl, options.ApplyOptions{})
 	if err != nil {
 		return diag.FromErr(err)
+	}
+
+	// wait for publish
+	for {
+		time.Sleep(30 * time.Second)
+		wls, err := client.AppsV3().Workload().Status(ctx, options.StatusOptions{
+			Name:    wl.Metadata.Name,
+			Project: wl.Metadata.Project,
+		})
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		log.Println("wls.Status", wls.Status)
+		if wls.Status != nil {
+			//check if workload can be placed on a cluster, if true break out of loop
+			if wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusOK ||
+				wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusNotSet {
+				break
+			}
+			if wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed {
+				return diag.FromErr(fmt.Errorf("%s", "failed to publish workload"))
+			}
+		} else {
+			break
+		}
+
 	}
 
 	d.SetId(wl.Metadata.Name)
@@ -111,7 +168,10 @@ func resourceWorkloadUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceWorkloadDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
 	wl, err := expandWorkload(d)
 	if err != nil {
 		return diag.FromErr(err)

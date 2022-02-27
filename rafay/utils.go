@@ -1,9 +1,11 @@
 package rafay
 
 import (
+	"log"
 	"sort"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 type File struct {
@@ -226,6 +228,43 @@ func expandFiles(p []interface{}) []*File {
 	return obj
 }
 
+func expandQuantity(p []interface{}) *resource.Quantity {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["string"].(string); ok {
+		log.Println("string v", v)
+		ob, err := resource.ParseQuantity(v)
+		if err == nil {
+			log.Println("string v error", err, " ob ", ob)
+			return &ob
+		}
+		log.Println("string v error", err)
+	}
+
+	return nil
+}
+
+func expandResourceQuantity(p []interface{}) *commonpb.ResourceQuantity {
+	obj := commonpb.ResourceQuantity{}
+	if len(p) == 0 || p[0] == nil {
+		return &obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["memory"].([]interface{}); ok {
+		obj.Memory = expandQuantity(v)
+	}
+
+	if v, ok := in["cpu"].([]interface{}); ok {
+		obj.Cpu = expandQuantity(v)
+	}
+
+	log.Println("expandResourceQuantity obj", obj)
+	return &obj
+}
+
 // Flatteners
 
 func flattenMetaData(in *commonpb.Metadata) []interface{} {
@@ -310,4 +349,70 @@ func flattenFiles(input []*File) []interface{} {
 	}
 
 	return out
+}
+
+func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if in.Memory != nil {
+		obj1 := make([]interface{}, 1)
+		obj2 := make(map[string]interface{})
+		obj2["string"] = in.GetMemory().String()
+		obj1[0] = obj2
+		obj["memory"] = obj1
+	}
+
+	if in.Cpu != nil {
+		obj1 := make([]interface{}, 1)
+		obj2 := make(map[string]interface{})
+		obj2["string"] = in.GetCpu().String()
+		obj1[0] = obj2
+		obj["cpu"] = obj1
+	}
+
+	log.Println("flattenResourceQuantity obj", obj)
+	return []interface{}{obj}
+}
+
+func flattenResourceQuantities(in *commonpb.ResourceQuantity) []interface{} {
+	if in == nil {
+		return nil
+	}
+	objRoot := make([]interface{}, 1)
+
+	obj := make(map[string]interface{})
+	if in.Memory != nil {
+		obj1 := make([]interface{}, 1)
+		obj2 := make(map[string]interface{})
+		obj2["string"] = in.GetMemory()
+		obj1[0] = obj2
+		obj["memory"] = obj1
+	}
+
+	if in.Cpu != nil {
+		obj1 := make([]interface{}, 1)
+		obj2 := make(map[string]interface{})
+		obj2["string"] = in.GetCpu()
+		obj1[0] = obj2
+		obj["cpu"] = obj1
+	}
+
+	objRoot[0] = obj
+	log.Println("flattenResourceQuantity obj", obj)
+	return []interface{}{objRoot}
+}
+
+func flattenRatio(in *commonpb.ResourceRatio) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["memory"] = in.Memory
+	obj["cpu"] = in.Cpu
+
+	return []interface{}{obj}
 }

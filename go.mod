@@ -5,12 +5,14 @@ go 1.16
 require (
 	github.com/RafaySystems/rafay-common v1.11.0-beta3
 	//github.com/RafaySystems/rafay-common v1.10.0-tf-schema-beta1
-	github.com/RafaySystems/rctl v1.11.0-beta1
+	github.com/RafaySystems/rctl v1.12.0-beta2
+	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/hashicorp/terraform-plugin-docs v0.4.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.1
 	github.com/tidwall/gjson v1.9.3 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	k8s.io/apimachinery v1.16.4
 
 )
 

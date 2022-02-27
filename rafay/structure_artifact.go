@@ -148,7 +148,7 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 			if v, ok := in["reuse_values"].(bool); ok {
 				at.Options.ResetValues = v
 			}
-			if v, ok := in["skip_cr_ds"].(bool); ok {
+			if v, ok := in["skip_crd"].(bool); ok {
 				at.Options.ResetValues = v
 			}
 			if v, ok := in["set_string"].([]string); ok && len(v) > 0 {
@@ -284,7 +284,7 @@ func FlattenArtifactOptions(at *artifactTranspose, p []interface{}) ([]interface
 	if len(at.Options.SetString) > 0 {
 		obj["set_string"] = toArrayInterface(at.Options.SetString)
 	}
-	obj["skip_cr_ds"] = at.Options.SkipCRDs
+	obj["skip_crd"] = at.Options.SkipCRDs
 	if len(at.Options.Timeout) > 0 {
 		obj["timeout"] = at.Options.Timeout
 	}

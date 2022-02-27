@@ -9,7 +9,7 @@ resource "rafay_addon" "tfdemoaddon1" {
   }
   spec {
     namespace = "benny-test1"
-    version = "v1.2"
+    version   = "v1.0"
     artifact {
       type = "Yaml"
       artifact {

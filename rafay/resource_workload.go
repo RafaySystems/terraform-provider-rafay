@@ -102,14 +102,20 @@ func resourceWorkloadUpsert(ctx context.Context, d *schema.ResourceData, m inter
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		//check if workload can be placed on a cluster, if true break out of loop
-		if wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusOK ||
-			wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusNotSet {
+		log.Println("wls.Status", wls.Status)
+		if wls.Status != nil {
+			//check if workload can be placed on a cluster, if true break out of loop
+			if wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusOK ||
+				wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusNotSet {
+				break
+			}
+			if wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed {
+				return diag.FromErr(fmt.Errorf("%s", "failed to publish workload"))
+			}
+		} else {
 			break
 		}
-		if wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed {
-			return diag.FromErr(fmt.Errorf("%s", "failed to publish workload"))
-		}
+
 	}
 
 	d.SetId(wl.Metadata.Name)

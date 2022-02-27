@@ -1,6 +1,6 @@
-resource "rafay_workload" "workload" {
+resource "rafay_workload" "tfdemoworkload1" {
   metadata {
-    name    = "benny-workload1"
+    name    = "tfdemoworkload1"
     project = "upgrade"
     labels = {
       env  = "dev"
@@ -10,7 +10,7 @@ resource "rafay_workload" "workload" {
   spec {
     namespace = "benny-test1"
     placement {
-      selector = "rafay.dev/clusterName=hardik-qc-mks-3"
+      selector = "rafay.dev/clusterName=hardik-qc-mks-1"
     }
     drift {
       action  = "Deny"

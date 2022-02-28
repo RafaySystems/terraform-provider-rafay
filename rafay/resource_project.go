@@ -48,7 +48,7 @@ func resourceProjectCreate(ctx context.Context, d *schema.ResourceData, m interf
 			ctx = context.WithValue(ctx, "debug", "true")
 		}
 		log.Printf("Project create got error, perform cleanup")
-		ns, err := expandProject(d)
+		pr, err := expandProject(d)
 		if err != nil {
 			log.Printf("Project expandProject error")
 			return diag.FromErr(err)
@@ -60,8 +60,8 @@ func resourceProjectCreate(ctx context.Context, d *schema.ResourceData, m interf
 		}
 
 		err = client.SystemV3().Project().Delete(ctx, options.DeleteOptions{
-			Name:    ns.Metadata.Name,
-			Project: ns.Metadata.Project,
+			Name:    pr.Metadata.Name,
+			Project: pr.Metadata.Project,
 		})
 		if err != nil {
 			return diag.FromErr(err)
@@ -83,7 +83,7 @@ func resourceProjectUpsert(ctx context.Context, d *schema.ResourceData, m interf
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
-	Project, err := expandProject(d)
+	pr, err := expandProject(d)
 	if err != nil {
 		log.Printf("Project expandProject error")
 		return diag.FromErr(err)
@@ -95,16 +95,16 @@ func resourceProjectUpsert(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	err = client.SystemV3().Project().Apply(ctx, Project, options.ApplyOptions{})
+	err = client.SystemV3().Project().Apply(ctx, pr, options.ApplyOptions{})
 	if err != nil {
 		// XXX Debug
-		n1 := spew.Sprintf("%+v", Project)
+		n1 := spew.Sprintf("%+v", pr)
 		log.Println("Project apply Project:", n1)
 		log.Printf("Project apply error")
 		return diag.FromErr(err)
 	}
 
-	d.SetId(Project.Metadata.Name)
+	d.SetId(pr.Metadata.Name)
 	return diags
 
 }

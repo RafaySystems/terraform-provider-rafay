@@ -47,11 +47,10 @@ func resourceProjectCreate(ctx context.Context, d *schema.ResourceData, m interf
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
 		}
-
-		log.Printf("project create got error, perform cleanup")
-		bp, err := expandProject(d)
+		log.Printf("Project create got error, perform cleanup")
+		pr, err := expandProject(d)
 		if err != nil {
-			log.Printf("project expandProject error")
+			log.Printf("Project expandProject error")
 			return diag.FromErr(err)
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
@@ -218,7 +217,6 @@ func expandProjectSpec(p []interface{}) (*systempb.ProjectSpec, error) {
 	obj.Default = false
 
 	return obj, nil
-
 }
 
 func resourceProjectV2Delete(ctx context.Context, projectp *systempb.Project) diag.Diagnostics {
@@ -237,7 +235,6 @@ func resourceProjectV2Delete(ctx context.Context, projectp *systempb.Project) di
 
 	return diags
 }
-
 
 // Flatteners
 

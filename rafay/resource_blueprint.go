@@ -14,7 +14,6 @@ import (
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/blueprint"
 	"github.com/RafaySystems/rctl/pkg/config"
-	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -175,37 +174,6 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 
 }
 
-// func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	var diags diag.Diagnostics
-// 	log.Printf("Read Blueprint %s", d.Id())
-// 	s := strings.Split(d.Id(), "@")
-// 	if len(s) < 2 {
-// 		return diag.FromErr(fmt.Errorf("invalid blueprint Id"))
-// 	}
-// 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-// 	if err != nil {
-// 		fmt.Print("project name missing in the resource")
-// 		return diags
-// 	}
-
-// 	project, err := project.NewProjectFromResponse([]byte(resp))
-// 	if err != nil {
-// 		fmt.Printf("project does not exist")
-// 		return diags
-// 	}
-// 	_, errGet := blueprint.GetBlueprint(s[0], project.ID)
-// 	if errGet != nil {
-// 		fmt.Printf("error while get blueprint %s", errGet.Error())
-// 		return diag.FromErr(errGet)
-// 	}
-// 	if err := d.Set("name", s[0]); err != nil {
-// 		log.Printf("set name error %s", err.Error())
-// 		return diag.FromErr(err)
-// 	}
-
-// 	return diags
-// }
-
 func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -251,24 +219,49 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 
 func resourceBluePrintDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-
-	log.Printf("Read Blueprint1 %s", d.Get("name").(string))
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-	if err != nil {
-		fmt.Print("project  does not exist")
-		return diags
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
-	project, err := project.NewProjectFromResponse([]byte(resp))
+	bp, err := expandBluePrint(d)
 	if err != nil {
-		fmt.Printf("project  does not exist")
-		return diags
+		return diag.FromErr(err)
 	}
-	errDel := blueprint.DeleteBlueprint(d.Get("name").(string), project.ID)
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = client.InfraV3().Blueprint().Delete(ctx, options.DeleteOptions{
+		Name:    bp.Metadata.Name,
+		Project: bp.Metadata.Project,
+	})
+
+	if err != nil {
+		//v3 spec gave error try v2
+		return resourceBlueprintV2Delete(ctx, bp)
+	}
+
+	return diags
+}
+
+func resourceBlueprintV2Delete(ctx context.Context, bp *infrapb.Blueprint) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	projectId, err := config.GetProjectIdByName(bp.Metadata.Project)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	errDel := blueprint.DeleteBlueprint(bp.Metadata.Name, projectId)
 	if errDel != nil {
 		fmt.Printf("error while deleting blueprint %s", errDel.Error())
 		return diag.FromErr(errDel)
 	}
+
 	return diags
 }
 

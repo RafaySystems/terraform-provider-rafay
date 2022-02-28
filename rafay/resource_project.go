@@ -116,26 +116,26 @@ func resourceProjectDelete(ctx context.Context, d *schema.ResourceData, m interf
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
-	Project, err := expandProject(d)
+	project, err := expandProject(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	// println("resourceProjectDelete project ", project)
+	// auth := config.GetConfig().GetAppAuthProfile()
+	// client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	// if err != nil {
+	// 	return diag.FromErr(err)
+	// }
 
-	err = client.SystemV3().Project().Delete(ctx, options.DeleteOptions{
-		Name:    Project.Metadata.Name,
-		Project: Project.Metadata.Project,
-	})
+	// err = client.SystemV3().Project().Delete(ctx, options.DeleteOptions{
+	// 	Name:    Project.Metadata.Name,
+	// 	Project: Project.Metadata.Project,
+	// })
+	// log.Printf("resourceProjectDelete ", err)
 
-	if err != nil {
-		//v3 spec gave error try v2
-		return resourceProjectV2Delete(ctx, Project)
-	}
+	//v3 spec gave error try v2
+	return resourceProjectV2Delete(ctx, project)
 
 	return diags
 }
@@ -222,11 +222,11 @@ func expandProjectSpec(p []interface{}) (*systempb.ProjectSpec, error) {
 func resourceProjectV2Delete(ctx context.Context, projectp *systempb.Project) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	projectId, err := config.GetProjectIdByName(projectp.Metadata.Project)
+	//log.Printf("resourceProjectV2Delete")
+	projectId, err := config.GetProjectIdByName(projectp.Metadata.Name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
 	err = project.DeleteProjectById(projectId)
 	if err != nil {
 		log.Printf("delete project error %s", err.Error())

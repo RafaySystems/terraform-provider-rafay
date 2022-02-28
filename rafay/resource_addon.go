@@ -254,7 +254,7 @@ func flattenAddon(d *schema.ResourceData, in *infrapb.Addon) error {
 
 	// XXX Debug
 	// w1 := spew.Sprintf("%+v", v)
-	// log.Println("flattenWorkload before ", w1)
+	// log.Println("flattenAddon before ", w1)
 	var ret []interface{}
 	ret, err = flattenAddonSpec(in.Spec, v)
 	if err != nil {
@@ -262,7 +262,7 @@ func flattenAddon(d *schema.ResourceData, in *infrapb.Addon) error {
 	}
 	// XXX Debug
 	// w1 = spew.Sprintf("%+v", ret)
-	// log.Println("flattenWorkload after ", w1)
+	// log.Println("flattenAddon after ", w1)
 
 	err = d.Set("spec", ret)
 	if err != nil {
@@ -311,9 +311,6 @@ func flattenAddonSpec(in *infrapb.AddonSpec, p []interface{}) ([]interface{}, er
 
 	obj["artifact"] = ret
 
-	if len(in.Sharing.Projects) > 0 {
-		obj["version"] = in.Version
-	}
 	if in.Sharing != nil {
 		obj["sharing"] = flattenSharingSpec(in.Sharing)
 	}

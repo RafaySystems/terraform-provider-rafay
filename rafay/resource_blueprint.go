@@ -26,66 +26,6 @@ const (
 	NamespaceScoped = "namespace-scoped"
 )
 
-type blueprintVersionYamlConfig struct {
-	Kind     string `yaml:"kind"`
-	Metadata struct {
-		Name    string `yaml:"name"`
-		Project string `yaml:"project"`
-	} `yaml:"metadata"`
-	Spec struct {
-		Blueprint  string `yaml:"blueprint"`
-		BluePrints []struct {
-			Name      string   `yaml:"name"`
-			Version   string   `yaml:"version"`
-			DependsOn []string `yaml:"dependsOn"`
-		} `yaml:"blueprints"`
-		Psps                       []string `yaml:"psps"`
-		PspScope                   string   `yaml:"pspScope"`
-		RafayIngress               *bool    `yaml:"rafayIngress"`
-		RafayMonitoringAndAlerting *bool    `yaml:"rafayMonitoringAndAlerting"`
-		Kubevirt                   bool     `yaml:"kubevirt"`
-		DriftAction                string   `yaml:"driftAction"`
-		PrometheusCustomization    struct {
-			NodeExporter struct {
-				Disable         bool `yaml:"disable"`
-				DiscoveryConfig struct {
-					Namespace string            `yaml:"namespace"`
-					Resource  string            `yaml:"resource"`
-					Labels    map[string]string `yaml:"labels"`
-				} `yaml:"discoveryConfig"`
-			} `yaml:"nodeExporter"`
-			HelmExporter struct {
-				Disable         bool `yaml:"disable"`
-				DiscoveryConfig struct {
-					Namespace string            `yaml:"namespace"`
-					Resource  string            `yaml:"resource"`
-					Labels    map[string]string `yaml:"labels"`
-				} `yaml:"discoveryConfig"`
-			} `yaml:"helmExporter"`
-			KubeStateMetrics struct {
-				Disable         bool `yaml:"disable"`
-				DiscoveryConfig struct {
-					Namespace string            `yaml:"namespace"`
-					Resource  string            `yaml:"resource"`
-					Labels    map[string]string `yaml:"labels"`
-				} `yaml:"discoveryConfig"`
-			} `yaml:"kubeStateMetrics"`
-			PrometheusAdapter struct {
-				Disable bool `yaml:"disable"`
-			} `yaml:"prometheusAdapter"`
-			MetricsServer struct {
-				Disable bool `yaml:"disable"`
-			} `yaml:"metricsServer"`
-			Resources struct {
-				Limits struct {
-					Memory string `yaml:"memory"`
-					CPU    string `yaml:"cpu"`
-				} `yaml:"limits"`
-			} `yaml:"resources"`
-		} `yaml:"prometheusCustomization"`
-	} `yaml:"spec"`
-}
-
 func resourceBluePrint() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceBluePrintCreate,

@@ -49,12 +49,12 @@ func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interfac
 		ns, err := expandAddon(d)
 		if err != nil {
 			log.Printf("addon expandAddon error")
-			return diag.FromErr(err)
+			return diags
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
 		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 		if err != nil {
-			return diag.FromErr(err)
+			return diags
 		}
 
 		err = client.InfraV3().Addon().Delete(ctx, options.DeleteOptions{
@@ -62,7 +62,7 @@ func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interfac
 			Project: ns.Metadata.Project,
 		})
 		if err != nil {
-			return diag.FromErr(err)
+			return diags
 		}
 	}
 	return diags

@@ -56,12 +56,12 @@ func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m inte
 		bp, err := expandBluePrint(d)
 		if err != nil {
 			log.Printf("blueprint expandBluePrint error")
-			return diag.FromErr(err)
+			return diags
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
 		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 		if err != nil {
-			return diag.FromErr(err)
+			return diags
 		}
 
 		err = client.InfraV3().Blueprint().Delete(ctx, options.DeleteOptions{
@@ -69,7 +69,7 @@ func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m inte
 			Project: bp.Metadata.Project,
 		})
 		if err != nil {
-			return diag.FromErr(err)
+			return diags
 		}
 	}
 	return diags

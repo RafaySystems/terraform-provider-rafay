@@ -51,12 +51,12 @@ func resourceProjectCreate(ctx context.Context, d *schema.ResourceData, m interf
 		pr, err := expandProject(d)
 		if err != nil {
 			log.Printf("Project expandProject error")
-			return diag.FromErr(err)
+			return diags
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
 		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 		if err != nil {
-			return diag.FromErr(err)
+			return diags
 		}
 
 		err = client.SystemV3().Project().Delete(ctx, options.DeleteOptions{
@@ -64,7 +64,7 @@ func resourceProjectCreate(ctx context.Context, d *schema.ResourceData, m interf
 			Project: pr.Metadata.Project,
 		})
 		if err != nil {
-			return diag.FromErr(err)
+			return diags
 		}
 	}
 	return diags

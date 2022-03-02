@@ -50,12 +50,12 @@ func resourceWorkloadCreate(ctx context.Context, d *schema.ResourceData, m inter
 		wl, err := expandWorkload(d)
 		if err != nil {
 			log.Printf("workload expandNamespace error")
-			return diag.FromErr(err)
+			return diags
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
 		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 		if err != nil {
-			return diag.FromErr(err)
+			return diags
 		}
 
 		err = client.AppsV3().Workload().Delete(ctx, options.DeleteOptions{
@@ -63,7 +63,7 @@ func resourceWorkloadCreate(ctx context.Context, d *schema.ResourceData, m inter
 			Project: wl.Metadata.Project,
 		})
 		if err != nil {
-			return diag.FromErr(err)
+			return diags
 		}
 	}
 	return diags

@@ -157,6 +157,36 @@ func expandMetaData(p []interface{}) *commonpb.Metadata {
 	return obj
 }
 
+func expandV1MetaData(p []interface{}) *commonpb.Metadata {
+	obj := &commonpb.Metadata{}
+	if p == nil || len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+	if v, ok := in["description"].(string); ok && len(v) > 0 {
+		obj.Description = v
+	}
+	if v, ok := in["project"].(string); ok && len(v) > 0 {
+		obj.Project = v
+	}
+	if v, ok := in["projectID"].(string); ok && len(v) > 0 {
+		obj.ProjectID = v
+	}
+	if v, ok := in["id"].(string); ok && len(v) > 0 {
+		obj.Id = v
+	}
+
+	obj.Labels = nil
+
+	obj.Annotations = nil
+
+	return obj
+}
+
 func expandPlacementLabels(p []interface{}) []*commonpb.PlacementLabel {
 	if len(p) == 0 || p[0] == nil {
 		return nil
@@ -342,6 +372,36 @@ func flattenMetaData(in *commonpb.Metadata) []interface{} {
 
 	if len(in.Annotations) > 0 {
 		obj["annotations"] = toMapInterface(in.Annotations)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenV1MetaData(in *commonpb.Metadata) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Description) > 0 {
+		obj["description"] = in.Description
+	}
+
+	if len(in.Project) > 0 {
+		obj["project"] = in.Project
+	}
+
+	if len(in.ProjectID) > 0 {
+		obj["projectID"] = in.ProjectID
+	}
+
+	if len(in.Id) > 0 {
+		obj["id"] = in.Id
 	}
 
 	return []interface{}{obj}

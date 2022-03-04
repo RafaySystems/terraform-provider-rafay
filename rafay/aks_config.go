@@ -70,7 +70,7 @@ type AKSClusterConfigSpec struct {
 }
 
 // type AzureContainerRegistryProfile struct {
-// 	ResourceGroupName string `yaml:"resource_group_name,omitempty"`
+// 	ResourceGroupName string `yaml:"resourceGroupName,omitempty"`
 // 	RegistryName      string `yaml:"acrName"`
 // }
 
@@ -93,9 +93,9 @@ type AKSClusterExtendedLocation struct {
 
 // type AzureRafayClusterMetadata struct {
 // 	ACRProfile                  *AzureContainerRegistryProfile `yaml:"acrProfile,omitempty"`
-// 	ServicePrincipalCredentials string                         `yaml:"service_principal_credential,omitempty"`
-// 	OMSWorkspaceLocation        string                         `yaml:"oms_workspace_location,omitempty"`
-// 	WindowsAdminCredentials     string                         `yaml:"windows_admin_credentials,omitempty"`
+// 	ServicePrincipalCredentials string                         `yaml:"servicePrincipalCredential,omitempty"`
+// 	OMSWorkspaceLocation        string                         `yaml:"omsWorkspaceLocation,omitempty"`
+// 	WindowsAdminCredentials     string                         `yaml:"windowsAdminCredentials,omitempty"`
 // }
 
 type AKSManagedClusterIdentity struct {
@@ -142,11 +142,11 @@ type AKSManagedClusterNetworkProfile struct {
 }
 
 type AKSManagedClusterNPLoadBalancerProfile struct {
-	AllocatedOutboundPorts *int                                       `yaml:"allocated_outbound_ports,omitempty"`
-	EffectiveOutboundIPs   []*AKSManagedClusterNPEffectiveOutboundIPs `yaml:"effective_outboundIps,omitempty"`
-	IdleTimeoutInMinutes   *int                                       `yaml:"idle_timeout_in_minutes,omitempty"`
-	ManagedOutboundIPs     *AKSManagedClusterNPManagedOutboundIPs     `yaml:"managed_outboundIps,omitempty"`
-	OutboundIPPrefixes     *AKSManagedClusterNPOutboundIPPrefixes     `yaml:"outboundIp_prefixes,omitempty"`
+	AllocatedOutboundPorts *int                                       `yaml:"allocatedOutboundPorts,omitempty"`
+	EffectiveOutboundIPs   []*AKSManagedClusterNPEffectiveOutboundIPs `yaml:"effectiveOutboundIps,omitempty"`
+	IdleTimeoutInMinutes   *int                                       `yaml:"idleTimeoutInMinutes,omitempty"`
+	ManagedOutboundIPs     *AKSManagedClusterNPManagedOutboundIPs     `yaml:"managedOutboundIps,omitempty"`
+	OutboundIPPrefixes     *AKSManagedClusterNPOutboundIPPrefixes     `yaml:"outboundIpPrefixes,omitempty"`
 	OutboundIPs            *AKSManagedClusterNPOutboundIPs            `yaml:"outboundIps,omitempty"`
 }
 
@@ -166,7 +166,7 @@ type AKSManagedClusterNPOutboundIPsPublicIps struct {
 }
 
 type AKSManagedClusterNPOutboundIPPrefixes struct {
-	PublicIPPrefixes *AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes `yaml:"publicIp_prefixes,omitempty"`
+	PublicIPPrefixes *AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes `yaml:"publicIpPrefixes,omitempty"`
 }
 
 type AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes struct {
@@ -174,44 +174,44 @@ type AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes struct {
 }
 
 type AKSManagedClusterAzureADProfile struct {
-	AdminGroupObjectIDs []string `yaml:"admin_group_objectIds,omitempty"`
-	ClientAppId         string   `yaml:"client_appId,omitempty"`
-	EnableAzureRbac     *bool    `yaml:"enable_azure_rbac,omitempty"`
+	AdminGroupObjectIDs []string `yaml:"adminGroupObjectIds,omitempty"`
+	ClientAppId         string   `yaml:"clientAppId,omitempty"`
+	EnableAzureRbac     *bool    `yaml:"enableAzureRbac,omitempty"`
 	Managed             *bool    `yaml:"managed,omitempty"`
-	ServerAppId         string   `yaml:"server_appId,omitempty"`
-	ServerAppSecret     string   `yaml:"server_app_secret,omitempty"`
+	ServerAppId         string   `yaml:"serverAppId,omitempty"`
+	ServerAppSecret     string   `yaml:"serverAppSecret,omitempty"`
 	TenantId            string   `yaml:"tenantId,omitempty"`
 }
 
 type AKSManagedClusterAPIServerAccessProfile struct {
-	AuthorizedIPRanges             []string `yaml:"authorized_ipr_ranges,omitempty"`
-	EnablePrivateCluster           *bool    `yaml:"enable_private_cluster,omitempty"`
-	EnablePrivateClusterPublicFQDN *bool    `yaml:"enable_private_cluster_public_fqdn,omitempty"`
-	PrivateDnsZone                 string   `yaml:"private_dns_zone,omitempty"`
+	AuthorizedIPRanges             []string `yaml:"authorizedIprRanges,omitempty"`
+	EnablePrivateCluster           *bool    `yaml:"enablePrivateCluster,omitempty"`
+	EnablePrivateClusterPublicFQDN *bool    `yaml:"enablePrivateClusterPublicFqdn,omitempty"`
+	PrivateDnsZone                 string   `yaml:"privateDnsZone,omitempty"`
 }
 
 type AKSManagedClusterAutoScalerProfile struct {
-	BalanceSimilarNodeGroups      string `yaml:"balance_similar_node_groups,omitempty"`
+	BalanceSimilarNodeGroups      string `yaml:"balanceSimilarNodeGroups,omitempty"`
 	Expander                      string `yaml:"expander,omitempty"`
-	MaxEmptyBulkDelete            string `yaml:"max_empty_bulk_delete,omitempty"`
-	MaxGracefulTerminationSec     string `yaml:"max_graceful_termination_sec,omitempty"`
-	MaxNodeProvisionTime          string `yaml:"max_node_provision_time,omitempty"`
-	MaxTotalUnreadyPercentage     string `yaml:"max_total_unready_percentage,omitempty"`
-	NewPodScaleUpDelay            string `yaml:"new_pod_scale_up_delay,omitempty"`
-	OkTotalUnreadyCount           *int   `yaml:"ok_total_unready_count,omitempty"`
-	ScaleDownDelayAfterAdd        string `yaml:"scale_down_delay_after_add,omitempty"`
-	ScaleDownDelayAfterDelete     string `yaml:"scale_down_delay_after_delete,omitempty"`
-	ScaleDownDelayAfterFailure    string `yaml:"scale_down_delay_after_failure,omitempty"`
-	ScaleDownUnneededTime         string `yaml:"scale_down_unneeded_time,omitempty"`
-	ScaleDownUnreadyTime          string `yaml:"scale_down_unready_time,omitempty"`
-	ScaleDownUtilizationThreshold string `yaml:"scale_down_utilization_threshold,omitempty"`
-	ScanInterval                  string `yaml:"scan_interval,omitempty"`
-	SkipNodesWithLocalStorage     string `yaml:"skip_nodes_with_local_storage,omitempty"`
-	SkipNodesWithSystemPods       string `yaml:"skip_nodes_with_system_pods,omitempty"`
+	MaxEmptyBulkDelete            string `yaml:"maxEmptyBulkDelete,omitempty"`
+	MaxGracefulTerminationSec     string `yaml:"maxGracefulTerminationSec,omitempty"`
+	MaxNodeProvisionTime          string `yaml:"maxNodeProvisionTime,omitempty"`
+	MaxTotalUnreadyPercentage     string `yaml:"maxTotalUnreadyPercentage,omitempty"`
+	NewPodScaleUpDelay            string `yaml:"newPodScaleUpDelay,omitempty"`
+	OkTotalUnreadyCount           *int   `yaml:"okTotalUnreadyCount,omitempty"`
+	ScaleDownDelayAfterAdd        string `yaml:"scaleDownDelayAfterAdd,omitempty"`
+	ScaleDownDelayAfterDelete     string `yaml:"scaleDownDelayAfterDelete,omitempty"`
+	ScaleDownDelayAfterFailure    string `yaml:"scaleDownDelayAfterFailure,omitempty"`
+	ScaleDownUnneededTime         string `yaml:"scaleDownUnneededTime,omitempty"`
+	ScaleDownUnreadyTime          string `yaml:"scaleDownUnreadyTime,omitempty"`
+	ScaleDownUtilizationThreshold string `yaml:"scaleDownUtilizationThreshold,omitempty"`
+	ScanInterval                  string `yaml:"scanInterval,omitempty"`
+	SkipNodesWithLocalStorage     string `yaml:"skipNodesWithLocalStorage,omitempty"`
+	SkipNodesWithSystemPods       string `yaml:"skipNodesWithSystemPods,omitempty"`
 }
 
 type AKSManagedClusterAutoUpgradeProfile struct {
-	UpgradeChannel string `yaml:"upgrade_channel,omitempty"`
+	UpgradeChannel string `yaml:"upgradeChannel,omitempty"`
 }
 
 type AKSManagedClusterAddonProfile struct {
@@ -225,43 +225,43 @@ type AKSManagedClusterServicePrincipalProfile struct {
 }
 
 type AKSManagedClusterLinuxProfile struct {
-	AdminUsername string                      `yaml:"admin_username"`
+	AdminUsername string                      `yaml:"adminUsername"`
 	SSH           *AKSManagedClusterSSHConfig `yaml:"ssh"`
-	NoProxy       []string                    `yaml:"no_proxy"`
-	TrustedCa     string                      `yaml:"trusted_ca"`
+	NoProxy       []string                    `yaml:"noProxy"`
+	TrustedCa     string                      `yaml:"trustedCa"`
 }
 
 type AKSManagedClusterSSHConfig struct {
-	PublicKeys []*AKSManagedClusterSSHKeyData `yaml:"public_keys"`
+	PublicKeys []*AKSManagedClusterSSHKeyData `yaml:"publicKeys"`
 }
 
 type AKSManagedClusterSSHKeyData struct {
-	KeyData string `yaml:"key_data"`
+	KeyData string `yaml:"keyData"`
 }
 
 type AKSManagedClusterWindowsProfile struct {
-	AdminUsername  string `yaml:"admin_username"`
-	AdminPassword  string `yaml:"admin_password,omitempty"`
+	AdminUsername  string `yaml:"adminUsername"`
+	AdminPassword  string `yaml:"adminPassword,omitempty"`
 	LicenseType    string `yaml:"licenseType,omitempty"`
-	EnableCSIProxy *bool  `yaml:"enable_csi_proxy,omitempty"`
+	EnableCSIProxy *bool  `yaml:"enableCsiProxy,omitempty"`
 }
 
 type AKSManagedClusterHTTPProxyConfig struct {
-	HTTPProxy  string   `yaml:"http_proxy,omitempty"`
-	HTTPSProxy string   `yaml:"https_proxy,omitempty"`
-	NoProxy    []string `yaml:"no_proxy,omitempty"`
-	TrustedCA  string   `yaml:"trusted_ca,omitempty"`
+	HTTPProxy  string   `yaml:"httpProxy,omitempty"`
+	HTTPSProxy string   `yaml:"httpsProxy,omitempty"`
+	NoProxy    []string `yaml:"noProxy,omitempty"`
+	TrustedCA  string   `yaml:"trustedCa,omitempty"`
 }
 
 type AKSManagedClusterPodIdentityProfile struct {
-	AllowNetworkPluginKubenet      *bool                                               `yaml:"allow_network_plugin_kubenet,omitempty"`
+	AllowNetworkPluginKubenet      *bool                                               `yaml:"allowNetworkPluginKubenet,omitempty"`
 	Enabled                        *bool                                               `yaml:"enabled,omitempty"`
-	UserAssignedIdentities         *AKSManagedClusterPIPUserAssignedIdentities         `yaml:"user_assignedIdentities,omitempty"`
-	UserAssignedIdentityExceptions *AKSManagedClusterPIPUserAssignedIdentityExceptions `yaml:"user_assignedIdentity_exceptions,omitempty"`
+	UserAssignedIdentities         *AKSManagedClusterPIPUserAssignedIdentities         `yaml:"userAssignedIdentities,omitempty"`
+	UserAssignedIdentityExceptions *AKSManagedClusterPIPUserAssignedIdentityExceptions `yaml:"userAssignedIdentityExceptions,omitempty"`
 }
 
 type AKSManagedClusterPIPUserAssignedIdentities struct {
-	BindingSelector string                        `yaml:"binding_selector,omitempty"`
+	BindingSelector string                        `yaml:"bindingSelector,omitempty"`
 	Identity        *AKSManagedClusterUAIIdentity `yaml:"identity,omitempty"`
 	Name            string                        `yaml:"name,omitempty"`
 	Namespace       string                        `yaml:"namespace,omitempty"`
@@ -276,14 +276,14 @@ type AKSManagedClusterUAIIdentity struct {
 type AKSManagedClusterPIPUserAssignedIdentityExceptions struct {
 	Name      string            `yaml:"name,omitempty"`
 	Namespace string            `yaml:"namespace,omitempty"`
-	PodLabels map[string]string `yaml:"pod_labels,omitempty"`
+	PodLabels map[string]string `yaml:"podLabels,omitempty"`
 }
 
 type AKSManagedClusterPrivateLinkResources struct {
 	GroupId         string   `yaml:"groupId,omitempty"`
 	ID              string   `yaml:"id,omitempty"`
 	Name            string   `yaml:"name,omitempty"`
-	RequiredMembers []string `yaml:"required_members,omitempty"`
+	RequiredMembers []string `yaml:"requiredMembers,omitempty"`
 	Type            string   `yaml:"type,omitempty"`
 }
 
@@ -301,40 +301,40 @@ type AKSNodePool struct {
 }
 
 type AKSNodePoolProperties struct {
-	VMSize                    string                      `yaml:"vm_size,omitempty"`
-	OsDiskSizeGB              *int                        `yaml:"os_disk_size_gb,omitempty"`
+	VMSize                    string                      `yaml:"vmSize,omitempty"`
+	OsDiskSizeGB              *int                        `yaml:"osDiskSizeGb,omitempty"`
 	Mode                      string                      `yaml:"mode,omitempty"`
-	AvailabilityZones         []string                    `yaml:"availability_zones,omitempty"`
-	EnableAutoScaling         *bool                       `yaml:"enable_auto_scaling,omitempty"`
+	AvailabilityZones         []string                    `yaml:"availabilityZones,omitempty"`
+	EnableAutoScaling         *bool                       `yaml:"enableAutoScaling,omitempty"`
 	Count                     *int                        `yaml:"count,omitempty"`
-	MinCount                  *int                        `yaml:"min_count,omitempty"`
-	MaxCount                  *int                        `yaml:"max_count,omitempty"`
-	MaxPods                   *int                        `yaml:"max_pods,omitempty"`
+	MinCount                  *int                        `yaml:"minCount,omitempty"`
+	MaxCount                  *int                        `yaml:"maxCount,omitempty"`
+	MaxPods                   *int                        `yaml:"maxPods,omitempty"`
 	Type                      string                      `yaml:"type,omitempty"`
-	EnableNodePublicIP        *bool                       `yaml:"enable_node_publicIp,omitempty"`
-	NodeLabels                map[string]string           `yaml:"node_labels,omitempty"`
-	NodeTaints                []string                    `yaml:"node_taints,omitempty"`
-	VnetSubnetID              string                      `yaml:"vnet_subnetId,omitempty"`
-	UpgradeSettings           *AKSNodePoolUpgradeSettings `yaml:"upgrade_settings,omitempty"`
-	ScaleSetPriority          string                      `yaml:"scale_set_priority,omitempty"`
-	ScaleSetEvictionPolicy    string                      `yaml:"scale_set_eviction_policy,omitempty"`
-	SpotMaxPrice              *float64                    `yaml:"spot_max_price,omitempty"`
-	EnableEncryptionAtHost    *bool                       `yaml:"enable_encryption_at_host,omitempty"`
-	OrchestratorVersion       string                      `yaml:"orchestrator_version,omitempty"`
-	EnableFIPS                *bool                       `yaml:"enable_fips,omitempty"`
-	EnableUltraSSD            *bool                       `yaml:"enable_ultra_ssd,omitempty"`
-	GpuInstanceProfile        string                      `yaml:"gpu_instanceProfile,omitempty"`
-	KubeletConfig             *AKSNodePoolKubeletConfig   `yaml:"kubelet_config,omitempty"`
-	KubeletDiskType           string                      `yaml:"kubelet_diskType,omitempty"`
-	LinuxOSConfig             *AKSNodePoolLinuxOsConfig   `yaml:"linux_os_config,omitempty"`
-	NodePublicIPPrefixID      string                      `yaml:"node_publicIp_prefixId,omitempty"`
-	OsDiskType                string                      `yaml:"os_diskType,omitempty"`
-	OsSku                     string                      `yaml:"os_sku,omitempty"`
+	EnableNodePublicIP        *bool                       `yaml:"enableNodePublicIp,omitempty"`
+	NodeLabels                map[string]string           `yaml:"nodeLabels,omitempty"`
+	NodeTaints                []string                    `yaml:"nodeTaints,omitempty"`
+	VnetSubnetID              string                      `yaml:"vnetSubnetId,omitempty"`
+	UpgradeSettings           *AKSNodePoolUpgradeSettings `yaml:"upgradeSettings,omitempty"`
+	ScaleSetPriority          string                      `yaml:"scaleSetPriority,omitempty"`
+	ScaleSetEvictionPolicy    string                      `yaml:"scaleSetEvictionPolicy,omitempty"`
+	SpotMaxPrice              *float64                    `yaml:"spotMaxPrice,omitempty"`
+	EnableEncryptionAtHost    *bool                       `yaml:"enableEncryptionAtHost,omitempty"`
+	OrchestratorVersion       string                      `yaml:"orchestratorVersion,omitempty"`
+	EnableFIPS                *bool                       `yaml:"enableFips,omitempty"`
+	EnableUltraSSD            *bool                       `yaml:"enableUltraSsd,omitempty"`
+	GpuInstanceProfile        string                      `yaml:"gpuInstanceProfile,omitempty"`
+	KubeletConfig             *AKSNodePoolKubeletConfig   `yaml:"kubeletConfig,omitempty"`
+	KubeletDiskType           string                      `yaml:"kubeletDiskType,omitempty"`
+	LinuxOSConfig             *AKSNodePoolLinuxOsConfig   `yaml:"linuxOsConfig,omitempty"`
+	NodePublicIPPrefixID      string                      `yaml:"nodePublicIpPrefixId,omitempty"`
+	OsDiskType                string                      `yaml:"osDiskType,omitempty"`
+	OsSku                     string                      `yaml:"osSku,omitempty"`
 	OsType                    string                      `yaml:"osType,omitempty"`
-	PodSubnetID               string                      `yaml:"pod_subnetId,omitempty"`
-	ProximityPlacementGroupID string                      `yaml:"proximity_placement_groupId,omitempty"`
+	PodSubnetID               string                      `yaml:"podSubnetId,omitempty"`
+	ProximityPlacementGroupID string                      `yaml:"proximityPlacementGroupId,omitempty"`
 	Tags                      map[string]string           `yaml:"tags,omitempty"`
-	VmSize                    string                      `yaml:"vm_size,omitempty"`
+	VmSize                    string                      `yaml:"vmSize,omitempty"`
 }
 
 type AKSNodePoolUpgradeSettings struct {
@@ -342,55 +342,55 @@ type AKSNodePoolUpgradeSettings struct {
 }
 
 type AKSNodePoolKubeletConfig struct {
-	AllowedUnsafeSysctls  []string `yaml:"allowed_unsafe_sysctls,omitempty"`
-	ContainerLogMaxFiles  *int     `yaml:"container_log_max_files,omitempty"`
-	ContainerLogMaxSizeMB *int     `yaml:"container_log_max_size_mb,omitempty"`
-	CpuCfsQuota           *bool    `yaml:"cpu_cfs_quota,omitempty"`
-	CpuCfsQuotaPeriod     string   `yaml:"cpu_cfs_quota_period,omitempty"`
-	CpuManagerPolicy      string   `yaml:"cpu_manager_policy,omitempty"`
-	FailSwapOn            *bool    `yaml:"fail_swap_on,omitempty"`
-	ImageGcHighThreshold  *int     `yaml:"image_gc_high_threshold,omitempty"`
-	ImageGcLowThreshold   *int     `yaml:"image_gc_low_threshold,omitempty"`
-	PodMaxPids            *int     `yaml:"pod_max_pids,omitempty"`
-	TopologyManagerPolicy string   `yaml:"topology_manager_policy,omitempty"`
+	AllowedUnsafeSysctls  []string `yaml:"allowedUnsafeSysctls,omitempty"`
+	ContainerLogMaxFiles  *int     `yaml:"containerLogMaxFiles,omitempty"`
+	ContainerLogMaxSizeMB *int     `yaml:"containerLogMaxSizeMb,omitempty"`
+	CpuCfsQuota           *bool    `yaml:"cpuCfsQuota,omitempty"`
+	CpuCfsQuotaPeriod     string   `yaml:"cpuCfsQuotaPeriod,omitempty"`
+	CpuManagerPolicy      string   `yaml:"cpuManagerPolicy,omitempty"`
+	FailSwapOn            *bool    `yaml:"failSwapOn,omitempty"`
+	ImageGcHighThreshold  *int     `yaml:"imageGcHighThreshold,omitempty"`
+	ImageGcLowThreshold   *int     `yaml:"imageGcLowThreshold,omitempty"`
+	PodMaxPids            *int     `yaml:"podMaxPids,omitempty"`
+	TopologyManagerPolicy string   `yaml:"topologyManagerPolicy,omitempty"`
 }
 
 type AKSNodePoolLinuxOsConfig struct {
-	SwapFileSizeMB             *int                             `yaml:"swap_file_size_mb,omitempty"`
+	SwapFileSizeMB             *int                             `yaml:"swapFileSizeMb,omitempty"`
 	Sysctls                    *AKSNodePoolLinuxOsConfigSysctls `yaml:"sysctls,omitempty"`
-	TransparentHugePageDefrag  string                           `yaml:"transparent_huge_page_defrag,omitempty"`
-	TransparentHugePageEnabled string                           `yaml:"transparent_huge_page_enabled,omitempty"`
+	TransparentHugePageDefrag  string                           `yaml:"transparentHugePageDefrag,omitempty"`
+	TransparentHugePageEnabled string                           `yaml:"transparentHugePageEnabled,omitempty"`
 }
 
 type AKSNodePoolLinuxOsConfigSysctls struct {
-	FsAioMaxNr                     *int   `yaml:"fs_aio_max_nr,omitempty"`
-	FsFileMax                      *int   `yaml:"fs_file_max,omitempty"`
-	FsInotifyMaxUserWatches        *int   `yaml:"fs_inotify_max_user_watches,omitempty"`
-	FsNrOpen                       *int   `yaml:"fs_nr_open,omitempty"`
-	KernelThreadsMax               *int   `yaml:"kernel_threads_max,omitempty"`
-	NetCoreNetdevMaxBacklog        *int   `yaml:"net_core_netdev_max_backlog,omitempty"`
-	NetCoreOptmemMax               *int   `yaml:"net_core_optmem_max,omitempty"`
-	NetCoreRmemDefault             *int   `yaml:"net_core_rmem_default,omitempty"`
-	NetCoreRmemMax                 *int   `yaml:"net_core_rmem_max,omitempty"`
-	NetCoreSomaxconn               *int   `yaml:"net_core_somaxconn,omitempty"`
-	NetCoreWmemDefault             *int   `yaml:"net_core_wmem_default,omitempty"`
-	NetCoreWmemMax                 *int   `yaml:"net_core_wmem_max,omitempty"`
-	NetIpv4IpLocalPortRange        string `yaml:"netIpv4Ip_local_port_range,omitempty"`
-	NetIpv4NeighDefaultGcThresh1   *int   `yaml:"netIpv4_neigh_default_gc_thresh1,omitempty"`
-	NetIpv4NeighDefaultGcThresh2   *int   `yaml:"netIpv4_neigh_default_gc_thresh2,omitempty"`
-	NetIpv4NeighDefaultGcThresh3   *int   `yaml:"netIpv4_neigh_default_gc_thresh3,omitempty"`
-	NetIpv4TcpFinTimeout           *int   `yaml:"netIpv4_tcp_fin_timeout,omitempty"`
-	NetIpv4TcpkeepaliveIntvl       *int   `yaml:"netIpv4_tcpkeepalive_intvl,omitempty"`
-	NetIpv4TcpKeepaliveProbes      *int   `yaml:"netIpv4_tcp_keepalive_probes,omitempty"`
-	NetIpv4TcpKeepaliveTime        *int   `yaml:"netIpv4_tcp_keepalive_time,omitempty"`
-	NetIpv4TcpMaxSynBacklog        *int   `yaml:"netIpv4_tcp_max_syn_backlog,omitempty"`
-	NetIpv4TcpMaxTwBuckets         *int   `yaml:"netIpv4_tcp_max_tw_buckets,omitempty"`
-	NetIpv4TcpTwReuse              *bool  `yaml:"netIpv4_tcp_tw_reuse,omitempty"`
-	NetNetfilterNfConntrackBuckets *int   `yaml:"net_netfilter_nf_conntrack_buckets,omitempty"`
-	NetNetfilterNfConntrackMax     *int   `yaml:"net_netfilter_nf_conntrack_max,omitempty"`
-	VmMaxMapCount                  *int   `yaml:"vm_max_map_count,omitempty"`
-	VmSwappiness                   *int   `yaml:"vm_swappiness,omitempty"`
-	VmVfsCachePressure             *int   `yaml:"vm_vfs_cache_pressure,omitempty"`
+	FsAioMaxNr                     *int   `yaml:"fsAioMaxNr,omitempty"`
+	FsFileMax                      *int   `yaml:"fsFileMax,omitempty"`
+	FsInotifyMaxUserWatches        *int   `yaml:"fsInotifyMaxUserWatches,omitempty"`
+	FsNrOpen                       *int   `yaml:"fsNrOpen,omitempty"`
+	KernelThreadsMax               *int   `yaml:"kernelThreadsMax,omitempty"`
+	NetCoreNetdevMaxBacklog        *int   `yaml:"netCoreNetdevMaxBacklog,omitempty"`
+	NetCoreOptmemMax               *int   `yaml:"netCoreOptmemMax,omitempty"`
+	NetCoreRmemDefault             *int   `yaml:"netCoreRmemDefault,omitempty"`
+	NetCoreRmemMax                 *int   `yaml:"netCoreRmemMax,omitempty"`
+	NetCoreSomaxconn               *int   `yaml:"netCoreSomaxconn,omitempty"`
+	NetCoreWmemDefault             *int   `yaml:"netCoreWmemDefault,omitempty"`
+	NetCoreWmemMax                 *int   `yaml:"netCoreWmemMax,omitempty"`
+	NetIpv4IpLocalPortRange        string `yaml:"netIpv4IpLocalPortRange,omitempty"`
+	NetIpv4NeighDefaultGcThresh1   *int   `yaml:"netIpv4NeighDefaultGcThresh1,omitempty"`
+	NetIpv4NeighDefaultGcThresh2   *int   `yaml:"netIpv4NeighDefaultGcThresh2,omitempty"`
+	NetIpv4NeighDefaultGcThresh3   *int   `yaml:"netIpv4NeighDefaultGcThresh3,omitempty"`
+	NetIpv4TcpFinTimeout           *int   `yaml:"netIpv4TcpFinTimeout,omitempty"`
+	NetIpv4TcpkeepaliveIntvl       *int   `yaml:"netIpv4TcpkeepaliveIntvl,omitempty"`
+	NetIpv4TcpKeepaliveProbes      *int   `yaml:"netIpv4TcpKeepaliveProbes,omitempty"`
+	NetIpv4TcpKeepaliveTime        *int   `yaml:"netIpv4TcpKeepaliveTime,omitempty"`
+	NetIpv4TcpMaxSynBacklog        *int   `yaml:"netIpv4TcpMaxSynBacklog,omitempty"`
+	NetIpv4TcpMaxTwBuckets         *int   `yaml:"netIpv4TcpMaxTwBuckets,omitempty"`
+	NetIpv4TcpTwReuse              *bool  `yaml:"netIpv4TcpTwReuse,omitempty"`
+	NetNetfilterNfConntrackBuckets *int   `yaml:"netNetfilterNfConntrackBuckets,omitempty"`
+	NetNetfilterNfConntrackMax     *int   `yaml:"netNetfilterNfConntrackMax,omitempty"`
+	VmMaxMapCount                  *int   `yaml:"vmMaxMapCount,omitempty"`
+	VmSwappiness                   *int   `yaml:"vmSwappiness,omitempty"`
+	VmVfsCachePressure             *int   `yaml:"vmVfsCachePressure,omitempty"`
 }
 
 // type AKSRafayInternal struct {

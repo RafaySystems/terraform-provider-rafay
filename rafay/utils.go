@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/davecgh/go-spew/spew"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
@@ -151,7 +152,10 @@ func expandMetaData(p []interface{}) *commonpb.Metadata {
 		obj.Labels = toMapString(v)
 	}
 
+	log.Println("expandMetaData")
 	if v, ok := in["annotations"].(map[string]interface{}); ok && len(v) > 0 {
+		w1 := spew.Sprintf("%+v", v)
+		log.Println("expandMetaData annotations ", w1)
 		obj.Annotations = toMapString(v)
 	}
 	return obj
@@ -407,6 +411,27 @@ func flattenV1MetaData(in *commonpb.Metadata) []interface{} {
 	return []interface{}{obj}
 }
 
+func flattenPlacementLabels(input []*commonpb.PlacementLabel) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		obj := map[string]interface{}{}
+
+		if len(in.Key) > 0 {
+			obj["key"] = in.Key
+		}
+		if len(in.Value) > 0 {
+			obj["value"] = in.Value
+		}
+		out[i] = obj
+	}
+
+	return out
+}
+
 func flattenPlacement(in *commonpb.PlacementSpec) []interface{} {
 	if in == nil {
 		return nil
@@ -414,7 +439,7 @@ func flattenPlacement(in *commonpb.PlacementSpec) []interface{} {
 
 	obj := make(map[string]interface{})
 	if len(in.Labels) > 0 {
-		obj["labels"] = in.Labels
+		obj["labels"] = flattenPlacementLabels(in.Labels)
 	}
 
 	if len(in.Selector) > 0 {
@@ -511,7 +536,7 @@ func flattenRatio(in *commonpb.ResourceRatio) []interface{} {
 	if in == nil {
 		return nil
 	}
-
+	//log.Println("flattenRatio ", in)
 	obj := make(map[string]interface{})
 	obj["memory"] = in.Memory
 	obj["cpu"] = in.Cpu

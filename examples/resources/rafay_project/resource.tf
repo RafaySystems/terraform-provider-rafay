@@ -9,4 +9,10 @@ resource "rafay_project" "tfdemoproject1" {
     # Will be allowed to enable in the future.
     default = false
   }
+
+  timeouts {
+    create = "1m"
+    delete = "1m"
+    update = "1m" 
+  }
 }

@@ -1,11 +1,15 @@
 #rafay_namespace.tfdemonamespace1:
 resource "rafay_namespace" "tfdemonamespace1" {
   metadata {
-    annotations = {}
     labels = {
       "env"  = "dev"
       "name" = "app"
     }
+    annotations = {
+      "env"  = "dev"
+      "name" = "app"
+    }
+    
     name    = "tfdemonamespace1"
     project = "upgrade"
   }
@@ -97,8 +101,12 @@ resource "rafay_namespace" "tfdemonamespace1" {
     }
 
     placement {
-      selector = "rafay.dev/clusterName=hardik-qc-mks-1"
+       labels {
+        key = "tftest"
+        value = "nstest"
+      }
     }
+
 
     resource_quotas {
       limits {
@@ -122,35 +130,40 @@ resource "rafay_namespace" "tfdemonamespace1" {
       }
     }
   }
-}
-
-
-#rafay_namespace.tfdemonamespace2:
-resource "rafay_namespace" "tfdemonamespace2" {
-
-  metadata {
-    name    = "tfdemonamespace2"
-    project = "upgrade"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
-  }
-  spec {
-    placement {
-      selector = "rafay.dev/clusterName=hardik-qc-mks-1"
-    }
-    drift {
-      action  = "Deny"
-      enabled = true
-    }
-    artifact {
-      path {
-        name = "yaml/qc_app_yaml_with_annotations.yaml"
-      }
-      repository = "release-check-ssh"
-      revision   = "main"
-
-    }
+  timeouts {
+    create = "1m"
+    delete = "1m"
+    update = "1m" 
   }
 }
+
+
+# #rafay_namespace.tfdemonamespace2:
+# resource "rafay_namespace" "tfdemonamespace2" {
+
+#   metadata {
+#     name    = "tfdemonamespace2"
+#     project = "upgrade"
+#     labels = {
+#       env  = "dev"
+#       name = "app"
+#     }
+#   }
+#   spec {
+#     placement {
+#       selector = "rafay.dev/clusterName=hardik-qc-mks-1"
+#     }
+#     drift {
+#       action  = "Deny"
+#       enabled = true
+#     }
+#     artifact {
+#       path {
+#         name = "yaml/qc_app_yaml_with_annotations.yaml"
+#       }
+#       repository = "release-check-ssh"
+#       revision   = "main"
+
+#     }
+#   }
+# }

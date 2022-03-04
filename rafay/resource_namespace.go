@@ -112,7 +112,8 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
+	w1 := spew.Sprintf("%+v", ns)
+	log.Println("resourceNamespaceUpsert ns:", w1)
 	err = client.InfraV3().Namespace().Apply(ctx, ns, options.ApplyOptions{})
 	if err != nil {
 		// XXX Debug
@@ -236,6 +237,8 @@ func expandNamespace(in *schema.ResourceData) (*infrapb.Namespace, error) {
 	if v, ok := in.Get("metadata").([]interface{}); ok {
 		obj.Metadata = expandMetaData(v)
 	}
+	w1 := spew.Sprintf("%+v", obj.Metadata)
+	log.Println("expandNamespace metadata ", w1)
 
 	if v, ok := in.Get("spec").([]interface{}); ok {
 		objSpec, err := expandNamespaceSpec(v)
@@ -369,6 +372,7 @@ func expandNamespaceLimitRange(p []interface{}) *infrapb.NamespaceLimitRange {
 		return obj
 	}
 
+	//log.Println("expandNamespaceLimitRange")
 	in := p[0].(map[string]interface{})
 	if v, ok := in["pod"].([]interface{}); ok {
 		obj.Pod = expandNamespaceLimitRangeConfig(v)
@@ -404,7 +408,9 @@ func expandNamespaceLimitRangeConfig(p []interface{}) *infrapb.NamespaceLimitRan
 		obj.DefaultRequest = expandResourceQuantity(v)
 	}
 
+	//log.Println("expandNamespaceLimitRangeConfig <<")
 	if v, ok := in["ratio"].([]interface{}); ok {
+		//log.Println("expandNamespaceLimitRangeConfig ")
 		obj.Ratio = expandResourceRatio(v)
 	}
 
@@ -412,20 +418,24 @@ func expandNamespaceLimitRangeConfig(p []interface{}) *infrapb.NamespaceLimitRan
 }
 
 func expandResourceRatio(p []interface{}) *commonpb.ResourceRatio {
+	//log.Println("expandResourceRatio ")
 	obj := &commonpb.ResourceRatio{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 
 	in := p[0].(map[string]interface{})
-	if v, ok := in["memory"].(float32); ok {
-		obj.Memory = v
+	//w1 := spew.Sprintf("%+v", in)
+	//log.Println("expandResourceRatio << in", w1)
+	if v, ok := in["memory"].(float64); ok {
+		obj.Memory = float32(v)
 	}
 
-	if v, ok := in["cpu"].(float32); ok {
-		obj.Cpu = v
+	if v, ok := in["cpu"].(float64); ok {
+		obj.Cpu = float32(v)
 	}
 
+	//log.Println("expandResourceRatio obj ", obj)
 	return obj
 }
 
@@ -447,16 +457,16 @@ func flattenNamespace(d *schema.ResourceData, in *infrapb.Namespace) error {
 	}
 
 	// XXX Debug
-	w1 := spew.Sprintf("%+v", v)
-	log.Println("flattenNamespaceSpec before ", w1)
+	//w1 := spew.Sprintf("%+v", in.Spec)
+	//log.Println("flattenNamespaceSpec before ", w1)
 	var ret []interface{}
 	ret, err = flattenNamespaceSpec(in.Spec, v)
 	if err != nil {
 		return err
 	}
 	// XXX Debug
-	w1 = spew.Sprintf("%+v", ret)
-	log.Println("flattenNamespaceSpec after ", w1)
+	//w1 = spew.Sprintf("%+v", ret)
+	//log.Println("flattenNamespaceSpec after ", w1)
 
 	err = d.Set("spec", ret)
 	if err != nil {
@@ -538,6 +548,7 @@ func flattenNamespaceLimitRangeConfig(in *infrapb.NamespaceLimitRangeConfig) []i
 		obj["default_request"] = flattenResourceQuantity(in.DefaultRequest)
 	}
 
+	//log.Println("flattenNamespaceLimitRangeConfig ", in.Ratio)
 	if in.Ratio != nil {
 		obj["ratio"] = flattenRatio(in.Ratio)
 	}

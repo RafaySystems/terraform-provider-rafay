@@ -4212,7 +4212,7 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}) []
 	}
 
 	if len(in.VMSize) > 0 {
-		obj["vmsize"] = in.VMSize
+		obj["vm_size"] = in.VMSize
 	}
 
 	if len(in.VnetSubnetID) > 0 {

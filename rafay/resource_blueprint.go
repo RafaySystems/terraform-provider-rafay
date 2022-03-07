@@ -555,7 +555,7 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["custom_addons"] = flatteCustomAddons(in.CustomAddons, v)
+		obj["custom_addons"] = flattenCustomAddons(in.CustomAddons, v)
 	}
 
 	if in.Base != nil {
@@ -733,8 +733,8 @@ func flattenResources(in *commonpb.ResourceRequirements, p []interface{}) []inte
 	return []interface{}{obj}
 }
 
-func flatteCustomAddons(input []*infrapb.BlueprintAddon, p []interface{}) []interface{} {
-	log.Println("flatteCustomAddons")
+func flattenCustomAddons(input []*infrapb.BlueprintAddon, p []interface{}) []interface{} {
+	log.Println("flattenCustomAddons")
 	if input == nil {
 		return nil
 	}

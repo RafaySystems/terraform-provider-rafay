@@ -21,33 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-type Metadata struct {
-	Labels  map[string]string `yaml:"labels,omitempty"`
-	Name    string            `yaml:"name"`
-	Project string            `yaml:"project"`
-}
-
-type Spec struct {
-	Type             string            `yaml:"type"`
-	Blueprint        string            `yaml:"blueprint"`
-	BlueprintVersion string            `yaml:"blueprintversion,omitempty"`
-	Location         string            `yaml:"location,omitempty"`
-	CloudProvider    string            `yaml:"cloudprovider"`
-	ClusterConfig    *AKSClusterConfig `yaml:"cluster_config"`
-}
-
-type clusterYamlConfig struct {
-	APIVersion string    `yaml:"apiversion"`
-	Kind       string    `yaml:"kind"`
-	Metadata   *Metadata `yaml:"metadata"`
-	Spec       *Spec     `yaml:"spec"`
-}
-
-type clusterCTLResponse struct {
-	TaskSetID string `json:"taskset_id,omitempty"`
-	Status    string `json:"status,omitempty"`
-}
-
 func resourceAKSCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceAKSClusterCreate,
@@ -3090,7 +3063,7 @@ func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}) []in
 	}
 
 	// @@@@@@@
-	if in.NodePools != nil {
+	if in.NodePools != nil && len(in.NodePools) > 0 {
 		v, ok := obj["node_pools"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -3312,8 +3285,7 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 		obj["pod_identity_profile"] = flattenAKSManagedClusterPodIdentityProfile(in.PodIdentityProfile, v)
 	}
 
-	// @@@@@ Flatten list
-	if in.PrivateLinkResources != nil {
+	if in.PrivateLinkResources != nil && len(in.PrivateLinkResources) > 0 {
 		v, ok := obj["private_link_resources"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -3572,7 +3544,7 @@ func flattenAKSManagedClusterSSHConfig(in *AKSManagedClusterSSHConfig, p []inter
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.PublicKeys != nil {
+	if in.PublicKeys != nil && len(in.PublicKeys) > 0 {
 		v, ok := obj["ssh"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -3584,17 +3556,26 @@ func flattenAKSManagedClusterSSHConfig(in *AKSManagedClusterSSHConfig, p []inter
 
 }
 
-// @@@@@@ flatten List
-func flattenAKSManagedClusterSSHKeyData(in *AKSManagedClusterSSHConfig, p []interface{}) []interface{} {
+func flattenAKSManagedClusterSSHKeyData(in []*AKSManagedClusterSSHKeyData, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.KeyData) > 0 {
+			obj["key_data"] = in.KeyData
+		}
+
+		out[i] = &obj
 	}
 
-	return []interface{}{obj}
+	return out
 
 }
 
@@ -3672,7 +3653,7 @@ func flattenAKSManagedClusterNPLoadBalancerProfile(in *AKSManagedClusterNPLoadBa
 		obj["allocated_outbound_ports"] = *in.AllocatedOutboundPorts
 	}
 
-	if in.EffectiveOutboundIPs != nil {
+	if in.EffectiveOutboundIPs != nil && len(in.EffectiveOutboundIPs) > 0 {
 		v, ok := obj["effective_outbound_ips"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -3712,21 +3693,26 @@ func flattenAKSManagedClusterNPLoadBalancerProfile(in *AKSManagedClusterNPLoadBa
 
 }
 
-func flattenAKSManagedClusterNPEffectiveOutboundIPs(in *AKSManagedClusterNPEffectiveOutboundIPs, p []interface{}) []interface{} {
+func flattenAKSManagedClusterNPEffectiveOutboundIPs(in []*AKSManagedClusterNPEffectiveOutboundIPs, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.ID) > 0 {
+			obj["id"] = in.ID
+		}
+
+		out[i] = &obj
 	}
 
-	// @@@@@@ Flatten list
-	if len(in.ID) > 0 {
-		obj["id"] = in.ID
-	}
-
-	return []interface{}{obj}
+	return out
 
 }
 
@@ -3985,37 +3971,42 @@ func flattenAKSManagedClusterWindowsProfile(in *AKSManagedClusterWindowsProfile,
 
 }
 
-// @@@@@@@@@ flatten list
-func flattenAKSManagedClusterPrivateLinkResources(in *AKSManagedClusterPrivateLinkResources, p []interface{}) []interface{} {
+func flattenAKSManagedClusterPrivateLinkResources(in []*AKSManagedClusterPrivateLinkResources, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.GroupId) > 0 {
+			obj["group_id"] = in.GroupId
+		}
+
+		if len(in.ID) > 0 {
+			obj["id"] = in.ID
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if in.RequiredMembers != nil && len(in.RequiredMembers) > 0 {
+			obj["required_members"] = toArrayInterface(in.RequiredMembers)
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		out[i] = &obj
 	}
 
-	if len(in.GroupId) > 0 {
-		obj["group_id"] = in.GroupId
-	}
-
-	if len(in.ID) > 0 {
-		obj["id"] = in.ID
-	}
-
-	if len(in.Name) > 0 {
-		obj["name"] = in.Name
-	}
-
-	if in.RequiredMembers != nil && len(in.RequiredMembers) > 0 {
-		obj["required_members"] = toArrayInterface(in.RequiredMembers)
-	}
-
-	if len(in.Type) > 0 {
-		obj["type"] = in.Type
-	}
-
-	return []interface{}{obj}
+	return out
 
 }
 
@@ -4040,7 +4031,7 @@ func flattenAKSManagedClusterSKU(in *AKSManagedClusterSKU, p []interface{}) []in
 
 }
 
-func flattenAKSNodePool(in []AKSNodePool, p []interface{}) []interface{} {
+func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -4391,23 +4382,23 @@ func flattenAKSNodePoolUpgradeSettings(in *AKSNodePoolUpgradeSettings, p []inter
 
 ///Original Functions
 
-func aksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte, dryRun bool) (string, error) {
-	logger := glogger.GetLogger()
-	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
-	if len(errs) == 0 && len(configMap) > 0 {
-		// Make request
-		for clusterName, configBytes := range configMap {
-			return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun)
-		}
-	}
-	return "", fmt.Errorf("%s", "config collate error")
-}
+// func aksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte, dryRun bool) (string, error) {
+// 	logger := glogger.GetLogger()
+// 	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
+// 	if len(errs) == 0 && len(configMap) > 0 {
+// 		// Make request
+// 		for clusterName, configBytes := range configMap {
+// 			return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun)
+// 		}
+// 	}
+// 	return "", fmt.Errorf("%s", "config collate error")
+// }
 
-func aksClusterCTLStatus(taskid string) (string, error) {
-	logger := glogger.GetLogger()
-	rctlCfg := config.GetConfig()
-	return clusterctl.Status(logger, rctlCfg, taskid)
-}
+// func aksClusterCTLStatus(taskid string) (string, error) {
+// 	logger := glogger.GetLogger()
+// 	rctlCfg := config.GetConfig()
+// 	return clusterctl.Status(logger, rctlCfg, taskid)
+// }
 
 func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	projectName := d.Get("projectname").(string)
@@ -4424,35 +4415,34 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	}
 
 	clusterName := d.Get("name").(string)
-	metadata := AKSClusterConfigMetadata{
-		Name: clusterName,
+	metadata := AKSClusterMetadata{
+		Name:    clusterName,
+		Project: projectName,
 	}
 
 	blueprint := d.Get("blueprint").(string)
 	blueprintversion := d.Get("blueprintversion").(string)
 	cloudprovider := d.Get("cloudprovider").(string)
 
-	//clusterConfig := expandClusterAKSConfig(d.Get("cluster_config").([]interface{}))
-	AKSCluster.Metadata = &metadata
-	AKSCluster.APIVersion = "rafay.io/v1alpha1"
-	AKSCluster.Kind = "aksClusterConfig"
+	//not fully filled
+	clusterConfig := expandAKSClusterConfig(d.Get("cluster_config").([]interface{}))
 
-	yamlConfig := clusterYamlConfig{
-		APIVersion: "rafay.io/v1alpha1",
-		Kind:       "Cluster",
+	spec := AKSClusterSpec{
+		Type:             "aks",
+		Blueprint:        blueprint,
+		BlueprintVersion: blueprintversion,
+		CloudProvider:    cloudprovider,
+		AKSClusterConfig: clusterConfig,
 	}
-	yamlConfig.Metadata = &Metadata{}
-	yamlConfig.Spec = &Spec{}
-	yamlConfig.Metadata.Name = clusterName
-	yamlConfig.Metadata.Project = projectName
-	yamlConfig.Spec.Blueprint = blueprint
-	yamlConfig.Spec.BlueprintVersion = blueprintversion
-	yamlConfig.Spec.CloudProvider = cloudprovider
-	//yamlConfig.Spec.ClusterConfig = clusterConfig
-	yamlConfig.Spec.Type = "aks"
-	//log.Printf("AKS Cluster yamlConfig %v", yamlConfig)
 
-	out, err := yaml.Marshal(yamlConfig)
+	aksCluster := AKSCluster{
+		APIVersion: "rafay.io/v1alpha1",
+		Kind:       "aksClusterConfig",
+		Metadata:   &metadata,
+		Spec:       &spec,
+	}
+
+	out, err := yaml.Marshal(aksCluster)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -4487,7 +4477,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 		return diags
 	}
 
-	var c clusterYamlConfig
+	var c AKSCluster
 	if err = yaml.Unmarshal(fileBytes, &c); err != nil {
 		return diag.FromErr(err)
 	}

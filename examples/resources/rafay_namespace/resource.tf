@@ -19,8 +19,7 @@ resource "rafay_namespace" "tfdemonamespace1" {
     }
 
     drift {
-      action  = "Deny"
-      enabled = true
+      enabled = false
     }
 
     limit_range {
@@ -138,32 +137,31 @@ resource "rafay_namespace" "tfdemonamespace1" {
 }
 
 
-# #rafay_namespace.tfdemonamespace2:
-# resource "rafay_namespace" "tfdemonamespace2" {
+#rafay_namespace.tfdemonamespace2:
+resource "rafay_namespace" "tfdemonamespace2" {
 
-#   metadata {
-#     name    = "tfdemonamespace2"
-#     project = "upgrade"
-#     labels = {
-#       env  = "dev"
-#       name = "app"
-#     }
-#   }
-#   spec {
-#     placement {
-#       selector = "rafay.dev/clusterName=hardik-qc-mks-1"
-#     }
-#     drift {
-#       action  = "Deny"
-#       enabled = true
-#     }
-#     artifact {
-#       path {
-#         name = "yaml/qc_app_yaml_with_annotations.yaml"
-#       }
-#       repository = "release-check-ssh"
-#       revision   = "main"
+  metadata {
+    name    = "tfdemonamespace2"
+    project = "upgrade"
+    labels = {
+      env  = "dev"
+      name = "app"
+    }
+  }
+  spec {
+    placement {
+      selector = "rafay.dev/clusterName=hardik-qc-mks-1"
+    }
+    drift {
+      enabled = false
+    }
+    artifact {
+      path {
+        name = "yaml/tfns.yaml"
+      }
+      repository = "release-check-ssh"
+      revision   = "main"
 
-#     }
-#   }
-# }
+    }
+  }
+}

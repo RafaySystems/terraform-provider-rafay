@@ -21,6 +21,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+type clusterCTLResponse struct {
+	TaskSetID string `json:"taskset_id,omitempty"`
+	Status    string `json:"status,omitempty"`
+}
+
 func resourceAKSCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceAKSClusterCreate,
@@ -43,7 +48,8 @@ func resourceAKSCluster() *schema.Resource {
 			},
 			"kind": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Default:     "Cluster",
 				Description: "kind",
 			},
 			"metadata": {
@@ -73,7 +79,7 @@ func clusterAKSClusterMetadata() map[string]*schema.Schema {
 			Required:    true,
 			Description: "AKS Cluster name",
 		},
-		"projectname": {
+		"project": {
 			Type:        schema.TypeString,
 			Required:    true,
 			Description: "Project for the cluster",
@@ -131,7 +137,8 @@ func clusterAKSClusterConfig() map[string]*schema.Schema {
 		},
 		"kind": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
+			Default:     "aksClusterConfig",
 			Description: "kind",
 		},
 		"metadata": {
@@ -188,7 +195,7 @@ func clusterAKSClusterConfigSpec() map[string]*schema.Schema {
 		"node_pools": {
 			Type:        schema.TypeList,
 			Required:    true,
-			Description: "Microsoft.ContainerService/managedClusters/agentPools",
+			Description: "The Aks Node Pool",
 			Elem: &schema.Resource{
 				Schema: clusterAKSNodePool(),
 			},
@@ -248,8 +255,9 @@ func clusterAKSManagedCluster() map[string]*schema.Schema {
 		},
 		"type": {
 			Type:        schema.TypeString,
-			Required:    true,
-			Description: "",
+			Optional:    true,
+			Default:     "Microsoft.ContainerService/managedClusters",
+			Description: "Type",
 		},
 	}
 	return s
@@ -411,12 +419,12 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 				Schema: clusterAKSManagedClusterPrivateLinkResources(),
 			},
 		},
-		"service_principal_profile": {
+		"service_principle_profile": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "Information about a service principal identity for the cluster to use for manipulating Azure APIs.",
 			Elem: &schema.Resource{
-				Schema: clusterAKSManagedClusterServicePrincipalProfile(),
+				Schema: clusterAKSManagedClusterServicePrincipleProfile(),
 			},
 		},
 		"windows_profile": {
@@ -488,6 +496,7 @@ func clusterAKSManagedClusterAPIServerAccessProfile() map[string]*schema.Schema 
 		"enable_private_cluster": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     true,
 			Description: "Enable private cluster",
 		},
 		"enable_private_cluster_public_fqdn": {
@@ -552,7 +561,7 @@ func clusterAKSManagedClusterAutoScalerProfile() map[string]*schema.Schema {
 		"ok_total_unready_count": {
 			Type:        schema.TypeInt,
 			Optional:    true,
-			Default:     "3",
+			Default:     3,
 			Description: "This must be an integer.",
 		},
 		"scale_down_delay_after_add": {
@@ -745,6 +754,7 @@ func clusterAKSManagedClusterNetworkProfile() map[string]*schema.Schema {
 		"network_plugin": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Default:     "kubenet",
 			Description: "Network plugin used for building the Kubernetes network. Valid values are azure, kubenet.",
 		},
 		"network_policy": {
@@ -928,9 +938,6 @@ func clusterAKSManagedClusterPodIdentityProfile() map[string]*schema.Schema {
 
 func clusterAKSManagedClusterPIPUserAssignedIdentities() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
-		/// @@@@@@@@@@ https://docs.rafay.co/clusters/aks/aks_schema/#spec-clusterConfig-spec-managedCluster-properties-podIdentityProfile-userAssignedIdentities-bindingSelector
-		/// @@@@@@@@@@
-		/// @@@@@@@@@@
 		"binding_selector": {
 			Type:        schema.TypeString,
 			Optional:    true,
@@ -1035,7 +1042,7 @@ func clusterAKSManagedClusterPrivateLinkResources() map[string]*schema.Schema {
 	return s
 }
 
-func clusterAKSManagedClusterServicePrincipalProfile() map[string]*schema.Schema {
+func clusterAKSManagedClusterServicePrincipleProfile() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"client_id": {
 			Type:        schema.TypeString,
@@ -1099,7 +1106,7 @@ func clusterAKSNodePool() map[string]*schema.Schema {
 		"apiversion": {
 			Type:        schema.TypeString,
 			Required:    true,
-			Description: "Azure resource api version.",
+			Description: "The AKS node pool api version",
 		},
 		"name": {
 			Type:        schema.TypeString,
@@ -1116,7 +1123,7 @@ func clusterAKSNodePool() map[string]*schema.Schema {
 		},
 		"type": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Default:     "Microsoft.ContainerService/managedClusters/agentPools",
 			Description: "The AKS node pool type",
 		},
@@ -1173,7 +1180,7 @@ func clusterAKSNodePoolProperties() map[string]*schema.Schema {
 		},
 		"kubelet_config": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "See AKS custom node configuration for more details.",
 			Elem: &schema.Resource{
 				Schema: clusterAKSNodePoolKubeletConfig(),
@@ -1186,7 +1193,7 @@ func clusterAKSNodePoolProperties() map[string]*schema.Schema {
 		},
 		"linux_os_config": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "See AKS custom node configuration for more details.",
 			Elem: &schema.Resource{
 				Schema: clusterAKSNodePoolLinuxOsConfig(),
@@ -1256,6 +1263,7 @@ func clusterAKSNodePoolProperties() map[string]*schema.Schema {
 		"os_type": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Default:     "Linux",
 			Description: "Valid values are Linux, Windows.",
 		},
 		"pod_subnet_id": {
@@ -1293,11 +1301,12 @@ func clusterAKSNodePoolProperties() map[string]*schema.Schema {
 		"type": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Default:     "VirtualMachineScaleSets",
 			Description: "Valid values are VirtualMachineScaleSets, AvailabilitySet.",
 		},
 		"upgrade_settings": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "Settings for upgrading an agentpool",
 			Elem: &schema.Resource{
 				Schema: clusterAKSNodePoolUpgradeSettings(),
@@ -1592,11 +1601,11 @@ func expandAKSCluster(p []interface{}) *AKSCluster {
 		obj.Kind = v
 	}
 
-	if v, ok := in["metadata"].([]interface{}); ok {
+	if v, ok := in["metadata"].([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandAKSClusterMetadata(v)
 	}
 
-	if v, ok := in["spec"].([]interface{}); ok {
+	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
 		obj.Spec = expandAKSClusterSpec(v)
 	}
 
@@ -1614,7 +1623,7 @@ func expandAKSClusterMetadata(p []interface{}) *AKSClusterMetadata {
 		obj.Name = v
 	}
 
-	if v, ok := in["projectname"].(string); ok && len(v) > 0 {
+	if v, ok := in["project"].(string); ok && len(v) > 0 {
 		obj.Project = v
 	}
 
@@ -1648,7 +1657,7 @@ func expandAKSClusterSpec(p []interface{}) *AKSClusterSpec {
 		obj.CloudProvider = v
 	}
 
-	if v, ok := in["cluster_config"].([]interface{}); ok {
+	if v, ok := in["cluster_config"].([]interface{}); ok && len(v) > 0 {
 		obj.AKSClusterConfig = expandAKSClusterConfig(v)
 	}
 
@@ -1670,11 +1679,11 @@ func expandAKSClusterConfig(p []interface{}) *AKSClusterConfig {
 		obj.Kind = v
 	}
 
-	if v, ok := in["metadata"].([]interface{}); ok {
+	if v, ok := in["metadata"].([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandAKSClusterConfigMetadata(v)
 	}
 
-	if v, ok := in["spec"].([]interface{}); ok {
+	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
 		obj.Spec = expandAKSClusterConfigSpec(v)
 	}
 
@@ -1709,11 +1718,11 @@ func expandAKSClusterConfigSpec(p []interface{}) *AKSClusterConfigSpec {
 		obj.ResourceGroupName = v
 	}
 
-	if v, ok := in["managed_cluster"].([]interface{}); ok {
+	if v, ok := in["managed_cluster"].([]interface{}); ok && len(v) > 0 {
 		obj.ManagedCluster = expandAKSConfigManagedCluster(v)
 	}
 	// @@@@@@@@@@@
-	if v, ok := in["node_pools"].([]interface{}); ok {
+	if v, ok := in["node_pools"].([]interface{}); ok && len(v) > 0 {
 		obj.NodePools = expandAKSNodePool(v)
 	}
 
@@ -1731,11 +1740,11 @@ func expandAKSConfigManagedCluster(p []interface{}) *AKSManagedCluster {
 		obj.APIVersion = v
 	}
 
-	if v, ok := in["extended_location"].([]interface{}); ok {
+	if v, ok := in["extended_location"].([]interface{}); ok && len(v) > 0 {
 		obj.ExtendedLocation = expandAKSManagedClusterExtendedLocation(v)
 	}
 
-	if v, ok := in["identity"].([]interface{}); ok {
+	if v, ok := in["identity"].([]interface{}); ok && len(v) > 0 {
 		obj.Identity = expandAKSManagedClusterIdentity(v)
 	}
 
@@ -1743,11 +1752,11 @@ func expandAKSConfigManagedCluster(p []interface{}) *AKSManagedCluster {
 		obj.Location = v
 	}
 
-	if v, ok := in["properties"].([]interface{}); ok {
+	if v, ok := in["properties"].([]interface{}); ok && len(v) > 0 {
 		obj.Properties = expandAKSManagedClusterProperties(v)
 	}
 
-	if v, ok := in["sku"].([]interface{}); ok {
+	if v, ok := in["sku"].([]interface{}); ok && len(v) > 0 {
 		obj.SKU = expandAKSManagedClusterSKU(v)
 	}
 
@@ -1803,7 +1812,7 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["aad_profile"].([]interface{}); ok {
+	if v, ok := in["aad_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.AzureADProfile = expandAKSManagedClusterAzureADProfile(v)
 	}
 
@@ -1811,15 +1820,15 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 		obj.AddonProfiles = toMapString(v)
 	}
 
-	if v, ok := in["api_server_access_profile"].([]interface{}); ok {
+	if v, ok := in["api_server_access_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.APIServerAccessProfile = expandAKSManagedClusterAPIServerAccessProfile(v)
 	}
 
-	if v, ok := in["auto_scaler_profile"].([]interface{}); ok {
+	if v, ok := in["auto_scaler_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.AutoScalerProfile = expandAKSManagedClusterAutoScalerProfile(v)
 	}
 
-	if v, ok := in["auto_upgrade_profile"].([]interface{}); ok {
+	if v, ok := in["auto_upgrade_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.AutoUpgradeProfile = expandAKSManagedClusterAutoUpgradeProfile(v)
 	}
 
@@ -1847,7 +1856,7 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 		obj.FQDNSubdomain = v
 	}
 
-	if v, ok := in["http_proxy_config"].([]interface{}); ok {
+	if v, ok := in["http_proxy_config"].([]interface{}); ok && len(v) > 0 {
 		obj.HTTPProxyConfig = expandAKSManagedClusterHTTPProxyConfig(v)
 	}
 
@@ -1859,11 +1868,11 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 		obj.KubernetesVersion = v
 	}
 
-	if v, ok := in["linux_profile"].([]interface{}); ok {
+	if v, ok := in["linux_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.LinuxProfile = expandAKSManagedClusterLinuxProfile(v)
 	}
 
-	if v, ok := in["network_profile"].([]interface{}); ok {
+	if v, ok := in["network_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.NetworkProfile = expandAKSManagedClusterNetworkProfile(v)
 	}
 
@@ -1871,19 +1880,19 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 		obj.NodeResourceGroup = v
 	}
 
-	if v, ok := in["pod_identity_profile"].([]interface{}); ok {
+	if v, ok := in["pod_identity_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.PodIdentityProfile = expandAKSManagedClusterPodIdentityProfile(v)
 	}
 
-	if v, ok := in["private_link_resources"].([]interface{}); ok {
+	if v, ok := in["private_link_resources"].([]interface{}); ok && len(v) > 0 {
 		obj.PrivateLinkResources = expandAKSManagedClusterPrivateLinkResources(v)
 	}
 
-	if v, ok := in["service_principal_profile"].([]interface{}); ok {
+	if v, ok := in["service_principal_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.ServicePrincipalProfile = expandAKSManagedClusterServicePrincipalProfile(v)
 	}
 
-	if v, ok := in["windows_profile"].([]interface{}); ok {
+	if v, ok := in["windows_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.WindowsProfile = expandAKSManagedClusterWindowsProfile(v)
 	}
 
@@ -1897,7 +1906,7 @@ func expandAKSManagedClusterAzureADProfile(p []interface{}) *AKSManagedClusterAz
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["admin_group_object_ids"].([]interface{}); ok {
+	if v, ok := in["admin_group_object_ids"].([]interface{}); ok && len(v) > 0 {
 		obj.AdminGroupObjectIDs = toArrayString(v)
 	}
 
@@ -1935,7 +1944,7 @@ func expandAKSManagedClusterAPIServerAccessProfile(p []interface{}) *AKSManagedC
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["authorized_ipr_ranges"].([]interface{}); ok {
+	if v, ok := in["authorized_ipr_ranges"].([]interface{}); ok && len(v) > 0 {
 		obj.AuthorizedIPRanges = toArrayString(v)
 	}
 
@@ -2058,7 +2067,7 @@ func expandAKSManagedClusterHTTPProxyConfig(p []interface{}) *AKSManagedClusterH
 		obj.HTTPSProxy = v
 	}
 
-	if v, ok := in["no_proxy"].([]interface{}); ok {
+	if v, ok := in["no_proxy"].([]interface{}); ok && len(v) > 0 {
 		obj.NoProxy = toArrayString(v)
 	}
 
@@ -2080,11 +2089,11 @@ func expandAKSManagedClusterLinuxProfile(p []interface{}) *AKSManagedClusterLinu
 		obj.AdminUsername = v
 	}
 
-	if v, ok := in["ssh"].([]interface{}); ok {
-		obj.SSH = expandAKSManagedClusterLPSSH(v)
+	if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
+		obj.SSH = expandAKSManagedClusterSSHConfig(v)
 	}
 
-	if v, ok := in["no_proxy"].([]interface{}); ok {
+	if v, ok := in["no_proxy"].([]interface{}); ok && len(v) > 0 {
 		obj.NoProxy = toArrayString(v)
 	}
 
@@ -2094,14 +2103,14 @@ func expandAKSManagedClusterLinuxProfile(p []interface{}) *AKSManagedClusterLinu
 	return obj
 }
 
-func expandAKSManagedClusterLPSSH(p []interface{}) *AKSManagedClusterSSHConfig {
+func expandAKSManagedClusterSSHConfig(p []interface{}) *AKSManagedClusterSSHConfig {
 	obj := &AKSManagedClusterSSHConfig{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["public_keys"].([]interface{}); ok {
+	if v, ok := in["public_keys"].([]interface{}); ok && len(v) > 0 {
 		obj.PublicKeys = expandAKSManagedClusterLPSSHKeyData(v)
 	}
 
@@ -2139,10 +2148,10 @@ func expandAKSManagedClusterNetworkProfile(p []interface{}) *AKSManagedClusterNe
 	}
 
 	if v, ok := in["docker_bridge_cidr"].(string); ok && len(v) > 0 {
-		obj.DockerBridgeCIDR = v
+		obj.DockerBridgeCidr = v
 	}
 
-	if v, ok := in["load_balancer_profile"].([]interface{}); ok {
+	if v, ok := in["load_balancer_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.LoadBalancerProfile = expandAKSManagedClusterNPLoadBalancerProfile(v)
 	}
 
@@ -2187,7 +2196,7 @@ func expandAKSManagedClusterNPLoadBalancerProfile(p []interface{}) *AKSManagedCl
 		obj.AllocatedOutboundPorts = &v
 	}
 
-	if v, ok := in["effective_outbound_ips"].([]interface{}); ok {
+	if v, ok := in["effective_outbound_ips"].([]interface{}); ok && len(v) > 0 {
 		obj.EffectiveOutboundIPs = expandAKSManagedClusterNPEffectiveOutboundIPs(v)
 	}
 
@@ -2195,15 +2204,15 @@ func expandAKSManagedClusterNPLoadBalancerProfile(p []interface{}) *AKSManagedCl
 		obj.IdleTimeoutInMinutes = &v
 	}
 
-	if v, ok := in["managed_outbound_ips"].([]interface{}); ok {
+	if v, ok := in["managed_outbound_ips"].([]interface{}); ok && len(v) > 0 {
 		obj.ManagedOutboundIPs = expandAKSManagedClusterNPManagedOutboundIPs(v)
 	}
 
-	if v, ok := in["outbound_ip_prefixes"].([]interface{}); ok {
+	if v, ok := in["outbound_ip_prefixes"].([]interface{}); ok && len(v) > 0 {
 		obj.OutboundIPPrefixes = expandAKSManagedClusterNPOutboundIPPrefixes(v)
 	}
 
-	if v, ok := in["outbound_ips"].([]interface{}); ok {
+	if v, ok := in["outbound_ips"].([]interface{}); ok && len(v) > 0 {
 		obj.OutboundIPs = expandAKSManagedClusterNPOutboundIPs(v)
 	}
 
@@ -2248,23 +2257,28 @@ func expandAKSManagedClusterNPOutboundIPPrefixes(p []interface{}) *AKSManagedClu
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["public_ip_prefixes"].([]interface{}); ok {
+	if v, ok := in["public_ip_prefixes"].([]interface{}); ok && len(v) > 0 {
 		obj.PublicIPPrefixes = expandAKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes(v)
 	}
 	return obj
 }
 
-func expandAKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes(p []interface{}) *AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes {
-	obj := &AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes{}
+func expandAKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes(p []interface{}) []*AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes {
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return []*AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes{}
 	}
-	in := p[0].(map[string]interface{})
+	out := make([]*AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes, len(p))
 
-	if v, ok := in["id"].(string); ok && len(v) > 0 {
-		obj.ID = v
+	for i := range p {
+		obj := AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["id"].(string); ok {
+			obj.ID = v
+		}
+		out[i] = &obj
 	}
-	return obj
+	return out
 }
 
 func expandAKSManagedClusterNPOutboundIPs(p []interface{}) *AKSManagedClusterNPOutboundIPs {
@@ -2274,23 +2288,28 @@ func expandAKSManagedClusterNPOutboundIPs(p []interface{}) *AKSManagedClusterNPO
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["public_ips"].([]interface{}); ok {
-		obj.PublicIPs = expandOutboundIPsPublicIps(v)
+	if v, ok := in["public_ips"].([]interface{}); ok && len(v) > 0 {
+		obj.PublicIPs = expandAKSManagedClusterNPOutboundIPsPublicIps(v)
 	}
 	return obj
 }
 
-func expandOutboundIPsPublicIps(p []interface{}) *AKSManagedClusterNPOutboundIPsPublicIps {
-	obj := &AKSManagedClusterNPOutboundIPsPublicIps{}
+func expandAKSManagedClusterNPOutboundIPsPublicIps(p []interface{}) []*AKSManagedClusterNPOutboundIPsPublicIps {
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return []*AKSManagedClusterNPOutboundIPsPublicIps{}
 	}
-	in := p[0].(map[string]interface{})
+	out := make([]*AKSManagedClusterNPOutboundIPsPublicIps, len(p))
 
-	if v, ok := in["id"].(string); ok && len(v) > 0 {
-		obj.ID = v
+	for i := range p {
+		obj := AKSManagedClusterNPOutboundIPsPublicIps{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["id"].(string); ok {
+			obj.ID = v
+		}
+		out[i] = &obj
 	}
-	return obj
+	return out
 }
 
 func expandAKSManagedClusterPodIdentityProfile(p []interface{}) *AKSManagedClusterPodIdentityProfile {
@@ -2308,11 +2327,11 @@ func expandAKSManagedClusterPodIdentityProfile(p []interface{}) *AKSManagedClust
 		obj.Enabled = &v
 	}
 
-	if v, ok := in["user_assigned_identities"].([]interface{}); ok {
+	if v, ok := in["user_assigned_identities"].([]interface{}); ok && len(v) > 0 {
 		obj.UserAssignedIdentities = expandAKSManagedClusterPIPUserAssignedIdentities(v)
 	}
 
-	if v, ok := in["user_assigned_identity_exceptions"].([]interface{}); ok {
+	if v, ok := in["user_assigned_identity_exceptions"].([]interface{}); ok && len(v) > 0 {
 		obj.UserAssignedIdentityExceptions = expandAKSManagedClusterPIPUserAssignedIdentityExceptions(v)
 	}
 
@@ -2326,14 +2345,11 @@ func expandAKSManagedClusterPIPUserAssignedIdentities(p []interface{}) *AKSManag
 	}
 	in := p[0].(map[string]interface{})
 
-	/// @@@@@@@@@@ https://docs.rafay.co/clusters/aks/aks_schema/#spec-clusterConfig-spec-managedCluster-properties-podIdentityProfile-userAssignedIdentities-bindingSelector
-	/// @@@@@@@@@@
-	/// @@@@@@@@@@
 	if v, ok := in["binding_selector"].(string); ok && len(v) > 0 {
 		obj.BindingSelector = v
 	}
 
-	if v, ok := in["identity"].([]interface{}); ok {
+	if v, ok := in["identity"].([]interface{}); ok && len(v) > 0 {
 		obj.Identity = expandAKSManagedClusterUAIIdentity(v)
 	}
 
@@ -2391,38 +2407,34 @@ func expandAKSManagedClusterPIPUserAssignedIdentityExceptions(p []interface{}) *
 	return obj
 }
 
-func expandAKSManagedClusterPrivateLinkResources(p []interface{}) []*AKSManagedClusterPrivateLinkResources {
+func expandAKSManagedClusterPrivateLinkResources(p []interface{}) *AKSManagedClusterPrivateLinkResources {
+	obj := &AKSManagedClusterPrivateLinkResources{}
 	if len(p) == 0 || p[0] == nil {
-		return []*AKSManagedClusterPrivateLinkResources{}
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["group_id"].(string); ok && len(v) > 0 {
+		obj.GroupId = v
 	}
 
-	out := make([]*AKSManagedClusterPrivateLinkResources, len(p))
-	for i := range p {
-		obj := AKSManagedClusterPrivateLinkResources{}
-		in := p[i].(map[string]interface{})
-
-		if v, ok := in["group_id"].(string); ok && len(v) > 0 {
-			obj.GroupId = v
-		}
-
-		if v, ok := in["id"].(string); ok && len(v) > 0 {
-			obj.ID = v
-		}
-
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj.Name = v
-		}
-
-		if v, ok := in["required_members"].([]interface{}); ok {
-			obj.RequiredMembers = toArrayString(v)
-		}
-
-		if v, ok := in["type"].(string); ok && len(v) > 0 {
-			obj.Type = v
-		}
-		out[i] = &obj
+	if v, ok := in["id"].(string); ok && len(v) > 0 {
+		obj.ID = v
 	}
-	return out
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+
+	if v, ok := in["required_members"].([]interface{}); ok && len(v) > 0 {
+		obj.RequiredMembers = toArrayString(v)
+	}
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		obj.Type = v
+	}
+
+	return obj
 }
 
 func expandAKSManagedClusterServicePrincipalProfile(p []interface{}) *AKSManagedClusterServicePrincipalProfile {
@@ -2504,7 +2516,7 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 			obj.Name = v
 		}
 
-		if v, ok := in["properties"].([]interface{}); ok {
+		if v, ok := in["properties"].([]interface{}); ok && len(v) > 0 {
 			obj.Properties = expandAKSNodePoolProperties(v)
 		}
 
@@ -2524,7 +2536,7 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["availability_zones"].([]interface{}); ok {
+	if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
 		obj.AvailabilityZones = toArrayString(v)
 	}
 
@@ -2556,7 +2568,7 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 		obj.GpuInstanceProfile = v
 	}
 
-	if v, ok := in["kubelet_config"].([]interface{}); ok {
+	if v, ok := in["kubelet_config"].([]interface{}); ok && len(v) > 0 {
 		obj.KubeletConfig = expandAKSNodePoolKubeletConfig(v)
 	}
 
@@ -2564,7 +2576,7 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 		obj.KubeletDiskType = v
 	}
 
-	if v, ok := in["linux_os_config"].([]interface{}); ok {
+	if v, ok := in["linux_os_config"].([]interface{}); ok && len(v) > 0 {
 		obj.LinuxOSConfig = expandAKSNodePoolLinuxOsConfig(v)
 	}
 
@@ -2592,7 +2604,7 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 		obj.NodePublicIPPrefixID = v
 	}
 
-	if v, ok := in["node_taints"].([]interface{}); ok {
+	if v, ok := in["node_taints"].([]interface{}); ok && len(v) > 0 {
 		obj.NodeTaints = toArrayString(v)
 	}
 
@@ -2644,7 +2656,7 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 		obj.Type = v
 	}
 
-	if v, ok := in["upgrade_settings"].([]interface{}); ok {
+	if v, ok := in["upgrade_settings"].([]interface{}); ok && len(v) > 0 {
 		obj.UpgradeSettings = expandAKSNodePoolUpgradeSettings(v)
 	}
 
@@ -2666,7 +2678,7 @@ func expandAKSNodePoolKubeletConfig(p []interface{}) *AKSNodePoolKubeletConfig {
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["allowed_unsafe_sysctls"].([]interface{}); ok {
+	if v, ok := in["allowed_unsafe_sysctls"].([]interface{}); ok && len(v) > 0 {
 		obj.AllowedUnsafeSysctls = toArrayString(v)
 	}
 
@@ -2724,7 +2736,7 @@ func expandAKSNodePoolLinuxOsConfig(p []interface{}) *AKSNodePoolLinuxOsConfig {
 		obj.SwapFileSizeMB = &v
 	}
 
-	if v, ok := in["sysctls"].([]interface{}); ok {
+	if v, ok := in["sysctls"].([]interface{}); ok && len(v) > 0 {
 		obj.Sysctls = expandAKSNodePoolLinuxOsConfigSysctls(v)
 	}
 
@@ -2939,7 +2951,7 @@ func flattenAKSClusterMetadata(in *AKSClusterMetadata, p []interface{}) ([]inter
 	}
 
 	if len(in.Project) > 0 {
-		obj["projectname"] = in.Project
+		obj["project"] = in.Project
 	}
 
 	if in.Labels != nil && len(in.Labels) > 0 {
@@ -3257,7 +3269,7 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 		obj["kubernetes_version"] = in.KubernetesVersion
 	}
 
-	if in.LinuxProfile != nil {
+	if len(in.LinuxProfile.AdminUsername) >= 0 {
 		v, ok := obj["linux_profile"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -3285,7 +3297,7 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 		obj["pod_identity_profile"] = flattenAKSManagedClusterPodIdentityProfile(in.PodIdentityProfile, v)
 	}
 
-	if in.PrivateLinkResources != nil && len(in.PrivateLinkResources) > 0 {
+	if in.PrivateLinkResources != nil {
 		v, ok := obj["private_link_resources"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -3592,8 +3604,8 @@ func flattenAKSMCPropertiesNetworkProfile(in *AKSManagedClusterNetworkProfile, p
 		obj["dns_service_ip"] = in.DNSServiceIP
 	}
 
-	if len(in.DockerBridgeCIDR) > 0 {
-		obj["docker_bridge_cidr"] = in.DockerBridgeCIDR
+	if len(in.DockerBridgeCidr) > 0 {
+		obj["docker_bridge_cidr"] = in.DockerBridgeCidr
 	}
 
 	if in.LoadBalancerProfile != nil {
@@ -3622,10 +3634,6 @@ func flattenAKSMCPropertiesNetworkProfile(in *AKSManagedClusterNetworkProfile, p
 
 	if len(in.OutboundType) > 0 {
 		obj["outbound_type"] = in.OutboundType
-	}
-
-	if len(in.ServiceCIDR) > 0 {
-		obj["service_cidr"] = in.ServiceCIDR
 	}
 
 	if len(in.PodCidr) > 0 {
@@ -3742,7 +3750,7 @@ func flattenAKSManagedClusterNPOutboundIPPrefixes(in *AKSManagedClusterNPOutboun
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.PublicIPPrefixes != nil {
+	if in.PublicIPPrefixes != nil && len(in.PublicIPPrefixes) > 0 {
 		v, ok := obj["public_ip_prefixes"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -3754,20 +3762,26 @@ func flattenAKSManagedClusterNPOutboundIPPrefixes(in *AKSManagedClusterNPOutboun
 
 }
 
-func flattenAKSManagedClusterNPOutboundIPsPublicIPPrefixes(in *AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes, p []interface{}) []interface{} {
+func flattenAKSManagedClusterNPOutboundIPsPublicIPPrefixes(in []*AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.ID) > 0 {
+			obj["id"] = in.ID
+		}
+
+		out[i] = &obj
 	}
 
-	if len(in.ID) > 0 {
-		obj["id"] = in.ID
-	}
-
-	return []interface{}{obj}
+	return out
 
 }
 
@@ -3780,7 +3794,7 @@ func flattenAKSManagedClusterNPOutboundIPs(in *AKSManagedClusterNPOutboundIPs, p
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.PublicIPs != nil {
+	if in.PublicIPs != nil && len(in.PublicIPs) > 0 {
 		v, ok := obj["public_ips"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -3792,20 +3806,26 @@ func flattenAKSManagedClusterNPOutboundIPs(in *AKSManagedClusterNPOutboundIPs, p
 
 }
 
-func flattenAKSManagedClusterNPOutboundIPsPublicIPs(in *AKSManagedClusterNPOutboundIPsPublicIps, p []interface{}) []interface{} {
+func flattenAKSManagedClusterNPOutboundIPsPublicIPs(in []*AKSManagedClusterNPOutboundIPsPublicIps, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.ID) > 0 {
+			obj["id"] = in.ID
+		}
+
+		out[i] = &obj
 	}
 
-	if len(in.ID) > 0 {
-		obj["id"] = in.ID
-	}
-
-	return []interface{}{obj}
+	return out
 
 }
 
@@ -3971,42 +3991,36 @@ func flattenAKSManagedClusterWindowsProfile(in *AKSManagedClusterWindowsProfile,
 
 }
 
-func flattenAKSManagedClusterPrivateLinkResources(in []*AKSManagedClusterPrivateLinkResources, p []interface{}) []interface{} {
+func flattenAKSManagedClusterPrivateLinkResources(in *AKSManagedClusterPrivateLinkResources, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
-	out := make([]interface{}, len(in))
-	for i, in := range in {
-
-		obj := map[string]interface{}{}
-		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
-		}
-
-		if len(in.GroupId) > 0 {
-			obj["group_id"] = in.GroupId
-		}
-
-		if len(in.ID) > 0 {
-			obj["id"] = in.ID
-		}
-
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
-		}
-
-		if in.RequiredMembers != nil && len(in.RequiredMembers) > 0 {
-			obj["required_members"] = toArrayInterface(in.RequiredMembers)
-		}
-
-		if len(in.Type) > 0 {
-			obj["type"] = in.Type
-		}
-
-		out[i] = &obj
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
 	}
 
-	return out
+	if len(in.GroupId) > 0 {
+		obj["group_id"] = in.GroupId
+	}
+
+	if len(in.ID) > 0 {
+		obj["id"] = in.ID
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if in.RequiredMembers != nil && len(in.RequiredMembers) > 0 {
+		obj["required_members"] = toArrayInterface(in.RequiredMembers)
+	}
+
+	if len(in.Type) > 0 {
+		obj["type"] = in.Type
+	}
+
+	return []interface{}{obj}
 
 }
 
@@ -4202,8 +4216,8 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}) []
 		obj["upgrade_settings"] = flattenAKSNodePoolUpgradeSettings(in.UpgradeSettings, v)
 	}
 
-	if len(in.VMSize) > 0 {
-		obj["vm_size"] = in.VMSize
+	if len(in.VmSize) > 0 {
+		obj["vm_size"] = in.VmSize
 	}
 
 	if len(in.VnetSubnetID) > 0 {
@@ -4382,72 +4396,73 @@ func flattenAKSNodePoolUpgradeSettings(in *AKSNodePoolUpgradeSettings, p []inter
 
 ///Original Functions
 
-// func aksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte, dryRun bool) (string, error) {
-// 	logger := glogger.GetLogger()
-// 	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
-// 	if len(errs) == 0 && len(configMap) > 0 {
-// 		// Make request
-// 		for clusterName, configBytes := range configMap {
-// 			return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun)
-// 		}
-// 	}
-// 	return "", fmt.Errorf("%s", "config collate error")
-// }
+func aksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte, dryRun bool) (string, error) {
+	log.Printf("aks cluster ctl start")
+	logger := glogger.GetLogger()
+	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
+	if len(errs) == 0 && len(configMap) > 0 {
+		// Make request
+		for clusterName, configBytes := range configMap {
+			return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun)
+		}
+	}
+	return "", fmt.Errorf("%s", "config collate error")
+}
 
-// func aksClusterCTLStatus(taskid string) (string, error) {
-// 	logger := glogger.GetLogger()
-// 	rctlCfg := config.GetConfig()
-// 	return clusterctl.Status(logger, rctlCfg, taskid)
-// }
+func aksClusterCTLStatus(taskid string) (string, error) {
+	logger := glogger.GetLogger()
+	rctlCfg := config.GetConfig()
+	return clusterctl.Status(logger, rctlCfg, taskid)
+}
 
 func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	projectName := d.Get("projectname").(string)
-	resp, err := project.GetProjectByName(projectName)
+	obj := &AKSCluster{}
+
+	if v, ok := d.Get("apiversion").(string); ok {
+		obj.APIVersion = v
+	} else {
+		fmt.Print("apiversion unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "Apiversion is missing"))
+	}
+
+	if v, ok := d.Get("kind").(string); ok {
+		obj.Kind = v
+	} else {
+		fmt.Print("kind unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "Kind is missing"))
+	}
+
+	if v, ok := d.Get("metadata").([]interface{}); ok {
+		obj.Metadata = expandAKSClusterMetadata(v)
+	} else {
+		fmt.Print("metadata unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
+	}
+
+	if v, ok := d.Get("spec").([]interface{}); ok {
+		obj.Spec = expandAKSClusterSpec(v)
+	} else {
+		fmt.Print("Cluster spec unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
+	}
+
+	projectName := obj.Metadata.Project
+	_, err := project.GetProjectByName(projectName)
 	if err != nil {
 		fmt.Print("project name missing in the resource")
 		return diag.FromErr(fmt.Errorf("%s", "Project name missing in the resource"))
 	}
 
-	_, err = project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		return diag.FromErr(fmt.Errorf("%s", "Project does not exist"))
+	if obj.Metadata.Name != obj.Spec.AKSClusterConfig.Metadata.Name {
+		return diag.FromErr(fmt.Errorf("%s", "ClusterConfig name does not match config file"))
 	}
 
-	clusterName := d.Get("name").(string)
-	metadata := AKSClusterMetadata{
-		Name:    clusterName,
-		Project: projectName,
-	}
-
-	blueprint := d.Get("blueprint").(string)
-	blueprintversion := d.Get("blueprintversion").(string)
-	cloudprovider := d.Get("cloudprovider").(string)
-
-	//not fully filled
-	clusterConfig := expandAKSClusterConfig(d.Get("cluster_config").([]interface{}))
-
-	spec := AKSClusterSpec{
-		Type:             "aks",
-		Blueprint:        blueprint,
-		BlueprintVersion: blueprintversion,
-		CloudProvider:    cloudprovider,
-		AKSClusterConfig: clusterConfig,
-	}
-
-	aksCluster := AKSCluster{
-		APIVersion: "rafay.io/v1alpha1",
-		Kind:       "aksClusterConfig",
-		Metadata:   &metadata,
-		Spec:       &spec,
-	}
-
-	out, err := yaml.Marshal(aksCluster)
+	out, err := yaml.Marshal(obj)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	//log.Printf("AKS Cluster YAML SPEC \n---\n%s\n----\n", out)
-	return process_filebytes(ctx, d, m, out)
+	log.Printf("AKS Cluster YAML SPEC \n---\n%s\n----\n", out)
+	return process_filebytes(ctx, d, m, out, obj)
 }
 
 func resourceAKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -4457,7 +4472,8 @@ func resourceAKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m int
 
 }
 
-func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{}, fileBytes []byte) diag.Diagnostics {
+func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{}, fileBytes []byte, obj *AKSCluster) diag.Diagnostics {
+	log.Printf("process_filebytes")
 	var diags diag.Diagnostics
 	rctlCfg := config.GetConfig()
 	// split the file and update individual resources
@@ -4477,29 +4493,8 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 		return diags
 	}
 
-	var c AKSCluster
-	if err = yaml.Unmarshal(fileBytes, &c); err != nil {
-		return diag.FromErr(err)
-	}
-
-	if c.Spec.Type != "aks" {
-		fmt.Printf("cluster types is not aks, type is %s", c.Spec.Type)
-		return diags
-	}
-
-	if c.Metadata.Name == "" {
-		return diag.FromErr(fmt.Errorf("cluster name is not provided in yaml file"))
-	}
-
-	if c.Metadata.Name != d.Get("name").(string) {
-		return diag.FromErr(fmt.Errorf("%s", "ClusterConfig name does not match config file"))
-	}
-
-	if c.Metadata.Project != d.Get("projectname").(string) {
-		return diag.FromErr(fmt.Errorf("%s", "ClusterConfig projectname does not match config file"))
-	}
 	// get project details
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
 		fmt.Printf("project does not exist")
 		return diags
@@ -4509,12 +4504,15 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 		fmt.Printf("project does not exist")
 		return diags
 	}
+	log.Printf("cluster start")
 
 	// cluster
-	response, err := aksClusterCTL(rctlCfg, cfgList["Cluster"], cfgList["ClusterConfig"], false)
+	response, err := aksClusterCTL(rctlCfg, cfgList["Cluster"], cfgList["aksClusterConfig"], false)
 	if err != nil {
+		log.Printf("cluster error 1: %s", err)
 		return diag.FromErr(err)
 	}
+
 	log.Printf("process_filebytes response : %s", response)
 	res := clusterCTLResponse{}
 	err = json.Unmarshal([]byte(response), &res)
@@ -4524,7 +4522,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 
 	time.Sleep(10 * time.Second)
-	s, errGet := cluster.GetCluster(d.Get("name").(string), project.ID)
+	s, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
 	if errGet != nil {
 		log.Printf("error while getCluster %s", errGet.Error())
 		return diag.FromErr(errGet)
@@ -4533,7 +4531,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	log.Printf("Cluster Provision may take upto 15-20 Minutes")
 	for {
 		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(d.Get("name").(string), project.ID)
+		check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
 		if errGet != nil {
 			log.Printf("error while getCluster %s", errGet.Error())
 			return diag.FromErr(errGet)
@@ -4558,7 +4556,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 			log.Println("task completed but cluster is not ready")
 		}
 		if strings.Contains(sres.Status, "STATUS_FAILED") {
-			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", d.Get("name").(string), statusResp))
+			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", obj.Metadata.Name, statusResp))
 		}
 	}
 	log.Printf("resource aks cluster created/updated %s", s.ID)
@@ -4576,7 +4574,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	var diags diag.Diagnostics
 	log.Println("resourceAKSClusterRead")
 
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	resp, err := project.GetProjectByName(d.Get("project").(string))
 	if err != nil {
 		fmt.Print("project name missing in the resource")
 		return diags

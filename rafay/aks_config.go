@@ -1,5 +1,8 @@
 package rafay
 
+const AKSClusterAPIVersion = "rafay.io/v1alpha1"
+const AKSClusterKind = "Cluster"
+
 const AKSClusterConfigAPIVersion = "rafay.io/v1alpha1"
 const AKSClusterConfigKind = "aksClusterConfig"
 
@@ -25,24 +28,24 @@ const AzureRoleIDMonitoringMetricsPublisher = "3913510d-42f4-4e42-8a64-420c39005
 const AzureRoleIDContributor = "b24988ac-6180-42a0-ab88-20f7382dd24c"
 
 type AKSCluster struct {
-	APIVersion string              `yaml:"apiversion"`
-	Kind       string              `yaml:"kind"`
-	Metadata   *AKSClusterMetadata `yaml:"metadata"`
-	Spec       *AKSClusterSpec     `yaml:"spec"`
+	APIVersion string              `yaml:"apiversion,omitempty"`
+	Kind       string              `yaml:"kind,omitempty"`
+	Metadata   *AKSClusterMetadata `yaml:"metadata,omitempty"`
+	Spec       *AKSClusterSpec     `yaml:"spec,omitempty"`
 }
 
 type AKSClusterMetadata struct {
-	Name    string            `yaml:"name"`
-	Project string            `yaml:"project"`
-	Labels  map[string]string `yaml:"labels,omitempty"`
+	Name    string            `yaml:"name,omitempty"`
+	Project string            `yaml:"project,omitempty"`
+	Labels  map[string]string `yaml:"labels,omitempty,omitempty"`
 }
 
 type AKSClusterSpec struct {
-	Type             string            `yaml:"type"`
-	Blueprint        string            `yaml:"blueprint"`
-	BlueprintVersion string            `yaml:"blueprintversion"`
-	CloudProvider    string            `yaml:"cloudprovider"`
-	AKSClusterConfig *AKSClusterConfig `yaml:"clusterConfig"`
+	Type             string            `yaml:"type,omitempty"`
+	Blueprint        string            `yaml:"blueprint,omitempty"`
+	BlueprintVersion string            `yaml:"blueprintversion,omitempty"`
+	CloudProvider    string            `yaml:"cloudprovider,omitempty"`
+	AKSClusterConfig *AKSClusterConfig `yaml:"clusterConfig,omitempty"`
 }
 
 type AzureRafayMetadata struct {
@@ -51,14 +54,14 @@ type AzureRafayMetadata struct {
 }
 
 type AKSClusterConfig struct {
-	APIVersion string                    `yaml:"apiversion"`
-	Kind       string                    `yaml:"kind"`
-	Metadata   *AKSClusterConfigMetadata `yaml:"metadata"`
-	Spec       *AKSClusterConfigSpec     `yaml:"spec"`
+	APIVersion string                    `yaml:"apiversion,omitempty"`
+	Kind       string                    `yaml:"kind,omitempty"`
+	Metadata   *AKSClusterConfigMetadata `yaml:"metadata,omitempty"`
+	Spec       *AKSClusterConfigSpec     `yaml:"spec,omitempty"`
 }
 
 type AKSClusterConfigMetadata struct {
-	Name string `yaml:"name"`
+	Name string `yaml:"name,omitempty"`
 }
 
 type AKSClusterConfigSpec struct {
@@ -77,11 +80,11 @@ type AKSClusterConfigSpec struct {
 type AKSManagedCluster struct {
 	ExtendedLocation *AKSClusterExtendedLocation `yaml:"extendedLocation,omitempty"`
 	//Metadata         *AzureRafayClusterMetadata   `yaml:"additionalMetadata,omitempty"`
-	Type       string                       `yaml:"type"`
-	APIVersion string                       `yaml:"apiversion"`
-	Location   string                       `yaml:"location"`
+	Type       string                       `yaml:"type,omitempty"`
+	APIVersion string                       `yaml:"apiversion,omitempty"`
+	Location   string                       `yaml:"location,omitempty"`
 	Identity   *AKSManagedClusterIdentity   `yaml:"identity,omitempty"`
-	Properties *AKSManagedClusterProperties `yaml:"properties"`
+	Properties *AKSManagedClusterProperties `yaml:"properties,omitempty"`
 	SKU        *AKSManagedClusterSKU        `yaml:"sku,omitempty"`
 	Tags       map[string]string            `yaml:"tags,omitempty"`
 }
@@ -124,16 +127,15 @@ type AKSManagedClusterProperties struct {
 	AutoScalerProfile       *AKSManagedClusterAutoScalerProfile       `yaml:"autoScalerProfile,omitempty"`
 	AutoUpgradeProfile      *AKSManagedClusterAutoUpgradeProfile      `yaml:"autoUpgradeProfile,omitempty"`
 	PodIdentityProfile      *AKSManagedClusterPodIdentityProfile      `yaml:"podIdentityProfile,omitempty"`
-	PrivateLinkResources    []*AKSManagedClusterPrivateLinkResources  `yaml:"privateLinkResources,omitempty"`
+	PrivateLinkResources    *AKSManagedClusterPrivateLinkResources    `yaml:"privateLinkResources,omitempty"`
 }
 
 type AKSManagedClusterNetworkProfile struct {
 	LoadBalancerSKU     string                                  `yaml:"loadBalancerSku,omitempty"`
 	NetworkPlugin       string                                  `yaml:"networkPlugin,omitempty"`
 	NetworkPolicy       string                                  `yaml:"networkPolicy,omitempty"`
-	ServiceCIDR         string                                  `yaml:"serviceCidr,omitempty"`
 	DNSServiceIP        string                                  `yaml:"dnsServiceIp,omitempty"`
-	DockerBridgeCIDR    string                                  `yaml:"dockerBridgeCidr,omitempty"`
+	DockerBridgeCidr    string                                  `yaml:"dockerBridgeCidr,omitempty"`
 	LoadBalancerProfile *AKSManagedClusterNPLoadBalancerProfile `yaml:"loadBalancerProfile,omitempty"`
 	NetworkMode         string                                  `yaml:"networkMode,omitempty"`
 	OutboundType        string                                  `yaml:"outboundType,omitempty"`
@@ -159,14 +161,14 @@ type AKSManagedClusterNPManagedOutboundIPs struct {
 }
 
 type AKSManagedClusterNPOutboundIPs struct {
-	PublicIPs *AKSManagedClusterNPOutboundIPsPublicIps `yaml:"publicIps,omitempty"`
+	PublicIPs []*AKSManagedClusterNPOutboundIPsPublicIps `yaml:"publicIps,omitempty"`
 }
 type AKSManagedClusterNPOutboundIPsPublicIps struct {
 	ID string `yaml:"id,omitempty"`
 }
 
 type AKSManagedClusterNPOutboundIPPrefixes struct {
-	PublicIPPrefixes *AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes `yaml:"publicIpPrefixes,omitempty"`
+	PublicIPPrefixes []*AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes `yaml:"publicIpPrefixes,omitempty"`
 }
 
 type AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes struct {
@@ -220,27 +222,27 @@ type AKSManagedClusterAddonProfile struct {
 }
 
 type AKSManagedClusterServicePrincipalProfile struct {
-	ClientID string `yaml:"clientId"`
+	ClientID string `yaml:"clientId,omitempty"`
 	Secret   string `yaml:"secret,omitempty"`
 }
 
 type AKSManagedClusterLinuxProfile struct {
-	AdminUsername string                      `yaml:"adminUsername"`
-	SSH           *AKSManagedClusterSSHConfig `yaml:"ssh"`
-	NoProxy       []string                    `yaml:"noProxy"`
-	TrustedCa     string                      `yaml:"trustedCa"`
+	AdminUsername string                      `yaml:"adminUsername,omitempty"`
+	SSH           *AKSManagedClusterSSHConfig `yaml:"ssh,omitempty"`
+	NoProxy       []string                    `yaml:"noProxy,omitempty"`
+	TrustedCa     string                      `yaml:"trustedCa,omitempty"`
 }
 
 type AKSManagedClusterSSHConfig struct {
-	PublicKeys []*AKSManagedClusterSSHKeyData `yaml:"publicKeys"`
+	PublicKeys []*AKSManagedClusterSSHKeyData `yaml:"publicKeys,omitempty"`
 }
 
 type AKSManagedClusterSSHKeyData struct {
-	KeyData string `yaml:"keyData"`
+	KeyData string `yaml:"keyData,omitempty"`
 }
 
 type AKSManagedClusterWindowsProfile struct {
-	AdminUsername  string `yaml:"adminUsername"`
+	AdminUsername  string `yaml:"adminUsername,omitempty"`
 	AdminPassword  string `yaml:"adminPassword,omitempty"`
 	LicenseType    string `yaml:"licenseType,omitempty"`
 	EnableCSIProxy *bool  `yaml:"enableCsiProxy,omitempty"`
@@ -293,15 +295,14 @@ type AKSManagedClusterSKU struct {
 }
 
 type AKSNodePool struct {
-	Type       string `yaml:"type"`
-	APIVersion string `yaml:"apiversion"`
-	Name       string `yaml:"name"`
+	Type       string `yaml:"type,omitempty"`
+	APIVersion string `yaml:"apiversion,omitempty"`
+	Name       string `yaml:"name,omitempty"`
 	// Location   string                 `yaml:"location"`
-	Properties *AKSNodePoolProperties `yaml:"properties"`
+	Properties *AKSNodePoolProperties `yaml:"properties,omitempty"`
 }
 
 type AKSNodePoolProperties struct {
-	VMSize                    string                      `yaml:"vmSize,omitempty"`
 	OsDiskSizeGB              *int                        `yaml:"osDiskSizeGb,omitempty"`
 	Mode                      string                      `yaml:"mode,omitempty"`
 	AvailabilityZones         []string                    `yaml:"availabilityZones,omitempty"`

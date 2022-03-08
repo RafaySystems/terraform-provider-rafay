@@ -15,8 +15,7 @@ resource "rafay_namespace" "tfdemonamespace1" {
   }
 
   spec {
-    artifact {
-    }
+   
 
     drift {
       enabled = false
@@ -150,7 +149,10 @@ resource "rafay_namespace" "tfdemonamespace2" {
   }
   spec {
     placement {
-      selector = "rafay.dev/clusterName=hardik-qc-mks-1"
+       labels {
+        key = "tftest"
+        value = "nstest"
+      }
     }
     drift {
       enabled = false

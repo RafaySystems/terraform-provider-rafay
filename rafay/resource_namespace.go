@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
@@ -17,6 +20,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/pkg/errors"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -107,6 +111,34 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
+	artifactNames, err := ns.ArtifactList()
+	if err != nil {
+		err = errors.Wrapf(err, "unable to list artifacts")
+		return diag.FromErr(err)
+	}
+	log.Println(" resourceNamespaceUpsert artifactNames ", artifactNames)
+
+	for _, artifactName := range artifactNames {
+
+		if !strings.HasPrefix(artifactName, "file://") {
+			continue
+		}
+		//get full path of artifact
+		artifactFullPath := filepath.Join(filepath.Dir("."), artifactName[7:])
+		//retrieve artifact data
+		artifactData, err := ioutil.ReadFile(artifactFullPath)
+		if err != nil {
+			err = fmt.Errorf("unable to read artifact at '%s'", artifactFullPath)
+			return diag.FromErr(err)
+		}
+		//set artifact in namespace
+		err = ns.ArtifactSet(artifactName, artifactData)
+		if err != nil {
+			err = fmt.Errorf("unable to set artifact %s at path '%s'", artifactName, artifactFullPath)
+			return diag.FromErr(err)
+		}
+	}
+
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 	if err != nil {
@@ -117,8 +149,8 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 	err = client.InfraV3().Namespace().Apply(ctx, ns, options.ApplyOptions{})
 	if err != nil {
 		// XXX Debug
-		n1 := spew.Sprintf("%+v", ns)
-		log.Println("rnamespace apply ns:", n1)
+		// n1 := spew.Sprintf("%+v", ns)
+		// log.Println("namespace apply ns:", n1)
 		log.Printf("namespace apply error")
 		return diag.FromErr(err)
 	}
@@ -141,6 +173,7 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed {
 			return diag.FromErr(fmt.Errorf("%s", "failed to publish namespace"))
 		}
+		log.Println("nsStatus.Status.ConditionStatus ", nsStatus.Status.ConditionStatus)
 	}
 
 	d.SetId(ns.Metadata.Name)
@@ -494,14 +527,21 @@ func flattenNamespaceResourceQuotas(in *infrapb.NamespaceResourceQuotas) []inter
 		return nil
 	}
 
+	retNil := true
 	obj := make(map[string]interface{})
 
 	if in.Requests != nil {
 		obj["requests"] = flattenResourceQuantity(in.Requests)
+		retNil = false
 	}
 
 	if in.Limits != nil {
 		obj["limits"] = flattenResourceQuantity(in.Limits)
+		retNil = false
+	}
+
+	if retNil {
+		return nil
 	}
 
 	return []interface{}{obj}
@@ -511,15 +551,21 @@ func flattenNamespaceLimitRange(in *infrapb.NamespaceLimitRange) []interface{} {
 	if in == nil {
 		return nil
 	}
-
+	retNil := true
 	obj := make(map[string]interface{})
 
 	if in.Pod != nil {
 		obj["pod"] = flattenNamespaceLimitRangeConfig(in.Pod)
+		retNil = false
 	}
 
 	if in.Container != nil {
 		obj["container"] = flattenNamespaceLimitRangeConfig(in.Container)
+		retNil = false
+	}
+
+	if retNil {
+		return nil
 	}
 
 	return []interface{}{obj}
@@ -627,16 +673,24 @@ func flattenNamespaceArtifact(nsat *namespaceSpecTranspose, p []interface{}) ([]
 		obj = p[0].(map[string]interface{})
 	}
 
+	retNil := true
 	if len(nsat.Artifact.Repository) > 0 {
 		obj["repository"] = nsat.Artifact.Repository
+		retNil = false
 	}
 
 	if len(nsat.Artifact.Revision) > 0 {
 		obj["revision"] = nsat.Artifact.Revision
+		retNil = false
 	}
 
 	if nsat.Artifact.Path != nil {
 		obj["path"] = flattenFile(nsat.Artifact.Path)
+		retNil = false
+	}
+
+	if retNil {
+		return nil, nil
 	}
 
 	return []interface{}{obj}, nil

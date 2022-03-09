@@ -191,6 +191,25 @@ func expandV1MetaData(p []interface{}) *commonpb.Metadata {
 	return obj
 }
 
+func expandDrift(p []interface{}) *commonpb.DriftSpec {
+	obj := &commonpb.DriftSpec{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["action"].(string); ok && len(v) > 0 {
+		obj.Action = v
+	}
+
+	return obj
+}
+
 func expandPlacementLabels(p []interface{}) []*commonpb.PlacementLabel {
 	if len(p) == 0 || p[0] == nil {
 		return nil
@@ -573,6 +592,22 @@ func flattenSharingSpec(in *commonpb.SharingSpec) []interface{} {
 	obj["enabled"] = in.Enabled
 	if len(in.Projects) > 0 {
 		obj["projects"] = flattenProjectMeta(in.Projects)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenDrift(in *commonpb.DriftSpec) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+
+	obj["enabled"] = in.Enabled
+
+	if len(in.Action) > 0 {
+		obj["action"] = in.Action
 	}
 
 	return []interface{}{obj}

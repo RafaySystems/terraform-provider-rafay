@@ -1,27 +1,63 @@
-#rafay_namespace.tfdemonamespace1:
+#Basic example for namespace
 resource "rafay_namespace" "tfdemonamespace1" {
   metadata {
-    labels = {
-      "env"  = "dev"
-      "name" = "app"
-    }
-    annotations = {
-      "env"  = "dev"
-      "name" = "app"
-    }
-    
-    name    = "tfdemonamespace1"
-    project = "upgrade"
+    name        = "tfdemonamespace1"
+    project     = "tfdemoproject1"
   }
-
   spec {
-   
-
     drift {
       enabled = false
     }
+    placement {
+      labels {
+        key = "rafay.dev/clusterName"
+        value = "cluster_name"
+      }
+    }
+  }
+}
 
+#Namespace example with resource quotas & limit ranges
+resource "rafay_namespace" "namespace" {
+  metadata {
+    name        = "tfdemonamespace2"
+    project     = "tfdemoproject1"
+    labels = {
+      "env"  = "prod"
+    }
+    annotations = {
+      "logging" = "enabled"
+    }
+  }
+  spec {
+    drift {
+      enabled = false
+    }
     limit_range {
+      pod {
+        max {
+          cpu {
+            string = "2"
+          }
+          memory {
+            string = "2Gi"
+          }
+        }
+        min {
+          cpu {
+            string = "1"
+          }
+
+          memory {
+            string = "1Gi"
+          }
+        }
+
+        ratio {
+          cpu    = 1
+          memory = 1
+        }
+      }
       container {
         default {
           cpu {
@@ -45,39 +81,11 @@ resource "rafay_namespace" "tfdemonamespace1" {
 
         max {
           cpu {
-            string = "1"
+            string = "2"
           }
 
           memory {
-            string = "1Gi"
-          }
-        }
-
-        min {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
-        }
-
-        ratio {
-          cpu    = 1
-          memory = 1
-        }
-      }
-
-      pod {
-
-        max {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
+            string = "2Gi"
           }
         }
 
@@ -97,73 +105,31 @@ resource "rafay_namespace" "tfdemonamespace1" {
         }
       }
     }
-
-    placement {
-       labels {
-        key = "tftest"
-        value = "nstest"
-      }
-    }
-
-
     resource_quotas {
-      limits {
-        cpu {
-          string = "1"
+        limits {
+          cpu {
+            string = "8"
+          }
+          memory {
+            string = "16Gi"
+          }
+
+        }
+        requests {
+          cpu {
+            string = "4"
+          }
+          memory {
+            string = "8Gi"
+          }
         }
 
-        memory {
-          string = "1Gi"
-        }
-      }
-
-      requests {
-        cpu {
-          string = "1"
-        }
-
-        memory {
-          string = "1Gi"
-        }
-      }
     }
-  }
-  timeouts {
-    create = "1m"
-    delete = "1m"
-    update = "1m" 
-  }
-}
-
-
-#rafay_namespace.tfdemonamespace2:
-resource "rafay_namespace" "tfdemonamespace2" {
-
-  metadata {
-    name    = "tfdemonamespace2"
-    project = "upgrade"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
-  }
-  spec {
     placement {
-       labels {
-        key = "tftest"
-        value = "nstest"
+      labels {
+        key = "rafay.dev/clusterName"
+        value = "cluster_name"
       }
-    }
-    drift {
-      enabled = false
-    }
-    artifact {
-      path {
-        name = "yaml/tfns.yaml"
-      }
-      repository = "release-check-ssh"
-      revision   = "main"
-
     }
   }
 }

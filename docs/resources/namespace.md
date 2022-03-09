@@ -55,6 +55,9 @@ resource "rafay_namespace" "namespace" {
     }
   }
   spec {
+    drift {
+      enabled = false
+    }
     limit_range {
       pod {
         max {

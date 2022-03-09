@@ -5,8 +5,8 @@ resource "rafay_project" "tfdemoproject1" {
   }
 
   spec {
-    # spec default value is fixed to 'false' foor now in the controller.
-    # Will be allowed to enable in the future.
+    # spec default value is fixed to 'false' for now.
+    # Enable support will be added in the future.
     default = false
   }
 }

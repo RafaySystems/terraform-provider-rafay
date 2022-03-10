@@ -1,3 +1,4 @@
+# YAML Upload Example
 resource "rafay_addon" "tfdemoaddon1" {
   metadata {
     name    = "tfdemoaddon1"
@@ -24,6 +25,9 @@ resource "rafay_addon" "tfdemoaddon1" {
     }
   }
 }
+
+
+# Helm Chart Upload Example
 
 resource "rafay_addon" "tfdemoaddon4" {
   metadata {

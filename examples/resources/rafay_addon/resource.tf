@@ -25,38 +25,38 @@ resource "rafay_addon" "tfdemoaddon1" {
   }
 }
 
-# resource "rafay_addon" "tfdemoaddon4" {
-#   metadata {
-#     name    = "tfdemoaddon4"
-#     project = "upgrade"
-#     labels = {
-#       env  = "dev"
-#       name = "app"
-#     }
-#   }
-#   spec {
-#     namespace = "tfdemonamespace1"
-#     version   = "v1.0"
-#     artifact {
-#       type = "Helm"
-#       artifact {
-#         chart_path {
-#           name = "file://artifacts/tfdemoaddon4/apache-9.0.9.tgz"
-#         }
-#       }
-#       options {
-#           max_history = 10
-#           timeout = "5m0s"
-#       }
-#     }
-#     sharing {
-#       enabled = true
-#       projects {
-#           name = "addons"
-#       }
-#       projects {
-#           name = "ankurp"
-#       }
-#     }
-#   }
-# }
+resource "rafay_addon" "tfdemoaddon4" {
+  metadata {
+    name    = "tfdemoaddon4"
+    project = "upgrade"
+    labels = {
+      env  = "dev"
+      name = "app"
+    }
+  }
+  spec {
+    namespace = "tfdemonamespace1"
+    version   = "v1.0"
+    artifact {
+      type = "Helm"
+      artifact {
+        chart_path {
+          name = "file://artifacts/tfdemoaddon4/apache-9.0.9.tgz"
+        }
+      }
+      options {
+          max_history = 10
+          timeout = "5m0s"
+      }
+    }
+    sharing {
+      enabled = true
+      projects {
+          name = "addons"
+      }
+      projects {
+          name = "ankurp"
+      }
+    }
+  }
+}

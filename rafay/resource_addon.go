@@ -97,8 +97,7 @@ func resourceAddonUpsert(ctx context.Context, d *schema.ResourceData, m interfac
 	if err != nil {
 		// XXX Debug
 		n1 := spew.Sprintf("%+v", addon)
-		log.Println("addon apply addon:", n1)
-		log.Printf("addon apply error")
+		log.Println("error addon apply addon:", n1)
 		return diag.FromErr(err)
 	}
 
@@ -170,8 +169,8 @@ func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 
 	// XXX Debug
-	// w1 = spew.Sprintf("%+v", wl)
-	// log.Println("resourceAddonRead wl", w1)
+	addst := spew.Sprintf("%+v", addon)
+	log.Println("resourceAddonRead addst", addst)
 
 	err = flattenAddon(d, addon)
 	if err != nil {
@@ -196,7 +195,9 @@ func expandAddon(in *schema.ResourceData) (*infrapb.Addon, error) {
 		if err != nil {
 			return nil, err
 		}
-		log.Println("expandAddonSpec got spec")
+		// XXX Debug
+		addOn := spew.Sprintf("%+v", objSpec)
+		log.Println("expandAddonSpec  ", addOn)
 		obj.Spec = objSpec
 	}
 
@@ -221,14 +222,24 @@ func expandAddonSpec(p []interface{}) (*infrapb.AddonSpec, error) {
 		obj.Version = v
 	}
 
-	if v, ok := in["artifact"].([]interface{}); ok {
+	if v, ok := in["artifact"].([]interface{}); ok && len(v) > 0 {
+		// XXX Debug
+		artfct := spew.Sprintf("%+v", v)
+		log.Println("expandAddonSpec before expand ", artfct)
+
 		objArtifact, err := ExpandArtifactSpec(v)
 		if err != nil {
 			return nil, err
 		}
+		// XXX Debug
+		artfct = spew.Sprintf("%+v", objArtifact.Artifact)
+		log.Println("expandAddonSpec Artifact ater expand ", artfct)
+		artfct = spew.Sprintf("%+v", objArtifact.Options)
+		log.Println("expandAddonSpec Options ater expand ", artfct)
+
 		obj.Artifact = objArtifact
 	}
-	if v, ok := in["sharing"].([]interface{}); ok {
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
 		obj.Sharing = expandSharingSpec(v)
 	}
 

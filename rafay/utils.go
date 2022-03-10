@@ -1,8 +1,11 @@
 package rafay
 
 import (
+	"io/ioutil"
 	"log"
+	"path/filepath"
 	"sort"
+	"strings"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/davecgh/go-spew/spew"
@@ -215,7 +218,7 @@ func expandPlacementLabels(p []interface{}) []*commonpb.PlacementLabel {
 
 func expandPlacement(p []interface{}) *commonpb.PlacementSpec {
 	obj := &commonpb.PlacementSpec{}
-	if p == nil || len(p) == 0 || p[0] == nil {
+	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 
@@ -233,13 +236,25 @@ func expandPlacement(p []interface{}) *commonpb.PlacementSpec {
 
 func expandFile(p []interface{}) *File {
 	obj := File{}
-	if p == nil || len(p) == 0 || p[0] == nil {
+	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
 
 	in := p[0].(map[string]interface{})
 	if v, ok := in["name"].(string); ok && len(v) > 0 {
 		obj.Name = v
+	}
+
+	if strings.HasPrefix(obj.Name, "file://") {
+		//get full path of artifact
+		artifactFullPath := filepath.Join(filepath.Dir("."), obj.Name[7:])
+		//retrieve artifact data
+		artifactData, err := ioutil.ReadFile(artifactFullPath)
+		if err != nil {
+			log.Println("unable to read artifact at ", artifactFullPath)
+		} else {
+			obj.Data = artifactData
+		}
 	}
 
 	return &obj
@@ -257,6 +272,19 @@ func expandFiles(p []interface{}) []*File {
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			of.Name = v
 		}
+
+		if strings.HasPrefix(of.Name, "file://") {
+			//get full path of artifact
+			artifactFullPath := filepath.Join(filepath.Dir("."), of.Name[7:])
+			//retrieve artifact data
+			artifactData, err := ioutil.ReadFile(artifactFullPath)
+			if err != nil {
+				log.Println("unable to read artifact at ", artifactFullPath)
+			} else {
+				of.Data = artifactData
+			}
+		}
+
 		obj[i] = &of
 	}
 	return obj
@@ -308,10 +336,10 @@ func expandProjectMeta(p []interface{}) []*commonpb.ProjectMeta {
 		in := p[i].(map[string]interface{})
 		obj := commonpb.ProjectMeta{}
 
-		if v, ok := in["name"].(string); ok {
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
 		}
-		if v, ok := in["id"].(string); ok {
+		if v, ok := in["id"].(string); ok && len(v) > 0 {
 			obj.Id = v
 		}
 
@@ -333,7 +361,7 @@ func expandSharingSpec(p []interface{}) *commonpb.SharingSpec {
 		obj.Enabled = v
 	}
 
-	if v, ok := in["projects"].([]interface{}); ok {
+	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
 		obj.Projects = expandProjectMeta(v)
 	}
 

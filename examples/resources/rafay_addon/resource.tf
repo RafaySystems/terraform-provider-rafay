@@ -8,16 +8,15 @@ resource "rafay_addon" "tfdemoaddon1" {
     }
   }
   spec {
-    namespace = "benny-test1"
+    namespace = "tfdemonamespace1"
     version   = "v1.0"
     artifact {
       type = "Yaml"
       artifact {
         paths {
-          name = "yaml/qc_app_yaml_with_annotations.yaml"
+          name = "file://artifacts/tfdemoaddon1/busybox.yaml"
         }
-        repository = "release-check-ssh"
-        revision   = "main"
+
       }
     }
     sharing {
@@ -25,3 +24,39 @@ resource "rafay_addon" "tfdemoaddon1" {
     }
   }
 }
+
+# resource "rafay_addon" "tfdemoaddon4" {
+#   metadata {
+#     name    = "tfdemoaddon4"
+#     project = "upgrade"
+#     labels = {
+#       env  = "dev"
+#       name = "app"
+#     }
+#   }
+#   spec {
+#     namespace = "tfdemonamespace1"
+#     version   = "v1.0"
+#     artifact {
+#       type = "Helm"
+#       artifact {
+#         chart_path {
+#           name = "file://artifacts/tfdemoaddon4/apache-9.0.9.tgz"
+#         }
+#       }
+#       options {
+#           max_history = 10
+#           timeout = "5m0s"
+#       }
+#     }
+#     sharing {
+#       enabled = true
+#       projects {
+#           name = "addons"
+#       }
+#       projects {
+#           name = "ankurp"
+#       }
+#     }
+#   }
+# }

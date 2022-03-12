@@ -309,6 +309,8 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 
 	if v, ok := in["monitoring"].([]interface{}); ok && len(v) > 0 {
 		obj.Monitoring = expandMonitoring(v)
+		rs := spew.Sprintf("%+v", obj.Monitoring)
+		log.Println("expandDefaultAddons Monitoring", rs)
 	}
 
 	return obj, nil
@@ -344,6 +346,8 @@ func expandMonitoring(p []interface{}) *infrapb.MonitoringConfig {
 
 	if v, ok := in["resources"].([]interface{}); ok && len(v) > 0 {
 		obj.Resources = expandResources(v)
+		rs := spew.Sprintf("%+v", obj.Resources.Limits)
+		log.Println("expandMonitoring Resources", rs)
 	}
 
 	return obj
@@ -361,7 +365,7 @@ func expandMonitoringComponent(p []interface{}) *infrapb.MonitoringComponent {
 		obj.Enabled = v
 	}
 
-	if v, ok := in["discovery"].([]interface{}); ok {
+	if v, ok := in["discovery"].([]interface{}); ok && len(v) > 0 {
 		obj.Discovery = expandDiscovery(v)
 	}
 
@@ -376,7 +380,7 @@ func expandDiscovery(p []interface{}) *infrapb.MonitoringDiscoveryConfig {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["namespace"].(string); ok {
+	if v, ok := in["namespace"].(string); ok && len(v) > 0 {
 		obj.Namespace = v
 	}
 
@@ -398,8 +402,9 @@ func expandResources(p []interface{}) *commonpb.ResourceRequirements {
 	}
 
 	in := p[0].(map[string]interface{})
-	if v, ok := in["resources"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["limits"].([]interface{}); ok && len(v) > 0 {
 		obj.Limits = expandResourceQuantity(v)
+		log.Println("expandResources Limits ", obj.Limits)
 	}
 
 	return obj
@@ -424,7 +429,7 @@ func expandCustomAddons(p []interface{}) []*infrapb.BlueprintAddon {
 			obj.Version = v
 		}
 
-		if v, ok := in["depends_on"].([]interface{}); ok {
+		if v, ok := in["depends_on"].([]interface{}); ok && len(v) > 0 {
 			obj.DependsOn = toArrayString(v)
 			log.Println("expandCustomAddons depends_on ", obj.DependsOn)
 		}
@@ -660,6 +665,7 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["prometheus_adapter"] = flattenMonitoringComponent(in.PrometheusAdapter, v)
+		log.Println("flattenMonitoring in.PrometheusAdapter ", in.PrometheusAdapter)
 	}
 
 	if in.MetricsServer != nil {
@@ -668,6 +674,7 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["metrics_server"] = flattenMonitoringComponent(in.MetricsServer, v)
+		log.Println("flattenMonitoring in.MetricsServer ", in.MetricsServer)
 	}
 
 	if in.KubeStateMetrics != nil {
@@ -676,6 +683,7 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["kube_state_metrics"] = flattenMonitoringComponent(in.KubeStateMetrics, v)
+		log.Println("flattenMonitoring in.KubeStateMetrics ", in.KubeStateMetrics)
 	}
 
 	if in.NodeExporter != nil {
@@ -684,6 +692,7 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["node_exporter"] = flattenMonitoringComponent(in.NodeExporter, v)
+		log.Println("flattenMonitoring in.NodeExporter ", in.NodeExporter)
 	}
 
 	if in.HelmExporter != nil {
@@ -692,6 +701,7 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["helm_exporter"] = flattenMonitoringComponent(in.HelmExporter, v)
+		log.Println("flattenMonitoring in.HelmExporter ", in.HelmExporter)
 	}
 
 	if in.Resources != nil {
@@ -700,6 +710,7 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["resources"] = flattenResources(in.Resources, v)
+		log.Println("flattenMonitoring in.Resources ", in.Resources)
 	}
 
 	return []interface{}{obj}
@@ -730,6 +741,7 @@ func flattenDiscovery(in *infrapb.MonitoringDiscoveryConfig, p []interface{}) []
 	if in == nil {
 		return nil
 	}
+	retNil := true
 
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
@@ -738,12 +750,19 @@ func flattenDiscovery(in *infrapb.MonitoringDiscoveryConfig, p []interface{}) []
 
 	if len(in.Namespace) > 0 {
 		obj["namespace"] = in.Namespace
+		retNil = false
 	}
 	if len(in.Resource) > 0 {
 		obj["resource"] = in.Resource
+		retNil = false
 	}
 	if len(in.Labels) > 0 {
 		obj["labels"] = toMapInterface(in.Labels)
+		retNil = false
+	}
+
+	if retNil {
+		return nil
 	}
 
 	return []interface{}{obj}

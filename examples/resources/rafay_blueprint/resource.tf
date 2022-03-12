@@ -1,140 +1,149 @@
-# resource "rafay_blueprint" "tfdemoblueprint1" {
-#   metadata {
-#     name    = "tfdemoblueprint1"
-#     project = "upgrade"
-#     labels = {
-#       env  = "dev"
-#       name = "app"
-#     }
-#   }
-#   spec {
-#     version = "1.1"
-#     base {
-#       name    = "default"
-#       version = "1.11.0"
-#     }
-#     default_addons {
-#       enable_ingress    = true
-#       enable_logging    = false
-#       enable_monitoring = true
-#       enable_vm         = false
-#       monitoring {
-#         metrics_server {
-#           enabled = false
-#           discovery {}
-#         }
-#         helm_exporter {
-#           enabled = false
-#         }
+resource "rafay_blueprint" "tfdemoblueprint1" {
+  metadata {
+    name    = "tfdemoblueprint1"
+    project = "upgrade"
+    labels = {
+      env  = "dev"
+      name = "app"
+    }
+  }
+  spec {
+    version = "v1.1"
+    base {
+      name    = "default"
+      version = "1.11.0"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_logging    = false
+      enable_monitoring = true
+      enable_vm         = false
+      monitoring {
+        metrics_server {
+          enabled = false
+          discovery {}
+        }
+        helm_exporter {
+          enabled = false
+        }
 
-#         kube_state_metrics {
-#           enabled = false
-#         }
+        kube_state_metrics {
+          enabled = false
+        }
 
-#         node_exporter {
-#           enabled = false
-#         }
+        node_exporter {
+          enabled = false
+        }
 
-#         prometheus_adapter {
-#           enabled = false
-#         }
+        prometheus_adapter {
+          enabled = false
+        }
 
-#         resources {
-#         }
-#       }
-#     }
+        resources {
+        }
+      }
+    }
 
-#     drift {
-#       action  = "Deny"
-#       enabled = true
-#     }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
 
-#     sharing {
-#       enabled = true
-#       projects {
-#         name = "demo"
-#       }
-#     }
-#   }
-# }
+    sharing {
+      enabled = true
+      projects {
+        name = "demo"
+      }
+    }
+  }
+}
 
 
 
-# resource "rafay_blueprint" "tfdemoblueprint2" {
-#   metadata {
-#     annotations = {}
-#     labels = {
-#       "env"  = "dev"
-#       "name" = "app"
-#     }
-#     name    = "tfdemoblueprint2"
-#     project = "upgrade"
-#   }
+resource "rafay_blueprint" "tfdemoblueprint2" {
+  metadata {
+    annotations = {}
+    labels = {
+      "env"  = "dev"
+      "name" = "app"
+    }
+    name    = "tfdemoblueprint2"
+    project = "upgrade"
+  }
 
-#   spec {
-#     version = "1.1"
+  spec {
+    version = "v1.1"
 
-#     base {
-#       name    = "default"
-#       version = "1.11.0"
-#     }
+    base {
+      name    = "default"
+      version = "1.11.0"
+    }
 
-#     custom_addons {
-#       depends_on = []
-#       name       = "tomcat1"
-#       version    = "v1"
-#     }
+    custom_addons {
+      depends_on = []
+      name       = "tomcat1"
+      version    = "v1"
+    }
 
-#     custom_addons {
-#       depends_on = []
-#       name       = "gold-pinger"
-#       version    = "v0"
-#     }
+    custom_addons {
+      depends_on = []
+      name       = "gold-pinger"
+      version    = "v0"
+    }
 
-#     default_addons {
-#       enable_ingress    = true
-#       enable_logging    = true
-#       enable_monitoring = true
-#       enable_vm         = false
+    default_addons {
+      enable_ingress    = false
+      enable_logging    = false
+      enable_monitoring = true
+      enable_vm         = false
 
-#       monitoring {
-#         helm_exporter {
-#           enabled = false
-#         }
+      monitoring {
+        helm_exporter {
+          enabled = false
+        }
 
-#         kube_state_metrics {
-#           enabled = false
-#         }
+        kube_state_metrics {
+          enabled = false
+        }
 
-#         metrics_server {
-#           enabled = false
+        metrics_server {
+          enabled = false
 
-#           discovery {}
-#         }
+          discovery {}
+        }
 
-#         node_exporter {
-#           enabled = false
-#         }
+        node_exporter {
+          enabled = false
+        }
 
-#         prometheus_adapter {
-#           enabled = false
-#         }
+        prometheus_adapter {
+          enabled = true
+        }
 
-#         resources {
-#         }
-#       }
-#     }
+        resources {
+          limits {
+            memory {
+              string = "2Gi"
 
-#     drift {
-#       action  = "Deny"
-#       enabled = true
-#     }
+            }
+            cpu {
+              string = "2"
+            }
+          }
+        }
+      }
+    }
 
-#     sharing {
-#       enabled = false
-#     }
-#   }
-# }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+
+    sharing {
+      enabled = false
+    }
+  }
+}
 
 
 
@@ -149,7 +158,7 @@ resource "rafay_blueprint" "tfdemoblueprint3" {
     }
   }
   spec {
-    version = "1.1"
+    version = "v1.1"
     base {
       name    = "default"
       version = "1.11.0"
@@ -174,9 +183,6 @@ resource "rafay_blueprint" "tfdemoblueprint3" {
 
     sharing {
       enabled = false
-    #   projects {
-    #     name = "demo"
-    #   }
     }
   }
 }

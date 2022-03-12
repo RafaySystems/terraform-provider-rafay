@@ -311,16 +311,19 @@ func expandQuantity(p []interface{}) *resource.Quantity {
 func expandResourceQuantity(p []interface{}) *commonpb.ResourceQuantity {
 	obj := commonpb.ResourceQuantity{}
 	if len(p) == 0 || p[0] == nil {
+		log.Println("expandResourceQuantity empty input")
 		return &obj
 	}
 
 	in := p[0].(map[string]interface{})
 	if v, ok := in["memory"].([]interface{}); ok {
 		obj.Memory = expandQuantity(v)
+		log.Println("expandResourceQuantity memory", obj.Memory)
 	}
 
 	if v, ok := in["cpu"].([]interface{}); ok {
 		obj.Cpu = expandQuantity(v)
+		log.Println("expandResourceQuantity CPU", obj.Cpu)
 	}
 
 	log.Println("expandResourceQuantity obj", obj)

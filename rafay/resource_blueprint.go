@@ -211,11 +211,11 @@ func expandBluePrint(in *schema.ResourceData) (*infrapb.Blueprint, error) {
 	}
 	obj := &infrapb.Blueprint{}
 
-	if v, ok := in.Get("metadata").([]interface{}); ok {
+	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandMetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok {
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandBluePrintSpec(v)
 		if err != nil {
 			return nil, err
@@ -243,25 +243,34 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 
 	if v, ok := in["default_addons"].([]interface{}); ok && len(v) > 0 {
 		obj.DefaultAddons, _ = expandDefaultAddons(v)
+	} else {
+		log.Println("expandBluePrintSpec empty default_addons")
+		empt := make([]interface{}, 0)
+		obj.DefaultAddons, _ = expandDefaultAddons(empt)
+		log.Println("expandBluePrintSpec Ingress ", obj.DefaultAddons.EnableIngress)
 	}
+	da := spew.Sprintf("%+v", obj.DefaultAddons)
+	log.Println("expandBluePrintSpec DefaultAddons ", da)
 
 	if v, ok := in["custom_addons"].([]interface{}); ok && len(v) > 0 {
 		obj.CustomAddons = expandCustomAddons(v)
 	}
+	ca := spew.Sprintf("%+v", obj.CustomAddons)
+	log.Println("expandBluePrintSpec CustomAddons ", ca)
 
 	if v, ok := in["psp"].([]interface{}); ok && len(v) > 0 {
 		obj.Psp = expandBlueprintPSP(v)
 	}
 
-	if v, ok := in["sharing"].([]interface{}); ok {
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
 		obj.Sharing = expandSharingSpec(v)
 	}
 
-	if v, ok := in["drift"].([]interface{}); ok {
+	if v, ok := in["drift"].([]interface{}); ok && len(v) > 0 {
 		obj.Drift = expandDrift(v)
 	}
 
-	if v, ok := in["base"].([]interface{}); ok {
+	if v, ok := in["base"].([]interface{}); ok && len(v) > 0 {
 		obj.Base = expandBlueprintBase(v)
 	}
 
@@ -275,6 +284,8 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 	obj := &infrapb.DefaultAddons{}
 	if len(p) == 0 || p[0] == nil {
+		obj.EnableIngress = false
+		log.Println("expandDefaultAddons empty")
 		return obj, fmt.Errorf("%s", "expandDefaultAddons empty input")
 	}
 
@@ -296,8 +307,10 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 		obj.EnableVM = v
 	}
 
-	if v, ok := in["monitoring"].([]interface{}); ok {
+	if v, ok := in["monitoring"].([]interface{}); ok && len(v) > 0 {
 		obj.Monitoring = expandMonitoring(v)
+		rs := spew.Sprintf("%+v", obj.Monitoring)
+		log.Println("expandDefaultAddons Monitoring", rs)
 	}
 
 	return obj, nil
@@ -311,28 +324,30 @@ func expandMonitoring(p []interface{}) *infrapb.MonitoringConfig {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["prometheus_adapter"].([]interface{}); ok {
+	if v, ok := in["prometheus_adapter"].([]interface{}); ok && len(v) > 0 {
 		obj.PrometheusAdapter = expandMonitoringComponent(v)
 	}
 
-	if v, ok := in["metrics_server"].([]interface{}); ok {
+	if v, ok := in["metrics_server"].([]interface{}); ok && len(v) > 0 {
 		obj.MetricsServer = expandMonitoringComponent(v)
 	}
 
-	if v, ok := in["kube_state_metrics"].([]interface{}); ok {
+	if v, ok := in["kube_state_metrics"].([]interface{}); ok && len(v) > 0 {
 		obj.KubeStateMetrics = expandMonitoringComponent(v)
 	}
 
-	if v, ok := in["node_exporter"].([]interface{}); ok {
+	if v, ok := in["node_exporter"].([]interface{}); ok && len(v) > 0 {
 		obj.NodeExporter = expandMonitoringComponent(v)
 	}
 
-	if v, ok := in["helm_exporter"].([]interface{}); ok {
+	if v, ok := in["helm_exporter"].([]interface{}); ok && len(v) > 0 {
 		obj.HelmExporter = expandMonitoringComponent(v)
 	}
 
-	if v, ok := in["resources"].([]interface{}); ok {
+	if v, ok := in["resources"].([]interface{}); ok && len(v) > 0 {
 		obj.Resources = expandResources(v)
+		rs := spew.Sprintf("%+v", obj.Resources.Limits)
+		log.Println("expandMonitoring Resources", rs)
 	}
 
 	return obj
@@ -350,7 +365,7 @@ func expandMonitoringComponent(p []interface{}) *infrapb.MonitoringComponent {
 		obj.Enabled = v
 	}
 
-	if v, ok := in["discovery"].([]interface{}); ok {
+	if v, ok := in["discovery"].([]interface{}); ok && len(v) > 0 {
 		obj.Discovery = expandDiscovery(v)
 	}
 
@@ -365,11 +380,11 @@ func expandDiscovery(p []interface{}) *infrapb.MonitoringDiscoveryConfig {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["namespace"].(string); ok {
+	if v, ok := in["namespace"].(string); ok && len(v) > 0 {
 		obj.Namespace = v
 	}
 
-	if v, ok := in["resource"].(string); ok {
+	if v, ok := in["resource"].(string); ok && len(v) > 0 {
 		obj.Resource = v
 	}
 
@@ -387,8 +402,9 @@ func expandResources(p []interface{}) *commonpb.ResourceRequirements {
 	}
 
 	in := p[0].(map[string]interface{})
-	if v, ok := in["resources"].([]interface{}); ok {
+	if v, ok := in["limits"].([]interface{}); ok && len(v) > 0 {
 		obj.Limits = expandResourceQuantity(v)
+		log.Println("expandResources Limits ", obj.Limits)
 	}
 
 	return obj
@@ -405,16 +421,17 @@ func expandCustomAddons(p []interface{}) []*infrapb.BlueprintAddon {
 		obj := infrapb.BlueprintAddon{}
 		in := p[i].(map[string]interface{})
 
-		if v, ok := in["name"].(string); ok {
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
 		}
 
-		if v, ok := in["version"].(string); ok {
+		if v, ok := in["version"].(string); ok && len(v) > 0 {
 			obj.Version = v
 		}
 
-		if v, ok := in["depends_on"].([]interface{}); ok {
+		if v, ok := in["depends_on"].([]interface{}); ok && len(v) > 0 {
 			obj.DependsOn = toArrayString(v)
+			log.Println("expandCustomAddons depends_on ", obj.DependsOn)
 		}
 
 		out[i] = &obj
@@ -435,11 +452,11 @@ func expandPrivateKubeAPIProxies(p []interface{}) []*infrapb.KubeAPIProxyNetwork
 		obj := infrapb.KubeAPIProxyNetwork{}
 		in := p[i].(map[string]interface{})
 
-		if v, ok := in["name"].(string); ok {
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
 		}
 
-		if v, ok := in["id"].(string); ok {
+		if v, ok := in["id"].(string); ok && len(v) > 0 {
 			obj.Id = v
 		}
 
@@ -466,7 +483,7 @@ func expandBlueprintPSP(p []interface{}) *infrapb.BlueprintPSP {
 		obj.Scope = v
 	}
 
-	if v, ok := in["names"].([]interface{}); ok {
+	if v, ok := in["names"].([]interface{}); ok && len(v) > 0 {
 		obj.Names = toArrayString(v)
 	}
 
@@ -481,11 +498,11 @@ func expandBlueprintBase(p []interface{}) *infrapb.BlueprintBase {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["name"].(string); ok {
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
 		obj.Name = v
 	}
 
-	if v, ok := in["version"].(string); ok {
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
 		obj.Version = v
 	}
 
@@ -510,16 +527,16 @@ func flattenBlueprint(d *schema.ResourceData, in *infrapb.Blueprint) error {
 	}
 
 	// XXX Debug
-	// w1 := spew.Sprintf("%+v", v)
-	// log.Println("flattenBlueprint before ", w1)
+	w1 := spew.Sprintf("%+v", v)
+	log.Println("flattenBlueprint before ", w1)
 	var ret []interface{}
 	ret, err = flattenBlueprintSpec(in.Spec, v)
 	if err != nil {
 		return err
 	}
 	// XXX Debug
-	// w1 = spew.Sprintf("%+v", ret)
-	// log.Println("flattenBlueprint after ", w1)
+	w1 = spew.Sprintf("%+v", ret)
+	log.Println("flattenBlueprint after ", w1)
 
 	err = d.Set("spec", ret)
 	if err != nil {
@@ -590,22 +607,43 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 		return nil
 	}
 
+	retNil := true
+
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["enable_ingress"] = in.EnableIngress
-	obj["enable_logging"] = in.EnableLogging
-	obj["enable_monitoring"] = in.EnableMonitoring
-	obj["enable_vm"] = in.EnableVM
+	if in.EnableIngress {
+		obj["enable_ingress"] = in.EnableIngress
+		retNil = false
+	}
 
-	if in.Monitoring != nil {
-		v, ok := obj["monitoring"].([]interface{})
-		if !ok {
-			v = []interface{}{}
+	if in.EnableLogging {
+		obj["enable_logging"] = in.EnableLogging
+		retNil = false
+	}
+
+	if in.EnableMonitoring {
+		obj["enable_monitoring"] = in.EnableMonitoring
+		retNil = false
+
+		if in.Monitoring != nil {
+			v, ok := obj["monitoring"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["monitoring"] = flattenMonitoring(in.Monitoring, v)
 		}
-		obj["monitoring"] = flattenMonitoring(in.Monitoring, v)
+	}
+
+	if in.EnableVM {
+		obj["enable_vm"] = in.EnableVM
+		retNil = false
+	}
+
+	if retNil {
+		return nil
 	}
 
 	return []interface{}{obj}
@@ -627,6 +665,7 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["prometheus_adapter"] = flattenMonitoringComponent(in.PrometheusAdapter, v)
+		log.Println("flattenMonitoring in.PrometheusAdapter ", in.PrometheusAdapter)
 	}
 
 	if in.MetricsServer != nil {
@@ -635,6 +674,7 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["metrics_server"] = flattenMonitoringComponent(in.MetricsServer, v)
+		log.Println("flattenMonitoring in.MetricsServer ", in.MetricsServer)
 	}
 
 	if in.KubeStateMetrics != nil {
@@ -643,6 +683,7 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["kube_state_metrics"] = flattenMonitoringComponent(in.KubeStateMetrics, v)
+		log.Println("flattenMonitoring in.KubeStateMetrics ", in.KubeStateMetrics)
 	}
 
 	if in.NodeExporter != nil {
@@ -651,6 +692,7 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["node_exporter"] = flattenMonitoringComponent(in.NodeExporter, v)
+		log.Println("flattenMonitoring in.NodeExporter ", in.NodeExporter)
 	}
 
 	if in.HelmExporter != nil {
@@ -659,6 +701,7 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["helm_exporter"] = flattenMonitoringComponent(in.HelmExporter, v)
+		log.Println("flattenMonitoring in.HelmExporter ", in.HelmExporter)
 	}
 
 	if in.Resources != nil {
@@ -667,6 +710,7 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["resources"] = flattenResources(in.Resources, v)
+		log.Println("flattenMonitoring in.Resources ", in.Resources)
 	}
 
 	return []interface{}{obj}
@@ -697,6 +741,7 @@ func flattenDiscovery(in *infrapb.MonitoringDiscoveryConfig, p []interface{}) []
 	if in == nil {
 		return nil
 	}
+	retNil := true
 
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
@@ -705,12 +750,19 @@ func flattenDiscovery(in *infrapb.MonitoringDiscoveryConfig, p []interface{}) []
 
 	if len(in.Namespace) > 0 {
 		obj["namespace"] = in.Namespace
+		retNil = false
 	}
 	if len(in.Resource) > 0 {
 		obj["resource"] = in.Resource
+		retNil = false
 	}
 	if len(in.Labels) > 0 {
 		obj["labels"] = toMapInterface(in.Labels)
+		retNil = false
+	}
+
+	if retNil {
+		return nil
 	}
 
 	return []interface{}{obj}

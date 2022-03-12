@@ -8,15 +8,15 @@ resource "rafay_blueprint" "tfdemoblueprint1" {
     }
   }
   spec {
-    version = "1.1"
+    version = "v1.1"
     base {
       name    = "default"
       version = "1.11.0"
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = true
-      enable_monitoring = false
+      enable_logging    = false
+      enable_monitoring = true
       enable_vm         = false
       monitoring {
         metrics_server {
@@ -50,13 +50,14 @@ resource "rafay_blueprint" "tfdemoblueprint1" {
     }
 
     sharing {
-      enabled = false
+      enabled = true
       projects {
         name = "demo"
       }
     }
   }
 }
+
 
 
 resource "rafay_blueprint" "tfdemoblueprint2" {
@@ -71,7 +72,7 @@ resource "rafay_blueprint" "tfdemoblueprint2" {
   }
 
   spec {
-    version = "1.1"
+    version = "v1.1"
 
     base {
       name    = "default"
@@ -91,8 +92,8 @@ resource "rafay_blueprint" "tfdemoblueprint2" {
     }
 
     default_addons {
-      enable_ingress    = true
-      enable_logging    = true
+      enable_ingress    = false
+      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
 
@@ -116,14 +117,65 @@ resource "rafay_blueprint" "tfdemoblueprint2" {
         }
 
         prometheus_adapter {
-          enabled = false
+          enabled = true
         }
 
         resources {
+          limits {
+            memory {
+              string = "2Gi"
+
+            }
+            cpu {
+              string = "2"
+            }
+          }
         }
       }
     }
 
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+
+    sharing {
+      enabled = false
+    }
+  }
+}
+
+
+
+
+resource "rafay_blueprint" "tfdemoblueprint3" {
+  metadata {
+    name    = "tfdemoblueprint3"
+    project = "upgrade"
+    labels = {
+      env  = "dev"
+      name = "app"
+    }
+  }
+  spec {
+    version = "v1.1"
+    base {
+      name    = "default"
+      version = "1.11.0"
+    }
+    
+    custom_addons {
+      depends_on = [
+        "gold-pinger"
+      ]
+      name = "voyager"
+      version = "v0"
+    }
+    custom_addons {
+      depends_on = []
+      name       = "gold-pinger"
+      version    = "v0"
+    }
     drift {
       action  = "Deny"
       enabled = true

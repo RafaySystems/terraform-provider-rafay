@@ -6,7 +6,7 @@ description: |-
   
 ---
 
-# rafay Provider
+# Rafay Provider
 
 
 

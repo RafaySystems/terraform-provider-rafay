@@ -3119,6 +3119,7 @@ func flattenAKSManagedCluster(in *AKSManagedCluster, p []interface{}) []interfac
 		if !ok {
 			v = []interface{}{}
 		}
+		log.Printf("About to enter flattenAKSManagedClusterProperties")
 		obj["properties"] = flattenAKSManagedClusterProperties(in.Properties, v)
 	}
 
@@ -3185,6 +3186,7 @@ func flattenAKSManagedClusterIdentity(in *AKSManagedClusterIdentity, p []interfa
 }
 
 func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []interface{}) []interface{} {
+	log.Printf("Entered flattenAKSManagedClusterProperties")
 	if in == nil {
 		return nil
 	}
@@ -3263,7 +3265,7 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 		obj["kubernetes_version"] = in.KubernetesVersion
 	}
 
-	if len(in.LinuxProfile.AdminUsername) >= 0 {
+	if in.LinuxProfile != nil {
 		v, ok := obj["linux_profile"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -4625,7 +4627,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	log.Printf("C.Name Value: %s", c.Name)
 
 	rctlCfg := config.GetConfig()
-	// clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
+	//clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
 	// if err != nil {
 	// 	log.Printf("error in get clusterspec %s", err.Error())
 	// 	return diag.FromErr(err)

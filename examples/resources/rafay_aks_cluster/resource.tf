@@ -2,7 +2,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
   apiversion = "rafay.io/v1alpha1"
   kind = "Cluster"
   metadata {
-    name = "demo-terraform3"
+    name = "demo-terraform"
     project = "upgrade"
   }
   spec {
@@ -13,7 +13,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
       apiversion = "rafay.io/v1alpha1"
       kind = "aksClusterConfig"
       metadata {
-        name = "demo-terraform3"
+        name = "demo-terraform"
       }
       spec {
         resource_group_name = "hardik-terraform"

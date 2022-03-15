@@ -4613,10 +4613,6 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diags
 	}
 
-	//logging to understand
-	log.Printf("TESTING Name: %s", obj.Metadata.Name)
-	log.Printf("PROJECT Name: %s", obj.Metadata.Project)
-	log.Printf("PROJECT ID: %s", project.ID)
 	c, err := cluster.GetCluster(obj.Metadata.Name, project.ID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
@@ -4624,25 +4620,14 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	// another
-	log.Printf("C.Name Value: %s", c.Name)
-
+	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
-	//clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
-	// if err != nil {
-	// 	log.Printf("error in get clusterspec %s", err.Error())
-	// 	return diag.FromErr(err)
-	// }
-	// log.Println("resourceAKSClusterRead clusterSpec ", clusterSpecYaml)
-	log.Printf("Between get config and auth creation")
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
+	if err != nil {
+		log.Printf("error in get clusterspec %s", err.Error())
+		return diag.FromErr(err)
+	}
 
-	auth := rctlCfg.GetAppAuthProfile()
-	// Send the request
-	log.Printf("Key value: %s", auth.Key)
-	log.Printf("Secret value: %s", auth.Secret)
-	log.Printf("URL value: %s", auth.URL)
-	log.Printf("ClusterCTL GetClusterSpec request %s", c.Name)
-
-	// find the edge id from name
 	cluster, err := cluster.GetCluster(c.Name, project.ID)
 	if err != nil {
 		return diag.FromErr(err)
@@ -4653,24 +4638,13 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	fmt.Println(cluster.ClusterType)
 
-	uri := fmt.Sprintf("/edge/v1/projects/%s/edges/%s/configfile/", project.ID, cluster.ID)
-	log.Printf("URI: %s", uri)
-	resp, err = auth.AuthAndRequest(uri, "GET", "")
-	if err != nil {
-		log.Printf("Response: %s", resp)
-		return diag.FromErr(err)
-	}
-	log.Printf("Get Config File Response: %s", resp)
-
 	var respGetCfgFile ResponseGetClusterSpec
 	if err := json.Unmarshal([]byte(resp), &respGetCfgFile); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// check
-
 	clusterSpec := AKSCluster{}
-	err = yaml.Unmarshal([]byte(respGetCfgFile.ClusterYaml), &clusterSpec)
+	err = yaml.Unmarshal([]byte(clusterSpecYaml), &clusterSpec)
 	if err != nil {
 		return diag.FromErr(err)
 	}

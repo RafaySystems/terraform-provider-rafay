@@ -2,14 +2,10 @@
 resource "rafay_addon" "tfdemoaddon1" {
   metadata {
     name    = "tfdemoaddon1"
-    project = "upgrade"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
+    project = "terraform_project"
   }
   spec {
-    namespace = "tfdemonamespace1"
+    namespace = "tfdemonamespace"
     version   = "v1.0"
     artifact {
       type = "Yaml"
@@ -29,17 +25,13 @@ resource "rafay_addon" "tfdemoaddon1" {
 
 # Helm Chart Upload Example
 
-resource "rafay_addon" "tfdemoaddon4" {
+resource "rafay_addon" "tfdemoaddon2" {
   metadata {
-    name    = "tfdemoaddon4"
-    project = "upgrade"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
+    name    = "tfdemoaddon2"
+    project = "terraform_project"
   }
   spec {
-    namespace = "tfdemonamespace1"
+    namespace = "tfdemonamespace"
     version   = "v1.0"
     artifact {
       type = "Helm"
@@ -54,13 +46,7 @@ resource "rafay_addon" "tfdemoaddon4" {
       }
     }
     sharing {
-      enabled = true
-      projects {
-          name = "addons"
-      }
-      projects {
-          name = "ankurp"
-      }
+      enabled = false
     }
   }
 }

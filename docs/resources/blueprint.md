@@ -152,17 +152,17 @@ resource "rafay_blueprint" "blueprint" {
 - `custom_addons` - (Block List) A list of custom add-ons for the resource. (See [below for nested schema](#nestedblock--spec--custom_addons))
 - `default_addons` - (Block List) A list of default add-ons for the resource. (See [below for nested schema](#nestedblock--spec--default_addons)) 
 - `drift` - (Block List, Max: 1) Prevents configuration drift. Drift is a change to your live cluster that is different from the source of truth. (See [below for nested schema](#nestedblock--spec--drift))
-- `private_kube_api_proxies` - (Block List) A private  kubernetes API proxy network, used to provide kubectl access for your users. (See [below for nested schema](#nestedblock--spec--private_kube_api_proxies))
+- `private_kube_api_proxies` - (Block List) A private kubernetes API proxy network, used to provide kubectl access for your users. (See [below for nested schema](#nestedblock--spec--private_kube_api_proxies))
 - `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A blueprint can be shared with one or more projects.  (See [below for nested schema](#nestedblock--spec--sharing))
     Note: If the resource is not shared, set enabled = false. 
 
 <a id="nestedblock--spec--base"></a>
 ### Nested Schema for `spec.base`
 
-***Optional***
+***Required***
 
-- `name` - (String) The name for the blueprint base. Options include: `default`, `minimal`, `default-openshift`, and `default-aks`.
-- `version` - (String) The version of the blueprint base. Options include: `1.11.0`.
+- `name` - (String) The name for the blueprint base. Supported values are: `default`, `minimal`, `default-openshift`, and `default-aks`.
+- `version` - (String) The version of the blueprint base. Supported values are: `1.11.0`.
 
 
 <a id="nestedblock--spec--custom_addons"></a>
@@ -196,7 +196,7 @@ resource "rafay_blueprint" "blueprint" {
 ***Optional***
 
 - `kube_state_metrics` - (Block List) A service that listens to the Kubernetes API server and generates metrics about the state of the objects. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--metrics))
-- `helm_exporter` - (Boolean) Exports help release, chart, and version statistics in the Prometheus format. 
+- `helm_exporter` - (Boolean) Exports helm release, chart, and version statistics in the Prometheus format. 
 - `node_exporter` - (Boolean) Monitors the host system. 
 - `prometheus_adapter` - (Boolean) Provides Kubernetes metrics APIs for Prometheus. 
 - `metrics_server` - (Boolean) A scalable, efficient source of container resource metrics for Kubernetes built-in autoscaling pipelines. 
@@ -209,7 +209,7 @@ resource "rafay_blueprint" "blueprint" {
 ***Optional***
 
 - `discovery` - (Block List) The discovery configuration. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--metrics--discovery)) 
-- `enabled` - (Boolean) In enabled, the monitoring metrics add-on is enabled for the resource. 
+- `enabled` - (Boolean) If enabled, the monitoring metrics add-on is enabled for the resource. 
 
 
 <a id="nestedblock--spec--default_addons--monitoring--metrics--discovery"></a>
@@ -235,8 +235,20 @@ resource "rafay_blueprint" "blueprint" {
 
 ***Optional***
 
-- `cpu` - (Block List) The CPU resource limit for the resource. The resource cannot use more than this limit. The CPU limit is in millicpu, also known as millicores. 100m is 100 millicpu, which is 0.1 CPU cores. 
-- `memory` - (Block List) The memory resource limit for the resource. The resource cannot use more than this limit. The memory is in mebibytes. A megabyte is a close equivalent to a mebibyte. 
+- `cpu` - (Block List) The CPU resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--cpu)) 
+- `memory` - (Block List) The memory resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--memory)) 
+
+
+<a id="nestedblock--spec--default_addons--monitoring--resources--limits--cpu"></a>
+### Nested Schema for `spec.default_addons.monitoring.resources.limits.cpu`
+
+- `string` - (String) The CPU limit in millicpu, also known as millicores. 100m is 100 millicpu, which is 0.1 CPU cores.
+
+
+<a id="nestedblock--spec--default_addons--monitoring--resources--limits--memory"></a>
+### Nested Schema for `spec.default_addons.monitoring.resources.limits.memory`
+
+- `string` - (String) The memory limit in mebibytes. A megabyte is a close equivalent to a mebibyte.
 
 
 <a id="nestedblock--spec--drift"></a>
@@ -244,7 +256,7 @@ resource "rafay_blueprint" "blueprint" {
 
 ***Required***
 
-- `action` - (String) If enabled, drift is enabled for resource.  Options include: `Deny` or `Notify`. 
+- `action` - (String) If enabled, drift is enabled for resource.  Supported values are: `Deny` or `Notify`. 
 - `enabled` - (Boolean) If enabled, drift reconciliation is enabled for resource. 
 
 
@@ -272,7 +284,7 @@ resource "rafay_blueprint" "blueprint" {
 <a id="nestedblock--spec--sharing--projects"></a>
 ### Nested Schema for `spec.sharing.projects`
 
-***Optional***
+***Required***
 
 - `name` - (String) The names of the projects the resource belongs to. 
 

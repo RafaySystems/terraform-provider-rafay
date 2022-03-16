@@ -139,7 +139,7 @@ resource "rafay_addon" "tfdemoaddon2" {
 <a id="nestedblock--spec--artifact--artifact--chart_path"></a>
 ### Nested Schema for various resources under `spec.artifact.artifact.chart_path`, `.configmap`, `.configuration`, `.paths`, `.secret`, `.statefulset`, and `.value_paths`
 
-***Optional***
+***Required***
 
 - `name` - (String) The relative path of the artifact. 
 
@@ -147,15 +147,19 @@ resource "rafay_addon" "tfdemoaddon2" {
 <a id="nestedblock--spec--sharing"></a>
 ### Nested Schema for `spec.sharing`
 
-***Optional***
+***Required***
 
 - `enabled` - (Boolean) Enable sharing for this resource. 
+
+***Optional***
+
 - `projects` - (Block List) The list of projects this resource is shared with. (See [below for nested schema](#nestedblock--spec--sharing--projects))
+
 
 <a id="nestedblock--spec--sharing--projects"></a>
 ### Nested Schema for `spec.sharing.projects`
 
-***Optional***
+***Required***
 
 - `name` - (String) The names of the projects the resource belongs to. 
 

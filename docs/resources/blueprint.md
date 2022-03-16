@@ -185,9 +185,9 @@ resource "rafay_blueprint" "blueprint" {
 
 - `enable_ingress` - (Boolean) If enabled, ingress is installed on the cluster.  
 - `enable_logging` - (Boolean) If enabled, logging is installed on the cluster.  
-- `enable_monitoring` - (Boolean) If enabled, monitoring is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring))
+- `enable_monitoring` - (Boolean) If enabled, monitoring is installed on the cluster. 
 - `enable_vm` - (Boolean) If enabled, VM operator (kubevirt) is installed on the cluster. 
-- `monitoring` - (Block List) The configuration for monitoring the resource is installed on the cluster. 
+- `monitoring` - (Block List) The configuration for monitoring the resource is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring))
 
 
 <a id="nestedblock--spec--default_addons--monitoring"></a>

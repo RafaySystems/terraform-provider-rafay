@@ -21,7 +21,7 @@ The following is a simple example that demonstrates the minimum data needed for 
 resource "rafay_namespace" "namespace" {
   metadata {
     name        = "tftestnamespace"
-    project     = "terraform_project"
+    project     = "terraform"
   }
   spec {
     drift {
@@ -46,7 +46,7 @@ The following example demonstrates creating an advanced namespace, with limit ra
 resource "rafay_namespace" "namespace" {
   metadata {
     name        = "cloudops"
-    project     = "terraform_project"
+    project     = "terraform"
     labels = {
       "env"  = "prod"
     }
@@ -55,9 +55,6 @@ resource "rafay_namespace" "namespace" {
     }
   }
   spec {
-    drift {
-      enabled = false
-    }
     limit_range {
       pod {
         max {
@@ -285,7 +282,7 @@ Optional:
 - `cpu` - (String) The number of CPU threads. 
 - `memory` - (String) The amount of memory, in gibibytes. A gigabyte is a close equivalent to a gibibyte. 
 
-    See the Kubernetes [Resource Quotas](https://kubernetes.io/docs/concepts/policy/resource-quotas/) documentation page for more inforamtion.
+    See the Kubernetes [Resource Quotas](https://kubernetes.io/docs/concepts/policy/resource-quotas/) documentation page for more information.
 
 <a id="nestedblock--spec--resourcequota--limitsrequests"></a>
 ### Nested Schema for `spec.resource_quotas.limits` and `spec.resource_quotas.requests`

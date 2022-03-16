@@ -218,25 +218,6 @@ func expandWorkload(in *schema.ResourceData) (*appspb.Workload, error) {
 	return obj, nil
 }
 
-func expandDrift(p []interface{}) *commonpb.DriftSpec {
-	obj := &commonpb.DriftSpec{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["enabled"].(bool); ok {
-		obj.Enabled = v
-	}
-
-	if v, ok := in["action"].(string); ok && len(v) > 0 {
-		obj.Action = v
-	}
-
-	return obj
-}
-
 func expandWorkloadSpec(p []interface{}) (*appspb.WorkloadSpec, error) {
 	obj := &appspb.WorkloadSpec{}
 	if len(p) == 0 || p[0] == nil {
@@ -306,22 +287,6 @@ func flattenWorkload(d *schema.ResourceData, in *appspb.Workload) error {
 		return err
 	}
 	return nil
-}
-
-func flattenDrift(in *commonpb.DriftSpec) []interface{} {
-	if in == nil {
-		return nil
-	}
-
-	obj := make(map[string]interface{})
-
-	obj["enabled"] = in.Enabled
-
-	if len(in.Action) > 0 {
-		obj["action"] = in.Action
-	}
-
-	return []interface{}{obj}
 }
 
 func flattenWorkloadSpec(in *appspb.WorkloadSpec, p []interface{}) ([]interface{}, error) {

@@ -17,7 +17,7 @@ Create a project resource.
 ```terraform
 resource "rafay_project" "tfdemoproject1" {
   metadata {
-    name        = "project1"
+    name        = "terraform"
     description = "terraform project"
   }
   spec {
@@ -54,9 +54,9 @@ resource "rafay_project" "tfdemoproject1" {
 ### Nested Schema for `spec`
 
 ***Required***
-- `default` - (Boolean) Sets the project to be the default in the organizattion. 
+- `default` - (Boolean) Sets the project to be the default in the organization. 
 
-  **Note**: The only option is `false`. Only one default project is allowed, and the defaultproject is already set as the default. Changing this setting to true does not change the default project. 
+  **Note**: The only option is `false`. Only one default project is allowed, and the default project is already set as the default. Changing this setting to true does not change the default project. 
 
 
 <a id="nestedblock--timeouts"></a>

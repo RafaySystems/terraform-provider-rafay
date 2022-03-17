@@ -49,17 +49,17 @@ resource "rafay_addon" "tfdemoaddon4" {
         }
       }
       options {
-          max_history = 10
-          timeout = "5m0s"
+        max_history = 10
+        timeout = "5m0s"
       }
     }
     sharing {
       enabled = true
       projects {
-          name = "addons"
+        name = "addons"
       }
       projects {
-          name = "ankurp"
+        name = "ankurp"
       }
     }
   }

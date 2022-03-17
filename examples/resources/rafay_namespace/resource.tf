@@ -1,8 +1,8 @@
 #Basic example for namespace
 resource "rafay_namespace" "tfdemonamespace1" {
   metadata {
-    name        = "tfdemonamespace1"
-    project     = "tfdemoproject1"
+    name    = "tfdemonamespace1"
+    project = "tfdemoproject1"
   }
   spec {
     drift {
@@ -10,7 +10,7 @@ resource "rafay_namespace" "tfdemonamespace1" {
     }
     placement {
       labels {
-        key = "rafay.dev/clusterName"
+        key   = "rafay.dev/clusterName"
         value = "cluster_name"
       }
     }
@@ -20,10 +20,10 @@ resource "rafay_namespace" "tfdemonamespace1" {
 #Namespace example with resource quotas & limit ranges
 resource "rafay_namespace" "namespace" {
   metadata {
-    name        = "tfdemonamespace2"
-    project     = "tfdemoproject1"
+    name    = "tfdemonamespace2"
+    project = "tfdemoproject1"
     labels = {
-      "env"  = "prod"
+      "env" = "prod"
     }
     annotations = {
       "logging" = "enabled"
@@ -106,28 +106,28 @@ resource "rafay_namespace" "namespace" {
       }
     }
     resource_quotas {
-        limits {
-          cpu {
-            string = "8"
-          }
-          memory {
-            string = "16Gi"
-          }
+      limits {
+        cpu {
+          string = "8"
+        }
+        memory {
+          string = "16Gi"
+        }
 
+      }
+      requests {
+        cpu {
+          string = "4"
         }
-        requests {
-          cpu {
-            string = "4"
-          }
-          memory {
-            string = "8Gi"
-          }
+        memory {
+          string = "8Gi"
         }
+      }
 
     }
     placement {
       labels {
-        key = "rafay.dev/clusterName"
+        key   = "rafay.dev/clusterName"
         value = "cluster_name"
       }
     }

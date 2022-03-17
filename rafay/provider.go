@@ -43,7 +43,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_cluster_override": resourceClusterOverride(),
 				"rafay_workload":         resourceWorkload(),
 				//"rafay_agent":            resourceAgent(),
-				//"rafay_repositories":     resourceRepositories(),
+				"rafay_repositories": resourceRepositories(),
 				//"rafay_pipeline":         resourcePipeline(),
 				//"rafay_trigger":          resourceTrigger(),
 				"rafay_namespace": resourceNamespace(),

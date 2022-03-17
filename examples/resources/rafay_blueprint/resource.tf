@@ -163,7 +163,7 @@ resource "rafay_blueprint" "tfdemoblueprint3" {
       name    = "default"
       version = "1.11.0"
     }
-    
+
     custom_addons {
       depends_on = [
         "gold-pinger"

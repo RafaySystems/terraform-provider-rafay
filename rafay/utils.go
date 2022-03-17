@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/integrationspb"
 	"github.com/davecgh/go-spew/spew"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -253,8 +254,58 @@ func expandPlacement(p []interface{}) *commonpb.PlacementSpec {
 	return obj
 }
 
+func expandAgents(p []interface{}) []*integrationspb.AgentMeta {
+	if len(p) == 0 || p[0] == nil {
+		return []*integrationspb.AgentMeta{}
+	}
+
+	out := make([]*integrationspb.AgentMeta, len(p))
+
+	for i := range p {
+		obj := &integrationspb.AgentMeta{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["id"].(string); ok && len(v) > 0 {
+			obj.Id = v
+		}
+		out[i] = obj
+	}
+
+	return out
+}
+
 func expandFile(p []interface{}) *File {
 	obj := File{}
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+
+	if strings.HasPrefix(obj.Name, "file://") {
+		//get full path of artifact
+		artifactFullPath := filepath.Join(filepath.Dir("."), obj.Name[7:])
+		//retrieve artifact data
+		artifactData, err := ioutil.ReadFile(artifactFullPath)
+		if err != nil {
+			log.Println("unable to read artifact at ", artifactFullPath)
+		} else {
+			obj.Data = artifactData
+		}
+	}
+
+	return &obj
+}
+
+func expandCommonpbFile(p []interface{}) *commonpb.File {
+	obj := commonpb.File{}
 	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
@@ -500,6 +551,18 @@ func flattenPlacement(in *commonpb.PlacementSpec) []interface{} {
 }
 
 func flattenFile(in *File) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+	return []interface{}{obj}
+}
+
+func flattenCommonpbFile(in *commonpb.File) []interface{} {
 	if in == nil {
 		return nil
 	}

@@ -33,6 +33,8 @@ func New(_ string) func() *schema.Provider {
 			ResourcesMap: map[string]*schema.Resource{
 				"rafay_project":   resourceProject(),
 				"rafay_namespace": resourceNamespace(),
+				"rafay_addon":     resourceAddon(),
+				"rafay_blueprint": resourceBluePrint(),
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,

@@ -37,7 +37,7 @@ func resourceCloudCredential() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
-			"projectname": {
+			"project": {
 				Type:        schema.TypeString,
 				Description: "Name of the project",
 				Required:    true,
@@ -114,7 +114,7 @@ func resourceCloudCredential() *schema.Resource {
 func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	resp, err := project.GetProjectByName(d.Get("project").(string))
 	if err != nil {
 		fmt.Print("project  does not exist")
 		return diags
@@ -125,7 +125,8 @@ func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, 
 		fmt.Printf("project does not exist")
 		return diags
 	}
-	if d.Get("type").(string) == "cluster-provisioning" {
+
+	if d.Get("type").(string) == "cluster-provisioning" || d.Get("type").(string) == "data-backup" {
 		if d.Get("providertype").(string) == "AWS" {
 			if d.Get("awscredtype").(string) == "rolearn" {
 				if d.Get("rolearn").(string) == "" {
@@ -191,11 +192,7 @@ func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, 
 				return diag.FromErr(err)
 			}
 			d.SetId(s.ID)
-		} else {
-			return diag.FromErr(fmt.Errorf("providertype is not correct for cluster-provisioning,( use AWS or GCP )"))
-		}
-	} else if d.Get("type").(string) == "data-backup" {
-		if d.Get("providertype").(string) == "MINIO" {
+		} else if d.Get("providertype").(string) == "MINIO" {
 			if d.Get("awscredtype").(string) == "rolearn" {
 				if d.Get("rolearn").(string) == "" {
 					return diag.FromErr(fmt.Errorf("RoleARN cannot be empty"))
@@ -220,6 +217,8 @@ func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, 
 				}
 				d.SetId(s.ID)
 			}
+		} else {
+			return diag.FromErr(fmt.Errorf("providertype is not correct use AWS or GCP or AZURE"))
 		}
 	} else {
 		return diag.FromErr(fmt.Errorf("type is not correct ( cluster-provisioning or data-backup )"))
@@ -231,7 +230,7 @@ func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, 
 
 func resourceCloudCredentialRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	resp, err := project.GetProjectByName(d.Get("project").(string))
 	if err != nil {
 		fmt.Print("project does not exist")
 		return diags
@@ -263,7 +262,7 @@ func resourceCloudCredentialUpdate(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 	log.Printf("update cloudcredentials ")
 
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	resp, err := project.GetProjectByName(d.Get("project").(string))
 	if err != nil {
 		fmt.Print("project  does not exist")
 		return diags
@@ -283,7 +282,7 @@ func resourceCloudCredentialDelete(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 	log.Printf("resource project delete id %s", d.Id())
 
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	resp, err := project.GetProjectByName(d.Get("project").(string))
 	if err != nil {
 		fmt.Print("project  does not exist")
 		return diags

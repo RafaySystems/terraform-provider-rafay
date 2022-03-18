@@ -226,6 +226,8 @@ func expandRepositorySpec(p []interface{}) (*integrationspb.RepositorySpec, erro
 	if v, ok := in["options"].([]interface{}); ok && len(v) > 0 {
 		//obj.Options = expandRepositoryOptions(v)
 		repoSpec.Options = expandRepositoryOptions(v)
+	} else {
+		repoSpec.Options = expandRepositoryOptions(nil)
 	}
 
 	if v, ok := in["secret"].([]interface{}); ok {
@@ -285,18 +287,26 @@ func expandRepositoryOptions(p []interface{}) *integrationspb.RepositoryOptions 
 	in := p[0].(map[string]interface{})
 	if v, ok := in["insecure"].(bool); ok {
 		obj.Insecure = v
+	} else {
+		obj.Insecure = false
 	}
 
 	if v, ok := in["enable_submodules"].(bool); ok {
-		obj.Insecure = v
+		obj.EnableSubmodules = v
+	} else {
+		obj.EnableSubmodules = false
 	}
 
 	if v, ok := in["max_retires"].(int); ok {
 		obj.MaxRetires = int32(v)
+	} else {
+		obj.MaxRetires = 0
 	}
 
 	if v, ok := in["enable_lfs"].(bool); ok {
-		obj.Insecure = v
+		obj.EnableLFS = v
+	} else {
+		obj.EnableLFS = false
 	}
 
 	if v, ok := in["ca_cert"].([]interface{}); ok {
@@ -377,21 +387,41 @@ func flattenRepoOptions(in *integrationspb.RepositoryOptions, p []interface{}) [
 	if in.Insecure {
 		obj["insecure"] = in.Insecure
 		retNel = false
+	} else {
+		if v1, ok := obj["insecure"].(bool); ok && v1 {
+			obj["insecure"] = false
+			retNel = false
+		}
 	}
 
 	if in.EnableSubmodules {
 		obj["enable_submodules"] = in.EnableSubmodules
 		retNel = false
+	} else {
+		if v1, ok := obj["enable_submodules"].(bool); ok && v1 {
+			obj["enable_submodules"] = false
+			retNel = false
+		}
 	}
 
 	if in.MaxRetires > 0 {
 		obj["max_retires"] = int(in.MaxRetires)
 		retNel = false
+	} else {
+		if v1, ok := obj["max_retires"].(int); ok && v1 != int(in.MaxRetires) {
+			obj["max_retires"] = 0
+			retNel = false
+		}
 	}
 
 	if in.EnableLFS {
 		obj["enable_lfs"] = in.EnableLFS
 		retNel = false
+	} else {
+		if v1, ok := obj["enable_lfs"].(bool); ok && v1 {
+			obj["enable_lfs"] = false
+			retNel = false
+		}
 	}
 
 	// if in.CaCert != nil {

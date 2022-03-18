@@ -78,15 +78,15 @@ type AKSClusterConfigSpec struct {
 // }
 
 type AKSManagedCluster struct {
-	ExtendedLocation *AKSClusterExtendedLocation `yaml:"extendedLocation,omitempty"`
-	//Metadata         *AzureRafayClusterMetadata   `yaml:"additionalMetadata,omitempty"`
-	Type       string                       `yaml:"type,omitempty"`
-	APIVersion string                       `yaml:"apiversion,omitempty"`
-	Location   string                       `yaml:"location,omitempty"`
-	Identity   *AKSManagedClusterIdentity   `yaml:"identity,omitempty"`
-	Properties *AKSManagedClusterProperties `yaml:"properties,omitempty"`
-	SKU        *AKSManagedClusterSKU        `yaml:"sku,omitempty"`
-	Tags       map[string]string            `yaml:"tags,omitempty"`
+	ExtendedLocation   *AKSClusterExtendedLocation          `yaml:"extendedLocation,omitempty"`
+	Type               string                               `yaml:"type,omitempty"`
+	APIVersion         string                               `yaml:"apiversion,omitempty"`
+	Location           string                               `yaml:"location,omitempty"`
+	Identity           *AKSManagedClusterIdentity           `yaml:"identity,omitempty"`
+	Properties         *AKSManagedClusterProperties         `yaml:"properties,omitempty"`
+	SKU                *AKSManagedClusterSKU                `yaml:"sku,omitempty"`
+	Tags               map[string]string                    `yaml:"tags,omitempty"`
+	AdditionalMetadata *AKSManagedClusterAdditionalMetadata `yaml:"additionalMetadata,omitempty"`
 }
 
 type AKSClusterExtendedLocation struct {
@@ -292,6 +292,16 @@ type AKSManagedClusterPrivateLinkResources struct {
 type AKSManagedClusterSKU struct {
 	Name string `yaml:"name,omitempty"`
 	Tier string `yaml:"tier,omitempty"`
+}
+
+type AKSManagedClusterAdditionalMetadata struct {
+	ACRProfile           *AKSManagedClusterAdditionalMetadataACRProfile `yaml:"acrProfile,omitempty"`
+	OmsWorkspaceLocation string                                         `yaml:"omsWorkspaceLocation,omitempty"`
+}
+
+type AKSManagedClusterAdditionalMetadataACRProfile struct {
+	ResourceGroupName string `yaml:"resourceGroupName,omitempty"`
+	ACRName           string `yaml:"acrName,omitempty"`
 }
 
 type AKSNodePool struct {

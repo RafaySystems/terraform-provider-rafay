@@ -7,8 +7,8 @@ resource "rafay_aks_cluster" "demo-terraform" {
   }
   spec {
     type = "aks"
-    blueprint = "default-aks"
-    cloudprovider = "hardik-azure"
+    blueprint = "bp-addon-helm3-value"
+    cloudprovider = "phani-aws-0126"
     cluster_config {
       apiversion = "rafay.io/v1alpha1"
       kind = "aksClusterConfig"

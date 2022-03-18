@@ -255,9 +255,17 @@ func clusterAKSManagedCluster() map[string]*schema.Schema {
 		},
 		"type": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Required:    true,
 			Default:     "Microsoft.ContainerService/managedClusters",
 			Description: "Type",
+		},
+		"additional_metadata": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Additional metadata associated with the managed cluster.",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterAdditionalMetadata(),
+			},
 		},
 	}
 	return s
@@ -379,7 +387,7 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 		},
 		"kubernetes_version": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Required:    true,
 			Description: "Kubernetes version",
 		},
 		"linux_profile": {
@@ -1047,7 +1055,7 @@ func clusterAKSManagedClusterServicePrincipleProfile() map[string]*schema.Schema
 		"client_id": {
 			Type:        schema.TypeString,
 			Required:    true,
-			Description: "The ID for the service principal.",
+			Description: "FORMATTED:The ID for the service principal. If specified, must be set to `[parameters('servicePrincipalClientId')]`. This would be set to the cloud credential's client ID during cluster deployment.",
 		},
 		"secret": {
 			Type:        schema.TypeString,
@@ -1060,11 +1068,6 @@ func clusterAKSManagedClusterServicePrincipleProfile() map[string]*schema.Schema
 
 func clusterAKSManagedClusterWindowsProfile() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
-		"admin_password": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Specifies the password of the administrator account.",
-		},
 		"admin_username": {
 			Type:        schema.TypeString,
 			Required:    true,
@@ -1096,6 +1099,41 @@ func clusterAKSManagedClusterSKU() map[string]*schema.Schema {
 			Optional:    true,
 			Default:     "Free",
 			Description: " Valid values are Paid, Free.",
+		},
+	}
+	return s
+}
+
+func clusterAKSManagedClusterAdditionalMetadata() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"acr_profile": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Profile for Azure Container Registry configuration",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterAdditionalMetadataACRProfile(),
+			},
+		},
+		"oms_workspace_location": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "If not specified, defaults to the resource group of the managed cluster. Valid only if the Log analytics workspace is specified.",
+		},
+	}
+	return s
+}
+
+func clusterAKSManagedClusterAdditionalMetadataACRProfile() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"resource_group_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "If not specified, defaults to the resource group of the managed cluster",
+		},
+		"acr_name": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "The name of the Azure Container Registry resource.",
 		},
 	}
 	return s
@@ -1766,6 +1804,10 @@ func expandAKSConfigManagedCluster(p []interface{}) *AKSManagedCluster {
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		obj.Type = v
+	}
+
+	if v, ok := in["additional_metadata"].([]interface{}); ok && len(v) > 0 {
+		obj.AdditionalMetadata = expandAKSManagedClusterAdditionalMetadata(v)
 	}
 
 	return obj
@@ -2462,10 +2504,6 @@ func expandAKSManagedClusterWindowsProfile(p []interface{}) *AKSManagedClusterWi
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["admin_password"].(string); ok && len(v) > 0 {
-		obj.AdminPassword = v
-	}
-
 	if v, ok := in["admin_username"].(string); ok && len(v) > 0 {
 		obj.AdminUsername = v
 	}
@@ -2493,6 +2531,42 @@ func expandAKSManagedClusterSKU(p []interface{}) *AKSManagedClusterSKU {
 
 	if v, ok := in["tier"].(string); ok && len(v) > 0 {
 		obj.Tier = v
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterAdditionalMetadata(p []interface{}) *AKSManagedClusterAdditionalMetadata {
+	obj := &AKSManagedClusterAdditionalMetadata{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["acr_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.ACRProfile = expandAKSManagedClusterAdditionalMetadataACRProfile(v)
+	}
+
+	if v, ok := in["oms_workspace_location"].(string); ok && len(v) > 0 {
+		obj.OmsWorkspaceLocation = v
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterAdditionalMetadataACRProfile(p []interface{}) *AKSManagedClusterAdditionalMetadataACRProfile {
+	obj := &AKSManagedClusterAdditionalMetadataACRProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["resource_group_name"].(string); ok && len(v) > 0 {
+		obj.ResourceGroupName = v
+	}
+
+	if v, ok := in["acr_name"].(string); ok && len(v) > 0 {
+		obj.ACRName = v
 	}
 
 	return obj
@@ -3137,6 +3211,14 @@ func flattenAKSManagedCluster(in *AKSManagedCluster, p []interface{}) []interfac
 
 	if len(in.Type) > 0 {
 		obj["type"] = in.Type
+	}
+
+	if in.AdditionalMetadata != nil {
+		v, ok := obj["additional_metadata"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["additional_metadata"] = flattenAKSManagedClusterAdditionalMetadata(in.AdditionalMetadata, v)
 	}
 
 	return []interface{}{obj}
@@ -3973,10 +4055,6 @@ func flattenAKSManagedClusterWindowsProfile(in *AKSManagedClusterWindowsProfile,
 		obj["admin_username"] = in.AdminUsername
 	}
 
-	if len(in.AdminPassword) > 0 {
-		obj["admin_password"] = in.AdminPassword
-	}
-
 	if len(in.LicenseType) > 0 {
 		obj["license_type"] = in.LicenseType
 	}
@@ -4035,6 +4113,52 @@ func flattenAKSManagedClusterSKU(in *AKSManagedClusterSKU, p []interface{}) []in
 
 	if len(in.Tier) > 0 {
 		obj["tier"] = in.Tier
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSManagedClusterAdditionalMetadata(in *AKSManagedClusterAdditionalMetadata, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.ACRProfile != nil {
+		v, ok := obj["acr_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["acr_profile"] = flattenAKSManagedClusterAdditionalMetadataACRProfile(in.ACRProfile, v)
+	}
+
+	if len(in.OmsWorkspaceLocation) > 0 {
+		obj["oms_workspace_location"] = in.OmsWorkspaceLocation
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSManagedClusterAdditionalMetadataACRProfile(in *AKSManagedClusterAdditionalMetadataACRProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ResourceGroupName) > 0 {
+		obj["resource_group_name"] = in.ResourceGroupName
+	}
+
+	if len(in.ACRName) > 0 {
+		obj["acr_name"] = in.ACRName
 	}
 
 	return []interface{}{obj}

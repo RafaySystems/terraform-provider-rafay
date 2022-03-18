@@ -255,7 +255,7 @@ func clusterAKSManagedCluster() map[string]*schema.Schema {
 		},
 		"type": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Default:     "Microsoft.ContainerService/managedClusters",
 			Description: "Type",
 		},
@@ -4328,6 +4328,7 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}) []
 		obj["type"] = in.Type
 	}
 
+	log.Printf("in.UpgradeSettings.MaxSurge %s: ", in.UpgradeSettings.MaxSurge)
 	if in.UpgradeSettings != nil {
 		v, ok := obj["upgrade_settings"].([]interface{})
 		if !ok {
@@ -4637,7 +4638,9 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 		log.Println("response parse error", err)
 		return diag.FromErr(err)
 	}
-
+	if res.TaskSetID == "" {
+		return nil
+	}
 	time.Sleep(10 * time.Second)
 	s, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
 	if errGet != nil {
@@ -4783,6 +4786,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("update AKS cluster resource")
+	log.Printf("TESTING TWENTY_TWENTY_TWO")
 	var diags diag.Diagnostics
 	obj := &AKSCluster{}
 

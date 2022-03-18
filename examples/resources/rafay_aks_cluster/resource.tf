@@ -2,18 +2,18 @@ resource "rafay_aks_cluster" "demo-terraform" {
   apiversion = "rafay.io/v1alpha1"
   kind = "Cluster"
   metadata {
-    name = "demo-terraform"
+    name = "demo-terraform5"
     project = "upgrade"
   }
   spec {
     type = "aks"
-    blueprint = "bp-addon-helm3-value"
-    cloudprovider = "phani-aws-0126"
+    blueprint = "default-aks"
+    cloudprovider = "hardik-azure"
     cluster_config {
       apiversion = "rafay.io/v1alpha1"
       kind = "aksClusterConfig"
       metadata {
-        name = "demo-terraform"
+        name = "demo-terraform5"
       }
       spec {
         resource_group_name = "hardik-terraform"
@@ -28,7 +28,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
               enable_private_cluster = true
             }
             dns_prefix = "hardik-test-dns"
-            kubernetes_version = "1.21.7"
+            kubernetes_version = "1.21.9"
             network_profile {
               network_plugin = "kubenet"
             }
@@ -43,15 +43,18 @@ resource "rafay_aks_cluster" "demo-terraform" {
           apiversion = "2021-05-01"
           name = "primary"
           properties {
-            count = 1
+            count = 2
             enable_auto_scaling = true
-            max_count = 1
+            max_count = 2
             max_pods = 40
             min_count = 1
             mode = "System"
-            orchestrator_version = "1.21.7"
+            orchestrator_version = "1.21.9"
             os_type = "Linux"
             type = "VirtualMachineScaleSets"
+            upgrade_settings {
+              max_surge = "40%"
+            }
             vm_size = "Standard_DS2_v2"
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"

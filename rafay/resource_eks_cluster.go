@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
@@ -54,28 +53,1681 @@ func resourceEKSCluster() *schema.Resource {
 
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
-			"yamlfilepath": {
-				Type:     schema.TypeString,
-				Required: true,
+			"apiversion": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "apiversion",
 			},
-			"yamlfileversion": {
-				Type:     schema.TypeString,
-				Required: true,
+			"kind": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "Cluster",
+				Description: "kind",
 			},
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+			"metadata": {
+				Type:        schema.TypeList,
+				Required:    true,
+				Description: "contains cluster networking options",
+				Elem: &schema.Resource{
+					Schema: metadataField(),
+				},
 			},
-			"projectname": {
-				Type:     schema.TypeString,
-				Required: true,
+			"spec": {
+				Type:        schema.TypeList,
+				Required:    true,
+				Description: "contains cluster networking options",
+				Elem: &schema.Resource{
+					Schema: specField(),
+				},
 			},
-			"waitflag": {
-				Type:     schema.TypeString,
-				Optional: true,
+			"kubernetes_network_config": {
+				Type:        schema.TypeList,
+				Required:    true,
+				Description: "contains cluster networking options",
+				Elem: &schema.Resource{
+					Schema: kubernetesNetworkConfigField(),
+				},
+			},
+			"iam": {
+				Type:        schema.TypeList,
+				Required:    true,
+				Description: "holds all IAM attributes of a cluster",
+				Elem: &schema.Resource{
+					Schema: iamFields(),
+				},
+			},
+			"identity_providers": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "holds an identity provider configuration.",
+				Elem: &schema.Resource{
+					Schema: identityProviderField(),
+				},
+			},
+			"vpc": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "holds global subnet and all child subnets",
+				Elem: &schema.Resource{
+					Schema: vpcFields(),
+				},
+			},
+			"addons": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "holds the EKS addon configuration",
+				Elem: &schema.Resource{
+					Schema: addonConfigFields(),
+				},
+			},
+			"private_cluster": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "allows configuring a fully-private cluster in which no node has outbound internet access, and private access to AWS services is enabled via VPC endpoints",
+				Elem: &schema.Resource{
+					Schema: privateClusterConfigFields(),
+				},
+			},
+			"node_groups": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "holds all nodegroup attributes of a cluster.",
+				Elem: &schema.Resource{
+					Schema: nodeGroupsConfigFields(),
+				},
+			},
+			"managed_nodegroups": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "holds all nodegroup attributes of a cluster.",
+				Elem: &schema.Resource{
+					Schema: managedNodeGroupsConfigFields(),
+				},
+			},
+			"fargate_profiles": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "defines the settings used to schedule workload onto Fargate.",
+				Elem: &schema.Resource{
+					Schema: fargateProfilesConfigField(),
+				},
+			},
+			"availability_zones": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "availability zones of a cluster",
+			},
+			"cloud_watch": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "holds all CloudWatch attributes of a cluster",
+				Elem: &schema.Resource{
+					Schema: cloudWatchConfigFields(),
+				},
+			},
+			"secrets_encryption": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "defines the configuration for KMS encryption provider",
+				Elem: &schema.Resource{
+					Schema: secretsEncryptionConfigFields(),
+				},
 			},
 		},
 	}
+}
+
+func metadataField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "EKS Cluster name",
+		},
+		"project": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Project for the cluster",
+		},
+		"labels": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "Cluster Labels",
+		},
+		"region": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "the AWS region hosting this cluster",
+		},
+		"version": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Default:     "1.20",
+			Description: "Valid variants are: '1.16', '1.17', '1.18', '1.19', '1.20' (default), '1.21'.",
+		},
+		"tags": { //follow rancher set up https://github.com/rancher/terraform-provider-rancher2/blob/9b0d01baa1f2d30abcd114c3cfda6fcb6895b3b7/rancher2/schema_cluster_aks_config_v2.go#L249
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "used to tag AWS resources created by the vendor",
+		},
+		"annotations": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "arbitrary metadata ignored by the vendor",
+		},
+	}
+	return s
+}
+
+func specField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"type": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Default:     "eks",
+			Description: "Cluster Type",
+		},
+		"blueprint": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "myblueprint",
+			Description: "Blueprint associated with the cluster",
+		},
+		"blueprint_version": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "bpversion",
+			Description: "Blueprint version associated with the cluster",
+		},
+		"cloud_provider": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "myprovider",
+			Description: "Cloud credentials provider used to create and manage the cluster",
+		},
+		"cni_provider": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "Calico-v3.19.1",
+			Description: "Cni provider used to specify different cni options for the cluster",
+		},
+		"proxy_config": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "Configure Proxy if your infrastructure uses an Outbound Proxy",
+		},
+	}
+	return s
+}
+
+func kubernetesNetworkConfigField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"service_ipv4_cidr": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "CIDR range from where ClusterIPs are assigned",
+		},
+	}
+	return s
+}
+
+func iamFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"service_role_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "service role ARN of the cluster",
+		},
+		"service_role_permission_boundary": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "permissions boundary for all identity-based entities created by the vendor.",
+		},
+		"fargate_pod_execution_role_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "role used by pods to access AWS APIs. This role is added to the Kubernetes RBAC for authorization.",
+		},
+		"fargate_pod_execution_role_permissions_boundary": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "permissions boundary for the fargate pod execution role.",
+		},
+		"with_oidc": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "enables the IAM OIDC provider as well as IRSA for the Amazon CNI plugin",
+		},
+		"service_accounts": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "service accounts to create in the cluster.",
+			Elem: &schema.Resource{
+				Schema: serviceAccountsMetadata(),
+			},
+		},
+		"vpc_resource_controller_policy": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "attaches the IAM policy necessary to run the VPC controller in the control plane",
+		},
+	}
+	return s
+}
+
+func serviceAccountsFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"metadata": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "metadata for service accounts",
+			Elem: &schema.Resource{
+				Schema: serviceAccountsMetadata(),
+			},
+		},
+	}
+	return s
+}
+
+func serviceAccountsMetadata() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "service account name",
+		},
+		"namespace": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "service account namespace",
+		},
+		"labels": {
+			Type:        schema.TypeMap,
+			Required:    true,
+			Description: "CIDR range from where ClusterIPs are assigned",
+		},
+		"annotations": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "CIDR range from where ClusterIPs are assigned",
+		},
+		"attach_policy_arns": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "CIDR range from where ClusterIPs are assigned",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"well_known_policies": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "for attaching common IAM policies",
+			Elem: &schema.Resource{
+				Schema: serviceAccountsWellKnownPolicyFields(),
+			},
+		},
+		"attach_policy": { //USE THIS FOR ALL INLINEDOCUMENT TYPES
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "AWS tags for the service account",
+			Elem: &schema.Resource{Schema: map[string]*schema.Schema{"string": &schema.Schema{
+				Description: "",
+				Optional:    true,
+				Type:        schema.TypeString,
+			}}},
+			MaxItems: 1,
+			MinItems: 1,
+		},
+		"attach_role_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "ARN of the role to attach to the service account",
+		},
+		"permissions_boundary": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "ARN of the permissions boundary to associate with the service account",
+		},
+		"status": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "holds status of the IAM service account",
+			Elem: &schema.Resource{
+				Schema: serviceAccountsStatusFields(),
+			},
+		},
+		"role_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Specific role name instead of the Cloudformation-generated role name",
+		},
+		"role_only": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Specify if only the IAM Service Account role should be created without creating/annotating the service account",
+		},
+		"tags": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "AWS tags for the service account",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+	}
+	return s
+}
+
+func serviceAccountsWellKnownPolicyFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"image_builder": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "allows for full ECR (Elastic Container Registry) access.",
+		},
+		"auto_scaler": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "service account annotations",
+		},
+		"aws_load_balancer_controller": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "adds policies for using the aws-load-balancer-controller.",
+		},
+		"external_dns": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "adds external-dns policies for Amazon Route 53.",
+		},
+		"cert_manager": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "adds cert-manager policies.",
+		},
+		"ebs_csi_controller": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "adds cert-manager policies.",
+		},
+		"efs_csi_controller": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "adds policies for using the ebs-csi-controller.",
+		},
+	}
+	return s
+}
+
+func serviceAccountsStatusFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"role_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "role ARN associated with the service account.",
+		},
+	}
+	return s
+}
+func identityProviderField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"type": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "oidc",
+			Description: "Valid variants are: 'oidc': OIDC identity provider",
+		},
+	}
+	return s
+}
+
+func vpcFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "AWS VPC ID.",
+		},
+		"cidr": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "AWS VPC ID.",
+		},
+		"security_group": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "(aka the ControlPlaneSecurityGroup) for communication between control plane and nodes",
+		},
+		"subnets": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "keyed by AZ for convenience.",
+			Elem: &schema.Resource{
+				Schema: subnetsConfigFields(),
+			},
+		},
+		"extra_cidrs": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"shared_node_security_group": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "for pre-defined shared node SG",
+		},
+		"manage_shared_node_security_group_rules": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     true,
+			Description: "Automatically add security group rules to and from the default cluster security group and the shared node security group. This allows unmanaged nodes to communicate with the control plane and managed nodes. This option cannot be disabled when using vendor created security groups.",
+		},
+		"auto_allocate_ipv6": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "AutoAllocateIPV6 requests an IPv6 CIDR block with /56 prefix for the VPC",
+		},
+		"nat": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "NAT config",
+			Elem: &schema.Resource{
+				Schema: natConfigFields(),
+			},
+		},
+		"cluster_endpoints": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Manage access to the Kubernetes API server endpoints.",
+			Elem: &schema.Resource{
+				Schema: clusterEndpointsConfigFields(),
+			},
+		},
+		"public_access_cidrs": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "which CIDR blocks to allow access to public k8s API endpoint",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+	}
+	return s
+}
+func subnetsConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"private": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "holds subnet to AZ mappings. If the key is an AZ, that also becomes the name of the subnet otherwise use the key to refer to this subnet.",
+			Elem: &schema.Resource{
+				Schema: subnetSpecConfigFields(),
+			},
+		},
+		"public": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "holds subnet to AZ mappings. If the key is an AZ, that also becomes the name of the subnet otherwise use the key to refer to this subnet.",
+			Elem: &schema.Resource{
+				Schema: subnetSpecConfigFields(),
+			},
+		},
+	}
+	return s
+}
+func subnetSpecConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "id of subent",
+		},
+		"az": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "dont know what this is, not in docs",
+		},
+		//@@@ TODO: dont know what to do with type ipnet.Ipnet
+		/*
+			"cidr": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "dont know what this is, not in docs",
+			},*/
+	}
+	return s
+}
+
+func natConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"gateway": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "Single",
+			Description: "Valid variants are: 'HighlyAvailable' configures a highly available NAT gateway, 'Single' configures a single NAT gateway (default), 'Disable' disables NAT.",
+		},
+	}
+	return s
+}
+
+func clusterEndpointsConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"private_access": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enable private access to the Kubernetes API server endpoints.",
+		},
+		"public_access": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enable public access to the Kubernetes API server endpoints.",
+		},
+	}
+	return s
+}
+
+func addonConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "EKS addon name",
+		},
+		"version": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "EKS addon version",
+		},
+		"service_account_role_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "service account role ARN",
+		},
+		"attach_policy_arns": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "list of ARNs of the IAM policies to attach",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"attach_policy": { //What object type should this be?
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "holds a policy document to attach",
+		},
+		"permissions_boundary": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "ARN of the permissions boundary to associate",
+		},
+		"tags": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "The metadata to apply to the cluster to assist with categorization and organization. Each tag consists of a key and an optional value, both of which you define.",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+	}
+	return s
+}
+
+func privateClusterConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "enables creation of a fully-private cluster",
+		},
+		"additional_endpoint_services": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "specifies additional endpoint services that must be enabled for private access. Valid entries are: 'cloudformation', 'autoscaling', 'logs'",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+	}
+	return s
+}
+
+func nodeGroupsConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "name of the node group",
+		},
+		"ami_family": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Valid variants are: 'AmazonLinux2' (default), 'Ubuntu2004', 'Ubuntu1804', 'Bottlerocket', 'WindowsServer2019CoreContainer', 'WindowsServer2019FullContainer', 'WindowsServer2004CoreContainer'.",
+		},
+		"instance_type": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "type of instances in the nodegroup",
+		},
+		"availability_zones": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Limit nodes to specific AZs",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"subnets": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Limit nodes to specific subnets",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"instance_prefix": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "for instances in the nodegroup",
+		},
+		"instance_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "for instances in the nodegroup",
+		},
+		"desired_capacity": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "Desired capacity of instances in the nodegroup",
+		},
+		"min_size": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "Minimum size of instances in the nodegroup",
+		},
+		"max_size": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "Maximum size of instances in the nodegroup",
+		},
+		"volume_size": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     80,
+			Description: "volume size in gigabytes",
+		},
+		"ssh": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "configures ssh access for this nodegroup",
+			Elem: &schema.Resource{
+				Schema: sshConfigFields(),
+			},
+		},
+		"labels": {
+			Type:        schema.TypeMap,
+			Required:    true,
+			Description: "labels on nodes in the nodegroup",
+		},
+		"private_networking": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Enable private networking for nodegroup",
+		},
+		"tags": { // what do we change the type to?
+			Type:     schema.TypeMap,
+			Optional: true,
+			//Default: {}
+			Description: "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
+		},
+		"iam": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "holds all IAM attributes of a NodeGroup",
+			Elem: &schema.Resource{
+				Schema: iamNodeGroupConfigFields(),
+			},
+		},
+		"ami": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Specify custom AMIs, auto-ssm, auto, or static",
+		},
+		"security_groups": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "controls security groups for this nodegroup",
+			Elem: &schema.Resource{
+				Schema: securityGroupsConfigFields(),
+			},
+		},
+		"max_pods_per_node": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "Maximum pods per node",
+		},
+		"asg_suspend_processes": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "See relevant AWS docs",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"ebs_optimized": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables EBS optimization",
+		},
+		"volume_type": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "gp3",
+			Description: "Valid variants are: 'gp2' is General Purpose SSD, 'gp3' is General Purpose SSD which can be optimised for high throughput (default), 'io1' is Provisioned IOPS SSD, 'sc1' is Cold HDD, 'st1' is Throughput Optimized HDD.",
+		},
+		"volume_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "of volumes attached to instances in the nodegroup",
+		},
+		"volume_encrypted": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "of volumes attached to instances in the nodegroup",
+		},
+		"volume_kms_key_id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "of volumes attached to instances in the nodegroup",
+		},
+		"volume_iops": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "of volumes attached to instances in the nodegroup",
+		},
+		"volume_throughput": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "of volumes attached to instances in the nodegroup",
+		},
+		"pre_bootstrap_commands": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "executed before bootstrapping instances to the cluster",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"override_bootstrap_command": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Override the vendor's bootstrapping script",
+		},
+		"disable_imdsv1": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "requires requests to the metadata service to use IMDSv2 tokens",
+		},
+		"disable_pods_imds": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "blocks all IMDS requests from non host networking pods",
+		},
+		"placement": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "specifies the placement group in which nodes should be spawned",
+			Elem: &schema.Resource{
+				Schema: placementField(),
+			},
+		},
+		"efa_endbaled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+		},
+		"instance_selector": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "specifies options for EC2 instance selector",
+			Elem: &schema.Resource{
+				Schema: instanceSelectorFields(),
+			},
+		},
+		"bottle_rocket": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "specifies settings for Bottlerocket nodes",
+			Elem: &schema.Resource{
+				Schema: bottleRocketFields(),
+			},
+		},
+		"instances_distribution": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "holds the configuration for spot instances",
+			Elem: &schema.Resource{
+				Schema: instanceDistributionFields(),
+			},
+		},
+		"asg_metrics_collection": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "used by the scaling config, see cloudformation docs",
+			Elem: &schema.Resource{
+				Schema: asgMetricsCollectionFields(),
+			},
+		},
+		"cpu_credits": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "configures T3 Unlimited, valid only for T-type instances",
+		},
+		"classic_load_balancer_names": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Associate load balancers with auto scaling group",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"target_group_arns": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Associate target group with auto scaling group",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"taints": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "taints to apply to the nodegroup",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"update_config": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "used by the scaling config, see cloudformation docs",
+			Elem: &schema.Resource{
+				Schema: updateConfigFields(),
+			},
+		},
+		"cluster_dns": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Custom address used for DNS lookups",
+		},
+		"kubelet_extra_config": {
+			Type:        schema.TypeString, //supposed be of type object?
+			Optional:    true,
+			Description: "Custom address used for DNS lookups",
+		},
+		"version": {
+			Type:        schema.TypeString, //supposed be of type object?
+			Optional:    true,
+			Description: "Kuberenetes version for the nodegroup",
+		},
+		"subnet_cidr": {
+			Type:        schema.TypeString, //supposed be of type object?
+			Optional:    true,
+			Description: "Create new subnet from the CIDR block and limit nodes to this subnet (Applicable only for the WavelenghZone nodes)",
+		},
+	}
+	return s
+}
+
+func instanceDistributionFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"instance_types": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "Enable admin container",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"max_price": {
+			Type:        schema.TypeFloat,
+			Optional:    true,
+			Description: "Maximum bid price in USD",
+		},
+		"on_demand_base_capacity": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     0,
+			Description: "base number of on-demand instances (non-negative)",
+		},
+		"on_demand_percentage_above_base_capacity": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     100,
+			Description: "Range [0-100]",
+		},
+		"spot_instance_pools": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     2,
+			Description: "Range [0-20]",
+		},
+		"spot_allocation_strategy": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "allocation strategy for spot instances. Valid values are capacity-optimized and lowest-price",
+		},
+		"capacity_rebalance": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Enable capacity rebalancing for spot instances",
+		},
+	}
+	return s
+}
+
+func updateConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"max_unavaliable": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "sets the max number of nodes that can become unavailable when updating a nodegroup (specified as number)",
+		},
+		"max_unavaliable_percetage": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "sets the max number of nodes that can become unavailable when updating a nodegroup (specified as percentage)",
+		},
+	}
+	return s
+}
+
+func asgMetricsCollectionFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"granularity": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "of metrics collected",
+		},
+		"metrics": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "specifies a list of metrics",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+	}
+	return s
+}
+
+func bottleRocketFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"enable_admin_container": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Enable admin container",
+		},
+		"settings": {
+			Type:        schema.TypeMap,
+			Required:    true,
+			Description: "contains any bottlerocket settings",
+		},
+	}
+	return s
+}
+
+func instanceSelectorFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"vcpus": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "specifies the number of vCPUs",
+		},
+		"memory": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "specifies the memory The unit defaults to GiB",
+		},
+		"gpus": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "specifies the number of GPUs. It can be set to 0 to select non-GPU instance types.",
+		},
+		"cpu_architecture": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "x86_64",
+			Description: "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'",
+		},
+	}
+	return s
+}
+func placementField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"group": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "placement group name ",
+		},
+	}
+	return s
+}
+
+func sshConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"allow": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "If Allow is true the SSH configuration provided is used, otherwise it is ignored. Only one of PublicKeyPath, PublicKey and PublicKeyName can be configured",
+		},
+		"public_key": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Public key to be added to the nodes SSH keychain. If Allow is false this value is ignored.",
+		},
+		"public_key_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Public key name in EC2 to be added to the nodes SSH keychain. If Allow is false this value is ignored.",
+		},
+		"source_security_group_ids": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "source securitgy group IDs",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"enable_ssm": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Enables the ability to SSH onto nodes using SSM",
+		},
+	}
+	return s
+}
+
+func iamNodeGroupConfigFields() map[string]*schema.Schema { //need to change schema to have attachPolicyARNS
+	s := map[string]*schema.Schema{
+		"attach_policy_arns": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "attach polciy ARN",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"instance_profile_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "instance profile ARN",
+		},
+		"instance_role_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "instance role ARN",
+		},
+		"instance_role_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "instance role Name",
+		},
+		"instance_role_permission_boundary": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "instance role permissions boundary",
+		},
+		"iam_node_group_with_addon_policies": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "holds all IAM attributes of a NodeGroup",
+			Elem: &schema.Resource{
+				Schema: iamNodeGroupWithAddonPoliciesFields(),
+			},
+		},
+	}
+	return s
+}
+
+func iamNodeGroupWithAddonPoliciesFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"image_builder": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "allows for full ECR (Elastic Container Registry) access. This is useful for building, for example, a CI server that needs to push images to ECR",
+		},
+		"auto_scaler": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables IAM policy for cluster-autoscaler",
+		},
+		"external_dns": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "adds the external-dns project policies for Amazon Route 53",
+		},
+		"cert_manager": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables the ability to add records to Route 53 in order to solve the DNS01 challenge.",
+		},
+		"app_mesh": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables full access to AppMesh",
+		},
+		"app_mesh_review": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables full access to AppMesh Preview",
+		},
+		"ebs": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver",
+		},
+		"fsx": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables full access to FSX",
+		},
+		"efs": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables full access to EFS",
+		},
+		"alb_ingress": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables access to ALB Ingress controller",
+		},
+		"xray": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables access to XRay",
+		},
+		"cloud_watch": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables access to cloud watch",
+		},
+	}
+	return s
+}
+
+func securityGroupsConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"attach_ids": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "attaches additional security groups to the nodegroup",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"with_shared": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     true,
+			Description: "attach the security group shared among all nodegroups in the cluster",
+		},
+		"with_local": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     true,
+			Description: "attach a security group local to this nodegroup Not supported for managed nodegroups",
+		},
+	}
+	return s
+}
+
+func managedNodeGroupsConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "name of the node group",
+		},
+		"ami_family": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "AmazonLinux2",
+			Description: "Valid variants are: 'AmazonLinux2'.",
+		},
+		"instance_type": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "type of instances in the nodegroup",
+		},
+		"avalability_zones": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Limit nodes to specific AZs",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"subnets": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Limit nodes to specific subnets",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"instance_prefix": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "for instances in the nodegroup",
+		},
+		"instance_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "for instances in the nodegroup",
+		},
+		"desired_capacity": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "desired capacity of instances in the nodegroup",
+		},
+		"min_size": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "minimum size of instances in the nodegroup",
+		},
+		"max_size": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "maximum size of instances in the nodegroup",
+		},
+		"volume_size": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     80,
+			Description: "in gigabytes",
+		},
+		"ssh": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "configures ssh access for this nodegroup",
+			Elem: &schema.Resource{
+				Schema: sshConfigFields(),
+			},
+		},
+		"labels": {
+			Type:        schema.TypeMap,
+			Required:    true,
+			Description: "labels on nodes in the nodegroup",
+		},
+		"private_networking": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Enable private networking for nodegroup",
+		},
+		"tags": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
+		},
+		"iam": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "holds all IAM attributes of a NodeGroup",
+			Elem: &schema.Resource{
+				Schema: iamNodeGroupConfigFields(),
+			},
+		},
+		"ami": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Specify custom AMIs, auto-ssm, auto, or static",
+		},
+		"security_groups": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "controls security groups for this nodegroup",
+			Elem: &schema.Resource{
+				Schema: securityGroupsConfigFields(),
+			},
+		},
+		"max_pods_per_node": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "Maximum pods per node",
+		},
+		"asg_suspend_processes": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "See relevant AWS docs",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"ebs_optimized": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables EBS optimization",
+		},
+		"volume_type": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "gp3",
+			Description: "Valid variants are: 'gp2' is General Purpose SSD, 'gp3' is General Purpose SSD which can be optimised for high throughput (default), 'io1' is Provisioned IOPS SSD, 'sc1' is Cold HDD, 'st1' is Throughput Optimized HDD.",
+		},
+		"volume_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "of volumes attached to instances in the nodegroup",
+		},
+		"volume_encrypted": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "of volumes attached to instances in the nodegroup",
+		},
+		"volume_kms_key_id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "of volumes attached to instances in the nodegroup",
+		},
+		"volume_iops": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "of volumes attached to instances in the nodegroup",
+		},
+		"volume_throughput": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "of volumes attached to instances in the nodegroup",
+		},
+		"pre_bootstrap_commands": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "executed before bootstrapping instances to the cluster",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"override_bootstrap_command": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Override the vendor's bootstrapping script",
+		},
+		"disable_imdsv1": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "requires requests to the metadata service to use IMDSv2 tokens",
+		},
+		"disable_pods_imds": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "blocks all IMDS requests from non host networking pods",
+		},
+		"placement": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "specifies the placement group in which nodes should be spawned",
+			Elem: &schema.Resource{
+				Schema: placementField(),
+			},
+		},
+		"efa_enbaled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+		},
+		"instance_selector": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "specifies options for EC2 instance selector",
+			Elem: &schema.Resource{
+				Schema: instanceSelectorFields(),
+			},
+		},
+		"bottle_rocket": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "specifies settings for Bottlerocket nodes",
+			Elem: &schema.Resource{
+				Schema: bottleRocketFields(),
+			},
+		},
+		"instance_types:": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "specifies a list of instance types",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"spot": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "create a spot nodegroup",
+		},
+		"taints": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "taints to apply to the nodegroup",
+			Elem: &schema.Resource{
+				Schema: managedNodeGroupTaintConfigFields(),
+			},
+		},
+		"update_config": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "used by the scaling config, see cloudformation docs",
+			Elem: &schema.Resource{
+				Schema: updateConfigManagedNodeGroupsFields(),
+			},
+		},
+		"launch_tempelate": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "used by the scaling config, see cloudformation docs",
+			Elem: &schema.Resource{
+				Schema: launchTempelateFields(),
+			},
+		},
+	}
+	return s
+}
+
+func launchTempelateFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "key of taint",
+		},
+		"version": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "value of taint",
+		},
+	}
+	return s
+}
+
+func managedNodeGroupTaintConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"key": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "key of taint",
+		},
+		"value": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "value of taint",
+		},
+		"effect": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "effect of taint",
+		},
+	}
+	return s
+}
+
+func updateConfigManagedNodeGroupsFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"max_unavailable": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "sets the max number of nodes that can become unavailable when updating a nodegroup (specified as number)",
+		},
+		"max_unavailable_percentage": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "sets the max number of nodes that can become unavailable when updating a nodegroup (specified as percentage)",
+		},
+	}
+	return s
+}
+func launchTemepelateField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"id": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Launch template ID",
+		},
+		"version": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Launch template version Defaults to the default launch template version TODO support $Default, $Latest",
+		},
+		"release_version": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "the AMI version of the EKS optimized AMI to use",
+		},
+		"kubeerenetes_version": { //in doc version is used twice in this field (gives error, used diff name than version)
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Kuberenetes version for the nodegroup",
+		},
+	}
+	return s
+}
+
+func fargateProfilesConfigField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "name of the fargate profile",
+		},
+		"pod_execution_role_arn": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "IAM role's ARN to use to run pods onto Fargate.",
+		},
+		"selectors": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "define the rules to select workload to schedule onto Fargate.",
+			Elem: &schema.Resource{
+				Schema: selectorsFields(),
+			},
+		},
+		"subnets": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "define the rules to select workload to schedule onto Fargate.",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"tags": {
+			Type:        schema.TypeMap,
+			Required:    true,
+			Description: "Used to tag the AWS resources",
+		},
+		"status": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "The current status of the Fargate profile.",
+		},
+	}
+	return s
+}
+
+func selectorsFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"namespace": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Kubernetes namespace from which to select workload.",
+		},
+		"labels": {
+			Type:        schema.TypeMap,
+			Required:    true,
+			Description: "Kubernetes label selectors to use to select workload.",
+		},
+	}
+	return s
+}
+
+func cloudWatchConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"cluster_logging": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "container config parameters related to cluster logging",
+			Elem: &schema.Resource{
+				Schema: clusterLoggingFields(),
+			},
+		},
+	}
+	return s
+}
+
+func clusterLoggingFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"enable_types": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Types of logging to enable. Valid entries are: 'api', 'audit', 'authenticator', 'controllerManager', 'scheduler', 'all', '*'.",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+	}
+	return s
+}
+
+func secretsEncryptionConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"key_arn": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "KMS key ARN",
+		},
+	}
+	return s
 }
 
 func findResourceNameFromConfig(configBytes []byte) (string, string, string, error) {
@@ -101,6 +1753,7 @@ func findBlueprintName(configBytes []byte) (string, string, error) {
 	}
 
 	return blueprint.Spec.Blueprint, blueprint.Spec.Blueprintversion, nil
+
 }
 func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]byte, []error) {
 	var errs []error
@@ -149,6 +1802,1218 @@ func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]b
 	return result, errs
 }
 
+func resourceEKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("resourceAKSClusterUpsert")
+
+	return processEKSInputs(ctx, d, m)
+
+}
+
+func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	projectName := d.Get("projectname").(string)
+	resp, err := project.GetProjectByName(projectName)
+	if err != nil {
+		fmt.Print("project name missing in the resource")
+		return diag.FromErr(fmt.Errorf("%s", "Project name missing in the resource"))
+	}
+
+	_, err = project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		fmt.Printf("project does not exist")
+		return diag.FromErr(fmt.Errorf("%s", "Project does not exist"))
+	}
+
+	//building cluster yaml file
+	yamlClusterMetadata := EKSClusterMetadata{
+		Kind: "Cluster",
+	}
+
+	EKSClusterMetaMetadata := expandEKSMetaMetadata(d.Get("metadata").([]interface{}))
+	EKSClusterSpec := expandEKSClusterSpecConfig(d.Get("spec").([]interface{}))
+	yamlClusterMetadata.Metadata = EKSClusterMetaMetadata
+	yamlClusterMetadata.Spec = EKSClusterSpec
+	//building cluster config(cluster specification) yaml file
+	yamlClusterConfig := EKSClusterYamlConfig{
+		APIVersion: "rafay.io/v1alpha1",
+		Kind:       "Cluster",
+	}
+	EKSSpecMetadata := expandEKSSpecMetadata(d.Get("metadata").([]interface{}))
+	kubernetesNetworkConfig := expandKubernetesNetworkConfig(d.Get("kubernetes_network_config").([]interface{}))
+	iam := expandIAMFields(d.Get("iam").([]interface{}))
+	indentityProviders := expandIdentityProviders(d.Get("identity_providers").([]interface{}))
+	vpc := expandVPC(d.Get("vpc").([]interface{}))
+	addons := expandAddons(d.Get("addons").([]interface{}))
+	privateClusters := expandPrivateCluster(d.Get("private_cluster").([]interface{}))
+	nodeGroups := expandNodeGroups(d.Get("node_groups").([]interface{}))
+	managedNodeGroups := expandManagedNodeGroups(d.Get("managed_nodegroups").([]interface{}))
+	fargateProfiles := expandFargateProfiles(d.Get("fargate_profiles").([]interface{}))
+	if v, ok := d.Get("availability_zones").([]interface{}); ok && len(v) > 0 {
+		yamlClusterConfig.AvailabilityZones = toArrayString(v)
+	}
+	cloudWatch := expandCloudWatch(d.Get("cloud_watch").([]interface{}))
+	secretEncryption := expandSecretEncryption(d.Get("secrets_encryption").([]interface{}))
+
+	yamlClusterConfig.Metadata = EKSSpecMetadata
+	yamlClusterConfig.KubernetesNetworkConfig = kubernetesNetworkConfig
+	yamlClusterConfig.IAM = iam
+	yamlClusterConfig.IdentityProviders = indentityProviders
+	yamlClusterConfig.VPC = vpc
+	yamlClusterConfig.Addons = addons
+	yamlClusterConfig.PrivateCluster = privateClusters
+	yamlClusterConfig.NodeGroups = nodeGroups
+	yamlClusterConfig.ManagedNodeGroups = managedNodeGroups
+	yamlClusterConfig.FargateProfiles = fargateProfiles
+	//yamlClusterConfig.AvailabilityZones = availabilityZones
+	yamlClusterConfig.CloudWatch = cloudWatch
+	yamlClusterConfig.SecretsEncryption = secretEncryption
+
+	log.Printf("EKS Cluster yamlConfig %v", yamlClusterConfig)
+
+	out, err := yaml.Marshal(yamlClusterConfig)
+	//out1 = clusterYaml
+	//collateBytes := make([][]byte, 2)
+	//collateBytes[0] = out1
+	//collateBytes[1] = out
+	//use collateCOnfigsBYName function in this file
+	//will need to modify collate function
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	//log.Printf("AKS Cluster YAML SPEC \n---\n%s\n----\n", out)
+	return process_filebytes(ctx, d, m, out)
+}
+
+//expand metadat for eks metadata file  (completed)
+func expandEKSMetaMetadata(p []interface{}) *EKSClusterMetaMetadata {
+	obj := &EKSClusterMetaMetadata{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+	if v, ok := in["project"].(string); ok && len(v) > 0 {
+		obj.Project = v
+	}
+	if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.Labels = toMapString(v)
+	}
+	return obj
+}
+
+//expand metadata for eks spec metadata (completed)
+func expandEKSSpecMetadata(p []interface{}) *EKSClusterMeta {
+	obj := &EKSClusterMeta{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+	if v, ok := in["region"].(string); ok && len(v) > 0 {
+		obj.Region = v
+	}
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+	if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.Tags = toMapString(v)
+	}
+	if v, ok := in["annotations"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.Annotations = toMapString(v)
+	}
+	return obj
+}
+
+//expand secret encryption (completed)
+func expandSecretEncryption(p []interface{}) *SecretsEncryption {
+	obj := &SecretsEncryption{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["key_arn"].(string); ok && len(v) > 0 {
+		obj.KeyARN = v
+	}
+	return obj
+}
+
+//expand cloud watch function (completed)
+func expandCloudWatch(p []interface{}) *EKSClusterCloudWatch {
+	obj := &EKSClusterCloudWatch{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["cluster_logging"].([]interface{}); ok && len(v) > 0 {
+		obj.ClusterLogging = expandCloudWatchClusterLogging(v)
+	}
+	return obj
+}
+
+func expandCloudWatchClusterLogging(p []interface{}) *EKSClusterCloudWatchLogging {
+	obj := &EKSClusterCloudWatchLogging{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enable_types"].([]interface{}); ok && len(v) > 0 {
+		obj.EnableTypes = toArrayString(v)
+	}
+	return obj
+}
+
+//expand fargate profiles (completed)
+func expandFargateProfiles(p []interface{}) []*FargateProfile {
+	obj := FargateProfile{}
+	out := make([]*FargateProfile, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+		if v, ok := in["pod_execution_role_arn"].(string); ok && len(v) > 0 {
+			obj.PodExecutionRoleARN = v
+		}
+		if v, ok := in["selectors"].([]interface{}); ok && len(v) > 0 {
+			obj.Selectors = expandFargateProfilesSelectors(v)
+		}
+		if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
+			obj.Subnets = toArrayString(v)
+		}
+		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Tags = toMapString(v)
+		}
+		if v, ok := in["status"].(string); ok && len(v) > 0 {
+			obj.Status = v
+		}
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func expandFargateProfilesSelectors(p []interface{}) []FargateProfileSelector {
+	obj := &FargateProfileSelector{}
+	out := make([]FargateProfileSelector, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+			obj.Namespace = v
+		}
+		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Labels = toMapString(v)
+		}
+		out[i] = *obj
+	}
+	return out
+}
+
+func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not completed have questions in comments
+	obj := &ManagedNodeGroup{}
+	out := make([]*ManagedNodeGroup, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+		if v, ok := in["ami_family"].(string); ok && len(v) > 0 {
+			obj.AMIFamily = v
+		}
+		if v, ok := in["instance_type"].(string); ok && len(v) > 0 {
+			obj.InstanceName = v
+		}
+		if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
+			obj.AvailabilityZones = toArrayString(v)
+		}
+		if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
+			obj.Subnets = toArrayString(v)
+		}
+		if v, ok := in["instance_prefix"].(string); ok && len(v) > 0 {
+			obj.InstancePrefix = v
+		}
+		if v, ok := in["instance_name"].(string); ok && len(v) > 0 {
+			obj.InstanceName = v
+		}
+		if v, ok := in["desired_capacity"].(int); ok {
+			obj.DesiredCapacity = &v
+		}
+		if v, ok := in["min_size"].(int); ok {
+			obj.MinSize = &v
+		}
+		if v, ok := in["max_size"].(int); ok {
+			obj.MaxSize = &v
+		}
+		if v, ok := in["volume_size"].(int); ok {
+			obj.VolumeSize = &v
+		}
+		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
+			obj.SSH = expandNodeGroupSsh(v)
+		}
+		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Labels = toMapString(v)
+		}
+		if v, ok := in["private_networking"].(bool); ok {
+			obj.PrivateNetworking = v
+		}
+		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Tags = toMapString(v)
+		}
+		if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
+			obj.IAM = expandNodeGroupIam(v)
+		}
+		if v, ok := in["ami"].(string); ok && len(v) > 0 {
+			obj.AMI = v
+		}
+		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
+			obj.SecurityGroups = expandNodeGroupSecurityGroups(v)
+		}
+		if v, ok := in["max_pods_per_node"].(int); ok {
+			obj.MaxPodsPerNode = v
+		}
+		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
+			obj.ASGSuspendProcesses = toArrayString(v)
+		}
+		if v, ok := in["ebs_optimized"].(bool); ok {
+			obj.EBSOptimized = &v
+		}
+		if v, ok := in["volume_type"].(string); ok && len(v) > 0 {
+			obj.VolumeType = v
+		}
+		if v, ok := in["volume_name"].(string); ok && len(v) > 0 {
+			obj.VolumeName = v
+		}
+		if v, ok := in["volume_encrypted"].(bool); ok {
+			obj.VolumeEncrypted = &v
+		}
+		if v, ok := in["volume_kms_key_id"].(string); ok && len(v) > 0 {
+			obj.VolumeKmsKeyID = v
+		}
+		if v, ok := in["volume_iops"].(int); ok {
+			obj.VolumeIOPS = &v
+		}
+		if v, ok := in["volume_throughput"].(int); ok {
+			obj.VolumeThroughput = &v
+		}
+		if v, ok := in["pre_bootstrap_commands"].([]interface{}); ok && len(v) > 0 {
+			obj.PreBootstrapCommands = toArrayString(v)
+		}
+		if v, ok := in["override_bootstrap_command"].(string); ok && len(v) > 0 {
+			obj.OverrideBootstrapCommand = v
+		}
+		if v, ok := in["disable_imdsv1"].(bool); ok {
+			obj.DisableIMDSv1 = &v
+		}
+		if v, ok := in["disable_pods_imds"].(bool); ok {
+			obj.DisablePodIMDS = &v
+		}
+		if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
+			obj.Placement = expandNodeGroupPlacement(v)
+		}
+		if v, ok := in["efa_enbaled"].(bool); ok {
+			obj.EFAEnabled = &v
+		}
+		if v, ok := in["instance_selector"].([]interface{}); ok && len(v) > 0 {
+			obj.InstanceSelector = expandNodeGroupInstanceSelector(v)
+		}
+		//additional encrypted volume field not in spec
+
+		if v, ok := in["bottle_rocket"].([]interface{}); ok && len(v) > 0 {
+			obj.Bottlerocket = expandNodeGroupBottleRocket(v)
+		}
+		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does (says to remove)
+		if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
+			obj.InstanceTypes = toArrayString(v)
+		}
+		if v, ok := in["spot"].(bool); ok {
+			obj.Spot = v
+		}
+		if v, ok := in["taints"].([]interface{}); ok && len(v) > 0 {
+			obj.Taints = expandManagedNodeGroupTaints(v)
+		}
+		if v, ok := in["update_config"].([]interface{}); ok && len(v) > 0 {
+			obj.UpdateConfig = expandNodeGroupUpdateConfig(v)
+		}
+		if v, ok := in["launch_tempelate"].([]interface{}); ok && len(v) > 0 {
+			obj.LaunchTemplate = expandManagedNodeGroupLaunchTempelate(v)
+		}
+
+		//struct has field ReleaseVersion
+		//also has internal field unowned -> will leave blank for now
+		//how do i finish this?
+
+		//check if this is how to build array of pointers
+		out[i] = obj
+	}
+
+	return out
+}
+
+//expand managed node group taints function (completed) (can i use this to expand taints in node group?)
+func expandManagedNodeGroupTaints(p []interface{}) []NodeGroupTaint {
+
+	out := make([]NodeGroupTaint, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := &NodeGroupTaint{}
+		if v, ok := in["key"].(string); ok && len(v) > 0 {
+			obj.Key = v
+		}
+		if v, ok := in["value"].(string); ok && len(v) > 0 {
+			obj.Value = v
+		}
+		if v, ok := in["effect"].(string); ok && len(v) > 0 {
+			obj.Effect = v
+		}
+		out[i] = *obj
+	}
+	//docs dont have field skip endpoint creation but struct does
+	return out
+}
+
+//expand managed node group Launch Tempelate function (completed)
+func expandManagedNodeGroupLaunchTempelate(p []interface{}) *LaunchTemplate {
+	obj := &LaunchTemplate{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["id"].(string); ok && len(v) > 0 {
+		obj.ID = v
+	}
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+	//docs dont have field skip endpoint creation but struct does
+	return obj
+}
+
+func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have questions in comments
+	out := make([]*NodeGroup, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := NodeGroup{}
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+		if v, ok := in["ami_family"].(string); ok && len(v) > 0 {
+			obj.AMIFamily = v
+		}
+		if v, ok := in["instance_type"].(string); ok && len(v) > 0 {
+			obj.InstanceName = v
+		}
+		if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
+			obj.AvailabilityZones = toArrayString(v)
+		}
+		if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
+			obj.Subnets = toArrayString(v)
+		}
+		if v, ok := in["instance_prefix"].(string); ok && len(v) > 0 {
+			obj.InstancePrefix = v
+		}
+		if v, ok := in["instance_name"].(string); ok && len(v) > 0 {
+			obj.InstanceName = v
+		}
+		if v, ok := in["desired_capacity"].(int); ok {
+			obj.DesiredCapacity = &v
+		}
+		if v, ok := in["min_size"].(int); ok {
+			obj.MinSize = &v
+		}
+		if v, ok := in["max_size"].(int); ok {
+			obj.MaxSize = &v
+		}
+		if v, ok := in["volume_size"].(int); ok {
+			obj.VolumeSize = &v
+		}
+		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
+			obj.SSH = expandNodeGroupSsh(v)
+		}
+		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Labels = toMapString(v)
+		}
+		if v, ok := in["private_networking"].(bool); ok {
+			obj.PrivateNetworking = v
+		}
+		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Tags = toMapString(v)
+		}
+		if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
+			obj.IAM = expandNodeGroupIam(v)
+		}
+		if v, ok := in["ami"].(string); ok && len(v) > 0 {
+			obj.AMI = v
+		}
+		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
+			obj.SecurityGroups = expandNodeGroupSecurityGroups(v)
+		}
+		if v, ok := in["max_pods_per_node"].(int); ok {
+			obj.MaxPodsPerNode = v
+		}
+		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
+			obj.ASGSuspendProcesses = toArrayString(v)
+		}
+		if v, ok := in["ebs_optimized"].(bool); ok {
+			obj.EBSOptimized = &v
+		}
+		if v, ok := in["volume_type"].(string); ok && len(v) > 0 {
+			obj.VolumeType = v
+		}
+		if v, ok := in["volume_name"].(string); ok && len(v) > 0 {
+			obj.VolumeName = v
+		}
+		if v, ok := in["volume_encrypted"].(bool); ok {
+			obj.VolumeEncrypted = &v
+		}
+		if v, ok := in["volume_kms_key_id"].(string); ok && len(v) > 0 {
+			obj.VolumeKmsKeyID = v
+		}
+		if v, ok := in["volume_iops"].(int); ok {
+			obj.VolumeIOPS = &v
+		}
+		if v, ok := in["volume_throughput"].(int); ok {
+			obj.VolumeThroughput = &v
+		}
+		if v, ok := in["pre_bootstrap_commands"].([]interface{}); ok && len(v) > 0 {
+			obj.PreBootstrapCommands = toArrayString(v)
+		}
+		if v, ok := in["override_bootstrap_command"].(string); ok && len(v) > 0 {
+			obj.OverrideBootstrapCommand = v
+		}
+		if v, ok := in["disable_imdsv1"].(bool); ok {
+			obj.DisableIMDSv1 = &v
+		}
+		if v, ok := in["disable_pods_imds"].(bool); ok {
+			obj.DisablePodIMDS = &v
+		}
+		if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
+			obj.Placement = expandNodeGroupPlacement(v)
+		}
+		if v, ok := in["efa_endbaled"].(bool); ok {
+			obj.EFAEnabled = &v
+		}
+		if v, ok := in["instance_selector"].([]interface{}); ok && len(v) > 0 {
+			obj.InstanceSelector = expandNodeGroupInstanceSelector(v)
+		}
+		//additional encrypted volume field not in spec
+
+		if v, ok := in["bottle_rocket"].([]interface{}); ok && len(v) > 0 {
+			obj.Bottlerocket = expandNodeGroupBottleRocket(v)
+		}
+		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does
+
+		if v, ok := in["instances_distribution"].([]interface{}); ok && len(v) > 0 {
+			obj.InstancesDistribution = expandNodeGroupInstanceDistribution(v)
+		}
+		if v, ok := in["asg_metrics_collection"].([]interface{}); ok && len(v) > 0 {
+			obj.ASGMetricsCollection = expandNodeGroupASGMetricCollection(v)
+		}
+		if v, ok := in["cpu_credits"].(string); ok && len(v) > 0 {
+			obj.CPUCredits = v
+		}
+		if v, ok := in["classic_load_balancer_names"].([]interface{}); ok && len(v) > 0 {
+			obj.ClassicLoadBalancerNames = toArrayString(v)
+		}
+		if v, ok := in["target_group_arns"].([]interface{}); ok && len(v) > 0 {
+			obj.TargetGroupARNs = toArrayString(v)
+		}
+		//how should taints be stored correctly? (confused about taints wrapps struct)
+
+		if v, ok := in["update_config"].([]interface{}); ok && len(v) > 0 {
+			obj.UpdateConfig = expandNodeGroupUpdateConfig(v)
+		}
+		if v, ok := in["cluster_dns"].(string); ok && len(v) > 0 {
+			obj.ClusterDNS = v
+		}
+		//@@@TODO Store terraform input as inline document object correctly
+		/*
+			if v, ok := in["kubelet_extra_config"].(map[string]interface{}); ok && len(v) > 0 {
+				obj.KubeletExtraConfig = v
+			}*/
+		//struct has field containerRuntime
+		//doc has version and subnet cidr
+		//how do i finish this?
+
+		//check if this is how to build array of pointers
+		out[i] = &obj
+	}
+
+	return out
+}
+
+//expand node group Update Config function (completed)
+func expandNodeGroupUpdateConfig(p []interface{}) *NodeGroupUpdateConfig {
+	obj := &NodeGroupUpdateConfig{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["max_unavaliable"].(int); ok {
+		obj.MaxUnavailable = &v
+	}
+	if v, ok := in["max_unavaliable_percetage"].(int); ok {
+		obj.MaxUnavailablePercentage = &v
+	}
+	//docs dont have field skip endpoint creation but struct does
+	return obj
+}
+
+//expand node group ASG Metrics Collection function (completed)
+func expandNodeGroupASGMetricCollection(p []interface{}) []MetricsCollection {
+	out := make([]MetricsCollection, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		obj := &MetricsCollection{}
+		in := p[0].(map[string]interface{})
+		if v, ok := in["granularity"].(string); ok && len(v) > 0 {
+			obj.Granularity = v
+		}
+		if v, ok := in["metrics"].([]interface{}); ok && len(v) > 0 {
+			obj.Metrics = toArrayString(v)
+		}
+		out[i] = *obj
+	}
+
+	return out
+}
+
+//expand node group Instance Distribution function (completed)
+func expandNodeGroupInstanceDistribution(p []interface{}) *NodeGroupInstancesDistribution {
+	obj := &NodeGroupInstancesDistribution{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
+		obj.InstanceTypes = toArrayString(v)
+	}
+	if v, ok := in["max_price"].(float64); ok {
+		obj.MaxPrice = &v
+	}
+	if v, ok := in["on_demand_base_capacity"].(int); ok {
+		obj.OnDemandBaseCapacity = &v
+	}
+	if v, ok := in["on_demand_percentage_above_base_capacity"].(int); ok {
+		obj.OnDemandPercentageAboveBaseCapacity = &v
+	}
+	if v, ok := in["spot_instance_pools"].(int); ok {
+		obj.SpotInstancePools = &v
+	}
+	if v, ok := in["spot_allocation_strategy"].(string); ok {
+		obj.SpotAllocationStrategy = v
+	}
+	if v, ok := in["capacity_rebalance"].(bool); ok {
+		obj.CapacityRebalance = v
+	}
+	return obj
+}
+
+//expand node group Bottle Rocket function (completed)
+func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
+	obj := &NodeGroupBottlerocket{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enable_admin_container"].(bool); ok {
+		obj.EnableAdminContainer = &v
+	}
+	if v, ok := in["settings"].(map[string]interface{}); ok && len(v) > 0 {
+		////@@@TODO Store terraform input as inline document object correctly
+		//obj.Settings = toMapString(v)
+	}
+	//docs dont have field skip endpoint creation but struct does
+	return obj
+}
+
+//expand node group instance selector function (completed)
+func expandNodeGroupInstanceSelector(p []interface{}) *InstanceSelector {
+	obj := &InstanceSelector{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["vcpus"].(int); ok {
+		obj.VCPUs = v
+	}
+	if v, ok := in["memory"].(string); ok && len(v) > 0 {
+		obj.Memory = v
+	}
+	if v, ok := in["gpus"].(int); ok {
+		obj.GPUs = v
+	}
+	if v, ok := in["cpu_architecture"].(string); ok && len(v) > 0 {
+		obj.CPUArchitecture = v
+	}
+
+	return obj
+}
+
+//expand node group placement function (completed)
+func expandNodeGroupPlacement(p []interface{}) *Placement {
+	obj := &Placement{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["group"].(string); ok && len(v) > 0 {
+		obj.GroupName = v
+	}
+	return obj
+}
+
+//expand node group security groups function (completed)
+func expandNodeGroupSecurityGroups(p []interface{}) *NodeGroupSGs {
+	obj := &NodeGroupSGs{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["attach_ids"].([]interface{}); ok && len(v) > 0 {
+		obj.AttachIDs = toArrayString(v)
+	}
+	if v, ok := in["with_shared"].(bool); ok {
+		obj.WithShared = &v
+	}
+	if v, ok := in["with_local"].(bool); ok {
+		obj.WithLocal = &v
+	}
+	return obj
+}
+
+//expand node group iam function (completed/kind of)
+func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
+	obj := &NodeGroupIAM{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	//@@@TODO Store terraform input as inline document object correctly
+	/*
+		if v, ok := in["attach_policy"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.AttachPolicy := toMapString(v)
+		}
+	*/
+	if v, ok := in["attach_policy_arns"].([]interface{}); ok && len(v) > 0 {
+		obj.AttachPolicyARNs = toArrayString(v)
+	}
+	if v, ok := in["instance_profile_arn"].(string); ok && len(v) > 0 {
+		obj.InstanceProfileARN = v
+	}
+	if v, ok := in["instance_role_arn"].(string); ok && len(v) > 0 {
+		obj.InstanceRoleARN = v
+	}
+	if v, ok := in["instance_role_name"].(string); ok && len(v) > 0 {
+		obj.InstanceRoleName = v
+	}
+	if v, ok := in["instance_role_permission_boundary"].(string); ok && len(v) > 0 {
+		obj.InstanceRolePermissionsBoundary = v
+	}
+	if v, ok := in["iam_node_group_with_addon_policies"].([]interface{}); ok && len(v) > 0 {
+		obj.WithAddonPolicies = expandNodeGroupIAMWithAddonPolicies(v)
+	}
+	return obj
+}
+
+//expand node group IAm With Addon Policies function (completed/kind of)
+func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolicies {
+	obj := NodeGroupIAMAddonPolicies{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["image_builder"].(bool); ok {
+		obj.ImageBuilder = &v
+	}
+	if v, ok := in["auto_scaler"].(bool); ok {
+		obj.AutoScaler = &v
+	}
+	if v, ok := in["external_dns"].(bool); ok {
+		obj.ExternalDNS = &v
+	}
+	if v, ok := in["cert_manager"].(bool); ok {
+		obj.CertManager = &v
+	}
+	if v, ok := in["app_mesh"].(bool); ok {
+		obj.CertManager = &v
+	}
+	if v, ok := in["app_mesh_review"].(bool); ok {
+		obj.CertManager = &v
+	}
+	if v, ok := in["ebs"].(bool); ok {
+		obj.CertManager = &v
+	}
+	if v, ok := in["fsx"].(bool); ok {
+		obj.CertManager = &v
+	}
+	if v, ok := in["efs"].(bool); ok {
+		obj.CertManager = &v
+	}
+	//doc says it should be field alb_ingress, struct has fiel ABSLoadBalancerController?
+	/*
+		if v, ok := in["alb_ingress"].(bool); ok {
+			obj.AWSLoadBalancerController = &v
+		}
+	*/
+	if v, ok := in["xray"].(bool); ok {
+		obj.CertManager = &v
+	}
+	if v, ok := in["cloud_watch"].(bool); ok {
+		obj.CertManager = &v
+	}
+	return obj
+}
+
+//expand node group ssh function (completed/ kind of)
+func expandNodeGroupSsh(p []interface{}) *NodeGroupSSH {
+	obj := &NodeGroupSSH{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["allow"].(bool); ok {
+		obj.Allow = &v
+	}
+	//struct has publicKeypath when the doc does not
+	if v, ok := in["public_key"].(string); ok && len(v) > 0 {
+		obj.PublicKey = v
+	}
+	if v, ok := in["public_key_name"].(string); ok && len(v) > 0 {
+		obj.PublicKeyName = v
+	}
+	if v, ok := in["source_security_group_ids"].([]interface{}); ok && len(v) > 0 {
+		obj.SourceSecurityGroupIDs = toArrayString(v)
+	}
+	if v, ok := in["enable_ssm"].(bool); ok {
+		obj.EnableSSM = &v
+	}
+	//docs dont have field skip endpoint creation but struct does
+	return obj
+}
+
+//expand private clusters function (completed)
+func expandPrivateCluster(p []interface{}) *PrivateCluster {
+	obj := &PrivateCluster{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+	if v, ok := in["additional_endpoint_services"].([]interface{}); ok && len(v) > 0 {
+		obj.AdditionalEndpointServices = toArrayString(v)
+	}
+	//docs dont have field skip endpoint creation but struct does
+	return obj
+}
+
+//expand addon(completed/kind of)
+func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
+	out := make([]*Addon, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		obj := &Addon{}
+		in := p[i].(map[string]interface{})
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+		if v, ok := in["version"].(string); ok && len(v) > 0 {
+			obj.Version = v
+		}
+		if v, ok := in["service_account_role_arn"].(string); ok && len(v) > 0 {
+			obj.ServiceAccountRoleARN = v
+		}
+		if v, ok := in["attach_policy_arns"].([]interface{}); ok && len(v) > 0 {
+			obj.AttachPolicyARNs = toArrayString(v)
+		}
+
+		//@@@TODO Store terraform input as inline document object correctly
+
+		if v, ok := in["permissions_boundary"].(string); ok && len(v) > 0 {
+			obj.PermissionsBoundary = v
+		}
+		//docs dont have well known policies but struct does?
+
+		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Tags = toMapString(v)
+		}
+		//docs dont have force variable but struct does
+		out[i] = obj
+	}
+	return out
+}
+
+//expand vpc function
+func expandVPC(p []interface{}) *EKSClusterVPC {
+	obj := &EKSClusterVPC{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["id"].(string); ok && len(v) > 0 {
+		obj.ID = v
+	}
+	//is this right for cidr?
+	if v, ok := in["cidr"].(string); ok && len(v) > 0 {
+		obj.CIDR = v
+	}
+	if v, ok := in["security_group"].(string); ok && len(v) > 0 {
+		obj.SecurityGroup = v
+	}
+	if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
+		obj.Subnets = expandSubnets(v)
+	}
+	if v, ok := in["extra_cidrs"].([]interface{}); ok && len(v) > 0 {
+		obj.ExtraCIDRs = toArrayString(v)
+	}
+	if v, ok := in["shared_node_security_group"].(string); ok && len(v) > 0 {
+		obj.SharedNodeSecurityGroup = v
+	}
+	if v, ok := in["managed_shared_node_security_group_rules"].(bool); ok {
+		obj.ManageSharedNodeSecurityGroupRules = &v
+	}
+	if v, ok := in["auto_allocate_ipv6"].(bool); ok {
+		obj.AutoAllocateIPv6 = &v
+	}
+	if v, ok := in["nat"].([]interface{}); ok && len(v) > 0 {
+		obj.NAT = expandNat(v)
+	}
+	if v, ok := in["cluster_endpoints"].([]interface{}); ok && len(v) > 0 {
+		obj.ClusterEndpoints = expandClusterEndpoints(v)
+	}
+	if v, ok := in["public_access_cidrs"].([]interface{}); ok && len(v) > 0 {
+		obj.PublicAccessCIDRs = toArrayString(v)
+	}
+	return obj
+}
+
+func expandClusterEndpoints(p []interface{}) *ClusterEndpoints {
+	obj := &ClusterEndpoints{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["private_access"].(bool); ok {
+		obj.PrivateAccess = &v
+	}
+	if v, ok := in["public_access"].(bool); ok {
+		obj.PublicAccess = &v
+	}
+	return obj
+}
+
+func expandNat(p []interface{}) *ClusterNAT {
+	obj := &ClusterNAT{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["gateway"].(string); ok && len(v) > 0 {
+		obj.Gateway = v
+	}
+	return obj
+}
+
+func expandSubnets(p []interface{}) *ClusterSubnets {
+	obj := &ClusterSubnets{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	//Throwing error, dont know how to take AZSubnetSpec and put into AZSubnetMapping
+	//@@@TODO: Store subnet spec properly
+	if v, ok := in["private"].([]interface{}); ok && len(v) > 0 {
+		obj.Private = expandSubnetSpec(v)
+	}
+	if v, ok := in["public"].([]interface{}); ok && len(v) > 0 {
+		obj.Public = expandSubnetSpec(v)
+	}
+	return obj
+}
+func expandSubnetSpec(p []interface{}) *AZSubnetSpec {
+	obj := &AZSubnetSpec{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["id"].(string); ok && len(v) > 0 {
+		obj.ID = v
+	}
+	if v, ok := in["az"].(string); ok && len(v) > 0 {
+		obj.AZ = v
+	}
+	//@@@TODO: how do you store cidr? (ipnet object)
+	return obj
+}
+
+//struct IdentityProviders has one extra field not in documentation or the schema
+func expandIdentityProviders(p []interface{}) []IdentityProvider {
+	out := make([]IdentityProvider, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := IdentityProvider{}
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.type_ = v
+		}
+		out[i] = obj
+	}
+	//obj.type_ = in["type"].(string)
+	return out
+}
+
+func expandIAMFields(p []interface{}) *EKSClusterIAM {
+	obj := &EKSClusterIAM{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["service_role_arn"].(string); ok && len(v) > 0 {
+		obj.ServiceRoleARN = v
+	}
+
+	if v, ok := in["service_role_permission_boundary"].(string); ok && len(v) > 0 {
+		obj.ServiceRolePermissionsBoundary = v
+	}
+
+	if v, ok := in["fargate_pod_execution_role_arn"].(string); ok && len(v) > 0 {
+		obj.FargatePodExecutionRoleARN = v
+	}
+
+	if v, ok := in["fargate_pod_execution_permissions_boundary"].(string); ok && len(v) > 0 {
+		obj.FargatePodExecutionRolePermissionsBoundary = v
+	}
+
+	if v, ok := in["with_oidc"].(bool); ok {
+		obj.WithOIDC = v
+	}
+
+	if v, ok := in["service_accounts"].([]interface{}); ok && len(v) > 0 {
+		obj.ServiceAccounts = expandIAMServiceAccountsConfig(v)
+	}
+
+	if v, ok := in["vpcResourceControllerPolicy"].(bool); ok {
+		obj.VPCResourceControllerPolicy = v
+	}
+
+	//obj.ServiceRoleARN = in["serviceRoleARN"].(string)
+	//obj.ServiceRolePermissionsBoundary = in["serviceRolePermissionBoundary"].(string)
+	//obj.FargatePodExecutionRoleARN = in["fargatePodExecutionRoleARN"].string
+	//obj.FargatePodExecutionRolePermissionsBoundary = in["fargatePodExecutionPermissionsBoundary"].string
+	//obj.WithOIDC = in["withOIDC"]
+	//obj.ServiceAccounts = expandIAMServiceAccountsConfig(in["serviceAccounts"].([]interface{}))//break down is completly diff with shcema/docs vs struct
+	//obj.VPCResourceControllerPolicy = in["vpcResourceControllerPolicy"].bool
+
+	return obj
+}
+func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAccount {
+	out := make([]*EKSClusterIAMServiceAccount, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		obj := &EKSClusterIAMServiceAccount{}
+		in := p[i].(map[string]interface{})
+		//is this okay or do i need to store it in metadata, golang gives me access to the containts inside the metadata struct
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+		if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+			obj.Namespace = v
+		}
+		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Labels = toMapString(v)
+		}
+		if v, ok := in["annotations"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Annotations = toMapString(v)
+		}
+
+		//finish clusterIAM metadata
+		if v, ok := in["attach_policy_arns"].([]interface{}); ok && len(v) > 0 {
+			obj.AttachPolicyARNs = toArrayString(v)
+		}
+		if v, ok := in["well_known_policies"].([]interface{}); ok && len(v) > 0 {
+			obj.WellKnownPolicies = expandIAMWellKnownPolicies(v)
+		}
+		//check for attach policy
+		////@@@TODO Store terraform input as inline document object correctly
+		/*
+			if v, ok := in["attach_policy"].([]interface{}); ok && len(v) > 0 {
+				obj.AttachPolicy = &v//@@ inline document
+			}*/
+
+		if v, ok := in["attach_role_arn"].(string); ok && len(v) > 0 {
+			obj.AttachRoleARN = v
+		}
+		if v, ok := in["permission_boundary"].(string); ok && len(v) > 0 {
+			obj.PermissionsBoundary = v
+		}
+		if v, ok := in["status"].([]interface{}); ok && len(v) > 0 {
+			obj.Status = expandIAMServiceAccountsStatusConfig(v)
+		}
+		if v, ok := in["role_name"].(string); ok && len(v) > 0 {
+			obj.RoleName = v
+		}
+		if v, ok := in["role_only"].(bool); ok {
+			obj.RoleOnly = &v
+		}
+		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Tags = toMapString(v)
+		}
+		//@@@TODO Store terraform input as inline document object correctly
+		/*
+			obj.AttachPolicy = in["attachPolicy"].map[string]interface{}//whats the problem?
+		*/
+		out[i] = obj
+	}
+
+	return out
+}
+
+func expandIAMWellKnownPolicies(p []interface{}) WellKnownPolicies {
+	obj := WellKnownPolicies{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["image_builder"].(bool); ok {
+		obj.ImageBuilder = &v
+	}
+	if v, ok := in["auto_scaler"].(bool); ok {
+		obj.AutoScaler = &v
+	}
+	if v, ok := in["aws_load_balancer_controller"].(bool); ok {
+		obj.AWSLoadBalancerController = &v
+	}
+	if v, ok := in["external_DNS"].(bool); ok {
+		obj.ExternalDNS = &v
+	}
+	if v, ok := in["cert_manager"].(bool); ok {
+		obj.CertManager = &v
+	}
+	if v, ok := in["ebs_csi_controller"].(bool); ok {
+		obj.EBSCSIController = &v
+	}
+	if v, ok := in["efs_csi_controller"].(bool); ok {
+		obj.EFSCSIController = &v
+	}
+
+	return obj
+}
+
+func expandIAMServiceAccountsStatusConfig(p []interface{}) *ClusterIAMServiceAccountStatus {
+	obj := &ClusterIAMServiceAccountStatus{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["role_arn"].(string); ok && len(v) > 0 {
+		obj.RoleARN = v
+	}
+	//obj.RoleARN = in["roleARN"].(string)
+	return obj
+}
+
+func expandKubernetesNetworkConfig(p []interface{}) *KubernetesNetworkConfig {
+	obj := &KubernetesNetworkConfig{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["service_ipv4_cidr"].(string); ok && len(v) > 0 {
+		obj.ServiceIPv4CIDR = v
+	}
+	//obj.ServiceIPv4CIDR = in["serviceIPv4CIDR"].(string)
+	return obj
+}
+
+func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
+	obj := &EKSSpec{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		obj.Type = v
+	}
+	if v, ok := in["blueprint"].(string); ok && len(v) > 0 {
+		obj.Blueprint = v
+	}
+	if v, ok := in["blueprint_version"].(string); ok && len(v) > 0 {
+		obj.BlueprintVersion = v
+	}
+	if v, ok := in["cloud_provider"].(string); ok && len(v) > 0 {
+		obj.CloudProvider = v
+	}
+	if v, ok := in["cni_provider"].(string); ok && len(v) > 0 {
+		obj.CniProvider = v
+	}
+	if v, ok := in["proxy_config"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.ProxyConfig = toMapString(v)
+	}
+
+	return obj
+}
+
+/*
 func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -260,10 +3125,1319 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 
 	return diags
 }
+*/
+func flattenEKSClusterMetadata(d *schema.ResourceData, in *EKSClusterMetadata) error {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+
+	if len(in.Kind) > 0 {
+		obj["kind"] = in.Kind
+	}
+	var err error
+	//dont have expand metametadata function how i should i properly do this?
+	var ret1 []interface{}
+	if in.Metadata != nil {
+		v, ok := obj["metadata"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret1, err = flattenEKSClusterMetaMetadata(in.Metadata, v)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = d.Set("metadata", ret1)
+	if err != nil {
+		return err
+	}
+	//flattening EKSClusterSpec
+	var ret2 []interface{}
+	if in.Spec != nil {
+		v, ok := obj["spec"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		ret2, err = flattenEKSClusterSpec(in.Spec, v)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = d.Set("spec", ret2)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func flattenEKSClusterMetaMetadata(in *EKSClusterMetaMetadata, p []interface{}) ([]interface{}, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "flattenAKSClusterMetaData empty input")
+	}
+	obj := map[string]interface{}{}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+	if len(in.Project) > 0 {
+		obj["project"] = in.Project
+	}
+
+	if in.Labels != nil && len(in.Labels) > 0 {
+		obj["labels"] = toMapInterface(in.Labels)
+	}
+
+	return []interface{}{obj}, nil
+}
+func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "flattenAKSClusterMetaData empty input")
+	}
+	obj := map[string]interface{}{}
+
+	if len(in.Type) > 0 {
+		obj["type"] = in.Type
+	}
+	if len(in.Blueprint) > 0 {
+		obj["blueprint"] = in.Blueprint
+	}
+	if len(in.BlueprintVersion) > 0 {
+		obj["blueprint_version"] = in.BlueprintVersion
+	}
+	if len(in.CloudProvider) > 0 {
+		obj["cloud_provider"] = in.CloudProvider
+	}
+	if len(in.CniProvider) > 0 {
+		obj["cni_provider"] = in.CniProvider
+	}
+
+	if in.ProxyConfig != nil && len(in.ProxyConfig) > 0 {
+		obj["proxy_config"] = toMapInterface(in.ProxyConfig)
+	}
+
+	return []interface{}{obj}, nil
+}
+func flattenEKSConfigMetadata(in *EKSClusterMeta, p []interface{}) ([]interface{}, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "flattenAKSClusterMetaData empty input")
+	}
+	obj := map[string]interface{}{}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+	if len(in.Region) > 0 {
+		obj["region"] = in.Region
+	}
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	if in.Tags != nil && len(in.Tags) > 0 {
+		obj["tags"] = toMapInterface(in.Tags)
+	}
+
+	return []interface{}{obj}, nil
+}
+func flattenEKSYamlConfig(d *schema.ResourceData, in *EKSClusterYamlConfig) error {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+
+	if len(in.APIVersion) > 0 {
+		obj["apiversion"] = in.APIVersion
+	}
+	if len(in.Kind) > 0 {
+		obj["kind"] = in.Kind
+	}
+	var err error
+	//how should i do this for cluster spec metadata vs cluster meta-metadata
+	//dont have expand metametadata function how i should i properly do this?
+	var ret1 []interface{}
+	if in.Metadata != nil {
+		v, ok := obj["metadata"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret1, err = flattenEKSConfigMetadata(in.Metadata, v)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = d.Set("metadata", ret1)
+	if err != nil {
+		return err
+	}
+	//setting up flatten KubernetesNetworkConfig
+	var ret2 []interface{}
+	if in.KubernetesNetworkConfig != nil {
+		v, ok := obj["kubernetes_network_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret1, err = flattenEKSClusterKubernetesNetworkConfig(in.KubernetesNetworkConfig, v)
+		if err != nil {
+			return err
+		}
+	}
+	err = d.Set("kubernetes_network_config", ret2)
+	if err != nil {
+		return err
+	}
+	//setting up flatten IAM
+	var ret3 []interface{}
+	if in.IAM != nil {
+		v, ok := obj["iam"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret1, err = flattenEKSClusterIAM(in.IAM, v)
+		if err != nil {
+			return err
+		}
+	}
+	err = d.Set("iam", ret3)
+	if err != nil {
+		return err
+	}
+	//setting up flatten Identity Providers
+	var ret4 []interface{}
+	if in.IdentityProviders != nil {
+		v, ok := obj["identity_providers"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret1, err = flattenEKSClusterIdentityProviders(in.IdentityProviders, v)
+		if err != nil {
+			return err
+		}
+	}
+	err = d.Set("identity_providers", ret4)
+	if err != nil {
+		return err
+	}
+	//setting up flatten VPC
+	var ret5 []interface{}
+	if in.VPC != nil {
+		v, ok := obj["vpc"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret5, err = flattenEKSClusterVPC(in.VPC, v)
+		if err != nil {
+			return err
+		}
+	}
+	err = d.Set("vpc", ret5)
+	if err != nil {
+		return err
+	}
+	//setting up flatten Addon
+	var ret6 []interface{}
+	if in.Addons != nil {
+		v, ok := obj["addons"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret6 = flattenEKSClusterAddons(in.Addons, v)
+		if err != nil {
+			return err
+		}
+	}
+	err = d.Set("addons", ret6)
+	if err != nil {
+		return err
+	}
+	//setting up flatten Private Clusters
+	var ret7 []interface{}
+	if in.PrivateCluster != nil {
+		v, ok := obj["private_cluster"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret7 = flattenEKSClusterPrivateCluster(in.PrivateCluster, v)
+		if err != nil {
+			return err
+		}
+	}
+	err = d.Set("private_cluster", ret7)
+	if err != nil {
+		return err
+	}
+	//setting up flatten Node Groups
+	var ret8 []interface{}
+	if in.NodeGroups != nil {
+		v, ok := obj["node_groups"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, v)
+		if err != nil {
+			return err
+		}
+	}
+	err = d.Set("node_groups", ret8)
+	if err != nil {
+		return err
+	}
+	//setting up flatten Managed Node Groups
+	var ret9 []interface{}
+	if in.ManagedNodeGroups != nil {
+		v, ok := obj["managed_nodegroups"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret9 = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, v)
+		if err != nil {
+			return err
+		}
+	}
+	err = d.Set("managed_nodegroups", ret9)
+	if err != nil {
+		return err
+	}
+	//setting up flatten Fargate Profiles
+	var ret10 []interface{}
+	if in.FargateProfiles != nil {
+		v, ok := obj["fargate_profiles"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret10 = flattenEKSClusterFargateProfiles(in.FargateProfiles, v)
+		if err != nil {
+			return err
+		}
+	}
+	err = d.Set("fargate_profiles", ret10)
+	if err != nil {
+		return err
+	}
+	//setting up flatten Availability Zones
+	if in.AvailabilityZones != nil && len(in.AvailabilityZones) > 0 {
+		obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
+	}
+	/*dont need this right?
+	err = d.Set("availability_zones", ret11)
+	if err != nil {
+		return err
+	}
+	*/
+	//setting up flatten Cloud Watch
+	var ret11 []interface{}
+	if in.CloudWatch != nil {
+		v, ok := obj["cloud_watch"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret11 = flattenEKSClusterCloudWatch(in.CloudWatch, v)
+		if err != nil {
+			return err
+		}
+	}
+	err = d.Set("cloud_watch", ret11)
+	if err != nil {
+		return err
+	}
+	//setting up flatten Secrets Encryption
+	var ret12 []interface{}
+	if in.SecretsEncryption != nil {
+		v, ok := obj["secrets_encryption"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret12 = flattenEKSClusterSecretsEncryption(in.SecretsEncryption, v)
+		if err != nil {
+			return err
+		}
+	}
+	err = d.Set("secrets_encryption", ret12)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func flattenEKSClusterKubernetesNetworkConfig(in *KubernetesNetworkConfig, p []interface{}) ([]interface{}, error) {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}, nil
+	}
+
+	if len(in.ServiceIPv4CIDR) > 0 {
+		obj["service_ipv4_cidr"] = in.ServiceIPv4CIDR
+	}
+	return []interface{}{obj}, nil
+}
+func flattenEKSClusterIAM(in *EKSClusterIAM, p []interface{}) ([]interface{}, error) {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}, nil
+	}
+
+	if len(in.ServiceRoleARN) > 0 {
+		obj["service_role_arn"] = in.ServiceRoleARN
+	}
+	if len(in.ServiceRolePermissionsBoundary) > 0 {
+		obj["service_role_permission_boundary"] = in.ServiceRolePermissionsBoundary
+	}
+	if len(in.FargatePodExecutionRoleARN) > 0 {
+		obj["fargate_pod_execution_role_arn"] = in.FargatePodExecutionRoleARN
+	}
+	if len(in.FargatePodExecutionRolePermissionsBoundary) > 0 {
+		obj["fargate_pod_execution_role_permissions_boundary"] = in.FargatePodExecutionRolePermissionsBoundary
+	}
+
+	obj["with_oidc"] = in.WithOIDC
+
+	if in.ServiceAccounts != nil {
+		v, ok := obj["service_accounts"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["service_accounts"] = flattenIAMServiceAccounts(in.ServiceAccounts, v)
+	}
+
+	obj["vpc_resource_controller_policy"] = in.VPCResourceControllerPolicy
+
+	return []interface{}{obj}, nil
+}
+func flattenIAMServiceAccounts(in []*EKSClusterIAMServiceAccount, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.Namespace) > 0 {
+			obj["namespace"] = in.Namespace
+		}
+
+		if in.Labels != nil && len(in.Labels) > 0 {
+			obj["labels"] = toMapInterface(in.Labels)
+		}
+		if in.Annotations != nil && len(in.Annotations) > 0 {
+			obj["annotations"] = toMapInterface(in.Annotations)
+		}
+		if in.AttachPolicyARNs != nil && len(in.AttachPolicyARNs) > 0 {
+			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
+		}
+		v, ok := obj["well_known_policies"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
+
+		//@@@TODO Store inline document object as terraform input correctly
+
+		/*if in.AttachPolicy != nil && len(in.AttachPolicyARNs) > 0 {
+			//can i change inline document type to map[string]interface (wats the point of havign the extra definition)
+			obj["attach_policy"] = toMapInterface((in.AttachPolicy).(map[string]interface{}))
+		}*/
+		if len(in.AttachRoleARN) > 0 {
+			obj["attach_role_arn"] = in.AttachRoleARN
+		}
+		if len(in.PermissionsBoundary) > 0 {
+			obj["permissions_boundary"] = in.PermissionsBoundary
+		}
+		if in.Status != nil {
+			v, ok := obj["status"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["status"] = flattenIAMStatus(in.Status, v)
+		}
+		if len(in.RoleName) > 0 {
+			obj["role_name"] = in.RoleName
+		}
+
+		obj["role_only"] = in.RoleOnly
+
+		if in.Tags != nil && len(in.Tags) > 0 {
+			obj["tags"] = toMapInterface(in.Tags)
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+
+}
+func flattenIAMStatus(in *ClusterIAMServiceAccountStatus, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	if len(in.RoleARN) > 0 {
+		obj["role_arn"] = in.RoleARN
+	}
+
+	return []interface{}{obj}
+}
+func flattenIAMWellKnownPolicies(in WellKnownPolicies, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["image_builder"] = in.ImageBuilder
+	obj["auto_scaler"] = in.AutoScaler
+	obj["aws_load_balancer_controller"] = in.AWSLoadBalancerController
+	obj["external_dns"] = in.ExternalDNS
+	obj["cert_manager"] = in.CertManager
+	obj["ebs_csi_controller"] = in.EBSCSIController
+	obj["efs_csi_controller"] = in.EFSCSIController
+	return []interface{}{obj}
+}
+func flattenEKSClusterIdentityProviders(in []IdentityProvider, p []interface{}) ([]interface{}, error) {
+	out := make([]interface{}, len(in))
+	if in == nil {
+		return []interface{}{out}, nil
+	}
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.type_) > 0 {
+			obj["type"] = in.type_
+		}
+
+		out[i] = &obj
+	}
+	return out, nil
+}
+func flattenEKSClusterVPC(in *EKSClusterVPC, p []interface{}) ([]interface{}, error) {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}, nil
+	}
+	if len(in.ID) > 0 {
+		obj["id"] = in.ID
+	}
+	if len(in.CIDR) > 0 {
+		obj["cidr"] = in.CIDR
+	}
+	if len(in.SecurityGroup) > 0 {
+		obj["security_group"] = in.SecurityGroup
+	}
+
+	if in.Subnets != nil {
+		v, ok := obj["subnets"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["subnets"] = flattenVPCSubnets(in.Subnets, v)
+	}
+
+	if len(in.ExtraCIDRs) > 0 {
+		obj["extra_cidrs"] = toArrayInterface(in.ExtraCIDRs)
+	}
+	/* ask wat to do with this field
+	if in.ExtraIPv6CIDRs != nil && len(in.ExtraIPv6CIDRs) > 0 {
+		obj["extra_ipv6_cidrs"] = toArrayInterface(in.ExtraCIDRs)
+	}*/
+	if len(in.SharedNodeSecurityGroup) > 0 {
+		obj["shared_node_security_group"] = in.SharedNodeSecurityGroup
+	}
+
+	obj["manage_shared_node_security_group_rules"] = in.ManageSharedNodeSecurityGroupRules
+	obj["auto_allocate_ipv6"] = in.AutoAllocateIPv6
+
+	if in.NAT != nil {
+		v, ok := obj["nat"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["nat"] = flattenVPCNAT(in.NAT, v)
+	}
+	if in.ClusterEndpoints != nil {
+		v, ok := obj["cluster_endpoints"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["cluster_endpoints"] = flattenVPCClusterEndpoints(in.ClusterEndpoints, v)
+	}
+
+	if len(in.PublicAccessCIDRs) > 0 {
+		obj["public_access_cidrs"] = toArrayInterface(in.PublicAccessCIDRs)
+	}
+
+	return []interface{}{obj}, nil
+}
+func flattenVPCSubnets(in *ClusterSubnets, p []interface{}) []interface{} {
+	//FIX THE EXPAND FIRST AND THEN DO THIS ITLL MAKE MORE SENSE
+	obj := map[string]interface{}{}
+	return []interface{}{obj}
+}
+func flattenVPCNAT(in *ClusterNAT, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	if len(in.Gateway) > 0 {
+		obj["gateway"] = in.Gateway
+	}
+	return []interface{}{obj}
+}
+func flattenVPCClusterEndpoints(in *ClusterEndpoints, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	obj["private_access"] = in.PrivateAccess
+	obj["public_access"] = in.PublicAccess
+	return []interface{}{obj}
+}
+
+func flattenEKSClusterAddons(in []*Addon, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.Version) > 0 {
+			obj["version"] = in.Version
+		}
+		if len(in.ServiceAccountRoleARN) > 0 {
+			obj["service_account_role_arn"] = in.ServiceAccountRoleARN
+		}
+		if len(in.AttachPolicyARNs) > 0 {
+			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
+		}
+		/*//@@@TODO Store inline document object as terraform input correctly
+		if len(in.AttachPolicy) > 0 {
+			obj["attach_policy"] = tomapInterface(in.AttachPolicy)
+		}*/
+		if len(in.PermissionsBoundary) > 0 {
+			obj["permissions_boundary"] = in.PermissionsBoundary
+		}
+		if len(in.AttachPolicyARNs) > 0 {
+			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
+		}
+		//Force field for existing addon (not in doc)
+
+		out[i] = &obj
+	}
+	return out
+}
+func flattenEKSClusterPrivateCluster(in *PrivateCluster, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+
+	obj["enabled"] = in.Enabled
+
+	if len(in.AdditionalEndpointServices) > 0 {
+		obj["additional_endpoint_services"] = toArrayInterface(in.AdditionalEndpointServices)
+	}
+	return []interface{}{obj}
+}
+func flattenEKSClusterNodeGroups(in []*NodeGroup, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.AMIFamily) > 0 {
+			obj["ami_family"] = in.AMIFamily
+		}
+		if len(in.InstanceType) > 0 {
+			obj["instance_type"] = in.InstanceType
+		}
+		if len(in.AvailabilityZones) > 0 {
+			obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
+		}
+		if len(in.Subnets) > 0 {
+			obj["subnets"] = toArrayInterface(in.Subnets)
+		}
+		if len(in.InstancePrefix) > 0 {
+			obj["instance_prefix"] = in.InstancePrefix
+		}
+		if len(in.InstanceName) > 0 {
+			obj["instance_name"] = in.InstanceName
+		}
+		obj["desired_capacity"] = in.DesiredCapacity
+		obj["min_size"] = in.MinSize
+		obj["max_size"] = in.MaxSize
+		obj["volume_size"] = in.VolumeSize
+
+		if in.SSH != nil {
+			v, ok := obj["ssh"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["cluster_endpoints"] = flattenNodeGroupSSH(in.SSH, v)
+		}
+
+		if len(in.Labels) > 0 {
+			obj["labels"] = toMapInterface(in.Labels)
+		}
+		obj["private_networking"] = in.PrivateNetworking
+		if len(in.Tags) > 0 {
+			obj["tags"] = toMapInterface(in.Tags)
+		}
+		if in.IAM != nil {
+			v, ok := obj["iam"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["iam"] = flattenNodeGroupIAM(in.IAM, v)
+		}
+		if len(in.AMI) > 0 {
+			obj["ami"] = in.AMI
+		}
+		if in.SecurityGroups != nil {
+			v, ok := obj["security_groups"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["security_groups"] = flattenNodeGroupSecurityGroups(in.SecurityGroups, v)
+		}
+		obj["max_pods_per_node"] = in.MaxPodsPerNode
+		if len(in.ASGSuspendProcesses) > 0 {
+			obj["asg_suspend_processes"] = toArrayInterface(in.ASGSuspendProcesses)
+		}
+		obj["ebs_optimized"] = in.EBSOptimized
+		if len(in.VolumeType) > 0 {
+			obj["volume_type"] = in.VolumeType
+		}
+		if len(in.VolumeName) > 0 {
+			obj["volume_name"] = in.VolumeName
+		}
+		obj["volume_encrypted"] = in.VolumeEncrypted
+		if len(in.VolumeKmsKeyID) > 0 {
+			obj["volume_kms_key_id"] = in.VolumeKmsKeyID
+		}
+		obj["volume_iops"] = in.VolumeIOPS
+		obj["volume_throughput"] = in.VolumeThroughput
+		if len(in.PreBootstrapCommands) > 0 {
+			obj["pre_bootstrap_commands"] = toArrayInterface(in.PreBootstrapCommands)
+		}
+		if len(in.OverrideBootstrapCommand) > 0 {
+			obj["override_bootstrap_command"] = in.OverrideBootstrapCommand
+		}
+		obj["disable_imdsv1"] = in.DisableIMDSv1
+		obj["disable_pods_imds"] = in.DisablePodIMDS
+		if in.Placement != nil {
+			v, ok := obj["placement"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["placement"] = flattenNodeGroupPlacement(in.Placement, v)
+		}
+		obj["efa_endbaled"] = in.EFAEnabled
+		if in.InstanceSelector != nil {
+			v, ok := obj["instance_selector"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["instance_selector"] = flattenNodeGroupInstanceSelector(in.InstanceSelector, v)
+		}
+		//dont have additional encryption volume in doc
+		if in.Bottlerocket != nil {
+			v, ok := obj["bottle_rocket"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["bottle_rocket"] = flattenNodeGroupBottlerocket(in.Bottlerocket, v)
+		}
+		if in.InstancesDistribution != nil {
+			v, ok := obj["instances_distribution"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["instances_distribution"] = flattenNodeGroupInstancesDistribution(in.InstancesDistribution, v)
+		}
+		if in.ASGMetricsCollection != nil {
+			v, ok := obj["asg_metrics_collection"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["asg_metrics_collection"] = flattenNodeGroupASGMetricsCollection(in.ASGMetricsCollection, v)
+		}
+		if len(in.CPUCredits) > 0 {
+			obj["cpu_credits"] = in.CPUCredits
+		}
+		if len(in.ClassicLoadBalancerNames) > 0 {
+			obj["classic_load_balancer_names"] = toArrayInterface(in.ClassicLoadBalancerNames)
+		}
+		if len(in.TargetGroupARNs) > 0 {
+			obj["target_group_arns"] = toArrayInterface(in.TargetGroupARNs)
+		}
+		/*can i change taintsWrappper type to []string?
+		if len(in.Taints) > 0 {
+			obj["taints"] = toArrayInterface(in.Taints)
+		}*/
+		if in.UpdateConfig != nil {
+			v, ok := obj["update_config"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["update_config"] = flattenNodeGroupUpdateConfig(in.UpdateConfig, v)
+		}
+		if len(in.ClusterDNS) > 0 {
+			obj["cluster_dns"] = in.ClusterDNS
+		}
+		/*//@@@TODO Store inline document object as terraform input correctly
+		if len(in.KubeletExtraConfig) > 0 {
+			obj["classic_load_balancer_names"] = toMapInterface(in.KubeletExtraConfig)
+		}*/
+		//version adn subnet_cidr r not in struct from doc
+		//Container Runtime not in doc from struct
+		out[i] = &obj
+	}
+	return out
+}
+func flattenNodeGroupSSH(in *NodeGroupSSH, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+
+	obj["allow"] = in.Allow
+	if len(in.PublicKeyPath) > 0 {
+		obj["public_key"] = in.PublicKeyPath
+	} /*no publick ey path field in doc
+	if len(in.PublicKeyPath) > 0 {
+		obj["public_key_path"] = in.PublicKeyPath
+	}*/
+	if len(in.PublicKeyName) > 0 {
+		obj["public_key_name"] = in.PublicKeyName
+	}
+	if len(in.SourceSecurityGroupIDs) > 0 {
+		obj["source_security_group_ids"] = toArrayInterface(in.SourceSecurityGroupIDs)
+	}
+	obj["enable_ssm"] = in.EnableSSM
+	return []interface{}{obj}
+}
+func flattenNodeGroupIAM(in *NodeGroupIAM, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	/*//@@@TODO Store inline document object as terraform input correctly
+	if len(in.AttachPolicy) > 0 {
+		obj["attach_policy"] = toMapInterface(in.AttachPolicy)
+	}*/
+	if len(in.AttachPolicyARNs) > 0 {
+		obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
+	}
+	if len(in.InstanceProfileARN) > 0 {
+		obj["instance_profile_arn"] = in.InstanceProfileARN
+	}
+	if len(in.InstanceRoleARN) > 0 {
+		obj["instance_role_arn"] = in.InstanceRoleARN
+	}
+	if len(in.InstanceRoleName) > 0 {
+		obj["instance_role_name"] = in.InstanceRoleName
+	}
+	if len(in.InstanceRolePermissionsBoundary) > 0 {
+		obj["instance_role_permission_boundary"] = in.InstanceRolePermissionsBoundary
+	}
+
+	v, ok := obj["iam_node_group_with_addon_policies"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	obj["iam_node_group_with_addon_policies"] = flattenNodeGroupIAMWithAddonPolicies(in.WithAddonPolicies, v)
+
+	return []interface{}{obj}
+}
+func flattenNodeGroupIAMWithAddonPolicies(in NodeGroupIAMAddonPolicies, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["image_builder"] = in.ImageBuilder
+	obj["auto_scaler"] = in.AutoScaler
+	obj["external_dns"] = in.ExternalDNS
+	obj["cert_manager"] = in.CertManager
+	obj["app_mesh"] = in.AppMesh
+	obj["app_mesh_review"] = in.AppMeshPreview
+	obj["ebs"] = in.EBS
+	obj["fsx"] = in.FSX
+	obj["efs"] = in.EFS
+	obj["alb_ingress"] = in.AWSLoadBalancerController
+	obj["xray"] = in.XRay
+	obj["cloud_watch"] = in.CloudWatch
+
+	return []interface{}{obj}
+}
+func flattenNodeGroupSecurityGroups(in *NodeGroupSGs, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	if len(in.AttachIDs) > 0 {
+		obj["attach_ids"] = toArrayInterface(in.AttachIDs)
+	}
+	obj["with_shared"] = in.WithShared
+	obj["with_local"] = in.WithLocal
+	return []interface{}{obj}
+}
+func flattenNodeGroupPlacement(in *Placement, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	if len(in.GroupName) > 0 {
+		obj["group"] = in.GroupName
+	}
+	return []interface{}{obj}
+}
+func flattenNodeGroupInstanceSelector(in *InstanceSelector, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	obj["vcpus"] = in.VCPUs
+	if len(in.Memory) > 0 {
+		obj["memory"] = in.Memory
+	}
+	obj["gpus"] = in.GPUs
+	if len(in.CPUArchitecture) > 0 {
+		obj["cpu_architecture"] = in.CPUArchitecture
+	}
+	return []interface{}{obj}
+}
+func flattenNodeGroupBottlerocket(in *NodeGroupBottlerocket, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	obj["enable_admin_container"] = in.EnableAdminContainer
+	/*//@@@TODO Store inline document object as terraform input correctly
+	if len(in.Settings) > 0 {
+		obj["settings"] = toMapInterface(in.Settings)
+	}*/
+	return []interface{}{obj}
+}
+func flattenNodeGroupInstancesDistribution(in *NodeGroupInstancesDistribution, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	if len(in.InstanceTypes) > 0 {
+		obj["instance_types"] = toArrayInterface(in.InstanceTypes)
+	}
+	obj["max_price"] = in.MaxPrice
+	obj["on_demand_base_capacity"] = in.OnDemandBaseCapacity
+	obj["on_demand_percentage_above_base_capacity"] = in.OnDemandPercentageAboveBaseCapacity
+	obj["spot_instance_pools"] = in.SpotInstancePools
+	if len(in.SpotAllocationStrategy) > 0 {
+		obj["spot_allocation_strategy"] = in.SpotAllocationStrategy
+	}
+	obj["capacity_rebalance"] = in.CapacityRebalance
+
+	return []interface{}{obj}
+}
+func flattenNodeGroupASGMetricsCollection(in []MetricsCollection, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Granularity) > 0 {
+			obj["granularity"] = in.Granularity
+		}
+		if len(in.Metrics) > 0 {
+			obj["metrics"] = toArrayInterface(in.Metrics)
+		}
+		out[i] = obj
+	}
+	return out
+}
+func flattenNodeGroupUpdateConfig(in *NodeGroupUpdateConfig, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+
+	obj["max_unavaliable"] = in.MaxUnavailable
+	obj["max_unavaliable_percetage"] = in.MaxUnavailablePercentage
+	return []interface{}{obj}
+}
+
+//Flatten mnanaged Node Groups
+func flattenEKSClusterManagedNodeGroups(in []*ManagedNodeGroup, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.AMIFamily) > 0 {
+			obj["ami_family"] = in.AMIFamily
+		}
+		if len(in.InstanceType) > 0 {
+			obj["instance_type"] = in.InstanceType
+		}
+		if len(in.AvailabilityZones) > 0 {
+			obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
+		}
+		if len(in.Subnets) > 0 {
+			obj["subnets"] = toArrayInterface(in.Subnets)
+		}
+		if len(in.InstancePrefix) > 0 {
+			obj["instance_prefix"] = in.InstancePrefix
+		}
+		if len(in.InstanceName) > 0 {
+			obj["instance_name"] = in.InstanceName
+		}
+		obj["desired_capacity"] = in.DesiredCapacity
+		obj["min_size"] = in.MinSize
+		obj["max_size"] = in.MaxSize
+		obj["volume_size"] = in.VolumeSize
+
+		if in.SSH != nil {
+			v, ok := obj["ssh"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["cluster_endpoints"] = flattenNodeGroupSSH(in.SSH, v)
+		}
+
+		if len(in.Labels) > 0 {
+			obj["labels"] = toMapInterface(in.Labels)
+		}
+		obj["private_networking"] = in.PrivateNetworking
+		if len(in.Tags) > 0 {
+			obj["tags"] = toMapInterface(in.Tags)
+		}
+		if in.IAM != nil {
+			v, ok := obj["iam"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["iam"] = flattenNodeGroupIAM(in.IAM, v)
+		}
+		if len(in.AMI) > 0 {
+			obj["ami"] = in.AMI
+		}
+		if in.SecurityGroups != nil {
+			v, ok := obj["security_groups"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["security_groups"] = flattenNodeGroupSecurityGroups(in.SecurityGroups, v)
+		}
+		obj["max_pods_per_node"] = in.MaxPodsPerNode
+		if len(in.ASGSuspendProcesses) > 0 {
+			obj["asg_suspend_processes"] = toArrayInterface(in.ASGSuspendProcesses)
+		}
+		obj["ebs_optimized"] = in.EBSOptimized
+		if len(in.VolumeType) > 0 {
+			obj["volume_type"] = in.VolumeType
+		}
+		if len(in.VolumeName) > 0 {
+			obj["volume_name"] = in.VolumeName
+		}
+		obj["volume_encrypted"] = in.VolumeEncrypted
+		if len(in.VolumeKmsKeyID) > 0 {
+			obj["volume_kms_key_id"] = in.VolumeKmsKeyID
+		}
+		obj["volume_iops"] = in.VolumeIOPS
+		obj["volume_throughput"] = in.VolumeThroughput
+		if len(in.PreBootstrapCommands) > 0 {
+			obj["pre_bootstrap_commands"] = toArrayInterface(in.PreBootstrapCommands)
+		}
+		if len(in.OverrideBootstrapCommand) > 0 {
+			obj["override_bootstrap_command"] = in.OverrideBootstrapCommand
+		}
+		obj["disable_imdsv1"] = in.DisableIMDSv1
+		obj["disable_pods_imds"] = in.DisablePodIMDS
+		if in.Placement != nil {
+			v, ok := obj["placement"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["placement"] = flattenNodeGroupPlacement(in.Placement, v)
+		}
+		obj["efa_endbaled"] = in.EFAEnabled
+		if in.InstanceSelector != nil {
+			v, ok := obj["instance_selector"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["instance_selector"] = flattenNodeGroupInstanceSelector(in.InstanceSelector, v)
+		}
+		//dont have additional encryption volume in doc
+		if in.Bottlerocket != nil {
+			v, ok := obj["bottle_rocket"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["bottle_rocket"] = flattenNodeGroupBottlerocket(in.Bottlerocket, v)
+		}
+		if len(in.InstanceTypes) > 0 {
+			obj["instance_types"] = toArrayInterface(in.InstanceTypes)
+		}
+		obj["spot"] = in.Spot
+		if in.Taints != nil {
+			v, ok := obj["bottle_rocket"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["taints"] = flattenNodeGroupTaint(in.Taints, v)
+		}
+		if in.UpdateConfig != nil {
+			v, ok := obj["update_config"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["update_config"] = flattenNodeGroupUpdateConfig(in.UpdateConfig, v)
+		}
+		if in.LaunchTemplate != nil {
+			v, ok := obj["launch_tempelate"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["launch_tempelate"] = flattenNodeGroupLaunchTemplate(in.LaunchTemplate, v)
+		}
+		out[i] = obj
+	}
+	return out
+}
+func flattenNodeGroupTaint(in []NodeGroupTaint, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if len(in.Key) > 0 {
+			obj["key"] = in.Key
+		}
+		if len(in.Value) > 0 {
+			obj["value"] = in.Value
+		}
+		if len(in.Effect) > 0 {
+			obj["effect"] = in.Effect
+		}
+		out[i] = obj
+	}
+	return out
+}
+func flattenNodeGroupLaunchTemplate(in *LaunchTemplate, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	if len(in.ID) > 0 {
+		obj["id"] = in.ID
+	}
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+	return []interface{}{obj}
+}
+
+//Flatten Fargate Profiles
+func flattenEKSClusterFargateProfiles(in []*FargateProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.PodExecutionRoleARN) > 0 {
+			obj["pod_execution_role_arn"] = in.PodExecutionRoleARN
+		}
+		if in.Selectors != nil {
+			v, ok := obj["selectors"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["selectors"] = flattenFargateProfileSelectors(in.Selectors, v)
+		}
+		if len(in.Subnets) > 0 {
+			obj["subnets"] = toArrayInterface(in.Subnets)
+		}
+		if len(in.Tags) > 0 {
+			obj["tags"] = toMapInterface(in.Tags)
+		}
+		if len(in.Status) > 0 {
+			obj["status"] = in.Status
+		}
+		out[i] = obj
+	}
+
+	return out
+}
+func flattenFargateProfileSelectors(in []FargateProfileSelector, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if len(in.Namespace) > 0 {
+			obj["namespace"] = in.Namespace
+		}
+		if len(in.Labels) > 0 {
+			obj["labels"] = toMapInterface(in.Labels)
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+//flatten Cluster Cloudwatch
+func flattenEKSClusterCloudWatch(in *EKSClusterCloudWatch, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	if in.ClusterLogging != nil {
+		v, ok := obj["cluster_logging"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["selectors"] = flattenClusterCloudWatchLogging(in.ClusterLogging, v)
+	}
+	return []interface{}{obj}
+}
+func flattenClusterCloudWatchLogging(in *EKSClusterCloudWatchLogging, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	if len(in.EnableTypes) > 0 {
+		obj["enable_types"] = toArrayInterface(in.EnableTypes)
+	}
+	return []interface{}{obj}
+}
+
+//flatten secret encryption
+func flattenEKSClusterSecretsEncryption(in *SecretsEncryption, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	if len(in.KeyARN) > 0 {
+		obj["key_arn"] = in.KeyARN
+	}
+	return []interface{}{obj}
+}
 
 func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	log.Println("resourceAKSClusterRead")
+	obj := &EKSCluster{}
+
+	projectName := obj.Metadata.Project
+	_, err := project.GetProjectByName(projectName)
+	if err != nil {
+		fmt.Print("project name missing in the resource")
+		return diag.FromErr(fmt.Errorf("%s", "Project name missing in the resource"))
+	}
+
+	if obj.Metadata.Name != obj.Spec.AKSClusterConfig.Metadata.Name {
+		return diag.FromErr(fmt.Errorf("%s", "ClusterConfig name does not match config file"))
+	}
+
+	//project details
+	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
 		fmt.Print("project name missing in the resource")
 		return diags
@@ -274,13 +4448,29 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		fmt.Printf("project does not exist")
 		return diags
 	}
-	c, err := cluster.GetCluster(d.Get("name").(string), project.ID)
+	c, err := cluster.GetCluster(obj.Metadata.Name, project.ID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
 	}
-	if err := d.Set("name", c.Name); err != nil {
-		log.Printf("get group set name error %s", err.Error())
+
+	logger := glogger.GetLogger()
+	rctlCfg := config.GetConfig()
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
+	if err != nil {
+		log.Printf("error in get clusterspec %s", err.Error())
+		return diag.FromErr(err)
+	}
+	log.Println("resourceAKSClusterRead clusterSpec ", clusterSpecYaml)
+
+	clusterSpec := AKSCluster{}
+	err = yaml.Unmarshal([]byte(clusterSpecYaml), &clusterSpec)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	err = flattenAKSCluster(d, &clusterSpec)
+	if err != nil {
+		log.Printf("get aks cluster set error %s", err.Error())
 		return diag.FromErr(err)
 	}
 
@@ -288,95 +4478,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	log.Printf("update EKS cluster resource")
-
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("project does not exist"))
-	}
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("project does not exist"))
-	}
-
-	cluster_resp, err := cluster.GetCluster(d.Get("name").(string), project.ID)
-	if err != nil {
-		log.Printf("error in get cluster %s", err.Error())
-		return diag.FromErr(err)
-	}
-
-	YamlConfigFilePath := d.Get("yamlfilepath").(string)
-
-	fileBytes, err := utils.ReadYAMLFileContents(YamlConfigFilePath)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	y, uerr := utils.SplitYamlAndGetListByKind(fileBytes)
-	if uerr != nil {
-		return diag.FromErr(err)
-	}
-
-	rafayConfigs := y["Cluster"]
-	if len(rafayConfigs) > 1 {
-		return diag.FromErr(fmt.Errorf("%s", "only one cluster per config is supported"))
-	}
-
-	var blueprintName, blueprintversion string
-	for _, yi := range rafayConfigs {
-		var err error
-		blueprintName, blueprintversion, err = findBlueprintName(yi)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("%s", "failed to get blueprint name"))
-		}
-		log.Printf("blueprint name %s", blueprintName)
-	}
-
-	if cluster_resp.ClusterBlueprint != blueprintName || cluster_resp.ClusterBlueprintVersion != blueprintversion {
-		cluster_resp.ClusterBlueprint = blueprintName
-
-		if blueprintversion != "" {
-			cluster_resp.ClusterBlueprintVersion = blueprintversion
-		}
-
-		erru := cluster.UpdateCluster(cluster_resp)
-		if erru != nil {
-			log.Printf("cluster was not updated, error %s", erru.Error())
-			return diag.FromErr(erru)
-		}
-		errp := cluster.PublishClusterBlueprint(d.Get("name").(string), project.ID)
-		if errp != nil {
-			log.Printf("cluster was not published, error %s", errp.Error())
-			return diag.FromErr(errp)
-		}
-	}
-
-	var versionstr, name string
-	clusterConfigs := y["ClusterConfig"]
-	for _, yi := range clusterConfigs {
-		log.Println("clusterConfig", string(yi))
-		name, _, versionstr, err = findResourceNameFromConfig(yi)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("%s", "failed to get cluster name"))
-		}
-		if name != d.Get("name").(string) {
-			return diag.FromErr(fmt.Errorf("%s", "ClusterConfig name does not match config file"))
-		}
-	}
-
-	log.Println("versionstr ", versionstr)
-	if versionstr != "" {
-		logger := glogger.GetLogger()
-		err = cluster.UpgradeClusterEks(d.Get("name").(string),
-			versionstr, project.ID, "", nil, false, logger)
-		if err != nil {
-			log.Println("cluster upgrade response ", err)
-		}
-	}
-
-	return diags
+	return resourceEKSClusterCreate(ctx, d, m)
 }
 
 func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

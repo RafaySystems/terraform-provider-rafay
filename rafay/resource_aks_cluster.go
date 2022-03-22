@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -2578,6 +2579,7 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 	}
 
 	out := make([]*AKSNodePool, len(p))
+	outToSort := make([]AKSNodePool, len(p))
 	for i := range p {
 		obj := AKSNodePool{}
 		in := p[i].(map[string]interface{})
@@ -2597,7 +2599,12 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 		if v, ok := in["type"].(string); ok && len(v) > 0 {
 			obj.Type = v
 		}
-		out[i] = &obj
+		outToSort[i] = obj
+	}
+
+	sort.Sort(ByNodepoolName(outToSort))
+	for i := range outToSort {
+		out[i] = &outToSort[i]
 	}
 
 	return out
@@ -4169,6 +4176,17 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
+
+	// sort the incoming nodepools
+	inToSort := make([]AKSNodePool, len(in))
+	for i := range in {
+		inToSort[i] = *in[i]
+	}
+	sort.Sort(ByNodepoolName(inToSort))
+	for i := range inToSort {
+		in[i] = &inToSort[i]
+	}
+
 	out := make([]interface{}, len(in))
 	for i, in := range in {
 
@@ -4888,4 +4906,19 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 	}
 
 	return diags
+}
+
+// Sort AKS Nodepool
+
+type ByNodepoolName []AKSNodePool
+
+func (np ByNodepoolName) Len() int      { return len(np) }
+func (np ByNodepoolName) Swap(i, j int) { np[i], np[j] = np[j], np[i] }
+func (np ByNodepoolName) Less(i, j int) bool {
+	ret := strings.Compare(np[i].Name, np[j].Name)
+	if ret < 1 {
+		return false
+	} else {
+		return true
+	}
 }

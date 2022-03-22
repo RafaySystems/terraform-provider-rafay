@@ -4905,6 +4905,18 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(errDel)
 	}
 
+	for {
+		time.Sleep(60 * time.Second)
+		check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
+		if errGet != nil {
+			log.Printf("error while getCluster %s, delete success", errGet.Error())
+			break
+		}
+		if check == nil || (check != nil && check.Status != "READY") {
+			break
+		}
+	}
+
 	return diags
 }
 

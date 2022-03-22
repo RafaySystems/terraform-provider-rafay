@@ -2,7 +2,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
   apiversion = "rafay.io/v1alpha1"
   kind = "Cluster"
   metadata {
-    name = "demo-terraform5"
+    name = "demo-terraform20"
     project = "upgrade"
   }
   spec {
@@ -13,7 +13,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
       apiversion = "rafay.io/v1alpha1"
       kind = "aksClusterConfig"
       metadata {
-        name = "demo-terraform5"
+        name = "demo-terraform20"
       }
       spec {
         resource_group_name = "hardik-terraform"
@@ -44,10 +44,8 @@ resource "rafay_aks_cluster" "demo-terraform" {
           name = "primary"
           properties {
             count = 2
-            enable_auto_scaling = true
-            max_count = 2
+            enable_auto_scaling = false
             max_pods = 40
-            min_count = 1
             mode = "System"
             orchestrator_version = "1.21.9"
             os_type = "Linux"

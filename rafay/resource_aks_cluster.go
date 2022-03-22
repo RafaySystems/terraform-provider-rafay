@@ -1247,16 +1247,16 @@ func clusterAKSNodePoolProperties() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "The maximum number of pods that can run on a node.",
 		},
-		"min_count": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Description: "The minimum number of nodes for auto-scaling",
-		},
 		"mode": {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Default:     "System",
 			Description: "The mode for a node pool which defines a node pool's primary function. If set as 'System', AKS prefers system pods scheduling to node pools with mode System. Accepted values: System, User",
+		},
+		"min_count": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "The minimum number of nodes for auto-scaling",
 		},
 		"node_labels": {
 			Type:     schema.TypeMap,
@@ -2654,15 +2654,15 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 		obj.LinuxOSConfig = expandAKSNodePoolLinuxOsConfig(v)
 	}
 
-	if v, ok := in["max_count"].(int); ok {
+	if v, ok := in["max_count"].(int); ok && v > 0 {
 		obj.MaxCount = &v
 	}
 
-	if v, ok := in["max_pods"].(int); ok {
+	if v, ok := in["max_pods"].(int); ok && v > 0 {
 		obj.MaxPods = &v
 	}
 
-	if v, ok := in["min_count"].(int); ok {
+	if v, ok := in["min_count"].(int); ok && v > 0 {
 		obj.MinCount = &v
 	}
 
@@ -2686,7 +2686,7 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 		obj.OrchestratorVersion = v
 	}
 
-	if v, ok := in["os_disk_size_gb"].(int); ok {
+	if v, ok := in["os_disk_size_gb"].(int); ok && v > 0 {
 		obj.OsDiskSizeGB = &v
 	}
 
@@ -4786,7 +4786,6 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("update AKS cluster resource")
-	log.Printf("TESTING TWENTY_TWENTY_TWO")
 	var diags diag.Diagnostics
 	obj := &AKSCluster{}
 
@@ -4870,8 +4869,6 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		fmt.Print("Cluster spec unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
 	}
-
-	log.Printf("TESTING HERE: %s", obj.Metadata.Project)
 
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {

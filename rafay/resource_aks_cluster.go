@@ -2039,7 +2039,7 @@ func expandAKSManagedClusterAutoScalerProfile(p []interface{}) *AKSManagedCluste
 		obj.NewPodScaleUpDelay = v
 	}
 
-	if v, ok := in["ok_total_unready_count"].(int); ok {
+	if v, ok := in["ok_total_unready_count"].(int); ok && v > 0 {
 		obj.OkTotalUnreadyCount = &v
 	}
 
@@ -2234,7 +2234,7 @@ func expandAKSManagedClusterNPLoadBalancerProfile(p []interface{}) *AKSManagedCl
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["allocated_outbound_ports"].(int); ok {
+	if v, ok := in["allocated_outbound_ports"].(int); ok && v > 0 {
 		obj.AllocatedOutboundPorts = &v
 	}
 
@@ -2242,7 +2242,7 @@ func expandAKSManagedClusterNPLoadBalancerProfile(p []interface{}) *AKSManagedCl
 		obj.EffectiveOutboundIPs = expandAKSManagedClusterNPEffectiveOutboundIPs(v)
 	}
 
-	if v, ok := in["idle_timeout_in_minutes"].(int); ok {
+	if v, ok := in["idle_timeout_in_minutes"].(int); ok && v > 0 {
 		obj.IdleTimeoutInMinutes = &v
 	}
 
@@ -2286,7 +2286,7 @@ func expandAKSManagedClusterNPManagedOutboundIPs(p []interface{}) *AKSManagedClu
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["count"].(int); ok {
+	if v, ok := in["count"].(int); ok && v > 0 {
 		obj.Count = &v
 	}
 	return obj
@@ -2614,7 +2614,7 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 		obj.AvailabilityZones = toArrayString(v)
 	}
 
-	if v, ok := in["count"].(int); ok {
+	if v, ok := in["count"].(int); ok && v > 0 {
 		obj.Count = &v
 	}
 
@@ -2756,11 +2756,11 @@ func expandAKSNodePoolKubeletConfig(p []interface{}) *AKSNodePoolKubeletConfig {
 		obj.AllowedUnsafeSysctls = toArrayString(v)
 	}
 
-	if v, ok := in["container_log_max_files"].(int); ok {
+	if v, ok := in["container_log_max_files"].(int); ok && v > 0 {
 		obj.ContainerLogMaxFiles = &v
 	}
 
-	if v, ok := in["container_log_max_size_mb"].(int); ok {
+	if v, ok := in["container_log_max_size_mb"].(int); ok && v > 0 {
 		obj.ContainerLogMaxSizeMB = &v
 	}
 
@@ -2780,15 +2780,15 @@ func expandAKSNodePoolKubeletConfig(p []interface{}) *AKSNodePoolKubeletConfig {
 		obj.FailSwapOn = &v
 	}
 
-	if v, ok := in["image_gc_high_threshold"].(int); ok {
+	if v, ok := in["image_gc_high_threshold"].(int); ok && v > 0 {
 		obj.ImageGcHighThreshold = &v
 	}
 
-	if v, ok := in["image_gc_low_threshold"].(int); ok {
+	if v, ok := in["image_gc_low_threshold"].(int); ok && v > 0 {
 		obj.ImageGcLowThreshold = &v
 	}
 
-	if v, ok := in["pod_max_pids"].(int); ok {
+	if v, ok := in["pod_max_pids"].(int); ok && v > 0 {
 		obj.PodMaxPids = &v
 	}
 
@@ -2806,7 +2806,7 @@ func expandAKSNodePoolLinuxOsConfig(p []interface{}) *AKSNodePoolLinuxOsConfig {
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["swap_file_size_mb"].(int); ok {
+	if v, ok := in["swap_file_size_mb"].(int); ok && v > 0 {
 		obj.SwapFileSizeMB = &v
 	}
 
@@ -2831,51 +2831,51 @@ func expandAKSNodePoolLinuxOsConfigSysctls(p []interface{}) *AKSNodePoolLinuxOsC
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["fs_aio_max_nr"].(int); ok {
+	if v, ok := in["fs_aio_max_nr"].(int); ok && v > 0 {
 		obj.FsAioMaxNr = &v
 	}
 
-	if v, ok := in["fs_file_max"].(int); ok {
+	if v, ok := in["fs_file_max"].(int); ok && v > 0 {
 		obj.FsFileMax = &v
 	}
 
-	if v, ok := in["fs_inotify_max_user_watches"].(int); ok {
+	if v, ok := in["fs_inotify_max_user_watches"].(int); ok && v > 0 {
 		obj.FsInotifyMaxUserWatches = &v
 	}
 
-	if v, ok := in["fs_nr_open"].(int); ok {
+	if v, ok := in["fs_nr_open"].(int); ok && v > 0 {
 		obj.FsNrOpen = &v
 	}
 
-	if v, ok := in["kernel_threads_max"].(int); ok {
+	if v, ok := in["kernel_threads_max"].(int); ok && v > 0 {
 		obj.KernelThreadsMax = &v
 	}
 
-	if v, ok := in["net_core_netdev_max_backlog"].(int); ok {
+	if v, ok := in["net_core_netdev_max_backlog"].(int); ok && v > 0 {
 		obj.NetCoreNetdevMaxBacklog = &v
 	}
 
-	if v, ok := in["net_core_optmem_max"].(int); ok {
+	if v, ok := in["net_core_optmem_max"].(int); ok && v > 0 {
 		obj.NetCoreOptmemMax = &v
 	}
 
-	if v, ok := in["net_core_rmem_default"].(int); ok {
+	if v, ok := in["net_core_rmem_default"].(int); ok && v > 0 {
 		obj.NetCoreRmemDefault = &v
 	}
 
-	if v, ok := in["net_core_rmem_max"].(int); ok {
+	if v, ok := in["net_core_rmem_max"].(int); ok && v > 0 {
 		obj.NetCoreRmemMax = &v
 	}
 
-	if v, ok := in["net_core_somaxconn"].(int); ok {
+	if v, ok := in["net_core_somaxconn"].(int); ok && v > 0 {
 		obj.NetCoreSomaxconn = &v
 	}
 
-	if v, ok := in["net_core_wmem_default"].(int); ok {
+	if v, ok := in["net_core_wmem_default"].(int); ok && v > 0 {
 		obj.NetCoreWmemDefault = &v
 	}
 
-	if v, ok := in["net_core_wmem_max"].(int); ok {
+	if v, ok := in["net_core_wmem_max"].(int); ok && v > 0 {
 		obj.NetCoreWmemMax = &v
 	}
 
@@ -2883,39 +2883,39 @@ func expandAKSNodePoolLinuxOsConfigSysctls(p []interface{}) *AKSNodePoolLinuxOsC
 		obj.NetIpv4IpLocalPortRange = v
 	}
 
-	if v, ok := in["net_ipv4_neigh_default_gc_thresh1"].(int); ok {
+	if v, ok := in["net_ipv4_neigh_default_gc_thresh1"].(int); ok && v > 0 {
 		obj.NetIpv4NeighDefaultGcThresh1 = &v
 	}
 
-	if v, ok := in["net_ipv4_neigh_default_gc_thresh2"].(int); ok {
+	if v, ok := in["net_ipv4_neigh_default_gc_thresh2"].(int); ok && v > 0 {
 		obj.NetIpv4NeighDefaultGcThresh2 = &v
 	}
 
-	if v, ok := in["net_ipv4_neigh_default_gc_thresh3"].(int); ok {
+	if v, ok := in["net_ipv4_neigh_default_gc_thresh3"].(int); ok && v > 0 {
 		obj.NetIpv4NeighDefaultGcThresh3 = &v
 	}
 
-	if v, ok := in["net_ipv4_tcp_fin_timeout"].(int); ok {
+	if v, ok := in["net_ipv4_tcp_fin_timeout"].(int); ok && v > 0 {
 		obj.NetIpv4TcpFinTimeout = &v
 	}
 
-	if v, ok := in["net_ipv4_tcpkeepalive_intvl"].(int); ok {
+	if v, ok := in["net_ipv4_tcpkeepalive_intvl"].(int); ok && v > 0 {
 		obj.NetIpv4TcpkeepaliveIntvl = &v
 	}
 
-	if v, ok := in["net_ipv4_tcp_keepalive_probes"].(int); ok {
+	if v, ok := in["net_ipv4_tcp_keepalive_probes"].(int); ok && v > 0 {
 		obj.NetIpv4TcpKeepaliveProbes = &v
 	}
 
-	if v, ok := in["net_ipv4_tcp_keepalive_time"].(int); ok {
+	if v, ok := in["net_ipv4_tcp_keepalive_time"].(int); ok && v > 0 {
 		obj.NetIpv4TcpKeepaliveTime = &v
 	}
 
-	if v, ok := in["net_ipv4_tcp_max_syn_backlog"].(int); ok {
+	if v, ok := in["net_ipv4_tcp_max_syn_backlog"].(int); ok && v > 0 {
 		obj.NetIpv4TcpMaxSynBacklog = &v
 	}
 
-	if v, ok := in["net_ipv4_tcp_max_tw_buckets"].(int); ok {
+	if v, ok := in["net_ipv4_tcp_max_tw_buckets"].(int); ok && v > 0 {
 		obj.NetIpv4TcpMaxTwBuckets = &v
 	}
 
@@ -2923,23 +2923,23 @@ func expandAKSNodePoolLinuxOsConfigSysctls(p []interface{}) *AKSNodePoolLinuxOsC
 		obj.NetIpv4TcpTwReuse = &v
 	}
 
-	if v, ok := in["net_netfilter_nf_conntrack_buckets"].(int); ok {
+	if v, ok := in["net_netfilter_nf_conntrack_buckets"].(int); ok && v > 0 {
 		obj.NetNetfilterNfConntrackBuckets = &v
 	}
 
-	if v, ok := in["net_netfilter_nf_conntrack_max"].(int); ok {
+	if v, ok := in["net_netfilter_nf_conntrack_max"].(int); ok && v > 0 {
 		obj.NetNetfilterNfConntrackMax = &v
 	}
 
-	if v, ok := in["vm_max_map_count"].(int); ok {
+	if v, ok := in["vm_max_map_count"].(int); ok && v > 0 {
 		obj.VmMaxMapCount = &v
 	}
 
-	if v, ok := in["vm_swappiness"].(int); ok {
+	if v, ok := in["vm_swappiness"].(int); ok && v > 0 {
 		obj.VmSwappiness = &v
 	}
 
-	if v, ok := in["vm_vfs_cache_pressure"].(int); ok {
+	if v, ok := in["vm_vfs_cache_pressure"].(int); ok && v > 0 {
 		obj.VmVfsCachePressure = &v
 	}
 

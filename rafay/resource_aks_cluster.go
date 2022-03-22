@@ -4328,7 +4328,6 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}) []
 		obj["type"] = in.Type
 	}
 
-	log.Printf("in.UpgradeSettings.MaxSurge %s: ", in.UpgradeSettings.MaxSurge)
 	if in.UpgradeSettings != nil {
 		v, ok := obj["upgrade_settings"].([]interface{})
 		if !ok {

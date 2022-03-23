@@ -13,6 +13,8 @@ require (
 	k8s.io/apimachinery v1.16.4
 )
 
+require github.com/go-yaml/yaml v2.1.0+incompatible
+
 require (
 	cloud.google.com/go v0.99.0 // indirect
 	cloud.google.com/go/storage v1.10.0 // indirect

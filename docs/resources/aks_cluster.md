@@ -53,6 +53,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
         node_pools {
           apiversion = "2021-05-01"
           name       = "primary"
+		  location   = "centralindia"
           properties {
             count                = 2
             enable_auto_scaling  = true
@@ -251,7 +252,8 @@ This cannot be updated once the Managed Cluster has been created.
 
 ***Required***
 
-- `apiversion` - (String) The AKS node pool API version. The supported value is `2021-05-01`. 
+- `apiversion` - (String) The AKS node pool API version. The supported value is `2021-05-01`.
+- `location` - (String) The AKS node pool location. 
 - `name` - (String) The AKS node pool name. 
 - `properties` - (Block List, Min: 1) The AKS managed cluster properties. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--node_pools--properties))
 - `type` - (String) The AKS node pool type. The supported value is `Microsoft.ContainerService/managedClusters/agentPools`. 

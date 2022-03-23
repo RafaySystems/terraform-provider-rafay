@@ -175,7 +175,7 @@ This cannot be updated once the Managed Cluster has been created.
 - `identity_profile` - (Map of String) Identities associated with the cluster.
 - `network_profile` - (Block List) Profile of the network configuration. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--network_profile))
 - `node_resource_group` - (String) The name of the resource group containing agent pool nodes.
-- `service_principle_profile` - (Block List) Information about a service principal identity for the cluster to use for manipulating Azure APIs. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--service_principle_profile))
+- `service_principal_profile` - (Block List) Information about a service principal identity for the cluster to use for manipulating Azure APIs. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--service_principal_profile))
 
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--api_server_access_profile"></a>
@@ -203,8 +203,8 @@ This cannot be updated once the Managed Cluster has been created.
 - `service_cidr` - (String) A CIDR notation IP range from which to assign service cluster IPs.
 
 
-<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--service_principle_profile"></a>
-### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.service_principle_profile`
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--service_principal_profile"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.service_principal_profile`
 
 ***Required***
 

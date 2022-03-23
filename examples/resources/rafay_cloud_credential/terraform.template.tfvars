@@ -1,1 +1,1 @@
-provider_config_file = "<rafay-config-json-file>"
+#provider_config_file = "<rafay-config-json-file>"

@@ -1,6 +1,7 @@
 package rafay
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -9,7 +10,9 @@ import (
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/integrationspb"
+	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/go-yaml/yaml"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
@@ -705,4 +708,74 @@ func flattenDrift(in *commonpb.DriftSpec) []interface{} {
 	}
 
 	return []interface{}{obj}
+}
+
+// Cluster Spec file processing
+type configMetadata struct {
+	Name    string `yaml:"name"`
+	Project string `yaml:"project"`
+	Version string `yaml:"version"`
+}
+
+type configResourceType struct {
+	Meta *configMetadata `yaml:"metadata"`
+}
+
+func findResourceNameFromConfig(configBytes []byte) (string, string, string, error) {
+	var config configResourceType
+	if err := yaml.Unmarshal(configBytes, &config); err != nil {
+		return "", "", "", nil
+	} else if config.Meta == nil {
+		return "", "", "", fmt.Errorf("%s", "Invalid resource: No metadata found")
+	} else if config.Meta.Name == "" {
+		return "", "", "", fmt.Errorf("%s", "Invalid resource: No name specified in metadata")
+	}
+	return config.Meta.Name, config.Meta.Project, config.Meta.Version, nil
+}
+
+func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]byte, []error) {
+	var errs []error
+	configsMap := make(map[string][][]byte)
+	// First find all rafay spec configurations
+	for _, config := range rafayConfigs {
+		name, _, _, err := findResourceNameFromConfig(config)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+		if _, ok := configsMap[name]; ok {
+			errs = append(errs, fmt.Errorf(`duplicate "cluster" resource with name "%s" found`, name))
+			continue
+		}
+		configsMap[name] = append(configsMap[name], config)
+	}
+	// Then append the cluster specific configurations
+	for _, config := range clusterConfigs {
+		name, _, _, err := findResourceNameFromConfig(config)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+		if _, ok := configsMap[name]; !ok {
+			errs = append(errs, fmt.Errorf(`error finding "Cluster" configuration for name "%s"`, name))
+			continue
+		}
+		configsMap[name] = append(configsMap[name], config)
+	}
+	// Remove any configs that don't have the tail end (cluster related configs)
+	result := make(map[string][]byte)
+	for name, configs := range configsMap {
+		if len(configs) <= 0 {
+			errs = append(errs, fmt.Errorf(`no "ClusterConfig" found for cluster "%s"`, name))
+			continue
+		}
+		collatedConfigBytes, err := utils.JoinYAML(configs)
+		if err != nil {
+			errs = append(errs, fmt.Errorf(`error collating YAML files for cluster "%s": %s`, name, err))
+			continue
+		}
+		result[name] = collatedConfigBytes
+		log.Printf(`final Configuration for cluster "%s": %#v`, name, string(collatedConfigBytes))
+	}
+	return result, errs
 }

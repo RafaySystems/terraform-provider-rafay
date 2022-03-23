@@ -269,6 +269,7 @@ This cannot be updated once the Managed Cluster has been created.
 - `min_count` - (Number) The minimum number of nodes for auto-scaling
 - `mode` - (String) The mode for a node pool which defines a node pool's primary function. If set as `System`, AKS prefers system pods scheduling to node pools with mode `System`. Supported values are: `System` and `User`.
 - `node_labels` - (Map of String) Node labels. 
+- `node_taints` - (List of String) The taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
 - `orchestrator_version` - (String) The AKS node pool Kubernetes version. 
 - `os_disk_size_gb` - (Number) OS Disk Size in GB to be used to specify the disk size for every machine in the master/agent pool.
 - `os_disk_type` - (String) Supported values are: `Managed` and `Ephemeral`.

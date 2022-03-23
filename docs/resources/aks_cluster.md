@@ -196,6 +196,7 @@ This cannot be updated once the Managed Cluster has been created.
 
 - `dns_service_ip` - (String) An IP address assigned to the Kubernetes DNS service.
 - `docker_bridge_cidr` - (String) A CIDR notation IP range assigned to the Docker bridge network.
+- `load_balancer_sku` - (String) Supported values are: `standard` and `basic`.
 - `network_mode` - (String) This cannot be specified if `networkPlugin` is anything other than `azure`. The supported values are `transparent` and `bridge`. 
 - `network_plugin` - (String) The network plugin used for building the Kubernetes network. Supported values are: `azure` and `kubenet`.
 - `network_policy` - (String) The network policy used for building the Kubernetes network. Supported values are: `calico` and `azure`.
@@ -275,7 +276,8 @@ This cannot be updated once the Managed Cluster has been created.
 - `os_disk_type` - (String) Supported values are: `Managed` and `Ephemeral`.
 - `os_type` - (String) Supported values are: `Linux` and `Windows`.
 - `pod_subnet_id` - (String) If omitted, pod IPs are statically assigned on the node subnet (See vnet_subnet_id for more details). This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}`.
-- `scale_set_priority` - (String) The virtual machine scale set priority. Supported values are: `Spot` and `Regular`. 
+- `scale_set_eviction_policy` - (String) This cannot be specified unless the `scaleSetPriority` is `Spot`. If not specified, the default is `Delete`. Supported values are: `Delete` and `Deallocate`.
+- `scale_set_priority` - (String) The virtual machine scale set priority. If not specified, the default is `Regular`. Supported values are: `Spot` and `Regular`. 
 - `spot_max_price` - (Number) Supported values are: any decimal value greater than zero or -1 (which indicates the willingness to pay any on-demand price). For more details on spot pricing, see [Azure Spot Virtual Machines](https://azure.microsoft.com/en-us/services/virtual-machines/spot/).
 - `type` - (String) Supported values are `VirtualMachineScaleSets` and `AvailabilitySet`.
 - `upgrade_settings` - (Block List) Settings for upgrading an agentpool. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--node_pools--properties--upgrade_settings))

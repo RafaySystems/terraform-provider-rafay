@@ -92,10 +92,10 @@ const (
 )
 
 //struct for eks cluster metadata (first part of the yaml file kind:cluster)
-type EKSClusterMetadata struct {
-	Kind     string                  `yaml:"kind"`
-	Metadata *EKSClusterMetaMetadata `yaml:"metadata"`
-	Spec     *EKSSpec                `yaml:"spec"`
+type EKSCluster struct {
+	Kind     string              `yaml:"kind"`
+	Metadata *EKSClusterMetadata `yaml:"metadata"`
+	Spec     *EKSSpec            `yaml:"spec"`
 }
 
 type EKSSpec struct {
@@ -107,7 +107,7 @@ type EKSSpec struct {
 	ProxyConfig      map[string]string `yaml:"labels"`
 }
 
-type EKSClusterMetaMetadata struct {
+type EKSClusterMetadata struct {
 	Name    string            `yaml:"name"`
 	Project string            `yaml:"project"`
 	Labels  map[string]string `yaml:"labels,omitempty"`
@@ -118,14 +118,14 @@ type KubernetesNetworkConfig struct {
 	ServiceIPv4CIDR string `yaml:"serviceIPv4CIDR"`
 }
 
-type EKSClusterYamlConfig struct {
-	APIVersion              string                   `yaml:"apiversion"`
-	Kind                    string                   `yaml:"kind"`
-	Metadata                *EKSClusterMeta          `yaml:"metadata"`
-	KubernetesNetworkConfig *KubernetesNetworkConfig `yaml:"kubernetesNetworkConfig"`
-	IAM                     *EKSClusterIAM           `yaml:"iam,omitempty"`
-	IdentityProviders       []IdentityProvider       `json:"identityProviders,omitempty"`
-	VPC                     *EKSClusterVPC           `yaml:"vpc,omitempty"`
+type EKSClusterConfig struct {
+	APIVersion              string                    `yaml:"apiversion"`
+	Kind                    string                    `yaml:"kind"`
+	Metadata                *EKSClusterConfigMetadata `yaml:"metadata"`
+	KubernetesNetworkConfig *KubernetesNetworkConfig  `yaml:"kubernetesNetworkConfig"`
+	IAM                     *EKSClusterIAM            `yaml:"iam,omitempty"`
+	IdentityProviders       []IdentityProvider        `yaml:"identityProviders,omitempty"`
+	VPC                     *EKSClusterVPC            `yaml:"vpc,omitempty"`
 	// +optional
 	Addons []*Addon `yaml:"addons,omitempty"`
 	// +optional
@@ -143,162 +143,162 @@ type EKSClusterYamlConfig struct {
 /*Took this struct and modified it to fit documentation
 // EKSClusterConfig struct -> cfg
 type EKSClusterConfig struct {
-	APIVersion  string          `json:"apiVersion"`
-	Kind        string          `json:"kind"`
-	ClusterMeta *EKSClusterMeta `json:"metadata"`
-	IAM         *EKSClusterIAM  `json:"iam,omitempty"`
+	APIVersion  string          `yaml:"apiVersion"`
+	Kind        string          `yaml:"kind"`
+	ClusterMeta *EKSClusterMeta `yaml:"metadata"`
+	IAM         *EKSClusterIAM  `yaml:"iam,omitempty"`
 	// +optional
-	IdentityProviders []IdentityProvider     `json:"identityProviders,omitempty"`
-	VPC               *EKSClusterVPC         `json:"vpc,omitempty"`
-	NodeGroups        []*EKSNodeGroup        `json:"nodeGroups,omitempty"`
-	ManagedNodeGroups []*EKSManagedNodeGroup `json:"managedNodeGroups,omitempty"`
-	CloudWatch        *EKSClusterCloudWatch  `json:"cloudWatch,omitempty"`
+	IdentityProviders []IdentityProvider     `yaml:"identityProviders,omitempty"`
+	VPC               *EKSClusterVPC         `yaml:"vpc,omitempty"`
+	NodeGroups        []*EKSNodeGroup        `yaml:"nodeGroups,omitempty"`
+	ManagedNodeGroups []*EKSManagedNodeGroup `yaml:"managedNodeGroups,omitempty"`
+	CloudWatch        *EKSClusterCloudWatch  `yaml:"cloudWatch,omitempty"`
 
-	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+	AvailabilityZones []string `yaml:"availabilityZones,omitempty"`
 }
 */
 type AWSPolicyInlineDocument map[string]interface{}
 
 // EKSClusterMeta struct -> cfg.EKSClusterMeta
-type EKSClusterMeta struct {
-	Name        string            `json:"name"`
-	Region      string            `json:"region"`
-	Version     string            `json:"version,omitempty"`
-	Tags        map[string]string `json:"tags,omitempty"`
-	Annotations map[string]string `json:"tags,omitempty"`
+type EKSClusterConfigMetadata struct {
+	Name        string            `yaml:"name"`
+	Region      string            `yaml:"region"`
+	Version     string            `yaml:"version,omitempty"`
+	Tags        map[string]string `yaml:"tags,omitempty"`
+	Annotations map[string]string `yaml:"tags,omitempty"`
 }
 
 // EKSClusterIAM struct -> cfg.IAM.ServiceAccounts
 type EKSClusterIAMMeta struct {
-	Name        string            `json:"name,omitempty"`
-	Namespace   string            `json:"namespace,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
-	Annotations map[string]string `json:"annotations,omitempty"`
+	Name        string            `yaml:"name,omitempty"`
+	Namespace   string            `yaml:"namespace,omitempty"`
+	Labels      map[string]string `yaml:"labels,omitempty"`
+	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
 /*
 type EKSClusterIAMServiceAccount struct {
-	EKSClusterIAMMeta   `json:"metadata,omitempty"`
-	AttachPolicyARNs    []string                `json:"attachPolicyARNs,omitempty"`
-	AttachPolicy        AWSPolicyInlineDocument `json:"attachPolicy,omitempty"`
-	PermissionsBoundary string                  `json:"permissionsBoundary,omitempty"`
-	RoleOnly            *bool                   `json:"roleOnly,omitempty"`
-	Tags                map[string]string       `json:"tags,omitempty"`
-	// RoleName string `json:"roleName,omitempty"`
+	EKSClusterIAMMeta   `yaml:"metadata,omitempty"`
+	AttachPolicyARNs    []string                `yaml:"attachPolicyARNs,omitempty"`
+	AttachPolicy        AWSPolicyInlineDocument `yaml:"attachPolicy,omitempty"`
+	PermissionsBoundary string                  `yaml:"permissionsBoundary,omitempty"`
+	RoleOnly            *bool                   `yaml:"roleOnly,omitempty"`
+	Tags                map[string]string       `yaml:"tags,omitempty"`
+	// RoleName string `yaml:"roleName,omitempty"`
 }
 */
 type IdentityProvider struct {
 	// Valid variants are:
 	// `"oidc"`: OIDC identity provider
 	// +required
-	type_ string `json:"type"` //nolint
+	type_ string `yaml:"type"` //nolint
 	//Inner IdentityProviderInterface
 }
 
 // EKSClusterIAM struct -> cfg.IAM
 type EKSClusterIAM struct {
 	// +optional
-	ServiceRoleARN string `json:"serviceRoleARN,omitempty"`
+	ServiceRoleARN string `yaml:"serviceRoleARN,omitempty"`
 
 	// permissions boundary for all identity-based entities created by eksctl.
 	// See [AWS Permission Boundary](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html)
 	// +optional
-	ServiceRolePermissionsBoundary string `json:"serviceRolePermissionsBoundary,omitempty"`
+	ServiceRolePermissionsBoundary string `yaml:"serviceRolePermissionsBoundary,omitempty"`
 
 	// role used by pods to access AWS APIs. This role is added to the Kubernetes RBAC for authorization.
 	// See [Pod Execution Role](https://docs.aws.amazon.com/eks/latest/userguide/pod-execution-role.html)
 	// +optional
-	FargatePodExecutionRoleARN string `json:"fargatePodExecutionRoleARN,omitempty"`
+	FargatePodExecutionRoleARN string `yaml:"fargatePodExecutionRoleARN,omitempty"`
 
 	// permissions boundary for the fargate pod execution role`. See [EKS Fargate Support](/usage/fargate-support/)
 	// +optional
-	FargatePodExecutionRolePermissionsBoundary string `json:"fargatePodExecutionRolePermissionsBoundary,omitempty"`
+	FargatePodExecutionRolePermissionsBoundary string `yaml:"fargatePodExecutionRolePermissionsBoundary,omitempty"`
 
 	// enables the IAM OIDC provider as well as IRSA for the Amazon CNI plugin
 	// +optional
-	WithOIDC bool `json:"withOIDC,omitempty"`
+	WithOIDC bool `yaml:"withOIDC,omitempty"`
 
 	// service accounts to create in the cluster.
 	// See [IAM Service Accounts](/iamserviceaccounts/#usage-with-config-files)
 	// +optional
-	ServiceAccounts []*EKSClusterIAMServiceAccount `json:"serviceAccounts,omitempty"`
+	ServiceAccounts []*EKSClusterIAMServiceAccount `yaml:"serviceAccounts,omitempty"`
 
 	// VPCResourceControllerPolicy attaches the IAM policy
 	// necessary to run the VPC controller in the control plane
 	// Defaults to `true`
-	VPCResourceControllerPolicy bool `json:"vpcResourceControllerPolicy,omitempty"`
+	VPCResourceControllerPolicy bool `yaml:"vpcResourceControllerPolicy,omitempty"`
 }
 
 // ClusterIAMServiceAccount holds an IAM service account metadata and configuration
 type EKSClusterIAMServiceAccount struct {
-	EKSClusterIAMMeta `json:"metadata,omitempty"`
+	EKSClusterIAMMeta `yaml:"metadata,omitempty"`
 
 	// list of ARNs of the IAM policies to attach
 	// +optional
-	AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
+	AttachPolicyARNs []string `yaml:"attachPolicyARNs,omitempty"`
 
-	WellKnownPolicies WellKnownPolicies `json:"wellKnownPolicies,omitempty"`
+	WellKnownPolicies WellKnownPolicies `yaml:"wellKnownPolicies,omitempty"`
 
 	// AttachPolicy holds a policy document to attach to this service account
 	// +optional
-	//AttachPolicy map[string]string `json:"attachPolicy,omitempty"`
-	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
+	//AttachPolicy map[string]string `yaml:"attachPolicy,omitempty"`
+	AttachPolicy InlineDocument `yaml:"attachPolicy,omitempty"`
 
 	// ARN of the role to attach to the service account
-	AttachRoleARN string `json:"attachRoleARN,omitempty"`
+	AttachRoleARN string `yaml:"attachRoleARN,omitempty"`
 
 	// ARN of the permissions boundary to associate with the service account
 	// +optional
-	PermissionsBoundary string `json:"permissionsBoundary,omitempty"`
+	PermissionsBoundary string `yaml:"permissionsBoundary,omitempty"`
 
 	// +optional
-	Status *ClusterIAMServiceAccountStatus `json:"status,omitempty"`
+	Status *ClusterIAMServiceAccountStatus `yaml:"status,omitempty"`
 
 	// Specific role name instead of the Cloudformation-generated role name
 	// +optional
-	RoleName string `json:"roleName,omitempty"`
+	RoleName string `yaml:"roleName,omitempty"`
 
 	// Specify if only the IAM Service Account role should be created without creating/annotating the service account
 	// +optional
-	RoleOnly *bool `json:"roleOnly,omitempty"`
+	RoleOnly *bool `yaml:"roleOnly,omitempty"`
 
 	// AWS tags for the service account
 	// +optional
-	Tags map[string]string `json:"tags,omitempty"`
+	Tags map[string]string `yaml:"tags,omitempty"`
 }
 
 type WellKnownPolicies struct {
 	// ImageBuilder allows for full ECR (Elastic Container Registry) access.
-	ImageBuilder *bool `json:"imageBuilder,inline"`
+	ImageBuilder *bool `yaml:"imageBuilder,inline"`
 	// AutoScaler adds policies for cluster-autoscaler. See [autoscaler AWS
 	// docs](https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html).
-	AutoScaler *bool `json:"autoScaler,inline"`
+	AutoScaler *bool `yaml:"autoScaler,inline"`
 	// AWSLoadBalancerController adds policies for using the
 	// aws-load-balancer-controller. See [Load Balancer
 	// docs](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html).
-	AWSLoadBalancerController *bool `json:"awsLoadBalancerController,inline"`
+	AWSLoadBalancerController *bool `yaml:"awsLoadBalancerController,inline"`
 	// ExternalDNS adds external-dns policies for Amazon Route 53.
 	// See [external-dns
 	// docs](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md).
-	ExternalDNS *bool `json:"externalDNS,inline"`
+	ExternalDNS *bool `yaml:"externalDNS,inline"`
 	// CertManager adds cert-manager policies. See [cert-manager
 	// docs](https://cert-manager.io/docs/configuration/acme/dns01/route53).
-	CertManager *bool `json:"certManager,inline"`
+	CertManager *bool `yaml:"certManager,inline"`
 	// EBSCSIController adds policies for using the
 	// ebs-csi-controller. See [aws-ebs-csi-driver
 	// docs](https://github.com/kubernetes-sigs/aws-ebs-csi-driver#set-up-driver-permission).
-	EBSCSIController *bool `json:"ebsCSIController,inline"`
+	EBSCSIController *bool `yaml:"ebsCSIController,inline"`
 	// EFSCSIController adds policies for using the
 	// efs-csi-controller. See [aws-efs-csi-driver
 	// docs](https://aws.amazon.com/blogs/containers/introducing-efs-csi-dynamic-provisioning).
-	EFSCSIController *bool `json:"efsCSIController,inline"`
+	EFSCSIController *bool `yaml:"efsCSIController,inline"`
 }
 
 type InlineDocument map[string]interface{}
 
 type ClusterIAMServiceAccountStatus struct {
 	// +optional
-	RoleARN string `json:"roleARN,omitempty"`
+	RoleARN string `yaml:"roleARN,omitempty"`
 }
 type AZSubnetMapping map[string]AZSubnetSpec
 type (
@@ -309,23 +309,23 @@ type (
 		Network
 		// SecurityGroup (aka the ControlPlaneSecurityGroup) for communication between control plane and nodes
 		// +optional
-		SecurityGroup string `json:"securityGroup,omitempty"`
+		SecurityGroup string `yaml:"securityGroup,omitempty"`
 		// Subnets are keyed by AZ for convenience.
 		// See [this example](/examples/reusing-iam-and-vpc/)
 		// as well as [using existing
 		// VPCs](/usage/vpc-networking/#use-existing-vpc-other-custom-configuration).
 		// +optional
-		Subnets *ClusterSubnets `json:"subnets,omitempty"`
+		Subnets *ClusterSubnets `yaml:"subnets,omitempty"`
 		// for additional CIDR associations, e.g. a CIDR for
 		// private subnets or any ad-hoc subnets
 		// +optional
-		ExtraCIDRs []string `json:"extraCIDRs,omitempty"`
+		ExtraCIDRs []string `yaml:"extraCIDRs,omitempty"`
 		// for additional IPv6 CIDR associations, e.g. a CIDR for
 		// private subnets or any ad-hoc subnets
 		// +optional
-		ExtraIPv6CIDRs []string `json:"extraIPv6CIDRs,omitempty"`
+		ExtraIPv6CIDRs []string `yaml:"extraIPv6CIDRs,omitempty"`
 		// for pre-defined shared node SG
-		SharedNodeSecurityGroup string `json:"sharedNodeSecurityGroup,omitempty"`
+		SharedNodeSecurityGroup string `yaml:"sharedNodeSecurityGroup,omitempty"`
 		// Automatically add security group rules to and from the default
 		// cluster security group and the shared node security group.
 		// This allows unmanaged nodes to communicate with the control plane
@@ -333,172 +333,172 @@ type (
 		// This option cannot be disabled when using eksctl created security groups.
 		// Defaults to `true`
 		// +optional
-		ManageSharedNodeSecurityGroupRules *bool `json:"manageSharedNodeSecurityGroupRules,omitempty"`
+		ManageSharedNodeSecurityGroupRules *bool `yaml:"manageSharedNodeSecurityGroupRules,omitempty"`
 		// AutoAllocateIPV6 requests an IPv6 CIDR block with /56 prefix for the VPC
 		// +optional
-		AutoAllocateIPv6 *bool `json:"autoAllocateIPv6,omitempty"`
+		AutoAllocateIPv6 *bool `yaml:"autoAllocateIPv6,omitempty"`
 		// +optional
-		NAT *ClusterNAT `json:"nat,omitempty"`
+		NAT *ClusterNAT `yaml:"nat,omitempty"`
 		// See [managing access to API](/usage/vpc-networking/#managing-access-to-the-kubernetes-api-server-endpoints)
 		// +optional
-		ClusterEndpoints *ClusterEndpoints `json:"clusterEndpoints,omitempty"`
+		ClusterEndpoints *ClusterEndpoints `yaml:"clusterEndpoints,omitempty"`
 		// PublicAccessCIDRs are which CIDR blocks to allow access to public
 		// k8s API endpoint
 		// +optional
-		PublicAccessCIDRs []string `json:"publicAccessCIDRs,omitempty"`
+		PublicAccessCIDRs []string `yaml:"publicAccessCIDRs,omitempty"`
 	}
 	// ClusterSubnets holds private and public subnets
 	ClusterSubnets struct {
-		Private AZSubnetMapping `json:"private,omitempty"`
-		Public  AZSubnetMapping `json:"public,omitempty"`
+		Private AZSubnetMapping `yaml:"private,omitempty"`
+		Public  AZSubnetMapping `yaml:"public,omitempty"`
 	}
 	// SubnetTopology can be SubnetTopologyPrivate or SubnetTopologyPublic
 	SubnetTopology string
 	AZSubnetSpec   struct {
 		// +optional
-		ID string `json:"id,omitempty"`
+		ID string `yaml:"id,omitempty"`
 		// AZ can be omitted if the key is an AZ
 		// +optional
-		AZ string `json:"az,omitempty"`
+		AZ string `yaml:"az,omitempty"`
 		// +optional
 		//can i just make this a string?
 		//CIDR string `yaml:"cidr"`
-		CIDR *ipnet.IPNet `json:"cidr,omitempty"`
+		CIDR *ipnet.IPNet `yaml:"cidr,omitempty"`
 	}
 	// Network holds ID and CIDR
 	Network struct {
 		// +optional
-		ID string `json:"id,omitempty"`
+		ID string `yaml:"id,omitempty"`
 		// +optional
 		//can i just make this a string?
 		CIDR string `yaml:"cidr"`
-		//CIDR *ipnet.IPNet `json:"cidr,omitempty"`
+		//CIDR *ipnet.IPNet `yaml:"cidr,omitempty"`
 		// +optional
-		IPv6Cidr string `json:"ipv6Cidr,omitempty"`
+		IPv6Cidr string `yaml:"ipv6Cidr,omitempty"`
 		// +optional
-		IPv6Pool string `json:"ipv6Pool,omitempty"`
+		IPv6Pool string `yaml:"ipv6Pool,omitempty"`
 	}
 	// ClusterNAT NAT config
 	ClusterNAT struct {
 		// Valid variants are `ClusterNAT` constants
-		Gateway string `json:"gateway,omitempty"`
+		Gateway string `yaml:"gateway,omitempty"`
 	}
 
 	// ClusterEndpoints holds cluster api server endpoint access information
 	ClusterEndpoints struct {
-		PrivateAccess *bool `json:"privateAccess,omitempty"`
-		PublicAccess  *bool `json:"publicAccess,omitempty"`
+		PrivateAccess *bool `yaml:"privateAccess,omitempty"`
+		PublicAccess  *bool `yaml:"publicAccess,omitempty"`
 	}
 )
 type Addon struct {
 	// +required
-	Name string `json:"name,omitempty"`
+	Name string `yaml:"name,omitempty"`
 	// +optional
-	Version string `json:"version,omitempty"`
+	Version string `yaml:"version,omitempty"`
 	// +optional
-	ServiceAccountRoleARN string `json:"serviceAccountRoleARN,omitempty"`
+	ServiceAccountRoleARN string `yaml:"serviceAccountRoleARN,omitempty"`
 	// list of ARNs of the IAM policies to attach
 	// +optional
-	AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
+	AttachPolicyARNs []string `yaml:"attachPolicyARNs,omitempty"`
 	// AttachPolicy holds a policy document to attach
 	// +optional
-	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
+	AttachPolicy InlineDocument `yaml:"attachPolicy,omitempty"`
 	// ARN of the permissions' boundary to associate
 	// +optional
-	PermissionsBoundary string `json:"permissionsBoundary,omitempty"`
+	PermissionsBoundary string `yaml:"permissionsBoundary,omitempty"`
 	// WellKnownPolicies for attaching common IAM policies
 	//WellKnown Policies not in documentation for addon? (same field as IAM wellknow-policies)
-	//WellKnownPolicies WellKnownPolicies `json:"wellKnownPolicies,omitempty"`
+	//WellKnownPolicies WellKnownPolicies `yaml:"wellKnownPolicies,omitempty"`
 	// The metadata to apply to the cluster to assist with categorization and organization.
 	// Each tag consists of a key and an optional value, both of which you define.
 	// +optional
-	Tags map[string]string `json:"tags,omitempty"`
+	Tags map[string]string `yaml:"tags,omitempty"`
 	// Force applies the add-on to overwrite an existing add-on
-	Force bool `json:"-"`
+	Force bool `yaml:"-"`
 }
 
 // PrivateCluster defines the configuration for a fully-private cluster
 type PrivateCluster struct {
 
 	// Enabled enables creation of a fully-private cluster
-	Enabled bool `json:"enabled"`
+	Enabled bool `yaml:"enabled"`
 
 	// SkipEndpointCreation skips the creation process for endpoints completely. This is only used in case of an already
 	// provided VPC and if the user decided to set it to true.
-	SkipEndpointCreation bool `json:"skipEndpointCreation"`
+	SkipEndpointCreation bool `yaml:"skipEndpointCreation"`
 
 	// AdditionalEndpointServices specifies additional endpoint services that
 	// must be enabled for private access.
 	// Valid entries are `AdditionalEndpointServices` constants
-	AdditionalEndpointServices []string `json:"additionalEndpointServices,omitempty"`
+	AdditionalEndpointServices []string `yaml:"additionalEndpointServices,omitempty"`
 }
 type NodeGroup struct {
 	*NodeGroupBase
 
 	//+optional
-	InstancesDistribution *NodeGroupInstancesDistribution `json:"instancesDistribution,omitempty"`
+	InstancesDistribution *NodeGroupInstancesDistribution `yaml:"instancesDistribution,omitempty"`
 
 	// +optional
-	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
+	ASGMetricsCollection []MetricsCollection `yaml:"asgMetricsCollection,omitempty"`
 
 	// CPUCredits configures [T3 Unlimited](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html), valid only for T-type instances
 	// +optional
-	CPUCredits string `json:"cpuCredits,omitempty"`
+	CPUCredits string `yaml:"cpuCredits,omitempty"`
 
 	// Associate load balancers with auto scaling group
 	// +optional
-	ClassicLoadBalancerNames []string `json:"classicLoadBalancerNames,omitempty"`
+	ClassicLoadBalancerNames []string `yaml:"classicLoadBalancerNames,omitempty"`
 
 	// Associate target group with auto scaling group
 	// +optional
-	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
+	TargetGroupARNs []string `yaml:"targetGroupARNs,omitempty"`
 
 	// Taints taints to apply to the nodegroup
 	// +optional
-	Taints taintsWrapper `json:"taints,omitempty"`
+	Taints taintsWrapper `yaml:"taints,omitempty"`
 
 	// UpdateConfig configures how to update NodeGroups.
 	// +optional
-	UpdateConfig *NodeGroupUpdateConfig `json:"updateConfig,omitempty"`
+	UpdateConfig *NodeGroupUpdateConfig `yaml:"updateConfig,omitempty"`
 
 	// [Custom
 	// address](/usage/vpc-networking/#custom-cluster-dns-address) used for DNS
 	// lookups
 	// +optional
-	ClusterDNS string `json:"clusterDNS,omitempty"`
+	ClusterDNS string `yaml:"clusterDNS,omitempty"`
 
 	// [Customize `kubelet` config](/usage/customizing-the-kubelet/)
 	// +optional
 
-	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
+	KubeletExtraConfig *InlineDocument `yaml:"kubeletExtraConfig,omitempty"`
 
 	// ContainerRuntime defines the runtime (CRI) to use for containers on the node
 	// +optional
-	ContainerRuntime string `json:"containerRuntime,omitempty"`
+	ContainerRuntime string `yaml:"containerRuntime,omitempty"`
 }
 
 // NodeGroupBase represents the base nodegroup config for self-managed and managed nodegroups
 type NodeGroupBase struct {
 	// +required
-	Name string `json:"name"`
+	Name string `yaml:"name"`
 
 	// Valid variants are `NodeAMIFamily` constants
 	// +optional
-	AMIFamily string `json:"amiFamily,omitempty"`
+	AMIFamily string `yaml:"amiFamily,omitempty"`
 	// +optional
-	InstanceType string `json:"instanceType,omitempty"`
+	InstanceType string `yaml:"instanceType,omitempty"`
 	// Limit [nodes to specific
 	// AZs](/usage/autoscaling/#zone-aware-auto-scaling)
 	// +optional
-	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+	AvailabilityZones []string `yaml:"availabilityZones,omitempty"`
 	// Limit nodes to specific subnets
 	// +optional
-	Subnets []string `json:"subnets,omitempty"`
+	Subnets []string `yaml:"subnets,omitempty"`
 
 	// +optional
-	InstancePrefix string `json:"instancePrefix,omitempty"`
+	InstancePrefix string `yaml:"instancePrefix,omitempty"`
 	// +optional
-	InstanceName string `json:"instanceName,omitempty"`
+	InstanceName string `yaml:"instanceName,omitempty"`
 
 	// +optional
 	*ScalingConfig
@@ -506,281 +506,281 @@ type NodeGroupBase struct {
 	// +optional
 	// VolumeSize gigabytes
 	// Defaults to `80`
-	VolumeSize *int `json:"volumeSize,omitempty"`
+	VolumeSize *int `yaml:"volumeSize,omitempty"`
 	// +optional
 	// SSH configures ssh access for this nodegroup
-	SSH *NodeGroupSSH `json:"ssh,omitempty"`
+	SSH *NodeGroupSSH `yaml:"ssh,omitempty"`
 	// +optional
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `yaml:"labels,omitempty"`
 	// Enable [private
 	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
 	// for nodegroup
 	// +optional
-	PrivateNetworking bool `json:"privateNetworking"`
+	PrivateNetworking bool `yaml:"privateNetworking"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
 	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
-	Tags map[string]string `json:"tags,omitempty"`
+	Tags map[string]string `yaml:"tags,omitempty"`
 	// +optional
-	IAM *NodeGroupIAM `json:"iam,omitempty"`
+	IAM *NodeGroupIAM `yaml:"iam,omitempty"`
 
 	// Specify [custom AMIs](/usage/custom-ami-support/), `auto-ssm`, `auto`, or `static`
 	// +optional
-	AMI string `json:"ami,omitempty"`
+	AMI string `yaml:"ami,omitempty"`
 
 	// +optional
-	SecurityGroups *NodeGroupSGs `json:"securityGroups,omitempty"`
+	SecurityGroups *NodeGroupSGs `yaml:"securityGroups,omitempty"`
 
 	// +optional
-	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
+	MaxPodsPerNode int `yaml:"maxPodsPerNode,omitempty"`
 
 	// See [relevant AWS
 	// docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html#cfn-attributes-updatepolicy-rollingupdate-suspendprocesses)
 	// +optional
-	ASGSuspendProcesses []string `json:"asgSuspendProcesses,omitempty"`
+	ASGSuspendProcesses []string `yaml:"asgSuspendProcesses,omitempty"`
 
 	// EBSOptimized enables [EBS
 	// optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)
 	// +optional
-	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
+	EBSOptimized *bool `yaml:"ebsOptimized,omitempty"`
 
 	// Valid variants are `VolumeType` constants
 	// +optional
-	VolumeType string `json:"volumeType,omitempty"`
+	VolumeType string `yaml:"volumeType,omitempty"`
 	// +optional
-	VolumeName string `json:"volumeName,omitempty"`
+	VolumeName string `yaml:"volumeName,omitempty"`
 	// +optional
-	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
+	VolumeEncrypted *bool `yaml:"volumeEncrypted,omitempty"`
 	// +optional
-	VolumeKmsKeyID string `json:"volumeKmsKeyID,omitempty"`
+	VolumeKmsKeyID string `yaml:"volumeKmsKeyID,omitempty"`
 	// +optional
-	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
+	VolumeIOPS *int `yaml:"volumeIOPS,omitempty"`
 	// +optional
-	VolumeThroughput *int `json:"volumeThroughput,omitempty"`
+	VolumeThroughput *int `yaml:"volumeThroughput,omitempty"`
 
 	// PreBootstrapCommands are executed before bootstrapping instances to the
 	// cluster
 	// +optional
-	PreBootstrapCommands []string `json:"preBootstrapCommands,omitempty"`
+	PreBootstrapCommands []string `yaml:"preBootstrapCommands,omitempty"`
 
 	// Override `eksctl`'s bootstrapping script
 	// +optional
-	OverrideBootstrapCommand string `json:"overrideBootstrapCommand,omitempty"`
+	OverrideBootstrapCommand string `yaml:"overrideBootstrapCommand,omitempty"`
 
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
 	// Defaults to `false`
 	// +optional
-	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
+	DisableIMDSv1 *bool `yaml:"disableIMDSv1,omitempty"`
 
 	// DisablePodIMDS blocks all IMDS requests from non host networking pods
 	// Defaults to `false`
 	// +optional
-	DisablePodIMDS *bool `json:"disablePodIMDS,omitempty"`
+	DisablePodIMDS *bool `yaml:"disablePodIMDS,omitempty"`
 
 	// Placement specifies the placement group in which nodes should
 	// be spawned
 	// +optional
-	Placement *Placement `json:"placement,omitempty"`
+	Placement *Placement `yaml:"placement,omitempty"`
 
 	// EFAEnabled creates the maximum allowed number of EFA-enabled network
 	// cards on nodes in this group.
 	// +optional
-	EFAEnabled *bool `json:"efaEnabled,omitempty"`
+	EFAEnabled *bool `yaml:"efaEnabled,omitempty"`
 
 	// InstanceSelector specifies options for EC2 instance selector
-	InstanceSelector *InstanceSelector `json:"instanceSelector,omitempty"`
+	InstanceSelector *InstanceSelector `yaml:"instanceSelector,omitempty"`
 
 	// Internal fields
 	// Some AMIs (bottlerocket) have a separate volume for the OS
-	AdditionalEncryptedVolume string `json:"-"`
+	AdditionalEncryptedVolume string `yaml:"-"`
 
 	// Bottlerocket specifies settings for Bottlerocket nodes
 	// +optional
-	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
+	Bottlerocket *NodeGroupBottlerocket `yaml:"bottlerocket,omitempty"`
 
 	// TODO remove this
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and
 	// AL2 images a legacy bootstrapper will be used.
-	CustomAMI bool `json:"-"`
+	CustomAMI bool `yaml:"-"`
 
 	// Enable EC2 detailed monitoring
 	// +optional
-	EnableDetailedMonitoring *bool `json:"enableDetailedMonitoring,omitempty"`
+	EnableDetailedMonitoring *bool `yaml:"enableDetailedMonitoring,omitempty"`
 	// Rafay changes - start
 	// Internal
-	IsWavelengthZone bool `json:"-"`
+	IsWavelengthZone bool `yaml:"-"`
 	// Rafay changes - end
 }
 type InstanceSelector struct {
 	// VCPUs specifies the number of vCPUs
-	VCPUs int `json:"vCPUs,omitempty"`
+	VCPUs int `yaml:"vCPUs,omitempty"`
 	// Memory specifies the memory
 	// The unit defaults to GiB
-	Memory string `json:"memory,omitempty"`
+	Memory string `yaml:"memory,omitempty"`
 	// GPUs specifies the number of GPUs.
 	// It can be set to 0 to select non-GPU instance types.
-	GPUs int `json:"gpus,omitempty"`
+	GPUs int `yaml:"gpus,omitempty"`
 	// CPU Architecture of the EC2 instance type.
 	// Valid variants are:
 	// `"x86_64"`
 	// `"amd64"`
 	// `"arm64"`
-	CPUArchitecture string `json:"cpuArchitecture,omitempty"`
+	CPUArchitecture string `yaml:"cpuArchitecture,omitempty"`
 }
 type Placement struct {
-	GroupName string `json:"groupName,omitempty"`
+	GroupName string `yaml:"groupName,omitempty"`
 }
 type ScalingConfig struct {
 	// +optional
-	DesiredCapacity *int `json:"desiredCapacity,omitempty"`
+	DesiredCapacity *int `yaml:"desiredCapacity,omitempty"`
 	// +optional
-	MinSize *int `json:"minSize,omitempty"`
+	MinSize *int `yaml:"minSize,omitempty"`
 	// +optional
-	MaxSize *int `json:"maxSize,omitempty"`
+	MaxSize *int `yaml:"maxSize,omitempty"`
 }
 type MetricsCollection struct {
 	// +required
-	Granularity string `json:"granularity"`
+	Granularity string `yaml:"granularity"`
 	// +optional
-	Metrics []string `json:"metrics,omitempty"`
+	Metrics []string `yaml:"metrics,omitempty"`
 }
 type taintsWrapper []NodeGroupTaint
 type NodeGroupTaint struct {
-	Key    string `json:"key,omitempty"`
-	Value  string `json:"value,omitempty"`
-	Effect string `json:"effect,omitempty"`
+	Key    string `yaml:"key,omitempty"`
+	Value  string `yaml:"value,omitempty"`
+	Effect string `yaml:"effect,omitempty"`
 }
 type (
 	// NodeGroupSGs controls security groups for this nodegroup
 	NodeGroupSGs struct {
 		// AttachIDs attaches additional security groups to the nodegroup
 		// +optional
-		AttachIDs []string `json:"attachIDs,omitempty"`
+		AttachIDs []string `yaml:"attachIDs,omitempty"`
 		// WithShared attach the security group
 		// shared among all nodegroups in the cluster
 		// Defaults to `true`
 		// +optional
-		WithShared *bool `json:"withShared"`
+		WithShared *bool `yaml:"withShared"`
 		// WithLocal attach a security group
 		// local to this nodegroup
 		// Not supported for managed nodegroups
 		// Defaults to `true`
 		// +optional
-		WithLocal *bool `json:"withLocal"`
+		WithLocal *bool `yaml:"withLocal"`
 	}
 	// NodeGroupIAM holds all IAM attributes of a NodeGroup
 	NodeGroupIAM struct {
 		// AttachPolicy holds a policy document to attach
 		// +optional
-		AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
+		AttachPolicy InlineDocument `yaml:"attachPolicy,omitempty"`
 		// list of ARNs of the IAM policies to attach
 		// +optional
-		AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
+		AttachPolicyARNs []string `yaml:"attachPolicyARNs,omitempty"`
 		// +optional
-		InstanceProfileARN string `json:"instanceProfileARN,omitempty"`
+		InstanceProfileARN string `yaml:"instanceProfileARN,omitempty"`
 		// +optional
-		InstanceRoleARN string `json:"instanceRoleARN,omitempty"`
+		InstanceRoleARN string `yaml:"instanceRoleARN,omitempty"`
 		// +optional
-		InstanceRoleName string `json:"instanceRoleName,omitempty"`
+		InstanceRoleName string `yaml:"instanceRoleName,omitempty"`
 		// +optional
-		InstanceRolePermissionsBoundary string `json:"instanceRolePermissionsBoundary,omitempty"`
+		InstanceRolePermissionsBoundary string `yaml:"instanceRolePermissionsBoundary,omitempty"`
 		// +optional
-		WithAddonPolicies NodeGroupIAMAddonPolicies `json:"withAddonPolicies,omitempty"`
+		WithAddonPolicies NodeGroupIAMAddonPolicies `yaml:"withAddonPolicies,omitempty"`
 	}
 	// NodeGroupIAMAddonPolicies holds all IAM addon policies
 	NodeGroupIAMAddonPolicies struct {
 		// +optional
 		// ImageBuilder allows for full ECR (Elastic Container Registry) access. This is useful for building, for
 		// example, a CI server that needs to push images to ECR
-		ImageBuilder *bool `json:"imageBuilder"`
+		ImageBuilder *bool `yaml:"imageBuilder"`
 		// +optional
 		// AutoScaler enables IAM policy for cluster-autoscaler
-		AutoScaler *bool `json:"autoScaler"`
+		AutoScaler *bool `yaml:"autoScaler"`
 		// +optional
 		// ExternalDNS adds the external-dns project policies for Amazon Route 53
-		ExternalDNS *bool `json:"externalDNS"`
+		ExternalDNS *bool `yaml:"externalDNS"`
 		// +optional
 		// CertManager enables the ability to add records to Route 53 in order to solve the DNS01 challenge. More information can be found
 		// [here](https://cert-manager.io/docs/configuration/acme/dns01/route53/#set-up-a-iam-role)
-		CertManager *bool `json:"certManager"`
+		CertManager *bool `yaml:"certManager"`
 		// +optional
 		// AppMesh enables full access to AppMesh
-		AppMesh *bool `json:"appMesh"`
+		AppMesh *bool `yaml:"appMesh"`
 		// +optional
 		// AppMeshPreview enables full access to AppMesh Preview
-		AppMeshPreview *bool `json:"appMeshPreview"`
+		AppMeshPreview *bool `yaml:"appMeshPreview"`
 		// +optional
 		// EBS enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver
-		EBS *bool `json:"ebs"`
+		EBS *bool `yaml:"ebs"`
 		// +optional
-		FSX *bool `json:"fsx"`
+		FSX *bool `yaml:"fsx"`
 		// +optional
-		EFS *bool `json:"efs"`
+		EFS *bool `yaml:"efs"`
 		// +optional
-		AWSLoadBalancerController *bool `json:"albIngress"`
+		AWSLoadBalancerController *bool `yaml:"albIngress"`
 		// +optional
-		XRay *bool `json:"xRay"`
+		XRay *bool `yaml:"xRay"`
 		// +optional
-		CloudWatch *bool `json:"cloudWatch"`
+		CloudWatch *bool `yaml:"cloudWatch"`
 	}
 
 	// NodeGroupSSH holds all the ssh access configuration to a NodeGroup
 	NodeGroupSSH struct {
 		// +optional If Allow is true the SSH configuration provided is used, otherwise it is ignored. Only one of
 		// PublicKeyPath, PublicKey and PublicKeyName can be configured
-		Allow *bool `json:"allow"`
+		Allow *bool `yaml:"allow"`
 		// +optional The path to the SSH public key to be added to the nodes SSH keychain. If Allow is true this value
 		// defaults to "~/.ssh/id_rsa.pub", otherwise the value is ignored.
-		PublicKeyPath string `json:"publicKeyPath,omitempty"`
+		PublicKeyPath string `yaml:"publicKeyPath,omitempty"`
 		// +optional Public key to be added to the nodes SSH keychain. If Allow is false this value is ignored.
-		PublicKey string `json:"publicKey,omitempty"`
+		PublicKey string `yaml:"publicKey,omitempty"`
 		// +optional Public key name in EC2 to be added to the nodes SSH keychain. If Allow is false this value
 		// is ignored.
-		PublicKeyName string `json:"publicKeyName,omitempty"`
+		PublicKeyName string `yaml:"publicKeyName,omitempty"`
 		// +optional
-		SourceSecurityGroupIDs []string `json:"sourceSecurityGroupIds,omitempty"`
+		SourceSecurityGroupIDs []string `yaml:"sourceSecurityGroupIds,omitempty"`
 		// Enables the ability to [SSH onto nodes using SSM](/introduction#ssh-access)
 		// +optional
-		EnableSSM *bool `json:"enableSsm,omitempty"`
+		EnableSSM *bool `yaml:"enableSsm,omitempty"`
 	}
 
 	// NodeGroupInstancesDistribution holds the configuration for [spot
 	// instances](/usage/spot-instances/)
 	NodeGroupInstancesDistribution struct {
 		// +required
-		InstanceTypes []string `json:"instanceTypes,omitempty"`
+		InstanceTypes []string `yaml:"instanceTypes,omitempty"`
 		// Defaults to `on demand price`
 		// +optional
-		MaxPrice *float64 `json:"maxPrice,omitempty"`
+		MaxPrice *float64 `yaml:"maxPrice,omitempty"`
 		// Defaults to `0`
 		// +optional
-		OnDemandBaseCapacity *int `json:"onDemandBaseCapacity,omitempty"`
+		OnDemandBaseCapacity *int `yaml:"onDemandBaseCapacity,omitempty"`
 		// Range [0-100]
 		// Defaults to `100`
 		// +optional
-		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitempty"`
+		OnDemandPercentageAboveBaseCapacity *int `yaml:"onDemandPercentageAboveBaseCapacity,omitempty"`
 		// Range [1-20]
 		// Defaults to `2`
 		// +optional
-		SpotInstancePools *int `json:"spotInstancePools,omitempty"`
+		SpotInstancePools *int `yaml:"spotInstancePools,omitempty"`
 		// +optional
-		SpotAllocationStrategy string `json:"spotAllocationStrategy,omitempty"`
+		SpotAllocationStrategy string `yaml:"spotAllocationStrategy,omitempty"`
 		// Enable [capacity
 		// rebalancing](https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html)
 		// for spot instances
 		// +optional
-		CapacityRebalance bool `json:"capacityRebalance"`
+		CapacityRebalance bool `yaml:"capacityRebalance"`
 	}
 
 	// NodeGroupBottlerocket holds the configuration for Bottlerocket based
 	// NodeGroups.
 	NodeGroupBottlerocket struct {
 		// +optional
-		EnableAdminContainer *bool `json:"enableAdminContainer,omitempty"`
+		EnableAdminContainer *bool `yaml:"enableAdminContainer,omitempty"`
 		// Settings contains any [bottlerocket
 		// settings](https://github.com/bottlerocket-os/bottlerocket/#description-of-settings)
 		// +optional
-		Settings *InlineDocument `json:"settings,omitempty"`
+		Settings *InlineDocument `yaml:"settings,omitempty"`
 	}
 
 	// NodeGroupUpdateConfig contains the configuration for updating NodeGroups.
@@ -788,73 +788,73 @@ type (
 		// MaxUnavailable sets the max number of nodes that can become unavailable
 		// when updating a nodegroup (specified as number)
 		// +optional
-		MaxUnavailable *int `json:"maxUnavailable,omitempty"`
+		MaxUnavailable *int `yaml:"maxUnavailable,omitempty"`
 
 		// MaxUnavailablePercentage sets the max number of nodes that can become unavailable
 		// when updating a nodegroup (specified as percentage)
 		// +optional
-		MaxUnavailablePercentage *int `json:"maxUnavailablePercentage,omitempty"`
+		MaxUnavailablePercentage *int `yaml:"maxUnavailablePercentage,omitempty"`
 	}
 )
 type ManagedNodeGroup struct {
 	*NodeGroupBase
 
 	// InstanceTypes specifies a list of instance types
-	InstanceTypes []string `json:"instanceTypes,omitempty"`
+	InstanceTypes []string `yaml:"instanceTypes,omitempty"`
 
 	// Spot creates a spot nodegroup
-	Spot bool `json:"spot,omitempty"`
+	Spot bool `yaml:"spot,omitempty"`
 
 	// Taints taints to apply to the nodegroup
-	Taints []NodeGroupTaint `json:"taints,omitempty"`
+	Taints []NodeGroupTaint `yaml:"taints,omitempty"`
 
 	// UpdateConfig configures how to update NodeGroups.
 	// +optional
-	UpdateConfig *NodeGroupUpdateConfig `json:"updateConfig,omitempty"`
+	UpdateConfig *NodeGroupUpdateConfig `yaml:"updateConfig,omitempty"`
 
 	// LaunchTemplate specifies an existing launch template to use
 	// for the nodegroup
-	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
+	LaunchTemplate *LaunchTemplate `yaml:"launchTemplate,omitempty"`
 
 	// ReleaseVersion the AMI version of the EKS optimized AMI to use
-	ReleaseVersion string `json:"releaseVersion"`
+	ReleaseVersion string `yaml:"releaseVersion"`
 
 	// Internal fields
 
-	Unowned bool `json:"-"`
+	Unowned bool `yaml:"-"`
 }
 type LaunchTemplate struct {
 	// Launch template ID
 	// +required
-	ID string `json:"id,omitempty"`
+	ID string `yaml:"id,omitempty"`
 	// Launch template version
 	// Defaults to the default launch template version
 	// TODO support $Default, $Latest
-	Version string `json:"version,omitempty"`
+	Version string `yaml:"version,omitempty"`
 }
 type FargateProfile struct {
 
 	// Name of the Fargate profile.
 	// +required
-	Name string `json:"name"`
+	Name string `yaml:"name"`
 
 	// PodExecutionRoleARN is the IAM role's ARN to use to run pods onto Fargate.
-	PodExecutionRoleARN string `json:"podExecutionRoleARN,omitempty"`
+	PodExecutionRoleARN string `yaml:"podExecutionRoleARN,omitempty"`
 
 	// Selectors define the rules to select workload to schedule onto Fargate.
-	Selectors []FargateProfileSelector `json:"selectors"`
+	Selectors []FargateProfileSelector `yaml:"selectors"`
 
 	// Subnets which Fargate should use to do network placement of the selected workload.
 	// If none provided, all subnets for the cluster will be used.
 	// +optional
-	Subnets []string `json:"subnets,omitempty"`
+	Subnets []string `yaml:"subnets,omitempty"`
 
 	// Used to tag the AWS resources
 	// +optional
-	Tags map[string]string `json:"tags,omitempty"`
+	Tags map[string]string `yaml:"tags,omitempty"`
 
 	// The current status of the Fargate profile.
-	Status string `json:"status"`
+	Status string `yaml:"status"`
 }
 
 // FargateProfileSelector defines rules to select workload to schedule onto Fargate.
@@ -862,132 +862,132 @@ type FargateProfileSelector struct {
 
 	// Namespace is the Kubernetes namespace from which to select workload.
 	// +required
-	Namespace string `json:"namespace"`
+	Namespace string `yaml:"namespace"`
 
 	// Labels are the Kubernetes label selectors to use to select workload.
 	// +optional
-	Labels map[string]string `json:"labels,omitempty"`
+	Labels map[string]string `yaml:"labels,omitempty"`
 }
 
 /*
 // EKSClusterVPC struct -> cfg.vpc
 type EKSClusterVPC struct {
-	CIDR             string               `json:"cidr,omitempty" yaml:"cidr"`
-	Subnets          *EKSClusterSubnets   `json:"subnets,omitempty"`
-	NAT              *EKSClusterNAT       `json:"nat,omitempty"`
-	ClusterEndpoints *EKSClusterEndpoints `json:"clusterEndpoints,omitempty"`
+	CIDR             string               `yaml:"cidr,omitempty" yaml:"cidr"`
+	Subnets          *EKSClusterSubnets   `yaml:"subnets,omitempty"`
+	NAT              *EKSClusterNAT       `yaml:"nat,omitempty"`
+	ClusterEndpoints *EKSClusterEndpoints `yaml:"clusterEndpoints,omitempty"`
 }
 
 // EKSClusterNAT struct -> cfg.vpc.nat
 type EKSClusterNAT struct {
-	Gateway string `json:"gateway,omitempty"`
+	Gateway string `yaml:"gateway,omitempty"`
 }
 */
 // EKSClusterSubnets struct -> cfg.vpc.subnets
 type EKSClusterSubnets struct {
-	Private map[string]EKSAZSubnetSpec `json:"private,omitempty"`
-	Public  map[string]EKSAZSubnetSpec `json:"public,omitempty"`
+	Private map[string]EKSAZSubnetSpec `yaml:"private,omitempty"`
+	Public  map[string]EKSAZSubnetSpec `yaml:"public,omitempty"`
 }
 
 // EKSAZSubnetSpec struct -> cfg.vpc.subnets.(private|public)[randomKey]
 type EKSAZSubnetSpec struct {
-	ID string `json:"id,omitempty"`
+	ID string `yaml:"id,omitempty"`
 }
 
 // EKSClusterEndpoints struct -> cfg.vpc.clusterEndpoints
 type EKSClusterEndpoints struct {
-	PrivateAccess *bool `json:"privateAccess"`
-	PublicAccess  *bool `json:"publicAccess"`
+	PrivateAccess *bool `yaml:"privateAccess"`
+	PublicAccess  *bool `yaml:"publicAccess"`
 }
 
 // EKSScalingConfig struct -> embedded into NodeGroupBase
 type EKSScalingConfig struct {
-	DesiredCapacity *int64 `json:"desiredCapacity,omitempty"`
-	MinSize         *int64 `json:"minSize,omitempty"`
-	MaxSize         *int64 `json:"maxSize,omitempty"`
+	DesiredCapacity *int64 `yaml:"desiredCapacity,omitempty"`
+	MinSize         *int64 `yaml:"minSize,omitempty"`
+	MaxSize         *int64 `yaml:"maxSize,omitempty"`
 }
 
 // EKSNodeGroupBase struct -> embedded into cfg.nodeGroups[]
 type EKSNodeGroupBase struct {
-	Name              string   `json:"name"`
-	AMIFamily         string   `json:"amiFamily,omitempty"`
-	InstanceType      string   `json:"instanceType,omitempty"`
-	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+	Name              string   `yaml:"name"`
+	AMIFamily         string   `yaml:"amiFamily,omitempty"`
+	InstanceType      string   `yaml:"instanceType,omitempty"`
+	AvailabilityZones []string `yaml:"availabilityZones,omitempty"`
 	*EKSScalingConfig
-	VolumeSize           *int64            `json:"volumeSize,omitempty"`
-	SSH                  *EKSNodeGroupSSH  `json:"ssh,omitempty"`
-	Labels               map[string]string `json:"labels,omitempty"`
-	PrivateNetworking    *bool             `json:"privateNetworking,omitempty"`
-	Tags                 map[string]string `json:"tags,omitempty"`
-	IAM                  *EKSNodeGroupIAM  `json:"iam,omitempty"`
-	AMI                  string            `json:"ami,omitempty"`
-	MaxPodsPerNode       *int64            `json:"maxPodsPerNode,omitempty"`
-	SecurityGroups       *EKSNodeGroupSGs  `json:"securityGroups,omitempty"`
-	VolumeType           string            `json:"volumeType,omitempty"`
-	VolumeEncrypted      *bool             `json:"volumeEncrypted,omitempty"`
-	VolumeKmsKeyID       string            `json:"volumeKmsKeyID,omitempty"`
-	PreBootstrapCommands []string          `json:"preBootstrapCommands,omitempty"`
-	Subnets              []string          `json:"subnets,omitempty"`
+	VolumeSize           *int64            `yaml:"volumeSize,omitempty"`
+	SSH                  *EKSNodeGroupSSH  `yaml:"ssh,omitempty"`
+	Labels               map[string]string `yaml:"labels,omitempty"`
+	PrivateNetworking    *bool             `yaml:"privateNetworking,omitempty"`
+	Tags                 map[string]string `yaml:"tags,omitempty"`
+	IAM                  *EKSNodeGroupIAM  `yaml:"iam,omitempty"`
+	AMI                  string            `yaml:"ami,omitempty"`
+	MaxPodsPerNode       *int64            `yaml:"maxPodsPerNode,omitempty"`
+	SecurityGroups       *EKSNodeGroupSGs  `yaml:"securityGroups,omitempty"`
+	VolumeType           string            `yaml:"volumeType,omitempty"`
+	VolumeEncrypted      *bool             `yaml:"volumeEncrypted,omitempty"`
+	VolumeKmsKeyID       string            `yaml:"volumeKmsKeyID,omitempty"`
+	PreBootstrapCommands []string          `yaml:"preBootstrapCommands,omitempty"`
+	Subnets              []string          `yaml:"subnets,omitempty"`
 }
 
 // EKSNodeGroup struct -> cfg.nodeGroups[]
 type EKSNodeGroup struct {
 	*EKSNodeGroupBase
-	InstancesDistribution *EKSNodeGroupInstancesDistribution `json:"instancesDistribution,omitempty"`
-	SubnetCidr            string                             `json:"subnetCidr,omitempty"`
+	InstancesDistribution *EKSNodeGroupInstancesDistribution `yaml:"instancesDistribution,omitempty"`
+	SubnetCidr            string                             `yaml:"subnetCidr,omitempty"`
 }
 
 // EKSManagedNodeGroup struct -> cfg.
 type EKSManagedNodeGroup struct {
 	*EKSNodeGroupBase
-	InstanceTypes []string `json:"instanceTypes,omitempty"`
-	Spot          *bool    `json:"spot,omitempty"`
+	InstanceTypes []string `yaml:"instanceTypes,omitempty"`
+	Spot          *bool    `yaml:"spot,omitempty"`
 }
 
 // EKSNodeGroupIAM struct -> cfg.nodeGroups[].iam
 type EKSNodeGroupIAM struct {
-	InstanceProfileARN              string                        `json:"instanceProfileARN,omitempty"`
-	InstanceRoleARN                 string                        `json:"instanceRoleARN,omitempty"`
-	InstanceRolePermissionsBoundary string                        `json:"instanceRolePermissionsBoundary,omitempty"`
-	WithAddonPolicies               *EKSNodeGroupIAMAddonPolicies `json:"withAddonPolicies,omitempty"`
+	InstanceProfileARN              string                        `yaml:"instanceProfileARN,omitempty"`
+	InstanceRoleARN                 string                        `yaml:"instanceRoleARN,omitempty"`
+	InstanceRolePermissionsBoundary string                        `yaml:"instanceRolePermissionsBoundary,omitempty"`
+	WithAddonPolicies               *EKSNodeGroupIAMAddonPolicies `yaml:"withAddonPolicies,omitempty"`
 }
 
 // EKSNodeGroupIAMAddonPolicies struct -> cfg.nodeGroups[].iam.withAddonPolicies
 type EKSNodeGroupIAMAddonPolicies struct {
-	ImageBuilder              *bool `json:"imageBuilder,omitempty"`
-	AutoScaler                *bool `json:"autoScaler,omitempty"`
-	ExternalDNS               *bool `json:"externalDNS,omitempty"`
-	AppMesh                   *bool `json:"appMesh,omitempty"`
-	AWSLoadBalancerController *bool `json:"albIngress,omitempty"`
-	EFS                       *bool `json:"efs,omitempty"`
+	ImageBuilder              *bool `yaml:"imageBuilder,omitempty"`
+	AutoScaler                *bool `yaml:"autoScaler,omitempty"`
+	ExternalDNS               *bool `yaml:"externalDNS,omitempty"`
+	AppMesh                   *bool `yaml:"appMesh,omitempty"`
+	AWSLoadBalancerController *bool `yaml:"albIngress,omitempty"`
+	EFS                       *bool `yaml:"efs,omitempty"`
 }
 
 // Make sure to update hasAtLeastOneEnabled()
 
 // EKSNodeGroupSGs struct -> cfg.nodeGroups[].SecurityGroups
 type EKSNodeGroupSGs struct {
-	AttachIDs []string `json:"attachIDs,omitempty"`
+	AttachIDs []string `yaml:"attachIDs,omitempty"`
 }
 
 // EKSNodeGroupSSH struct -> cfg.nodeGroups[].ssh
 type EKSNodeGroupSSH struct {
-	Allow         *bool  `json:"allow"`
-	PublicKeyName string `json:"publicKeyName,omitempty"`
+	Allow         *bool  `yaml:"allow"`
+	PublicKeyName string `yaml:"publicKeyName,omitempty"`
 }
 
 // EKSNodeGroupInstancesDistribution struct -> cfg.nodeGroups[].instancesDistribution
 type EKSNodeGroupInstancesDistribution struct {
-	InstanceTypes                       []string `json:"instanceTypes,omitempty"`
-	MaxPrice                            *float64 `json:"maxPrice,omitempty"`
-	OnDemandBaseCapacity                *int64   `json:"onDemandBaseCapacity,omitempty"`
-	OnDemandPercentageAboveBaseCapacity *int64   `json:"onDemandPercentageAboveBaseCapacity,omitempty"`
-	SpotInstancePools                   *int64   `json:"spotInstancePools,omitempty"`
-	SpotAllocationStrategy              string   `json:"spotAllocationStrategy,omitempty"`
+	InstanceTypes                       []string `yaml:"instanceTypes,omitempty"`
+	MaxPrice                            *float64 `yaml:"maxPrice,omitempty"`
+	OnDemandBaseCapacity                *int64   `yaml:"onDemandBaseCapacity,omitempty"`
+	OnDemandPercentageAboveBaseCapacity *int64   `yaml:"onDemandPercentageAboveBaseCapacity,omitempty"`
+	SpotInstancePools                   *int64   `yaml:"spotInstancePools,omitempty"`
+	SpotAllocationStrategy              string   `yaml:"spotAllocationStrategy,omitempty"`
 }
 
 type EKSClusterCloudWatch struct {
 	//+optional
-	ClusterLogging *EKSClusterCloudWatchLogging `json:"clusterLogging,omitempty"`
+	ClusterLogging *EKSClusterCloudWatchLogging `yaml:"clusterLogging,omitempty"`
 }
 
 // Values for `CloudWatchLogging`
@@ -1007,11 +1007,11 @@ type EKSClusterCloudWatchLogging struct {
 	// Types of logging to enable (see [CloudWatch docs](/usage/cloudwatch-cluster-logging/#clusterconfig-examples)).
 	// Valid entries are `CloudWatchLogging` constants
 	//+optional
-	EnableTypes []string `json:"enableTypes"`
+	EnableTypes []string `yaml:"enableTypes"`
 }
 
 // SecretsEncryption defines the configuration for KMS encryption provider
 type SecretsEncryption struct {
 	// +required
-	KeyARN string `json:"keyARN,omitempty"`
+	KeyARN string `yaml:"keyARN,omitempty"`
 }

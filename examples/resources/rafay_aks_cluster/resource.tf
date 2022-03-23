@@ -91,6 +91,7 @@ resource "rafay_aks_cluster" "demo-terraform1" {
             kubernetes_version = "1.21.9"
             network_profile {
               network_plugin = "kubenet"
+              network_policy = "calico"
             }
           }
           type = "Microsoft.ContainerService/managedClusters"

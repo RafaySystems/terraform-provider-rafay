@@ -185,7 +185,6 @@ This cannot be updated once the Managed Cluster has been created.
 
 - `authorized_ip_ranges` - (List of String) The AKS managed cluster properties server access profile server access profile. 
 - `enable_private_cluster` - (Boolean) Enable an AKS private cluster.
-- `enable_private_cluster_public_fqdn` - (Boolean) Whether or not to create additional public FQDN for the private cluster. 
 - `private_dns_zone` - (String) The AKS managed cluster properties private DNS zone. **Note**: The value needs to be set to `null` or empty when the `enable_private_cluster` is set to `false`. 
 
 

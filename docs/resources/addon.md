@@ -108,7 +108,7 @@ resource "rafay_addon" "tfdemoaddon2" {
 ***Required***
 
 - `artifact` - (Block List, Max: 1) Contains data about the artifact repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact))
-- `type` - (String) The type of artifact. Supported values are: `Helm`, `Yaml`, and `Alertmanager`. 
+- `type` - (String) The type of artifact. Supported values are: `Helm`, `Yaml`, and `AlertManager`. 
 
 
 <a id="nestedblock--spec--artifact--artifact"></a>

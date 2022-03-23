@@ -4929,8 +4929,8 @@ func (np ByNodepoolName) Swap(i, j int) { np[i], np[j] = np[j], np[i] }
 func (np ByNodepoolName) Less(i, j int) bool {
 	ret := strings.Compare(np[i].Name, np[j].Name)
 	if ret < 0 {
-		return false
-	} else {
 		return true
+	} else {
+		return false
 	}
 }

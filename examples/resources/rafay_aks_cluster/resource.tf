@@ -2,7 +2,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
   apiversion = "rafay.io/v1alpha1"
   kind = "Cluster"
   metadata {
-    name = "demo-terraform20"
+    name = "demo-terraform"
     project = "upgrade"
   }
   spec {
@@ -13,7 +13,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
       apiversion = "rafay.io/v1alpha1"
       kind = "aksClusterConfig"
       metadata {
-        name = "demo-terraform20"
+        name = "demo-terraform"
       }
       spec {
         resource_group_name = "hardik-terraform"
@@ -32,7 +32,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
             network_profile {
               network_plugin = "kubenet"
             }
-            service_principle_profile {
+            service_principal_profile {
               client_id = "3cc2fbb4-6a8b-4c42-93f1-7d5256b3d4d7"
               secret = "zTeXVo0.gV1He8b5QP_Noujdt_BaIlDKe~"
             }

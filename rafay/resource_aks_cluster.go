@@ -427,12 +427,12 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 				Schema: clusterAKSManagedClusterPrivateLinkResources(),
 			},
 		},
-		"service_principle_profile": {
+		"service_principal_profile": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "Information about a service principal identity for the cluster to use for manipulating Azure APIs.",
 			Elem: &schema.Resource{
-				Schema: clusterAKSManagedClusterServicePrincipleProfile(),
+				Schema: clusterAKSManagedClusterServicePrincipalProfile(),
 			},
 		},
 		"windows_profile": {
@@ -1050,7 +1050,7 @@ func clusterAKSManagedClusterPrivateLinkResources() map[string]*schema.Schema {
 	return s
 }
 
-func clusterAKSManagedClusterServicePrincipleProfile() map[string]*schema.Schema {
+func clusterAKSManagedClusterServicePrincipalProfile() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"client_id": {
 			Type:        schema.TypeString,

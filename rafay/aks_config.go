@@ -305,11 +305,11 @@ type AKSManagedClusterAdditionalMetadataACRProfile struct {
 }
 
 type AKSNodePool struct {
-	Type       string `yaml:"type,omitempty"`
-	APIVersion string `yaml:"apiversion,omitempty"`
-	Name       string `yaml:"name,omitempty"`
-	// Location   string                 `yaml:"location"`
+	APIVersion string                 `yaml:"apiversion,omitempty"`
+	Name       string                 `yaml:"name,omitempty"`
 	Properties *AKSNodePoolProperties `yaml:"properties,omitempty"`
+	Type       string                 `yaml:"type,omitempty"`
+	Location   string                 `yaml:"location,omitempty"`
 }
 
 type AKSNodePoolProperties struct {

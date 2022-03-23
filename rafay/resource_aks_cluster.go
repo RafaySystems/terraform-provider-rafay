@@ -1166,6 +1166,11 @@ func clusterAKSNodePool() map[string]*schema.Schema {
 			Default:     "Microsoft.ContainerService/managedClusters/agentPools",
 			Description: "The AKS node pool type",
 		},
+		"location": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "AKS cluster location",
+		},
 	}
 
 	return s
@@ -2598,6 +2603,10 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 
 		if v, ok := in["type"].(string); ok && len(v) > 0 {
 			obj.Type = v
+		}
+
+		if v, ok := in["location"].(string); ok && len(v) > 0 {
+			obj.Location = v
 		}
 		outToSort[i] = obj
 	}
@@ -4195,10 +4204,6 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 			obj = p[i].(map[string]interface{})
 		}
 
-		if len(in.Type) > 0 {
-			obj["type"] = in.Type
-		}
-
 		if len(in.APIVersion) > 0 {
 			obj["apiversion"] = in.APIVersion
 		}
@@ -4213,6 +4218,14 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 				v = []interface{}{}
 			}
 			obj["properties"] = flattenAKSNodePoolProperties(in.Properties, v)
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		if len(in.Location) > 0 {
+			obj["location"] = in.Location
 		}
 
 		out[i] = obj

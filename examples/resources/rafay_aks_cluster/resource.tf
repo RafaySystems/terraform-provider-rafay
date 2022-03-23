@@ -32,6 +32,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
             network_profile {
               network_plugin = "kubenet"
             }
+          }
           type = "Microsoft.ContainerService/managedClusters"
         }
         node_pools {

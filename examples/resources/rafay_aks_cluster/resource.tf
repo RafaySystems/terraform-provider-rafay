@@ -51,7 +51,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
             vm_size              = "Standard_DS2_v2"
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
-          location = "primary-pool-location"
+          location = "centralindia"
         }
       }
     }
@@ -113,7 +113,7 @@ resource "rafay_aks_cluster" "demo-terraform1" {
             vm_size = "Standard_DS2_v2"
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
-          location = "primary-pool-location"
+          location = "centralindia"
         }
         node_pools {
           apiversion = "2021-05-01"
@@ -129,7 +129,7 @@ resource "rafay_aks_cluster" "demo-terraform1" {
             vm_size = "Standard_DS2_v2"
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
-          location = "secondary-pool-location"
+          location = "centralindia"
         }
       }
     }

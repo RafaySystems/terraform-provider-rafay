@@ -1864,7 +1864,6 @@ func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]b
 
 func resourceEKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("resourceEKSClusterUpsert")
-
 	return processEKSInputs(ctx, d, m)
 
 }
@@ -3509,7 +3508,7 @@ func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]
 
 	return []interface{}{obj}, nil
 }
-func flattenEKSConfig(d *schema.ResourceData, in *EKSClusterConfig) error {
+func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error {
 	if in == nil {
 		return nil
 	}
@@ -3522,8 +3521,7 @@ func flattenEKSConfig(d *schema.ResourceData, in *EKSClusterConfig) error {
 		obj["kind"] = in.Kind
 	}
 	var err error
-	//how should i do this for cluster spec metadata vs cluster meta-metadata
-	//dont have expand metametadata function how i should i properly do this?
+
 	var ret1 []interface{}
 	if in.Metadata != nil {
 		v, ok := obj["metadata"].([]interface{})
@@ -4688,89 +4686,128 @@ func flattenEKSClusterSecretsEncryption(in *SecretsEncryption, p []interface{}) 
 }
 
 func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	log.Printf("create EKS cluster resource")
+	log.Println("create EKS cluster resource")
 	return resourceEKSClusterUpsert(ctx, d, m)
 }
 
 func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	yamlCluster := &EKSCluster{}
+	log.Println("READ eks cluster")
 	var diags diag.Diagnostics
-	/*
-		log.Println("resourceAKSClusterRead")
-		obj := &EKSClusterMeta{}
-
-		projectName := obj.Metadata.Project
-		_, err := project.GetProjectByName(projectName)
-		if err != nil {
-			fmt.Print("project name missing in the resource")
-			return diag.FromErr(fmt.Errorf("%s", "Project name missing in the resource"))
-		}
-
-		if obj.Metadata.Name != obj.Spec.AKSClusterConfig.Metadata.Name {
-			return diag.FromErr(fmt.Errorf("%s", "ClusterConfig name does not match config file"))
-		}
-
-		//project details
-		resp, err := project.GetProjectByName(obj.Metadata.Project)
-		if err != nil {
-			fmt.Print("project name missing in the resource")
-			return diags
-		}
-
-		project, err := project.NewProjectFromResponse([]byte(resp))
-		if err != nil {
-			log.Println("project does not exist")
-			return diags
-		}
-		c, err := cluster.GetCluster(obj.Metadata.Name, project.ID)
-		if err != nil {
-			log.Printf("error in get cluster %s", err.Error())
-			return diag.FromErr(err)
-		}
-
-		logger := glogger.GetLogger()
-		rctlCfg := config.GetConfig()
-		clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
-		if err != nil {
-			log.Printf("error in get clusterspec %s", err.Error())
-			return diag.FromErr(err)
-		}
-		log.Println("resourceAKSClusterRead clusterSpec ", clusterSpecYaml)
-
-		clusterSpec := AKSCluster{}
-		err = yaml.Unmarshal([]byte(clusterSpecYaml), &clusterSpec)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		err = flattenAKSCluster(d, &clusterSpec)
-		if err != nil {
-			log.Printf("get aks cluster set error %s", err.Error())
-			return diag.FromErr(err)
-		}
-	*/
-	return diags
-}
-
-func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return resourceEKSClusterCreate(ctx, d, m)
-}
-
-func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	log.Printf("resource cluster delete id %s", d.Id())
-
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	//expand cluster yaml file
+	if v, ok := d.Get("cluster").([]interface{}); ok {
+		yamlCluster = expandEKSCluster(v)
+	} else {
+		fmt.Print("Cluster data unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
+	}
+	resp, err := project.GetProjectByName(yamlCluster.Metadata.Project)
 	if err != nil {
-		fmt.Print("project  does not exist")
+		fmt.Print("project name missing in the resource")
 		return diags
 	}
 
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
-		log.Println("project  does not exist")
+		fmt.Printf("project does not exist")
+		return diags
+	}
+	c, err := cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+	if err != nil {
+		log.Printf("error in get cluster %s", err.Error())
+		return diag.FromErr(err)
+	}
+
+	logger := glogger.GetLogger()
+	rctlCfg := config.GetConfig()
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
+	if err != nil {
+		log.Printf("error in get clusterspec %s", err.Error())
+		return diag.FromErr(err)
+	}
+	log.Println("resourceEKSClusterRead clusterSpec ", clusterSpecYaml)
+
+	clusterByte := []byte(clusterSpecYaml)
+	cfgList, err := utils.SplitYamlAndGetListByKind(clusterByte)
+	//flatten cluster
+	clusterSpec := EKSCluster{}
+	err = yaml.Unmarshal([]byte(cfgList["cluster"][0]), &clusterSpec)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	err = flattenEKSCluster(d, &clusterSpec)
+	if err != nil {
+		log.Printf("get eks cluster set error %s", err.Error())
+		return diag.FromErr(err)
+	}
+	//flatten cluster config
+	clusterConfigSpec := EKSClusterConfig{}
+	err = yaml.Unmarshal([]byte(cfgList["cluster_config"][0]), &clusterConfigSpec)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	err = flattenEKSClusterConfig(d, &clusterConfigSpec)
+	if err != nil {
+		log.Printf("get eks cluster set error %s", err.Error())
+		return diag.FromErr(err)
+	}
+
+	return diags
+}
+
+func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	yamlCluster := &EKSCluster{}
+	var diags diag.Diagnostics
+	//expand cluster yaml file
+	if v, ok := d.Get("cluster").([]interface{}); ok {
+		yamlCluster = expandEKSCluster(v)
+	} else {
+		fmt.Print("Cluster data unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
+	}
+	resp, err := project.GetProjectByName(yamlCluster.Metadata.Project)
+	if err != nil {
+		fmt.Print("project name missing in the resource")
 		return diags
 	}
 
-	errDel := cluster.DeleteCluster(d.Get("name").(string), project.ID)
+	project, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		fmt.Printf("project does not exist")
+		return diags
+	}
+	_, err = cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+	if err != nil {
+		log.Printf("error in get cluster %s", err.Error())
+		return diag.FromErr(err)
+	}
+	return resourceEKSClusterUpsert(ctx, d, m)
+}
+
+func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	yamlCluster := &EKSCluster{}
+	var diags diag.Diagnostics
+
+	if v, ok := d.Get("cluster").([]interface{}); ok {
+		yamlCluster = expandEKSCluster(v)
+	} else {
+		fmt.Print("Cluster data unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
+	}
+
+	resp, err := project.GetProjectByName(yamlCluster.Metadata.Project)
+	if err != nil {
+		fmt.Print("project name missing in the resource")
+		return diags
+	}
+
+	project, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		fmt.Printf("project does not exist")
+		return diags
+	}
+
+	errDel := cluster.DeleteCluster(yamlCluster.Metadata.Name, project.ID)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)

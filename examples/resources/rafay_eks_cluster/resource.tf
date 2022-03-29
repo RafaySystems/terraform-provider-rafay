@@ -2,42 +2,54 @@ resource "rafay_eks_cluster" "eksclusterbasic" {
   cluster {
     kind = "Cluster"
     metadata {
-      name = "rctl-chai-eks"
-      project = "defaultproject"
-      labels = {
-        "env" : "dev"
-        "type" : "eks-workloads"
-      }
+      name = "test-cluster"
+      project = "dev"
     }
     spec {
       type = "eks"
-      blueprint = "rctl-test-blueprint"
-      blueprint_version = "v1.2.x"
-      cloud_provider = " yog-test-dev-aws"
-      //cni_provider = ""
-      //proxy_config = ""
+      blueprint = "default"
+      cloud_provider = "aws-eks"
+      cni_provider = "aws-cni"
+      proxy_config = {}
     }
   }
-  cluster_config{
+  cluster_config {
     apiversion = "rafay.io/v1alpha5"
     kind = "ClusterConfig"
     metadata {
-      name = "rctl-spot-eks"
-      region = "us-west-1"
-      //version = ""
-      tags = {
-         "demo": true
-      }
-      //annotations = ""
+      name = "test-cluster"
+      region = "us-west-2"
+      version = "1.21"
     }
     node_groups{
-      name = "ng-1"
-      instance_type = "t3.large"
+      name = "ng-57658a87"
+      ami_family = "AmazonLinux2"
+      iam {
+        iam_node_group_with_addon_policies {
+          image_builder = true
+          auto_scaler = true
+        }
+      }
+      instance_type = "t3.xlarge"
       desired_capacity = 1
+      min_size = 1
+      max_size = 2
+      volume_size = 80
+      volume_type = "gp3"
+    }
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access = false
+      }
+      nat {
+        gateway = "Single"
+      }
     }
   }
 }
-
+/*
 resource "rafay_eks_cluster" "eksclustersecretencryption" {
   cluster {
     kind = "Cluster"

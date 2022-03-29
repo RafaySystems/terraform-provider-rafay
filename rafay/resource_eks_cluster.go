@@ -14,6 +14,7 @@ import (
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/utils"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -55,7 +56,7 @@ func resourceEKSCluster() *schema.Resource {
 
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
-			"metadata": {
+			"cluster": {
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "cluster yaml file",
@@ -63,7 +64,7 @@ func resourceEKSCluster() *schema.Resource {
 					Schema: clusterMetadataField(),
 				},
 			},
-			"config": {
+			"cluster_config": {
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "cluster config yaml file",
@@ -127,7 +128,7 @@ func specField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"type": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Default:     "eks",
 			Description: "Cluster Type",
 		},
@@ -175,7 +176,7 @@ func configField() map[string]*schema.Schema {
 		},
 		"apiversion": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Default:     "rafay.io/v1alpha5",
 			Description: "apiversion",
 		},
@@ -189,7 +190,7 @@ func configField() map[string]*schema.Schema {
 		},
 		"kubernetes_network_config": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "contains cluster networking options",
 			Elem: &schema.Resource{
 				Schema: kubernetesNetworkConfigField(),
@@ -197,7 +198,7 @@ func configField() map[string]*schema.Schema {
 		},
 		"iam": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "holds all IAM attributes of a cluster",
 			Elem: &schema.Resource{
 				Schema: iamFields(),
@@ -301,7 +302,7 @@ func configMetadataField() map[string]*schema.Schema {
 		},
 		"version": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Default:     "1.20",
 			Description: "Valid variants are: '1.16', '1.17', '1.18', '1.19', '1.20' (default), '1.21'.",
 		},
@@ -767,7 +768,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"name": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Description: "name of the node group",
 		},
 		"ami_family": {
@@ -837,7 +838,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 		},
 		"labels": {
 			Type:        schema.TypeMap,
-			Required:    true,
+			Optional:    true,
 			Description: "labels on nodes in the nodegroup",
 		},
 		"private_networking": {
@@ -987,7 +988,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 		},
 		"asg_metrics_collection": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "used by the scaling config, see cloudformation docs",
 			Elem: &schema.Resource{
 				Schema: asgMetricsCollectionFields(),
@@ -1024,7 +1025,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 		},
 		"update_config": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "used by the scaling config, see cloudformation docs",
 			Elem: &schema.Resource{
 				Schema: updateConfigFields(),
@@ -1058,7 +1059,7 @@ func instanceDistributionFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"instance_types": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "Enable admin container",
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
@@ -1572,7 +1573,7 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 				Schema: bottleRocketFields(),
 			},
 		},
-		"instance_types:": {
+		"instance_types": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "specifies a list of instance types",
@@ -1781,8 +1782,8 @@ func clusterLoggingFields() map[string]*schema.Schema {
 func secretsEncryptionConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"key_arn": {
-			Type:        schema.TypeList,
-			Required:    true,
+			Type:        schema.TypeString,
+			Optional:    true,
 			Description: "KMS key ARN",
 		},
 	}
@@ -1862,7 +1863,7 @@ func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]b
 }
 
 func resourceEKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	log.Printf("resourceAKSClusterUpsert")
+	log.Printf("resourceEKSClusterUpsert")
 
 	return processEKSInputs(ctx, d, m)
 
@@ -1946,14 +1947,14 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	yamlCluster := &EKSCluster{}
 	yamlClusterConfig := &EKSClusterConfig{}
 	//expand cluster yaml file
-	if v, ok := d.Get("metadata").([]interface{}); ok {
+	if v, ok := d.Get("cluster").([]interface{}); ok {
 		yamlCluster = expandEKSCluster(v)
 	} else {
 		fmt.Print("Cluster data unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
 	}
 	//expand cluster config yaml file
-	if v, ok := d.Get("config").([]interface{}); ok {
+	if v, ok := d.Get("cluster_config").([]interface{}); ok {
 		yamlClusterConfig = expandEKSClusterConfig(v)
 	} else {
 		fmt.Print("Cluster Config unable to be found")
@@ -1967,13 +1968,15 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	log.Printf("EKS Cluster Metadata YAML \n---\n%s\n----\n", clusterByte)
+	n1 := spew.Sprintf("%+v", yamlClusterConfig)
+	log.Println("apply yamlClusterConfig:", n1)
 	configByte, err := yaml.Marshal(yamlClusterConfig)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	//print out []bytes
-	log.Printf("EKS Cluster Metadata YAML \n---\n%s\n----\n", clusterByte)
-	log.Printf("AKS Cluster Spec YAML \n---\n%s\n----\n", configByte)
+	log.Printf("EKS Cluster Spec YAML \n---\n%s\n----\n", configByte)
 
 	return processEKSFilebytes(ctx, d, m, clusterByte, configByte, yamlCluster, yamlClusterConfig)
 }
@@ -1984,33 +1987,36 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	//IF THERES A CRASH check this logic
 	//might need to initalize inner []
 	cfgList := make(map[string][][]byte)
-	cfgList["Cluster"][0] = clusterByte
-	cfgList["ClusterConfig"][0] = configByte
-	fmt.Println()
+	cfgList["Cluster"] = append(cfgList["Cluster"], clusterByte)
+	cfgList["ClusterConfig"] = append(cfgList["ClusterConfig"], configByte)
+	//cfgList["Cluster"][0] = clusterByte
+	//cfgList["ClusterConfig"][0] = configByte
 	//do i need these checks?
-	if len(cfgList) < 1 {
-		fmt.Printf("no cluster in the config")
-		return diags
+	/*
+		if len(cfgList) < 1 {
+			log.Printf("no cluster in the config")
+			return diags
 
-	}
-	if len(cfgList) > 1 {
-		fmt.Printf("found more than one cluster config in the cluster config")
-		return diags
-	}
+		}
+		if len(cfgList) > 1 {
+			log.Printf("found more than one cluster config in the cluster config")
+			return diags
+		}*/
 
 	// get project details
 	resp, err := project.GetProjectByName(yamlClusterMetadata.Metadata.Project)
 	if err != nil {
-		fmt.Printf("project does not exist")
+		log.Println("project does not exist")
 		return diags
 	}
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
-		fmt.Printf("project does not exist")
+		log.Println("project does not exist")
 		return diags
 	}
 
 	// cluster
+	log.Println("calling cluster ctl")
 	response, err := eksClusterCTL(rctlCfg, cfgList["Cluster"], cfgList["ClusterConfig"], false)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
@@ -2034,7 +2040,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.FromErr(errGet)
 	}
 
-	log.Printf("Cluster Provision may take upto 15-20 Minutes")
+	log.Println("Cluster Provision may take upto 15-20 Minutes")
 	for { //wait for cluster to provision correctly
 		time.Sleep(60 * time.Second)
 		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
@@ -2071,12 +2077,13 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	return diags
 }
 func eksClusterCTLStatus(taskid string) (string, error) {
+	log.Println("eksClusterCTLStatus")
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
 	return clusterctl.Status(logger, rctlCfg, taskid)
 }
 func eksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte, dryRun bool) (string, error) {
-	log.Printf("eks cluster ctl start")
+	log.Printf("eksClusterCTL")
 	logger := glogger.GetLogger()
 	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
 	if len(errs) == 0 && len(configMap) > 0 {
@@ -2423,7 +2430,12 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 	for i := range p {
 		in := p[i].(map[string]interface{})
 		obj := NodeGroup{}
+		log.Println("expand_nodegroups")
+		log.Println("ngs_yaml name: ", in["name"].(string))
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			log.Println("ngs_name: ", v)
+			//obj.Name = "bob"
+			//log.Println("obj name: ", obj.Name)
 			obj.Name = v
 		}
 		if v, ok := in["ami_family"].(string); ok && len(v) > 0 {
@@ -3279,7 +3291,7 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 	}
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
-		fmt.Printf("project does not exist")
+		log.Println("project does not exist")
 		return diags
 	}
 
@@ -3430,7 +3442,7 @@ func flattenEKSCluster(d *schema.ResourceData, in *EKSCluster) error {
 }
 func flattenEKSClusterMetadata(in *EKSClusterMetadata, p []interface{}) ([]interface{}, error) {
 	if in == nil {
-		return nil, fmt.Errorf("%s", "flattenAKSClusterMetaData empty input")
+		return nil, fmt.Errorf("%s", "flattenEKSClusterMetaData empty input")
 	}
 	obj := map[string]interface{}{}
 
@@ -3449,7 +3461,7 @@ func flattenEKSClusterMetadata(in *EKSClusterMetadata, p []interface{}) ([]inter
 }
 func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
-		return nil, fmt.Errorf("%s", "flattenAKSClusterMetaData empty input")
+		return nil, fmt.Errorf("%s", "flattenEKSClusterMetaData empty input")
 	}
 	obj := map[string]interface{}{}
 
@@ -3477,7 +3489,7 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 }
 func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]interface{}, error) {
 	if in == nil {
-		return nil, fmt.Errorf("%s", "flattenAKSClusterMetaData empty input")
+		return nil, fmt.Errorf("%s", "flattenEKSClusterMetaData empty input")
 	}
 	obj := map[string]interface{}{}
 
@@ -3497,7 +3509,7 @@ func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]
 
 	return []interface{}{obj}, nil
 }
-func flattenEKSYamlConfig(d *schema.ResourceData, in *EKSClusterConfig) error {
+func flattenEKSConfig(d *schema.ResourceData, in *EKSClusterConfig) error {
 	if in == nil {
 		return nil
 	}
@@ -4676,7 +4688,7 @@ func flattenEKSClusterSecretsEncryption(in *SecretsEncryption, p []interface{}) 
 }
 
 func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	log.Printf("create AKS cluster resource")
+	log.Printf("create EKS cluster resource")
 	return resourceEKSClusterUpsert(ctx, d, m)
 }
 
@@ -4706,7 +4718,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 
 		project, err := project.NewProjectFromResponse([]byte(resp))
 		if err != nil {
-			fmt.Printf("project does not exist")
+			log.Println("project does not exist")
 			return diags
 		}
 		c, err := cluster.GetCluster(obj.Metadata.Name, project.ID)
@@ -4754,7 +4766,7 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
-		fmt.Printf("project  does not exist")
+		log.Println("project  does not exist")
 		return diags
 	}
 

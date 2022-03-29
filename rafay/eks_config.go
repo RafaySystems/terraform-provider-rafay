@@ -93,37 +93,37 @@ const (
 
 //struct for eks cluster metadata (first part of the yaml file kind:cluster)
 type EKSCluster struct {
-	Kind     string              `yaml:"kind"`
-	Metadata *EKSClusterMetadata `yaml:"metadata"`
-	Spec     *EKSSpec            `yaml:"spec"`
+	Kind     string              `yaml:"kind,omitempty"`
+	Metadata *EKSClusterMetadata `yaml:"metadata,omitempty"`
+	Spec     *EKSSpec            `yaml:"spec,omitempty"`
 }
 
 type EKSSpec struct {
-	Type             string            `yaml:"type"`
-	Blueprint        string            `yaml:"blueprint"`
+	Type             string            `yaml:"type,omitempty"`
+	Blueprint        string            `yaml:"blueprint,omitempty"`
 	BlueprintVersion string            `yaml:"blueprintversion,omitempty"`
-	CloudProvider    string            `yaml:"cloudprovider"`
-	CniProvider      string            `yaml:"cniprovider"`
-	ProxyConfig      map[string]string `yaml:"labels"`
+	CloudProvider    string            `yaml:"cloudprovider,omitempty"`
+	CniProvider      string            `yaml:"cniprovider,omitempty"`
+	ProxyConfig      map[string]string `yaml:"labels,omitempty"`
 }
 
 type EKSClusterMetadata struct {
-	Name    string            `yaml:"name"`
-	Project string            `yaml:"project"`
+	Name    string            `yaml:"name,omitempty"`
+	Project string            `yaml:"project,omitempty"`
 	Labels  map[string]string `yaml:"labels,omitempty"`
 }
 
 //struct for eks cluster config sped (second part of the yaml file kind:clusterConfig)
 type KubernetesNetworkConfig struct {
-	ServiceIPv4CIDR string `yaml:"serviceIPv4CIDR"`
+	ServiceIPv4CIDR string `yaml:"serviceIPv4CIDR,omitempty"`
 }
 
 type EKSClusterConfig struct {
-	APIVersion              string                    `yaml:"apiversion"`
-	Kind                    string                    `yaml:"kind"`
-	Metadata                *EKSClusterConfigMetadata `yaml:"metadata"`
-	KubernetesNetworkConfig *KubernetesNetworkConfig  `yaml:"kubernetesNetworkConfig"`
-	IAM                     *EKSClusterIAM            `yaml:"iam,omitempty"`
+	APIVersion              string                    `yaml:"apiversion,omitempty"`
+	Kind                    string                    `yaml:"kind,omitempty"`
+	Metadata                *EKSClusterConfigMetadata `yaml:"metadata,omitempty"`
+	KubernetesNetworkConfig *KubernetesNetworkConfig  `yaml:"kubernetesNetworkConfig,omitempty"`
+	IAM                     *EKSClusterIAM            `yaml:"iam,omitempty,omitempty"`
 	IdentityProviders       []IdentityProvider        `yaml:"identityProviders,omitempty"`
 	VPC                     *EKSClusterVPC            `yaml:"vpc,omitempty"`
 	// +optional
@@ -161,11 +161,11 @@ type AWSPolicyInlineDocument map[string]interface{}
 
 // EKSClusterMeta struct -> cfg.EKSClusterMeta
 type EKSClusterConfigMetadata struct {
-	Name        string            `yaml:"name"`
-	Region      string            `yaml:"region"`
+	Name        string            `yaml:"name,omitempty"`
+	Region      string            `yaml:"region,omitempty"`
 	Version     string            `yaml:"version,omitempty"`
 	Tags        map[string]string `yaml:"tags,omitempty"`
-	Annotations map[string]string `yaml:"tags,omitempty"`
+	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
 // EKSClusterIAM struct -> cfg.IAM.ServiceAccounts
@@ -191,7 +191,7 @@ type IdentityProvider struct {
 	// Valid variants are:
 	// `"oidc"`: OIDC identity provider
 	// +required
-	type_ string `yaml:"type"` //nolint
+	type_ string `yaml:"type,omitempty"` //nolint
 	//Inner IdentityProviderInterface
 }
 
@@ -269,7 +269,7 @@ type EKSClusterIAMServiceAccount struct {
 
 type WellKnownPolicies struct {
 	// ImageBuilder allows for full ECR (Elastic Container Registry) access.
-	ImageBuilder *bool `yaml:"imageBuilder,inline"`
+	ImageBuilder *bool `yaml:"imageBuilder,inline,omitempty"`
 	// AutoScaler adds policies for cluster-autoscaler. See [autoscaler AWS
 	// docs](https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html).
 	AutoScaler *bool `yaml:"autoScaler,inline"`
@@ -433,7 +433,137 @@ type PrivateCluster struct {
 	AdditionalEndpointServices []string `yaml:"additionalEndpointServices,omitempty"`
 }
 type NodeGroup struct {
-	*NodeGroupBase
+	// +required
+	Name string `yaml:"name"`
+
+	// Valid variants are `NodeAMIFamily` constants
+	// +optional
+	AMIFamily string `yaml:"amiFamily,omitempty"`
+	// +optional
+	InstanceType string `yaml:"instanceType,omitempty"`
+	// Limit [nodes to specific
+	// AZs](/usage/autoscaling/#zone-aware-auto-scaling)
+	// +optional
+	AvailabilityZones []string `yaml:"availabilityZones,omitempty"`
+	// Limit nodes to specific subnets
+	// +optional
+	Subnets []string `yaml:"subnets,omitempty"`
+
+	// +optional
+	InstancePrefix string `yaml:"instancePrefix,omitempty"`
+	// +optional
+	InstanceName string `yaml:"instanceName,omitempty"`
+
+	// +optional
+	ScalingConfig
+
+	// +optional
+	// VolumeSize gigabytes
+	// Defaults to `80`
+	VolumeSize *int `yaml:"volumeSize,omitempty"`
+	// +optional
+	// SSH configures ssh access for this nodegroup
+	SSH *NodeGroupSSH `yaml:"ssh,omitempty"`
+	// +optional
+	Labels map[string]string `yaml:"labels,omitempty"`
+	// Enable [private
+	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
+	// for nodegroup
+	// +optional
+	PrivateNetworking bool `yaml:"privateNetworking"`
+	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
+	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
+	// +optional
+	Tags map[string]string `yaml:"tags,omitempty"`
+	// +optional
+	IAM *NodeGroupIAM `yaml:"iam,omitempty"`
+
+	// Specify [custom AMIs](/usage/custom-ami-support/), `auto-ssm`, `auto`, or `static`
+	// +optional
+	AMI string `yaml:"ami,omitempty"`
+
+	// +optional
+	SecurityGroups *NodeGroupSGs `yaml:"securityGroups,omitempty"`
+
+	// +optional
+	MaxPodsPerNode int `yaml:"maxPodsPerNode,omitempty"`
+
+	// See [relevant AWS
+	// docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html#cfn-attributes-updatepolicy-rollingupdate-suspendprocesses)
+	// +optional
+	ASGSuspendProcesses []string `yaml:"asgSuspendProcesses,omitempty"`
+
+	// EBSOptimized enables [EBS
+	// optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)
+	// +optional
+	EBSOptimized *bool `yaml:"ebsOptimized,omitempty"`
+
+	// Valid variants are `VolumeType` constants
+	// +optional
+	VolumeType string `yaml:"volumeType,omitempty"`
+	// +optional
+	VolumeName string `yaml:"volumeName,omitempty"`
+	// +optional
+	VolumeEncrypted *bool `yaml:"volumeEncrypted,omitempty"`
+	// +optional
+	VolumeKmsKeyID string `yaml:"volumeKmsKeyID,omitempty"`
+	// +optional
+	VolumeIOPS *int `yaml:"volumeIOPS,omitempty"`
+	// +optional
+	VolumeThroughput *int `yaml:"volumeThroughput,omitempty"`
+
+	// PreBootstrapCommands are executed before bootstrapping instances to the
+	// cluster
+	// +optional
+	PreBootstrapCommands []string `yaml:"preBootstrapCommands,omitempty"`
+
+	// Override `eksctl`'s bootstrapping script
+	// +optional
+	OverrideBootstrapCommand string `yaml:"overrideBootstrapCommand,omitempty"`
+
+	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
+	// Defaults to `false`
+	// +optional
+	DisableIMDSv1 *bool `yaml:"disableIMDSv1,omitempty"`
+
+	// DisablePodIMDS blocks all IMDS requests from non host networking pods
+	// Defaults to `false`
+	// +optional
+	DisablePodIMDS *bool `yaml:"disablePodIMDS,omitempty"`
+
+	// Placement specifies the placement group in which nodes should
+	// be spawned
+	// +optional
+	Placement *Placement `yaml:"placement,omitempty"`
+
+	// EFAEnabled creates the maximum allowed number of EFA-enabled network
+	// cards on nodes in this group.
+	// +optional
+	EFAEnabled *bool `yaml:"efaEnabled,omitempty"`
+
+	// InstanceSelector specifies options for EC2 instance selector
+	InstanceSelector *InstanceSelector `yaml:"instanceSelector,omitempty"`
+
+	// Internal fields
+	// Some AMIs (bottlerocket) have a separate volume for the OS
+	AdditionalEncryptedVolume string `yaml:"-"`
+
+	// Bottlerocket specifies settings for Bottlerocket nodes
+	// +optional
+	Bottlerocket *NodeGroupBottlerocket `yaml:"bottlerocket,omitempty"`
+
+	// TODO remove this
+	// This is a hack, will be removed shortly. When this is true for Ubuntu and
+	// AL2 images a legacy bootstrapper will be used.
+	CustomAMI bool `yaml:"-"`
+
+	// Enable EC2 detailed monitoring
+	// +optional
+	EnableDetailedMonitoring *bool `yaml:"enableDetailedMonitoring,omitempty"`
+	// Rafay changes - start
+	// Internal
+	IsWavelengthZone bool `yaml:"-"`
+	// Rafay changes - end
 
 	//+optional
 	InstancesDistribution *NodeGroupInstancesDistribution `yaml:"instancesDistribution,omitempty"`
@@ -501,7 +631,7 @@ type NodeGroupBase struct {
 	InstanceName string `yaml:"instanceName,omitempty"`
 
 	// +optional
-	*ScalingConfig
+	ScalingConfig
 
 	// +optional
 	// VolumeSize gigabytes
@@ -797,7 +927,137 @@ type (
 	}
 )
 type ManagedNodeGroup struct {
-	*NodeGroupBase
+	// +required
+	Name string `yaml:"name"`
+
+	// Valid variants are `NodeAMIFamily` constants
+	// +optional
+	AMIFamily string `yaml:"amiFamily,omitempty"`
+	// +optional
+	InstanceType string `yaml:"instanceType,omitempty"`
+	// Limit [nodes to specific
+	// AZs](/usage/autoscaling/#zone-aware-auto-scaling)
+	// +optional
+	AvailabilityZones []string `yaml:"availabilityZones,omitempty"`
+	// Limit nodes to specific subnets
+	// +optional
+	Subnets []string `yaml:"subnets,omitempty"`
+
+	// +optional
+	InstancePrefix string `yaml:"instancePrefix,omitempty"`
+	// +optional
+	InstanceName string `yaml:"instanceName,omitempty"`
+
+	// +optional
+	ScalingConfig
+
+	// +optional
+	// VolumeSize gigabytes
+	// Defaults to `80`
+	VolumeSize *int `yaml:"volumeSize,omitempty"`
+	// +optional
+	// SSH configures ssh access for this nodegroup
+	SSH *NodeGroupSSH `yaml:"ssh,omitempty"`
+	// +optional
+	Labels map[string]string `yaml:"labels,omitempty"`
+	// Enable [private
+	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
+	// for nodegroup
+	// +optional
+	PrivateNetworking bool `yaml:"privateNetworking"`
+	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
+	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
+	// +optional
+	Tags map[string]string `yaml:"tags,omitempty"`
+	// +optional
+	IAM *NodeGroupIAM `yaml:"iam,omitempty"`
+
+	// Specify [custom AMIs](/usage/custom-ami-support/), `auto-ssm`, `auto`, or `static`
+	// +optional
+	AMI string `yaml:"ami,omitempty"`
+
+	// +optional
+	SecurityGroups *NodeGroupSGs `yaml:"securityGroups,omitempty"`
+
+	// +optional
+	MaxPodsPerNode int `yaml:"maxPodsPerNode,omitempty"`
+
+	// See [relevant AWS
+	// docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html#cfn-attributes-updatepolicy-rollingupdate-suspendprocesses)
+	// +optional
+	ASGSuspendProcesses []string `yaml:"asgSuspendProcesses,omitempty"`
+
+	// EBSOptimized enables [EBS
+	// optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)
+	// +optional
+	EBSOptimized *bool `yaml:"ebsOptimized,omitempty"`
+
+	// Valid variants are `VolumeType` constants
+	// +optional
+	VolumeType string `yaml:"volumeType,omitempty"`
+	// +optional
+	VolumeName string `yaml:"volumeName,omitempty"`
+	// +optional
+	VolumeEncrypted *bool `yaml:"volumeEncrypted,omitempty"`
+	// +optional
+	VolumeKmsKeyID string `yaml:"volumeKmsKeyID,omitempty"`
+	// +optional
+	VolumeIOPS *int `yaml:"volumeIOPS,omitempty"`
+	// +optional
+	VolumeThroughput *int `yaml:"volumeThroughput,omitempty"`
+
+	// PreBootstrapCommands are executed before bootstrapping instances to the
+	// cluster
+	// +optional
+	PreBootstrapCommands []string `yaml:"preBootstrapCommands,omitempty"`
+
+	// Override `eksctl`'s bootstrapping script
+	// +optional
+	OverrideBootstrapCommand string `yaml:"overrideBootstrapCommand,omitempty"`
+
+	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
+	// Defaults to `false`
+	// +optional
+	DisableIMDSv1 *bool `yaml:"disableIMDSv1,omitempty"`
+
+	// DisablePodIMDS blocks all IMDS requests from non host networking pods
+	// Defaults to `false`
+	// +optional
+	DisablePodIMDS *bool `yaml:"disablePodIMDS,omitempty"`
+
+	// Placement specifies the placement group in which nodes should
+	// be spawned
+	// +optional
+	Placement *Placement `yaml:"placement,omitempty"`
+
+	// EFAEnabled creates the maximum allowed number of EFA-enabled network
+	// cards on nodes in this group.
+	// +optional
+	EFAEnabled *bool `yaml:"efaEnabled,omitempty"`
+
+	// InstanceSelector specifies options for EC2 instance selector
+	InstanceSelector *InstanceSelector `yaml:"instanceSelector,omitempty"`
+
+	// Internal fields
+	// Some AMIs (bottlerocket) have a separate volume for the OS
+	AdditionalEncryptedVolume string `yaml:"-"`
+
+	// Bottlerocket specifies settings for Bottlerocket nodes
+	// +optional
+	Bottlerocket *NodeGroupBottlerocket `yaml:"bottlerocket,omitempty"`
+
+	// TODO remove this
+	// This is a hack, will be removed shortly. When this is true for Ubuntu and
+	// AL2 images a legacy bootstrapper will be used.
+	CustomAMI bool `yaml:"-"`
+
+	// Enable EC2 detailed monitoring
+	// +optional
+	EnableDetailedMonitoring *bool `yaml:"enableDetailedMonitoring,omitempty"`
+	// Rafay changes - start
+	// Internal
+	IsWavelengthZone bool `yaml:"-"`
+	// Rafay changes - end
 
 	// InstanceTypes specifies a list of instance types
 	InstanceTypes []string `yaml:"instanceTypes,omitempty"`
@@ -817,7 +1077,7 @@ type ManagedNodeGroup struct {
 	LaunchTemplate *LaunchTemplate `yaml:"launchTemplate,omitempty"`
 
 	// ReleaseVersion the AMI version of the EKS optimized AMI to use
-	ReleaseVersion string `yaml:"releaseVersion"`
+	ReleaseVersion string `yaml:"releaseVersion,omitempty"`
 
 	// Internal fields
 
@@ -842,7 +1102,7 @@ type FargateProfile struct {
 	PodExecutionRoleARN string `yaml:"podExecutionRoleARN,omitempty"`
 
 	// Selectors define the rules to select workload to schedule onto Fargate.
-	Selectors []FargateProfileSelector `yaml:"selectors"`
+	Selectors []FargateProfileSelector `yaml:"selectors,omitempty"`
 
 	// Subnets which Fargate should use to do network placement of the selected workload.
 	// If none provided, all subnets for the cluster will be used.
@@ -854,7 +1114,7 @@ type FargateProfile struct {
 	Tags map[string]string `yaml:"tags,omitempty"`
 
 	// The current status of the Fargate profile.
-	Status string `yaml:"status"`
+	Status string `yaml:"status,omitempty"`
 }
 
 // FargateProfileSelector defines rules to select workload to schedule onto Fargate.
@@ -862,7 +1122,7 @@ type FargateProfileSelector struct {
 
 	// Namespace is the Kubernetes namespace from which to select workload.
 	// +required
-	Namespace string `yaml:"namespace"`
+	Namespace string `yaml:"namespace,omitempty"`
 
 	// Labels are the Kubernetes label selectors to use to select workload.
 	// +optional
@@ -896,8 +1156,8 @@ type EKSAZSubnetSpec struct {
 
 // EKSClusterEndpoints struct -> cfg.vpc.clusterEndpoints
 type EKSClusterEndpoints struct {
-	PrivateAccess *bool `yaml:"privateAccess"`
-	PublicAccess  *bool `yaml:"publicAccess"`
+	PrivateAccess *bool `yaml:"privateAccess,omitempty"`
+	PublicAccess  *bool `yaml:"publicAccess,omitempty"`
 }
 
 // EKSScalingConfig struct -> embedded into NodeGroupBase
@@ -1007,7 +1267,7 @@ type EKSClusterCloudWatchLogging struct {
 	// Types of logging to enable (see [CloudWatch docs](/usage/cloudwatch-cluster-logging/#clusterconfig-examples)).
 	// Valid entries are `CloudWatchLogging` constants
 	//+optional
-	EnableTypes []string `yaml:"enableTypes"`
+	EnableTypes []string `yaml:"enableTypes,omitempty"`
 }
 
 // SecretsEncryption defines the configuration for KMS encryption provider

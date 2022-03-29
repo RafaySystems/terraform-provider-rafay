@@ -21,8 +21,13 @@ resource "rafay_cluster_override" "tfdemocluster-override1" {
       type: ClusterIP
       port: 8080
     EOS
-    values_repo_artifact_meta {
-      timeouts = 0
+    
+    cluster_placement {
+      placement_type = "ClusterLabels"
+      cluster_labels {
+        key = "rafay.dev/clusterName"
+        value = "hardik-terraform4"
+      }
     }
   }
 }

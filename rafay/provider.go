@@ -37,6 +37,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_blueprint":        resourceBluePrint(),
 				"rafay_cloud_credential": resourceCloudCredential(),
 				"rafay_aks_cluster":      resourceAKSCluster(),
+				"rafay_cluster_override": resourceClusterOverride(),
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,

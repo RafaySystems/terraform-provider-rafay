@@ -8,6 +8,7 @@ resource "rafay_cluster_override" "tfdemocluster-override1" {
     }
   }
   spec {
+    cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
     cluster_placement {
       placement_type = "ClusterSpecific"
       cluster_labels {
@@ -41,6 +42,7 @@ resource "rafay_cluster_override" "tfdemocluster-override2" {
     }
   }
   spec {
+    cluster_selector  = "key in (value)"
     cluster_placement {
       placement_type = "ClusterLabels"
       cluster_labels {
@@ -57,6 +59,7 @@ resource "rafay_cluster_override" "tfdemocluster-override2" {
         repo_artifact_files {
           name          = "overrides.yaml"
           relative_path = "yaml/overrides.yaml"
+          file_type     = "FileTypeNotSet"
         }
       }
     }

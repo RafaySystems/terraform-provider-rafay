@@ -3387,7 +3387,7 @@ func flattenEKS(d *schema.ResourceData, in *EKSCluster) error {
 }
 */
 
-func flattenEKSCluster(d *schema.ResourceData, in *EKSCluster) error {
+func flattenEKSCluster(in *EKSCluster, p []interface{}) error {
 	if in == nil {
 		return nil
 	}
@@ -3409,12 +3409,7 @@ func flattenEKSCluster(d *schema.ResourceData, in *EKSCluster) error {
 			log.Println("flattenEKSClusterMetadata err")
 			return err
 		}
-	}
-	log.Println("ret1: ", ret1)
-	err = d.Set("metadata", ret1)
-	if err != nil {
-		log.Println("metadata set err")
-		return err
+		obj["metadata"] = ret1
 	}
 	//flattening EKSClusterSpec
 	var ret2 []interface{}
@@ -3423,16 +3418,12 @@ func flattenEKSCluster(d *schema.ResourceData, in *EKSCluster) error {
 		if !ok {
 			v = []interface{}{}
 		}
-
 		ret2, err = flattenEKSClusterSpec(in.Spec, v)
 		if err != nil {
+			log.Println("flattenEKSClusterMetadata err")
 			return err
 		}
-	}
-
-	err = d.Set("spec", ret2)
-	if err != nil {
-		return err
+		obj["spec"] = ret2
 	}
 	return nil
 }
@@ -3507,7 +3498,7 @@ func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]
 
 	return []interface{}{obj}, nil
 }
-func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error {
+func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 	if in == nil {
 		return nil
 	}
@@ -3529,13 +3520,10 @@ func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error
 		}
 		ret1, err = flattenEKSConfigMetadata(in.Metadata, v)
 		if err != nil {
+			log.Println("flattenEKSClusterConfigMetadata err")
 			return err
 		}
-	}
-
-	err = d.Set("metadata", ret1)
-	if err != nil {
-		return err
+		obj["metadata"] = ret1
 	}
 	//setting up flatten KubernetesNetworkConfig
 	var ret2 []interface{}
@@ -3544,14 +3532,12 @@ func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error
 		if !ok {
 			v = []interface{}{}
 		}
-		ret1, err = flattenEKSClusterKubernetesNetworkConfig(in.KubernetesNetworkConfig, v)
+		ret2, err = flattenEKSClusterKubernetesNetworkConfig(in.KubernetesNetworkConfig, v)
 		if err != nil {
+			log.Println("flattenEKSClusterKubernetesNetworkConfig err")
 			return err
 		}
-	}
-	err = d.Set("kubernetes_network_config", ret2)
-	if err != nil {
-		return err
+		obj["kubernetes_network_config"] = ret2
 	}
 	//setting up flatten IAM
 	var ret3 []interface{}
@@ -3560,14 +3546,12 @@ func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error
 		if !ok {
 			v = []interface{}{}
 		}
-		ret1, err = flattenEKSClusterIAM(in.IAM, v)
+		ret3, err = flattenEKSClusterIAM(in.IAM, v)
 		if err != nil {
+			log.Println("flattenEKSClusterIAM err")
 			return err
 		}
-	}
-	err = d.Set("iam", ret3)
-	if err != nil {
-		return err
+		obj["iam"] = ret3
 	}
 	//setting up flatten Identity Providers
 	var ret4 []interface{}
@@ -3576,14 +3560,12 @@ func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error
 		if !ok {
 			v = []interface{}{}
 		}
-		ret1, err = flattenEKSClusterIdentityProviders(in.IdentityProviders, v)
+		ret4, err = flattenEKSClusterIdentityProviders(in.IdentityProviders, v)
 		if err != nil {
+			log.Println("flattenEKSClusterIdentityProviders err")
 			return err
 		}
-	}
-	err = d.Set("identity_providers", ret4)
-	if err != nil {
-		return err
+		obj["identity_providers"] = ret4
 	}
 	//setting up flatten VPC
 	var ret5 []interface{}
@@ -3594,12 +3576,10 @@ func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error
 		}
 		ret5, err = flattenEKSClusterVPC(in.VPC, v)
 		if err != nil {
+			log.Println("flattenEKSClusterVPC err")
 			return err
 		}
-	}
-	err = d.Set("vpc", ret5)
-	if err != nil {
-		return err
+		obj["vpc"] = ret5
 	}
 	//setting up flatten Addon
 	var ret6 []interface{}
@@ -3610,12 +3590,10 @@ func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error
 		}
 		ret6 = flattenEKSClusterAddons(in.Addons, v)
 		if err != nil {
+			log.Println("flattenEKSClusterAddons err")
 			return err
 		}
-	}
-	err = d.Set("addons", ret6)
-	if err != nil {
-		return err
+		obj["addons"] = ret6
 	}
 	//setting up flatten Private Clusters
 	var ret7 []interface{}
@@ -3626,12 +3604,10 @@ func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error
 		}
 		ret7 = flattenEKSClusterPrivateCluster(in.PrivateCluster, v)
 		if err != nil {
+			log.Println("flattenEKSClusterPrivateCluster err")
 			return err
 		}
-	}
-	err = d.Set("private_cluster", ret7)
-	if err != nil {
-		return err
+		obj["private_cluster"] = ret7
 	}
 	//setting up flatten Node Groups
 	var ret8 []interface{}
@@ -3642,12 +3618,10 @@ func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error
 		}
 		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, v)
 		if err != nil {
+			log.Println("flattenEKSClusterNodeGroups err")
 			return err
 		}
-	}
-	err = d.Set("node_groups", ret8)
-	if err != nil {
-		return err
+		obj["node_groups"] = ret8
 	}
 	//setting up flatten Managed Node Groups
 	var ret9 []interface{}
@@ -3658,12 +3632,10 @@ func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error
 		}
 		ret9 = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, v)
 		if err != nil {
+			log.Println("flattenEKSClusterManagedNodeGroups err")
 			return err
 		}
-	}
-	err = d.Set("managed_nodegroups", ret9)
-	if err != nil {
-		return err
+		obj["managed_nodegroups"] = ret9
 	}
 	//setting up flatten Fargate Profiles
 	var ret10 []interface{}
@@ -3674,23 +3646,15 @@ func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error
 		}
 		ret10 = flattenEKSClusterFargateProfiles(in.FargateProfiles, v)
 		if err != nil {
+			log.Println("flattenEKSClusterPrivateCluster err")
 			return err
 		}
-	}
-	err = d.Set("fargate_profiles", ret10)
-	if err != nil {
-		return err
+		obj["fargate_profiles"] = ret10
 	}
 	//setting up flatten Availability Zones
 	if in.AvailabilityZones != nil && len(in.AvailabilityZones) > 0 {
 		obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
 	}
-	/*dont need this right?
-	err = d.Set("availability_zones", ret11)
-	if err != nil {
-		return err
-	}
-	*/
 	//setting up flatten Cloud Watch
 	var ret11 []interface{}
 	if in.CloudWatch != nil {
@@ -3700,12 +3664,10 @@ func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error
 		}
 		ret11 = flattenEKSClusterCloudWatch(in.CloudWatch, v)
 		if err != nil {
+			log.Println("flattenEKSClusterCloudWatch err")
 			return err
 		}
-	}
-	err = d.Set("cloud_watch", ret11)
-	if err != nil {
-		return err
+		obj["cloud_watch"] = ret11
 	}
 	//setting up flatten Secrets Encryption
 	var ret12 []interface{}
@@ -3716,13 +3678,12 @@ func flattenEKSClusterConfig(d *schema.ResourceData, in *EKSClusterConfig) error
 		}
 		ret12 = flattenEKSClusterSecretsEncryption(in.SecretsEncryption, v)
 		if err != nil {
+			log.Println("flattenEKSClusterSecretsEncryption err")
 			return err
 		}
+		obj["secrets_encryption"] = ret12
 	}
-	err = d.Set("secrets_encryption", ret12)
-	if err != nil {
-		return err
-	}
+	log.Println("end of read")
 
 	return nil
 }
@@ -4738,7 +4699,11 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	err = flattenEKSCluster(d, &clusterSpec)
+	v, ok := d.Get("cluster").([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	err = flattenEKSCluster(&clusterSpec, v)
 	if err != nil {
 		log.Printf("flatten eks cluster error %s", err.Error())
 		return diag.FromErr(err)
@@ -4749,7 +4714,11 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	err = flattenEKSClusterConfig(d, &clusterConfigSpec)
+	v2, ok := d.Get("cluster_config").([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	err = flattenEKSClusterConfig(&clusterConfigSpec, v2)
 	if err != nil {
 		log.Printf("flatten eks cluster config error %s", err.Error())
 		return diag.FromErr(err)

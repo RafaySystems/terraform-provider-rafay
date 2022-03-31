@@ -272,26 +272,26 @@ type WellKnownPolicies struct {
 	ImageBuilder *bool `yaml:"imageBuilder,inline,omitempty"`
 	// AutoScaler adds policies for cluster-autoscaler. See [autoscaler AWS
 	// docs](https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html).
-	AutoScaler *bool `yaml:"autoScaler,inline"`
+	AutoScaler *bool `yaml:"autoScaler,inline,omitempty"`
 	// AWSLoadBalancerController adds policies for using the
 	// aws-load-balancer-controller. See [Load Balancer
 	// docs](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html).
-	AWSLoadBalancerController *bool `yaml:"awsLoadBalancerController,inline"`
+	AWSLoadBalancerController *bool `yaml:"awsLoadBalancerController,inline,omitempty"`
 	// ExternalDNS adds external-dns policies for Amazon Route 53.
 	// See [external-dns
 	// docs](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md).
-	ExternalDNS *bool `yaml:"externalDNS,inline"`
+	ExternalDNS *bool `yaml:"externalDNS,inline,omitempty"`
 	// CertManager adds cert-manager policies. See [cert-manager
 	// docs](https://cert-manager.io/docs/configuration/acme/dns01/route53).
-	CertManager *bool `yaml:"certManager,inline"`
+	CertManager *bool `yaml:"certManager,inline,omitempty"`
 	// EBSCSIController adds policies for using the
 	// ebs-csi-controller. See [aws-ebs-csi-driver
 	// docs](https://github.com/kubernetes-sigs/aws-ebs-csi-driver#set-up-driver-permission).
-	EBSCSIController *bool `yaml:"ebsCSIController,inline"`
+	EBSCSIController *bool `yaml:"ebsCSIController,inline,omitempty"`
 	// EFSCSIController adds policies for using the
 	// efs-csi-controller. See [aws-efs-csi-driver
 	// docs](https://aws.amazon.com/blogs/containers/introducing-efs-csi-dynamic-provisioning).
-	EFSCSIController *bool `yaml:"efsCSIController,inline"`
+	EFSCSIController *bool `yaml:"efsCSIController,inline,omitempty"`
 }
 
 type InlineDocument map[string]interface{}
@@ -455,7 +455,13 @@ type NodeGroup struct {
 	InstanceName string `yaml:"instanceName,omitempty"`
 
 	// +optional
-	ScalingConfig
+	//ScalingConfig
+	// +optional
+	DesiredCapacity *int `yaml:"desiredCapacity,omitempty"`
+	// +optional
+	MinSize *int `yaml:"minSize,omitempty"`
+	// +optional
+	MaxSize *int `yaml:"maxSize,omitempty"`
 
 	// +optional
 	// VolumeSize gigabytes
@@ -822,43 +828,43 @@ type (
 		// +optional
 		// ImageBuilder allows for full ECR (Elastic Container Registry) access. This is useful for building, for
 		// example, a CI server that needs to push images to ECR
-		ImageBuilder *bool `yaml:"imageBuilder"`
+		ImageBuilder *bool `yaml:"imageBuilder,omitempty"`
 		// +optional
 		// AutoScaler enables IAM policy for cluster-autoscaler
-		AutoScaler *bool `yaml:"autoScaler"`
+		AutoScaler *bool `yaml:"autoScaler,omitempty"`
 		// +optional
 		// ExternalDNS adds the external-dns project policies for Amazon Route 53
-		ExternalDNS *bool `yaml:"externalDNS"`
+		ExternalDNS *bool `yaml:"externalDNS,omitempty"`
 		// +optional
 		// CertManager enables the ability to add records to Route 53 in order to solve the DNS01 challenge. More information can be found
 		// [here](https://cert-manager.io/docs/configuration/acme/dns01/route53/#set-up-a-iam-role)
-		CertManager *bool `yaml:"certManager"`
+		CertManager *bool `yaml:"certManager,omitempty"`
 		// +optional
 		// AppMesh enables full access to AppMesh
-		AppMesh *bool `yaml:"appMesh"`
+		AppMesh *bool `yaml:"appMesh,omitempty"`
 		// +optional
 		// AppMeshPreview enables full access to AppMesh Preview
-		AppMeshPreview *bool `yaml:"appMeshPreview"`
+		AppMeshPreview *bool `yaml:"appMeshPreview,omitempty"`
 		// +optional
 		// EBS enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver
-		EBS *bool `yaml:"ebs"`
+		EBS *bool `yaml:"ebs,omitempty"`
 		// +optional
-		FSX *bool `yaml:"fsx"`
+		FSX *bool `yaml:"fsx,omitempty"`
 		// +optional
-		EFS *bool `yaml:"efs"`
+		EFS *bool `yaml:"efs,omitempty"`
 		// +optional
-		AWSLoadBalancerController *bool `yaml:"albIngress"`
+		AWSLoadBalancerController *bool `yaml:"albIngress,omitempty"`
 		// +optional
-		XRay *bool `yaml:"xRay"`
+		XRay *bool `yaml:"xRay,omitempty"`
 		// +optional
-		CloudWatch *bool `yaml:"cloudWatch"`
+		CloudWatch *bool `yaml:"cloudWatch,omitempty"`
 	}
 
 	// NodeGroupSSH holds all the ssh access configuration to a NodeGroup
 	NodeGroupSSH struct {
 		// +optional If Allow is true the SSH configuration provided is used, otherwise it is ignored. Only one of
 		// PublicKeyPath, PublicKey and PublicKeyName can be configured
-		Allow *bool `yaml:"allow"`
+		Allow *bool `yaml:"allow,omitempty"`
 		// +optional The path to the SSH public key to be added to the nodes SSH keychain. If Allow is true this value
 		// defaults to "~/.ssh/id_rsa.pub", otherwise the value is ignored.
 		PublicKeyPath string `yaml:"publicKeyPath,omitempty"`

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
@@ -1816,6 +1815,7 @@ func findBlueprintName(configBytes []byte) (string, string, error) {
 
 }
 func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]byte, []error) {
+	log.Println("collate configs")
 	var errs []error
 	configsMap := make(map[string][][]byte)
 	// First find all rafay spec configurations
@@ -1838,6 +1838,8 @@ func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]b
 			errs = append(errs, err)
 			continue
 		}
+		log.Println("name: ", name)
+		log.Println("config Map: ", configsMap)
 		if _, ok := configsMap[name]; !ok {
 			errs = append(errs, fmt.Errorf(`error finding "Cluster" configuration for name "%s"`, name))
 			continue
@@ -1988,19 +1990,6 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	cfgList := make(map[string][][]byte)
 	cfgList["Cluster"] = append(cfgList["Cluster"], clusterByte)
 	cfgList["ClusterConfig"] = append(cfgList["ClusterConfig"], configByte)
-	//cfgList["Cluster"][0] = clusterByte
-	//cfgList["ClusterConfig"][0] = configByte
-	//do i need these checks?
-	/*
-		if len(cfgList) < 1 {
-			log.Printf("no cluster in the config")
-			return diags
-
-		}
-		if len(cfgList) > 1 {
-			log.Printf("found more than one cluster config in the cluster config")
-			return diags
-		}*/
 
 	// get project details
 	resp, err := project.GetProjectByName(yamlClusterMetadata.Metadata.Project)
@@ -2040,36 +2029,38 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
-	for { //wait for cluster to provision correctly
-		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
-		if errGet != nil {
-			log.Printf("error while getCluster %s", errGet.Error())
-			return diag.FromErr(errGet)
-		}
-
-		statusResp, err := eksClusterCTLStatus(res.TaskSetID)
-		if err != nil {
-			log.Println("status response parse error", err)
-			return diag.FromErr(err)
-		}
-		log.Println("statusResp ", statusResp)
-		sres := clusterCTLResponse{}
-		err = json.Unmarshal([]byte(statusResp), &sres)
-		if err != nil {
-			log.Println("status response unmarshal error", err)
-			return diag.FromErr(err)
-		}
-		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-			if check.Status == "READY" {
-				break
+	/*
+		for { //wait for cluster to provision correctly
+			time.Sleep(60 * time.Second)
+			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				return diag.FromErr(errGet)
 			}
-			log.Println("task completed but cluster is not ready")
+
+			statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+			if err != nil {
+				log.Println("status response parse error", err)
+				return diag.FromErr(err)
+			}
+			log.Println("statusResp ", statusResp)
+			sres := clusterCTLResponse{}
+			err = json.Unmarshal([]byte(statusResp), &sres)
+			if err != nil {
+				log.Println("status response unmarshal error", err)
+				return diag.FromErr(err)
+			}
+			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+				if check.Status == "READY" {
+					break
+				}
+				log.Println("task completed but cluster is not ready")
+			}
+			if strings.Contains(sres.Status, "STATUS_FAILED") {
+				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
+			}
 		}
-		if strings.Contains(sres.Status, "STATUS_FAILED") {
-			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
-		}
-	}
+	*/
 	log.Printf("resource eks cluster created/updated %s", s.ID)
 	d.SetId(s.ID)
 
@@ -2085,7 +2076,11 @@ func eksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte,
 	log.Printf("eksClusterCTL")
 	logger := glogger.GetLogger()
 	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
+	log.Println("len of errs: ", len(errs))
+	log.Println("errs: ", errs)
+	log.Println("len of configMap", len(configMap))
 	if len(errs) == 0 && len(configMap) > 0 {
+		log.Println("inside for loop")
 		// Make request
 		for clusterName, configBytes := range configMap {
 			return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun)
@@ -2509,10 +2504,10 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		if v, ok := in["volume_kms_key_id"].(string); ok && len(v) > 0 {
 			obj.VolumeKmsKeyID = v
 		}
-		if v, ok := in["volume_iops"].(int); ok {
+		if v, ok := in["volume_iops"].(int); ok && v != 0 {
 			obj.VolumeIOPS = &v
 		}
-		if v, ok := in["volume_throughput"].(int); ok {
+		if v, ok := in["volume_throughput"].(int); ok && v != 0 {
 			obj.VolumeThroughput = &v
 		}
 		if v, ok := in["pre_bootstrap_commands"].([]interface{}); ok && len(v) > 0 {
@@ -3411,12 +3406,14 @@ func flattenEKSCluster(d *schema.ResourceData, in *EKSCluster) error {
 		}
 		ret1, err = flattenEKSClusterMetadata(in.Metadata, v)
 		if err != nil {
+			log.Println("flattenEKSClusterMetadata err")
 			return err
 		}
 	}
-
+	log.Println("ret1: ", ret1)
 	err = d.Set("metadata", ret1)
 	if err != nil {
+		log.Println("metadata set err")
 		return err
 	}
 	//flattening EKSClusterSpec
@@ -3441,6 +3438,7 @@ func flattenEKSCluster(d *schema.ResourceData, in *EKSCluster) error {
 }
 func flattenEKSClusterMetadata(in *EKSClusterMetadata, p []interface{}) ([]interface{}, error) {
 	if in == nil {
+		log.Println("wrong input")
 		return nil, fmt.Errorf("%s", "flattenEKSClusterMetaData empty input")
 	}
 	obj := map[string]interface{}{}
@@ -3448,14 +3446,15 @@ func flattenEKSClusterMetadata(in *EKSClusterMetadata, p []interface{}) ([]inter
 	if len(in.Name) > 0 {
 		obj["name"] = in.Name
 	}
+	log.Println("md 1")
 	if len(in.Project) > 0 {
 		obj["project"] = in.Project
 	}
-
+	log.Println("md 2")
 	if in.Labels != nil && len(in.Labels) > 0 {
 		obj["labels"] = toMapInterface(in.Labels)
 	}
-
+	log.Println("md 3")
 	return []interface{}{obj}, nil
 }
 func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) {
@@ -4706,6 +4705,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		fmt.Print("project name missing in the resource")
 		return diags
 	}
+	log.Println("expanded cluster spec fine")
 
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
@@ -4717,7 +4717,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
 	}
-
+	log.Println("got cluster from backend")
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
 	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
@@ -4730,27 +4730,31 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	clusterByte := []byte(clusterSpecYaml)
 	cfgList, err := utils.SplitYamlAndGetListByKind(clusterByte)
 	//flatten cluster
+	log.Println("cfgList: ", cfgList)
+	n1 := spew.Sprintf("%+v", cfgList)
+	log.Println("n1:", n1)
 	clusterSpec := EKSCluster{}
-	err = yaml.Unmarshal([]byte(cfgList["cluster"][0]), &clusterSpec)
+	err = yaml.Unmarshal([]byte(cfgList["Cluster"][0]), &clusterSpec)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	err = flattenEKSCluster(d, &clusterSpec)
 	if err != nil {
-		log.Printf("get eks cluster set error %s", err.Error())
+		log.Printf("flatten eks cluster error %s", err.Error())
 		return diag.FromErr(err)
 	}
 	//flatten cluster config
 	clusterConfigSpec := EKSClusterConfig{}
-	err = yaml.Unmarshal([]byte(cfgList["cluster_config"][0]), &clusterConfigSpec)
+	err = yaml.Unmarshal([]byte(cfgList["ClusterConfig"][0]), &clusterConfigSpec)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	err = flattenEKSClusterConfig(d, &clusterConfigSpec)
 	if err != nil {
-		log.Printf("get eks cluster set error %s", err.Error())
+		log.Printf("flatten eks cluster config error %s", err.Error())
 		return diag.FromErr(err)
 	}
+	log.Println("flattened cluster fine")
 
 	return diags
 }

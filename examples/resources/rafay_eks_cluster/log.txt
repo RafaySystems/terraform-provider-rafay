@@ -1,199 +1,197 @@
-2022-03-28T15:23:19.517-0700 [DEBUG] Adding temp file log sink: /var/folders/fh/b9rw4lrn4y708y_vx97xk76w0000gn/T/terraform-log499379861
-2022-03-28T15:23:19.517-0700 [INFO]  Terraform version: 1.0.2
-2022-03-28T15:23:19.517-0700 [INFO]  Go runtime version: go1.16.5
-2022-03-28T15:23:19.517-0700 [INFO]  CLI args: []string{"/usr/local/bin/terraform", "init"}
-2022-03-28T15:23:19.518-0700 [TRACE] Stdout is a terminal of width 109
-2022-03-28T15:23:19.518-0700 [TRACE] Stderr is a terminal of width 109
-2022-03-28T15:23:19.518-0700 [TRACE] Stdin is a terminal
-2022-03-28T15:23:19.518-0700 [DEBUG] Attempting to open CLI config file: /Users/sougat/.terraformrc
-2022-03-28T15:23:19.519-0700 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
-2022-03-28T15:23:19.520-0700 [DEBUG] checking for credentials in "/Users/sougat/.terraform.d/plugins"
-2022-03-28T15:23:19.520-0700 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
-2022-03-28T15:23:19.520-0700 [DEBUG] will search for provider plugins in /Users/sougat/.terraform.d/plugins
-2022-03-28T15:23:19.522-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at /Users/sougat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
-2022-03-28T15:23:19.523-0700 [DEBUG] ignoring non-existing provider search directory /Users/sougat/Library/Application Support/io.terraform/plugins
-2022-03-28T15:23:19.523-0700 [DEBUG] ignoring non-existing provider search directory /Library/Application Support/io.terraform/plugins
-2022-03-28T15:23:19.524-0700 [INFO]  CLI command args: []string{"init"}
-2022-03-28T15:23:19.542-0700 [TRACE] Meta.Backend: no config given or present on disk, so returning nil config
-2022-03-28T15:23:19.543-0700 [TRACE] Meta.Backend: backend has not previously been initialized in this working directory
-2022-03-28T15:23:19.543-0700 [DEBUG] New state was assigned lineage "7bfdb23c-b05a-44fb-5740-d87d66aae2e0"
-2022-03-28T15:23:19.543-0700 [TRACE] Meta.Backend: using default local state only (no backend configuration, and no existing initialized backend)
-2022-03-28T15:23:19.544-0700 [TRACE] Meta.Backend: instantiated backend of type <nil>
-2022-03-28T15:23:19.544-0700 [DEBUG] checking for provisioner in "."
-2022-03-28T15:23:19.548-0700 [DEBUG] checking for provisioner in "/usr/local/bin"
-2022-03-28T15:23:19.548-0700 [DEBUG] checking for provisioner in "/Users/sougat/.terraform.d/plugins"
-2022-03-28T15:23:19.548-0700 [INFO]  Failed to read plugin lock file .terraform/plugins/darwin_amd64/lock.json: open .terraform/plugins/darwin_amd64/lock.json: no such file or directory
-2022-03-28T15:23:19.548-0700 [TRACE] Meta.Backend: backend <nil> does not support operations, so wrapping it in a local backend
-2022-03-28T15:23:19.549-0700 [TRACE] backend/local: state manager for workspace "default" will:
+2022-03-30T17:23:33.235-0700 [DEBUG] Adding temp file log sink: /var/folders/fh/b9rw4lrn4y708y_vx97xk76w0000gn/T/terraform-log748188938
+2022-03-30T17:23:33.235-0700 [INFO]  Terraform version: 1.0.2
+2022-03-30T17:23:33.235-0700 [INFO]  Go runtime version: go1.16.5
+2022-03-30T17:23:33.235-0700 [INFO]  CLI args: []string{"/usr/local/bin/terraform", "init"}
+2022-03-30T17:23:33.235-0700 [TRACE] Stdout is a terminal of width 192
+2022-03-30T17:23:33.235-0700 [TRACE] Stderr is a terminal of width 192
+2022-03-30T17:23:33.235-0700 [TRACE] Stdin is a terminal
+2022-03-30T17:23:33.236-0700 [DEBUG] Attempting to open CLI config file: /Users/sougat/.terraformrc
+2022-03-30T17:23:33.236-0700 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
+2022-03-30T17:23:33.236-0700 [DEBUG] checking for credentials in "/Users/sougat/.terraform.d/plugins"
+2022-03-30T17:23:33.236-0700 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
+2022-03-30T17:23:33.236-0700 [DEBUG] will search for provider plugins in /Users/sougat/.terraform.d/plugins
+2022-03-30T17:23:33.238-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at /Users/sougat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
+2022-03-30T17:23:33.238-0700 [DEBUG] ignoring non-existing provider search directory /Users/sougat/Library/Application Support/io.terraform/plugins
+2022-03-30T17:23:33.238-0700 [DEBUG] ignoring non-existing provider search directory /Library/Application Support/io.terraform/plugins
+2022-03-30T17:23:33.239-0700 [INFO]  CLI command args: []string{"init"}
+2022-03-30T17:23:33.249-0700 [TRACE] Meta.Backend: no config given or present on disk, so returning nil config
+2022-03-30T17:23:33.249-0700 [TRACE] Meta.Backend: backend has not previously been initialized in this working directory
+2022-03-30T17:23:33.249-0700 [DEBUG] New state was assigned lineage "0b15924e-2b46-d447-695e-e1582a546709"
+2022-03-30T17:23:33.250-0700 [TRACE] Meta.Backend: using default local state only (no backend configuration, and no existing initialized backend)
+2022-03-30T17:23:33.250-0700 [TRACE] Meta.Backend: instantiated backend of type <nil>
+2022-03-30T17:23:33.250-0700 [DEBUG] checking for provisioner in "."
+2022-03-30T17:23:33.252-0700 [DEBUG] checking for provisioner in "/usr/local/bin"
+2022-03-30T17:23:33.252-0700 [DEBUG] checking for provisioner in "/Users/sougat/.terraform.d/plugins"
+2022-03-30T17:23:33.252-0700 [INFO]  Failed to read plugin lock file .terraform/plugins/darwin_amd64/lock.json: open .terraform/plugins/darwin_amd64/lock.json: no such file or directory
+2022-03-30T17:23:33.252-0700 [TRACE] Meta.Backend: backend <nil> does not support operations, so wrapping it in a local backend
+2022-03-30T17:23:33.252-0700 [TRACE] backend/local: state manager for workspace "default" will:
  - read initial snapshot from terraform.tfstate
  - write new snapshots to terraform.tfstate
  - create any backup at terraform.tfstate.backup
-2022-03-28T15:23:19.549-0700 [TRACE] statemgr.Filesystem: reading initial snapshot from terraform.tfstate
-2022-03-28T15:23:19.549-0700 [TRACE] statemgr.Filesystem: snapshot file has nil snapshot, but that's okay
-2022-03-28T15:23:19.549-0700 [TRACE] statemgr.Filesystem: read nil snapshot
-2022-03-28T15:23:19.550-0700 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
-2022-03-28T15:23:19.550-0700 [TRACE] getproviders.SearchLocalDirectory: failed to resolve symlinks for .terraform/providers: lstat .terraform: no such file or directory
-2022-03-28T15:23:19.550-0700 [TRACE] providercache.fillMetaCache: error while scanning directory .terraform/providers: cannot search .terraform/providers: lstat .terraform/providers: no such file or directory
-2022-03-28T15:23:19.550-0700 [TRACE] providercache.Dir.InstallPackage: installing registry.terraform.io/rafay/rafay v0.3.0 from /Users/sougat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
-2022-03-28T15:23:19.552-0700 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
-2022-03-28T15:23:19.553-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at .terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64
-2022-03-28T15:23:19.554-0700 [TRACE] providercache.fillMetaCache: including .terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64 as a candidate package for registry.terraform.io/rafay/rafay 0.3.0
-2022-03-28T15:23:22.749-0700 [DEBUG] Adding temp file log sink: /var/folders/fh/b9rw4lrn4y708y_vx97xk76w0000gn/T/terraform-log346306539
-2022-03-28T15:23:22.749-0700 [INFO]  Terraform version: 1.0.2
-2022-03-28T15:23:22.749-0700 [INFO]  Go runtime version: go1.16.5
-2022-03-28T15:23:22.749-0700 [INFO]  CLI args: []string{"/usr/local/bin/terraform", "apply"}
-2022-03-28T15:23:22.750-0700 [TRACE] Stdout is a terminal of width 109
-2022-03-28T15:23:22.750-0700 [TRACE] Stderr is a terminal of width 109
-2022-03-28T15:23:22.750-0700 [TRACE] Stdin is a terminal
-2022-03-28T15:23:22.750-0700 [DEBUG] Attempting to open CLI config file: /Users/sougat/.terraformrc
-2022-03-28T15:23:22.750-0700 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
-2022-03-28T15:23:22.751-0700 [DEBUG] checking for credentials in "/Users/sougat/.terraform.d/plugins"
-2022-03-28T15:23:22.751-0700 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
-2022-03-28T15:23:22.751-0700 [DEBUG] will search for provider plugins in /Users/sougat/.terraform.d/plugins
-2022-03-28T15:23:22.753-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at /Users/sougat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
-2022-03-28T15:23:22.754-0700 [DEBUG] ignoring non-existing provider search directory /Users/sougat/Library/Application Support/io.terraform/plugins
-2022-03-28T15:23:22.754-0700 [DEBUG] ignoring non-existing provider search directory /Library/Application Support/io.terraform/plugins
-2022-03-28T15:23:22.755-0700 [INFO]  CLI command args: []string{"apply"}
-2022-03-28T15:23:22.760-0700 [TRACE] Meta.Backend: no config given or present on disk, so returning nil config
-2022-03-28T15:23:22.760-0700 [TRACE] Meta.Backend: backend has not previously been initialized in this working directory
-2022-03-28T15:23:22.761-0700 [DEBUG] New state was assigned lineage "6f366288-e6ae-3637-0556-a61bc72716ad"
-2022-03-28T15:23:22.761-0700 [TRACE] Meta.Backend: using default local state only (no backend configuration, and no existing initialized backend)
-2022-03-28T15:23:22.761-0700 [TRACE] Meta.Backend: instantiated backend of type <nil>
-2022-03-28T15:23:22.761-0700 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
-2022-03-28T15:23:22.762-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at .terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64
-2022-03-28T15:23:22.762-0700 [TRACE] providercache.fillMetaCache: including .terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64 as a candidate package for registry.terraform.io/rafay/rafay 0.3.0
-2022-03-28T15:23:23.308-0700 [DEBUG] checking for provisioner in "."
-2022-03-28T15:23:23.312-0700 [DEBUG] checking for provisioner in "/usr/local/bin"
-2022-03-28T15:23:23.312-0700 [DEBUG] checking for provisioner in "/Users/sougat/.terraform.d/plugins"
-2022-03-28T15:23:23.313-0700 [INFO]  Failed to read plugin lock file .terraform/plugins/darwin_amd64/lock.json: open .terraform/plugins/darwin_amd64/lock.json: no such file or directory
-2022-03-28T15:23:23.313-0700 [TRACE] Meta.Backend: backend <nil> does not support operations, so wrapping it in a local backend
-2022-03-28T15:23:23.316-0700 [INFO]  backend/local: starting Apply operation
-2022-03-28T15:23:23.316-0700 [TRACE] backend/local: requesting state manager for workspace "default"
-2022-03-28T15:23:23.317-0700 [TRACE] backend/local: state manager for workspace "default" will:
+2022-03-30T17:23:33.252-0700 [TRACE] statemgr.Filesystem: reading initial snapshot from terraform.tfstate
+2022-03-30T17:23:33.252-0700 [TRACE] statemgr.Filesystem: read snapshot with lineage "60b79510-c7f0-2d52-bb8d-b5f7bf11667f" serial 1
+2022-03-30T17:23:33.253-0700 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
+2022-03-30T17:23:33.253-0700 [TRACE] getproviders.SearchLocalDirectory: failed to resolve symlinks for .terraform/providers: lstat .terraform: no such file or directory
+2022-03-30T17:23:33.253-0700 [TRACE] providercache.fillMetaCache: error while scanning directory .terraform/providers: cannot search .terraform/providers: lstat .terraform/providers: no such file or directory
+2022-03-30T17:23:33.253-0700 [TRACE] providercache.Dir.InstallPackage: installing registry.terraform.io/rafay/rafay v0.3.0 from /Users/sougat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
+2022-03-30T17:23:33.253-0700 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
+2022-03-30T17:23:33.254-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at .terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64
+2022-03-30T17:23:33.254-0700 [TRACE] providercache.fillMetaCache: including .terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64 as a candidate package for registry.terraform.io/rafay/rafay 0.3.0
+2022-03-30T17:23:35.086-0700 [DEBUG] Adding temp file log sink: /var/folders/fh/b9rw4lrn4y708y_vx97xk76w0000gn/T/terraform-log291679600
+2022-03-30T17:23:35.086-0700 [INFO]  Terraform version: 1.0.2
+2022-03-30T17:23:35.086-0700 [INFO]  Go runtime version: go1.16.5
+2022-03-30T17:23:35.086-0700 [INFO]  CLI args: []string{"/usr/local/bin/terraform", "apply", "-refresh-only"}
+2022-03-30T17:23:35.086-0700 [TRACE] Stdout is a terminal of width 192
+2022-03-30T17:23:35.086-0700 [TRACE] Stderr is a terminal of width 192
+2022-03-30T17:23:35.086-0700 [TRACE] Stdin is a terminal
+2022-03-30T17:23:35.086-0700 [DEBUG] Attempting to open CLI config file: /Users/sougat/.terraformrc
+2022-03-30T17:23:35.086-0700 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
+2022-03-30T17:23:35.086-0700 [DEBUG] checking for credentials in "/Users/sougat/.terraform.d/plugins"
+2022-03-30T17:23:35.086-0700 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
+2022-03-30T17:23:35.086-0700 [DEBUG] will search for provider plugins in /Users/sougat/.terraform.d/plugins
+2022-03-30T17:23:35.086-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at /Users/sougat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
+2022-03-30T17:23:35.086-0700 [DEBUG] ignoring non-existing provider search directory /Users/sougat/Library/Application Support/io.terraform/plugins
+2022-03-30T17:23:35.087-0700 [DEBUG] ignoring non-existing provider search directory /Library/Application Support/io.terraform/plugins
+2022-03-30T17:23:35.087-0700 [INFO]  CLI command args: []string{"apply", "-refresh-only"}
+2022-03-30T17:23:35.088-0700 [TRACE] Meta.Backend: no config given or present on disk, so returning nil config
+2022-03-30T17:23:35.088-0700 [TRACE] Meta.Backend: backend has not previously been initialized in this working directory
+2022-03-30T17:23:35.088-0700 [DEBUG] New state was assigned lineage "c74125f5-a7d7-afa9-9182-d1259f462eba"
+2022-03-30T17:23:35.088-0700 [TRACE] Meta.Backend: using default local state only (no backend configuration, and no existing initialized backend)
+2022-03-30T17:23:35.088-0700 [TRACE] Meta.Backend: instantiated backend of type <nil>
+2022-03-30T17:23:35.089-0700 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
+2022-03-30T17:23:35.089-0700 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at .terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64
+2022-03-30T17:23:35.089-0700 [TRACE] providercache.fillMetaCache: including .terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64 as a candidate package for registry.terraform.io/rafay/rafay 0.3.0
+2022-03-30T17:23:35.252-0700 [DEBUG] checking for provisioner in "."
+2022-03-30T17:23:35.253-0700 [DEBUG] checking for provisioner in "/usr/local/bin"
+2022-03-30T17:23:35.253-0700 [DEBUG] checking for provisioner in "/Users/sougat/.terraform.d/plugins"
+2022-03-30T17:23:35.254-0700 [INFO]  Failed to read plugin lock file .terraform/plugins/darwin_amd64/lock.json: open .terraform/plugins/darwin_amd64/lock.json: no such file or directory
+2022-03-30T17:23:35.254-0700 [TRACE] Meta.Backend: backend <nil> does not support operations, so wrapping it in a local backend
+2022-03-30T17:23:35.256-0700 [INFO]  backend/local: starting Apply operation
+2022-03-30T17:23:35.256-0700 [TRACE] backend/local: requesting state manager for workspace "default"
+2022-03-30T17:23:35.256-0700 [TRACE] backend/local: state manager for workspace "default" will:
  - read initial snapshot from terraform.tfstate
  - write new snapshots to terraform.tfstate
  - create any backup at terraform.tfstate.backup
-2022-03-28T15:23:23.317-0700 [TRACE] backend/local: requesting state lock for workspace "default"
-2022-03-28T15:23:23.319-0700 [TRACE] statemgr.Filesystem: preparing to manage state snapshots at terraform.tfstate
-2022-03-28T15:23:23.320-0700 [TRACE] statemgr.Filesystem: no previously-stored snapshot exists
-2022-03-28T15:23:23.320-0700 [TRACE] statemgr.Filesystem: locking terraform.tfstate using fcntl flock
-2022-03-28T15:23:23.320-0700 [TRACE] statemgr.Filesystem: writing lock metadata to .terraform.tfstate.lock.info
-2022-03-28T15:23:23.320-0700 [TRACE] backend/local: reading remote state for workspace "default"
-2022-03-28T15:23:23.320-0700 [TRACE] statemgr.Filesystem: reading latest snapshot from terraform.tfstate
-2022-03-28T15:23:23.320-0700 [TRACE] statemgr.Filesystem: snapshot file has nil snapshot, but that's okay
-2022-03-28T15:23:23.320-0700 [TRACE] statemgr.Filesystem: read nil snapshot
-2022-03-28T15:23:23.321-0700 [TRACE] backend/local: retrieving local state snapshot for workspace "default"
-2022-03-28T15:23:23.321-0700 [TRACE] backend/local: building context for current working directory
-2022-03-28T15:23:23.323-0700 [TRACE] terraform.NewContext: starting
-2022-03-28T15:23:23.323-0700 [TRACE] terraform.NewContext: loading provider schemas
-2022-03-28T15:23:23.323-0700 [TRACE] LoadSchemas: retrieving schema for provider type "registry.terraform.io/rafay/rafay"
-2022-03-28T15:23:23.324-0700 [DEBUG] created provider logger: level=trace
-2022-03-28T15:23:23.324-0700 [INFO]  provider: configuring client automatic mTLS
-2022-03-28T15:23:23.419-0700 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay]
-2022-03-28T15:23:23.432-0700 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=64038
-2022-03-28T15:23:23.433-0700 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay
-2022-03-28T15:23:23.519-0700 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-03-28T15:23:23.518-0700
-2022-03-28T15:23:23.546-0700 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/var/folders/fh/b9rw4lrn4y708y_vx97xk76w0000gn/T/plugin2292005166 network=unix timestamp=2022-03-28T15:23:23.546-0700
-2022-03-28T15:23:23.546-0700 [DEBUG] provider: using plugin: version=5
-2022-03-28T15:23:23.626-0700 [TRACE] GRPCProvider: GetProviderSchema
-2022-03-28T15:23:23.626-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:23:23.645-0700 [TRACE] GRPCProvider: Close
-2022-03-28T15:23:23.646-0700 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
-2022-03-28T15:23:23.650-0700 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=64038
-2022-03-28T15:23:23.650-0700 [DEBUG] provider: plugin exited
-2022-03-28T15:23:23.650-0700 [TRACE] terraform.NewContext: complete
-2022-03-28T15:23:23.650-0700 [TRACE] backend/local: finished building terraform.Context
-2022-03-28T15:23:23.650-0700 [TRACE] backend/local: requesting interactive input, if necessary
-2022-03-28T15:23:23.650-0700 [TRACE] Context.Input: Prompting for provider arguments
-2022-03-28T15:23:23.650-0700 [TRACE] Context.Input: Provider provider.rafay declared at providers.tf:16,1-17
-2022-03-28T15:23:23.651-0700 [TRACE] Context.Input: Input for provider.rafay: map[string]cty.Value{}
-2022-03-28T15:23:23.651-0700 [TRACE] backend/local: running validation operation
-2022-03-28T15:23:23.652-0700 [INFO]  terraform: building graph: GraphTypeValidate
-2022-03-28T15:23:23.652-0700 [TRACE] Executing graph transform *terraform.ConfigTransformer
-2022-03-28T15:23:23.652-0700 [TRACE] ConfigTransformer: Starting for path:
-2022-03-28T15:23:23.652-0700 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
+2022-03-30T17:23:35.256-0700 [TRACE] backend/local: requesting state lock for workspace "default"
+2022-03-30T17:23:35.257-0700 [TRACE] statemgr.Filesystem: preparing to manage state snapshots at terraform.tfstate
+2022-03-30T17:23:35.257-0700 [TRACE] statemgr.Filesystem: existing snapshot has lineage "60b79510-c7f0-2d52-bb8d-b5f7bf11667f" serial 1
+2022-03-30T17:23:35.257-0700 [TRACE] statemgr.Filesystem: locking terraform.tfstate using fcntl flock
+2022-03-30T17:23:35.257-0700 [TRACE] statemgr.Filesystem: writing lock metadata to .terraform.tfstate.lock.info
+2022-03-30T17:23:35.257-0700 [TRACE] backend/local: reading remote state for workspace "default"
+2022-03-30T17:23:35.257-0700 [TRACE] statemgr.Filesystem: reading latest snapshot from terraform.tfstate
+2022-03-30T17:23:35.258-0700 [TRACE] statemgr.Filesystem: read snapshot with lineage "60b79510-c7f0-2d52-bb8d-b5f7bf11667f" serial 1
+2022-03-30T17:23:35.258-0700 [TRACE] backend/local: retrieving local state snapshot for workspace "default"
+2022-03-30T17:23:35.258-0700 [TRACE] backend/local: building context for current working directory
+2022-03-30T17:23:35.259-0700 [TRACE] terraform.NewContext: starting
+2022-03-30T17:23:35.259-0700 [TRACE] terraform.NewContext: loading provider schemas
+2022-03-30T17:23:35.260-0700 [TRACE] LoadSchemas: retrieving schema for provider type "registry.terraform.io/rafay/rafay"
+2022-03-30T17:23:35.260-0700 [DEBUG] created provider logger: level=trace
+2022-03-30T17:23:35.260-0700 [INFO]  provider: configuring client automatic mTLS
+2022-03-30T17:23:35.292-0700 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay]
+2022-03-30T17:23:35.296-0700 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=17927
+2022-03-30T17:23:35.297-0700 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay
+2022-03-30T17:23:35.818-0700 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-03-30T17:23:35.818-0700
+2022-03-30T17:23:35.826-0700 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/var/folders/fh/b9rw4lrn4y708y_vx97xk76w0000gn/T/plugin875119747 network=unix timestamp=2022-03-30T17:23:35.826-0700
+2022-03-30T17:23:35.826-0700 [DEBUG] provider: using plugin: version=5
+2022-03-30T17:23:35.855-0700 [TRACE] GRPCProvider: GetProviderSchema
+2022-03-30T17:23:35.855-0700 [TRACE] provider.stdio: waiting for stdio data
+2022-03-30T17:23:35.862-0700 [TRACE] GRPCProvider: Close
+2022-03-30T17:23:35.862-0700 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2022-03-30T17:23:35.864-0700 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=17927
+2022-03-30T17:23:35.864-0700 [DEBUG] provider: plugin exited
+2022-03-30T17:23:35.864-0700 [TRACE] terraform.NewContext: complete
+2022-03-30T17:23:35.864-0700 [TRACE] backend/local: finished building terraform.Context
+2022-03-30T17:23:35.864-0700 [TRACE] backend/local: requesting interactive input, if necessary
+2022-03-30T17:23:35.864-0700 [TRACE] Context.Input: Prompting for provider arguments
+2022-03-30T17:23:35.864-0700 [TRACE] Context.Input: Provider provider.rafay declared at providers.tf:16,1-17
+2022-03-30T17:23:35.865-0700 [TRACE] Context.Input: Input for provider.rafay: map[string]cty.Value{}
+2022-03-30T17:23:35.865-0700 [TRACE] backend/local: running validation operation
+2022-03-30T17:23:35.865-0700 [INFO]  terraform: building graph: GraphTypeValidate
+2022-03-30T17:23:35.865-0700 [TRACE] Executing graph transform *terraform.ConfigTransformer
+2022-03-30T17:23:35.865-0700 [TRACE] ConfigTransformer: Starting for path:
+2022-03-30T17:23:35.865-0700 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
   rafay_eks_cluster.eksclusterbasic - *terraform.NodeValidatableResource
   ------
-2022-03-28T15:23:23.652-0700 [TRACE] Executing graph transform *terraform.RootVariableTransformer
-2022-03-28T15:23:23.652-0700 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
+2022-03-30T17:23:35.865-0700 [TRACE] Executing graph transform *terraform.RootVariableTransformer
+2022-03-30T17:23:35.865-0700 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
   rafay_eks_cluster.eksclusterbasic - *terraform.NodeValidatableResource
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:23.653-0700 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
-2022-03-28T15:23:23.653-0700 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
-2022-03-28T15:23:23.653-0700 [TRACE] Executing graph transform *terraform.LocalTransformer
-2022-03-28T15:23:23.653-0700 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
-2022-03-28T15:23:23.653-0700 [TRACE] Executing graph transform *terraform.OutputTransformer
-2022-03-28T15:23:23.653-0700 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
-2022-03-28T15:23:23.653-0700 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceTransformer
-2022-03-28T15:23:23.653-0700 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceTransformer (no changes)
-2022-03-28T15:23:23.653-0700 [TRACE] Executing graph transform *terraform.StateTransformer
-2022-03-28T15:23:23.654-0700 [TRACE] StateTransformer: state is empty, so nothing to do
-2022-03-28T15:23:23.654-0700 [TRACE] Completed graph transform *terraform.StateTransformer (no changes)
-2022-03-28T15:23:23.654-0700 [TRACE] Executing graph transform *terraform.AttachStateTransformer
-2022-03-28T15:23:23.654-0700 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
-2022-03-28T15:23:23.654-0700 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
-2022-03-28T15:23:23.654-0700 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
-2022-03-28T15:23:23.654-0700 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
-2022-03-28T15:23:23.654-0700 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_eks_cluster.eksclusterbasic" (*terraform.NodeValidatableResource) config from resource.tf:1,1-47
-2022-03-28T15:23:23.654-0700 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:23.654-0700 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
-2022-03-28T15:23:23.654-0700 [TRACE] Executing graph transform *terraform.graphTransformerMulti
-2022-03-28T15:23:23.654-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
-2022-03-28T15:23:23.654-0700 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:16,1-17
-2022-03-28T15:23:23.654-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
+2022-03-30T17:23:35.865-0700 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] Executing graph transform *terraform.LocalTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] Executing graph transform *terraform.OutputTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] Executing graph transform *terraform.StateTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] StateTransformer: state is empty, so nothing to do
+2022-03-30T17:23:35.866-0700 [TRACE] Completed graph transform *terraform.StateTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_eks_cluster.eksclusterbasic" (*terraform.NodeValidatableResource) config from resource.tf:1,1-47
+2022-03-30T17:23:35.866-0700 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_eks_cluster.eksclusterbasic
+2022-03-30T17:23:35.866-0700 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] Executing graph transform *terraform.graphTransformerMulti
+2022-03-30T17:23:35.866-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:16,1-17
+2022-03-30T17:23:35.866-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
   provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
   rafay_eks_cluster.eksclusterbasic - *terraform.NodeValidatableResource
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:23.654-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
-2022-03-28T15:23:23.654-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
-2022-03-28T15:23:23.655-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
-2022-03-28T15:23:23.655-0700 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:23.655-0700 [DEBUG] ProviderTransformer: "rafay_eks_cluster.eksclusterbasic" (*terraform.NodeValidatableResource) needs provider["registry.terraform.io/rafay/rafay"]
-2022-03-28T15:23:23.655-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
-  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  rafay_eks_cluster.eksclusterbasic - *terraform.NodeValidatableResource
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  var.rafay_config_file - *terraform.NodeRootVariable
-  ------
-2022-03-28T15:23:23.655-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
-2022-03-28T15:23:23.655-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
-2022-03-28T15:23:23.655-0700 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+2022-03-30T17:23:35.866-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_eks_cluster.eksclusterbasic
+2022-03-30T17:23:35.866-0700 [DEBUG] ProviderTransformer: "rafay_eks_cluster.eksclusterbasic" (*terraform.NodeValidatableResource) needs provider["registry.terraform.io/rafay/rafay"]
+2022-03-30T17:23:35.866-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
   provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
   rafay_eks_cluster.eksclusterbasic - *terraform.NodeValidatableResource
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:23.655-0700 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
-2022-03-28T15:23:23.655-0700 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
-2022-03-28T15:23:23.655-0700 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
-2022-03-28T15:23:23.655-0700 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
-2022-03-28T15:23:23.655-0700 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:23.655-0700 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
-2022-03-28T15:23:23.656-0700 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
-2022-03-28T15:23:23.656-0700 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
-2022-03-28T15:23:23.656-0700 [TRACE] Executing graph transform *terraform.ReferenceTransformer
-2022-03-28T15:23:23.658-0700 [DEBUG] ReferenceTransformer: "rafay_eks_cluster.eksclusterbasic" references: []
-2022-03-28T15:23:23.658-0700 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
-2022-03-28T15:23:23.659-0700 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
-2022-03-28T15:23:23.659-0700 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
+2022-03-30T17:23:35.866-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_eks_cluster.eksclusterbasic - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-03-30T17:23:35.866-0700 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_eks_cluster.eksclusterbasic
+2022-03-30T17:23:35.866-0700 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
+2022-03-30T17:23:35.866-0700 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
+2022-03-30T17:23:35.866-0700 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
+2022-03-30T17:23:35.866-0700 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2022-03-30T17:23:35.867-0700 [DEBUG] ReferenceTransformer: "rafay_eks_cluster.eksclusterbasic" references: []
+2022-03-30T17:23:35.867-0700 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
+2022-03-30T17:23:35.867-0700 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
+2022-03-30T17:23:35.867-0700 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
   provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
     var.rafay_config_file - *terraform.NodeRootVariable
   rafay_eks_cluster.eksclusterbasic - *terraform.NodeValidatableResource
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:23.659-0700 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
-2022-03-28T15:23:23.659-0700 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
-2022-03-28T15:23:23.659-0700 [TRACE] Executing graph transform *terraform.attachDataResourceDependsOnTransformer
-2022-03-28T15:23:23.659-0700 [TRACE] Completed graph transform *terraform.attachDataResourceDependsOnTransformer (no changes)
-2022-03-28T15:23:23.659-0700 [TRACE] Executing graph transform *terraform.TargetsTransformer
-2022-03-28T15:23:23.659-0700 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
-2022-03-28T15:23:23.659-0700 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
-2022-03-28T15:23:23.659-0700 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
-2022-03-28T15:23:23.659-0700 [TRACE] Executing graph transform *terraform.CountBoundaryTransformer
-2022-03-28T15:23:23.659-0700 [TRACE] Completed graph transform *terraform.CountBoundaryTransformer with new graph:
+2022-03-30T17:23:35.867-0700 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
+2022-03-30T17:23:35.867-0700 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
+2022-03-30T17:23:35.867-0700 [TRACE] Executing graph transform *terraform.attachDataResourceDependsOnTransformer
+2022-03-30T17:23:35.867-0700 [TRACE] Completed graph transform *terraform.attachDataResourceDependsOnTransformer (no changes)
+2022-03-30T17:23:35.867-0700 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2022-03-30T17:23:35.867-0700 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2022-03-30T17:23:35.867-0700 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
+2022-03-30T17:23:35.867-0700 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
+2022-03-30T17:23:35.867-0700 [TRACE] Executing graph transform *terraform.CountBoundaryTransformer
+2022-03-30T17:23:35.867-0700 [TRACE] Completed graph transform *terraform.CountBoundaryTransformer with new graph:
   meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
     rafay_eks_cluster.eksclusterbasic - *terraform.NodeValidatableResource
@@ -204,8 +202,8 @@
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:23.659-0700 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
-2022-03-28T15:23:23.659-0700 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
+2022-03-30T17:23:35.867-0700 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
+2022-03-30T17:23:35.867-0700 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
   meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
     rafay_eks_cluster.eksclusterbasic - *terraform.NodeValidatableResource
@@ -219,8 +217,8 @@
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:23.659-0700 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
-2022-03-28T15:23:23.660-0700 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
+2022-03-30T17:23:35.867-0700 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
+2022-03-30T17:23:35.867-0700 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
   meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
     rafay_eks_cluster.eksclusterbasic - *terraform.NodeValidatableResource
@@ -237,8 +235,8 @@
     provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:23.660-0700 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
-2022-03-28T15:23:23.660-0700 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
+2022-03-30T17:23:35.867-0700 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
+2022-03-30T17:23:35.867-0700 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
   meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
     rafay_eks_cluster.eksclusterbasic - *terraform.NodeValidatableResource
   provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
@@ -252,126 +250,126 @@
     provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:23.660-0700 [DEBUG] Starting graph walk: walkValidate
-2022-03-28T15:23:23.661-0700 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
-2022-03-28T15:23:23.661-0700 [TRACE] vertex "var.rafay_config_file": visit complete
-2022-03-28T15:23:23.661-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
-2022-03-28T15:23:23.662-0700 [DEBUG] created provider logger: level=trace
-2022-03-28T15:23:23.662-0700 [INFO]  provider: configuring client automatic mTLS
-2022-03-28T15:23:23.757-0700 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay]
-2022-03-28T15:23:23.767-0700 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=64039
-2022-03-28T15:23:23.767-0700 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay
-2022-03-28T15:23:23.869-0700 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-03-28T15:23:23.869-0700
-2022-03-28T15:23:23.897-0700 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/var/folders/fh/b9rw4lrn4y708y_vx97xk76w0000gn/T/plugin2930775004 network=unix timestamp=2022-03-28T15:23:23.897-0700
-2022-03-28T15:23:23.897-0700 [DEBUG] provider: using plugin: version=5
-2022-03-28T15:23:23.982-0700 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
-2022-03-28T15:23:23.982-0700 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
-2022-03-28T15:23:23.982-0700 [TRACE] GRPCProvider: GetProviderSchema
-2022-03-28T15:23:23.982-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:23:23.996-0700 [TRACE] GRPCProvider: ValidateProviderConfig
-2022-03-28T15:23:24.012-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
-2022-03-28T15:23:24.012-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": starting visit (*terraform.NodeValidatableResource)
-2022-03-28T15:23:24.016-0700 [TRACE] GRPCProvider: ValidateResourceConfig
-2022-03-28T15:23:24.021-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": visit complete
-2022-03-28T15:23:24.021-0700 [TRACE] vertex "meta.count-boundary (EachMode fixup)": starting visit (*terraform.NodeCountBoundary)
-2022-03-28T15:23:24.021-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": starting visit (*terraform.graphNodeCloseProvider)
-2022-03-28T15:23:24.021-0700 [TRACE] GRPCProvider: Close
-2022-03-28T15:23:24.022-0700 [TRACE] vertex "meta.count-boundary (EachMode fixup)": visit complete
-2022-03-28T15:23:24.023-0700 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
-2022-03-28T15:23:24.027-0700 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=64039
-2022-03-28T15:23:24.027-0700 [DEBUG] provider: plugin exited
-2022-03-28T15:23:24.027-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": visit complete
-2022-03-28T15:23:24.027-0700 [TRACE] vertex "root": starting visit (*terraform.nodeCloseModule)
-2022-03-28T15:23:24.027-0700 [TRACE] vertex "root": visit complete
-2022-03-28T15:23:24.027-0700 [INFO]  backend/local: apply calling Plan
-2022-03-28T15:23:24.027-0700 [INFO]  terraform: building graph: GraphTypePlan
-2022-03-28T15:23:24.027-0700 [TRACE] Executing graph transform *terraform.ConfigTransformer
-2022-03-28T15:23:24.027-0700 [TRACE] ConfigTransformer: Starting for path:
-2022-03-28T15:23:24.028-0700 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
+2022-03-30T17:23:35.867-0700 [DEBUG] Starting graph walk: walkValidate
+2022-03-30T17:23:35.868-0700 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
+2022-03-30T17:23:35.868-0700 [TRACE] vertex "var.rafay_config_file": visit complete
+2022-03-30T17:23:35.868-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
+2022-03-30T17:23:35.868-0700 [DEBUG] created provider logger: level=trace
+2022-03-30T17:23:35.868-0700 [INFO]  provider: configuring client automatic mTLS
+2022-03-30T17:23:35.898-0700 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay]
+2022-03-30T17:23:35.903-0700 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=17929
+2022-03-30T17:23:35.903-0700 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay
+2022-03-30T17:23:35.934-0700 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-03-30T17:23:35.934-0700
+2022-03-30T17:23:35.943-0700 [DEBUG] provider.terraform-provider-rafay: plugin address: network=unix address=/var/folders/fh/b9rw4lrn4y708y_vx97xk76w0000gn/T/plugin2103352839 timestamp=2022-03-30T17:23:35.943-0700
+2022-03-30T17:23:35.943-0700 [DEBUG] provider: using plugin: version=5
+2022-03-30T17:23:35.968-0700 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
+2022-03-30T17:23:35.968-0700 [TRACE] provider.stdio: waiting for stdio data
+2022-03-30T17:23:35.968-0700 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
+2022-03-30T17:23:35.968-0700 [TRACE] GRPCProvider: GetProviderSchema
+2022-03-30T17:23:35.973-0700 [TRACE] GRPCProvider: ValidateProviderConfig
+2022-03-30T17:23:35.977-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
+2022-03-30T17:23:35.977-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": starting visit (*terraform.NodeValidatableResource)
+2022-03-30T17:23:35.979-0700 [TRACE] GRPCProvider: ValidateResourceConfig
+2022-03-30T17:23:35.980-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": visit complete
+2022-03-30T17:23:35.980-0700 [TRACE] vertex "meta.count-boundary (EachMode fixup)": starting visit (*terraform.NodeCountBoundary)
+2022-03-30T17:23:35.981-0700 [TRACE] vertex "meta.count-boundary (EachMode fixup)": visit complete
+2022-03-30T17:23:35.981-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": starting visit (*terraform.graphNodeCloseProvider)
+2022-03-30T17:23:35.981-0700 [TRACE] GRPCProvider: Close
+2022-03-30T17:23:35.981-0700 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2022-03-30T17:23:35.983-0700 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=17929
+2022-03-30T17:23:35.983-0700 [DEBUG] provider: plugin exited
+2022-03-30T17:23:35.983-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": visit complete
+2022-03-30T17:23:35.983-0700 [TRACE] vertex "root": starting visit (*terraform.nodeCloseModule)
+2022-03-30T17:23:35.983-0700 [TRACE] vertex "root": visit complete
+2022-03-30T17:23:35.983-0700 [INFO]  backend/local: apply calling Plan
+2022-03-30T17:23:35.983-0700 [INFO]  terraform: building graph: GraphTypePlanRefreshOnly
+2022-03-30T17:23:35.983-0700 [TRACE] Executing graph transform *terraform.ConfigTransformer
+2022-03-30T17:23:35.983-0700 [TRACE] ConfigTransformer: Starting for path:
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
   rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandPlannableResource
   ------
-2022-03-28T15:23:24.028-0700 [TRACE] Executing graph transform *terraform.RootVariableTransformer
-2022-03-28T15:23:24.028-0700 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.RootVariableTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
   rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandPlannableResource
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:24.028-0700 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
-2022-03-28T15:23:24.028-0700 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
-2022-03-28T15:23:24.028-0700 [TRACE] Executing graph transform *terraform.LocalTransformer
-2022-03-28T15:23:24.028-0700 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
-2022-03-28T15:23:24.028-0700 [TRACE] Executing graph transform *terraform.OutputTransformer
-2022-03-28T15:23:24.028-0700 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
-2022-03-28T15:23:24.028-0700 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceTransformer
-2022-03-28T15:23:24.028-0700 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceTransformer (no changes)
-2022-03-28T15:23:24.028-0700 [TRACE] Executing graph transform *terraform.StateTransformer
-2022-03-28T15:23:24.028-0700 [TRACE] StateTransformer: state is empty, so nothing to do
-2022-03-28T15:23:24.028-0700 [TRACE] Completed graph transform *terraform.StateTransformer (no changes)
-2022-03-28T15:23:24.028-0700 [TRACE] Executing graph transform *terraform.AttachStateTransformer
-2022-03-28T15:23:24.028-0700 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
-2022-03-28T15:23:24.029-0700 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
-2022-03-28T15:23:24.029-0700 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
-2022-03-28T15:23:24.029-0700 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
-2022-03-28T15:23:24.029-0700 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_eks_cluster.eksclusterbasic (expand)" (*terraform.nodeExpandPlannableResource) config from resource.tf:1,1-47
-2022-03-28T15:23:24.029-0700 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_eks_cluster.eksclusterbasic (expand)
-2022-03-28T15:23:24.029-0700 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
-2022-03-28T15:23:24.029-0700 [TRACE] Executing graph transform *terraform.graphTransformerMulti
-2022-03-28T15:23:24.029-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
-2022-03-28T15:23:24.029-0700 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:16,1-17
-2022-03-28T15:23:24.029-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.LocalTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.OutputTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.StateTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] StateTransformer: creating nodes for deposed instance objects only
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.StateTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_eks_cluster.eksclusterbasic (expand)" (*terraform.nodeExpandPlannableResource) config from resource.tf:1,1-47
+2022-03-30T17:23:35.984-0700 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_eks_cluster.eksclusterbasic (expand)
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.graphTransformerMulti
+2022-03-30T17:23:35.984-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:16,1-17
+2022-03-30T17:23:35.984-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
   provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
   rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandPlannableResource
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:24.029-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
-2022-03-28T15:23:24.029-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
-2022-03-28T15:23:24.029-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
-2022-03-28T15:23:24.029-0700 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_eks_cluster.eksclusterbasic (expand)
-2022-03-28T15:23:24.029-0700 [DEBUG] ProviderTransformer: "rafay_eks_cluster.eksclusterbasic (expand)" (*terraform.nodeExpandPlannableResource) needs provider["registry.terraform.io/rafay/rafay"]
-2022-03-28T15:23:24.029-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
-  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandPlannableResource
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  var.rafay_config_file - *terraform.NodeRootVariable
-  ------
-2022-03-28T15:23:24.030-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
-2022-03-28T15:23:24.030-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
-2022-03-28T15:23:24.030-0700 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+2022-03-30T17:23:35.984-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_eks_cluster.eksclusterbasic (expand)
+2022-03-30T17:23:35.984-0700 [DEBUG] ProviderTransformer: "rafay_eks_cluster.eksclusterbasic (expand)" (*terraform.nodeExpandPlannableResource) needs provider["registry.terraform.io/rafay/rafay"]
+2022-03-30T17:23:35.984-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
   provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
   rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandPlannableResource
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:24.030-0700 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
-2022-03-28T15:23:24.030-0700 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
-2022-03-28T15:23:24.030-0700 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
-2022-03-28T15:23:24.030-0700 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_eks_cluster.eksclusterbasic (expand)
-2022-03-28T15:23:24.030-0700 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
-2022-03-28T15:23:24.030-0700 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
-2022-03-28T15:23:24.030-0700 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
-2022-03-28T15:23:24.030-0700 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
-2022-03-28T15:23:24.030-0700 [TRACE] Executing graph transform *terraform.ReferenceTransformer
-2022-03-28T15:23:24.030-0700 [DEBUG] ReferenceTransformer: "rafay_eks_cluster.eksclusterbasic (expand)" references: []
-2022-03-28T15:23:24.031-0700 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
-2022-03-28T15:23:24.031-0700 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
-2022-03-28T15:23:24.031-0700 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
+2022-03-30T17:23:35.984-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_eks_cluster.eksclusterbasic (expand)
+2022-03-30T17:23:35.984-0700 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
+2022-03-30T17:23:35.984-0700 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
+2022-03-30T17:23:35.984-0700 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2022-03-30T17:23:35.984-0700 [DEBUG] ReferenceTransformer: "rafay_eks_cluster.eksclusterbasic (expand)" references: []
+2022-03-30T17:23:35.984-0700 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
+2022-03-30T17:23:35.984-0700 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
+2022-03-30T17:23:35.985-0700 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
   provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
     var.rafay_config_file - *terraform.NodeRootVariable
   rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandPlannableResource
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:24.031-0700 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
-2022-03-28T15:23:24.031-0700 [TRACE] AttachDependenciesTransformer: rafay_eks_cluster.eksclusterbasic depends on []
-2022-03-28T15:23:24.031-0700 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
-2022-03-28T15:23:24.031-0700 [TRACE] Executing graph transform *terraform.attachDataResourceDependsOnTransformer
-2022-03-28T15:23:24.031-0700 [TRACE] Completed graph transform *terraform.attachDataResourceDependsOnTransformer (no changes)
-2022-03-28T15:23:24.031-0700 [TRACE] Executing graph transform *terraform.TargetsTransformer
-2022-03-28T15:23:24.031-0700 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
-2022-03-28T15:23:24.031-0700 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
-2022-03-28T15:23:24.031-0700 [TRACE] ForcedCBDTransformer: "rafay_eks_cluster.eksclusterbasic (expand)" (*terraform.nodeExpandPlannableResource) has no CBD descendent, so skipping
-2022-03-28T15:23:24.031-0700 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
-2022-03-28T15:23:24.032-0700 [TRACE] Executing graph transform *terraform.CountBoundaryTransformer
-2022-03-28T15:23:24.032-0700 [TRACE] Completed graph transform *terraform.CountBoundaryTransformer with new graph:
+2022-03-30T17:23:35.985-0700 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
+2022-03-30T17:23:35.985-0700 [TRACE] AttachDependenciesTransformer: rafay_eks_cluster.eksclusterbasic depends on []
+2022-03-30T17:23:35.985-0700 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
+2022-03-30T17:23:35.985-0700 [TRACE] Executing graph transform *terraform.attachDataResourceDependsOnTransformer
+2022-03-30T17:23:35.985-0700 [TRACE] Completed graph transform *terraform.attachDataResourceDependsOnTransformer (no changes)
+2022-03-30T17:23:35.985-0700 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2022-03-30T17:23:35.985-0700 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2022-03-30T17:23:35.985-0700 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
+2022-03-30T17:23:35.985-0700 [TRACE] ForcedCBDTransformer: "rafay_eks_cluster.eksclusterbasic (expand)" (*terraform.nodeExpandPlannableResource) has no CBD descendent, so skipping
+2022-03-30T17:23:35.985-0700 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
+2022-03-30T17:23:35.985-0700 [TRACE] Executing graph transform *terraform.CountBoundaryTransformer
+2022-03-30T17:23:35.985-0700 [TRACE] Completed graph transform *terraform.CountBoundaryTransformer with new graph:
   meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
     rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandPlannableResource
@@ -382,8 +380,8 @@
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:24.032-0700 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
-2022-03-28T15:23:24.032-0700 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
+2022-03-30T17:23:35.985-0700 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
+2022-03-30T17:23:35.985-0700 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
   meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
     rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandPlannableResource
@@ -397,8 +395,8 @@
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:24.032-0700 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
-2022-03-28T15:23:24.032-0700 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
+2022-03-30T17:23:35.985-0700 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
+2022-03-30T17:23:35.985-0700 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
   meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
     provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
     rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandPlannableResource
@@ -415,8 +413,8 @@
     provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:24.032-0700 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
-2022-03-28T15:23:24.033-0700 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
+2022-03-30T17:23:35.985-0700 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
+2022-03-30T17:23:35.985-0700 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
   meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
     rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandPlannableResource
   provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
@@ -430,841 +428,100 @@
     provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
   var.rafay_config_file - *terraform.NodeRootVariable
   ------
-2022-03-28T15:23:24.033-0700 [DEBUG] Starting graph walk: walkPlan
-2022-03-28T15:23:24.033-0700 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
-2022-03-28T15:23:24.033-0700 [TRACE] vertex "var.rafay_config_file": visit complete
-2022-03-28T15:23:24.033-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
-2022-03-28T15:23:24.033-0700 [DEBUG] created provider logger: level=trace
-2022-03-28T15:23:24.033-0700 [INFO]  provider: configuring client automatic mTLS
-2022-03-28T15:23:24.123-0700 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay]
-2022-03-28T15:23:24.136-0700 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=64040
-2022-03-28T15:23:24.137-0700 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay
-2022-03-28T15:23:24.228-0700 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-03-28T15:23:24.228-0700
-2022-03-28T15:23:24.252-0700 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/var/folders/fh/b9rw4lrn4y708y_vx97xk76w0000gn/T/plugin3216834312 network=unix timestamp=2022-03-28T15:23:24.252-0700
-2022-03-28T15:23:24.252-0700 [DEBUG] provider: using plugin: version=5
-2022-03-28T15:23:24.335-0700 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
-2022-03-28T15:23:24.335-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:23:24.335-0700 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
-2022-03-28T15:23:24.335-0700 [TRACE] GRPCProvider: GetProviderSchema
-2022-03-28T15:23:24.347-0700 [TRACE] GRPCProvider: ValidateProviderConfig
-2022-03-28T15:23:24.361-0700 [TRACE] GRPCProvider: ConfigureProvider
-2022-03-28T15:23:24.362-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:24 rafay provider config file /Users/sougat/.rafay/cli/config.json: timestamp=2022-03-28T15:23:24.362-0700
-2022-03-28T15:23:24.362-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:24 rafay provider config file absolute path /Users/sougat/.rafay/cli/config.json: timestamp=2022-03-28T15:23:24.362-0700
-2022-03-28T15:23:24.363-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
-2022-03-28T15:23:24.364-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": starting visit (*terraform.nodeExpandPlannableResource)
-2022-03-28T15:23:24.364-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": expanding dynamic subgraph
-2022-03-28T15:23:24.364-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": entering dynamic subgraph
-2022-03-28T15:23:24.365-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": starting visit (*terraform.NodePlannableResource)
-2022-03-28T15:23:24.365-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": expanding dynamic subgraph
-2022-03-28T15:23:24.365-0700 [TRACE] Executing graph transform *terraform.ResourceCountTransformer
-2022-03-28T15:23:24.365-0700 [TRACE] ResourceCountTransformer: adding rafay_eks_cluster.eksclusterbasic as *terraform.NodePlannableResourceInstance
-2022-03-28T15:23:24.365-0700 [TRACE] Completed graph transform *terraform.ResourceCountTransformer with new graph:
+2022-03-30T17:23:35.985-0700 [DEBUG] Starting graph walk: walkPlan
+2022-03-30T17:23:35.985-0700 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
+2022-03-30T17:23:35.985-0700 [TRACE] vertex "var.rafay_config_file": visit complete
+2022-03-30T17:23:35.985-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
+2022-03-30T17:23:35.985-0700 [DEBUG] created provider logger: level=trace
+2022-03-30T17:23:35.985-0700 [INFO]  provider: configuring client automatic mTLS
+2022-03-30T17:23:36.015-0700 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay]
+2022-03-30T17:23:36.019-0700 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=17930
+2022-03-30T17:23:36.019-0700 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay
+2022-03-30T17:23:36.050-0700 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-03-30T17:23:36.050-0700
+2022-03-30T17:23:36.059-0700 [DEBUG] provider: using plugin: version=5
+2022-03-30T17:23:36.059-0700 [DEBUG] provider.terraform-provider-rafay: plugin address: network=unix address=/var/folders/fh/b9rw4lrn4y708y_vx97xk76w0000gn/T/plugin2582523589 timestamp=2022-03-30T17:23:36.059-0700
+2022-03-30T17:23:36.086-0700 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
+2022-03-30T17:23:36.086-0700 [TRACE] provider.stdio: waiting for stdio data
+2022-03-30T17:23:36.086-0700 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
+2022-03-30T17:23:36.086-0700 [TRACE] GRPCProvider: GetProviderSchema
+2022-03-30T17:23:36.091-0700 [TRACE] GRPCProvider: ValidateProviderConfig
+2022-03-30T17:23:36.094-0700 [TRACE] GRPCProvider: ConfigureProvider
+2022-03-30T17:23:36.094-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:36 rafay provider config file /Users/sougat/.rafay/cli/config.json: timestamp=2022-03-30T17:23:36.094-0700
+2022-03-30T17:23:36.094-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:36 rafay provider config file absolute path /Users/sougat/.rafay/cli/config.json: timestamp=2022-03-30T17:23:36.094-0700
+2022-03-30T17:23:36.096-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
+2022-03-30T17:23:36.096-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": starting visit (*terraform.nodeExpandPlannableResource)
+2022-03-30T17:23:36.096-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": expanding dynamic subgraph
+2022-03-30T17:23:36.096-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": entering dynamic subgraph
+2022-03-30T17:23:36.096-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": starting visit (*terraform.NodePlannableResource)
+2022-03-30T17:23:36.097-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": expanding dynamic subgraph
+2022-03-30T17:23:36.097-0700 [TRACE] Executing graph transform *terraform.ResourceCountTransformer
+2022-03-30T17:23:36.097-0700 [TRACE] ResourceCountTransformer: adding rafay_eks_cluster.eksclusterbasic as *terraform.NodePlannableResourceInstance
+2022-03-30T17:23:36.097-0700 [TRACE] Completed graph transform *terraform.ResourceCountTransformer with new graph:
   rafay_eks_cluster.eksclusterbasic - *terraform.NodePlannableResourceInstance
   ------
-2022-03-28T15:23:24.365-0700 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceCountTransformer
-2022-03-28T15:23:24.365-0700 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceCountTransformer (no changes)
-2022-03-28T15:23:24.365-0700 [TRACE] Executing graph transform *terraform.AttachStateTransformer
-2022-03-28T15:23:24.366-0700 [DEBUG] Resource instance state not found for node "rafay_eks_cluster.eksclusterbasic", instance rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.366-0700 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
-2022-03-28T15:23:24.366-0700 [TRACE] Executing graph transform *terraform.TargetsTransformer
-2022-03-28T15:23:24.366-0700 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
-2022-03-28T15:23:24.366-0700 [TRACE] Executing graph transform *terraform.ReferenceTransformer
-2022-03-28T15:23:24.367-0700 [DEBUG] ReferenceTransformer: "rafay_eks_cluster.eksclusterbasic" references: []
-2022-03-28T15:23:24.367-0700 [TRACE] Completed graph transform *terraform.ReferenceTransformer (no changes)
-2022-03-28T15:23:24.367-0700 [TRACE] Executing graph transform *terraform.RootTransformer
-2022-03-28T15:23:24.367-0700 [TRACE] Completed graph transform *terraform.RootTransformer (no changes)
-2022-03-28T15:23:24.367-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": entering dynamic subgraph
-2022-03-28T15:23:24.367-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": starting visit (*terraform.NodePlannableResourceInstance)
-2022-03-28T15:23:24.368-0700 [TRACE] readResourceInstanceState: reading state for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.368-0700 [TRACE] readResourceInstanceState: no state present for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.369-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to prevRunState for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.369-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.369-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to refreshState for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.369-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.369-0700 [TRACE] NodeAbstractResourceInstance.refresh for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.369-0700 [DEBUG] refresh: rafay_eks_cluster.eksclusterbasic: no state, so not refreshing
-2022-03-28T15:23:24.369-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to refreshState for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.370-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.374-0700 [TRACE] Re-validating config for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:24.374-0700 [TRACE] GRPCProvider: ValidateResourceConfig
-2022-03-28T15:23:24.379-0700 [TRACE] GRPCProvider: PlanResourceChange
-2022-03-28T15:23:24.396-0700 [WARN]  Provider "registry.terraform.io/rafay/rafay" produced an invalid plan for rafay_eks_cluster.eksclusterbasic, but we are tolerating it because it is using the legacy plugin SDK.
-    The following problems may be the cause of any confusing errors from downstream operations:
-      - .cluster[0].spec[0].proxy_config: planned value cty.NullVal(cty.Map(cty.String)) does not match config value cty.MapValEmpty(cty.String)
-      - .cluster[0].spec[0].blueprint_version: planned value cty.StringVal("bpversion") for a non-computed attribute
-      - .cluster_config[0].vpc[0].manage_shared_node_security_group_rules: planned value cty.True for a non-computed attribute
-      - .cluster_config[0].node_groups[0].disable_pods_imds: planned value cty.False for a non-computed attribute
-      - .cluster_config[0].node_groups[0].private_networking: planned value cty.False for a non-computed attribute
-      - .cluster_config[0].node_groups[0].disable_imdsv1: planned value cty.False for a non-computed attribute
-      - .cluster_config[0].node_groups[0].efa_endbaled: planned value cty.False for a non-computed attribute
-2022-03-28T15:23:24.396-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to workingState for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.396-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: writing state object for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.398-0700 [TRACE] writeChange: recorded Create change for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:24.398-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": visit complete
-2022-03-28T15:23:24.398-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": dynamic subgraph completed successfully
-2022-03-28T15:23:24.399-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": visit complete
-2022-03-28T15:23:24.399-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": dynamic subgraph completed successfully
-2022-03-28T15:23:24.399-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": visit complete
-2022-03-28T15:23:24.399-0700 [TRACE] vertex "meta.count-boundary (EachMode fixup)": starting visit (*terraform.NodeCountBoundary)
-2022-03-28T15:23:24.399-0700 [TRACE] vertex "meta.count-boundary (EachMode fixup)": visit complete
-2022-03-28T15:23:24.399-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": starting visit (*terraform.graphNodeCloseProvider)
-2022-03-28T15:23:24.399-0700 [TRACE] GRPCProvider: Close
-2022-03-28T15:23:24.401-0700 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
-2022-03-28T15:23:24.406-0700 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=64040
-2022-03-28T15:23:24.406-0700 [DEBUG] provider: plugin exited
-2022-03-28T15:23:24.406-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": visit complete
-2022-03-28T15:23:24.406-0700 [TRACE] vertex "root": starting visit (*terraform.nodeCloseModule)
-2022-03-28T15:23:24.406-0700 [TRACE] vertex "root": visit complete
-2022-03-28T15:23:24.422-0700 [DEBUG] command: asking for input: "\nDo you want to perform these actions?"
-2022-03-28T15:23:26.022-0700 [INFO]  backend/local: apply calling Apply
-2022-03-28T15:23:26.022-0700 [INFO]  terraform: building graph: GraphTypeApply
-2022-03-28T15:23:26.022-0700 [TRACE] Executing graph transform *terraform.ConfigTransformer
-2022-03-28T15:23:26.022-0700 [TRACE] ConfigTransformer: Starting for path:
-2022-03-28T15:23:26.022-0700 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
-  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  ------
-2022-03-28T15:23:26.022-0700 [TRACE] Executing graph transform *terraform.RootVariableTransformer
-2022-03-28T15:23:26.022-0700 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
-  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  var.rafay_config_file - *terraform.NodeRootVariable
-  ------
-2022-03-28T15:23:26.022-0700 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
-2022-03-28T15:23:26.023-0700 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
-2022-03-28T15:23:26.023-0700 [TRACE] Executing graph transform *terraform.LocalTransformer
-2022-03-28T15:23:26.023-0700 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
-2022-03-28T15:23:26.023-0700 [TRACE] Executing graph transform *terraform.OutputTransformer
-2022-03-28T15:23:26.023-0700 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
-2022-03-28T15:23:26.023-0700 [TRACE] Executing graph transform *terraform.DiffTransformer
-2022-03-28T15:23:26.023-0700 [TRACE] DiffTransformer starting
-2022-03-28T15:23:26.023-0700 [TRACE] DiffTransformer: found Create change for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.023-0700 [TRACE] DiffTransformer: rafay_eks_cluster.eksclusterbasic will be represented by rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.023-0700 [TRACE] DiffTransformer complete
-2022-03-28T15:23:26.023-0700 [TRACE] Completed graph transform *terraform.DiffTransformer with new graph:
-  rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  var.rafay_config_file - *terraform.NodeRootVariable
-  ------
-2022-03-28T15:23:26.024-0700 [TRACE] Executing graph transform *terraform.AttachStateTransformer
-2022-03-28T15:23:26.024-0700 [DEBUG] Resource state not found for node "rafay_eks_cluster.eksclusterbasic", instance rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.024-0700 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
-2022-03-28T15:23:26.024-0700 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
-2022-03-28T15:23:26.024-0700 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
-2022-03-28T15:23:26.024-0700 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
-2022-03-28T15:23:26.024-0700 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_eks_cluster.eksclusterbasic" (*terraform.NodeApplyableResourceInstance) config from resource.tf:1,1-47
-2022-03-28T15:23:26.024-0700 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.024-0700 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_eks_cluster.eksclusterbasic (expand)" (*terraform.nodeExpandApplyableResource) config from resource.tf:1,1-47
-2022-03-28T15:23:26.024-0700 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_eks_cluster.eksclusterbasic (expand)
-2022-03-28T15:23:26.025-0700 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
-2022-03-28T15:23:26.025-0700 [TRACE] Executing graph transform *terraform.graphTransformerMulti
-2022-03-28T15:23:26.025-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
-2022-03-28T15:23:26.025-0700 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:16,1-17
-2022-03-28T15:23:26.025-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
-  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  var.rafay_config_file - *terraform.NodeRootVariable
-  ------
-2022-03-28T15:23:26.025-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
-2022-03-28T15:23:26.025-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
-2022-03-28T15:23:26.025-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
-2022-03-28T15:23:26.025-0700 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_eks_cluster.eksclusterbasic (expand)
-2022-03-28T15:23:26.025-0700 [DEBUG] ProviderTransformer: "rafay_eks_cluster.eksclusterbasic (expand)" (*terraform.nodeExpandApplyableResource) needs provider["registry.terraform.io/rafay/rafay"]
-2022-03-28T15:23:26.025-0700 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.026-0700 [DEBUG] ProviderTransformer: "rafay_eks_cluster.eksclusterbasic" (*terraform.NodeApplyableResourceInstance) needs provider["registry.terraform.io/rafay/rafay"]
-2022-03-28T15:23:26.026-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
-  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  var.rafay_config_file - *terraform.NodeRootVariable
-  ------
-2022-03-28T15:23:26.026-0700 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
-2022-03-28T15:23:26.026-0700 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
-2022-03-28T15:23:26.026-0700 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
-  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  var.rafay_config_file - *terraform.NodeRootVariable
-  ------
-2022-03-28T15:23:26.026-0700 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
-2022-03-28T15:23:26.026-0700 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
-2022-03-28T15:23:26.026-0700 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
-2022-03-28T15:23:26.026-0700 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_eks_cluster.eksclusterbasic (expand)
-2022-03-28T15:23:26.026-0700 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.026-0700 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
-2022-03-28T15:23:26.027-0700 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
-2022-03-28T15:23:26.027-0700 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
-2022-03-28T15:23:26.027-0700 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
-2022-03-28T15:23:26.027-0700 [TRACE] Executing graph transform *terraform.ReferenceTransformer
-2022-03-28T15:23:26.027-0700 [DEBUG] ReferenceTransformer: "rafay_eks_cluster.eksclusterbasic (expand)" references: []
-2022-03-28T15:23:26.027-0700 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
-2022-03-28T15:23:26.028-0700 [DEBUG] ReferenceTransformer: "rafay_eks_cluster.eksclusterbasic" references: []
-2022-03-28T15:23:26.028-0700 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
-2022-03-28T15:23:26.028-0700 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
-  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    var.rafay_config_file - *terraform.NodeRootVariable
-  rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  var.rafay_config_file - *terraform.NodeRootVariable
-  ------
-2022-03-28T15:23:26.028-0700 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
-2022-03-28T15:23:26.028-0700 [TRACE] AttachDependenciesTransformer: rafay_eks_cluster.eksclusterbasic depends on []
-2022-03-28T15:23:26.028-0700 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
-2022-03-28T15:23:26.028-0700 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
-2022-03-28T15:23:26.028-0700 [TRACE] ForcedCBDTransformer: "rafay_eks_cluster.eksclusterbasic" (*terraform.NodeApplyableResourceInstance) has no CBD descendent, so skipping
-2022-03-28T15:23:26.028-0700 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
-2022-03-28T15:23:26.028-0700 [TRACE] Executing graph transform *terraform.DestroyEdgeTransformer
-2022-03-28T15:23:26.028-0700 [TRACE] Completed graph transform *terraform.DestroyEdgeTransformer (no changes)
-2022-03-28T15:23:26.029-0700 [TRACE] Executing graph transform *terraform.CBDEdgeTransformer
-2022-03-28T15:23:26.029-0700 [TRACE] Completed graph transform *terraform.CBDEdgeTransformer (no changes)
-2022-03-28T15:23:26.029-0700 [TRACE] Executing graph transform *terraform.pruneUnusedNodesTransformer
-2022-03-28T15:23:26.029-0700 [TRACE] Completed graph transform *terraform.pruneUnusedNodesTransformer (no changes)
-2022-03-28T15:23:26.029-0700 [TRACE] Executing graph transform *terraform.TargetsTransformer
-2022-03-28T15:23:26.029-0700 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
-2022-03-28T15:23:26.029-0700 [TRACE] Executing graph transform *terraform.CountBoundaryTransformer
-2022-03-28T15:23:26.029-0700 [TRACE] Completed graph transform *terraform.CountBoundaryTransformer with new graph:
-  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-    var.rafay_config_file - *terraform.NodeRootVariable
-  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    var.rafay_config_file - *terraform.NodeRootVariable
-  rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  var.rafay_config_file - *terraform.NodeRootVariable
-  ------
-2022-03-28T15:23:26.029-0700 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
-2022-03-28T15:23:26.029-0700 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
-  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-    var.rafay_config_file - *terraform.NodeRootVariable
-  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    var.rafay_config_file - *terraform.NodeRootVariable
-  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  var.rafay_config_file - *terraform.NodeRootVariable
-  ------
-2022-03-28T15:23:26.029-0700 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
-2022-03-28T15:23:26.030-0700 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
-  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-    var.rafay_config_file - *terraform.NodeRootVariable
-  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    var.rafay_config_file - *terraform.NodeRootVariable
-  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  root - *terraform.nodeCloseModule
-    meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
-    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
-  var.rafay_config_file - *terraform.NodeRootVariable
-  ------
-2022-03-28T15:23:26.030-0700 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
-2022-03-28T15:23:26.030-0700 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
-  meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
-    rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-    var.rafay_config_file - *terraform.NodeRootVariable
-  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
-    rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-  rafay_eks_cluster.eksclusterbasic - *terraform.NodeApplyableResourceInstance
-    rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-  rafay_eks_cluster.eksclusterbasic (expand) - *terraform.nodeExpandApplyableResource
-    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
-  root - *terraform.nodeCloseModule
-    meta.count-boundary (EachMode fixup) - *terraform.NodeCountBoundary
-    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
-  var.rafay_config_file - *terraform.NodeRootVariable
-  ------
-2022-03-28T15:23:26.030-0700 [DEBUG] Starting graph walk: walkApply
-2022-03-28T15:23:26.031-0700 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
-2022-03-28T15:23:26.031-0700 [TRACE] vertex "var.rafay_config_file": visit complete
-2022-03-28T15:23:26.031-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
-2022-03-28T15:23:26.031-0700 [DEBUG] created provider logger: level=trace
-2022-03-28T15:23:26.032-0700 [INFO]  provider: configuring client automatic mTLS
-2022-03-28T15:23:26.146-0700 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay]
-2022-03-28T15:23:26.159-0700 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=64041
-2022-03-28T15:23:26.160-0700 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay
-2022-03-28T15:23:26.240-0700 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-03-28T15:23:26.240-0700
-2022-03-28T15:23:26.263-0700 [DEBUG] provider: using plugin: version=5
-2022-03-28T15:23:26.263-0700 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/var/folders/fh/b9rw4lrn4y708y_vx97xk76w0000gn/T/plugin217720574 network=unix timestamp=2022-03-28T15:23:26.263-0700
-2022-03-28T15:23:26.344-0700 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
-2022-03-28T15:23:26.344-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:23:26.344-0700 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
-2022-03-28T15:23:26.344-0700 [TRACE] GRPCProvider: GetProviderSchema
-2022-03-28T15:23:26.357-0700 [TRACE] GRPCProvider: ValidateProviderConfig
-2022-03-28T15:23:26.369-0700 [TRACE] GRPCProvider: ConfigureProvider
-2022-03-28T15:23:26.370-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 rafay provider config file /Users/sougat/.rafay/cli/config.json: timestamp=2022-03-28T15:23:26.370-0700
-2022-03-28T15:23:26.370-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 rafay provider config file absolute path /Users/sougat/.rafay/cli/config.json: timestamp=2022-03-28T15:23:26.370-0700
-2022-03-28T15:23:26.371-0700 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
-2022-03-28T15:23:26.371-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": starting visit (*terraform.nodeExpandApplyableResource)
-2022-03-28T15:23:26.371-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": expanding dynamic subgraph
-2022-03-28T15:23:26.371-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": entering dynamic subgraph
-2022-03-28T15:23:26.371-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": starting visit (*terraform.NodeApplyableResource)
-2022-03-28T15:23:26.371-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": visit complete
-2022-03-28T15:23:26.371-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": dynamic subgraph completed successfully
-2022-03-28T15:23:26.371-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": visit complete
-2022-03-28T15:23:26.371-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": starting visit (*terraform.NodeApplyableResourceInstance)
-2022-03-28T15:23:26.373-0700 [TRACE] readDiff: Read Create change from plan for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.373-0700 [TRACE] readResourceInstanceState: reading state for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.373-0700 [TRACE] readResourceInstanceState: no state present for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.374-0700 [TRACE] readDiff: Read Create change from plan for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.377-0700 [TRACE] Re-validating config for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:26.377-0700 [TRACE] GRPCProvider: ValidateResourceConfig
-2022-03-28T15:23:26.382-0700 [TRACE] GRPCProvider: PlanResourceChange
-2022-03-28T15:23:26.396-0700 [WARN]  Provider "registry.terraform.io/rafay/rafay" produced an invalid plan for rafay_eks_cluster.eksclusterbasic, but we are tolerating it because it is using the legacy plugin SDK.
-    The following problems may be the cause of any confusing errors from downstream operations:
-      - .cluster[0].spec[0].proxy_config: planned value cty.NullVal(cty.Map(cty.String)) does not match config value cty.MapValEmpty(cty.String)
-      - .cluster[0].spec[0].blueprint_version: planned value cty.StringVal("bpversion") for a non-computed attribute
-      - .cluster_config[0].node_groups[0].disable_imdsv1: planned value cty.False for a non-computed attribute
-      - .cluster_config[0].node_groups[0].disable_pods_imds: planned value cty.False for a non-computed attribute
-      - .cluster_config[0].node_groups[0].private_networking: planned value cty.False for a non-computed attribute
-      - .cluster_config[0].node_groups[0].efa_endbaled: planned value cty.False for a non-computed attribute
-      - .cluster_config[0].vpc[0].manage_shared_node_security_group_rules: planned value cty.True for a non-computed attribute
-2022-03-28T15:23:26.396-0700 [TRACE] checkPlannedChange: Verifying that actual change (action Create) matches planned change (action Create)
-2022-03-28T15:23:26.396-0700 [TRACE] readResourceInstanceState: reading state for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.396-0700 [TRACE] readResourceInstanceState: no state present for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.397-0700 [INFO]  Starting apply for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:23:26.401-0700 [DEBUG] rafay_eks_cluster.eksclusterbasic: applying the planned Create change
-2022-03-28T15:23:26.401-0700 [TRACE] GRPCProvider: ApplyResourceChange
-2022-03-28T15:23:26.411-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 create EKS cluster resource: timestamp=2022-03-28T15:23:26.411-0700
-2022-03-28T15:23:26.412-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 resourceEKSClusterUpsert: timestamp=2022-03-28T15:23:26.411-0700
-2022-03-28T15:23:26.412-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 expand_nodegroups: timestamp=2022-03-28T15:23:26.412-0700
-2022-03-28T15:23:26.412-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 ngs_yaml name:  ng-57658a87: timestamp=2022-03-28T15:23:26.412-0700
-2022-03-28T15:23:26.412-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 ngs_name:  ng-57658a87: timestamp=2022-03-28T15:23:26.412-0700
-2022-03-28T15:23:26.412-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 EKS Cluster Metadata yaml &{Cluster 0xc0009de5d0 0xc000c26120}: timestamp=2022-03-28T15:23:26.412-0700
-2022-03-28T15:23:26.412-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 EKS Cluster Config/Spec yaml &{rafay.io/v1alpha5 ClusterConfig 0xc0005df740 <nil> <nil> [] <nil> [] <nil> [0xc0000e1180] [] [] [] <nil> <nil>}: timestamp=2022-03-28T15:23:26.412-0700
-2022-03-28T15:23:26.412-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 EKS Cluster Metadata YAML 
----
-kind: Cluster
+2022-03-30T17:23:36.097-0700 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceCountTransformer
+2022-03-30T17:23:36.097-0700 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceCountTransformer (no changes)
+2022-03-30T17:23:36.097-0700 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2022-03-30T17:23:36.097-0700 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2022-03-30T17:23:36.097-0700 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2022-03-30T17:23:36.097-0700 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2022-03-30T17:23:36.097-0700 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2022-03-30T17:23:36.097-0700 [DEBUG] ReferenceTransformer: "rafay_eks_cluster.eksclusterbasic" references: []
+2022-03-30T17:23:36.097-0700 [TRACE] Completed graph transform *terraform.ReferenceTransformer (no changes)
+2022-03-30T17:23:36.097-0700 [TRACE] Executing graph transform *terraform.RootTransformer
+2022-03-30T17:23:36.097-0700 [TRACE] Completed graph transform *terraform.RootTransformer (no changes)
+2022-03-30T17:23:36.097-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": entering dynamic subgraph
+2022-03-30T17:23:36.097-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": starting visit (*terraform.NodePlannableResourceInstance)
+2022-03-30T17:23:36.097-0700 [TRACE] readResourceInstanceState: reading state for rafay_eks_cluster.eksclusterbasic
+2022-03-30T17:23:36.098-0700 [TRACE] upgradeResourceState: schema version of rafay_eks_cluster.eksclusterbasic is still 1; calling provider "rafay" for any other minor fixups
+2022-03-30T17:23:36.098-0700 [TRACE] GRPCProvider: UpgradeResourceState
+2022-03-30T17:23:36.102-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to prevRunState for rafay_eks_cluster.eksclusterbasic
+2022-03-30T17:23:36.102-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: writing state object for rafay_eks_cluster.eksclusterbasic
+2022-03-30T17:23:36.102-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to refreshState for rafay_eks_cluster.eksclusterbasic
+2022-03-30T17:23:36.102-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: writing state object for rafay_eks_cluster.eksclusterbasic
+2022-03-30T17:23:36.103-0700 [TRACE] NodeAbstractResourceInstance.refresh for rafay_eks_cluster.eksclusterbasic
+2022-03-30T17:23:36.103-0700 [TRACE] GRPCProvider: ReadResource
+2022-03-30T17:23:36.105-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:36 READ eks cluster: timestamp=2022-03-30T17:23:36.105-0700
+2022-03-30T17:23:38.115-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:38 expanded cluster spec fine: timestamp=2022-03-30T17:23:38.115-0700
+2022-03-30T17:23:38.289-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:38 got cluster from backend: timestamp=2022-03-30T17:23:38.289-0700
+2022-03-30T17:23:38.456-0700 [TRACE] provider.stdio: received data: channel=STDOUT len=8
+2022-03-30T17:23:38.456-0700 [TRACE] provider.stdio: waiting for stdio data
+2022-03-30T17:23:38.657-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:38 resourceEKSClusterRead clusterSpec  kind: Cluster
 metadata:
-  name: test-cluster
+  name: test-cluster5
   project: dev
 spec:
-  type: eks
   blueprint: default
   blueprintversion: bpversion
   cloudprovider: aws-eks
   cniprovider: aws-cni
-  labels: {}
-
-----: timestamp=2022-03-28T15:23:26.412-0700
-2022-03-28T15:23:26.413-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 apply yamlClusterConfig: <*>(0xc00017a870){APIVersion:rafay.io/v1alpha5 Kind:ClusterConfig Metadata:<*>(0xc0005df740){Name:test-cluster Region:us-west-2 Version:1.21 Tags:<nil> Annotations:<nil>} KubernetesNetworkConfig:<nil> IAM:<nil> IdentityProviders:<nil> VPC:<nil> Addons:<nil> PrivateCluster:<nil> NodeGroups:[<*>(0xc0000e1180){Name:ng-57658a87 AMIFamily:AmazonLinux2 InstanceType: AvailabilityZones:<nil> Subnets:<nil> InstancePrefix: InstanceName:t3.xlarge ScalingConfig:{DesiredCapacity:<*>(0xc000d1a670)1 MinSize:<*>(0xc000d1a678)1 MaxSize:<*>(0xc000d1a680)2} VolumeSize:<*>(0xc000d1a688)80 SSH:<nil> Labels:<nil> PrivateNetworking:false Tags:<nil> IAM:<*>(0xc000170540){AttachPolicy:<nil> AttachPolicyARNs:<nil> InstanceProfileARN: InstanceRoleARN: InstanceRoleName: InstanceRolePermissionsBoundary: WithAddonPolicies:{ImageBuilder:<*>(0xc000d1a690)true AutoScaler:<*>(0xc000d1a691)true ExternalDNS:<*>(0xc000d1a692)false CertManager:<*>(0xc000d1a69a)false AppMesh:<nil> AppMeshPreview:<nil> EBS:<nil> FSX:<nil> EFS:<nil> AWSLoadBalancerController:<nil> XRay:<nil> CloudWatch:<nil>}} AMI: SecurityGroups:<nil> MaxPodsPerNode:0 ASGSuspendProcesses:<nil> EBSOptimized:<*>(0xc000d1a69b)false VolumeType:gp3 VolumeName: VolumeEncrypted:<*>(0xc000d1a69c)false VolumeKmsKeyID: VolumeIOPS:<*>(0xc000d1a6a0)0 VolumeThroughput:<*>(0xc000d1a6a8)0 PreBootstrapCommands:<nil> OverrideBootstrapCommand: DisableIMDSv1:<*>(0xc000d1a6b0)false DisablePodIMDS:<*>(0xc000d1a6b1)false Placement:<nil> EFAEnabled:<*>(0xc000d1a6b2)false InstanceSelector:<nil> AdditionalEncryptedVolume: Bottlerocket:<nil> CustomAMI:false EnableDetailedMonitoring:<nil> IsWavelengthZone:false InstancesDistribution:<nil> ASGMetricsCollection:<nil> CPUCredits: ClassicLoadBalancerNames:<nil> TargetGroupARNs:<nil> Taints:<nil> UpdateConfig:<nil> ClusterDNS: KubeletExtraConfig:<nil> ContainerRuntime:}] ManagedNodeGroups:<nil> FargateProfiles:<nil> AvailabilityZones:<nil> CloudWatch:<nil> SecretsEncryption:<nil>}: timestamp=2022-03-28T15:23:26.412-0700
-2022-03-28T15:23:26.413-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 EKS Cluster Spec YAML 
+  type: eks
 ---
 apiversion: rafay.io/v1alpha5
 kind: ClusterConfig
 metadata:
-  name: test-cluster
+  name: test-cluster5
   region: us-west-2
-  version: "1.21"
-kubernetesNetworkConfig: null
-nodeGroups:
-- name: ng-57658a87
-  amiFamily: AmazonLinux2
-  instanceName: t3.xlarge
-  scalingconfig:
-    desiredCapacity: 1
-    minSize: 1
-    maxSize: 2
-  volumeSize: 80
-  privateNetworking: false
-  iam:
-    withAddonPolicies:
-      imageBuilder: true
-      autoScaler: true
-      externalDNS: false
-      certManager: false
-      appMesh: null
-      appMeshPreview: null
-      ebs: null
-      fsx: null
-      efs: null
-      albIngress: null
-      xRay: null
-      cloudWatch: null
-  ebsOptimized: false
-  volumeType: gp3
-  volumeEncrypted: false
-  volumeIOPS: 0
-  volumeThroughput: 0
-  disableIMDSv1: false
-  disablePodIMDS: false
-  efaEnabled: false
-
-----: timestamp=2022-03-28T15:23:26.413-0700
-2022-03-28T15:23:26.413-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:26 process_filebytes: timestamp=2022-03-28T15:23:26.413-0700
-2022-03-28T15:23:27.239-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:27 calling cluster ctl: timestamp=2022-03-28T15:23:27.239-0700
-2022-03-28T15:23:27.239-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:27 eksClusterCTL: timestamp=2022-03-28T15:23:27.239-0700
-2022-03-28T15:23:27.241-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:27 final Configuration for cluster "test-cluster": "kind: Cluster\nmetadata:\n  name: test-cluster\n  project: dev\nspec:\n  type: eks\n  blueprint: default\n  blueprintversion: bpversion\n  cloudprovider: aws-eks\n  cniprovider: aws-cni\n  labels: {}\n---\napiversion: rafay.io/v1alpha5\nkind: ClusterConfig\nmetadata:\n  name: test-cluster\n  region: us-west-2\n  version: \"1.21\"\nkubernetesNetworkConfig: null\nnodeGroups:\n- name: ng-57658a87\n  amiFamily: AmazonLinux2\n  instanceName: t3.xlarge\n  scalingconfig:\n    desiredCapacity: 1\n    minSize: 1\n    maxSize: 2\n  volumeSize: 80\n  privateNetworking: false\n  iam:\n    withAddonPolicies:\n      imageBuilder: true\n      autoScaler: true\n      externalDNS: false\n      certManager: false\n      appMesh: null\n      appMeshPreview: null\n      ebs: null\n      fsx: null\n      efs: null\n      albIngress: null\n      xRay: null\n      cloudWatch: null\n  ebsOptimized: false\n  volumeType: gp3\n  volumeEncrypted: false\n  volumeIOPS: 0\n  volumeThroughput: 0\n  disableIMDSv1: false\n  disablePodIMDS: false\n  efaEnabled: false\n": timestamp=2022-03-28T15:23:27.240-0700
-2022-03-28T15:23:27.577-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:27 process_filebytes response : {"taskset_id":"w2lrw62","operations":[{"operation":"NodegroupCreation","resource_name":"ng-57658a87","status":"PROVISION_TASK_STATUS_PENDING"},{"operation":"ClusterCreation","resource_name":"test-cluster","status":"PROVISION_TASK_STATUS_PENDING"}],"comments":"The status of the operations can be fetched using taskset_id","status":"PROVISION_TASKSET_STATUS_PENDING"}: timestamp=2022-03-28T15:23:27.577-0700
-2022-03-28T15:23:27.577-0700 [TRACE] provider.stdio: received data: channel=STDOUT len=456
-2022-03-28T15:23:27.577-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:23:31.034-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:31.034-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:31.034-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:23:36.039-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:36.039-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:23:36.039-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:37.787-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:23:37 Cluster Provision may take upto 15-20 Minutes: timestamp=2022-03-28T15:23:37.787-0700
-2022-03-28T15:23:41.041-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:23:41.041-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:41.041-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:46.045-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:23:46.045-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:46.045-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:51.050-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:51.050-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:23:51.050-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:56.054-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:56.054-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:23:56.055-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:01.059-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:01.059-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:01.059-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:06.061-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:06.061-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:06.062-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:11.064-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:11.065-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:11.065-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:16.069-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:16.069-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:16.069-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:21.074-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:21.077-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:21.077-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:26.081-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:26.082-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:26.082-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:31.082-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:31.083-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:31.083-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:36.087-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:36.088-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:36.088-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:37.930-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:24:37 eksClusterCTLStatus: timestamp=2022-03-28T15:24:37.930-0700
-2022-03-28T15:24:38.230-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:24:38 statusResp  {"taskset_id":"w2lrw62","operations":[{"operation":"NodegroupCreation","resource_name":"ng-57658a87","status":"PROVISION_TASK_STATUS_PENDING"},{"operation":"ClusterCreation","resource_name":"test-cluster","status":"PROVISION_TASK_STATUS_INPROGRESS"}],"comments":"Configuration is being applied to the cluster","status":"PROVISION_TASKSET_STATUS_INPROGRESS"}: timestamp=2022-03-28T15:24:38.229-0700
-2022-03-28T15:24:38.232-0700 [TRACE] provider.stdio: received data: channel=STDOUT len=447
-2022-03-28T15:24:38.232-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:24:41.093-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:41.093-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:41.093-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:46.097-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:46.098-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:46.098-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:51.101-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:51.101-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:51.101-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:56.106-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:24:56.107-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:24:56.107-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:01.107-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:01.107-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:25:01.107-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:06.112-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:06.113-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:25:06.113-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:11.118-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:11.118-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:11.118-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:25:16.121-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:25:16.122-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:16.122-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:21.126-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:21.126-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:25:21.127-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:26.131-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:25:26.132-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:26.132-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:31.136-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:31.136-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:25:31.136-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:36.139-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:36.140-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:36.140-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:25:38.589-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:25:38 eksClusterCTLStatus: timestamp=2022-03-28T15:25:38.588-0700
-2022-03-28T15:25:38.848-0700 [TRACE] provider.stdio: received data: channel=STDOUT len=447
-2022-03-28T15:25:38.848-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:25:38.848-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:25:38 statusResp  {"taskset_id":"w2lrw62","operations":[{"operation":"NodegroupCreation","resource_name":"ng-57658a87","status":"PROVISION_TASK_STATUS_PENDING"},{"operation":"ClusterCreation","resource_name":"test-cluster","status":"PROVISION_TASK_STATUS_INPROGRESS"}],"comments":"Configuration is being applied to the cluster","status":"PROVISION_TASKSET_STATUS_INPROGRESS"}: timestamp=2022-03-28T15:25:38.847-0700
-2022-03-28T15:25:41.144-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:25:41.144-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:41.144-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:46.149-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:46.150-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:25:46.150-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:51.153-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:51.153-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:51.153-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:25:56.155-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:25:56.156-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:25:56.156-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:01.156-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:26:01.156-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:01.156-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:06.160-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:06.160-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:26:06.160-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:11.165-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:11.165-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:26:11.165-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:16.169-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:16.169-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:16.169-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:26:21.174-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:21.174-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:26:21.174-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:26.176-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:26.176-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:26.176-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:26:31.181-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:31.181-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:26:31.181-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:36.186-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:36.186-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:26:36.186-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:39.096-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:26:39 eksClusterCTLStatus: timestamp=2022-03-28T15:26:39.095-0700
-2022-03-28T15:26:39.325-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:26:39 statusResp  {"taskset_id":"w2lrw62","operations":[{"operation":"NodegroupCreation","resource_name":"ng-57658a87","status":"PROVISION_TASK_STATUS_PENDING"},{"operation":"ClusterCreation","resource_name":"test-cluster","status":"PROVISION_TASK_STATUS_INPROGRESS"}],"comments":"Configuration is being applied to the cluster","status":"PROVISION_TASKSET_STATUS_INPROGRESS"}: timestamp=2022-03-28T15:26:39.325-0700
-2022-03-28T15:26:39.326-0700 [TRACE] provider.stdio: received data: channel=STDOUT len=447
-2022-03-28T15:26:39.326-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:26:41.186-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:41.186-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:41.186-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:26:46.188-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:26:46.188-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:46.188-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:51.193-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:26:51.194-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:51.194-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:56.199-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:26:56.199-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:26:56.199-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:01.203-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:01.204-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:01.204-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:27:06.208-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:27:06.208-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:06.209-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:11.211-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:27:11.212-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:11.212-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:16.216-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:27:16.217-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:16.217-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:21.219-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:21.219-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:27:21.220-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:26.224-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:26.224-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:26.224-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:27:31.227-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:27:31.229-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:31.229-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:36.234-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:36.234-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:27:36.234-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:39.699-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:27:39 eksClusterCTLStatus: timestamp=2022-03-28T15:27:39.699-0700
-2022-03-28T15:27:40.014-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:27:40 statusResp  {"taskset_id":"w2lrw62","operations":[{"operation":"NodegroupCreation","resource_name":"ng-57658a87","status":"PROVISION_TASK_STATUS_PENDING"},{"operation":"ClusterCreation","resource_name":"test-cluster","status":"PROVISION_TASK_STATUS_INPROGRESS"}],"comments":"Configuration is being applied to the cluster","status":"PROVISION_TASKSET_STATUS_INPROGRESS"}: timestamp=2022-03-28T15:27:40.014-0700
-2022-03-28T15:27:40.014-0700 [TRACE] provider.stdio: received data: channel=STDOUT len=447
-2022-03-28T15:27:40.014-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:27:41.238-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:41.238-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:41.239-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:27:46.244-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:27:46.244-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:46.244-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:51.248-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:27:51.248-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:51.249-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:56.252-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:27:56.253-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:27:56.253-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:01.258-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:01.258-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:01.258-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:28:06.259-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:28:06.260-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:06.260-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:11.265-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:11.265-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:28:11.265-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:16.269-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:16.270-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:16.270-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:28:21.274-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:28:21.274-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:21.274-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:26.277-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:26.277-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:26.277-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:28:31.281-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:28:31.281-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:31.281-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:36.284-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:36.284-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:28:36.284-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:40.184-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:28:40 eksClusterCTLStatus: timestamp=2022-03-28T15:28:40.184-0700
-2022-03-28T15:28:40.573-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:28:40 statusResp  {"taskset_id":"w2lrw62","operations":[{"operation":"NodegroupCreation","resource_name":"ng-57658a87","status":"PROVISION_TASK_STATUS_PENDING"},{"operation":"ClusterCreation","resource_name":"test-cluster","status":"PROVISION_TASK_STATUS_INPROGRESS"}],"comments":"Configuration is being applied to the cluster","status":"PROVISION_TASKSET_STATUS_INPROGRESS"}: timestamp=2022-03-28T15:28:40.573-0700
-2022-03-28T15:28:40.573-0700 [TRACE] provider.stdio: received data: channel=STDOUT len=447
-2022-03-28T15:28:40.573-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:28:41.286-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:41.286-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:41.286-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:28:46.291-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:28:46.291-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:46.291-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:51.296-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:51.296-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:51.296-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:28:56.300-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:28:56.301-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:28:56.301-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:01.303-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:01.304-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:29:01.304-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:06.307-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:06.308-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:06.308-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:29:11.310-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:29:11.310-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:11.311-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:16.315-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:16.316-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:29:16.316-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:21.320-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:21.320-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:29:21.320-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:26.324-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:26.324-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:29:26.324-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:31.329-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:31.329-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:31.329-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:29:36.333-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:29:36.334-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:36.334-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:41.037-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:29:41 eksClusterCTLStatus: timestamp=2022-03-28T15:29:41.037-0700
-2022-03-28T15:29:41.302-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:29:41 statusResp  {"taskset_id":"w2lrw62","operations":[{"operation":"NodegroupCreation","resource_name":"ng-57658a87","status":"PROVISION_TASK_STATUS_PENDING"},{"operation":"ClusterCreation","resource_name":"test-cluster","status":"PROVISION_TASK_STATUS_INPROGRESS"}],"comments":"Configuration is being applied to the cluster","status":"PROVISION_TASKSET_STATUS_INPROGRESS"}: timestamp=2022-03-28T15:29:41.302-0700
-2022-03-28T15:29:41.303-0700 [TRACE] provider.stdio: received data: channel=STDOUT len=447
-2022-03-28T15:29:41.303-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:29:41.338-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:29:41.338-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:41.338-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:46.338-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:46.339-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:29:46.339-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:51.342-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:29:51.342-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:51.342-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:56.346-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:29:56.346-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:29:56.346-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:01.349-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:01.349-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:01.349-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:30:06.350-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:30:06.350-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:06.350-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:11.350-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:30:11.351-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:11.351-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:16.354-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:16.354-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:16.355-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:30:21.359-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:21.359-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:30:21.359-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:26.363-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:26.363-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:26.363-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:30:31.368-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:30:31.368-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:31.368-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:36.373-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:36.374-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:30:36.374-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:41.376-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:41.379-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:41.380-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:30:41.457-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:30:41 eksClusterCTLStatus: timestamp=2022-03-28T15:30:41.456-0700
-2022-03-28T15:30:41.682-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:30:41 statusResp  {"taskset_id":"w2lrw62","operations":[{"operation":"NodegroupCreation","resource_name":"ng-57658a87","status":"PROVISION_TASK_STATUS_PENDING"},{"operation":"ClusterCreation","resource_name":"test-cluster","status":"PROVISION_TASK_STATUS_INPROGRESS"}],"comments":"Configuration is being applied to the cluster","status":"PROVISION_TASKSET_STATUS_INPROGRESS"}: timestamp=2022-03-28T15:30:41.682-0700
-2022-03-28T15:30:41.683-0700 [TRACE] provider.stdio: received data: channel=STDOUT len=447
-2022-03-28T15:30:41.683-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:30:46.381-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:30:46.381-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:46.381-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:51.386-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:51.386-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:30:51.386-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:56.387-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:30:56.387-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:30:56.387-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:01.391-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:01.391-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:31:01.391-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:06.392-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:06.392-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:06.392-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:31:11.392-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:31:11.392-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:11.392-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:16.397-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:16.397-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:31:16.397-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:21.401-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:21.402-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:21.402-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:31:26.406-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:31:26.406-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:26.406-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:31.406-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:31:31.407-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:31.407-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:36.411-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:36.411-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:31:36.411-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:41.415-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:41.418-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:41.418-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:31:42.881-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:31:42 eksClusterCTLStatus: timestamp=2022-03-28T15:31:42.881-0700
-2022-03-28T15:31:43.143-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:31:43 statusResp  {"taskset_id":"w2lrw62","operations":[{"operation":"NodegroupCreation","resource_name":"ng-57658a87","status":"PROVISION_TASK_STATUS_PENDING"},{"operation":"ClusterCreation","resource_name":"test-cluster","status":"PROVISION_TASK_STATUS_INPROGRESS"}],"comments":"Configuration is being applied to the cluster","status":"PROVISION_TASKSET_STATUS_INPROGRESS"}: timestamp=2022-03-28T15:31:43.143-0700
-2022-03-28T15:31:43.143-0700 [TRACE] provider.stdio: received data: channel=STDOUT len=447
-2022-03-28T15:31:43.143-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:31:46.419-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:31:46.419-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:46.419-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:51.424-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:31:51.424-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:51.424-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:56.428-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:31:56.428-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:31:56.428-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:01.432-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:32:01.432-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:01.432-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:06.434-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:06.434-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:32:06.434-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:11.438-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:32:11.438-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:11.438-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:16.439-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:32:16.439-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:16.439-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:21.440-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:21.441-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:32:21.441-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:26.446-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:26.446-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:26.446-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:32:31.450-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:32:31.450-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:31.450-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:36.452-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:36.452-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:32:36.453-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:41.453-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:32:41.454-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:41.454-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:43.324-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:32:43 eksClusterCTLStatus: timestamp=2022-03-28T15:32:43.324-0700
-2022-03-28T15:32:43.577-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:32:43 statusResp  {"taskset_id":"w2lrw62","operations":[{"operation":"NodegroupCreation","resource_name":"ng-57658a87","status":"PROVISION_TASK_STATUS_PENDING"},{"operation":"ClusterCreation","resource_name":"test-cluster","status":"PROVISION_TASK_STATUS_INPROGRESS"}],"comments":"Configuration is being applied to the cluster","status":"PROVISION_TASKSET_STATUS_INPROGRESS"}: timestamp=2022-03-28T15:32:43.577-0700
-2022-03-28T15:32:43.578-0700 [TRACE] provider.stdio: received data: channel=STDOUT len=447
-2022-03-28T15:32:43.578-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:32:46.465-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:32:46.474-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:46.474-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:51.469-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:32:51.483-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:51.483-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:56.488-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:32:56.488-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:32:56.488-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:01.489-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:01.489-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:01.489-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:33:06.494-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:33:06.494-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:06.494-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:11.498-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:33:11.499-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:11.499-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:16.500-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:33:16.501-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:16.501-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:21.505-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:21.505-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:33:21.505-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:26.509-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:26.509-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:26.509-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:33:31.513-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:33:31.513-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:31.513-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:36.517-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:33:36.518-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:36.518-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:41.519-0700 [TRACE] dag/walk: vertex "meta.count-boundary (EachMode fixup)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:41.519-0700 [TRACE] dag/walk: vertex "root" is waiting for "meta.count-boundary (EachMode fixup)"
-2022-03-28T15:33:41.519-0700 [TRACE] dag/walk: vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)" is waiting for "rafay_eks_cluster.eksclusterbasic"
-2022-03-28T15:33:44.117-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:33:44 eksClusterCTLStatus: timestamp=2022-03-28T15:33:44.117-0700
-2022-03-28T15:33:44.424-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/28 15:33:44 statusResp  {"taskset_id":"w2lrw62","operations":[{"operation":"NodegroupCreation","resource_name":"ng-57658a87","status":"PROVISION_TASK_STATUS_PENDING"},{"operation":"ClusterCreation","resource_name":"test-cluster","status":"PROVISION_TASK_STATUS_FAILED","error":{"title":"Error while creating cluster infrastructure: creating CloudFormation stack \"rafay-test-cluster-cluster\": AlreadyExistsException: Stack [rafay-test-cluster-cluster] already exists\n\tstatus code: 400, request id: 0e722cd3-2fa2-40ec-8a47-506fae013634\n"}}],"comments":"There were problem(s) while applying configuration to the cluster","status":"PROVISION_TASKSET_STATUS_FAILED"}: timestamp=2022-03-28T15:33:44.423-0700
-2022-03-28T15:33:44.424-0700 [TRACE] provider.stdio: received data: channel=STDOUT len=757
-2022-03-28T15:33:44.424-0700 [TRACE] provider.stdio: waiting for stdio data
-2022-03-28T15:33:44.426-0700 [TRACE] maybeTainted: rafay_eks_cluster.eksclusterbasic encountered an error during creation, so it is now marked as tainted
-2022-03-28T15:33:44.426-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to workingState for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:33:44.426-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:33:44.427-0700 [TRACE] evalApplyProvisioners: rafay_eks_cluster.eksclusterbasic is tainted, so skipping provisioning
-2022-03-28T15:33:44.427-0700 [TRACE] maybeTainted: rafay_eks_cluster.eksclusterbasic was already tainted, so nothing to do
-2022-03-28T15:33:44.427-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to workingState for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:33:44.427-0700 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_eks_cluster.eksclusterbasic
-2022-03-28T15:33:44.427-0700 [TRACE] statemgr.Filesystem: reading latest snapshot from terraform.tfstate
-2022-03-28T15:33:44.427-0700 [TRACE] statemgr.Filesystem: snapshot file has nil snapshot, but that's okay
-2022-03-28T15:33:44.427-0700 [TRACE] statemgr.Filesystem: read nil snapshot
-2022-03-28T15:33:44.427-0700 [TRACE] statemgr.Filesystem: no original state snapshot to back up
-2022-03-28T15:33:44.427-0700 [TRACE] statemgr.Filesystem: state has changed since last snapshot, so incrementing serial to 1
-2022-03-28T15:33:44.427-0700 [TRACE] statemgr.Filesystem: writing snapshot at terraform.tfstate
-2022-03-28T15:33:44.454-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": visit complete
-2022-03-28T15:33:44.454-0700 [TRACE] dag/walk: upstream of "meta.count-boundary (EachMode fixup)" errored, so skipping
-2022-03-28T15:33:44.454-0700 [TRACE] dag/walk: upstream of "provider[\"registry.terraform.io/rafay/rafay\"] (close)" errored, so skipping
-2022-03-28T15:33:44.454-0700 [TRACE] dag/walk: upstream of "root" errored, so skipping
-2022-03-28T15:33:44.454-0700 [TRACE] statemgr.Filesystem: reading latest snapshot from terraform.tfstate
-2022-03-28T15:33:44.455-0700 [TRACE] statemgr.Filesystem: read snapshot with lineage "782e3a96-0919-00b7-a1f1-f78afbed804c" serial 1
-2022-03-28T15:33:44.455-0700 [TRACE] statemgr.Filesystem: no original state snapshot to back up
-2022-03-28T15:33:44.455-0700 [TRACE] statemgr.Filesystem: no state changes since last snapshot
-2022-03-28T15:33:44.455-0700 [TRACE] statemgr.Filesystem: writing snapshot at terraform.tfstate
-2022-03-28T15:33:44.483-0700 [TRACE] statemgr.Filesystem: removing lock metadata file .terraform.tfstate.lock.info
-2022-03-28T15:33:44.484-0700 [TRACE] statemgr.Filesystem: unlocking terraform.tfstate using fcntl flock
-2022-03-28T15:33:44.486-0700 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
-2022-03-28T15:33:44.489-0700 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=64041
-2022-03-28T15:33:44.489-0700 [DEBUG] provider: plugin exited
+  version: "1.21": timestamp=2022-03-30T17:23:38.657-0700
+2022-03-30T17:23:38.657-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:38 cfgList:  map[Cluster:[[107 105 110 100 58 32 67 108 117 115 116 101 114 10 109 101 116 97 100 97 116 97 58 10 32 32 32 32 110 97 109 101 58 32 116 101 115 116 45 99 108 117 115 116 101 114 53 10 32 32 32 32 112 114 111 106 101 99 116 58 32 100 101 118 10 115 112 101 99 58 10 32 32 32 32 98 108 117 101 112 114 105 110 116 58 32 100 101 102 97 117 108 116 10 32 32 32 32 98 108 117 101 112 114 105 110 116 118 101 114 115 105 111 110 58 32 98 112 118 101 114 115 105 111 110 10 32 32 32 32 99 108 111 117 100 112 114 111 118 105 100 101 114 58 32 97 119 115 45 101 107 115 10 32 32 32 32 99 110 105 112 114 111 118 105 100 101 114 58 32 97 119 115 45 99 110 105 10 32 32 32 32 116 121 112 101 58 32 101 107 115 10]] ClusterConfig:[[97 112 105 118 101 114 115 105 111 110 58 32 114 97 102 97 121 46 105 111 47 118 49 97 108 112 104 97 53 10 107 105 110 100 58 32 67 108 117 115 116 101 114 67 111 110 102 105 103 10 109 101 116 97 100 97 116 97 58 10 32 32 32 32 110 97 109 101 58 32 116 101 115 116 45 99 108 117 115 116 101 114 53 10 32 32 32 32 114 101 103 105 111 110 58 32 117 115 45 119 101 115 116 45 50 10 32 32 32 32 118 101 114 115 105 111 110 58 32 34 49 46 50 49 34 10]]]: timestamp=2022-03-30T17:23:38.657-0700
+2022-03-30T17:23:38.657-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:38 n1: map[Cluster:[[107 105 110 100 58 32 67 108 117 115 116 101 114 10 109 101 116 97 100 97 116 97 58 10 32 32 32 32 110 97 109 101 58 32 116 101 115 116 45 99 108 117 115 116 101 114 53 10 32 32 32 32 112 114 111 106 101 99 116 58 32 100 101 118 10 115 112 101 99 58 10 32 32 32 32 98 108 117 101 112 114 105 110 116 58 32 100 101 102 97 117 108 116 10 32 32 32 32 98 108 117 101 112 114 105 110 116 118 101 114 115 105 111 110 58 32 98 112 118 101 114 115 105 111 110 10 32 32 32 32 99 108 111 117 100 112 114 111 118 105 100 101 114 58 32 97 119 115 45 101 107 115 10 32 32 32 32 99 110 105 112 114 111 118 105 100 101 114 58 32 97 119 115 45 99 110 105 10 32 32 32 32 116 121 112 101 58 32 101 107 115 10]] ClusterConfig:[[97 112 105 118 101 114 115 105 111 110 58 32 114 97 102 97 121 46 105 111 47 118 49 97 108 112 104 97 53 10 107 105 110 100 58 32 67 108 117 115 116 101 114 67 111 110 102 105 103 10 109 101 116 97 100 97 116 97 58 10 32 32 32 32 110 97 109 101 58 32 116 101 115 116 45 99 108 117 115 116 101 114 53 10 32 32 32 32 114 101 103 105 111 110 58 32 117 115 45 119 101 115 116 45 50 10 32 32 32 32 118 101 114 115 105 111 110 58 32 34 49 46 50 49 34 10]]]: timestamp=2022-03-30T17:23:38.657-0700
+2022-03-30T17:23:38.657-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:38 md 1: timestamp=2022-03-30T17:23:38.657-0700
+2022-03-30T17:23:38.657-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:38 md 2: timestamp=2022-03-30T17:23:38.657-0700
+2022-03-30T17:23:38.657-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:38 md 3: timestamp=2022-03-30T17:23:38.657-0700
+2022-03-30T17:23:38.657-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:38 ret1:  [map[name:test-cluster5 project:dev]]: timestamp=2022-03-30T17:23:38.657-0700
+2022-03-30T17:23:38.658-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:38 [ERROR] setting state: Invalid address to set: []string{"metadata"}: timestamp=2022-03-30T17:23:38.657-0700
+2022-03-30T17:23:38.658-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:38 metadata set err: timestamp=2022-03-30T17:23:38.657-0700
+2022-03-30T17:23:38.658-0700 [INFO]  provider.terraform-provider-rafay: 2022/03/30 17:23:38 flatten eks cluster error Invalid address to set: []string{"metadata"}: timestamp=2022-03-30T17:23:38.657-0700
+2022-03-30T17:23:38.659-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": visit complete
+2022-03-30T17:23:38.659-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": dynamic subgraph encountered errors: Invalid address to set: []string{"metadata"}
+2022-03-30T17:23:38.659-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic": visit complete
+2022-03-30T17:23:38.659-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": dynamic subgraph encountered errors: Invalid address to set: []string{"metadata"}
+2022-03-30T17:23:38.659-0700 [TRACE] vertex "rafay_eks_cluster.eksclusterbasic (expand)": visit complete
+2022-03-30T17:23:38.659-0700 [TRACE] dag/walk: upstream of "meta.count-boundary (EachMode fixup)" errored, so skipping
+2022-03-30T17:23:38.659-0700 [TRACE] dag/walk: upstream of "provider[\"registry.terraform.io/rafay/rafay\"] (close)" errored, so skipping
+2022-03-30T17:23:38.659-0700 [TRACE] dag/walk: upstream of "root" errored, so skipping
+2022-03-30T17:23:38.661-0700 [TRACE] statemgr.Filesystem: removing lock metadata file .terraform.tfstate.lock.info
+2022-03-30T17:23:38.661-0700 [TRACE] statemgr.Filesystem: unlocking terraform.tfstate using fcntl flock
+2022-03-30T17:23:38.662-0700 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2022-03-30T17:23:38.665-0700 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/0.3.0/darwin_amd64/terraform-provider-rafay pid=17930
+2022-03-30T17:23:38.665-0700 [DEBUG] provider: plugin exited

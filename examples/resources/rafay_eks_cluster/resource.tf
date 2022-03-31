@@ -2,7 +2,7 @@ resource "rafay_eks_cluster" "eksclusterbasic" {
   cluster {
     kind = "Cluster"
     metadata {
-      name = "test-cluster"
+      name = "test-cluster5"
       project = "dev"
     }
     spec {
@@ -17,7 +17,7 @@ resource "rafay_eks_cluster" "eksclusterbasic" {
     apiversion = "rafay.io/v1alpha5"
     kind = "ClusterConfig"
     metadata {
-      name = "test-cluster"
+      name = "test-cluster5"
       region = "us-west-2"
       version = "1.21"
     }
@@ -27,7 +27,7 @@ resource "rafay_eks_cluster" "eksclusterbasic" {
       iam {
         iam_node_group_with_addon_policies {
           image_builder = true
-          auto_scaler = true
+          //auto_scaler = false
         }
       }
       instance_type = "t3.xlarge"

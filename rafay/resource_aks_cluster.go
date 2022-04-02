@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -427,12 +428,12 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 				Schema: clusterAKSManagedClusterPrivateLinkResources(),
 			},
 		},
-		"service_principle_profile": {
+		"service_principal_profile": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "Information about a service principal identity for the cluster to use for manipulating Azure APIs.",
 			Elem: &schema.Resource{
-				Schema: clusterAKSManagedClusterServicePrincipleProfile(),
+				Schema: clusterAKSManagedClusterServicePrincipalProfile(),
 			},
 		},
 		"windows_profile": {
@@ -1050,7 +1051,7 @@ func clusterAKSManagedClusterPrivateLinkResources() map[string]*schema.Schema {
 	return s
 }
 
-func clusterAKSManagedClusterServicePrincipleProfile() map[string]*schema.Schema {
+func clusterAKSManagedClusterServicePrincipalProfile() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"client_id": {
 			Type:        schema.TypeString,
@@ -1165,6 +1166,11 @@ func clusterAKSNodePool() map[string]*schema.Schema {
 			Default:     "Microsoft.ContainerService/managedClusters/agentPools",
 			Description: "The AKS node pool type",
 		},
+		"location": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "AKS cluster location",
+		},
 	}
 
 	return s
@@ -1247,16 +1253,16 @@ func clusterAKSNodePoolProperties() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "The maximum number of pods that can run on a node.",
 		},
-		"min_count": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Description: "The minimum number of nodes for auto-scaling",
-		},
 		"mode": {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Default:     "System",
 			Description: "The mode for a node pool which defines a node pool's primary function. If set as 'System', AKS prefers system pods scheduling to node pools with mode System. Accepted values: System, User",
+		},
+		"min_count": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "The minimum number of nodes for auto-scaling",
 		},
 		"node_labels": {
 			Type:     schema.TypeMap,
@@ -2039,7 +2045,7 @@ func expandAKSManagedClusterAutoScalerProfile(p []interface{}) *AKSManagedCluste
 		obj.NewPodScaleUpDelay = v
 	}
 
-	if v, ok := in["ok_total_unready_count"].(int); ok {
+	if v, ok := in["ok_total_unready_count"].(int); ok && v > 0 {
 		obj.OkTotalUnreadyCount = &v
 	}
 
@@ -2234,7 +2240,7 @@ func expandAKSManagedClusterNPLoadBalancerProfile(p []interface{}) *AKSManagedCl
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["allocated_outbound_ports"].(int); ok {
+	if v, ok := in["allocated_outbound_ports"].(int); ok && v > 0 {
 		obj.AllocatedOutboundPorts = &v
 	}
 
@@ -2242,7 +2248,7 @@ func expandAKSManagedClusterNPLoadBalancerProfile(p []interface{}) *AKSManagedCl
 		obj.EffectiveOutboundIPs = expandAKSManagedClusterNPEffectiveOutboundIPs(v)
 	}
 
-	if v, ok := in["idle_timeout_in_minutes"].(int); ok {
+	if v, ok := in["idle_timeout_in_minutes"].(int); ok && v > 0 {
 		obj.IdleTimeoutInMinutes = &v
 	}
 
@@ -2286,7 +2292,7 @@ func expandAKSManagedClusterNPManagedOutboundIPs(p []interface{}) *AKSManagedClu
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["count"].(int); ok {
+	if v, ok := in["count"].(int); ok && v > 0 {
 		obj.Count = &v
 	}
 	return obj
@@ -2578,6 +2584,7 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 	}
 
 	out := make([]*AKSNodePool, len(p))
+	outToSort := make([]AKSNodePool, len(p))
 	for i := range p {
 		obj := AKSNodePool{}
 		in := p[i].(map[string]interface{})
@@ -2597,7 +2604,16 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 		if v, ok := in["type"].(string); ok && len(v) > 0 {
 			obj.Type = v
 		}
-		out[i] = &obj
+
+		if v, ok := in["location"].(string); ok && len(v) > 0 {
+			obj.Location = v
+		}
+		outToSort[i] = obj
+	}
+
+	sort.Sort(ByNodepoolName(outToSort))
+	for i := range outToSort {
+		out[i] = &outToSort[i]
 	}
 
 	return out
@@ -2614,7 +2630,7 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 		obj.AvailabilityZones = toArrayString(v)
 	}
 
-	if v, ok := in["count"].(int); ok {
+	if v, ok := in["count"].(int); ok && v > 0 {
 		obj.Count = &v
 	}
 
@@ -2654,15 +2670,15 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 		obj.LinuxOSConfig = expandAKSNodePoolLinuxOsConfig(v)
 	}
 
-	if v, ok := in["max_count"].(int); ok {
+	if v, ok := in["max_count"].(int); ok && v > 0 {
 		obj.MaxCount = &v
 	}
 
-	if v, ok := in["max_pods"].(int); ok {
+	if v, ok := in["max_pods"].(int); ok && v > 0 {
 		obj.MaxPods = &v
 	}
 
-	if v, ok := in["min_count"].(int); ok {
+	if v, ok := in["min_count"].(int); ok && v > 0 {
 		obj.MinCount = &v
 	}
 
@@ -2686,7 +2702,7 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 		obj.OrchestratorVersion = v
 	}
 
-	if v, ok := in["os_disk_size_gb"].(int); ok {
+	if v, ok := in["os_disk_size_gb"].(int); ok && v > 0 {
 		obj.OsDiskSizeGB = &v
 	}
 
@@ -2756,11 +2772,11 @@ func expandAKSNodePoolKubeletConfig(p []interface{}) *AKSNodePoolKubeletConfig {
 		obj.AllowedUnsafeSysctls = toArrayString(v)
 	}
 
-	if v, ok := in["container_log_max_files"].(int); ok {
+	if v, ok := in["container_log_max_files"].(int); ok && v > 0 {
 		obj.ContainerLogMaxFiles = &v
 	}
 
-	if v, ok := in["container_log_max_size_mb"].(int); ok {
+	if v, ok := in["container_log_max_size_mb"].(int); ok && v > 0 {
 		obj.ContainerLogMaxSizeMB = &v
 	}
 
@@ -2780,15 +2796,15 @@ func expandAKSNodePoolKubeletConfig(p []interface{}) *AKSNodePoolKubeletConfig {
 		obj.FailSwapOn = &v
 	}
 
-	if v, ok := in["image_gc_high_threshold"].(int); ok {
+	if v, ok := in["image_gc_high_threshold"].(int); ok && v > 0 {
 		obj.ImageGcHighThreshold = &v
 	}
 
-	if v, ok := in["image_gc_low_threshold"].(int); ok {
+	if v, ok := in["image_gc_low_threshold"].(int); ok && v > 0 {
 		obj.ImageGcLowThreshold = &v
 	}
 
-	if v, ok := in["pod_max_pids"].(int); ok {
+	if v, ok := in["pod_max_pids"].(int); ok && v > 0 {
 		obj.PodMaxPids = &v
 	}
 
@@ -2806,7 +2822,7 @@ func expandAKSNodePoolLinuxOsConfig(p []interface{}) *AKSNodePoolLinuxOsConfig {
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["swap_file_size_mb"].(int); ok {
+	if v, ok := in["swap_file_size_mb"].(int); ok && v > 0 {
 		obj.SwapFileSizeMB = &v
 	}
 
@@ -2831,51 +2847,51 @@ func expandAKSNodePoolLinuxOsConfigSysctls(p []interface{}) *AKSNodePoolLinuxOsC
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["fs_aio_max_nr"].(int); ok {
+	if v, ok := in["fs_aio_max_nr"].(int); ok && v > 0 {
 		obj.FsAioMaxNr = &v
 	}
 
-	if v, ok := in["fs_file_max"].(int); ok {
+	if v, ok := in["fs_file_max"].(int); ok && v > 0 {
 		obj.FsFileMax = &v
 	}
 
-	if v, ok := in["fs_inotify_max_user_watches"].(int); ok {
+	if v, ok := in["fs_inotify_max_user_watches"].(int); ok && v > 0 {
 		obj.FsInotifyMaxUserWatches = &v
 	}
 
-	if v, ok := in["fs_nr_open"].(int); ok {
+	if v, ok := in["fs_nr_open"].(int); ok && v > 0 {
 		obj.FsNrOpen = &v
 	}
 
-	if v, ok := in["kernel_threads_max"].(int); ok {
+	if v, ok := in["kernel_threads_max"].(int); ok && v > 0 {
 		obj.KernelThreadsMax = &v
 	}
 
-	if v, ok := in["net_core_netdev_max_backlog"].(int); ok {
+	if v, ok := in["net_core_netdev_max_backlog"].(int); ok && v > 0 {
 		obj.NetCoreNetdevMaxBacklog = &v
 	}
 
-	if v, ok := in["net_core_optmem_max"].(int); ok {
+	if v, ok := in["net_core_optmem_max"].(int); ok && v > 0 {
 		obj.NetCoreOptmemMax = &v
 	}
 
-	if v, ok := in["net_core_rmem_default"].(int); ok {
+	if v, ok := in["net_core_rmem_default"].(int); ok && v > 0 {
 		obj.NetCoreRmemDefault = &v
 	}
 
-	if v, ok := in["net_core_rmem_max"].(int); ok {
+	if v, ok := in["net_core_rmem_max"].(int); ok && v > 0 {
 		obj.NetCoreRmemMax = &v
 	}
 
-	if v, ok := in["net_core_somaxconn"].(int); ok {
+	if v, ok := in["net_core_somaxconn"].(int); ok && v > 0 {
 		obj.NetCoreSomaxconn = &v
 	}
 
-	if v, ok := in["net_core_wmem_default"].(int); ok {
+	if v, ok := in["net_core_wmem_default"].(int); ok && v > 0 {
 		obj.NetCoreWmemDefault = &v
 	}
 
-	if v, ok := in["net_core_wmem_max"].(int); ok {
+	if v, ok := in["net_core_wmem_max"].(int); ok && v > 0 {
 		obj.NetCoreWmemMax = &v
 	}
 
@@ -2883,39 +2899,39 @@ func expandAKSNodePoolLinuxOsConfigSysctls(p []interface{}) *AKSNodePoolLinuxOsC
 		obj.NetIpv4IpLocalPortRange = v
 	}
 
-	if v, ok := in["net_ipv4_neigh_default_gc_thresh1"].(int); ok {
+	if v, ok := in["net_ipv4_neigh_default_gc_thresh1"].(int); ok && v > 0 {
 		obj.NetIpv4NeighDefaultGcThresh1 = &v
 	}
 
-	if v, ok := in["net_ipv4_neigh_default_gc_thresh2"].(int); ok {
+	if v, ok := in["net_ipv4_neigh_default_gc_thresh2"].(int); ok && v > 0 {
 		obj.NetIpv4NeighDefaultGcThresh2 = &v
 	}
 
-	if v, ok := in["net_ipv4_neigh_default_gc_thresh3"].(int); ok {
+	if v, ok := in["net_ipv4_neigh_default_gc_thresh3"].(int); ok && v > 0 {
 		obj.NetIpv4NeighDefaultGcThresh3 = &v
 	}
 
-	if v, ok := in["net_ipv4_tcp_fin_timeout"].(int); ok {
+	if v, ok := in["net_ipv4_tcp_fin_timeout"].(int); ok && v > 0 {
 		obj.NetIpv4TcpFinTimeout = &v
 	}
 
-	if v, ok := in["net_ipv4_tcpkeepalive_intvl"].(int); ok {
+	if v, ok := in["net_ipv4_tcpkeepalive_intvl"].(int); ok && v > 0 {
 		obj.NetIpv4TcpkeepaliveIntvl = &v
 	}
 
-	if v, ok := in["net_ipv4_tcp_keepalive_probes"].(int); ok {
+	if v, ok := in["net_ipv4_tcp_keepalive_probes"].(int); ok && v > 0 {
 		obj.NetIpv4TcpKeepaliveProbes = &v
 	}
 
-	if v, ok := in["net_ipv4_tcp_keepalive_time"].(int); ok {
+	if v, ok := in["net_ipv4_tcp_keepalive_time"].(int); ok && v > 0 {
 		obj.NetIpv4TcpKeepaliveTime = &v
 	}
 
-	if v, ok := in["net_ipv4_tcp_max_syn_backlog"].(int); ok {
+	if v, ok := in["net_ipv4_tcp_max_syn_backlog"].(int); ok && v > 0 {
 		obj.NetIpv4TcpMaxSynBacklog = &v
 	}
 
-	if v, ok := in["net_ipv4_tcp_max_tw_buckets"].(int); ok {
+	if v, ok := in["net_ipv4_tcp_max_tw_buckets"].(int); ok && v > 0 {
 		obj.NetIpv4TcpMaxTwBuckets = &v
 	}
 
@@ -2923,23 +2939,23 @@ func expandAKSNodePoolLinuxOsConfigSysctls(p []interface{}) *AKSNodePoolLinuxOsC
 		obj.NetIpv4TcpTwReuse = &v
 	}
 
-	if v, ok := in["net_netfilter_nf_conntrack_buckets"].(int); ok {
+	if v, ok := in["net_netfilter_nf_conntrack_buckets"].(int); ok && v > 0 {
 		obj.NetNetfilterNfConntrackBuckets = &v
 	}
 
-	if v, ok := in["net_netfilter_nf_conntrack_max"].(int); ok {
+	if v, ok := in["net_netfilter_nf_conntrack_max"].(int); ok && v > 0 {
 		obj.NetNetfilterNfConntrackMax = &v
 	}
 
-	if v, ok := in["vm_max_map_count"].(int); ok {
+	if v, ok := in["vm_max_map_count"].(int); ok && v > 0 {
 		obj.VmMaxMapCount = &v
 	}
 
-	if v, ok := in["vm_swappiness"].(int); ok {
+	if v, ok := in["vm_swappiness"].(int); ok && v > 0 {
 		obj.VmSwappiness = &v
 	}
 
-	if v, ok := in["vm_vfs_cache_pressure"].(int); ok {
+	if v, ok := in["vm_vfs_cache_pressure"].(int); ok && v > 0 {
 		obj.VmVfsCachePressure = &v
 	}
 
@@ -4169,16 +4185,23 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
+
+	// sort the incoming nodepools
+	inToSort := make([]AKSNodePool, len(in))
+	for i := range in {
+		inToSort[i] = *in[i]
+	}
+	sort.Sort(ByNodepoolName(inToSort))
+	for i := range inToSort {
+		in[i] = &inToSort[i]
+	}
+
 	out := make([]interface{}, len(in))
 	for i, in := range in {
 
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
-		}
-
-		if len(in.Type) > 0 {
-			obj["type"] = in.Type
 		}
 
 		if len(in.APIVersion) > 0 {
@@ -4195,6 +4218,14 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 				v = []interface{}{}
 			}
 			obj["properties"] = flattenAKSNodePoolProperties(in.Properties, v)
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		if len(in.Location) > 0 {
+			obj["location"] = in.Location
 		}
 
 		out[i] = obj
@@ -4328,7 +4359,6 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}) []
 		obj["type"] = in.Type
 	}
 
-	log.Printf("in.UpgradeSettings.MaxSurge %s: ", in.UpgradeSettings.MaxSurge)
 	if in.UpgradeSettings != nil {
 		v, ok := obj["upgrade_settings"].([]interface{})
 		if !ok {
@@ -4786,7 +4816,6 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("update AKS cluster resource")
-	log.Printf("TESTING TWENTY_TWENTY_TWO")
 	var diags diag.Diagnostics
 	obj := &AKSCluster{}
 
@@ -4871,8 +4900,6 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
 	}
 
-	log.Printf("TESTING HERE: %s", obj.Metadata.Project)
-
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
 		fmt.Print("project  does not exist")
@@ -4891,5 +4918,32 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(errDel)
 	}
 
+	for {
+		time.Sleep(60 * time.Second)
+		check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
+		if errGet != nil {
+			log.Printf("error while getCluster %s, delete success", errGet.Error())
+			break
+		}
+		if check == nil || (check != nil && check.Status != "READY") {
+			break
+		}
+	}
+
 	return diags
+}
+
+// Sort AKS Nodepool
+
+type ByNodepoolName []AKSNodePool
+
+func (np ByNodepoolName) Len() int      { return len(np) }
+func (np ByNodepoolName) Swap(i, j int) { np[i], np[j] = np[j], np[i] }
+func (np ByNodepoolName) Less(i, j int) bool {
+	ret := strings.Compare(np[i].Name, np[j].Name)
+	if ret < 0 {
+		return true
+	} else {
+		return false
+	}
 }

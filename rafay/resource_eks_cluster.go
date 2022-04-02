@@ -21,16 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-type configMetadata struct {
-	Name    string `yaml:"name"`
-	Project string `yaml:"project"`
-	Version string `yaml:"version"`
-}
-
-type configResourceType struct {
-	Meta *configMetadata `yaml:"metadata"`
-}
-
 type blueprintSpec struct {
 	Blueprint        string `yaml:"blueprint"`
 	Blueprintversion string `yaml:"blueprintversion"`
@@ -4183,11 +4173,13 @@ func flattenNodeGroupIAM(in *NodeGroupIAM, p []interface{}) []interface{} {
 	v, ok := obj["iam_node_group_with_addon_policies"].([]interface{})
 	if !ok {
 		v = []interface{}{}
+
 	}
 	obj["iam_node_group_with_addon_policies"] = flattenNodeGroupIAMWithAddonPolicies(in.WithAddonPolicies, v)
 
 	return []interface{}{obj}
 }
+
 func flattenNodeGroupIAMWithAddonPolicies(in NodeGroupIAMAddonPolicies, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
@@ -4320,6 +4312,7 @@ func flattenNodeGroupUpdateConfig(in *NodeGroupUpdateConfig, p []interface{}) []
 	if in == nil {
 		return []interface{}{obj}
 	}
+
 
 	obj["max_unavaliable"] = in.MaxUnavailable
 	obj["max_unavaliable_percetage"] = in.MaxUnavailablePercentage

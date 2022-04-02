@@ -1,43 +1,53 @@
 resource "rafay_cloud_credential" "tfcredential1" {
   name         = "tfcredential1"
-  projectname  = "upgrade"
+  projectname  = "terraform"
   description  = "description"
   type         = "cluster-provisioning"
   providertype = "AWS"
   awscredtype  = "accesskey"
-  accesskey    = "fgbshhrgeineatyssde"
-  secretkey    = "abcdfergsfeddadsf"
+  accesskey    = "aws-accesskey"
+  secretkey    = "aws-secretkey"
 }
 
 
 resource "rafay_cloud_credential" "tfcredential2" {
   name         = "tfcredential2"
-  projectname  = "upgrade"
+  projectname  = "terraform"
   description  = "description"
   type         = "cluster-provisioning"
   providertype = "AWS"
   awscredtype  = "rolearn"
-  rolearn      = "tesgtarf"
-  externalid   = "reinesg"
+  rolearn      = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/<role-name>"
+  externalid   = "aws-externalid"
 }
 
 resource "rafay_cloud_credential" "tfcredential3" {
   name         = "tfcredential3"
-  projectname  = "upgrade"
+  projectname  = "terraform"
   description  = "descriptions"
   type         = "cluster-provisioning"
   providertype = "GCP"
-  credfile     = "/Users/stephanbenny/Downloads/benny-rctl-test-10-848884a20733.json"
+  credfile     = "/Users/user1/gcpcredentials.json"
 }
 
 resource "rafay_cloud_credential" "tfcredential4" {
   name           = "tfcredential4"
-  projectname    = "upgrade"
+  projectname    = "terraform"
   description    = "description"
   type           = "cluster-provisioning"
   providertype   = "AZURE"
   clientid       = "azure-client-id"
-  clientsecret   = "sbgffufwefnwfiefw"
-  subscriptionid = "jsdgkdf"
-  tenantid       = "dgmwkfj"
+  clientsecret   = "azure-clientsecret"
+  subscriptionid = "azure-subscriptionid"
+  tenantid       = "azure-tenantid"
+}
+
+resource "rafay_cloud_credential" "tfcredential5" {
+    name           = "tfcredential5"
+    project        = "terraform"
+    type           = "data-backup"
+    providertype   = "AWS"
+    awscredtype    = "accesskey"
+    accesskey      = "aws-accesskey"
+    secretkey      = "aws-secretkey"
 }

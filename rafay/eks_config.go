@@ -115,6 +115,7 @@ type EKSClusterMetadata struct {
 
 //struct for eks cluster config sped (second part of the yaml file kind:clusterConfig)
 type KubernetesNetworkConfig struct {
+	IPFamily        string `yaml:"ipFamily,omitempty"`
 	ServiceIPv4CIDR string `yaml:"serviceIPv4CIDR,omitempty"`
 }
 
@@ -216,7 +217,7 @@ type EKSClusterIAM struct {
 
 	// enables the IAM OIDC provider as well as IRSA for the Amazon CNI plugin
 	// +optional
-	WithOIDC bool `yaml:"withOIDC,omitempty"`
+	WithOIDC *bool `yaml:"withOIDC,omitempty"`
 
 	// service accounts to create in the cluster.
 	// See [IAM Service Accounts](/iamserviceaccounts/#usage-with-config-files)
@@ -226,12 +227,16 @@ type EKSClusterIAM struct {
 	// VPCResourceControllerPolicy attaches the IAM policy
 	// necessary to run the VPC controller in the control plane
 	// Defaults to `true`
-	VPCResourceControllerPolicy bool `yaml:"vpcResourceControllerPolicy,omitempty"`
+	VPCResourceControllerPolicy *bool `yaml:"vpcResourceControllerPolicy,omitempty"`
 }
 
 // ClusterIAMServiceAccount holds an IAM service account metadata and configuration
 type EKSClusterIAMServiceAccount struct {
-	EKSClusterIAMMeta `yaml:"metadata,omitempty"`
+	//KSClusterIAMMeta `yaml:"metadata,omitempty"`
+	Name        string            `yaml:"name,omitempty"`
+	Namespace   string            `yaml:"namespace,omitempty"`
+	Labels      map[string]string `yaml:"labels,omitempty"`
+	Annotations map[string]string `yaml:"annotations,omitempty"`
 
 	// list of ARNs of the IAM policies to attach
 	// +optional
@@ -301,12 +306,23 @@ type ClusterIAMServiceAccountStatus struct {
 	RoleARN string `yaml:"roleARN,omitempty"`
 }
 type AZSubnetMapping map[string]AZSubnetSpec
+type TFAZSubnetMapping map[string]TFAZSubnetSpec
 type (
 	// ClusterVPC holds global subnet and all child subnets
 	EKSClusterVPC struct {
 		// global CIDR and VPC ID
 		// +optional
-		Network
+		//Network
+		// +optional
+		ID string `yaml:"id,omitempty"`
+		// +optional
+		//can i just make this a string?
+		CIDR string `yaml:"cidr"`
+		//CIDR *ipnet.IPNet `yaml:"cidr,omitempty"`
+		// +optional
+		IPv6Cidr string `yaml:"ipv6Cidr,omitempty"`
+		// +optional
+		IPv6Pool string `yaml:"ipv6Pool,omitempty"`
 		// SecurityGroup (aka the ControlPlaneSecurityGroup) for communication between control plane and nodes
 		// +optional
 		SecurityGroup string `yaml:"securityGroup,omitempty"`
@@ -348,13 +364,31 @@ type (
 		PublicAccessCIDRs []string `yaml:"publicAccessCIDRs,omitempty"`
 	}
 	// ClusterSubnets holds private and public subnets
+	TFClusterSubnets struct {
+		Private TFAZSubnetMapping `yaml:"private,omitempty"`
+		Public  TFAZSubnetMapping `yaml:"public,omitempty"`
+		//Private AZSubnetMapping `yaml:"private,omitempty"`
+		//Public  AZSubnetMapping `yaml:"public,omitempty"`
+	}
 	ClusterSubnets struct {
 		Private AZSubnetMapping `yaml:"private,omitempty"`
 		Public  AZSubnetMapping `yaml:"public,omitempty"`
 	}
 	// SubnetTopology can be SubnetTopologyPrivate or SubnetTopologyPublic
 	SubnetTopology string
-	AZSubnetSpec   struct {
+	TFAZSubnetSpec struct {
+		Name string `yaml:"name,omitempty"`
+		// +optional
+		ID string `yaml:"id,omitempty"`
+		// AZ can be omitted if the key is an AZ
+		// +optional
+		AZ string `yaml:"az,omitempty"`
+		// +optional
+		//can i just make this a string?
+		//CIDR string `yaml:"cidr"`
+		CIDR *ipnet.IPNet `yaml:"cidr,omitempty"`
+	}
+	AZSubnetSpec struct {
 		// +optional
 		ID string `yaml:"id,omitempty"`
 		// AZ can be omitted if the key is an AZ
@@ -408,24 +442,24 @@ type Addon struct {
 	PermissionsBoundary string `yaml:"permissionsBoundary,omitempty"`
 	// WellKnownPolicies for attaching common IAM policies
 	//WellKnown Policies not in documentation for addon? (same field as IAM wellknow-policies)
-	//WellKnownPolicies WellKnownPolicies `yaml:"wellKnownPolicies,omitempty"`
+	WellKnownPolicies WellKnownPolicies `yaml:"wellKnownPolicies,omitempty"`
 	// The metadata to apply to the cluster to assist with categorization and organization.
 	// Each tag consists of a key and an optional value, both of which you define.
 	// +optional
 	Tags map[string]string `yaml:"tags,omitempty"`
 	// Force applies the add-on to overwrite an existing add-on
-	Force bool `yaml:"-"`
+	Force *bool `yaml:"-"`
 }
 
 // PrivateCluster defines the configuration for a fully-private cluster
 type PrivateCluster struct {
 
 	// Enabled enables creation of a fully-private cluster
-	Enabled bool `yaml:"enabled"`
+	Enabled *bool `yaml:"enabled"`
 
 	// SkipEndpointCreation skips the creation process for endpoints completely. This is only used in case of an already
 	// provided VPC and if the user decided to set it to true.
-	SkipEndpointCreation bool `yaml:"skipEndpointCreation"`
+	SkipEndpointCreation *bool `yaml:"skipEndpointCreation"`
 
 	// AdditionalEndpointServices specifies additional endpoint services that
 	// must be enabled for private access.
@@ -476,7 +510,7 @@ type NodeGroup struct {
 	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
 	// for nodegroup
 	// +optional
-	PrivateNetworking bool `yaml:"privateNetworking"`
+	PrivateNetworking *bool `yaml:"privateNetworking"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
 	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
@@ -561,14 +595,14 @@ type NodeGroup struct {
 	// TODO remove this
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and
 	// AL2 images a legacy bootstrapper will be used.
-	CustomAMI bool `yaml:"-"`
+	CustomAMI *bool `yaml:"-"`
 
 	// Enable EC2 detailed monitoring
 	// +optional
 	EnableDetailedMonitoring *bool `yaml:"enableDetailedMonitoring,omitempty"`
 	// Rafay changes - start
 	// Internal
-	IsWavelengthZone bool `yaml:"-"`
+	IsWavelengthZone *bool `yaml:"-"`
 	// Rafay changes - end
 
 	//+optional
@@ -591,7 +625,7 @@ type NodeGroup struct {
 
 	// Taints taints to apply to the nodegroup
 	// +optional
-	Taints taintsWrapper `yaml:"taints,omitempty"`
+	Taints []NodeGroupTaint `yaml:"taints,omitempty"`
 
 	// UpdateConfig configures how to update NodeGroups.
 	// +optional
@@ -652,7 +686,7 @@ type NodeGroupBase struct {
 	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
 	// for nodegroup
 	// +optional
-	PrivateNetworking bool `yaml:"privateNetworking"`
+	PrivateNetworking *bool `yaml:"privateNetworking"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
 	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
@@ -668,7 +702,7 @@ type NodeGroupBase struct {
 	SecurityGroups *NodeGroupSGs `yaml:"securityGroups,omitempty"`
 
 	// +optional
-	MaxPodsPerNode int `yaml:"maxPodsPerNode,omitempty"`
+	MaxPodsPerNode *int `yaml:"maxPodsPerNode,omitempty"`
 
 	// See [relevant AWS
 	// docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html#cfn-attributes-updatepolicy-rollingupdate-suspendprocesses)
@@ -737,25 +771,25 @@ type NodeGroupBase struct {
 	// TODO remove this
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and
 	// AL2 images a legacy bootstrapper will be used.
-	CustomAMI bool `yaml:"-"`
+	CustomAMI *bool `yaml:"-"`
 
 	// Enable EC2 detailed monitoring
 	// +optional
 	EnableDetailedMonitoring *bool `yaml:"enableDetailedMonitoring,omitempty"`
 	// Rafay changes - start
 	// Internal
-	IsWavelengthZone bool `yaml:"-"`
+	IsWavelengthZone *bool `yaml:"-"`
 	// Rafay changes - end
 }
 type InstanceSelector struct {
 	// VCPUs specifies the number of vCPUs
-	VCPUs int `yaml:"vCPUs,omitempty"`
+	VCPUs *int `yaml:"vCPUs,omitempty"`
 	// Memory specifies the memory
 	// The unit defaults to GiB
 	Memory string `yaml:"memory,omitempty"`
 	// GPUs specifies the number of GPUs.
 	// It can be set to 0 to select non-GPU instance types.
-	GPUs int `yaml:"gpus,omitempty"`
+	GPUs *int `yaml:"gpus,omitempty"`
 	// CPU Architecture of the EC2 instance type.
 	// Valid variants are:
 	// `"x86_64"`
@@ -905,7 +939,7 @@ type (
 		// rebalancing](https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html)
 		// for spot instances
 		// +optional
-		CapacityRebalance bool `yaml:"capacityRebalance"`
+		CapacityRebalance *bool `yaml:"capacityRebalance"`
 	}
 
 	// NodeGroupBottlerocket holds the configuration for Bottlerocket based
@@ -970,7 +1004,7 @@ type ManagedNodeGroup struct {
 	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
 	// for nodegroup
 	// +optional
-	PrivateNetworking bool `yaml:"privateNetworking"`
+	PrivateNetworking *bool `yaml:"privateNetworking"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
 	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
@@ -986,7 +1020,7 @@ type ManagedNodeGroup struct {
 	SecurityGroups *NodeGroupSGs `yaml:"securityGroups,omitempty"`
 
 	// +optional
-	MaxPodsPerNode int `yaml:"maxPodsPerNode,omitempty"`
+	MaxPodsPerNode *int `yaml:"maxPodsPerNode,omitempty"`
 
 	// See [relevant AWS
 	// docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html#cfn-attributes-updatepolicy-rollingupdate-suspendprocesses)
@@ -1055,21 +1089,21 @@ type ManagedNodeGroup struct {
 	// TODO remove this
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and
 	// AL2 images a legacy bootstrapper will be used.
-	CustomAMI bool `yaml:"-"`
+	CustomAMI *bool `yaml:"-"`
 
 	// Enable EC2 detailed monitoring
 	// +optional
 	EnableDetailedMonitoring *bool `yaml:"enableDetailedMonitoring,omitempty"`
 	// Rafay changes - start
 	// Internal
-	IsWavelengthZone bool `yaml:"-"`
+	IsWavelengthZone *bool `yaml:"-"`
 	// Rafay changes - end
 
 	// InstanceTypes specifies a list of instance types
 	InstanceTypes []string `yaml:"instanceTypes,omitempty"`
 
 	// Spot creates a spot nodegroup
-	Spot bool `yaml:"spot,omitempty"`
+	Spot *bool `yaml:"spot,omitempty"`
 
 	// Taints taints to apply to the nodegroup
 	Taints []NodeGroupTaint `yaml:"taints,omitempty"`

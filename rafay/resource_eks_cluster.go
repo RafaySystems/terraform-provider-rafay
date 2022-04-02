@@ -305,7 +305,7 @@ func configMetadataField() map[string]*schema.Schema {
 			Default:     "1.20",
 			Description: "Valid variants are: '1.16', '1.17', '1.18', '1.19', '1.20' (default), '1.21'.",
 		},
-		"tags": { //follow rancher set up https://github.com/rancher/terraform-provider-rancher2/blob/9b0d01baa1f2d30abcd114c3cfda6fcb6895b3b7/rancher2/schema_cluster_aks_config_v2.go#L249
+		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
 			Description: "used to tag AWS resources created by the vendor",
@@ -321,6 +321,12 @@ func configMetadataField() map[string]*schema.Schema {
 
 func kubernetesNetworkConfigField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
+		"ip_family": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "IPv4",
+			Description: "Valid variants are: 'IPv4' defines an IP family of v4 to be used when creating a new VPC and cluster., 'IPv6' defines an IP family of v6 to be used when creating a new VPC and cluster..",
+		},
 		"service_ipv4_cidr": {
 			Type:        schema.TypeString,
 			Optional:    true,
@@ -560,6 +566,16 @@ func vpcFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "AWS VPC ID.",
 		},
+		"ipv6_cidr": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "n/a",
+		},
+		"ipv6_pool": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "n/a",
+		},
 		"security_group": {
 			Type:        schema.TypeString,
 			Optional:    true,
@@ -624,7 +640,7 @@ func vpcFields() map[string]*schema.Schema {
 	}
 	return s
 }
-func subnetsConfigFields() map[string]*schema.Schema {
+func subnetsConfigFields() map[string]*schema.Schema { //@@@TODO: changing schema to a multi line string (terraform doesnt support map[string]object)
 	s := map[string]*schema.Schema{
 		"private": {
 			Type:        schema.TypeList,
@@ -647,10 +663,15 @@ func subnetsConfigFields() map[string]*schema.Schema {
 }
 func subnetSpecConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "name of subnet",
+		},
 		"id": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "id of subent",
+			Description: "id of subnet",
 		},
 		"az": {
 			Type:        schema.TypeString,
@@ -731,6 +752,14 @@ func addonConfigFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "ARN of the permissions boundary to associate",
 		},
+		"well_known_policies": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "for attaching common IAM policies",
+			Elem: &schema.Resource{
+				Schema: serviceAccountsWellKnownPolicyFields(),
+			},
+		},
 		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
@@ -750,6 +779,12 @@ func privateClusterConfigFields() map[string]*schema.Schema {
 			Optional:    true,
 			Default:     false,
 			Description: "enables creation of a fully-private cluster",
+		},
+		"skip_endpoint_creation": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "skips the creation process for endpoints completely. This is only used in case of an already provided VPC and if the user decided to set it to true.",
 		},
 		"additional_endpoint_services": {
 			Type:        schema.TypeList,
@@ -846,10 +881,9 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Default:     false,
 			Description: "Enable private networking for nodegroup",
 		},
-		"tags": { // what do we change the type to?
-			Type:     schema.TypeMap,
-			Optional: true,
-			//Default: {}
+		"tags": {
+			Type:        schema.TypeMap,
+			Optional:    true,
 			Description: "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
 		},
 		"iam": {
@@ -1018,8 +1052,8 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "taints to apply to the nodegroup",
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+			Elem: &schema.Resource{
+				Schema: managedNodeGroupTaintConfigFields(),
 			},
 		},
 		"update_config": {
@@ -1224,7 +1258,7 @@ func sshConfigFields() map[string]*schema.Schema {
 	return s
 }
 
-func iamNodeGroupConfigFields() map[string]*schema.Schema { //need to change schema to have attachPolicyARNS
+func iamNodeGroupConfigFields() map[string]*schema.Schema { //@@@TODO: need to change schema to have attachPolicy(inline object)
 	s := map[string]*schema.Schema{
 		"attach_policy_arns": {
 			Type:        schema.TypeList,
@@ -1433,7 +1467,7 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 		},
 		"labels": {
 			Type:        schema.TypeMap,
-			Required:    true,
+			Optional:    true,
 			Description: "labels on nodes in the nodegroup",
 		},
 		"private_networking": {
@@ -1588,7 +1622,7 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 		},
 		"taints": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "taints to apply to the nodegroup",
 			Elem: &schema.Resource{
 				Schema: managedNodeGroupTaintConfigFields(),
@@ -1596,7 +1630,7 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 		},
 		"update_config": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "used by the scaling config, see cloudformation docs",
 			Elem: &schema.Resource{
 				Schema: updateConfigManagedNodeGroupsFields(),
@@ -1604,7 +1638,7 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 		},
 		"launch_tempelate": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "used by the scaling config, see cloudformation docs",
 			Elem: &schema.Resource{
 				Schema: launchTempelateFields(),
@@ -1683,7 +1717,7 @@ func launchTemepelateField() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "the AMI version of the EKS optimized AMI to use",
 		},
-		"kubeerenetes_version": { //in doc version is used twice in this field (gives error, used diff name than version)
+		"kuberenetes_version": { //in doc version is used twice in this field (gives error, used diff name than version)
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "Kuberenetes version for the nodegroup",
@@ -1916,6 +1950,7 @@ func expandEKSClusterConfig(p []interface{}) *EKSClusterConfig {
 	if v, ok := in["identity_providers"].([]interface{}); ok && len(v) > 0 {
 		obj.IdentityProviders = expandIdentityProviders(v)
 	}
+
 	if v, ok := in["addons"].([]interface{}); ok && len(v) > 0 {
 		obj.Addons = expandAddons(v)
 	}
@@ -1924,6 +1959,9 @@ func expandEKSClusterConfig(p []interface{}) *EKSClusterConfig {
 	}
 	if v, ok := in["node_groups"].([]interface{}); ok && len(v) > 0 {
 		obj.NodeGroups = expandNodeGroups(v)
+	}
+	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
+		obj.VPC = expandVPC(v)
 	}
 	if v, ok := in["managed_nodegroups"].([]interface{}); ok && len(v) > 0 {
 		obj.ManagedNodeGroups = expandManagedNodeGroups(v)
@@ -1985,8 +2023,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	log.Printf("process_filebytes")
 	var diags diag.Diagnostics
 	rctlCfg := config.GetConfig()
-	//IF THERES A CRASH check this logic
-	//might need to initalize inner []
+
 	cfgList := make(map[string][][]byte)
 	cfgList["Cluster"] = append(cfgList["Cluster"], clusterByte)
 	cfgList["ClusterConfig"] = append(cfgList["ClusterConfig"], configByte)
@@ -2003,7 +2040,6 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 		return diags
 	}
 
-	// cluster
 	log.Println("calling cluster ctl")
 	response, err := eksClusterCTL(rctlCfg, cfgList["Cluster"], cfgList["ClusterConfig"], false)
 	if err != nil {
@@ -2076,11 +2112,7 @@ func eksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte,
 	log.Printf("eksClusterCTL")
 	logger := glogger.GetLogger()
 	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
-	log.Println("len of errs: ", len(errs))
-	log.Println("errs: ", errs)
-	log.Println("len of configMap", len(configMap))
 	if len(errs) == 0 && len(configMap) > 0 {
-		log.Println("inside for loop")
 		// Make request
 		for clusterName, configBytes := range configMap {
 			return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun)
@@ -2277,7 +2309,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 			obj.Labels = toMapString(v)
 		}
 		if v, ok := in["private_networking"].(bool); ok {
-			obj.PrivateNetworking = v
+			obj.PrivateNetworking = &v
 		}
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
@@ -2292,7 +2324,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 			obj.SecurityGroups = expandNodeGroupSecurityGroups(v)
 		}
 		if v, ok := in["max_pods_per_node"].(int); ok {
-			obj.MaxPodsPerNode = v
+			obj.MaxPodsPerNode = &v
 		}
 		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
 			obj.ASGSuspendProcesses = toArrayString(v)
@@ -2349,7 +2381,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 			obj.InstanceTypes = toArrayString(v)
 		}
 		if v, ok := in["spot"].(bool); ok {
-			obj.Spot = v
+			obj.Spot = &v
 		}
 		if v, ok := in["taints"].([]interface{}); ok && len(v) > 0 {
 			obj.Taints = expandManagedNodeGroupTaints(v)
@@ -2469,7 +2501,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 			obj.Labels = toMapString(v)
 		}
 		if v, ok := in["private_networking"].(bool); ok {
-			obj.PrivateNetworking = v
+			obj.PrivateNetworking = &v
 		}
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
@@ -2553,7 +2585,9 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		if v, ok := in["target_group_arns"].([]interface{}); ok && len(v) > 0 {
 			obj.TargetGroupARNs = toArrayString(v)
 		}
-		//how should taints be stored correctly? (confused about taints wrapps struct)
+		if v, ok := in["taints"].([]interface{}); ok && len(v) > 0 {
+			obj.Taints = expandManagedNodeGroupTaints(v)
+		}
 
 		if v, ok := in["update_config"].([]interface{}); ok && len(v) > 0 {
 			obj.UpdateConfig = expandNodeGroupUpdateConfig(v)
@@ -2643,7 +2677,7 @@ func expandNodeGroupInstanceDistribution(p []interface{}) *NodeGroupInstancesDis
 		obj.SpotAllocationStrategy = v
 	}
 	if v, ok := in["capacity_rebalance"].(bool); ok {
-		obj.CapacityRebalance = v
+		obj.CapacityRebalance = &v
 	}
 	return obj
 }
@@ -2676,13 +2710,13 @@ func expandNodeGroupInstanceSelector(p []interface{}) *InstanceSelector {
 	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["vcpus"].(int); ok {
-		obj.VCPUs = v
+		obj.VCPUs = &v
 	}
 	if v, ok := in["memory"].(string); ok && len(v) > 0 {
 		obj.Memory = v
 	}
 	if v, ok := in["gpus"].(int); ok {
-		obj.GPUs = v
+		obj.GPUs = &v
 	}
 	if v, ok := in["cpu_architecture"].(string); ok && len(v) > 0 {
 		obj.CPUArchitecture = v
@@ -2768,6 +2802,8 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	n1 := spew.Sprintf("%+v", in)
+	log.Println("expandNodeGroupIAMWithAddonPolicies: ", n1)
 	if v, ok := in["image_builder"].(bool); ok {
 		obj.ImageBuilder = &v
 	}
@@ -2781,19 +2817,19 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 		obj.CertManager = &v
 	}
 	if v, ok := in["app_mesh"].(bool); ok {
-		obj.CertManager = &v
+		obj.AppMesh = &v
 	}
 	if v, ok := in["app_mesh_review"].(bool); ok {
-		obj.CertManager = &v
+		obj.AppMeshPreview = &v
 	}
 	if v, ok := in["ebs"].(bool); ok {
-		obj.CertManager = &v
+		obj.EBS = &v
 	}
 	if v, ok := in["fsx"].(bool); ok {
-		obj.CertManager = &v
+		obj.FSX = &v
 	}
 	if v, ok := in["efs"].(bool); ok {
-		obj.CertManager = &v
+		obj.EFS = &v
 	}
 	//doc says it should be field alb_ingress, struct has fiel ABSLoadBalancerController?
 	/*
@@ -2802,11 +2838,13 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 		}
 	*/
 	if v, ok := in["xray"].(bool); ok {
-		obj.CertManager = &v
+		obj.XRay = &v
 	}
 	if v, ok := in["cloud_watch"].(bool); ok {
-		obj.CertManager = &v
+		obj.CloudWatch = &v
 	}
+	n2 := spew.Sprintf("%+v", obj)
+	log.Println("expandNodeGroupIAMWithAddonPolicies obj: ", n2)
 	return obj
 }
 
@@ -2847,7 +2885,10 @@ func expandPrivateCluster(p []interface{}) *PrivateCluster {
 	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["enabled"].(bool); ok {
-		obj.Enabled = v
+		obj.Enabled = &v
+	}
+	if v, ok := in["skip_endpoint_creation"].(bool); ok {
+		obj.SkipEndpointCreation = &v
 	}
 	if v, ok := in["additional_endpoint_services"].([]interface{}); ok && len(v) > 0 {
 		obj.AdditionalEndpointServices = toArrayString(v)
@@ -2883,8 +2924,9 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 		if v, ok := in["permissions_boundary"].(string); ok && len(v) > 0 {
 			obj.PermissionsBoundary = v
 		}
-		//docs dont have well known policies but struct does?
-
+		if v, ok := in["well_known_policies"].([]interface{}); ok && len(v) > 0 {
+			obj.WellKnownPolicies = expandIAMWellKnownPolicies(v)
+		}
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
 		}
@@ -2909,6 +2951,12 @@ func expandVPC(p []interface{}) *EKSClusterVPC {
 	//is this right for cidr?
 	if v, ok := in["cidr"].(string); ok && len(v) > 0 {
 		obj.CIDR = v
+	}
+	if v, ok := in["ipv6_cidr"].(string); ok && len(v) > 0 {
+		obj.IPv6Cidr = v
+	}
+	if v, ok := in["ipv6_pool"].(string); ok && len(v) > 0 {
+		obj.IPv6Pool = v
 	}
 	if v, ok := in["security_group"].(string); ok && len(v) > 0 {
 		obj.SecurityGroup = v
@@ -2979,26 +3027,46 @@ func expandSubnets(p []interface{}) *ClusterSubnets {
 	//Throwing error, dont know how to take AZSubnetSpec and put into AZSubnetMapping
 	//@@@TODO: Store subnet spec properly
 	if v, ok := in["private"].([]interface{}); ok && len(v) > 0 {
-		//obj.Private = expandSubnetSpec(v)
+		//obj.Private = v
+		obj.Private = expandSubnetSpec(v)
 	}
 	if v, ok := in["public"].([]interface{}); ok && len(v) > 0 {
-		//obj.Public = expandSubnetSpec(v)
+		//obj.Public = v
+		obj.Public = expandSubnetSpec(v)
 	}
 	return obj
 }
-func expandSubnetSpec(p []interface{}) *AZSubnetSpec {
-	obj := &AZSubnetSpec{}
+func expandSubnetSpec(p []interface{}) AZSubnetMapping {
+	obj := make(AZSubnetMapping)
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
-	in := p[0].(map[string]interface{})
-	if v, ok := in["id"].(string); ok && len(v) > 0 {
-		obj.ID = v
+
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		elem2 := AZSubnetSpec{}
+		if v, ok := in["id"].(string); ok && len(v) > 0 {
+			elem2.ID = v
+		}
+		if v, ok := in["az"].(string); ok && len(v) > 0 {
+			elem2.AZ = v
+		}
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj[v] = elem2
+		}
+		/*@@@TODO ipnet object cant handle
+		if v, ok := in["cidr"].(string); ok && len(v) > 0 {
+			elem2.CIDR = v
+		}*/
 	}
-	if v, ok := in["az"].(string); ok && len(v) > 0 {
-		obj.AZ = v
-	}
+	/*
+		if v, ok := in["id"].(string); ok && len(v) > 0 {
+			obj.ID = v
+		}
+		if v, ok := in["az"].(string); ok && len(v) > 0 {
+			obj.AZ = v
+		}*/
 	//@@@TODO: how do you store cidr? (ipnet object)
 	return obj
 }
@@ -3046,7 +3114,7 @@ func expandIAMFields(p []interface{}) *EKSClusterIAM {
 	}
 
 	if v, ok := in["with_oidc"].(bool); ok {
-		obj.WithOIDC = v
+		obj.WithOIDC = &v
 	}
 
 	if v, ok := in["service_accounts"].([]interface{}); ok && len(v) > 0 {
@@ -3054,16 +3122,8 @@ func expandIAMFields(p []interface{}) *EKSClusterIAM {
 	}
 
 	if v, ok := in["vpcResourceControllerPolicy"].(bool); ok {
-		obj.VPCResourceControllerPolicy = v
+		obj.VPCResourceControllerPolicy = &v
 	}
-
-	//obj.ServiceRoleARN = in["serviceRoleARN"].(string)
-	//obj.ServiceRolePermissionsBoundary = in["serviceRolePermissionBoundary"].(string)
-	//obj.FargatePodExecutionRoleARN = in["fargatePodExecutionRoleARN"].string
-	//obj.FargatePodExecutionRolePermissionsBoundary = in["fargatePodExecutionPermissionsBoundary"].string
-	//obj.WithOIDC = in["withOIDC"]
-	//obj.ServiceAccounts = expandIAMServiceAccountsConfig(in["serviceAccounts"].([]interface{}))//break down is completly diff with shcema/docs vs struct
-	//obj.VPCResourceControllerPolicy = in["vpcResourceControllerPolicy"].bool
 
 	return obj
 }
@@ -3187,6 +3247,9 @@ func expandKubernetesNetworkConfig(p []interface{}) *KubernetesNetworkConfig {
 	}
 	in := p[0].(map[string]interface{})
 
+	if v, ok := in["ip_family"].(string); ok && len(v) > 0 {
+		obj.IPFamily = v
+	}
 	if v, ok := in["service_ipv4_cidr"].(string); ok && len(v) > 0 {
 		obj.ServiceIPv4CIDR = v
 	}
@@ -3224,169 +3287,6 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	return obj
 }
 
-/*
-func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	log.Printf("create EKS cluster resource")
-	c := config.GetConfig()
-	logger := glogger.GetLogger()
-
-	YamlConfigFilePath := d.Get("yamlfilepath").(string)
-
-	fileBytes, err := utils.ReadYAMLFileContents(YamlConfigFilePath)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	// split the file and update individual resources
-	y, uerr := utils.SplitYamlAndGetListByKind(fileBytes)
-	if uerr != nil {
-		return diag.FromErr(err)
-	}
-
-	var rafayConfigs, clusterConfigs [][]byte
-	rafayConfigs = y["Cluster"]
-	clusterConfigs = y["ClusterConfig"]
-	if len(rafayConfigs) > 1 {
-		return diag.FromErr(fmt.Errorf("%s", "only one cluster per config is supported"))
-	}
-	for _, yi := range rafayConfigs {
-		log.Println("rafayConfig:", string(yi))
-		name, project, _, err := findResourceNameFromConfig(yi)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("%s", "failed to get cluster name"))
-		}
-		log.Println("rafayConfig name:", name, "project:", project)
-		if name != d.Get("name").(string) {
-			return diag.FromErr(fmt.Errorf("%s", "cluster name does not match config file "))
-		}
-		if project != d.Get("projectname").(string) {
-			return diag.FromErr(fmt.Errorf("%s", "project name does not match config file"))
-		}
-	}
-
-	for _, yi := range clusterConfigs {
-		log.Println("clusterConfig", string(yi))
-		name, _, _, err := findResourceNameFromConfig(yi)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("%s", "failed to get cluster name"))
-		}
-		if name != d.Get("name").(string) {
-			return diag.FromErr(fmt.Errorf("%s", "ClusterConfig name does not match config file"))
-		}
-	}
-
-	// get project details
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-	if err != nil {
-		fmt.Print("project does not exist")
-		return diags
-	}
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		log.Println("project does not exist")
-		return diags
-	}
-
-	// override config project
-	c.ProjectID = project.ID
-
-	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
-	if len(errs) > 0 {
-		for _, err := range errs {
-			log.Println("error in collateConfigsByName", err)
-		}
-		return diag.FromErr(fmt.Errorf("%s", "failed in collateConfigsByName"))
-	}
-
-	// Make request
-	for clusterName, configBytes := range configMap {
-		log.Println("create cluster:", clusterName, "config:", string(configBytes), "projectID :", c.ProjectID)
-		if _, err := clusterctl.Apply(logger, c, clusterName, configBytes, false); err != nil {
-			return diag.FromErr(fmt.Errorf("error performing apply on cluster %s: %s", clusterName, err))
-		}
-	}
-
-	s, err := cluster.GetCluster(d.Get("name").(string), project.ID)
-	if err != nil {
-		log.Printf("error while getCluster %s", err.Error())
-		return diag.FromErr(err)
-	}
-	if d.Get("waitflag").(string) == "1" {
-		log.Printf("Cluster Provision may take upto 15-20 Minutes")
-		for {
-			check, errGet := cluster.GetCluster(d.Get("name").(string), project.ID)
-			if errGet != nil {
-				log.Printf("error while getCluster %s", errGet.Error())
-				return diag.FromErr(errGet)
-			}
-			if check.Status == "READY" {
-				break
-			}
-			if strings.Contains(check.Provision.Status, "FAILED") {
-				return diag.FromErr(fmt.Errorf("Failed to create cluster while cluster provisioning"))
-			}
-			time.Sleep(40 * time.Second)
-		}
-	}
-
-	log.Printf("resource eks cluster created %s", s.ID)
-	d.SetId(s.ID)
-
-	return diags
-}
-*/
-/* HOW SHOULD I SET UP FLATTEN
-func flattenEKS(d *schema.ResourceData, in *EKSCluster) error {
-	if in == nil {
-		return nil
-	}
-	obj := map[string]interface{}{}
-
-	if len(in.Kind) > 0 {
-		obj["kind"] = in.Kind
-	}
-	var err error
-	//dont have expand metametadata function how i should i properly do this?
-	var ret1 []interface{}
-	if in.Metadata != nil {
-		v, ok := obj["metadata"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		ret1, err = flattenEKSClusterMetadata(in.Metadata, v)
-		if err != nil {
-			return err
-		}
-	}
-
-	err = d.Set("metadata", ret1)
-	if err != nil {
-		return err
-	}
-	//flattening EKSClusterSpec
-	var ret2 []interface{}
-	if in.Con != nil {
-		v, ok := obj["config"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		ret2, err = flattenEKSConfig(in.Con, v)
-		if err != nil {
-			return err
-		}
-	}
-
-	err = d.Set("config", ret2)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-*/
-
 func flattenEKSCluster(in *EKSCluster, p []interface{}) error {
 	if in == nil {
 		return nil
@@ -3420,11 +3320,12 @@ func flattenEKSCluster(in *EKSCluster, p []interface{}) error {
 		}
 		ret2, err = flattenEKSClusterSpec(in.Spec, v)
 		if err != nil {
-			log.Println("flattenEKSClusterMetadata err")
+			log.Println("flattenEKSClusterSpec err")
 			return err
 		}
 		obj["spec"] = ret2
 	}
+	log.Println("flattenEKSCluster finished ")
 	return nil
 }
 func flattenEKSClusterMetadata(in *EKSClusterMetadata, p []interface{}) ([]interface{}, error) {
@@ -3621,6 +3522,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 			log.Println("flattenEKSClusterNodeGroups err")
 			return err
 		}
+		log.Println("flattend node group")
 		obj["node_groups"] = ret8
 	}
 	//setting up flatten Managed Node Groups
@@ -3697,6 +3599,9 @@ func flattenEKSClusterKubernetesNetworkConfig(in *KubernetesNetworkConfig, p []i
 		return []interface{}{obj}, nil
 	}
 
+	if len(in.IPFamily) > 0 {
+		obj["ip_family"] = in.IPFamily
+	}
 	if len(in.ServiceIPv4CIDR) > 0 {
 		obj["service_ipv4_cidr"] = in.ServiceIPv4CIDR
 	}
@@ -3868,6 +3773,12 @@ func flattenEKSClusterVPC(in *EKSClusterVPC, p []interface{}) ([]interface{}, er
 	if len(in.CIDR) > 0 {
 		obj["cidr"] = in.CIDR
 	}
+	if len(in.IPv6Cidr) > 0 {
+		obj["ipv6_cidr"] = in.CIDR
+	}
+	if len(in.IPv6Pool) > 0 {
+		obj["ipv6_pool"] = in.CIDR
+	}
 	if len(in.SecurityGroup) > 0 {
 		obj["security_group"] = in.SecurityGroup
 	}
@@ -3916,9 +3827,52 @@ func flattenEKSClusterVPC(in *EKSClusterVPC, p []interface{}) ([]interface{}, er
 	return []interface{}{obj}, nil
 }
 func flattenVPCSubnets(in *ClusterSubnets, p []interface{}) []interface{} {
-	//FIX THE EXPAND FIRST AND THEN DO THIS ITLL MAKE MORE SENSE
+	log.Println("got to flatten subnet")
 	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in.Private != nil {
+		v, ok := obj["private"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["private"] = flattenSubnetMapping(in.Private, v)
+	}
+	if in.Public != nil {
+		v, ok := obj["public"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["public"] = flattenSubnetMapping(in.Public, v)
+	}
+	n1 := spew.Sprintf("%+v", obj)
+	log.Println("flattenVPCSubnets:", n1)
 	return []interface{}{obj}
+}
+func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
+	log.Println("got to flatten subnet mapping", len(p))
+	out := make([]interface{}, len(in))
+	i := 0
+	for key, elem := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(elem.ID) > 0 {
+			obj["id"] = elem.ID
+		}
+		if len(elem.AZ) > 0 {
+			obj["az"] = elem.AZ
+		}
+		if len(key) > 0 {
+			obj["name"] = key
+		}
+		out[i] = obj
+		i += 1
+	}
+	log.Println("finished subnet mapping")
+	return out
 }
 func flattenVPCNAT(in *ClusterNAT, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
@@ -3975,6 +3929,12 @@ func flattenEKSClusterAddons(in []*Addon, p []interface{}) []interface{} {
 		if len(in.PermissionsBoundary) > 0 {
 			obj["permissions_boundary"] = in.PermissionsBoundary
 		}
+		v, ok := obj["well_known_policies"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
+
 		if len(in.AttachPolicyARNs) > 0 {
 			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
 		}
@@ -3994,6 +3954,7 @@ func flattenEKSClusterPrivateCluster(in *PrivateCluster, p []interface{}) []inte
 	}
 
 	obj["enabled"] = in.Enabled
+	obj["skip_endpoint_creation"] = in.SkipEndpointCreation
 
 	if len(in.AdditionalEndpointServices) > 0 {
 		obj["additional_endpoint_services"] = toArrayInterface(in.AdditionalEndpointServices)
@@ -4139,10 +4100,13 @@ func flattenEKSClusterNodeGroups(in []*NodeGroup, p []interface{}) []interface{}
 		if len(in.TargetGroupARNs) > 0 {
 			obj["target_group_arns"] = toArrayInterface(in.TargetGroupARNs)
 		}
-		/*can i change taintsWrappper type to []string?
-		if len(in.Taints) > 0 {
-			obj["taints"] = toArrayInterface(in.Taints)
-		}*/
+		if in.Taints != nil {
+			v, ok := obj["bottle_rocket"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["taints"] = flattenNodeGroupTaint(in.Taints, v)
+		}
 		if in.UpdateConfig != nil {
 			v, ok := obj["update_config"].([]interface{})
 			if !ok {
@@ -4724,7 +4688,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	log.Println("flattened cluster fine")
-
+	log.Println("finished read")
 	return diags
 }
 
@@ -4754,6 +4718,7 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
 	}
+	log.Println("finished update")
 	return resourceEKSClusterUpsert(ctx, d, m)
 }
 
@@ -4785,6 +4750,7 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
 	}
+	log.Println("finished delete")
 
 	return diags
 }

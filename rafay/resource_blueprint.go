@@ -278,7 +278,31 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 		obj.PrivateKubeAPIProxies = expandPrivateKubeAPIProxies(v)
 	}
 
+	if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
+		obj.Placement = expandBlueprintPlacement(v)
+	}
+
 	return obj, nil
+}
+
+func expandBlueprintPlacement(p []interface{}) *infrapb.BlueprintPlacement {
+	obj := &infrapb.BlueprintPlacement{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["auto_publish"].(bool); ok {
+		obj.AutoPublish = v
+	}
+
+	if v, ok := in["fleet_values"].([]interface{}); ok && len(v) > 0 {
+		//should this be sorted?
+		obj.FleetValues = toArrayStringSorted(v)
+	}
+
+	return obj
 }
 
 func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {

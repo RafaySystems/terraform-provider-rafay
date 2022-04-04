@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
+	"github.com/RafaySystems/terraform-provider-rafay/ipnet"
 )
 
 // EKSNGInfoProvider interface provides node group information

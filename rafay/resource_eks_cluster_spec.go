@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -20,31 +21,31 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-type configMetadata struct {
+type configMetadataSpec struct {
 	Name    string `yaml:"name"`
 	Project string `yaml:"project"`
 	Version string `yaml:"version"`
 }
 
-type configResourceType struct {
-	Meta *configMetadata `yaml:"metadata"`
+type configResourceTypeSpec struct {
+	Meta *configMetadataSpec `yaml:"metadata"`
 }
 
-type blueprintSpec struct {
+type blueprintClusterSpec struct {
 	Blueprint        string `yaml:"blueprint"`
 	Blueprintversion string `yaml:"blueprintversion"`
 }
 
-type blueprintType struct {
-	Spec *blueprintSpec `yaml:"spec"`
+type blueprintTypeSpec struct {
+	Spec *blueprintClusterSpec `yaml:"spec"`
 }
 
-func resourceEKSCluster() *schema.Resource {
+func resourceEKSClusterSpec() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceEKSClusterCreate,
-		ReadContext:   resourceEKSClusterRead,
-		UpdateContext: resourceEKSClusterUpdate,
-		DeleteContext: resourceEKSClusterDelete,
+		CreateContext: resourceEKSClusterSpecCreate,
+		ReadContext:   resourceEKSClusterSpecRead,
+		UpdateContext: resourceEKSClusterSpecUpdate,
+		DeleteContext: resourceEKSClusterSpecDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -73,13 +74,14 @@ func resourceEKSCluster() *schema.Resource {
 			"waitflag": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  1,
 			},
 		},
 	}
 }
 
-func findResourceNameFromConfig(configBytes []byte) (string, string, string, error) {
-	var config configResourceType
+func findResourceNameFromConfigSpec(configBytes []byte) (string, string, string, error) {
+	var config configResourceTypeSpec
 	if err := yaml.Unmarshal(configBytes, &config); err != nil {
 		return "", "", "", nil
 	} else if config.Meta == nil {
@@ -90,8 +92,8 @@ func findResourceNameFromConfig(configBytes []byte) (string, string, string, err
 	return config.Meta.Name, config.Meta.Project, config.Meta.Version, nil
 }
 
-func findBlueprintName(configBytes []byte) (string, string, error) {
-	var blueprint blueprintType
+func findBlueprintNameSpec(configBytes []byte) (string, string, error) {
+	var blueprint blueprintTypeSpec
 	if err := yaml.Unmarshal(configBytes, &blueprint); err != nil {
 		return "", "", nil
 	} else if blueprint.Spec == nil {
@@ -103,12 +105,12 @@ func findBlueprintName(configBytes []byte) (string, string, error) {
 	return blueprint.Spec.Blueprint, blueprint.Spec.Blueprintversion, nil
 
 }
-func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]byte, []error) {
+func collateConfigsByNameSpec(rafayConfigs, clusterConfigs [][]byte) (map[string][]byte, []error) {
 	var errs []error
 	configsMap := make(map[string][][]byte)
 	// First find all rafay spec configurations
 	for _, config := range rafayConfigs {
-		name, _, _, err := findResourceNameFromConfig(config)
+		name, _, _, err := findResourceNameFromConfigSpec(config)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -121,7 +123,7 @@ func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]b
 	}
 	// Then append the cluster specific configurations
 	for _, config := range clusterConfigs {
-		name, _, _, err := findResourceNameFromConfig(config)
+		name, _, _, err := findResourceNameFromConfigSpec(config)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -150,7 +152,7 @@ func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]b
 	return result, errs
 }
 
-func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEKSClusterSpecCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	log.Printf("create EKS cluster resource")
@@ -178,7 +180,7 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 	}
 	for _, yi := range rafayConfigs {
 		log.Println("rafayConfig:", string(yi))
-		name, project, _, err := findResourceNameFromConfig(yi)
+		name, project, _, err := findResourceNameFromConfigSpec(yi)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("%s", "failed to get cluster name"))
 		}
@@ -193,7 +195,7 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 
 	for _, yi := range clusterConfigs {
 		log.Println("clusterConfig", string(yi))
-		name, _, _, err := findResourceNameFromConfig(yi)
+		name, _, _, err := findResourceNameFromConfigSpec(yi)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("%s", "failed to get cluster name"))
 		}
@@ -217,20 +219,24 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 	// override config project
 	c.ProjectID = project.ID
 
-	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
+	configMap, errs := collateConfigsByNameSpec(rafayConfigs, clusterConfigs)
 	if len(errs) > 0 {
 		for _, err := range errs {
-			log.Println("error in collateConfigsByName", err)
+			log.Println("error in collateConfigsByNameSpec", err)
 		}
-		return diag.FromErr(fmt.Errorf("%s", "failed in collateConfigsByName"))
+		return diag.FromErr(fmt.Errorf("%s", "failed in collateConfigsByNameSpec"))
 	}
 
 	// Make request
+	response := ""
 	for clusterName, configBytes := range configMap {
+		/* support only one cluster per spec */
 		log.Println("create cluster:", clusterName, "config:", string(configBytes), "projectID :", c.ProjectID)
-		if _, err := clusterctl.Apply(logger, c, clusterName, configBytes, false); err != nil {
+		response, err = clusterctl.Apply(logger, c, clusterName, configBytes, false)
+		if err != nil {
 			return diag.FromErr(fmt.Errorf("error performing apply on cluster %s: %s", clusterName, err))
 		}
+		break
 	}
 
 	s, err := cluster.GetCluster(d.Get("name").(string), project.ID)
@@ -238,21 +244,48 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 		log.Printf("error while getCluster %s", err.Error())
 		return diag.FromErr(err)
 	}
+
 	if d.Get("waitflag").(string) == "1" {
 		log.Printf("Cluster Provision may take upto 15-20 Minutes")
-		for {
+		res := clusterCTLResponse{}
+		err = json.Unmarshal([]byte(response), &res)
+		if err != nil {
+			log.Println("response parse error", err)
+			return diag.FromErr(err)
+		}
+		if res.TaskSetID == "" {
+			return nil
+		}
+
+		for { //wait for cluster to provision correctly
+			time.Sleep(60 * time.Second)
 			check, errGet := cluster.GetCluster(d.Get("name").(string), project.ID)
 			if errGet != nil {
 				log.Printf("error while getCluster %s", errGet.Error())
 				return diag.FromErr(errGet)
 			}
-			if check.Status == "READY" {
-				break
+
+			statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+			if err != nil {
+				log.Println("status response parse error", err)
+				return diag.FromErr(err)
 			}
-			if strings.Contains(check.Provision.Status, "FAILED") {
-				return diag.FromErr(fmt.Errorf("Failed to create cluster while cluster provisioning"))
+			log.Println("statusResp ", statusResp)
+			sres := clusterCTLResponse{}
+			err = json.Unmarshal([]byte(statusResp), &sres)
+			if err != nil {
+				log.Println("status response unmarshal error", err)
+				return diag.FromErr(err)
 			}
-			time.Sleep(40 * time.Second)
+			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+				if check.Status == "READY" {
+					break
+				}
+				log.Println("task completed but cluster is not ready")
+			}
+			if strings.Contains(sres.Status, "STATUS_FAILED") {
+				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", d.Get("name").(string), statusResp))
+			}
 		}
 	}
 
@@ -262,7 +295,7 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 	return diags
 }
 
-func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEKSClusterSpecRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
@@ -288,11 +321,11 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
-func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return resourceEKSClusterCreate(ctx, d, m)
+func resourceEKSClusterSpecUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	return resourceEKSClusterSpecCreate(ctx, d, m)
 }
 
-func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEKSClusterSpecDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("resource cluster delete id %s", d.Id())
 

@@ -15,6 +15,7 @@ import (
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/utils"
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -73,6 +74,10 @@ func resourceAKSClusterSpec() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  1,
+			},
+			"checkdiff": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 		},
 	}
@@ -255,6 +260,31 @@ func resourceAKSClusterSpecRead(ctx context.Context, d *schema.ResourceData, m i
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
 	}
+
+	check := d.Get("checkdiff").(bool)
+	if check {
+		logger := glogger.GetLogger()
+		rctlCfg := config.GetConfig()
+		clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
+		if err != nil {
+			log.Printf("error in get clusterspec %s", err.Error())
+			return diag.FromErr(err)
+		}
+
+		YamlConfigFilePath := d.Get("yamlfilepath").(string)
+		fileBytes, err := utils.ReadYAMLFileContents(YamlConfigFilePath)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		localYaml := string(fileBytes)
+		if diff := cmp.Diff(localYaml, clusterSpecYaml); diff != "" {
+			log.Println("cmp.Diff: ", diff)
+			diags = make([]diag.Diagnostic, 1)
+			diags[0].Severity = diag.Warning
+			diags[0].Summary = fmt.Sprintf("Your infrastructure may be drifted from configuration.\n +<<diff \n%+v\n-<<diff\n", diff)
+		}
+	}
+
 	if err := d.Set("name", c.Name); err != nil {
 		log.Printf("get group set name error %s", err.Error())
 		return diag.FromErr(err)
@@ -317,6 +347,20 @@ func resourceAKSClusterSpecDelete(ctx context.Context, d *schema.ResourceData, m
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
+	}
+
+	if d.Get("waitflag").(string) == "1" {
+		for {
+			time.Sleep(60 * time.Second)
+			check, errGet := cluster.GetCluster(d.Get("name").(string), project.ID)
+			if errGet != nil {
+				log.Printf("error while getCluster %s, delete success", errGet.Error())
+				break
+			}
+			if check == nil || (check != nil && check.Status != "READY") {
+				break
+			}
+		}
 	}
 
 	return diags

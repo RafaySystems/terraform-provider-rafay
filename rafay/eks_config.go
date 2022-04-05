@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-
-	"github.com/RafaySystems/terraform-provider-rafay/ipnet"
 )
 
 // EKSNGInfoProvider interface provides node group information
@@ -385,8 +383,8 @@ type (
 		AZ string `yaml:"az,omitempty"`
 		// +optional
 		//can i just make this a string?
-		//CIDR string `yaml:"cidr"`
-		CIDR *ipnet.IPNet `yaml:"cidr,omitempty"`
+		CIDR string `yaml:"cidr"`
+		//CIDR *ipnet.IPNet `yaml:"cidr,omitempty"`
 	}
 	AZSubnetSpec struct {
 		// +optional
@@ -396,8 +394,8 @@ type (
 		AZ string `yaml:"az,omitempty"`
 		// +optional
 		//can i just make this a string?
-		//CIDR string `yaml:"cidr"`
-		CIDR *ipnet.IPNet `yaml:"cidr,omitempty"`
+		CIDR string `yaml:"cidr"`
+		//CIDR *ipnet.IPNet `yaml:"cidr,omitempty"`
 	}
 	// Network holds ID and CIDR
 	Network struct {

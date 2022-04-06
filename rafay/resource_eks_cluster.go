@@ -131,7 +131,6 @@ func specField() map[string]*schema.Schema {
 		"blueprint_version": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Default:     "bpversion",
 			Description: "Blueprint version associated with the cluster",
 		},
 		"cloud_provider": {
@@ -4681,6 +4680,17 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
+	}
+	for {
+		time.Sleep(60 * time.Second)
+		check, errGet := cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+		if errGet != nil {
+			log.Printf("error while getCluster %s, delete success", errGet.Error())
+			break
+		}
+		if check == nil || (check != nil && check.Status != "READY") {
+			break
+		}
 	}
 	log.Println("finished delete")
 

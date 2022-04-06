@@ -394,7 +394,7 @@ type (
 		AZ string `yaml:"az,omitempty"`
 		// +optional
 		//can i just make this a string?
-		CIDR string `yaml:"cidr"`
+		CIDR string `yaml:"cidr,omitempty"`
 		//CIDR *ipnet.IPNet `yaml:"cidr,omitempty"`
 	}
 	// Network holds ID and CIDR

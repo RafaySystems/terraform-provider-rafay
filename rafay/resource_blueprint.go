@@ -281,6 +281,8 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 	if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
 		obj.Placement = expandBlueprintPlacement(v)
 	}
+	pa := spew.Sprintf("%+v", obj.Placement)
+	log.Println("expandBluePrintSpec Placement:", pa)
 
 	return obj, nil
 }
@@ -298,7 +300,6 @@ func expandBlueprintPlacement(p []interface{}) *infrapb.BlueprintPlacement {
 	}
 
 	if v, ok := in["fleet_values"].([]interface{}); ok && len(v) > 0 {
-		//should this be sorted?
 		obj.FleetValues = toArrayStringSorted(v)
 	}
 
@@ -623,7 +624,32 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["drift"] = flattenDrift(in.Drift)
 	}
 
+	if in.Placement != nil {
+		v, ok := obj["placement"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["placement"] = flattenBlueprintPlacement(in.Placement, v)
+	}
+
 	return []interface{}{obj}, nil
+}
+
+func flattenBlueprintPlacement(in *infrapb.BlueprintPlacement, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["auto_publish"] = in.AutoPublish
+	if in.FleetValues != nil && len(in.FleetValues) > 0 {
+		obj["fleet_values"] = toArrayInterfaceSorted(in.FleetValues)
+	}
+	return []interface{}{obj}
 }
 
 func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interface{} {

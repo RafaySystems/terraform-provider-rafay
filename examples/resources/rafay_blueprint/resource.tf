@@ -63,7 +63,7 @@ resource "rafay_blueprint" "tfdemoblueprint1" {
 }
 
 
-/*
+
 resource "rafay_blueprint" "tfdemoblueprint2" {
   metadata {
     annotations = {}
@@ -189,4 +189,4 @@ resource "rafay_blueprint" "tfdemoblueprint3" {
       enabled = false
     }
   }
-}*/
+}

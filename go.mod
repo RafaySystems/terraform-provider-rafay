@@ -3,7 +3,8 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.17
 
 require (
-	github.com/RafaySystems/rafay-common v1.11.0-terraform-2.0.20220301095714-908965fe245a
+	github.com/RafaySystems/rafay-common v1.13.0-beta2
+	//github.com/RafaySystems/rafay-common v1.11.0-terraform-2.0.20220301095714-908965fe245a
 	//github.com/RafaySystems/rafay-common v1.10.0-tf-schema-beta1
 	github.com/RafaySystems/rctl v1.12.0-beta2
 	github.com/davecgh/go-spew v1.1.1
@@ -163,15 +164,15 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/api v1.16.4 // indirect
-	k8s.io/apiextensions-apiserver v0.23.1 // indirect
+	k8s.io/apiextensions-apiserver v0.23.4 // indirect
 	k8s.io/client-go v12.0.0+incompatible // indirect
-	k8s.io/component-base v0.23.1 // indirect
-	k8s.io/klog/v2 v2.30.0 // indirect
+	k8s.io/component-base v0.23.3 // indirect
+	k8s.io/klog/v2 v2.40.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
-	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b // indirect
+	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/controller-runtime v0.11.0 // indirect
 	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.2.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 

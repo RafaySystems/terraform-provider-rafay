@@ -105,7 +105,7 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		// XXX Debug
 		n1 := spew.Sprintf("%+v", blueprint)
 		log.Println("blueprint apply blueprint:", n1)
-		log.Printf("blueprint apply error")
+		log.Printf("blueprint apply error: ", err)
 		return diag.FromErr(err)
 	}
 

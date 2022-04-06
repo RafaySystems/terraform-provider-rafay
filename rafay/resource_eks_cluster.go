@@ -2623,8 +2623,7 @@ func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
 		obj.EnableAdminContainer = &v
 	}
 	if v, ok := in["settings"].(map[string]interface{}); ok && len(v) > 0 {
-		////@@@TODO Store terraform input as inline document object correctly
-		//obj.Settings = toMapString(v)
+		obj.Settings = toMapString(v)
 	}
 	//docs dont have field skip endpoint creation but struct does
 	return obj
@@ -4195,10 +4194,10 @@ func flattenNodeGroupBottlerocket(in *NodeGroupBottlerocket, p []interface{}) []
 		return []interface{}{obj}
 	}
 	obj["enable_admin_container"] = in.EnableAdminContainer
-	/*//@@@TODO Store inline document object as terraform input correctly
+
 	if len(in.Settings) > 0 {
 		obj["settings"] = toMapInterface(in.Settings)
-	}*/
+	}
 	return []interface{}{obj}
 }
 func flattenNodeGroupInstancesDistribution(in *NodeGroupInstancesDistribution, p []interface{}) []interface{} {

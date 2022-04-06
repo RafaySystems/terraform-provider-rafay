@@ -297,7 +297,16 @@ type WellKnownPolicies struct {
 	EFSCSIController *bool `yaml:"efsCSIController,inline,omitempty"`
 }
 
-type InlineDocument map[string]interface{}
+//type InlineDocument map[string]interface{}
+type InlineDocument struct {
+	Version   string          `yaml:"version,omitempty"`
+	Statement InlineStatement `yaml:"statement,omitempty"`
+}
+type InlineStatement struct {
+	Effect   string   `yaml:"effect,omitempty"`
+	Action   []string `yaml:"action,omitempty"`
+	Resource string   `yaml:"resource,omitempty"`
+}
 
 type ClusterIAMServiceAccountStatus struct {
 	// +optional
@@ -383,7 +392,7 @@ type (
 		AZ string `yaml:"az,omitempty"`
 		// +optional
 		//can i just make this a string?
-		CIDR string `yaml:"cidr"`
+		CIDR string `yaml:"cidr,omitempty"`
 		//CIDR *ipnet.IPNet `yaml:"cidr,omitempty"`
 	}
 	AZSubnetSpec struct {
@@ -403,7 +412,7 @@ type (
 		ID string `yaml:"id,omitempty"`
 		// +optional
 		//can i just make this a string?
-		CIDR string `yaml:"cidr"`
+		CIDR string `yaml:"cidr,omitempty"`
 		//CIDR *ipnet.IPNet `yaml:"cidr,omitempty"`
 		// +optional
 		IPv6Cidr string `yaml:"ipv6Cidr,omitempty"`
@@ -948,7 +957,8 @@ type (
 		// Settings contains any [bottlerocket
 		// settings](https://github.com/bottlerocket-os/bottlerocket/#description-of-settings)
 		// +optional
-		Settings *InlineDocument `yaml:"settings,omitempty"`
+		Settings map[string]string `yaml:"settings,omitempty"`
+		//Settings *InlineDocument `yaml:"settings,omitempty"`
 	}
 
 	// NodeGroupUpdateConfig contains the configuration for updating NodeGroups.

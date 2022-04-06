@@ -16,7 +16,7 @@ require (
 	k8s.io/apimachinery v1.16.4
 )
 
-require github.com/weaveworks/eksctl v0.88.0
+require github.com/google/go-cmp v0.5.7
 
 require (
 	cloud.google.com/go v0.99.0 // indirect
@@ -24,6 +24,8 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
+	github.com/Microsoft/go-winio v0.5.1 // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20211112122917-428f8eabeeb3 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/agext/levenshtein v1.2.2 // indirect
@@ -61,7 +63,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -93,6 +94,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
+	github.com/kevinburke/ssh_config v1.1.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/levigross/grequests v0.0.0-20190908174114-253788527a1a // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
@@ -114,6 +116,7 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852 // indirect
+	github.com/onsi/gomega v1.18.1 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/prometheus/client_golang v1.11.0 // indirect
@@ -136,6 +139,7 @@ require (
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/valyala/fastjson v1.4.1 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
+	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/zclconf/go-cty v1.8.4 // indirect
 	go.mongodb.org/mongo-driver v1.5.1 // indirect
 	go.opencensus.io v0.23.0 // indirect
@@ -177,6 +181,7 @@ replace (
 	//github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	//github.com/RafaySystems/rctl => ../rctl
 	//github.com/RafaySystems/rafay-common => ../rafay-common
+	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
 
 	k8s.io/api => k8s.io/api v0.23.1
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.23.1

@@ -109,6 +109,18 @@ func toMapString(in map[string]interface{}) map[string]string {
 	return out
 }
 
+func toMapBool(in map[string]interface{}) map[string]bool {
+	out := make(map[string]bool)
+	for i, v := range in {
+		if v == nil {
+			out[i] = false
+			continue
+		}
+		out[i] = v.(bool)
+	}
+	return out
+}
+
 func toMapByte(in map[string]interface{}) map[string][]byte {
 	out := make(map[string][]byte)
 	for i, v := range in {
@@ -123,6 +135,14 @@ func toMapByte(in map[string]interface{}) map[string][]byte {
 }
 
 func toMapInterface(in map[string]string) map[string]interface{} {
+	out := make(map[string]interface{})
+	for i, v := range in {
+		out[i] = v
+	}
+	return out
+}
+
+func toMapBoolInterface(in map[string]bool) map[string]interface{} {
 	out := make(map[string]interface{})
 	for i, v := range in {
 		out[i] = v

@@ -131,7 +131,6 @@ func specField() map[string]*schema.Schema {
 		"blueprint_version": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Default:     "bpversion",
 			Description: "Blueprint version associated with the cluster",
 		},
 		"cloud_provider": {
@@ -399,7 +398,7 @@ func serviceAccountsMetadata() map[string]*schema.Schema {
 		},
 		"labels": {
 			Type:        schema.TypeMap,
-			Required:    true,
+			Optional:    true,
 			Description: "CIDR range from where ClusterIPs are assigned",
 		},
 		"annotations": {
@@ -426,14 +425,10 @@ func serviceAccountsMetadata() map[string]*schema.Schema {
 		"attach_policy": { //USE THIS FOR ALL INLINEDOCUMENT TYPES
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "AWS tags for the service account",
-			Elem: &schema.Resource{Schema: map[string]*schema.Schema{"string": &schema.Schema{
-				Description: "",
-				Optional:    true,
-				Type:        schema.TypeString,
-			}}},
-			MaxItems: 1,
-			MinItems: 1,
+			Description: "holds a policy document to attach to this service account",
+			Elem: &schema.Resource{
+				Schema: attachPolicyFields(),
+			},
 		},
 		"attach_role_arn": {
 			Type:        schema.TypeString,
@@ -470,6 +465,50 @@ func serviceAccountsMetadata() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+		},
+	}
+	return s
+}
+
+//dealing with attach policy inline document object
+func attachPolicyFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"version": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Attach policy version",
+		},
+		"statement": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "holds status of the IAM service account",
+			Elem: &schema.Resource{
+				Schema: statementFields(),
+			},
+		},
+	}
+	return s
+}
+
+func statementFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"effect": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Attach policy effect",
+		},
+		"action": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Attach policy action",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"resource": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Attach policy resource",
 		},
 	}
 	return s
@@ -588,6 +627,14 @@ func vpcFields() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
+		"extra_ipv6_cidrs": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
 		"shared_node_security_group": {
 			Type:        schema.TypeString,
 			Optional:    true,
@@ -631,7 +678,7 @@ func vpcFields() map[string]*schema.Schema {
 	}
 	return s
 }
-func subnetsConfigFields() map[string]*schema.Schema { //@@@TODO: changing schema to a multi line string (terraform doesnt support map[string]object)
+func subnetsConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"private": {
 			Type:        schema.TypeList,
@@ -669,13 +716,11 @@ func subnetSpecConfigFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "dont know what this is, not in docs",
 		},
-		//@@@ TODO: dont know what to do with type ipnet.Ipnet
-		/*
-			"cidr": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "dont know what this is, not in docs",
-			},*/
+		"cidr": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "dont know what this is, not in docs",
+		},
 	}
 	return s
 }
@@ -733,10 +778,13 @@ func addonConfigFields() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
-		"attach_policy": { //What object type should this be?
-			Type:        schema.TypeString,
+		"attach_policy": { //USE THIS FOR ALL INLINEDOCUMENT TYPES
+			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "holds a policy document to attach",
+			Description: "holds a policy document to attach to this service account",
+			Elem: &schema.Resource{
+				Schema: attachPolicyFields(),
+			},
 		},
 		"permissions_boundary": {
 			Type:        schema.TypeString,
@@ -980,7 +1028,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 				Schema: placementField(),
 			},
 		},
-		"efa_endbaled": {
+		"efa_enabled": {
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -1001,6 +1049,11 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: bottleRocketFields(),
 			},
+		},
+		"enable_detailed_monitoring": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Enable EC2 detailed monitoring",
 		},
 		"instances_distribution": {
 			Type:        schema.TypeList,
@@ -1060,11 +1113,15 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Custom address used for DNS lookups",
 		},
-		"kubelet_extra_config": {
-			Type:        schema.TypeString, //supposed be of type object?
-			Optional:    true,
-			Description: "Custom address used for DNS lookups",
-		},
+		/*
+			"kubelet_extra_config": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Custom address used for DNS lookups",
+				Elem: &schema.Resource{
+					Schema: kubeLetExtraConfigFields(),
+				},
+			},*/
 		"version": {
 			Type:        schema.TypeString, //supposed be of type object?
 			Optional:    true,
@@ -1074,6 +1131,38 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Type:        schema.TypeString, //supposed be of type object?
 			Optional:    true,
 			Description: "Create new subnet from the CIDR block and limit nodes to this subnet (Applicable only for the WavelenghZone nodes)",
+		},
+	}
+	return s
+}
+
+//@@@
+func kubeLetExtraConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"kube_reserved": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "",
+		},
+		"kube_reserved_cgroup": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "",
+		},
+		"system_reserved": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "",
+		},
+		"eviction_hard": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "",
+		},
+		"feature_gates": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "",
 		},
 	}
 	return s
@@ -1171,7 +1260,7 @@ func bottleRocketFields() map[string]*schema.Schema {
 		},
 		"settings": {
 			Type:        schema.TypeMap,
-			Required:    true,
+			Optional:    true,
 			Description: "contains any bottlerocket settings",
 		},
 	}
@@ -1251,6 +1340,14 @@ func sshConfigFields() map[string]*schema.Schema {
 
 func iamNodeGroupConfigFields() map[string]*schema.Schema { //@@@TODO: need to change schema to have attachPolicy(inline object)
 	s := map[string]*schema.Schema{
+		"attach_policy": { //USE THIS FOR ALL INLINEDOCUMENT TYPES
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "holds a policy document to attach to this service account",
+			Elem: &schema.Resource{
+				Schema: attachPolicyFields(),
+			},
+		},
 		"attach_policy_arns": {
 			Type:        schema.TypeList,
 			Optional:    true,
@@ -1597,6 +1694,11 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 				Schema: bottleRocketFields(),
 			},
 		},
+		"enable_detailed_monitoring": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Enable EC2 detailed monitoring",
+		},
 		"instance_types": {
 			Type:        schema.TypeList,
 			Optional:    true,
@@ -1634,7 +1736,7 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: launchTempelateFields(),
 			},
-		},
+		}, //@@@ check eks_config.go wats this release version, is it in launch tempelate or managedNodeGroups, doc vs eks_config is confusing
 	}
 	return s
 }
@@ -1691,11 +1793,11 @@ func updateConfigManagedNodeGroupsFields() map[string]*schema.Schema {
 	}
 	return s
 }
-func launchTemepelateField() map[string]*schema.Schema {
+func launchTemepelateField() map[string]*schema.Schema { //@@very different from doc double check
 	s := map[string]*schema.Schema{
 		"id": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Description: "Launch template ID",
 		},
 		"version": {
@@ -1721,17 +1823,17 @@ func fargateProfilesConfigField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"name": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Description: "name of the fargate profile",
 		},
 		"pod_execution_role_arn": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Description: "IAM role's ARN to use to run pods onto Fargate.",
 		},
 		"selectors": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "define the rules to select workload to schedule onto Fargate.",
 			Elem: &schema.Resource{
 				Schema: selectorsFields(),
@@ -1739,7 +1841,7 @@ func fargateProfilesConfigField() map[string]*schema.Schema {
 		},
 		"subnets": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "define the rules to select workload to schedule onto Fargate.",
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
@@ -1747,12 +1849,12 @@ func fargateProfilesConfigField() map[string]*schema.Schema {
 		},
 		"tags": {
 			Type:        schema.TypeMap,
-			Required:    true,
+			Optional:    true,
 			Description: "Used to tag the AWS resources",
 		},
 		"status": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Description: "The current status of the Fargate profile.",
 		},
 	}
@@ -1763,12 +1865,12 @@ func selectorsFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"namespace": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Description: "Kubernetes namespace from which to select workload.",
 		},
 		"labels": {
 			Type:        schema.TypeMap,
-			Required:    true,
+			Optional:    true,
 			Description: "Kubernetes label selectors to use to select workload.",
 		},
 	}
@@ -1779,7 +1881,7 @@ func cloudWatchConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"cluster_logging": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "container config parameters related to cluster logging",
 			Elem: &schema.Resource{
 				Schema: clusterLoggingFields(),
@@ -2307,6 +2409,9 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 			obj.Bottlerocket = expandNodeGroupBottleRocket(v)
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does (says to remove)
+		if v, ok := in["enable_detailed_monitoring"].(bool); ok {
+			obj.EnableDetailedMonitoring = &v
+		}
 		if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
 			obj.InstanceTypes = toArrayString(v)
 		}
@@ -2487,7 +2592,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
 			obj.Placement = expandNodeGroupPlacement(v)
 		}
-		if v, ok := in["efa_endbaled"].(bool); ok {
+		if v, ok := in["efa_enabled"].(bool); ok {
 			obj.EFAEnabled = &v
 		}
 		if v, ok := in["instance_selector"].([]interface{}); ok && len(v) > 0 {
@@ -2500,6 +2605,9 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does
 
+		if v, ok := in["enable_detailed_monitoring"].(bool); ok {
+			obj.EnableDetailedMonitoring = &v
+		}
 		if v, ok := in["instances_distribution"].([]interface{}); ok && len(v) > 0 {
 			obj.InstancesDistribution = expandNodeGroupInstanceDistribution(v)
 		}
@@ -2526,10 +2634,9 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 			obj.ClusterDNS = v
 		}
 		//@@@TODO Store terraform input as inline document object correctly
-		/*
-			if v, ok := in["kubelet_extra_config"].(map[string]interface{}); ok && len(v) > 0 {
-				obj.KubeletExtraConfig = v
-			}*/
+		if v, ok := in["kubelet_extra_config"].([]interface{}); ok && len(v) > 0 {
+			obj.KubeletExtraConfig = expandKubeletExtraConfig(v)
+		}
 		//struct has field containerRuntime
 		//doc has version and subnet cidr
 		//how do i finish this?
@@ -2539,6 +2646,33 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 	}
 
 	return out
+}
+
+//@@expand KubeletExtraConfig function (completed)
+func expandKubeletExtraConfig(p []interface{}) *KubeletExtraConfig {
+	obj := &KubeletExtraConfig{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["kube_reserved"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.KubeReserved = toMapString(v)
+	}
+	if v, ok := in["kube_reserved_cgroup"].(string); ok && len(v) > 0 {
+		obj.KubeReservedCGroup = v
+	}
+	if v, ok := in["system_reserved"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.SystemReserved = toMapString(v)
+	}
+	if v, ok := in["eviction_hard"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.EvictionHard = toMapString(v)
+	}
+	if v, ok := in["feature_gates"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.FeatureGates = toMapBool(v)
+	}
+
+	return obj
 }
 
 //expand node group Update Config function (completed)
@@ -2624,8 +2758,7 @@ func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
 		obj.EnableAdminContainer = &v
 	}
 	if v, ok := in["settings"].(map[string]interface{}); ok && len(v) > 0 {
-		////@@@TODO Store terraform input as inline document object correctly
-		//obj.Settings = toMapString(v)
+		obj.Settings = toMapString(v)
 	}
 	//docs dont have field skip endpoint creation but struct does
 	return obj
@@ -2698,11 +2831,10 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 	}
 	in := p[0].(map[string]interface{})
 	//@@@TODO Store terraform input as inline document object correctly
-	/*
-		if v, ok := in["attach_policy"].(map[string]interface{}); ok && len(v) > 0 {
-			obj.AttachPolicy := toMapString(v)
-		}
-	*/
+	if v, ok := in["attach_policy"].([]interface{}); ok && len(v) > 0 {
+		obj.AttachPolicy = expandAttachPolicy(v)
+	}
+
 	if v, ok := in["attach_policy_arns"].([]interface{}); ok && len(v) > 0 {
 		obj.AttachPolicyARNs = toArrayString(v)
 	}
@@ -2720,6 +2852,43 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 	}
 	if v, ok := in["iam_node_group_with_addon_policies"].([]interface{}); ok && len(v) > 0 {
 		obj.WithAddonPolicies = expandNodeGroupIAMWithAddonPolicies(v)
+	}
+	return obj
+}
+
+//expand attach policy (completed)@@@
+func expandStatement(p []interface{}) InlineStatement {
+	obj := InlineStatement{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["effect"].(string); ok && len(v) > 0 {
+		obj.Effect = v
+	}
+	if v, ok := in["action"].([]interface{}); ok && len(v) > 0 {
+		obj.Action = toArrayStringSorted(v)
+	}
+	if v, ok := in["resource"].(string); ok && len(v) > 0 {
+		obj.Resource = v
+	}
+	return obj
+}
+
+//expand attach policy (completed)
+func expandAttachPolicy(p []interface{}) InlineDocument {
+	obj := InlineDocument{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+	if v, ok := in["statement"].([]interface{}); ok && len(v) > 0 {
+		obj.Statement = expandStatement(v)
 	}
 	return obj
 }
@@ -2850,7 +3019,9 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 		}
 
 		//@@@TODO Store terraform input as inline document object correctly
-
+		if v, ok := in["attach_policy"].([]interface{}); ok && len(v) > 0 {
+			obj.AttachPolicy = expandAttachPolicy(v)
+		}
 		if v, ok := in["permissions_boundary"].(string); ok && len(v) > 0 {
 			obj.PermissionsBoundary = v
 		}
@@ -2878,7 +3049,6 @@ func expandVPC(p []interface{}) *EKSClusterVPC {
 	if v, ok := in["id"].(string); ok && len(v) > 0 {
 		obj.ID = v
 	}
-	//is this right for cidr?
 	if v, ok := in["cidr"].(string); ok && len(v) > 0 {
 		obj.CIDR = v
 	}
@@ -2893,6 +3063,9 @@ func expandVPC(p []interface{}) *EKSClusterVPC {
 	}
 	if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
 		obj.Subnets = expandSubnets(v)
+	}
+	if v, ok := in["extra_ipv6_cidrs"].([]interface{}); ok && len(v) > 0 {
+		obj.ExtraIPv6CIDRs = toArrayString(v)
 	}
 	if v, ok := in["extra_cidrs"].([]interface{}); ok && len(v) > 0 {
 		obj.ExtraCIDRs = toArrayString(v)
@@ -2954,14 +3127,10 @@ func expandSubnets(p []interface{}) *ClusterSubnets {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-	//Throwing error, dont know how to take AZSubnetSpec and put into AZSubnetMapping
-	//@@@TODO: Store subnet spec properly
 	if v, ok := in["private"].([]interface{}); ok && len(v) > 0 {
-		//obj.Private = v
 		obj.Private = expandSubnetSpec(v)
 	}
 	if v, ok := in["public"].([]interface{}); ok && len(v) > 0 {
-		//obj.Public = v
 		obj.Public = expandSubnetSpec(v)
 	}
 	return obj
@@ -2985,19 +3154,10 @@ func expandSubnetSpec(p []interface{}) AZSubnetMapping {
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj[v] = elem2
 		}
-		/*@@@TODO ipnet object cant handle
 		if v, ok := in["cidr"].(string); ok && len(v) > 0 {
 			elem2.CIDR = v
-		}*/
-	}
-	/*
-		if v, ok := in["id"].(string); ok && len(v) > 0 {
-			obj.ID = v
 		}
-		if v, ok := in["az"].(string); ok && len(v) > 0 {
-			obj.AZ = v
-		}*/
-	//@@@TODO: how do you store cidr? (ipnet object)
+	}
 	return obj
 }
 
@@ -3088,11 +3248,9 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 		}
 		//check for attach policy
 		////@@@TODO Store terraform input as inline document object correctly
-		/*
-			if v, ok := in["attach_policy"].([]interface{}); ok && len(v) > 0 {
-				obj.AttachPolicy = &v//@@ inline document
-			}*/
-
+		if v, ok := in["attach_policy"].([]interface{}); ok && len(v) > 0 {
+			obj.AttachPolicy = expandAttachPolicy(v)
+		}
 		if v, ok := in["attach_role_arn"].(string); ok && len(v) > 0 {
 			obj.AttachRoleARN = v
 		}
@@ -3111,10 +3269,6 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
 		}
-		//@@@TODO Store terraform input as inline document object correctly
-		/*
-			obj.AttachPolicy = in["attachPolicy"].map[string]interface{}//whats the problem?
-		*/
 		out[i] = obj
 	}
 
@@ -3217,17 +3371,17 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	return obj
 }
 
-func flattenEKSCluster(in *EKSCluster, p []interface{}) error {
-	if in == nil {
-		return nil
-	}
+func flattenEKSCluster(in *EKSCluster, p []interface{}) ([]interface{}, error) {
 	obj := map[string]interface{}{}
+	if in == nil {
+		return nil, fmt.Errorf("empty cluster input")
+	}
 
 	if len(in.Kind) > 0 {
 		obj["kind"] = in.Kind
 	}
 	var err error
-	//dont have expand metametadata function how i should i properly do this?
+	//flatten eks cluster metadata
 	var ret1 []interface{}
 	if in.Metadata != nil {
 		v, ok := obj["metadata"].([]interface{})
@@ -3235,11 +3389,13 @@ func flattenEKSCluster(in *EKSCluster, p []interface{}) error {
 			v = []interface{}{}
 		}
 		ret1, err = flattenEKSClusterMetadata(in.Metadata, v)
+		log.Println("ret1: ", ret1)
 		if err != nil {
 			log.Println("flattenEKSClusterMetadata err")
-			return err
+			return nil, err
 		}
 		obj["metadata"] = ret1
+		log.Println("set metadata: ", obj["metadata"])
 	}
 	//flattening EKSClusterSpec
 	var ret2 []interface{}
@@ -3251,12 +3407,13 @@ func flattenEKSCluster(in *EKSCluster, p []interface{}) error {
 		ret2, err = flattenEKSClusterSpec(in.Spec, v)
 		if err != nil {
 			log.Println("flattenEKSClusterSpec err")
-			return err
+			return nil, err
 		}
 		obj["spec"] = ret2
+		log.Println("set metadata: ", obj["spec"])
 	}
 	log.Println("flattenEKSCluster finished ")
-	return nil
+	return []interface{}{obj}, nil
 }
 func flattenEKSClusterMetadata(in *EKSClusterMetadata, p []interface{}) ([]interface{}, error) {
 	if in == nil {
@@ -3275,6 +3432,7 @@ func flattenEKSClusterMetadata(in *EKSClusterMetadata, p []interface{}) ([]inter
 	log.Println("md 2")
 	if in.Labels != nil && len(in.Labels) > 0 {
 		obj["labels"] = toMapInterface(in.Labels)
+		log.Println("saving metadata labels: ", in.Labels)
 	}
 	log.Println("md 3")
 	return []interface{}{obj}, nil
@@ -3329,9 +3487,9 @@ func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]
 
 	return []interface{}{obj}, nil
 }
-func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
+func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface{}, error) {
 	if in == nil {
-		return nil
+		return nil, fmt.Errorf("empty cluster config input")
 	}
 	obj := map[string]interface{}{}
 
@@ -3352,7 +3510,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 		ret1, err = flattenEKSConfigMetadata(in.Metadata, v)
 		if err != nil {
 			log.Println("flattenEKSClusterConfigMetadata err")
-			return err
+			return nil, err
 		}
 		obj["metadata"] = ret1
 	}
@@ -3366,7 +3524,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 		ret2, err = flattenEKSClusterKubernetesNetworkConfig(in.KubernetesNetworkConfig, v)
 		if err != nil {
 			log.Println("flattenEKSClusterKubernetesNetworkConfig err")
-			return err
+			return nil, err
 		}
 		obj["kubernetes_network_config"] = ret2
 	}
@@ -3380,7 +3538,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 		ret3, err = flattenEKSClusterIAM(in.IAM, v)
 		if err != nil {
 			log.Println("flattenEKSClusterIAM err")
-			return err
+			return nil, err
 		}
 		obj["iam"] = ret3
 	}
@@ -3394,7 +3552,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 		ret4, err = flattenEKSClusterIdentityProviders(in.IdentityProviders, v)
 		if err != nil {
 			log.Println("flattenEKSClusterIdentityProviders err")
-			return err
+			return nil, err
 		}
 		obj["identity_providers"] = ret4
 	}
@@ -3408,7 +3566,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 		ret5, err = flattenEKSClusterVPC(in.VPC, v)
 		if err != nil {
 			log.Println("flattenEKSClusterVPC err")
-			return err
+			return nil, err
 		}
 		obj["vpc"] = ret5
 	}
@@ -3422,7 +3580,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 		ret6 = flattenEKSClusterAddons(in.Addons, v)
 		if err != nil {
 			log.Println("flattenEKSClusterAddons err")
-			return err
+			return nil, err
 		}
 		obj["addons"] = ret6
 	}
@@ -3436,7 +3594,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 		ret7 = flattenEKSClusterPrivateCluster(in.PrivateCluster, v)
 		if err != nil {
 			log.Println("flattenEKSClusterPrivateCluster err")
-			return err
+			return nil, err
 		}
 		obj["private_cluster"] = ret7
 	}
@@ -3450,7 +3608,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, v)
 		if err != nil {
 			log.Println("flattenEKSClusterNodeGroups err")
-			return err
+			return nil, err
 		}
 		log.Println("flattend node group")
 		obj["node_groups"] = ret8
@@ -3465,7 +3623,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 		ret9 = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, v)
 		if err != nil {
 			log.Println("flattenEKSClusterManagedNodeGroups err")
-			return err
+			return nil, err
 		}
 		obj["managed_nodegroups"] = ret9
 	}
@@ -3479,7 +3637,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 		ret10 = flattenEKSClusterFargateProfiles(in.FargateProfiles, v)
 		if err != nil {
 			log.Println("flattenEKSClusterPrivateCluster err")
-			return err
+			return nil, err
 		}
 		obj["fargate_profiles"] = ret10
 	}
@@ -3497,7 +3655,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 		ret11 = flattenEKSClusterCloudWatch(in.CloudWatch, v)
 		if err != nil {
 			log.Println("flattenEKSClusterCloudWatch err")
-			return err
+			return nil, err
 		}
 		obj["cloud_watch"] = ret11
 	}
@@ -3511,13 +3669,13 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) error {
 		ret12 = flattenEKSClusterSecretsEncryption(in.SecretsEncryption, v)
 		if err != nil {
 			log.Println("flattenEKSClusterSecretsEncryption err")
-			return err
+			return nil, err
 		}
 		obj["secrets_encryption"] = ret12
 	}
 	log.Println("end of read")
 
-	return nil
+	return []interface{}{obj}, nil
 }
 
 func flattenEKSClusterKubernetesNetworkConfig(in *KubernetesNetworkConfig, p []interface{}) ([]interface{}, error) {
@@ -3608,11 +3766,12 @@ func flattenIAMServiceAccounts(in []*EKSClusterIAMServiceAccount, p []interface{
 		obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
 
 		//@@@TODO Store inline document object as terraform input correctly
+		v1, ok := obj["attach_policy"].([]interface{})
+		if !ok {
+			v1 = []interface{}{}
+		}
+		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
 
-		/*if in.AttachPolicy != nil && len(in.AttachPolicyARNs) > 0 {
-			//can i change inline document type to map[string]interface (wats the point of havign the extra definition)
-			obj["attach_policy"] = toMapInterface((in.AttachPolicy).(map[string]interface{}))
-		}*/
 		if len(in.AttachRoleARN) > 0 {
 			obj["attach_role_arn"] = in.AttachRoleARN
 		}
@@ -3641,6 +3800,48 @@ func flattenIAMServiceAccounts(in []*EKSClusterIAMServiceAccount, p []interface{
 
 	return out
 
+}
+
+//@@@Flatten attach policy
+func flattenAttachPolicy(in InlineDocument, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	/*
+		if in == nil {
+			return []interface{}{obj}
+		}*/
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	v, ok := obj["statement"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	obj["statement"] = flattenStatement(in.Statement, v)
+
+	return []interface{}{obj}
+}
+
+func flattenStatement(in InlineStatement, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Effect) > 0 {
+		obj["effect"] = in.Effect
+	}
+	if len(in.Action) > 0 {
+		obj["action"] = toArrayInterface(in.Action)
+	}
+	if len(in.Resource) > 0 {
+		obj["resource"] = in.Resource
+	}
+
+	return []interface{}{obj}
 }
 func flattenIAMStatus(in *ClusterIAMServiceAccountStatus, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
@@ -3724,10 +3925,9 @@ func flattenEKSClusterVPC(in *EKSClusterVPC, p []interface{}) ([]interface{}, er
 	if len(in.ExtraCIDRs) > 0 {
 		obj["extra_cidrs"] = toArrayInterface(in.ExtraCIDRs)
 	}
-	/* ask wat to do with this field
 	if in.ExtraIPv6CIDRs != nil && len(in.ExtraIPv6CIDRs) > 0 {
-		obj["extra_ipv6_cidrs"] = toArrayInterface(in.ExtraCIDRs)
-	}*/
+		obj["extra_ipv6_cidrs"] = toArrayInterface(in.ExtraIPv6CIDRs)
+	}
 	if len(in.SharedNodeSecurityGroup) > 0 {
 		obj["shared_node_security_group"] = in.SharedNodeSecurityGroup
 	}
@@ -3798,6 +3998,9 @@ func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 		if len(key) > 0 {
 			obj["name"] = key
 		}
+		if len(elem.CIDR) > 0 {
+			obj["cidr"] = elem.CIDR
+		}
 		out[i] = obj
 		i += 1
 	}
@@ -3852,10 +4055,12 @@ func flattenEKSClusterAddons(in []*Addon, p []interface{}) []interface{} {
 		if len(in.AttachPolicyARNs) > 0 {
 			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
 		}
-		/*//@@@TODO Store inline document object as terraform input correctly
-		if len(in.AttachPolicy) > 0 {
-			obj["attach_policy"] = tomapInterface(in.AttachPolicy)
-		}*/
+		//@@@TODO Store inline document object as terraform input correctly
+		v1, ok := obj["attach_policy"].([]interface{})
+		if !ok {
+			v1 = []interface{}{}
+		}
+		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
 		if len(in.PermissionsBoundary) > 0 {
 			obj["permissions_boundary"] = in.PermissionsBoundary
 		}
@@ -3991,7 +4196,7 @@ func flattenEKSClusterNodeGroups(in []*NodeGroup, p []interface{}) []interface{}
 			}
 			obj["placement"] = flattenNodeGroupPlacement(in.Placement, v)
 		}
-		obj["efa_endbaled"] = in.EFAEnabled
+		obj["efa_enabled"] = in.EFAEnabled
 		if in.InstanceSelector != nil {
 			v, ok := obj["instance_selector"].([]interface{})
 			if !ok {
@@ -4047,16 +4252,47 @@ func flattenEKSClusterNodeGroups(in []*NodeGroup, p []interface{}) []interface{}
 		if len(in.ClusterDNS) > 0 {
 			obj["cluster_dns"] = in.ClusterDNS
 		}
-		/*//@@@TODO Store inline document object as terraform input correctly
-		if len(in.KubeletExtraConfig) > 0 {
-			obj["classic_load_balancer_names"] = toMapInterface(in.KubeletExtraConfig)
-		}*/
-		//version adn subnet_cidr r not in struct from doc
+		//@@@TODO Store inline document object as terraform input correctly
+		if in.KubeletExtraConfig != nil {
+			v, ok := obj["kubelet_extra_config"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["kubelet_extra_config"] = flattenKubeletExtraConfig(in.KubeletExtraConfig, v)
+		}
 		//Container Runtime not in doc from struct
 		out[i] = &obj
 	}
 	return out
 }
+
+func flattenKubeletExtraConfig(in *KubeletExtraConfig, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+
+	if len(in.KubeReserved) > 0 {
+		obj["kube_reserved"] = toMapInterface(in.KubeReserved)
+	}
+	if len(in.KubeReservedCGroup) > 0 {
+		obj["kube_reserved_cgroup"] = in.KubeReservedCGroup
+	}
+	if len(in.SystemReserved) > 0 {
+		obj["system_reserved"] = toMapInterface(in.SystemReserved)
+	}
+	if len(in.EvictionHard) > 0 {
+		obj["eviction_hard"] = toMapInterface(in.EvictionHard)
+	}
+	if len(in.FeatureGates) > 0 {
+		obj["feature_gates"] = toMapBoolInterface(in.FeatureGates)
+	}
+	return []interface{}{obj}
+}
+
 func flattenNodeGroupSSH(in *NodeGroupSSH, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
@@ -4090,10 +4326,13 @@ func flattenNodeGroupIAM(in *NodeGroupIAM, p []interface{}) []interface{} {
 	if in == nil {
 		return []interface{}{obj}
 	}
-	/*//@@@TODO Store inline document object as terraform input correctly
-	if len(in.AttachPolicy) > 0 {
-		obj["attach_policy"] = toMapInterface(in.AttachPolicy)
-	}*/
+	//@@@TODO Store inline document object as terraform input correctly
+	v1, ok := obj["attach_policy"].([]interface{})
+	if !ok {
+		v1 = []interface{}{}
+	}
+	obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
+
 	if len(in.AttachPolicyARNs) > 0 {
 		obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
 	}
@@ -4196,10 +4435,10 @@ func flattenNodeGroupBottlerocket(in *NodeGroupBottlerocket, p []interface{}) []
 		return []interface{}{obj}
 	}
 	obj["enable_admin_container"] = in.EnableAdminContainer
-	/*//@@@TODO Store inline document object as terraform input correctly
+
 	if len(in.Settings) > 0 {
 		obj["settings"] = toMapInterface(in.Settings)
-	}*/
+	}
 	return []interface{}{obj}
 }
 func flattenNodeGroupInstancesDistribution(in *NodeGroupInstancesDistribution, p []interface{}) []interface{} {
@@ -4359,7 +4598,7 @@ func flattenEKSClusterManagedNodeGroups(in []*ManagedNodeGroup, p []interface{})
 			}
 			obj["placement"] = flattenNodeGroupPlacement(in.Placement, v)
 		}
-		obj["efa_endbaled"] = in.EFAEnabled
+		obj["efa_enabled"] = in.EFAEnabled
 		if in.InstanceSelector != nil {
 			v, ok := obj["instance_selector"].([]interface{})
 			if !ok {
@@ -4599,9 +4838,14 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	if !ok {
 		v = []interface{}{}
 	}
-	err = flattenEKSCluster(&clusterSpec, v)
+	c1, err := flattenEKSCluster(&clusterSpec, v)
 	if err != nil {
 		log.Printf("flatten eks cluster error %s", err.Error())
+		return diag.FromErr(err)
+	}
+	err = d.Set("cluster", c1)
+	if err != nil {
+		log.Printf("err setting cluster %s", err.Error())
 		return diag.FromErr(err)
 	}
 	//flatten cluster config
@@ -4612,11 +4856,16 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	v2, ok := d.Get("cluster_config").([]interface{})
 	if !ok {
-		v = []interface{}{}
+		v2 = []interface{}{}
 	}
-	err = flattenEKSClusterConfig(&clusterConfigSpec, v2)
+	c2, err := flattenEKSClusterConfig(&clusterConfigSpec, v2)
 	if err != nil {
 		log.Printf("flatten eks cluster config error %s", err.Error())
+		return diag.FromErr(err)
+	}
+	err = d.Set("cluster_config", c2)
+	if err != nil {
+		log.Printf("err setting cluster config %s", err.Error())
 		return diag.FromErr(err)
 	}
 	log.Println("flattened cluster fine")
@@ -4681,6 +4930,17 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
+	}
+	for {
+		time.Sleep(60 * time.Second)
+		check, errGet := cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+		if errGet != nil {
+			log.Printf("error while getCluster %s, delete success", errGet.Error())
+			break
+		}
+		if check == nil || (check != nil && check.Status != "READY") {
+			break
+		}
 	}
 	log.Println("finished delete")
 

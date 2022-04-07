@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
@@ -2097,37 +2096,37 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
-
-	for { //wait for cluster to provision correctly
-		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
-		if errGet != nil {
-			log.Printf("error while getCluster %s", errGet.Error())
-			return diag.FromErr(errGet)
-		}
-
-		statusResp, err := eksClusterCTLStatus(res.TaskSetID)
-		if err != nil {
-			log.Println("status response parse error", err)
-			return diag.FromErr(err)
-		}
-		log.Println("statusResp ", statusResp)
-		sres := clusterCTLResponse{}
-		err = json.Unmarshal([]byte(statusResp), &sres)
-		if err != nil {
-			log.Println("status response unmarshal error", err)
-			return diag.FromErr(err)
-		}
-		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-			if check.Status == "READY" {
-				break
+	/*
+		for { //wait for cluster to provision correctly
+			time.Sleep(60 * time.Second)
+			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				return diag.FromErr(errGet)
 			}
-			log.Println("task completed but cluster is not ready")
-		}
-		if strings.Contains(sres.Status, "STATUS_FAILED") {
-			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
-		}
-	}
+
+			statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+			if err != nil {
+				log.Println("status response parse error", err)
+				return diag.FromErr(err)
+			}
+			log.Println("statusResp ", statusResp)
+			sres := clusterCTLResponse{}
+			err = json.Unmarshal([]byte(statusResp), &sres)
+			if err != nil {
+				log.Println("status response unmarshal error", err)
+				return diag.FromErr(err)
+			}
+			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+				if check.Status == "READY" {
+					break
+				}
+				log.Println("task completed but cluster is not ready")
+			}
+			if strings.Contains(sres.Status, "STATUS_FAILED") {
+				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
+			}
+		}*/
 
 	log.Printf("resource eks cluster created/updated %s", s.ID)
 	d.SetId(s.ID)
@@ -2146,8 +2145,13 @@ func eksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte,
 	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
 	if len(errs) == 0 && len(configMap) > 0 {
 		// Make request
+		log.Println("right bfr for loop->apply")
 		for clusterName, configBytes := range configMap {
-			return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun)
+			log.Println("hope its not apply err")
+			x, applyErr := clusterctl.Apply(logger, config, clusterName, configBytes, dryRun)
+			log.Println("apply string: ", x)
+			log.Println("apply err: ", applyErr)
+			return x, applyErr
 		}
 	}
 	return "", fmt.Errorf("%s", "config collate error")
@@ -3343,6 +3347,7 @@ func expandKubernetesNetworkConfig(p []interface{}) *KubernetesNetworkConfig {
 
 func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	obj := &EKSSpec{}
+	log.Println("expandClusterSpec")
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
@@ -3367,6 +3372,7 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["proxy_config"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.ProxyConfig = toMapString(v)
 	}
+	log.Println("cluster spec cloud_provider: ", obj.CloudProvider)
 
 	return obj
 }

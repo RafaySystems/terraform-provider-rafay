@@ -2,7 +2,7 @@ resource "rafay_eks_cluster" "eksclusterbasic" {
   cluster {
     kind = "Cluster"
     metadata {
-      name = "test-cluster2"
+      name = "test-cluster6"
       project = "dev"
     }
     spec {
@@ -17,7 +17,7 @@ resource "rafay_eks_cluster" "eksclusterbasic" {
     apiversion = "rafay.io/v1alpha5"
     kind = "ClusterConfig"
     metadata {
-      name = "test-cluster2"
+      name = "test-cluster6"
       region = "us-west-2"
       version = "1.21"
     }
@@ -49,7 +49,7 @@ resource "rafay_eks_cluster" "eksclusterbasic" {
     }
   }
 }
-
+/*
 resource "rafay_eks_cluster" "eksspot" {
   cluster {
     kind = "Cluster"
@@ -138,3 +138,4 @@ resource "rafay_eks_cluster" "eksmanagedcustom" {
     }
   }
 }
+*/

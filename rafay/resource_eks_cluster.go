@@ -2939,12 +2939,12 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 	if v, ok := in["efs"].(bool); ok {
 		obj.EFS = &v
 	}
-	//doc says it should be field alb_ingress, struct has fiel ABSLoadBalancerController?
-	/*
-		if v, ok := in["alb_ingress"].(bool); ok {
-			obj.AWSLoadBalancerController = &v
-		}
-	*/
+	// @@@@ doc says it should be field alb_ingress,
+	// struct has field ABSLoadBalancerController?
+	if v, ok := in["alb_ingress"].(bool); ok {
+		obj.AWSLoadBalancerController = &v
+	}
+
 	if v, ok := in["xray"].(bool); ok {
 		obj.XRay = &v
 	}

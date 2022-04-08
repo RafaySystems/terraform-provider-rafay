@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -2300,6 +2301,7 @@ func expandFargateProfilesSelectors(p []interface{}) []FargateProfileSelector {
 func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not completed have questions in comments
 	obj := &ManagedNodeGroup{}
 	out := make([]*ManagedNodeGroup, len(p))
+	outToSort := make([]ManagedNodeGroup, len(p))
 	if len(p) == 0 || p[0] == nil {
 		return out
 	}
@@ -2438,7 +2440,13 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 		//how do i finish this?
 
 		//check if this is how to build array of pointers
-		out[i] = obj
+		//out[i] = obj
+		outToSort[i] = *obj
+	}
+
+	sort.Sort(ByManagedNodeGroupName(outToSort))
+	for i := range outToSort {
+		out[i] = &outToSort[i]
 	}
 
 	return out
@@ -2490,9 +2498,12 @@ func expandManagedNodeGroupLaunchTempelate(p []interface{}) *LaunchTemplate {
 
 func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have questions in comments
 	out := make([]*NodeGroup, len(p))
+	outToSort := make([]NodeGroup, len(p))
+
 	if len(p) == 0 || p[0] == nil {
 		return out
 	}
+
 	for i := range p {
 		in := p[i].(map[string]interface{})
 		obj := NodeGroup{}
@@ -2651,7 +2662,12 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		//how do i finish this?
 
 		//check if this is how to build array of pointers
-		out[i] = &obj
+		outToSort[i] = obj
+	}
+
+	sort.Sort(ByNodeGroupName(outToSort))
+	for i := range outToSort {
+		out[i] = &outToSort[i]
 	}
 
 	return out
@@ -4114,8 +4130,15 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{
 	if inp == nil {
 		return nil
 	}
+
+	inpSorted := make([]NodeGroup, len(inp))
+	for i := range inp {
+		inpSorted[i] = *inp[i]
+	}
+	sort.Sort(ByNodeGroupName(inpSorted))
+
 	out := make([]interface{}, len(inp))
-	for i, in := range inp {
+	for i, in := range inpSorted {
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -4520,8 +4543,15 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 	if inp == nil {
 		return nil, fmt.Errorf("empty input for managedNodeGroup")
 	}
+
+	inpSorted := make([]ManagedNodeGroup, len(inp))
+	for i := range inp {
+		inpSorted[i] = *inp[i]
+	}
+	sort.Sort(ByManagedNodeGroupName(inpSorted))
+
 	out := make([]interface{}, len(inp))
-	for i, in := range inp {
+	for i, in := range inpSorted {
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -4970,4 +5000,31 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 	log.Println("finished delete")
 
 	return diags
+}
+
+// Sort EKS Nodepool
+type ByNodeGroupName []NodeGroup
+
+func (np ByNodeGroupName) Len() int      { return len(np) }
+func (np ByNodeGroupName) Swap(i, j int) { np[i], np[j] = np[j], np[i] }
+func (np ByNodeGroupName) Less(i, j int) bool {
+	ret := strings.Compare(np[i].Name, np[j].Name)
+	if ret < 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+type ByManagedNodeGroupName []ManagedNodeGroup
+
+func (np ByManagedNodeGroupName) Len() int      { return len(np) }
+func (np ByManagedNodeGroupName) Swap(i, j int) { np[i], np[j] = np[j], np[i] }
+func (np ByManagedNodeGroupName) Less(i, j int) bool {
+	ret := strings.Compare(np[i].Name, np[j].Name)
+	if ret < 0 {
+		return true
+	} else {
+		return false
+	}
 }

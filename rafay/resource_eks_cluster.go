@@ -2148,7 +2148,7 @@ func eksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte,
 		log.Println("right bfr for loop->apply")
 		for clusterName, configBytes := range configMap {
 			log.Println("hope its not apply err")
-			x, applyErr := clusterctl.Apply(logger, config, clusterName, configBytes, dryRun)
+			x, applyErr := clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false)
 			log.Println("apply string: ", x)
 			log.Println("apply err: ", applyErr)
 			return x, applyErr

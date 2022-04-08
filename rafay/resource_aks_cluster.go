@@ -4552,7 +4552,7 @@ func aksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte,
 	if len(errs) == 0 && len(configMap) > 0 {
 		// Make request
 		for clusterName, configBytes := range configMap {
-			return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun)
+			return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false)
 		}
 	}
 	return "", fmt.Errorf("%s", "config collate error")

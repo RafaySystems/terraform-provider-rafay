@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
@@ -642,7 +643,6 @@ func vpcFields() map[string]*schema.Schema {
 		"manage_shared_node_security_group_rules": {
 			Type:        schema.TypeBool,
 			Optional:    true,
-			Default:     true,
 			Description: "Automatically add security group rules to and from the default cluster security group and the shared node security group. This allows unmanaged nodes to communicate with the control plane and managed nodes. This option cannot be disabled when using vendor created security groups.",
 		},
 		"auto_allocate_ipv6": {
@@ -1112,18 +1112,18 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Custom address used for DNS lookups",
 		},
-		/*
-			"kubelet_extra_config": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Custom address used for DNS lookups",
-				Elem: &schema.Resource{
-					Schema: kubeLetExtraConfigFields(),
-				},
-			},*/
-		"version": {
-			Type:        schema.TypeString, //supposed be of type object?
+
+		"kubelet_extra_config": {
+			Type:        schema.TypeList,
 			Optional:    true,
+			Description: "Custom address used for DNS lookups",
+			Elem: &schema.Resource{
+				Schema: kubeLetExtraConfigFields(),
+			},
+		},
+		"version": {
+			Type:        schema.TypeString,
+			Required:    true,
 			Description: "Kuberenetes version for the nodegroup",
 		},
 		"subnet_cidr": {
@@ -1671,7 +1671,7 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 				Schema: placementField(),
 			},
 		},
-		"efa_enbaled": {
+		"efa_enabled": {
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Default:     false,
@@ -2001,7 +2001,7 @@ func expandEKSClusterConfig(p []interface{}) *EKSClusterConfig {
 		obj.FargateProfiles = expandFargateProfiles(v)
 	}
 	if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
-		obj.AvailabilityZones = toArrayString(v)
+		obj.AvailabilityZones = toArrayStringSorted(v)
 	}
 	if v, ok := in["cloud_watch"].([]interface{}); ok && len(v) > 0 {
 		obj.CloudWatch = expandCloudWatch(v)
@@ -2096,37 +2096,37 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
-	/*
-		for { //wait for cluster to provision correctly
-			time.Sleep(60 * time.Second)
-			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
-			if errGet != nil {
-				log.Printf("error while getCluster %s", errGet.Error())
-				return diag.FromErr(errGet)
-			}
 
-			statusResp, err := eksClusterCTLStatus(res.TaskSetID)
-			if err != nil {
-				log.Println("status response parse error", err)
-				return diag.FromErr(err)
+	for { //wait for cluster to provision correctly
+		time.Sleep(60 * time.Second)
+		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+		if errGet != nil {
+			log.Printf("error while getCluster %s", errGet.Error())
+			return diag.FromErr(errGet)
+		}
+
+		statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+		if err != nil {
+			log.Println("status response parse error", err)
+			return diag.FromErr(err)
+		}
+		log.Println("statusResp ", statusResp)
+		sres := clusterCTLResponse{}
+		err = json.Unmarshal([]byte(statusResp), &sres)
+		if err != nil {
+			log.Println("status response unmarshal error", err)
+			return diag.FromErr(err)
+		}
+		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+			if check.Status == "READY" {
+				break
 			}
-			log.Println("statusResp ", statusResp)
-			sres := clusterCTLResponse{}
-			err = json.Unmarshal([]byte(statusResp), &sres)
-			if err != nil {
-				log.Println("status response unmarshal error", err)
-				return diag.FromErr(err)
-			}
-			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-				if check.Status == "READY" {
-					break
-				}
-				log.Println("task completed but cluster is not ready")
-			}
-			if strings.Contains(sres.Status, "STATUS_FAILED") {
-				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
-			}
-		}*/
+			log.Println("task completed but cluster is not ready")
+		}
+		if strings.Contains(sres.Status, "STATUS_FAILED") {
+			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
+		}
+	}
 
 	log.Printf("resource eks cluster created/updated %s", s.ID)
 	d.SetId(s.ID)
@@ -2303,6 +2303,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 	if len(p) == 0 || p[0] == nil {
 		return out
 	}
+	log.Println("got to managed node group")
 	for i := range p {
 		in := p[i].(map[string]interface{})
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
@@ -2315,7 +2316,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 			obj.InstanceName = v
 		}
 		if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
-			obj.AvailabilityZones = toArrayString(v)
+			obj.AvailabilityZones = toArrayStringSorted(v)
 		}
 		if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
 			obj.Subnets = toArrayString(v)
@@ -2401,7 +2402,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 		if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
 			obj.Placement = expandNodeGroupPlacement(v)
 		}
-		if v, ok := in["efa_enbaled"].(bool); ok {
+		if v, ok := in["efa_enabled"].(bool); ok {
 			obj.EFAEnabled = &v
 		}
 		if v, ok := in["instance_selector"].([]interface{}); ok && len(v) > 0 {
@@ -2510,7 +2511,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 			obj.InstanceName = v
 		}
 		if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
-			obj.AvailabilityZones = toArrayString(v)
+			obj.AvailabilityZones = toArrayStringSorted(v)
 		}
 		if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
 			obj.Subnets = toArrayString(v)
@@ -2640,6 +2641,10 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		//@@@TODO Store terraform input as inline document object correctly
 		if v, ok := in["kubelet_extra_config"].([]interface{}); ok && len(v) > 0 {
 			obj.KubeletExtraConfig = expandKubeletExtraConfig(v)
+		}
+		//@@@
+		if v, ok := in["version"].(string); ok && len(v) > 0 {
+			obj.Version = v
 		}
 		//struct has field containerRuntime
 		//doc has version and subnet cidr
@@ -3583,7 +3588,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		if !ok {
 			v = []interface{}{}
 		}
-		ret6 = flattenEKSClusterAddons(in.Addons, v)
+		ret6, err = flattenEKSClusterAddons(in.Addons, v)
 		if err != nil {
 			log.Println("flattenEKSClusterAddons err")
 			return nil, err
@@ -3598,10 +3603,11 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 			v = []interface{}{}
 		}
 		ret7 = flattenEKSClusterPrivateCluster(in.PrivateCluster, v)
-		if err != nil {
-			log.Println("flattenEKSClusterPrivateCluster err")
-			return nil, err
-		}
+		/*
+			if err != nil {
+				log.Println("flattenEKSClusterPrivateCluster err")
+				return nil, err
+			}*/
 		obj["private_cluster"] = ret7
 	}
 	//setting up flatten Node Groups
@@ -3612,10 +3618,11 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 			v = []interface{}{}
 		}
 		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, v)
-		if err != nil {
-			log.Println("flattenEKSClusterNodeGroups err")
-			return nil, err
-		}
+		/*
+			if err != nil {
+				log.Println("flattenEKSClusterNodeGroups err")
+				return nil, err
+			}*/
 		log.Println("flattend node group")
 		obj["node_groups"] = ret8
 	}
@@ -3626,12 +3633,13 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		if !ok {
 			v = []interface{}{}
 		}
-		ret9 = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, v)
+		ret9, err = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, v)
 		if err != nil {
 			log.Println("flattenEKSClusterManagedNodeGroups err")
 			return nil, err
 		}
 		obj["managed_nodegroups"] = ret9
+		log.Println("flattend managed node group: ", obj["managed_nodegroups"], ret9)
 	}
 	//setting up flatten Fargate Profiles
 	var ret10 []interface{}
@@ -3641,15 +3649,15 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 			v = []interface{}{}
 		}
 		ret10 = flattenEKSClusterFargateProfiles(in.FargateProfiles, v)
-		if err != nil {
-			log.Println("flattenEKSClusterPrivateCluster err")
+		/*if err != nil {
+			log.Println("flattenEKSClusterFargateProfiles err")
 			return nil, err
-		}
+		}*/
 		obj["fargate_profiles"] = ret10
 	}
 	//setting up flatten Availability Zones
 	if in.AvailabilityZones != nil && len(in.AvailabilityZones) > 0 {
-		obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
+		obj["availability_zones"] = toArrayInterfaceSorted(in.AvailabilityZones)
 	}
 	//setting up flatten Cloud Watch
 	var ret11 []interface{}
@@ -3659,10 +3667,10 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 			v = []interface{}{}
 		}
 		ret11 = flattenEKSClusterCloudWatch(in.CloudWatch, v)
-		if err != nil {
+		/*if err != nil {
 			log.Println("flattenEKSClusterCloudWatch err")
 			return nil, err
-		}
+		}*/
 		obj["cloud_watch"] = ret11
 	}
 	//setting up flatten Secrets Encryption
@@ -3673,13 +3681,13 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 			v = []interface{}{}
 		}
 		ret12 = flattenEKSClusterSecretsEncryption(in.SecretsEncryption, v)
-		if err != nil {
+		/*if err != nil {
 			log.Println("flattenEKSClusterSecretsEncryption err")
 			return nil, err
-		}
+		}*/
 		obj["secrets_encryption"] = ret12
 	}
-	log.Println("end of read")
+	log.Println("end of flatten config")
 
 	return []interface{}{obj}, nil
 }
@@ -3737,12 +3745,12 @@ func flattenEKSClusterIAM(in *EKSClusterIAM, p []interface{}) ([]interface{}, er
 
 	return []interface{}{obj}, nil
 }
-func flattenIAMServiceAccounts(in []*EKSClusterIAMServiceAccount, p []interface{}) []interface{} {
-	if in == nil {
+func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface{}) []interface{} {
+	if inp == nil {
 		return nil
 	}
-	out := make([]interface{}, len(in))
-	for i, in := range in {
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
 
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
@@ -3878,12 +3886,12 @@ func flattenIAMWellKnownPolicies(in WellKnownPolicies, p []interface{}) []interf
 	obj["efs_csi_controller"] = in.EFSCSIController
 	return []interface{}{obj}
 }
-func flattenEKSClusterIdentityProviders(in []IdentityProvider, p []interface{}) ([]interface{}, error) {
-	out := make([]interface{}, len(in))
-	if in == nil {
+func flattenEKSClusterIdentityProviders(inp []IdentityProvider, p []interface{}) ([]interface{}, error) {
+	out := make([]interface{}, len(inp))
+	if inp == nil {
 		return []interface{}{out}, nil
 	}
-	for i, in := range in {
+	for i, in := range inp {
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -4039,12 +4047,12 @@ func flattenVPCClusterEndpoints(in *ClusterEndpoints, p []interface{}) []interfa
 	return []interface{}{obj}
 }
 
-func flattenEKSClusterAddons(in []*Addon, p []interface{}) []interface{} {
-	if in == nil {
-		return nil
+func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, error) {
+	if inp == nil {
+		return nil, fmt.Errorf("emptyinput flatten addons")
 	}
-	out := make([]interface{}, len(in))
-	for i, in := range in {
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -4083,7 +4091,7 @@ func flattenEKSClusterAddons(in []*Addon, p []interface{}) []interface{} {
 
 		out[i] = &obj
 	}
-	return out
+	return out, nil
 }
 func flattenEKSClusterPrivateCluster(in *PrivateCluster, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
@@ -4102,12 +4110,12 @@ func flattenEKSClusterPrivateCluster(in *PrivateCluster, p []interface{}) []inte
 	}
 	return []interface{}{obj}
 }
-func flattenEKSClusterNodeGroups(in []*NodeGroup, p []interface{}) []interface{} {
-	if in == nil {
+func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{} {
+	if inp == nil {
 		return nil
 	}
-	out := make([]interface{}, len(in))
-	for i, in := range in {
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -4122,7 +4130,7 @@ func flattenEKSClusterNodeGroups(in []*NodeGroup, p []interface{}) []interface{}
 			obj["instance_type"] = in.InstanceType
 		}
 		if len(in.AvailabilityZones) > 0 {
-			obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
+			obj["availability_zones"] = toArrayInterfaceSorted(in.AvailabilityZones)
 		}
 		if len(in.Subnets) > 0 {
 			obj["subnets"] = toArrayInterface(in.Subnets)
@@ -4257,6 +4265,10 @@ func flattenEKSClusterNodeGroups(in []*NodeGroup, p []interface{}) []interface{}
 		}
 		if len(in.ClusterDNS) > 0 {
 			obj["cluster_dns"] = in.ClusterDNS
+		}
+
+		if len(in.Version) > 0 {
+			obj["version"] = in.Version
 		}
 		//@@@TODO Store inline document object as terraform input correctly
 		if in.KubeletExtraConfig != nil {
@@ -4469,12 +4481,12 @@ func flattenNodeGroupInstancesDistribution(in *NodeGroupInstancesDistribution, p
 
 	return []interface{}{obj}
 }
-func flattenNodeGroupASGMetricsCollection(in []MetricsCollection, p []interface{}) []interface{} {
-	if in == nil {
+func flattenNodeGroupASGMetricsCollection(inp []MetricsCollection, p []interface{}) []interface{} {
+	if inp == nil {
 		return nil
 	}
-	out := make([]interface{}, len(in))
-	for i, in := range in {
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -4504,12 +4516,12 @@ func flattenNodeGroupUpdateConfig(in *NodeGroupUpdateConfig, p []interface{}) []
 }
 
 //Flatten mnanaged Node Groups
-func flattenEKSClusterManagedNodeGroups(in []*ManagedNodeGroup, p []interface{}) []interface{} {
-	if in == nil {
-		return nil
+func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}) ([]interface{}, error) {
+	if inp == nil {
+		return nil, fmt.Errorf("empty input for managedNodeGroup")
 	}
-	out := make([]interface{}, len(in))
-	for i, in := range in {
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -4524,10 +4536,10 @@ func flattenEKSClusterManagedNodeGroups(in []*ManagedNodeGroup, p []interface{})
 			obj["instance_type"] = in.InstanceType
 		}
 		if len(in.AvailabilityZones) > 0 {
-			obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
+			obj["availability_zones"] = toArrayInterfaceSorted(in.AvailabilityZones)
 		}
 		if len(in.Subnets) > 0 {
-			obj["subnets"] = toArrayInterface(in.Subnets)
+			obj["subnets"] = toArrayInterfaceSorted(in.Subnets)
 		}
 		if len(in.InstancePrefix) > 0 {
 			obj["instance_prefix"] = in.InstancePrefix
@@ -4604,7 +4616,10 @@ func flattenEKSClusterManagedNodeGroups(in []*ManagedNodeGroup, p []interface{})
 			}
 			obj["placement"] = flattenNodeGroupPlacement(in.Placement, v)
 		}
+		//@@@ efa enabled
 		obj["efa_enabled"] = in.EFAEnabled
+		//log.Println("input efaEnabled:", *in.EFAEnabled)
+		//log.Println("object efaEnabled:", obj["efa_enabled"])
 		if in.InstanceSelector != nil {
 			v, ok := obj["instance_selector"].([]interface{})
 			if !ok {
@@ -4647,14 +4662,14 @@ func flattenEKSClusterManagedNodeGroups(in []*ManagedNodeGroup, p []interface{})
 		}
 		out[i] = obj
 	}
-	return out
+	return out, nil
 }
-func flattenNodeGroupTaint(in []NodeGroupTaint, p []interface{}) []interface{} {
-	if in == nil {
+func flattenNodeGroupTaint(inp []NodeGroupTaint, p []interface{}) []interface{} {
+	if inp == nil {
 		return nil
 	}
-	out := make([]interface{}, len(in))
-	for i, in := range in {
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
 		obj := map[string]interface{}{}
 		if len(in.Key) > 0 {
 			obj["key"] = in.Key
@@ -4687,12 +4702,12 @@ func flattenNodeGroupLaunchTemplate(in *LaunchTemplate, p []interface{}) []inter
 }
 
 //Flatten Fargate Profiles
-func flattenEKSClusterFargateProfiles(in []*FargateProfile, p []interface{}) []interface{} {
-	if in == nil {
+func flattenEKSClusterFargateProfiles(inp []*FargateProfile, p []interface{}) []interface{} {
+	if inp == nil {
 		return nil
 	}
-	out := make([]interface{}, len(in))
-	for i, in := range in {
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
 		obj := map[string]interface{}{}
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
@@ -4721,12 +4736,12 @@ func flattenEKSClusterFargateProfiles(in []*FargateProfile, p []interface{}) []i
 
 	return out
 }
-func flattenFargateProfileSelectors(in []FargateProfileSelector, p []interface{}) []interface{} {
-	if in == nil {
+func flattenFargateProfileSelectors(inp []FargateProfileSelector, p []interface{}) []interface{} {
+	if inp == nil {
 		return nil
 	}
-	out := make([]interface{}, len(in))
-	for i, in := range in {
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
 		obj := map[string]interface{}{}
 		if len(in.Namespace) > 0 {
 			obj["namespace"] = in.Namespace
@@ -4831,6 +4846,10 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	clusterByte := []byte(clusterSpecYaml)
 	cfgList, err := utils.SplitYamlAndGetListByKind(clusterByte)
+	if err != nil {
+		log.Println("read err with split yaml")
+		return diag.FromErr(err)
+	}
 	//flatten cluster
 	log.Println("cfgList: ", cfgList)
 	n1 := spew.Sprintf("%+v", cfgList)

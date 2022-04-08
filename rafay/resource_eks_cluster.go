@@ -2313,7 +2313,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 			obj.AMIFamily = v
 		}
 		if v, ok := in["instance_type"].(string); ok && len(v) > 0 {
-			obj.InstanceName = v
+			obj.InstanceType = v
 		}
 		if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
 			obj.AvailabilityZones = toArrayStringSorted(v)
@@ -2508,7 +2508,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 			obj.AMIFamily = v
 		}
 		if v, ok := in["instance_type"].(string); ok && len(v) > 0 {
-			obj.InstanceName = v
+			obj.InstanceType = v
 		}
 		if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
 			obj.AvailabilityZones = toArrayStringSorted(v)

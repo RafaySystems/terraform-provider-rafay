@@ -648,6 +648,8 @@ type NodeGroup struct {
 
 	KubeletExtraConfig *KubeletExtraConfig `yaml:"kubeletExtraConfig,omitempty"`
 
+	Version string `yaml:"version,omitempty"`
+
 	// ContainerRuntime defines the runtime (CRI) to use for containers on the node
 	// +optional
 	ContainerRuntime string `yaml:"containerRuntime,omitempty"`

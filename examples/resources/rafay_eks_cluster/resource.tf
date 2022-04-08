@@ -2,7 +2,7 @@ resource "rafay_eks_cluster" "eksclusterbasic" {
   cluster {
     kind = "Cluster"
     metadata {
-      name = "test-cluster6"
+      name = "test-cluster7"
       project = "dev"
     }
     spec {
@@ -17,13 +17,14 @@ resource "rafay_eks_cluster" "eksclusterbasic" {
     apiversion = "rafay.io/v1alpha5"
     kind = "ClusterConfig"
     metadata {
-      name = "test-cluster6"
+      name = "test-cluster7"
       region = "us-west-2"
       version = "1.21"
     }
     node_groups{
       name = "ng-57658a87"
       ami_family = "AmazonLinux2"
+      version = "1.21"
       iam {
         iam_node_group_with_addon_policies {
           image_builder = true
@@ -45,6 +46,22 @@ resource "rafay_eks_cluster" "eksclusterbasic" {
       }
       nat {
         gateway = "Single"
+      }
+    }
+    managed_nodegroups {
+      name             = "managed-ng-1"
+      ami_family       = "AmazonLinux2"
+      instance_type    = "t3.large"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 60
+      volume_size      = 50
+      volume_type      = "gp3"
+      taints {
+        key  = "logging"
+        value = "enable"
+        effect = "PreferNoSchedule"
       }
     }
   }

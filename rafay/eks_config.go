@@ -130,7 +130,7 @@ type EKSClusterConfig struct {
 	// +optional
 	PrivateCluster    *PrivateCluster       `yaml:"privateCluster,omitempty"`
 	NodeGroups        []*NodeGroup          `yaml:"nodeGroups,omitempty"`
-	ManagedNodeGroups []*ManagedNodeGroup   `yaml:"managedNodegroups,omitempty"`
+	ManagedNodeGroups []*ManagedNodeGroup   `yaml:"managedNodeGroups,omitempty"`
 	FargateProfiles   []*FargateProfile     `yaml:"fargateProfiles,omitempty"`
 	AvailabilityZones []string              `yaml:"availabilityZones,omitempty"`
 	CloudWatch        *EKSClusterCloudWatch `yaml:"cloudWatch,omitempty"`

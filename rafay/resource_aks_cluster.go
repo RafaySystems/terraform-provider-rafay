@@ -18,7 +18,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
-	"github.com/go-yaml/yaml"
+	// Yaml pkg that have no limit for key length
+	yamlf "github.com/goccy/go-yaml"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -4606,7 +4607,7 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		return diag.FromErr(fmt.Errorf("%s", "ClusterConfig name does not match config file"))
 	}
 
-	out, err := yaml.Marshal(obj)
+	out, err := yamlf.Marshal(obj)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -4801,7 +4802,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	clusterSpec := AKSCluster{}
-	err = yaml.Unmarshal([]byte(clusterSpecYaml), &clusterSpec)
+	err = yamlf.Unmarshal([]byte(clusterSpecYaml), &clusterSpec)
 	if err != nil {
 		return diag.FromErr(err)
 	}

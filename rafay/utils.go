@@ -109,6 +109,19 @@ func toMapString(in map[string]interface{}) map[string]string {
 	return out
 }
 
+func toMapEmptyObject(in map[string]interface{}) map[string]interface{} {
+	type x struct{}
+	out := make(map[string]interface{})
+	for i, v := range in {
+		if v == nil {
+			out[i] = ""
+			continue
+		}
+		out[i] = x{}
+	}
+	return out
+}
+
 func toMapBool(in map[string]interface{}) map[string]bool {
 	out := make(map[string]bool)
 	for i, v := range in {
@@ -139,6 +152,17 @@ func toMapInterface(in map[string]string) map[string]interface{} {
 	for i, v := range in {
 		out[i] = v
 	}
+	return out
+}
+
+func toMapInterfaceObject(in map[string]interface{}) map[string]interface{} {
+	out := make(map[string]interface{})
+	log.Println("toMapInterfaceObject:", in)
+	for i, v := range in {
+		log.Println("toMapInterfaceObject v :", v)
+		out[i] = "{}"
+	}
+	log.Println("toMapInterfaceObject: out:", out)
 	return out
 }
 

@@ -1850,7 +1850,8 @@ func expandAKSManagedClusterIdentity(p []interface{}) *AKSManagedClusterIdentity
 	}
 
 	if v, ok := in["user_assigned_identities"].(map[string]interface{}); ok {
-		obj.UserAssignedIdentities = toMapString(v)
+		//obj.UserAssignedIdentities = toMapString(v)
+		obj.UserAssignedIdentities = toMapEmptyObject(v)
 	}
 	return obj
 }
@@ -3278,7 +3279,8 @@ func flattenAKSManagedClusterIdentity(in *AKSManagedClusterIdentity, p []interfa
 	}
 
 	if in.UserAssignedIdentities != nil && len(in.UserAssignedIdentities) > 0 {
-		obj["user_assigned_identities"] = toMapInterface(in.UserAssignedIdentities)
+		//obj["user_assigned_identities"] = toMapInterface(in.UserAssignedIdentities)
+		obj["user_assigned_identities"] = toMapInterfaceObject(in.UserAssignedIdentities)
 	}
 
 	return []interface{}{obj}

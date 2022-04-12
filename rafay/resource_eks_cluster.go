@@ -350,7 +350,7 @@ func iamFields() map[string]*schema.Schema {
 			Description: "permissions boundary for the fargate pod execution role.",
 		},
 		"with_oidc": {
-			Type:        schema.TypeString,
+			Type:        schema.TypeBool,
 			Optional:    true,
 			Description: "enables the IAM OIDC provider as well as IRSA for the Amazon CNI plugin",
 		},

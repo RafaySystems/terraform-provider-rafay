@@ -273,40 +273,40 @@ type EKSClusterIAMServiceAccount struct {
 
 type WellKnownPolicies struct {
 	// ImageBuilder allows for full ECR (Elastic Container Registry) access.
-	ImageBuilder *bool `yaml:"imageBuilder,inline,omitempty"`
+	ImageBuilder *bool `yaml:"imageBuilder,omitempty"`
 	// AutoScaler adds policies for cluster-autoscaler. See [autoscaler AWS
 	// docs](https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html).
-	AutoScaler *bool `yaml:"autoScaler,inline,omitempty"`
+	AutoScaler *bool `yaml:"autoScaler,omitempty"`
 	// AWSLoadBalancerController adds policies for using the
 	// aws-load-balancer-controller. See [Load Balancer
 	// docs](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html).
-	AWSLoadBalancerController *bool `yaml:"awsLoadBalancerController,inline,omitempty"`
+	AWSLoadBalancerController *bool `yaml:"awsLoadBalancerController,omitempty"`
 	// ExternalDNS adds external-dns policies for Amazon Route 53.
 	// See [external-dns
 	// docs](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md).
-	ExternalDNS *bool `yaml:"externalDNS,inline,omitempty"`
+	ExternalDNS *bool `yaml:"externalDNS,omitempty"`
 	// CertManager adds cert-manager policies. See [cert-manager
 	// docs](https://cert-manager.io/docs/configuration/acme/dns01/route53).
-	CertManager *bool `yaml:"certManager,inline,omitempty"`
+	CertManager *bool `yaml:"certManager,omitempty"`
 	// EBSCSIController adds policies for using the
 	// ebs-csi-controller. See [aws-ebs-csi-driver
 	// docs](https://github.com/kubernetes-sigs/aws-ebs-csi-driver#set-up-driver-permission).
-	EBSCSIController *bool `yaml:"ebsCSIController,inline,omitempty"`
+	EBSCSIController *bool `yaml:"ebsCSIController,omitempty"`
 	// EFSCSIController adds policies for using the
 	// efs-csi-controller. See [aws-efs-csi-driver
 	// docs](https://aws.amazon.com/blogs/containers/introducing-efs-csi-dynamic-provisioning).
-	EFSCSIController *bool `yaml:"efsCSIController,inline,omitempty"`
+	EFSCSIController *bool `yaml:"efsCSIController,omitempty"`
 }
 
 //type InlineDocument map[string]interface{}
 type InlineDocument struct {
-	Version   string          `yaml:"version,omitempty"`
-	Statement InlineStatement `yaml:"statement,omitempty"`
+	Version   string          `yaml:"Version,omitempty"`
+	Statement InlineStatement `yaml:"Statement,omitempty"`
 }
 type InlineStatement struct {
-	Effect   string   `yaml:"effect,omitempty"`
-	Action   []string `yaml:"action,omitempty"`
-	Resource string   `yaml:"resource,omitempty"`
+	Effect   string   `yaml:"Effect,omitempty"`
+	Action   []string `yaml:"Action,omitempty"`
+	Resource string   `yaml:"Resource,omitempty"`
 }
 
 type ClusterIAMServiceAccountStatus struct {

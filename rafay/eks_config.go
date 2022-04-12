@@ -230,11 +230,12 @@ type EKSClusterIAM struct {
 
 // ClusterIAMServiceAccount holds an IAM service account metadata and configuration
 type EKSClusterIAMServiceAccount struct {
-	//KSClusterIAMMeta `yaml:"metadata,omitempty"`
-	Name        string            `yaml:"name,omitempty"`
+	Metadata *EKSClusterIAMMeta `yaml:"metadata,omitempty"`
+	/*Name        string            `yaml:"name,omitempty"`
 	Namespace   string            `yaml:"namespace,omitempty"`
 	Labels      map[string]string `yaml:"labels,omitempty"`
 	Annotations map[string]string `yaml:"annotations,omitempty"`
+	*/
 
 	// list of ARNs of the IAM policies to attach
 	// +optional
@@ -1139,7 +1140,7 @@ type ManagedNodeGroup struct {
 
 	// LaunchTemplate specifies an existing launch template to use
 	// for the nodegroup
-	LaunchTemplate *LaunchTemplate `yaml:"launchTempelate,omitempty"`
+	LaunchTemplate *LaunchTemplate `yaml:"launchTemplate,omitempty"`
 
 	// ReleaseVersion the AMI version of the EKS optimized AMI to use
 	ReleaseVersion string `yaml:"releaseVersion,omitempty"`

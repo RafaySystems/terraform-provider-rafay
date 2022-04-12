@@ -1,158 +1,130 @@
-resource "rafay_eks_cluster" "eksclusterbasic" {
+resource "rafay_eks_cluster" "ekscluster-basic" {
   cluster {
     kind = "Cluster"
     metadata {
-      name = "test-cluster7"
-      project = "dev"
+      name    = "eks-cluster-1"
+      project = "terraform"
     }
     spec {
-      type = "eks"
-      blueprint = "default"
-      cloud_provider = "hardik-eks-role"
-      cni_provider = "aws-cni"
-      proxy_config = {}
+      type           = "eks"
+      blueprint      = "default"
+      blueprint_version = "1.12.0"
+      cloud_provider = "eks-role"
+      cni_provider   = "aws-cni"
+      proxy_config   = {}
     }
   }
   cluster_config {
     apiversion = "rafay.io/v1alpha5"
-    kind = "ClusterConfig"
+    kind       = "ClusterConfig"
     metadata {
-      name = "test-cluster7"
-      region = "us-west-2"
+      name    = "eks-cluster-1"
+      region  = "us-west-2"
       version = "1.21"
-    }
-    node_groups{
-      name = "ng-57658a87"
-      ami_family = "AmazonLinux2"
-      version = "1.21"
-      iam {
-        iam_node_group_with_addon_policies {
-          image_builder = true
-          auto_scaler = true
-        }
-      }
-      instance_type = "t3.xlarge"
-      desired_capacity = 1
-      min_size = 1
-      max_size = 2
-      volume_size = 80
-      volume_type = "gp3"
     }
     vpc {
       cidr = "192.168.0.0/16"
       cluster_endpoints {
         private_access = true
-        public_access = false
+        public_access  = false
       }
       nat {
         gateway = "Single"
       }
     }
-    managed_nodegroups {
-      name             = "managed-ng-1"
-      ami_family       = "AmazonLinux2"
-      instance_type    = "t3.large"
+    node_groups {
+      name       = "ng-1"
+      ami_family = "AmazonLinux2"
+      iam {
+        iam_node_group_with_addon_policies {
+          image_builder = true
+          auto_scaler   = true
+        }
+      }
+      instance_type    = "m5.xlarge"
       desired_capacity = 1
       min_size         = 1
       max_size         = 2
-      max_pods_per_node = 60
-      volume_size      = 50
+      max_pods_per_node = 50
+      version          = "1.21"
+      volume_size      = 80
       volume_type      = "gp3"
-      taints {
-        key  = "logging"
-        value = "enable"
-        effect = "PreferNoSchedule"
-      }
-    }
-  }
-}
-/*
-resource "rafay_eks_cluster" "eksspot" {
-  cluster {
-    kind = "Cluster"
-    metadata {
-      name = "test-spot"
-      project = "dev"
-    }
-    spec {
-      type = "eks"
-      blueprint = "default"
-      cloud_provider = "hardik-eks-role"
-      cni_provider = "aws-cni"
-      proxy_config = {}
-    }
-  }
-  cluster_config {
-    apiversion = "rafay.io/v1alpha5"
-    kind = "ClusterConfig"
-    metadata {
-      name = "test-spot"
-      region = "us-west-2"
-      version = "1.21"
-    }
-    node_groups{
-      name = "spot-ng-1"
-      min_size = 0
-      max_size = 4
-      instances_distribution {
-        max_price = 0.017
-        instance_types = ["t3.xlarge"]
-        on_demand_base_capacity = 0
-        on_demand_percentage_above_base_capacity = 0
-        spot_instance_pools = 2
-      }
+      private_networking = true
     }
   }
 }
 
-resource "rafay_eks_cluster" "eksmanagedcustom" {
+
+resource "rafay_eks_cluster" "ekscluste-advanced" {
   cluster {
     kind = "Cluster"
     metadata {
-      name = "test-managed-custom2"
-      project = "dev"
+      name    = "eks-cluster-2"
+      project = "terraform"
     }
     spec {
-      type = "eks"
-      blueprint = "default"
-      cloud_provider = "hardik-eks-role"
-      cni_provider = "aws-cni"
-      proxy_config = {}
+      type           = "eks"
+      blueprint      = "default"
+      blueprint_version = "1.12.0"
+      cloud_provider = "eks-role"
+      cni_provider   = "aws-cni"
+      proxy_config   = {}
     }
   }
   cluster_config {
     apiversion = "rafay.io/v1alpha5"
-    kind = "ClusterConfig"
+    kind       = "ClusterConfig"
     metadata {
-      name = "test-managed-custom2"
-      region = "us-west-2"
+      name    = "eks-cluster-2"
+      region  = "us-west-2"
       version = "1.21"
     }
     vpc {
       subnets {
         private {
-          name = "subnet-1" 
-          id = "subnet-06e2a2cea8270483d"
+          name = "private-01"
+          id   = "private-subnet-id-0"
         }
         private {
-          name = "subnet-2" 
-          id = "subnet-032b5640e54cee1d2"
+          name = "private-02"
+          id   = "private-subnet-id-0"
         }
         public {
-          name = "subnet-3" 
-          id = "subnet-076ae102f8593bc63"
+          name = "public-01"
+          id   = "public-subnet-id-0"
         }
         public {
-          name = "subnet-4" 
-          id = "subnet-05389b9c0829a4c30"
+          name = "public-02"
+          id   = "public-subnet-id-0"
         }
+      }
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
       }
     }
     managed_nodegroups {
-      name = "managed-ng-1"
-      instance_type = "t3.large"
+      name       = "managed-ng-1"
+      ami_family = "AmazonLinux2"
+      iam {
+        instance_profile_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:instance-profile/role_name"
+        instance_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/role_name"
+      }
+      instance_type    = "m5.xlarge"
       desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      security_groups {
+        attach_ids = ["sg-id-1", "sg-id-2"]
+      }
+      subnets = ["subnet-id-1", "subnet-id-2"]
+      version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      volume_iops      = 3000
+      volume_throughput = 125
+      private_networking = true
     }
   }
 }
-*/

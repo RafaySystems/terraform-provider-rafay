@@ -1144,6 +1144,8 @@ type ManagedNodeGroup struct {
 	// ReleaseVersion the AMI version of the EKS optimized AMI to use
 	ReleaseVersion string `yaml:"releaseVersion,omitempty"`
 
+	Version string `yaml:"version,omitempty"`
+
 	// Internal fields
 
 	Unowned bool `yaml:"-"`

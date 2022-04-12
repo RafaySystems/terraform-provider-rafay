@@ -1737,6 +1737,11 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 				Schema: launchTempelateFields(),
 			},
 		}, //@@@ check eks_config.go wats this release version, is it in launch tempelate or managedNodeGroups, doc vs eks_config is confusing
+		"version": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Kuberenetes version for the nodegroup",
+		},
 	}
 	return s
 }
@@ -2433,6 +2438,9 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 		}
 		if v, ok := in["launch_tempelate"].([]interface{}); ok && len(v) > 0 {
 			obj.LaunchTemplate = expandManagedNodeGroupLaunchTempelate(v)
+		}
+		if v, ok := in["version"].(string); ok && len(v) > 0 {
+			obj.Version = v
 		}
 		//@@@TODO:
 		//struct has field ReleaseVersion
@@ -4689,6 +4697,9 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 				v = []interface{}{}
 			}
 			obj["launch_tempelate"] = flattenNodeGroupLaunchTemplate(in.LaunchTemplate, v)
+		}
+		if len(in.Version) > 0 {
+			obj["version"] = in.Version
 		}
 		out[i] = obj
 	}

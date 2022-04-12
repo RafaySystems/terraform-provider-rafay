@@ -4214,7 +4214,7 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{
 			if !ok {
 				v = []interface{}{}
 			}
-			obj["cluster_endpoints"] = flattenNodeGroupSSH(in.SSH, v)
+			obj["ssh"] = flattenNodeGroupSSH(in.SSH, v)
 		}
 
 		if len(in.Labels) > 0 {
@@ -4627,7 +4627,7 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 			if !ok {
 				v = []interface{}{}
 			}
-			obj["cluster_endpoints"] = flattenNodeGroupSSH(in.SSH, v)
+			obj["ssh"] = flattenNodeGroupSSH(in.SSH, v)
 		}
 
 		if len(in.Labels) > 0 {

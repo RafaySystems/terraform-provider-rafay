@@ -359,7 +359,7 @@ func iamFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "service accounts to create in the cluster.",
 			Elem: &schema.Resource{
-				Schema: serviceAccountsMetadata(),
+				Schema: serviceAccountsFields(),
 			},
 		},
 		"vpc_resource_controller_policy": {
@@ -380,32 +380,6 @@ func serviceAccountsFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: serviceAccountsMetadata(),
 			},
-		},
-	}
-	return s
-}
-
-func serviceAccountsMetadata() map[string]*schema.Schema {
-	s := map[string]*schema.Schema{
-		"name": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "service account name",
-		},
-		"namespace": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "service account namespace",
-		},
-		"labels": {
-			Type:        schema.TypeMap,
-			Optional:    true,
-			Description: "CIDR range from where ClusterIPs are assigned",
-		},
-		"annotations": {
-			Type:        schema.TypeMap,
-			Optional:    true,
-			Description: "CIDR range from where ClusterIPs are assigned",
 		},
 		"attach_policy_arns": {
 			Type:        schema.TypeList,
@@ -466,6 +440,32 @@ func serviceAccountsMetadata() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+		},
+	}
+	return s
+}
+
+func serviceAccountsMetadata() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "service account name",
+		},
+		"namespace": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "service account namespace",
+		},
+		"labels": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "CIDR range from where ClusterIPs are assigned",
+		},
+		"annotations": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "CIDR range from where ClusterIPs are assigned",
 		},
 	}
 	return s
@@ -1498,7 +1498,7 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "type of instances in the nodegroup",
 		},
-		"avalability_zones": {
+		"availability_zones": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "Limit nodes to specific AZs",
@@ -1729,7 +1729,7 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 				Schema: updateConfigManagedNodeGroupsFields(),
 			},
 		},
-		"launch_tempelate": {
+		"launch_template": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "used by the scaling config, see cloudformation docs",
@@ -2431,7 +2431,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 		if v, ok := in["update_config"].([]interface{}); ok && len(v) > 0 {
 			obj.UpdateConfig = expandNodeGroupUpdateConfig(v)
 		}
-		if v, ok := in["launch_tempelate"].([]interface{}); ok && len(v) > 0 {
+		if v, ok := in["launch_template"].([]interface{}); ok && len(v) > 0 {
 			obj.LaunchTemplate = expandManagedNodeGroupLaunchTempelate(v)
 		}
 		//@@@TODO:
@@ -3242,6 +3242,31 @@ func expandIAMFields(p []interface{}) *EKSClusterIAM {
 
 	return obj
 }
+
+func expandServiceAccountsMetadata(p []interface{}) *EKSClusterIAMMeta {
+	obj := &EKSClusterIAMMeta{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	//is this okay or do i need to store it in metadata, golang gives me access to the containts inside the metadata struct
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+	if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+		obj.Namespace = v
+	}
+	if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.Labels = toMapString(v)
+	}
+	if v, ok := in["annotations"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.Annotations = toMapString(v)
+	}
+	return obj
+}
+
 func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAccount {
 	out := make([]*EKSClusterIAMServiceAccount, len(p))
 	if len(p) == 0 || p[0] == nil {
@@ -3250,20 +3275,9 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 	for i := range p {
 		obj := &EKSClusterIAMServiceAccount{}
 		in := p[i].(map[string]interface{})
-		//is this okay or do i need to store it in metadata, golang gives me access to the containts inside the metadata struct
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj.Name = v
+		if v, ok := in["metadata"].([]interface{}); ok && len(v) > 0 {
+			obj.Metadata = expandServiceAccountsMetadata(v)
 		}
-		if v, ok := in["namespace"].(string); ok && len(v) > 0 {
-			obj.Namespace = v
-		}
-		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
-			obj.Labels = toMapString(v)
-		}
-		if v, ok := in["annotations"].(map[string]interface{}); ok && len(v) > 0 {
-			obj.Annotations = toMapString(v)
-		}
-
 		//finish clusterIAM metadata
 		if v, ok := in["attach_policy_arns"].([]interface{}); ok && len(v) > 0 {
 			obj.AttachPolicyARNs = toArrayString(v)
@@ -3761,6 +3775,30 @@ func flattenEKSClusterIAM(in *EKSClusterIAM, p []interface{}) ([]interface{}, er
 
 	return []interface{}{obj}, nil
 }
+
+func flattenIAMServiceAccountMetadata(in *EKSClusterIAMMeta, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+	if len(in.Namespace) > 0 {
+		obj["namespace"] = in.Namespace
+	}
+
+	if in.Labels != nil && len(in.Labels) > 0 {
+		obj["labels"] = toMapInterface(in.Labels)
+	}
+	if in.Annotations != nil && len(in.Annotations) > 0 {
+		obj["annotations"] = toMapInterface(in.Annotations)
+	}
+
+	return []interface{}{obj}
+}
+
 func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
@@ -3773,23 +3811,17 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 			obj = p[i].(map[string]interface{})
 		}
 
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
+		v, ok := obj["metadata"].([]interface{})
+		if !ok {
+			v = []interface{}{}
 		}
-		if len(in.Namespace) > 0 {
-			obj["namespace"] = in.Namespace
-		}
+		obj["metadata"] = flattenIAMServiceAccountMetadata(in.Metadata, v)
 
-		if in.Labels != nil && len(in.Labels) > 0 {
-			obj["labels"] = toMapInterface(in.Labels)
-		}
-		if in.Annotations != nil && len(in.Annotations) > 0 {
-			obj["annotations"] = toMapInterface(in.Annotations)
-		}
 		if in.AttachPolicyARNs != nil && len(in.AttachPolicyARNs) > 0 {
 			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
 		}
-		v, ok := obj["well_known_policies"].([]interface{})
+
+		v, ok = obj["well_known_policies"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
@@ -4684,11 +4716,11 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 			obj["update_config"] = flattenNodeGroupUpdateConfig(in.UpdateConfig, v)
 		}
 		if in.LaunchTemplate != nil {
-			v, ok := obj["launch_tempelate"].([]interface{})
+			v, ok := obj["launch_template"].([]interface{})
 			if !ok {
 				v = []interface{}{}
 			}
-			obj["launch_tempelate"] = flattenNodeGroupLaunchTemplate(in.LaunchTemplate, v)
+			obj["launch_template"] = flattenNodeGroupLaunchTemplate(in.LaunchTemplate, v)
 		}
 		out[i] = obj
 	}

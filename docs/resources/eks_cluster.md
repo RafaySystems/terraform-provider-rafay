@@ -13,17 +13,18 @@ Manage an AWS EKS cluster.
 ## Example Usage
 
 ```terraform
-resource "rafay_eks_cluster" "eksclusterbasic" {
+resource "rafay_eks_cluster" "ekscluster-basic" {
   cluster {
     kind = "Cluster"
     metadata {
-      name    = "test-cluster2"
+      name    = "eks-cluster-1"
       project = "terraform"
     }
     spec {
       type           = "eks"
       blueprint      = "default"
-      cloud_provider = "test-eks-role"
+      blueprint_version = "1.12.0"
+      cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
       proxy_config   = {}
     }
@@ -32,25 +33,9 @@ resource "rafay_eks_cluster" "eksclusterbasic" {
     apiversion = "rafay.io/v1alpha5"
     kind       = "ClusterConfig"
     metadata {
-      name    = "test-cluster2"
+      name    = "eks-cluster-1"
       region  = "us-west-2"
       version = "1.21"
-    }
-    node_groups {
-      name       = "nodegroupname"
-      ami_family = "AmazonLinux2"
-      iam {
-        iam_node_group_with_addon_policies {
-          image_builder = true
-          auto_scaler   = true
-        }
-      }
-      instance_type    = "t3.xlarge"
-      desired_capacity = 1
-      min_size         = 1
-      max_size         = 2
-      volume_size      = 80
-      volume_type      = "gp3"
     }
     vpc {
       cidr = "192.168.0.0/16"
@@ -62,58 +47,41 @@ resource "rafay_eks_cluster" "eksclusterbasic" {
         gateway = "Single"
       }
     }
-  }
-}
-
-resource "rafay_eks_cluster" "eksspot" {
-  cluster {
-    kind = "Cluster"
-    metadata {
-      name    = "test-spot"
-      project = "terraform"
-    }
-    spec {
-      type           = "eks"
-      blueprint      = "default"
-      cloud_provider = "test-eks-role"
-      cni_provider   = "aws-cni"
-      proxy_config   = {}
-    }
-  }
-  cluster_config {
-    apiversion = "rafay.io/v1alpha5"
-    kind       = "ClusterConfig"
-    metadata {
-      name    = "test-spot"
-      region  = "us-west-2"
-      version = "1.21"
-    }
     node_groups {
-      name     = "spot-ng-1"
-      min_size = 0
-      max_size = 4
-      instances_distribution {
-        max_price                                = 0.017
-        instance_types                           = ["t3.xlarge"]
-        on_demand_base_capacity                  = 0
-        on_demand_percentage_above_base_capacity = 0
-        spot_instance_pools                      = 2
+      name       = "ng-1"
+      ami_family = "AmazonLinux2"
+      iam {
+        iam_node_group_with_addon_policies {
+          image_builder = true
+          auto_scaler   = true
+        }
       }
+      instance_type    = "m5.xlarge"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      private_networking = true
     }
   }
 }
 
-resource "rafay_eks_cluster" "eksmanagedcustom" {
+
+resource "rafay_eks_cluster" "ekscluste-advanced" {
   cluster {
     kind = "Cluster"
     metadata {
-      name    = "test-managed-custom2"
+      name    = "eks-cluster-2"
       project = "terraform"
     }
     spec {
       type           = "eks"
       blueprint      = "default"
-      cloud_provider = "test-eks-role"
+      blueprint_version = "1.12.0"
+      cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
       proxy_config   = {}
     }
@@ -122,34 +90,56 @@ resource "rafay_eks_cluster" "eksmanagedcustom" {
     apiversion = "rafay.io/v1alpha5"
     kind       = "ClusterConfig"
     metadata {
-      name    = "test-managed-custom2"
+      name    = "eks-cluster-2"
       region  = "us-west-2"
       version = "1.21"
     }
     vpc {
       subnets {
         private {
-          name = "subnet-1"
-          id   = "subnet-06e2a2cea8270483d"
+          name = "private-01"
+          id   = "private-subnet-id-0"
         }
         private {
-          name = "subnet-2"
-          id   = "subnet-032b5640e54cee1d2"
+          name = "private-02"
+          id   = "private-subnet-id-0"
         }
         public {
-          name = "subnet-3"
-          id   = "subnet-076ae102f8593bc63"
+          name = "public-01"
+          id   = "public-subnet-id-0"
         }
         public {
-          name = "subnet-4"
-          id   = "subnet-05389b9c0829a4c30"
+          name = "public-02"
+          id   = "public-subnet-id-0"
         }
+      }
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
       }
     }
     managed_nodegroups {
-      name             = "managed-ng-1"
-      instance_type    = "t3.large"
+      name       = "managed-ng-1"
+      ami_family = "AmazonLinux2"
+      iam {
+        instance_profile_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:instance-profile/role_name"
+        instance_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/role_name"
+      }
+      instance_type    = "m5.xlarge"
       desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      security_groups {
+        attach_ids = ["sg-id-1", "sg-id-2"]
+      }
+      subnets = ["subnet-id-1", "subnet-id-2"]
+      version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      volume_iops      = 3000
+      volume_throughput = 125
+      private_networking = true
     }
   }
 }
@@ -242,7 +232,6 @@ resource "rafay_eks_cluster" "eksmanagedcustom" {
 - `tags` - (Map of String) The AWS resource tags created by the vendor. 
 
 
-
 <a id="nestedblock--cluster_config--fargate_profiles"></a>
 ### Nested Schema for `cluster_config.fargate_profiles`
 
@@ -284,50 +273,29 @@ resource "rafay_eks_cluster" "eksmanagedcustom" {
 
 ***Required***
 
-- `attach_policy` - (Block List, Max: 1) Holds a policy document to attach to the service account. (See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts--attach_policy))
+- `attach_policy` - (Block List, Max: 1) Holds a policy document to attach to the service account.
 - `attach_policy_arns` - (List of String) The list of ARNs of the IAM policies to attach to the service account. 
-- `attach_role_arn` - (String) The ARN of the role to attach to the service account. 
+- `attach_role_arn` - (String) The ARN of the role to attach to the service account.
+- `metadata` -(Block List) Contains data that helps uniquely identify the service account.See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts--metadata))
+- `well_known_policies` - (Block List) Use to attach common IAM policies. (See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts--well_known_policies))
+    **Note**: At least `attach_policy`, `attach_policy_arns`, or `attach_role_arn` is required. 
+
+***Optional*** 
+- `tags` - (Map of String) The AWS tags for the service account.
+
+
+<a id="nestedblock--cluster_config--iam--service_accounts--metadata"></a>
+### Nested Schema for `cluster_config.iam.service_accounts.metadata`
+
+***Required***
+
 - `name` - (String) The name of the service account. 
 - `namespace` - (String) The namespace of the service account. 
-
-    **Note**: At least `attach_policy`, `attach_policy_arns`, or `attach_role_arn` is required. 
 
 ***Optional***
 
 - `annotations` - (Map of String) The annotations for the service account. 
-- `labels` - (Map of String) The classless inter-domain routing (CIDR) range from which ClusterIPs are assigned. 
-- `permissions_boundary` - (String) The ARN of the permissions boundary to associate with the service account. 
-- `role_name` - (String) Use the specific role name instead of the Cloudformation-generated role name. 
-- `role_only` - (Boolean) Specify if only the IAM service account role should be created without creating/annotating the service account. 
-- `status` - (Block List) Holds status of the IAM service account. (See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts--status))
-- `tags` - (Map of String) The AWS tags for the service account. 
-- `well_known_policies` - (Block List) Use to attach common IAM policies. (See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts--well_known_policies))
-
-
-
-<a id="nestedblock--cluster_config--iam--service_accounts--attach_policy"></a>
-### Nested Schema for `cluster_config.iam.service_accounts.attach_policy`
-
-***Optional***
-
-- `auto_scaler` - (Boolean) Enables the policy for cluster-autoscaler. 
-- `aws_load_balancer_controller` - (Boolean) Adds policies for using the aws-load-balancer-controller.
-- `cert_manager` - (Boolean) Adds certificate manager policies.
-- `ebs_csi_controller` - (Boolean) Adds policies for using the ebs-csi-controller. 
-- `efs_csi_controller` - (Boolean) Adds policies for using the efs-csi-controller.
-- `external_dns` - (Boolean) Adds external-dns policies for Amazon Route 53.
-- `image_builder` - (Boolean) Allow full Elastic Container Registry (ECR) access.
-
-
-
-<a id="nestedblock--cluster_config--iam--service_accounts--status"></a>
-### Nested Schema for `cluster_config.iam.service_accounts.status`
-
-***Optional***
-
-- `role_arn` - (String) The role ARN associated with the service account.
-
-
+- `labels` - (Map of String) The classless inter-domain routing (CIDR) range from which ClusterIPs are assigned.
 
 <a id="nestedblock--cluster_config--iam--service_accounts--well_known_policies"></a>
 ### Nested Schema for `cluster_config.iam.service_accounts.well_known_policies`
@@ -355,6 +323,8 @@ resource "rafay_eks_cluster" "eksmanagedcustom" {
 - `max_size` - (Number) The maximum number of instances in the nodegroup. 
 - `min_size` - (Number) The minimum number of instances in the nodegroup. 
 - `name` - (String) The name of the node group. 
+- `volume_iops` - (Number) IOPS of the volume. Value must be in the range of 3000-16000.
+- `volume_throughput`- (Number) Throughput of the volume. Value must be in the range of 125-1000.
 - `volume_size` - (Number) The size of the volume, in gigabytes. 
 - `volume_type` - (String) The volume type for volumes attached to instances in the nodegroup. The supported values are: 
     - `gp2` - General purpose SSD

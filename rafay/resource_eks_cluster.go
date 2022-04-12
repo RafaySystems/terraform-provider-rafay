@@ -1393,61 +1393,73 @@ func iamNodeGroupWithAddonPoliciesFields() map[string]*schema.Schema {
 		"image_builder": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     true,
 			Description: "allows for full ECR (Elastic Container Registry) access. This is useful for building, for example, a CI server that needs to push images to ECR",
 		},
 		"auto_scaler": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     true,
 			Description: "enables IAM policy for cluster-autoscaler",
 		},
 		"external_dns": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     false,
 			Description: "adds the external-dns project policies for Amazon Route 53",
 		},
 		"cert_manager": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     false,
 			Description: "enables the ability to add records to Route 53 in order to solve the DNS01 challenge.",
 		},
 		"app_mesh": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     false,
 			Description: "enables full access to AppMesh",
 		},
 		"app_mesh_review": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     false,
 			Description: "enables full access to AppMesh Preview",
 		},
 		"ebs": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     false,
 			Description: "enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver",
 		},
 		"fsx": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     false,
 			Description: "enables full access to FSX",
 		},
 		"efs": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     false,
 			Description: "enables full access to EFS",
 		},
 		"alb_ingress": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     false,
 			Description: "enables access to ALB Ingress controller",
 		},
 		"xray": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     false,
 			Description: "enables access to XRay",
 		},
 		"cloud_watch": {
 			Type:        schema.TypeBool,
 			Optional:    true,
+			Default:     false,
 			Description: "enables access to cloud watch",
 		},
 	}
@@ -1474,6 +1486,31 @@ func securityGroupsConfigFields() map[string]*schema.Schema {
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Default:     true,
+			Description: "attach a security group local to this nodegroup Not supported for managed nodegroups",
+		},
+	}
+	return s
+}
+func managedSecurityGroupsConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"attach_ids": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "attaches additional security groups to the nodegroup",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"with_shared": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "attach the security group shared among all nodegroups in the cluster",
+		},
+		"with_local": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
 			Description: "attach a security group local to this nodegroup Not supported for managed nodegroups",
 		},
 	}
@@ -1587,7 +1624,7 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "controls security groups for this nodegroup",
 			Elem: &schema.Resource{
-				Schema: securityGroupsConfigFields(),
+				Schema: managedSecurityGroupsConfigFields(),
 			},
 		},
 		"max_pods_per_node": {
@@ -4386,10 +4423,7 @@ func flattenNodeGroupSSH(in *NodeGroupSSH, p []interface{}) []interface{} {
 	obj["allow"] = in.Allow
 	if len(in.PublicKeyPath) > 0 {
 		obj["public_key"] = in.PublicKeyPath
-	} /*no publick ey path field in doc
-	if len(in.PublicKeyPath) > 0 {
-		obj["public_key_path"] = in.PublicKeyPath
-	}*/
+	}
 	if len(in.PublicKeyName) > 0 {
 		obj["public_key_name"] = in.PublicKeyName
 	}

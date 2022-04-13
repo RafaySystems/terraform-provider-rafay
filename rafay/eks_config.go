@@ -1315,7 +1315,7 @@ type EKSNodeGroupInstancesDistribution struct {
 
 type EKSClusterCloudWatch struct {
 	//+optional
-	ClusterLogging *EKSClusterCloudWatchLogging `yaml:"cluster_logging,omitempty"`
+	ClusterLogging *EKSClusterCloudWatchLogging `yaml:"clusterLogging,omitempty"`
 }
 
 // Values for `CloudWatchLogging`

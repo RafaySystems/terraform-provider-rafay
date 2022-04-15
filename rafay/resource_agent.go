@@ -305,7 +305,7 @@ func flattenAgent(d *schema.ResourceData, in *gitopspb.Agent) error {
 
 func flattenAgentSpec(in *gitopspb.AgentSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
-		return nil, fmt.Errorf("%s", "flattenWorkloadSpec empty input")
+		return nil, fmt.Errorf("%s", "flattenAgentSpec empty input")
 	}
 
 	obj := map[string]interface{}{}

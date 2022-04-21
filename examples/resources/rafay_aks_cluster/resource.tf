@@ -151,7 +151,7 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
       apiversion = "rafay.io/v1alpha1"
       kind       = "aksClusterConfig"
       metadata {
-        name = "demo-terraform1"
+        name = "demo-terraform2"
       }
       spec {
         resource_group_name = "testuser-terraform"

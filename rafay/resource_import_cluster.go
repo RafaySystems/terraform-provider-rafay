@@ -54,8 +54,8 @@ func resourceImportCluster() *schema.Resource {
 
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
-			/*hardcode kind
-			"kind": {
+			//hardcode kind
+			/*"kind": {
 				Type:     schema.TypeString,
 				Required: true,
 			},*/

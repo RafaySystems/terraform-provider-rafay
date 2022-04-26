@@ -314,7 +314,7 @@ func expandSpec(p []interface{}) (*ImportClusterSpec, error) {
 	return obj, nil
 }
 
-func flattenImportCluster(in *ImportCluster, p []interface{}) ([]interface{}, error) {
+func flattenImportCluster(d *schema.ResourceData, in *ImportCluster) ([]interface{}, error) {
 	obj := map[string]interface{}{}
 	if in == nil {
 		return nil, fmt.Errorf("empty cluster input")
@@ -337,7 +337,11 @@ func flattenImportCluster(in *ImportCluster, p []interface{}) ([]interface{}, er
 			log.Println("flattenMetadata err")
 			return nil, err
 		}
-		obj["metadata"] = ret1
+		err = d.Set("metadata", ret1)
+		if err != nil {
+			log.Printf("err setting cluster %s", err.Error())
+			return nil, err
+		}
 		log.Println("set metadata: ", obj["metadata"])
 	}
 	//flattening EKSClusterSpec
@@ -352,8 +356,11 @@ func flattenImportCluster(in *ImportCluster, p []interface{}) ([]interface{}, er
 			log.Println("flattenEKSClusterSpec err")
 			return nil, err
 		}
-		obj["spec"] = ret2
-		log.Println("set metadata: ", obj["spec"])
+		err = d.Set("spec", ret2)
+		if err != nil {
+			log.Printf("err setting cluster %s", err.Error())
+		}
+		log.Println("set spec: ", obj["spec"])
 	}
 	log.Println("flattenImportCluster finished ")
 	return []interface{}{obj}, nil
@@ -398,7 +405,7 @@ func flattenSpec(in *ImportClusterSpec, p []interface{}) ([]interface{}, error) 
 	}
 	log.Println("md 1")
 	if len(in.BlueprintVersion) > 0 {
-		obj["project"] = in.BlueprintVersion
+		obj["blueprint_version"] = in.BlueprintVersion
 	}
 	log.Println("md 2")
 	if len(in.Type) > 0 {
@@ -538,6 +545,11 @@ func resourceImportClusterRead(ctx context.Context, d *schema.ResourceData, m in
 	}
 	if err := d.Set("clustername", c.Name); err != nil {
 		log.Printf("get group set name error %s", err.Error())
+		return diag.FromErr(err)
+	}
+
+	_, err = flattenImportCluster(d, importCluster)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 

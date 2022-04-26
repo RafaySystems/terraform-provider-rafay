@@ -151,8 +151,9 @@ func resourceImportClusterUpsert(ctx context.Context, d *schema.ResourceData, m 
 		log.Printf("expand importCluster error")
 		return diag.FromErr(err)
 	}
-	log.Printf("expand importCluster:", importCluster)
-
+	log.Printf("expand importCluster: %v", importCluster)
+	//n1 := spew.Sprintf("%+v", importCluster)
+	//log.Println("apply yamlClusterConfig:", n1)
 	//get project id with project name, p.id used to refer to project id -> need p.ID for calling getCluster and GetBootstrapFile and NewImportCluster
 	resp, err := project.GetProjectByName(importCluster.Metadata.Project)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"log"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type artifactTranspose struct {
@@ -14,10 +15,10 @@ type artifactTranspose struct {
 	Artifact struct {
 		Repository    string  `protobuf:"bytes,1,opt,name=repository,proto3" json:"repository,omitempty"`
 		Revision      string  `protobuf:"bytes,2,opt,name=revision,proto3" json:"revision,omitempty"`
-		ChartPath     *File   `protobuf:"bytes,3,opt,name=chart_path,proto3" json:"chart_path,omitempty"`
-		ValuesPaths   []*File `protobuf:"bytes,4,rep,name=values_paths,proto3" json:"values_paths,omitempty"`
-		ChartName     string  `protobuf:"bytes,2,opt,name=chart_name,proto3" json:"chart_name,omitempty"`
-		ChartVersion  string  `protobuf:"bytes,3,opt,name=chart_version,proto3" json:"chart_version,omitempty"`
+		ChartPath     *File   `protobuf:"bytes,3,opt,name=chart_path,proto3" json:"chartPath,omitempty"`
+		ValuesPaths   []*File `protobuf:"bytes,4,rep,name=values_paths,proto3" json:"valuesPaths,omitempty"`
+		ChartName     string  `protobuf:"bytes,2,opt,name=chart_name,proto3" json:"chartName,omitempty"`
+		ChartVersion  string  `protobuf:"bytes,3,opt,name=chart_version,proto3" json:"chartVersion,omitempty"`
 		Paths         []*File `protobuf:"bytes,3,rep,name=paths,proto3" json:"paths,omitempty"`
 		Configmap     *File   `protobuf:"bytes,1,opt,name=configmap,proto3" json:"configmap,omitempty"`
 		Secret        *File   `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
@@ -30,7 +31,7 @@ type artifactTranspose struct {
 		Wait                     bool     `protobuf:"varint,2,opt,name=wait,proto3" json:"wait,omitempty"`
 		Force                    bool     `protobuf:"varint,3,opt,name=force,proto3" json:"force,omitempty"`
 		NoHooks                  bool     `protobuf:"varint,4,opt,name=no_hooks,proto3" json:"noHooks,omitempty"`
-		MaxHistory               int32    `protobuf:"zigzag32,5,opt,name=max_history,proto3" json:"maxHistory,omitempty"`
+		MaxHistory               int      `protobuf:"zigzag32,5,opt,name=max_history,proto3" json:"maxHistory,omitempty"`
 		RenderSubChartNotes      bool     `protobuf:"varint,6,opt,name=render_sub_chart_notes,proto3" json:"renderSubChartNotes,omitempty"`
 		ResetValues              bool     `protobuf:"varint,7,opt,name=reset_values,proto3" json:"resetValues,omitempty"`
 		ReuseValues              bool     `protobuf:"varint,8,opt,name=reuse_values,proto3" json:"reuseValues,omitempty"`
@@ -61,6 +62,8 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 		}
 		in := vp[0].(map[string]interface{})
 
+		artfct := spew.Sprintf("%+v", in)
+		log.Println("ExpandArtifact in ", artfct)
 		if v, ok := in["chart_name"].(string); ok && len(v) > 0 {
 			at.Artifact.ChartName = v
 		}
@@ -79,10 +82,14 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 
 		if v, ok := in["configuration"].([]interface{}); ok && len(v) > 0 {
 			at.Artifact.Configuration = expandFile(v)
+			artfct = spew.Sprintf("%+v", at.Artifact.Configuration)
+			log.Println("ExpandArtifact  at.Artifact.Configuration ", artfct)
 		}
 
 		if v, ok := in["paths"].([]interface{}); ok && len(v) > 0 {
 			at.Artifact.Paths = expandFiles(v)
+			artfct = spew.Sprintf("%+v", at.Artifact.Paths)
+			log.Println("ExpandArtifact  at.Artifact.Paths ", artfct)
 		}
 
 		if v, ok := in["repository"].(string); ok && len(v) > 0 {
@@ -103,11 +110,16 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 
 		if v, ok := in["values_paths"].([]interface{}); ok && len(v) > 0 {
 			at.Artifact.ValuesPaths = expandFiles(v)
+			artfct = spew.Sprintf("%+v", at.Artifact.ValuesPaths)
+			log.Println("ExpandArtifact  at.Artifact.ValuesPaths ", artfct)
 		}
 
 		if v, ok := in["revision"].(string); ok && len(v) > 0 {
 			at.Artifact.Revision = v
 		}
+
+		artfct = spew.Sprintf("%+v", at.Artifact)
+		log.Println("ExpandArtifact  at.Artifact ", artfct)
 	}
 
 	if vp, ok := inp["options"].([]interface{}); ok && len(vp) > 0 {
@@ -133,8 +145,9 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 			if v, ok := in["keep_history"].(bool); ok {
 				at.Options.KeepHistory = v
 			}
-			if v, ok := in["max_history"].(int32); ok {
+			if v, ok := in["max_history"].(int); ok {
 				at.Options.MaxHistory = v
+				log.Println("ExpandArtifact max_history ", at.Options.MaxHistory)
 			}
 			if v, ok := in["no_hooks"].(bool); ok {
 				at.Options.NoHooks = v
@@ -160,12 +173,14 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 			if v, ok := in["wait"].(bool); ok {
 				at.Options.Wait = v
 			}
+			ops := spew.Sprintf("%+v", at.Options)
+			log.Println("ExpandArtifact ops ", ops)
 		}
 	}
 
 	// XXX Debug
-	// s := spew.Sprintf("%+v", at)
-	// log.Println("expandArtifact at", s)
+	s := spew.Sprintf("%+v", at)
+	log.Println("ExpandArtifact at", s)
 
 	jsonSpec, err := json.Marshal(at)
 	if err != nil {
@@ -173,7 +188,7 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 	}
 
 	// XXX Debug
-	// log.Println("expandArtifact jsonSpec ", string(jsonSpec))
+	log.Println("ExpandArtifact jsonSpec ", string(jsonSpec))
 
 	err = obj.UnmarshalJSON(jsonSpec)
 	if err != nil {
@@ -182,8 +197,8 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 	}
 
 	// XXX Debug
-	// s1 := spew.Sprintf("%+v", obj)
-	// log.Println("expandArtifact obj", s1)
+	s1 := spew.Sprintf("%+v", obj)
+	log.Println("ExpandArtifact obj", s1)
 
 	return &obj, nil
 }
@@ -206,6 +221,10 @@ func ExpandArtifactSpec(p []interface{}) (*commonpb.ArtifactSpec, error) {
 		}
 
 	}
+
+	// XXX Debug
+	s1 := spew.Sprintf("%+v", obj)
+	log.Println("ExpandArtifactSpec obj", s1)
 
 	return obj, nil
 }
@@ -262,6 +281,9 @@ func FlattenArtifact(at *artifactTranspose, p []interface{}) ([]interface{}, err
 	if at.Artifact.Statefulset != nil {
 		obj["statefulset"] = flattenFile(at.Artifact.Statefulset)
 	}
+
+	s1 := spew.Sprintf("%+v", obj)
+	log.Println("FlattenArtifact obj", s1)
 
 	return []interface{}{obj}, nil
 }
@@ -331,9 +353,9 @@ func FlattenArtifactSpec(in *commonpb.ArtifactSpec, p []interface{}) ([]interfac
 	}
 
 	// XXX Debug
-	// log.Println("FlattenArtifactSpec jsonBytes:", string(jsonBytes))
-	// s1 := spew.Sprintf("%+v", at)
-	// log.Println("FlattenArtifactSpec at", s1)
+	log.Println("FlattenArtifactSpec jsonBytes:", string(jsonBytes))
+	s1 := spew.Sprintf("%+v", at)
+	log.Println("FlattenArtifactSpec at", s1)
 
 	v, ok := obj["artifact"].([]interface{})
 	if !ok {

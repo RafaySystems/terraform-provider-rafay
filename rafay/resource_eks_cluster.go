@@ -146,10 +146,38 @@ func specField() map[string]*schema.Schema {
 			Default:     "Calico-v3.19.1",
 			Description: "Cni provider used to specify different cni options for the cluster",
 		},
+		"cni_params": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: customCniField(),
+			},
+		},
 		"proxy_config": {
 			Type:        schema.TypeMap,
 			Optional:    true,
 			Description: "Configure Proxy if your infrastructure uses an Outbound Proxy",
+		},
+	}
+	return s
+}
+
+func customCniField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"subnet": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Valid variants are: 'IPv4' defines an IP family of v4 to be used when creating a new VPC and cluster., 'IPv6' defines an IP family of v6 to be used when creating a new VPC and cluster..",
+		},
+		"custom_cni_crd_spec": {
+			//TODO : ... expand map[string][]objects
+			Type:        schema.TypeMap,
+			Required:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: customCniField(),
+			},
 		},
 	}
 	return s

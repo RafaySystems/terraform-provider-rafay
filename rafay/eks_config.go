@@ -103,6 +103,17 @@ type EKSSpec struct {
 	CloudProvider    string            `yaml:"cloudprovider,omitempty"`
 	CniProvider      string            `yaml:"cniprovider,omitempty"`
 	ProxyConfig      map[string]string `yaml:"proxyconfig,omitempty"`
+	CniParams        *CustomCni        `yaml:"cniparams,omitempty"`
+}
+
+type CustomCniCrdSpec struct {
+	Subnet         string   `yaml:"subnet"`
+	SecurityGroups []string `yaml:"securityGroups,omitempty"`
+}
+
+type CustomCni struct {
+	CustomCniCidr    string                        `yaml:"customCniCidr,omitempty"`
+	CustomCniCrdSpec map[string][]CustomCniCrdSpec `yaml:"customCniCrdSpec,omitempty"`
 }
 
 type EKSClusterMetadata struct {

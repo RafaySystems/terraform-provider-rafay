@@ -165,7 +165,7 @@ func specField() map[string]*schema.Schema {
 
 func customCniField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
-		"subnet": {
+		"custom_cni_crd": {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "Valid variants are: 'IPv4' defines an IP family of v4 to be used when creating a new VPC and cluster., 'IPv6' defines an IP family of v6 to be used when creating a new VPC and cluster..",
@@ -176,7 +176,7 @@ func customCniField() map[string]*schema.Schema {
 			Required:    true,
 			Description: "contains custom cni networking configurations",
 			Elem: &schema.Resource{
-				Schema: customCniField(),
+				Schema: customCniField(), //should be diff
 			},
 		},
 	}
@@ -3477,11 +3477,32 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["cni_provider"].(string); ok && len(v) > 0 {
 		obj.CniProvider = v
 	}
+	if v, ok := in["cni_params"].([]interface{}); ok && len(v) > 0 {
+		obj.CniParams = expandCNIParams(v)
+	}
 	if v, ok := in["proxy_config"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.ProxyConfig = toMapString(v)
 	}
 	log.Println("cluster spec cloud_provider: ", obj.CloudProvider)
 
+	return obj
+}
+
+func expandCNIParams(p []interface{}) *CustomCni {
+	obj := &CustomCni{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["custom_cni_crd"].(string); ok && len(v) > 0 {
+		obj.CustomCniCidr = v
+	}
+	//@@@what to do for expanding map[string][]object
+	if v, ok := in["custom_cni_crd_spec"].(string); ok && len(v) > 0 {
+		obj.CustomCniCrdSpec = v
+	}
 	return obj
 }
 
@@ -3572,12 +3593,39 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 	if len(in.CniProvider) > 0 {
 		obj["cni_provider"] = in.CniProvider
 	}
-
+	if in.CniParams != nil {
+		v, ok := obj["cni_params"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["cni_params"] = flattenCNIParams(in.CniParams, v)
+	}
 	if in.ProxyConfig != nil && len(in.ProxyConfig) > 0 {
 		obj["proxy_config"] = toMapInterface(in.ProxyConfig)
 	}
 
 	return []interface{}{obj}, nil
+}
+
+func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.CustomCniCidr) > 0 {
+		obj["custom_cni_crd"] = in.CustomCniCidr
+	}
+	//@@@ how to flatten map[string][]object??
+	if in.CustomCniCrdSpec != nil {
+		v, ok := obj["custom_cni_crd_spec"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["cni_params"] = flattenCNIParams(in.CniParams, v)
+	}
+
+	return []interface{}{obj}
 }
 func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]interface{}, error) {
 	if in == nil {

@@ -176,7 +176,31 @@ func customCniField() map[string]*schema.Schema {
 			Required:    true,
 			Description: "contains custom cni networking configurations",
 			Elem: &schema.Resource{
-				Schema: customCniField(), //should be diff
+				Schema: customCniSpecField(), //should be diff
+			},
+		},
+	}
+	return s
+}
+
+func customCniSpecField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "name of custom cni",
+		},
+		"subnet": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "",
+		},
+		"security_groups": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "security groups of custom CNI",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
 			},
 		},
 	}
@@ -3249,11 +3273,11 @@ func expandSubnetSpec(p []interface{}) AZSubnetMapping {
 		if v, ok := in["az"].(string); ok && len(v) > 0 {
 			elem2.AZ = v
 		}
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj[v] = elem2
-		}
 		if v, ok := in["cidr"].(string); ok && len(v) > 0 {
 			elem2.CIDR = v
+		}
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj[v] = elem2
 		}
 	}
 	return obj
@@ -3500,8 +3524,31 @@ func expandCNIParams(p []interface{}) *CustomCni {
 		obj.CustomCniCidr = v
 	}
 	//@@@what to do for expanding map[string][]object
-	if v, ok := in["custom_cni_crd_spec"].(string); ok && len(v) > 0 {
-		obj.CustomCniCrdSpec = v
+	if v, ok := in["custom_cni_crd_spec"].([]interface{}); ok && len(v) > 0 {
+		obj.CustomCniCrdSpec = expandCustomCNISpec(v)
+	}
+	return obj
+}
+
+func expandCustomCNISpec(p []interface{}) CustomCNIMapping {
+	obj := make(CustomCNIMapping)
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		elem2 := CustomCniSpec{}
+		if v, ok := in["id"].(string); ok && len(v) > 0 {
+			elem2.Subnet = v
+		}
+		if v, ok := in["az"].([]interface{}); ok && len(v) > 0 {
+			elem2.SecurityGroups = toArrayStringSorted(v)
+		}
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj[v] = elem2
+		}
 	}
 	return obj
 }
@@ -3622,11 +3669,37 @@ func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["cni_params"] = flattenCNIParams(in.CniParams, v)
+		obj["custom_cni_crd_spec"] = flattenCustomCNISpec(in.CustomCniCrdSpec, v)
 	}
 
 	return []interface{}{obj}
 }
+
+func flattenCustomCNISpec(in CustomCNIMapping, p []interface{}) []interface{} {
+	log.Println("got to flatten custom CNI mapping", len(p))
+	out := make([]interface{}, len(in))
+	i := 0
+	for key, elem := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(elem.Subnet) > 0 {
+			obj["subnet"] = elem.Subnet
+		}
+		if len(elem.SecurityGroups) > 0 {
+			obj["security_groups"] = toArrayInterfaceSorted(elem.SecurityGroups)
+		}
+		if len(key) > 0 {
+			obj["name"] = key
+		}
+		out[i] = obj
+		i += 1
+	}
+	log.Println("finished customCNI mapping")
+	return out
+}
+
 func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]interface{}, error) {
 	if in == nil {
 		return nil, fmt.Errorf("%s", "flattenEKSClusterMetaData empty input")

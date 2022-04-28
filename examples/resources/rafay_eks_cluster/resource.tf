@@ -2,7 +2,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
   cluster {
     kind = "Cluster"
     metadata {
-      name    = "eks-cluster-1"
+      name    = "eks-custom-cni"
       project = "terraform"
     }
     spec {
@@ -11,6 +11,18 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       blueprint_version = "1.12.0"
       cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
+      cni_params {
+        custom_cni_crd_spec {
+          name = "us-west-2a"
+          security_groups = ["sg-xxxxxx", "sg-yyyyyy"]
+          subnet = "subnet-08dfb5d33b80d2b17"
+        }
+        custom_cni_crd_spec {
+          name = "us-west-2b"
+          security_groups = ["sg-xxxxxxx", "sg-ccccccc"]
+          subnet = "subnet-08dfb5d33b80d2b18"
+        }
+      }
       proxy_config   = {}
     }
   }
@@ -54,7 +66,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
   }
 }
 
-
+/*
 resource "rafay_eks_cluster" "ekscluste-advanced" {
   cluster {
     kind = "Cluster"
@@ -128,3 +140,4 @@ resource "rafay_eks_cluster" "ekscluste-advanced" {
     }
   }
 }
+*/

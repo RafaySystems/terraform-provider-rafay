@@ -171,12 +171,11 @@ func customCniField() map[string]*schema.Schema {
 			Description: "Valid variants are: 'IPv4' defines an IP family of v4 to be used when creating a new VPC and cluster., 'IPv6' defines an IP family of v6 to be used when creating a new VPC and cluster..",
 		},
 		"custom_cni_crd_spec": {
-			//TODO : ... expand map[string][]objects
-			Type:        schema.TypeMap,
+			Type:        schema.TypeList,
 			Required:    true,
 			Description: "contains custom cni networking configurations",
 			Elem: &schema.Resource{
-				Schema: customCniSpecField(), //should be diff
+				Schema: customCniSpecField(),
 			},
 		},
 	}
@@ -2191,37 +2190,37 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
-
-	for { //wait for cluster to provision correctly
-		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
-		if errGet != nil {
-			log.Printf("error while getCluster %s", errGet.Error())
-			return diag.FromErr(errGet)
-		}
-
-		statusResp, err := eksClusterCTLStatus(res.TaskSetID)
-		if err != nil {
-			log.Println("status response parse error", err)
-			return diag.FromErr(err)
-		}
-		log.Println("statusResp ", statusResp)
-		sres := clusterCTLResponse{}
-		err = json.Unmarshal([]byte(statusResp), &sres)
-		if err != nil {
-			log.Println("status response unmarshal error", err)
-			return diag.FromErr(err)
-		}
-		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-			if check.Status == "READY" {
-				break
+	/*
+		for { //wait for cluster to provision correctly
+			time.Sleep(60 * time.Second)
+			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				return diag.FromErr(errGet)
 			}
-			log.Println("task completed but cluster is not ready")
-		}
-		if strings.Contains(sres.Status, "STATUS_FAILED") {
-			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
-		}
-	}
+
+			statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+			if err != nil {
+				log.Println("status response parse error", err)
+				return diag.FromErr(err)
+			}
+			log.Println("statusResp ", statusResp)
+			sres := clusterCTLResponse{}
+			err = json.Unmarshal([]byte(statusResp), &sres)
+			if err != nil {
+				log.Println("status response unmarshal error", err)
+				return diag.FromErr(err)
+			}
+			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+				if check.Status == "READY" {
+					break
+				}
+				log.Println("task completed but cluster is not ready")
+			}
+			if strings.Contains(sres.Status, "STATUS_FAILED") {
+				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
+			}
+		}*/
 
 	log.Printf("resource eks cluster created/updated %s", s.ID)
 	d.SetId(s.ID)
@@ -3514,6 +3513,7 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 
 func expandCNIParams(p []interface{}) *CustomCni {
 	obj := &CustomCni{}
+	log.Println("expand CNI params")
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
@@ -3532,6 +3532,7 @@ func expandCNIParams(p []interface{}) *CustomCni {
 
 func expandCustomCNISpec(p []interface{}) CustomCNIMapping {
 	obj := make(CustomCNIMapping)
+	log.Println("expand CNI Mapping")
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
@@ -3540,16 +3541,17 @@ func expandCustomCNISpec(p []interface{}) CustomCNIMapping {
 	for i := range p {
 		in := p[i].(map[string]interface{})
 		elem2 := CustomCniSpec{}
-		if v, ok := in["id"].(string); ok && len(v) > 0 {
+		if v, ok := in["subnet"].(string); ok && len(v) > 0 {
 			elem2.Subnet = v
 		}
-		if v, ok := in["az"].([]interface{}); ok && len(v) > 0 {
+		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
 			elem2.SecurityGroups = toArrayStringSorted(v)
 		}
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj[v] = elem2
 		}
 	}
+	log.Println("Mapping Complete: ", obj)
 	return obj
 }
 

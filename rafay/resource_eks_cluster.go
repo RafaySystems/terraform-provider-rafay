@@ -2458,9 +2458,15 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 			obj.Bottlerocket = expandNodeGroupBottleRocket(v)
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does (says to remove)
-		if v, ok := in["enable_detailed_monitoring"].(bool); ok {
+		if v, ok := in["enable_detailed_monitoring"].(bool); ok && v {
 			obj.EnableDetailedMonitoring = &v
+		} else {
+			// XXX TODO a temporary fix to make TF work with
+			// 1.10 AirGap controller
+			// remove this in future
+			obj.EnableDetailedMonitoring = nil
 		}
+
 		if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
 			obj.InstanceTypes = toArrayString(v)
 		}

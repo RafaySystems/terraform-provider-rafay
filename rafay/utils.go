@@ -333,6 +333,38 @@ func expandCommonpbFile(p []interface{}) *commonpb.File {
 	return &obj
 }
 
+func expandCommonpbFiles(p []interface{}) []*commonpb.File {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	out := make([]*commonpb.File, len(p))
+
+	for i := range p {
+		obj := commonpb.File{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if strings.HasPrefix(obj.Name, "file://") {
+			//get full path of artifact
+			artifactFullPath := filepath.Join(filepath.Dir("."), obj.Name[7:])
+			//retrieve artifact data
+			artifactData, err := ioutil.ReadFile(artifactFullPath)
+			if err != nil {
+				log.Println("unable to read artifact at ", artifactFullPath)
+			} else {
+				obj.Data = artifactData
+			}
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
 func expandFiles(p []interface{}) []*File {
 	if len(p) == 0 || p[0] == nil {
 		return nil
@@ -578,6 +610,23 @@ func flattenCommonpbFile(in *commonpb.File) []interface{} {
 }
 
 func flattenFiles(input []*File) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		obj := map[string]interface{}{}
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		out[i] = obj
+	}
+
+	return out
+}
+
+func flattenCommonpbFiles(input []*commonpb.File) []interface{} {
 	if input == nil {
 		return nil
 	}

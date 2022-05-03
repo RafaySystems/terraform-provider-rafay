@@ -2,18 +2,21 @@ package rafay
 
 import (
 	"context"
-	"io/ioutil"
+	"encoding/json"
+	"fmt"
 	"log"
 	"os"
-	"strings"
 	"time"
 
-	"github.com/RafaySystems/rctl/pkg/commands"
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
+	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/gitopspb"
 	"github.com/RafaySystems/rctl/pkg/config"
-	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/pipeline"
-	"github.com/RafaySystems/rctl/pkg/project"
-	"gopkg.in/yaml.v3"
+	"github.com/RafaySystems/rctl/pkg/versioninfo"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -34,487 +37,1781 @@ func resourcePipeline() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema: map[string]*schema.Schema{
-			"projectname": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"pipeline_filepath": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-		},
+		Schema:        resource.PipelineSchema.Schema,
+	}
+}
+
+//Stage Spec
+
+type stageSpec struct {
+	Name          string                      `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type          string                      `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	PreConditions []stageSpecPreConditionSpec `protobuf:"bytes,3,opt,name=type,proto3" json:"preConditions,omitempty"`
+	Variables     []*gitopspb.VariableSpec    `protobuf:"bytes,4,rep,name=variables,proto3" json:"variables,omitempty"`
+	Next          []*gitopspb.NextStage       `protobuf:"bytes,5,rep,name=next,proto3" json:"next,omitempty"`
+	// Types that are assignable to Config:
+	//    *StageSpec_Approval
+	//    *StageSpec_Workload
+	//    *StageSpec_WorkloadTemplate
+	//    *StageSpec_InfraProvisioner
+	//    *StageSpec_SystemSync
+	Config stageSpecConfig `json:"config,omitempty"`
+}
+
+type stageSpecPreConditionSpec struct {
+	Type   string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Config struct {
+		Expression string `protobuf:"bytes,1,opt,name=expression,proto3" json:"expression,omitempty"`
+	} `json:"config,omitempty"`
+}
+
+type stageSpecConfig struct {
+	Type                               string                                     `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Approvers                          []*gitopspb.Approver                       `protobuf:"bytes,2,rep,name=approvers,proto3" json:"approvers,omitempty"`
+	Timeout                            string                                     `protobuf:"bytes,3,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	Workload                           string                                     `protobuf:"bytes,1,opt,name=workload,proto3" json:"workload,omitempty"`
+	WorkloadTemplate                   string                                     `protobuf:"bytes,1,opt,name=workloadTemplate,proto3" json:"workloadTemplate,omitempty"`
+	Namespace                          string                                     `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Placement                          *commonpb.PlacementSpec                    `protobuf:"bytes,3,opt,name=placement,proto3" json:"placement,omitempty"`
+	Overrides                          []stageSpecConfigWorkloadTemplateOverrides `protobuf:"bytes,4,rep,name=overrides,proto3" json:"overrides,omitempty"`
+	UseRevisionFromWebhookTriggerEvent bool                                       `protobuf:"varint,5,opt,name=useRevisionFromWebhookTriggerEvent,proto3" json:"useRevisionFromWebhookTriggerEvent,omitempty"`
+	Provisioner                        string                                     `protobuf:"bytes,2,opt,name=provisioner,proto3" json:"provisioner,omitempty"`
+	Revision                           string                                     `protobuf:"bytes,3,opt,name=revision,proto3" json:"revision,omitempty"`
+	WorkingDirectory                   string                                     `protobuf:"bytes,4,opt,name=workingDirectory,proto3" json:"workingDirectory,omitempty"`
+	PersistWorkingDirectory            bool                                       `protobuf:"varint,5,opt,name=persistWorkingDirectory,proto3" json:"persistWorkingDirectory,omitempty"`
+	Agents                             []*gitopspb.AgentMeta                      `protobuf:"bytes,6,rep,name=agents,proto3" json:"agents,omitempty"`
+	Action                             struct {
+		Action          string                      `protobuf:"bytes,1,opt,name=action,proto3" json:"action,omitempty"`
+		Version         string                      `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+		InputVars       []*gitopspb.KeyValue        `protobuf:"bytes,3,rep,name=inputVars,proto3" json:"inputVars,omitempty"`
+		TfVarsFilePath  *commonpb.File              `protobuf:"bytes,4,opt,name=tfVarsFilePath,proto3" json:"tfVarsFilePath,omitempty"`
+		EnvVars         []*gitopspb.KeyValue        `protobuf:"bytes,5,rep,name=envVars,proto3" json:"envVars,omitempty"`
+		BackendVars     []*gitopspb.KeyValue        `protobuf:"bytes,6,rep,name=backendVars,proto3" json:"backendVars,omitempty"`
+		BackendFilePath *commonpb.File              `protobuf:"bytes,7,opt,name=backendFilePath,proto3" json:"backendFilePath,omitempty"`
+		Refresh         bool                        `protobuf:"varint,8,opt,name=refresh,proto3" json:"refresh,omitempty"`
+		Targets         []*gitopspb.TerraformTarget `protobuf:"bytes,9,rep,name=targets,proto3" json:"targets,omitempty"`
+		Destroy         bool                        `protobuf:"varint,10,opt,name=destroy,proto3" json:"destroy,omitempty"`
+	} `json:"action,omitempty"`
+	GitToSystemSync     bool                           `protobuf:"varint,1,opt,name=gitToSystemSync,proto3" json:"gitToSystemSync,omitempty"`
+	SystemToGitSync     bool                           `protobuf:"varint,2,opt,name=systemToGitSync,proto3" json:"systemToGitSync,omitempty"`
+	IncludedResources   []*gitopspb.SystemSyncResource `protobuf:"bytes,3,rep,name=includedResources,proto3" json:"includedResources,omitempty"`
+	ExcludedResources   []*gitopspb.SystemSyncResource `protobuf:"bytes,4,rep,name=excludedResources,proto3" json:"excludedResources,omitempty"`
+	SourceRepo          *gitopspb.SystemSyncRepo       `protobuf:"bytes,5,opt,name=sourceRepo,proto3" json:"sourceRepo,omitempty"`
+	DestinationRepo     *gitopspb.SystemSyncRepo       `protobuf:"bytes,6,opt,name=destinationRepo,proto3" json:"destinationRepo,omitempty"`
+	SourceAsDestination bool                           `protobuf:"varint,7,opt,name=sourceAsDestination,proto3" json:"sourceAsDestination,omitempty"`
+}
+
+type stageSpecConfigWorkloadTemplateOverrides struct {
+	Type     string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Weight   int32  `protobuf:"zigzag32,2,opt,name=weight,proto3" json:"weight,omitempty"`
+	Template struct {
+		Inline     string           `protobuf:"bytes,1,opt,name=inline,proto3" json:"inline,omitempty"`
+		Repository string           `protobuf:"bytes,1,opt,name=repository,proto3" json:"repository,omitempty"`
+		Revision   string           `protobuf:"bytes,2,opt,name=revision,proto3" json:"revision,omitempty"`
+		Paths      []*commonpb.File `protobuf:"bytes,3,rep,name=paths,proto3" json:"paths,omitempty"`
+	} `json:"template,omitempty"`
+}
+
+// TriggerSpec
+
+type triggerSpec struct {
+	Type      string                   `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Name      string                   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Variables []*gitopspb.VariableSpec `protobuf:"bytes,3,rep,name=variables,proto3" json:"variables,omitempty"`
+	Config    struct {
+		Repo struct {
+			Provider     string           `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+			Repository   string           `protobuf:"bytes,2,opt,name=repository,proto3" json:"repository,omitempty"`
+			Revision     string           `protobuf:"bytes,3,opt,name=revision,proto3" json:"revision,omitempty"`
+			Paths        []*commonpb.File `protobuf:"bytes,4,rep,name=paths,proto3" json:"paths,omitempty"`
+			ChartName    string           `protobuf:"bytes,2,opt,name=chartName,proto3" json:"chartName,omitempty"`
+			ChartVersion string           `protobuf:"bytes,3,opt,name=chartVersion,proto3" json:"chartVersion,omitempty"`
+		} `json:"repo,omitempty"`
+		CronExpression string `protobuf:"bytes,1,opt,name=cronExpression,proto3" json:"cronExpression,omitempty"`
 	}
 }
 
 func resourcePipelineCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	filePath := d.Get("pipeline_filepath").(string)
-	var p commands.PipelineYamlConfig
-	//get project id with project name, p.id used to refer to project id -> need p.ID for calling createPipeline
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-	if err != nil {
-		log.Printf("project does not exist, error %s", err.Error())
-		return diag.FromErr(err)
-	}
-	proj, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		return diag.FromErr(err)
-	} else if proj == nil {
-		d.SetId("")
-		return diags
-	}
-	projectId := proj.ID
-	//open file path and retirve config spec from yaml file (from run function in commands/create_pipeline.go)
-	//read and capture file from file path
-	if f, err := os.Open(filePath); err == nil {
-		c, err := ioutil.ReadAll(f)
+	log.Printf("pipeline create starts")
+	diags := resourcePipelineUpsert(ctx, d, m)
+	if diags.HasError() {
+		tflog := os.Getenv("TF_LOG")
+		if tflog == "TRACE" || tflog == "DEBUG" {
+			ctx = context.WithValue(ctx, "debug", "true")
+		}
+		log.Printf("pipeline create got error, perform cleanup")
+		ag, err := expandPipeline(d)
 		if err != nil {
-			log.Println("error cpaturing file")
-		}
-		//implement createPipeline from commands/create_Pipeline.go -> then call CreatePipeline
-		// unmarshal the data
-		pipelineDefinition := c
-		err = yaml.Unmarshal(pipelineDefinition, &p)
-		if err != nil {
-			log.Println("error unmarshaling in create")
-		}
-
-		// check if project is provided
-		projId := projectId
-		if p.Metadata.Project != "" {
-			projId, err = config.GetProjectIdByName(p.Metadata.Project)
-			if err != nil {
-				log.Println("error getting project id by name")
-			}
-		}
-		if p.Spec.Stages == nil || p.Spec.Edges == nil {
-			log.Println("Atleast one stage and one edge is required for the pipeline")
-		}
-
-		var spec models.PipelineSpec
-		for _, v := range p.Spec.Variables {
-			spec.Variables = append(spec.Variables, models.InlineVariableSpec{
-				Name:  v.Name,
-				Type:  models.VariableType(v.Type),
-				Value: v.Value,
-			})
-		}
-		for _, s := range p.Spec.Stages {
-			stageSpec := models.PipelineStageSpec{}
-			stageSpec.Name = s.Name
-			switch s.StageType {
-			case pipeline.ApprovalStage:
-				stageSpec.StageType = pipeline.ApprovalStage
-				stageSpec.StageConfig.Approval = &models.ApprovalStageConfig{}
-				stageSpec.StageConfig.Approval.ApprovalType = models.ApprovalType(s.StageConfig.Approval.ApprovalType)
-				stageSpec.StageConfig.Approval.Emails = s.StageConfig.Approval.Emails
-				t, err := time.ParseDuration(s.StageConfig.Approval.Timeout)
-				if err != nil {
-					log.Println("Invalid value for timeout; Valid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\". e.g. 10s, 20m, 1h10m")
-				}
-				stageSpec.StageConfig.Approval.Timeout = models.Duration{Duration: t}
-			case pipeline.DeployWorkloadStage:
-				stageSpec.StageType = pipeline.DeployWorkloadStage
-				stageSpec.StageConfig.Deployment = &models.DeployWorkloadStageConfig{}
-				stageSpec.StageConfig.Deployment.WorkloadRef = s.StageConfig.Deployment.WorkloadRef
-			case pipeline.DeployWorkloadTemplateStage:
-				stageSpec.StageType = pipeline.DeployWorkloadTemplateStage
-				placement := models.PlacementSpec{}
-				switch s.StageConfig.WorkloadTemplate.Placement.PlacementType {
-				case "ClusterSelector":
-					if s.StageConfig.WorkloadTemplate.Placement.ClusterSelector == "" {
-						log.Println("cluster selector cannot be empty for ClusterSelector placement type")
-					}
-					placement.ClusterSelector = s.StageConfig.WorkloadTemplate.Placement.ClusterSelector
-				case "ClusterLocations", "ClusterLabels", "ClusterSpecific":
-					if len(s.StageConfig.WorkloadTemplate.Placement.ClusterLabels) == 0 {
-						log.Println("cluster labels cannot be empty for placement type", s.StageConfig.WorkloadTemplate.Placement.PlacementType)
-					}
-					for _, label := range s.StageConfig.WorkloadTemplate.Placement.ClusterLabels {
-						placement.ClusterLabels = append(placement.ClusterLabels, &models.PlacementLabel{
-							Key:   label.Key,
-							Value: label.Value,
-						})
-					}
-				default:
-					log.Println("invalid placement type ", s.StageConfig.WorkloadTemplate.Placement.PlacementType)
-				}
-				placement.PlacementType = models.PlacementType(s.StageConfig.WorkloadTemplate.Placement.PlacementType)
-
-				switch s.StageConfig.WorkloadTemplate.Placement.DriftAction {
-				case "DriftReconcillationActionNotSet", "DriftReconcillationActionNotify", "DriftReconcillationActionDeny":
-				default:
-					log.Println("Invalid driftAction: Allowed [DriftReconcillationActionNotSet, DriftReconcillationActionNotify, DriftReconcillationActionDeny]")
-				}
-				placement.DriftAction = models.DriftReconcillationAction(s.StageConfig.WorkloadTemplate.Placement.DriftAction)
-
-				stageSpec.StageConfig.WorkloadTemplate = &models.DeployWorkloadTemplateStageConfig{
-					WorkloadTemplateRef: s.StageConfig.WorkloadTemplate.WorkloadTemplateRef,
-					Namespace:           s.StageConfig.WorkloadTemplate.Namespace,
-					Placement:           placement,
-				}
-				for _, o := range s.StageConfig.WorkloadTemplate.Overrides {
-					var mo models.OverrideTemplate
-					mo.RepositoryRef = o.RepositoryRef
-					mo.InlineTemplate = o.InlineTemplate
-					mo.OverrideType = models.OverrideTemplateType(o.OverrideType)
-					mo.OverrideWeight = o.OverrideWeight
-					mo.Revision = o.Revision
-					for _, rp := range o.RepoPaths {
-						mo.RepoPaths = append(mo.RepoPaths, &models.RepositoryPath{
-							FolderPath: rp.FolderPath,
-							FileFilter: rp.FileFilter,
-						})
-					}
-					mo.TemplateSource = models.OverrideTemplateSource(o.TemplateSoure)
-
-					stageSpec.StageConfig.WorkloadTemplate.Overrides = append(stageSpec.StageConfig.WorkloadTemplate.Overrides, &mo)
-				}
-			case pipeline.InfraProvisionerStage:
-				stageSpec.StageType = pipeline.InfraProvisionerStage
-				stageSpec.StageConfig.InfraProvisioner = &models.InfraProvisionerStageConfig{
-					InfraProvisionerName: s.StageConfig.InfraProvisioner.InfraProvisionerName,
-					GitRevision:          s.StageConfig.InfraProvisioner.GitRevision,
-					UseWorkingDirFrom:    s.StageConfig.InfraProvisioner.UseWorkingDirFrom,
-					PersistWorkingDir:    s.StageConfig.InfraProvisioner.PersistWorkingDir,
-					AgentNames:           s.StageConfig.InfraProvisioner.AgentNames,
-				}
-				if s.StageConfig.InfraProvisioner.ActionConfig.Terraform != nil {
-					terraform := s.StageConfig.InfraProvisioner.ActionConfig.Terraform
-					stageSpec.StageConfig.InfraProvisioner.ActionConfig.Terraform = &models.TerraformAction{
-						Type:      models.TerraformActionType(terraform.Type),
-						NoRefresh: terraform.NoRefresh,
-						Targets:   terraform.Targets,
-						Destroy:   terraform.Destroy,
-					}
-				}
-				if s.StageConfig.InfraProvisioner.Config.Terraform != nil {
-					terraform := s.StageConfig.InfraProvisioner.Config.Terraform
-					stageSpec.StageConfig.InfraProvisioner.Config.Terraform = &models.TerraformConfig{
-						Version:    terraform.Version,
-						TfvarsFile: terraform.TfvarsFile,
-					}
-					stageSpec.StageConfig.InfraProvisioner.Config.Terraform.InputVars = []models.KeyValue{}
-					for _, kv := range terraform.InputVars {
-						stageSpec.StageConfig.InfraProvisioner.Config.Terraform.InputVars = append(stageSpec.StageConfig.InfraProvisioner.Config.Terraform.InputVars, models.KeyValue{
-							Key:   kv.Key,
-							Value: kv.Value,
-							Type:  models.ValueType(kv.Type),
-						})
-					}
-					stageSpec.StageConfig.InfraProvisioner.Config.Terraform.EnvVars = []models.KeyValue{}
-					for _, kv := range terraform.EnvVars {
-						stageSpec.StageConfig.InfraProvisioner.Config.Terraform.EnvVars = append(stageSpec.StageConfig.InfraProvisioner.Config.Terraform.EnvVars, models.KeyValue{
-							Key:   kv.Key,
-							Value: kv.Value,
-							Type:  models.ValueType(kv.Type),
-						})
-					}
-					if terraform.BackendConfig != nil {
-						stageSpec.StageConfig.InfraProvisioner.Config.Terraform.BackendConfig = &models.TerraformBackendConfig{
-							File: terraform.BackendConfig.File,
-						}
-						stageSpec.StageConfig.InfraProvisioner.Config.Terraform.BackendConfig.KeyValues = []models.KeyValue{}
-						for _, kv := range terraform.BackendConfig.KeyValues {
-							stageSpec.StageConfig.InfraProvisioner.Config.Terraform.BackendConfig.KeyValues = append(stageSpec.StageConfig.InfraProvisioner.Config.Terraform.BackendConfig.KeyValues, models.KeyValue{
-								Key:   kv.Key,
-								Value: kv.Value,
-								Type:  models.ValueType(kv.Type),
-							})
-						}
-					}
-				}
-			default:
-				log.Println("invalid stageType, must one of ", s.StageType, strings.Join(pipeline.AllowedStageTypes, "|"))
-			}
-			stageSpec.StageConfig.OnFailure = models.StageOnFailure(s.StageConfig.OnFailure)
-			for _, v := range s.Variables {
-				stageSpec.Variables = append(stageSpec.Variables, models.InlineVariableSpec{
-					Name:  v.Name,
-					Type:  models.VariableType(v.Type),
-					Value: v.Value,
-				})
-			}
-			for _, pc := range s.PreConditions {
-				stageSpec.PreConditions = append(stageSpec.PreConditions, models.StagePreCondition{
-					ConditionType: models.StagePreConditionType(pc.ConditionType),
-					Config: models.StagePreConditionConfig{
-						Expression: pc.Config.Expression,
-					},
-				})
-			}
-			spec.Stages = append(spec.Stages, stageSpec)
-		}
-		for _, e := range p.Spec.Edges {
-			edge := models.PipelineStageEdge{}
-			edge.Source = e.Source
-			edge.Target = e.Target
-			edge.Weight = e.Weight
-			spec.Edges = append(spec.Edges, edge)
-		}
-		err = pipeline.CreatePipeline(p.Metadata.Name, projId, spec)
-		if err != nil {
-			log.Println("Failed to create Pipeline: ", p.Metadata.Name, "err: ", err)
+			log.Printf("pipeline expandPipeline error")
 			return diags
-		} else {
-			log.Println("Successfully created pipeline: ", p.Metadata.Name)
+		}
+		auth := config.GetConfig().GetAppAuthProfile()
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+		if err != nil {
+			return diags
+		}
+
+		err = client.GitopsV3().Pipeline().Delete(ctx, options.DeleteOptions{
+			Name:    ag.Metadata.Name,
+			Project: ag.Metadata.Project,
+		})
+		if err != nil {
+			return diags
 		}
 	}
-	//set id to metadata.Name
-	d.SetId(p.Metadata.Name)
-	return diags
-}
-
-func resourcePipelineRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
 	return diags
 }
 
 func resourcePipelineUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("pipeline update starts")
+	return resourcePipelineUpsert(ctx, d, m)
+}
+
+func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	filePath := d.Get("pipeline_filepath").(string)
-	var p commands.PipelineYamlConfig
-	createIfNotPresent := false
-	//get project id with project name, p.id used to refer to project id -> need p.ID for calling UpdatePipeline
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
+	log.Printf("pipeline upsert starts")
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
+
+	pipeline, err := expandPipeline(d)
 	if err != nil {
-		log.Printf("project does not exist, error %s", err.Error())
+		log.Printf("pipeline expandPipeline error")
 		return diag.FromErr(err)
 	}
-	proj, err := project.NewProjectFromResponse([]byte(resp))
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 	if err != nil {
 		return diag.FromErr(err)
-	} else if proj == nil {
-		d.SetId("")
-		return diags
 	}
-	projectId := proj.ID
-	// read the file
-	if f, err := os.Open(filePath); err == nil {
-		// capture the entire file
-		c, err := ioutil.ReadAll(f)
-		if err != nil {
-			log.Println("error reading file ")
-		}
-		pipelineDefinition := c
-		//implement updatePipeline to call UpdatePipeline
-		err = yaml.Unmarshal(pipelineDefinition, &p)
-		if err != nil {
-			log.Println("error unmarshalling")
-		}
 
-		// check if project is provided
-		projId := projectId
-		if p.Metadata.Project != "" {
-			projId, err = config.GetProjectIdByName(p.Metadata.Project)
-			if err != nil {
-				log.Println("error getting project id by name")
-			}
-		}
+	err = client.GitopsV3().Pipeline().Apply(ctx, pipeline, options.ApplyOptions{})
+	if err != nil {
+		// XXX Debug
+		n1 := spew.Sprintf("%+v", pipeline)
+		log.Println("pipeline apply pipeline:", n1)
+		log.Printf("pipeline apply error")
+		return diag.FromErr(err)
+	}
 
-		if p.Spec.Stages == nil || p.Spec.Edges == nil {
-			log.Println("Atleast one stage and one edge is required for the pipeline")
-		}
+	d.SetId(pipeline.Metadata.Name)
+	return diags
 
-		var spec models.PipelineSpec
-		for _, v := range p.Spec.Variables {
-			spec.Variables = append(spec.Variables, models.InlineVariableSpec{
-				Name:  v.Name,
-				Type:  models.VariableType(v.Type),
-				Value: v.Value,
-			})
-		}
-		for _, s := range p.Spec.Stages {
-			stageSpec := models.PipelineStageSpec{}
-			stageSpec.Name = s.Name
-			switch s.StageType {
-			case pipeline.ApprovalStage:
-				stageSpec.StageType = pipeline.ApprovalStage
-				stageSpec.StageConfig.Approval = &models.ApprovalStageConfig{}
-				stageSpec.StageConfig.Approval.ApprovalType = models.ApprovalType(s.StageConfig.Approval.ApprovalType)
-				stageSpec.StageConfig.Approval.Emails = s.StageConfig.Approval.Emails
-				t, err := time.ParseDuration(s.StageConfig.Approval.Timeout)
-				if err != nil {
-					log.Println("Invalid value for timeout; Valid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\". e.g. 10s, 20m, 1h10m")
-				}
-				stageSpec.StageConfig.Approval.Timeout = models.Duration{Duration: t}
-			case pipeline.DeployWorkloadStage:
-				stageSpec.StageType = pipeline.DeployWorkloadStage
-				stageSpec.StageConfig.Deployment = &models.DeployWorkloadStageConfig{}
-				stageSpec.StageConfig.Deployment.WorkloadRef = s.StageConfig.Deployment.WorkloadRef
-			case pipeline.DeployWorkloadTemplateStage:
-				stageSpec.StageType = pipeline.DeployWorkloadTemplateStage
+}
 
-				placement := models.PlacementSpec{}
-				switch s.StageConfig.WorkloadTemplate.Placement.PlacementType {
-				case "ClusterSelector":
-					if s.StageConfig.WorkloadTemplate.Placement.ClusterSelector == "" {
-						log.Println("cluster selector cannot be empty for ClusterSelector placement type")
-					}
-					placement.ClusterSelector = s.StageConfig.WorkloadTemplate.Placement.ClusterSelector
-				case "ClusterLocations", "ClusterLabels", "ClusterSpecific":
-					if len(s.StageConfig.WorkloadTemplate.Placement.ClusterLabels) == 0 {
-						log.Println("cluster labels cannot be empty for placement type", s.StageConfig.WorkloadTemplate.Placement.PlacementType)
-					}
-					for _, label := range s.StageConfig.WorkloadTemplate.Placement.ClusterLabels {
-						placement.ClusterLabels = append(placement.ClusterLabels, &models.PlacementLabel{
-							Key:   label.Key,
-							Value: label.Value,
-						})
-					}
-				default:
-					log.Println("invalid placement type ", s.StageConfig.WorkloadTemplate.Placement.PlacementType)
-				}
-				placement.PlacementType = models.PlacementType(s.StageConfig.WorkloadTemplate.Placement.PlacementType)
+func resourcePipelineRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
 
-				switch s.StageConfig.WorkloadTemplate.Placement.DriftAction {
-				case "DriftReconcillationActionNotSet", "DriftReconcillationActionNotify", "DriftReconcillationActionDeny":
-				default:
-					log.Println("Invalid driftAction: Allowed [DriftReconcillationActionNotSet, DriftReconcillationActionNotify, DriftReconcillationActionDeny]")
-				}
-				placement.DriftAction = models.DriftReconcillationAction(s.StageConfig.WorkloadTemplate.Placement.DriftAction)
-				stageSpec.StageConfig.WorkloadTemplate = &models.DeployWorkloadTemplateStageConfig{
-					WorkloadTemplateRef: s.StageConfig.WorkloadTemplate.WorkloadTemplateRef,
-					Namespace:           s.StageConfig.WorkloadTemplate.Namespace,
-					Placement:           placement,
-				}
-				for _, o := range s.StageConfig.WorkloadTemplate.Overrides {
-					var mo models.OverrideTemplate
-					mo.RepositoryRef = o.RepositoryRef
-					mo.InlineTemplate = o.InlineTemplate
-					mo.OverrideType = models.OverrideTemplateType(o.OverrideType)
-					mo.OverrideWeight = o.OverrideWeight
-					mo.Revision = o.Revision
-					for _, rp := range o.RepoPaths {
-						mo.RepoPaths = append(mo.RepoPaths, &models.RepositoryPath{
-							FolderPath: rp.FolderPath,
-							FileFilter: rp.FileFilter,
-						})
-					}
-					mo.TemplateSource = models.OverrideTemplateSource(o.TemplateSoure)
+	log.Println("resourcePipelineRead ")
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
+	tfPipelineState, err := expandPipeline(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-					stageSpec.StageConfig.WorkloadTemplate.Overrides = append(stageSpec.StageConfig.WorkloadTemplate.Overrides, &mo)
-				}
-			case pipeline.InfraProvisionerStage:
-				stageSpec.StageType = pipeline.InfraProvisionerStage
-				stageSpec.StageConfig.InfraProvisioner = &models.InfraProvisionerStageConfig{
-					InfraProvisionerName: s.StageConfig.InfraProvisioner.InfraProvisionerName,
-					GitRevision:          s.StageConfig.InfraProvisioner.GitRevision,
-					UseWorkingDirFrom:    s.StageConfig.InfraProvisioner.UseWorkingDirFrom,
-					PersistWorkingDir:    s.StageConfig.InfraProvisioner.PersistWorkingDir,
-					AgentNames:           s.StageConfig.InfraProvisioner.AgentNames,
-				}
-				if s.StageConfig.InfraProvisioner.ActionConfig.Terraform != nil {
-					terraform := s.StageConfig.InfraProvisioner.ActionConfig.Terraform
-					stageSpec.StageConfig.InfraProvisioner.ActionConfig.Terraform = &models.TerraformAction{
-						Type:      models.TerraformActionType(terraform.Type),
-						NoRefresh: terraform.NoRefresh,
-						Targets:   terraform.Targets,
-						Destroy:   terraform.Destroy,
-					}
-				}
-				if s.StageConfig.InfraProvisioner.Config.Terraform != nil {
-					terraform := s.StageConfig.InfraProvisioner.Config.Terraform
-					stageSpec.StageConfig.InfraProvisioner.Config.Terraform = &models.TerraformConfig{
-						Version:    terraform.Version,
-						TfvarsFile: terraform.TfvarsFile,
-					}
-					stageSpec.StageConfig.InfraProvisioner.Config.Terraform.InputVars = []models.KeyValue{}
-					for _, kv := range terraform.InputVars {
-						stageSpec.StageConfig.InfraProvisioner.Config.Terraform.InputVars = append(stageSpec.StageConfig.InfraProvisioner.Config.Terraform.InputVars, models.KeyValue{
-							Key:   kv.Key,
-							Value: kv.Value,
-							Type:  models.ValueType(kv.Type),
-						})
-					}
-					stageSpec.StageConfig.InfraProvisioner.Config.Terraform.EnvVars = []models.KeyValue{}
-					for _, kv := range terraform.EnvVars {
-						stageSpec.StageConfig.InfraProvisioner.Config.Terraform.EnvVars = append(stageSpec.StageConfig.InfraProvisioner.Config.Terraform.EnvVars, models.KeyValue{
-							Key:   kv.Key,
-							Value: kv.Value,
-							Type:  models.ValueType(kv.Type),
-						})
-					}
-					if terraform.BackendConfig != nil {
-						stageSpec.StageConfig.InfraProvisioner.Config.Terraform.BackendConfig = &models.TerraformBackendConfig{
-							File: terraform.BackendConfig.File,
-						}
-						stageSpec.StageConfig.InfraProvisioner.Config.Terraform.BackendConfig.KeyValues = []models.KeyValue{}
-						for _, kv := range terraform.BackendConfig.KeyValues {
-							stageSpec.StageConfig.InfraProvisioner.Config.Terraform.BackendConfig.KeyValues = append(stageSpec.StageConfig.InfraProvisioner.Config.Terraform.BackendConfig.KeyValues, models.KeyValue{
-								Key:   kv.Key,
-								Value: kv.Value,
-								Type:  models.ValueType(kv.Type),
-							})
-						}
-					}
-				}
-			default:
-				log.Println("invalid stageType, must one of", s.StageType, strings.Join(pipeline.AllowedStageTypes, "|"))
-			}
-			stageSpec.StageConfig.OnFailure = models.StageOnFailure(s.StageConfig.OnFailure)
-			for _, v := range s.Variables {
-				stageSpec.Variables = append(stageSpec.Variables, models.InlineVariableSpec{
-					Name:  v.Name,
-					Type:  models.VariableType(v.Type),
-					Value: v.Value,
-				})
-			}
-			for _, pc := range s.PreConditions {
-				stageSpec.PreConditions = append(stageSpec.PreConditions, models.StagePreCondition{
-					ConditionType: models.StagePreConditionType(pc.ConditionType),
-					Config: models.StagePreConditionConfig{
-						Expression: pc.Config.Expression,
-					},
-				})
-			}
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-			spec.Stages = append(spec.Stages, stageSpec)
-		}
-		for _, e := range p.Spec.Edges {
-			edge := models.PipelineStageEdge{}
-			edge.Source = e.Source
-			edge.Target = e.Target
-			edge.Weight = e.Weight
-			spec.Edges = append(spec.Edges, edge)
-		}
-		//call update pipeline
-		err = pipeline.UpdatePipeline(p.Metadata.Name, projId, spec, createIfNotPresent)
-		if err != nil {
-			log.Println("Failed to update Pipeline: ", p.Metadata.Name)
-		} else {
-			log.Println("Successfully created/updated Pipeline: ", p.Metadata.Name)
-		}
-	} else {
-		log.Println("error opening the file")
+	ag, err := client.GitopsV3().Pipeline().Get(ctx, options.GetOptions{
+		Name:    tfPipelineState.Metadata.Name,
+		Project: tfPipelineState.Metadata.Project,
+	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = flattenPipeline(d, ag)
+	if err != nil {
+		return diag.FromErr(err)
 	}
 	return diags
+
 }
 
 func resourcePipelineDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("resource pipeline id %s", d.Id())
-	//get project id with project name, p.id used to refer to project id -> need p.ID for calling Deletepipeline
-	resp, err := project.GetProjectByName(d.Get("projectname").(string))
-	if err != nil {
-		log.Printf("project does not exist, error %s", err.Error())
-		return diag.FromErr(err)
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
 	}
-	p, err := project.NewProjectFromResponse([]byte(resp))
+
+	ag, err := expandPipeline(d)
 	if err != nil {
 		return diag.FromErr(err)
-	} else if p == nil {
-		d.SetId("")
-		return diags
 	}
-	projectId := p.ID
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = client.GitopsV3().Pipeline().Delete(ctx, options.DeleteOptions{
+		Name:    ag.Metadata.Name,
+		Project: ag.Metadata.Project,
+	})
+
+	if err != nil {
+		//v3 spec gave error try v2
+		return resourcePipelineV2Delete(ctx, ag)
+	}
+
+	return diags
+}
+
+func resourcePipelineV2Delete(ctx context.Context, pl *gitopspb.Pipeline) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	projectId, err := config.GetProjectIdByName(pl.Metadata.Project)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	//delete pipeline
-	err = pipeline.DeletePipeline(d.Id(), projectId)
+	err = pipeline.DeletePipeline(pl.Metadata.Name, projectId)
 	if err != nil {
 		log.Println("error deleting pipeline")
 	} else {
-		log.Println("Deleted pipeline: ", d.Id())
+		log.Println("Deleted pipeline: ", pl.Metadata.Name)
 	}
 	return diags
+}
+
+func expandPipeline(in *schema.ResourceData) (*gitopspb.Pipeline, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "expand pipeline empty input")
+	}
+	obj := &gitopspb.Pipeline{}
+
+	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
+		obj.Metadata = expandMetaData(v)
+	}
+
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
+		objSpec, err := expandPipelineSpec(v)
+		if err != nil {
+			return nil, err
+		}
+		log.Println("expandPipelineSpec got spec")
+		obj.Spec = objSpec
+	}
+
+	obj.ApiVersion = "infra.k8smgmt.io/v3"
+	obj.Kind = "Pipeline"
+	return obj, nil
+}
+
+func expandPipelineSpec(p []interface{}) (*gitopspb.PipelineSpec, error) {
+	obj := &gitopspb.PipelineSpec{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, fmt.Errorf("%s", "expandPipelineSpec empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	// Stages    []*StageSpec          `protobuf:"bytes,1,rep,name=stages,proto3" json:"stages,omitempty"`
+	if v, ok := in["stages"].([]interface{}); ok && len(v) > 0 {
+		obj.Stages = expandStageSpec(v)
+	}
+
+	// Variables []*VariableSpec       `protobuf:"bytes,2,rep,name=variables,proto3" json:"variables,omitempty"`
+	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
+		obj.Variables = expandVariableSpec(v)
+	}
+	// Triggers  []*TriggerSpec        `protobuf:"bytes,3,rep,name=triggers,proto3" json:"triggers,omitempty"`
+	if v, ok := in["triggers"].([]interface{}); ok && len(v) > 0 {
+		obj.Triggers = expandTriggerSpec(v)
+	}
+
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		obj.Sharing = expandSharingSpec(v)
+	}
+
+	if v, ok := in["active"].(bool); ok {
+		obj.Active = v
+	}
+
+	if v, ok := in["secret"].([]interface{}); ok {
+		obj.Secret = expandCommonpbFile(v)
+	}
+
+	return obj, nil
+}
+
+// Expand Stage Spec Start
+func expandStageSpec(p []interface{}) []*gitopspb.StageSpec {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.StageSpec{}
+	}
+
+	out := make([]*gitopspb.StageSpec, len(p))
+
+	for i := range p {
+		stageSpec := stageSpec{}
+		obj := gitopspb.StageSpec{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			//obj.Name = v
+			stageSpec.Name = v
+		}
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			//obj.Type = v
+			stageSpec.Type = v
+		}
+
+		if v, ok := in["pre_conditions"].([]interface{}); ok && len(v) > 0 {
+			//obj.PreConditions = expandStageSpecPreConditions(v)
+			stageSpec.PreConditions = expandStageSpecPreConditions(v)
+		}
+
+		if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
+			//obj.Variables = expandStageSpecVariables(v)
+			stageSpec.Variables = expandVariableSpec(v)
+		}
+
+		if v, ok := in["next"].([]interface{}); ok && len(v) > 0 {
+			//obj.Next = expandStageSpecNext(v)
+			stageSpec.Next = expandStageSpecNext(v)
+		}
+
+		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+			//obj.Config = expandStageSpecConfig(v)
+			stageSpec.Config = expandStageSpecConfig(v)
+		}
+
+		// XXX Debug
+		s := spew.Sprintf("%+v", stageSpec)
+		log.Println("expandStageSpec stageSpec", s)
+
+		jsonSpec, err := json.Marshal(stageSpec)
+		if err != nil {
+			log.Println("error")
+		}
+
+		// XXX Debug
+		log.Println("expandStageSpec jsonSpec ", string(jsonSpec))
+
+		err = obj.UnmarshalJSON(jsonSpec)
+		if err != nil {
+			log.Println("expandStageSpec UnmarshalJSON error ", err)
+		}
+
+		// XXX Debug
+		s1 := spew.Sprintf("%+v", obj)
+		log.Println("expandStageSpec obj", s1)
+
+		out[i] = &obj
+
+	}
+
+	return out
+}
+
+func expandStageSpecPreConditions(p []interface{}) []stageSpecPreConditionSpec {
+	if len(p) == 0 || p[0] == nil {
+		return []stageSpecPreConditionSpec{}
+	}
+
+	out := make([]stageSpecPreConditionSpec, len(p))
+
+	for i := range p {
+		precSpec := stageSpecPreConditionSpec{}
+		//obj := gitopspb.PreConditionSpec{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			precSpec.Type = v
+		}
+		if vp, ok := in["config"].([]interface{}); ok && len(vp) > 0 {
+			if len(vp) == 0 || vp[0] == nil {
+				fmt.Printf("%s", "expandStageSpecPreConditions empty ")
+			}
+			inp := vp[0].(map[string]interface{})
+
+			if v, ok := inp["expression"].(string); ok && len(v) > 0 {
+				precSpec.Config.Expression = v
+			}
+		}
+
+		// XXX Debug
+		s := spew.Sprintf("%+v", precSpec)
+		log.Println("expandStageSpecPreConditions repoSpec", s)
+
+		out[i] = precSpec
+	}
+
+	return out
+
+}
+
+func expandStageSpecNext(p []interface{}) []*gitopspb.NextStage {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.NextStage{}
+	}
+
+	out := make([]*gitopspb.NextStage, len(p))
+
+	for i := range p {
+		obj := gitopspb.NextStage{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["weight"].(int32); ok && v > 0 {
+			obj.Weight = v
+		}
+
+		out[i] = &obj
+
+	}
+
+	return out
+}
+
+// Stage Spec Config
+func expandStageSpecConfig(p []interface{}) stageSpecConfig {
+	configSpec := stageSpecConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return configSpec
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		configSpec.Type = v
+	}
+
+	if v, ok := in["approvers"].([]interface{}); ok && len(v) > 0 {
+		configSpec.Approvers = expandStageSpecConfigApprovers(v)
+	}
+
+	if v, ok := in["timeout"].(string); ok && len(v) > 0 {
+		configSpec.Timeout = v
+	}
+
+	if v, ok := in["workload"].(string); ok && len(v) > 0 {
+		configSpec.Workload = v
+	}
+
+	if v, ok := in["use_revision_from_webhook_trigger_event"].(bool); ok {
+		configSpec.UseRevisionFromWebhookTriggerEvent = v
+	}
+
+	if v, ok := in["workload_template"].(string); ok && len(v) > 0 {
+		configSpec.WorkloadTemplate = v
+	}
+
+	if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+		configSpec.Namespace = v
+	}
+
+	if v, ok := in["placement"].([]interface{}); ok {
+		configSpec.Placement = expandPlacement(v)
+	}
+
+	if v, ok := in["overrides"].([]interface{}); ok && len(v) > 0 {
+		configSpec.Overrides = expandStageSpecConfigWorkloadTemplateOverrides(v)
+	}
+
+	if v, ok := in["use_revision_from_webhook_trigger_event"].(bool); ok {
+		configSpec.UseRevisionFromWebhookTriggerEvent = v
+	}
+
+	if v, ok := in["provisioner"].(string); ok && len(v) > 0 {
+		configSpec.Provisioner = v
+	}
+
+	if v, ok := in["revision"].(string); ok && len(v) > 0 {
+		configSpec.Revision = v
+	}
+
+	if v, ok := in["working_directory"].(string); ok && len(v) > 0 {
+		configSpec.WorkingDirectory = v
+	}
+
+	if v, ok := in["persist_working_directory"].(bool); ok {
+		configSpec.PersistWorkingDirectory = v
+	}
+
+	if v, ok := in["agents"].([]interface{}); ok && len(v) > 0 {
+		configSpec.Agents = expandStageSpecConfigAgents(v)
+	}
+
+	if va, ok := in["action"].([]interface{}); ok && len(va) > 0 {
+		if len(va) == 0 || va[0] == nil {
+			fmt.Printf("%s", "expandStageSpecConfigAction empty ")
+		}
+		inp := va[0].(map[string]interface{})
+		if v, ok := inp["action"].(string); ok && len(v) > 0 {
+			configSpec.Action.Action = v
+		}
+
+		if v, ok := inp["version"].(string); ok && len(v) > 0 {
+			configSpec.Action.Version = v
+		}
+
+		if v, ok := inp["input_vars"].([]interface{}); ok && len(v) > 0 {
+			configSpec.Action.InputVars = expandStageSpecKeyValue(v)
+		}
+
+		if v, ok := in["tf_vars_file_path"].([]interface{}); ok {
+			configSpec.Action.TfVarsFilePath = expandCommonpbFile(v)
+		}
+
+		if v, ok := inp["env_vars"].([]interface{}); ok && len(v) > 0 {
+			configSpec.Action.EnvVars = expandStageSpecKeyValue(v)
+		}
+
+		if v, ok := inp["backend_vars"].([]interface{}); ok && len(v) > 0 {
+			configSpec.Action.BackendVars = expandStageSpecKeyValue(v)
+		}
+
+		if v, ok := in["backend_file_path"].([]interface{}); ok {
+			configSpec.Action.BackendFilePath = expandCommonpbFile(v)
+		}
+
+		if v, ok := in["refresh"].(bool); ok {
+			configSpec.Action.Refresh = v
+		}
+
+		if v, ok := in["targets"].([]interface{}); ok && len(v) > 0 {
+			configSpec.Action.Targets = expandStageSpecConfigActionTargets(v)
+		}
+
+		if v, ok := in["destroy"].(bool); ok {
+			configSpec.Action.Destroy = v
+		}
+
+	}
+
+	if v, ok := in["git_to_system_sync"].(bool); ok {
+		configSpec.GitToSystemSync = v
+	}
+
+	if v, ok := in["system_to_git_sync"].(bool); ok {
+		configSpec.SystemToGitSync = v
+	}
+
+	if v, ok := in["included_resources"].([]interface{}); ok && len(v) > 0 {
+		configSpec.IncludedResources = expandStageSpecSystemSyncResources(v)
+	}
+
+	if v, ok := in["excluded_resources"].([]interface{}); ok && len(v) > 0 {
+		configSpec.ExcludedResources = expandStageSpecSystemSyncResources(v)
+	}
+
+	if v, ok := in["source_repo"].([]interface{}); ok && len(v) > 0 {
+		configSpec.SourceRepo = expandStageSpecSystemSyncRepo(v)
+	}
+
+	if v, ok := in["destination_repo"].([]interface{}); ok && len(v) > 0 {
+		configSpec.DestinationRepo = expandStageSpecSystemSyncRepo(v)
+	}
+
+	if v, ok := in["source_as_destination"].(bool); ok {
+		configSpec.SourceAsDestination = v
+	}
+
+	return configSpec
+}
+
+func expandStageSpecConfigApprovers(p []interface{}) []*gitopspb.Approver {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.Approver{}
+	}
+	out := make([]*gitopspb.Approver, len(p))
+
+	for i := range p {
+		obj := gitopspb.Approver{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["user_name"].(string); ok && len(v) > 0 {
+			obj.UserName = v
+		}
+
+		if v, ok := in["sso_user"].(bool); ok {
+			obj.SsoUser = v
+		}
+
+		out[i] = &obj
+
+	}
+
+	return out
+
+}
+
+func expandStageSpecConfigWorkloadTemplateOverrides(p []interface{}) []stageSpecConfigWorkloadTemplateOverrides {
+	if len(p) == 0 || p[0] == nil {
+		return []stageSpecConfigWorkloadTemplateOverrides{}
+	}
+
+	out := make([]stageSpecConfigWorkloadTemplateOverrides, len(p))
+
+	for i := range p {
+		obj := stageSpecConfigWorkloadTemplateOverrides{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+
+		if v, ok := in["weight"].(int32); ok && v > 0 {
+			obj.Weight = v
+		}
+
+		if vp, ok := in["template"].([]interface{}); ok && len(vp) > 0 {
+			if len(vp) == 0 || vp[0] == nil {
+				fmt.Printf("%s", "expandStageSpecConfigWorkloadTemplateOverridesTemplate empty ")
+			}
+			inp := vp[0].(map[string]interface{})
+			if v, ok := inp["inline"].(string); ok && len(v) > 0 {
+				obj.Template.Inline = v
+			}
+
+			if v, ok := inp["repository"].(string); ok && len(v) > 0 {
+				obj.Template.Repository = v
+			}
+
+			if v, ok := inp["inline"].(string); ok && len(v) > 0 {
+				obj.Template.Revision = v
+			}
+
+			if v, ok := in["paths"].([]interface{}); ok {
+				obj.Template.Paths = expandCommonpbFiles(v)
+			}
+
+		}
+
+		out[i] = obj
+
+	}
+
+	return out
+}
+
+func expandStageSpecConfigAgents(p []interface{}) []*gitopspb.AgentMeta {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.AgentMeta{}
+	}
+	out := make([]*gitopspb.AgentMeta, len(p))
+
+	for i := range p {
+		obj := gitopspb.AgentMeta{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["id"].(string); ok && len(v) > 0 {
+			obj.Id = v
+		}
+
+		out[i] = &obj
+
+	}
+
+	return out
+
+}
+
+func expandStageSpecKeyValue(p []interface{}) []*gitopspb.KeyValue {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	out := make([]*gitopspb.KeyValue, len(p))
+
+	for i := range p {
+		obj := gitopspb.KeyValue{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["key"].(string); ok && len(v) > 0 {
+			obj.Key = v
+		}
+
+		if v, ok := in["value"].(string); ok && len(v) > 0 {
+			obj.Value = v
+		}
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+		out[i] = &obj
+	}
+	return out
+
+}
+
+func expandStageSpecSystemSyncResources(p []interface{}) []*gitopspb.SystemSyncResource {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	out := make([]*gitopspb.SystemSyncResource, len(p))
+
+	for i := range p {
+		obj := gitopspb.SystemSyncResource{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		out[i] = &obj
+	}
+	return out
+
+}
+
+func expandStageSpecSystemSyncRepo(p []interface{}) *gitopspb.SystemSyncRepo {
+	obj := &gitopspb.SystemSyncRepo{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["repository"].(string); ok && len(v) > 0 {
+		obj.Repository = v
+	}
+
+	if v, ok := in["revision"].(string); ok && len(v) > 0 {
+		obj.Revision = v
+	}
+
+	if v, ok := in["path"].([]interface{}); ok {
+		obj.Path = expandCommonpbFile(v)
+	}
+
+	return obj
+
+}
+
+func expandStageSpecConfigActionTargets(p []interface{}) []*gitopspb.TerraformTarget {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.TerraformTarget{}
+	}
+	out := make([]*gitopspb.TerraformTarget, len(p))
+
+	for i := range p {
+		obj := gitopspb.TerraformTarget{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		out[i] = &obj
+
+	}
+
+	return out
+
+}
+
+// Stage Spec Expand End
+
+// Variable Spec Expand Start
+func expandVariableSpec(p []interface{}) []*gitopspb.VariableSpec {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.VariableSpec{}
+	}
+
+	out := make([]*gitopspb.VariableSpec, len(p))
+
+	for i := range p {
+		obj := gitopspb.VariableSpec{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+
+		if v, ok := in["value"].(string); ok && len(v) > 0 {
+			obj.Value = v
+		}
+
+		out[i] = &obj
+
+	}
+
+	return out
+}
+
+// Variable Spec Expand End
+
+// Trigger Spec Expand Start
+func expandTriggerSpec(p []interface{}) []*gitopspb.TriggerSpec {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.TriggerSpec{}
+	}
+
+	out := make([]*gitopspb.TriggerSpec, len(p))
+
+	for i := range p {
+		obj := triggerSpec{}
+		trueObj := gitopspb.TriggerSpec{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
+			obj.Variables = expandVariableSpec(v)
+		}
+
+		if vp, ok := in["config"].([]interface{}); ok && len(vp) > 0 {
+			if len(vp) == 0 || vp[0] == nil {
+				return []*gitopspb.TriggerSpec{}
+			}
+			inp := vp[0].(map[string]interface{})
+
+			if vpo, ok := in["repo"].([]interface{}); ok && len(vpo) > 0 {
+				if len(vpo) == 0 || vpo[0] == nil {
+					return []*gitopspb.TriggerSpec{}
+				}
+				inpo := vpo[0].(map[string]interface{})
+
+				if v, ok := inpo["provider"].(string); ok && len(v) > 0 {
+					obj.Config.Repo.Provider = v
+				}
+
+				if v, ok := inpo["repo"].(string); ok && len(v) > 0 {
+					obj.Config.Repo.Repository = v
+				}
+
+				if v, ok := inpo["revision"].(string); ok && len(v) > 0 {
+					obj.Config.Repo.Revision = v
+				}
+
+				if v, ok := inpo["paths"].([]interface{}); ok {
+					//obj.Secret = expandCommonpbFile(v)
+					obj.Config.Repo.Paths = expandCommonpbFiles(v)
+				}
+
+				if v, ok := inpo["chart_name"].(string); ok && len(v) > 0 {
+					obj.Config.Repo.ChartName = v
+				}
+
+				if v, ok := inpo["chart_version"].(string); ok && len(v) > 0 {
+					obj.Config.Repo.ChartVersion = v
+				}
+			}
+
+			if v, ok := inp["cron_expression"].(string); ok && len(v) > 0 {
+				obj.Config.CronExpression = v
+			}
+		}
+
+		jsonSpec, err := json.Marshal(obj)
+		if err != nil {
+			return nil
+		}
+
+		log.Println("expandTriggerSpec jsonSpec ", string(jsonSpec))
+
+		err = trueObj.UnmarshalJSON(jsonSpec)
+		if err != nil {
+			log.Println("expandTriggerSpec UnmarshalJSON error ", err)
+			return nil
+		}
+
+		out[i] = &trueObj
+
+	}
+	return out
+}
+
+// Flatteners
+
+func flattenPipeline(d *schema.ResourceData, in *gitopspb.Pipeline) error {
+	if in == nil {
+		return nil
+	}
+
+	err := d.Set("metadata", flattenMetaData(in.Metadata))
+	if err != nil {
+		return err
+	}
+
+	v, ok := d.Get("spec").([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+
+	var ret []interface{}
+	ret, err = flattenPipelineSpec(in.Spec, v)
+	if err != nil {
+		return err
+	}
+
+	err = d.Set("spec", ret)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func flattenPipelineSpec(in *gitopspb.PipelineSpec, p []interface{}) ([]interface{}, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "flattenPipeline empty input")
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	// Stages    []*StageSpec          `protobuf:"bytes,1,rep,name=stages,proto3" json:"stages,omitempty"`
+	if in.Stages != nil && len(in.Stages) > 0 {
+		v, ok := obj["stages"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["stages"] = flattenStageSpec(in.Stages, v)
+	}
+
+	// Variables []*VariableSpec       `protobuf:"bytes,2,rep,name=variables,proto3" json:"variables,omitempty"`
+	if in.Variables != nil && len(in.Variables) > 0 {
+		v, ok := obj["variables"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["variables"] = flattenVariableSpec(in.Variables, v)
+	}
+	// Triggers  []*TriggerSpec        `protobuf:"bytes,3,rep,name=triggers,proto3" json:"triggers,omitempty"`
+	if in.Triggers != nil && len(in.Triggers) > 0 {
+		v, ok := obj["triggers"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["triggers"] = flattenTriggerSpec(in.Triggers, v)
+	}
+
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
+
+	obj["active"] = in.Active
+
+	if in.Secret != nil {
+		obj["secrets"] = flattenCommonpbFile(in.Secret)
+	}
+
+	return []interface{}{obj}, nil
+}
+
+func flattenStageSpec(input []*gitopspb.StageSpec, p []interface{}) []interface{} {
+	log.Println("flattenStageSpec")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flattenStageSpec in ", in)
+
+		jsonBytes, err := in.MarshalJSON()
+		if err != nil {
+			log.Println("flattenStageSpec MarshalJSON error", err)
+			return nil
+		}
+		log.Println("flattenStageSpec jsonBytes ", string(jsonBytes))
+
+		stSpec := stageSpec{}
+		err = json.Unmarshal(jsonBytes, &stSpec)
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		//PRE CONDITION FLATTEN
+		v, ok := obj["pre_conditions"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		// XXX Debug
+		w1 := spew.Sprintf("%+v", v)
+		log.Println("flattenPreConditions before ", w1)
+
+		var ret []interface{}
+		ret, err = flattenPreConditions(&stSpec, v)
+		if err != nil {
+			log.Println("flattenPreConditions error ", err)
+			return nil
+		}
+
+		// XXX Debug
+		w1 = spew.Sprintf("%+v", ret)
+		log.Println("flattenPreConditions after ", w1)
+
+		obj["pre_conditions"] = ret
+
+		//Variables Flatten
+		if len(in.Variables) > 0 {
+			v, ok := obj["variables"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+
+			obj["variables"] = flattenVariableSpec(in.Variables, v)
+		} else {
+			obj["variables"] = nil
+		}
+
+		//Next Flatten
+		if len(in.Next) > 0 {
+			v, ok := obj["next"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+
+			obj["next"] = flattenNextSpec(in.Next, v)
+		} else {
+			obj["next"] = nil
+		}
+
+		//Stage Spec Config Flatten
+		v2, ok := obj["config"].([]interface{})
+		if !ok {
+			v2 = []interface{}{}
+		}
+
+		// XXX Debug
+		w2 := spew.Sprintf("%+v", v2)
+		log.Println("flattenStageSpecConfig before ", w2)
+
+		var ret2 []interface{}
+		ret2, err = flattenStageSpecConfig(&stSpec, v2)
+		if err != nil {
+			log.Println("flattenStageSpecConfig error ", err)
+			return nil
+		}
+
+		// XXX Debug
+		w2 = spew.Sprintf("%+v", ret2)
+		log.Println("flattenStageSpecConfig after ", w2)
+
+		obj["config"] = ret2
+
+		//Put together
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenPreConditions(stSpec *stageSpec, p []interface{}) ([]interface{}, error) {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	retNil := true
+
+	out := make([]interface{}, len(stSpec.PreConditions))
+	for i, in := range stSpec.PreConditions {
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+			retNil = false
+		}
+
+		if len(in.Config.Expression) > 0 {
+			obj["expression"] = in.Config.Expression
+			retNil = false
+		}
+
+		out[i] = &obj
+	}
+
+	if retNil {
+		return nil, nil
+	}
+
+	return []interface{}{obj}, nil
+
+}
+
+func flattenVariableSpec(input []*gitopspb.VariableSpec, p []interface{}) []interface{} {
+	log.Println("flattenVariableSpec")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flattenVariableSpec in ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		if len(in.Value) > 0 {
+			obj["value"] = in.Value
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenNextSpec(input []*gitopspb.NextStage, p []interface{}) []interface{} {
+	log.Println("flattenNextSpec")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flattenNextSpec in ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		obj["weight"] = in.Weight
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, error) {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	retNil := true
+
+	// var start
+
+	if len(stSpec.Config.Type) > 0 {
+		obj["type"] = stSpec.Config.Type
+		retNil = false
+	}
+
+	if len(stSpec.Config.Approvers) > 0 {
+		v, ok := obj["approvers"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["approvers"] = flattenStageSpecApprovers(stSpec.Config.Approvers, v)
+	} else {
+		obj["approvers"] = nil
+	}
+
+	if len(stSpec.Config.Timeout) > 0 {
+		obj["timeout"] = stSpec.Config.Timeout
+		retNil = false
+	}
+
+	if len(stSpec.Config.Workload) > 0 {
+		obj["workload"] = stSpec.Config.Workload
+		retNil = false
+	}
+
+	if len(stSpec.Config.WorkloadTemplate) > 0 {
+		obj["workload_template"] = stSpec.Config.WorkloadTemplate
+		retNil = false
+	}
+
+	if len(stSpec.Config.Namespace) > 0 {
+		obj["namespace"] = stSpec.Config.Namespace
+		retNil = false
+	}
+
+	if stSpec.Config.Placement != nil {
+		obj["placement"] = flattenPlacement(stSpec.Config.Placement)
+	}
+
+	if len(stSpec.Config.Overrides) > 0 {
+		v, ok := obj["overrides"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["overrides"] = flattenStageSpecOverrides(stSpec.Config.Overrides, v)
+	} else {
+		obj["overrides"] = nil
+	}
+
+	if stSpec.Config.UseRevisionFromWebhookTriggerEvent {
+		obj["use_revision_from_webhook_trigger_event"] = stSpec.Config.UseRevisionFromWebhookTriggerEvent
+		retNil = false
+	}
+
+	if len(stSpec.Config.Provisioner) > 0 {
+		obj["provisioner"] = stSpec.Config.Provisioner
+		retNil = false
+	}
+
+	if len(stSpec.Config.Revision) > 0 {
+		obj["revision"] = stSpec.Config.Revision
+		retNil = false
+	}
+
+	if len(stSpec.Config.WorkingDirectory) > 0 {
+		obj["working_directory"] = stSpec.Config.WorkingDirectory
+		retNil = false
+	}
+
+	if stSpec.Config.PersistWorkingDirectory {
+		obj["persist_working_directory"] = stSpec.Config.PersistWorkingDirectory
+		retNil = false
+	}
+
+	if len(stSpec.Config.Agents) > 0 {
+		v, ok := obj["agents"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["agents"] = flattenStageSpecAgents(stSpec.Config.Agents, v)
+	} else {
+		obj["agents"] = nil
+	}
+
+	obj["action"] = flattenStageSpecAction(stSpec)
+
+	if stSpec.Config.GitToSystemSync {
+		obj["git_to_system_sync"] = stSpec.Config.GitToSystemSync
+		retNil = false
+	}
+
+	if stSpec.Config.SystemToGitSync {
+		obj["system_to_git_sync"] = stSpec.Config.SystemToGitSync
+		retNil = false
+	}
+
+	if len(stSpec.Config.IncludedResources) > 0 {
+		v, ok := obj["included_resources"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["included_resources"] = flattenStageSpecSystemSyncResource(stSpec.Config.IncludedResources, v)
+	} else {
+		obj["included_resources"] = nil
+	}
+
+	if len(stSpec.Config.ExcludedResources) > 0 {
+		v, ok := obj["excluded_resources"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["excluded_resources"] = flattenStageSpecSystemSyncResource(stSpec.Config.ExcludedResources, v)
+	} else {
+		obj["excluded_resources"] = nil
+	}
+
+	if stSpec.Config.SourceRepo != nil {
+		obj["source_repo"] = flattenStageSpecSystemSyncRepo(stSpec.Config.SourceRepo)
+	}
+
+	if stSpec.Config.DestinationRepo != nil {
+		obj["destination_repo"] = flattenStageSpecSystemSyncRepo(stSpec.Config.DestinationRepo)
+	}
+
+	if stSpec.Config.SourceAsDestination {
+		obj["source_as_destination"] = stSpec.Config.SourceAsDestination
+		retNil = false
+	}
+
+	if retNil {
+		return nil, nil
+	}
+
+	return []interface{}{obj}, nil
+
+}
+
+func flattenStageSpecApprovers(input []*gitopspb.Approver, p []interface{}) []interface{} {
+	log.Println("flattenStageSpecApprovers")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flattenStageSpecApprovers in ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.UserName) > 0 {
+			obj["user_name"] = in.UserName
+		}
+
+		if in.SsoUser {
+			obj["sso_user"] = in.SsoUser
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenStageSpecOverrides(input []stageSpecConfigWorkloadTemplateOverrides, p []interface{}) []interface{} {
+	log.Println("flattenStageSpecOverrides")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flattenStageSpecOverrides in ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		obj["weight"] = in.Weight
+
+		obj["template"] = flattenStageSpecConfigOverridesTemplate(in)
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenStageSpecConfigOverridesTemplate(in stageSpecConfigWorkloadTemplateOverrides) []interface{} {
+	retNil := true
+	obj := make(map[string]interface{})
+
+	if len(in.Template.Inline) > 0 {
+		obj["inline"] = in.Template.Inline
+		retNil = false
+	}
+
+	if len(in.Template.Repository) > 0 {
+		obj["repository"] = in.Template.Repository
+		retNil = false
+
+	}
+
+	if len(in.Template.Revision) > 0 {
+		obj["revision"] = in.Template.Revision
+		retNil = false
+
+	}
+
+	if in.Template.Paths != nil {
+		obj["paths"] = flattenCommonpbFiles(in.Template.Paths)
+		retNil = false
+	}
+
+	if retNil {
+		return nil
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenStageSpecAgents(input []*gitopspb.AgentMeta, p []interface{}) []interface{} {
+	log.Println("flattenStageSpecAgents")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flattenStageSpecAgents in ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Name) > 0 {
+			obj["id"] = in.Id
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenStageSpecAction(in *stageSpec) []interface{} {
+	if in == nil {
+		return nil
+	}
+	retNil := true
+	obj := make(map[string]interface{})
+
+	if len(in.Config.Action.Action) > 0 {
+		obj["action"] = (in.Config.Action.Action)
+		retNil = false
+	}
+
+	if len(in.Config.Action.Version) > 0 {
+		obj["version"] = (in.Config.Action.Version)
+		retNil = false
+	}
+
+	if len(in.Config.Action.InputVars) > 0 {
+		retNil = false
+		v, ok := obj["input_vars"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["input_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
+	} else {
+		obj["input_vars"] = nil
+		retNil = false
+	}
+
+	if in.Config.Action.TfVarsFilePath != nil {
+		obj["tf_vars_file_path"] = flattenCommonpbFile(in.Config.Action.TfVarsFilePath)
+		retNil = false
+	}
+
+	if len(in.Config.Action.EnvVars) > 0 {
+		retNil = false
+		v, ok := obj["input_vars"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["env_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
+	} else {
+		obj["env_vars"] = nil
+		retNil = false
+	}
+
+	if len(in.Config.Action.BackendVars) > 0 {
+		retNil = false
+		v, ok := obj["backend_vars"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["backend_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
+	} else {
+		obj["backend_vars"] = nil
+		retNil = false
+	}
+
+	if in.Config.Action.BackendFilePath != nil {
+		obj["backend_file_path"] = flattenCommonpbFile(in.Config.Action.BackendFilePath)
+		retNil = false
+	}
+
+	if in.Config.Action.Refresh {
+		obj["refresh"] = in.Config.Action.Refresh
+		retNil = false
+	}
+
+	if len(in.Config.Action.Targets) > 0 {
+		retNil = false
+		v, ok := obj["targets"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["targets"] = flattenStageSpecConfigActionTargets(in.Config.Action.Targets, v)
+	} else {
+		obj["targets"] = nil
+		retNil = false
+	}
+
+	if in.Config.Action.Destroy {
+		obj["destroy"] = in.Config.Action.Destroy
+		retNil = false
+	}
+
+	if retNil {
+		return nil
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenStageSpecConfigActionKeyValue(input []*gitopspb.KeyValue, p []interface{}) []interface{} {
+	log.Println("flattenStageSpecConfigActionKeyValue")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flattenStageSpecConfigActionKeyValue in ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Key) > 0 {
+			obj["key"] = in.Key
+		}
+
+		if len(in.Value) > 0 {
+			obj["value"] = in.Value
+		}
+
+		if len(in.Type) > 0 {
+			obj["Type"] = in.Type
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenStageSpecConfigActionTargets(input []*gitopspb.TerraformTarget, p []interface{}) []interface{} {
+	log.Println("flattenStageSpecConfigActionTargets")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flattenStageSpecConfigActionTargets in ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenStageSpecSystemSyncResource(input []*gitopspb.SystemSyncResource, p []interface{}) []interface{} {
+	log.Println("flattenStageSpecSystemSyncResource")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flattenStageSpecSystemSyncResource in ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenStageSpecSystemSyncRepo(in *gitopspb.SystemSyncRepo) []interface{} {
+	if in == nil {
+		return nil
+	}
+	retNil := true
+	obj := make(map[string]interface{})
+
+	if len(in.Repository) > 0 {
+		obj["pod"] = (in.Repository)
+		retNil = false
+	}
+
+	if len(in.Revision) > 0 {
+		obj["name"] = (in.Revision)
+		retNil = false
+	}
+
+	if in.Path != nil {
+		obj["paths"] = flattenCommonpbFile(in.Path)
+		retNil = false
+	}
+
+	if retNil {
+		return nil
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenTriggerSpec(input []*gitopspb.TriggerSpec, p []interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flattenTriggerSpec in ", in)
+
+		jsonBytes, err := in.MarshalJSON()
+		if err != nil {
+			log.Println("flattenTriggerSpec MarshalJSON error", err)
+			return nil
+		}
+		log.Println("flattenTriggerSpec jsonBytes ", string(jsonBytes))
+
+		tSpec := triggerSpec{}
+		err = json.Unmarshal(jsonBytes, &tSpec)
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Variables) > 0 {
+			v, ok := obj["variables"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+
+			obj["variables"] = flattenVariableSpec(in.Variables, v)
+		} else {
+			obj["variables"] = nil
+		}
+
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		// XXX Debug
+		w1 := spew.Sprintf("%+v", v)
+		log.Println("flattenTriggerConfig before ", w1)
+
+		var ret []interface{}
+		ret, err = flattenTriggerConfig(&tSpec, v)
+		if err != nil {
+			log.Println("flattenTriggerConfig error ", err)
+			return nil
+		}
+
+		// XXX Debug
+		w1 = spew.Sprintf("%+v", ret)
+		log.Println("flattenTriggerConfig after ", w1)
+
+		obj["config"] = ret
+		out[i] = &obj
+	}
+
+	return []interface{}{out}
+}
+
+func flattenTriggerConfig(tSpec *triggerSpec, p []interface{}) ([]interface{}, error) {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	retNil := true
+	if len(tSpec.Config.Repo.Provider) > 0 {
+		obj["provider"] = tSpec.Config.Repo.Provider
+		retNil = false
+	}
+
+	if len(tSpec.Config.Repo.Repository) > 0 {
+		obj["repository"] = tSpec.Config.Repo.Repository
+		retNil = false
+	}
+
+	if len(tSpec.Config.Repo.Revision) > 0 {
+		obj["revision"] = tSpec.Config.Repo.Revision
+		retNil = false
+	}
+
+	if tSpec.Config.Repo.Paths != nil {
+		obj["paths"] = flattenCommonpbFiles(tSpec.Config.Repo.Paths)
+	}
+
+	if len(tSpec.Config.Repo.ChartName) > 0 {
+		obj["chart_name"] = tSpec.Config.Repo.ChartName
+		retNil = false
+	}
+
+	if len(tSpec.Config.Repo.ChartVersion) > 0 {
+		obj["chart_version"] = tSpec.Config.Repo.ChartVersion
+		retNil = false
+	}
+
+	if len(tSpec.Config.CronExpression) > 0 {
+		obj["cron_expression"] = tSpec.Config.CronExpression
+		retNil = false
+	}
+
+	if retNil {
+		return nil, nil
+	}
+
+	return []interface{}{obj}, nil
+
 }

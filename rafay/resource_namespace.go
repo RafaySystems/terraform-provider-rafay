@@ -63,8 +63,8 @@ func resourceNamespace() *schema.Resource {
 
 func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("namespace create starts")
-	diags := resourceNamespaceUpsert(ctx, d, m)
-	if diags.HasError() {
+	diagsCreate := resourceNamespaceUpsert(ctx, d, m)
+	if diagsCreate.HasError() {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
@@ -73,12 +73,12 @@ func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 		ns, err := expandNamespace(d)
 		if err != nil {
 			log.Printf("namespace expandNamespace error")
-			return diag.FromErr(err)
+			return diagsCreate
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
 		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 		if err != nil {
-			return diag.FromErr(err)
+			return diagsCreate
 		}
 
 		err = client.InfraV3().Namespace().Delete(ctx, options.DeleteOptions{
@@ -86,10 +86,10 @@ func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 			Project: ns.Metadata.Project,
 		})
 		if err != nil {
-			return diag.FromErr(err)
+			return diagsCreate
 		}
 	}
-	return diags
+	return diagsCreate
 }
 
 func resourceNamespaceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

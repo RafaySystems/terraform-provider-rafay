@@ -166,6 +166,7 @@ func resourceClusterOverride() *schema.Resource {
 							"timeouts": &schema.Schema{
 								Description: "timeouts",
 								Optional:    true,
+								Default:     0,
 								Type:        schema.TypeInt,
 							},
 						}},
@@ -406,7 +407,7 @@ func expandOverrideSpec(p []interface{}) (models.ClusterOverrideSpec, error) {
 		obj.OverrideValues = v
 	}
 
-	if v, ok := in["cluster_placement"].([]interface{}); ok {
+	if v, ok := in["cluster_placement"].([]interface{}); ok && len(v) > 0 {
 		obj.ClusterPlacement = expandClusterPlacement(v)
 	}
 
@@ -428,9 +429,10 @@ func expandClusterPlacement(p []interface{}) models.PlacementSpec {
 		return obj
 	}
 
+	log.Println("expandClusterPlacement ")
 	in := p[0].(map[string]interface{})
-	if v, ok := in["placement_type"].(models.PlacementType); ok && len(v) > 0 {
-		obj.PlacementType = v
+	if v, ok := in["placement_type"].(string); ok && len(v) > 0 {
+		obj.PlacementType = models.PlacementType(v)
 	}
 
 	if v, ok := in["cluster_selector"].(string); ok && len(v) > 0 {
@@ -440,7 +442,9 @@ func expandClusterPlacement(p []interface{}) models.PlacementSpec {
 	if v, ok := in["cluster_labels"].([]interface{}); ok && len(v) > 0 {
 		obj.ClusterLabels = expandClusterLabels(v)
 	}
-
+	// XXX Debug
+	w1 := spew.Sprintf("%+v", obj)
+	log.Println("expandClusterPlacement obj", w1)
 	return obj
 }
 
@@ -553,10 +557,14 @@ func expandClusterLabels(p []interface{}) []*models.PlacementLabel {
 		if v, ok := in["value"].(string); ok {
 			obj.Value = v
 		}
+		w1 := spew.Sprintf("%+v", obj)
+		log.Println("expandClusterLabels obj ", w1)
 
 		out[i] = &obj
 	}
 
+	w1 := spew.Sprintf("%+v", out)
+	log.Println("expandClusterLabels out ", w1)
 	return out
 }
 
@@ -651,7 +659,11 @@ func flattenArtifactMeta(in models.RepoArtifactMeta, p []interface{}) []interfac
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["timeouts"] = in.Timeout
+	retNIL := true
+	if in.Timeout != 0 {
+		obj["timeouts"] = in.Timeout
+		retNIL = false
+	}
 
 	if in.Git != nil {
 		v, ok := obj["git_options"].([]interface{})
@@ -659,6 +671,7 @@ func flattenArtifactMeta(in models.RepoArtifactMeta, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["git_options"] = flattenGitOptions(in.Git, v)
+		retNIL = false
 	}
 
 	if in.Helm != nil {
@@ -667,6 +680,11 @@ func flattenArtifactMeta(in models.RepoArtifactMeta, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 		obj["helm_options"] = flattenHelmOptions(in.Helm, v)
+		retNIL = false
+	}
+
+	if retNIL {
+		return nil
 	}
 
 	return []interface{}{obj}

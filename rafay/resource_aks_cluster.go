@@ -14,11 +14,13 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/RafaySystems/rctl/pkg/project"
-	"github.com/RafaySystems/rctl/utils"
+	"go.uber.org/zap"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
+	// Yaml pkg that have no limit for key length
 	"github.com/go-yaml/yaml"
+	yamlf "github.com/goccy/go-yaml"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -1848,7 +1850,8 @@ func expandAKSManagedClusterIdentity(p []interface{}) *AKSManagedClusterIdentity
 	}
 
 	if v, ok := in["user_assigned_identities"].(map[string]interface{}); ok {
-		obj.UserAssignedIdentities = toMapString(v)
+		//obj.UserAssignedIdentities = toMapString(v)
+		obj.UserAssignedIdentities = toMapEmptyObject(v)
 	}
 	return obj
 }
@@ -3276,7 +3279,8 @@ func flattenAKSManagedClusterIdentity(in *AKSManagedClusterIdentity, p []interfa
 	}
 
 	if in.UserAssignedIdentities != nil && len(in.UserAssignedIdentities) > 0 {
-		obj["user_assigned_identities"] = toMapInterface(in.UserAssignedIdentities)
+		//obj["user_assigned_identities"] = toMapInterface(in.UserAssignedIdentities)
+		obj["user_assigned_identities"] = toMapInterfaceObject(in.UserAssignedIdentities)
 	}
 
 	return []interface{}{obj}
@@ -4545,17 +4549,11 @@ func flattenAKSNodePoolUpgradeSettings(in *AKSNodePoolUpgradeSettings, p []inter
 
 }
 
-func aksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte, dryRun bool) (string, error) {
+func aksClusterCTL(config *config.Config, clusterName string, configBytes []byte, dryRun bool) (string, error) {
 	log.Printf("aks cluster ctl start")
+	glogger.SetLevel(zap.DebugLevel)
 	logger := glogger.GetLogger()
-	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
-	if len(errs) == 0 && len(configMap) > 0 {
-		// Make request
-		for clusterName, configBytes := range configMap {
-			return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun)
-		}
-	}
-	return "", fmt.Errorf("%s", "config collate error")
+	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false)
 }
 
 func aksClusterCTLStatus(taskid string) (string, error) {
@@ -4606,7 +4604,7 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		return diag.FromErr(fmt.Errorf("%s", "ClusterConfig name does not match config file"))
 	}
 
-	out, err := yaml.Marshal(obj)
+	out, err := yamlf.Marshal(obj)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -4625,22 +4623,6 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	log.Printf("process_filebytes")
 	var diags diag.Diagnostics
 	rctlCfg := config.GetConfig()
-	// split the file and update individual resources
-	cfgList, err := utils.SplitYamlAndGetListByKind(fileBytes)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	if len(cfgList) < 1 {
-		fmt.Printf("no cluster in the config")
-		return diags
-
-	}
-
-	if len(cfgList) > 1 {
-		fmt.Printf("found more than one cluster config in the cluster config")
-		return diags
-	}
 
 	// get project details
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
@@ -4655,13 +4637,14 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 
 	// cluster
-	response, err := aksClusterCTL(rctlCfg, cfgList["Cluster"], cfgList["aksClusterConfig"], false)
+	clusterName := obj.Metadata.Name
+	response, err := aksClusterCTL(rctlCfg, clusterName, fileBytes, false)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		return diag.FromErr(err)
 	}
 
-	log.Printf("process_filebytes response : %s", response)
+	log.Printf("process_filebytes cluster create response : %s", response)
 	res := clusterCTLResponse{}
 	err = json.Unmarshal([]byte(response), &res)
 	if err != nil {
@@ -4669,21 +4652,23 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 	if res.TaskSetID == "" {
-		return nil
+		log.Println("response res.TaskSetID is empty")
+		return diag.FromErr(fmt.Errorf("%s", "response TaskSetID is empty"))
 	}
-	time.Sleep(10 * time.Second)
+	time.Sleep(20 * time.Second)
 	s, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
 	if errGet != nil {
-		log.Printf("error while getCluster %s", errGet.Error())
+		log.Printf("error while getCluster for %s %s", obj.Metadata.Name, errGet.Error())
 		return diag.FromErr(errGet)
 	}
 
 	log.Printf("Cluster Provision may take upto 15-20 Minutes")
+
 	for {
 		time.Sleep(60 * time.Second)
 		check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
 		if errGet != nil {
-			log.Printf("error while getCluster %s", errGet.Error())
+			log.Printf("error while getCluster for %s %s", obj.Metadata.Name, errGet.Error())
 			return diag.FromErr(errGet)
 		}
 

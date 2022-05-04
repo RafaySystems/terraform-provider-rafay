@@ -1,7 +1,7 @@
 resource "rafay_blueprint" "tfdemoblueprint1" {
   metadata {
     name    = "tfdemoblueprint1"
-    project = "upgrade"
+    project = "dev"
     labels = {
       env  = "dev"
       name = "app"
@@ -54,6 +54,10 @@ resource "rafay_blueprint" "tfdemoblueprint1" {
       projects {
         name = "demo"
       }
+    }
+    placement {
+      auto_publish = true
+      fleet_values = ["value1", "value2", "value3"]
     }
   }
 }

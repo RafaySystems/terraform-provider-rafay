@@ -1,16 +1,23 @@
 resource "rafay_cluster_override" "tfdemocluster-override1" {
   metadata {
     name    = "tfdemocluster-override1"
-    project = "upgrade"
+    project = "terraform"
     labels = {
       "rafay.dev/overrideScope" = "clusterLabels"
       "rafay.dev/overrideType"  = "valuesFile"
     }
   }
   spec {
-    cluster_selector  = "env=test"
-    resource_selector = "rafay.dev/name=override-workload"
-    type              = "ClusterOverrideTypeWorkload"
+    cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key = "rafay.dev/clusterName"
+        value = "cluster-1"
+      }
+    }
+    resource_selector = "rafay.dev/name=override-addon"
+    type              = "ClusterOverrideTypeAddon"
     override_values   = <<-EOS
     replicaCount: 1
     image:
@@ -21,9 +28,6 @@ resource "rafay_cluster_override" "tfdemocluster-override1" {
       type: ClusterIP
       port: 8080
     EOS
-    values_repo_artifact_meta {
-      timeouts = 0
-    }
   }
 }
 
@@ -31,43 +35,30 @@ resource "rafay_cluster_override" "tfdemocluster-override1" {
 resource "rafay_cluster_override" "tfdemocluster-override2" {
   metadata {
     name    = "tfdemocluster-override2"
-    project = "upgrade"
+    project = "terraform"
     labels = {
       "rafay.dev/overrideScope" = "clusterLabels"
       "rafay.dev/overrideType"  = "valuesFile"
     }
   }
   spec {
-    cluster_selector  = "rafay.dev/clusterName in (my-cluster-name)"
-    resource_selector = "rafay.dev/name=aws-lb-controller"
-    type              = "ClusterOverrideTypeAddon"
-    override_values   = <<-EOS
-    clusterName: my-cluster-name1
-    EOS
-  }
-}
-
-
-resource "rafay_cluster_override" "tfdemocluster-override3" {
-  metadata {
-    name    = "tfdemocluster-override3"
-    project = "upgrade"
-    labels = {
-      "rafay.dev/overrideScope" = "clusterLabels"
-      "rafay.dev/overrideType"  = "valuesFile"
+    cluster_selector  = "key in (value)"
+    cluster_placement {
+      placement_type = "ClusterLabels"
+      cluster_labels {
+        key = "key"
+        value = "value"
+      }
     }
-  }
-  spec {
-    cluster_selector  = "rafay.dev/clusterName in (my-cluster-name)"
     resource_selector = "rafay.dev/name=aws-lb-controller"
     type              = "ClusterOverrideTypeAddon"
-    value_repo_ref    = "release-check-ssh"
+    value_repo_ref    = "git-repo-name"
     values_repo_artifact_meta {
       git_options {
         revision = "main"
         repo_artifact_files {
-          name          = "dev.yml"
-          relative_path = "yaml/dev.yml"
+          name          = "overrides.yaml"
+          relative_path = "yaml/overrides.yaml"
           file_type     = "FileTypeNotSet"
         }
       }

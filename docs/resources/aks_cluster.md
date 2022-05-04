@@ -170,6 +170,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ***Optional***
 
 - `api_server_access_profile` - (Block List) The AKS managed cluster API server access profile. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--api_server_access_profile))
+- `private_dns_zone` - (String) It requires you to create a Private DNS Zone in this format for Azure global cloud: privatelink.<region>.azmk8s.io or <subzone>.privatelink.<region>.azmk8s.io. You will need to specify the Resource ID of that Private DNS Zone. Additionally, you will need a user assigned identity or service principal with at least the private dns zone contributor and network contributor roles.
 - `disk_encryption_set_id` - (String) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/diskEncryptionSets/{encryptionSetName}`
 - `dns_prefix` - (String) DNS prefix specified when creating the managed cluster. 
 This cannot be updated once the Managed Cluster has been created.
@@ -236,6 +237,7 @@ This cannot be updated once the Managed Cluster has been created.
 ***Required***
 
 - `type` - (String) The identity type for the AKS cluster. For more information see [Use managed identities in AKS](https://docs.microsoft.com/en-us/azure/aks/use-managed-identity). Supported values are: `SystemAssigned`, `UserAssigned`, and `None`.
+- `user_assigned_identities` - (Map of String) User assigned Managed identity. The keys must be ARM resource IDs in the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}`. Values has to be an empty object. `"{}"`
 
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--sku"></a>

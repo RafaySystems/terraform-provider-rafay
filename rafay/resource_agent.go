@@ -219,7 +219,7 @@ func expandAgent(in *schema.ResourceData) (*gitopspb.Agent, error) {
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "infra.k8smgmt.io/v3"
+	obj.ApiVersion = "gitops.k8smgmt.io/v3"
 	obj.Kind = "Agent"
 	return obj, nil
 }

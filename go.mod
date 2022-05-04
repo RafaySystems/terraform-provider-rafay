@@ -3,7 +3,7 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.17
 
 require (
-	github.com/RafaySystems/rafay-common v1.13.0-beta5
+	github.com/RafaySystems/rafay-common v1.13.0-beta7
 	//github.com/RafaySystems/rafay-common v1.10.0-tf-schema-beta1
 	github.com/RafaySystems/rctl v1.12.0-beta2
 	github.com/davecgh/go-spew v1.1.1

@@ -106,17 +106,17 @@ type EKSSpec struct {
 	CniParams        *CustomCni        `yaml:"cniparams,omitempty"`
 }
 
-type CustomCniSpec struct {
-	Subnet         string   `yaml:"subnet,omitempty"`
-	SecurityGroups []string `yaml:"securityGroups,omitempty"`
-}
-
-type CustomCNIMapping map[string]CustomCniSpec
+type CustomCNIMapping map[string][]CustomCniSpec
 
 type CustomCni struct {
 	CustomCniCidr string `yaml:"customCniCidr,omitempty"`
 	//@@@makes more sense copying vpc->subnets, double check its not supposed to be map[string][]object
 	CustomCniCrdSpec CustomCNIMapping `yaml:"customCniCrdSpec,omitempty"`
+}
+
+type CustomCniSpec struct {
+	Subnet         string   `yaml:"subnet,omitempty"`
+	SecurityGroups []string `yaml:"securityGroups,omitempty"`
 }
 
 type EKSClusterMetadata struct {

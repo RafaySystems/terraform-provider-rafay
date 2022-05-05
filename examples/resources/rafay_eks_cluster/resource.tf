@@ -14,13 +14,25 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       cni_params {
         custom_cni_crd_spec {
           name = "us-west-2a"
-          security_groups = ["sg-xxxxxx", "sg-yyyyyy"]
-          subnet = "subnet-08dfb5d33b80d2b17"
+          cni_spec {
+            security_groups = ["sg-xxxxxx", "sg-yyyyyy"]
+            subnet = "subnet-zzz"
+          }
+          cni_spec {
+            security_groups = ["sg-cccccc", "sg-dddddd"]
+            subnet = "subnet-kkk"
+          }
         }
         custom_cni_crd_spec {
           name = "us-west-2b"
-          security_groups = ["sg-xxxxxxx", "sg-ccccccc"]
-          subnet = "subnet-08dfb5d33b80d2b18"
+          cni_spec {
+            security_groups = ["sg-aaaaaa", "sg-xxxxxx"]
+            subnet = "subnet-qqq"
+          }
+          cni_spec {
+            security_groups = ["sg-cccccc", "sg-dddddd"]
+            subnet = "subnet-www"
+          }
         }
       }
       proxy_config   = {}

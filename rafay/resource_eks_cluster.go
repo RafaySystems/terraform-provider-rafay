@@ -189,6 +189,20 @@ func customCniSpecField() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "name of custom cni",
 		},
+		"cni_spec": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: cniSpecField(),
+			},
+		},
+	}
+	return s
+}
+
+func cniSpecField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
 		"subnet": {
 			Type:        schema.TypeString,
 			Optional:    true,
@@ -3540,19 +3554,40 @@ func expandCustomCNISpec(p []interface{}) CustomCNIMapping {
 
 	for i := range p {
 		in := p[i].(map[string]interface{})
-		elem2 := CustomCniSpec{}
-		if v, ok := in["subnet"].(string); ok && len(v) > 0 {
-			elem2.Subnet = v
+		elem2 := []CustomCniSpec{}
+
+		if v, ok := in["cni_spec"].([]interface{}); ok && len(v) > 0 {
+			elem2 = expandCNISpec(v)
 		}
-		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
-			elem2.SecurityGroups = toArrayStringSorted(v)
-		}
+
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj[v] = elem2
 		}
 	}
 	log.Println("Mapping Complete: ", obj)
 	return obj
+}
+
+func expandCNISpec(p []interface{}) []CustomCniSpec {
+	out := make([]CustomCniSpec, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		obj := CustomCniSpec{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["subnet"].(string); ok && len(v) > 0 {
+			obj.Subnet = v
+		}
+		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
+			obj.SecurityGroups = toArrayStringSorted(v)
+		}
+
+		out[i] = obj
+	}
+
+	return out
 }
 
 func flattenEKSCluster(in *EKSCluster, p []interface{}) ([]interface{}, error) {
@@ -3686,11 +3721,12 @@ func flattenCustomCNISpec(in CustomCNIMapping, p []interface{}) []interface{} {
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
-		if len(elem.Subnet) > 0 {
-			obj["subnet"] = elem.Subnet
-		}
-		if len(elem.SecurityGroups) > 0 {
-			obj["security_groups"] = toArrayInterfaceSorted(elem.SecurityGroups)
+		if elem != nil {
+			v, ok := obj["cni_spec"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["cni_spec"] = flattenCNISpec(elem, v)
 		}
 		if len(key) > 0 {
 			obj["name"] = key
@@ -3699,6 +3735,27 @@ func flattenCustomCNISpec(in CustomCNIMapping, p []interface{}) []interface{} {
 		i += 1
 	}
 	log.Println("finished customCNI mapping")
+	return out
+}
+
+func flattenCNISpec(elem []CustomCniSpec, p []interface{}) []interface{} {
+	if elem == nil {
+		return nil
+	}
+	out := make([]interface{}, len(elem))
+	for i, in := range elem {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Subnet) > 0 {
+			obj["subnet"] = in.Subnet
+		}
+		if len(in.SecurityGroups) > 0 {
+			obj["security_groups"] = toArrayInterfaceSorted(in.SecurityGroups)
+		}
+		out[i] = &obj
+	}
 	return out
 }
 

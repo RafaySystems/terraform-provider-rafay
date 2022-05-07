@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -2064,7 +2065,7 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 }
 
 //expand eks cluster function (completed)
-func expandEKSClusterConfig(p []interface{}) *EKSClusterConfig {
+func expandEKSClusterConfig(p []interface{}, d *schema.ResourceData, prefix string) *EKSClusterConfig {
 	obj := &EKSClusterConfig{}
 
 	if len(p) == 0 || p[0] == nil {
@@ -2097,13 +2098,13 @@ func expandEKSClusterConfig(p []interface{}) *EKSClusterConfig {
 		obj.PrivateCluster = expandPrivateCluster(v)
 	}
 	if v, ok := in["node_groups"].([]interface{}); ok && len(v) > 0 {
-		obj.NodeGroups = expandNodeGroups(v)
+		obj.NodeGroups = expandNodeGroups(v, d, prefix)
 	}
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
 		obj.VPC = expandVPC(v)
 	}
 	if v, ok := in["managed_nodegroups"].([]interface{}); ok && len(v) > 0 {
-		obj.ManagedNodeGroups = expandManagedNodeGroups(v)
+		obj.ManagedNodeGroups = expandManagedNodeGroups(v, d, prefix)
 	}
 	if v, ok := in["fargate_profiles"].([]interface{}); ok && len(v) > 0 {
 		obj.FargateProfiles = expandFargateProfiles(v)
@@ -2133,7 +2134,7 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	}
 	//expand cluster config yaml file
 	if v, ok := d.Get("cluster_config").([]interface{}); ok {
-		yamlClusterConfig = expandEKSClusterConfig(v)
+		yamlClusterConfig = expandEKSClusterConfig(v, d, "cluster_config")
 	} else {
 		fmt.Print("Cluster Config unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster Config is missing"))
@@ -2405,7 +2406,7 @@ func expandFargateProfilesSelectors(p []interface{}) []FargateProfileSelector {
 	return out
 }
 
-func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not completed have questions in comments
+func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []*ManagedNodeGroup { //not completed have questions in comments
 	obj := &ManagedNodeGroup{}
 	out := make([]*ManagedNodeGroup, len(p))
 	outToSort := make([]ManagedNodeGroup, len(p))
@@ -2414,6 +2415,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 	}
 	log.Println("got to managed node group")
 	for i := range p {
+		prefix2 := prefix + strconv.Itoa(i)
 		in := p[i].(map[string]interface{})
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
@@ -2449,7 +2451,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v)
+			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2 + ".ssh")
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
@@ -2606,7 +2608,7 @@ func expandManagedNodeGroupLaunchTempelate(p []interface{}) *LaunchTemplate {
 	return obj
 }
 
-func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have questions in comments
+func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []*NodeGroup { //not completed have questions in comments
 	out := make([]*NodeGroup, len(p))
 	outToSort := make([]NodeGroup, len(p))
 
@@ -2615,6 +2617,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 	}
 
 	for i := range p {
+		prefix2 := prefix + "." + strconv.Itoa(i)
 		in := p[i].(map[string]interface{})
 		obj := NodeGroup{}
 		log.Println("expand_nodegroups")
@@ -2656,7 +2659,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v)
+			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2 + ".ssh")
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
@@ -3083,7 +3086,7 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 }
 
 //expand node group ssh function (completed/ kind of)
-func expandNodeGroupSsh(p []interface{}) *NodeGroupSSH {
+func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, prefix string) *NodeGroupSSH {
 	obj := &NodeGroupSSH{}
 
 	if len(p) == 0 || p[0] == nil {
@@ -3103,8 +3106,11 @@ func expandNodeGroupSsh(p []interface{}) *NodeGroupSSH {
 	if v, ok := in["source_security_group_ids"].([]interface{}); ok && len(v) > 0 {
 		obj.SourceSecurityGroupIDs = toArrayString(v)
 	}
-	if v, ok := in["enable_ssm"].(bool); ok {
-		obj.EnableSSM = &v
+	// Deprecated but still valid to use this API till an alterative is found!
+	if _, exists := d.GetOkExists(prefix + ".enable_ssm"); exists {
+		if v, ok := in["enable_ssm"].(bool); ok {
+			obj.EnableSSM = &v
+		}
 	}
 	//docs dont have field skip endpoint creation but struct does
 	return obj

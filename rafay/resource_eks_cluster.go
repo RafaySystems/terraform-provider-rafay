@@ -2006,6 +2006,7 @@ func expandEKSClusterConfig(p []interface{}, d *schema.ResourceData, prefix stri
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
 	if v, ok := in["kind"].(string); ok && len(v) > 0 {
 		obj.Kind = v
@@ -2033,13 +2034,13 @@ func expandEKSClusterConfig(p []interface{}, d *schema.ResourceData, prefix stri
 		obj.PrivateCluster = expandPrivateCluster(v)
 	}
 	if v, ok := in["node_groups"].([]interface{}); ok && len(v) > 0 {
-		obj.NodeGroups = expandNodeGroups(v, d, prefix)
+		obj.NodeGroups = expandNodeGroups(v, d, prefix + ".node_groups")
 	}
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
 		obj.VPC = expandVPC(v)
 	}
 	if v, ok := in["managed_nodegroups"].([]interface{}); ok && len(v) > 0 {
-		obj.ManagedNodeGroups = expandManagedNodeGroups(v, d, prefix)
+		obj.ManagedNodeGroups = expandManagedNodeGroups(v, d, prefix + ".managed_nodegroups")
 	}
 	if v, ok := in["fargate_profiles"].([]interface{}); ok && len(v) > 0 {
 		obj.FargateProfiles = expandFargateProfiles(v)
@@ -2350,7 +2351,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 	}
 	log.Println("got to managed node group")
 	for i := range p {
-		prefix2 := prefix + strconv.Itoa(i)
+		prefix2 := prefix + "." + strconv.Itoa(i)
 		in := p[i].(map[string]interface{})
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
@@ -3038,6 +3039,7 @@ func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, pref
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
 	if v, ok := in["allow"].(bool); ok {
 		obj.Allow = &v

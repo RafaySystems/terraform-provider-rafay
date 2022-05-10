@@ -146,10 +146,75 @@ func specField() map[string]*schema.Schema {
 			Default:     "Calico-v3.19.1",
 			Description: "Cni provider used to specify different cni options for the cluster",
 		},
+		"cni_params": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: customCniField(),
+			},
+		},
 		"proxy_config": {
 			Type:        schema.TypeMap,
 			Optional:    true,
 			Description: "Configure Proxy if your infrastructure uses an Outbound Proxy",
+		},
+	}
+	return s
+}
+
+func customCniField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"custom_cni_crd": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Valid variants are: 'IPv4' defines an IP family of v4 to be used when creating a new VPC and cluster., 'IPv6' defines an IP family of v6 to be used when creating a new VPC and cluster..",
+		},
+		"custom_cni_crd_spec": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: customCniSpecField(),
+			},
+		},
+	}
+	return s
+}
+
+func customCniSpecField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "name of custom cni",
+		},
+		"cni_spec": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: cniSpecField(),
+			},
+		},
+	}
+	return s
+}
+
+func cniSpecField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"subnet": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "",
+		},
+		"security_groups": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "security groups of custom CNI",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
 		},
 	}
 	return s
@@ -2139,37 +2204,37 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
-
-	for { //wait for cluster to provision correctly
-		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
-		if errGet != nil {
-			log.Printf("error while getCluster %s", errGet.Error())
-			return diag.FromErr(errGet)
-		}
-
-		statusResp, err := eksClusterCTLStatus(res.TaskSetID)
-		if err != nil {
-			log.Println("status response parse error", err)
-			return diag.FromErr(err)
-		}
-		log.Println("statusResp ", statusResp)
-		sres := clusterCTLResponse{}
-		err = json.Unmarshal([]byte(statusResp), &sres)
-		if err != nil {
-			log.Println("status response unmarshal error", err)
-			return diag.FromErr(err)
-		}
-		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-			if check.Status == "READY" {
-				break
+	/*
+		for { //wait for cluster to provision correctly
+			time.Sleep(60 * time.Second)
+			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				return diag.FromErr(errGet)
 			}
-			log.Println("task completed but cluster is not ready")
-		}
-		if strings.Contains(sres.Status, "STATUS_FAILED") {
-			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
-		}
-	}
+
+			statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+			if err != nil {
+				log.Println("status response parse error", err)
+				return diag.FromErr(err)
+			}
+			log.Println("statusResp ", statusResp)
+			sres := clusterCTLResponse{}
+			err = json.Unmarshal([]byte(statusResp), &sres)
+			if err != nil {
+				log.Println("status response unmarshal error", err)
+				return diag.FromErr(err)
+			}
+			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+				if check.Status == "READY" {
+					break
+				}
+				log.Println("task completed but cluster is not ready")
+			}
+			if strings.Contains(sres.Status, "STATUS_FAILED") {
+				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
+			}
+		}*/
 
 	log.Printf("resource eks cluster created/updated %s", s.ID)
 	d.SetId(s.ID)
@@ -3221,11 +3286,11 @@ func expandSubnetSpec(p []interface{}) AZSubnetMapping {
 		if v, ok := in["az"].(string); ok && len(v) > 0 {
 			elem2.AZ = v
 		}
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj[v] = elem2
-		}
 		if v, ok := in["cidr"].(string); ok && len(v) > 0 {
 			elem2.CIDR = v
+		}
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj[v] = elem2
 		}
 	}
 	return obj
@@ -3449,12 +3514,80 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["cni_provider"].(string); ok && len(v) > 0 {
 		obj.CniProvider = v
 	}
+	if v, ok := in["cni_params"].([]interface{}); ok && len(v) > 0 {
+		obj.CniParams = expandCNIParams(v)
+	}
 	if v, ok := in["proxy_config"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.ProxyConfig = toMapString(v)
 	}
 	log.Println("cluster spec cloud_provider: ", obj.CloudProvider)
 
 	return obj
+}
+
+func expandCNIParams(p []interface{}) *CustomCni {
+	obj := &CustomCni{}
+	log.Println("expand CNI params")
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["custom_cni_crd"].(string); ok && len(v) > 0 {
+		obj.CustomCniCidr = v
+	}
+	//@@@what to do for expanding map[string][]object
+	if v, ok := in["custom_cni_crd_spec"].([]interface{}); ok && len(v) > 0 {
+		obj.CustomCniCrdSpec = expandCustomCNISpec(v)
+	}
+	return obj
+}
+
+func expandCustomCNISpec(p []interface{}) CustomCNIMapping {
+	obj := make(CustomCNIMapping)
+	log.Println("expand CNI Mapping")
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		elem2 := []CustomCniSpec{}
+
+		if v, ok := in["cni_spec"].([]interface{}); ok && len(v) > 0 {
+			elem2 = expandCNISpec(v)
+		}
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj[v] = elem2
+		}
+	}
+	log.Println("Mapping Complete: ", obj)
+	return obj
+}
+
+func expandCNISpec(p []interface{}) []CustomCniSpec {
+	out := make([]CustomCniSpec, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		obj := CustomCniSpec{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["subnet"].(string); ok && len(v) > 0 {
+			obj.Subnet = v
+		}
+		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
+			obj.SecurityGroups = toArrayStringSorted(v)
+		}
+
+		out[i] = obj
+	}
+
+	return out
 }
 
 func flattenEKSCluster(in *EKSCluster, p []interface{}) ([]interface{}, error) {
@@ -3544,13 +3677,87 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 	if len(in.CniProvider) > 0 {
 		obj["cni_provider"] = in.CniProvider
 	}
-
+	if in.CniParams != nil {
+		v, ok := obj["cni_params"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["cni_params"] = flattenCNIParams(in.CniParams, v)
+	}
 	if in.ProxyConfig != nil && len(in.ProxyConfig) > 0 {
 		obj["proxy_config"] = toMapInterface(in.ProxyConfig)
 	}
 
 	return []interface{}{obj}, nil
 }
+
+func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.CustomCniCidr) > 0 {
+		obj["custom_cni_crd"] = in.CustomCniCidr
+	}
+	if in.CustomCniCrdSpec != nil {
+		v, ok := obj["custom_cni_crd_spec"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["custom_cni_crd_spec"] = flattenCustomCNISpec(in.CustomCniCrdSpec, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenCustomCNISpec(in CustomCNIMapping, p []interface{}) []interface{} {
+	log.Println("got to flatten custom CNI mapping", len(p))
+	out := make([]interface{}, len(in))
+	i := 0
+	for key, elem := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if elem != nil {
+			v, ok := obj["cni_spec"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["cni_spec"] = flattenCNISpec(elem, v)
+		}
+		if len(key) > 0 {
+			obj["name"] = key
+		}
+		out[i] = obj
+		i += 1
+	}
+	log.Println("finished customCNI mapping")
+	return out
+}
+
+func flattenCNISpec(elem []CustomCniSpec, p []interface{}) []interface{} {
+	if elem == nil {
+		return nil
+	}
+	out := make([]interface{}, len(elem))
+	for i, in := range elem {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Subnet) > 0 {
+			obj["subnet"] = in.Subnet
+		}
+		if len(in.SecurityGroups) > 0 {
+			obj["security_groups"] = toArrayInterfaceSorted(in.SecurityGroups)
+		}
+		out[i] = &obj
+	}
+	return out
+}
+
 func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]interface{}, error) {
 	if in == nil {
 		return nil, fmt.Errorf("%s", "flattenEKSClusterMetaData empty input")

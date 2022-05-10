@@ -3700,7 +3700,6 @@ func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {
 	if len(in.CustomCniCidr) > 0 {
 		obj["custom_cni_crd"] = in.CustomCniCidr
 	}
-	//@@@ how to flatten map[string][]object??
 	if in.CustomCniCrdSpec != nil {
 		v, ok := obj["custom_cni_crd_spec"].([]interface{})
 		if !ok {

@@ -2051,7 +2051,7 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
-	prefix = prefix + ".0"
+	//prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
 	if v, ok := in["kind"].(string); ok && len(v) > 0 {
 		obj.Kind = v
@@ -2072,6 +2072,7 @@ func expandEKSClusterConfig(p []interface{}, d *schema.ResourceData, prefix stri
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
 	if v, ok := in["kind"].(string); ok && len(v) > 0 {
 		obj.Kind = v
@@ -2086,26 +2087,26 @@ func expandEKSClusterConfig(p []interface{}, d *schema.ResourceData, prefix stri
 		obj.KubernetesNetworkConfig = expandKubernetesNetworkConfig(v)
 	}
 	if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
-		obj.IAM = expandIAMFields(v)
+		obj.IAM = expandIAMFields(v, d, prefix+".iam")
 	}
 	if v, ok := in["identity_providers"].([]interface{}); ok && len(v) > 0 {
 		obj.IdentityProviders = expandIdentityProviders(v)
 	}
 
 	if v, ok := in["addons"].([]interface{}); ok && len(v) > 0 {
-		obj.Addons = expandAddons(v)
+		obj.Addons = expandAddons(v, d, prefix+".addons")
 	}
 	if v, ok := in["private_cluster"].([]interface{}); ok && len(v) > 0 {
-		obj.PrivateCluster = expandPrivateCluster(v)
+		obj.PrivateCluster = expandPrivateCluster(v, d, prefix+".private_cluster")
 	}
 	if v, ok := in["node_groups"].([]interface{}); ok && len(v) > 0 {
-		obj.NodeGroups = expandNodeGroups(v, d, prefix + ".node_groups")
+		obj.NodeGroups = expandNodeGroups(v, d, prefix+".node_groups")
 	}
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
-		obj.VPC = expandVPC(v)
+		obj.VPC = expandVPC(v, d, prefix+".vpc")
 	}
 	if v, ok := in["managed_nodegroups"].([]interface{}); ok && len(v) > 0 {
-		obj.ManagedNodeGroups = expandManagedNodeGroups(v, d, prefix + ".managed_nodegroups")
+		obj.ManagedNodeGroups = expandManagedNodeGroups(v, d, prefix+".managed_nodegroups")
 	}
 	if v, ok := in["fargate_profiles"].([]interface{}); ok && len(v) > 0 {
 		obj.FargateProfiles = expandFargateProfiles(v)
@@ -2416,7 +2417,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 	}
 	log.Println("got to managed node group")
 	for i := range p {
-		prefix2 := prefix + "." + strconv.Itoa(i)
+		prefix := prefix + "." + strconv.Itoa(i)
 		in := p[i].(map[string]interface{})
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
@@ -2452,25 +2453,29 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2 + ".ssh")
+			obj.SSH = expandNodeGroupSsh(v, i, d, prefix+".ssh")
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
 		}
-		if v, ok := in["private_networking"].(bool); ok {
-			obj.PrivateNetworking = &v
+		_, exists := d.GetOkExists(prefix + ".private_networking")
+		log.Println("mng private_networking", exists)
+		if exists {
+			if v, ok := in["private_networking"].(bool); ok {
+				obj.PrivateNetworking = &v
+			}
 		}
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
 		}
 		if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
-			obj.IAM = expandNodeGroupIam(v)
+			obj.IAM = expandNodeGroupIam(v, d, prefix+".iam")
 		}
 		if v, ok := in["ami"].(string); ok && len(v) > 0 {
 			obj.AMI = v
 		}
 		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
-			obj.SecurityGroups = expandNodeGroupSecurityGroups(v)
+			obj.SecurityGroups = expandNodeGroupSecurityGroups(v, d, prefix+".security_groups")
 		}
 		if v, ok := in["max_pods_per_node"].(int); ok {
 			obj.MaxPodsPerNode = &v
@@ -2478,8 +2483,12 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
 			obj.ASGSuspendProcesses = toArrayString(v)
 		}
-		if v, ok := in["ebs_optimized"].(bool); ok {
-			obj.EBSOptimized = &v
+		_, exists2 := d.GetOkExists(prefix + ".ebs_optimized")
+		log.Println("mng ebs_optimized", exists2)
+		if exists2 {
+			if v, ok := in["ebs_optimized"].(bool); ok {
+				obj.EBSOptimized = &v
+			}
 		}
 		if v, ok := in["volume_type"].(string); ok && len(v) > 0 {
 			obj.VolumeType = v
@@ -2487,8 +2496,12 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		if v, ok := in["volume_name"].(string); ok && len(v) > 0 {
 			obj.VolumeName = v
 		}
-		if v, ok := in["volume_encrypted"].(bool); ok {
-			obj.VolumeEncrypted = &v
+		_, exists3 := d.GetOkExists(prefix + ".volume_encrypted")
+		log.Println("mng volume_encrypted", exists3)
+		if exists3 {
+			if v, ok := in["volume_encrypted"].(bool); ok {
+				obj.VolumeEncrypted = &v
+			}
 		}
 		if v, ok := in["volume_kms_key_id"].(string); ok && len(v) > 0 {
 			obj.VolumeKmsKeyID = v
@@ -2505,17 +2518,29 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		if v, ok := in["override_bootstrap_command"].(string); ok && len(v) > 0 {
 			obj.OverrideBootstrapCommand = v
 		}
-		if v, ok := in["disable_imdsv1"].(bool); ok {
-			obj.DisableIMDSv1 = &v
+		_, exists4 := d.GetOkExists(prefix + ".disable_imdsv1")
+		log.Println("mng disable_imdsv1", exists4)
+		if exists4 {
+			if v, ok := in["disable_imdsv1"].(bool); ok {
+				obj.DisableIMDSv1 = &v
+			}
 		}
-		if v, ok := in["disable_pods_imds"].(bool); ok {
-			obj.DisablePodIMDS = &v
+		_, exists5 := d.GetOkExists(prefix + ".disable_pods_imds")
+		log.Println("mng disable_pods_imds", exists5)
+		if exists5 {
+			if v, ok := in["disable_pods_imds"].(bool); ok {
+				obj.DisablePodIMDS = &v
+			}
 		}
 		if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
 			obj.Placement = expandNodeGroupPlacement(v)
 		}
-		if v, ok := in["efa_enabled"].(bool); ok {
-			obj.EFAEnabled = &v
+		_, exists6 := d.GetOkExists(prefix + ".efa_enabled")
+		log.Println("mng efa_enabled", exists6)
+		if exists6 {
+			if v, ok := in["efa_enabled"].(bool); ok {
+				obj.EFAEnabled = &v
+			}
 		}
 		if v, ok := in["instance_selector"].([]interface{}); ok && len(v) > 0 {
 			obj.InstanceSelector = expandNodeGroupInstanceSelector(v)
@@ -2523,17 +2548,25 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		//additional encrypted volume field not in spec
 
 		if v, ok := in["bottle_rocket"].([]interface{}); ok && len(v) > 0 {
-			obj.Bottlerocket = expandNodeGroupBottleRocket(v)
+			obj.Bottlerocket = expandNodeGroupBottleRocket(v, d, prefix+"bottle_rocket")
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does (says to remove)
-		if v, ok := in["enable_detailed_monitoring"].(bool); ok {
-			obj.EnableDetailedMonitoring = &v
+		_, exists7 := d.GetOkExists(prefix + ".enable_detailed_monitoring")
+		log.Println("mng enable_detailed_monitoring", exists7)
+		if exists7 {
+			if v, ok := in["enable_detailed_monitoring"].(bool); ok {
+				obj.EnableDetailedMonitoring = &v
+			}
 		}
 		if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
 			obj.InstanceTypes = toArrayString(v)
 		}
-		if v, ok := in["spot"].(bool); ok {
-			obj.Spot = &v
+		_, exists8 := d.GetOkExists(prefix + ".spot")
+		log.Println("mng spot", exists8)
+		if exists8 {
+			if v, ok := in["spot"].(bool); ok {
+				obj.Spot = &v
+			}
 		}
 		if v, ok := in["taints"].([]interface{}); ok && len(v) > 0 {
 			obj.Taints = expandManagedNodeGroupTaints(v)
@@ -2618,7 +2651,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 	}
 
 	for i := range p {
-		prefix2 := prefix + "." + strconv.Itoa(i)
+		prefix = prefix + "." + strconv.Itoa(i)
 		in := p[i].(map[string]interface{})
 		obj := NodeGroup{}
 		log.Println("expand_nodegroups")
@@ -2660,25 +2693,29 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2 + ".ssh")
+			obj.SSH = expandNodeGroupSsh(v, i, d, prefix+".ssh")
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
 		}
-		if v, ok := in["private_networking"].(bool); ok {
-			obj.PrivateNetworking = &v
+		_, exists := d.GetOkExists(prefix + ".private_networking")
+		log.Println("ng private_networking", exists)
+		if exists {
+			if v, ok := in["private_networking"].(bool); ok {
+				obj.PrivateNetworking = &v
+			}
 		}
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
 		}
 		if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
-			obj.IAM = expandNodeGroupIam(v)
+			obj.IAM = expandNodeGroupIam(v, d, prefix+".iam")
 		}
 		if v, ok := in["ami"].(string); ok && len(v) > 0 {
 			obj.AMI = v
 		}
 		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
-			obj.SecurityGroups = expandNodeGroupSecurityGroups(v)
+			obj.SecurityGroups = expandNodeGroupSecurityGroups(v, d, prefix+".security_groups")
 		}
 		if v, ok := in["max_pods_per_node"].(int); ok {
 			obj.MaxPodsPerNode = v
@@ -2686,8 +2723,12 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
 			obj.ASGSuspendProcesses = toArrayString(v)
 		}
-		if v, ok := in["ebs_optimized"].(bool); ok {
-			obj.EBSOptimized = &v
+		_, exists2 := d.GetOkExists(prefix + ".ebs_optimized")
+		log.Println("ng ebs_optimized", exists2)
+		if exists2 {
+			if v, ok := in["ebs_optimized"].(bool); ok {
+				obj.EBSOptimized = &v
+			}
 		}
 		if v, ok := in["volume_type"].(string); ok && len(v) > 0 {
 			obj.VolumeType = v
@@ -2695,8 +2736,12 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 		if v, ok := in["volume_name"].(string); ok && len(v) > 0 {
 			obj.VolumeName = v
 		}
-		if v, ok := in["volume_encrypted"].(bool); ok {
-			obj.VolumeEncrypted = &v
+		_, exists3 := d.GetOkExists(prefix + ".volume_encrypted")
+		log.Println("ng volume_encrypted", exists3)
+		if exists3 {
+			if v, ok := in["volume_encrypted"].(bool); ok {
+				obj.VolumeEncrypted = &v
+			}
 		}
 		if v, ok := in["volume_kms_key_id"].(string); ok && len(v) > 0 {
 			obj.VolumeKmsKeyID = v
@@ -2713,17 +2758,29 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 		if v, ok := in["override_bootstrap_command"].(string); ok && len(v) > 0 {
 			obj.OverrideBootstrapCommand = v
 		}
-		if v, ok := in["disable_imdsv1"].(bool); ok {
-			obj.DisableIMDSv1 = &v
+		_, exists4 := d.GetOkExists(prefix + ".disable_imdsv1")
+		log.Println("ng disable_imdsv1", exists4)
+		if exists4 {
+			if v, ok := in["disable_imdsv1"].(bool); ok {
+				obj.DisableIMDSv1 = &v
+			}
 		}
-		if v, ok := in["disable_pods_imds"].(bool); ok {
-			obj.DisablePodIMDS = &v
+		_, exists5 := d.GetOkExists(prefix + ".disable_pods_imds")
+		log.Println("ng disable_pods_imds", exists5)
+		if exists5 {
+			if v, ok := in["disable_pods_imds"].(bool); ok {
+				obj.DisablePodIMDS = &v
+			}
 		}
 		if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
 			obj.Placement = expandNodeGroupPlacement(v)
 		}
-		if v, ok := in["efa_enabled"].(bool); ok {
-			obj.EFAEnabled = &v
+		_, exists6 := d.GetOkExists(prefix + ".efa_enabled")
+		log.Println("ng efa_enabled", exists6)
+		if exists6 {
+			if v, ok := in["efa_enabled"].(bool); ok {
+				obj.EFAEnabled = &v
+			}
 		}
 		if v, ok := in["instance_selector"].([]interface{}); ok && len(v) > 0 {
 			obj.InstanceSelector = expandNodeGroupInstanceSelector(v)
@@ -2731,15 +2788,18 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 		//additional encrypted volume field not in spec
 
 		if v, ok := in["bottle_rocket"].([]interface{}); ok && len(v) > 0 {
-			obj.Bottlerocket = expandNodeGroupBottleRocket(v)
+			obj.Bottlerocket = expandNodeGroupBottleRocket(v, d, prefix+".bottle_rocket")
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does
-
-		if v, ok := in["enable_detailed_monitoring"].(bool); ok {
-			obj.EnableDetailedMonitoring = &v
+		_, exists7 := d.GetOkExists(prefix + ".enable_detailed_monitoring")
+		log.Println("ng enable_detailed_monitoring", exists7)
+		if exists7 {
+			if v, ok := in["enable_detailed_monitoring"].(bool); ok {
+				obj.EnableDetailedMonitoring = &v
+			}
 		}
 		if v, ok := in["instances_distribution"].([]interface{}); ok && len(v) > 0 {
-			obj.InstancesDistribution = expandNodeGroupInstanceDistribution(v)
+			obj.InstancesDistribution = expandNodeGroupInstanceDistribution(v, d, prefix+".instances_distribution")
 		}
 		if v, ok := in["asg_metrics_collection"].([]interface{}); ok && len(v) > 0 {
 			obj.ASGMetricsCollection = expandNodeGroupASGMetricCollection(v)
@@ -2854,13 +2914,14 @@ func expandNodeGroupASGMetricCollection(p []interface{}) []MetricsCollection {
 }
 
 //expand node group Instance Distribution function (completed)
-func expandNodeGroupInstanceDistribution(p []interface{}) *NodeGroupInstancesDistribution {
+func expandNodeGroupInstanceDistribution(p []interface{}, d *schema.ResourceData, prefix string) *NodeGroupInstancesDistribution {
 	obj := &NodeGroupInstancesDistribution{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	prefix = prefix + ".0"
 	if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
 		obj.InstanceTypes = toArrayString(v)
 	}
@@ -2879,22 +2940,31 @@ func expandNodeGroupInstanceDistribution(p []interface{}) *NodeGroupInstancesDis
 	if v, ok := in["spot_allocation_strategy"].(string); ok {
 		obj.SpotAllocationStrategy = v
 	}
-	if v, ok := in["capacity_rebalance"].(bool); ok {
-		obj.CapacityRebalance = &v
+	_, exists := d.GetOkExists(prefix + ".capacity_rebalance")
+	log.Println("NGID:", exists)
+	if exists {
+		if v, ok := in["capacity_rebalance"].(bool); ok {
+			obj.CapacityRebalance = &v
+		}
 	}
 	return obj
 }
 
 //expand node group Bottle Rocket function (completed)
-func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
+func expandNodeGroupBottleRocket(p []interface{}, d *schema.ResourceData, prefix string) *NodeGroupBottlerocket {
 	obj := &NodeGroupBottlerocket{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-	if v, ok := in["enable_admin_container"].(bool); ok {
-		obj.EnableAdminContainer = &v
+	prefix = prefix + ".0"
+	_, exists := d.GetOkExists(prefix + ".enable_admin_container")
+	log.Println("NGBR:", exists)
+	if exists {
+		if v, ok := in["enable_admin_container"].(bool); ok {
+			obj.EnableAdminContainer = &v
+		}
 	}
 	if v, ok := in["settings"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.Settings = toMapString(v)
@@ -2942,33 +3012,46 @@ func expandNodeGroupPlacement(p []interface{}) *Placement {
 }
 
 //expand node group security groups function (completed)
-func expandNodeGroupSecurityGroups(p []interface{}) *NodeGroupSGs {
+func expandNodeGroupSecurityGroups(p []interface{}, d *schema.ResourceData, prefix string) *NodeGroupSGs {
 	obj := &NodeGroupSGs{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	//prefix = prefix + ".0"
+	log.Println("ngSG prefix:", prefix)
 	if v, ok := in["attach_ids"].([]interface{}); ok && len(v) > 0 {
 		obj.AttachIDs = toArrayString(v)
 	}
-	if v, ok := in["with_shared"].(bool); ok {
-		obj.WithShared = &v
+	_, exists := d.GetOkExists(prefix + ".with_shared")
+	log.Println("ngSG with_shared prefix:", prefix+".with_shared")
+	log.Println("ngSG with_shared:", exists)
+	if exists {
+		if v, ok := in["with_shared"].(bool); ok {
+			obj.WithShared = &v
+		}
 	}
-	if v, ok := in["with_local"].(bool); ok {
-		obj.WithLocal = &v
+	_, exists2 := d.GetOkExists(prefix + ".with_local")
+	log.Println("ngSG with_local prefix:", prefix+".with_local")
+	log.Println("ngSG with_local:", exists2)
+	if exists2 {
+		if v, ok := in["with_local"].(bool); ok {
+			obj.WithLocal = &v
+		}
 	}
 	return obj
 }
 
 //expand node group iam function (completed/kind of)
-func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
+func expandNodeGroupIam(p []interface{}, d *schema.ResourceData, prefix string) *NodeGroupIAM {
 	obj := &NodeGroupIAM{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	prefix = prefix + ".0"
 	//@@@TODO Store terraform input as inline document object correctly
 	if v, ok := in["attach_policy"].([]interface{}); ok && len(v) > 0 {
 		obj.AttachPolicy = expandAttachPolicy(v)
@@ -2990,7 +3073,7 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 		obj.InstanceRolePermissionsBoundary = v
 	}
 	if v, ok := in["iam_node_group_with_addon_policies"].([]interface{}); ok && len(v) > 0 {
-		obj.WithAddonPolicies = expandNodeGroupIAMWithAddonPolicies(v)
+		obj.WithAddonPolicies = expandNodeGroupIAMWithAddonPolicies(v, d, prefix+".iam_node_group_with_addon_policies")
 	}
 	return obj
 }
@@ -3033,7 +3116,7 @@ func expandAttachPolicy(p []interface{}) InlineDocument {
 }
 
 //expand node group IAm With Addon Policies function (completed/kind of)
-func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolicies {
+func expandNodeGroupIAMWithAddonPolicies(p []interface{}, d *schema.ResourceData, prefix string) NodeGroupIAMAddonPolicies {
 	obj := NodeGroupIAMAddonPolicies{}
 
 	if len(p) == 0 || p[0] == nil {
@@ -3042,44 +3125,93 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 	in := p[0].(map[string]interface{})
 	n1 := spew.Sprintf("%+v", in)
 	log.Println("expandNodeGroupIAMWithAddonPolicies: ", n1)
-	if v, ok := in["image_builder"].(bool); ok {
-		obj.ImageBuilder = &v
+	prefix = prefix + ".0"
+	log.Println("ngIAM prefix:", prefix)
+	_, exists := d.GetOkExists(prefix + ".image_builder")
+	log.Println("ngIAM image_builder:", exists, prefix+".image_builder")
+	if exists {
+		if v, ok := in["image_builder"].(bool); ok {
+			obj.ImageBuilder = &v
+		}
 	}
-	if v, ok := in["auto_scaler"].(bool); ok {
-		obj.AutoScaler = &v
+	_, exists2 := d.GetOkExists(prefix + ".auto_scaler")
+	log.Println("ngIAM auto_scaler:", exists2)
+	if exists2 {
+		if v, ok := in["auto_scaler"].(bool); ok {
+			obj.AutoScaler = &v
+		}
 	}
-	if v, ok := in["external_dns"].(bool); ok {
-		obj.ExternalDNS = &v
+	_, exists3 := d.GetOkExists(prefix + ".external_dns")
+	log.Println("ngIAM external_dns:", exists3)
+	if exists3 {
+		if v, ok := in["external_dns"].(bool); ok {
+			obj.ExternalDNS = &v
+		}
 	}
-	if v, ok := in["cert_manager"].(bool); ok {
-		obj.CertManager = &v
+	_, exists4 := d.GetOkExists(prefix + ".cert_manager")
+	log.Println("ngIAM cert_manager:", exists4)
+	if exists4 {
+		if v, ok := in["cert_manager"].(bool); ok {
+			obj.CertManager = &v
+		}
 	}
-	if v, ok := in["app_mesh"].(bool); ok {
-		obj.AppMesh = &v
+	_, exists5 := d.GetOkExists(prefix + ".app_mesh")
+	log.Println("ngIAM app_mesh:", exists5)
+	if exists5 {
+		if v, ok := in["app_mesh"].(bool); ok {
+			obj.AppMesh = &v
+		}
 	}
-	if v, ok := in["app_mesh_review"].(bool); ok {
-		obj.AppMeshPreview = &v
+	_, exists6 := d.GetOkExists(prefix + ".app_mesh_review")
+	log.Println("ngIAM app_mesh_review:", exists6)
+	if exists6 {
+		if v, ok := in["app_mesh_review"].(bool); ok {
+			obj.AppMeshPreview = &v
+		}
 	}
-	if v, ok := in["ebs"].(bool); ok {
-		obj.EBS = &v
+	_, exists7 := d.GetOkExists(prefix + ".ebs")
+	log.Println("ngIAM ebs:", exists7)
+	if exists7 {
+		if v, ok := in["ebs"].(bool); ok {
+			obj.EBS = &v
+		}
 	}
-	if v, ok := in["fsx"].(bool); ok {
-		obj.FSX = &v
+	_, exists8 := d.GetOkExists(prefix + ".fsx")
+	log.Println("ngIAM fsx:", exists8)
+	if exists8 {
+		if v, ok := in["fsx"].(bool); ok {
+			obj.FSX = &v
+		}
 	}
-	if v, ok := in["efs"].(bool); ok {
-		obj.EFS = &v
+	_, exists9 := d.GetOkExists(prefix + ".efs")
+	log.Println("ngIAM efs:", exists9)
+	if exists9 {
+		if v, ok := in["efs"].(bool); ok {
+			obj.EFS = &v
+		}
 	}
 	// @@@@ doc says it should be field alb_ingress,
 	// struct has field ABSLoadBalancerController?
-	if v, ok := in["alb_ingress"].(bool); ok {
-		obj.AWSLoadBalancerController = &v
+	_, exists10 := d.GetOkExists(prefix + ".alb_ingress")
+	log.Println("ngIAM alb_ingress:", exists10)
+	if exists10 {
+		if v, ok := in["alb_ingress"].(bool); ok {
+			obj.AWSLoadBalancerController = &v
+		}
 	}
-
-	if v, ok := in["xray"].(bool); ok {
-		obj.XRay = &v
+	_, exists11 := d.GetOkExists(prefix + ".xray")
+	log.Println("ngIAM xray:", exists11)
+	if exists11 {
+		if v, ok := in["xray"].(bool); ok {
+			obj.XRay = &v
+		}
 	}
-	if v, ok := in["cloud_watch"].(bool); ok {
-		obj.CloudWatch = &v
+	_, exists12 := d.GetOkExists(prefix + ".cloud_watch")
+	log.Println("ngIAM cloud_watch:", exists12)
+	if exists11 {
+		if v, ok := in["cloud_watch"].(bool); ok {
+			obj.CloudWatch = &v
+		}
 	}
 	n2 := spew.Sprintf("%+v", obj)
 	log.Println("expandNodeGroupIAMWithAddonPolicies obj: ", n2)
@@ -3095,8 +3227,14 @@ func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, pref
 	}
 	prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
-	if v, ok := in["allow"].(bool); ok {
-		obj.Allow = &v
+	log.Println("ssh-fix:", prefix+".allow")
+	_, exists2 := d.GetOkExists(prefix + ".allow")
+	log.Println("huh:", exists2)
+	if _, exists := d.GetOkExists(prefix + ".allow"); exists {
+		if v, ok := in["allow"].(bool); ok {
+			log.Println("fix:", prefix+".allow")
+			obj.Allow = &v
+		}
 	}
 	//struct has publicKeypath when the doc does not
 	if v, ok := in["public_key"].(string); ok && len(v) > 0 {
@@ -3109,8 +3247,12 @@ func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, pref
 		obj.SourceSecurityGroupIDs = toArrayString(v)
 	}
 	// Deprecated but still valid to use this API till an alterative is found!
+	log.Println("ssh-fix:", prefix+".enable_ssm")
+	_, exists3 := d.GetOkExists(prefix + ".enable_ssm")
+	log.Println("huh3:", exists3)
 	if _, exists := d.GetOkExists(prefix + ".enable_ssm"); exists {
 		if v, ok := in["enable_ssm"].(bool); ok {
+			log.Println("fix:", prefix+".enable_ssm")
 			obj.EnableSSM = &v
 		}
 	}
@@ -3119,18 +3261,29 @@ func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, pref
 }
 
 //expand private clusters function (completed)
-func expandPrivateCluster(p []interface{}) *PrivateCluster {
+func expandPrivateCluster(p []interface{}, d *schema.ResourceData, prefix string) *PrivateCluster {
 	obj := &PrivateCluster{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-	if v, ok := in["enabled"].(bool); ok {
-		obj.Enabled = &v
+	prefix = prefix + ".0"
+	log.Println("pric fp:", prefix+".enabled")
+	log.Println("pric fp:", prefix+".skip_endpoint_creation")
+	_, exists := d.GetOkExists(".enabled")
+	log.Println("priC enabled:", exists)
+	if exists {
+		if v, ok := in["enabled"].(bool); ok {
+			obj.Enabled = &v
+		}
 	}
-	if v, ok := in["skip_endpoint_creation"].(bool); ok {
-		obj.SkipEndpointCreation = &v
+	_, exists2 := d.GetOkExists(prefix + ".skip_endpoint_creation")
+	log.Println("priC skip endpoint", exists2)
+	if exists2 {
+		if v, ok := in["skip_endpoint_creation"].(bool); ok {
+			obj.SkipEndpointCreation = &v
+		}
 	}
 	if v, ok := in["additional_endpoint_services"].([]interface{}); ok && len(v) > 0 {
 		obj.AdditionalEndpointServices = toArrayString(v)
@@ -3140,7 +3293,7 @@ func expandPrivateCluster(p []interface{}) *PrivateCluster {
 }
 
 //expand addon(completed/kind of)
-func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
+func expandAddons(p []interface{}, d *schema.ResourceData, prefix string) []*Addon { //checkhow to return a []*
 	out := make([]*Addon, len(p))
 	if len(p) == 0 || p[0] == nil {
 		return out
@@ -3169,7 +3322,8 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 			obj.PermissionsBoundary = v
 		}
 		if v, ok := in["well_known_policies"].([]interface{}); ok && len(v) > 0 {
-			obj.WellKnownPolicies = expandIAMWellKnownPolicies(v)
+			log.Println("expand add iam well known")
+			obj.WellKnownPolicies = expandIAMWellKnownPolicies(v, d, prefix+".well_known_policies")
 		}
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
@@ -3181,14 +3335,14 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 }
 
 //expand vpc function
-func expandVPC(p []interface{}) *EKSClusterVPC {
+func expandVPC(p []interface{}, d *schema.ResourceData, prefix string) *EKSClusterVPC {
 	obj := &EKSClusterVPC{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-
+	prefix = prefix + ".0"
 	if v, ok := in["id"].(string); ok && len(v) > 0 {
 		obj.ID = v
 	}
@@ -3216,17 +3370,25 @@ func expandVPC(p []interface{}) *EKSClusterVPC {
 	if v, ok := in["shared_node_security_group"].(string); ok && len(v) > 0 {
 		obj.SharedNodeSecurityGroup = v
 	}
-	if v, ok := in["managed_shared_node_security_group_rules"].(bool); ok {
-		obj.ManageSharedNodeSecurityGroupRules = &v
+	_, exists := d.GetOkExists(prefix + ".managed_shared_node_security_group_rules")
+	log.Println("vpc managed_shared_node_security_group_rules", exists)
+	if exists {
+		if v, ok := in["managed_shared_node_security_group_rules"].(bool); ok {
+			obj.ManageSharedNodeSecurityGroupRules = &v
+		}
 	}
-	if v, ok := in["auto_allocate_ipv6"].(bool); ok {
-		obj.AutoAllocateIPv6 = &v
+	_, exists2 := d.GetOkExists(prefix + ".auto_allocate_ipv6")
+	log.Println("vpc auto_allocate_ipv6", exists2)
+	if exists2 {
+		if v, ok := in["auto_allocate_ipv6"].(bool); ok {
+			obj.AutoAllocateIPv6 = &v
+		}
 	}
 	if v, ok := in["nat"].([]interface{}); ok && len(v) > 0 {
 		obj.NAT = expandNat(v)
 	}
 	if v, ok := in["cluster_endpoints"].([]interface{}); ok && len(v) > 0 {
-		obj.ClusterEndpoints = expandClusterEndpoints(v)
+		obj.ClusterEndpoints = expandClusterEndpoints(v, d, prefix+".cluster_endpoints")
 	}
 	if v, ok := in["public_access_cidrs"].([]interface{}); ok && len(v) > 0 {
 		obj.PublicAccessCIDRs = toArrayString(v)
@@ -3234,18 +3396,27 @@ func expandVPC(p []interface{}) *EKSClusterVPC {
 	return obj
 }
 
-func expandClusterEndpoints(p []interface{}) *ClusterEndpoints {
+func expandClusterEndpoints(p []interface{}, d *schema.ResourceData, prefix string) *ClusterEndpoints {
 	obj := &ClusterEndpoints{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-	if v, ok := in["private_access"].(bool); ok {
-		obj.PrivateAccess = &v
+	prefix = prefix + ".0"
+	_, exists := d.GetOkExists(prefix + ".private_access")
+	log.Println("cluster EP private:", exists)
+	if exists {
+		if v, ok := in["private_access"].(bool); ok {
+			obj.PrivateAccess = &v
+		}
 	}
-	if v, ok := in["public_access"].(bool); ok {
-		obj.PublicAccess = &v
+	_, exists2 := d.GetOkExists(prefix + ".public_access")
+	log.Println("cluster EP public:", exists2)
+	if exists2 {
+		if v, ok := in["public_access"].(bool); ok {
+			obj.PublicAccess = &v
+		}
 	}
 	return obj
 }
@@ -3322,14 +3493,14 @@ func expandIdentityProviders(p []interface{}) []IdentityProvider {
 	return out
 }
 
-func expandIAMFields(p []interface{}) *EKSClusterIAM {
+func expandIAMFields(p []interface{}, d *schema.ResourceData, prefix string) *EKSClusterIAM {
 	obj := &EKSClusterIAM{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-
+	prefix = prefix + ".0"
 	if v, ok := in["service_role_arn"].(string); ok && len(v) > 0 {
 		obj.ServiceRoleARN = v
 	}
@@ -3346,16 +3517,23 @@ func expandIAMFields(p []interface{}) *EKSClusterIAM {
 		obj.FargatePodExecutionRolePermissionsBoundary = v
 	}
 
-	if v, ok := in["with_oidc"].(bool); ok {
-		obj.WithOIDC = &v
+	_, exists3 := d.GetOkExists(prefix + ".with_oidc")
+	log.Println("iam with oidc:", exists3)
+	if exists3 {
+		if v, ok := in["with_oidc"].(bool); ok {
+			obj.WithOIDC = &v
+		}
 	}
-
 	if v, ok := in["service_accounts"].([]interface{}); ok && len(v) > 0 {
-		obj.ServiceAccounts = expandIAMServiceAccountsConfig(v)
+		obj.ServiceAccounts = expandIAMServiceAccountsConfig(v, d, prefix+".service_accounts")
 	}
 
-	if v, ok := in["vpcResourceControllerPolicy"].(bool); ok {
-		obj.VPCResourceControllerPolicy = &v
+	_, existis4 := d.GetOkExists(prefix + "vpc_resource_controller_policy")
+	log.Println("iam vpc_resource_controller_policy:", exists3)
+	if existis4 {
+		if v, ok := in["vpc_resource_controller_policy"].(bool); ok {
+			obj.VPCResourceControllerPolicy = &v
+		}
 	}
 
 	return obj
@@ -3385,12 +3563,13 @@ func expandServiceAccountsMetadata(p []interface{}) *EKSClusterIAMMeta {
 	return obj
 }
 
-func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAccount {
+func expandIAMServiceAccountsConfig(p []interface{}, d *schema.ResourceData, prefix string) []*EKSClusterIAMServiceAccount {
 	out := make([]*EKSClusterIAMServiceAccount, len(p))
 	if len(p) == 0 || p[0] == nil {
 		return out
 	}
 	for i := range p {
+		prefix = prefix + "." + strconv.Itoa(i)
 		obj := &EKSClusterIAMServiceAccount{}
 		in := p[i].(map[string]interface{})
 		if v, ok := in["metadata"].([]interface{}); ok && len(v) > 0 {
@@ -3401,7 +3580,8 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 			obj.AttachPolicyARNs = toArrayString(v)
 		}
 		if v, ok := in["well_known_policies"].([]interface{}); ok && len(v) > 0 {
-			obj.WellKnownPolicies = expandIAMWellKnownPolicies(v)
+			log.Println("iam service accounts well known")
+			obj.WellKnownPolicies = expandIAMWellKnownPolicies(v, d, prefix+".well_known_policies")
 		}
 		//check for attach policy
 		////@@@TODO Store terraform input as inline document object correctly
@@ -3420,9 +3600,14 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 		if v, ok := in["role_name"].(string); ok && len(v) > 0 {
 			obj.RoleName = v
 		}
-		if v, ok := in["role_only"].(bool); ok {
-			obj.RoleOnly = &v
+		_, exists := d.GetOkExists(prefix + ".role_only")
+		log.Println("get role only:", exists)
+		if exists {
+			if v, ok := in["role_only"].(bool); ok {
+				obj.RoleOnly = &v
+			}
 		}
+
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
 		}
@@ -3432,36 +3617,65 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 	return out
 }
 
-func expandIAMWellKnownPolicies(p []interface{}) WellKnownPolicies {
+func expandIAMWellKnownPolicies(p []interface{}, d *schema.ResourceData, prefix string) WellKnownPolicies {
 	obj := WellKnownPolicies{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
-
-	if v, ok := in["image_builder"].(bool); ok {
-		obj.ImageBuilder = &v
+	log.Println("prefix:", prefix)
+	_, exists5 := d.GetOkExists(prefix + ".image_builder")
+	log.Println("IAMWP image builder:", exists5)
+	if exists5 {
+		if v, ok := in["image_builder"].(bool); ok {
+			obj.ImageBuilder = &v
+		}
 	}
-	if v, ok := in["auto_scaler"].(bool); ok {
-		obj.AutoScaler = &v
+	_, exists6 := d.GetOkExists(prefix + ".auto_scaler")
+	log.Println("IAMWP auto_scaler: ", exists6)
+	if exists6 {
+		if v, ok := in["auto_scaler"].(bool); ok {
+			obj.AutoScaler = &v
+		}
 	}
-	if v, ok := in["aws_load_balancer_controller"].(bool); ok {
-		obj.AWSLoadBalancerController = &v
+	_, exists7 := d.GetOkExists(prefix + ".aws_load_balancer_controller")
+	log.Println(prefix + ".aws_load_balancer_controller")
+	log.Println("IAMWP aws_load_balancer_controller: ", exists7)
+	if exists7 {
+		if v, ok := in["aws_load_balancer_controller"].(bool); ok {
+			obj.AWSLoadBalancerController = &v
+		}
 	}
-	if v, ok := in["external_DNS"].(bool); ok {
-		obj.ExternalDNS = &v
+	_, exists8 := d.GetOkExists(prefix + ".external_dns")
+	log.Println("IAMWP external_dns: ", exists8)
+	if exists8 {
+		if v, ok := in["external_dns"].(bool); ok {
+			obj.ExternalDNS = &v
+		}
 	}
-	if v, ok := in["cert_manager"].(bool); ok {
-		obj.CertManager = &v
+	_, exists9 := d.GetOkExists(prefix + ".cert_manager")
+	log.Println("IAMWP cert_manager: ", exists9)
+	if exists9 {
+		if v, ok := in["cert_manager"].(bool); ok {
+			obj.CertManager = &v
+		}
 	}
-	if v, ok := in["ebs_csi_controller"].(bool); ok {
-		obj.EBSCSIController = &v
+	_, exists10 := d.GetOkExists(prefix + ".ebs_csi_controller")
+	log.Println("IAMWP ebs_csi_controller: ", exists10)
+	if exists10 {
+		if v, ok := in["ebs_csi_controller"].(bool); ok {
+			obj.EBSCSIController = &v
+		}
 	}
-	if v, ok := in["efs_csi_controller"].(bool); ok {
-		obj.EFSCSIController = &v
+	_, exists11 := d.GetOkExists(prefix + ".efs_csi_controller")
+	log.Println("IAMWP efs_csi_controller: ", exists11)
+	if exists11 {
+		if v, ok := in["efs_csi_controller"].(bool); ok {
+			obj.EFSCSIController = &v
+		}
 	}
-
 	return obj
 }
 

@@ -102,8 +102,9 @@ type AKSClusterExtendedLocation struct {
 // }
 
 type AKSManagedClusterIdentity struct {
-	Type                   string            `yaml:"type,omitempty"`
-	UserAssignedIdentities map[string]string `yaml:"userAssignedIdentities,omitempty"`
+	Type string `yaml:"type,omitempty"`
+	//UserAssignedIdentities map[string]string `yaml:"userAssignedIdentities,omitempty"`
+	UserAssignedIdentities map[string]interface{} `yaml:"userAssignedIdentities,omitempty"`
 }
 
 type AKSManagedClusterProperties struct {

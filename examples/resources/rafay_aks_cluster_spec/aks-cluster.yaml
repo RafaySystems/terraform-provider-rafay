@@ -1,0 +1,50 @@
+apiVersion: rafay.io/v1alpha1
+kind: Cluster
+metadata:
+  name: demo-terraform-aks
+  project: upgrade
+spec:
+  blueprint: default-aks
+  cloudprovider: hardik-azure
+  clusterConfig:
+    apiVersion: rafay.io/v1alpha1
+    kind: aksClusterConfig
+    metadata:
+      name: demo-terraform-aks
+    spec:
+      managedCluster:
+        apiVersion: "2021-05-01"
+        identity:
+          type: SystemAssigned
+        location: centralindia
+        properties:
+          apiServerAccessProfile:
+            enablePrivateCluster: true
+          dnsPrefix: hardik-test-dns
+          kubernetesVersion: 1.21.7
+          networkProfile:
+            loadBalancerSku: standard
+            networkPlugin: kubenet
+        sku:
+          name: Basic
+          tier: Free
+        type: Microsoft.ContainerService/managedClusters
+      nodePools:
+      - apiVersion: "2021-05-01"
+        location: centralindia
+        name: primary
+        properties:
+          count: 1
+          enableAutoScaling: true
+          maxCount: 1
+          maxPods: 40
+          minCount: 1
+          mode: System
+          orchestratorVersion: 1.21.7
+          osType: Linux
+          type: VirtualMachineScaleSets
+          vmSize: Standard_DS2_v2
+        type: Microsoft.ContainerService/managedClusters/agentPools
+      resourceGroupName: hardik-terraform
+  proxyconfig: {}
+  type: aks

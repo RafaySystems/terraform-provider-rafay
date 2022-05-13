@@ -531,7 +531,7 @@ type NodeGroup struct {
 	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
 	// for nodegroup
 	// +optional
-	PrivateNetworking *bool `yaml:"privateNetworking"`
+	PrivateNetworking *bool `yaml:"privateNetworking,omitempty"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
 	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
@@ -719,7 +719,7 @@ type NodeGroupBase struct {
 	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
 	// for nodegroup
 	// +optional
-	PrivateNetworking *bool `yaml:"privateNetworking"`
+	PrivateNetworking *bool `yaml:"privateNetworking,omitempty"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
 	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
@@ -972,7 +972,7 @@ type (
 		// rebalancing](https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html)
 		// for spot instances
 		// +optional
-		CapacityRebalance *bool `yaml:"capacityRebalance"`
+		CapacityRebalance *bool `yaml:"capacityRebalance,omitempty"`
 	}
 
 	// NodeGroupBottlerocket holds the configuration for Bottlerocket based
@@ -1044,7 +1044,7 @@ type ManagedNodeGroup struct {
 	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
 	// for nodegroup
 	// +optional
-	PrivateNetworking *bool `yaml:"privateNetworking"`
+	PrivateNetworking *bool `yaml:"privateNetworking,omitempty"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
 	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
@@ -1313,7 +1313,7 @@ type EKSNodeGroupSGs struct {
 
 // EKSNodeGroupSSH struct -> cfg.nodeGroups[].ssh
 type EKSNodeGroupSSH struct {
-	Allow         *bool  `yaml:"allow"`
+	Allow         *bool  `yaml:"allow,omitempty"`
 	PublicKeyName string `yaml:"publicKeyName,omitempty"`
 }
 

@@ -2183,7 +2183,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("calling cluster ctl")
-	response, err := eksClusterCTL(rctlCfg, cfgList["Cluster"], cfgList["ClusterConfig"], true)
+	response, err := eksClusterCTL(rctlCfg, cfgList["Cluster"], cfgList["ClusterConfig"], false)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		return diag.FromErr(err)
@@ -2207,37 +2207,37 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
-	/*
-		for { //wait for cluster to provision correctly
-			time.Sleep(60 * time.Second)
-			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
-			if errGet != nil {
-				log.Printf("error while getCluster %s", errGet.Error())
-				return diag.FromErr(errGet)
-			}
 
-			statusResp, err := eksClusterCTLStatus(res.TaskSetID)
-			if err != nil {
-				log.Println("status response parse error", err)
-				return diag.FromErr(err)
+	for { //wait for cluster to provision correctly
+		time.Sleep(60 * time.Second)
+		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+		if errGet != nil {
+			log.Printf("error while getCluster %s", errGet.Error())
+			return diag.FromErr(errGet)
+		}
+
+		statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+		if err != nil {
+			log.Println("status response parse error", err)
+			return diag.FromErr(err)
+		}
+		log.Println("statusResp ", statusResp)
+		sres := clusterCTLResponse{}
+		err = json.Unmarshal([]byte(statusResp), &sres)
+		if err != nil {
+			log.Println("status response unmarshal error", err)
+			return diag.FromErr(err)
+		}
+		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+			if check.Status == "READY" {
+				break
 			}
-			log.Println("statusResp ", statusResp)
-			sres := clusterCTLResponse{}
-			err = json.Unmarshal([]byte(statusResp), &sres)
-			if err != nil {
-				log.Println("status response unmarshal error", err)
-				return diag.FromErr(err)
-			}
-			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-				if check.Status == "READY" {
-					break
-				}
-				log.Println("task completed but cluster is not ready")
-			}
-			if strings.Contains(sres.Status, "STATUS_FAILED") {
-				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
-			}
-		}*/
+			log.Println("task completed but cluster is not ready")
+		}
+		if strings.Contains(sres.Status, "STATUS_FAILED") {
+			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
+		}
+	}
 
 	log.Printf("resource eks cluster created/updated %s", s.ID)
 	d.SetId(s.ID)
@@ -2459,7 +2459,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 			obj.Labels = toMapString(v)
 		}
 		_, exists := d.GetOkExists(prefix2 + ".private_networking")
-		log.Println("mng private_networking", exists)
+		//log.Println("mng private_networking", exists)
 		if exists {
 			if v, ok := in["private_networking"].(bool); ok {
 				obj.PrivateNetworking = &v
@@ -2484,7 +2484,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 			obj.ASGSuspendProcesses = toArrayString(v)
 		}
 		_, exists2 := d.GetOkExists(prefix2 + ".ebs_optimized")
-		log.Println("mng ebs_optimized", exists2)
+		//log.Println("mng ebs_optimized", exists2)
 		if exists2 {
 			if v, ok := in["ebs_optimized"].(bool); ok {
 				obj.EBSOptimized = &v
@@ -2497,7 +2497,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 			obj.VolumeName = v
 		}
 		_, exists3 := d.GetOkExists(prefix2 + ".volume_encrypted")
-		log.Println("mng volume_encrypted", exists3)
+		//log.Println("mng volume_encrypted", exists3)
 		if exists3 {
 			if v, ok := in["volume_encrypted"].(bool); ok {
 				obj.VolumeEncrypted = &v
@@ -2519,14 +2519,14 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 			obj.OverrideBootstrapCommand = v
 		}
 		_, exists4 := d.GetOkExists(prefix2 + ".disable_imdsv1")
-		log.Println("mng disable_imdsv1", exists4)
+		//log.Println("mng disable_imdsv1", exists4)
 		if exists4 {
 			if v, ok := in["disable_imdsv1"].(bool); ok {
 				obj.DisableIMDSv1 = &v
 			}
 		}
 		_, exists5 := d.GetOkExists(prefix2 + ".disable_pods_imds")
-		log.Println("mng disable_pods_imds", exists5)
+		//log.Println("mng disable_pods_imds", exists5)
 		if exists5 {
 			if v, ok := in["disable_pods_imds"].(bool); ok {
 				obj.DisablePodIMDS = &v
@@ -2536,7 +2536,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 			obj.Placement = expandNodeGroupPlacement(v)
 		}
 		_, exists6 := d.GetOkExists(prefix2 + ".efa_enabled")
-		log.Println("mng efa_enabled", exists6)
+		//log.Println("mng efa_enabled", exists6)
 		if exists6 {
 			if v, ok := in["efa_enabled"].(bool); ok {
 				obj.EFAEnabled = &v
@@ -2552,7 +2552,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does (says to remove)
 		_, exists7 := d.GetOkExists(prefix2 + ".enable_detailed_monitoring")
-		log.Println("mng enable_detailed_monitoring", exists7)
+		//log.Println("mng enable_detailed_monitoring", exists7)
 		if exists7 {
 			if v, ok := in["enable_detailed_monitoring"].(bool); ok {
 				obj.EnableDetailedMonitoring = &v
@@ -2562,7 +2562,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 			obj.InstanceTypes = toArrayString(v)
 		}
 		_, exists8 := d.GetOkExists(prefix2 + ".spot")
-		log.Println("mng spot", exists8)
+		//log.Println("mng spot", exists8)
 		if exists8 {
 			if v, ok := in["spot"].(bool); ok {
 				obj.Spot = &v
@@ -2585,8 +2585,6 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		//also has internal field unowned -> will leave blank for now
 		//how do i finish this?
 
-		//check if this is how to build array of pointers
-		//out[i] = obj
 		outToSort[i] = *obj
 	}
 
@@ -2658,8 +2656,6 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 		log.Println("ngs_yaml name: ", in["name"].(string))
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			log.Println("ngs_name: ", v)
-			//obj.Name = "bob"
-			//log.Println("obj name: ", obj.Name)
 			obj.Name = v
 		}
 		if v, ok := in["ami_family"].(string); ok && len(v) > 0 {
@@ -2699,7 +2695,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 			obj.Labels = toMapString(v)
 		}
 		_, exists := d.GetOkExists(prefix2 + ".private_networking")
-		log.Println("ng private_networking", exists)
+		//log.Println("ng private_networking", exists)
 		if exists {
 			if v, ok := in["private_networking"].(bool); ok {
 				obj.PrivateNetworking = &v
@@ -2724,7 +2720,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 			obj.ASGSuspendProcesses = toArrayString(v)
 		}
 		_, exists2 := d.GetOkExists(prefix2 + ".ebs_optimized")
-		log.Println("ng ebs_optimized", exists2)
+		//log.Println("ng ebs_optimized", exists2)
 		if exists2 {
 			if v, ok := in["ebs_optimized"].(bool); ok {
 				obj.EBSOptimized = &v
@@ -2737,7 +2733,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 			obj.VolumeName = v
 		}
 		_, exists3 := d.GetOkExists(prefix2 + ".volume_encrypted")
-		log.Println("ng volume_encrypted", exists3)
+		//log.Println("ng volume_encrypted", exists3)
 		if exists3 {
 			if v, ok := in["volume_encrypted"].(bool); ok {
 				obj.VolumeEncrypted = &v
@@ -2759,14 +2755,14 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 			obj.OverrideBootstrapCommand = v
 		}
 		_, exists4 := d.GetOkExists(prefix2 + ".disable_imdsv1")
-		log.Println("ng disable_imdsv1", exists4)
+		//log.Println("ng disable_imdsv1", exists4)
 		if exists4 {
 			if v, ok := in["disable_imdsv1"].(bool); ok {
 				obj.DisableIMDSv1 = &v
 			}
 		}
 		_, exists5 := d.GetOkExists(prefix2 + ".disable_pods_imds")
-		log.Println("ng disable_pods_imds", exists5)
+		//log.Println("ng disable_pods_imds", exists5)
 		if exists5 {
 			if v, ok := in["disable_pods_imds"].(bool); ok {
 				obj.DisablePodIMDS = &v
@@ -2776,7 +2772,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 			obj.Placement = expandNodeGroupPlacement(v)
 		}
 		_, exists6 := d.GetOkExists(prefix2 + ".efa_enabled")
-		log.Println("ng efa_enabled", exists6)
+		//log.Println("ng efa_enabled", exists6)
 		if exists6 {
 			if v, ok := in["efa_enabled"].(bool); ok {
 				obj.EFAEnabled = &v
@@ -2788,18 +2784,18 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 		//additional encrypted volume field not in spec
 
 		if v, ok := in["bottle_rocket"].([]interface{}); ok && len(v) > 0 {
-			obj.Bottlerocket = expandNodeGroupBottleRocket(v, d, prefix+".bottle_rocket")
+			obj.Bottlerocket = expandNodeGroupBottleRocket(v, d, prefix2+".bottle_rocket")
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does
 		_, exists7 := d.GetOkExists(prefix2 + ".enable_detailed_monitoring")
-		log.Println("ng enable_detailed_monitoring", exists7)
+		//log.Println("ng enable_detailed_monitoring", exists7)
 		if exists7 {
 			if v, ok := in["enable_detailed_monitoring"].(bool); ok {
 				obj.EnableDetailedMonitoring = &v
 			}
 		}
 		if v, ok := in["instances_distribution"].([]interface{}); ok && len(v) > 0 {
-			obj.InstancesDistribution = expandNodeGroupInstanceDistribution(v, d, prefix+".instances_distribution")
+			obj.InstancesDistribution = expandNodeGroupInstanceDistribution(v, d, prefix2+".instances_distribution")
 		}
 		if v, ok := in["asg_metrics_collection"].([]interface{}); ok && len(v) > 0 {
 			obj.ASGMetricsCollection = expandNodeGroupASGMetricCollection(v)
@@ -2941,7 +2937,7 @@ func expandNodeGroupInstanceDistribution(p []interface{}, d *schema.ResourceData
 		obj.SpotAllocationStrategy = v
 	}
 	_, exists := d.GetOkExists(prefix + ".capacity_rebalance")
-	log.Println("NGID:", exists)
+	//log.Println("NGID:", exists)
 	if exists {
 		if v, ok := in["capacity_rebalance"].(bool); ok {
 			obj.CapacityRebalance = &v
@@ -2960,7 +2956,7 @@ func expandNodeGroupBottleRocket(p []interface{}, d *schema.ResourceData, prefix
 	in := p[0].(map[string]interface{})
 	prefix = prefix + ".0"
 	_, exists := d.GetOkExists(prefix + ".enable_admin_container")
-	log.Println("NGBR:", exists)
+	//log.Println("NGBR:", exists)
 	if exists {
 		if v, ok := in["enable_admin_container"].(bool); ok {
 			obj.EnableAdminContainer = &v
@@ -3020,25 +3016,25 @@ func expandNodeGroupSecurityGroups(p []interface{}, d *schema.ResourceData, pref
 	}
 	in := p[0].(map[string]interface{})
 	prefix = prefix + ".0"
-	log.Println("ngSG prefix:", prefix)
+	//log.Println("ngSG prefix:", prefix)
 
 	if v, ok := in["attach_ids"].([]interface{}); ok && len(v) > 0 {
 		obj.AttachIDs = toArrayString(v)
 	}
 	_, exists := d.GetOkExists(prefix + ".with_shared")
-	log.Println("ngSG with_shared prefix:", prefix+".with_shared")
-	log.Println("ngSG with_shared:", exists)
+	//log.Println("ngSG with_shared prefix:", prefix+".with_shared")
+	//log.Println("ngSG with_shared:", exists)
 	if exists {
-		log.Println("inside ng shared")
+		//log.Println("inside ng shared")
 		if v, ok := in["with_shared"].(bool); ok {
 			obj.WithShared = &v
 		}
 	}
 	_, exists2 := d.GetOkExists(prefix + ".with_local")
-	log.Println("ngSG with_local prefix:", prefix+".with_local")
-	log.Println("ngSG with_local:", exists2)
+	//log.Println("ngSG with_local prefix:", prefix+".with_local")
+	//log.Println("ngSG with_local:", exists2)
 	if exists2 {
-		log.Println("inside ng local")
+		//log.Println("inside ng local")
 		if v, ok := in["with_local"].(bool); ok {
 			obj.WithLocal = &v
 		}
@@ -3129,89 +3125,87 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}, d *schema.ResourceData
 	n1 := spew.Sprintf("%+v", in)
 	log.Println("expandNodeGroupIAMWithAddonPolicies: ", n1)
 	prefix = prefix + ".0"
-	log.Println("ngIAM prefix:", prefix)
+	//log.Println("ngIAM prefix:", prefix)
 	_, exists := d.GetOkExists(prefix + ".image_builder")
-	log.Println("ngIAM image_builder:", exists, prefix+".image_builder")
+	//log.Println("ngIAM image_builder:", exists, prefix+".image_builder")
 	if exists {
 		if v, ok := in["image_builder"].(bool); ok {
 			obj.ImageBuilder = &v
 		}
 	}
 	_, exists2 := d.GetOkExists(prefix + ".auto_scaler")
-	log.Println("ngIAM auto_scaler:", exists2)
+	//log.Println("ngIAM auto_scaler:", exists2)
 	if exists2 {
 		if v, ok := in["auto_scaler"].(bool); ok {
 			obj.AutoScaler = &v
 		}
 	}
 	_, exists3 := d.GetOkExists(prefix + ".external_dns")
-	log.Println("ngIAM external_dns:", exists3)
+	//log.Println("ngIAM external_dns:", exists3)
 	if exists3 {
 		if v, ok := in["external_dns"].(bool); ok {
 			obj.ExternalDNS = &v
 		}
 	}
 	_, exists4 := d.GetOkExists(prefix + ".cert_manager")
-	log.Println("ngIAM cert_manager:", exists4)
+	//log.Println("ngIAM cert_manager:", exists4)
 	if exists4 {
 		if v, ok := in["cert_manager"].(bool); ok {
 			obj.CertManager = &v
 		}
 	}
 	_, exists5 := d.GetOkExists(prefix + ".app_mesh")
-	log.Println("ngIAM app_mesh:", exists5)
+	//log.Println("ngIAM app_mesh:", exists5)
 	if exists5 {
 		if v, ok := in["app_mesh"].(bool); ok {
 			obj.AppMesh = &v
 		}
 	}
 	_, exists6 := d.GetOkExists(prefix + ".app_mesh_review")
-	log.Println("ngIAM app_mesh_review:", exists6)
+	//log.Println("ngIAM app_mesh_review:", exists6)
 	if exists6 {
 		if v, ok := in["app_mesh_review"].(bool); ok {
 			obj.AppMeshPreview = &v
 		}
 	}
 	_, exists7 := d.GetOkExists(prefix + ".ebs")
-	log.Println("ngIAM ebs:", exists7)
+	//log.Println("ngIAM ebs:", exists7)
 	if exists7 {
 		if v, ok := in["ebs"].(bool); ok {
 			obj.EBS = &v
 		}
 	}
 	_, exists8 := d.GetOkExists(prefix + ".fsx")
-	log.Println("ngIAM fsx:", exists8)
+	//log.Println("ngIAM fsx:", exists8)
 	if exists8 {
 		if v, ok := in["fsx"].(bool); ok {
 			obj.FSX = &v
 		}
 	}
 	_, exists9 := d.GetOkExists(prefix + ".efs")
-	log.Println("ngIAM efs:", exists9)
+	//log.Println("ngIAM efs:", exists9)
 	if exists9 {
 		if v, ok := in["efs"].(bool); ok {
 			obj.EFS = &v
 		}
 	}
-	// @@@@ doc says it should be field alb_ingress,
-	// struct has field ABSLoadBalancerController?
 	_, exists10 := d.GetOkExists(prefix + ".alb_ingress")
-	log.Println("ngIAM alb_ingress:", exists10)
+	//log.Println("ngIAM alb_ingress:", exists10)
 	if exists10 {
 		if v, ok := in["alb_ingress"].(bool); ok {
 			obj.AWSLoadBalancerController = &v
 		}
 	}
 	_, exists11 := d.GetOkExists(prefix + ".xray")
-	log.Println("ngIAM xray:", exists11)
+	//log.Println("ngIAM xray:", exists11)
 	if exists11 {
 		if v, ok := in["xray"].(bool); ok {
 			obj.XRay = &v
 		}
 	}
 	_, exists12 := d.GetOkExists(prefix + ".cloud_watch")
-	log.Println("ngIAM cloud_watch:", exists12)
-	if exists11 {
+	//log.Println("ngIAM cloud_watch:", exists12)
+	if exists12 {
 		if v, ok := in["cloud_watch"].(bool); ok {
 			obj.CloudWatch = &v
 		}
@@ -3230,12 +3224,10 @@ func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, pref
 	}
 	prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
-	log.Println("ssh allow prefix:", prefix+".allow")
-	_, exists2 := d.GetOkExists(prefix + ".allow")
-	log.Println("ssh allow:", exists2)
+	//log.Println("ssh allow prefix:", prefix+".allow")
 	if _, exists := d.GetOkExists(prefix + ".allow"); exists {
 		if v, ok := in["allow"].(bool); ok {
-			log.Println("fix:", prefix+".allow")
+			//log.Println("fix:", prefix+".allow")
 			obj.Allow = &v
 		}
 	}
@@ -3250,12 +3242,9 @@ func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, pref
 		obj.SourceSecurityGroupIDs = toArrayString(v)
 	}
 	// Deprecated but still valid to use this API till an alterative is found!
-	log.Println("ssh enable ssm prefix:", prefix+".enable_ssm")
-	_, exists3 := d.GetOkExists(prefix + ".enable_ssm")
-	log.Println("ssh enable_ssm:", exists3)
+	//log.Println("ssh enable ssm prefix:", prefix+".enable_ssm")
 	if _, exists := d.GetOkExists(prefix + ".enable_ssm"); exists {
 		if v, ok := in["enable_ssm"].(bool); ok {
-			log.Println("fix:", prefix+".enable_ssm")
 			obj.EnableSSM = &v
 		}
 	}
@@ -3272,22 +3261,20 @@ func expandPrivateCluster(p []interface{}, d *schema.ResourceData, prefix string
 	}
 	in := p[0].(map[string]interface{})
 	prefix = prefix + ".0"
-	log.Println("pric fp:", prefix+".enabled")
+	//log.Println("pric fp:", prefix+".enabled")
 
 	_, exists := d.GetOkExists(prefix + ".enabled")
-	log.Println("priC enabled:", exists)
+	//log.Println("priC enabled:", exists)
 
 	if exists {
-		log.Println("got into false? enabled")
 		if v, ok := in["enabled"].(bool); ok {
 			obj.Enabled = &v
 		}
 	}
 	_, exists2 := d.GetOkExists(prefix + ".skip_endpoint_creation")
-	log.Println("pric fp:", prefix+".skip_endpoint_creation")
-	log.Println("priC skip endpoint", exists2)
+	//log.Println("pric fp:", prefix+".skip_endpoint_creation")
+	//log.Println("priC skip endpoint", exists2)
 	if exists2 {
-		log.Println("got into false? skip endpoint")
 		if v, ok := in["skip_endpoint_creation"].(bool); ok {
 			obj.SkipEndpointCreation = &v
 		}
@@ -3378,14 +3365,14 @@ func expandVPC(p []interface{}, d *schema.ResourceData, prefix string) *EKSClust
 		obj.SharedNodeSecurityGroup = v
 	}
 	_, exists := d.GetOkExists(prefix + ".managed_shared_node_security_group_rules")
-	log.Println("vpc managed_shared_node_security_group_rules", exists)
+	//log.Println("vpc managed_shared_node_security_group_rules", exists)
 	if exists {
 		if v, ok := in["managed_shared_node_security_group_rules"].(bool); ok {
 			obj.ManageSharedNodeSecurityGroupRules = &v
 		}
 	}
 	_, exists2 := d.GetOkExists(prefix + ".auto_allocate_ipv6")
-	log.Println("vpc auto_allocate_ipv6", exists2)
+	//log.Println("vpc auto_allocate_ipv6", exists2)
 	if exists2 {
 		if v, ok := in["auto_allocate_ipv6"].(bool); ok {
 			obj.AutoAllocateIPv6 = &v
@@ -3525,7 +3512,7 @@ func expandIAMFields(p []interface{}, d *schema.ResourceData, prefix string) *EK
 	}
 
 	_, exists3 := d.GetOkExists(prefix + ".with_oidc")
-	log.Println("iam with oidc:", exists3)
+	//log.Println("iam with oidc:", exists3)
 	if exists3 {
 		if v, ok := in["with_oidc"].(bool); ok {
 			obj.WithOIDC = &v
@@ -3536,7 +3523,7 @@ func expandIAMFields(p []interface{}, d *schema.ResourceData, prefix string) *EK
 	}
 
 	_, existis4 := d.GetOkExists(prefix + "vpc_resource_controller_policy")
-	log.Println("iam vpc_resource_controller_policy:", exists3)
+	//log.Println("iam vpc_resource_controller_policy:", exists3)
 	if existis4 {
 		if v, ok := in["vpc_resource_controller_policy"].(bool); ok {
 			obj.VPCResourceControllerPolicy = &v
@@ -3576,7 +3563,7 @@ func expandIAMServiceAccountsConfig(p []interface{}, d *schema.ResourceData, pre
 		return out
 	}
 	for i := range p {
-		prefix = prefix + "." + strconv.Itoa(i)
+		prefix2 := prefix + "." + strconv.Itoa(i)
 		obj := &EKSClusterIAMServiceAccount{}
 		in := p[i].(map[string]interface{})
 		if v, ok := in["metadata"].([]interface{}); ok && len(v) > 0 {
@@ -3588,7 +3575,7 @@ func expandIAMServiceAccountsConfig(p []interface{}, d *schema.ResourceData, pre
 		}
 		if v, ok := in["well_known_policies"].([]interface{}); ok && len(v) > 0 {
 			log.Println("iam service accounts well known")
-			obj.WellKnownPolicies = expandIAMWellKnownPolicies(v, d, prefix+".well_known_policies")
+			obj.WellKnownPolicies = expandIAMWellKnownPolicies(v, d, prefix2+".well_known_policies")
 		}
 		//check for attach policy
 		////@@@TODO Store terraform input as inline document object correctly
@@ -3607,7 +3594,7 @@ func expandIAMServiceAccountsConfig(p []interface{}, d *schema.ResourceData, pre
 		if v, ok := in["role_name"].(string); ok && len(v) > 0 {
 			obj.RoleName = v
 		}
-		_, exists := d.GetOkExists(prefix + ".role_only")
+		_, exists := d.GetOkExists(prefix2 + ".role_only")
 		log.Println("get role only:", exists)
 		if exists {
 			if v, ok := in["role_only"].(bool); ok {
@@ -3632,52 +3619,52 @@ func expandIAMWellKnownPolicies(p []interface{}, d *schema.ResourceData, prefix 
 	}
 	prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
-	log.Println("prefix:", prefix)
+	//log.Println("prefix:", prefix)
 	_, exists5 := d.GetOkExists(prefix + ".image_builder")
-	log.Println("IAMWP image builder:", exists5)
+	//log.Println("IAMWP image builder:", exists5)
 	if exists5 {
 		if v, ok := in["image_builder"].(bool); ok {
 			obj.ImageBuilder = &v
 		}
 	}
 	_, exists6 := d.GetOkExists(prefix + ".auto_scaler")
-	log.Println("IAMWP auto_scaler: ", exists6)
+	//log.Println("IAMWP auto_scaler: ", exists6)
 	if exists6 {
 		if v, ok := in["auto_scaler"].(bool); ok {
 			obj.AutoScaler = &v
 		}
 	}
 	_, exists7 := d.GetOkExists(prefix + ".aws_load_balancer_controller")
-	log.Println(prefix + ".aws_load_balancer_controller")
-	log.Println("IAMWP aws_load_balancer_controller: ", exists7)
+	//log.Println(prefix + ".aws_load_balancer_controller")
+	//log.Println("IAMWP aws_load_balancer_controller: ", exists7)
 	if exists7 {
 		if v, ok := in["aws_load_balancer_controller"].(bool); ok {
 			obj.AWSLoadBalancerController = &v
 		}
 	}
 	_, exists8 := d.GetOkExists(prefix + ".external_dns")
-	log.Println("IAMWP external_dns: ", exists8)
+	//log.Println("IAMWP external_dns: ", exists8)
 	if exists8 {
 		if v, ok := in["external_dns"].(bool); ok {
 			obj.ExternalDNS = &v
 		}
 	}
 	_, exists9 := d.GetOkExists(prefix + ".cert_manager")
-	log.Println("IAMWP cert_manager: ", exists9)
+	//log.Println("IAMWP cert_manager: ", exists9)
 	if exists9 {
 		if v, ok := in["cert_manager"].(bool); ok {
 			obj.CertManager = &v
 		}
 	}
 	_, exists10 := d.GetOkExists(prefix + ".ebs_csi_controller")
-	log.Println("IAMWP ebs_csi_controller: ", exists10)
+	//log.Println("IAMWP ebs_csi_controller: ", exists10)
 	if exists10 {
 		if v, ok := in["ebs_csi_controller"].(bool); ok {
 			obj.EBSCSIController = &v
 		}
 	}
 	_, exists11 := d.GetOkExists(prefix + ".efs_csi_controller")
-	log.Println("IAMWP efs_csi_controller: ", exists11)
+	//log.Println("IAMWP efs_csi_controller: ", exists11)
 	if exists11 {
 		if v, ok := in["efs_csi_controller"].(bool); ok {
 			obj.EFSCSIController = &v

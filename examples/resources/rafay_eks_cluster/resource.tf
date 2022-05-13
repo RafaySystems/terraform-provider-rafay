@@ -68,6 +68,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
         gateway = "Single"
       }
     }*/
+    /*
     node_groups {
       name       = "ng-1"
       ami_family = "AmazonLinux2"
@@ -139,8 +140,8 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       volume_size      = 80
       volume_type      = "gp3"
       private_networking = true
-    }
-    /*
+    }*/
+    
     managed_nodegroups {
       name       = "managed-ng-1"
       ami_family = "AmazonLinux2"
@@ -174,7 +175,42 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       volume_iops      = 3000
       volume_throughput = 125
       private_networking = true
-    }*/
+    }
+    managed_nodegroups {
+      name       = "managed-ng-2"
+      ami_family = "AmazonLinux2"
+      ssh {
+        //allow = true
+        enable_ssm = false
+      }
+      version          = "1.21"
+      iam {
+        iam_node_group_with_addon_policies {
+          image_builder = true
+          //auto_scaler   = true
+        }
+        //instance_profile_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:instance-profile/role_name"
+        //instance_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/role_name"
+      }
+      instance_type    = "m5.xlarge"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      security_groups {
+        attach_ids = ["sg-id-1", "sg-id-2"]
+      }
+      bottle_rocket {
+        enable_admin_container = false
+      }
+      subnets = ["subnet-id-1", "subnet-id-2"]
+      //version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      volume_iops      = 3000
+      volume_throughput = 125
+      private_networking = true
+    }
   }
 }
 

@@ -2417,7 +2417,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 	}
 	log.Println("got to managed node group")
 	for i := range p {
-		prefix := prefix + "." + strconv.Itoa(i)
+		prefix2 := prefix + "." + strconv.Itoa(i)
 		in := p[i].(map[string]interface{})
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
@@ -2453,12 +2453,12 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v, i, d, prefix+".ssh")
+			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2+".ssh")
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
 		}
-		_, exists := d.GetOkExists(prefix + ".private_networking")
+		_, exists := d.GetOkExists(prefix2 + ".private_networking")
 		log.Println("mng private_networking", exists)
 		if exists {
 			if v, ok := in["private_networking"].(bool); ok {
@@ -2469,13 +2469,13 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 			obj.Tags = toMapString(v)
 		}
 		if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
-			obj.IAM = expandNodeGroupIam(v, d, prefix+".iam")
+			obj.IAM = expandNodeGroupIam(v, d, prefix2+".iam")
 		}
 		if v, ok := in["ami"].(string); ok && len(v) > 0 {
 			obj.AMI = v
 		}
 		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
-			obj.SecurityGroups = expandNodeGroupSecurityGroups(v, d, prefix+".security_groups")
+			obj.SecurityGroups = expandNodeGroupSecurityGroups(v, d, prefix2+".security_groups")
 		}
 		if v, ok := in["max_pods_per_node"].(int); ok {
 			obj.MaxPodsPerNode = &v
@@ -2483,7 +2483,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
 			obj.ASGSuspendProcesses = toArrayString(v)
 		}
-		_, exists2 := d.GetOkExists(prefix + ".ebs_optimized")
+		_, exists2 := d.GetOkExists(prefix2 + ".ebs_optimized")
 		log.Println("mng ebs_optimized", exists2)
 		if exists2 {
 			if v, ok := in["ebs_optimized"].(bool); ok {
@@ -2496,7 +2496,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		if v, ok := in["volume_name"].(string); ok && len(v) > 0 {
 			obj.VolumeName = v
 		}
-		_, exists3 := d.GetOkExists(prefix + ".volume_encrypted")
+		_, exists3 := d.GetOkExists(prefix2 + ".volume_encrypted")
 		log.Println("mng volume_encrypted", exists3)
 		if exists3 {
 			if v, ok := in["volume_encrypted"].(bool); ok {
@@ -2518,14 +2518,14 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		if v, ok := in["override_bootstrap_command"].(string); ok && len(v) > 0 {
 			obj.OverrideBootstrapCommand = v
 		}
-		_, exists4 := d.GetOkExists(prefix + ".disable_imdsv1")
+		_, exists4 := d.GetOkExists(prefix2 + ".disable_imdsv1")
 		log.Println("mng disable_imdsv1", exists4)
 		if exists4 {
 			if v, ok := in["disable_imdsv1"].(bool); ok {
 				obj.DisableIMDSv1 = &v
 			}
 		}
-		_, exists5 := d.GetOkExists(prefix + ".disable_pods_imds")
+		_, exists5 := d.GetOkExists(prefix2 + ".disable_pods_imds")
 		log.Println("mng disable_pods_imds", exists5)
 		if exists5 {
 			if v, ok := in["disable_pods_imds"].(bool); ok {
@@ -2535,7 +2535,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
 			obj.Placement = expandNodeGroupPlacement(v)
 		}
-		_, exists6 := d.GetOkExists(prefix + ".efa_enabled")
+		_, exists6 := d.GetOkExists(prefix2 + ".efa_enabled")
 		log.Println("mng efa_enabled", exists6)
 		if exists6 {
 			if v, ok := in["efa_enabled"].(bool); ok {
@@ -2548,10 +2548,10 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		//additional encrypted volume field not in spec
 
 		if v, ok := in["bottle_rocket"].([]interface{}); ok && len(v) > 0 {
-			obj.Bottlerocket = expandNodeGroupBottleRocket(v, d, prefix+".bottle_rocket")
+			obj.Bottlerocket = expandNodeGroupBottleRocket(v, d, prefix2+".bottle_rocket")
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does (says to remove)
-		_, exists7 := d.GetOkExists(prefix + ".enable_detailed_monitoring")
+		_, exists7 := d.GetOkExists(prefix2 + ".enable_detailed_monitoring")
 		log.Println("mng enable_detailed_monitoring", exists7)
 		if exists7 {
 			if v, ok := in["enable_detailed_monitoring"].(bool); ok {
@@ -2561,7 +2561,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
 			obj.InstanceTypes = toArrayString(v)
 		}
-		_, exists8 := d.GetOkExists(prefix + ".spot")
+		_, exists8 := d.GetOkExists(prefix2 + ".spot")
 		log.Println("mng spot", exists8)
 		if exists8 {
 			if v, ok := in["spot"].(bool); ok {
@@ -2651,7 +2651,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 	}
 
 	for i := range p {
-		prefix = prefix + "." + strconv.Itoa(i)
+		prefix2 := prefix + "." + strconv.Itoa(i)
 		in := p[i].(map[string]interface{})
 		obj := NodeGroup{}
 		log.Println("expand_nodegroups")
@@ -2693,12 +2693,12 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v, i, d, prefix+".ssh")
+			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2+".ssh")
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
 		}
-		_, exists := d.GetOkExists(prefix + ".private_networking")
+		_, exists := d.GetOkExists(prefix2 + ".private_networking")
 		log.Println("ng private_networking", exists)
 		if exists {
 			if v, ok := in["private_networking"].(bool); ok {
@@ -2709,13 +2709,13 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 			obj.Tags = toMapString(v)
 		}
 		if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
-			obj.IAM = expandNodeGroupIam(v, d, prefix+".iam")
+			obj.IAM = expandNodeGroupIam(v, d, prefix2+".iam")
 		}
 		if v, ok := in["ami"].(string); ok && len(v) > 0 {
 			obj.AMI = v
 		}
 		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
-			obj.SecurityGroups = expandNodeGroupSecurityGroups(v, d, prefix+".security_groups")
+			obj.SecurityGroups = expandNodeGroupSecurityGroups(v, d, prefix2+".security_groups")
 		}
 		if v, ok := in["max_pods_per_node"].(int); ok {
 			obj.MaxPodsPerNode = v
@@ -2723,7 +2723,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
 			obj.ASGSuspendProcesses = toArrayString(v)
 		}
-		_, exists2 := d.GetOkExists(prefix + ".ebs_optimized")
+		_, exists2 := d.GetOkExists(prefix2 + ".ebs_optimized")
 		log.Println("ng ebs_optimized", exists2)
 		if exists2 {
 			if v, ok := in["ebs_optimized"].(bool); ok {
@@ -2736,7 +2736,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 		if v, ok := in["volume_name"].(string); ok && len(v) > 0 {
 			obj.VolumeName = v
 		}
-		_, exists3 := d.GetOkExists(prefix + ".volume_encrypted")
+		_, exists3 := d.GetOkExists(prefix2 + ".volume_encrypted")
 		log.Println("ng volume_encrypted", exists3)
 		if exists3 {
 			if v, ok := in["volume_encrypted"].(bool); ok {
@@ -2758,14 +2758,14 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 		if v, ok := in["override_bootstrap_command"].(string); ok && len(v) > 0 {
 			obj.OverrideBootstrapCommand = v
 		}
-		_, exists4 := d.GetOkExists(prefix + ".disable_imdsv1")
+		_, exists4 := d.GetOkExists(prefix2 + ".disable_imdsv1")
 		log.Println("ng disable_imdsv1", exists4)
 		if exists4 {
 			if v, ok := in["disable_imdsv1"].(bool); ok {
 				obj.DisableIMDSv1 = &v
 			}
 		}
-		_, exists5 := d.GetOkExists(prefix + ".disable_pods_imds")
+		_, exists5 := d.GetOkExists(prefix2 + ".disable_pods_imds")
 		log.Println("ng disable_pods_imds", exists5)
 		if exists5 {
 			if v, ok := in["disable_pods_imds"].(bool); ok {
@@ -2775,7 +2775,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 		if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
 			obj.Placement = expandNodeGroupPlacement(v)
 		}
-		_, exists6 := d.GetOkExists(prefix + ".efa_enabled")
+		_, exists6 := d.GetOkExists(prefix2 + ".efa_enabled")
 		log.Println("ng efa_enabled", exists6)
 		if exists6 {
 			if v, ok := in["efa_enabled"].(bool); ok {
@@ -2791,7 +2791,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 			obj.Bottlerocket = expandNodeGroupBottleRocket(v, d, prefix+".bottle_rocket")
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does
-		_, exists7 := d.GetOkExists(prefix + ".enable_detailed_monitoring")
+		_, exists7 := d.GetOkExists(prefix2 + ".enable_detailed_monitoring")
 		log.Println("ng enable_detailed_monitoring", exists7)
 		if exists7 {
 			if v, ok := in["enable_detailed_monitoring"].(bool); ok {

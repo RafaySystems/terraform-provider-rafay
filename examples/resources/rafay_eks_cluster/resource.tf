@@ -104,6 +104,42 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       volume_type      = "gp3"
       private_networking = true
     }
+     node_groups {
+      name       = "ng-2"
+      ami_family = "AmazonLinux2"
+      version          = "1.21"
+      
+      iam {
+        iam_node_group_with_addon_policies {
+          image_builder = true
+          //auto_scaler   = true
+        }
+      }
+      ssh {
+        allow = true
+        public_key_name = "km"
+      }
+      security_groups {
+        //with_local = false
+        with_shared = false
+      }
+      instances_distribution {
+        spot_instance_pools = 2
+        capacity_rebalance = false
+      }
+      bottle_rocket {
+        enable_admin_container = false
+      }
+      instance_type    = "m5.xlarge"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      //version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      private_networking = true
+    }
     /*
     managed_nodegroups {
       name       = "managed-ng-1"

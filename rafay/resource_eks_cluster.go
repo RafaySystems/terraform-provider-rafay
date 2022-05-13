@@ -584,45 +584,45 @@ func statementFields() map[string]*schema.Schema {
 func serviceAccountsWellKnownPolicyFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"image_builder": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "allows for full ECR (Elastic Container Registry) access.",
 		},
 		"auto_scaler": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "service account annotations",
 		},
 		"aws_load_balancer_controller": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "adds policies for using the aws-load-balancer-controller.",
 		},
 		"external_dns": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "adds external-dns policies for Amazon Route 53.",
 		},
 		"cert_manager": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "adds cert-manager policies.",
 		},
 		"ebs_csi_controller": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "adds cert-manager policies.",
 		},
 		"efs_csi_controller": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "adds policies for using the ebs-csi-controller.",
 		},
 	}
@@ -880,15 +880,15 @@ func addonConfigFields() map[string]*schema.Schema {
 func privateClusterConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"enabled": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "enables creation of a fully-private cluster",
 		},
 		"skip_endpoint_creation": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "skips the creation process for endpoints completely. This is only used in case of an already provided VPC and if the user decided to set it to true.",
 		},
 		"additional_endpoint_services": {
@@ -981,9 +981,9 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "labels on nodes in the nodegroup",
 		},
 		"private_networking": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "Enable private networking for nodegroup",
 		},
 		"tags": {
@@ -1075,15 +1075,15 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "Override the vendor's bootstrapping script",
 		},
 		"disable_imdsv1": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "requires requests to the metadata service to use IMDSv2 tokens",
 		},
 		"disable_pods_imds": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "blocks all IMDS requests from non host networking pods",
 		},
 		"placement": {
@@ -1095,9 +1095,9 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"efa_enabled": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
 		},
 		"instance_selector": {
@@ -1273,9 +1273,9 @@ func instanceDistributionFields() map[string]*schema.Schema {
 			Description: "allocation strategy for spot instances. Valid values are capacity-optimized and lowest-price",
 		},
 		"capacity_rebalance": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "Enable capacity rebalancing for spot instances",
 		},
 	}
@@ -1457,75 +1457,75 @@ func iamNodeGroupConfigFields() map[string]*schema.Schema { //@@@TODO: need to c
 func iamNodeGroupWithAddonPoliciesFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"image_builder": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     true,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     true,
 			Description: "allows for full ECR (Elastic Container Registry) access. This is useful for building, for example, a CI server that needs to push images to ECR",
 		},
 		"auto_scaler": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     true,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     true,
 			Description: "enables IAM policy for cluster-autoscaler",
 		},
 		"external_dns": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "adds the external-dns project policies for Amazon Route 53",
 		},
 		"cert_manager": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "enables the ability to add records to Route 53 in order to solve the DNS01 challenge.",
 		},
 		"app_mesh": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "enables full access to AppMesh",
 		},
 		"app_mesh_review": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "enables full access to AppMesh Preview",
 		},
 		"ebs": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver",
 		},
 		"fsx": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "enables full access to FSX",
 		},
 		"efs": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "enables full access to EFS",
 		},
 		"alb_ingress": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "enables access to ALB Ingress controller",
 		},
 		"xray": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "enables access to XRay",
 		},
 		"cloud_watch": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "enables access to cloud watch",
 		},
 	}
@@ -1543,15 +1543,15 @@ func securityGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"with_shared": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     true,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     true,
 			Description: "attach the security group shared among all nodegroups in the cluster",
 		},
 		"with_local": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     true,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     true,
 			Description: "attach a security group local to this nodegroup Not supported for managed nodegroups",
 		},
 	}
@@ -1568,15 +1568,15 @@ func managedSecurityGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"with_shared": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "attach the security group shared among all nodegroups in the cluster",
 		},
 		"with_local": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "attach a security group local to this nodegroup Not supported for managed nodegroups",
 		},
 	}
@@ -1662,9 +1662,9 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "labels on nodes in the nodegroup",
 		},
 		"private_networking": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "Enable private networking for nodegroup",
 		},
 		"tags": {
@@ -1756,15 +1756,15 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "Override the vendor's bootstrapping script",
 		},
 		"disable_imdsv1": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "requires requests to the metadata service to use IMDSv2 tokens",
 		},
 		"disable_pods_imds": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "blocks all IMDS requests from non host networking pods",
 		},
 		"placement": {
@@ -1776,9 +1776,9 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"efa_enabled": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
 		},
 		"instance_selector": {
@@ -1811,9 +1811,9 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"spot": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
+			Type:     schema.TypeBool,
+			Optional: true,
+			//Default:     false,
 			Description: "create a spot nodegroup",
 		},
 		"taints": {
@@ -2183,7 +2183,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("calling cluster ctl")
-	response, err := eksClusterCTL(rctlCfg, cfgList["Cluster"], cfgList["ClusterConfig"], false)
+	response, err := eksClusterCTL(rctlCfg, cfgList["Cluster"], cfgList["ClusterConfig"], true)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		return diag.FromErr(err)
@@ -2548,7 +2548,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 		//additional encrypted volume field not in spec
 
 		if v, ok := in["bottle_rocket"].([]interface{}); ok && len(v) > 0 {
-			obj.Bottlerocket = expandNodeGroupBottleRocket(v, d, prefix+"bottle_rocket")
+			obj.Bottlerocket = expandNodeGroupBottleRocket(v, d, prefix+".bottle_rocket")
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does (says to remove)
 		_, exists7 := d.GetOkExists(prefix + ".enable_detailed_monitoring")
@@ -3019,8 +3019,9 @@ func expandNodeGroupSecurityGroups(p []interface{}, d *schema.ResourceData, pref
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-	//prefix = prefix + ".0"
+	prefix = prefix + ".0"
 	log.Println("ngSG prefix:", prefix)
+
 	if v, ok := in["attach_ids"].([]interface{}); ok && len(v) > 0 {
 		obj.AttachIDs = toArrayString(v)
 	}
@@ -3028,6 +3029,7 @@ func expandNodeGroupSecurityGroups(p []interface{}, d *schema.ResourceData, pref
 	log.Println("ngSG with_shared prefix:", prefix+".with_shared")
 	log.Println("ngSG with_shared:", exists)
 	if exists {
+		log.Println("inside ng shared")
 		if v, ok := in["with_shared"].(bool); ok {
 			obj.WithShared = &v
 		}
@@ -3036,6 +3038,7 @@ func expandNodeGroupSecurityGroups(p []interface{}, d *schema.ResourceData, pref
 	log.Println("ngSG with_local prefix:", prefix+".with_local")
 	log.Println("ngSG with_local:", exists2)
 	if exists2 {
+		log.Println("inside ng local")
 		if v, ok := in["with_local"].(bool); ok {
 			obj.WithLocal = &v
 		}
@@ -3227,9 +3230,9 @@ func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, pref
 	}
 	prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
-	log.Println("ssh-fix:", prefix+".allow")
+	log.Println("ssh allow prefix:", prefix+".allow")
 	_, exists2 := d.GetOkExists(prefix + ".allow")
-	log.Println("huh:", exists2)
+	log.Println("ssh allow:", exists2)
 	if _, exists := d.GetOkExists(prefix + ".allow"); exists {
 		if v, ok := in["allow"].(bool); ok {
 			log.Println("fix:", prefix+".allow")
@@ -3247,9 +3250,9 @@ func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, pref
 		obj.SourceSecurityGroupIDs = toArrayString(v)
 	}
 	// Deprecated but still valid to use this API till an alterative is found!
-	log.Println("ssh-fix:", prefix+".enable_ssm")
+	log.Println("ssh enable ssm prefix:", prefix+".enable_ssm")
 	_, exists3 := d.GetOkExists(prefix + ".enable_ssm")
-	log.Println("huh3:", exists3)
+	log.Println("ssh enable_ssm:", exists3)
 	if _, exists := d.GetOkExists(prefix + ".enable_ssm"); exists {
 		if v, ok := in["enable_ssm"].(bool); ok {
 			log.Println("fix:", prefix+".enable_ssm")
@@ -3270,17 +3273,21 @@ func expandPrivateCluster(p []interface{}, d *schema.ResourceData, prefix string
 	in := p[0].(map[string]interface{})
 	prefix = prefix + ".0"
 	log.Println("pric fp:", prefix+".enabled")
-	log.Println("pric fp:", prefix+".skip_endpoint_creation")
-	_, exists := d.GetOkExists(".enabled")
+
+	_, exists := d.GetOkExists(prefix + ".enabled")
 	log.Println("priC enabled:", exists)
+
 	if exists {
+		log.Println("got into false? enabled")
 		if v, ok := in["enabled"].(bool); ok {
 			obj.Enabled = &v
 		}
 	}
 	_, exists2 := d.GetOkExists(prefix + ".skip_endpoint_creation")
+	log.Println("pric fp:", prefix+".skip_endpoint_creation")
 	log.Println("priC skip endpoint", exists2)
 	if exists2 {
+		log.Println("got into false? skip endpoint")
 		if v, ok := in["skip_endpoint_creation"].(bool); ok {
 			obj.SkipEndpointCreation = &v
 		}

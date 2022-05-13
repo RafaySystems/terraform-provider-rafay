@@ -476,11 +476,11 @@ type Addon struct {
 type PrivateCluster struct {
 
 	// Enabled enables creation of a fully-private cluster
-	Enabled *bool `yaml:"enabled"`
+	Enabled *bool `yaml:"enabled,omitempty"`
 
 	// SkipEndpointCreation skips the creation process for endpoints completely. This is only used in case of an already
 	// provided VPC and if the user decided to set it to true.
-	SkipEndpointCreation *bool `yaml:"skipEndpointCreation"`
+	SkipEndpointCreation *bool `yaml:"skipEndpointCreation,omitempty"`
 
 	// AdditionalEndpointServices specifies additional endpoint services that
 	// must be enabled for private access.
@@ -863,13 +863,13 @@ type (
 		// shared among all nodegroups in the cluster
 		// Defaults to `true`
 		// +optional
-		WithShared *bool `yaml:"withShared"`
+		WithShared *bool `yaml:"withShared,omitempty"`
 		// WithLocal attach a security group
 		// local to this nodegroup
 		// Not supported for managed nodegroups
 		// Defaults to `true`
 		// +optional
-		WithLocal *bool `yaml:"withLocal"`
+		WithLocal *bool `yaml:"withLocal,omitempty"`
 	}
 	// NodeGroupIAM holds all IAM attributes of a NodeGroup
 	NodeGroupIAM struct {

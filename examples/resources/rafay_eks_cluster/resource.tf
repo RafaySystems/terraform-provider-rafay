@@ -48,7 +48,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
     }
     private_cluster {
       enabled = false
-      //skip_endpoint_creation = false
+      skip_endpoint_creation = false
     }
   /*
     iam {
@@ -57,7 +57,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
           image_builder = false
         }
       }
-    }*/
+    }
     vpc {
       cidr = "192.168.0.0/16"
       cluster_endpoints {
@@ -67,10 +67,12 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       nat {
         gateway = "Single"
       }
-    }
+    }*/
     node_groups {
       name       = "ng-1"
       ami_family = "AmazonLinux2"
+      version          = "1.21"
+      
       iam {
         iam_node_group_with_addon_policies {
           //image_builder = true
@@ -82,7 +84,8 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
         public_key_name = "km"
       }
       security_groups {
-        with_local = false
+        //with_local = false
+        with_shared = false
       }
       instances_distribution {
         spot_instance_pools = 2
@@ -96,14 +99,19 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       min_size         = 1
       max_size         = 2
       max_pods_per_node = 50
-      version          = "1.21"
+      //version          = "1.21"
       volume_size      = 80
       volume_type      = "gp3"
       private_networking = true
     }
+    /*
     managed_nodegroups {
       name       = "managed-ng-1"
       ami_family = "AmazonLinux2"
+      ssh {
+        allow = true
+      }
+      version          = "1.21"
       iam {
         iam_node_group_with_addon_policies {
           //image_builder = true
@@ -120,14 +128,17 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       security_groups {
         attach_ids = ["sg-id-1", "sg-id-2"]
       }
+      bottle_rocket {
+        enable_admin_container = false
+      }
       subnets = ["subnet-id-1", "subnet-id-2"]
-      version          = "1.21"
+      //version          = "1.21"
       volume_size      = 80
       volume_type      = "gp3"
       volume_iops      = 3000
       volume_throughput = 125
       private_networking = true
-    }
+    }*/
   }
 }
 

@@ -149,7 +149,7 @@ func specField() map[string]*schema.Schema {
 		},
 		"cni_params": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "contains custom cni networking configurations",
 			Elem: &schema.Resource{
 				Schema: customCniField(),
@@ -2051,7 +2051,7 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
-	prefix = prefix + ".0"
+	//prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
 	if v, ok := in["kind"].(string); ok && len(v) > 0 {
 		obj.Kind = v
@@ -2099,13 +2099,13 @@ func expandEKSClusterConfig(p []interface{}, d *schema.ResourceData, prefix stri
 		obj.PrivateCluster = expandPrivateCluster(v)
 	}
 	if v, ok := in["node_groups"].([]interface{}); ok && len(v) > 0 {
-		obj.NodeGroups = expandNodeGroups(v, d, prefix + ".node_groups")
+		obj.NodeGroups = expandNodeGroups(v, d, prefix+".node_groups")
 	}
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
 		obj.VPC = expandVPC(v)
 	}
 	if v, ok := in["managed_nodegroups"].([]interface{}); ok && len(v) > 0 {
-		obj.ManagedNodeGroups = expandManagedNodeGroups(v, d, prefix + ".managed_nodegroups")
+		obj.ManagedNodeGroups = expandManagedNodeGroups(v, d, prefix+".managed_nodegroups")
 	}
 	if v, ok := in["fargate_profiles"].([]interface{}); ok && len(v) > 0 {
 		obj.FargateProfiles = expandFargateProfiles(v)
@@ -2452,7 +2452,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2 + ".ssh")
+			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2+".ssh")
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
@@ -2660,7 +2660,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2 + ".ssh")
+			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2+".ssh")
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)

@@ -10,7 +10,7 @@ resource "rafay_pipeline" "tfdemopipeline1" {
             "approvers" = [
               {
                 "ssoUser" = false
-                "userName" = "sougat@rafay.coRepository"
+                "userName" = "sougat@rafay.co"
               },
             ]
             "timeout" = "120s"

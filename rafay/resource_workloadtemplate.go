@@ -232,6 +232,10 @@ func expandWorkloadTemplateSpec(p []interface{}) (*appspb.WorkloadTemplateSpec, 
 		obj.Artifact = objArtifact
 	}
 
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		obj.Sharing = expandSharingSpec(v)
+	}
+
 	return obj, nil
 }
 
@@ -289,6 +293,10 @@ func flattenWorkloadTemplateSpec(in *appspb.WorkloadTemplateSpec, p []interface{
 	}
 
 	obj["artifact"] = ret
+
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
 
 	return []interface{}{obj}, nil
 }

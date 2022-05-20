@@ -2,7 +2,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
   cluster {
     kind = "Cluster"
     metadata {
-      name    = "eks-cluster-1"
+      name    = "eks-custom-cni"
       project = "terraform"
     }
     spec {
@@ -11,6 +11,30 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       blueprint_version = "1.12.0"
       cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
+      cni_params {
+        custom_cni_crd_spec {
+          name = "us-west-2a"
+          cni_spec {
+            security_groups = ["sg-xxxxxx", "sg-yyyyyy"]
+            subnet = "subnet-zzz"
+          }
+          cni_spec {
+            security_groups = ["sg-cccccc", "sg-dddddd"]
+            subnet = "subnet-kkk"
+          }
+        }
+        custom_cni_crd_spec {
+          name = "us-west-2b"
+          cni_spec {
+            security_groups = ["sg-aaaaaa", "sg-xxxxxx"]
+            subnet = "subnet-qqq"
+          }
+          cni_spec {
+            security_groups = ["sg-cccccc", "sg-dddddd"]
+            subnet = "subnet-www"
+          }
+        }
+      }
       proxy_config   = {}
     }
   }
@@ -22,39 +46,175 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       region  = "us-west-2"
       version = "1.21"
     }
+    private_cluster {
+      enabled = false
+      skip_endpoint_creation = false
+    }
+  /*
+    iam {
+      service_accounts {
+        well_known_policies {
+          image_builder = false
+        }
+      }
+    }
     vpc {
       cidr = "192.168.0.0/16"
       cluster_endpoints {
         private_access = true
-        public_access  = false
+        //public_access  = false
       }
       nat {
         gateway = "Single"
       }
-    }
+    }*/
+    /*
     node_groups {
       name       = "ng-1"
       ami_family = "AmazonLinux2"
+      version          = "1.21"
+      
       iam {
         iam_node_group_with_addon_policies {
-          image_builder = true
+          //image_builder = true
           auto_scaler   = true
         }
+      }
+      ssh {
+        allow = true
+        public_key_name = "km"
+      }
+      security_groups {
+        //with_local = false
+        with_shared = false
+      }
+      instances_distribution {
+        spot_instance_pools = 2
+        capacity_rebalance = false
+      }
+      bottle_rocket {
+        enable_admin_container = false
       }
       instance_type    = "m5.xlarge"
       desired_capacity = 1
       min_size         = 1
       max_size         = 2
       max_pods_per_node = 50
-      version          = "1.21"
+      //version          = "1.21"
       volume_size      = 80
       volume_type      = "gp3"
+      private_networking = true
+    }
+     node_groups {
+      name       = "ng-2"
+      ami_family = "AmazonLinux2"
+      version          = "1.21"
+      
+      iam {
+        iam_node_group_with_addon_policies {
+          image_builder = true
+          //auto_scaler   = true
+        }
+      }
+      ssh {
+        allow = true
+        public_key_name = "km"
+      }
+      security_groups {
+        //with_local = false
+        with_shared = false
+      }
+      instances_distribution {
+        spot_instance_pools = 2
+        capacity_rebalance = false
+      }
+      bottle_rocket {
+        enable_admin_container = false
+      }
+      instance_type    = "m5.xlarge"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      //version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      private_networking = true
+    }*/
+    
+    managed_nodegroups {
+      name       = "managed-ng-1"
+      ami_family = "AmazonLinux2"
+      ssh {
+        allow = true
+      }
+      version          = "1.21"
+      iam {
+        iam_node_group_with_addon_policies {
+          //image_builder = true
+          auto_scaler   = true
+        }
+        //instance_profile_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:instance-profile/role_name"
+        //instance_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/role_name"
+      }
+      instance_type    = "m5.xlarge"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      security_groups {
+        attach_ids = ["sg-id-1", "sg-id-2"]
+      }
+      bottle_rocket {
+        enable_admin_container = false
+      }
+      subnets = ["subnet-id-1", "subnet-id-2"]
+      //version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      volume_iops      = 3000
+      volume_throughput = 125
+      private_networking = true
+    }
+    managed_nodegroups {
+      name       = "managed-ng-2"
+      ami_family = "AmazonLinux2"
+      ssh {
+        //allow = true
+        enable_ssm = false
+      }
+      version          = "1.21"
+      iam {
+        iam_node_group_with_addon_policies {
+          image_builder = true
+          //auto_scaler   = true
+        }
+        //instance_profile_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:instance-profile/role_name"
+        //instance_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/role_name"
+      }
+      instance_type    = "m5.xlarge"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      security_groups {
+        attach_ids = ["sg-id-1", "sg-id-2"]
+      }
+      bottle_rocket {
+        enable_admin_container = false
+      }
+      subnets = ["subnet-id-1", "subnet-id-2"]
+      //version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      volume_iops      = 3000
+      volume_throughput = 125
       private_networking = true
     }
   }
 }
 
-
+/*
 resource "rafay_eks_cluster" "ekscluste-advanced" {
   cluster {
     kind = "Cluster"
@@ -128,3 +288,4 @@ resource "rafay_eks_cluster" "ekscluste-advanced" {
     }
   }
 }
+*/

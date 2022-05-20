@@ -2206,37 +2206,37 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
-	/*
-		for { //wait for cluster to provision correctly
-			time.Sleep(60 * time.Second)
-			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
-			if errGet != nil {
-				log.Printf("error while getCluster %s", errGet.Error())
-				return diag.FromErr(errGet)
-			}
 
-			statusResp, err := eksClusterCTLStatus(res.TaskSetID)
-			if err != nil {
-				log.Println("status response parse error", err)
-				return diag.FromErr(err)
+	for { //wait for cluster to provision correctly
+		time.Sleep(60 * time.Second)
+		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+		if errGet != nil {
+			log.Printf("error while getCluster %s", errGet.Error())
+			return diag.FromErr(errGet)
+		}
+
+		statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+		if err != nil {
+			log.Println("status response parse error", err)
+			return diag.FromErr(err)
+		}
+		log.Println("statusResp ", statusResp)
+		sres := clusterCTLResponse{}
+		err = json.Unmarshal([]byte(statusResp), &sres)
+		if err != nil {
+			log.Println("status response unmarshal error", err)
+			return diag.FromErr(err)
+		}
+		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+			if check.Status == "READY" {
+				break
 			}
-			log.Println("statusResp ", statusResp)
-			sres := clusterCTLResponse{}
-			err = json.Unmarshal([]byte(statusResp), &sres)
-			if err != nil {
-				log.Println("status response unmarshal error", err)
-				return diag.FromErr(err)
-			}
-			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-				if check.Status == "READY" {
-					break
-				}
-				log.Println("task completed but cluster is not ready")
-			}
-			if strings.Contains(sres.Status, "STATUS_FAILED") {
-				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
-			}
-		}*/
+			log.Println("task completed but cluster is not ready")
+		}
+		if strings.Contains(sres.Status, "STATUS_FAILED") {
+			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
+		}
+	}
 
 	log.Printf("resource eks cluster created/updated %s", s.ID)
 	d.SetId(s.ID)
@@ -2452,7 +2452,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2+".ssh")
+			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2+".ssh", true)
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
@@ -2660,7 +2660,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2+".ssh")
+			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2+".ssh", false)
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
@@ -3087,7 +3087,7 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 }
 
 //expand node group ssh function (completed/ kind of)
-func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, prefix string) *NodeGroupSSH {
+func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, prefix string, managed bool) *NodeGroupSSH {
 	obj := &NodeGroupSSH{}
 
 	if len(p) == 0 || p[0] == nil {
@@ -3109,10 +3109,9 @@ func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, pref
 		obj.SourceSecurityGroupIDs = toArrayString(v)
 	}
 	// Deprecated but still valid to use this API till an alterative is found!
-	if _, exists := d.GetOkExists(prefix + ".enable_ssm"); exists {
-		if v, ok := in["enable_ssm"].(bool); ok {
-			obj.EnableSSM = &v
-		}
+
+	if v, ok := in["enable_ssm"].(bool); ok && !managed {
+		obj.EnableSSM = &v
 	}
 	//docs dont have field skip endpoint creation but struct does
 	return obj

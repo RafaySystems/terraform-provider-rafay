@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -146,10 +147,75 @@ func specField() map[string]*schema.Schema {
 			Default:     "Calico-v3.19.1",
 			Description: "Cni provider used to specify different cni options for the cluster",
 		},
+		"cni_params": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: customCniField(),
+			},
+		},
 		"proxy_config": {
 			Type:        schema.TypeMap,
 			Optional:    true,
 			Description: "Configure Proxy if your infrastructure uses an Outbound Proxy",
+		},
+	}
+	return s
+}
+
+func customCniField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"custom_cni_crd": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Valid variants are: 'IPv4' defines an IP family of v4 to be used when creating a new VPC and cluster., 'IPv6' defines an IP family of v6 to be used when creating a new VPC and cluster..",
+		},
+		"custom_cni_crd_spec": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: customCniSpecField(),
+			},
+		},
+	}
+	return s
+}
+
+func customCniSpecField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "name of custom cni",
+		},
+		"cni_spec": {
+			Type:        schema.TypeList,
+			Required:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: cniSpecField(),
+			},
+		},
+	}
+	return s
+}
+
+func cniSpecField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"subnet": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "",
+		},
+		"security_groups": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "security groups of custom CNI",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
 		},
 	}
 	return s
@@ -1985,6 +2051,7 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	//prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
 	if v, ok := in["kind"].(string); ok && len(v) > 0 {
 		obj.Kind = v
@@ -1999,7 +2066,7 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 }
 
 //expand eks cluster function (completed)
-func expandEKSClusterConfig(p []interface{}) *EKSClusterConfig {
+func expandEKSClusterConfig(p []interface{}, d *schema.ResourceData, prefix string) *EKSClusterConfig {
 	obj := &EKSClusterConfig{}
 
 	if len(p) == 0 || p[0] == nil {
@@ -2032,13 +2099,13 @@ func expandEKSClusterConfig(p []interface{}) *EKSClusterConfig {
 		obj.PrivateCluster = expandPrivateCluster(v)
 	}
 	if v, ok := in["node_groups"].([]interface{}); ok && len(v) > 0 {
-		obj.NodeGroups = expandNodeGroups(v)
+		obj.NodeGroups = expandNodeGroups(v, d, prefix+".node_groups")
 	}
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
 		obj.VPC = expandVPC(v)
 	}
 	if v, ok := in["managed_nodegroups"].([]interface{}); ok && len(v) > 0 {
-		obj.ManagedNodeGroups = expandManagedNodeGroups(v)
+		obj.ManagedNodeGroups = expandManagedNodeGroups(v, d, prefix+".managed_nodegroups")
 	}
 	if v, ok := in["fargate_profiles"].([]interface{}); ok && len(v) > 0 {
 		obj.FargateProfiles = expandFargateProfiles(v)
@@ -2068,7 +2135,7 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	}
 	//expand cluster config yaml file
 	if v, ok := d.Get("cluster_config").([]interface{}); ok {
-		yamlClusterConfig = expandEKSClusterConfig(v)
+		yamlClusterConfig = expandEKSClusterConfig(v, d, "cluster_config")
 	} else {
 		fmt.Print("Cluster Config unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster Config is missing"))
@@ -2340,7 +2407,7 @@ func expandFargateProfilesSelectors(p []interface{}) []FargateProfileSelector {
 	return out
 }
 
-func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not completed have questions in comments
+func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []*ManagedNodeGroup { //not completed have questions in comments
 	obj := &ManagedNodeGroup{}
 	out := make([]*ManagedNodeGroup, len(p))
 	outToSort := make([]ManagedNodeGroup, len(p))
@@ -2349,6 +2416,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 	}
 	log.Println("got to managed node group")
 	for i := range p {
+		prefix2 := prefix + "." + strconv.Itoa(i)
 		in := p[i].(map[string]interface{})
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
@@ -2384,7 +2452,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v)
+			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2+".ssh", true)
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
@@ -2458,15 +2526,9 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 			obj.Bottlerocket = expandNodeGroupBottleRocket(v)
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does (says to remove)
-		if v, ok := in["enable_detailed_monitoring"].(bool); ok && v {
+		if v, ok := in["enable_detailed_monitoring"].(bool); ok {
 			obj.EnableDetailedMonitoring = &v
-		} else {
-			// XXX TODO a temporary fix to make TF work with
-			// 1.10 AirGap controller
-			// remove this in future
-			obj.EnableDetailedMonitoring = nil
 		}
-
 		if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
 			obj.InstanceTypes = toArrayString(v)
 		}
@@ -2547,7 +2609,7 @@ func expandManagedNodeGroupLaunchTempelate(p []interface{}) *LaunchTemplate {
 	return obj
 }
 
-func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have questions in comments
+func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []*NodeGroup { //not completed have questions in comments
 	out := make([]*NodeGroup, len(p))
 	outToSort := make([]NodeGroup, len(p))
 
@@ -2556,6 +2618,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 	}
 
 	for i := range p {
+		prefix2 := prefix + "." + strconv.Itoa(i)
 		in := p[i].(map[string]interface{})
 		obj := NodeGroup{}
 		log.Println("expand_nodegroups")
@@ -2597,7 +2660,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v)
+			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2+".ssh", false)
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
@@ -2672,13 +2735,8 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does
 
-		if v, ok := in["enable_detailed_monitoring"].(bool); ok && v {
+		if v, ok := in["enable_detailed_monitoring"].(bool); ok {
 			obj.EnableDetailedMonitoring = &v
-		} else {
-			// XXX TODO a temporary fix to make TF work with
-			// 1.10 AirGap controller
-			// remove this in future
-			obj.EnableDetailedMonitoring = nil
 		}
 		if v, ok := in["instances_distribution"].([]interface{}); ok && len(v) > 0 {
 			obj.InstancesDistribution = expandNodeGroupInstanceDistribution(v)
@@ -3029,12 +3087,13 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 }
 
 //expand node group ssh function (completed/ kind of)
-func expandNodeGroupSsh(p []interface{}) *NodeGroupSSH {
+func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, prefix string, managed bool) *NodeGroupSSH {
 	obj := &NodeGroupSSH{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
 	if v, ok := in["allow"].(bool); ok {
 		obj.Allow = &v
@@ -3049,7 +3108,9 @@ func expandNodeGroupSsh(p []interface{}) *NodeGroupSSH {
 	if v, ok := in["source_security_group_ids"].([]interface{}); ok && len(v) > 0 {
 		obj.SourceSecurityGroupIDs = toArrayString(v)
 	}
-	if v, ok := in["enable_ssm"].(bool); ok {
+	// Deprecated but still valid to use this API till an alterative is found!
+
+	if v, ok := in["enable_ssm"].(bool); ok && !managed {
 		obj.EnableSSM = &v
 	}
 	//docs dont have field skip endpoint creation but struct does
@@ -3232,11 +3293,11 @@ func expandSubnetSpec(p []interface{}) AZSubnetMapping {
 		if v, ok := in["az"].(string); ok && len(v) > 0 {
 			elem2.AZ = v
 		}
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj[v] = elem2
-		}
 		if v, ok := in["cidr"].(string); ok && len(v) > 0 {
 			elem2.CIDR = v
+		}
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj[v] = elem2
 		}
 	}
 	return obj
@@ -3460,12 +3521,80 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["cni_provider"].(string); ok && len(v) > 0 {
 		obj.CniProvider = v
 	}
+	if v, ok := in["cni_params"].([]interface{}); ok && len(v) > 0 {
+		obj.CniParams = expandCNIParams(v)
+	}
 	if v, ok := in["proxy_config"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.ProxyConfig = toMapString(v)
 	}
 	log.Println("cluster spec cloud_provider: ", obj.CloudProvider)
 
 	return obj
+}
+
+func expandCNIParams(p []interface{}) *CustomCni {
+	obj := &CustomCni{}
+	log.Println("expand CNI params")
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["custom_cni_crd"].(string); ok && len(v) > 0 {
+		obj.CustomCniCidr = v
+	}
+	//@@@what to do for expanding map[string][]object
+	if v, ok := in["custom_cni_crd_spec"].([]interface{}); ok && len(v) > 0 {
+		obj.CustomCniCrdSpec = expandCustomCNISpec(v)
+	}
+	return obj
+}
+
+func expandCustomCNISpec(p []interface{}) CustomCNIMapping {
+	obj := make(CustomCNIMapping)
+	log.Println("expand CNI Mapping")
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		elem2 := []CustomCniSpec{}
+
+		if v, ok := in["cni_spec"].([]interface{}); ok && len(v) > 0 {
+			elem2 = expandCNISpec(v)
+		}
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj[v] = elem2
+		}
+	}
+	log.Println("Mapping Complete: ", obj)
+	return obj
+}
+
+func expandCNISpec(p []interface{}) []CustomCniSpec {
+	out := make([]CustomCniSpec, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		obj := CustomCniSpec{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["subnet"].(string); ok && len(v) > 0 {
+			obj.Subnet = v
+		}
+		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
+			obj.SecurityGroups = toArrayStringSorted(v)
+		}
+
+		out[i] = obj
+	}
+
+	return out
 }
 
 func flattenEKSCluster(in *EKSCluster, p []interface{}) ([]interface{}, error) {
@@ -3555,13 +3684,87 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 	if len(in.CniProvider) > 0 {
 		obj["cni_provider"] = in.CniProvider
 	}
-
+	if in.CniParams != nil {
+		v, ok := obj["cni_params"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["cni_params"] = flattenCNIParams(in.CniParams, v)
+	}
 	if in.ProxyConfig != nil && len(in.ProxyConfig) > 0 {
 		obj["proxy_config"] = toMapInterface(in.ProxyConfig)
 	}
 
 	return []interface{}{obj}, nil
 }
+
+func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.CustomCniCidr) > 0 {
+		obj["custom_cni_crd"] = in.CustomCniCidr
+	}
+	if in.CustomCniCrdSpec != nil {
+		v, ok := obj["custom_cni_crd_spec"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["custom_cni_crd_spec"] = flattenCustomCNISpec(in.CustomCniCrdSpec, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenCustomCNISpec(in CustomCNIMapping, p []interface{}) []interface{} {
+	log.Println("got to flatten custom CNI mapping", len(p))
+	out := make([]interface{}, len(in))
+	i := 0
+	for key, elem := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if elem != nil {
+			v, ok := obj["cni_spec"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["cni_spec"] = flattenCNISpec(elem, v)
+		}
+		if len(key) > 0 {
+			obj["name"] = key
+		}
+		out[i] = obj
+		i += 1
+	}
+	log.Println("finished customCNI mapping")
+	return out
+}
+
+func flattenCNISpec(elem []CustomCniSpec, p []interface{}) []interface{} {
+	if elem == nil {
+		return nil
+	}
+	out := make([]interface{}, len(elem))
+	for i, in := range elem {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Subnet) > 0 {
+			obj["subnet"] = in.Subnet
+		}
+		if len(in.SecurityGroups) > 0 {
+			obj["security_groups"] = toArrayInterfaceSorted(in.SecurityGroups)
+		}
+		out[i] = &obj
+	}
+	return out
+}
+
 func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]interface{}, error) {
 	if in == nil {
 		return nil, fmt.Errorf("%s", "flattenEKSClusterMetaData empty input")

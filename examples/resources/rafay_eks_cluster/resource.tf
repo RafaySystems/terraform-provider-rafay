@@ -128,3 +128,83 @@ resource "rafay_eks_cluster" "ekscluste-advanced" {
     }
   }
 }
+
+resource "rafay_eks_cluster" "ekscluster-custom-cni" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-cluster-3"
+      project = "terraform"
+    }
+    spec {
+      type           = "eks"
+      blueprint      = "default"
+      blueprint_version = "1.12.0"
+      cloud_provider = "eks-role"
+      cni_provider   = "aws-cni"
+      cni_params {
+        custom_cni_crd_spec {
+          name = "us-west-2a"
+          cni_spec {
+            security_groups = ["sg-xxxxxx", "sg-yyyyyy"]
+            subnet = "subnet-zzz"
+          }
+          cni_spec {
+            security_groups = ["sg-cccccc", "sg-dddddd"]
+            subnet = "subnet-kkk"
+          }
+        }
+        custom_cni_crd_spec {
+          name = "us-west-2b"
+          cni_spec {
+            security_groups = ["sg-aaaaaa", "sg-xxxxxx"]
+            subnet = "subnet-qqq"
+          }
+          cni_spec {
+            security_groups = ["sg-cccccc", "sg-dddddd"]
+            subnet = "subnet-www"
+          }
+        }
+      }
+      proxy_config   = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-cluster-1"
+      region  = "us-west-2"
+      version = "1.21"
+    }
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
+      }
+    }
+    node_groups {
+      name       = "ng-1"
+      ami_family = "AmazonLinux2"
+      iam {
+        iam_node_group_with_addon_policies {
+          image_builder = true
+          auto_scaler   = true
+        }
+      }
+      instance_type    = "m5.xlarge"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      private_networking = true
+    }
+  }
+}

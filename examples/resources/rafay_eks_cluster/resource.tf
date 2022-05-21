@@ -11,30 +11,6 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       blueprint_version = "1.12.0"
       cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
-      cni_params {
-        custom_cni_crd_spec {
-          name = "us-west-2a"
-          cni_spec {
-            security_groups = ["sg-xxxxxx", "sg-yyyyyy"]
-            subnet = "subnet-zzz"
-          }
-          cni_spec {
-            security_groups = ["sg-cccccc", "sg-dddddd"]
-            subnet = "subnet-kkk"
-          }
-        }
-        custom_cni_crd_spec {
-          name = "us-west-2b"
-          cni_spec {
-            security_groups = ["sg-aaaaaa", "sg-xxxxxx"]
-            subnet = "subnet-qqq"
-          }
-          cni_spec {
-            security_groups = ["sg-cccccc", "sg-dddddd"]
-            subnet = "subnet-www"
-          }
-        }
-      }
       proxy_config   = {}
     }
   }
@@ -215,7 +191,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
 }
 
 /*
-resource "rafay_eks_cluster" "ekscluste-advanced" {
+resource "rafay_eks_cluster" "ekscluster-advanced" {
   cluster {
     kind = "Cluster"
     metadata {

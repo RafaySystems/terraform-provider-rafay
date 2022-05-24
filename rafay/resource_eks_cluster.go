@@ -166,12 +166,12 @@ func specField() map[string]*schema.Schema {
 
 func customCniField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
-		"custom_cni_crd": {
+		"custom_cni_cidr": {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "Valid variants are: 'IPv4' defines an IP family of v4 to be used when creating a new VPC and cluster., 'IPv6' defines an IP family of v6 to be used when creating a new VPC and cluster..",
 		},
-		"custom_cni_crd_spec": {
+		"custom_cni_cidr_spec": {
 			Type:        schema.TypeList,
 			Required:    true,
 			Description: "contains custom cni networking configurations",
@@ -192,7 +192,7 @@ func customCniSpecField() map[string]*schema.Schema {
 		},
 		"cni_spec": {
 			Type:        schema.TypeList,
-			Required:    true,
+			Optional:    true,
 			Description: "contains custom cni networking configurations",
 			Elem: &schema.Resource{
 				Schema: cniSpecField(),
@@ -3541,11 +3541,11 @@ func expandCNIParams(p []interface{}) *CustomCni {
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["custom_cni_crd"].(string); ok && len(v) > 0 {
+	if v, ok := in["custom_cni_cidr"].(string); ok && len(v) > 0 {
 		obj.CustomCniCidr = v
 	}
 	//@@@what to do for expanding map[string][]object
-	if v, ok := in["custom_cni_crd_spec"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["custom_cni_cidr_spec"].([]interface{}); ok && len(v) > 0 {
 		obj.CustomCniCrdSpec = expandCustomCNISpec(v)
 	}
 	return obj
@@ -3705,14 +3705,14 @@ func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {
 	}
 
 	if len(in.CustomCniCidr) > 0 {
-		obj["custom_cni_crd"] = in.CustomCniCidr
+		obj["custom_cni_cidr"] = in.CustomCniCidr
 	}
 	if in.CustomCniCrdSpec != nil {
-		v, ok := obj["custom_cni_crd_spec"].([]interface{})
+		v, ok := obj["custom_cni_cidr_spec"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["custom_cni_crd_spec"] = flattenCustomCNISpec(in.CustomCniCrdSpec, v)
+		obj["custom_cni_cidr_spec"] = flattenCustomCNISpec(in.CustomCniCrdSpec, v)
 	}
 
 	return []interface{}{obj}

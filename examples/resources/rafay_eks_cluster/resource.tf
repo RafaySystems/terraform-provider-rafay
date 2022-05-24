@@ -143,7 +143,7 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
       cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
       cni_params {
-        custom_cni_cidr_spec {
+        custom_cni_crd_spec {
           name = "us-west-2a"
           cni_spec {
             security_groups = ["sg-xxxxxx", "sg-yyyyyy"]
@@ -154,7 +154,7 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
             subnet = "subnet-kkk"
           }
         }
-        custom_cni_cidr_spec {
+        custom_cni_crd_spec {
           name = "us-west-2b"
           cni_spec {
             security_groups = ["sg-aaaaaa", "sg-xxxxxx"]

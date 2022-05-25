@@ -35,7 +35,7 @@ resource "rafay_repositories" "tfdemorepository2" {
   }
   spec {
     type     = "Git"
-    endpoint = "git://github.com/test/apps.git"
+    endpoint = "git@github.com/test/apps.git"
     credentials {
       private_key = file("key_file")
     }
@@ -120,7 +120,7 @@ resource "rafay_repositories" "tfdemorepository3" {
 ***Optional***
 
 - `ca_cert` - (Block List, Max: 1) The certificate authority to use with the repository. (See [below for nested schema](#nestedblock--spec--options--ca_cert))
-- `insecure` - (Boolean) If set to `true`, enables insecure registry. 
+- `insecure` - (Boolean) If set to `true`, enables insecure repository. 
 
 
 <a id="nestedblock--spec--options--ca_cert"></a>

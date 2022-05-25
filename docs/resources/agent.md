@@ -58,7 +58,7 @@ resource "rafay_agent" "tfdemoagent1" {
 - `type` - (String) The type of agent. Supported values are: `Cluster` and `Docker`. 
 - `cluster` - (Block List, Max: 1) The cluster metadata. (see [below for nested schema](#nestedblock--spec--cluster))
 
-  **Note**: Cluster is required if `Cluster` is set for `type`. 
+  **Note**: Cluster is required if `Cluster` is set for `type`. (see [below for nested schema](#nestedblock--spec--cluster))
 
 
 ***Optional***

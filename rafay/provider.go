@@ -52,10 +52,10 @@ func New(_ string) func() *schema.Provider {
 				"rafay_opa_constraint":    resourceOPAConstraint(),
 				"rafay_secretsealer":      resourceSecretSealer(),
 				"rafay_infra_provisioner": resourceInfraProvisioner(),
+				"rafay_groupassociation":  resourceGroupAssociation(),
+				"rafay_group":             resourceGroup(),
 
 				//"rafay_trigger":          resourceTrigger(),
-				//"rafay_group":            resourceGroup(),
-				//"rafay_groupassociation": resourceGroupAssociation(),
 
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},

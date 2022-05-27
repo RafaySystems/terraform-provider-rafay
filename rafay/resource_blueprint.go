@@ -328,6 +328,10 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 		obj.EnableMonitoring = v
 	}
 
+	if v, ok := in["enable_rook_ceph"].(bool); ok {
+		obj.EnableRookCeph = v
+	}
+
 	if v, ok := in["enable_vm"].(bool); ok {
 		obj.EnableVM = v
 	}
@@ -685,6 +689,11 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 			}
 			obj["monitoring"] = flattenMonitoring(in.Monitoring, v)
 		}
+	}
+
+	if in.EnableRookCeph {
+		obj["enable_rook_ceph"] = in.EnableRookCeph
+		retNil = false
 	}
 
 	if in.EnableVM {

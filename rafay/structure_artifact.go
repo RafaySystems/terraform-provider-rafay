@@ -13,6 +13,7 @@ type artifactTranspose struct {
 	Type string `json:"type,omitempty"`
 
 	Artifact struct {
+		Catalog       string  `protobuf:"bytes,2,opt,name=catalog,proto3" json:"catalog,omitempty"`
 		Repository    string  `protobuf:"bytes,1,opt,name=repository,proto3" json:"repository,omitempty"`
 		Revision      string  `protobuf:"bytes,2,opt,name=revision,proto3" json:"revision,omitempty"`
 		ChartPath     *File   `protobuf:"bytes,3,opt,name=chart_path,proto3" json:"chartPath,omitempty"`
@@ -64,6 +65,10 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 
 		artfct := spew.Sprintf("%+v", in)
 		log.Println("ExpandArtifact in ", artfct)
+		if v, ok := in["catalog"].(string); ok && len(v) > 0 {
+			at.Artifact.Catalog = v
+		}
+
 		if v, ok := in["chart_name"].(string); ok && len(v) > 0 {
 			at.Artifact.ChartName = v
 		}

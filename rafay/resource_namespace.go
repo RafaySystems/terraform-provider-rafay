@@ -215,9 +215,10 @@ func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interf
 	// XXX Debug
 	// n1 = spew.Sprintf("%+v", ns)
 	// log.Println("resourceNamespaceRead ns", n1)
-	if ns.Spec.ResourceQuotas != nil && ns.Spec.ResourceQuotas.Requests != nil && ns.Spec.ResourceQuotas.Requests.Memory != nil {
-		log.Println("resourceNamespaceRead ns.Spec.ResourceQuotas Memory", ns.Spec.ResourceQuotas.Requests.Memory)
-	}
+	/*
+		if ns.Spec.ResourceQuotas != nil {
+			log.Println("resourceNamespaceRead ns.Spec.ResourceQuotas Memory", ns.Spec.ResourceQuotas.MemoryRequests)
+		}*/
 
 	err = flattenNamespace(d, ns)
 	if err != nil {
@@ -354,11 +355,11 @@ func expandNamespaceSpec(p []interface{}) (*infrapb.NamespaceSpec, error) {
 		log.Println("expandNamespaceSpec artifact UnmarshalJSON error ", err)
 		return nil, err
 	}
-
-	if obj.ResourceQuotas != nil && obj.ResourceQuotas.Requests != nil && obj.ResourceQuotas.Requests.Memory != nil {
-		log.Println("expandNamespaceSpec Obj Memory ", obj.ResourceQuotas.Requests.Memory)
-	}
-
+	/*
+		if obj.ResourceQuotas != nil && obj.ResourceQuotas.Requests != nil && obj.ResourceQuotas.Requests.Memory != nil {
+			log.Println("expandNamespaceSpec Obj Memory ", obj.ResourceQuotas.Requests.Memory)
+		}
+	*/
 	log.Println("expandNamespaceSpec Obj", obj)
 	return &obj, nil
 }
@@ -385,15 +386,57 @@ func expandNamespaceResourceQuotas(p []interface{}) *infrapb.NamespaceResourceQu
 	}
 
 	in := p[0].(map[string]interface{})
-	if v, ok := in["requests"].([]interface{}); ok {
-		log.Println("requests v", v)
-		obj.Requests = expandResourceQuantity(v)
+	log.Println("input:", in["config_maps"])
+	if v, ok := in["config_maps"].([]interface{}); ok && len(v) > 0 {
+		obj.ConfigMaps = expandQuantity(v)
 	}
+	log.Println("output", obj.ConfigMaps)
+	if v, ok := in["cpu_limits"].([]interface{}); ok && len(v) > 0 {
+		obj.CpuLimits = expandQuantity(v)
+	}
+	if v, ok := in["cpu_requests"].([]interface{}); ok && len(v) > 0 {
+		obj.CpuRequests = expandQuantity(v)
+	}
+	if v, ok := in["memory_limits"].([]interface{}); ok && len(v) > 0 {
+		obj.MemoryLimits = expandQuantity(v)
+	}
+	if v, ok := in["memory_requests"].([]interface{}); ok && len(v) > 0 {
+		obj.MemoryRequests = expandQuantity(v)
+	}
+	if v, ok := in["persistent_volume_claims"].([]interface{}); ok && len(v) > 0 {
+		obj.PersistentVolumeClaims = expandQuantity(v)
+	}
+	if v, ok := in["pods"].([]interface{}); ok && len(v) > 0 {
+		obj.Pods = expandQuantity(v)
+	}
+	if v, ok := in["replication_controllers"].([]interface{}); ok && len(v) > 0 {
+		obj.ReplicationControllers = expandQuantity(v)
+	}
+	if v, ok := in["secrets"].([]interface{}); ok && len(v) > 0 {
+		obj.Secrets = expandQuantity(v)
+	}
+	if v, ok := in["services"].([]interface{}); ok && len(v) > 0 {
+		obj.Services = expandQuantity(v)
+	}
+	if v, ok := in["services_load_balancers"].([]interface{}); ok && len(v) > 0 {
+		obj.ServicesLoadBalancers = expandQuantity(v)
+	}
+	if v, ok := in["services_node_ports"].([]interface{}); ok && len(v) > 0 {
+		obj.ServicesNodePorts = expandQuantity(v)
+	}
+	if v, ok := in["storage_requests"].([]interface{}); ok && len(v) > 0 {
+		obj.StorageRequests = expandQuantity(v)
+	}
+	/*
+		if v, ok := in["requests"].([]interface{}); ok {
+			log.Println("requests v", v)
+			obj.Requests = expandResourceQuantity(v)
+		}
 
-	if v, ok := in["limits"].([]interface{}); ok {
-		log.Println("limits v", v)
-		obj.Limits = expandResourceQuantity(v)
-	}
+		if v, ok := in["limits"].([]interface{}); ok {
+			log.Println("limits v", v)
+			obj.Limits = expandResourceQuantity(v)
+		}*/
 
 	log.Println("expandNamespaceResourceQuotas obj ", obj)
 	return obj
@@ -530,13 +573,56 @@ func flattenNamespaceResourceQuotas(in *infrapb.NamespaceResourceQuotas) []inter
 	retNil := true
 	obj := make(map[string]interface{})
 
-	if in.Requests != nil {
-		obj["requests"] = flattenResourceQuantity(in.Requests)
+	if in.ConfigMaps != nil {
+		obj["config_maps"] = in.ConfigMaps.String()
 		retNil = false
 	}
-
-	if in.Limits != nil {
-		obj["limits"] = flattenResourceQuantity(in.Limits)
+	if in.CpuLimits != nil {
+		obj["cpu_limits"] = in.CpuLimits.String()
+		retNil = false
+	}
+	if in.CpuRequests != nil {
+		obj["cpu_requests"] = in.CpuRequests.String()
+		retNil = false
+	}
+	if in.MemoryLimits != nil {
+		obj["memory_limits"] = in.MemoryLimits.String()
+		retNil = false
+	}
+	if in.MemoryRequests != nil {
+		obj["memory_requests"] = in.MemoryRequests.String()
+		retNil = false
+	}
+	if in.PersistentVolumeClaims != nil {
+		obj["persistent_volume_claims"] = in.PersistentVolumeClaims.String()
+		retNil = false
+	}
+	if in.Pods != nil {
+		obj["pods"] = in.Pods.String()
+		retNil = false
+	}
+	if in.ReplicationControllers != nil {
+		obj["replication_controllers"] = in.ReplicationControllers.String()
+		retNil = false
+	}
+	if in.Secrets != nil {
+		obj["secrets"] = in.Secrets.String()
+		retNil = false
+	}
+	if in.Services != nil {
+		obj["services"] = in.Services.String()
+		retNil = false
+	}
+	if in.ServicesLoadBalancers != nil {
+		obj["services_load_balancers"] = in.ServicesLoadBalancers.String()
+		retNil = false
+	}
+	if in.ServicesNodePorts != nil {
+		obj["services_node_ports"] = in.ServicesNodePorts.String()
+		retNil = false
+	}
+	if in.StorageRequests != nil {
+		obj["storage_requests"] = in.StorageRequests.String()
 		retNil = false
 	}
 

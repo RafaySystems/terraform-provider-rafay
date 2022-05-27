@@ -133,3 +133,120 @@ resource "rafay_namespace" "namespace" {
     }
   }
 }
+
+resource "rafay_namespace" "namespace" {
+  metadata {
+    name    = "tfdemonamespace3"
+    project = "dev"
+    labels = {
+      "env" = "prod"
+    }
+    annotations = {
+      "logging" = "enabled"
+    }
+  }
+  spec {
+    drift {
+      enabled = true
+    }
+    limit_range {
+      pod {
+        max {
+          cpu {
+            string = "2"
+          }
+          memory {
+            string = "2Gi"
+          }
+        }
+        min {
+          cpu {
+            string = "1"
+          }
+
+          memory {
+            string = "1Gi"
+          }
+        }
+
+        ratio {
+          cpu    = 1
+          memory = 1
+        }
+      }
+      container {
+        default {
+          cpu {
+            string = "1"
+          }
+
+          memory {
+            string = "1Gi"
+          }
+        }
+
+        default_request {
+          cpu {
+            string = "1"
+          }
+
+          memory {
+            string = "1Gi"
+          }
+        }
+
+        max {
+          cpu {
+            string = "2"
+          }
+
+          memory {
+            string = "2Gi"
+          }
+        }
+
+        min {
+          cpu {
+            string = "1"
+          }
+
+          memory {
+            string = "1Gi"
+          }
+        }
+
+        ratio {
+          cpu    = 1
+          memory = 1
+        }
+      }
+    }
+    resource_quotas {
+      limits {
+        cpu {
+          string = "8"
+        }
+        memory {
+          string = "16Gi"
+        }
+
+      }
+      requests {
+        cpu {
+          string = "4"
+        }
+        memory {
+          string = "8Gi"
+        }
+      }
+
+    }
+    /*
+    placement {
+      labels {
+        key   = "rafay.dev/clusterName"
+        value = "cluster_name"
+      }
+    }*/
+  }
+}

@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/systempb"
 	"github.com/RafaySystems/rctl/pkg/config"
+	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
@@ -183,6 +185,23 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 }
 
+func resourceProjectV2Delete(ctx context.Context, projectp *systempb.Project) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	//log.Printf("resourceProjectV2Delete")
+	projectId, err := config.GetProjectIdByName(projectp.Metadata.Name)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	err = project.DeleteProjectById(projectId)
+	if err != nil {
+		log.Printf("delete project error %s", err.Error())
+		return diag.FromErr(err)
+	}
+
+	return diags
+}
+
 func expandProject(in *schema.ResourceData) (*systempb.Project, error) {
 	if in == nil {
 		return nil, fmt.Errorf("%s", "expand Project empty input")
@@ -216,24 +235,80 @@ func expandProjectSpec(p []interface{}) (*systempb.ProjectSpec, error) {
 	// Force dafult to false, to avoid conflict with system default project
 	obj.Default = false
 
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["cluster_resource_quota"].([]interface{}); ok {
+		obj.ClusterResourceQuota = expandProjectResourceQuota(v)
+	}
+
+	if v, ok := in["default_cluster_namespace_quota"].([]interface{}); ok {
+		obj.DefaultClusterNamespaceQuota = expandProjectResourceQuota(v)
+	}
+
 	return obj, nil
 }
 
-func resourceProjectV2Delete(ctx context.Context, projectp *systempb.Project) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	//log.Printf("resourceProjectV2Delete")
-	projectId, err := config.GetProjectIdByName(projectp.Metadata.Name)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	err = project.DeleteProjectById(projectId)
-	if err != nil {
-		log.Printf("delete project error %s", err.Error())
-		return diag.FromErr(err)
+func expandProjectResourceQuota(p []interface{}) *systempb.ProjectResourceQuota {
+	obj := &systempb.ProjectResourceQuota{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
 	}
 
-	return diags
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["cpu_requests"].([]interface{}); ok && len(v) > 0 {
+		obj.CpuRequests = expandQuantity(v)
+	}
+
+	if v, ok := in["memory_requests"].([]interface{}); ok && len(v) > 0 {
+		obj.MemoryRequests = expandQuantity(v)
+	}
+
+	if v, ok := in["cpu_limits"].([]interface{}); ok && len(v) > 0 {
+		obj.CpuLimits = expandQuantity(v)
+	}
+
+	if v, ok := in["memory_limits"].([]interface{}); ok && len(v) > 0 {
+		obj.MemoryLimits = expandQuantity(v)
+	}
+
+	if v, ok := in["config_maps"].([]interface{}); ok && len(v) > 0 {
+		obj.ConfigMaps = expandQuantity(v)
+	}
+
+	if v, ok := in["persistent_volume_claims"].([]interface{}); ok && len(v) > 0 {
+		obj.PersistentVolumeClaims = expandQuantity(v)
+	}
+
+	if v, ok := in["secrets"].([]interface{}); ok && len(v) > 0 {
+		obj.Secrets = expandQuantity(v)
+	}
+
+	if v, ok := in["services"].([]interface{}); ok && len(v) > 0 {
+		obj.Services = expandQuantity(v)
+	}
+
+	if v, ok := in["services_load_balancers"].([]interface{}); ok && len(v) > 0 {
+		obj.ServicesLoadBalancers = expandQuantity(v)
+	}
+
+	if v, ok := in["services_node_ports"].([]interface{}); ok && len(v) > 0 {
+		obj.ServicesNodePorts = expandQuantity(v)
+	}
+
+	if v, ok := in["storage_requests"].([]interface{}); ok && len(v) > 0 {
+		obj.StorageRequests = expandQuantity(v)
+	}
+
+	if v, ok := in["pods"].([]interface{}); ok && len(v) > 0 {
+		obj.Pods = expandQuantity(v)
+	}
+
+	if v, ok := in["replication_controllers"].([]interface{}); ok && len(v) > 0 {
+		obj.ReplicationControllers = expandQuantity(v)
+	}
+
+	return obj
 }
 
 // Flatteners
@@ -278,5 +353,97 @@ func flattenProjectSpec(in *systempb.ProjectSpec, p []interface{}) ([]interface{
 
 	obj["default"] = false
 
+	if in.ClusterResourceQuota != nil {
+		obj["cluster_resource_quota"] = flattenProjectResourceQuota(in.ClusterResourceQuota)
+	}
+
+	if in.DefaultClusterNamespaceQuota != nil {
+		obj["default_cluster_namespace_quota"] = flattenProjectResourceQuota(in.DefaultClusterNamespaceQuota)
+	}
+
 	return []interface{}{obj}, nil
+}
+
+func flattenProjectResourceQuota(in *systempb.ProjectResourceQuota) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	retNil := true
+	obj := make(map[string]interface{})
+
+	if in.ConfigMaps != nil {
+		obj["config_maps"] = in.ConfigMaps.String()
+		retNil = false
+	}
+	if in.CpuLimits != nil {
+		obj["cpu_limits"] = in.CpuLimits.String()
+		retNil = false
+	}
+	if in.CpuRequests != nil {
+		obj["cpu_requests"] = in.CpuRequests.String()
+		retNil = false
+	}
+	if in.MemoryLimits != nil {
+		obj["memory_limits"] = in.MemoryLimits.String()
+		retNil = false
+	}
+	if in.MemoryRequests != nil {
+		obj["memory_requests"] = in.MemoryRequests.String()
+		retNil = false
+	}
+	if in.PersistentVolumeClaims != nil {
+		obj["persistent_volume_claims"] = in.PersistentVolumeClaims.String()
+		retNil = false
+	}
+	if in.Pods != nil {
+		obj["pods"] = in.Pods.String()
+		retNil = false
+	}
+	if in.ReplicationControllers != nil {
+		obj["replication_controllers"] = in.ReplicationControllers.String()
+		retNil = false
+	}
+	if in.Secrets != nil {
+		obj["secrets"] = in.Secrets.String()
+		retNil = false
+	}
+	if in.Services != nil {
+		obj["services"] = in.Services.String()
+		retNil = false
+	}
+	if in.ServicesLoadBalancers != nil {
+		obj["services_load_balancers"] = in.ServicesLoadBalancers.String()
+		retNil = false
+	}
+	if in.ServicesNodePorts != nil {
+		obj["services_node_ports"] = in.ServicesNodePorts.String()
+		retNil = false
+	}
+	if in.StorageRequests != nil {
+		obj["storage_requests"] = in.StorageRequests.String()
+		retNil = false
+	}
+
+	if retNil {
+		return nil
+	}
+
+	return []interface{}{obj}
+}
+
+func getProjectById(id string) (string, error) {
+	log.Printf("get project by id %s", id)
+	auth := config.GetConfig().GetAppAuthProfile()
+	uri := "/auth/v1/projects/"
+	uri = uri + fmt.Sprintf("%s/", id)
+	return auth.AuthAndRequest(uri, "GET", nil)
+}
+
+func getProjectFromResponse(json_data []byte) (*models.Project, error) {
+	var pr models.Project
+	if err := json.Unmarshal(json_data, &pr); err != nil {
+		return nil, err
+	}
+	return &pr, nil
 }

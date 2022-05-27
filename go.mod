@@ -3,22 +3,19 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.17
 
 require (
-	github.com/RafaySystems/rafay-common v1.13.0-beta2
+	github.com/RafaySystems/rafay-common v1.14.0-beta3
 	//github.com/RafaySystems/rafay-common v1.11.0-terraform-2.0.20220301095714-908965fe245a
 	//github.com/RafaySystems/rafay-common v1.10.0-tf-schema-beta1
-	github.com/RafaySystems/rctl v1.13.0-beta1
+	github.com/RafaySystems/rctl v1.14.0-beta1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
+	github.com/goccy/go-yaml v1.9.5
 	github.com/hashicorp/terraform-plugin-docs v0.4.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.1
 	github.com/pkg/errors v0.9.1
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	k8s.io/apimachinery v1.16.4
-)
-
-require (
-	github.com/goccy/go-yaml v1.9.5
 	go.uber.org/zap v1.19.1
+	gopkg.in/yaml.v3 v3.0.0
+	k8s.io/apimachinery v1.16.4
 )
 
 require (
@@ -165,7 +162,8 @@ require (
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220204135822-1c1b9b1eba6a // indirect
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
+	//golang.org/x/sys v0.0.0-20220204135822-1c1b9b1eba6a // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect

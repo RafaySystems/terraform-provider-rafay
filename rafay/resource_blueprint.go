@@ -105,7 +105,7 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		// XXX Debug
 		n1 := spew.Sprintf("%+v", blueprint)
 		log.Println("blueprint apply blueprint:", n1)
-		log.Printf("blueprint apply error")
+		log.Println("blueprint apply error: ", err)
 		return diag.FromErr(err)
 	}
 
@@ -278,7 +278,32 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 		obj.PrivateKubeAPIProxies = expandPrivateKubeAPIProxies(v)
 	}
 
+	if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
+		obj.Placement = expandBlueprintPlacement(v)
+	}
+	pa := spew.Sprintf("%+v", obj.Placement)
+	log.Println("expandBluePrintSpec Placement:", pa)
+
 	return obj, nil
+}
+
+func expandBlueprintPlacement(p []interface{}) *infrapb.BlueprintPlacement {
+	obj := &infrapb.BlueprintPlacement{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["auto_publish"].(bool); ok {
+		obj.AutoPublish = v
+	}
+
+	if v, ok := in["fleet_values"].([]interface{}); ok && len(v) > 0 {
+		obj.FleetValues = toArrayStringSorted(v)
+	}
+
+	return obj
 }
 
 func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
@@ -301,6 +326,10 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 
 	if v, ok := in["enable_monitoring"].(bool); ok {
 		obj.EnableMonitoring = v
+	}
+
+	if v, ok := in["enable_rook_ceph"].(bool); ok {
+		obj.EnableRookCeph = v
 	}
 
 	if v, ok := in["enable_vm"].(bool); ok {
@@ -599,7 +628,32 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["drift"] = flattenDrift(in.Drift)
 	}
 
+	if in.Placement != nil {
+		v, ok := obj["placement"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["placement"] = flattenBlueprintPlacement(in.Placement, v)
+	}
+
 	return []interface{}{obj}, nil
+}
+
+func flattenBlueprintPlacement(in *infrapb.BlueprintPlacement, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["auto_publish"] = in.AutoPublish
+	if in.FleetValues != nil && len(in.FleetValues) > 0 {
+		obj["fleet_values"] = toArrayInterfaceSorted(in.FleetValues)
+	}
+	return []interface{}{obj}
 }
 
 func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interface{} {
@@ -635,6 +689,11 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 			}
 			obj["monitoring"] = flattenMonitoring(in.Monitoring, v)
 		}
+	}
+
+	if in.EnableRookCeph {
+		obj["enable_rook_ceph"] = in.EnableRookCeph
+		retNil = false
 	}
 
 	if in.EnableVM {

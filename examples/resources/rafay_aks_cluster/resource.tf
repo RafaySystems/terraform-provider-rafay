@@ -218,4 +218,3 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
       }
     }
   }
-}

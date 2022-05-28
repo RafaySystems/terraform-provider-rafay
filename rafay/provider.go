@@ -32,6 +32,8 @@ func New(_ string) func() *schema.Provider {
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"rafay_project":          resourceProject(),
+				"rafay_groupassociation": resourceGroupAssociation(),
+				"rafay_group":            resourceGroup(),
 				"rafay_namespace":        resourceNamespace(),
 				"rafay_repositories":     resourceRepositories(),
 				"rafay_agent":            resourceAgent(),

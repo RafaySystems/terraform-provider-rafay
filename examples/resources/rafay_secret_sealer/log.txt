@@ -1,0 +1,1492 @@
+2022-05-31T16:54:24.926+0530 [INFO]  Terraform version: 1.2.1
+2022-05-31T16:54:24.927+0530 [DEBUG] using github.com/hashicorp/go-tfe v1.0.0
+2022-05-31T16:54:24.927+0530 [DEBUG] using github.com/hashicorp/hcl/v2 v2.12.0
+2022-05-31T16:54:24.927+0530 [DEBUG] using github.com/hashicorp/terraform-config-inspect v0.0.0-20210209133302-4fd17a0faac2
+2022-05-31T16:54:24.927+0530 [DEBUG] using github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734
+2022-05-31T16:54:24.927+0530 [DEBUG] using github.com/zclconf/go-cty v1.10.0
+2022-05-31T16:54:24.927+0530 [INFO]  Go runtime version: go1.18.1
+2022-05-31T16:54:24.927+0530 [INFO]  CLI args: []string{"terraform", "init"}
+2022-05-31T16:54:24.927+0530 [TRACE] Stdout is a terminal of width 82
+2022-05-31T16:54:24.927+0530 [TRACE] Stderr is a terminal of width 82
+2022-05-31T16:54:24.927+0530 [TRACE] Stdin is a terminal
+2022-05-31T16:54:24.927+0530 [DEBUG] Attempting to open CLI config file: /home/bharat/.terraformrc
+2022-05-31T16:54:24.927+0530 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
+2022-05-31T16:54:24.927+0530 [DEBUG] checking for credentials in "/home/bharat/.terraform.d/plugins"
+2022-05-31T16:54:24.927+0530 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
+2022-05-31T16:54:24.927+0530 [DEBUG] will search for provider plugins in /home/bharat/.terraform.d/plugins
+2022-05-31T16:54:24.927+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at /home/bharat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
+2022-05-31T16:54:24.927+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for linux_amd64 at /home/bharat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/linux_amd64
+2022-05-31T16:54:24.927+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.0.0 for linux_amd64 at /home/bharat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.0/linux_amd64
+2022-05-31T16:54:24.927+0530 [DEBUG] ignoring non-existing provider search directory /home/bharat/.local/share/terraform/plugins
+2022-05-31T16:54:24.927+0530 [DEBUG] ignoring non-existing provider search directory /usr/share/ubuntu/terraform/plugins
+2022-05-31T16:54:24.927+0530 [DEBUG] ignoring non-existing provider search directory /usr/local/share/terraform/plugins
+2022-05-31T16:54:24.927+0530 [DEBUG] ignoring non-existing provider search directory /usr/share/terraform/plugins
+2022-05-31T16:54:24.927+0530 [DEBUG] ignoring non-existing provider search directory /var/lib/snapd/desktop/terraform/plugins
+2022-05-31T16:54:24.928+0530 [INFO]  CLI command args: []string{"init"}
+2022-05-31T16:54:24.929+0530 [TRACE] Meta.Backend: no config given or present on disk, so returning nil config
+2022-05-31T16:54:24.929+0530 [TRACE] Meta.Backend: backend has not previously been initialized in this working directory
+2022-05-31T16:54:24.929+0530 [DEBUG] New state was assigned lineage "86bbd3ee-c573-c5c1-2c79-9a846a886717"
+2022-05-31T16:54:24.929+0530 [TRACE] Meta.Backend: using default local state only (no backend configuration, and no existing initialized backend)
+2022-05-31T16:54:24.929+0530 [TRACE] Meta.Backend: instantiated backend of type <nil>
+2022-05-31T16:54:24.929+0530 [DEBUG] checking for provisioner in "."
+2022-05-31T16:54:24.933+0530 [DEBUG] checking for provisioner in "/usr/bin"
+2022-05-31T16:54:24.933+0530 [DEBUG] checking for provisioner in "/home/bharat/.terraform.d/plugins"
+2022-05-31T16:54:24.933+0530 [TRACE] Meta.Backend: backend <nil> does not support operations, so wrapping it in a local backend
+2022-05-31T16:54:24.933+0530 [TRACE] backend/local: state manager for workspace "default" will:
+ - read initial snapshot from terraform.tfstate
+ - write new snapshots to terraform.tfstate
+ - create any backup at terraform.tfstate.backup
+2022-05-31T16:54:24.933+0530 [TRACE] statemgr.Filesystem: reading initial snapshot from terraform.tfstate
+2022-05-31T16:54:24.933+0530 [TRACE] statemgr.Filesystem: snapshot file has nil snapshot, but that's okay
+2022-05-31T16:54:24.933+0530 [TRACE] statemgr.Filesystem: read nil snapshot
+2022-05-31T16:54:24.934+0530 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
+2022-05-31T16:54:24.934+0530 [TRACE] getproviders.SearchLocalDirectory: failed to resolve symlinks for .terraform/providers: lstat .terraform: no such file or directory
+2022-05-31T16:54:24.934+0530 [TRACE] providercache.fillMetaCache: error while scanning directory .terraform/providers: cannot search .terraform/providers: lstat .terraform/providers: no such file or directory
+2022-05-31T16:54:24.934+0530 [TRACE] providercache.Dir.InstallPackage: installing registry.terraform.io/rafay/rafay v1.0.0 from /home/bharat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.0/linux_amd64
+2022-05-31T16:54:24.934+0530 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
+2022-05-31T16:54:24.934+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.0.0 for linux_amd64 at .terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64
+2022-05-31T16:54:24.934+0530 [TRACE] providercache.fillMetaCache: including .terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64 as a candidate package for registry.terraform.io/rafay/rafay 1.0.0
+2022-05-31T16:54:32.146+0530 [INFO]  Terraform version: 1.2.1
+2022-05-31T16:54:32.146+0530 [DEBUG] using github.com/hashicorp/go-tfe v1.0.0
+2022-05-31T16:54:32.146+0530 [DEBUG] using github.com/hashicorp/hcl/v2 v2.12.0
+2022-05-31T16:54:32.146+0530 [DEBUG] using github.com/hashicorp/terraform-config-inspect v0.0.0-20210209133302-4fd17a0faac2
+2022-05-31T16:54:32.146+0530 [DEBUG] using github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734
+2022-05-31T16:54:32.146+0530 [DEBUG] using github.com/zclconf/go-cty v1.10.0
+2022-05-31T16:54:32.146+0530 [INFO]  Go runtime version: go1.18.1
+2022-05-31T16:54:32.146+0530 [INFO]  CLI args: []string{"terraform", "plan"}
+2022-05-31T16:54:32.146+0530 [TRACE] Stdout is a terminal of width 82
+2022-05-31T16:54:32.146+0530 [TRACE] Stderr is a terminal of width 82
+2022-05-31T16:54:32.146+0530 [TRACE] Stdin is a terminal
+2022-05-31T16:54:32.146+0530 [DEBUG] Attempting to open CLI config file: /home/bharat/.terraformrc
+2022-05-31T16:54:32.146+0530 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
+2022-05-31T16:54:32.146+0530 [DEBUG] checking for credentials in "/home/bharat/.terraform.d/plugins"
+2022-05-31T16:54:32.146+0530 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
+2022-05-31T16:54:32.146+0530 [DEBUG] will search for provider plugins in /home/bharat/.terraform.d/plugins
+2022-05-31T16:54:32.146+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at /home/bharat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
+2022-05-31T16:54:32.146+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for linux_amd64 at /home/bharat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/linux_amd64
+2022-05-31T16:54:32.146+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.0.0 for linux_amd64 at /home/bharat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.0/linux_amd64
+2022-05-31T16:54:32.147+0530 [DEBUG] ignoring non-existing provider search directory /home/bharat/.local/share/terraform/plugins
+2022-05-31T16:54:32.147+0530 [DEBUG] ignoring non-existing provider search directory /usr/share/ubuntu/terraform/plugins
+2022-05-31T16:54:32.147+0530 [DEBUG] ignoring non-existing provider search directory /usr/local/share/terraform/plugins
+2022-05-31T16:54:32.147+0530 [DEBUG] ignoring non-existing provider search directory /usr/share/terraform/plugins
+2022-05-31T16:54:32.147+0530 [DEBUG] ignoring non-existing provider search directory /var/lib/snapd/desktop/terraform/plugins
+2022-05-31T16:54:32.147+0530 [INFO]  CLI command args: []string{"plan"}
+2022-05-31T16:54:32.148+0530 [TRACE] Meta.Backend: no config given or present on disk, so returning nil config
+2022-05-31T16:54:32.148+0530 [TRACE] Meta.Backend: backend has not previously been initialized in this working directory
+2022-05-31T16:54:32.148+0530 [DEBUG] New state was assigned lineage "106de703-755c-0a7d-0d81-f1bbe40cc99e"
+2022-05-31T16:54:32.148+0530 [TRACE] Meta.Backend: using default local state only (no backend configuration, and no existing initialized backend)
+2022-05-31T16:54:32.148+0530 [TRACE] Meta.Backend: instantiated backend of type <nil>
+2022-05-31T16:54:32.148+0530 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
+2022-05-31T16:54:32.148+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.0.0 for linux_amd64 at .terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64
+2022-05-31T16:54:32.148+0530 [TRACE] providercache.fillMetaCache: including .terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64 as a candidate package for registry.terraform.io/rafay/rafay 1.0.0
+2022-05-31T16:54:32.327+0530 [DEBUG] checking for provisioner in "."
+2022-05-31T16:54:32.330+0530 [DEBUG] checking for provisioner in "/usr/bin"
+2022-05-31T16:54:32.330+0530 [DEBUG] checking for provisioner in "/home/bharat/.terraform.d/plugins"
+2022-05-31T16:54:32.331+0530 [TRACE] Meta.Backend: backend <nil> does not support operations, so wrapping it in a local backend
+2022-05-31T16:54:32.331+0530 [INFO]  backend/local: starting Plan operation
+2022-05-31T16:54:32.331+0530 [TRACE] backend/local: requesting state manager for workspace "default"
+2022-05-31T16:54:32.331+0530 [TRACE] backend/local: state manager for workspace "default" will:
+ - read initial snapshot from terraform.tfstate
+ - write new snapshots to terraform.tfstate
+ - create any backup at terraform.tfstate.backup
+2022-05-31T16:54:32.331+0530 [TRACE] backend/local: requesting state lock for workspace "default"
+2022-05-31T16:54:32.331+0530 [TRACE] statemgr.Filesystem: preparing to manage state snapshots at terraform.tfstate
+2022-05-31T16:54:32.331+0530 [TRACE] statemgr.Filesystem: no previously-stored snapshot exists
+2022-05-31T16:54:32.331+0530 [TRACE] statemgr.Filesystem: locking terraform.tfstate using fcntl flock
+2022-05-31T16:54:32.331+0530 [TRACE] statemgr.Filesystem: writing lock metadata to .terraform.tfstate.lock.info
+2022-05-31T16:54:32.331+0530 [TRACE] backend/local: reading remote state for workspace "default"
+2022-05-31T16:54:32.331+0530 [TRACE] statemgr.Filesystem: reading latest snapshot from terraform.tfstate
+2022-05-31T16:54:32.331+0530 [TRACE] statemgr.Filesystem: snapshot file has nil snapshot, but that's okay
+2022-05-31T16:54:32.331+0530 [TRACE] statemgr.Filesystem: read nil snapshot
+2022-05-31T16:54:32.331+0530 [TRACE] backend/local: populating backend.LocalRun for current working directory
+2022-05-31T16:54:32.331+0530 [TRACE] Config.VerifyDependencySelections: provider registry.terraform.io/rafay/rafay has 1.0.0 to satisfy ">= 0.1.0"
+2022-05-31T16:54:32.331+0530 [TRACE] terraform.NewContext: starting
+2022-05-31T16:54:32.331+0530 [TRACE] terraform.NewContext: complete
+2022-05-31T16:54:32.331+0530 [TRACE] backend/local: requesting interactive input, if necessary
+2022-05-31T16:54:32.331+0530 [TRACE] LoadSchemas: retrieving schema for provider type "registry.terraform.io/rafay/rafay"
+2022-05-31T16:54:32.331+0530 [TRACE] terraform.contextPlugins: Initializing provider "registry.terraform.io/rafay/rafay" to read its schema
+2022-05-31T16:54:32.331+0530 [DEBUG] created provider logger: level=trace
+2022-05-31T16:54:32.331+0530 [INFO]  provider: configuring client automatic mTLS
+2022-05-31T16:54:32.348+0530 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay]
+2022-05-31T16:54:32.348+0530 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109183
+2022-05-31T16:54:32.348+0530 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay
+2022-05-31T16:54:32.368+0530 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-05-31T16:54:32.367+0530
+2022-05-31T16:54:32.383+0530 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/tmp/plugin932015101 network=unix timestamp=2022-05-31T16:54:32.383+0530
+2022-05-31T16:54:32.383+0530 [DEBUG] provider: using plugin: version=5
+2022-05-31T16:54:32.404+0530 [TRACE] GRPCProvider: GetProviderSchema
+2022-05-31T16:54:32.404+0530 [TRACE] provider.stdio: waiting for stdio data
+2022-05-31T16:54:32.410+0530 [TRACE] GRPCProvider: Close
+2022-05-31T16:54:32.410+0530 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2022-05-31T16:54:32.412+0530 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109183
+2022-05-31T16:54:32.412+0530 [DEBUG] provider: plugin exited
+2022-05-31T16:54:32.412+0530 [TRACE] Context.Input: Prompting for provider arguments
+2022-05-31T16:54:32.412+0530 [TRACE] Context.Input: Provider provider.rafay declared at providers.tf:10,1-17
+2022-05-31T16:54:32.412+0530 [TRACE] Context.Input: Input for provider.rafay: map[string]cty.Value{}
+2022-05-31T16:54:32.412+0530 [TRACE] backend/local: running validation operation
+2022-05-31T16:54:32.412+0530 [DEBUG] Building and walking validate graph
+2022-05-31T16:54:32.412+0530 [TRACE] Executing graph transform *terraform.ConfigTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] ConfigTransformer: Starting for path:
+2022-05-31T16:54:32.412+0530 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+  ------
+2022-05-31T16:54:32.412+0530 [TRACE] Executing graph transform *terraform.RootVariableTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.412+0530 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
+2022-05-31T16:54:32.412+0530 [TRACE] Executing graph transform *terraform.LocalTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
+2022-05-31T16:54:32.412+0530 [TRACE] Executing graph transform *terraform.OutputTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
+2022-05-31T16:54:32.412+0530 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceTransformer (no changes)
+2022-05-31T16:54:32.412+0530 [TRACE] Executing graph transform *terraform.StateTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] StateTransformer: creating nodes for deposed instance objects only
+2022-05-31T16:54:32.412+0530 [TRACE] Completed graph transform *terraform.StateTransformer (no changes)
+2022-05-31T16:54:32.412+0530 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2022-05-31T16:54:32.412+0530 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
+2022-05-31T16:54:32.412+0530 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_secretsealer.tfdemoproject1" (*terraform.NodeValidatableResource) config from resource.tf:1,1-47
+2022-05-31T16:54:32.412+0530 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:32.412+0530 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
+2022-05-31T16:54:32.412+0530 [TRACE] Executing graph transform *terraform.graphTransformerMulti
+2022-05-31T16:54:32.412+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:10,1-17
+2022-05-31T16:54:32.412+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.412+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
+2022-05-31T16:54:32.412+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:32.412+0530 [DEBUG] ProviderTransformer: "rafay_secretsealer.tfdemoproject1" (*terraform.NodeValidatableResource) needs provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:32.412+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.412+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
+2022-05-31T16:54:32.412+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
+2022-05-31T16:54:32.412+0530 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.412+0530 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
+2022-05-31T16:54:32.413+0530 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
+2022-05-31T16:54:32.413+0530 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
+2022-05-31T16:54:32.413+0530 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:32.413+0530 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:32.413+0530 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
+2022-05-31T16:54:32.413+0530 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
+2022-05-31T16:54:32.413+0530 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
+2022-05-31T16:54:32.413+0530 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2022-05-31T16:54:32.413+0530 [DEBUG] ReferenceTransformer: "rafay_secretsealer.tfdemoproject1" references: []
+2022-05-31T16:54:32.413+0530 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
+2022-05-31T16:54:32.413+0530 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
+2022-05-31T16:54:32.413+0530 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.413+0530 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
+2022-05-31T16:54:32.413+0530 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
+2022-05-31T16:54:32.413+0530 [TRACE] Executing graph transform *terraform.attachDataResourceDependsOnTransformer
+2022-05-31T16:54:32.413+0530 [TRACE] Completed graph transform *terraform.attachDataResourceDependsOnTransformer (no changes)
+2022-05-31T16:54:32.413+0530 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2022-05-31T16:54:32.413+0530 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2022-05-31T16:54:32.413+0530 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
+2022-05-31T16:54:32.413+0530 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
+2022-05-31T16:54:32.413+0530 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
+2022-05-31T16:54:32.413+0530 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.413+0530 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
+2022-05-31T16:54:32.413+0530 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.413+0530 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
+2022-05-31T16:54:32.413+0530 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.413+0530 [DEBUG] Starting graph walk: walkValidate
+2022-05-31T16:54:32.413+0530 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
+2022-05-31T16:54:32.413+0530 [TRACE] NodeRootVariable: evaluating var.rafay_config_file
+2022-05-31T16:54:32.413+0530 [TRACE] prepareFinalInputVariableValue: preparing var.rafay_config_file
+2022-05-31T16:54:32.413+0530 [TRACE] prepareFinalInputVariableValue: var.rafay_config_file has a default value
+2022-05-31T16:54:32.413+0530 [TRACE] BuiltinEvalContext: Storing final value for variable var.rafay_config_file
+2022-05-31T16:54:32.413+0530 [TRACE] evalVariableValidations: no validation rules declared for var.rafay_config_file, so skipping
+2022-05-31T16:54:32.413+0530 [TRACE] vertex "var.rafay_config_file": visit complete
+2022-05-31T16:54:32.413+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
+2022-05-31T16:54:32.413+0530 [DEBUG] created provider logger: level=trace
+2022-05-31T16:54:32.413+0530 [INFO]  provider: configuring client automatic mTLS
+2022-05-31T16:54:32.429+0530 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay]
+2022-05-31T16:54:32.429+0530 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109196
+2022-05-31T16:54:32.429+0530 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay
+2022-05-31T16:54:32.450+0530 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-05-31T16:54:32.450+0530
+2022-05-31T16:54:32.465+0530 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/tmp/plugin4190537791 network=unix timestamp=2022-05-31T16:54:32.465+0530
+2022-05-31T16:54:32.465+0530 [DEBUG] provider: using plugin: version=5
+2022-05-31T16:54:32.486+0530 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:32.486+0530 [TRACE] NodeApplyableProvider: validating configuration for provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:32.486+0530 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
+2022-05-31T16:54:32.486+0530 [TRACE] GRPCProvider: GetProviderSchema
+2022-05-31T16:54:32.486+0530 [TRACE] provider.stdio: waiting for stdio data
+2022-05-31T16:54:32.491+0530 [TRACE] GRPCProvider: ValidateProviderConfig
+2022-05-31T16:54:32.496+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
+2022-05-31T16:54:32.496+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": starting visit (*terraform.NodeValidatableResource)
+2022-05-31T16:54:32.496+0530 [TRACE] GRPCProvider: ValidateResourceConfig
+2022-05-31T16:54:32.497+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": visit complete
+2022-05-31T16:54:32.497+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": starting visit (*terraform.graphNodeCloseProvider)
+2022-05-31T16:54:32.497+0530 [TRACE] GRPCProvider: Close
+2022-05-31T16:54:32.498+0530 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2022-05-31T16:54:32.500+0530 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109196
+2022-05-31T16:54:32.500+0530 [DEBUG] provider: plugin exited
+2022-05-31T16:54:32.500+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": visit complete
+2022-05-31T16:54:32.500+0530 [TRACE] vertex "root": starting visit (*terraform.nodeCloseModule)
+2022-05-31T16:54:32.500+0530 [TRACE] vertex "root": visit complete
+2022-05-31T16:54:32.500+0530 [INFO]  backend/local: plan calling Plan
+2022-05-31T16:54:32.500+0530 [DEBUG] Building and walking plan graph for NormalMode
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.ConfigTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] ConfigTransformer: Starting for path:
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+  ------
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.RootVariableTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.LocalTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.OutputTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.StateTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] StateTransformer: creating nodes for deposed instance objects only
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.StateTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_secretsealer.tfdemoproject1 (expand)" (*terraform.nodeExpandPlannableResource) config from resource.tf:1,1-47
+2022-05-31T16:54:32.500+0530 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.graphTransformerMulti
+2022-05-31T16:54:32.500+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:10,1-17
+2022-05-31T16:54:32.500+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.500+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:32.500+0530 [DEBUG] ProviderTransformer: "rafay_secretsealer.tfdemoproject1 (expand)" (*terraform.nodeExpandPlannableResource) needs provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:32.500+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.500+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:32.500+0530 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
+2022-05-31T16:54:32.500+0530 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
+2022-05-31T16:54:32.500+0530 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2022-05-31T16:54:32.500+0530 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
+2022-05-31T16:54:32.501+0530 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
+2022-05-31T16:54:32.501+0530 [DEBUG] ReferenceTransformer: "rafay_secretsealer.tfdemoproject1 (expand)" references: []
+2022-05-31T16:54:32.501+0530 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.501+0530 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
+2022-05-31T16:54:32.501+0530 [TRACE] AttachDependenciesTransformer: rafay_secretsealer.tfdemoproject1 depends on []
+2022-05-31T16:54:32.501+0530 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
+2022-05-31T16:54:32.501+0530 [TRACE] Executing graph transform *terraform.attachDataResourceDependsOnTransformer
+2022-05-31T16:54:32.501+0530 [TRACE] Completed graph transform *terraform.attachDataResourceDependsOnTransformer (no changes)
+2022-05-31T16:54:32.501+0530 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2022-05-31T16:54:32.501+0530 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2022-05-31T16:54:32.501+0530 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
+2022-05-31T16:54:32.501+0530 [TRACE] ForcedCBDTransformer: "rafay_secretsealer.tfdemoproject1 (expand)" (*terraform.nodeExpandPlannableResource) has no CBD descendent, so skipping
+2022-05-31T16:54:32.501+0530 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
+2022-05-31T16:54:32.501+0530 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
+2022-05-31T16:54:32.501+0530 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.501+0530 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
+2022-05-31T16:54:32.501+0530 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.501+0530 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
+2022-05-31T16:54:32.501+0530 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:32.501+0530 [DEBUG] Starting graph walk: walkPlan
+2022-05-31T16:54:32.501+0530 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
+2022-05-31T16:54:32.501+0530 [TRACE] NodeRootVariable: evaluating var.rafay_config_file
+2022-05-31T16:54:32.501+0530 [TRACE] prepareFinalInputVariableValue: preparing var.rafay_config_file
+2022-05-31T16:54:32.501+0530 [TRACE] prepareFinalInputVariableValue: var.rafay_config_file has a default value
+2022-05-31T16:54:32.501+0530 [TRACE] prepareFinalInputVariableValue: var.rafay_config_file has no defined value
+2022-05-31T16:54:32.501+0530 [TRACE] BuiltinEvalContext: Storing final value for variable var.rafay_config_file
+2022-05-31T16:54:32.501+0530 [TRACE] evalVariableValidations: no validation rules declared for var.rafay_config_file, so skipping
+2022-05-31T16:54:32.501+0530 [TRACE] vertex "var.rafay_config_file": visit complete
+2022-05-31T16:54:32.501+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
+2022-05-31T16:54:32.501+0530 [DEBUG] created provider logger: level=trace
+2022-05-31T16:54:32.501+0530 [INFO]  provider: configuring client automatic mTLS
+2022-05-31T16:54:32.517+0530 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay]
+2022-05-31T16:54:32.517+0530 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109209
+2022-05-31T16:54:32.517+0530 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay
+2022-05-31T16:54:32.537+0530 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-05-31T16:54:32.537+0530
+2022-05-31T16:54:32.553+0530 [DEBUG] provider: using plugin: version=5
+2022-05-31T16:54:32.553+0530 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/tmp/plugin1710498816 network=unix timestamp=2022-05-31T16:54:32.553+0530
+2022-05-31T16:54:32.572+0530 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:32.572+0530 [TRACE] NodeApplyableProvider: configuring provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:32.572+0530 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
+2022-05-31T16:54:32.572+0530 [TRACE] GRPCProvider: GetProviderSchema
+2022-05-31T16:54:32.572+0530 [TRACE] provider.stdio: waiting for stdio data
+2022-05-31T16:54:32.577+0530 [TRACE] GRPCProvider: ValidateProviderConfig
+2022-05-31T16:54:32.582+0530 [TRACE] GRPCProvider: ConfigureProvider
+2022-05-31T16:54:32.582+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:32 rafay provider config file /home/bharat/.rafay/cli/config.json: timestamp=2022-05-31T16:54:32.582+0530
+2022-05-31T16:54:32.582+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:32 rafay provider config file absolute path /home/bharat/.rafay/cli/config.json: timestamp=2022-05-31T16:54:32.582+0530
+2022-05-31T16:54:35.301+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
+2022-05-31T16:54:35.301+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": starting visit (*terraform.nodeExpandPlannableResource)
+2022-05-31T16:54:35.301+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": expanding dynamic subgraph
+2022-05-31T16:54:35.301+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": entering dynamic subgraph
+2022-05-31T16:54:35.301+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": starting visit (*terraform.NodePlannableResource)
+2022-05-31T16:54:35.301+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": expanding dynamic subgraph
+2022-05-31T16:54:35.301+0530 [TRACE] Executing graph transform *terraform.ResourceCountTransformer
+2022-05-31T16:54:35.301+0530 [TRACE] ResourceCountTransformer: adding rafay_secretsealer.tfdemoproject1 as *terraform.NodePlannableResourceInstance
+2022-05-31T16:54:35.301+0530 [TRACE] Completed graph transform *terraform.ResourceCountTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodePlannableResourceInstance
+  ------
+2022-05-31T16:54:35.301+0530 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceCountTransformer
+2022-05-31T16:54:35.301+0530 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceCountTransformer (no changes)
+2022-05-31T16:54:35.301+0530 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2022-05-31T16:54:35.301+0530 [DEBUG] Resource instance state not found for node "rafay_secretsealer.tfdemoproject1", instance rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.301+0530 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2022-05-31T16:54:35.301+0530 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2022-05-31T16:54:35.301+0530 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2022-05-31T16:54:35.301+0530 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2022-05-31T16:54:35.301+0530 [DEBUG] ReferenceTransformer: "rafay_secretsealer.tfdemoproject1" references: []
+2022-05-31T16:54:35.301+0530 [TRACE] Completed graph transform *terraform.ReferenceTransformer (no changes)
+2022-05-31T16:54:35.301+0530 [TRACE] Executing graph transform *terraform.RootTransformer
+2022-05-31T16:54:35.301+0530 [TRACE] Completed graph transform *terraform.RootTransformer (no changes)
+2022-05-31T16:54:35.301+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": entering dynamic subgraph
+2022-05-31T16:54:35.302+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": starting visit (*terraform.NodePlannableResourceInstance)
+2022-05-31T16:54:35.302+0530 [TRACE] readResourceInstanceState: reading state for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.302+0530 [TRACE] readResourceInstanceState: no state present for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.302+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to prevRunState for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.302+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.302+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to refreshState for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.302+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.302+0530 [TRACE] NodeAbstractResourceInstance.refresh for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.302+0530 [DEBUG] refresh: rafay_secretsealer.tfdemoproject1: no state, so not refreshing
+2022-05-31T16:54:35.302+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to refreshState for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.302+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.302+0530 [TRACE] Re-validating config for "rafay_secretsealer.tfdemoproject1"
+2022-05-31T16:54:35.302+0530 [TRACE] GRPCProvider: ValidateResourceConfig
+2022-05-31T16:54:35.304+0530 [TRACE] GRPCProvider: PlanResourceChange
+2022-05-31T16:54:35.306+0530 [TRACE] writeChange: recorded Create change for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.306+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to workingState for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.306+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: writing state object for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.306+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": visit complete
+2022-05-31T16:54:35.306+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": dynamic subgraph completed successfully
+2022-05-31T16:54:35.306+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": visit complete
+2022-05-31T16:54:35.306+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": dynamic subgraph completed successfully
+2022-05-31T16:54:35.306+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": visit complete
+2022-05-31T16:54:35.306+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": starting visit (*terraform.graphNodeCloseProvider)
+2022-05-31T16:54:35.306+0530 [TRACE] GRPCProvider: Close
+2022-05-31T16:54:35.307+0530 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2022-05-31T16:54:35.309+0530 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109209
+2022-05-31T16:54:35.309+0530 [DEBUG] provider: plugin exited
+2022-05-31T16:54:35.309+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": visit complete
+2022-05-31T16:54:35.309+0530 [TRACE] vertex "root": starting visit (*terraform.nodeCloseModule)
+2022-05-31T16:54:35.309+0530 [TRACE] vertex "root": visit complete
+2022-05-31T16:54:35.309+0530 [TRACE] LoadSchemas: retrieving schema for provider type "registry.terraform.io/rafay/rafay"
+2022-05-31T16:54:35.309+0530 [DEBUG] building apply graph to check for errors
+2022-05-31T16:54:35.309+0530 [TRACE] Executing graph transform *terraform.ConfigTransformer
+2022-05-31T16:54:35.309+0530 [TRACE] ConfigTransformer: Starting for path:
+2022-05-31T16:54:35.309+0530 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  ------
+2022-05-31T16:54:35.309+0530 [TRACE] Executing graph transform *terraform.RootVariableTransformer
+2022-05-31T16:54:35.309+0530 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:35.309+0530 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
+2022-05-31T16:54:35.309+0530 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
+2022-05-31T16:54:35.309+0530 [TRACE] Executing graph transform *terraform.LocalTransformer
+2022-05-31T16:54:35.309+0530 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
+2022-05-31T16:54:35.309+0530 [TRACE] Executing graph transform *terraform.OutputTransformer
+2022-05-31T16:54:35.309+0530 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
+2022-05-31T16:54:35.309+0530 [TRACE] Executing graph transform *terraform.DiffTransformer
+2022-05-31T16:54:35.309+0530 [TRACE] DiffTransformer starting
+2022-05-31T16:54:35.309+0530 [TRACE] DiffTransformer: found Create change for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.309+0530 [TRACE] DiffTransformer: rafay_secretsealer.tfdemoproject1 will be represented by rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.309+0530 [TRACE] DiffTransformer complete
+2022-05-31T16:54:35.309+0530 [TRACE] Completed graph transform *terraform.DiffTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:35.309+0530 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2022-05-31T16:54:35.309+0530 [DEBUG] Resource state not found for node "rafay_secretsealer.tfdemoproject1", instance rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.309+0530 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2022-05-31T16:54:35.309+0530 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
+2022-05-31T16:54:35.309+0530 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
+2022-05-31T16:54:35.309+0530 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
+2022-05-31T16:54:35.309+0530 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_secretsealer.tfdemoproject1 (expand)" (*terraform.nodeExpandApplyableResource) config from resource.tf:1,1-47
+2022-05-31T16:54:35.309+0530 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:35.309+0530 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_secretsealer.tfdemoproject1" (*terraform.NodeApplyableResourceInstance) config from resource.tf:1,1-47
+2022-05-31T16:54:35.309+0530 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.309+0530 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
+2022-05-31T16:54:35.309+0530 [TRACE] Executing graph transform *terraform.graphTransformerMulti
+2022-05-31T16:54:35.310+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:10,1-17
+2022-05-31T16:54:35.310+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:35.310+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
+2022-05-31T16:54:35.310+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.310+0530 [DEBUG] ProviderTransformer: "rafay_secretsealer.tfdemoproject1" (*terraform.NodeApplyableResourceInstance) needs provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:35.310+0530 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:35.310+0530 [DEBUG] ProviderTransformer: "rafay_secretsealer.tfdemoproject1 (expand)" (*terraform.nodeExpandApplyableResource) needs provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:35.310+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:35.310+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:35.310+0530 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:35.310+0530 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2022-05-31T16:54:35.310+0530 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
+2022-05-31T16:54:35.310+0530 [DEBUG] ReferenceTransformer: "rafay_secretsealer.tfdemoproject1 (expand)" references: []
+2022-05-31T16:54:35.310+0530 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
+2022-05-31T16:54:35.310+0530 [DEBUG] ReferenceTransformer: "rafay_secretsealer.tfdemoproject1" references: []
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] AttachDependenciesTransformer: rafay_secretsealer.tfdemoproject1 depends on []
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] ForcedCBDTransformer: "rafay_secretsealer.tfdemoproject1" (*terraform.NodeApplyableResourceInstance) has no CBD descendent, so skipping
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.DestroyEdgeTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.DestroyEdgeTransformer (no changes)
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.CBDEdgeTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.CBDEdgeTransformer (no changes)
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.pruneUnusedNodesTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.pruneUnusedNodesTransformer (no changes)
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:35.310+0530 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
+2022-05-31T16:54:35.310+0530 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:35.310+0530 [INFO]  backend/local: plan operation completed
+2022-05-31T16:54:35.310+0530 [TRACE] LoadSchemas: retrieving schema for provider type "registry.terraform.io/rafay/rafay"
+2022-05-31T16:54:35.311+0530 [TRACE] statemgr.Filesystem: removing lock metadata file .terraform.tfstate.lock.info
+2022-05-31T16:54:35.311+0530 [TRACE] statemgr.Filesystem: unlocking terraform.tfstate using fcntl flock
+2022-05-31T16:54:40.669+0530 [INFO]  Terraform version: 1.2.1
+2022-05-31T16:54:40.669+0530 [DEBUG] using github.com/hashicorp/go-tfe v1.0.0
+2022-05-31T16:54:40.669+0530 [DEBUG] using github.com/hashicorp/hcl/v2 v2.12.0
+2022-05-31T16:54:40.669+0530 [DEBUG] using github.com/hashicorp/terraform-config-inspect v0.0.0-20210209133302-4fd17a0faac2
+2022-05-31T16:54:40.669+0530 [DEBUG] using github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734
+2022-05-31T16:54:40.669+0530 [DEBUG] using github.com/zclconf/go-cty v1.10.0
+2022-05-31T16:54:40.669+0530 [INFO]  Go runtime version: go1.18.1
+2022-05-31T16:54:40.669+0530 [INFO]  CLI args: []string{"terraform", "apply"}
+2022-05-31T16:54:40.669+0530 [TRACE] Stdout is a terminal of width 82
+2022-05-31T16:54:40.669+0530 [TRACE] Stderr is a terminal of width 82
+2022-05-31T16:54:40.669+0530 [TRACE] Stdin is a terminal
+2022-05-31T16:54:40.669+0530 [DEBUG] Attempting to open CLI config file: /home/bharat/.terraformrc
+2022-05-31T16:54:40.669+0530 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
+2022-05-31T16:54:40.669+0530 [DEBUG] checking for credentials in "/home/bharat/.terraform.d/plugins"
+2022-05-31T16:54:40.669+0530 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
+2022-05-31T16:54:40.669+0530 [DEBUG] will search for provider plugins in /home/bharat/.terraform.d/plugins
+2022-05-31T16:54:40.669+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at /home/bharat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
+2022-05-31T16:54:40.669+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for linux_amd64 at /home/bharat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/linux_amd64
+2022-05-31T16:54:40.669+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.0.0 for linux_amd64 at /home/bharat/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.0/linux_amd64
+2022-05-31T16:54:40.669+0530 [DEBUG] ignoring non-existing provider search directory /home/bharat/.local/share/terraform/plugins
+2022-05-31T16:54:40.669+0530 [DEBUG] ignoring non-existing provider search directory /usr/share/ubuntu/terraform/plugins
+2022-05-31T16:54:40.669+0530 [DEBUG] ignoring non-existing provider search directory /usr/local/share/terraform/plugins
+2022-05-31T16:54:40.669+0530 [DEBUG] ignoring non-existing provider search directory /usr/share/terraform/plugins
+2022-05-31T16:54:40.669+0530 [DEBUG] ignoring non-existing provider search directory /var/lib/snapd/desktop/terraform/plugins
+2022-05-31T16:54:40.669+0530 [INFO]  CLI command args: []string{"apply"}
+2022-05-31T16:54:40.670+0530 [TRACE] Meta.Backend: no config given or present on disk, so returning nil config
+2022-05-31T16:54:40.670+0530 [TRACE] Meta.Backend: backend has not previously been initialized in this working directory
+2022-05-31T16:54:40.670+0530 [DEBUG] New state was assigned lineage "6de90f1d-bb79-5f62-bfe6-fb498eabf131"
+2022-05-31T16:54:40.670+0530 [TRACE] Meta.Backend: using default local state only (no backend configuration, and no existing initialized backend)
+2022-05-31T16:54:40.670+0530 [TRACE] Meta.Backend: instantiated backend of type <nil>
+2022-05-31T16:54:40.670+0530 [TRACE] providercache.fillMetaCache: scanning directory .terraform/providers
+2022-05-31T16:54:40.670+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.0.0 for linux_amd64 at .terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64
+2022-05-31T16:54:40.670+0530 [TRACE] providercache.fillMetaCache: including .terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64 as a candidate package for registry.terraform.io/rafay/rafay 1.0.0
+2022-05-31T16:54:40.847+0530 [DEBUG] checking for provisioner in "."
+2022-05-31T16:54:40.850+0530 [DEBUG] checking for provisioner in "/usr/bin"
+2022-05-31T16:54:40.850+0530 [DEBUG] checking for provisioner in "/home/bharat/.terraform.d/plugins"
+2022-05-31T16:54:40.850+0530 [TRACE] Meta.Backend: backend <nil> does not support operations, so wrapping it in a local backend
+2022-05-31T16:54:40.850+0530 [INFO]  backend/local: starting Apply operation
+2022-05-31T16:54:40.850+0530 [TRACE] backend/local: requesting state manager for workspace "default"
+2022-05-31T16:54:40.850+0530 [TRACE] backend/local: state manager for workspace "default" will:
+ - read initial snapshot from terraform.tfstate
+ - write new snapshots to terraform.tfstate
+ - create any backup at terraform.tfstate.backup
+2022-05-31T16:54:40.851+0530 [TRACE] backend/local: requesting state lock for workspace "default"
+2022-05-31T16:54:40.851+0530 [TRACE] statemgr.Filesystem: preparing to manage state snapshots at terraform.tfstate
+2022-05-31T16:54:40.851+0530 [TRACE] statemgr.Filesystem: no previously-stored snapshot exists
+2022-05-31T16:54:40.851+0530 [TRACE] statemgr.Filesystem: locking terraform.tfstate using fcntl flock
+2022-05-31T16:54:40.851+0530 [TRACE] statemgr.Filesystem: writing lock metadata to .terraform.tfstate.lock.info
+2022-05-31T16:54:40.851+0530 [TRACE] backend/local: reading remote state for workspace "default"
+2022-05-31T16:54:40.851+0530 [TRACE] statemgr.Filesystem: reading latest snapshot from terraform.tfstate
+2022-05-31T16:54:40.851+0530 [TRACE] statemgr.Filesystem: snapshot file has nil snapshot, but that's okay
+2022-05-31T16:54:40.851+0530 [TRACE] statemgr.Filesystem: read nil snapshot
+2022-05-31T16:54:40.851+0530 [TRACE] backend/local: populating backend.LocalRun for current working directory
+2022-05-31T16:54:40.851+0530 [TRACE] Config.VerifyDependencySelections: provider registry.terraform.io/rafay/rafay has 1.0.0 to satisfy ">= 0.1.0"
+2022-05-31T16:54:40.851+0530 [TRACE] terraform.NewContext: starting
+2022-05-31T16:54:40.851+0530 [TRACE] terraform.NewContext: complete
+2022-05-31T16:54:40.851+0530 [TRACE] backend/local: requesting interactive input, if necessary
+2022-05-31T16:54:40.851+0530 [TRACE] LoadSchemas: retrieving schema for provider type "registry.terraform.io/rafay/rafay"
+2022-05-31T16:54:40.851+0530 [TRACE] terraform.contextPlugins: Initializing provider "registry.terraform.io/rafay/rafay" to read its schema
+2022-05-31T16:54:40.851+0530 [DEBUG] created provider logger: level=trace
+2022-05-31T16:54:40.851+0530 [INFO]  provider: configuring client automatic mTLS
+2022-05-31T16:54:40.867+0530 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay]
+2022-05-31T16:54:40.867+0530 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109279
+2022-05-31T16:54:40.867+0530 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay
+2022-05-31T16:54:40.887+0530 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-05-31T16:54:40.887+0530
+2022-05-31T16:54:40.902+0530 [DEBUG] provider: using plugin: version=5
+2022-05-31T16:54:40.902+0530 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/tmp/plugin730373080 network=unix timestamp=2022-05-31T16:54:40.902+0530
+2022-05-31T16:54:40.922+0530 [TRACE] GRPCProvider: GetProviderSchema
+2022-05-31T16:54:40.922+0530 [TRACE] provider.stdio: waiting for stdio data
+2022-05-31T16:54:40.927+0530 [TRACE] GRPCProvider: Close
+2022-05-31T16:54:40.928+0530 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2022-05-31T16:54:40.930+0530 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109279
+2022-05-31T16:54:40.930+0530 [DEBUG] provider: plugin exited
+2022-05-31T16:54:40.930+0530 [TRACE] Context.Input: Prompting for provider arguments
+2022-05-31T16:54:40.930+0530 [TRACE] Context.Input: Provider provider.rafay declared at providers.tf:10,1-17
+2022-05-31T16:54:40.930+0530 [TRACE] Context.Input: Input for provider.rafay: map[string]cty.Value{}
+2022-05-31T16:54:40.930+0530 [TRACE] backend/local: running validation operation
+2022-05-31T16:54:40.930+0530 [DEBUG] Building and walking validate graph
+2022-05-31T16:54:40.930+0530 [TRACE] Executing graph transform *terraform.ConfigTransformer
+2022-05-31T16:54:40.930+0530 [TRACE] ConfigTransformer: Starting for path:
+2022-05-31T16:54:40.930+0530 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+  ------
+2022-05-31T16:54:40.930+0530 [TRACE] Executing graph transform *terraform.RootVariableTransformer
+2022-05-31T16:54:40.930+0530 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:40.930+0530 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
+2022-05-31T16:54:40.930+0530 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
+2022-05-31T16:54:40.930+0530 [TRACE] Executing graph transform *terraform.LocalTransformer
+2022-05-31T16:54:40.930+0530 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
+2022-05-31T16:54:40.930+0530 [TRACE] Executing graph transform *terraform.OutputTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.StateTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] StateTransformer: creating nodes for deposed instance objects only
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.StateTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_secretsealer.tfdemoproject1" (*terraform.NodeValidatableResource) config from resource.tf:1,1-47
+2022-05-31T16:54:40.931+0530 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.graphTransformerMulti
+2022-05-31T16:54:40.931+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:10,1-17
+2022-05-31T16:54:40.931+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:40.931+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:40.931+0530 [DEBUG] ProviderTransformer: "rafay_secretsealer.tfdemoproject1" (*terraform.NodeValidatableResource) needs provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:40.931+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:40.931+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:40.931+0530 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2022-05-31T16:54:40.931+0530 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
+2022-05-31T16:54:40.931+0530 [DEBUG] ReferenceTransformer: "rafay_secretsealer.tfdemoproject1" references: []
+2022-05-31T16:54:40.931+0530 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.attachDataResourceDependsOnTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.attachDataResourceDependsOnTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:40.931+0530 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
+2022-05-31T16:54:40.931+0530 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeValidatableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:40.931+0530 [DEBUG] Starting graph walk: walkValidate
+2022-05-31T16:54:40.931+0530 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
+2022-05-31T16:54:40.931+0530 [TRACE] NodeRootVariable: evaluating var.rafay_config_file
+2022-05-31T16:54:40.931+0530 [TRACE] prepareFinalInputVariableValue: preparing var.rafay_config_file
+2022-05-31T16:54:40.931+0530 [TRACE] prepareFinalInputVariableValue: var.rafay_config_file has a default value
+2022-05-31T16:54:40.931+0530 [TRACE] BuiltinEvalContext: Storing final value for variable var.rafay_config_file
+2022-05-31T16:54:40.931+0530 [TRACE] evalVariableValidations: no validation rules declared for var.rafay_config_file, so skipping
+2022-05-31T16:54:40.931+0530 [TRACE] vertex "var.rafay_config_file": visit complete
+2022-05-31T16:54:40.931+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
+2022-05-31T16:54:40.931+0530 [DEBUG] created provider logger: level=trace
+2022-05-31T16:54:40.931+0530 [INFO]  provider: configuring client automatic mTLS
+2022-05-31T16:54:40.948+0530 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay]
+2022-05-31T16:54:40.948+0530 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109292
+2022-05-31T16:54:40.948+0530 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay
+2022-05-31T16:54:40.968+0530 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-05-31T16:54:40.967+0530
+2022-05-31T16:54:40.983+0530 [DEBUG] provider: using plugin: version=5
+2022-05-31T16:54:40.983+0530 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/tmp/plugin1036236029 network=unix timestamp=2022-05-31T16:54:40.983+0530
+2022-05-31T16:54:41.003+0530 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:41.003+0530 [TRACE] NodeApplyableProvider: validating configuration for provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:41.003+0530 [TRACE] provider.stdio: waiting for stdio data
+2022-05-31T16:54:41.003+0530 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
+2022-05-31T16:54:41.003+0530 [TRACE] GRPCProvider: GetProviderSchema
+2022-05-31T16:54:41.008+0530 [TRACE] GRPCProvider: ValidateProviderConfig
+2022-05-31T16:54:41.013+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
+2022-05-31T16:54:41.013+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": starting visit (*terraform.NodeValidatableResource)
+2022-05-31T16:54:41.013+0530 [TRACE] GRPCProvider: ValidateResourceConfig
+2022-05-31T16:54:41.014+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": visit complete
+2022-05-31T16:54:41.014+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": starting visit (*terraform.graphNodeCloseProvider)
+2022-05-31T16:54:41.014+0530 [TRACE] GRPCProvider: Close
+2022-05-31T16:54:41.014+0530 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2022-05-31T16:54:41.016+0530 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109292
+2022-05-31T16:54:41.016+0530 [DEBUG] provider: plugin exited
+2022-05-31T16:54:41.016+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": visit complete
+2022-05-31T16:54:41.016+0530 [TRACE] vertex "root": starting visit (*terraform.nodeCloseModule)
+2022-05-31T16:54:41.016+0530 [TRACE] vertex "root": visit complete
+2022-05-31T16:54:41.016+0530 [INFO]  backend/local: apply calling Plan
+2022-05-31T16:54:41.016+0530 [DEBUG] Building and walking plan graph for NormalMode
+2022-05-31T16:54:41.016+0530 [TRACE] Executing graph transform *terraform.ConfigTransformer
+2022-05-31T16:54:41.016+0530 [TRACE] ConfigTransformer: Starting for path:
+2022-05-31T16:54:41.016+0530 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+  ------
+2022-05-31T16:54:41.016+0530 [TRACE] Executing graph transform *terraform.RootVariableTransformer
+2022-05-31T16:54:41.016+0530 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:41.016+0530 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
+2022-05-31T16:54:41.016+0530 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
+2022-05-31T16:54:41.016+0530 [TRACE] Executing graph transform *terraform.LocalTransformer
+2022-05-31T16:54:41.016+0530 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
+2022-05-31T16:54:41.016+0530 [TRACE] Executing graph transform *terraform.OutputTransformer
+2022-05-31T16:54:41.016+0530 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
+2022-05-31T16:54:41.016+0530 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceTransformer
+2022-05-31T16:54:41.016+0530 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceTransformer (no changes)
+2022-05-31T16:54:41.016+0530 [TRACE] Executing graph transform *terraform.StateTransformer
+2022-05-31T16:54:41.016+0530 [TRACE] StateTransformer: creating nodes for deposed instance objects only
+2022-05-31T16:54:41.016+0530 [TRACE] Completed graph transform *terraform.StateTransformer (no changes)
+2022-05-31T16:54:41.016+0530 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2022-05-31T16:54:41.016+0530 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2022-05-31T16:54:41.016+0530 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
+2022-05-31T16:54:41.016+0530 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
+2022-05-31T16:54:41.016+0530 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_secretsealer.tfdemoproject1 (expand)" (*terraform.nodeExpandPlannableResource) config from resource.tf:1,1-47
+2022-05-31T16:54:41.017+0530 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
+2022-05-31T16:54:41.017+0530 [TRACE] Executing graph transform *terraform.graphTransformerMulti
+2022-05-31T16:54:41.017+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:10,1-17
+2022-05-31T16:54:41.017+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:41.017+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
+2022-05-31T16:54:41.017+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:41.017+0530 [DEBUG] ProviderTransformer: "rafay_secretsealer.tfdemoproject1 (expand)" (*terraform.nodeExpandPlannableResource) needs provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:41.017+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:41.017+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:41.017+0530 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
+2022-05-31T16:54:41.017+0530 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:41.017+0530 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
+2022-05-31T16:54:41.017+0530 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
+2022-05-31T16:54:41.017+0530 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2022-05-31T16:54:41.017+0530 [DEBUG] ReferenceTransformer: "rafay_secretsealer.tfdemoproject1 (expand)" references: []
+2022-05-31T16:54:41.017+0530 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
+2022-05-31T16:54:41.017+0530 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:41.017+0530 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] AttachDependenciesTransformer: rafay_secretsealer.tfdemoproject1 depends on []
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
+2022-05-31T16:54:41.017+0530 [TRACE] Executing graph transform *terraform.attachDataResourceDependsOnTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.attachDataResourceDependsOnTransformer (no changes)
+2022-05-31T16:54:41.017+0530 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2022-05-31T16:54:41.017+0530 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] ForcedCBDTransformer: "rafay_secretsealer.tfdemoproject1 (expand)" (*terraform.nodeExpandPlannableResource) has no CBD descendent, so skipping
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
+2022-05-31T16:54:41.017+0530 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:41.017+0530 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:41.017+0530 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
+2022-05-31T16:54:41.017+0530 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandPlannableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:41.017+0530 [DEBUG] Starting graph walk: walkPlan
+2022-05-31T16:54:41.017+0530 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
+2022-05-31T16:54:41.017+0530 [TRACE] NodeRootVariable: evaluating var.rafay_config_file
+2022-05-31T16:54:41.017+0530 [TRACE] prepareFinalInputVariableValue: preparing var.rafay_config_file
+2022-05-31T16:54:41.017+0530 [TRACE] prepareFinalInputVariableValue: var.rafay_config_file has a default value
+2022-05-31T16:54:41.017+0530 [TRACE] prepareFinalInputVariableValue: var.rafay_config_file has no defined value
+2022-05-31T16:54:41.017+0530 [TRACE] BuiltinEvalContext: Storing final value for variable var.rafay_config_file
+2022-05-31T16:54:41.017+0530 [TRACE] evalVariableValidations: no validation rules declared for var.rafay_config_file, so skipping
+2022-05-31T16:54:41.017+0530 [TRACE] vertex "var.rafay_config_file": visit complete
+2022-05-31T16:54:41.017+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
+2022-05-31T16:54:41.017+0530 [DEBUG] created provider logger: level=trace
+2022-05-31T16:54:41.017+0530 [INFO]  provider: configuring client automatic mTLS
+2022-05-31T16:54:41.033+0530 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay]
+2022-05-31T16:54:41.033+0530 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109305
+2022-05-31T16:54:41.033+0530 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay
+2022-05-31T16:54:41.054+0530 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-05-31T16:54:41.054+0530
+2022-05-31T16:54:41.070+0530 [DEBUG] provider: using plugin: version=5
+2022-05-31T16:54:41.070+0530 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/tmp/plugin3870700917 network=unix timestamp=2022-05-31T16:54:41.069+0530
+2022-05-31T16:54:41.090+0530 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:41.090+0530 [TRACE] NodeApplyableProvider: configuring provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:41.090+0530 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
+2022-05-31T16:54:41.090+0530 [TRACE] GRPCProvider: GetProviderSchema
+2022-05-31T16:54:41.090+0530 [TRACE] provider.stdio: waiting for stdio data
+2022-05-31T16:54:41.096+0530 [TRACE] GRPCProvider: ValidateProviderConfig
+2022-05-31T16:54:41.101+0530 [TRACE] GRPCProvider: ConfigureProvider
+2022-05-31T16:54:41.102+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:41 rafay provider config file /home/bharat/.rafay/cli/config.json: timestamp=2022-05-31T16:54:41.102+0530
+2022-05-31T16:54:41.102+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:41 rafay provider config file absolute path /home/bharat/.rafay/cli/config.json: timestamp=2022-05-31T16:54:41.102+0530
+2022-05-31T16:54:42.366+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
+2022-05-31T16:54:42.366+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": starting visit (*terraform.nodeExpandPlannableResource)
+2022-05-31T16:54:42.366+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": expanding dynamic subgraph
+2022-05-31T16:54:42.367+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": entering dynamic subgraph
+2022-05-31T16:54:42.367+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": starting visit (*terraform.NodePlannableResource)
+2022-05-31T16:54:42.367+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": expanding dynamic subgraph
+2022-05-31T16:54:42.367+0530 [TRACE] Executing graph transform *terraform.ResourceCountTransformer
+2022-05-31T16:54:42.367+0530 [TRACE] ResourceCountTransformer: adding rafay_secretsealer.tfdemoproject1 as *terraform.NodePlannableResourceInstance
+2022-05-31T16:54:42.367+0530 [TRACE] Completed graph transform *terraform.ResourceCountTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodePlannableResourceInstance
+  ------
+2022-05-31T16:54:42.367+0530 [TRACE] Executing graph transform *terraform.OrphanResourceInstanceCountTransformer
+2022-05-31T16:54:42.367+0530 [TRACE] Completed graph transform *terraform.OrphanResourceInstanceCountTransformer (no changes)
+2022-05-31T16:54:42.367+0530 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2022-05-31T16:54:42.367+0530 [DEBUG] Resource instance state not found for node "rafay_secretsealer.tfdemoproject1", instance rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.367+0530 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2022-05-31T16:54:42.367+0530 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2022-05-31T16:54:42.367+0530 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2022-05-31T16:54:42.367+0530 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2022-05-31T16:54:42.367+0530 [DEBUG] ReferenceTransformer: "rafay_secretsealer.tfdemoproject1" references: []
+2022-05-31T16:54:42.367+0530 [TRACE] Completed graph transform *terraform.ReferenceTransformer (no changes)
+2022-05-31T16:54:42.367+0530 [TRACE] Executing graph transform *terraform.RootTransformer
+2022-05-31T16:54:42.367+0530 [TRACE] Completed graph transform *terraform.RootTransformer (no changes)
+2022-05-31T16:54:42.367+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": entering dynamic subgraph
+2022-05-31T16:54:42.367+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": starting visit (*terraform.NodePlannableResourceInstance)
+2022-05-31T16:54:42.368+0530 [TRACE] readResourceInstanceState: reading state for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.368+0530 [TRACE] readResourceInstanceState: no state present for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.368+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to prevRunState for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.368+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.368+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to refreshState for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.368+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.368+0530 [TRACE] NodeAbstractResourceInstance.refresh for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.368+0530 [DEBUG] refresh: rafay_secretsealer.tfdemoproject1: no state, so not refreshing
+2022-05-31T16:54:42.368+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to refreshState for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.368+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.368+0530 [TRACE] Re-validating config for "rafay_secretsealer.tfdemoproject1"
+2022-05-31T16:54:42.369+0530 [TRACE] GRPCProvider: ValidateResourceConfig
+2022-05-31T16:54:42.370+0530 [TRACE] GRPCProvider: PlanResourceChange
+2022-05-31T16:54:42.371+0530 [TRACE] writeChange: recorded Create change for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.371+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to workingState for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.371+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: writing state object for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.371+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": visit complete
+2022-05-31T16:54:42.371+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": dynamic subgraph completed successfully
+2022-05-31T16:54:42.371+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": visit complete
+2022-05-31T16:54:42.371+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": dynamic subgraph completed successfully
+2022-05-31T16:54:42.371+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": visit complete
+2022-05-31T16:54:42.371+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": starting visit (*terraform.graphNodeCloseProvider)
+2022-05-31T16:54:42.371+0530 [TRACE] GRPCProvider: Close
+2022-05-31T16:54:42.371+0530 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2022-05-31T16:54:42.374+0530 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109305
+2022-05-31T16:54:42.374+0530 [DEBUG] provider: plugin exited
+2022-05-31T16:54:42.374+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"] (close)": visit complete
+2022-05-31T16:54:42.374+0530 [TRACE] vertex "root": starting visit (*terraform.nodeCloseModule)
+2022-05-31T16:54:42.374+0530 [TRACE] vertex "root": visit complete
+2022-05-31T16:54:42.374+0530 [TRACE] LoadSchemas: retrieving schema for provider type "registry.terraform.io/rafay/rafay"
+2022-05-31T16:54:42.374+0530 [DEBUG] building apply graph to check for errors
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.ConfigTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] ConfigTransformer: Starting for path:
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  ------
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.RootVariableTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.LocalTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.OutputTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.DiffTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] DiffTransformer starting
+2022-05-31T16:54:42.374+0530 [TRACE] DiffTransformer: found Create change for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.374+0530 [TRACE] DiffTransformer: rafay_secretsealer.tfdemoproject1 will be represented by rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.374+0530 [TRACE] DiffTransformer complete
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.DiffTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2022-05-31T16:54:42.374+0530 [DEBUG] Resource state not found for node "rafay_secretsealer.tfdemoproject1", instance rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_secretsealer.tfdemoproject1 (expand)" (*terraform.nodeExpandApplyableResource) config from resource.tf:1,1-47
+2022-05-31T16:54:42.374+0530 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:42.374+0530 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_secretsealer.tfdemoproject1" (*terraform.NodeApplyableResourceInstance) config from resource.tf:1,1-47
+2022-05-31T16:54:42.374+0530 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.graphTransformerMulti
+2022-05-31T16:54:42.374+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:10,1-17
+2022-05-31T16:54:42.374+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:42.374+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.374+0530 [DEBUG] ProviderTransformer: "rafay_secretsealer.tfdemoproject1" (*terraform.NodeApplyableResourceInstance) needs provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:42.374+0530 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:42.374+0530 [DEBUG] ProviderTransformer: "rafay_secretsealer.tfdemoproject1 (expand)" (*terraform.nodeExpandApplyableResource) needs provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:42.374+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:42.374+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:42.374+0530 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:42.374+0530 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2022-05-31T16:54:42.374+0530 [DEBUG] ReferenceTransformer: "rafay_secretsealer.tfdemoproject1 (expand)" references: []
+2022-05-31T16:54:42.374+0530 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
+2022-05-31T16:54:42.374+0530 [DEBUG] ReferenceTransformer: "rafay_secretsealer.tfdemoproject1" references: []
+2022-05-31T16:54:42.374+0530 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] AttachDependenciesTransformer: rafay_secretsealer.tfdemoproject1 depends on []
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] ForcedCBDTransformer: "rafay_secretsealer.tfdemoproject1" (*terraform.NodeApplyableResourceInstance) has no CBD descendent, so skipping
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.DestroyEdgeTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.DestroyEdgeTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.CBDEdgeTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.CBDEdgeTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.pruneUnusedNodesTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.pruneUnusedNodesTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
+2022-05-31T16:54:42.374+0530 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:42.374+0530 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
+2022-05-31T16:54:42.375+0530 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:42.375+0530 [TRACE] LoadSchemas: retrieving schema for provider type "registry.terraform.io/rafay/rafay"
+2022-05-31T16:54:42.375+0530 [DEBUG] command: asking for input: "\nDo you want to perform these actions?"
+2022-05-31T16:54:44.678+0530 [INFO]  backend/local: apply calling Apply
+2022-05-31T16:54:44.679+0530 [DEBUG] Building and walking apply graph for NormalMode plan
+2022-05-31T16:54:44.679+0530 [TRACE] Executing graph transform *terraform.ConfigTransformer
+2022-05-31T16:54:44.679+0530 [TRACE] ConfigTransformer: Starting for path:
+2022-05-31T16:54:44.679+0530 [TRACE] Completed graph transform *terraform.ConfigTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  ------
+2022-05-31T16:54:44.679+0530 [TRACE] Executing graph transform *terraform.RootVariableTransformer
+2022-05-31T16:54:44.679+0530 [TRACE] Completed graph transform *terraform.RootVariableTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:44.679+0530 [TRACE] Executing graph transform *terraform.ModuleVariableTransformer
+2022-05-31T16:54:44.679+0530 [TRACE] Completed graph transform *terraform.ModuleVariableTransformer (no changes)
+2022-05-31T16:54:44.679+0530 [TRACE] Executing graph transform *terraform.LocalTransformer
+2022-05-31T16:54:44.679+0530 [TRACE] Completed graph transform *terraform.LocalTransformer (no changes)
+2022-05-31T16:54:44.679+0530 [TRACE] Executing graph transform *terraform.OutputTransformer
+2022-05-31T16:54:44.679+0530 [TRACE] Completed graph transform *terraform.OutputTransformer (no changes)
+2022-05-31T16:54:44.679+0530 [TRACE] Executing graph transform *terraform.DiffTransformer
+2022-05-31T16:54:44.679+0530 [TRACE] DiffTransformer starting
+2022-05-31T16:54:44.679+0530 [TRACE] DiffTransformer: found Create change for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:44.679+0530 [TRACE] DiffTransformer: rafay_secretsealer.tfdemoproject1 will be represented by rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:44.679+0530 [TRACE] DiffTransformer complete
+2022-05-31T16:54:44.679+0530 [TRACE] Completed graph transform *terraform.DiffTransformer with new graph:
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:44.679+0530 [TRACE] Executing graph transform *terraform.AttachStateTransformer
+2022-05-31T16:54:44.679+0530 [DEBUG] Resource state not found for node "rafay_secretsealer.tfdemoproject1", instance rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:44.679+0530 [TRACE] Completed graph transform *terraform.AttachStateTransformer (no changes)
+2022-05-31T16:54:44.679+0530 [TRACE] Executing graph transform *terraform.OrphanOutputTransformer
+2022-05-31T16:54:44.679+0530 [TRACE] Completed graph transform *terraform.OrphanOutputTransformer (no changes)
+2022-05-31T16:54:44.679+0530 [TRACE] Executing graph transform *terraform.AttachResourceConfigTransformer
+2022-05-31T16:54:44.679+0530 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_secretsealer.tfdemoproject1 (expand)" (*terraform.nodeExpandApplyableResource) config from resource.tf:1,1-47
+2022-05-31T16:54:44.679+0530 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:44.679+0530 [TRACE] AttachResourceConfigTransformer: attaching to "rafay_secretsealer.tfdemoproject1" (*terraform.NodeApplyableResourceInstance) config from resource.tf:1,1-47
+2022-05-31T16:54:44.679+0530 [TRACE] AttachResourceConfigTransformer: attaching provider meta configs to rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:44.679+0530 [TRACE] Completed graph transform *terraform.AttachResourceConfigTransformer (no changes)
+2022-05-31T16:54:44.679+0530 [TRACE] Executing graph transform *terraform.graphTransformerMulti
+2022-05-31T16:54:44.679+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderConfigTransformer
+2022-05-31T16:54:44.680+0530 [TRACE] ProviderConfigTransformer: attaching to "provider[\"registry.terraform.io/rafay/rafay\"]" provider configuration from providers.tf:10,1-17
+2022-05-31T16:54:44.680+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderConfigTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:44.680+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.MissingProviderTransformer
+2022-05-31T16:54:44.680+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.MissingProviderTransformer (no changes)
+2022-05-31T16:54:44.680+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.ProviderTransformer
+2022-05-31T16:54:44.680+0530 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:44.680+0530 [DEBUG] ProviderTransformer: "rafay_secretsealer.tfdemoproject1 (expand)" (*terraform.nodeExpandApplyableResource) needs provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:44.680+0530 [TRACE] ProviderTransformer: exact match for provider["registry.terraform.io/rafay/rafay"] serving rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:44.680+0530 [DEBUG] ProviderTransformer: "rafay_secretsealer.tfdemoproject1" (*terraform.NodeApplyableResourceInstance) needs provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:44.680+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.ProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:44.680+0530 [TRACE] (graphTransformerMulti) Executing graph transform *terraform.PruneProviderTransformer
+2022-05-31T16:54:44.680+0530 [TRACE] (graphTransformerMulti) Completed graph transform *terraform.PruneProviderTransformer (no changes)
+2022-05-31T16:54:44.680+0530 [TRACE] Completed graph transform *terraform.graphTransformerMulti with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:44.680+0530 [TRACE] Executing graph transform *terraform.RemovedModuleTransformer
+2022-05-31T16:54:44.681+0530 [TRACE] Completed graph transform *terraform.RemovedModuleTransformer (no changes)
+2022-05-31T16:54:44.681+0530 [TRACE] Executing graph transform *terraform.AttachSchemaTransformer
+2022-05-31T16:54:44.681+0530 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_secretsealer.tfdemoproject1 (expand)
+2022-05-31T16:54:44.681+0530 [TRACE] AttachSchemaTransformer: attaching resource schema to rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:44.681+0530 [TRACE] AttachSchemaTransformer: attaching provider config schema to provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:44.681+0530 [TRACE] Completed graph transform *terraform.AttachSchemaTransformer (no changes)
+2022-05-31T16:54:44.681+0530 [TRACE] Executing graph transform *terraform.ModuleExpansionTransformer
+2022-05-31T16:54:44.681+0530 [TRACE] Completed graph transform *terraform.ModuleExpansionTransformer (no changes)
+2022-05-31T16:54:44.681+0530 [TRACE] Executing graph transform *terraform.ReferenceTransformer
+2022-05-31T16:54:44.681+0530 [DEBUG] ReferenceTransformer: "provider[\"registry.terraform.io/rafay/rafay\"]" references: [var.rafay_config_file]
+2022-05-31T16:54:44.681+0530 [DEBUG] ReferenceTransformer: "rafay_secretsealer.tfdemoproject1 (expand)" references: []
+2022-05-31T16:54:44.681+0530 [DEBUG] ReferenceTransformer: "var.rafay_config_file" references: []
+2022-05-31T16:54:44.681+0530 [DEBUG] ReferenceTransformer: "rafay_secretsealer.tfdemoproject1" references: []
+2022-05-31T16:54:44.681+0530 [TRACE] Completed graph transform *terraform.ReferenceTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:44.681+0530 [TRACE] Executing graph transform *terraform.AttachDependenciesTransformer
+2022-05-31T16:54:44.681+0530 [TRACE] AttachDependenciesTransformer: rafay_secretsealer.tfdemoproject1 depends on []
+2022-05-31T16:54:44.681+0530 [TRACE] Completed graph transform *terraform.AttachDependenciesTransformer (no changes)
+2022-05-31T16:54:44.681+0530 [TRACE] Executing graph transform *terraform.ForcedCBDTransformer
+2022-05-31T16:54:44.681+0530 [TRACE] ForcedCBDTransformer: "rafay_secretsealer.tfdemoproject1" (*terraform.NodeApplyableResourceInstance) has no CBD descendent, so skipping
+2022-05-31T16:54:44.681+0530 [TRACE] Completed graph transform *terraform.ForcedCBDTransformer (no changes)
+2022-05-31T16:54:44.681+0530 [TRACE] Executing graph transform *terraform.DestroyEdgeTransformer
+2022-05-31T16:54:44.682+0530 [TRACE] Completed graph transform *terraform.DestroyEdgeTransformer (no changes)
+2022-05-31T16:54:44.682+0530 [TRACE] Executing graph transform *terraform.CBDEdgeTransformer
+2022-05-31T16:54:44.682+0530 [TRACE] Completed graph transform *terraform.CBDEdgeTransformer (no changes)
+2022-05-31T16:54:44.682+0530 [TRACE] Executing graph transform *terraform.pruneUnusedNodesTransformer
+2022-05-31T16:54:44.682+0530 [TRACE] Completed graph transform *terraform.pruneUnusedNodesTransformer (no changes)
+2022-05-31T16:54:44.682+0530 [TRACE] Executing graph transform *terraform.TargetsTransformer
+2022-05-31T16:54:44.682+0530 [TRACE] Completed graph transform *terraform.TargetsTransformer (no changes)
+2022-05-31T16:54:44.682+0530 [TRACE] Executing graph transform *terraform.CloseProviderTransformer
+2022-05-31T16:54:44.682+0530 [TRACE] Completed graph transform *terraform.CloseProviderTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:44.682+0530 [TRACE] Executing graph transform *terraform.CloseRootModuleTransformer
+2022-05-31T16:54:44.682+0530 [TRACE] Completed graph transform *terraform.CloseRootModuleTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:44.682+0530 [TRACE] Executing graph transform *terraform.TransitiveReductionTransformer
+2022-05-31T16:54:44.682+0530 [TRACE] Completed graph transform *terraform.TransitiveReductionTransformer with new graph:
+  provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+    var.rafay_config_file - *terraform.NodeRootVariable
+  provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+    rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+  rafay_secretsealer.tfdemoproject1 - *terraform.NodeApplyableResourceInstance
+    rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+  rafay_secretsealer.tfdemoproject1 (expand) - *terraform.nodeExpandApplyableResource
+    provider["registry.terraform.io/rafay/rafay"] - *terraform.NodeApplyableProvider
+  root - *terraform.nodeCloseModule
+    provider["registry.terraform.io/rafay/rafay"] (close) - *terraform.graphNodeCloseProvider
+  var.rafay_config_file - *terraform.NodeRootVariable
+  ------
+2022-05-31T16:54:44.682+0530 [DEBUG] Starting graph walk: walkApply
+2022-05-31T16:54:44.682+0530 [TRACE] vertex "var.rafay_config_file": starting visit (*terraform.NodeRootVariable)
+2022-05-31T16:54:44.682+0530 [TRACE] NodeRootVariable: evaluating var.rafay_config_file
+2022-05-31T16:54:44.682+0530 [TRACE] prepareFinalInputVariableValue: preparing var.rafay_config_file
+2022-05-31T16:54:44.682+0530 [TRACE] prepareFinalInputVariableValue: var.rafay_config_file has a default value
+2022-05-31T16:54:44.682+0530 [TRACE] prepareFinalInputVariableValue: var.rafay_config_file has no defined value
+2022-05-31T16:54:44.682+0530 [TRACE] BuiltinEvalContext: Storing final value for variable var.rafay_config_file
+2022-05-31T16:54:44.682+0530 [TRACE] evalVariableValidations: no validation rules declared for var.rafay_config_file, so skipping
+2022-05-31T16:54:44.683+0530 [TRACE] vertex "var.rafay_config_file": visit complete
+2022-05-31T16:54:44.683+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": starting visit (*terraform.NodeApplyableProvider)
+2022-05-31T16:54:44.683+0530 [DEBUG] created provider logger: level=trace
+2022-05-31T16:54:44.683+0530 [INFO]  provider: configuring client automatic mTLS
+2022-05-31T16:54:44.699+0530 [DEBUG] provider: starting plugin: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay args=[.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay]
+2022-05-31T16:54:44.700+0530 [DEBUG] provider: plugin started: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109338
+2022-05-31T16:54:44.700+0530 [DEBUG] provider: waiting for RPC address: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay
+2022-05-31T16:54:44.722+0530 [INFO]  provider.terraform-provider-rafay: configuring server automatic mTLS: timestamp=2022-05-31T16:54:44.722+0530
+2022-05-31T16:54:44.738+0530 [DEBUG] provider: using plugin: version=5
+2022-05-31T16:54:44.738+0530 [DEBUG] provider.terraform-provider-rafay: plugin address: address=/tmp/plugin3211081655 network=unix timestamp=2022-05-31T16:54:44.738+0530
+2022-05-31T16:54:44.758+0530 [TRACE] BuiltinEvalContext: Initialized "provider[\"registry.terraform.io/rafay/rafay\"]" provider for provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:44.758+0530 [TRACE] NodeApplyableProvider: configuring provider["registry.terraform.io/rafay/rafay"]
+2022-05-31T16:54:44.758+0530 [TRACE] buildProviderConfig for provider["registry.terraform.io/rafay/rafay"]: using explicit config only
+2022-05-31T16:54:44.758+0530 [TRACE] GRPCProvider: GetProviderSchema
+2022-05-31T16:54:44.758+0530 [TRACE] provider.stdio: waiting for stdio data
+2022-05-31T16:54:44.764+0530 [TRACE] GRPCProvider: ValidateProviderConfig
+2022-05-31T16:54:44.768+0530 [TRACE] GRPCProvider: ConfigureProvider
+2022-05-31T16:54:44.768+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:44 rafay provider config file /home/bharat/.rafay/cli/config.json: timestamp=2022-05-31T16:54:44.768+0530
+2022-05-31T16:54:44.768+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:44 rafay provider config file absolute path /home/bharat/.rafay/cli/config.json: timestamp=2022-05-31T16:54:44.768+0530
+2022-05-31T16:54:45.950+0530 [TRACE] vertex "provider[\"registry.terraform.io/rafay/rafay\"]": visit complete
+2022-05-31T16:54:45.950+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": starting visit (*terraform.nodeExpandApplyableResource)
+2022-05-31T16:54:45.950+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": expanding dynamic subgraph
+2022-05-31T16:54:45.950+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": entering dynamic subgraph
+2022-05-31T16:54:45.951+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": starting visit (*terraform.NodeApplyableResource)
+2022-05-31T16:54:45.951+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": visit complete
+2022-05-31T16:54:45.951+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": dynamic subgraph completed successfully
+2022-05-31T16:54:45.951+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1 (expand)": visit complete
+2022-05-31T16:54:45.951+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": starting visit (*terraform.NodeApplyableResourceInstance)
+2022-05-31T16:54:45.951+0530 [TRACE] readDiff: Read Create change from plan for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:45.951+0530 [TRACE] readResourceInstanceState: reading state for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:45.951+0530 [TRACE] readResourceInstanceState: no state present for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:45.951+0530 [TRACE] readDiff: Read Create change from plan for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:45.952+0530 [TRACE] Re-validating config for "rafay_secretsealer.tfdemoproject1"
+2022-05-31T16:54:45.952+0530 [TRACE] GRPCProvider: ValidateResourceConfig
+2022-05-31T16:54:45.953+0530 [TRACE] GRPCProvider: PlanResourceChange
+2022-05-31T16:54:45.955+0530 [TRACE] checkPlannedChange: Verifying that actual change (action Create) matches planned change (action Create)
+2022-05-31T16:54:45.955+0530 [INFO]  Starting apply for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:45.956+0530 [DEBUG] rafay_secretsealer.tfdemoproject1: applying the planned Create change
+2022-05-31T16:54:45.956+0530 [TRACE] GRPCProvider: ApplyResourceChange
+2022-05-31T16:54:45.957+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:45 secret sealer create starts: timestamp=2022-05-31T16:54:45.957+0530
+2022-05-31T16:54:45.957+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:45 secret sealer upsert starts: timestamp=2022-05-31T16:54:45.957+0530
+2022-05-31T16:54:45.957+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:45 expandMetaData: timestamp=2022-05-31T16:54:45.957+0530
+2022-05-31T16:54:45.957+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:45 expandSecretSealerSpec got spec: timestamp=2022-05-31T16:54:45.957+0530
+2022-05-31T16:54:46.881+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:46 secret sealer apply secret sealer: <*>(0xc00047f1f0)apiVersion:"infra.k8smgmt.io/v3" kind:"SecretSealer" metadata:{name:"test" project:"bharath"} spec:{type:"KubeSeal" version:"v-3"}: timestamp=2022-05-31T16:54:46.881+0530
+2022-05-31T16:54:46.881+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:46 secret sealer apply error: timestamp=2022-05-31T16:54:46.881+0530
+2022-05-31T16:54:46.881+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:46 secret sealer create got error, perform cleanup: timestamp=2022-05-31T16:54:46.881+0530
+2022-05-31T16:54:46.881+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:46 expandMetaData: timestamp=2022-05-31T16:54:46.881+0530
+2022-05-31T16:54:46.881+0530 [INFO]  provider.terraform-provider-rafay: 2022/05/31 16:54:46 expandSecretSealerSpec got spec: timestamp=2022-05-31T16:54:46.881+0530
+2022-05-31T16:54:47.226+0530 [TRACE] maybeTainted: rafay_secretsealer.tfdemoproject1 encountered an error during creation, so it is now marked as tainted
+2022-05-31T16:54:47.226+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to workingState for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:47.226+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:47.226+0530 [TRACE] evalApplyProvisioners: rafay_secretsealer.tfdemoproject1 is tainted, so skipping provisioning
+2022-05-31T16:54:47.226+0530 [TRACE] maybeTainted: rafay_secretsealer.tfdemoproject1 was already tainted, so nothing to do
+2022-05-31T16:54:47.226+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState to workingState for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:47.226+0530 [TRACE] NodeAbstractResouceInstance.writeResourceInstanceState: removing state object for rafay_secretsealer.tfdemoproject1
+2022-05-31T16:54:47.226+0530 [TRACE] statemgr.Filesystem: reading latest snapshot from terraform.tfstate
+2022-05-31T16:54:47.226+0530 [TRACE] statemgr.Filesystem: snapshot file has nil snapshot, but that's okay
+2022-05-31T16:54:47.226+0530 [TRACE] statemgr.Filesystem: read nil snapshot
+2022-05-31T16:54:47.226+0530 [TRACE] statemgr.Filesystem: no original state snapshot to back up
+2022-05-31T16:54:47.226+0530 [TRACE] statemgr.Filesystem: state has changed since last snapshot, so incrementing serial to 1
+2022-05-31T16:54:47.226+0530 [TRACE] statemgr.Filesystem: writing snapshot at terraform.tfstate
+2022-05-31T16:54:47.230+0530 [ERROR] vertex "rafay_secretsealer.tfdemoproject1" error: unable to complete request code 403, body Permission Denied
+2022-05-31T16:54:47.230+0530 [TRACE] vertex "rafay_secretsealer.tfdemoproject1": visit complete, with errors
+2022-05-31T16:54:47.230+0530 [TRACE] dag/walk: upstream of "provider[\"registry.terraform.io/rafay/rafay\"] (close)" errored, so skipping
+2022-05-31T16:54:47.230+0530 [TRACE] dag/walk: upstream of "root" errored, so skipping
+2022-05-31T16:54:47.230+0530 [TRACE] statemgr.Filesystem: reading latest snapshot from terraform.tfstate
+2022-05-31T16:54:47.230+0530 [TRACE] statemgr.Filesystem: read snapshot with lineage "596d84e6-74cd-ef6c-7e7f-b27921930879" serial 1
+2022-05-31T16:54:47.230+0530 [TRACE] statemgr.Filesystem: no original state snapshot to back up
+2022-05-31T16:54:47.230+0530 [TRACE] statemgr.Filesystem: no state changes since last snapshot
+2022-05-31T16:54:47.230+0530 [TRACE] statemgr.Filesystem: writing snapshot at terraform.tfstate
+2022-05-31T16:54:47.231+0530 [TRACE] statemgr.Filesystem: removing lock metadata file .terraform.tfstate.lock.info
+2022-05-31T16:54:47.231+0530 [TRACE] statemgr.Filesystem: unlocking terraform.tfstate using fcntl flock
+2022-05-31T16:54:47.232+0530 [DEBUG] provider.stdio: received EOF, stopping recv loop: err="rpc error: code = Unavailable desc = transport is closing"
+2022-05-31T16:54:47.234+0530 [DEBUG] provider: plugin process exited: path=.terraform/providers/registry.terraform.io/rafay/rafay/1.0.0/linux_amd64/terraform-provider-rafay pid=109338
+2022-05-31T16:54:47.234+0530 [DEBUG] provider: plugin exited

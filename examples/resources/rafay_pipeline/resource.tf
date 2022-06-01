@@ -1,7 +1,7 @@
-resource "rafay_pipeline" "tfdemopipeline1" {
+resource "rafay_pipeline" "bharathtest1" {
   metadata {
-    name    = "tfdemopipeline1"
-    project = "defaultproject"
+    name    = "bharathtest1"
+    project = "kbr-test"
   }
   spec = {
       "stages" = [
@@ -10,35 +10,35 @@ resource "rafay_pipeline" "tfdemopipeline1" {
             "approvers" = [
               {
                 "ssoUser" = false
-                "userName" = "sougat@rafay.co"
+                "userName" = "bharath.reddy@rafay.co"
               },
             ]
             "timeout" = "120s"
             "type" = "Email"
           }
           "name" = "stage1"
-          "next" = [
-            {
-              "name" = "stage2"
-            },
-          ]
+          # "next" = [
+          #   {
+          #     "name" = "stage2"
+          #   },
+          # ]
           "type" = "Approval"
         },
-        {
-          "config" = {
-            "approvers" = [
-              {
-                "ssoUser" = false
-                "userName" = "benny@rafay.co"
-              },
-            ]
-            "timeout" = "120s"
-            "type" = "Email"
-          }
-          "name" = "stage2"
-          "type" = "Approval"
-        },
+        # {
+        #   "config" = {
+        #     "approvers" = [
+        #       {
+        #         "ssoUser" = false
+        #         "userName" = "varun.chandrashekar@rafay.co"
+        #       },
+        #     ]
+        #     "timeout" = "120s"
+        #     "type" = "Email"
+        #   }
+        #   "name" = "stage2"
+        #   "type" = "Approval"
+        # },
       ]
     }
   }
-}
+

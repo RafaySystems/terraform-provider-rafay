@@ -303,7 +303,7 @@ func expandPipeline(in *schema.ResourceData) (*gitopspb.Pipeline, error) {
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "infra.k8smgmt.io/v3"
+	obj.ApiVersion = "gitops.k8smgmt.io/v3"
 	obj.Kind = "Pipeline"
 	return obj, nil
 }

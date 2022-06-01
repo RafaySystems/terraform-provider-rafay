@@ -189,7 +189,7 @@ func expandOPAPolicy(in *schema.ResourceData) (*opapb.OPAPolicy, error) {
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "infra.k8smgmt.io/v3"
+	obj.ApiVersion = "opa.k8smgmt.io/v3"
 	obj.Kind = "OPAPolicy"
 	return obj, nil
 }

@@ -1,16 +1,10 @@
-resource "rafay_secretsealer" "tfdemosecretsealer1" {
+resource "rafay_secretsealer" "tfdemoproject1" {
   metadata {
-    name    = "tfdemosecretsealer1"
-    project = "tfdemoproject1"
+    name    = "test"
+    project = "bharath"
   }
   spec {
-    type = ""
-    sharing {
-      enabled = true
-      projects {
-        name = "demo"
-      }
-    }
-    version = ""
+    type = "KubeSeal"
+    version = "v-3"
   }
 }

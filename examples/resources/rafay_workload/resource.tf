@@ -1,16 +1,16 @@
 resource "rafay_workload" "tfdemoworkload1" {
   metadata {
     name    = "tfdemoworkload1"
-    project = "upgrade"
+    project = "bharath"
     labels = {
       env  = "dev"
       name = "app"
     }
   }
   spec {
-    namespace = "benny-test1"
+    namespace = "tfdemonamespace1"
     placement {
-      selector = "rafay.dev/clusterName=hardik-qc-mks-1"
+      selector = "rafay.dev/clusterName=kuber-test"
     }
     drift {
       action  = "Deny"
@@ -20,9 +20,9 @@ resource "rafay_workload" "tfdemoworkload1" {
       type = "Yaml"
       artifact {
         paths {
-          name = "yaml/qc_app_yaml_with_annotations.yaml"
+          name = "sport/test.yaml"
         }
-        repository = "release-check-ssh"
+        repository = "tfdemorepository1"
         revision   = "main"
       }
     }

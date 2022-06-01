@@ -1,16 +1,16 @@
 #Basic example for opa policy
-resource "rafay_opa_policy" "tfdemoopapolicy1" {
+resource "rafay_opa_policy" "test_123" {
   metadata {
-    name    = "tfdemoopapolicy1"
-    project = "tfdemoproject1"
+    name    = "test_123"
+    project = "kbr-test"
   }
   spec {
     constraint_list {
-        name = "one"
-        name = "host-network-ports"
-        name = "host-namespace"
+        # name = "one"
+         #name = "host-network-ports"
+        # name = "host-namespace"
         name = "seccomp"
-        name = "host-filesystem"
+        # name = "host-filesystem"
     }
     installation_params {
         audit_interval = 60
@@ -20,7 +20,7 @@ resource "rafay_opa_policy" "tfdemoopapolicy1" {
     sharing {
       enabled = false
     }
-    version = "v23"
+    version = "v1"
   }
 }
 

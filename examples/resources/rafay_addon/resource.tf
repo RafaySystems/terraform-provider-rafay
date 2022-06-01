@@ -1,30 +1,30 @@
 # YAML Upload Example
-resource "rafay_addon" "tfdemoaddon1" {
-  metadata {
-    name    = "tfdemoaddon1"
-    project = "upgrade"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
-  }
-  spec {
-    namespace = "tfdemonamespace1"
-    version   = "v1.0"
-    artifact {
-      type = "Yaml"
-      artifact {
-        paths {
-          name = "file://artifacts/tfdemoaddon1/busybox.yaml"
-        }
+# resource "rafay_addon" "tfdemoaddon1" {
+#   metadata {
+#     name    = "tfdemoaddon1"
+#     project = "bharath"
+#     labels = {
+#       env  = "dev"
+#       name = "app"
+#     }
+#   }
+#   spec {
+#     namespace = "tfdemonamespace1"
+#     version   = "v1.0"
+#     artifact {
+#       type = "Yaml"
+#       artifact {
+#         paths {
+#           name = "file://artifacts/tfdemoaddon1/busybox.yaml"
+#         }
 
-      }
-    }
-    sharing {
-      enabled = false
-    }
-  }
-}
+#       }
+#     }
+#     sharing {
+#       enabled = false
+#     }
+#   }
+# }
 
 
 # Helm Chart Upload Example
@@ -32,7 +32,7 @@ resource "rafay_addon" "tfdemoaddon1" {
 resource "rafay_addon" "tfdemoaddon4" {
   metadata {
     name    = "tfdemoaddon4"
-    project = "upgrade"
+    project = "bharath"
     labels = {
       env  = "dev"
       name = "app"
@@ -54,13 +54,8 @@ resource "rafay_addon" "tfdemoaddon4" {
       }
     }
     sharing {
-      enabled = true
-      projects {
-        name = "addons"
-      }
-      projects {
-        name = "ankurp"
-      }
+      enabled = false
+      
     }
   }
 }

@@ -169,7 +169,6 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
               enable_private_cluster = true
               private_dns_zone  = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateDnsZones/{dnsZoneName}"
             }
-            }
             dns_prefix         = "testuser-test-dns"
             kubernetes_version = "1.21.9"
             network_profile {

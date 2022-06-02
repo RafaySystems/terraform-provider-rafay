@@ -188,7 +188,7 @@ func expandOPAConstraint(in *schema.ResourceData) (*opapb.OPAConstraint, error) 
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "infra.k8smgmt.io/v3"
+	obj.ApiVersion = "opa.k8smgmt.io/v3"
 	obj.Kind = "OPAConstraint"
 	return obj, nil
 }

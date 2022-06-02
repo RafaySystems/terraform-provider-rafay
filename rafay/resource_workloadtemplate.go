@@ -211,7 +211,7 @@ func expandWorkloadTemplate(in *schema.ResourceData) (*appspb.WorkloadTemplate, 
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "infra.k8smgmt.io/v3"
+	obj.ApiVersion = "apps.k8smgmt.io/v3"
 	obj.Kind = "WorkloadTemplate"
 	return obj, nil
 }

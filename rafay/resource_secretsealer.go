@@ -188,7 +188,7 @@ func expandSecretSealer(in *schema.ResourceData) (*integrationspb.SecretSealer, 
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "infra.k8smgmt.io/v3"
+	obj.ApiVersion = "integrations.k8smgmt.io/v3"
 	obj.Kind = "SecretSealer"
 	return obj, nil
 }

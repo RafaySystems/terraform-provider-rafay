@@ -17,5 +17,6 @@ resource "rafay_project" "tfdemoproject1" {
           string = "8Gi"
         }
       }
+    }
   }
 }

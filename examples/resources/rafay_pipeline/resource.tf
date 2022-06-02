@@ -1,44 +1,24 @@
 resource "rafay_pipeline" "tfdemopipeline1" {
   metadata {
-    name    = "tfdemopipeline1"
-    project = "defaultproject"
+    name    = "email-test"
+    project = "terraform"
   }
-  spec = {
-      "stages" = [
-        {
-          "config" = {
-            "approvers" = [
-              {
-                "ssoUser" = false
-                "userName" = "sougat@rafay.co"
-              },
-            ]
-            "timeout" = "120s"
-            "type" = "Email"
-          }
-          "name" = "stage1"
-          "next" = [
-            {
-              "name" = "stage2"
-            },
-          ]
-          "type" = "Approval"
-        },
-        {
-          "config" = {
-            "approvers" = [
-              {
-                "ssoUser" = false
-                "userName" = "benny@rafay.co"
-              },
-            ]
-            "timeout" = "120s"
-            "type" = "Email"
-          }
-          "name" = "stage2"
-          "type" = "Approval"
-        },
-      ]
+  spec {
+    active = false
+    sharing {
+      enabled = false
+    }
+    stages {
+      config {
+        approvers {
+          sso_user  = false
+          user_name = "hardik@rafay.co"
+        }
+        timeout = "2m0s"
+        type    = "Email"
+      }
+      name = "email"
+      type = "Approval"
     }
   }
 }

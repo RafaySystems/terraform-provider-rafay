@@ -7,10 +7,11 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
   spec {
     artifact {
       artifact {
-       paths {
+        paths {
           name = "file://artifacts/one/request-limit-ratio-constraint.yaml"
         }
+      }
+      template_name = "one"
     }
-    template_name = "one"
   }
 }

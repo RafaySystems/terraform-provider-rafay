@@ -6,16 +6,12 @@ resource "rafay_opa_policy" "tfdemoopapolicy1" {
   }
   spec {
     constraint_list {
-        name = "one"
-        name = "host-network-ports"
-        name = "host-namespace"
-        name = "seccomp"
-        name = "host-filesystem"
+      name = "one"
     }
     installation_params {
-        audit_interval = 60
-        audit_match_kind_only = true
-        constraint_violations_limit = 20
+      audit_interval              = 60
+      audit_match_kind_only       = true
+      constraint_violations_limit = 20
     }
     sharing {
       enabled = false

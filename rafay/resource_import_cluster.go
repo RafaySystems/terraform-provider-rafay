@@ -221,6 +221,13 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 
+	//publish cluster bp
+	err = cluster.PublishClusterBlueprint(d.Get("clustername").(string), project_id)
+	if err != nil {
+		log.Printf("cluster was not updated, error %s", err.Error())
+		return diag.FromErr(err)
+	}
+
 	return diags
 }
 

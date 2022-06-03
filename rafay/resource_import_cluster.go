@@ -135,6 +135,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	bootstrap_filepath, _ := filepath.Abs("bootstrap.yaml")
 	//figure out how to apply bootstrap yaml file to created cluster STILL NEED TO COMPLETE
 	//add kube_config file as optional schema, call os/exec to cal kubectl apply on the filepath to kube config
+	time.Sleep(60 * time.Second)
 	if (d.Get("kubeconfig_path").(string)) != "" {
 		cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kubeconfig_path").(string), "apply", "-f", bootstrap_filepath)
 		var out bytes.Buffer

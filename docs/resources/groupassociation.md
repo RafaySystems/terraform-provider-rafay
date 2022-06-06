@@ -36,13 +36,16 @@ resource "rafay_groupassociation" "groupassociation" {
 ### Required
 
 - `group` - (String) The name of the group to associate the roles to. 
-- `project` - (String) The name of the project. 
 - `roles` - (List of String) The roles to associate with the group. Supported values are: `ADMIN`, `ADMIN_READ_ONLY`, `CLUSTER_ADMIN`, `PROJECT_ADMIN`, `PROJECT_READ_ONLY`, `INFRA_ADMIN`, `INFRA_READ_ONLY`, `NAMESPACE_ADMIN`, `NAMESPACE_READ_ONLY`, and `WORKSPACE_ADMIN`. 
 
 ### Optional
 
 - `add_users` - (List of String) Users to add to the group association. 
 - `namespaces` - (List of String) Namespaces in your configuration. Only provide when the selected roles are `NAMESPACE_ADMIN` or `NAMESPACE_READ_ONLY`. 
+- `project` - (String) The name of the project. 
+
+  **Note**: `project` is required for all roles except `ADMIN` and `ADMIN_READ_ONLY`. 
+
 - `remove_users` - (List of String) Users to remove from the group association. 
 - `timeouts` - (Block, Optional) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
 

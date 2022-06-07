@@ -14,7 +14,7 @@ Creates a group.
 ## Example Usage
 
 ```terraform
-resource "test_group" "group" {
+resource "rafay_group" "group" {
   name        = "dev1"
   description = "dev1-description"
 }

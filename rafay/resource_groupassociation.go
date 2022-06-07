@@ -39,7 +39,7 @@ func resourceGroupAssociation() *schema.Resource {
 			},
 			"project": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
 			},
 			"roles": {

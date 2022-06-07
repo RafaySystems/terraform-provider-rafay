@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/systempb"
 	"github.com/RafaySystems/rctl/pkg/config"
+	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
@@ -279,4 +281,20 @@ func flattenProjectSpec(in *systempb.ProjectSpec, p []interface{}) ([]interface{
 	obj["default"] = false
 
 	return []interface{}{obj}, nil
+}
+
+func getProjectById(id string) (string, error) {
+	log.Printf("get project by id %s", id)
+	auth := config.GetConfig().GetAppAuthProfile()
+	uri := "/auth/v1/projects/"
+	uri = uri + fmt.Sprintf("%s/", id)
+	return auth.AuthAndRequest(uri, "GET", nil)
+}
+
+func getProjectFromResponse(json_data []byte) (*models.Project, error) {
+	var pr models.Project
+	if err := json.Unmarshal(json_data, &pr); err != nil {
+		return nil, err
+	}
+	return &pr, nil
 }

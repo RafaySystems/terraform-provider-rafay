@@ -215,9 +215,11 @@ func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interf
 	// XXX Debug
 	// n1 = spew.Sprintf("%+v", ns)
 	// log.Println("resourceNamespaceRead ns", n1)
-	if ns.Spec.ResourceQuotas != nil && ns.Spec.ResourceQuotas.Requests != nil && ns.Spec.ResourceQuotas.Requests.Memory != nil {
-		log.Println("resourceNamespaceRead ns.Spec.ResourceQuotas Memory", ns.Spec.ResourceQuotas.Requests.Memory)
-	}
+	/*
+		if ns.Spec.ResourceQuotas != nil && ns.Spec.ResourceQuotas.Requests != nil && ns.Spec.ResourceQuotas.Requests.Memory != nil {
+			log.Println("resourceNamespaceRead ns.Spec.ResourceQuotas Memory", ns.Spec.ResourceQuotas.Requests.Memory)
+		}
+	*/
 
 	err = flattenNamespace(d, ns)
 	if err != nil {

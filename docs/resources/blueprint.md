@@ -162,7 +162,7 @@ resource "rafay_blueprint" "blueprint" {
 ***Required***
 
 - `name` - (String) The name for the blueprint base. Supported values are: `default`, `minimal`, `default-openshift`, and `default-aks`.
-- `version` - (String) The version of the blueprint base. Supported values are: `1.11.0`.
+- `version` - (String) The version of the blueprint base. Example values are: `1.11.0`, `1.12.0`, and `1.13.0`.
 
 
 <a id="nestedblock--spec--custom_addons"></a>

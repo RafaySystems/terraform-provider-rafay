@@ -231,8 +231,8 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
 
 ***Required***
 
-- `cluster` - (Block List, Min: 1) The cluster YAML file. (See [below for nested schema](#nestedblock--cluster))
-- `cluster_config` - (Block List, Min: 1) The cluster config YAML file. (See [below for nested schema](#nestedblock--cluster_config))
+- `cluster` - (Block List, Max: 1) The cluster YAML file. (See [below for nested schema](#nestedblock--cluster))
+- `cluster_config` - (Block List, Max: 1) The cluster config YAML file. (See [below for nested schema](#nestedblock--cluster_config))
 
 ***Optional*** 
 
@@ -244,7 +244,7 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
 
 ***Required***
 
-- `spec` - (Block List, Min: 1) The specification associated with the cluster, including cluster networking options. (See [below for nested schema](#nestedblock--cluster--spec))
+- `spec` - (Block List, Max: 1) The specification associated with the cluster, including cluster networking options. (See [below for nested schema](#nestedblock--cluster--spec))
 - `kind` - (String) The type of resource. The supported value is `cluster`. 
 - `metadata` -(Block List) Contains data that helps uniquely identify the resource, including defining the configuration for KMS encryption provider. (See [below for nested schema](#nestedblock--cluster--metadata))
 
@@ -317,7 +317,7 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
 - `apiversion` - (String) The API version. The supported value is `rafay.io/v1alpha5`. 
 - `kind` - (String) The type of resource. The supported value is `ClusterConfig`.
 - `managed_nodegroups` - (Block List) The managed nodegroup attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups))
-- `metadata` - (Block List, Min: 1) The general information for the cluster. (See [below for nested schema](#nestedblock--cluster_config--metadata))
+- `metadata` - (Block List, Max: 1) The general information for the cluster. (See [below for nested schema](#nestedblock--cluster_config--metadata))
 - `node_groups` - (Block List) The nodegroup attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--node_groups))
 - `vpc` - (Block List) The virtual private cloud which is the global subnet and all child subnets. (See [below for nested schema](#nestedblock--cluster_config--vpc))
 

@@ -56,6 +56,11 @@ func resourceGroupAssociation() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"idp_user": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "IDP users vs Local users",
+			},
 			"add_users": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -141,7 +146,11 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 			users[i] = raw.(string)
 		}
 		//call create user association
-		err = commands.CreateUserAssociation(nil, d.Get("group").(string), users)
+		if d.Get("idp_user").(bool) {
+			err = groupassociation.CreateIDPUserAssociation(d.Get("group").(string), users)
+		} else {
+			err = commands.CreateUserAssociation(nil, d.Get("group").(string), users)
+		}
 		if err != nil {
 			log.Println("user association create DID NOT WORK")
 		} else {
@@ -251,7 +260,11 @@ func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData,
 		}
 
 		//call create user association
-		err = commands.UpdateUserAssociation(nil, d.Get("group").(string), addUsers, removeUsers)
+		if d.Get("idp_user").(bool) {
+			err = groupassociation.UpdateIDPUserAssociation(d.Get("group").(string), addUsers, removeUsers)
+		} else {
+			err = commands.UpdateUserAssociation(nil, d.Get("group").(string), addUsers, removeUsers)
+		}
 		log.Println("users to add: ", addUsers)
 		log.Println("users to delete: ", removeUsers)
 		if err != nil {
@@ -281,8 +294,14 @@ func resourceGroupAssociationDelete(ctx context.Context, d *schema.ResourceData,
 		for i, raw := range usersList {
 			users[i] = raw.(string)
 		}
+
 		//call create user association
-		err = commands.DeleteUsersAssociation(nil, d.Get("group").(string), users)
+		if d.Get("idp_user").(bool) {
+			err = groupassociation.DeleteIDPUserAssociation(d.Get("group").(string), users)
+		} else {
+			err = commands.DeleteUsersAssociation(nil, d.Get("group").(string), users)
+		}
+
 		if err != nil {
 			log.Println("user association delete DID NOT WORK")
 		} else {

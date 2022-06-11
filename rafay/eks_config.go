@@ -274,7 +274,7 @@ type EKSClusterIAMServiceAccount struct {
 
 	// Specific role name instead of the Cloudformation-generated role name
 	// +optional
-	RoleName string `yaml:"roleName:,omitempty"`
+	RoleName string `yaml:"roleName,omitempty"`
 
 	// Specify if only the IAM Service Account role should be created without creating/annotating the service account
 	// +optional
@@ -1355,5 +1355,5 @@ type EKSClusterCloudWatchLogging struct {
 // SecretsEncryption defines the configuration for KMS encryption provider
 type SecretsEncryption struct {
 	// +required
-	KeyARN string `yaml:"keyArn,omitempty"`
+	KeyARN string `yaml:"keyARN,omitempty"`
 }

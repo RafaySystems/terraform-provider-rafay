@@ -8,7 +8,46 @@ description: |-
 
 # Rafay Provider
 
+Organizations that have invested in building complex Terraform based "Infrastructure as Code" for cluster provisioning can seamlessly integrate and use the controller for workload related operations. 
 
+
+---
+
+## Terraform Resource List 
+
+### Released 
+
+| Resource                                  | Version Released |
+| ----------------------------------------- | ---------------- |
+| `group`                                   | 0.9.12           |
+| `groupassociation`                        | 0.9.12           |
+| `import_cluster`                          | 0.9.12           |
+| `addon`                                   | 0.9.11           |
+| `agent`                                   | 0.9.11           |
+| `aks_cluster`                             | 0.9.11           |
+| `blueprint`                               | 0.9.11           |
+| `cloud_credential`                        | 0.9.11           |
+| `cluster_override`                        | 0.9.11           |
+| `eks_cluster`                             | 0.9.11           |
+| `namespace`                               | 0.9.11           |
+| `project`                                 | 0.9.11           |
+| `repositories`                            | 0.9.11           |
+| | |
+
+### In Development 
+
+- `aks_cluster_spec`
+- `blueprint` (support for fleet upgrade) 
+- `blueprint` (support for Rook Ceph) 
+- `eks_cluster_spec`
+- `namespace` (support for workspace admin)
+- `opa_policy` 
+- `pipeline`
+- `project` (support for workspace admin) 
+- `secret_sealer`
+
+
+---
 
 ## Example Usage
 

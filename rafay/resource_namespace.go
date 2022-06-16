@@ -465,7 +465,6 @@ func expandNamespaceLimitRangeConfig(p []interface{}) *infrapb.NamespaceLimitRan
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
-	log.Println("inside  expandNamespaceLimitRangeConfig ")
 
 	in := p[0].(map[string]interface{})
 	if v, ok := in["min"].([]interface{}); ok {

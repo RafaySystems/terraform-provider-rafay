@@ -328,6 +328,7 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
 - `availability_zones` - (List of String) The availability zones (AZ) of a cluster. 
 - `fargate_profiles` - (Block List) The settings used to schedule a workload onto AWS Fargate. (See [below for nested schema](#nestedblock--cluster_config--fargate_profiles))
 - `iam` - (Block List) The AWS identity and access management (IAM) attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--iam))
+- `secrets_encryption` - (Block List) The Amazon EKS secrets encryption feature. (See [below for nested schema](#nestedblock--cluster_config--secrets_encryption))
 
 
 <a id="nestedblock--cluster_config--metadata"></a>
@@ -422,6 +423,13 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
 - `external_dns` - (Boolean) Adds external-dns policies for Amazon Route 53.
 - `image_builder` - (Boolean) Allow full Elastic Container Registry (ECR) access.
 
+
+<a id="nestedblock--cluster_config--secrets_encryption"></a>
+### Nested Schema for `cluster_config.secrets_encryption`
+
+***Required***
+
+- `key_arn` - (String) KMS key ARN. 
 
 
 <a id="nestedblock--cluster_config--managed_nodegroups"></a>

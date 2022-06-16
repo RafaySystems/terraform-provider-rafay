@@ -457,13 +457,26 @@ func expandQuantity(p []interface{}) *resource.Quantity {
 	return nil
 }
 
+func expandQuantityString(str string) *resource.Quantity {
+	if len(str) == 0 {
+		return nil
+	}
+	ob, err := resource.ParseQuantity(str)
+	if err == nil {
+		log.Println("string v error", err, " ob ", ob)
+		return &ob
+	}
+	log.Println("string v error", err)
+
+	return nil
+}
+
 func expandResourceQuantity(p []interface{}) *commonpb.ResourceQuantity {
 	obj := commonpb.ResourceQuantity{}
 	if len(p) == 0 || p[0] == nil {
 		log.Println("expandResourceQuantity empty input")
 		return &obj
 	}
-
 	in := p[0].(map[string]interface{})
 	if v, ok := in["memory"].([]interface{}); ok {
 		obj.Memory = expandQuantity(v)
@@ -472,6 +485,27 @@ func expandResourceQuantity(p []interface{}) *commonpb.ResourceQuantity {
 
 	if v, ok := in["cpu"].([]interface{}); ok {
 		obj.Cpu = expandQuantity(v)
+		log.Println("expandResourceQuantity CPU", obj.Cpu)
+	}
+
+	log.Println("expandResourceQuantity obj", obj)
+	return &obj
+}
+
+func expandResourceQuantityString(p []interface{}) *commonpb.ResourceQuantity {
+	obj := commonpb.ResourceQuantity{}
+	if len(p) == 0 || p[0] == nil {
+		log.Println("expandResourceQuantity empty input")
+		return &obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["memory"].(string); ok {
+		obj.Memory = expandQuantityString(v)
+		log.Println("expandResourceQuantity memory", obj.Memory)
+	}
+
+	if v, ok := in["cpu"].(string); ok {
+		obj.Cpu = expandQuantityString(v)
 		log.Println("expandResourceQuantity CPU", obj.Cpu)
 	}
 

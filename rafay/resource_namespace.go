@@ -387,45 +387,44 @@ func expandNamespaceResourceQuotas(p []interface{}) *infrapb.NamespaceResourceQu
 
 	in := p[0].(map[string]interface{})
 	log.Println("input:", in["config_maps"])
-	if v, ok := in["config_maps"].([]interface{}); ok && len(v) > 0 {
-		obj.ConfigMaps = expandQuantity(v)
+	if v, ok := in["config_maps"].(string); ok && len(v) > 0 {
+		obj.ConfigMaps = expandQuantityString(v)
 	}
-	log.Println("output", obj.ConfigMaps)
-	if v, ok := in["cpu_limits"].([]interface{}); ok && len(v) > 0 {
-		obj.CpuLimits = expandQuantity(v)
+	if v, ok := in["cpu_limits"].(string); ok && len(v) > 0 {
+		obj.CpuLimits = expandQuantityString(v)
 	}
-	if v, ok := in["cpu_requests"].([]interface{}); ok && len(v) > 0 {
-		obj.CpuRequests = expandQuantity(v)
+	if v, ok := in["cpu_requests"].(string); ok && len(v) > 0 {
+		obj.CpuRequests = expandQuantityString(v)
 	}
-	if v, ok := in["memory_limits"].([]interface{}); ok && len(v) > 0 {
-		obj.MemoryLimits = expandQuantity(v)
+	if v, ok := in["memory_limits"].(string); ok && len(v) > 0 {
+		obj.MemoryLimits = expandQuantityString(v)
 	}
-	if v, ok := in["memory_requests"].([]interface{}); ok && len(v) > 0 {
-		obj.MemoryRequests = expandQuantity(v)
+	if v, ok := in["memory_requests"].(string); ok && len(v) > 0 {
+		obj.MemoryRequests = expandQuantityString(v)
 	}
-	if v, ok := in["persistent_volume_claims"].([]interface{}); ok && len(v) > 0 {
-		obj.PersistentVolumeClaims = expandQuantity(v)
+	if v, ok := in["persistent_volume_claims"].(string); ok && len(v) > 0 {
+		obj.PersistentVolumeClaims = expandQuantityString(v)
 	}
-	if v, ok := in["pods"].([]interface{}); ok && len(v) > 0 {
-		obj.Pods = expandQuantity(v)
+	if v, ok := in["pods"].(string); ok && len(v) > 0 {
+		obj.Pods = expandQuantityString(v)
 	}
-	if v, ok := in["replication_controllers"].([]interface{}); ok && len(v) > 0 {
-		obj.ReplicationControllers = expandQuantity(v)
+	if v, ok := in["replication_controllers"].(string); ok && len(v) > 0 {
+		obj.ReplicationControllers = expandQuantityString(v)
 	}
-	if v, ok := in["secrets"].([]interface{}); ok && len(v) > 0 {
-		obj.Secrets = expandQuantity(v)
+	if v, ok := in["secrets"].(string); ok && len(v) > 0 {
+		obj.Secrets = expandQuantityString(v)
 	}
-	if v, ok := in["services"].([]interface{}); ok && len(v) > 0 {
-		obj.Services = expandQuantity(v)
+	if v, ok := in["services"].(string); ok && len(v) > 0 {
+		obj.Services = expandQuantityString(v)
 	}
-	if v, ok := in["services_load_balancers"].([]interface{}); ok && len(v) > 0 {
-		obj.ServicesLoadBalancers = expandQuantity(v)
+	if v, ok := in["services_load_balancers"].(string); ok && len(v) > 0 {
+		obj.ServicesLoadBalancers = expandQuantityString(v)
 	}
-	if v, ok := in["services_node_ports"].([]interface{}); ok && len(v) > 0 {
-		obj.ServicesNodePorts = expandQuantity(v)
+	if v, ok := in["services_node_ports"].(string); ok && len(v) > 0 {
+		obj.ServicesNodePorts = expandQuantityString(v)
 	}
-	if v, ok := in["storage_requests"].([]interface{}); ok && len(v) > 0 {
-		obj.StorageRequests = expandQuantity(v)
+	if v, ok := in["storage_requests"].(string); ok && len(v) > 0 {
+		obj.StorageRequests = expandQuantityString(v)
 	}
 	/*
 		if v, ok := in["requests"].([]interface{}); ok {
@@ -469,15 +468,15 @@ func expandNamespaceLimitRangeConfig(p []interface{}) *infrapb.NamespaceLimitRan
 
 	in := p[0].(map[string]interface{})
 	if v, ok := in["min"].([]interface{}); ok {
-		obj.Min = expandResourceQuantity(v)
+		obj.Min = expandResourceQuantityString(v)
 	}
 
 	if v, ok := in["max"].([]interface{}); ok {
-		obj.Max = expandResourceQuantity(v)
+		obj.Max = expandResourceQuantityString(v)
 	}
 
 	if v, ok := in["default"].([]interface{}); ok {
-		obj.Default = expandResourceQuantity(v)
+		obj.Default = expandResourceQuantityString(v)
 	}
 
 	if v, ok := in["default_request"].([]interface{}); ok {

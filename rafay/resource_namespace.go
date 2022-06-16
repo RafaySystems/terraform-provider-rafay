@@ -155,17 +155,6 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
-	//print
-	jsonSpec, err := json.Marshal(ns)
-	if err != nil {
-		return nil
-	}
-
-	// XXX Debug
-	log.Println("expandNamespaceSpec jsonSpec ", string(jsonSpec))
-
-	//
-
 	// wait for publish
 	for {
 		time.Sleep(30 * time.Second)

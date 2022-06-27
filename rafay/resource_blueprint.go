@@ -230,7 +230,6 @@ func expandBluePrint(in *schema.ResourceData) (*infrapb.Blueprint, error) {
 }
 
 func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
-	//SRIKAR _ ADD type here
 	obj := &infrapb.BlueprintSpec{}
 	if len(p) == 0 || p[0] == nil {
 		return obj, fmt.Errorf("%s", "expandAddonSpec empty input")

@@ -14,6 +14,7 @@ resource "rafay_blueprint" "tfdemoblueprint1" {
       name    = "default"
       version = "1.14.0"
     }
+    type              = "golden"
     default_addons {
       enable_ingress    = true
       enable_logging    = false

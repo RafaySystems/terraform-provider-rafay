@@ -266,10 +266,6 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 		obj.Sharing = expandSharingSpec(v)
 	}
 
-	if v, ok := in["type"].(string); ok && len(v) > 0 {
-		obj.Type = v
-	}
-
 	if v, ok := in["drift"].([]interface{}); ok && len(v) > 0 {
 		obj.Drift = expandDrift(v)
 	}

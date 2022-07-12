@@ -3448,7 +3448,7 @@ func expandIAMWellKnownPolicies(p []interface{}) WellKnownPolicies {
 	if v, ok := in["aws_load_balancer_controller"].(bool); ok {
 		obj.AWSLoadBalancerController = &v
 	}
-	if v, ok := in["external_DNS"].(bool); ok {
+	if v, ok := in["external_dns"].(bool); ok {
 		obj.ExternalDNS = &v
 	}
 	if v, ok := in["cert_manager"].(bool); ok {

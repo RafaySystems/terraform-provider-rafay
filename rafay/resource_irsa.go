@@ -14,7 +14,6 @@ import (
 	log2 "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	//"github.com/hashicorp/terraform-provider-aws/internal/service"
 )
 
 func resourceIRSA() *schema.Resource {
@@ -110,19 +109,20 @@ func irsaSpecField() map[string]*schema.Schema {
 			Description: "tags of iam service account",
 		},
 		"policy_document": { //how do we deal with this map[string]interface
-			Type:        schema.TypeList,
+			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "Custom address used for DNS lookups",
-			Elem: &schema.Resource{
-				Schema: irsaSpecField(), //DataSourcePolicyDocument(),
-			},
+			Computed:    true,
+			/*Elem: &schema.Resource{
+				Schema: DataSourcePolicyDocument(),
+			},*/
 		},
 	}
 	return s
 }
 
 /*
-func DataSourcePolicyDocument() *schema.Resource {
+func DataSourcePolicyDocument() map[string]*schema.Schema {
 	setOfString := &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,
@@ -130,99 +130,115 @@ func DataSourcePolicyDocument() *schema.Resource {
 			Type: schema.TypeString,
 		},
 	}
-
-	return &schema.Resource{
-		//Read: dataSourcePolicyDocumentRead,
-
-		Schema: map[string]*schema.Schema{
-			"json": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"override_json": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "Use the attribute \"override_policy_documents\" instead.",
-			},
-			"override_policy_documents": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"policy_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"source_json": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "Use the attribute \"source_policy_documents\" instead.",
-			},
-			"source_policy_documents": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"statement": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"actions": setOfString,
-						"condition": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"test": {
-										Type:     schema.TypeString,
-										Required: true,
+	s := map[string]*schema.Schema{
+		"json": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"override_json": {
+			Type:       schema.TypeString,
+			Optional:   true,
+			Deprecated: "Use the attribute \"override_policy_documents\" instead.",
+		},
+		"override_policy_documents": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"policy_id": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"source_json": {
+			Type:       schema.TypeString,
+			Optional:   true,
+			Deprecated: "Use the attribute \"source_policy_documents\" instead.",
+		},
+		"source_policy_documents": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"statement": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"actions": setOfString,
+					"condition": {
+						Type:     schema.TypeSet,
+						Optional: true,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"test": {
+									Type:     schema.TypeString,
+									Required: true,
+								},
+								"values": {
+									Type:     schema.TypeList,
+									Required: true,
+									Elem: &schema.Schema{
+										Type: schema.TypeString,
 									},
-									"values": {
-										Type:     schema.TypeList,
-										Required: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"variable": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
+								},
+								"variable": {
+									Type:     schema.TypeString,
+									Required: true,
 								},
 							},
 						},
-						"effect": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Default:      "Allow",
-							ValidateFunc: validation.StringInSlice([]string{"Allow", "Deny"}, false),
-						},
-						"not_actions":    setOfString,
-						"not_principals": irsaSpecField(),//dataSourcePolicyPrincipalSchema(),
-						"not_resources":  setOfString,
-						"principals":     irsaSpecField(),//dataSourcePolicyPrincipalSchema(),
-						"resources":      setOfString,
-						"sid": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
+					},
+					"effect": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						Default:      "Allow",
+						ValidateFunc: validation.StringInSlice([]string{"Allow", "Deny"}, false),
+					},
+					"not_actions":    setOfString,
+					"not_principals": dataSourcePolicyPrincipalSchema(),
+					"not_resources":  setOfString,
+					"principals":     dataSourcePolicyPrincipalSchema(),
+					"resources":      setOfString,
+					"sid": {
+						Type:     schema.TypeString,
+						Optional: true,
 					},
 				},
 			},
-			"version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "2012-10-17",
-				ValidateFunc: validation.StringInSlice([]string{
-					"2008-10-17",
-					"2012-10-17",
-				}, false),
+		},
+		"version": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "2012-10-17",
+			ValidateFunc: validation.StringInSlice([]string{
+				"2008-10-17",
+				"2012-10-17",
+			}, false),
+		},
+	}
+	return s
+}
+func dataSourcePolicyPrincipalSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"identifiers": {
+					Type:     schema.TypeSet,
+					Required: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
 			},
 		},
 	}
-}
-*/
+}*/
 func resourceIRSACreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	var logger log2.Logger
@@ -395,6 +411,7 @@ func expandPolicyDocument(in []interface{}) map[string]interface{} {
 		return nil
 	}
 	obj := make(map[string]interface{})
+	log.Println("expand policy document:", in)
 	//what do for map[string]interface object
 	return obj
 }

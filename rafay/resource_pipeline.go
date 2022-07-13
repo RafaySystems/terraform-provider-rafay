@@ -897,7 +897,7 @@ func expandTriggerSpec(p []interface{}) []*gitopspb.TriggerSpec {
 					obj.Config.Repo.Provider = v
 				}
 
-				if v, ok := inpo["repo"].(string); ok && len(v) > 0 {
+				if v, ok := inpo["repository"].(string); ok && len(v) > 0 {
 					obj.Config.Repo.Repository = v
 				}
 

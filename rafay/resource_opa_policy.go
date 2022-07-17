@@ -161,11 +161,20 @@ func resourceOPAPolicyDelete(ctx context.Context, d *schema.ResourceData, m inte
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	log.Printf("Name and Project check")
+	log.Println(ag.Metadata.Name)
+	log.Println(ag.Metadata.Project)
 
 	err = client.OpaV3().OPAPolicy().Delete(ctx, options.DeleteOptions{
 		Name:    ag.Metadata.Name,
 		Project: ag.Metadata.Project,
 	})
+
+	if err != nil {
+		//v3 spec gave error try v2
+		log.Printf(err.Error())
+		return diags
+	}
 
 	return diags
 }
@@ -420,11 +429,11 @@ func flattenOPAPolicySpec(in *opapb.OPAPolicySpec, p []interface{}) ([]interface
 	}
 
 	if in.InstallationParams != nil {
-		v, ok := obj["default_addons"].([]interface{})
+		v, ok := obj["installation_params"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["default_addons"] = flattenInstallationParams(in.InstallationParams, v)
+		obj["installation_params"] = flattenInstallationParams(in.InstallationParams, v)
 	}
 
 	if in.Sharing != nil {

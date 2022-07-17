@@ -420,11 +420,11 @@ func flattenOPAPolicySpec(in *opapb.OPAPolicySpec, p []interface{}) ([]interface
 	}
 
 	if in.InstallationParams != nil {
-		v, ok := obj["default_addons"].([]interface{})
+		v, ok := obj["installation_params"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["default_addons"] = flattenInstallationParams(in.InstallationParams, v)
+		obj["installation_params"] = flattenInstallationParams(in.InstallationParams, v)
 	}
 
 	if in.Sharing != nil {

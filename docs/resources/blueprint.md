@@ -15,105 +15,187 @@ Blueprints are a way to group resources and policies as a package that can be ro
 Example of a custom blueprint resource.
 
 ```terraform
-resource "rafay_blueprint" "blueprint" {
+resource "rafay_blueprint" "tfdemoblueprint1" {
   metadata {
-    name    = "custom-blueprint"
-    project = "terraform"
+    name    = "tfdemoblueprint1"
+    project = "tfdemoproject1"
+    labels = {
+      env  = "dev"
+      name = "app"
+    }
   }
   spec {
-    version   = "v0"
+    version = "v1.1"
     base {
-      name = "default"
-      version = "1.11.0"
-    }
-    drift {
-      action  = "Deny"
-      enabled = true
-    }
-    custom_addons {
-      name = "addon1"
-      version = "v0"
-    }
-    custom_addons {
-      name = "addon2"
-      version = "v0"
+      name    = "default"
+      version = "1.14.0"
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = true
+      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
+      monitoring {
+        metrics_server {
+          enabled = false
+          discovery {}
+        }
+        helm_exporter {
+          enabled = false
+        }
+        kube_state_metrics {
+          enabled = false
+        }
+        node_exporter {
+          enabled = false
+        }
+        prometheus_adapter {
+          enabled = false
+        }
+        resources {
+        }
+      }
+    }
+    drift {
+      action  = "Deny"
+      enabled = false
+    }
+    sharing {
+      enabled = false
+      projects {
+        name = "demoproject"
+      }
+    }
+    placement {
+      auto_publish = false
     }
   }
 }
 ```
 
-Example of a custom blueprint resource with Prometheus customization. 
+---
+
+Example of a custom blueprint resource for fleet values of a cluster. 
 
 ```terraform
-resource "rafay_blueprint" "blueprint" {
+resource "rafay_blueprint" "tfdemoblueprint2" {
   metadata {
-    name    = "custom-blueprint-advanced"
-    project = "terraform"
+    name    = "tfdemoblueprint2"
+    project = "tfdemoproject2"
+    labels = {
+      env  = "dev"
+      name = "app"
+    }
   }
   spec {
-    version   = "v0"
+    version = "v1.1"
     base {
-      name = "default"
-      version = "1.11.0"
-    }
-    drift {
-      action  = "Deny"
-      enabled = true
-    }
-    custom_addons {
-      name = "addon1"
-      version = "v0"
-    }
-    custom_addons {
-      depends_on = ["addon1"]
-      name = "addon2"
-      version = "v0"
+      name    = "default"
+      version = "1.14.0"
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = true
+      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       monitoring {
-        kube_state_metrics {
+        metrics_server {
           enabled = false
-          discovery {
-            namespace = "monitoring"
-            resource = "pod"
-            labels =  {
-              "key1" = "value1"
-            }
-          }
+          discovery {}
         }
         helm_exporter {
-          enabled = true
+          enabled = false
+        }
+        kube_state_metrics {
+          enabled = false
         }
         node_exporter {
-          enabled = true
+          enabled = false
         }
         prometheus_adapter {
           enabled = false
         }
+        resources {
+        }
+      }
+    }
+    drift {
+      action  = "Deny"
+      enabled = false
+    }
+    sharing {
+      enabled = false
+      projects {
+        name = "demoproject"
+      }
+    }
+    placement {
+      auto_publish = true
+      fleet_values = ["value 1","value 2","value 3"]
+    }
+  }
+}
+```
+
+---
+
+Example of a custom blueprint resource with Rook-Ceph managed add-on and a custom add-on. 
+
+```terraform
+resource "rafay_blueprint" "tfdemoblueprint2" {
+  metadata {
+    name    = "tfdemoblueprint2"
+    project = "tfdemoproject2"
+    labels = {
+      env  = "dev"
+      name = "app"
+    }
+  }
+  spec {
+    version = "v1.1"
+    base {
+      name    = "default"
+      version = "1.14.0"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_logging    = false
+      enable_monitoring = true
+      enable_vm         = false
+      monitoring {
         metrics_server {
+          enabled = false
+          discovery {}
+        }
+        helm_exporter {
+          enabled = false
+        }
+        kube_state_metrics {
+          enabled = false
+        }
+        node_exporter {
+          enabled = false
+        }
+        prometheus_adapter {
           enabled = false
         }
         resources {
-          limits {
-            memory {
-              string = "200Mi"
-            }
-            cpu {
-              string = "100m"
-            }
-          }
         }
       }
+    }
+    drift {
+      action  = "Deny"
+      enabled = false
+    }
+    sharing {
+      enabled = false
+      projects {
+        name = "demoproject"
+      }
+    }
+    placement {
+      auto_publish = true
+      fleet_values = ["value 1","value 2","value 3"]
     }
   }
 }
@@ -152,6 +234,7 @@ resource "rafay_blueprint" "blueprint" {
 - `custom_addons` - (Block List) A list of custom add-ons for the resource. (See [below for nested schema](#nestedblock--spec--custom_addons))
 - `default_addons` - (Block List) A list of default add-ons for the resource. (See [below for nested schema](#nestedblock--spec--default_addons)) 
 - `drift` - (Block List, Max: 1) Prevents configuration drift. Drift is a change to your live cluster that is different from the source of truth. (See [below for nested schema](#nestedblock--spec--drift))
+- `placement` - (Block List, Max: 1) Defines the cluster(s) where namespace will be created. (See [below for nested schema](#nestedblock--spec--placement))
 - `private_kube_api_proxies` - (Block List) A private kubernetes API proxy network, used to provide kubectl access for your users. (See [below for nested schema](#nestedblock--spec--private_kube_api_proxies))
 - `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A blueprint can be shared with one or more projects.  (See [below for nested schema](#nestedblock--spec--sharing))
     Note: If the resource is not shared, set enabled = false. 
@@ -258,6 +341,22 @@ resource "rafay_blueprint" "blueprint" {
 
 - `action` - (String) If enabled, drift is enabled for resource.  Supported values are: `Deny` or `Notify`. 
 - `enabled` - (Boolean) If enabled, drift reconciliation is enabled for resource. 
+
+
+<a id="nestedblock--spec--placement"></a>
+### Nested Schema for `spec.placement`
+
+***Optional***
+
+- `labels` - (Block List; Max: 1) A list of labels for the placement. (See [below for nested schema](#nestedblock--spec--placement--labels))
+
+<a id="nestedblock--spec--placement--labels"></a>
+### Nested Schema for `spec.placement.labels`
+
+***Optional***
+
+- `key` - (String) The key of the placement label. 
+- `value` - (String) The value of the placement label. 
 
 
 <a id="nestedblock--spec--private_kube_api_proxies"></a>

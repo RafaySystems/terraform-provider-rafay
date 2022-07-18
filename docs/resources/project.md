@@ -22,6 +22,30 @@ resource "rafay_project" "tfdemoproject1" {
   }
   spec {
     default = false
+    cluster_resource_quota {
+      cpu_requests = "8m"
+      memory_requests = "4Mi"
+      cpu_limits = "6m"
+      memory_limits = "8Mi"
+        config_maps = "10"
+        persistent_volume_claims = "5"
+        secrets = "4"
+        services = "20"    
+        pods = "200"
+        replication_controllers = "10"
+    }
+    default_cluster_namespace_quota {
+      cpu_requests = "4m"
+        memory_requests = "2Mi"
+        cpu_limits = "2m"
+        memory_limits = "4Mi"
+        config_maps = "5"
+        persistent_volume_claims = "2"
+        secrets = "2"
+        services = "10"
+        pods = "20"
+        replication_controllers = "4"
+    }
   }
 }
 ```
@@ -54,9 +78,56 @@ resource "rafay_project" "tfdemoproject1" {
 ### Nested Schema for `spec`
 
 ***Required***
+- `cluster_resource_quota` - (Block List; Max: 1) The resource requests and limits for the project. (See [below for nested schema](#nestedblock--spec--cluster_resource_quota))
 - `default` - (Boolean) Sets the project to be the default in the organization. 
 
   **Note**: The only option is `false`. Only one default project is allowed, and the defaultproject is already set as the default. Changing this setting to true does not change the default project. 
+
+- `default_cluster_namespace_quota` - (Block List; Max: 1) The resource requests and limits for the namespace. (See [below for nested schema](#nestedblock--specs--default_cluster_namespace_quota))
+
+
+<a id="nestedblock--spec--cluster_resource_quota"></a>
+### Nested Schema for `spec.cluster_resource_quota` 
+
+***Required*** 
+- `cpu_limits` - (String) The minimum CPU resource. 
+- `cpu_requests` - (String) The requested CPU resource. 
+- `memory_limits` - (String) The maximum memory resource. (See [below for nested schema](#nestedblock--spec--cluster_resource_quota--memory_limits))
+- `memory_requests` - (String) The requested memory resource. 
+
+
+<a id="nestedblock--spec--cluster_resource_quota--memory_limits"></a>
+### Nested Schema for `spec.cluster_resource_quota.memory_limits` 
+
+***Required*** 
+- `config_maps` - (String) The maximum number of configuration maps allowed in the cluster. 
+- `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in the cluster. 
+- `pods` - (String) The maximum number of pods allowed in the cluster. 
+- `replication_controllers` - (String) The maximum number of replication controllers in the cluster. 
+- `secrets` - (String) The maximum number of secrets in the cluster. 
+- `services` - (String) The maximum number of services in the cluster. 
+
+
+<a id="nestedblock--specs--default_cluster_namespace_quota"></a>
+### Nested Schema for `specs.default_cluster_namespace_quota` 
+
+***Required***
+- `cpu_requests` - (See [below for nested schema](#nestedblock--specs--default_cluster_namespace_quota))
+
+
+<a id="nestedblock--specs--default_cluster_namespace_quota--cpu_requests"></a>
+### Nested Schema for `specs.default_cluster_namespace_quota.cpu_requests` 
+
+***Required*** 
+- `config_maps ` - (String) The maximum number of configuration maps allowed in a cluster namespace. 
+- `cpu_limits` - (String) The minimum CPU resource in a cluster namespace. 
+- `memory_limits` - (String) The maximum memory resource in a cluster namespace. 
+- `memory_requests` - (String) The requested memory resource in a cluster namespace.
+- `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in a cluster namespace. 
+- `pods` - (String) The maximum number of pods allowed in a cluster namespace.
+- `replication_controllers` - (String) The maximum number of replication controllers in a cluster namespace. 
+- `secrets` - (String) The maximum number of secrets in a cluster namespace. 
+- `services` - (String) The maximum number of services in a cluster namespace. 
 
 
 <a id="nestedblock--timeouts"></a>

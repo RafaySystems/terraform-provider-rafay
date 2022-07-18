@@ -45,16 +45,19 @@ The following example demonstrates creating an advanced namespace, with limit ra
 ```terraform
 resource "rafay_namespace" "namespace" {
   metadata {
-    name        = "cloudops"
-    project     = "terraform"
+    name    = "tfdemonamespace2"
+    project = "tfdemoproject1"
     labels = {
-      "env"  = "prod"
+      "env" = "prod"
     }
     annotations = {
       "logging" = "enabled"
     }
   }
   spec {
+    drift {
+      enabled = false
+    }
     limit_range {
       pod {
         max {
@@ -128,31 +131,154 @@ resource "rafay_namespace" "namespace" {
       }
     }
     resource_quotas {
-        limits {
-          cpu {
-            string = "8"
-          }
-          memory {
-            string = "16Gi"
-          }
+      limits {
+        cpu {
+          string = "8"
+        }
+        memory {
+          string = "16Gi"
+        }
 
+      }
+      requests {
+        cpu {
+          string = "4"
         }
-        requests {
-          cpu {
-            string = "4"
-          }
-          memory {
-            string = "8Gi"
-          }
+        memory {
+          string = "8Gi"
         }
+      }
 
     }
     placement {
       labels {
-        key = "rafay.dev/clusterName"
-        value = "test-org-stage-import"
+        key   = "rafay.dev/clusterName"
+        value = "cluster_name"
       }
     }
+  }
+}
+```
+
+---
+
+The following example demonstrates creating an advanced namespace, with limit ranges and resource quotas. 
+
+```terraform
+resource "rafay_namespace" "namespace" {
+  metadata {
+    name    = "tfdemonamespace3"
+    project = "dev"
+    labels = {
+      "env" = "prod"
+    }
+    annotations = {
+      "logging" = "enabled"
+    }
+  }
+  spec {
+    drift {
+      enabled = true
+    }
+    limit_range {
+      pod {
+        max {
+          cpu {
+            string = "2"
+          }
+          memory {
+            string = "2Gi"
+          }
+        }
+        min {
+          cpu {
+            string = "1"
+          }
+
+          memory {
+            string = "1Gi"
+          }
+        }
+
+        ratio {
+          cpu    = 1
+          memory = 1
+        }
+      }
+      container {
+        default {
+          cpu {
+            string = "1"
+          }
+
+          memory {
+            string = "1Gi"
+          }
+        }
+
+        default_request {
+          cpu {
+            string = "1"
+          }
+
+          memory {
+            string = "1Gi"
+          }
+        }
+
+        max {
+          cpu {
+            string = "2"
+          }
+
+          memory {
+            string = "2Gi"
+          }
+        }
+
+        min {
+          cpu {
+            string = "1"
+          }
+
+          memory {
+            string = "1Gi"
+          }
+        }
+
+        ratio {
+          cpu    = 1
+          memory = 1
+        }
+      }
+    }
+    resource_quotas {
+      limits {
+        cpu {
+          string = "8"
+        }
+        memory {
+          string = "16Gi"
+        }
+
+      }
+      requests {
+        cpu {
+          string = "4"
+        }
+        memory {
+          string = "8Gi"
+        }
+      }
+
+    }
+    /*
+    placement {
+      labels {
+        key   = "rafay.dev/clusterName"
+        value = "cluster_name"
+      }
+    }*/
   }
 }
 ```
@@ -264,14 +390,14 @@ resource "rafay_namespace" "namespace" {
 <a id="nestedblock--spec--placement"></a>
 ### Nested Schema for `spec.placement`
 
-Optional:
+***Optional***
 
 - `labels` - (Block List; Max: 1) A list of labels for the placement. (See [below for nested schema](#nestedblock--spec--placement--labels))
 
 <a id="nestedblock--spec--placement--labels"></a>
 ### Nested Schema for `spec.placement.labels`
 
-Optional:
+***Optional***
 
 - `key` - (String) The key of the placement label. 
 - `value` - (String) The value of the placement label. 

@@ -11,11 +11,11 @@ resource "rafay_irsa" "basic_irsa" {
     role_only = false
     policy_arns = [""]
     //tags =
-    policy_document = data.aws_iam_policy_document.example.json
+    policy_document = data.policy_document.example.json
   }
 }
 
-data "aws_iam_policy_document" "example" {
+data "policy_document" "example" {
   statement {
     sid    = ""
     effect = "Allow"

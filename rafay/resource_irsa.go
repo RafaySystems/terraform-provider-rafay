@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"log"
@@ -108,7 +109,7 @@ func irsaSpecField() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "tags of iam service account",
 		},
-		"policy_document": { //how do we deal with this map[string]interface
+		"policy_document": { //how do we deal with this map[string]interface -> take in json as a string
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "Custom address used for DNS lookups",
@@ -257,7 +258,11 @@ func resourceIRSACreate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 
-	rctlERR := iamserviceaccount.Create(logger, config, irsa.Spec.ClusterName, irsa.Metadata.Name, irsa.Spec.Namespace, irsa.Spec.PolicyARNs, irsa.Spec.PolicyDocument, irsa.Spec.PermissionsBoundary, irsa.Metadata.Labels, irsa.Metadata.Annotations, irsa.Spec.Tags, *irsa.Spec.RoleOnly)
+	//convert string to json (map[string]interface{})
+	var policyDoc map[string]interface{}
+	json.Unmarshal([]byte(irsa.Spec.PolicyDocument), &policyDoc)
+	log.Println("unmarshall bfr create")
+	rctlERR := iamserviceaccount.Create(logger, config, irsa.Spec.ClusterName, irsa.Metadata.Name, irsa.Spec.Namespace, irsa.Spec.PolicyARNs, policyDoc, irsa.Spec.PermissionsBoundary, irsa.Metadata.Labels, irsa.Metadata.Annotations, irsa.Spec.Tags, *irsa.Spec.RoleOnly)
 	if rctlERR != nil {
 		log.Println("rclt create err")
 		return diag.FromErr(rctlERR)
@@ -283,7 +288,11 @@ func resourceIRSAUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 
-	rctlERR := iamserviceaccount.Update(logger, config, irsa.Spec.ClusterName, irsa.Metadata.Name, irsa.Spec.Namespace, irsa.Spec.PolicyARNs, irsa.Spec.PolicyDocument, irsa.Spec.PermissionsBoundary, irsa.Spec.Tags)
+	//convert string to json (map[string]interface{})
+	var policyDoc map[string]interface{}
+	json.Unmarshal([]byte(irsa.Spec.PolicyDocument), &policyDoc)
+
+	rctlERR := iamserviceaccount.Update(logger, config, irsa.Spec.ClusterName, irsa.Metadata.Name, irsa.Spec.Namespace, irsa.Spec.PolicyARNs, policyDoc, irsa.Spec.PermissionsBoundary, irsa.Spec.Tags)
 	if rctlERR != nil {
 		log.Println("rclt update err")
 		return diag.FromErr(rctlERR)
@@ -361,7 +370,7 @@ func expandIRSA(in *schema.ResourceData) (*IRSA, error) {
 	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandMetaData(v)
 	}
-
+	log.Println("finished metadata: ", obj.Metadata)
 	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandIRSASpec(v)
 		if err != nil {
@@ -369,11 +378,13 @@ func expandIRSA(in *schema.ResourceData) (*IRSA, error) {
 		}
 		log.Println("expandIRSASpec got spec")
 		obj.Spec = objSpec
+		log.Println("set spec")
 	}
 	return obj, nil
 }
 func expandIRSASpec(p []interface{}) (*IRSASpec, error) {
 	obj := &IRSASpec{}
+	log.Println("inside spec")
 	if len(p) == 0 || p[0] == nil {
 		return obj, fmt.Errorf("%s", "expandAgentSpec empty input")
 	}
@@ -399,10 +410,10 @@ func expandIRSASpec(p []interface{}) (*IRSASpec, error) {
 		obj.PolicyARNs = toArrayStringSorted(v)
 	}
 
-	if v, ok := in["policy_document"].([]interface{}); ok && len(v) > 0 {
-		obj.PolicyDocument = expandPolicyDocument(v)
+	if v, ok := in["policy_document"].(string); ok && len(v) > 0 {
+		obj.PolicyDocument = v
 	}
-
+	log.Println("finish spec:", obj)
 	return obj, nil
 }
 

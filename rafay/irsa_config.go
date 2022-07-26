@@ -18,7 +18,7 @@ type IRSASpec struct {
 	Tags                map[string]string `yaml:"tags,omitempty"`
 	PolicyARNs          []string          `yaml:"policyARNs,omitempty"`
 	//def need to do something different here with map[string]interface{}
-	PolicyDocument map[string]interface{} `yaml:"policyDocument,omitempty"`
+	PolicyDocument string `yaml:"policyDocument,omitempty"`
 }
 
 type PolicyDocument struct {

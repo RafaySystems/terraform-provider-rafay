@@ -89,7 +89,7 @@ resource "rafay_project" "tfdemoproject1" {
 <a id="nestedblock--spec--cluster_resource_quota"></a>
 ### Nested Schema for `spec.cluster_resource_quota` 
 
-***Required*** 
+***Optional*** 
 - `cpu_limits` - (String) The minimum CPU resource. 
 - `cpu_requests` - (String) The requested CPU resource. 
 - `memory_limits` - (String) The maximum memory resource. (See [below for nested schema](#nestedblock--spec--cluster_resource_quota--memory_limits))
@@ -111,7 +111,7 @@ resource "rafay_project" "tfdemoproject1" {
 <a id="nestedblock--specs--default_cluster_namespace_quota"></a>
 ### Nested Schema for `specs.default_cluster_namespace_quota` 
 
-***Required***
+***Optional***
 - `cpu_requests` - (See [below for nested schema](#nestedblock--specs--default_cluster_namespace_quota))
 
 

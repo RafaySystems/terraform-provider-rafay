@@ -17,11 +17,11 @@ Create a namespace resource.  Namespaces help different projects or teams share 
 The following is a simple example that demonstrates the minimum data needed for creating a namespace. 
 
 ```terraform
-#rafay_namespace.tftestnamespace:
-resource "rafay_namespace" "namespace" {
+#Basic example for namespace
+resource "rafay_namespace" "tfdemonamespace1" {
   metadata {
-    name        = "tftestnamespace"
-    project     = "terraform"
+    name    = "tfdemonamespace1"
+    project = "terraform"
   }
   spec {
     drift {
@@ -29,24 +29,24 @@ resource "rafay_namespace" "namespace" {
     }
     placement {
       labels {
-        key = "rafay.dev/clusterName"
+        key   = "rafay.dev/clusterName"
         value = "tftestnamespace"
       }
     }
   }
 }
 
-```
 
 ---
 
-The following example demonstrates creating an advanced namespace, with limit ranges and resource quotas. 
+The following example demonstrates creating an advanced namespace, with limit ranges and resource quotas.
 
 ```terraform
-resource "rafay_namespace" "namespace" {
+#Namespace example with resource quotas & limit ranges
+resource "rafay_namespace" "tfdemonamespace2" {
   metadata {
     name    = "tfdemonamespace2"
-    project = "tfdemoproject1"
+    project = "terraform"
     labels = {
       "env" = "prod"
     }
@@ -58,26 +58,22 @@ resource "rafay_namespace" "namespace" {
     drift {
       enabled = false
     }
+    placement {
+      labels {
+        key   = "rafay.dev/clusterName"
+        value = "cluster_name"
+      }
+    }
     limit_range {
       pod {
         max {
-          cpu {
-            string = "2"
-          }
-          memory {
-            string = "2Gi"
-          }
+          cpu  = "2"
+          memory = "2Gi"
         }
         min {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
+          cpu  = "1"
+          memory = "1Gi"
         }
-
         ratio {
           cpu    = 1
           memory = 1
@@ -85,45 +81,22 @@ resource "rafay_namespace" "namespace" {
       }
       container {
         default {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
+          cpu = "1"   
+          memory = "1Gi"
         }
-
         default_request {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
+          cpu = "1"
+          memory = "1Gi"
         }
 
         max {
-          cpu {
-            string = "2"
-          }
-
-          memory {
-            string = "2Gi"
-          }
+          cpu = "2"
+          memory = "2Gi"
         }
-
         min {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
+          cpu = "1"   
+          memory = "2Gi"
         }
-
         ratio {
           cpu    = 1
           memory = 1
@@ -131,157 +104,28 @@ resource "rafay_namespace" "namespace" {
       }
     }
     resource_quotas {
-      limits {
-        cpu {
-          string = "8"
-        }
-        memory {
-          string = "16Gi"
-        }
-
-      }
-      requests {
-        cpu {
-          string = "4"
-        }
-        memory {
-          string = "8Gi"
-        }
-      }
-
-    }
-    placement {
-      labels {
-        key   = "rafay.dev/clusterName"
-        value = "cluster_name"
+      config_maps = "10"
+      cpu_limits = "8"
+      memory_limits = "16Gi"
+      cpu_requests = "4"
+      memory_requests = "8Gi"
+      persistent_volume_claims = "2"
+      pods = "30"
+      replication_controllers = "5"
+      secrets = "10"
+      services = "10"
+      services_load_balancers = "3"
+      services_node_ports = "10"
+      storage_requests = "10Gi"
       }
     }
-  }
 }
+
 ```
 
 ---
 
-The following example demonstrates creating an advanced namespace, with limit ranges and resource quotas. 
 
-```terraform
-resource "rafay_namespace" "namespace" {
-  metadata {
-    name    = "tfdemonamespace3"
-    project = "dev"
-    labels = {
-      "env" = "prod"
-    }
-    annotations = {
-      "logging" = "enabled"
-    }
-  }
-  spec {
-    drift {
-      enabled = true
-    }
-    limit_range {
-      pod {
-        max {
-          cpu {
-            string = "2"
-          }
-          memory {
-            string = "2Gi"
-          }
-        }
-        min {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
-        }
-
-        ratio {
-          cpu    = 1
-          memory = 1
-        }
-      }
-      container {
-        default {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
-        }
-
-        default_request {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
-        }
-
-        max {
-          cpu {
-            string = "2"
-          }
-
-          memory {
-            string = "2Gi"
-          }
-        }
-
-        min {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
-        }
-
-        ratio {
-          cpu    = 1
-          memory = 1
-        }
-      }
-    }
-    resource_quotas {
-      limits {
-        cpu {
-          string = "8"
-        }
-        memory {
-          string = "16Gi"
-        }
-
-      }
-      requests {
-        cpu {
-          string = "4"
-        }
-        memory {
-          string = "8Gi"
-        }
-      }
-
-    }
-    /*
-    placement {
-      labels {
-        key   = "rafay.dev/clusterName"
-        value = "cluster_name"
-      }
-    }*/
-  }
-}
-```
 
 
 ## Argument Reference
@@ -405,8 +249,19 @@ resource "rafay_namespace" "namespace" {
 <a id="nestedblock--spec--resourcequotas"></a>
 ### Nested Schema for `spec.resource_quotas`
 
-- `cpu` - (String) The number of CPU threads. 
-- `memory` - (String) The amount of memory, in gibibytes. A gigabyte is a close equivalent to a gibibyte. 
+- `config_maps` - (String) The maximum number of configuration maps allowed in the cluster. 
+- `cpu_limits` - (String) The maximum CPU resource. 
+- `cpu_requests` - (String) The number of CPU threads. 
+- `memory_limits` - (String) The maximum memory resource.
+- `memory_requsts` - (String) The amount of memory, in gibibytes. A gigabyte is a close equivalent to a gibibyte. 
+- `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in the cluster. 
+- `pods` - (String) The maximum number of pods allowed in the cluster. 
+- `replication_controllers` - (String) The maximum number of replication controllers in the cluster. 
+- `secrets` - (String) The maximum number of secrets in the cluster. 
+- `services` - (String) The maximum number of services in the cluster. 
+- `services_load_balancers` - (String) The number of load balancers. 
+- `services_node_ports` - (String) The number of node ports. 
+- `storage_requests` - (String) The size of the storage request. 
 
     See the Kubernetes [Resource Quotas](https://kubernetes.io/docs/concepts/policy/resource-quotas/) documentation page for more information.
 

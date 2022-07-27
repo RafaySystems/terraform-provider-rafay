@@ -16,11 +16,7 @@ A workload is an application that manages a set of pods.
 resource "rafay_workload" "tftestworkload1" {
   metadata {
     name    = "tftestworkload1"
-    project = "upgrade"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
+    project = "terraform"
   }
   spec {
     namespace = "test-workload1"
@@ -67,10 +63,6 @@ resource "rafay_workload" "tftestworkload1" {
 - `name` - (String) The name of the resource. This must be unique in your organization. 
 - `project` - (String) The name of the Rafay project the workload will be created in. 
 
-***Optional***
-
-- `labels` - (Map) A map of string keys and values for organizing and categorizing workloads. 
-
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
@@ -94,7 +86,7 @@ resource "rafay_workload" "tftestworkload1" {
 
 - `artifact` - (Block List, Max: 1) Contains data about the artifact repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact))
 - **options** - (Block List, Max: 1) ***needs info*** (See [below for nested schema](#nestedblock--spec--artifact--options))
-- `type` - (String) The type of artifact. Supported values are: `Helm`, `Yaml`, and `AlertManager`. 
+- `type` - (String) The type of artifact. Supported values are: `Helm` and `Yaml`. 
 
 
 <a id="nestedblock--spec--artifact--artifact"></a>
@@ -105,18 +97,14 @@ resource "rafay_workload" "tftestworkload1" {
 - `chart_name` - (String) The name of the chart. 
 - `chart_path` - (Block List, Max: 1) The relative path to the chart file in the Git repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 - `chart_version` - (String) The version of the chart. 
-- `configmap` - (Block List, Max: 1) The relative path to the alert manager configmap file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
-- `configuration` - (Block List, Max: 1) The relative path to the alert manager configuration file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 - `paths` - (Block List) The relative path to the file in the Git repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 - `repository` - (String) The name of the helm repository.
 - `revision` - (String) The branch or tag in the Git repository. 
-- `secret` - (Block List, Max: 1) The relative path to the alert manager secret file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
-- `statefulset` - (Block List, Max: 1) The relative path to the alert manager statefulset file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 - `values_paths` - (Block List) The relative path to the values file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 
 
 <a id="nestedblock--spec--artifact--artifact--chart_path"></a>
-### Nested Schema for various resources under `spec.artifact.artifact.chart_path`, `.configmap`, `.configuration`, `.paths`, `.secret`, `.statefulset`, and `.value_paths`
+### Nested Schema for various resources under `spec.artifact.artifact.chart_path`, `.paths`, and `.value_paths`
 
 ***Optional***
 
@@ -162,7 +150,7 @@ Optional:
 ***Optional***
 
 - `labels` - (Block List; Max: 1) A list of labels for the placement. (See [below for nested schema](#nestedblock--spec--placement--labels))
-- **selector** (String) Kubernetes style label selector ***needs info***
+- `selector` (String) Kubernetes style label selector. 
 
 
 <a id="nestedblock--spec--placement--labels"></a>

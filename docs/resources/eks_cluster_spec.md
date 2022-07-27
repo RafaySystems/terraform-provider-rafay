@@ -8,16 +8,16 @@ description: |-
 
 # rafay_eks_cluster_spec (Resource)
 
-A workload is an application that manages a set of pods.
+Manage an AWS EKS cluster. 
 
 ## Example Usage
 
 ```terraform
 resource "rafay_eks_cluster_spec" "demo-terraform-eks1" {
   name            = "demo-terraform-eks1"
-  projectname     = "dev"
+  projectname     = "terraform"
   yamlfilepath    = "/Users/testuser/terraform-provider-rafay/examples/resources/rafay_eks_cluster_spec/eks-cluster.yaml"
-  yamlfileversion = ""
+  yamlfileversion = "1.0"
   checkdiff       = true
 }
 ```
@@ -27,11 +27,15 @@ resource "rafay_eks_cluster_spec" "demo-terraform-eks1" {
 
 ***Required***
 
-- `checkdiff` - (Boolean) Displays the differences of formatting changes. 
 - `name` - (String) The cluster name. 
 - `projectname` - (String) The project name. 
 - `yamlfilepath` - (String) The path to the `eks-cluster` YAML file. 
 - `yamlfileversion` - (String) The version of the `eks-cluster` YAML file. 
+
+
+***Optional***
+
+- `checkdiff` - (Boolean) Displays the differences of formatting changes. 
 
 
 ---

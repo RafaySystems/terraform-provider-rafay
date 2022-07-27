@@ -8,7 +8,7 @@ description: |-
 
 # rafay_workloadtemplate (Resource)
 
-A workload template is an application that manages a set of pods.
+A workload template defines a template for a workload.
 
 
 ## Example Usage
@@ -18,7 +18,7 @@ A workload template is an application that manages a set of pods.
 resource "rafay_workloadtemplate" "tftestworkloadtemplate1" {
   metadata {
     name    = "tftestworkloadtemplate1"
-    project = "tftestproject"
+    project = "terraform"
   }
   spec {
     artifact {
@@ -45,18 +45,18 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate1" {
 resource "rafay_workloadtemplate" "tftestworkloadtemplate2" {
   metadata {
     name    = "tftestworkloadtemplate2"
-    project = "tftestproject"
+    project = "terraform"
   }
   spec {
     artifact {
-	    type = "Helm"
+      type = "Helm"
       artifact{
-	      values_paths {
-	        name = "file://relative/path/to/some/chart/values.yaml"
+        values_paths {
+          name = "file://relative/path/to/some/chart/values.yaml"
         }
         repository = "helm-repo-name"
         chart_name = "chartname"
-	      chart_version = "versionID"
+        chart_version = "versionID"
       }
     }
   }
@@ -66,14 +66,14 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate2" {
 resource "rafay_workloadtemplate" "tftestworkloadtemplate3" {
   metadata {
     name    = "tftestworkloadtemplate3"
-    project = "tftestproject"
+    project = "terraform"
   }
   spec {
     artifact {
       type = "Helm"
       artifact {
         chart_path {
-          name = "relative/path/to/some/chart.yaml"
+          name = "relative/path/to/some/chart.tgz"
         }
         repository = "git-user-repo-name"
         revision   = "branchname"
@@ -86,7 +86,7 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate3" {
 resource "rafay_workloadtemplate" "tftestworkloadtemplate4" {
   metadata {
     name    = "tftestworkloadtemplate4"
-    project = "tftestproject"
+    project = "terraform"
   }
   spec {
     artifact {
@@ -104,7 +104,7 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate4" {
 resource "rafay_workloadtemplate" "tftestworkloadtemplate5" {
   metadata {
     name    = "tftestworkloadtemplate5"
-    project = "tftestproject"
+    project = "terraform"
   }
   spec {
     artifact {
@@ -146,9 +146,7 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate5" {
 
 ***Optional***
 
-- `annotations` - (Map) A key value map stored with the resource that can be used to store metadata. 
 - `description` - (String) A description of the resource. 
-- `labels` - (Map) A map of string keys and values for organizing and categorizing workloads. 
 
 
 <a id="nestedblock--spec"></a>
@@ -157,12 +155,6 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate5" {
 ***Optional***
 
 - `artifact` (Block List, Max: 1) The workload artifact specification. (See [below for nested schema](#nestedblock--spec--artifact))
-- `drift` - (Block List, Max: 1) Prevents configuration drift. Drift is a change to your live cluster that is different from the source of truth. (See [below for nested schema](#nestedblock--spec--drift))
-
-  **Note**: The only option is `false`. Drift configuration is currently not supported. 
-
-- `namespace` - (String) The namespace of the workload resource. 
-- `placement` - (Block List, Max: 1) Defines the cluster(s) where workload will be created. (See [below for nested schema](#nestedblock--spec--placement))
 - `sharing` - (Block List, Max: 1) Enables sharing this resource with another project. (See [below for nested schema](#nestedblock--spec--sharing))
 - `version` - (String) The version of the workload resource. 
 
@@ -174,7 +166,7 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate5" {
 
 - `artifact` - (Block List, Max: 1) Contains data about the artifact repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact))
 - **options** - (Block List, Max: 1) ***needs info*** (See [below for nested schema](#nestedblock--spec--artifact--options))
-- `type` - (String) The type of artifact. Supported values are: `Helm`, `Yaml`, and `AlertManager`. 
+- `type` - (String) The type of artifact. Supported values are: `Helm` and `Yaml`. 
 
 
 <a id="nestedblock--spec--artifact--artifact"></a>
@@ -185,18 +177,14 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate5" {
 - `chart_name` - (String) The name of the chart. 
 - `chart_path` - (Block List, Max: 1) The relative path to the chart file in the Git repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 - `chart_version` - (String) The version of the chart. 
-- `configmap` - (Block List, Max: 1) The relative path to the alert manager configmap file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
-- `configuration` - (Block List, Max: 1) The relative path to the alert manager configuration file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 - `paths` - (Block List) The relative path to the file in the Git repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 - `repository` - (String) The name of the helm repository.
 - `revision` - (String) The branch or tag in the Git repository. 
-- `secret` - (Block List, Max: 1) The relative path to the alert manager secret file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
-- `statefulset` - (Block List, Max: 1) The relative path to the alert manager statefulset file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 - `values_paths` - (Block List) The relative path to the values file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 
 
 <a id="nestedblock--spec--artifact--artifact--chart_path"></a>
-### Nested Schema for various resources under `spec.artifact.artifact.chart_path`, `.configmap`, `.configuration`, `.paths`, `.secret`, `.statefulset`, and `.value_paths`
+### Nested Schema for various resources under `spec.artifact.artifact.chart_path`, `.paths`, and `.value_paths`
 
 ***Optional***
 
@@ -225,33 +213,6 @@ Optional:
 - `skip_crd` - (Boolean) If enabled, the installation skips deploying CRDs. 
 - `timeout` - (String) The timeout for waiting for the resources to become ready. (See [below for nested schema](#nestedblock--spec--artifact--options--timeouts)) 
 - `wait` - (Boolean) If enabled, deploy the resource with wait flag. This means wait until the deployment is in a ready state before marking the release as successful. 
-
-
-<a id="nestedblock--spec--drift"></a>
-### Nested Schema for `spec.drift`
-
-***Required***
-
-- `action` - (String) If enabled, drift is enabled for resource.  Options include: `Deny` or `Notify`. 
-- `enabled` - (Boolean) If enabled, drift reconciliation is enabled for resource. 
-
-
-<a id="nestedblock--spec--placement"></a>
-### Nested Schema for `spec.placement`
-
-***Optional***
-
-- `labels` - (Block List; Max: 1) A list of labels for the placement. (See [below for nested schema](#nestedblock--spec--placement--labels))
-- **selector** (String) Kubernetes style label selector ***needs info***
-
-
-<a id="nestedblock--spec--placement--labels"></a>
-### Nested Schema for `spec.placement.labels`
-
-***Optional***
-
-- `key` - (String) The key of the placement label. 
-- `value` - (String) The value of the placement label. 
 
 
 <a id="nestedblock--spec--sharing"></a>

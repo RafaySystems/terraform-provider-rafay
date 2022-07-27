@@ -8,16 +8,17 @@ description: |-
 
 # rafay_aks_cluster_spec (Resource)
 
-A workload is an application that manages a set of pods.
+This example is for the AKS Cluster. 
 
 ## Example Usage
 
 ```terraform
 resource "rafay_aks_cluster_spec" "demo-terraform-aks" {
   name            = "demo-terraform-aks"
-  projectname     = "upgrade"
+  projectname     = "tfdemoproject1"
   yamlfilepath    = "/Users/testuser/terraform-provider-rafay/examples/resources/rafay_aks_cluster_spec/aks-cluster.yaml"
   yamlfileversion = "0"
+  checkdiff = true
 }
 ```
 
@@ -26,11 +27,15 @@ resource "rafay_aks_cluster_spec" "demo-terraform-aks" {
 
 ***Required***
 
-- `checkdiff` - (Boolean) Displays the differences of formatting changes. 
 - `name` - (String) The cluster name. 
 - `projectname` - (String) The project name. 
 - `yamlfilepath` - (String) The path to the `aks-cluster` YAML file. 
 - `yamlfileversion` - (String) The version of the `aks-cluster` YAML file. 
+
+
+***Optional***
+
+- `checkdiff` - (Boolean) Displays the differences of formatting changes. 
 
 
 ---

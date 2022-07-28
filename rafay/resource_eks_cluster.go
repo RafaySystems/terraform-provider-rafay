@@ -464,12 +464,13 @@ func serviceAccountsFields() map[string]*schema.Schema {
 			},
 		},
 		"attach_policy": { //USE THIS FOR ALL INLINEDOCUMENT TYPES
-			Type:        schema.TypeList,
+			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "holds a policy document to attach to this service account",
-			Elem: &schema.Resource{
-				Schema: attachPolicyFields(),
-			},
+			/*
+				Elem: &schema.Resource{
+					Schema: attachPolicyFields(),
+				},*/
 		},
 		"attach_role_arn": {
 			Type:        schema.TypeString,

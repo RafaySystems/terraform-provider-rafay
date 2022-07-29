@@ -409,9 +409,9 @@ func expandCommonpbFiles(p []interface{}) []*commonpb.File {
 	return out
 }
 
-func expandFiles(p []interface{}) []*File {
+func expandFiles(p []interface{}) ([]*File, error) {
 	if len(p) == 0 || p[0] == nil {
-		return nil
+		return nil, fmt.Errorf("%s", "expandFiles empty input")
 	}
 
 	obj := make([]*File, len(p))
@@ -429,6 +429,7 @@ func expandFiles(p []interface{}) []*File {
 			artifactData, err := ioutil.ReadFile(artifactFullPath)
 			if err != nil {
 				log.Println("unable to read artifact at ", artifactFullPath)
+				return nil, err
 			} else {
 				of.Data = artifactData
 			}
@@ -436,7 +437,7 @@ func expandFiles(p []interface{}) []*File {
 
 		obj[i] = &of
 	}
-	return obj
+	return obj, nil
 }
 
 func expandQuantity(p []interface{}) *resource.Quantity {

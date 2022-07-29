@@ -10,7 +10,7 @@ description: |-
 
 A repository resource. 
 
-```
+```terraform
 # Username/Password example
 resource "rafay_repositories" "tfdemorepository1" {
   metadata {

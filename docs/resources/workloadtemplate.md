@@ -165,7 +165,7 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate5" {
 ***Optional***
 
 - `artifact` - (Block List, Max: 1) Contains data about the artifact repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact))
-- **options** - (Block List, Max: 1) ***needs info*** (See [below for nested schema](#nestedblock--spec--artifact--options))
+- `options` - (Block List, Max: 1) Helm options. (See [below for nested schema](#nestedblock--spec--artifact--options))
 - `type` - (String) The type of artifact. Supported values are: `Helm` and `Yaml`. 
 
 

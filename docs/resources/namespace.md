@@ -18,9 +18,9 @@ The following is a simple example that demonstrates the minimum data needed for 
 
 ```terraform
 #Basic example for namespace
-resource "rafay_namespace" "tfdemonamespace1" {
+resource "rafay_namespace" "namespace" {
   metadata {
-    name    = "tfdemonamespace1"
+    name    = "tfdemonamespace"
     project = "terraform"
   }
   spec {
@@ -43,9 +43,9 @@ The following example demonstrates creating an advanced namespace, with limit ra
 
 ```terraform
 #Namespace example with resource quotas & limit ranges
-resource "rafay_namespace" "tfdemonamespace2" {
+resource "rafay_namespace" "namespace" {
   metadata {
-    name    = "tfdemonamespace2"
+    name    = "cloudops"
     project = "terraform"
     labels = {
       "env" = "prod"

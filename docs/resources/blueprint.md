@@ -15,20 +15,16 @@ Blueprints are a way to group resources and policies as a package that can be ro
 Example of a custom blueprint resource.
 
 ```terraform
-resource "rafay_blueprint" "tfdemoblueprint1" {
+resource "rafay_blueprint" "blueprint" {
   metadata {
-    name    = "tfdemoblueprint1"
+    name    = "custom-blueprint"
     project = "terraform"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
   }
   spec {
-    version = "v1.1"
+    version = "v0"
     base {
       name    = "default"
-      version = "1.14.0"
+      version = "1.16.0"
     }
     default_addons {
       enable_ingress    = true
@@ -66,13 +62,7 @@ resource "rafay_blueprint" "tfdemoblueprint1" {
     }
     drift {
       action  = "Deny"
-      enabled = false
-    }
-    sharing {
-      enabled = false
-      projects {
-        name = "demoproject"
-      }
+      enabled = true
     }
     placement {
       auto_publish = false
@@ -86,20 +76,16 @@ resource "rafay_blueprint" "tfdemoblueprint1" {
 Example of a custom blueprint resource for fleet values of a cluster. 
 
 ```terraform
-resource "rafay_blueprint" "tfdemoblueprint2" {
+resource "rafay_blueprint" "blueprint" {
   metadata {
-    name    = "tfdemoblueprint2"
+    name    = "custom-blueprint-advanced"
     project = "terraform"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
   }
   spec {
-    version = "v1.1"
+    version = "v0"
     base {
       name    = "default"
-      version = "1.14.0"
+      version = "1.16.0"
     }
     default_addons {
       enable_ingress    = true
@@ -137,13 +123,7 @@ resource "rafay_blueprint" "tfdemoblueprint2" {
     }
     drift {
       action  = "Deny"
-      enabled = false
-    }
-    sharing {
-      enabled = false
-      projects {
-        name = "demoproject"
-      }
+      enabled = true
     }
     placement {
       auto_publish = true
@@ -158,20 +138,24 @@ resource "rafay_blueprint" "tfdemoblueprint2" {
 Example of a custom blueprint resource with Rook-Ceph managed add-on and a custom add-on. 
 
 ```terraform
-resource "rafay_blueprint" "tfdemoblueprint2" {
+resource "rafay_blueprint" "blueprint" {
   metadata {
-    name    = "tfdemoblueprint2"
+    name    = "custom-blueprint-advanced2"
     project = "terraform"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
-  }
   spec {
-    version = "v1.1"
+    version = "v0"
     base {
       name    = "default"
-      version = "1.14.0"
+      version = "1.16.0"
+    }
+    custom_addons {
+      name = "addon1"
+      version = "v0"
+    }
+    custom_addons {
+      depends_on = ["addon1"]
+      name = "addon2"
+      version = "v0"
     }
     default_addons {
       enable_ingress    = true
@@ -210,17 +194,13 @@ resource "rafay_blueprint" "tfdemoblueprint2" {
     }
     drift {
       action  = "Deny"
-      enabled = false
+      enabled = true
     }
     sharing {
-      enabled = false
+      enabled = true
       projects {
         name = "terraform"
       }
-    }
-    placement {
-      auto_publish = true
-      fleet_values = ["value 1","value 2","value 3"]
     }
   }
 }
@@ -372,19 +352,10 @@ resource "rafay_blueprint" "tfdemoblueprint2" {
 <a id="nestedblock--spec--placement"></a>
 ### Nested Schema for `spec.placement`
 
-***Optional***
+***Required***
 
-- `auto_publish` - (Boolean) 
-- `labels` - (Block List; Max: 1) A list of labels for the placement. (See [below for nested schema](#nestedblock--spec--placement--labels))
-
-
-<a id="nestedblock--spec--placement--labels"></a>
-### Nested Schema for `spec.placement.labels`
-
-***Optional***
-
-- `key` - (String) The key of the placement label. 
-- `value` - (String) The value of the placement label. 
+- `auto_publish` - (Boolean) If enabled, automatically publish this blueprint version to a fleet of clusters. 
+- `fleet_values` - (List of String) A list of fleet values. 
 
 
 <a id="nestedblock--spec--private_kube_api_proxies"></a>

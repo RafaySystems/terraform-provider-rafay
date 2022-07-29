@@ -13,12 +13,26 @@ Create a project resource.
 ## Example Usage
 
 ---
-
-```terraform
+```
 resource "rafay_project" "tfdemoproject1" {
   metadata {
     name        = "terraform"
     description = "terraform project"
+  }
+  spec {
+    default = false
+  }
+}
+```
+
+
+---
+
+```terraform
+resource "rafay_project" "tfdemoproject2" {
+  metadata {
+    name        = "terraform-quota"
+    description = "terraform quota project"
   }
   spec {
     default = false
@@ -27,24 +41,30 @@ resource "rafay_project" "tfdemoproject1" {
       memory_requests = "4Mi"
       cpu_limits = "6m"
       memory_limits = "8Mi"
-        config_maps = "10"
-        persistent_volume_claims = "5"
-        secrets = "4"
-        services = "20"    
-        pods = "200"
-        replication_controllers = "10"
+      config_maps = "10"
+      persistent_volume_claims = "5"
+      secrets = "4"
+      services = "20"    
+      pods = "200"
+      replication_controllers = "10"
+      services_load_balancers = "3"
+      services_node_ports = "10"
+      storage_requests = "10Gi"
     }
     default_cluster_namespace_quota {
       cpu_requests = "4m"
-        memory_requests = "2Mi"
-        cpu_limits = "2m"
-        memory_limits = "4Mi"
-        config_maps = "5"
-        persistent_volume_claims = "2"
-        secrets = "2"
-        services = "10"
-        pods = "20"
-        replication_controllers = "4"
+      memory_requests = "2Mi"
+      cpu_limits = "2m"
+      memory_limits = "4Mi"
+      config_maps = "5"
+      persistent_volume_claims = "2"
+      secrets = "2"
+      services = "10"
+      pods = "20"
+      replication_controllers = "4"
+      services_load_balancers = "3"
+      services_node_ports = "10"
+      storage_requests = "10Gi"
     }
   }
 }
@@ -90,44 +110,38 @@ resource "rafay_project" "tfdemoproject1" {
 ### Nested Schema for `spec.cluster_resource_quota` 
 
 ***Optional*** 
-- `cpu_limits` - (String) The minimum CPU resource. 
-- `cpu_requests` - (String) The requested CPU resource. 
-- `memory_limits` - (String) The maximum memory resource. (See [below for nested schema](#nestedblock--spec--cluster_resource_quota--memory_limits))
-- `memory_requests` - (String) The requested memory resource. 
-
-
-<a id="nestedblock--spec--cluster_resource_quota--memory_limits"></a>
-### Nested Schema for `spec.cluster_resource_quota.memory_limits` 
-
-***Required*** 
 - `config_maps` - (String) The maximum number of configuration maps allowed in the cluster. 
+- `cpu_limits` - (String) The maximum CPU resource. 
+- `cpu_requests` - (String) The number of CPU threads. 
+- `memory_limits` - (String) The maximum memory resource.
+- `memory_requsts` - (String) The amount of memory, in gibibytes. A gigabyte is a close equivalent to a gibibyte. 
 - `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in the cluster. 
 - `pods` - (String) The maximum number of pods allowed in the cluster. 
 - `replication_controllers` - (String) The maximum number of replication controllers in the cluster. 
 - `secrets` - (String) The maximum number of secrets in the cluster. 
 - `services` - (String) The maximum number of services in the cluster. 
+- `services_load_balancers` - (String) The number of load balancers. 
+- `services_node_ports` - (String) The number of node ports. 
+- `storage_requests` - (String) The size of the storage request. 
 
 
 <a id="nestedblock--specs--default_cluster_namespace_quota"></a>
 ### Nested Schema for `specs.default_cluster_namespace_quota` 
 
 ***Optional***
-- `cpu_requests` - (See [below for nested schema](#nestedblock--specs--default_cluster_namespace_quota))
-
-
-<a id="nestedblock--specs--default_cluster_namespace_quota--cpu_requests"></a>
-### Nested Schema for `specs.default_cluster_namespace_quota.cpu_requests` 
-
-***Required*** 
-- `config_maps ` - (String) The maximum number of configuration maps allowed in a cluster namespace. 
-- `cpu_limits` - (String) The minimum CPU resource in a cluster namespace. 
-- `memory_limits` - (String) The maximum memory resource in a cluster namespace. 
-- `memory_requests` - (String) The requested memory resource in a cluster namespace.
-- `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in a cluster namespace. 
-- `pods` - (String) The maximum number of pods allowed in a cluster namespace.
-- `replication_controllers` - (String) The maximum number of replication controllers in a cluster namespace. 
-- `secrets` - (String) The maximum number of secrets in a cluster namespace. 
-- `services` - (String) The maximum number of services in a cluster namespace. 
+- `config_maps` - (String) The maximum number of configuration maps allowed in the cluster. 
+- `cpu_limits` - (String) The maximum CPU resource. 
+- `cpu_requests` - (String) The number of CPU threads. 
+- `memory_limits` - (String) The maximum memory resource.
+- `memory_requsts` - (String) The amount of memory, in gibibytes. A gigabyte is a close equivalent to a gibibyte. 
+- `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in the cluster. 
+- `pods` - (String) The maximum number of pods allowed in the cluster. 
+- `replication_controllers` - (String) The maximum number of replication controllers in the cluster. 
+- `secrets` - (String) The maximum number of secrets in the cluster. 
+- `services` - (String) The maximum number of services in the cluster. 
+- `services_load_balancers` - (String) The number of load balancers. 
+- `services_node_ports` - (String) The number of node ports. 
+- `storage_requests` - (String) The size of the storage request. 
 
 
 <a id="nestedblock--timeouts"></a>

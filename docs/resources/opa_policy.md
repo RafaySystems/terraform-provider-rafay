@@ -63,6 +63,10 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
 - `name` - (String) The name of the resource. This must be unique in your organization. 
 - `project` - (String) The name of the Rafay project the OPA policy will be created in. 
 
+***Optional***
+- `annotations` - (Map of String) Annotations of the resource. 
+- `description` - (String) Description of the resource. 
+- `labels` - (Map of String) Labels of the resource. 
 
 ---
 
@@ -72,6 +76,7 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
 ***Optional***
 
 - `constraint_list` - (Block List, Max: 1) The constraint information. (See [below for nested schema](#nestedblock--spec--constraint_list))
+- `excluded_namespaces` - (Block List) List of namespaces excluded from the Gatekeeper process. (See [below for nested schema](#nestedblock--spec--excluded_namespaces))
 - `installation_params` - (Block List, Max: 1) The OPA policy installation parameters. (See [below for nested schema](#nestedblock--spec--installation_params))
 - `sharing` - (Block List, Max: 1) Enables sharing the OPA policy. (See [below for nested schema](#nestedblock--spec--sharing))
 - `version` - (String) The version of the OPA policy. 
@@ -83,6 +88,23 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
 ***Optional*** 
 
 - `name` - (String) The name of the constraint. 
+
+
+<a id="nestedblock--spec--excluded_namespaces"></a>
+### Nested Schema for `spec.excluded_namespaces`
+
+***Optional***
+
+- `namespaces` - (Block List) List of namespaces to be excluded. (See [below for nested schema](#nestedblock--spec--excluded_namespaces--namespaces)) 
+- `processes` - (List of String) List of processes excluded from the namespace. 
+
+
+<a id="nestedblock--spec--excluded_namespaces--namespaces"></a>
+### Nested Schema for `spec.excluded_namespaces.namespaces`
+
+***Optional***
+
+- `name` - (String) Name of the resource. 
 
 
 <a id="nestedblock--spec--installation_params"></a>
@@ -101,6 +123,15 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
 ***Optional*** 
 
 - `enabled` - (Boolean) Enables sharing the OPA policy. 
+- `projects` - (Block List) List of projects this resource is shared with. (See [below for nested schema](#nestedblock--spec--sharing--projects)) 
+
+
+<a id="nestedblock--spec--sharing--projects"></a>
+### Nested Schema for `spec.sharing.projects`
+
+***Optional***
+
+- `name` - (String) Name of the project. 
 
 
 <a id="nestedblock--timeouts"></a>

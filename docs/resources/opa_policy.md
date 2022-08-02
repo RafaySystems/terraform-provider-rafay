@@ -39,9 +39,9 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
         name = "defaultproject"
       }
     }
-    version = "v23"
+    version = "v0"
     sync_objects{
-      version = "v0"
+      version = "v1"
       kind = "ConfigMap"
       group = "tfuser"
     }

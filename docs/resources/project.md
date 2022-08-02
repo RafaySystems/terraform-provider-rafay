@@ -11,9 +11,10 @@ description: |-
 Create a project resource. 
 
 ## Example Usage
+Example of a project.
 
 ---
-```
+```terraform
 resource "rafay_project" "tfdemoproject1" {
   metadata {
     name        = "terraform"
@@ -25,8 +26,9 @@ resource "rafay_project" "tfdemoproject1" {
 }
 ```
 
-
 ---
+
+Example of a project with resouce quotas.
 
 ```terraform
 resource "rafay_project" "tfdemoproject2" {

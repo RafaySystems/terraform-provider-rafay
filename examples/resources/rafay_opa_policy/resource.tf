@@ -1,8 +1,8 @@
 #Basic example for opa policy
-resource "rafay_opa_policy" "tfdemoopapolicy1" {
+resource "rafay_opa_policy" "tftestopapolicy1" {
   metadata {
-    name    = "tfdemoopapolicy1"
-    project = "tfdemoproject"
+    name    = "tftestopapolicy1"
+    project = "terraform"
   }
   spec {
     constraint_list {
@@ -22,7 +22,7 @@ resource "rafay_opa_policy" "tfdemoopapolicy1" {
         name = "defaultproject"
       }
     }
-    version = "v23"
+    version = "v0"
     sync_objects{
       version = "v1"
       kind = "ConfigMap"
@@ -35,4 +35,3 @@ resource "rafay_opa_policy" "tfdemoopapolicy1" {
     }
   }
 }
-

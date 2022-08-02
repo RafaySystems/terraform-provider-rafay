@@ -11,6 +11,7 @@ description: |-
 A cluster override allows overriding values for add-ons in a cluster.
 
 ## Example Usage
+Cluster overrides with inline values.
 
 ```terraform
 resource "rafay_cluster_override" "tfdemocluster-override1" {
@@ -45,8 +46,13 @@ resource "rafay_cluster_override" "tfdemocluster-override1" {
     EOS
   }
 }
+```
 
+---
 
+Cluster overrides with values from repository.
+
+```terraform
 resource "rafay_cluster_override" "tfdemocluster-override2" {
   metadata {
     name    = "tfdemocluster-override2"

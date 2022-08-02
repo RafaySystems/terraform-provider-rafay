@@ -1,8 +1,8 @@
 # Create workloadtemplate of Helm package type by uploading files from local system 
-resource "rafay_workloadtemplate" "tfdemoworkloadtemplate1" {
+resource "rafay_workloadtemplate" "tftestworkloadtemplate1" {
   metadata {
-    name    = "tfdemoworkloadtemplate1"
-    project = "tfdemoproject"
+    name    = "tftestworkloadtemplate1"
+    project = "terraform"
   }
   spec {
     artifact {
@@ -19,45 +19,45 @@ resource "rafay_workloadtemplate" "tfdemoworkloadtemplate1" {
     sharing {
       enabled = true
       projects {
-        name = "tfdemoproject2"
+        name = "tftestproject2"
       }
     }
   }
 }
 
 # Create workloadtemplate of Helm package type from Helm repo
-resource "rafay_workloadtemplate" "tfdemoworkloadtemplate2" {
+resource "rafay_workloadtemplate" "tftestworkloadtemplate2" {
   metadata {
-    name    = "tfdemoworkloadtemplate2"
-    project = "tfdemoproject"
+    name    = "tftestworkloadtemplate2"
+    project = "terraform"
   }
   spec {
     artifact {
-	    type = "Helm"
+      type = "Helm"
       artifact{
-	      values_paths {
-	        name = "file://relative/path/to/some/chart/values.yaml"
+        values_paths {
+          name = "file://relative/path/to/some/chart/values.yaml"
         }
         repository = "helm-repo-name"
         chart_name = "chartname"
-	      chart_version = "versionID"
+        chart_version = "versionID"
       }
     }
   }
 }
 
 # Create workloadtemplate of Helm package type from git repo
-resource "rafay_workloadtemplate" "tfdemoworkloadtemplate3" {
+resource "rafay_workloadtemplate" "tftestworkloadtemplate3" {
   metadata {
-    name    = "tfdemoworkloadtemplate3"
-    project = "tfdemoproject"
+    name    = "tftestworkloadtemplate3"
+    project = "terraform"
   }
   spec {
     artifact {
       type = "Helm"
       artifact {
         chart_path {
-          name = "relative/path/to/some/chart.yaml"
+          name = "relative/path/to/some/chart.tgz"
         }
         repository = "git-user-repo-name"
         revision   = "branchname"
@@ -67,10 +67,10 @@ resource "rafay_workloadtemplate" "tfdemoworkloadtemplate3" {
 }
 
 # Create a workloadtemplate of K8s Package type by uploading from local system 
-resource "rafay_workloadtemplate" "tfdemoworkloadtemplate4" {
+resource "rafay_workloadtemplate" "tftestworkloadtemplate4" {
   metadata {
-    name    = "tfdemoworkloadtemplate4"
-    project = "tfdemoproject"
+    name    = "tftestworkloadtemplate4"
+    project = "terraform"
   }
   spec {
     artifact {
@@ -85,10 +85,10 @@ resource "rafay_workloadtemplate" "tfdemoworkloadtemplate4" {
 }
 
 # Create a workload template of K8s Package type from git repo
-resource "rafay_workloadtemplate" "tfdemoworkloadtemplate5" {
+resource "rafay_workloadtemplate" "tftestworkloadtemplate5" {
   metadata {
-    name    = "tfdemoworkloadtemplate5"
-    project = "tfdemoproject"
+    name    = "tftestworkloadtemplate5"
+    project = "terraform"
   }
   spec {
     artifact {

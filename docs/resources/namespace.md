@@ -35,7 +35,7 @@ resource "rafay_namespace" "namespace" {
     }
   }
 }
-
+```
 
 ---
 

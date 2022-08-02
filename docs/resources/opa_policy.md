@@ -60,32 +60,33 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
 ### Nested Schema for `metadata`
 
 ***Required***
+
 - `name` - (String) The name of the resource. This must be unique in your organization. 
 - `project` - (String) The name of the Rafay project the OPA policy will be created in. 
 
-***Optional***
-- `annotations` - (Map of String) Annotations of the resource. 
-- `description` - (String) Description of the resource. 
-- `labels` - (Map of String) Labels of the resource. 
 
 ---
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
 
+***Required***
+
+- `version` - (String) The version of the OPA policy. 
+
+
 ***Optional***
 
-- `constraint_list` - (Block List, Max: 1) The constraint information. (See [below for nested schema](#nestedblock--spec--constraint_list))
+- `constraint_list` - (Block List) The constraint information. (See [below for nested schema](#nestedblock--spec--constraint_list))
 - `excluded_namespaces` - (Block List) List of namespaces excluded from the Gatekeeper process. (See [below for nested schema](#nestedblock--spec--excluded_namespaces))
 - `installation_params` - (Block List, Max: 1) The OPA policy installation parameters. (See [below for nested schema](#nestedblock--spec--installation_params))
 - `sharing` - (Block List, Max: 1) Enables sharing the OPA policy. (See [below for nested schema](#nestedblock--spec--sharing))
-- `version` - (String) The version of the OPA policy. 
 
 
 <a id="nestedblock--spec--constraint_list"></a>
 ### Nested Schema for `spec.constraint_list` 
 
-***Optional*** 
+***Required*** 
 
 - `name` - (String) The name of the constraint. 
 
@@ -102,7 +103,7 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
 <a id="nestedblock--spec--excluded_namespaces--namespaces"></a>
 ### Nested Schema for `spec.excluded_namespaces.namespaces`
 
-***Optional***
+***Required***
 
 - `name` - (String) Name of the resource. 
 
@@ -112,9 +113,16 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
 
 ***Optional*** 
 
-- `audit_interval` - (String) The frequency for running the policy. This is the number of days. 
+- `audit_chunk_size` - (Number) The audit upload chunk size. 
+- `audit_from_cache` - (Boolean) Enables using cache for the audit. 
+- `audit_interval` - (Number) The time, in seconds, after which the audit will occur. 
 - `audit_match_kind_only` - (Boolean) Enables matching kind only. 
-- `constraint_violations_limit` - (String) Limits the number of constraint violations allowed. 
+- `constraint_violations_limit` - (Number) The number of violations to be listed in the constraint. 
+- `emit_admission_events` - (Boolean) Enables the emission of all admission violations as K8s events. 
+- `emit_audit_events` - (Boolean) Enables the emission of all audit violations as K8s events. 
+- `enable_delete_operations` - (Boolean) Enables deleting operations. 
+- `experimental_enable_mutation` - (Boolean) Enables the mutating admission controller. 
+- `log_denies` - (Boolean) Enables admission time logs. 
 
 
 <a id="nestedblock--spec--sharing"></a>
@@ -129,7 +137,7 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
 <a id="nestedblock--spec--sharing--projects"></a>
 ### Nested Schema for `spec.sharing.projects`
 
-***Optional***
+***Required***
 
 - `name` - (String) Name of the project. 
 

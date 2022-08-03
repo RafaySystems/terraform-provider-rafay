@@ -11,6 +11,7 @@ description: |-
 Manage an AWS EKS cluster. 
 
 ## Example Usage
+Basic EKS cluster
 
 ```terraform
 resource "rafay_eks_cluster" "ekscluster-basic" {
@@ -68,8 +69,13 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
     }
   }
 }
+```
 
+---
 
+Advanced EKS cluster config with existing VPC & IAM.
+
+```terraform
 resource "rafay_eks_cluster" "ekscluste-advanced" {
   cluster {
     kind = "Cluster"
@@ -143,8 +149,13 @@ resource "rafay_eks_cluster" "ekscluste-advanced" {
     }
   }
 }
+```
 
+---
 
+EKS config with custom CNI.
+
+```terraform
 resource "rafay_eks_cluster" "ekscluster-custom-cni" {
   cluster {
     kind = "Cluster"

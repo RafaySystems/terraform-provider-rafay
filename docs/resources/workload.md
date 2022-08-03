@@ -11,9 +11,9 @@ description: |-
 A workload is an application that manages a set of pods.
 
 ## Example Usage
+Workload example of Helm package type by uploading files from local system 
 
 ```terraform
-# Create workload of Helm package type by uploading files from local system 
 resource "rafay_workload" "tftestworkload1" {
   metadata {
     name    = "tftestworkload1"
@@ -41,8 +41,13 @@ resource "rafay_workload" "tftestworkload1" {
     }
   }
 }
+```
 
-# Create workload of Helm package type from Helm repo
+---
+
+Create workload of Helm package type from Helm repo.
+
+```terraform
 resource "rafay_workload" "tftestworkload2" {
   metadata {
     name    = "tftestworkload2"
@@ -66,8 +71,13 @@ resource "rafay_workload" "tftestworkload2" {
     }
   }
 }
+```
 
-# Create workload of Helm package type from git repo
+---
+
+Create workload of Helm package type from git repo.
+
+```terraform
 resource "rafay_workload" "tftestworkload3" {
   metadata {
     name    = "tftestworkload3"
@@ -90,8 +100,13 @@ resource "rafay_workload" "tftestworkload3" {
     }
   }
 }
+```
 
-# Create a workload of K8s type by uploading from local system 
+---
+
+Create a workload of K8s type by uploading from local system.
+
+```terraform
 resource "rafay_workload" "tftestworkload4" {
   metadata {
     name    = "tftestworkload4"
@@ -112,8 +127,13 @@ resource "rafay_workload" "tftestworkload4" {
     }
   }
 }
+```
 
-# Create workload of K8s Yaml type from git repo
+---
+
+Create workload of K8s Yaml type from git repo.
+
+```terraform
 resource "rafay_workload" "tftestworkload5" {
   metadata {
     name    = "tftestworkload5"

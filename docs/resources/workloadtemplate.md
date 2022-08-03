@@ -12,9 +12,9 @@ A workload template defines a template for a workload.
 
 
 ## Example Usage
+Create workloadtemplate of Helm package type by uploading files from local system.
 
 ```terraform
-# Create workloadtemplate of Helm package type by uploading files from local system 
 resource "rafay_workloadtemplate" "tftestworkloadtemplate1" {
   metadata {
     name    = "tftestworkloadtemplate1"
@@ -40,8 +40,14 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate1" {
     }
   }
 }
+```
 
-# Create workloadtemplate of Helm package type from Helm repo
+---
+
+
+Create workloadtemplate of Helm package type from Helm repo.
+
+```terraform
 resource "rafay_workloadtemplate" "tftestworkloadtemplate2" {
   metadata {
     name    = "tftestworkloadtemplate2"
@@ -61,8 +67,13 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate2" {
     }
   }
 }
+```
 
-# Create workloadtemplate of Helm package type from git repo
+---
+
+Create workloadtemplate of Helm package type from git repo.
+
+```terraform
 resource "rafay_workloadtemplate" "tftestworkloadtemplate3" {
   metadata {
     name    = "tftestworkloadtemplate3"
@@ -81,8 +92,13 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate3" {
     }
   }
 }
+```
 
-# Create a workloadtemplate of K8s Package type by uploading from local system 
+---
+
+Create a workloadtemplate of K8s Package type by uploading from local system.
+
+```terraform
 resource "rafay_workloadtemplate" "tftestworkloadtemplate4" {
   metadata {
     name    = "tftestworkloadtemplate4"
@@ -99,8 +115,13 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate4" {
     }
   }
 }
+```
 
-# Create a workload template of K8s Package type from git repo
+---
+
+Create a workload template of K8s Package type from git repo.
+
+```terraform
 resource "rafay_workloadtemplate" "tftestworkloadtemplate5" {
   metadata {
     name    = "tftestworkloadtemplate5"

@@ -21,6 +21,11 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 
 | Resource                                  | Version Released |
 | ----------------------------------------- | ---------------- |
+| `workload`                                | 1.0.0            |
+| `workloadtemplate`                        | 1.0.0            |
+| `aks_cluster_spec`                        | 1.0.0            |
+| `eks_cluster_spec`                        | 1.0.0            |
+| `opa_policy`                              | 1.0.0            |
 | `group`                                   | 0.9.12           |
 | `groupassociation`                        | 0.9.12           |
 | `import_cluster`                          | 0.9.12           |
@@ -35,19 +40,13 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 | `project`                                 | 0.9.11           |
 | `repositories`                            | 0.9.11           |
 | | |
-
+ 
 ### In Development 
 
-- `aks_cluster_spec`
-- `blueprint` (support for fleet upgrade) 
-- `blueprint` (support for Rook Ceph) 
-- `eks_cluster_spec`
-- `namespace` (support for workspace admin)
-- `opa_policy` 
 - `pipeline`
-- `project` (support for workspace admin) 
 - `secret_sealer`
-
+- `infra_provisioner`
+- `catalog`
 
 ---
 

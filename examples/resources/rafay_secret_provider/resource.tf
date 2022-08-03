@@ -5,14 +5,15 @@ resource "rafay_secret_provider" "tfdemosecretprovider" {
   }
   spec {
     parameters = {
+      /*
       "objects": {
         "jmesPath": {
           "objectAlias" : "apiq"
           "path" : "apiq"
-        },
+        },*/
         "objectName": "testq",
         "objectType": "secretsmanager"
-      }
+     // }
     }
     provider = "AWS"
   }

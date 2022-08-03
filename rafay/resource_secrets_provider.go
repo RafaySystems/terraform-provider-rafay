@@ -40,14 +40,14 @@ func resourceSecretProvider() *schema.Resource {
 
 func resourceSecretProviderCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("secret sealer create starts")
-	diags := resourceSecretSealerUpsert(ctx, d, m)
+	diags := resourceSecretProviderUpsert(ctx, d, m)
 	if diags.HasError() {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
 		}
 		log.Printf("secret sealer create got error, perform cleanup")
-		ss, err := expandSecretSealer(d)
+		ss, err := expandSecretProvider(d)
 		if err != nil {
 			log.Printf("secret sealer expandSecretSealer error")
 			return diags
@@ -76,7 +76,7 @@ func resourceSecretProviderUpdate(ctx context.Context, d *schema.ResourceData, m
 
 func resourceSecretProviderUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("secret sealer upsert starts")
+	log.Printf("secret provider upsert starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -264,22 +264,24 @@ func flattenSecretProviderSpec(in *integrationspb.SecretProviderClassSpec, p []i
 		obj["provider"] = in.Provider
 	}
 
-	v, ok := obj["artifact"].([]interface{})
-	if !ok {
-		v = []interface{}{}
-	}
-	// XXX Debug
-	// w1 := spew.Sprintf("%+v", v)
-	// log.Println("flattenAddonSpec before ", w1)
+	if in.Artifact != nil {
+		v, ok := obj["artifact"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		// XXX Debug
+		// w1 := spew.Sprintf("%+v", v)
+		// log.Println("flattenAddonSpec before ", w1)
 
-	var ret []interface{}
-	var err error
-	ret, err = FlattenArtifactSpec(in.Artifact, v)
-	if err != nil {
-		log.Println("FlattenArtifactSpec error ", err)
-		return nil, err
+		var ret []interface{}
+		var err error
+		ret, err = FlattenArtifactSpec(in.Artifact, v)
+		if err != nil {
+			log.Println("FlattenArtifactSpec error ", err)
+			return nil, err
+		}
+		obj["artifact"] = ret
 	}
-	obj["artifact"] = ret
 
 	if in.Parameters != nil && len(in.Parameters) > 0 {
 		obj["parameters"] = toMapInterface(in.Parameters)

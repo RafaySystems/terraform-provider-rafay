@@ -84,6 +84,11 @@ func resourceClusterOverride() *schema.Resource {
 			"spec": &schema.Schema{
 				Description: "override specification",
 				Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+					"artifact_type": &schema.Schema{
+						Description: "Override Type YAML or HELM",
+						Optional:    true,
+						Type:        schema.TypeString,
+					},
 					"cluster_selector": &schema.Schema{
 						Description: "cluster selector",
 						Optional:    true,
@@ -420,6 +425,11 @@ func expandOverrideSpec(p []interface{}) (models.ClusterOverrideSpec, error) {
 		obj.RepoArtifactMeta = expandValueRepoArtifactMeta(v)
 	}
 
+	if v, ok := in["artifact_type"].(string); ok && len(v) > 0 {
+		log.Printf("[TF] artifact_type :: %s\n", v)
+		obj.ArtifactType = models.ArtifactType(v)
+	}
+
 	return obj, nil
 }
 
@@ -649,6 +659,14 @@ func flattenOverrideSpec(in models.ClusterOverrideSpec, p []interface{}) ([]inte
 			obj["override_values"] = in.OverrideValues
 		}
 	}
+	va, ok := obj["artifact_type"].([]interface{})
+	if ok {
+		obj["artifact_type"] = va
+	} else {
+		obj["artifact_type"] = nil
+
+	}
+
 	return []interface{}{obj}, nil
 }
 
@@ -982,6 +1000,11 @@ func getClusterOverrideSpecFromYamlConfigSpec(co commands.ClusterOverrideYamlCon
 			return nil, fmt.Errorf("invalid config: error fetching the content of the value file from the location provided %s: Error: %s", co.Spec.ValuesFile, err.Error())
 		}
 		spec.OverrideValues = values
+	}
+	if co.Spec.ArtifactType != "" {
+		if co.Spec.ArtifactType == "NativeYAML" || co.Spec.ArtifactType == "GitRepoWithNativeYAML" {
+			spec.ArtifactType = models.ArtifactType(co.Spec.ArtifactType)
+		}
 	}
 	if co.Spec.OverrideValues != "" {
 		spec.OverrideValues = co.Spec.OverrideValues

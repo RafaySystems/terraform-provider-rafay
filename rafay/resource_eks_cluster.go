@@ -2207,38 +2207,38 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
-
-	for { //wait for cluster to provision correctly
-		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
-		if errGet != nil {
-			log.Printf("error while getCluster %s", errGet.Error())
-			return diag.FromErr(errGet)
-		}
-
-		statusResp, err := eksClusterCTLStatus(res.TaskSetID)
-		if err != nil {
-			log.Println("status response parse error", err)
-			return diag.FromErr(err)
-		}
-		log.Println("statusResp ", statusResp)
-		sres := clusterCTLResponse{}
-		err = json.Unmarshal([]byte(statusResp), &sres)
-		if err != nil {
-			log.Println("status response unmarshal error", err)
-			return diag.FromErr(err)
-		}
-		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-			if check.Status == "READY" {
-				break
+	/*
+		for { //wait for cluster to provision correctly
+			time.Sleep(60 * time.Second)
+			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				return diag.FromErr(errGet)
 			}
-			log.Println("task completed but cluster is not ready")
-		}
-		if strings.Contains(sres.Status, "STATUS_FAILED") {
-			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
-		}
-	}
 
+			statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+			if err != nil {
+				log.Println("status response parse error", err)
+				return diag.FromErr(err)
+			}
+			log.Println("statusResp ", statusResp)
+			sres := clusterCTLResponse{}
+			err = json.Unmarshal([]byte(statusResp), &sres)
+			if err != nil {
+				log.Println("status response unmarshal error", err)
+				return diag.FromErr(err)
+			}
+			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+				if check.Status == "READY" {
+					break
+				}
+				log.Println("task completed but cluster is not ready")
+			}
+			if strings.Contains(sres.Status, "STATUS_FAILED") {
+				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
+			}
+		}
+	*/
 	log.Printf("resource eks cluster created/updated %s", s.ID)
 	d.SetId(s.ID)
 
@@ -3405,8 +3405,10 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 		}
 		//check for attach policy
 		////@@@TODO Store terraform input as inline document object correctly
-		if v, ok := in["attach_policy"].([]interface{}); ok && len(v) > 0 {
-			obj.AttachPolicy = expandAttachPolicy(v)
+		if v, ok := in["attach_policy"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			json.Unmarshal([]byte(v), &policyDoc)
+			obj.AttachPolicy = policyDoc
 		}
 		if v, ok := in["attach_role_arn"].(string); ok && len(v) > 0 {
 			obj.AttachRoleARN = v
@@ -4088,12 +4090,15 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 		obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
 
 		//@@@TODO Store inline document object as terraform input correctly
-		v1, ok := obj["attach_policy"].([]interface{})
+		/*v1, ok := obj["attach_policy"].([]interface{})
 		if !ok {
 			v1 = []interface{}{}
 		}
 		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
-
+		*/
+		if len(in.AttachPolicy) > 0 {
+			obj["attach_policy"] = in.AttachPolicy
+		}
 		if len(in.AttachRoleARN) > 0 {
 			obj["attach_role_arn"] = in.AttachRoleARN
 		}

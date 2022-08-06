@@ -260,7 +260,7 @@ type EKSClusterIAMServiceAccount struct {
 	// AttachPolicy holds a policy document to attach to this service account
 	// +optional
 	//AttachPolicy map[string]string `yaml:"attachPolicy,omitempty"`
-	AttachPolicy InlineDocument `yaml:"attachPolicy,omitempty"`
+	AttachPolicy map[string]interface{} `yaml:"attachPolicy,omitempty"`
 
 	// ARN of the role to attach to the service account
 	AttachRoleARN string `yaml:"attachRoleARN,omitempty"`

@@ -9,8 +9,8 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       type           = "eks"
       blueprint      = "default"
       blueprint_version = "1.12.0"
-      cloud_provider = "eks-role"
-      cni_provider   = "aws-cni"
+      cloud_provider = "aws-eks-role"
+      cni_provider   = "regression-eks-role"
       proxy_config   = {}
     }
   }
@@ -21,6 +21,42 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       name    = "eks-cluster-1"
       region  = "us-west-2"
       version = "1.21"
+    }
+    iam {
+      service_accounts {
+        attach_policy = <<EOF
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "ec2:Describe*",
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "ec2:AttachVolume",
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "ec2:DetachVolume",
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": ["ec2:*"],
+              "Resource": ["*"]
+            },
+            {
+              "Effect": "Allow",
+              "Action": ["elasticloadbalancing:*"],
+              "Resource": ["*"]
+            }
+          ]
+        }
+        EOF
+      }
     }
     vpc {
       cidr = "192.168.0.0/16"

@@ -54,7 +54,6 @@ func New(_ string) func() *schema.Provider {
 				"rafay_infra_provisioner": resourceInfraProvisioner(),
 				"rafay_groupassociation":  resourceGroupAssociation(),
 				"rafay_group":             resourceGroup(),
-				"rafay_irsa":              resourceIRSA(),
 
 				//"rafay_trigger":          resourceTrigger(),
 

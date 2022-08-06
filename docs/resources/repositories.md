@@ -10,7 +10,10 @@ description: |-
 
 A repository resource. 
 
-```
+## Example Usage
+Example of a Git repository.
+
+```terraform
 # Username/Password example
 resource "rafay_repositories" "tfdemorepository1" {
   metadata {
@@ -26,8 +29,13 @@ resource "rafay_repositories" "tfdemorepository1" {
     endpoint = "https://github.com/test/apps.git"
   }
 }
+```
 
-# Git private agent example
+---
+
+Example of a Git private agent.
+
+```terraform
 resource "rafay_repositories" "tfdemorepository2" {
   metadata {
     name    = "tfdemorepository2"
@@ -44,8 +52,13 @@ resource "rafay_repositories" "tfdemorepository2" {
     }
   }
 }
+```
 
-# No credentials example
+---
+
+No credentials example
+
+```terraform
 resource "rafay_repositories" "tfdemorepository3" {
   metadata {
     name    = "tfdemorepository3"

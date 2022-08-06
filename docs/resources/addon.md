@@ -11,9 +11,9 @@ description: |-
 Add-ons extend the functionality of Kubernetes. 
 
 ## Example Usage
+YAML Upload Example
 
 ```terraform
-# YAML Upload Example
 resource "rafay_addon" "tfdemoaddon1" {
   metadata {
     name    = "tfdemoaddon1"
@@ -36,10 +36,13 @@ resource "rafay_addon" "tfdemoaddon1" {
     }
   }
 }
+```
 
+---
 
-# Helm Chart Upload Example
+Helm Chart Upload Example
 
+```terraform
 resource "rafay_addon" "tfdemoaddon2" {
   metadata {
     name    = "tfdemoaddon2"

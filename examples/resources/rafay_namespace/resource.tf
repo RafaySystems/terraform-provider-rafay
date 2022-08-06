@@ -2,7 +2,7 @@
 resource "rafay_namespace" "tfdemonamespace1" {
   metadata {
     name    = "tfdemonamespace1"
-    project = "tfdemoproject1"
+    project = "terraform"
   }
   spec {
     drift {
@@ -20,8 +20,8 @@ resource "rafay_namespace" "tfdemonamespace1" {
 #Namespace example with resource quotas & limit ranges
 resource "rafay_namespace" "namespace" {
   metadata {
-    name    = "tfdemonamespace2"
-    project = "tfdemoproject1"
+    name    = "cloudops"
+    project = "terraform"
     labels = {
       "env" = "prod"
     }
@@ -33,26 +33,22 @@ resource "rafay_namespace" "namespace" {
     drift {
       enabled = false
     }
+    placement {
+      labels {
+        key   = "rafay.dev/clusterName"
+        value = "cluster_name"
+      }
+    }
     limit_range {
       pod {
         max {
-          cpu {
-            string = "2"
-          }
-          memory {
-            string = "2Gi"
-          }
+          cpu  = "2"
+          memory = "2Gi"
         }
         min {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
+          cpu  = "1"
+          memory = "1Gi"
         }
-
         ratio {
           cpu    = 1
           memory = 1
@@ -60,45 +56,22 @@ resource "rafay_namespace" "namespace" {
       }
       container {
         default {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
+          cpu = "1"   
+          memory = "1Gi"
         }
-
         default_request {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
+          cpu = "1"
+          memory = "1Gi"
         }
 
         max {
-          cpu {
-            string = "2"
-          }
-
-          memory {
-            string = "2Gi"
-          }
+          cpu = "2"
+          memory = "2Gi"
         }
-
         min {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
+          cpu = "1"   
+          memory = "2Gi"
         }
-
         ratio {
           cpu    = 1
           memory = 1
@@ -106,147 +79,19 @@ resource "rafay_namespace" "namespace" {
       }
     }
     resource_quotas {
-      limits {
-        cpu {
-          string = "8"
-        }
-        memory {
-          string = "16Gi"
-        }
-
-      }
-      requests {
-        cpu {
-          string = "4"
-        }
-        memory {
-          string = "8Gi"
-        }
-      }
-
-    }
-    placement {
-      labels {
-        key   = "rafay.dev/clusterName"
-        value = "cluster_name"
+      config_maps = "10"
+      cpu_limits = "8"
+      memory_limits = "16Gi"
+      cpu_requests = "4"
+      memory_requests = "8Gi"
+      persistent_volume_claims = "2"
+      pods = "30"
+      replication_controllers = "5"
+      secrets = "10"
+      services = "10"
+      services_load_balancers = "3"
+      services_node_ports = "10"
+      storage_requests = "10Gi"
       }
     }
-  }
-}
-
-resource "rafay_namespace" "namespace" {
-  metadata {
-    name    = "tfdemonamespace3"
-    project = "dev"
-    labels = {
-      "env" = "prod"
-    }
-    annotations = {
-      "logging" = "enabled"
-    }
-  }
-  spec {
-    drift {
-      enabled = true
-    }
-    limit_range {
-      pod {
-        max {
-          cpu {
-            string = "2"
-          }
-          memory {
-            string = "2Gi"
-          }
-        }
-        min {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
-        }
-
-        ratio {
-          cpu    = 1
-          memory = 1
-        }
-      }
-      container {
-        default {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
-        }
-
-        default_request {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
-        }
-
-        max {
-          cpu {
-            string = "2"
-          }
-
-          memory {
-            string = "2Gi"
-          }
-        }
-
-        min {
-          cpu {
-            string = "1"
-          }
-
-          memory {
-            string = "1Gi"
-          }
-        }
-
-        ratio {
-          cpu    = 1
-          memory = 1
-        }
-      }
-    }
-    resource_quotas {
-      limits {
-        cpu {
-          string = "8"
-        }
-        memory {
-          string = "16Gi"
-        }
-
-      }
-      requests {
-        cpu {
-          string = "4"
-        }
-        memory {
-          string = "8Gi"
-        }
-      }
-
-    }
-    /*
-    placement {
-      labels {
-        key   = "rafay.dev/clusterName"
-        value = "cluster_name"
-      }
-    }*/
-  }
 }

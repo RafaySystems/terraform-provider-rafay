@@ -205,13 +205,15 @@ func expandSecretProviderSpec(p []interface{}) (*integrationspb.SecretProviderCl
 		obj.Provider = v
 	}
 
-	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["artifact"].([]interface{}); ok && len(v) > 0 {
 		objArtifact, err := ExpandArtifactSpec(v)
 		if err != nil {
 			return nil, err
 		}
 		obj.Artifact = objArtifact
 	}
+	artfct := spew.Sprintf("%+v", obj.Artifact)
+	log.Println("expandSecretClassProviderSpec Artifact ater expand ", artfct)
 
 	if v, ok := in["parameters"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.Parameters = toMapString(v)

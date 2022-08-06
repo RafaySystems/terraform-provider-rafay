@@ -55,6 +55,7 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 	obj := commonpb.ArtifactSpec{}
 	at := artifactTranspose{}
 	at.Type = artifactType
+	var err error
 
 	inp := ap[0].(map[string]interface{})
 	if vp, ok := inp["artifact"].([]interface{}); ok && len(vp) > 0 {
@@ -92,7 +93,10 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 		}
 
 		if v, ok := in["paths"].([]interface{}); ok && len(v) > 0 {
-			at.Artifact.Paths = expandFiles(v)
+			at.Artifact.Paths, err = expandFiles(v)
+			if err != nil {
+				return nil, err
+			}
 			artfct = spew.Sprintf("%+v", at.Artifact.Paths)
 			log.Println("ExpandArtifact  at.Artifact.Paths ", artfct)
 		}
@@ -114,7 +118,10 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 		}
 
 		if v, ok := in["values_paths"].([]interface{}); ok && len(v) > 0 {
-			at.Artifact.ValuesPaths = expandFiles(v)
+			at.Artifact.ValuesPaths, err = expandFiles(v)
+			if err != nil {
+				return nil, err
+			}
 			artfct = spew.Sprintf("%+v", at.Artifact.ValuesPaths)
 			log.Println("ExpandArtifact  at.Artifact.ValuesPaths ", artfct)
 		}

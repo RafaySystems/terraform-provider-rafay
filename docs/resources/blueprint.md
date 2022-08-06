@@ -21,34 +21,59 @@ resource "rafay_blueprint" "blueprint" {
     project = "terraform"
   }
   spec {
-    version   = "v0"
+    version = "v0"
     base {
-      name = "default"
-      version = "1.11.0"
+      name    = "default"
+      version = "1.16.0"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_logging    = false
+      enable_monitoring = true
+      enable_vm         = false
+      monitoring {
+        metrics_server {
+          enabled = true
+          discovery {}
+        }
+        helm_exporter {
+          enabled = true
+        }
+        kube_state_metrics {
+          enabled = true
+        }
+        node_exporter {
+          enabled = true
+        }
+        prometheus_adapter {
+          enabled = true
+        }
+        resources {
+          limits {
+            memory {
+              string = "200Mi"
+            }
+            cpu {
+              string = "100m"
+            }
+          }
+        }
+      }
     }
     drift {
       action  = "Deny"
       enabled = true
     }
-    custom_addons {
-      name = "addon1"
-      version = "v0"
-    }
-    custom_addons {
-      name = "addon2"
-      version = "v0"
-    }
-    default_addons {
-      enable_ingress    = true
-      enable_logging    = true
-      enable_monitoring = true
-      enable_vm         = false
+    placement {
+      auto_publish = false
     }
   }
 }
 ```
 
-Example of a custom blueprint resource with Prometheus customization. 
+---
+
+Example of a custom blueprint resource for fleet values of a cluster. 
 
 ```terraform
 resource "rafay_blueprint" "blueprint" {
@@ -57,14 +82,71 @@ resource "rafay_blueprint" "blueprint" {
     project = "terraform"
   }
   spec {
-    version   = "v0"
+    version = "v0"
     base {
-      name = "default"
-      version = "1.11.0"
+      name    = "default"
+      version = "1.16.0"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_logging    = false
+      enable_monitoring = true
+      enable_vm         = false
+      monitoring {
+        metrics_server {
+          enabled = true
+          discovery {}
+        }
+        helm_exporter {
+          enabled = true
+        }
+        kube_state_metrics {
+          enabled = true
+        }
+        node_exporter {
+          enabled = true
+        }
+        prometheus_adapter {
+          enabled = true
+        }
+        resources {
+          limits {
+            memory {
+              string = "200Mi"
+            }
+            cpu {
+              string = "100m"
+            }
+          }
+        }
+      }
     }
     drift {
       action  = "Deny"
       enabled = true
+    }
+    placement {
+      auto_publish = true
+      fleet_values = ["value 1","value 2","value 3"]
+    }
+  }
+}
+```
+
+---
+
+Example of a custom blueprint resource with Rook-Ceph managed add-on and a custom add-on. 
+
+```terraform
+resource "rafay_blueprint" "blueprint" {
+  metadata {
+    name    = "custom-blueprint-advanced2"
+    project = "terraform"
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "1.16.0"
     }
     custom_addons {
       name = "addon1"
@@ -77,31 +159,26 @@ resource "rafay_blueprint" "blueprint" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = true
+      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
+      enable_rook_ceph = true
       monitoring {
-        kube_state_metrics {
-          enabled = false
-          discovery {
-            namespace = "monitoring"
-            resource = "pod"
-            labels =  {
-              "key1" = "value1"
-            }
-          }
+        metrics_server {
+          enabled = true
+          discovery {}
         }
         helm_exporter {
+          enabled = true
+        }
+        kube_state_metrics {
           enabled = true
         }
         node_exporter {
           enabled = true
         }
         prometheus_adapter {
-          enabled = false
-        }
-        metrics_server {
-          enabled = false
+          enabled = true
         }
         resources {
           limits {
@@ -113,6 +190,16 @@ resource "rafay_blueprint" "blueprint" {
             }
           }
         }
+      }
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    sharing {
+      enabled = true
+      projects {
+        name = "terraform"
       }
     }
   }
@@ -152,6 +239,7 @@ resource "rafay_blueprint" "blueprint" {
 - `custom_addons` - (Block List) A list of custom add-ons for the resource. (See [below for nested schema](#nestedblock--spec--custom_addons))
 - `default_addons` - (Block List) A list of default add-ons for the resource. (See [below for nested schema](#nestedblock--spec--default_addons)) 
 - `drift` - (Block List, Max: 1) Prevents configuration drift. Drift is a change to your live cluster that is different from the source of truth. (See [below for nested schema](#nestedblock--spec--drift))
+- `placement` - (Block List, Max: 1) Defines the cluster(s) where blueprint will be published. (See [below for nested schema](#nestedblock--spec--placement))
 - `private_kube_api_proxies` - (Block List) A private kubernetes API proxy network, used to provide kubectl access for your users. (See [below for nested schema](#nestedblock--spec--private_kube_api_proxies))
 - `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A blueprint can be shared with one or more projects.  (See [below for nested schema](#nestedblock--spec--sharing))
     Note: If the resource is not shared, set enabled = false. 
@@ -186,6 +274,7 @@ resource "rafay_blueprint" "blueprint" {
 - `enable_ingress` - (Boolean) If enabled, ingress is installed on the cluster.  
 - `enable_logging` - (Boolean) If enabled, logging is installed on the cluster.  
 - `enable_monitoring` - (Boolean) If enabled, monitoring is installed on the cluster. 
+- `enable_rook_ceph` - (Boolean) If enabled, run ceph inside a cluster. 
 - `enable_vm` - (Boolean) If enabled, VM operator (kubevirt) is installed on the cluster. 
 - `monitoring` - (Block List) The configuration for monitoring the resource is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring))
 
@@ -258,6 +347,15 @@ resource "rafay_blueprint" "blueprint" {
 
 - `action` - (String) If enabled, drift is enabled for resource.  Supported values are: `Deny` or `Notify`. 
 - `enabled` - (Boolean) If enabled, drift reconciliation is enabled for resource. 
+
+
+<a id="nestedblock--spec--placement"></a>
+### Nested Schema for `spec.placement`
+
+***Required***
+
+- `auto_publish` - (Boolean) If enabled, automatically publish this blueprint version to a fleet of clusters. 
+- `fleet_values` - (List of String) A list of fleet values. 
 
 
 <a id="nestedblock--spec--private_kube_api_proxies"></a>

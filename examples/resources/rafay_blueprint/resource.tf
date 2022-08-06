@@ -1,18 +1,14 @@
-# Create a blueprint, sharing across project disabled
-resource "rafay_blueprint" "tfdemoblueprint1" {
+# Example of a custom blueprint resource.
+resource "rafay_blueprint" "blueprint" {
   metadata {
-    name    = "tfdemoblueprint1"
-    project = "tfdemoproject1"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
+    name    = "custom-blueprint"
+    project = "terraform"
   }
   spec {
-    version = "v1.1"
+    version = "v0"
     base {
       name    = "default"
-      version = "1.14.0"
+      version = "1.16.0"
     }
     default_addons {
       enable_ingress    = true
@@ -21,34 +17,36 @@ resource "rafay_blueprint" "tfdemoblueprint1" {
       enable_vm         = false
       monitoring {
         metrics_server {
-          enabled = false
+          enabled = true
           discovery {}
         }
         helm_exporter {
-          enabled = false
+          enabled = true
         }
         kube_state_metrics {
-          enabled = false
+          enabled = true
         }
         node_exporter {
-          enabled = false
+          enabled = true
         }
         prometheus_adapter {
-          enabled = false
+          enabled = true
         }
         resources {
+          limits {
+            memory {
+              string = "200Mi"
+            }
+            cpu {
+              string = "100m"
+            }
+          }
         }
       }
     }
     drift {
       action  = "Deny"
-      enabled = false
-    }
-    sharing {
-      enabled = false
-      projects {
-        name = "demoproject"
-      }
+      enabled = true
     }
     placement {
       auto_publish = false
@@ -56,20 +54,16 @@ resource "rafay_blueprint" "tfdemoblueprint1" {
   }
 }
 # Blueprint for fleet values of cluster
-resource "rafay_blueprint" "tfdemoblueprint2" {
+resource "rafay_blueprint" "blueprint" {
   metadata {
-    name    = "tfdemoblueprint2"
-    project = "tfdemoproject2"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
+    name    = "custom-blueprint-advanced"
+    project = "terraform"
   }
   spec {
-    version = "v1.1"
+    version = "v0"
     base {
       name    = "default"
-      version = "1.14.0"
+      version = "1.16.0"
     }
     default_addons {
       enable_ingress    = true
@@ -78,34 +72,36 @@ resource "rafay_blueprint" "tfdemoblueprint2" {
       enable_vm         = false
       monitoring {
         metrics_server {
-          enabled = false
+          enabled = true
           discovery {}
         }
         helm_exporter {
-          enabled = false
+          enabled = true
         }
         kube_state_metrics {
-          enabled = false
+          enabled = true
         }
         node_exporter {
-          enabled = false
+          enabled = true
         }
         prometheus_adapter {
-          enabled = false
+          enabled = true
         }
         resources {
+          limits {
+            memory {
+              string = "200Mi"
+            }
+            cpu {
+              string = "100m"
+            }
+          }
         }
       }
     }
     drift {
       action  = "Deny"
-      enabled = false
-    }
-    sharing {
-      enabled = false
-      projects {
-        name = "demoproject"
-      }
+      enabled = true
     }
     placement {
       auto_publish = true
@@ -114,24 +110,24 @@ resource "rafay_blueprint" "tfdemoblueprint2" {
   }
 }
 # Blueprint with Rook-Ceph managed add-on and custom add-on
-resource "rafay_blueprint" "tfdemoblueprint3" {
+resource "rafay_blueprint" "blueprint" {
   metadata {
-    name    = "tfdemoblueprint3"
-    project = "tfdemoproject3"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
-  }
+    name    = "custom-blueprint-advanced2"
+    project = "terraform"
   spec {
-    version = "v1.1"
+    version = "v0"
     base {
-      name    = "default-upstream"
-      version = "1.14.0"
+      name    = "default"
+      version = "1.16.0"
     }
     custom_addons {
-      name       = "add-on name"
-      version    = "version"
+      name = "addon1"
+      version = "v0"
+    }
+    custom_addons {
+      depends_on = ["addon1"]
+      name = "addon2"
+      version = "v0"
     }
     default_addons {
       enable_ingress    = true
@@ -141,38 +137,42 @@ resource "rafay_blueprint" "tfdemoblueprint3" {
       enable_rook_ceph = true
       monitoring {
         metrics_server {
-          enabled = false
+          enabled = true
           discovery {}
         }
-       
         helm_exporter {
-          enabled = false
+          enabled = true
         }
         kube_state_metrics {
-          enabled = false
+          enabled = true
         }
         node_exporter {
-          enabled = false
+          enabled = true
         }
         prometheus_adapter {
-          enabled = false
+          enabled = true
         }
         resources {
+          limits {
+            memory {
+              string = "200Mi"
+            }
+            cpu {
+              string = "100m"
+            }
+          }
         }
       }
     }
     drift {
       action  = "Deny"
-      enabled = false
+      enabled = true
     }
     sharing {
-      enabled = false
+      enabled = true
       projects {
-        name = "demoproject"
+        name = "terraform"
       }
-    }
-    placement {
-      auto_publish = false
     }
   }
 }

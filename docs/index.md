@@ -10,6 +10,8 @@ description: |-
 
 Organizations that have invested in building complex Terraform based "Infrastructure as Code" for cluster provisioning can seamlessly integrate and use the controller for workload related operations. 
 
+There are examples in the [GitHub repo](https://github.com/RafaySystems/terraform-provider-rafay). 
+
 
 ---
 

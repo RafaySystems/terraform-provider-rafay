@@ -2,7 +2,7 @@
 resource "rafay_namespace" "tfdemonamespace1" {
   metadata {
     name    = "tfdemonamespace1"
-    project = "tfdemoproject1"
+    project = "terraform"
   }
   spec {
     drift {
@@ -18,10 +18,10 @@ resource "rafay_namespace" "tfdemonamespace1" {
 }
 
 #Namespace example with resource quotas & limit ranges
-resource "rafay_namespace" "tfdemonamespace2" {
+resource "rafay_namespace" "namespace" {
   metadata {
-    name    = "tfdemonamespace2"
-    project = "tfdemoproject2"
+    name    = "cloudops"
+    project = "terraform"
     labels = {
       "env" = "prod"
     }

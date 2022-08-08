@@ -9,8 +9,8 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       type           = "eks"
       blueprint      = "default"
       blueprint_version = "1.12.0"
-      cloud_provider = "aws-eks-role"
-      cni_provider   = "regression-eks-role"
+      cloud_provider = "eks-role"
+      cni_provider   = "aws-cni"
       proxy_config   = {}
     }
   }

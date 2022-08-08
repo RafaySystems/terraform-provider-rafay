@@ -38,6 +38,14 @@ func downloadKubeConfig() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"output_folder_path": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"filename": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -53,6 +61,8 @@ func downloadKubeConfigCreate(ctx context.Context, d *schema.ResourceData, m int
 
 	defaultNamespace := d.Get("namespace").(string)
 	cluster := d.Get("cluster").(string)
+	filepath := d.Get("output_folder_path").(string)
+	toFile := d.Get("filename").(string)
 	params := url.Values{}
 	if defaultNamespace != "" {
 		params.Add("namespace", defaultNamespace)
@@ -82,14 +92,14 @@ func downloadKubeConfigCreate(ctx context.Context, d *schema.ResourceData, m int
 	}
 	yaml := string(decoded)
 
-	toFile := "kubeconfig-file"
-	err = ioutil.WriteFile(toFile, []byte(yaml), 0644)
+	fileLocation := filepath + "/" + toFile
+	err = ioutil.WriteFile(fileLocation, []byte(yaml), 0644)
 	if err != nil {
 		log.Printf("Failed to store the downloaded kubeconfig file ")
 	}
-	fmt.Println(fmt.Sprintf("kubeconfig downloaded to file - %s", toFile))
+	fmt.Printf("kubeconfig downloaded to file location - %s", fileLocation)
 
-	d.SetId(yaml)
+	d.SetId(fileLocation)
 	return diags
 
 }
@@ -111,11 +121,6 @@ func downloadKubeConfigDelete(ctx context.Context, d *schema.ResourceData, m int
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
-
+	os.Remove(d.Id())
 	return diags
-}
-
-func upsertDownload(namespace string, clusterName string, d *schema.ResourceData) error {
-
-	return nil
 }

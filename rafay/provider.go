@@ -55,7 +55,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_groupassociation":  resourceGroupAssociation(),
 				"rafay_group":             resourceGroup(),
 				"rafay_catalog":           resourceCatalog(),
-
+				"rafay_d_kube_config":     downloadKubeConfig(),
 				//"rafay_trigger":          resourceTrigger(),
 
 			},

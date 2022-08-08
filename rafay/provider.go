@@ -31,8 +31,7 @@ func New(_ string) func() *schema.Provider {
 				},
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"rafay_project": resourceProject(),
-
+				"rafay_project":           resourceProject(),
 				"rafay_cloud_credential":  resourceCloudCredential(),
 				"rafay_eks_cluster":       resourceEKSCluster(),
 				"rafay_eks_cluster_spec":  resourceEKSClusterSpec(),
@@ -55,7 +54,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_groupassociation":  resourceGroupAssociation(),
 				"rafay_group":             resourceGroup(),
 				"rafay_catalog":           resourceCatalog(),
-
+				"rafay_d_kube_config":     downloadKubeConfig(),
 				//"rafay_trigger":          resourceTrigger(),
 
 			},

@@ -270,6 +270,14 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 		obj.Drift = expandDrift(v)
 	}
 
+	if v, ok := in["network_policy"].([]interface{}); ok && len(v) > 0 {
+		obj.NetworkPolicy = expandBlueprintNetworkPolicy(v)
+	}
+
+	if v, ok := in["opa_policy"].([]interface{}); ok && len(v) > 0 {
+		obj.OpaPolicy = expandBlueprintOPAPolicy(v)
+	}
+
 	if v, ok := in["base"].([]interface{}); ok && len(v) > 0 {
 		obj.Base = expandBlueprintBase(v)
 	}
@@ -517,6 +525,97 @@ func expandBlueprintPSP(p []interface{}) *infrapb.BlueprintPSP {
 	}
 
 	return obj
+}
+
+func expandBlueprintNetworkPolicy(p []interface{}) *infrapb.NetworkPolicy {
+	obj := &infrapb.NetworkPolicy{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["profile"].([]interface{}); ok && len(v) > 0 {
+		obj.Profile = expandBlueprintNetworkPolicyProfile(v)
+	}
+
+	if v, ok := in["policies"].([]interface{}); ok && len(v) > 0 {
+		obj.Policies = expandBlueprintNetworkPolicyPolicies(v)
+	}
+
+	return obj
+}
+
+func expandBlueprintOPAPolicy(p []interface{}) *infrapb.OPAPolicy {
+	obj := &infrapb.OPAPolicy{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+
+	return obj
+}
+
+func expandBlueprintNetworkPolicyProfile(p []interface{}) *commonpb.ResourceNameAndVersionRef {
+	obj := &commonpb.ResourceNameAndVersionRef{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+
+	return obj
+}
+
+func expandBlueprintNetworkPolicyPolicies(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
+	if len(p) == 0 || p[0] == nil {
+		return []*commonpb.ResourceNameAndVersionRef{}
+	}
+
+	out := make([]*commonpb.ResourceNameAndVersionRef, len(p))
+
+	for i := range p {
+		obj := commonpb.ResourceNameAndVersionRef{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok {
+			obj.Name = v
+		}
+
+		if v, ok := in["version"].(string); ok {
+			obj.Version = v
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+
 }
 
 func expandBlueprintBase(p []interface{}) *infrapb.BlueprintBase {

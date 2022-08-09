@@ -61,8 +61,16 @@ func downloadKubeConfigCreate(ctx context.Context, d *schema.ResourceData, m int
 
 	defaultNamespace := d.Get("namespace").(string)
 	cluster := d.Get("cluster").(string)
-	filepath := d.Get("output_folder_path").(string)
-	toFile := d.Get("filename").(string)
+	filepath := ""
+	if d.Get("output_folder_path").(string) != "" {
+		filepath = d.Get("output_folder_path").(string)
+	}
+
+	filename := "kubeconfig-file"
+	if d.Get("filename").(string) != "" {
+		filename = d.Get("filename").(string)
+
+	}
 	params := url.Values{}
 	if defaultNamespace != "" {
 		params.Add("namespace", defaultNamespace)
@@ -92,7 +100,7 @@ func downloadKubeConfigCreate(ctx context.Context, d *schema.ResourceData, m int
 	}
 	yaml := string(decoded)
 
-	fileLocation := filepath + "/" + toFile
+	fileLocation := filepath + "/" + filename
 	err = ioutil.WriteFile(fileLocation, []byte(yaml), 0644)
 	if err != nil {
 		log.Printf("Failed to store the downloaded kubeconfig file ")

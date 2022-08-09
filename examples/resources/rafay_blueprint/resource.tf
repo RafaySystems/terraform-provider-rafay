@@ -114,6 +114,7 @@ resource "rafay_blueprint" "blueprint" {
   metadata {
     name    = "custom-blueprint-advanced2"
     project = "terraform"
+  }
   spec {
     version = "v0"
     base {

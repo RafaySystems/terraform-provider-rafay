@@ -253,6 +253,8 @@ func expandProjectResourceQuota(p []interface{}) *systempb.ProjectResourceQuota 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	/*
+		in := p[0].(map[string]interface{})
 
 	in := p[0].(map[string]interface{})
 
@@ -322,6 +324,10 @@ func expandProjectResourceQuota(p []interface{}) *systempb.ProjectResourceQuota 
 		obj.ReplicationControllers = v
 	}
 
+		if v, ok := in["replication_controllers"].(string); ok && len(v) > 0 {
+			obj.ReplicationControllers = expandQuantityString(v)
+		}
+	*/
 	return obj
 }
 
@@ -383,8 +389,61 @@ func flattenProjectResourceQuota(in *systempb.ProjectResourceQuota) []interface{
 		return nil
 	}
 
-	retNil := true
+	//retNil := true
 	obj := make(map[string]interface{})
+	/*
+		if in.ConfigMaps != nil {
+			obj["config_maps"] = in.ConfigMaps.String()
+			retNil = false
+		}
+		if in.CpuLimits != nil {
+			obj["cpu_limits"] = in.CpuLimits.String()
+			retNil = false
+		}
+		if in.CpuRequests != nil {
+			obj["cpu_requests"] = in.CpuRequests.String()
+			retNil = false
+		}
+		if in.MemoryLimits != nil {
+			obj["memory_limits"] = in.MemoryLimits.String()
+			retNil = false
+		}
+		if in.MemoryRequests != nil {
+			obj["memory_requests"] = in.MemoryRequests.String()
+			retNil = false
+		}
+		if in.PersistentVolumeClaims != nil {
+			obj["persistent_volume_claims"] = in.PersistentVolumeClaims.String()
+			retNil = false
+		}
+		if in.Pods != nil {
+			obj["pods"] = in.Pods.String()
+			retNil = false
+		}
+		if in.ReplicationControllers != nil {
+			obj["replication_controllers"] = in.ReplicationControllers.String()
+			retNil = false
+		}
+		if in.Secrets != nil {
+			obj["secrets"] = in.Secrets.String()
+			retNil = false
+		}
+		if in.Services != nil {
+			obj["services"] = in.Services.String()
+			retNil = false
+		}
+		if in.ServicesLoadBalancers != nil {
+			obj["services_load_balancers"] = in.ServicesLoadBalancers.String()
+			retNil = false
+		}
+		if in.ServicesNodePorts != nil {
+			obj["services_node_ports"] = in.ServicesNodePorts.String()
+			retNil = false
+		}
+		if in.StorageRequests != nil {
+			obj["storage_requests"] = in.StorageRequests.String()
+			retNil = false
+		}
 
 	// if in.ConfigMaps != nil {
 	// 	obj["config_maps"] = in.ConfigMaps.String()

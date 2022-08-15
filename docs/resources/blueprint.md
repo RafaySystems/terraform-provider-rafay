@@ -324,8 +324,8 @@ resource "rafay_blueprint" "blueprint" {
 
 ***Optional***
 
-- `cpu` - (Block List) The CPU resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--cpu)) 
-- `memory` - (Block List) The memory resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--memory)) 
+- `cpu` - (String) The CPU resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--cpu)) 
+- `memory` - (String) The memory resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--memory)) 
 
 
 <a id="nestedblock--spec--default_addons--monitoring--resources--limits--cpu"></a>

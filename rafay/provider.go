@@ -46,6 +46,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_repositories":                  resourceRepositories(),
 				"rafay_agent":                         resourceAgent(),
 				"rafay_pipeline":                      resourcePipeline(),
+				"rafay_secret_group":                  resourceSecretGroup(),
 				"rafay_workloadtemplate":              resourceWorkloadTemplate(),
 				"rafay_opa_policy":                    resourceOPAPolicy(),
 				"rafay_opa_constraint":                resourceOPAConstraint(),

@@ -1,6 +1,7 @@
 package rafay
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -2173,12 +2174,12 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	// get project details
 	resp, err := project.GetProjectByName(yamlClusterMetadata.Metadata.Project)
 	if err != nil {
-		log.Println("project does not exist")
+		log.Println("project does not exist 1", err)
 		return diags
 	}
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
-		log.Println("project does not exist")
+		log.Println("project does not exist 2")
 		return diags
 	}
 
@@ -2207,38 +2208,38 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
-	/*
-		for { //wait for cluster to provision correctly
-			time.Sleep(60 * time.Second)
-			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
-			if errGet != nil {
-				log.Printf("error while getCluster %s", errGet.Error())
-				return diag.FromErr(errGet)
-			}
 
-			statusResp, err := eksClusterCTLStatus(res.TaskSetID)
-			if err != nil {
-				log.Println("status response parse error", err)
-				return diag.FromErr(err)
-			}
-			log.Println("statusResp ", statusResp)
-			sres := clusterCTLResponse{}
-			err = json.Unmarshal([]byte(statusResp), &sres)
-			if err != nil {
-				log.Println("status response unmarshal error", err)
-				return diag.FromErr(err)
-			}
-			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-				if check.Status == "READY" {
-					break
-				}
-				log.Println("task completed but cluster is not ready")
-			}
-			if strings.Contains(sres.Status, "STATUS_FAILED") {
-				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
-			}
+	for { //wait for cluster to provision correctly
+		time.Sleep(60 * time.Second)
+		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+		if errGet != nil {
+			log.Printf("error while getCluster %s", errGet.Error())
+			return diag.FromErr(errGet)
 		}
-	*/
+
+		statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+		if err != nil {
+			log.Println("status response parse error", err)
+			return diag.FromErr(err)
+		}
+		log.Println("statusResp ", statusResp)
+		sres := clusterCTLResponse{}
+		err = json.Unmarshal([]byte(statusResp), &sres)
+		if err != nil {
+			log.Println("status response unmarshal error", err)
+			return diag.FromErr(err)
+		}
+		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+			if check.Status == "READY" {
+				break
+			}
+			log.Println("task completed but cluster is not ready")
+		}
+		if strings.Contains(sres.Status, "STATUS_FAILED") {
+			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
+		}
+	}
+
 	log.Printf("resource eks cluster created/updated %s", s.ID)
 	d.SetId(s.ID)
 
@@ -2254,6 +2255,7 @@ func eksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte,
 	log.Printf("eksClusterCTL")
 	logger := glogger.GetLogger()
 	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
+	log.Println("errs:", errs)
 	if len(errs) == 0 && len(configMap) > 0 {
 		// Make request
 		log.Println("right bfr for loop->apply")
@@ -3409,6 +3411,7 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 			var policyDoc map[string]interface{}
 			json.Unmarshal([]byte(v), &policyDoc)
 			obj.AttachPolicy = policyDoc
+			log.Println("attach policy expanded correct")
 		}
 		if v, ok := in["attach_role_arn"].(string); ok && len(v) > 0 {
 			obj.AttachRoleARN = v
@@ -4097,7 +4100,14 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
 		*/
 		if len(in.AttachPolicy) > 0 {
-			obj["attach_policy"] = in.AttachPolicy
+			//in2 := toMapString(in.AttachPolicy)
+			//x := createKeyValuePairs(in2)
+			jsonStr, err := json.Marshal(in.AttachPolicy)
+			if err != nil {
+				fmt.Println(err)
+			}
+			obj["attach_policy"] = string(jsonStr)
+			log.Println("attach policy flattened correct:", obj["attach_policy"])
 		}
 		if len(in.AttachRoleARN) > 0 {
 			obj["attach_role_arn"] = in.AttachRoleARN
@@ -4127,6 +4137,13 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 
 	return out
 
+}
+func createKeyValuePairs(m map[string]string) string {
+	b := new(bytes.Buffer)
+	for key, value := range m {
+		fmt.Fprintf(b, "%s=\"%s\"\n", key, value)
+	}
+	return b.String()
 }
 
 //@@@Flatten attach policy
@@ -5191,6 +5208,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		v = []interface{}{}
 	}
 	c1, err := flattenEKSCluster(&clusterSpec, v)
+	log.Println("finished flatten eks cluster", c1)
 	if err != nil {
 		log.Printf("flatten eks cluster error %s", err.Error())
 		return diag.FromErr(err)
@@ -5201,6 +5219,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	//flatten cluster config
+	log.Println("trying to unmarshal")
 	clusterConfigSpec := EKSClusterConfig{}
 	err = yaml.Unmarshal([]byte(cfgList["ClusterConfig"][0]), &clusterConfigSpec)
 	if err != nil {

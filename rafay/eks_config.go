@@ -142,15 +142,27 @@ type EKSClusterConfig struct {
 	// +optional
 	Addons []*Addon `yaml:"addons,omitempty"`
 	// +optional
-	PrivateCluster    *PrivateCluster       `yaml:"privateCluster,omitempty"`
-	NodeGroups        []*NodeGroup          `yaml:"nodeGroups,omitempty"`
-	ManagedNodeGroups []*ManagedNodeGroup   `yaml:"managedNodeGroups,omitempty"`
-	FargateProfiles   []*FargateProfile     `yaml:"fargateProfiles,omitempty"`
-	AvailabilityZones []string              `yaml:"availabilityZones,omitempty"`
-	CloudWatch        *EKSClusterCloudWatch `yaml:"cloudWatch,omitempty"`
-	SecretsEncryption *SecretsEncryption    `yaml:"secretsEncryption,omitempty"`
+	PrivateCluster    *PrivateCluster             `yaml:"privateCluster,omitempty"`
+	NodeGroups        []*NodeGroup                `yaml:"nodeGroups,omitempty"`
+	ManagedNodeGroups []*ManagedNodeGroup         `yaml:"managedNodeGroups,omitempty"`
+	FargateProfiles   []*FargateProfile           `yaml:"fargateProfiles,omitempty"`
+	AvailabilityZones []string                    `yaml:"availabilityZones,omitempty"`
+	CloudWatch        *EKSClusterCloudWatch       `yaml:"cloudWatch,omitempty"`
+	SecretsEncryption *SecretsEncryption          `yaml:"secretsEncryption,omitempty"`
+	IdentityMappings  *EKSClusterIdentityMappings `json:"identityMappings,omitempty"`
 	//do i need this? not in docs
 	//Karpenter *Karpenter `yaml:"karpenter,omitempty"`
+}
+
+type EKSClusterIdentityMappings struct {
+	Arns    []*IdentityMappingARN `json:"arns,omitempty"`
+	Account []string              `json:"account,omitempty"`
+}
+
+type IdentityMappingARN struct {
+	Arn      string   `json:"arn,omitempty"`
+	Group    []string `json:"group,omitempty"`
+	Username string   `json:"username,omitempty"`
 }
 
 /*Took this struct and modified it to fit documentation

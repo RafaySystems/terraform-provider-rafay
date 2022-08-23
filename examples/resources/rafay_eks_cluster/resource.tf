@@ -2,7 +2,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
   cluster {
     kind = "Cluster"
     metadata {
-      name    = "irsa-test"
+      name    = "irsa-test2"
       project = "terraform"
     }
     spec {
@@ -18,49 +18,49 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
     apiversion = "rafay.io/v1alpha5"
     kind       = "ClusterConfig"
     metadata {
-      name    = "irsa-test"
+      name    = "irsa-test2"
       region  = "us-west-2"
       version = "1.22"
     }
  
-    # iam {
-    #  with_oidc = true
-    #   service_accounts {
-    #     metadata {
-    #       name = "test-irsa"
-    #       namespace = "yaml1"
-    #     }
-    #     attach_policy = <<EOF
-    #     {
-    #       "Version": "2012-10-17",
-    #       "Statement": [
-    #         {
-    #           "Effect": "Allow",
-    #           "Action": "ec2:Describe*",
-    #           "Resource": "*"
-    #         },
-    #         {
-    #           "Effect": "Allow",
-    #           "Action": "ec2:AttachVolume",
-    #           "Resource": "*"
-    #         },
-    #         {
-    #           "Effect": "Allow",
-    #           "Action": "ec2:StartInstances",
-    #           "Resource": "*"
-    #         },
-    #         {
-    #           "Effect": "Allow",
-    #           "Action": ["elasticloadbalancing:*"],
-    #           "Resource": ["*"]
-    #         }
+    iam {
+     with_oidc = true
+      service_accounts {
+        metadata {
+          name = "test-irsa"
+          namespace = "yaml1"
+        }
+        attach_policy = <<EOF
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "ec2:Describe*",
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "ec2:AttachVolume",
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": "ec2:StartInstances",
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": ["elasticloadbalancing:*"],
+              "Resource": ["*"]
+            }
             
            
-    #       ]
-    #     }
-    #     EOF
-    #   }
-    # }
+          ]
+        }
+        EOF
+      }
+    }
  
    
     vpc {

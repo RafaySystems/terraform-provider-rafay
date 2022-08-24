@@ -3,13 +3,13 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
     kind = "Cluster"
     metadata {
       name    = "irsa-test2"
-      project = "terraform"
+      project = "defaultproject"
     }
     spec {
       type           = "eks"
       blueprint      = "default"
       blueprint_version = "Latest"
-      cloud_provider = "hardik-eks-role"
+      cloud_provider = "aws-eks-role"
       cni_provider   = "aws-cni"
       proxy_config   = {}
     }
@@ -46,7 +46,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
             },
             {
               "Effect": "Allow",
-              "Action": "ec2:StartInstances",
+              "Action": "ec2:DetachVolume",
               "Resource": "*"
             },
             {
@@ -95,7 +95,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
   }
 }
 
-/*resource "rafay_eks_cluster" "ekscluster-basic" {
+resource "rafay_eks_cluster" "ekscluster-basic" {
   cluster {
     kind = "Cluster"
     metadata {
@@ -340,4 +340,4 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
       private_networking = true
     }
   }
-}*/
+}

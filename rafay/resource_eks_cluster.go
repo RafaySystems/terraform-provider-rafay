@@ -1,7 +1,6 @@
 package rafay
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -18,6 +17,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -2174,12 +2174,12 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	// get project details
 	resp, err := project.GetProjectByName(yamlClusterMetadata.Metadata.Project)
 	if err != nil {
-		log.Println("project does not exist 1", err)
+		log.Println("project does not exist")
 		return diags
 	}
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
-		log.Println("project does not exist 2")
+		log.Println("project does not exist")
 		return diags
 	}
 
@@ -4099,15 +4099,17 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 		}
 		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
 		*/
-		if len(in.AttachPolicy) > 0 {
-			//in2 := toMapString(in.AttachPolicy)
-			//x := createKeyValuePairs(in2)
-			jsonStr, err := json.Marshal(in.AttachPolicy)
+		log.Println("input attach policy:", in.AttachPolicy)
+		if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
+			//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.AttachPolicy)
 			if err != nil {
-				fmt.Println(err)
+				log.Println("attach policy marshal err:", err)
 			}
+			//log.Println("jsonSTR:", jsonStr)
 			obj["attach_policy"] = string(jsonStr)
-			log.Println("attach policy flattened correct:", obj["attach_policy"])
+			//log.Println("attach policy flattened correct:", obj["attach_policy"])
 		}
 		if len(in.AttachRoleARN) > 0 {
 			obj["attach_role_arn"] = in.AttachRoleARN
@@ -4137,13 +4139,6 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 
 	return out
 
-}
-func createKeyValuePairs(m map[string]string) string {
-	b := new(bytes.Buffer)
-	for key, value := range m {
-		fmt.Fprintf(b, "%s=\"%s\"\n", key, value)
-	}
-	return b.String()
 }
 
 //@@@Flatten attach policy

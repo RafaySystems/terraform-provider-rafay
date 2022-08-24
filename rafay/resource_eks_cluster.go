@@ -17,6 +17,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -2207,38 +2208,38 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
-	/*
-		for { //wait for cluster to provision correctly
-			time.Sleep(60 * time.Second)
-			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
-			if errGet != nil {
-				log.Printf("error while getCluster %s", errGet.Error())
-				return diag.FromErr(errGet)
-			}
 
-			statusResp, err := eksClusterCTLStatus(res.TaskSetID)
-			if err != nil {
-				log.Println("status response parse error", err)
-				return diag.FromErr(err)
-			}
-			log.Println("statusResp ", statusResp)
-			sres := clusterCTLResponse{}
-			err = json.Unmarshal([]byte(statusResp), &sres)
-			if err != nil {
-				log.Println("status response unmarshal error", err)
-				return diag.FromErr(err)
-			}
-			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-				if check.Status == "READY" {
-					break
-				}
-				log.Println("task completed but cluster is not ready")
-			}
-			if strings.Contains(sres.Status, "STATUS_FAILED") {
-				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
-			}
+	for { //wait for cluster to provision correctly
+		time.Sleep(60 * time.Second)
+		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+		if errGet != nil {
+			log.Printf("error while getCluster %s", errGet.Error())
+			return diag.FromErr(errGet)
 		}
-	*/
+
+		statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+		if err != nil {
+			log.Println("status response parse error", err)
+			return diag.FromErr(err)
+		}
+		log.Println("statusResp ", statusResp)
+		sres := clusterCTLResponse{}
+		err = json.Unmarshal([]byte(statusResp), &sres)
+		if err != nil {
+			log.Println("status response unmarshal error", err)
+			return diag.FromErr(err)
+		}
+		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+			if check.Status == "READY" {
+				break
+			}
+			log.Println("task completed but cluster is not ready")
+		}
+		if strings.Contains(sres.Status, "STATUS_FAILED") {
+			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
+		}
+	}
+
 	log.Printf("resource eks cluster created/updated %s", s.ID)
 	d.SetId(s.ID)
 
@@ -2254,6 +2255,7 @@ func eksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte,
 	log.Printf("eksClusterCTL")
 	logger := glogger.GetLogger()
 	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
+	log.Println("errs:", errs)
 	if len(errs) == 0 && len(configMap) > 0 {
 		// Make request
 		log.Println("right bfr for loop->apply")
@@ -3409,6 +3411,7 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 			var policyDoc map[string]interface{}
 			json.Unmarshal([]byte(v), &policyDoc)
 			obj.AttachPolicy = policyDoc
+			log.Println("attach policy expanded correct")
 		}
 		if v, ok := in["attach_role_arn"].(string); ok && len(v) > 0 {
 			obj.AttachRoleARN = v
@@ -4096,8 +4099,17 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 		}
 		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
 		*/
-		if len(in.AttachPolicy) > 0 {
-			obj["attach_policy"] = in.AttachPolicy
+		log.Println("input attach policy:", in.AttachPolicy)
+		if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
+			//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.AttachPolicy)
+			if err != nil {
+				log.Println("attach policy marshal err:", err)
+			}
+			//log.Println("jsonSTR:", jsonStr)
+			obj["attach_policy"] = string(jsonStr)
+			//log.Println("attach policy flattened correct:", obj["attach_policy"])
 		}
 		if len(in.AttachRoleARN) > 0 {
 			obj["attach_role_arn"] = in.AttachRoleARN
@@ -5191,6 +5203,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		v = []interface{}{}
 	}
 	c1, err := flattenEKSCluster(&clusterSpec, v)
+	log.Println("finished flatten eks cluster", c1)
 	if err != nil {
 		log.Printf("flatten eks cluster error %s", err.Error())
 		return diag.FromErr(err)
@@ -5201,6 +5214,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	//flatten cluster config
+	log.Println("trying to unmarshal")
 	clusterConfigSpec := EKSClusterConfig{}
 	err = yaml.Unmarshal([]byte(cfgList["ClusterConfig"][0]), &clusterConfigSpec)
 	if err != nil {

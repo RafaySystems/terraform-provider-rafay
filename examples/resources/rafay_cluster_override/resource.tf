@@ -65,39 +65,3 @@ resource "rafay_cluster_override" "tfdemocluster-override2" {
     }
   }
 }
-
-// YAML BASED cluster overrides
-
-resource "rafay_cluster_override" "tfdemocluster-yamloverride1" {
-  metadata {
-    name    = "tfdemocluster-yamloverride1"
-    project = "tfdemoproject1"
-    labels = {
-      "rafay.dev/overrideScope" = "clusterLabels"
-      "rafay.dev/overrideType"  = "manifestsFile"
-    }
-  }
-  spec {
-    artifact_type = "NativeYAML"
-    cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
-    cluster_placement {
-      placement_type = "ClusterSpecific"
-      cluster_labels {
-        key = "rafay.dev/clusterName"
-        value = "cluster-1"
-      }
-    }
-    resource_selector = "rafay.dev/name=override-addon"
-    type              = "ClusterOverrideTypeAddon"
-    override_values   = <<-EOS
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: nginx
-      patch:
-      - op: replace
-        path: /spec/replica
-        value: 3
-    EOS
-  }
-}

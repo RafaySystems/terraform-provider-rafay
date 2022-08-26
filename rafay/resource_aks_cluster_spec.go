@@ -120,7 +120,7 @@ func resourceAKSClusterSpecUpsert(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	// split the file and update individual resources
-	cfgList, err := utils.SplitYamlAndGetListByKind(fileBytes)
+	cfgList, _, err := utils.SplitYamlAndGetListByKind(fileBytes)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -343,7 +343,7 @@ func resourceAKSClusterSpecDelete(ctx context.Context, d *schema.ResourceData, m
 		return diags
 	}
 
-	errDel := cluster.DeleteCluster(d.Get("name").(string), project.ID)
+	errDel := cluster.DeleteCluster(d.Get("name").(string), project.ID, false)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)

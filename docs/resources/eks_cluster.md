@@ -38,42 +38,42 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       region  = "us-west-2"
       version = "1.21"
     }
-	iam {
-	  service_accounts {
-		attach_policy = <<EOF
-		{
-		  "Version": "2012-10-17",
-		  "Statement": [
-			{
-			  "Effect": "Allow",
-			  "Action": "ec2:Describe*",
-			  "Resource": "*"
-			},
-			{
-			  "Effect": "Allow",
-			  "Action": "ec2:AttachVolume",
-			  "Resource": "*"
-			},
-			{
-			  "Effect": "Allow",
-			  "Action": "ec2:DetachVolume",
-			  "Resource": "*"
-			},
-			{
-			  "Effect": "Allow",
-			  "Action": ["ec2:*"],
-			  "Resource": ["*"]
-			},
-			{
-			  "Effect": "Allow",
-			  "Action": ["elasticloadbalancing:*"],
-			  "Resource": ["*"]
-			}
-		  ]
-		}
-		EOF
-	  }
+    iam {
+      service_accounts {
+        attach_policy = <<EOF
+        {
+	  "Version": "2012-10-17",
+	  "Statement": [
+	    {
+	      "Effect": "Allow",
+	      "Action": "ec2:Describe*",
+	      "Resource": "*"
+	    },
+	    {
+	      "Effect": "Allow",
+	      "Action": "ec2:AttachVolume",
+	      "Resource": "*"
+	    },
+	    {  
+	      "Effect": "Allow",
+	      "Action": "ec2:DetachVolume",
+	      "Resource": "*"
+	    },
+	    {
+	      "Effect": "Allow",
+	      "Action": ["ec2:*"],
+	      "Resource": ["*"]
+    	    },
+	    {
+	      "Effect": "Allow",
+	      "Action": ["elasticloadbalancing:*"],
+	      "Resource": ["*"]
+	     }
+	   ]
 	}
+	EOF
+      }
+    }
     vpc {
       cidr = "192.168.0.0/16"
       cluster_endpoints {

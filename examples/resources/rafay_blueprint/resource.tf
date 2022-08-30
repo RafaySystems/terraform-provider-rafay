@@ -1,7 +1,7 @@
 # Example of a custom blueprint resource.
 resource "rafay_blueprint" "blueprint" {
   metadata {
-    name    = "custom-blueprint"
+    name    = "custom-golden-blueprint"
     project = "terraform"
   }
   spec {
@@ -10,6 +10,7 @@ resource "rafay_blueprint" "blueprint" {
       name    = "default"
       version = "1.16.0"
     }
+    type = "golden"
     default_addons {
       enable_ingress    = true
       enable_logging    = false
@@ -53,6 +54,7 @@ resource "rafay_blueprint" "blueprint" {
     }
   }
 }
+
 # Blueprint for fleet values of cluster
 resource "rafay_blueprint" "blueprint" {
   metadata {

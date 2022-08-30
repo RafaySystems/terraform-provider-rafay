@@ -178,6 +178,7 @@ resource "rafay_blueprint" "blueprint" {
     }
   }
 }
+# Example of a custom golden base blueprint resource.
 resource "rafay_blueprint" "golden_base_blueprint" {
   metadata {
     name    = "custom-golden-blueprint"

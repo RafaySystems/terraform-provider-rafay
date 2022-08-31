@@ -5183,7 +5183,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	log.Println("resourceEKSClusterRead clusterSpec ", clusterSpecYaml)
 
 	clusterByte := []byte(clusterSpecYaml)
-	cfgList, err := utils.SplitYamlAndGetListByKind(clusterByte)
+	cfgList, _, err := utils.SplitYamlAndGetListByKind(clusterByte)
 	if err != nil {
 		log.Println("read err with split yaml")
 		return diag.FromErr(err)
@@ -5289,7 +5289,7 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		return diags
 	}
 
-	errDel := cluster.DeleteCluster(yamlCluster.Metadata.Name, project.ID)
+	errDel := cluster.DeleteCluster(yamlCluster.Metadata.Name, project.ID, false)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)

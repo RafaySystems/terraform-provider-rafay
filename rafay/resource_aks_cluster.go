@@ -4897,7 +4897,7 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		return diags
 	}
 
-	errDel := cluster.DeleteCluster(obj.Metadata.Name, project.ID)
+	errDel := cluster.DeleteCluster(obj.Metadata.Name, project.ID, false)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)

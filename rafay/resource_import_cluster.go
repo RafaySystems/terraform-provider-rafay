@@ -251,7 +251,7 @@ func resourceImportClusterDelete(ctx context.Context, d *schema.ResourceData, m 
 
 	project_id := p.ID
 	//delete cluster once project id is retrieved correctly
-	err = cluster.DeleteCluster(d.Get("clustername").(string), project_id)
+	err = cluster.DeleteCluster(d.Get("clustername").(string), project_id, false)
 	if err != nil {
 		fmt.Print("cluster was not deleted")
 		log.Printf("cluster was not deleted, error %s", err.Error())

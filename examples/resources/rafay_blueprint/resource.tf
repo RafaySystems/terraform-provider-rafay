@@ -34,12 +34,8 @@ resource "rafay_blueprint" "blueprint" {
         }
         resources {
           limits {
-            memory {
-              string = "200Mi"
-            }
-            cpu {
-              string = "100m"
-            }
+            memory = "200Mi"
+            cpu  = "100m"
           }
         }
       }
@@ -89,12 +85,8 @@ resource "rafay_blueprint" "blueprint" {
         }
         resources {
           limits {
-            memory {
-              string = "200Mi"
-            }
-            cpu {
-              string = "100m"
-            }
+            memory ="200Mi"
+            cpu = "100m"
           }
         }
       }
@@ -114,6 +106,7 @@ resource "rafay_blueprint" "blueprint" {
   metadata {
     name    = "custom-blueprint-advanced2"
     project = "terraform"
+  }
   spec {
     version = "v0"
     base {
@@ -154,12 +147,8 @@ resource "rafay_blueprint" "blueprint" {
         }
         resources {
           limits {
-            memory {
-              string = "200Mi"
-            }
-            cpu {
-              string = "100m"
-            }
+            memory = "200Mi"
+            cpu  = "100m"
           }
         }
       }
@@ -173,6 +162,11 @@ resource "rafay_blueprint" "blueprint" {
       projects {
         name = "terraform"
       }
+    }
+    opa_policy {
+      enabled = true
+      name = "policy-name"
+      version = "policy-version"
     }
   }
 }

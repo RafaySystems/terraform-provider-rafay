@@ -50,12 +50,8 @@ resource "rafay_blueprint" "blueprint" {
         }
         resources {
           limits {
-            memory {
-              string = "200Mi"
-            }
-            cpu {
-              string = "100m"
-            }
+            memory  = "200Mi"
+            cpu = "100m"
           }
         }
       }
@@ -111,12 +107,8 @@ resource "rafay_blueprint" "blueprint" {
         }
         resources {
           limits {
-            memory {
-              string = "200Mi"
-            }
-            cpu {
-              string = "100m"
-            }
+            memory = "200Mi"
+            cpu  = "100m"
           }
         }
       }
@@ -182,12 +174,8 @@ resource "rafay_blueprint" "blueprint" {
         }
         resources {
           limits {
-            memory {
-              string = "200Mi"
-            }
-            cpu {
-              string = "100m"
-            }
+            memory = "200Mi"
+            cpu = "100m"
           }
         }
       }
@@ -201,6 +189,11 @@ resource "rafay_blueprint" "blueprint" {
       projects {
         name = "terraform"
       }
+    }
+    opa_policy {
+      enabled = true
+      name = "policy-name"
+      version = "policy-version"
     }
   }
 }
@@ -243,6 +236,7 @@ resource "rafay_blueprint" "blueprint" {
 - `private_kube_api_proxies` - (Block List) A private kubernetes API proxy network, used to provide kubectl access for your users. (See [below for nested schema](#nestedblock--spec--private_kube_api_proxies))
 - `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A blueprint can be shared with one or more projects.  (See [below for nested schema](#nestedblock--spec--sharing))
     Note: If the resource is not shared, set enabled = false. 
+- `opa_policy` - (Block List, Max: 1) Specify the OPA policy. (See [below for nested schema](#nestedblock--spec--opa_policy))
 
 <a id="nestedblock--spec--base"></a>
 ### Nested Schema for `spec.base`
@@ -386,6 +380,14 @@ resource "rafay_blueprint" "blueprint" {
 
 - `name` - (String) The names of the projects the resource belongs to. 
 
+<a id="nestedblock--spec--opa_policy"></a>
+### Nested Schema for `spec.opa_policy`
+
+***Required***
+
+- `enabled` - (Boolean) Enable OPA policy for this resource.
+- `name` - (String) The name of the OPA policy.
+- `version` - (String) The version of the OPA policy.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

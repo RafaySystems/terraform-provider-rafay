@@ -105,7 +105,7 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		// XXX Debug
 		n1 := spew.Sprintf("%+v", blueprint)
 		log.Println("blueprint apply blueprint:", n1)
-		log.Printf("blueprint apply error: ", err)
+		log.Printf("blueprint apply error: %v", err)
 		return diag.FromErr(err)
 	}
 
@@ -268,6 +268,10 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 
 	if v, ok := in["drift"].([]interface{}); ok && len(v) > 0 {
 		obj.Drift = expandDrift(v)
+	}
+
+	if v, ok := in["opa_policy"].([]interface{}); ok && len(v) > 0 {
+		obj.OpaPolicy = expandBlueprintOPAPolicy(v)
 	}
 
 	if v, ok := in["base"].([]interface{}); ok && len(v) > 0 {
@@ -514,6 +518,29 @@ func expandBlueprintPSP(p []interface{}) *infrapb.BlueprintPSP {
 
 	if v, ok := in["names"].([]interface{}); ok && len(v) > 0 {
 		obj.Names = toArrayString(v)
+	}
+
+	return obj
+}
+
+func expandBlueprintOPAPolicy(p []interface{}) *infrapb.OPAPolicy {
+	obj := &infrapb.OPAPolicy{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
 	}
 
 	return obj

@@ -17,6 +17,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -464,12 +465,13 @@ func serviceAccountsFields() map[string]*schema.Schema {
 			},
 		},
 		"attach_policy": { //USE THIS FOR ALL INLINEDOCUMENT TYPES
-			Type:        schema.TypeList,
+			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "holds a policy document to attach to this service account",
-			Elem: &schema.Resource{
-				Schema: attachPolicyFields(),
-			},
+			/*
+				Elem: &schema.Resource{
+					Schema: attachPolicyFields(),
+				},*/
 		},
 		"attach_role_arn": {
 			Type:        schema.TypeString,
@@ -3404,8 +3406,11 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 		}
 		//check for attach policy
 		////@@@TODO Store terraform input as inline document object correctly
-		if v, ok := in["attach_policy"].([]interface{}); ok && len(v) > 0 {
-			obj.AttachPolicy = expandAttachPolicy(v)
+		if v, ok := in["attach_policy"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			json.Unmarshal([]byte(v), &policyDoc)
+			obj.AttachPolicy = policyDoc
+			log.Println("attach policy expanded correct")
 		}
 		if v, ok := in["attach_role_arn"].(string); ok && len(v) > 0 {
 			obj.AttachRoleARN = v
@@ -4087,12 +4092,24 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 		obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
 
 		//@@@TODO Store inline document object as terraform input correctly
-		v1, ok := obj["attach_policy"].([]interface{})
+		/*v1, ok := obj["attach_policy"].([]interface{})
 		if !ok {
 			v1 = []interface{}{}
 		}
 		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
-
+		*/
+		log.Println("input attach policy:", in.AttachPolicy)
+		if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
+			//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.AttachPolicy)
+			if err != nil {
+				log.Println("attach policy marshal err:", err)
+			}
+			//log.Println("jsonSTR:", jsonStr)
+			obj["attach_policy"] = string(jsonStr)
+			//log.Println("attach policy flattened correct:", obj["attach_policy"])
+		}
 		if len(in.AttachRoleARN) > 0 {
 			obj["attach_role_arn"] = in.AttachRoleARN
 		}
@@ -5166,7 +5183,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	log.Println("resourceEKSClusterRead clusterSpec ", clusterSpecYaml)
 
 	clusterByte := []byte(clusterSpecYaml)
-	cfgList, err := utils.SplitYamlAndGetListByKind(clusterByte)
+	cfgList, _, err := utils.SplitYamlAndGetListByKind(clusterByte)
 	if err != nil {
 		log.Println("read err with split yaml")
 		return diag.FromErr(err)
@@ -5272,7 +5289,7 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		return diags
 	}
 
-	errDel := cluster.DeleteCluster(yamlCluster.Metadata.Name, project.ID)
+	errDel := cluster.DeleteCluster(yamlCluster.Metadata.Name, project.ID, false)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)

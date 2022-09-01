@@ -21,6 +21,7 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 
 | Resource                                  | Version Released |
 | ----------------------------------------- | ---------------- |
+| `blueprint` (with OPA support)            | 1.0.1            |
 | `workload`                                | 1.0.0            |
 | `workloadtemplate`                        | 1.0.0            |
 | `aks_cluster_spec`                        | 1.0.0            |

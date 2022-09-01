@@ -190,11 +190,11 @@ resource "rafay_blueprint" "blueprint" {
         name = "terraform"
       }
     }
-	opa_policy {
-	  enabled = true
-	  name = "policy-name"
-	  version = "policy-version"
-	}
+    opa_policy {
+      enabled = true
+      name = "policy-name"
+      version = "policy-version"
+    }
   }
 }
 ```
@@ -381,7 +381,7 @@ resource "rafay_blueprint" "blueprint" {
 - `name` - (String) The names of the projects the resource belongs to. 
 
 <a id="nestedblock--spec--opa_policy"></a>
-### Nested Schema for `spec.sharing`
+### Nested Schema for `spec.opa_policy`
 
 ***Required***
 

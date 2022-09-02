@@ -3656,20 +3656,6 @@ func expandSystemComponentsPlacement(p []interface{}) *SystemComponentsPlacement
 	if v, ok := in["tolerations"].([]interface{}); ok && len(v) > 0 {
 		obj.Tolerations = expandTolerations(v)
 	}
-	/*
-		if v, ok := in["tolerations"].(string); ok && len(v) > 0 {
-			var policyDoc map[string]interface{}
-			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-			//json.Unmarshal(input, &data)
-			//json2.Unmarshal([]byte(v), &policyDoc)
-			json2.Unmarshal(v, &policyDoc)
-			log.Println("pre marshal tolerate:", reflect.TypeOf(v), v)
-			json.Unmarshal([]byte(v), &policyDoc)
-			obj.Tolerations = policyDoc
-			log.Println("tolerate:", policyDoc)
-			log.Println("Tolerations expanded correct")
-		}
-	*/
 	if v, ok := in["daemonset_override"].([]interface{}); ok && len(v) > 0 {
 		obj.DaemonsetOverride = expandDaemonsetOverride(v)
 	}
@@ -3725,14 +3711,6 @@ func expandDaemonsetOverride(p []interface{}) *DaemonsetOverride {
 	if v, ok := in["tolerations"].([]interface{}); ok && len(v) > 0 {
 		obj.Tolerations = expandTolerations(v)
 	}
-	/*
-		if v, ok := in["tolerations"].(string); ok && len(v) > 0 {
-			var policyDoc map[string]interface{}
-			json.Unmarshal([]byte(v), &policyDoc)
-			obj.Tolerations = policyDoc
-			log.Println("Tolerations expanded correct")
-		}
-	*/
 	return obj
 }
 
@@ -3925,21 +3903,9 @@ func flattenSystemComponentsPlacement(in *SystemComponentsPlacement, p []interfa
 		if !ok {
 			v = []interface{}{}
 		}
+		log.Println("type of read tolerations:", reflect.TypeOf(in.Tolerations), in.Tolerations)
 		obj["tolerations"] = flattenTolerations(in.Tolerations, v)
 	}
-	/*
-		if in.Tolerations != nil && len(in.Tolerations) > 0 {
-			//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
-			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-			jsonStr, err := json2.Marshal(in.Tolerations)
-			if err != nil {
-				log.Println("Tolerations marshal err:", err)
-			}
-			//log.Println("jsonSTR:", jsonStr)
-			obj["tolerations"] = string(jsonStr)
-			//log.Println("attach policy flattened correct:", obj["attach_policy"])
-		}
-	*/
 	if in.DaemonsetOverride != nil {
 		v, ok := obj["daemonset_override"].([]interface{})
 		if !ok {
@@ -3955,6 +3921,7 @@ func flattenTolerations(in []*Tolerations, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
+	log.Println("flattenTolerations")
 	out := make([]interface{}, len(in))
 	for i, in := range in {
 		obj := map[string]interface{}{}
@@ -3980,8 +3947,7 @@ func flattenTolerations(in []*Tolerations, p []interface{}) []interface{} {
 
 		out[i] = &obj
 	}
-
-	return []interface{}{out}
+	return out
 }
 
 func flattenDaemonsetOverride(in *DaemonsetOverride, p []interface{}) []interface{} {
@@ -3999,20 +3965,6 @@ func flattenDaemonsetOverride(in *DaemonsetOverride, p []interface{}) []interfac
 		}
 		obj["tolerations"] = flattenTolerations(in.Tolerations, v)
 	}
-
-	/*
-		if in.Tolerations != nil && len(in.Tolerations) > 0 {
-			//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
-			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-			jsonStr, err := json2.Marshal(in.Tolerations)
-			if err != nil {
-				log.Println("Tolerations marshal err:", err)
-			}
-			//log.Println("jsonSTR:", jsonStr)
-			obj["tolerations"] = string(jsonStr)
-			//log.Println("attach policy flattened correct:", obj["attach_policy"])
-		}
-	*/
 
 	return []interface{}{obj}
 }

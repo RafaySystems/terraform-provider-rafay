@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -161,6 +162,102 @@ func specField() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Configure Proxy if your infrastructure uses an Outbound Proxy",
 		},
+		"system_components_placement": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: systemComponentsPlacementFields(),
+			},
+		},
+	}
+	return s
+}
+
+func systemComponentsPlacementFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"node_selector": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "used to tag AWS resources created by the vendor",
+		},
+		"tolerations": {
+			Type: schema.TypeList,
+			//Type:        schema.TypeString,
+			Optional:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: tolerationsFields(),
+			},
+		},
+		"daemonset_override": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: daemonsetOverrideFields(),
+			},
+		},
+	}
+	return s
+}
+
+func tolerationsFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"key": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "the taint key that the toleration applies to",
+		},
+		"operator": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "represents a key's relationship to the value",
+		},
+		"value": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "the taint value the toleration matches to",
+		},
+		"effect": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "indicates the taint effect to match",
+		},
+		"toleration_seconds": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "represents the period of time the toleration tolerates the taint",
+		},
+	}
+	return s
+}
+
+func daemonsetOverrideFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"node_selection_enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables node selection",
+		},
+		"tolerations": {
+			Type: schema.TypeList,
+			//Type:        schema.TypeString,
+			Optional:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: tolerationsFields(),
+			},
+		},
+		/*
+			"tolerations": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "contains custom cni networking configurations",
+				Elem: &schema.Resource{
+					Schema: tolerationsFields(),
+				},
+			},*/
 	}
 	return s
 }
@@ -3371,7 +3468,7 @@ func expandServiceAccountsMetadata(p []interface{}) *EKSClusterIAMMeta {
 	}
 	in := p[0].(map[string]interface{})
 
-	//is this okay or do i need to store it in metadata, golang gives me access to the containts inside the metadata struct
+	//is this okay or do i need to store it in metadata, golang gives me access to the contents inside the metadata struct
 	if v, ok := in["name"].(string); ok && len(v) > 0 {
 		obj.Name = v
 	}
@@ -3409,7 +3506,9 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 		////@@@TODO Store terraform input as inline document object correctly
 		if v, ok := in["attach_policy"].(string); ok && len(v) > 0 {
 			var policyDoc map[string]interface{}
-			json.Unmarshal([]byte(v), &policyDoc)
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
 			obj.AttachPolicy = policyDoc
 			log.Println("attach policy expanded correct")
 		}
@@ -3533,8 +3632,107 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["proxy_config"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.ProxyConfig = toMapString(v)
 	}
+	if v, ok := in["system_components_placement"].([]interface{}); ok && len(v) > 0 {
+		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
+	}
 	log.Println("cluster spec cloud_provider: ", obj.CloudProvider)
 
+	return obj
+}
+
+func expandSystemComponentsPlacement(p []interface{}) *SystemComponentsPlacement {
+	obj := &SystemComponentsPlacement{}
+	log.Println("expandSystemComponentsPlacement")
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["node_selector"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.NodeSelector = toMapString(v)
+	}
+
+	if v, ok := in["tolerations"].([]interface{}); ok && len(v) > 0 {
+		obj.Tolerations = expandTolerations(v)
+	}
+	/*
+		if v, ok := in["tolerations"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			//json2.Unmarshal([]byte(v), &policyDoc)
+			json2.Unmarshal(v, &policyDoc)
+			log.Println("pre marshal tolerate:", reflect.TypeOf(v), v)
+			json.Unmarshal([]byte(v), &policyDoc)
+			obj.Tolerations = policyDoc
+			log.Println("tolerate:", policyDoc)
+			log.Println("Tolerations expanded correct")
+		}
+	*/
+	if v, ok := in["daemonset_override"].([]interface{}); ok && len(v) > 0 {
+		obj.DaemonsetOverride = expandDaemonsetOverride(v)
+	}
+	return obj
+}
+
+func expandTolerations(p []interface{}) []*Tolerations {
+	out := make([]*Tolerations, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		obj := &Tolerations{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["key"].(string); ok && len(v) > 0 {
+			obj.Key = v
+		}
+		if v, ok := in["operator"].(string); ok && len(v) > 0 {
+			obj.Operator = v
+		}
+		if v, ok := in["value"].(string); ok && len(v) > 0 {
+			obj.Value = v
+		}
+		if v, ok := in["effect"].(string); ok && len(v) > 0 {
+			obj.Effect = v
+		}
+		if v, ok := in["toleration_seconds"].(int); ok {
+			if v == 0 {
+				obj.TolerationSeconds = nil
+			} else {
+				log.Println("setting toleration seconds")
+				obj.TolerationSeconds = &v
+			}
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+func expandDaemonsetOverride(p []interface{}) *DaemonsetOverride {
+	obj := &DaemonsetOverride{}
+	log.Println("expand CNI params")
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["node_selection_enabled"].(bool); ok {
+		obj.NodeSelectionEnabled = &v
+	}
+	if v, ok := in["tolerations"].([]interface{}); ok && len(v) > 0 {
+		obj.Tolerations = expandTolerations(v)
+	}
+	/*
+		if v, ok := in["tolerations"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			json.Unmarshal([]byte(v), &policyDoc)
+			obj.Tolerations = policyDoc
+			log.Println("Tolerations expanded correct")
+		}
+	*/
 	return obj
 }
 
@@ -3701,7 +3899,122 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 		obj["proxy_config"] = toMapInterface(in.ProxyConfig)
 	}
 
+	if in.SystemComponentsPlacement != nil {
+		v, ok := obj["system_components_placement"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["system_components_placement"] = flattenSystemComponentsPlacement(in.SystemComponentsPlacement, v)
+	}
+
 	return []interface{}{obj}, nil
+}
+
+func flattenSystemComponentsPlacement(in *SystemComponentsPlacement, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	log.Println("got to flatten system comp:", in)
+	log.Println("node_selectopr type: ", reflect.TypeOf(in.NodeSelector))
+	if in.NodeSelector != nil && len(in.NodeSelector) > 0 {
+		obj["node_selector"] = toMapInterface(in.NodeSelector)
+	}
+	if in.Tolerations != nil {
+		v, ok := obj["tolerations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["tolerations"] = flattenTolerations(in.Tolerations, v)
+	}
+	/*
+		if in.Tolerations != nil && len(in.Tolerations) > 0 {
+			//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.Tolerations)
+			if err != nil {
+				log.Println("Tolerations marshal err:", err)
+			}
+			//log.Println("jsonSTR:", jsonStr)
+			obj["tolerations"] = string(jsonStr)
+			//log.Println("attach policy flattened correct:", obj["attach_policy"])
+		}
+	*/
+	if in.DaemonsetOverride != nil {
+		v, ok := obj["daemonset_override"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["daemonset_override"] = flattenDaemonsetOverride(in.DaemonsetOverride, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenTolerations(in []*Tolerations, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Key) > 0 {
+			obj["key"] = in.Key
+		}
+		if len(in.Operator) > 0 {
+			obj["operator"] = in.Operator
+		}
+		if len(in.Value) > 0 {
+			obj["value"] = in.Value
+		}
+		if len(in.Effect) > 0 {
+			obj["effect"] = in.Effect
+		}
+		if in.TolerationSeconds != nil {
+			obj["toleration_seconds"] = in.TolerationSeconds
+		}
+
+		out[i] = &obj
+	}
+
+	return []interface{}{out}
+}
+
+func flattenDaemonsetOverride(in *DaemonsetOverride, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["node_selection_enabled"] = in.NodeSelectionEnabled
+
+	if in.Tolerations != nil {
+		v, ok := obj["tolerations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["tolerations"] = flattenTolerations(in.Tolerations, v)
+	}
+
+	/*
+		if in.Tolerations != nil && len(in.Tolerations) > 0 {
+			//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.Tolerations)
+			if err != nil {
+				log.Println("Tolerations marshal err:", err)
+			}
+			//log.Println("jsonSTR:", jsonStr)
+			obj["tolerations"] = string(jsonStr)
+			//log.Println("attach policy flattened correct:", obj["attach_policy"])
+		}
+	*/
+
+	return []interface{}{obj}
 }
 
 func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {

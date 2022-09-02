@@ -2,7 +2,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
   cluster {
     kind = "Cluster"
     metadata {
-      name    = "irsa-test2"
+      name    = "tolerations-test11"
       project = "defaultproject"
     }
     spec {
@@ -12,13 +12,71 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       cloud_provider = "aws-eks-role"
       cni_provider   = "aws-cni"
       proxy_config   = {}
+      system_components_placement {      
+        node_selector = {
+          app = "infra"
+          dedicated = "true"
+        }
+        /*
+        tolerations = <<EOF
+        [
+          {
+                "key": "app",
+                "operator": "Equal",
+                "value": "infra",
+                "effect": "NoExecute"
+            },
+            {
+                "key": "dedicated",
+                "operator": "Equal",
+                "value": "true",
+                "effect": "NoSchedule"
+            }
+        ]
+          
+        EOF
+        */
+        
+        tolerations {
+          effect = "NoExecute"
+          key = "app"
+          operator = "Equal"
+          value =  "infra"
+        }
+        tolerations {
+          effect = "NoSchedule"
+          key = "dedicated"
+          operator = "Equal"
+          value = true
+        }
+        daemonset_override {
+          node_selection_enabled = false
+          /*
+          tolerations = <<EOF
+          [
+            {
+              "operator": "Exists"
+            }
+          ]
+            
+          EOF
+          */
+        
+          tolerations {
+            key = "app1dedicated"
+            value = true
+            effect = "NoSchedule"
+            operator = "Equal" 
+          }
+        }
+      }
     }
   }
   cluster_config {
     apiversion = "rafay.io/v1alpha5"
     kind       = "ClusterConfig"
     metadata {
-      name    = "irsa-test2"
+      name    = "tolerations-test11"
       region  = "us-west-2"
       version = "1.22"
     }
@@ -91,10 +149,14 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       volume_size      = 80
       volume_type      = "gp3"
       private_networking = true
+      labels = {
+        app = "infra"
+        dedicated = "true"
+      }
     }
   }
 }
-
+/*
 resource "rafay_eks_cluster" "ekscluster-basic" {
   cluster {
     kind = "Cluster"
@@ -341,3 +403,4 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
     }
   }
 }
+*/

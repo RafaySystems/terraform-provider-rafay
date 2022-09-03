@@ -436,7 +436,7 @@ func expandResources(p []interface{}) *commonpb.ResourceRequirements {
 
 	in := p[0].(map[string]interface{})
 	if v, ok := in["limits"].([]interface{}); ok && len(v) > 0 {
-		obj.Limits = expandResourceQuantity(v)
+		obj.Limits = expandResourceQuantity1170(v)
 		log.Println("expandResources Limits ", obj.Limits)
 	}
 
@@ -865,7 +865,7 @@ func flattenResources(in *commonpb.ResourceRequirements, p []interface{}) []inte
 	}
 
 	if in.Limits != nil {
-		obj["limits"] = flattenResourceQuantity(in.Limits)
+		obj["limits"] = flattenResourceQuantity1170(in.Limits)
 	}
 
 	return []interface{}{obj}

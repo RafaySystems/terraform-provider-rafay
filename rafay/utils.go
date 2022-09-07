@@ -907,3 +907,55 @@ func collateConfigsByName(rafayConfigs, clusterConfigs [][]byte) (map[string][]b
 	}
 	return result, errs
 }
+
+func expandResourceQuantity1170(p []interface{}) *commonpb.ResourceQuantity {
+	obj := commonpb.ResourceQuantity{}
+	if len(p) == 0 || p[0] == nil {
+		log.Println("expandResourceQuantity1170 empty input")
+		return &obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["memory"].(string); ok {
+		obj.Memory = expandQuantity1170(v)
+		log.Println("expandResourceQuantity1170 memory", obj.Memory)
+	}
+
+	if v, ok := in["cpu"].(string); ok {
+		obj.Cpu = expandQuantity1170(v)
+		log.Println("expandResourceQuantity1170 CPU", obj.Cpu)
+	}
+
+	log.Println("expandResourceQuantity1170 obj", obj)
+	return &obj
+}
+
+func expandQuantity1170(p string) *resource.Quantity {
+	if p == "" {
+		return nil
+	}
+	ob, err := resource.ParseQuantity(p)
+	if err == nil {
+		log.Println("expandQuantity1170 ob: ", ob)
+		return &ob
+	}
+	log.Println("expandQuantity1170 error", err)
+	return nil
+}
+
+func flattenResourceQuantity1170(in *commonpb.ResourceQuantity) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if in.Memory != nil {
+		obj["memory"] = in.GetMemory().String()
+	}
+
+	if in.Cpu != nil {
+		obj["cpu"] = in.GetCpu().String()
+	}
+
+	log.Println("flattenResourceQuantityV101 obj", obj)
+	return []interface{}{obj}
+}

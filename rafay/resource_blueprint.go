@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
@@ -32,6 +33,9 @@ func resourceBluePrint() *schema.Resource {
 		ReadContext:   resourceBluePrintRead,
 		UpdateContext: resourceBluePrintUpdate,
 		DeleteContext: resourceBluePrintDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceBluePrintImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -42,6 +46,34 @@ func resourceBluePrint() *schema.Resource {
 		SchemaVersion: 1,
 		Schema:        resource.BlueprintSchema.Schema,
 	}
+}
+
+func resourceBluePrintImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceBluePrintImport idParts:", idParts)
+	d_debug := spew.Sprintf("%+v", d)
+	log.Println("resourceBluePrintImport d.Id:", d.Id())
+	log.Println("resourceBluePrintImport d_debug", d_debug)
+
+	blueprint, err := expandBluePrint(d)
+	if err != nil {
+		log.Printf("blueprint expandBluePrint error")
+		return nil, err
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	blueprint.Metadata = &metaD
+
+	err = d.Set("metadata", flattenMetaData(blueprint.Metadata))
+	if err != nil {
+		return nil, err
+	}
+
+	d.SetId(blueprint.Metadata.Name)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -105,7 +137,7 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		// XXX Debug
 		n1 := spew.Sprintf("%+v", blueprint)
 		log.Println("blueprint apply blueprint:", n1)
-		log.Printf("blueprint apply error: ", err)
+		log.Printf("blueprint apply error: %v", err)
 		return diag.FromErr(err)
 	}
 
@@ -444,7 +476,7 @@ func expandResources(p []interface{}) *commonpb.ResourceRequirements {
 
 	in := p[0].(map[string]interface{})
 	if v, ok := in["limits"].([]interface{}); ok && len(v) > 0 {
-		obj.Limits = expandResourceQuantity(v)
+		obj.Limits = expandResourceQuantity1170(v)
 		log.Println("expandResources Limits ", obj.Limits)
 	}
 
@@ -941,7 +973,7 @@ func flattenResources(in *commonpb.ResourceRequirements, p []interface{}) []inte
 	}
 
 	if in.Limits != nil {
-		obj["limits"] = flattenResourceQuantity(in.Limits)
+		obj["limits"] = flattenResourceQuantity1170(in.Limits)
 	}
 
 	return []interface{}{obj}

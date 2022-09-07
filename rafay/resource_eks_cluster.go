@@ -47,6 +47,10 @@ func resourceEKSCluster() *schema.Resource {
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 
+		Importer: &schema.ResourceImporter{
+			State: resourceEKSClusterImport,
+		},
+
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"cluster": {
@@ -5335,4 +5339,66 @@ func (np ByManagedNodeGroupName) Less(i, j int) bool {
 	} else {
 		return false
 	}
+}
+
+func resourceEKSClusterImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceEKSClusterImport idParts:", idParts)
+	d_debug := spew.Sprintf("%+v", d)
+	log.Println("resourceEKSClusterImport d.Id:", d.Id())
+	log.Println("resourceEKSClusterImport d_debug", d_debug)
+
+	var yamlCluster *EKSCluster
+	if v, ok := d.Get("cluster").([]interface{}); ok {
+		yamlCluster = expandEKSCluster(v)
+	} else {
+		fmt.Print("Cluster data unable to be found")
+		return nil, fmt.Errorf("%s", "Cluster data is missing")
+	}
+
+	var metaD EKSClusterMetadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	yamlCluster.Metadata = &metaD
+
+	// get project details
+	resp, err := project.GetProjectByName(yamlCluster.Metadata.Project)
+	if err != nil {
+		log.Println("project does not exist")
+		return nil, fmt.Errorf("%s", "project does not exist")
+	}
+
+	project, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		log.Println("project does not exist")
+		return nil, fmt.Errorf("%s", "project does not exist")
+	}
+	log.Println("resourceEKSClusterImport yamlCluster:", yamlCluster)
+	v, ok := d.Get("cluster").([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	cl, err := flattenEKSCluster(yamlCluster, v)
+	if err != nil {
+		log.Printf("flatten eks cluster error %s", err.Error())
+		return nil, err
+	}
+
+	log.Println("resourceEKSClusterImport cl:", cl)
+	err = d.Set("cluster", cl)
+	if err != nil {
+		log.Printf("err setting cluster %s", err.Error())
+		return nil, err
+	}
+
+	s, errGet := cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+	if errGet != nil {
+		log.Printf("error while getCluster %s", errGet.Error())
+		return nil, errGet
+	}
+
+	log.Printf("resource eks cluster import id %s", s.ID)
+	d.SetId(s.ID)
+
+	return []*schema.ResourceData{d}, nil
 }

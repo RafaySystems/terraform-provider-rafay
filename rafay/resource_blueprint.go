@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
@@ -32,6 +33,9 @@ func resourceBluePrint() *schema.Resource {
 		ReadContext:   resourceBluePrintRead,
 		UpdateContext: resourceBluePrintUpdate,
 		DeleteContext: resourceBluePrintDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceBluePrintImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -42,6 +46,34 @@ func resourceBluePrint() *schema.Resource {
 		SchemaVersion: 1,
 		Schema:        resource.BlueprintSchema.Schema,
 	}
+}
+
+func resourceBluePrintImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceBluePrintImport idParts:", idParts)
+	d_debug := spew.Sprintf("%+v", d)
+	log.Println("resourceBluePrintImport d.Id:", d.Id())
+	log.Println("resourceBluePrintImport d_debug", d_debug)
+
+	blueprint, err := expandBluePrint(d)
+	if err != nil {
+		log.Printf("blueprint expandBluePrint error")
+		return nil, err
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	blueprint.Metadata = &metaD
+
+	err = d.Set("metadata", flattenMetaData(blueprint.Metadata))
+	if err != nil {
+		return nil, err
+	}
+
+	d.SetId(blueprint.Metadata.Name)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

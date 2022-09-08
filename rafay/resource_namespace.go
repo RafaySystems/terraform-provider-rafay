@@ -50,6 +50,9 @@ func resourceNamespace() *schema.Resource {
 		ReadContext:   resourceNamespaceRead,
 		UpdateContext: resourceNamespaceUpdate,
 		DeleteContext: resourceNamespaceDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceNamespaceImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -60,6 +63,35 @@ func resourceNamespace() *schema.Resource {
 		SchemaVersion: 1,
 		Schema:        resource.NamespaceSchema.Schema,
 	}
+}
+
+func resourceNamespaceImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceNamespaceImport idParts:", idParts)
+	d_debug := spew.Sprintf("%+v", d)
+	log.Println("resourceNamespaceImport d.Id:", d.Id())
+	log.Println("resourceNamespaceImport d_debug", d_debug)
+
+	namespace, err := expandNamespace(d)
+	if err != nil {
+		log.Printf("namespace expandNamespace error")
+		//return nil, err
+	}
+	log.Println("import1")
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	namespace.Metadata = &metaD
+	log.Println("import pre flatten")
+	err = d.Set("metadata", flattenMetaData(namespace.Metadata))
+	if err != nil {
+		log.Println("import set err")
+		return nil, err
+	}
+	log.Println("import post flatten")
+	d.SetId(namespace.Metadata.Name)
+	log.Println("import post set id")
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -192,7 +224,8 @@ func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	nsTFState, err := expandNamespace(d)
 	if err != nil {
-		return diag.FromErr(err)
+		log.Println("expandNamespace err:", err)
+		//return diag.FromErr(err)
 	}
 
 	// XXX Debug
@@ -278,7 +311,7 @@ func expandNamespace(in *schema.ResourceData) (*infrapb.Namespace, error) {
 	if v, ok := in.Get("spec").([]interface{}); ok {
 		objSpec, err := expandNamespaceSpec(v)
 		if err != nil {
-			return nil, err
+			return obj, err
 		}
 		log.Println("expandNamespace got spec")
 		obj.Spec = objSpec
@@ -570,6 +603,7 @@ func flattenNamespace(d *schema.ResourceData, in *infrapb.Namespace) error {
 	if in == nil {
 		return nil
 	}
+	log.Println("flatten ns: ", in)
 
 	err := d.Set("metadata", flattenMetaData(in.Metadata))
 	if err != nil {

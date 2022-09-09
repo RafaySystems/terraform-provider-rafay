@@ -60,15 +60,13 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
 
 ***Optional***
 
-- `annotations` (Map of String) The annotations for the resource. 
 - `description` (String) A description of the resource. 
-- `labels` (Map of String) The labels for the resource. 
 
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
 
-***Optional***
+***Required***
 
 - `artifact` (Block List, Max: 1) The OPA constraint resource specification. (see [below for nested schema](#nestedblock--spec--artifact))
 - `template_name` (String) The name of the OPA constraint template.
@@ -81,7 +79,7 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
 
 - `artifact` (Block List, Max: 1) Contains data about the artifact repository. (see [below for nested schema](#nestedblock--spec--artifact--artifact))
 - `options` (Block List, Max: 1) Constraint options. (see [below for nested schema](#nestedblock--spec--artifact--options))
-- `type` (String) The type of artifact. 
+- `type` (String) The type of artifact. The supported value is Yaml.
 
 
 <a id="nestedblock--spec--artifact--artifact"></a>
@@ -89,115 +87,17 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
 
 ***Optional***
 
-- `catalog` (String) The name of the Helm catalog. 
-- `chart_name` (String) The name of the Helm chart. 
-- `chart_path` (Block List, Max: 1) The relative path to the Helm chart file in the Git repository. (see [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
-- `chart_version` (String) The version of the Helm chart. 
-- `configmap` (Block List, Max: 1) The relative paths to the Alert Manager configmap file. (see [below for nested schema](#nestedblock--spec--artifact--artifact--configmap))
-- `configuration` (Block List, Max: 1) The relative paths to the Alert Manager configuration file. (see [below for nested schema](#nestedblock--spec--artifact--artifact--configuration))
 - `paths` (Block List) The relative paths to the file in the Git repository. (see [below for nested schema](#nestedblock--spec--artifact--artifact--paths))
 - `repository` (String) The name of the Helm repository. 
 - `revision` (String) The branch or tag in the Git repository. 
-- `secret` (Block List, Max: 1) The relative paths to the Alert Manager secret file. (see [below for nested schema](#nestedblock--spec--artifact--artifact--secret))
-- `statefulset` (Block List, Max: 1) The relative paths to the Alert Manager statefulset file. (see [below for nested schema](#nestedblock--spec--artifact--artifact--statefulset))
-- `values_paths` (Block List) The relative paths to the values files. (see [below for nested schema](#nestedblock--spec--artifact--artifact--values_paths))
-- `values_ref` (Block List, Max: 1) Override the relative paths to the values files. (see [below for nested schema](#nestedblock--spec--artifact--artifact--values_ref))
-
-
-<a id="nestedblock--spec--artifact--artifact--chart_path"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact. 
-
-
-<a id="nestedblock--spec--artifact--artifact--configmap"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact. 
-
-
-<a id="nestedblock--spec--artifact--artifact--configuration"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact. 
 
 
 <a id="nestedblock--spec--artifact--artifact--paths"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
+### Nested Schema for `spec.artifact.artifact.paths`
 
 ***Optional***
 
 - `name` (String) The relative path of an artifact. 
-
-
-<a id="nestedblock--spec--artifact--artifact--secret"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact. 
-
-
-<a id="nestedblock--spec--artifact--artifact--statefulset"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact. 
-
-
-<a id="nestedblock--spec--artifact--artifact--values_paths"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact. 
-
-
-<a id="nestedblock--spec--artifact--artifact--values_ref"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `repository` (String) The name of the Git repository. 
-- `revision` (String) The branch or tag in the Git repository. 
-- `values_paths` (Block List) The relative paths to values files in the Git repository. (see [below for nested schema](#nestedblock--spec--artifact--artifact--values_ref--values_paths))
-
-
-<a id="nestedblock--spec--artifact--artifact--values_ref--values_paths"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref.values_paths`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact. 
-
-
-<a id="nestedblock--spec--artifact--options"></a>
-### Nested Schema for `spec.artifact.options`
-
-***Optional***
-
-- `atomic` (Boolean) If enabled, the installation process deletes the installation on failure. The --wait flag is set automatically if atomic is enabled.
-- `clean_up_on_fail` (Boolean) If enabled, cleanup deployed resources if the resource fails to deploy.
-- `description` (String) A description for the release, provided by the user.
-- `disable_open_api_validation` (Boolean) If enabled, disables OpenAPI validation while deploying the resource.
-- `force` (Boolean) If enabled, deploys the resource with the force flag enabled. This will force resource updates through a replacement strategy, which destroys and recreates the resource if the upgrade fails.
-- `keep_history` (Boolean) If enabled, it will keep the release history after uninstalling the resource.
-- `max_history` (Number) The maximum number of historical revisions to retain.
-- `no_hooks` (Boolean) If enabled, deploy the resource without hooks.
-- `render_sub_chart_notes` (Boolean) If enabled, render subchart notes along with the parent.
-- `reset_values` (Boolean) If enabled, when upgrading, reset the values to the values built into the chart.
-- `reuse_values` (Boolean) If enabled, when upgrading, reuse the values from the last release and merge in any overrides from the command line via -set and -if. If `--reset values` is specified, this is ignored.
-- `set_string` (List of String) If enabled, pass the custom helm values as key=value.
-- `skip_crd` (Boolean) If enabled, the installation skips deploying CRDs.
-- `timeout` (String) The timeout for waiting for the resources to become ready. 
-- `wait` (Boolean) If enabled, deploy the resource with wait flag. This means wait until the deployment is in a ready state before marking the release as successful.
 
 
 <a id="nestedblock--timeouts"></a>

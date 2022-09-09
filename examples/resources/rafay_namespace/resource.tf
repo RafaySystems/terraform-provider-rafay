@@ -8,6 +8,7 @@ resource "rafay_namespace" "tfdemonamespace1" {
     drift {
       enabled = false
     }
+    #should be placed on a valid cluster
     placement {
       labels {
         key   = "rafay.dev/clusterName"

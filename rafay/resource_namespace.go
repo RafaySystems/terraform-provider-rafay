@@ -512,12 +512,12 @@ func expandNamespaceResourceQuotas(p []interface{}) *infrapb.NamespaceResourceQu
 	/*
 		if v, ok := in["requests"].([]interface{}); ok {
 			log.Println("requests v", v)
-			obj.Requests = expandResourceQuantity(v)
+			obj.Requests = expandResourceQuantity1170(v)
 		}
 
 		if v, ok := in["limits"].([]interface{}); ok {
 			log.Println("limits v", v)
-			obj.Limits = expandResourceQuantity(v)
+			obj.Limits = expandResourceQuantity1170(v)
 		}*/
 
 	log.Println("expandNamespaceResourceQuotas obj ", obj)
@@ -563,7 +563,7 @@ func expandNamespaceLimitRangeConfig(p []interface{}) *infrapb.NamespaceLimitRan
 	}
 
 	if v, ok := in["default_request"].([]interface{}); ok {
-		obj.DefaultRequest = expandResourceQuantity(v)
+		obj.DefaultRequest = expandResourceQuantity1170(v)
 	}
 
 	//log.Println("expandNamespaceLimitRangeConfig <<")
@@ -603,7 +603,6 @@ func flattenNamespace(d *schema.ResourceData, in *infrapb.Namespace) error {
 	if in == nil {
 		return nil
 	}
-	log.Println("flatten ns: ", in)
 
 	err := d.Set("metadata", flattenMetaData(in.Metadata))
 	if err != nil {
@@ -748,19 +747,19 @@ func flattenNamespaceLimitRangeConfig(in *infrapb.NamespaceLimitRangeConfig) []i
 	obj := make(map[string]interface{})
 
 	if in.Min != nil {
-		obj["min"] = flattenResourceQuantity(in.Min)
+		obj["min"] = flattenResourceQuantity1170(in.Min)
 	}
 
 	if in.Max != nil {
-		obj["max"] = flattenResourceQuantity(in.Max)
+		obj["max"] = flattenResourceQuantity1170(in.Max)
 	}
 
 	if in.Default != nil {
-		obj["default"] = flattenResourceQuantity(in.Default)
+		obj["default"] = flattenResourceQuantity1170(in.Default)
 	}
 
 	if in.Default != nil {
-		obj["default_request"] = flattenResourceQuantity(in.DefaultRequest)
+		obj["default_request"] = flattenResourceQuantity1170(in.DefaultRequest)
 	}
 
 	//log.Println("flattenNamespaceLimitRangeConfig ", in.Ratio)

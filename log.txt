@@ -1,0 +1,23 @@
+2022-09-13T17:06:17.644+0530 [INFO]  Terraform version: 1.2.7
+2022-09-13T17:06:17.645+0530 [DEBUG] using github.com/hashicorp/go-tfe v1.0.0
+2022-09-13T17:06:17.645+0530 [DEBUG] using github.com/hashicorp/hcl/v2 v2.12.0
+2022-09-13T17:06:17.645+0530 [DEBUG] using github.com/hashicorp/terraform-config-inspect v0.0.0-20210209133302-4fd17a0faac2
+2022-09-13T17:06:17.645+0530 [DEBUG] using github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734
+2022-09-13T17:06:17.645+0530 [DEBUG] using github.com/zclconf/go-cty v1.10.0
+2022-09-13T17:06:17.645+0530 [INFO]  Go runtime version: go1.18.1
+2022-09-13T17:06:17.645+0530 [INFO]  CLI args: []string{"terraform", "-v"}
+2022-09-13T17:06:17.645+0530 [TRACE] Stdout is a terminal of width 156
+2022-09-13T17:06:17.645+0530 [TRACE] Stderr is a terminal of width 156
+2022-09-13T17:06:17.645+0530 [TRACE] Stdin is a terminal
+2022-09-13T17:06:17.645+0530 [DEBUG] Attempting to open CLI config file: /Users/gopi/.terraformrc
+2022-09-13T17:06:17.645+0530 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
+2022-09-13T17:06:17.646+0530 [DEBUG] checking for credentials in "/Users/gopi/.terraform.d/plugins"
+2022-09-13T17:06:17.646+0530 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
+2022-09-13T17:06:17.646+0530 [DEBUG] will search for provider plugins in /Users/gopi/.terraform.d/plugins
+2022-09-13T17:06:17.648+0530 [TRACE] getproviders.SearchLocalDirectory: found hashicorp.com/edu/hashicups v0.2.0 for darwin_amd64 at /Users/gopi/.terraform.d/plugins/hashicorp.com/edu/hashicups/0.2/darwin_amd64
+2022-09-13T17:06:17.649+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v0.3.0 for darwin_amd64 at /Users/gopi/.terraform.d/plugins/registry.terraform.io/rafay/rafay/0.3/darwin_amd64
+2022-09-13T17:06:17.649+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.0.3 for darwin_amd64 at /Users/gopi/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.0.3/darwin_amd64
+2022-09-13T17:06:17.649+0530 [DEBUG] ignoring non-existing provider search directory /Users/gopi/Library/Application Support/io.terraform/plugins
+2022-09-13T17:06:17.650+0530 [DEBUG] ignoring non-existing provider search directory /Library/Application Support/io.terraform/plugins
+2022-09-13T17:06:17.651+0530 [INFO]  CLI command args: []string{"version", "-v"}
+2022-09-13T17:06:20.658+0530 [ERROR] Checkpoint error: Get "https://checkpoint-api.hashicorp.com/v1/check/terraform?arch=amd64&os=darwin&signature=b0653ea8-a4ff-c386-359b-d94e4dfd571a&version=1.2.7": context deadline exceeded (Client.Timeout exceeded while awaiting headers)

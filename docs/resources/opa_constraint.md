@@ -8,7 +8,7 @@ description: |-
 
 # rafay_opa_constraint (Resource)
 
-This is an example for the OPA constraint. A constraint is a set of requirements for a system. 
+Create an Open Policy Agent (OPA) constraint.  
 
 
 ## Example Usage
@@ -17,8 +17,8 @@ This is an example for the OPA constraint. A constraint is a set of requirements
 #Basic example for opa constraint
 resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
   metadata {
-    name    = "tfdemoopaconstraint1"
-    project = "tfdemoproject1"
+    name    = "request-limit-ratio"
+    project = "terraform"
   }
   spec {
     artifact {
@@ -27,7 +27,7 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
           name = "file://artifacts/one/request-limit-ratio-constraint.yaml"
         }
       }
-      template_name = "one"
+      template_name = "request-limit-ratio-template"
     }
   }
 }
@@ -75,19 +75,30 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
 <a id="nestedblock--spec--artifact"></a>
 ### Nested Schema for `spec.artifact`
 
-***Optional***
+***Required***
 
 - `artifact` (Block List, Max: 1) Contains data about the artifact repository. (see [below for nested schema](#nestedblock--spec--artifact--artifact))
-- `options` (Block List, Max: 1) Constraint options. (see [below for nested schema](#nestedblock--spec--artifact--options))
 - `type` (String) The type of artifact. The supported value is Yaml.
+
+
+***Optional***
+
+- `options` (Block List, Max: 1) Constraint options. (see [below for nested schema](#nestedblock--spec--artifact--options))
 
 
 <a id="nestedblock--spec--artifact--artifact"></a>
 ### Nested Schema for `spec.artifact.artifact`
 
-***Optional***
+***Required***
 
 - `paths` (Block List) The relative paths to the file in the Git repository. (see [below for nested schema](#nestedblock--spec--artifact--artifact--paths))
+
+
+***Optional***
+
+!!! note
+    If pulling a constraint manifest from the Git, `repository` and `revision` are required. 
+
 - `repository` (String) The name of the Helm repository. 
 - `revision` (String) The branch or tag in the Git repository. 
 
@@ -95,7 +106,7 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
 <a id="nestedblock--spec--artifact--artifact--paths"></a>
 ### Nested Schema for `spec.artifact.artifact.paths`
 
-***Optional***
+***Required***
 
 - `name` (String) The relative path of an artifact. 
 

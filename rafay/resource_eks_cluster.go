@@ -2500,7 +2500,7 @@ func expandIdentityMappings(p []interface{}) *EKSClusterIdentityMappings {
 		obj.Arns = expandArnFields(v)
 	}
 	if v, ok := in["accounts"].([]interface{}); ok && len(v) > 0 {
-		obj.Account = toArrayString(v)
+		obj.Accounts = toArrayString(v)
 	}
 
 	return obj

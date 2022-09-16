@@ -27,8 +27,8 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
           name = "file://artifacts/one/request-limit-ratio-constraint.yaml"
         }
       }
-      template_name = "request-limit-ratio-template"
     }
+    template_name = "request-limit-ratio-template"
   }
 }
 ```

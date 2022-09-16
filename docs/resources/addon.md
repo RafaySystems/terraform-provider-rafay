@@ -18,6 +18,10 @@ resource "rafay_addon" "tfdemoaddon1" {
   metadata {
     name    = "tfdemoaddon1"
     project = "terraform"
+    labels = {
+      env  = "dev"
+      name = "app"
+    }
   }
   spec {
     namespace = "tftestnamespace"
@@ -47,6 +51,10 @@ resource "rafay_addon" "tfdemoaddon2" {
   metadata {
     name    = "tfdemoaddon2"
     project = "terraform"
+    labels = {
+      env  = "dev"
+      name = "app"
+    }
   }
   spec {
     namespace = "tftestnamespace"
@@ -91,7 +99,9 @@ resource "rafay_addon" "tfdemoaddon2" {
 - `name` - (String) The name of the resource. This must be unique to the organization. 
 - `project` - (String) The Rafay project(s) the resource belongs to. 
 
+***Optional***
 
+- `labels` - (Block) . Labels are key/value pairs that are attached to objects, such as pods. Labels are intended to be used to specify identifying attributes of objects that are meaningful and relevant to users.
 ---
 
 <a id="nestedblock--spec"></a>

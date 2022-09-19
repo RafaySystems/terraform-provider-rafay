@@ -5,7 +5,7 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
     project = "tfdemoproject1"
   }
   spec {
-    template_name = "one"
+    template_name = "request-limit-ratio-template"
     artifact {
       type = "Yaml"
       artifact {

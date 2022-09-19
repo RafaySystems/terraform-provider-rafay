@@ -21,13 +21,14 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
     project = "terraform"
   }
   spec {
+    template_name = "request-limit-ratio-template"
     artifact {
+      type = "Yaml"
       artifact {
         paths {
-          name = "file://artifacts/one/request-limit-ratio-constraint.yaml"
+          name = "file://artifacts/request-limit-ratio/request-limit-ratio-constraint.yaml"
         }
       }
-      template_name = "request-limit-ratio-template"
     }
   }
 }

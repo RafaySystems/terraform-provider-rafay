@@ -44,6 +44,7 @@ resource "rafay_groupassociation" "groupassociation" {
 - `add_users` - (List of String) Users to add to the group association.
 - `namespaces` - (List of String) Namespaces in your configuration. Only provide when the selected roles are `NAMESPACE_ADMIN` or `NAMESPACE_READ_ONLY`.
 - `remove_users` - (List of String) Users to remove from the group association.
+- `idp_user` (Boolean) Type of user is IDP (IDP users vs Local users)
 - `timeouts` - (Block, Optional) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
 
 

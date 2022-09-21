@@ -155,8 +155,8 @@ type EKSClusterConfig struct {
 }
 
 type EKSClusterIdentityMappings struct {
-	Arns    []*IdentityMappingARN `yaml:"arns,omitempty"`
-	Account []string              `yaml:"account,omitempty"`
+	Arns     []*IdentityMappingARN `yaml:"arns,omitempty"`
+	Accounts []string              `yaml:"accounts,omitempty"`
 }
 
 type IdentityMappingARN struct {

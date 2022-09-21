@@ -14,6 +14,7 @@ import (
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/blueprint"
+	bp "github.com/RafaySystems/rctl/pkg/blueprint"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
@@ -142,8 +143,15 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	d.SetId(blueprint.Metadata.Name)
-	return diags
 
+	//blueprint publish
+	projectId, err := config.GetProjectIdByName(blueprint.Metadata.Project)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	bp.PublishBlueprint(blueprint.Metadata.Name, blueprint.Spec.Version, blueprint.Metadata.Description, projectId)
+
+	return diags
 }
 
 func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

@@ -2161,12 +2161,12 @@ func arnFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"arn": {
 			Type:        schema.TypeString,
-			Optional:    false,
+			Optional:    true,
 			Description: "ARN of user/role to be mapped",
 		},
 		"group": {
 			Type:        schema.TypeList,
-			Optional:    false,
+			Optional:    true,
 			Description: "List of kubernetes groups to be mapped to",
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
@@ -2174,7 +2174,7 @@ func arnFields() map[string]*schema.Schema {
 		},
 		"username": {
 			Type:        schema.TypeString,
-			Optional:    false,
+			Optional:    true,
 			Description: "The username to be used by kubernetes",
 		},
 	}
@@ -2499,8 +2499,8 @@ func expandIdentityMappings(p []interface{}) *EKSClusterIdentityMappings {
 	if v, ok := in["arns"].([]interface{}); ok && len(v) > 0 {
 		obj.Arns = expandArnFields(v)
 	}
-	if v, ok := in["accounts"].([]string); ok && len(v) > 0 {
-		obj.Account = v
+	if v, ok := in["accounts"].([]interface{}); ok && len(v) > 0 {
+		obj.Account = toArrayString(v)
 	}
 
 	return obj
@@ -2521,8 +2521,8 @@ func expandArnFields(p []interface{}) []*IdentityMappingARN {
 			obj.Arn = v
 		}
 
-		if v, ok := in["group"].([]string); ok && len(v) > 0 {
-			obj.Group = v
+		if v, ok := in["group"].([]interface{}); ok && len(v) > 0 {
+			obj.Group = toArrayString(v)
 		}
 
 		if v, ok := in["username"].(string); ok && len(v) > 0 {

@@ -22,11 +22,16 @@ pipeline {
     stages {
         stage('Build and push to S3') {
             steps {
+                withCredentials([usernamePassword(credentialsId: 'jenkinsrafaygithub', passwordVariable: 'passWord', usernameVariable: 'userName')]) {
                 sh '''
-                go version
-                make release
-                make push
+                    go version
+                    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                    unzip awscliv2.zip
+                    sudo ./aws/install
+                    make release
+                    make push
                 '''
+                }
             }
         }
     }

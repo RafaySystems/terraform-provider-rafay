@@ -19,6 +19,7 @@ pipeline {
     agent {
         docker { 
                 image 'public.ecr.aws/bitnami/golang:1.18.4'
+                args '-u root:sudo'
                 reuseNode false
             }
     }
@@ -27,6 +28,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'jenkinsrafaygithub', passwordVariable: 'passWord', usernameVariable: 'userName')]) {
                 sh '''
+                    id
                     go version
                     echo machine github.com login ${BUILD_USR} password ${BUILD_PWD} > ~/.netrc
                     chmod 400 ~/.netrc

@@ -18,7 +18,7 @@
 pipeline {
     agent {
         docker { 
-                image 'public.ecr.aws/bitnami/golang:1.16.4'
+                image 'public.ecr.aws/bitnami/golang:1.18.4'
                 reuseNode false
             }
     }

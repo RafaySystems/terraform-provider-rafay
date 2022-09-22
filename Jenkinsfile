@@ -30,7 +30,7 @@ pipeline {
                     go version
                     echo machine github.com login ${BUILD_USR} password ${BUILD_PWD} > ~/.netrc
                     chmod 400 ~/.netrc
-                    GOPRIVATE='github.com/RafaySystems/\*' go mod download
+                    GOPRIVATE="github.com/RafaySystems/*" go mod download
                     ls  -l
                     make release
                 '''

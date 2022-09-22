@@ -17,7 +17,10 @@
 
 pipeline {
     agent {
-        docker { image 'public.ecr.aws/bitnami/golang:1.16.4' }
+        docker { 
+                image 'public.ecr.aws/bitnami/golang:1.16.4'
+                reuseNode false
+            }
     }
     stages {
         stage('Build and push to S3') {
@@ -27,7 +30,7 @@ pipeline {
                     go version
                     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
                     unzip awscliv2.zip
-                    sudo ./aws/install
+                    bash ./aws/install
                     make release
                     make push
                 '''

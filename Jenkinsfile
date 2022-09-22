@@ -28,6 +28,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'jenkinsrafaygithub', passwordVariable: 'passWord', usernameVariable: 'userName')]) {
                 sh '''
                     go version
+                    git config --global --add url."git@github.com:".insteadOf "https://github.com/"
                     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
                     unzip -o awscliv2.zip
                     ls  -l

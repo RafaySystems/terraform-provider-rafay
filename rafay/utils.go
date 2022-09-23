@@ -10,6 +10,7 @@ import (
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/integrationspb"
+	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-yaml/yaml"
@@ -958,4 +959,11 @@ func flattenResourceQuantity1170(in *commonpb.ResourceQuantity) []interface{} {
 
 	log.Println("flattenResourceQuantityV101 obj", obj)
 	return []interface{}{obj}
+}
+
+func ResetImpersonateUser() {
+	log.Println("ResetImpersonateUser")
+	config.ApiKey = ""
+	config.ApiSecret = ""
+	config.ResetOrigConfig()
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/RafaySystems/rafay-common/proto/types/hub/gitopspb"
 	"github.com/RafaySystems/rctl/pkg/agent"
 	"github.com/RafaySystems/rctl/pkg/config"
+	"github.com/RafaySystems/rctl/pkg/user"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
 
@@ -22,6 +23,12 @@ import (
 )
 
 func resourceAgent() *schema.Resource {
+	modSchema := resource.AgentSchema.Schema
+	modSchema["impersonate"] = &schema.Schema{
+		Description: "impersonate user",
+		Optional:    true,
+		Type:        schema.TypeString,
+	}
 	return &schema.Resource{
 		CreateContext: resourceAgentCreate,
 		ReadContext:   resourceAgentRead,
@@ -35,7 +42,7 @@ func resourceAgent() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.AgentSchema.Schema,
+		Schema:        modSchema,
 	}
 }
 
@@ -53,6 +60,25 @@ func resourceAgentCreate(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Printf("agent expandAgent error")
 			return diags
 		}
+
+		if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
+			defer ResetImpersonateUser()
+			asUser := d.Get("impersonate").(string)
+			// check user role : impersonation not allowed for a user
+			// with ORG Admin role
+			isOrgAdmin, err := user.IsOrgAdmin(asUser)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			if isOrgAdmin {
+				return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
+			}
+			config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+		}
+
 		auth := config.GetConfig().GetAppAuthProfile()
 		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 		if err != nil {
@@ -87,6 +113,24 @@ func resourceAgentUpsert(ctx context.Context, d *schema.ResourceData, m interfac
 	if err != nil {
 		log.Printf("agent expandAgent error")
 		return diag.FromErr(err)
+	}
+
+	if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
+		defer ResetImpersonateUser()
+		asUser := d.Get("impersonate").(string)
+		// check user role : impersonation not allowed for a user
+		// with ORG Admin role
+		isOrgAdmin, err := user.IsOrgAdmin(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if isOrgAdmin {
+			return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
+		}
+		config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
@@ -126,6 +170,24 @@ func resourceAgentRead(ctx context.Context, d *schema.ResourceData, m interface{
 	// w1 := spew.Sprintf("%+v", tfAgentState)
 	// log.Println("resourceAgentRead tfAgentState", w1)
 
+	if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
+		defer ResetImpersonateUser()
+		asUser := d.Get("impersonate").(string)
+		// check user role : impersonation not allowed for a user
+		// with ORG Admin role
+		isOrgAdmin, err := user.IsOrgAdmin(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if isOrgAdmin {
+			return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
+		}
+		config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 	if err != nil {
@@ -162,6 +224,24 @@ func resourceAgentDelete(ctx context.Context, d *schema.ResourceData, m interfac
 	ag, err := expandAgent(d)
 	if err != nil {
 		return diag.FromErr(err)
+	}
+
+	if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
+		defer ResetImpersonateUser()
+		asUser := d.Get("impersonate").(string)
+		// check user role : impersonation not allowed for a user
+		// with ORG Admin role
+		isOrgAdmin, err := user.IsOrgAdmin(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if isOrgAdmin {
+			return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
+		}
+		config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()

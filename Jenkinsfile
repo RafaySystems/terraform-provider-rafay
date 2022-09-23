@@ -1,20 +1,3 @@
-// pipeline {
-//   agent { label 'node1' }
-//   environment {
-//     DOCKER_BUILDKIT='1'
-//   }
-//   stages {
-//     stage('Build and push to S3') {
-//       steps {
-//         withCredentials([usernamePassword(credentialsId: 'jenkinsrafaygithub', passwordVariable: 'passWord', usernameVariable: 'userName')]) {
-//           sh 'make release BUILD_USER=$userName BUILD_PASSWORD=$passWord'
-//           sh 'make push BUILD_USER=$userName BUILD_PASSWORD=$passWord'
-//         }
-//       }
-//     }
-//   }
-// }
-
 pipeline {
     agent {
         docker { 
@@ -36,8 +19,6 @@ pipeline {
                     aws --version
                     export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
                     export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                    echo $AWS_ACCESS_KEY_ID
-                    echo $AWS_SECRET_ACCESS_KEY
                     echo machine github.com login ${userName} password ${passWord} > ~/.netrc
                     chmod 400 ~/.netrc
                     GOPRIVATE="github.com/RafaySystems/*" go mod download

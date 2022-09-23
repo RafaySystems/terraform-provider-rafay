@@ -56,4 +56,4 @@ push:
 	aws s3 cp ./bin/${BINARY}_${VERSION}_windows_amd64 s3://$(BUCKET_NAME)/$(TAG)/$(BUILD_NUMBER)/${BINARY}_${VERSION}_windows_amd64
 
 bucket-name:
-	echo 'Build Folder:- s3://$(BUCKET_NAME)/$(TAG)/$(BUILD_NUMBER)/'
+	echo 'Build Folder URL:- https://$(BUCKET_NAME).s3.us-west-1.amazonaws.com/$(TAG)/$(BUILD_NUMBER)/'

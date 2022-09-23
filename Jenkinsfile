@@ -24,6 +24,7 @@ pipeline {
                     GOPRIVATE="github.com/RafaySystems/*" go mod download
                     make release
                     make push
+                    make bucket-name
                 '''
                 }}
             }

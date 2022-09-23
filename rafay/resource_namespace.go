@@ -17,6 +17,7 @@ import (
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/config"
+	"github.com/RafaySystems/rctl/pkg/user"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -45,6 +46,12 @@ type namespaceSpecTranspose struct {
 }
 
 func resourceNamespace() *schema.Resource {
+	modSchema := resource.NamespaceSchema.Schema
+	modSchema["impersonate"] = &schema.Schema{
+		Description: "impersonate user",
+		Optional:    true,
+		Type:        schema.TypeString,
+	}
 	return &schema.Resource{
 		CreateContext: resourceNamespaceCreate,
 		ReadContext:   resourceNamespaceRead,
@@ -61,7 +68,7 @@ func resourceNamespace() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.NamespaceSchema.Schema,
+		Schema:        modSchema,
 	}
 }
 
@@ -107,6 +114,23 @@ func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 		if err != nil {
 			log.Printf("namespace expandNamespace error")
 			return diag.FromErr(err)
+		}
+		if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
+			defer ResetImpersonateUser()
+			asUser := d.Get("impersonate").(string)
+			// check user role : impersonation not allowed for a user
+			// with ORG Admin role
+			isOrgAdmin, err := user.IsOrgAdmin(asUser)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			if isOrgAdmin {
+				return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
+			}
+			config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
+			if err != nil {
+				return diag.FromErr(err)
+			}
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
 		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
@@ -172,6 +196,24 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		}
 	}
 
+	if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
+		defer ResetImpersonateUser()
+		asUser := d.Get("impersonate").(string)
+		// check user role : impersonation not allowed for a user
+		// with ORG Admin role
+		isOrgAdmin, err := user.IsOrgAdmin(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if isOrgAdmin {
+			return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
+		}
+		config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 	if err != nil {
@@ -184,7 +226,7 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		// XXX Debug
 		// n1 := spew.Sprintf("%+v", ns)
 		// log.Println("namespace apply ns:", n1)
-		log.Printf("namespace apply error")
+		log.Println("namespace apply error:", err)
 		return diag.FromErr(err)
 	}
 
@@ -232,6 +274,24 @@ func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interf
 	n1 := spew.Sprintf("%+v", nsTFState)
 	log.Println("resourceNamespaceRead nsTFState ", n1)
 
+	if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
+		defer ResetImpersonateUser()
+		asUser := d.Get("impersonate").(string)
+		// check user role : impersonation not allowed for a user
+		// with ORG Admin role
+		isOrgAdmin, err := user.IsOrgAdmin(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if isOrgAdmin {
+			return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
+		}
+		config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 	if err != nil {
@@ -278,6 +338,24 @@ func resourceNamespaceDelete(ctx context.Context, d *schema.ResourceData, m inte
 	// XXX Debug
 	// n1 := spew.Sprintf("%+v", nsTFState)
 	// log.Println("resourceNamespaceRead nsTFState", n1)
+
+	if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
+		defer ResetImpersonateUser()
+		asUser := d.Get("impersonate").(string)
+		// check user role : impersonation not allowed for a user
+		// with ORG Admin role
+		isOrgAdmin, err := user.IsOrgAdmin(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if isOrgAdmin {
+			return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
+		}
+		config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())

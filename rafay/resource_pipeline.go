@@ -15,6 +15,7 @@ import (
 	"github.com/RafaySystems/rafay-common/proto/types/hub/gitopspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/pipeline"
+	"github.com/RafaySystems/rctl/pkg/user"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
 
@@ -24,6 +25,12 @@ import (
 )
 
 func resourcePipeline() *schema.Resource {
+	modSchema := resource.PipelineSchema.Schema
+	modSchema["impersonate"] = &schema.Schema{
+		Description: "impersonate user",
+		Optional:    true,
+		Type:        schema.TypeString,
+	}
 	return &schema.Resource{
 		CreateContext: resourcePipelineCreate,
 		ReadContext:   resourcePipelineRead,
@@ -37,7 +44,7 @@ func resourcePipeline() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.PipelineSchema.Schema,
+		Schema:        modSchema,
 	}
 }
 
@@ -145,6 +152,25 @@ func resourcePipelineCreate(ctx context.Context, d *schema.ResourceData, m inter
 			log.Printf("pipeline expandPipeline error")
 			return diags
 		}
+
+		if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
+			defer ResetImpersonateUser()
+			asUser := d.Get("impersonate").(string)
+			// check user role : impersonation not allowed for a user
+			// with ORG Admin role
+			isOrgAdmin, err := user.IsOrgAdmin(asUser)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			if isOrgAdmin {
+				return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
+			}
+			config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+		}
+
 		auth := config.GetConfig().GetAppAuthProfile()
 		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 		if err != nil {
@@ -181,6 +207,24 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
+	if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
+		defer ResetImpersonateUser()
+		asUser := d.Get("impersonate").(string)
+		// check user role : impersonation not allowed for a user
+		// with ORG Admin role
+		isOrgAdmin, err := user.IsOrgAdmin(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if isOrgAdmin {
+			return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
+		}
+		config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 	if err != nil {
@@ -212,6 +256,24 @@ func resourcePipelineRead(ctx context.Context, d *schema.ResourceData, m interfa
 	tfPipelineState, err := expandPipeline(d)
 	if err != nil {
 		return diag.FromErr(err)
+	}
+
+	if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
+		defer ResetImpersonateUser()
+		asUser := d.Get("impersonate").(string)
+		// check user role : impersonation not allowed for a user
+		// with ORG Admin role
+		isOrgAdmin, err := user.IsOrgAdmin(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if isOrgAdmin {
+			return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
+		}
+		config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
@@ -246,6 +308,24 @@ func resourcePipelineDelete(ctx context.Context, d *schema.ResourceData, m inter
 	ag, err := expandPipeline(d)
 	if err != nil {
 		return diag.FromErr(err)
+	}
+
+	if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
+		defer ResetImpersonateUser()
+		asUser := d.Get("impersonate").(string)
+		// check user role : impersonation not allowed for a user
+		// with ORG Admin role
+		isOrgAdmin, err := user.IsOrgAdmin(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if isOrgAdmin {
+			return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
+		}
+		config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()

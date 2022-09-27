@@ -14,6 +14,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/RafaySystems/rctl/pkg/project"
+	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -315,11 +316,19 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: clusterAKSManagedClusterPropertiesAadProfile(),
 			},
-		},
-		"addon_profiles": { //make change to string json like attach policy
-			Type:        schema.TypeMap,
+		}, /*
+			"addon_profiles": { //make change to string json like attach policy
+				Type:        schema.TypeMap,
+				Optional:    true,
+				Description: "The AKS managed cluster addon profiles",
+			},*/
+		"addon_profiles": {
+			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "The AKS managed cluster addon profiles",
+			Elem: &schema.Resource{
+				Schema: addonProfileFields(),
+			},
 		},
 		"api_server_access_profile": {
 			Type:        schema.TypeList,
@@ -445,6 +454,53 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: clusterAKSManagedClusterWindowsProfile(),
 			},
+		},
+	}
+	return s
+}
+
+func addonProfileFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"http_application_routing": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "",
+			Elem: &schema.Resource{
+				Schema: aKSManagedClusterAddonProfile(),
+			},
+		},
+		"azure_policy": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "",
+			Elem: &schema.Resource{
+				Schema: aKSManagedClusterAddonProfile(),
+			},
+		},
+		"oms_agent": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "",
+			Elem: &schema.Resource{
+				Schema: aKSManagedClusterAddonProfile(),
+			},
+		},
+	}
+	return s
+}
+
+func aKSManagedClusterAddonProfile() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "",
+		},
+		"config": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "System",
+			Description: "",
 		},
 	}
 	return s
@@ -1867,8 +1923,13 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 		obj.AzureADProfile = expandAKSManagedClusterAzureADProfile(v)
 	}
 
-	if v, ok := in["addon_profiles"].(map[string]interface{}); ok {
-		obj.AddonProfiles = toMapString(v)
+	/*
+		if v, ok := in["addon_profiles"].(map[string]interface{}); ok {
+			obj.AddonProfiles = toMapString(v)
+		}*/
+
+	if v, ok := in["addon_profiles"].([]interface{}); ok && len(v) > 0 {
+		obj.AddonProfiles = expandAddonProfiles(v)
 	}
 
 	if v, ok := in["api_server_access_profile"].([]interface{}); ok && len(v) > 0 {
@@ -1945,6 +2006,48 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 
 	if v, ok := in["windows_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.WindowsProfile = expandAKSManagedClusterWindowsProfile(v)
+	}
+
+	return obj
+}
+
+func expandAddonProfiles(p []interface{}) *AddonProfiles {
+	obj := &AddonProfiles{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["http_application_routing"].([]interface{}); ok && len(v) > 0 {
+		obj.HttpApplicationRouting = expandAKSManagedClusterAddonProfile(v)
+	}
+	if v, ok := in["azure_policy"].([]interface{}); ok && len(v) > 0 {
+		obj.AzurePolicy = expandAKSManagedClusterAddonProfile(v)
+	}
+	if v, ok := in["oms_agent"].([]interface{}); ok && len(v) > 0 {
+		obj.OmsAgent = expandAKSManagedClusterAddonProfile(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterAddonProfile(p []interface{}) *AKSManagedClusterAddonProfile {
+	obj := &AKSManagedClusterAddonProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
+	}
+	//convert string input into json object (map[string]interfgace{})
+	if v, ok := in["config"].(string); ok && len(v) > 0 {
+		var policyDoc map[string]interface{}
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		json2.Unmarshal([]byte(v), &policyDoc)
+		obj.Config = policyDoc
+		log.Println("addon profile config expanded correct")
 	}
 
 	return obj
@@ -3304,9 +3407,16 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 		}
 		obj["aad_profile"] = flattenAKSManagedClusterAzureADProfile(in.AzureADProfile, v)
 	}
-
-	if in.AddonProfiles != nil && len(in.AddonProfiles) > 0 {
-		obj["addon_profiles"] = toMapInterface(in.AddonProfiles)
+	/*
+		if in.AddonProfiles != nil && len(in.AddonProfiles) > 0 {
+			obj["addon_profiles"] = toMapInterface(in.AddonProfiles)
+		}*/
+	if in.AddonProfiles != nil {
+		v, ok := obj["addon_profiles"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["addon_profiles"] = flattenAddonProfile(in.AddonProfiles, v)
 	}
 
 	if in.APIServerAccessProfile != nil {
@@ -3421,6 +3531,66 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 
 	return []interface{}{obj}
 
+}
+
+func flattenAddonProfile(in *AddonProfiles, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.HttpApplicationRouting != nil {
+		v, ok := obj["http_application_routing"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["http_application_routing"] = flattenAKSManagedClusterAddonProfile(in.HttpApplicationRouting, v)
+	}
+	if in.AzurePolicy != nil {
+		v, ok := obj["azure_policy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["azure_policy"] = flattenAKSManagedClusterAddonProfile(in.AzurePolicy, v)
+	}
+	if in.OmsAgent != nil {
+		v, ok := obj["oms_agent"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["oms_agent"] = flattenAKSManagedClusterAddonProfile(in.OmsAgent, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSManagedClusterAddonProfile(in *AKSManagedClusterAddonProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+
+	if in.Config != nil && len(in.Config) > 0 {
+		//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		jsonStr, err := json2.Marshal(in.Config)
+		if err != nil {
+			log.Println("Config marshal err:", err)
+		}
+		//log.Println("jsonSTR:", jsonStr)
+		obj["config"] = string(jsonStr)
+		//log.Println("attach policy flattened correct:", obj["attach_policy"])
+	}
+
+	return []interface{}{obj}
 }
 
 func flattenAKSManagedClusterAzureADProfile(in *AKSManagedClusterAzureADProfile, p []interface{}) []interface{} {

@@ -3,7 +3,7 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.17
 
 require (
-	github.com/RafaySystems/rafay-common v1.18.1
+	github.com/RafaySystems/rafay-common v1.18.3
 	github.com/RafaySystems/rctl v1.18.0-beta2
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -24,6 +24,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
+	github.com/getkin/kin-openapi v0.76.0 // indirect
 	github.com/gomatic/clock v1.0.0 // indirect
 	github.com/hashicorp/hc-install v0.4.0 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect

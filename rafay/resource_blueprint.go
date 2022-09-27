@@ -314,6 +314,10 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 		obj.Drift = expandDrift(v)
 	}
 
+	if v, ok := in["namespace_config"].([]interface{}); ok && len(v) > 0 {
+		obj.NamespaceConfig = expandBlueprintNamespaceConfig(v)
+	}
+
 	if v, ok := in["network_policy"].([]interface{}); ok && len(v) > 0 {
 		obj.NetworkPolicy = expandBlueprintNetworkPolicy(v)
 	}
@@ -337,6 +341,25 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 	log.Println("expandBluePrintSpec Placement:", pa)
 
 	return obj, nil
+}
+
+func expandBlueprintNamespaceConfig(p []interface{}) *infrapb.NsConfig {
+	obj := &infrapb.NsConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["deny_out_of_band_creation"].(bool); ok {
+		obj.DenyOutOfBandCreation = v
+	}
+
+	if v, ok := in["enable_sync"].(bool); ok {
+		obj.EnableSync = v
+	}
+
+	return obj
 }
 
 func expandBlueprintPlacement(p []interface{}) *infrapb.BlueprintPlacement {
@@ -815,6 +838,14 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["drift"] = flattenDrift(in.Drift)
 	}
 
+	if in.NamespaceConfig != nil {
+		v, ok := obj["namespace_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["namespace_config"] = flattenBlueprintNamespaceConfig(in.NamespaceConfig, v)
+	}
+
 	if in.Placement != nil {
 		v, ok := obj["placement"].([]interface{})
 		if !ok {
@@ -824,6 +855,20 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 	}
 
 	return []interface{}{obj}, nil
+}
+
+func flattenBlueprintNamespaceConfig(in *infrapb.NsConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+
+	obj["deny_out_of_band_creation"] = in.DenyOutOfBandCreation
+
+	obj["enable_sync"] = in.EnableSync
+
+	return []interface{}{obj}
 }
 
 func flattenBlueprintPlacement(in *infrapb.BlueprintPlacement, p []interface{}) []interface{} {

@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -45,6 +46,10 @@ func resourceUser() *schema.Resource {
 			},
 			"phone": {
 				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"generate_apikey": {
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 			"groups": {
@@ -103,6 +108,19 @@ Using command:
 	}
 	//create user
 	log.Println("resource user create: ", userName, groups, consoleAccessInputs)
+	var localBool bool
+	var localStrings []string
+	cmd.Flags().BoolVar(&localBool, commands.NewAPIKeyFlag, false, "NewAPIKeyFlag")
+	cmd.Flags().StringSliceVarP(&localStrings, commands.CreateUserGroupAssocFlag, "", nil, "localStrings")
+
+	if len(groups) > 0 {
+		cmd.Flags().Set(commands.CreateUserGroupAssocFlag, "")
+	}
+
+	if d.Get("generate_apikey").(bool) {
+		cmd.Flags().Set(commands.NewAPIKeyFlag, "true")
+	}
+
 	err := commands.CreateUser(cmd, userName, groups, consoleAccessInputs)
 	if err != nil {
 		log.Printf("create user error %s", err.Error())
@@ -143,9 +161,8 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 
 func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	//TODO implement update user
-	var diags diag.Diagnostics
 	log.Printf("resource user update id %s", d.Id())
-	return diags
+	return diag.FromErr(fmt.Errorf("%s", "update not supported for user. Use group association to alter groups"))
 }
 
 func resourceUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

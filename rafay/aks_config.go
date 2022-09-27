@@ -119,8 +119,8 @@ type AKSManagedClusterProperties struct {
 	APIServerAccessProfile  *AKSManagedClusterAPIServerAccessProfile `yaml:"apiServerAccessProfile,omitempty"`
 	DisableLocalAccounts    *bool                                    `yaml:"disableLocalAccounts,omitempty"`
 	DiskEncryptionSetID     string                                   `yaml:"diskEncryptionSetId,omitempty"`
-	AddonProfiles           *AddonProfiles                           `yaml:"addonProfiles,omitempty"`
-	//AddonProfiles           map[string]string                         `yaml:"addonProfiles,omitempty"`
+	//AddonProfiles           *AddonProfiles                           `yaml:"addonProfiles,omitempty"`
+	AddonProfiles           map[string]string                         `yaml:"addonProfiles,omitempty"`
 	ServicePrincipalProfile *AKSManagedClusterServicePrincipalProfile `yaml:"servicePrincipalProfile,omitempty"`
 	LinuxProfile            *AKSManagedClusterLinuxProfile            `yaml:"linuxProfile,omitempty"`
 	WindowsProfile          *AKSManagedClusterWindowsProfile          `yaml:"windowsProfile,omitempty"`

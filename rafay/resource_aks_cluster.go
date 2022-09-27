@@ -316,7 +316,7 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 				Schema: clusterAKSManagedClusterPropertiesAadProfile(),
 			},
 		},
-		"addon_profiles": {
+		"addon_profiles": { //make change to string json like attach policy
 			Type:        schema.TypeMap,
 			Optional:    true,
 			Description: "The AKS managed cluster addon profiles",
@@ -570,7 +570,7 @@ func clusterAKSManagedClusterAutoScalerProfile() map[string]*schema.Schema {
 		},
 		//@@@@@@@@@@@@@ Listed as string in schema @@@@@@@@@@@@
 		"ok_total_unready_count": {
-			Type:        schema.TypeInt,
+			Type:        schema.TypeString,
 			Optional:    true,
 			Default:     3,
 			Description: "This must be an integer.",
@@ -2048,8 +2048,8 @@ func expandAKSManagedClusterAutoScalerProfile(p []interface{}) *AKSManagedCluste
 		obj.NewPodScaleUpDelay = v
 	}
 
-	if v, ok := in["ok_total_unready_count"].(int); ok && v > 0 {
-		obj.OkTotalUnreadyCount = &v
+	if v, ok := in["ok_total_unready_count"].(string); ok && len(v) > 0 {
+		obj.OkTotalUnreadyCount = v
 	}
 
 	if v, ok := in["scale_down_delay_after_add"].(string); ok && len(v) > 0 {
@@ -3522,10 +3522,14 @@ func flattenAKSManagedClusterAutoScalerProfile(in *AKSManagedClusterAutoScalerPr
 		obj["new_pod_scale_up_delay"] = in.NewPodScaleUpDelay
 	}
 
-	if in.OkTotalUnreadyCount != nil {
-		obj["ok_total_unready_count"] = *in.OkTotalUnreadyCount
+	if len(in.OkTotalUnreadyCount) > 0 {
+		obj["ok_total_unready_count"] = in.OkTotalUnreadyCount
 	}
-
+	/*
+		if in.OkTotalUnreadyCount != nil {
+			obj["ok_total_unready_count"] = *in.OkTotalUnreadyCount
+		}
+	*/
 	if len(in.ScaleDownDelayAfterAdd) > 0 {
 		obj["scale_down_delay_after_add"] = in.ScaleDownDelayAfterAdd
 	}

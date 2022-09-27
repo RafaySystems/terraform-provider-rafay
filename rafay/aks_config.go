@@ -119,8 +119,8 @@ type AKSManagedClusterProperties struct {
 	APIServerAccessProfile  *AKSManagedClusterAPIServerAccessProfile `yaml:"apiServerAccessProfile,omitempty"`
 	DisableLocalAccounts    *bool                                    `yaml:"disableLocalAccounts,omitempty"`
 	DiskEncryptionSetID     string                                   `yaml:"diskEncryptionSetId,omitempty"`
-	//AddonProfiles           *AddonProfiles                           `yaml:"addonProfiles,omitempty"`
-	AddonProfiles           map[string]string                         `yaml:"addonProfiles,omitempty"`
+	AddonProfiles           *AddonProfiles                           `yaml:"addonProfiles,omitempty"`
+	//AddonProfiles           map[string]string                         `yaml:"addonProfiles,omitempty"`
 	ServicePrincipalProfile *AKSManagedClusterServicePrincipalProfile `yaml:"servicePrincipalProfile,omitempty"`
 	LinuxProfile            *AKSManagedClusterLinuxProfile            `yaml:"linuxProfile,omitempty"`
 	WindowsProfile          *AKSManagedClusterWindowsProfile          `yaml:"windowsProfile,omitempty"`
@@ -133,7 +133,13 @@ type AKSManagedClusterProperties struct {
 }
 
 type AddonProfiles struct {
-	Enabled *bool                  `yaml:"enabled"`
+	HttpApplicationRouting *AKSManagedClusterAddonProfile `yaml:"httpApplicationRouting,omitempty"`
+	AzurePolicy            *AKSManagedClusterAddonProfile `yaml:"azurePolicy,omitempty"`
+	OmsAgent               *AKSManagedClusterAddonProfile `yaml:"omsAgent,omitempty"`
+}
+
+type AKSManagedClusterAddonProfile struct {
+	Enabled *bool                  `yaml:"enabled,omitempty"`
 	Config  map[string]interface{} `yaml:"config,omitempty"`
 }
 
@@ -221,11 +227,6 @@ type AKSManagedClusterAutoScalerProfile struct {
 
 type AKSManagedClusterAutoUpgradeProfile struct {
 	UpgradeChannel string `yaml:"upgradeChannel,omitempty"`
-}
-
-type AKSManagedClusterAddonProfile struct {
-	Enabled *bool                  `yaml:"enabled"`
-	Config  map[string]interface{} `yaml:"config,omitempty"`
 }
 
 type AKSManagedClusterServicePrincipalProfile struct {

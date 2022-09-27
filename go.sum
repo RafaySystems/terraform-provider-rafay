@@ -122,11 +122,11 @@ github.com/PuerkitoBio/purell v1.1.1 h1:WEQqlqaGbrPkxLJWfBwQmfEAE1Z7ONdDLqrN38tN
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV/sSk/8dngufqelfh6jnri85riMAaF/M=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
-github.com/RafaySystems/rafay-common v1.16.0-beta1.0.20220819053924-57ff09c364a8/go.mod h1:jI6qja62bbqn+0ZvmoaO7zhPx92HVyZXFtXBzLZ99yE=
-github.com/RafaySystems/rafay-common v1.17.0-beta1 h1:ZTCXO9nbJpMIQfjr9oliEm8SqLaiMFxd5dq1J4HeGYM=
-github.com/RafaySystems/rafay-common v1.17.0-beta1/go.mod h1:jI6qja62bbqn+0ZvmoaO7zhPx92HVyZXFtXBzLZ99yE=
-github.com/RafaySystems/rctl v1.17.2-beta1 h1:pbwplNBZffO2DZRuuV0bls3vRTr9Ekmq/9r7C0ihiMo=
-github.com/RafaySystems/rctl v1.17.2-beta1/go.mod h1:m49SqhHHt2LuAEqS+FyAGmhyz7PADNWQQFsOQ/BEwK8=
+github.com/RafaySystems/rafay-common v1.17.0-opa.0.20220920101302-34e59452542d/go.mod h1:jI6qja62bbqn+0ZvmoaO7zhPx92HVyZXFtXBzLZ99yE=
+github.com/RafaySystems/rafay-common v1.18.3 h1:uoJX1+PuNw9R1iUEIfxSuu8qYFAzvDmwKjKigunZyNc=
+github.com/RafaySystems/rafay-common v1.18.3/go.mod h1:jI6qja62bbqn+0ZvmoaO7zhPx92HVyZXFtXBzLZ99yE=
+github.com/RafaySystems/rctl v1.18.0-beta2 h1:RZmSgzAdVhoOI2zJe/zdZENh+1REDsCnUffopCCQCcA=
+github.com/RafaySystems/rctl v1.18.0-beta2/go.mod h1:2xnV+B8LiYVYNxnoYT3gAt7qriAgaiMPonWAFivST9I=
 github.com/RoaringBitmap/roaring v0.6.1 h1:O36Tdaj1Fi/zyr25shTHwlQPGdq53+u4WkM08AOEjiE=
 github.com/RoaringBitmap/roaring v0.6.1/go.mod h1:WZ83fjBF/7uBHi6QoFyfGL4+xuV4Qn+xFkm4+vSzrhE=
 github.com/Shopify/logrus-bugsnag v0.0.0-20171204204709-577dee27f20d/go.mod h1:HI8ITrYtUY+O+ZhtlqUnD8+KwNPOyugEhfP9fdUIaEQ=
@@ -465,6 +465,7 @@ github.com/fsnotify/fsnotify v1.5.1/go.mod h1:T3375wBYaZdLLcVNkcVbzGHY7f1l/uK5T5
 github.com/fullsailor/pkcs7 v0.0.0-20190404230743-d7302db945fa/go.mod h1:KnogPXtdwXqoenmZCw6S+25EAm2MkxbG0deNDu4cbSA=
 github.com/fvbommel/sortorder v1.0.1/go.mod h1:uk88iVf1ovNn1iLfgUVU2F9o5eO30ui720w+kxuqRs0=
 github.com/garyburd/redigo v0.0.0-20150301180006-535138d7bcd7/go.mod h1:NR3MbYisc3/PwhQ00EMzDiPmrwpPxAn5GI05/YaO1SY=
+github.com/getkin/kin-openapi v0.76.0 h1:j77zg3Ec+k+r+GA3d8hBoXpAc6KX9TbBPrwQGBIy2sY=
 github.com/getkin/kin-openapi v0.76.0/go.mod h1:660oXbgy5JFMKreazJaQTw7o+X00qeSyhcnluiMv+Xg=
 github.com/getsentry/raven-go v0.2.0/go.mod h1:KungGk8q33+aIAZUIVWZDr2OfAEBsO49PX4NzFV5kcQ=
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=

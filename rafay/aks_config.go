@@ -108,18 +108,19 @@ type AKSManagedClusterIdentity struct {
 }
 
 type AKSManagedClusterProperties struct {
-	KubernetesVersion       string                                    `yaml:"kubernetesVersion,omitempty"`
-	EnableRBAC              *bool                                     `yaml:"enableRbac,omitempty"`
-	FQDNSubdomain           string                                    `yaml:"fqdnSubdomain,omitempty"`
-	DNSPrefix               string                                    `yaml:"dnsPrefix,omitempty"`
-	EnablePodSecurityPolicy *bool                                     `yaml:"enablePodSecurityPolicy,omitempty"`
-	NodeResourceGroup       string                                    `yaml:"nodeResourceGroup,omitempty"`
-	NetworkProfile          *AKSManagedClusterNetworkProfile          `yaml:"networkProfile,omitempty"`
-	AzureADProfile          *AKSManagedClusterAzureADProfile          `yaml:"aadProfile,omitempty"`
-	APIServerAccessProfile  *AKSManagedClusterAPIServerAccessProfile  `yaml:"apiServerAccessProfile,omitempty"`
-	DisableLocalAccounts    *bool                                     `yaml:"disableLocalAccounts,omitempty"`
-	DiskEncryptionSetID     string                                    `yaml:"diskEncryptionSetId,omitempty"`
-	AddonProfiles           map[string]string                         `yaml:"addonProfiles,omitempty"`
+	KubernetesVersion       string                                   `yaml:"kubernetesVersion,omitempty"`
+	EnableRBAC              *bool                                    `yaml:"enableRbac,omitempty"`
+	FQDNSubdomain           string                                   `yaml:"fqdnSubdomain,omitempty"`
+	DNSPrefix               string                                   `yaml:"dnsPrefix,omitempty"`
+	EnablePodSecurityPolicy *bool                                    `yaml:"enablePodSecurityPolicy,omitempty"`
+	NodeResourceGroup       string                                   `yaml:"nodeResourceGroup,omitempty"`
+	NetworkProfile          *AKSManagedClusterNetworkProfile         `yaml:"networkProfile,omitempty"`
+	AzureADProfile          *AKSManagedClusterAzureADProfile         `yaml:"aadProfile,omitempty"`
+	APIServerAccessProfile  *AKSManagedClusterAPIServerAccessProfile `yaml:"apiServerAccessProfile,omitempty"`
+	DisableLocalAccounts    *bool                                    `yaml:"disableLocalAccounts,omitempty"`
+	DiskEncryptionSetID     string                                   `yaml:"diskEncryptionSetId,omitempty"`
+	AddonProfiles           *AddonProfiles                           `yaml:"addonProfiles,omitempty"`
+	//AddonProfiles           map[string]string                         `yaml:"addonProfiles,omitempty"`
 	ServicePrincipalProfile *AKSManagedClusterServicePrincipalProfile `yaml:"servicePrincipalProfile,omitempty"`
 	LinuxProfile            *AKSManagedClusterLinuxProfile            `yaml:"linuxProfile,omitempty"`
 	WindowsProfile          *AKSManagedClusterWindowsProfile          `yaml:"windowsProfile,omitempty"`
@@ -129,6 +130,11 @@ type AKSManagedClusterProperties struct {
 	AutoUpgradeProfile      *AKSManagedClusterAutoUpgradeProfile      `yaml:"autoUpgradeProfile,omitempty"`
 	PodIdentityProfile      *AKSManagedClusterPodIdentityProfile      `yaml:"podIdentityProfile,omitempty"`
 	PrivateLinkResources    *AKSManagedClusterPrivateLinkResources    `yaml:"privateLinkResources,omitempty"`
+}
+
+type AddonProfiles struct {
+	Enabled *bool                  `yaml:"enabled"`
+	Config  map[string]interface{} `yaml:"config,omitempty"`
 }
 
 type AKSManagedClusterNetworkProfile struct {
@@ -201,7 +207,7 @@ type AKSManagedClusterAutoScalerProfile struct {
 	MaxNodeProvisionTime          string `yaml:"maxNodeProvisionTime,omitempty"`
 	MaxTotalUnreadyPercentage     string `yaml:"maxTotalUnreadyPercentage,omitempty"`
 	NewPodScaleUpDelay            string `yaml:"newPodScaleUpDelay,omitempty"`
-	OkTotalUnreadyCount           *int   `yaml:"okTotalUnreadyCount,omitempty"`
+	OkTotalUnreadyCount           string `yaml:"okTotalUnreadyCount,omitempty"`
 	ScaleDownDelayAfterAdd        string `yaml:"scaleDownDelayAfterAdd,omitempty"`
 	ScaleDownDelayAfterDelete     string `yaml:"scaleDownDelayAfterDelete,omitempty"`
 	ScaleDownDelayAfterFailure    string `yaml:"scaleDownDelayAfterFailure,omitempty"`

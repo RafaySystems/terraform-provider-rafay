@@ -4,10 +4,11 @@ NAMESPACE=rafay
 NAME=rafay
 BINARY=terraform-provider-${NAME}
 VERSION=1.0.4
+GIT_BRANCH ?= main
 OS_ARCH=darwin_amd64
-BUCKET_NAME ?= rafay-rcloud
+BUCKET_NAME ?= terraform-provider-rafay
 BUILD_NUMBER ?= $(shell date "+%Y%m%d-%H%M")
-TAG := $(or $(shell git describe --tags --exact-match 2>/dev/null), $(shell echo ${GIT_BRANCH} | cut -d'/' -f2- | tr '/' '-'))
+TAG := $(or $(shell git describe --tags --exact-match 2>/dev/null), $(shell echo ${GIT_BRANCH}))
 
 default: install
 

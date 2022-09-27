@@ -33,14 +33,8 @@ resource "rafay_blueprint" "blueprint" {
           enabled = true
         }
         resources {
-          limits {
-            memory {
-              string = "200Mi"
-            }
-            cpu {
-              string = "100m"
-            }
-          }
+          limits = "200Mi"
+          cpu = "100m"
         }
       }
     }
@@ -155,14 +149,8 @@ resource "rafay_blueprint" "blueprint" {
           enabled = true
         }
         resources {
-          limits {
-            memory {
-              string = "200Mi"
-            }
-            cpu {
-              string = "100m"
-            }
-          }
+          limits = "200Mi"
+          cpu = "100m"
         }
       }
     }
@@ -214,14 +202,8 @@ resource "rafay_blueprint" "golden_base_blueprint" {
           enabled = true
         }
         resources {
-          limits {
-            memory {
-              string = "200Mi"
-            }
-            cpu {
-              string = "100m"
-            }
-          }
+          limits = "200Mi"
+          cpu = "100m"
         }
       }
     }

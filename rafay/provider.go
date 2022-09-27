@@ -50,6 +50,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_workloadtemplate":              resourceWorkloadTemplate(),
 				"rafay_opa_policy":                    resourceOPAPolicy(),
 				"rafay_opa_constraint":                resourceOPAConstraint(),
+				"rafay_opa_constraint_template":       resourceOPAConstraintTemplate(),
 				"rafay_secretsealer":                  resourceSecretSealer(),
 				"rafay_infra_provisioner":             resourceInfraProvisioner(),
 				"rafay_groupassociation":              resourceGroupAssociation(),

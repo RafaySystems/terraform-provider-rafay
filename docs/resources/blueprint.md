@@ -190,10 +190,61 @@ resource "rafay_blueprint" "blueprint" {
         name = "terraform"
       }
     }
-    opa_policy {
+  }
+}
+# Example of a custom golden base blueprint resource.
+resource "rafay_blueprint" "golden_base_blueprint" {
+  metadata {
+    name    = "custom-golden-blueprint"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "1.16.0"
+    }
+    type = "golden"
+    default_addons {
+      enable_ingress    = true
+      enable_logging    = false
+      enable_monitoring = true
+      enable_vm         = false
+      monitoring {
+        metrics_server {
+          enabled = true
+          discovery {}
+        }
+        helm_exporter {
+          enabled = true
+        }
+        kube_state_metrics {
+          enabled = true
+        }
+        node_exporter {
+          enabled = true
+        }
+        prometheus_adapter {
+          enabled = true
+        }
+        resources {
+          limits {
+            memory {
+              string = "200Mi"
+            }
+            cpu {
+              string = "100m"
+            }
+          }
+        }
+      }
+    }
+    drift {
+      action  = "Deny"
       enabled = true
-      name = "policy-name"
-      version = "policy-version"
+    }
+    placement {
+      auto_publish = false
     }
   }
 }
@@ -236,8 +287,9 @@ resource "rafay_blueprint" "blueprint" {
 - `private_kube_api_proxies` - (Block List) A private kubernetes API proxy network, used to provide kubectl access for your users. (See [below for nested schema](#nestedblock--spec--private_kube_api_proxies))
 - `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A blueprint can be shared with one or more projects.  (See [below for nested schema](#nestedblock--spec--sharing))
     Note: If the resource is not shared, set enabled = false. 
-- `opa_policy` - (Block List, Max: 1) Specify the OPA policy. (See [below for nested schema](#nestedblock--spec--opa_policy))
-
+- `base` (Block List, Max: 1) blueprint base (see [below for nested schema](#nestedblock--spec--base))
+- `namespace_config` (Block List, Max: 1) namespace config (see [below for nested schema](#nestedblock--spec--namespace_config))
+- `opa_policy` (Block List, Max: 1) opa policy and version details (see [below for nested schema](#nestedblock--spec--opa_policy))
 <a id="nestedblock--spec--base"></a>
 ### Nested Schema for `spec.base`
 
@@ -318,8 +370,8 @@ resource "rafay_blueprint" "blueprint" {
 
 ***Optional***
 
-- `cpu` - (Block List) The CPU resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--cpu)) 
-- `memory` - (Block List) The memory resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--memory)) 
+- `cpu` - (String) The CPU resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--cpu)) 
+- `memory` - (String) The memory resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--memory)) 
 
 
 <a id="nestedblock--spec--default_addons--monitoring--resources--limits--cpu"></a>
@@ -380,14 +432,45 @@ resource "rafay_blueprint" "blueprint" {
 
 - `name` - (String) The names of the projects the resource belongs to. 
 
+
+<a id="nestedblock--spec--namespace_config"></a>
+### Nested Schema for `spec.namespace_config`
+
+Optional:
+
+- `deny_out_of_band_creation` (Boolean) flag to deny out of band creation
+- `enable_sync` (Boolean) flag to enable namespace sync
+
+
+
 <a id="nestedblock--spec--opa_policy"></a>
 ### Nested Schema for `spec.opa_policy`
 
-***Required***
+Optional:
 
-- `enabled` - (Boolean) Enable OPA policy for this resource.
-- `name` - (String) The name of the OPA policy.
-- `version` - (String) The version of the OPA policy.
+- `opa_policy` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--opa_policy--opa_policy))
+- `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--opa_policy--profile))
+
+<a id="nestedblock--spec--opa_policy--opa_policy"></a>
+### Nested Schema for `spec.opa_policy.opa_policy`
+
+Optional:
+
+- `enabled` (Boolean) flag to specify if OPA is enabled for blueprint
+- `name` (String) name of the opa policy
+- `version` (String) version of the opa policy
+
+
+<a id="nestedblock--spec--opa_policy--profile"></a>
+### Nested Schema for `spec.opa_policy.profile`
+
+Optional:
+
+- `name` (String) name of the opa profile
+- `version` (String) version of the opa profile
+
+
+
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

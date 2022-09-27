@@ -476,15 +476,15 @@ func addonProfileFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: aKSManagedClusterAddonProfile(),
 			},
-		},
-		"oms_agent": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "",
-			Elem: &schema.Resource{
-				Schema: aKSManagedClusterAddonProfile(),
-			},
-		},
+		}, /*
+			"oms_agent": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "",
+				Elem: &schema.Resource{
+					Schema: aKSManagedClusterAddonProfile(),
+				},
+			},*/
 	}
 	return s
 }
@@ -2023,10 +2023,10 @@ func expandAddonProfiles(p []interface{}) *AddonProfiles {
 	}
 	if v, ok := in["azure_policy"].([]interface{}); ok && len(v) > 0 {
 		obj.AzurePolicy = expandAKSManagedClusterAddonProfile(v)
-	}
-	if v, ok := in["oms_agent"].([]interface{}); ok && len(v) > 0 {
-		obj.OmsAgent = expandAKSManagedClusterAddonProfile(v)
-	}
+	} /*
+		if v, ok := in["oms_agent"].([]interface{}); ok && len(v) > 0 {
+			obj.OmsAgent = expandAKSManagedClusterAddonProfile(v)
+		}*/
 
 	return obj
 }
@@ -3556,13 +3556,14 @@ func flattenAddonProfile(in *AddonProfiles, p []interface{}) []interface{} {
 		}
 		obj["azure_policy"] = flattenAKSManagedClusterAddonProfile(in.AzurePolicy, v)
 	}
-	if in.OmsAgent != nil {
-		v, ok := obj["oms_agent"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["oms_agent"] = flattenAKSManagedClusterAddonProfile(in.OmsAgent, v)
-	}
+	/*
+		if in.OmsAgent != nil {
+			v, ok := obj["oms_agent"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["oms_agent"] = flattenAKSManagedClusterAddonProfile(in.OmsAgent, v)
+		}*/
 
 	return []interface{}{obj}
 }

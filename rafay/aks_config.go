@@ -135,7 +135,7 @@ type AKSManagedClusterProperties struct {
 type AddonProfiles struct {
 	HttpApplicationRouting *AKSManagedClusterAddonProfile `yaml:"httpApplicationRouting,omitempty"`
 	AzurePolicy            *AKSManagedClusterAddonProfile `yaml:"azurePolicy,omitempty"`
-	OmsAgent               *AKSManagedClusterAddonProfile `yaml:"omsAgent,omitempty"`
+	//OmsAgent               *AKSManagedClusterAddonProfile `yaml:"omsAgent,omitempty"`
 }
 
 type AKSManagedClusterAddonProfile struct {

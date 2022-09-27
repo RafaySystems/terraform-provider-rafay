@@ -445,6 +445,45 @@ resource "rafay_blueprint" "golden_base_blueprint" {
 - `name` - (String) The names of the projects the resource belongs to. 
 
 
+<a id="nestedblock--spec--namespace_config"></a>
+### Nested Schema for `spec.namespace_config`
+
+Optional:
+
+- `deny_out_of_band_creation` (Boolean) flag to deny out of band creation
+- `enable_sync` (Boolean) flag to enable namespace sync
+
+
+
+<a id="nestedblock--spec--opa_policy"></a>
+### Nested Schema for `spec.opa_policy`
+
+Optional:
+
+- `opa_policy` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--opa_policy--opa_policy))
+- `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--opa_policy--profile))
+
+<a id="nestedblock--spec--opa_policy--opa_policy"></a>
+### Nested Schema for `spec.opa_policy.opa_policy`
+
+Optional:
+
+- `enabled` (Boolean) flag to specify if OPA is enabled for blueprint
+- `name` (String) name of the opa policy
+- `version` (String) version of the opa policy
+
+
+<a id="nestedblock--spec--opa_policy--profile"></a>
+### Nested Schema for `spec.opa_policy.profile`
+
+Optional:
+
+- `name` (String) name of the opa profile
+- `version` (String) version of the opa profile
+
+
+
+
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
 

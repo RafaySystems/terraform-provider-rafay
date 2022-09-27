@@ -8,9 +8,11 @@ description: |-
 
 # rafay_opa_policy (Resource)
 
-
+Create an Open Policy Agent (OPA) policy resource. 
 
 ## Example Usage
+
+---
 
 ```terraform
 #Basic example for opa policy

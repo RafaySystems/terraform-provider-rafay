@@ -8,6 +8,7 @@ description: |-
 
 # rafay_opa_constraint (Resource)
 
+Create an Open Policy Agent (OPA) constraint.  
 
 
 ## Example Usage
@@ -16,8 +17,8 @@ description: |-
 #Basic example for opa constraint
 resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
   metadata {
-    name    = "tfdemoopaconstraint1"
-    project = "tfdemoproject1"
+    name    = "request-limit-ratio"
+    project = "terraform"
   }
   spec {
     template_name = "request-limit-ratio-template"

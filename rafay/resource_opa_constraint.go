@@ -205,6 +205,14 @@ func expandOPAConstraintSpec(p []interface{}) (*opapb.OPAConstraintSpec, error) 
 		obj.TemplateName = v
 	}
 
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+
+	// if v, ok := in["published"].(bool); ok {
+	// 	obj.Published = v
+	// }
+
 	if v, ok := in["artifact"].([]interface{}); ok {
 		objArtifact, err := ExpandArtifactSpec(v)
 		if err != nil {
@@ -259,6 +267,12 @@ func flattenOPAConstraintSpec(in *opapb.OPAConstraintSpec, p []interface{}) ([]i
 	if len(in.TemplateName) > 0 {
 		obj["template_name"] = in.TemplateName
 	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	obj["published"] = in.Published
 
 	v, ok := obj["artifact"].([]interface{})
 	if !ok {

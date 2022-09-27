@@ -3,10 +3,8 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.17
 
 require (
-	github.com/RafaySystems/rafay-common v1.17.0-beta1
-	//github.com/RafaySystems/rafay-common v1.11.0-terraform-2.0.20220301095714-908965fe245a
-	//github.com/RafaySystems/rafay-common v1.10.0-tf-schema-beta1
-	github.com/RafaySystems/rctl v1.17.2-beta1
+	github.com/RafaySystems/rafay-common v1.18.3
+	github.com/RafaySystems/rctl v1.18.0-beta2
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/hashicorp/terraform-plugin-docs v0.9.0
@@ -26,6 +24,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
+	github.com/getkin/kin-openapi v0.76.0 // indirect
 	github.com/gomatic/clock v1.0.0 // indirect
 	github.com/hashicorp/hc-install v0.4.0 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
@@ -138,7 +137,7 @@ require (
 	github.com/segmentio/encoding v0.2.3 // indirect
 	github.com/spacemonkeygo/httpsig v0.0.0-20181218213338-2605ae379e47 // indirect
 	github.com/speps/go-hashids v2.0.0+incompatible // indirect
-	github.com/spf13/cobra v1.3.0 // indirect
+	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tidwall/gjson v1.14.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect

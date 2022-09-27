@@ -210,17 +210,17 @@ func expandOPAPolicySpec(p []interface{}) (*opapb.OPAPolicySpec, error) {
 		obj.Version = v
 	}
 
-	if v, ok := in["installation_params"].([]interface{}); ok && len(v) > 0 {
-		obj.InstallationParams = expandOpaPolicyInstallationParams(v)
-	}
+	// if v, ok := in["installation_params"].([]interface{}); ok && len(v) > 0 {
+	// 	obj.InstallationParams = expandOpaPolicyInstallationParams(v)
+	// }
 
-	if v, ok := in["sync_objects"].([]interface{}); ok && len(v) > 0 {
-		obj.SyncObjects = expandOpaPolicySyncObjects(v)
-	}
+	// if v, ok := in["sync_objects"].([]interface{}); ok && len(v) > 0 {
+	// 	obj.SyncObjects = expandOpaPolicySyncObjects(v)
+	// }
 
-	if v, ok := in["excluded_namespaces"].([]interface{}); ok && len(v) > 0 {
-		obj.ExcludedNamespaces = expandOpaPolicyExcludedNamespaces(v)
-	}
+	// if v, ok := in["excluded_namespaces"].([]interface{}); ok && len(v) > 0 {
+	// 	obj.ExcludedNamespaces = expandOpaPolicyExcludedNamespaces(v)
+	// }
 
 	if v, ok := in["constraint_list"].([]interface{}); ok && len(v) > 0 {
 		obj.ConstraintList = expandOpaPolicyConstraintList(v)
@@ -355,19 +355,43 @@ func expandOpaPolicyExcludedNamespacesList(p []interface{}) []*commonpb.Resource
 	return out
 }
 
-func expandOpaPolicyConstraintList(p []interface{}) []*commonpb.ResourceRef {
+// func expandOpaPolicyConstraintList(p []interface{}) []*commonpb.ResourceRef {
+// 	if len(p) == 0 || p[0] == nil {
+// 		return []*commonpb.ResourceRef{}
+// 	}
+
+// 	out := make([]*commonpb.ResourceRef, len(p))
+
+// 	for i := range p {
+// 		obj := commonpb.ResourceRef{}
+// 		in := p[i].(map[string]interface{})
+
+// 		if v, ok := in["name"].(string); ok && len(v) > 0 {
+// 			obj.Name = v
+// 		}
+
+// 		out[i] = &obj
+// 	}
+// 	return out
+// }
+
+func expandOpaPolicyConstraintList(p []interface{}) []*opapb.OPAPolicyConstraint {
 	if len(p) == 0 || p[0] == nil {
-		return []*commonpb.ResourceRef{}
+		return []*opapb.OPAPolicyConstraint{}
 	}
 
-	out := make([]*commonpb.ResourceRef, len(p))
+	out := make([]*opapb.OPAPolicyConstraint, len(p))
 
 	for i := range p {
-		obj := commonpb.ResourceRef{}
+		obj := opapb.OPAPolicyConstraint{}
 		in := p[i].(map[string]interface{})
 
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
+		}
+
+		if v, ok := in["version"].(string); ok && len(v) > 0 {
+			obj.Version = v
 		}
 
 		out[i] = &obj
@@ -419,36 +443,36 @@ func flattenOPAPolicySpec(in *opapb.OPAPolicySpec, p []interface{}) ([]interface
 		obj["version"] = in.Version
 	}
 
-	if in.InstallationParams != nil {
-		v, ok := obj["installation_params"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["installation_params"] = flattenInstallationParams(in.InstallationParams, v)
-	}
+	// if in.InstallationParams != nil {
+	// 	v, ok := obj["installation_params"].([]interface{})
+	// 	if !ok {
+	// 		v = []interface{}{}
+	// 	}
+	// 	obj["installation_params"] = flattenInstallationParams(in.InstallationParams, v)
+	// }
 
 	if in.Sharing != nil {
 		obj["sharing"] = flattenSharingSpec(in.Sharing)
 	}
 
-	if in.SyncObjects != nil && len(in.SyncObjects) > 0 {
-		v, ok := obj["sync_objects"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["sync_objects"] = flattenSyncObjects(in.SyncObjects, v)
-	}
+	// if in.SyncObjects != nil && len(in.SyncObjects) > 0 {
+	// 	v, ok := obj["sync_objects"].([]interface{})
+	// 	if !ok {
+	// 		v = []interface{}{}
+	// 	}
+	// 	obj["sync_objects"] = flattenSyncObjects(in.SyncObjects, v)
+	// }
 
-	if in.ExcludedNamespaces != nil && len(in.ExcludedNamespaces) > 0 {
-		v, ok := obj["excluded_namespaces"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["excluded_namespaces"] = flattenExcludedNamespaces(in.ExcludedNamespaces, v)
-	}
+	// if in.ExcludedNamespaces != nil && len(in.ExcludedNamespaces) > 0 {
+	// 	v, ok := obj["excluded_namespaces"].([]interface{})
+	// 	if !ok {
+	// 		v = []interface{}{}
+	// 	}
+	// 	obj["excluded_namespaces"] = flattenExcludedNamespaces(in.ExcludedNamespaces, v)
+	// }
 
 	if in.ConstraintList != nil && len(in.ConstraintList) > 0 {
-		v, ok := obj["constraint_list"].([]interface{})
+		v, ok := obj["constraintList"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
@@ -550,7 +574,7 @@ func flattenNamespacesRef(input []*commonpb.ResourceRef, p []interface{}) []inte
 	return out
 }
 
-func flattenConstraintList(input []*commonpb.ResourceRef, p []interface{}) []interface{} {
+func flattenConstraintList(input []*opapb.OPAPolicyConstraint, p []interface{}) []interface{} {
 	log.Println("flattenConstraintList")
 	if input == nil {
 		return nil
@@ -567,6 +591,9 @@ func flattenConstraintList(input []*commonpb.ResourceRef, p []interface{}) []int
 			obj["name"] = in.Name
 		}
 
+		if len(in.Name) > 0 {
+			obj["version"] = in.Version
+		}
 		out[i] = &obj
 	}
 

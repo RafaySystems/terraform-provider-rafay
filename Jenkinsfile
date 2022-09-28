@@ -22,7 +22,6 @@ pipeline {
                     echo machine github.com login ${userName} password ${passWord} > ~/.netrc
                     chmod 400 ~/.netrc
                     GOPRIVATE="github.com/RafaySystems/*" go mod download
-                    echo ${GIT_BRANCH}
                     make release
                     make push
                     make bucket-name

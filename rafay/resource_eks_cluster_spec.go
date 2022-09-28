@@ -250,6 +250,7 @@ func resourceEKSClusterSpecCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
+	d.SetId(s.ID)
 	if d.Get("waitflag").(string) == "1" {
 		log.Printf("Cluster Provision may take upto 15-20 Minutes")
 		res := clusterCTLResponse{}
@@ -295,7 +296,6 @@ func resourceEKSClusterSpecCreate(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	log.Printf("resource eks cluster created %s", s.ID)
-	d.SetId(s.ID)
 
 	return diags
 }

@@ -196,6 +196,7 @@ func resourceAKSClusterSpecUpsert(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(errGet)
 	}
 
+	d.SetId(s.ID)
 	if d.Get("waitflag").(string) == "1" {
 		log.Printf("Cluster Provision may take upto 15-20 Minutes")
 		for {
@@ -232,7 +233,6 @@ func resourceAKSClusterSpecUpsert(ctx context.Context, d *schema.ResourceData, m
 		}
 	}
 	log.Printf("resource aks cluster created/updated %s", s.ID)
-	d.SetId(s.ID)
 
 	return diags
 }

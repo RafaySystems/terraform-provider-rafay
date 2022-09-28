@@ -499,7 +499,6 @@ func aKSManagedClusterAddonProfile() map[string]*schema.Schema {
 		"config": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Default:     "System",
 			Description: "",
 		},
 	}

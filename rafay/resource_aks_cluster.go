@@ -4663,7 +4663,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 
 	log.Printf("Cluster Provision may take upto 15-20 Minutes")
-
+	d.SetId(s.ID)
 	for {
 		time.Sleep(60 * time.Second)
 		check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
@@ -4695,7 +4695,6 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 		}
 	}
 	log.Printf("resource aks cluster created/updated %s", s.ID)
-	d.SetId(s.ID)
 
 	return diags
 }

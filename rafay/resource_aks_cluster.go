@@ -476,15 +476,15 @@ func addonProfileFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: aKSManagedClusterAddonProfile(),
 			},
-		}, /*
-			"oms_agent": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "",
-				Elem: &schema.Resource{
-					Schema: aKSManagedClusterAddonProfile(),
-				},
-			},*/
+		},
+		"oms_agent": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "",
+			Elem: &schema.Resource{
+				Schema: aKSManagedClusterAddonOmsAgentProfile(),
+			},
+		},
 	}
 	return s
 }
@@ -497,6 +497,36 @@ func aKSManagedClusterAddonProfile() map[string]*schema.Schema {
 			Description: "",
 		},
 		"config": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "",
+		},
+	}
+	return s
+}
+
+func aKSManagedClusterAddonOmsAgentProfile() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "",
+		},
+		"config": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "",
+			Elem: &schema.Resource{
+				Schema: aKSManagedClusterAddonOmsAgentConfigProfile(),
+			},
+		},
+	}
+	return s
+}
+
+func aKSManagedClusterAddonOmsAgentConfigProfile() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"log_analytics_workspace_resource_id": {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "",
@@ -2022,10 +2052,10 @@ func expandAddonProfiles(p []interface{}) *AddonProfiles {
 	}
 	if v, ok := in["azure_policy"].([]interface{}); ok && len(v) > 0 {
 		obj.AzurePolicy = expandAKSManagedClusterAddonProfile(v)
-	} /*
-		if v, ok := in["oms_agent"].([]interface{}); ok && len(v) > 0 {
-			obj.OmsAgent = expandAKSManagedClusterAddonProfile(v)
-		}*/
+	}
+	if v, ok := in["oms_agent"].([]interface{}); ok && len(v) > 0 {
+		obj.OmsAgent = expandAKSManagedClusterAddonOmsAgentProfile(v)
+	}
 
 	return obj
 }
@@ -2047,6 +2077,37 @@ func expandAKSManagedClusterAddonProfile(p []interface{}) *AKSManagedClusterAddo
 		json2.Unmarshal([]byte(v), &policyDoc)
 		obj.Config = policyDoc
 		log.Println("addon profile config expanded correct")
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterAddonOmsAgentProfile(p []interface{}) *OmsAgentProfile {
+	obj := &OmsAgentProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
+	}
+	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+		obj.Config = expandAKSManagedClusterAddonOmsAgentConfigProfile(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterAddonOmsAgentConfigProfile(p []interface{}) *OmsAgentConfig {
+	obj := &OmsAgentConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["log_analytics_workspace_resource_id"].(string); ok && len(v) > 0 {
+		obj.LogAnalyticsWorkspaceResourceID = v
 	}
 
 	return obj
@@ -3555,14 +3616,14 @@ func flattenAddonProfile(in *AddonProfiles, p []interface{}) []interface{} {
 		}
 		obj["azure_policy"] = flattenAKSManagedClusterAddonProfile(in.AzurePolicy, v)
 	}
-	/*
-		if in.OmsAgent != nil {
-			v, ok := obj["oms_agent"].([]interface{})
-			if !ok {
-				v = []interface{}{}
-			}
-			obj["oms_agent"] = flattenAKSManagedClusterAddonProfile(in.OmsAgent, v)
-		}*/
+
+	if in.OmsAgent != nil {
+		v, ok := obj["oms_agent"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["oms_agent"] = flattenAKSManagedClusterAddonOmsAgentProfile(in.OmsAgent, v)
+	}
 
 	return []interface{}{obj}
 }
@@ -3588,6 +3649,44 @@ func flattenAKSManagedClusterAddonProfile(in *AKSManagedClusterAddonProfile, p [
 		//log.Println("jsonSTR:", jsonStr)
 		obj["config"] = string(jsonStr)
 		//log.Println("attach policy flattened correct:", obj["attach_policy"])
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSManagedClusterAddonOmsAgentProfile(in *OmsAgentProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+
+	if in.Config != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenAKSManagedClusterAddonOmsAgentConfigProfile(in.Config, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSManagedClusterAddonOmsAgentConfigProfile(in *OmsAgentConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.LogAnalyticsWorkspaceResourceID) > 0 {
+		obj["log_analytics_workspace_resource_id"] = in.LogAnalyticsWorkspaceResourceID
 	}
 
 	return []interface{}{obj}

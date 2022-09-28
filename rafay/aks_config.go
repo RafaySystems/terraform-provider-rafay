@@ -135,12 +135,21 @@ type AKSManagedClusterProperties struct {
 type AddonProfiles struct {
 	HttpApplicationRouting *AKSManagedClusterAddonProfile `yaml:"httpApplicationRouting,omitempty"`
 	AzurePolicy            *AKSManagedClusterAddonProfile `yaml:"azurePolicy,omitempty"`
-	//OmsAgent               *AKSManagedClusterAddonProfile `yaml:"omsAgent,omitempty"`
+	OmsAgent               *OmsAgentProfile               `yaml:"omsAgent,omitempty"`
 }
 
 type AKSManagedClusterAddonProfile struct {
 	Enabled *bool                  `yaml:"enabled,omitempty"`
 	Config  map[string]interface{} `yaml:"config,omitempty"`
+}
+
+type OmsAgentProfile struct {
+	Enabled *bool           `yaml:"enabled,omitempty"`
+	Config  *OmsAgentConfig `yaml:"config,omitempty"`
+}
+
+type OmsAgentConfig struct {
+	LogAnalyticsWorkspaceResourceID string `yaml:"logAnalyticsWorkspaceResourceID,omitempty"`
 }
 
 type AKSManagedClusterNetworkProfile struct {

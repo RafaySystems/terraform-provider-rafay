@@ -2212,7 +2212,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
-
+	d.SetId(s.ID)
 	for { //wait for cluster to provision correctly
 		time.Sleep(60 * time.Second)
 		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
@@ -2245,7 +2245,6 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Printf("resource eks cluster created/updated %s", s.ID)
-	d.SetId(s.ID)
 
 	return diags
 }

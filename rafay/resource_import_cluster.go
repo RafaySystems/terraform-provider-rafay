@@ -100,6 +100,8 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 
+	//set ID for imported cluster id, d.SetID()
+	d.SetId(cluster_resp.ID)
 	if d.Get("blueprint_version").(string) != "" {
 		cluster_resp.ClusterBlueprintVersion = d.Get("blueprint_version").(string)
 		err = cluster.UpdateCluster(cluster_resp)
@@ -150,8 +152,6 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		}
 	}
 
-	//set ID for imported cluster id, d.SetID()
-	d.SetId(cluster_resp.ID)
 	return diags
 
 }

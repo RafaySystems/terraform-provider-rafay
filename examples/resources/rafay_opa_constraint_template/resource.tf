@@ -8,7 +8,7 @@ resource "rafay_opa_constraint_template" "opact" {
     artifact {
       artifact {
         paths {
-          name = "file://k8sallowedrepos_temp.yaml"
+          name = "file://exArtifact/ter-test/k8sallowedrepos_temp.yaml"
         }
       }
       options {

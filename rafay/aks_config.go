@@ -206,23 +206,23 @@ type AKSManagedClusterAPIServerAccessProfile struct {
 }
 
 type AKSManagedClusterAutoScalerProfile struct {
-	BalanceSimilarNodeGroups      string `yaml:"balanceSimilarNodeGroups,omitempty"`
+	BalanceSimilarNodeGroups      string `yaml:"balance-similar-node-groups,omitempty"`
 	Expander                      string `yaml:"expander,omitempty"`
-	MaxEmptyBulkDelete            string `yaml:"maxEmptyBulkDelete,omitempty"`
-	MaxGracefulTerminationSec     string `yaml:"maxGracefulTerminationSec,omitempty"`
-	MaxNodeProvisionTime          string `yaml:"maxNodeProvisionTime,omitempty"`
-	MaxTotalUnreadyPercentage     string `yaml:"maxTotalUnreadyPercentage,omitempty"`
-	NewPodScaleUpDelay            string `yaml:"newPodScaleUpDelay,omitempty"`
-	OkTotalUnreadyCount           string `yaml:"okTotalUnreadyCount,omitempty"`
-	ScaleDownDelayAfterAdd        string `yaml:"scaleDownDelayAfterAdd,omitempty"`
-	ScaleDownDelayAfterDelete     string `yaml:"scaleDownDelayAfterDelete,omitempty"`
-	ScaleDownDelayAfterFailure    string `yaml:"scaleDownDelayAfterFailure,omitempty"`
-	ScaleDownUnneededTime         string `yaml:"scaleDownUnneededTime,omitempty"`
-	ScaleDownUnreadyTime          string `yaml:"scaleDownUnreadyTime,omitempty"`
-	ScaleDownUtilizationThreshold string `yaml:"scaleDownUtilizationThreshold,omitempty"`
-	ScanInterval                  string `yaml:"scanInterval,omitempty"`
-	SkipNodesWithLocalStorage     string `yaml:"skipNodesWithLocalStorage,omitempty"`
-	SkipNodesWithSystemPods       string `yaml:"skipNodesWithSystemPods,omitempty"`
+	MaxEmptyBulkDelete            string `yaml:"max-empty-bulk-delete,omitempty"`
+	MaxGracefulTerminationSec     string `yaml:"max-graceful-termination-sec,omitempty"`
+	MaxNodeProvisionTime          string `yaml:"max-node-provision-time,omitempty"`
+	MaxTotalUnreadyPercentage     string `yaml:"max-total-unready-percentage,omitempty"`
+	NewPodScaleUpDelay            string `yaml:"new-pod-scale-up-delay,omitempty"`
+	OkTotalUnreadyCount           string `yaml:"ok-total-unready-count,omitempty"`
+	ScaleDownDelayAfterAdd        string `yaml:"scale-down-delay-after-add,omitempty"`
+	ScaleDownDelayAfterDelete     string `yaml:"scale-down-delay-after-delete,omitempty"`
+	ScaleDownDelayAfterFailure    string `yaml:"scale-down-delay-after-failure,omitempty"`
+	ScaleDownUnneededTime         string `yaml:"scale-down-unneeded-time,omitempty"`
+	ScaleDownUnreadyTime          string `yaml:"scale-down-unready-time,omitempty"`
+	ScaleDownUtilizationThreshold string `yaml:"scale-down-utilization-threshold,omitempty"`
+	ScanInterval                  string `yaml:"scan-interval,omitempty"`
+	SkipNodesWithLocalStorage     string `yaml:"skip-nodes-with-local-storage,omitempty"`
+	SkipNodesWithSystemPods       string `yaml:"skip-nodes-with-system-pods,omitempty"`
 }
 
 type AKSManagedClusterAutoUpgradeProfile struct {
@@ -304,7 +304,7 @@ type AKSManagedClusterSKU struct {
 
 type AKSManagedClusterAdditionalMetadata struct {
 	ACRProfile           *AKSManagedClusterAdditionalMetadataACRProfile `yaml:"acrProfile,omitempty"`
-	OmsWorkspaceLocation string                                         `yaml:"omsWorkspaceLocation,omitempty"`
+	OmsWorkspaceLocation string                                         `yaml:"oms_workspace_location,omitempty"`
 }
 
 type AKSManagedClusterAdditionalMetadataACRProfile struct {

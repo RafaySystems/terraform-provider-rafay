@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
@@ -27,6 +28,9 @@ func resourceOPAPolicy() *schema.Resource {
 		ReadContext:   resourceOPAPolicyRead,
 		UpdateContext: resourceOPAPolicyUpdate,
 		DeleteContext: resourceOPAPolicyDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceOPAPolicyImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -629,4 +633,30 @@ func flattenSyncObjects(input []*opapb.SyncObject, p []interface{}) []interface{
 	}
 
 	return out
+}
+
+func resourceOPAPolicyImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceOPAPolicy idParts:", idParts)
+	d_debug := spew.Sprintf("%+v", d)
+	log.Println("resourceOPAPolicy d.Id:", d.Id())
+	log.Println("resourceOPAPolicy d_debug", d_debug)
+
+	opaConstraint, err := expandOPAConstraint(d)
+	if err != nil {
+		log.Printf("resourceOPAPolicy expand error")
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	opaConstraint.Metadata = &metaD
+
+	err = d.Set("metadata", flattenMetaData(opaConstraint.Metadata))
+	if err != nil {
+		log.Println("import set err")
+		return nil, err
+	}
+	d.SetId(opaConstraint.Metadata.Name)
+	return []*schema.ResourceData{d}, nil
 }

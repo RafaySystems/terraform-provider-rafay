@@ -485,6 +485,14 @@ func addonProfileFields() map[string]*schema.Schema {
 				Schema: aKSManagedClusterAddonOmsAgentProfile(),
 			},
 		},
+		"azure_keyvault_secrets_provider": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "",
+			Elem: &schema.Resource{
+				Schema: aKSManagedClusterAddonAzureKeyvaultSecretsProviderProfile(),
+			},
+		},
 	}
 	return s
 }
@@ -524,9 +532,44 @@ func aKSManagedClusterAddonOmsAgentProfile() map[string]*schema.Schema {
 	return s
 }
 
+func aKSManagedClusterAddonAzureKeyvaultSecretsProviderProfile() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "",
+		},
+		"config": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "",
+			Elem: &schema.Resource{
+				Schema: aKSManagedClusterAddonAzureKeyvaultSecretsProviderConfigProfile(),
+			},
+		},
+	}
+	return s
+}
+
 func aKSManagedClusterAddonOmsAgentConfigProfile() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"log_analytics_workspace_resource_id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "",
+		},
+	}
+	return s
+}
+
+func aKSManagedClusterAddonAzureKeyvaultSecretsProviderConfigProfile() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"enable_secret_rotation": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "",
+		},
+		"rotation_poll_interval": {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "",
@@ -2056,6 +2099,9 @@ func expandAddonProfiles(p []interface{}) *AddonProfiles {
 	if v, ok := in["oms_agent"].([]interface{}); ok && len(v) > 0 {
 		obj.OmsAgent = expandAKSManagedClusterAddonOmsAgentProfile(v)
 	}
+	if v, ok := in["azure_keyvault_secrets_provider"].([]interface{}); ok && len(v) > 0 {
+		obj.AzureKeyvaultSecretsProvider = expandAKSManagedClusterAddonAzureKeyvaultSecretsProviderProfile(v)
+	}
 
 	return obj
 }
@@ -2099,6 +2145,23 @@ func expandAKSManagedClusterAddonOmsAgentProfile(p []interface{}) *OmsAgentProfi
 	return obj
 }
 
+func expandAKSManagedClusterAddonAzureKeyvaultSecretsProviderProfile(p []interface{}) *AzureKeyvaultSecretsProviderProfile {
+	obj := &AzureKeyvaultSecretsProviderProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
+	}
+	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+		obj.Config = expandAKSManagedClusterAddonAzureKeyvaultSecretsProviderConfigProfile(v)
+	}
+
+	return obj
+}
+
 func expandAKSManagedClusterAddonOmsAgentConfigProfile(p []interface{}) *OmsAgentConfig {
 	obj := &OmsAgentConfig{}
 	if len(p) == 0 || p[0] == nil {
@@ -2108,6 +2171,23 @@ func expandAKSManagedClusterAddonOmsAgentConfigProfile(p []interface{}) *OmsAgen
 
 	if v, ok := in["log_analytics_workspace_resource_id"].(string); ok && len(v) > 0 {
 		obj.LogAnalyticsWorkspaceResourceID = v
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterAddonAzureKeyvaultSecretsProviderConfigProfile(p []interface{}) *AzureKeyvaultSecretsProviderProfileConfig {
+	obj := &AzureKeyvaultSecretsProviderProfileConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enable_secret_rotation"].(string); ok && len(v) > 0 {
+		obj.EnableSecretRotation = v
+	}
+	if v, ok := in["rotation_poll_interval"].(string); ok && len(v) > 0 {
+		obj.RotationPollInterval = v
 	}
 
 	return obj
@@ -3625,6 +3705,14 @@ func flattenAddonProfile(in *AddonProfiles, p []interface{}) []interface{} {
 		obj["oms_agent"] = flattenAKSManagedClusterAddonOmsAgentProfile(in.OmsAgent, v)
 	}
 
+	if in.AzureKeyvaultSecretsProvider != nil {
+		v, ok := obj["azure_keyvault_secrets_provider"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["azure_keyvault_secrets_provider"] = flattenAKSManagedClusterAddonAzureKeyvaultSecretsProviderProfile(in.AzureKeyvaultSecretsProvider, v)
+	}
+
 	return []interface{}{obj}
 }
 
@@ -3676,6 +3764,28 @@ func flattenAKSManagedClusterAddonOmsAgentProfile(in *OmsAgentProfile, p []inter
 	return []interface{}{obj}
 }
 
+func flattenAKSManagedClusterAddonAzureKeyvaultSecretsProviderProfile(in *AzureKeyvaultSecretsProviderProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+
+	if in.Config != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenAKSManagedClusterAddonAzureKeyvaultSecretsProviderProfileConfigProfile(in.Config, v)
+	}
+
+	return []interface{}{obj}
+}
+
 func flattenAKSManagedClusterAddonOmsAgentConfigProfile(in *OmsAgentConfig, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
@@ -3687,6 +3797,25 @@ func flattenAKSManagedClusterAddonOmsAgentConfigProfile(in *OmsAgentConfig, p []
 
 	if len(in.LogAnalyticsWorkspaceResourceID) > 0 {
 		obj["log_analytics_workspace_resource_id"] = in.LogAnalyticsWorkspaceResourceID
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSManagedClusterAddonAzureKeyvaultSecretsProviderProfileConfigProfile(in *AzureKeyvaultSecretsProviderProfileConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.EnableSecretRotation) > 0 {
+		obj["enable_secret_rotation"] = in.EnableSecretRotation
+	}
+	if len(in.RotationPollInterval) > 0 {
+		obj["rotation_poll_interval"] = in.RotationPollInterval
 	}
 
 	return []interface{}{obj}

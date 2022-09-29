@@ -133,9 +133,10 @@ type AKSManagedClusterProperties struct {
 }
 
 type AddonProfiles struct {
-	HttpApplicationRouting *AKSManagedClusterAddonProfile `yaml:"httpApplicationRouting,omitempty"`
-	AzurePolicy            *AKSManagedClusterAddonProfile `yaml:"azurePolicy,omitempty"`
-	OmsAgent               *OmsAgentProfile               `yaml:"omsAgent,omitempty"`
+	HttpApplicationRouting       *AKSManagedClusterAddonProfile       `yaml:"httpApplicationRouting,omitempty"`
+	AzurePolicy                  *AKSManagedClusterAddonProfile       `yaml:"azurePolicy,omitempty"`
+	OmsAgent                     *OmsAgentProfile                     `yaml:"omsAgent,omitempty"`
+	AzureKeyvaultSecretsProvider *AzureKeyvaultSecretsProviderProfile `yaml:"azureKeyvaultSecretsProvider,omitempty"`
 }
 
 type AKSManagedClusterAddonProfile struct {
@@ -148,8 +149,18 @@ type OmsAgentProfile struct {
 	Config  *OmsAgentConfig `yaml:"config,omitempty"`
 }
 
+type AzureKeyvaultSecretsProviderProfile struct {
+	Enabled *bool                                      `yaml:"enabled,omitempty"`
+	Config  *AzureKeyvaultSecretsProviderProfileConfig `yaml:"config,omitempty"`
+}
+
 type OmsAgentConfig struct {
 	LogAnalyticsWorkspaceResourceID string `yaml:"logAnalyticsWorkspaceResourceID,omitempty"`
+}
+
+type AzureKeyvaultSecretsProviderProfileConfig struct {
+	EnableSecretRotation string `yaml:"enableSecretRotation,omitempty"`
+	RotationPollInterval string `yaml:"rotationPollInterval,omitempty"`
 }
 
 type AKSManagedClusterNetworkProfile struct {

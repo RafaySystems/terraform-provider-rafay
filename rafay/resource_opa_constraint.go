@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/opapb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
@@ -26,6 +28,9 @@ func resourceOPAConstraint() *schema.Resource {
 		ReadContext:   resourceOPAConstraintRead,
 		UpdateContext: resourceOPAConstraintUpdate,
 		DeleteContext: resourceOPAConstraintDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceOPAConstraintImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -290,4 +295,30 @@ func flattenOPAConstraintSpec(in *opapb.OPAConstraintSpec, p []interface{}) ([]i
 	obj["artifact"] = ret
 
 	return []interface{}{obj}, nil
+}
+
+func resourceOPAConstraintImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceOPAConstraintImport idParts:", idParts)
+	d_debug := spew.Sprintf("%+v", d)
+	log.Println("resourceOPAConstraintImport d.Id:", d.Id())
+	log.Println("resourceOPAConstraintImport d_debug", d_debug)
+
+	opaConstraint, err := expandOPAConstraint(d)
+	if err != nil {
+		log.Printf("resourceOPAConstraintImport expand error")
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	opaConstraint.Metadata = &metaD
+
+	err = d.Set("metadata", flattenMetaData(opaConstraint.Metadata))
+	if err != nil {
+		log.Println("import set err")
+		return nil, err
+	}
+	d.SetId(opaConstraint.Metadata.Name)
+	return []*schema.ResourceData{d}, nil
 }

@@ -18,6 +18,9 @@ resource "rafay_opa_constraint_template" "opact" {
   metadata {
     name    = "ter-test"
     project = "defaultproject"
+    labels = {
+      "rafay.dev/opa" = "template"
+    }
   }
   spec {
     artifact {

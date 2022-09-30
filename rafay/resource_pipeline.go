@@ -679,8 +679,57 @@ func expandInfraAgents(p []interface{}) []*gitopspb.AgentMeta {
 			obj.Id = v
 		}
 
+		out[i] = &obj
 	}
 
+	return out
+}
+
+func expandTargets(p []interface{}) []*gitopspb.TerraformTarget {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.TerraformTarget{}
+	}
+
+	out := make([]*gitopspb.TerraformTarget, len(p))
+
+	for i := range p {
+		obj := gitopspb.TerraformTarget{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		out[i] = &obj
+	}
+	return out
+}
+
+func expandKeyValues(p []interface{}) []*gitopspb.KeyValue {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.KeyValue{}
+	}
+
+	out := make([]*gitopspb.KeyValue, len(p))
+
+	for i := range p {
+		obj := gitopspb.KeyValue{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+
+		if v, ok := in["key"].(string); ok && len(v) > 0 {
+			obj.Key = v
+		}
+
+		if v, ok := in["value"].(string); ok && len(v) > 0 {
+			obj.Value = v
+		}
+
+		out[i] = &obj
+	}
 	return out
 }
 
@@ -691,9 +740,59 @@ func expandInfraAction(p []interface{}) *gitopspb.InfraProvisionerConfig_Terrafo
 		return obj
 	}
 
-	//in := p[0].(map[string]interface{})
+	in := p[0].(map[string]interface{})
 
-	//XXX TODO
+	if v, ok := in["action"].(string); ok && len(v) > 0 {
+		obj.Terraform.Action = v
+	}
+
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Terraform.Version = v
+	}
+
+	if v, ok := in["refresh"].(bool); ok {
+		obj.Terraform.Refresh = v
+	}
+
+	if v, ok := in["destroy"].(bool); ok {
+		obj.Terraform.Destroy = v
+	}
+
+	if v, ok := in["input_vars"].([]interface{}); ok && len(v) > 0 {
+		obj.Terraform.InputVars = expandKeyValues(v)
+	}
+
+	if v, ok := in["env_vars"].([]interface{}); ok && len(v) > 0 {
+		obj.Terraform.EnvVars = expandKeyValues(v)
+	}
+
+	if v, ok := in["backend_vars"].([]interface{}); ok && len(v) > 0 {
+		obj.Terraform.BackendVars = expandKeyValues(v)
+	}
+
+	if v, ok := in["secret_groups"].([]interface{}); ok && len(v) > 0 {
+		obj.Terraform.SecretGroups = toArrayString(v)
+	}
+
+	if v, ok := in["secret_groups"].([]interface{}); ok && len(v) > 0 {
+		obj.Terraform.SecretGroups = toArrayString(v)
+	}
+
+	if v, ok := in["backend_file_path"].([]interface{}); ok && len(v) > 0 {
+		obj.Terraform.BackendFilePath = expandCommonpbFile(v)
+	}
+
+	if v, ok := in["backend_file_path"].([]interface{}); ok && len(v) > 0 {
+		obj.Terraform.BackendFilePath = expandCommonpbFile(v)
+	}
+
+	if v, ok := in["tf_vars_file_path"].([]interface{}); ok && len(v) > 0 {
+		obj.Terraform.TfVarsFilePath = expandCommonpbFile(v)
+	}
+
+	if v, ok := in["targets"].([]interface{}); ok && len(v) > 0 {
+		obj.Terraform.Targets = expandTargets(v)
+	}
 
 	return obj
 
@@ -735,6 +834,9 @@ func expandStageSpecConfigInfraProvisioner(p []interface{}) (*gitopspb.StageSpec
 	if v, ok := in["action"].([]interface{}); ok && len(v) > 0 {
 		obj.InfraProvisioner.Action = expandInfraAction(v)
 	}
+
+	w1 := spew.Sprintf("%+v", obj)
+	log.Println("expandStageSpecConfigInfraProvisioner  ", w1)
 
 	return &obj, nil
 }
@@ -794,29 +896,32 @@ func expandStageSpec(p []interface{}) ([]*gitopspb.StageSpec, error) {
 				}
 			} else if stageType == "DeployWorkload" {
 				var err error
-				log.Println("expandStageSpec got Workload")
+				log.Println("expandStageSpec got DeployWorkload")
 				obj.Config, err = expandStageSpecConfigWorkload(v)
 				if err != nil {
 					return []*gitopspb.StageSpec{}, err
 				}
 			} else if stageType == "DeployWorkloadTemplate" {
 				var err error
-				log.Println("expandStageSpec got Workload")
+				log.Println("expandStageSpec got DeployWorkloadTemplate")
 				obj.Config, err = expandStageSpecConfigWorkloadTemplate(v)
 				if err != nil {
 					return []*gitopspb.StageSpec{}, err
 				}
 			} else if stageType == "InfraProvisioner" {
 				//XXX TODO
-				return nil, fmt.Errorf("Stage Type not supported %s", stageType)
-				// var err error
-				// log.Println("expandStageSpec got Workload")
-				// obj.Config, err = expandStageSpecConfigInfraProvisioner(v)
-				// if err != nil {
-				// 	return []*gitopspb.StageSpec{}, err
-				// }
+				//return nil, fmt.Errorf("Stage Type not supported %s", stageType)
+				var err error
+				obj.Config, err = expandStageSpecConfigInfraProvisioner(v)
+				log.Println("expandStageSpec got InfraProvisioner")
+				w1 := spew.Sprintf("%+v", obj)
+				log.Println("expandStageSpecConfigInfraProvisioner  ", w1)
+
+				if err != nil {
+					return []*gitopspb.StageSpec{}, err
+				}
 			} else {
-				return nil, fmt.Errorf("Stage Type not supported %s", stageType)
+				return nil, fmt.Errorf("stage Type not supported %s", stageType)
 			}
 
 		}
@@ -1472,6 +1577,7 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 		obj = p[0].(map[string]interface{})
 	}
 
+	//log.Println("flattenStageSpecConfig stSpec: ", stSpec)
 	retNil := true
 
 	// var start
@@ -1546,6 +1652,7 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 	}
 
 	if len(stSpec.Config.Agents) > 0 {
+		//log.Println("flattenStageSpecConfig Agents ")
 		v, ok := obj["agents"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -1701,10 +1808,11 @@ func flattenStageSpecConfigOverridesTemplate(in stageSpecConfigWorkloadTemplateO
 }
 
 func flattenStageSpecAgents(input []*gitopspb.AgentMeta, p []interface{}) []interface{} {
-	log.Println("flattenStageSpecAgents")
 	if input == nil {
 		return nil
 	}
+
+	log.Println("flattenStageSpecAgents ", len(input))
 
 	out := make([]interface{}, len(input))
 	for i, in := range input {
@@ -1718,9 +1826,9 @@ func flattenStageSpecAgents(input []*gitopspb.AgentMeta, p []interface{}) []inte
 			obj["name"] = in.Name
 		}
 
-		if len(in.Name) > 0 {
-			obj["id"] = in.Id
-		}
+		// if len(in.Name) > 0 {
+		// 	obj["id"] = in.Id
+		// }
 
 		out[i] = &obj
 	}

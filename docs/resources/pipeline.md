@@ -40,7 +40,7 @@ resource "rafay_pipeline" "tfdemopipeline1" {
 
 resource "rafay_pipeline" "tfdemopipeline" {
   metadata {
-    name        = "test2"
+    name        = "test"
     project     = "terraform"
     annotations = {}
     labels      = {}
@@ -104,7 +104,9 @@ resource "rafay_pipeline" "tfdemopipeline" {
     stages {
       name = "s3"
       type = "DeployWorkload"
-
+      next {
+        name = "s4"
+      }
       config {
         git_to_system_sync                      = false
         persist_working_directory               = false
@@ -116,6 +118,23 @@ resource "rafay_pipeline" "tfdemopipeline" {
         action {
           destroy       = false
           refresh       = false
+          secret_groups = []
+        }
+      }
+    }
+    stages {
+      name = "s4"
+      type = "InfraProvisioner"
+      config {
+        type        = "Terraform"
+        provisioner = "i1"
+        revision    = "main"
+        agents {
+          name = "agent1"
+        }
+        action {
+          action        = "Apply"
+          refresh       = true
           secret_groups = []
         }
       }

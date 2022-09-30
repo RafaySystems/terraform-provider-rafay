@@ -555,7 +555,7 @@ func aKSManagedClusterAddonOmsAgentConfigProfile() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"log_analytics_workspace_resource_id": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Required:    true,
 			Description: "",
 		},
 	}
@@ -566,12 +566,12 @@ func aKSManagedClusterAddonAzureKeyvaultSecretsProviderConfigProfile() map[strin
 	s := map[string]*schema.Schema{
 		"enable_secret_rotation": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Required:    true,
 			Description: "",
 		},
 		"rotation_poll_interval": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Required:    true,
 			Description: "",
 		},
 	}

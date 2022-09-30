@@ -464,7 +464,7 @@ func addonProfileFields() map[string]*schema.Schema {
 		"http_application_routing": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "",
+			Description: "Config for HTTP Application Routing Addon Profile",
 			Elem: &schema.Resource{
 				Schema: aKSManagedClusterAddonProfile(),
 			},
@@ -472,7 +472,7 @@ func addonProfileFields() map[string]*schema.Schema {
 		"azure_policy": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "",
+			Description: "Config for Azure Policy in Addon Profile",
 			Elem: &schema.Resource{
 				Schema: aKSManagedClusterAddonProfile(),
 			},
@@ -480,7 +480,7 @@ func addonProfileFields() map[string]*schema.Schema {
 		"oms_agent": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "",
+			Description: "Config for OMS Agent in Addon Profile",
 			Elem: &schema.Resource{
 				Schema: aKSManagedClusterAddonOmsAgentProfile(),
 			},
@@ -488,7 +488,7 @@ func addonProfileFields() map[string]*schema.Schema {
 		"azure_keyvault_secrets_provider": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "",
+			Description: "Azure Keyvault Secrets Provider for AKS",
 			Elem: &schema.Resource{
 				Schema: aKSManagedClusterAddonAzureKeyvaultSecretsProviderProfile(),
 			},
@@ -502,12 +502,12 @@ func aKSManagedClusterAddonProfile() map[string]*schema.Schema {
 		"enabled": {
 			Type:        schema.TypeBool,
 			Optional:    true,
-			Description: "",
+			Description: "Whether to enable HTTP Application Routing or Azure Policy in Addon Profile",
 		},
 		"config": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "",
+			Description: "Config for HTTP Application Routing or Azure Policy in Addon Profile",
 		},
 	}
 	return s
@@ -518,12 +518,12 @@ func aKSManagedClusterAddonOmsAgentProfile() map[string]*schema.Schema {
 		"enabled": {
 			Type:        schema.TypeBool,
 			Optional:    true,
-			Description: "",
+			Description: "Whether to enable OMS Agent in Addon Profile",
 		},
 		"config": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "",
+			Description: "Config for OMS Agent in Addon Profile",
 			Elem: &schema.Resource{
 				Schema: aKSManagedClusterAddonOmsAgentConfigProfile(),
 			},
@@ -537,12 +537,12 @@ func aKSManagedClusterAddonAzureKeyvaultSecretsProviderProfile() map[string]*sch
 		"enabled": {
 			Type:        schema.TypeBool,
 			Optional:    true,
-			Description: "",
+			Description: "Whether to enable Azure Key Vault Secrets Provider in Addon Profile",
 		},
 		"config": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "",
+			Description: "Config Azure Key Vault Secrets Provider in Addon Profile",
 			Elem: &schema.Resource{
 				Schema: aKSManagedClusterAddonAzureKeyvaultSecretsProviderConfigProfile(),
 			},
@@ -556,7 +556,7 @@ func aKSManagedClusterAddonOmsAgentConfigProfile() map[string]*schema.Schema {
 		"log_analytics_workspace_resource_id": {
 			Type:        schema.TypeString,
 			Required:    true,
-			Description: "",
+			Description: "ID of the log analytics workspace",
 		},
 	}
 	return s
@@ -567,12 +567,12 @@ func aKSManagedClusterAddonAzureKeyvaultSecretsProviderConfigProfile() map[strin
 		"enable_secret_rotation": {
 			Type:        schema.TypeString,
 			Required:    true,
-			Description: "",
+			Description: "Whether to enable Secret Rotation",
 		},
 		"rotation_poll_interval": {
 			Type:        schema.TypeString,
 			Required:    true,
-			Description: "",
+			Description: "Interval to poll for secret rotation",
 		},
 	}
 	return s

@@ -53,9 +53,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
               "Effect": "Allow",
               "Action": ["elasticloadbalancing:*"],
               "Resource": ["*"]
-            }
-            
-           
+            } 
           ]
         }
         EOF

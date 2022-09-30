@@ -8,8 +8,8 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
     spec {
       type           = "eks"
       blueprint      = "default"
-      blueprint_version = "1.12.0"
-      cloud_provider = "eks-role"
+      blueprint_version = "Latest"
+      cloud_provider = "aws-eks-role"
       cni_provider   = "aws-cni"
       proxy_config   = {}
     }
@@ -20,10 +20,15 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
     metadata {
       name    = "eks-cluster-1"
       region  = "us-west-2"
-      version = "1.21"
+      version = "1.22"
     }
     iam {
+     with_oidc = true
       service_accounts {
+        metadata {
+          name = "test-irsa"
+          namespace = "yaml1"
+        }
         attach_policy = <<EOF
         {
           "Version": "2012-10-17",
@@ -45,19 +50,16 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
             },
             {
               "Effect": "Allow",
-              "Action": ["ec2:*"],
-              "Resource": ["*"]
-            },
-            {
-              "Effect": "Allow",
               "Action": ["elasticloadbalancing:*"],
               "Resource": ["*"]
-            }
+            } 
           ]
         }
         EOF
       }
     }
+ 
+   
     vpc {
       cidr = "192.168.0.0/16"
       cluster_endpoints {
@@ -82,16 +84,19 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       min_size         = 1
       max_size         = 2
       max_pods_per_node = 50
-      version          = "1.21"
+      version          = "1.22"
       volume_size      = 80
       volume_type      = "gp3"
       private_networking = true
+      labels = {
+        app = "infra"
+        dedicated = "true"
+      }
     }
   }
 }
 
-
-resource "rafay_eks_cluster" "ekscluste-advanced" {
+resource "rafay_eks_cluster" "ekscluster-advanced" {
   cluster {
     kind = "Cluster"
     metadata {
@@ -105,6 +110,33 @@ resource "rafay_eks_cluster" "ekscluste-advanced" {
       cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
       proxy_config   = {}
+      system_components_placement {      
+        node_selector = {
+          app = "infra"
+          dedicated = "true"
+        }
+        tolerations {
+          effect = "NoExecute"
+          key = "app"
+          operator = "Equal"
+          value =  "infra"
+        }
+        tolerations {
+          effect = "NoSchedule"
+          key = "dedicated"
+          operator = "Equal"
+          value = true
+        }
+        daemonset_override {
+          node_selection_enabled = false
+          tolerations {
+            key = "app1dedicated"
+            value = true
+            effect = "NoSchedule"
+            operator = "Equal" 
+          }
+        }
+      }
     }
   }
   cluster_config {

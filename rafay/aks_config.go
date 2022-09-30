@@ -108,18 +108,19 @@ type AKSManagedClusterIdentity struct {
 }
 
 type AKSManagedClusterProperties struct {
-	KubernetesVersion       string                                    `yaml:"kubernetesVersion,omitempty"`
-	EnableRBAC              *bool                                     `yaml:"enableRbac,omitempty"`
-	FQDNSubdomain           string                                    `yaml:"fqdnSubdomain,omitempty"`
-	DNSPrefix               string                                    `yaml:"dnsPrefix,omitempty"`
-	EnablePodSecurityPolicy *bool                                     `yaml:"enablePodSecurityPolicy,omitempty"`
-	NodeResourceGroup       string                                    `yaml:"nodeResourceGroup,omitempty"`
-	NetworkProfile          *AKSManagedClusterNetworkProfile          `yaml:"networkProfile,omitempty"`
-	AzureADProfile          *AKSManagedClusterAzureADProfile          `yaml:"aadProfile,omitempty"`
-	APIServerAccessProfile  *AKSManagedClusterAPIServerAccessProfile  `yaml:"apiServerAccessProfile,omitempty"`
-	DisableLocalAccounts    *bool                                     `yaml:"disableLocalAccounts,omitempty"`
-	DiskEncryptionSetID     string                                    `yaml:"diskEncryptionSetId,omitempty"`
-	AddonProfiles           map[string]string                         `yaml:"addonProfiles,omitempty"`
+	KubernetesVersion       string                                   `yaml:"kubernetesVersion,omitempty"`
+	EnableRBAC              *bool                                    `yaml:"enableRbac,omitempty"`
+	FQDNSubdomain           string                                   `yaml:"fqdnSubdomain,omitempty"`
+	DNSPrefix               string                                   `yaml:"dnsPrefix,omitempty"`
+	EnablePodSecurityPolicy *bool                                    `yaml:"enablePodSecurityPolicy,omitempty"`
+	NodeResourceGroup       string                                   `yaml:"nodeResourceGroup,omitempty"`
+	NetworkProfile          *AKSManagedClusterNetworkProfile         `yaml:"networkProfile,omitempty"`
+	AzureADProfile          *AKSManagedClusterAzureADProfile         `yaml:"aadProfile,omitempty"`
+	APIServerAccessProfile  *AKSManagedClusterAPIServerAccessProfile `yaml:"apiServerAccessProfile,omitempty"`
+	DisableLocalAccounts    *bool                                    `yaml:"disableLocalAccounts,omitempty"`
+	DiskEncryptionSetID     string                                   `yaml:"diskEncryptionSetId,omitempty"`
+	AddonProfiles           *AddonProfiles                           `yaml:"addonProfiles,omitempty"`
+	//AddonProfiles           map[string]string                         `yaml:"addonProfiles,omitempty"`
 	ServicePrincipalProfile *AKSManagedClusterServicePrincipalProfile `yaml:"servicePrincipalProfile,omitempty"`
 	LinuxProfile            *AKSManagedClusterLinuxProfile            `yaml:"linuxProfile,omitempty"`
 	WindowsProfile          *AKSManagedClusterWindowsProfile          `yaml:"windowsProfile,omitempty"`
@@ -129,6 +130,37 @@ type AKSManagedClusterProperties struct {
 	AutoUpgradeProfile      *AKSManagedClusterAutoUpgradeProfile      `yaml:"autoUpgradeProfile,omitempty"`
 	PodIdentityProfile      *AKSManagedClusterPodIdentityProfile      `yaml:"podIdentityProfile,omitempty"`
 	PrivateLinkResources    *AKSManagedClusterPrivateLinkResources    `yaml:"privateLinkResources,omitempty"`
+}
+
+type AddonProfiles struct {
+	HttpApplicationRouting       *AKSManagedClusterAddonProfile       `yaml:"httpApplicationRouting,omitempty"`
+	AzurePolicy                  *AKSManagedClusterAddonProfile       `yaml:"azurePolicy,omitempty"`
+	OmsAgent                     *OmsAgentProfile                     `yaml:"omsAgent,omitempty"`
+	AzureKeyvaultSecretsProvider *AzureKeyvaultSecretsProviderProfile `yaml:"azureKeyvaultSecretsProvider,omitempty"`
+}
+
+type AKSManagedClusterAddonProfile struct {
+	Enabled *bool                  `yaml:"enabled,omitempty"`
+	Config  map[string]interface{} `yaml:"config,omitempty"`
+}
+
+type OmsAgentProfile struct {
+	Enabled *bool           `yaml:"enabled,omitempty"`
+	Config  *OmsAgentConfig `yaml:"config,omitempty"`
+}
+
+type AzureKeyvaultSecretsProviderProfile struct {
+	Enabled *bool                                      `yaml:"enabled,omitempty"`
+	Config  *AzureKeyvaultSecretsProviderProfileConfig `yaml:"config,omitempty"`
+}
+
+type OmsAgentConfig struct {
+	LogAnalyticsWorkspaceResourceID string `yaml:"logAnalyticsWorkspaceResourceID,omitempty"`
+}
+
+type AzureKeyvaultSecretsProviderProfileConfig struct {
+	EnableSecretRotation string `yaml:"enableSecretRotation,omitempty"`
+	RotationPollInterval string `yaml:"rotationPollInterval,omitempty"`
 }
 
 type AKSManagedClusterNetworkProfile struct {
@@ -194,32 +226,27 @@ type AKSManagedClusterAPIServerAccessProfile struct {
 }
 
 type AKSManagedClusterAutoScalerProfile struct {
-	BalanceSimilarNodeGroups      string `yaml:"balanceSimilarNodeGroups,omitempty"`
+	BalanceSimilarNodeGroups      string `yaml:"balance-similar-node-groups,omitempty"`
 	Expander                      string `yaml:"expander,omitempty"`
-	MaxEmptyBulkDelete            string `yaml:"maxEmptyBulkDelete,omitempty"`
-	MaxGracefulTerminationSec     string `yaml:"maxGracefulTerminationSec,omitempty"`
-	MaxNodeProvisionTime          string `yaml:"maxNodeProvisionTime,omitempty"`
-	MaxTotalUnreadyPercentage     string `yaml:"maxTotalUnreadyPercentage,omitempty"`
-	NewPodScaleUpDelay            string `yaml:"newPodScaleUpDelay,omitempty"`
-	OkTotalUnreadyCount           *int   `yaml:"okTotalUnreadyCount,omitempty"`
-	ScaleDownDelayAfterAdd        string `yaml:"scaleDownDelayAfterAdd,omitempty"`
-	ScaleDownDelayAfterDelete     string `yaml:"scaleDownDelayAfterDelete,omitempty"`
-	ScaleDownDelayAfterFailure    string `yaml:"scaleDownDelayAfterFailure,omitempty"`
-	ScaleDownUnneededTime         string `yaml:"scaleDownUnneededTime,omitempty"`
-	ScaleDownUnreadyTime          string `yaml:"scaleDownUnreadyTime,omitempty"`
-	ScaleDownUtilizationThreshold string `yaml:"scaleDownUtilizationThreshold,omitempty"`
-	ScanInterval                  string `yaml:"scanInterval,omitempty"`
-	SkipNodesWithLocalStorage     string `yaml:"skipNodesWithLocalStorage,omitempty"`
-	SkipNodesWithSystemPods       string `yaml:"skipNodesWithSystemPods,omitempty"`
+	MaxEmptyBulkDelete            string `yaml:"max-empty-bulk-delete,omitempty"`
+	MaxGracefulTerminationSec     string `yaml:"max-graceful-termination-sec,omitempty"`
+	MaxNodeProvisionTime          string `yaml:"max-node-provision-time,omitempty"`
+	MaxTotalUnreadyPercentage     string `yaml:"max-total-unready-percentage,omitempty"`
+	NewPodScaleUpDelay            string `yaml:"new-pod-scale-up-delay,omitempty"`
+	OkTotalUnreadyCount           string `yaml:"ok-total-unready-count,omitempty"`
+	ScaleDownDelayAfterAdd        string `yaml:"scale-down-delay-after-add,omitempty"`
+	ScaleDownDelayAfterDelete     string `yaml:"scale-down-delay-after-delete,omitempty"`
+	ScaleDownDelayAfterFailure    string `yaml:"scale-down-delay-after-failure,omitempty"`
+	ScaleDownUnneededTime         string `yaml:"scale-down-unneeded-time,omitempty"`
+	ScaleDownUnreadyTime          string `yaml:"scale-down-unready-time,omitempty"`
+	ScaleDownUtilizationThreshold string `yaml:"scale-down-utilization-threshold,omitempty"`
+	ScanInterval                  string `yaml:"scan-interval,omitempty"`
+	SkipNodesWithLocalStorage     string `yaml:"skip-nodes-with-local-storage,omitempty"`
+	SkipNodesWithSystemPods       string `yaml:"skip-nodes-with-system-pods,omitempty"`
 }
 
 type AKSManagedClusterAutoUpgradeProfile struct {
 	UpgradeChannel string `yaml:"upgradeChannel,omitempty"`
-}
-
-type AKSManagedClusterAddonProfile struct {
-	Enabled *bool                  `yaml:"enabled"`
-	Config  map[string]interface{} `yaml:"config,omitempty"`
 }
 
 type AKSManagedClusterServicePrincipalProfile struct {
@@ -297,7 +324,7 @@ type AKSManagedClusterSKU struct {
 
 type AKSManagedClusterAdditionalMetadata struct {
 	ACRProfile           *AKSManagedClusterAdditionalMetadataACRProfile `yaml:"acrProfile,omitempty"`
-	OmsWorkspaceLocation string                                         `yaml:"omsWorkspaceLocation,omitempty"`
+	OmsWorkspaceLocation string                                         `yaml:"oms_workspace_location,omitempty"`
 }
 
 type AKSManagedClusterAdditionalMetadataACRProfile struct {

@@ -231,6 +231,9 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
+	pipe1 := spew.Sprintf("%+v", pipeline)
+	log.Println("pipeline apply pipeline:", pipe1)
+
 	err = client.GitopsV3().Pipeline().Apply(ctx, pipeline, options.ApplyOptions{})
 	if err != nil {
 		// XXX Debug
@@ -389,6 +392,7 @@ func expandPipeline(in *schema.ResourceData) (*gitopspb.Pipeline, error) {
 }
 
 func expandPipelineSpec(p []interface{}) (*gitopspb.PipelineSpec, error) {
+	var err error
 	obj := &gitopspb.PipelineSpec{}
 	if len(p) == 0 || p[0] == nil {
 		return obj, fmt.Errorf("%s", "expandPipelineSpec empty input")
@@ -398,7 +402,10 @@ func expandPipelineSpec(p []interface{}) (*gitopspb.PipelineSpec, error) {
 
 	// Stages    []*StageSpec          `protobuf:"bytes,1,rep,name=stages,proto3" json:"stages,omitempty"`
 	if v, ok := in["stages"].([]interface{}); ok && len(v) > 0 {
-		obj.Stages = expandStageSpec(v)
+		obj.Stages, err = expandStageSpec(v)
+		if err != nil {
+			return obj, err
+		}
 	}
 
 	// Variables []*VariableSpec       `protobuf:"bytes,2,rep,name=variables,proto3" json:"variables,omitempty"`
@@ -425,64 +432,393 @@ func expandPipelineSpec(p []interface{}) (*gitopspb.PipelineSpec, error) {
 	return obj, nil
 }
 
-// Expand Stage Spec Start
-func expandStageSpec(p []interface{}) []*gitopspb.StageSpec {
+func expandApprovers(p []interface{}) []*gitopspb.Approver {
 	if len(p) == 0 || p[0] == nil {
-		return []*gitopspb.StageSpec{}
+		return []*gitopspb.Approver{}
+	}
+
+	out := make([]*gitopspb.Approver, len(p))
+
+	for i := range p {
+		obj := gitopspb.Approver{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["user_name"].(string); ok && len(v) > 0 {
+			obj.UserName = v
+			obj.SsoUser = false
+		}
+
+		if v, ok := in["sso_user"].(string); ok && len(v) > 0 {
+			obj.UserName = v
+			obj.SsoUser = true
+		}
+
+		out[i] = &obj
+	}
+	return out
+}
+
+func expandStageSpecConfigWorkload(p []interface{}) (*gitopspb.StageSpec_Workload, error) {
+	obj := gitopspb.StageSpec_Workload{}
+	obj.Workload = &gitopspb.DeployWorkloadConfig{}
+	if len(p) == 0 || p[0] == nil {
+		log.Println("expandStageSpecConfigWorkload empty")
+		return &obj, fmt.Errorf("%s", "expandStageSpecConfigWorkload empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["workload"].(string); ok && len(v) > 0 {
+		log.Println("expandStageSpecConfigWorkload workload")
+		obj.Workload.Workload = v
+	}
+
+	if v, ok := in["useRevisionFromWebhookTriggerEvent"].(bool); ok {
+		log.Println("expandStageSpecConfigWorkload useRevisionFromWebhookTriggerEvent")
+		obj.Workload.UseRevisionFromWebhookTriggerEvent = v
+	}
+
+	log.Println("expandStageSpecConfigWorkload obj:", obj)
+
+	return &obj, nil
+}
+
+func expandIncludedResourceType(p []interface{}) ([]*gitopspb.SystemSyncResource, error) {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.SystemSyncResource{}, fmt.Errorf("%s", "expandIncludedResourceType empty input")
+	}
+
+	out := make([]*gitopspb.SystemSyncResource, len(p))
+
+	for i := range p {
+		obj := gitopspb.SystemSyncResource{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+		out[i] = &obj
+	}
+
+	return out, nil
+}
+
+func expandExcludedResourceType(p []interface{}) ([]*gitopspb.SystemSyncResource, error) {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.SystemSyncResource{}, fmt.Errorf("%s", "expandExcludedResourceType empty input")
+	}
+
+	out := make([]*gitopspb.SystemSyncResource, len(p))
+
+	for i := range p {
+		obj := gitopspb.SystemSyncResource{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+		out[i] = &obj
+	}
+
+	return out, nil
+}
+
+func expandRepo(p []interface{}) (*gitopspb.SystemSyncRepo, error) {
+	obj := &gitopspb.SystemSyncRepo{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, fmt.Errorf("%s", "expandRepo empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["repository"].(string); ok && len(v) > 0 {
+		obj.Repository = v
+	}
+
+	if v, ok := in["revision"].(string); ok && len(v) > 0 {
+		obj.Revision = v
+	}
+
+	if v, ok := in["path"].([]interface{}); ok {
+		obj.Path = expandCommonpbFile(v)
+	}
+
+	return obj, nil
+}
+
+func expandStageSpecConfigSystemSync(p []interface{}) (*gitopspb.StageSpec_SystemSync, error) {
+	var err error
+
+	obj := gitopspb.StageSpec_SystemSync{}
+	obj.SystemSync = &gitopspb.SystemSyncConfig{}
+
+	if len(p) == 0 || p[0] == nil {
+		return &obj, fmt.Errorf("%s", "expandStageSpecConfigSystemSync empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	log.Println("expandStageSpecConfigSystemSync")
+
+	if v, ok := in["git_to_system_sync"].(bool); ok {
+		log.Println("expandStageSpecConfigSystemSync git_to_system_sync")
+		obj.SystemSync.GitToSystemSync = v
+	}
+
+	if v, ok := in["system_to_git_sync"].(bool); ok {
+		obj.SystemSync.SystemToGitSync = v
+	}
+
+	if v, ok := in["included_resources"].([]interface{}); ok && len(v) > 0 {
+		obj.SystemSync.IncludedResources, err = expandIncludedResourceType(v)
+		if err != nil {
+			return &obj, err
+		}
+	}
+
+	if v, ok := in["excluded_resources"].([]interface{}); ok && len(v) > 0 {
+		obj.SystemSync.ExcludedResources, err = expandExcludedResourceType(v)
+		if err != nil {
+			return &obj, err
+		}
+	}
+
+	if v, ok := in["source_repo"].([]interface{}); ok && len(v) > 0 {
+		obj.SystemSync.SourceRepo, err = expandRepo(v)
+		log.Println("expandStageSpecConfigSystemSync sourceRepo: ", obj.SystemSync.SourceRepo, " ERR ", err)
+	}
+
+	if v, ok := in["destination_repo"].([]interface{}); ok && len(v) > 0 {
+		obj.SystemSync.DestinationRepo, err = expandRepo(v)
+		log.Println("expandStageSpecConfigSystemSync destinationRepo: ", obj.SystemSync.DestinationRepo, " ERR ", err)
+
+	}
+
+	if v, ok := in["source_as_destination"].(bool); ok {
+		obj.SystemSync.SourceAsDestination = v
+	}
+
+	log.Println("expandStageSpecConfigSystemSync obj: ", obj.SystemSync)
+
+	return &obj, nil
+}
+
+func expandStageSpecConfigApproval(p []interface{}) (*gitopspb.StageSpec_Approval, error) {
+	obj := gitopspb.StageSpec_Approval{}
+	obj.Approval = &gitopspb.ApprovalConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return &obj, fmt.Errorf("%s", "expandStageSpecConfigApproval empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	// Stages    []*StageSpec          `protobuf:"bytes,1,rep,name=stages,proto3" json:"stages,omitempty"`
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		obj.Approval.Type = v
+	}
+
+	if v, ok := in["timeout"].(string); ok && len(v) > 0 {
+		obj.Approval.Timeout = v
+	}
+
+	if v, ok := in["approvers"].([]interface{}); ok && len(v) > 0 {
+		obj.Approval.Approvers = expandApprovers(v)
+	}
+
+	return &obj, nil
+}
+
+func expandStageSpecConfigWorkloadTemplate(p []interface{}) (*gitopspb.StageSpec_WorkloadTemplate, error) {
+	obj := gitopspb.StageSpec_WorkloadTemplate{}
+	obj.WorkloadTemplate = &gitopspb.DeployWorkloadTemplateConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return &obj, fmt.Errorf("%s", "expandStageSpecConfigWorkloadTemplate empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if _, ok := in["overrides"].([]interface{}); ok {
+		return &obj, fmt.Errorf("%s", "expandStageSpecConfigWorkloadTemplate overrides not supported in terraform")
+	}
+
+	if v, ok := in["workload_template"].(string); ok && len(v) > 0 {
+		obj.WorkloadTemplate.WorkloadTemplate = v
+	}
+
+	if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+		obj.WorkloadTemplate.Namespace = v
+	}
+
+	if v, ok := in["placement"].([]interface{}); ok {
+		obj.WorkloadTemplate.Placement = expandPlacement(v)
+	}
+
+	if v, ok := in["use_revision_from_webhook_trigger_event"].(bool); ok {
+		obj.WorkloadTemplate.UseRevisionFromWebhookTriggerEvent = v
+	}
+
+	return &obj, nil
+}
+
+func expandInfraAgents(p []interface{}) []*gitopspb.AgentMeta {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.AgentMeta{}
+	}
+
+	out := make([]*gitopspb.AgentMeta, len(p))
+
+	for i := range p {
+		obj := gitopspb.AgentMeta{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok {
+			obj.Name = v
+		}
+
+		if v, ok := in["id"].(string); ok {
+			obj.Id = v
+		}
+
+	}
+
+	return out
+}
+
+func expandInfraAction(p []interface{}) *gitopspb.InfraProvisionerConfig_Terraform {
+	obj := &gitopspb.InfraProvisionerConfig_Terraform{}
+	obj.Terraform = &gitopspb.TerraformInfraAction{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	//in := p[0].(map[string]interface{})
+
+	//XXX TODO
+
+	return obj
+
+}
+
+func expandStageSpecConfigInfraProvisioner(p []interface{}) (*gitopspb.StageSpec_InfraProvisioner, error) {
+	obj := gitopspb.StageSpec_InfraProvisioner{}
+	obj.InfraProvisioner = &gitopspb.InfraProvisionerConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return &obj, fmt.Errorf("%s", "expandStageSpecConfigWorkloadTemplate empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		obj.InfraProvisioner.Type = v
+	}
+
+	if v, ok := in["provisioner"].(string); ok && len(v) > 0 {
+		obj.InfraProvisioner.Provisioner = v
+	}
+
+	if v, ok := in["revision"].(string); ok && len(v) > 0 {
+		obj.InfraProvisioner.Revision = v
+	}
+
+	if v, ok := in["working_directory"].(string); ok && len(v) > 0 {
+		obj.InfraProvisioner.WorkingDirectory = v
+	}
+
+	if v, ok := in["persist_working_directory"].(bool); ok {
+		obj.InfraProvisioner.PersistWorkingDirectory = v
+	}
+
+	if v, ok := in["agents"].([]interface{}); ok && len(v) > 0 {
+		obj.InfraProvisioner.Agents = expandInfraAgents(v)
+	}
+
+	if v, ok := in["action"].([]interface{}); ok && len(v) > 0 {
+		obj.InfraProvisioner.Action = expandInfraAction(v)
+	}
+
+	return &obj, nil
+}
+
+// Expand Stage Spec Start
+func expandStageSpec(p []interface{}) ([]*gitopspb.StageSpec, error) {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.StageSpec{}, fmt.Errorf("%s", "expandStageSpec empty input")
 	}
 
 	out := make([]*gitopspb.StageSpec, len(p))
 
 	for i := range p {
-		stageSpec := stageSpec{}
+		var stageType string
 		obj := gitopspb.StageSpec{}
 		in := p[i].(map[string]interface{})
 
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			//obj.Name = v
-			stageSpec.Name = v
+			obj.Name = v
 		}
 
 		if v, ok := in["type"].(string); ok && len(v) > 0 {
-			//obj.Type = v
-			stageSpec.Type = v
+			obj.Type = v
+			stageType = v
+			log.Println("expandStageSpec stageType:", stageType)
 		}
 
 		if v, ok := in["pre_conditions"].([]interface{}); ok && len(v) > 0 {
+			return []*gitopspb.StageSpec{}, fmt.Errorf("%s", "preconditions not supported")
 			//obj.PreConditions = expandStageSpecPreConditions(v)
-			stageSpec.PreConditions = expandStageSpecPreConditions(v)
 		}
 
 		if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
-			//obj.Variables = expandStageSpecVariables(v)
-			stageSpec.Variables = expandVariableSpec(v)
+			obj.Variables = expandVariableSpec(v)
 		}
 
 		if v, ok := in["next"].([]interface{}); ok && len(v) > 0 {
-			//obj.Next = expandStageSpecNext(v)
-			stageSpec.Next = expandStageSpecNext(v)
+			obj.Next = expandStageSpecNext(v)
 		}
 
 		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
-			//obj.Config = expandStageSpecConfig(v)
-			stageSpec.Config = expandStageSpecConfig(v)
-		}
+			log.Println("expandStageSpec config")
 
-		// XXX Debug
-		s := spew.Sprintf("%+v", stageSpec)
-		log.Println("expandStageSpec stageSpec", s)
+			if stageType == "SystemSync" {
+				var err error
+				obj.Config, err = expandStageSpecConfigSystemSync(v)
+				if err != nil {
+					log.Println("expandStageSpec SystemSync err ", err)
+					return []*gitopspb.StageSpec{}, err
+				}
+				log.Println("expandStageSpec SystemSync obj.Config ", obj.Config)
+			} else if stageType == "Approval" {
+				var err error
+				obj.Config, err = expandStageSpecConfigApproval(v)
+				if err != nil {
+					return []*gitopspb.StageSpec{}, err
+				}
+			} else if stageType == "DeployWorkload" {
+				var err error
+				log.Println("expandStageSpec got Workload")
+				obj.Config, err = expandStageSpecConfigWorkload(v)
+				if err != nil {
+					return []*gitopspb.StageSpec{}, err
+				}
+			} else if stageType == "DeployWorkloadTemplate" {
+				var err error
+				log.Println("expandStageSpec got Workload")
+				obj.Config, err = expandStageSpecConfigWorkloadTemplate(v)
+				if err != nil {
+					return []*gitopspb.StageSpec{}, err
+				}
+			} else if stageType == "InfraProvisioner" {
+				//XXX TODO
+				return nil, fmt.Errorf("Stage Type not supported %s", stageType)
+				// var err error
+				// log.Println("expandStageSpec got Workload")
+				// obj.Config, err = expandStageSpecConfigInfraProvisioner(v)
+				// if err != nil {
+				// 	return []*gitopspb.StageSpec{}, err
+				// }
+			} else {
+				return nil, fmt.Errorf("Stage Type not supported %s", stageType)
+			}
 
-		jsonSpec, err := json.Marshal(stageSpec)
-		if err != nil {
-			log.Println("error")
-		}
-
-		// XXX Debug
-		log.Println("expandStageSpec jsonSpec ", string(jsonSpec))
-
-		err = obj.UnmarshalJSON(jsonSpec)
-		if err != nil {
-			log.Println("expandStageSpec UnmarshalJSON error ", err)
 		}
 
 		// XXX Debug
@@ -493,40 +829,49 @@ func expandStageSpec(p []interface{}) []*gitopspb.StageSpec {
 
 	}
 
-	return out
+	return out, nil
 }
 
-func expandStageSpecPreConditions(p []interface{}) []stageSpecPreConditionSpec {
+func expandPreConditionExpression(p []interface{}) (*gitopspb.PreConditionSpec_Expression, error) {
+	obj := gitopspb.PreConditionSpec_Expression{}
 	if len(p) == 0 || p[0] == nil {
-		return []stageSpecPreConditionSpec{}
+		return &obj, fmt.Errorf("%s", "expandPreConditionExpression empty input")
 	}
 
-	out := make([]stageSpecPreConditionSpec, len(p))
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["expression"].(string); ok && len(v) > 0 {
+		obj.Expression = v
+	}
+	return &obj, nil
+}
+
+func expandStageSpecPreConditions(p []interface{}) []*gitopspb.PreConditionSpec {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.PreConditionSpec{}
+	}
+
+	out := make([]*gitopspb.PreConditionSpec, len(p))
 
 	for i := range p {
-		precSpec := stageSpecPreConditionSpec{}
-		//obj := gitopspb.PreConditionSpec{}
+		//precSpec := stageSpecPreConditionSpec{}
+		obj := gitopspb.PreConditionSpec{}
 		in := p[i].(map[string]interface{})
 
 		if v, ok := in["type"].(string); ok && len(v) > 0 {
-			precSpec.Type = v
+			//precSpec.Type = v
+			obj.Type = v
 		}
 		if vp, ok := in["config"].([]interface{}); ok && len(vp) > 0 {
-			if len(vp) == 0 || vp[0] == nil {
-				fmt.Printf("%s", "expandStageSpecPreConditions empty ")
-			}
-			inp := vp[0].(map[string]interface{})
-
-			if v, ok := inp["expression"].(string); ok && len(v) > 0 {
-				precSpec.Config.Expression = v
-			}
+			//precSpec.Config.Expression = v
+			obj.Config, _ = expandPreConditionExpression(vp)
 		}
 
 		// XXX Debug
-		s := spew.Sprintf("%+v", precSpec)
+		s := spew.Sprintf("%+v", obj)
 		log.Println("expandStageSpecPreConditions repoSpec", s)
 
-		out[i] = precSpec
+		out[i] = &obj
 	}
 
 	return out
@@ -557,348 +902,6 @@ func expandStageSpecNext(p []interface{}) []*gitopspb.NextStage {
 	}
 
 	return out
-}
-
-// Stage Spec Config
-func expandStageSpecConfig(p []interface{}) stageSpecConfig {
-	configSpec := stageSpecConfig{}
-	if len(p) == 0 || p[0] == nil {
-		return configSpec
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["type"].(string); ok && len(v) > 0 {
-		configSpec.Type = v
-	}
-
-	if v, ok := in["approvers"].([]interface{}); ok && len(v) > 0 {
-		configSpec.Approvers = expandStageSpecConfigApprovers(v)
-	}
-
-	if v, ok := in["timeout"].(string); ok && len(v) > 0 {
-		configSpec.Timeout = v
-	}
-
-	if v, ok := in["workload"].(string); ok && len(v) > 0 {
-		configSpec.Workload = v
-	}
-
-	if v, ok := in["use_revision_from_webhook_trigger_event"].(bool); ok {
-		configSpec.UseRevisionFromWebhookTriggerEvent = v
-	}
-
-	if v, ok := in["workload_template"].(string); ok && len(v) > 0 {
-		configSpec.WorkloadTemplate = v
-	}
-
-	if v, ok := in["namespace"].(string); ok && len(v) > 0 {
-		configSpec.Namespace = v
-	}
-
-	if v, ok := in["placement"].([]interface{}); ok {
-		configSpec.Placement = expandPlacement(v)
-	}
-
-	if v, ok := in["overrides"].([]interface{}); ok && len(v) > 0 {
-		configSpec.Overrides = expandStageSpecConfigWorkloadTemplateOverrides(v)
-	}
-
-	if v, ok := in["use_revision_from_webhook_trigger_event"].(bool); ok {
-		configSpec.UseRevisionFromWebhookTriggerEvent = v
-	}
-
-	if v, ok := in["provisioner"].(string); ok && len(v) > 0 {
-		configSpec.Provisioner = v
-	}
-
-	if v, ok := in["revision"].(string); ok && len(v) > 0 {
-		configSpec.Revision = v
-	}
-
-	if v, ok := in["working_directory"].(string); ok && len(v) > 0 {
-		configSpec.WorkingDirectory = v
-	}
-
-	if v, ok := in["persist_working_directory"].(bool); ok {
-		configSpec.PersistWorkingDirectory = v
-	}
-
-	if v, ok := in["agents"].([]interface{}); ok && len(v) > 0 {
-		configSpec.Agents = expandStageSpecConfigAgents(v)
-	}
-
-	if va, ok := in["action"].([]interface{}); ok && len(va) > 0 {
-		if len(va) == 0 || va[0] == nil {
-			fmt.Printf("%s", "expandStageSpecConfigAction empty ")
-		}
-		inp := va[0].(map[string]interface{})
-		if v, ok := inp["action"].(string); ok && len(v) > 0 {
-			configSpec.Action.Action = v
-		}
-
-		if v, ok := inp["version"].(string); ok && len(v) > 0 {
-			configSpec.Action.Version = v
-		}
-
-		if v, ok := inp["input_vars"].([]interface{}); ok && len(v) > 0 {
-			configSpec.Action.InputVars = expandStageSpecKeyValue(v)
-		}
-
-		if v, ok := in["tf_vars_file_path"].([]interface{}); ok {
-			configSpec.Action.TfVarsFilePath = expandCommonpbFile(v)
-		}
-
-		if v, ok := inp["env_vars"].([]interface{}); ok && len(v) > 0 {
-			configSpec.Action.EnvVars = expandStageSpecKeyValue(v)
-		}
-
-		if v, ok := inp["backend_vars"].([]interface{}); ok && len(v) > 0 {
-			configSpec.Action.BackendVars = expandStageSpecKeyValue(v)
-		}
-
-		if v, ok := in["backend_file_path"].([]interface{}); ok {
-			configSpec.Action.BackendFilePath = expandCommonpbFile(v)
-		}
-
-		if v, ok := in["refresh"].(bool); ok {
-			configSpec.Action.Refresh = v
-		}
-
-		if v, ok := in["targets"].([]interface{}); ok && len(v) > 0 {
-			configSpec.Action.Targets = expandStageSpecConfigActionTargets(v)
-		}
-
-		if v, ok := in["destroy"].(bool); ok {
-			configSpec.Action.Destroy = v
-		}
-
-	}
-
-	if v, ok := in["git_to_system_sync"].(bool); ok {
-		configSpec.GitToSystemSync = v
-	}
-
-	if v, ok := in["system_to_git_sync"].(bool); ok {
-		configSpec.SystemToGitSync = v
-	}
-
-	if v, ok := in["included_resources"].([]interface{}); ok && len(v) > 0 {
-		configSpec.IncludedResources = expandStageSpecSystemSyncResources(v)
-	}
-
-	if v, ok := in["excluded_resources"].([]interface{}); ok && len(v) > 0 {
-		configSpec.ExcludedResources = expandStageSpecSystemSyncResources(v)
-	}
-
-	if v, ok := in["source_repo"].([]interface{}); ok && len(v) > 0 {
-		configSpec.SourceRepo = expandStageSpecSystemSyncRepo(v)
-	}
-
-	if v, ok := in["destination_repo"].([]interface{}); ok && len(v) > 0 {
-		configSpec.DestinationRepo = expandStageSpecSystemSyncRepo(v)
-	}
-
-	if v, ok := in["source_as_destination"].(bool); ok {
-		configSpec.SourceAsDestination = v
-	}
-
-	return configSpec
-}
-
-func expandStageSpecConfigApprovers(p []interface{}) []*gitopspb.Approver {
-	if len(p) == 0 || p[0] == nil {
-		return []*gitopspb.Approver{}
-	}
-	out := make([]*gitopspb.Approver, len(p))
-
-	for i := range p {
-		obj := gitopspb.Approver{}
-		in := p[i].(map[string]interface{})
-
-		if v, ok := in["user_name"].(string); ok && len(v) > 0 {
-			obj.UserName = v
-		}
-
-		if v, ok := in["sso_user"].(bool); ok {
-			obj.SsoUser = v
-		}
-
-		out[i] = &obj
-
-	}
-
-	return out
-
-}
-
-func expandStageSpecConfigWorkloadTemplateOverrides(p []interface{}) []stageSpecConfigWorkloadTemplateOverrides {
-	if len(p) == 0 || p[0] == nil {
-		return []stageSpecConfigWorkloadTemplateOverrides{}
-	}
-
-	out := make([]stageSpecConfigWorkloadTemplateOverrides, len(p))
-
-	for i := range p {
-		obj := stageSpecConfigWorkloadTemplateOverrides{}
-		in := p[i].(map[string]interface{})
-
-		if v, ok := in["type"].(string); ok && len(v) > 0 {
-			obj.Type = v
-		}
-
-		if v, ok := in["weight"].(int32); ok && v > 0 {
-			obj.Weight = v
-		}
-
-		if vp, ok := in["template"].([]interface{}); ok && len(vp) > 0 {
-			if len(vp) == 0 || vp[0] == nil {
-				fmt.Printf("%s", "expandStageSpecConfigWorkloadTemplateOverridesTemplate empty ")
-			}
-			inp := vp[0].(map[string]interface{})
-			if v, ok := inp["inline"].(string); ok && len(v) > 0 {
-				obj.Template.Inline = v
-			}
-
-			if v, ok := inp["repository"].(string); ok && len(v) > 0 {
-				obj.Template.Repository = v
-			}
-
-			if v, ok := inp["inline"].(string); ok && len(v) > 0 {
-				obj.Template.Revision = v
-			}
-
-			if v, ok := in["paths"].([]interface{}); ok {
-				obj.Template.Paths = expandCommonpbFiles(v)
-			}
-
-		}
-
-		out[i] = obj
-
-	}
-
-	return out
-}
-
-func expandStageSpecConfigAgents(p []interface{}) []*gitopspb.AgentMeta {
-	if len(p) == 0 || p[0] == nil {
-		return []*gitopspb.AgentMeta{}
-	}
-	out := make([]*gitopspb.AgentMeta, len(p))
-
-	for i := range p {
-		obj := gitopspb.AgentMeta{}
-		in := p[i].(map[string]interface{})
-
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj.Name = v
-		}
-
-		if v, ok := in["id"].(string); ok && len(v) > 0 {
-			obj.Id = v
-		}
-
-		out[i] = &obj
-
-	}
-
-	return out
-
-}
-
-func expandStageSpecKeyValue(p []interface{}) []*gitopspb.KeyValue {
-	if len(p) == 0 || p[0] == nil {
-		return nil
-	}
-
-	out := make([]*gitopspb.KeyValue, len(p))
-
-	for i := range p {
-		obj := gitopspb.KeyValue{}
-		in := p[i].(map[string]interface{})
-
-		if v, ok := in["key"].(string); ok && len(v) > 0 {
-			obj.Key = v
-		}
-
-		if v, ok := in["value"].(string); ok && len(v) > 0 {
-			obj.Value = v
-		}
-
-		if v, ok := in["type"].(string); ok && len(v) > 0 {
-			obj.Type = v
-		}
-		out[i] = &obj
-	}
-	return out
-
-}
-
-func expandStageSpecSystemSyncResources(p []interface{}) []*gitopspb.SystemSyncResource {
-	if len(p) == 0 || p[0] == nil {
-		return nil
-	}
-
-	out := make([]*gitopspb.SystemSyncResource, len(p))
-
-	for i := range p {
-		obj := gitopspb.SystemSyncResource{}
-		in := p[i].(map[string]interface{})
-
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj.Name = v
-		}
-
-		out[i] = &obj
-	}
-	return out
-
-}
-
-func expandStageSpecSystemSyncRepo(p []interface{}) *gitopspb.SystemSyncRepo {
-	obj := &gitopspb.SystemSyncRepo{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-
-	in := p[0].(map[string]interface{})
-	if v, ok := in["repository"].(string); ok && len(v) > 0 {
-		obj.Repository = v
-	}
-
-	if v, ok := in["revision"].(string); ok && len(v) > 0 {
-		obj.Revision = v
-	}
-
-	if v, ok := in["path"].([]interface{}); ok {
-		obj.Path = expandCommonpbFile(v)
-	}
-
-	return obj
-
-}
-
-func expandStageSpecConfigActionTargets(p []interface{}) []*gitopspb.TerraformTarget {
-	if len(p) == 0 || p[0] == nil {
-		return []*gitopspb.TerraformTarget{}
-	}
-	out := make([]*gitopspb.TerraformTarget, len(p))
-
-	for i := range p {
-		obj := gitopspb.TerraformTarget{}
-		in := p[i].(map[string]interface{})
-
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj.Name = v
-		}
-
-		out[i] = &obj
-
-	}
-
-	return out
-
 }
 
 // Stage Spec Expand End
@@ -935,6 +938,198 @@ func expandVariableSpec(p []interface{}) []*gitopspb.VariableSpec {
 }
 
 // Variable Spec Expand End
+func expandWebhookTriggerHelm(p []interface{}) *gitopspb.WebhookTriggerConfig_Helm {
+	obj := &gitopspb.WebhookTriggerConfig_Helm{}
+	obj.Helm = &gitopspb.HelmRepoConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["chart_name"].(string); ok && len(v) > 0 {
+		obj.Helm.ChartName = v
+	}
+
+	if v, ok := in["chart_version"].(string); ok && len(v) > 0 {
+		obj.Helm.ChartVersion = v
+	}
+
+	if v, ok := in["repository"].(string); ok && len(v) > 0 {
+		obj.Helm.Repository = v
+	}
+
+	return obj
+}
+
+func expandWebhookTriggerGit(p []interface{}) *gitopspb.WebhookTriggerConfig_Git {
+	obj := &gitopspb.WebhookTriggerConfig_Git{}
+	obj.Git = &gitopspb.GitRepoConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["provider"].(string); ok && len(v) > 0 {
+		obj.Git.Provider = v
+	}
+
+	if v, ok := in["repository"].(string); ok && len(v) > 0 {
+		obj.Git.Repository = v
+	}
+
+	if v, ok := in["revision"].(string); ok && len(v) > 0 {
+		obj.Git.Revision = v
+	}
+
+	if v, ok := in["path"].([]interface{}); ok && len(v) > 0 {
+		obj.Git.Paths = expandCommonpbFiles(v)
+	}
+
+	return obj
+}
+
+func expandWebhookTrigger(p []interface{}) *gitopspb.WebhookTriggerConfig {
+	obj := &gitopspb.WebhookTriggerConfig{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["provider"].(string); ok && len(v) > 0 {
+		if v == "Github" || v == "Gitlab" || v == "Bitbucket" || v == "AzureRepos" {
+			obj.Repo = expandWebhookTriggerGit(p)
+		}
+
+		if v == "Helm" {
+			obj.Repo = expandWebhookTriggerHelm(p)
+		}
+	}
+	return obj
+}
+
+func expandCronTrigger(p []interface{}) *gitopspb.CronTriggerConfig {
+	obj := &gitopspb.CronTriggerConfig{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	log.Println("expandCronTrigger ")
+	if v, ok := in["cron_expression"].(string); ok && len(v) > 0 {
+		log.Println("expandCronTrigger CronExpression ", v)
+		obj.CronExpression = v
+	}
+
+	if v, ok := in["provider"].(string); ok && len(v) > 0 {
+		if v == "Github" || v == "Gitlab" || v == "Bitbucket" || v == "AzureRepos" {
+			obj.Repo = expandCronTriggerGit(p)
+		}
+
+		if v == "Helm" {
+			obj.Repo = expandCronTriggerHelm(p)
+		}
+	}
+	log.Println("expandCronTrigger obj ", obj)
+
+	return obj
+}
+
+func expandCronTriggerHelm(p []interface{}) *gitopspb.CronTriggerConfig_Helm {
+	obj := &gitopspb.CronTriggerConfig_Helm{}
+	obj.Helm = &gitopspb.HelmRepoConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["chart_name"].(string); ok && len(v) > 0 {
+		obj.Helm.ChartName = v
+	}
+
+	if v, ok := in["chart_version"].(string); ok && len(v) > 0 {
+		obj.Helm.ChartVersion = v
+	}
+
+	if v, ok := in["repository"].(string); ok && len(v) > 0 {
+		obj.Helm.Repository = v
+	}
+
+	return obj
+}
+
+func expandCronTriggerGit(p []interface{}) *gitopspb.CronTriggerConfig_Git {
+	obj := &gitopspb.CronTriggerConfig_Git{}
+	obj.Git = &gitopspb.GitRepoConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["provider"].(string); ok && len(v) > 0 {
+		obj.Git.Provider = v
+	}
+
+	if v, ok := in["repository"].(string); ok && len(v) > 0 {
+		obj.Git.Repository = v
+	}
+
+	if v, ok := in["revision"].(string); ok && len(v) > 0 {
+		obj.Git.Revision = v
+	}
+
+	if v, ok := in["path"].([]interface{}); ok && len(v) > 0 {
+		obj.Git.Paths = expandCommonpbFiles(v)
+	}
+
+	log.Println("expandCronTriggerGit obj ", obj)
+	return obj
+}
+
+func expandTriggerWebhookSpec(p []interface{}) *gitopspb.TriggerSpec_Webhook {
+	obj := &gitopspb.TriggerSpec_Webhook{}
+	obj.Webhook = &gitopspb.WebhookTriggerConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["repo"].([]interface{}); ok && len(v) > 0 {
+		obj.Webhook = expandWebhookTrigger(v)
+	}
+
+	return obj
+}
+
+func expandTriggerCronSpec(p []interface{}) *gitopspb.TriggerSpec_Cron {
+	obj := &gitopspb.TriggerSpec_Cron{}
+	obj.Cron = &gitopspb.CronTriggerConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["repo"].([]interface{}); ok && len(v) > 0 {
+		obj.Cron = expandCronTrigger(v)
+	}
+
+	if v, ok := in["cron_expression"].(string); ok && len(v) > 0 {
+		log.Println("expandTriggerCronSpec CronExpression ", v)
+		obj.Cron.CronExpression = v
+	}
+
+	log.Println("expandTriggerCronSpec obj ", obj)
+	return obj
+}
 
 // Trigger Spec Expand Start
 func expandTriggerSpec(p []interface{}) []*gitopspb.TriggerSpec {
@@ -945,8 +1140,7 @@ func expandTriggerSpec(p []interface{}) []*gitopspb.TriggerSpec {
 	out := make([]*gitopspb.TriggerSpec, len(p))
 
 	for i := range p {
-		obj := triggerSpec{}
-		trueObj := gitopspb.TriggerSpec{}
+		obj := gitopspb.TriggerSpec{}
 		in := p[i].(map[string]interface{})
 
 		if v, ok := in["type"].(string); ok && len(v) > 0 {
@@ -962,62 +1156,16 @@ func expandTriggerSpec(p []interface{}) []*gitopspb.TriggerSpec {
 		}
 
 		if vp, ok := in["config"].([]interface{}); ok && len(vp) > 0 {
-			if len(vp) == 0 || vp[0] == nil {
-				return []*gitopspb.TriggerSpec{}
-			}
-			inp := vp[0].(map[string]interface{})
-
-			if vpo, ok := in["repo"].([]interface{}); ok && len(vpo) > 0 {
-				if len(vpo) == 0 || vpo[0] == nil {
-					return []*gitopspb.TriggerSpec{}
-				}
-				inpo := vpo[0].(map[string]interface{})
-
-				if v, ok := inpo["provider"].(string); ok && len(v) > 0 {
-					obj.Config.Repo.Provider = v
-				}
-
-				if v, ok := inpo["repository"].(string); ok && len(v) > 0 {
-					obj.Config.Repo.Repository = v
-				}
-
-				if v, ok := inpo["revision"].(string); ok && len(v) > 0 {
-					obj.Config.Repo.Revision = v
-				}
-
-				if v, ok := inpo["paths"].([]interface{}); ok {
-					//obj.Secret = expandCommonpbFile(v)
-					obj.Config.Repo.Paths = expandCommonpbFiles(v)
-				}
-
-				if v, ok := inpo["chart_name"].(string); ok && len(v) > 0 {
-					obj.Config.Repo.ChartName = v
-				}
-
-				if v, ok := inpo["chart_version"].(string); ok && len(v) > 0 {
-					obj.Config.Repo.ChartVersion = v
-				}
+			if obj.Type == "Webhook" {
+				obj.Config = expandTriggerWebhookSpec(vp)
 			}
 
-			if v, ok := inp["cron_expression"].(string); ok && len(v) > 0 {
-				obj.Config.CronExpression = v
+			if obj.Type == "Cron" {
+				obj.Config = expandTriggerCronSpec(vp)
 			}
 		}
 
-		jsonSpec, err := json.Marshal(obj)
-		if err != nil {
-			return nil
-		}
-
-		log.Println("expandTriggerSpec jsonSpec ", string(jsonSpec))
-
-		err = trueObj.UnmarshalJSON(jsonSpec)
-		if err != nil {
-			log.Println("expandTriggerSpec UnmarshalJSON error ", err)
-			return nil
-		}
-
-		out[i] = &trueObj
+		out[i] = &obj
 
 	}
 	return out
@@ -1058,6 +1206,7 @@ func flattenPipelineSpec(in *gitopspb.PipelineSpec, p []interface{}) ([]interfac
 		return nil, fmt.Errorf("%s", "flattenPipeline empty input")
 	}
 
+	log.Println("flattenPipelineSpec starts")
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -1099,6 +1248,10 @@ func flattenPipelineSpec(in *gitopspb.PipelineSpec, p []interface{}) ([]interfac
 		obj["secrets"] = flattenCommonpbFile(in.Secret)
 	}
 
+	specSt := spew.Sprintf("%+v", obj)
+	log.Println("flattenStageSpecConfig after ", specSt)
+	log.Println("flattenPipelineSpec ends")
+
 	return []interface{}{obj}, nil
 }
 
@@ -1121,18 +1274,21 @@ func flattenStageSpec(input []*gitopspb.StageSpec, p []interface{}) []interface{
 
 		stSpec := stageSpec{}
 		err = json.Unmarshal(jsonBytes, &stSpec)
+		if err != nil {
+			return nil
+		}
 
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
 
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
+		if len(stSpec.Name) > 0 {
+			obj["name"] = stSpec.Name
 		}
 
-		if len(in.Type) > 0 {
-			obj["type"] = in.Type
+		if len(stSpec.Type) > 0 {
+			obj["type"] = stSpec.Type
 		}
 
 		//PRE CONDITION FLATTEN
@@ -1207,6 +1363,8 @@ func flattenStageSpec(input []*gitopspb.StageSpec, p []interface{}) []interface{
 
 		//Put together
 
+		w2 = spew.Sprintf("%+v", obj)
+		log.Println(" flattenStageSpec obj ", w2)
 		out[i] = &obj
 	}
 
@@ -1318,11 +1476,6 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 
 	// var start
 
-	if len(stSpec.Config.Type) > 0 {
-		obj["type"] = stSpec.Config.Type
-		retNil = false
-	}
-
 	if len(stSpec.Config.Approvers) > 0 {
 		v, ok := obj["approvers"].([]interface{})
 		if !ok {
@@ -1330,8 +1483,6 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 		}
 
 		obj["approvers"] = flattenStageSpecApprovers(stSpec.Config.Approvers, v)
-	} else {
-		obj["approvers"] = nil
 	}
 
 	if len(stSpec.Config.Timeout) > 0 {
@@ -1538,7 +1689,7 @@ func flattenStageSpecConfigOverridesTemplate(in stageSpecConfigWorkloadTemplateO
 	}
 
 	if in.Template.Paths != nil {
-		obj["paths"] = flattenCommonpbFiles(in.Template.Paths)
+		obj["path"] = flattenCommonpbFiles(in.Template.Paths)
 		retNil = false
 	}
 
@@ -1756,17 +1907,17 @@ func flattenStageSpecSystemSyncRepo(in *gitopspb.SystemSyncRepo) []interface{} {
 	obj := make(map[string]interface{})
 
 	if len(in.Repository) > 0 {
-		obj["pod"] = (in.Repository)
+		obj["repository"] = (in.Repository)
 		retNil = false
 	}
 
 	if len(in.Revision) > 0 {
-		obj["name"] = (in.Revision)
+		obj["revision"] = (in.Revision)
 		retNil = false
 	}
 
 	if in.Path != nil {
-		obj["paths"] = flattenCommonpbFile(in.Path)
+		obj["path"] = flattenCommonpbFile(in.Path)
 		retNil = false
 	}
 
@@ -1829,25 +1980,41 @@ func flattenTriggerSpec(input []*gitopspb.TriggerSpec, p []interface{}) []interf
 		w1 := spew.Sprintf("%+v", v)
 		log.Println("flattenTriggerConfig before ", w1)
 
-		var ret []interface{}
-		ret, err = flattenTriggerConfig(&tSpec, v)
+		ret := flattenTriggerConfig(&tSpec, v)
 		if err != nil {
 			log.Println("flattenTriggerConfig error ", err)
 			return nil
 		}
 
+		obj["config"] = ret
 		// XXX Debug
 		w1 = spew.Sprintf("%+v", ret)
 		log.Println("flattenTriggerConfig after ", w1)
 
-		obj["config"] = ret
 		out[i] = &obj
 	}
 
-	return []interface{}{out}
+	return out
 }
 
-func flattenTriggerConfig(tSpec *triggerSpec, p []interface{}) ([]interface{}, error) {
+func flattenTriggerConfig(tSpec *triggerSpec, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	v, ok := obj["repo"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+
+	obj["repo"], _ = flattenTriggerConfigRepos(tSpec, v)
+
+	return []interface{}{obj}
+
+}
+
+func flattenTriggerConfigRepos(tSpec *triggerSpec, p []interface{}) ([]interface{}, error) {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})

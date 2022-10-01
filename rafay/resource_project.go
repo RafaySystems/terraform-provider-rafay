@@ -11,6 +11,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/systempb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/models"
@@ -29,6 +30,9 @@ func resourceProject() *schema.Resource {
 		ReadContext:   resourceProjectRead,
 		UpdateContext: resourceProjectUpdate,
 		DeleteContext: resourceProjectDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceProjectImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -535,4 +539,25 @@ func getProjectFromResponse(json_data []byte) (*models.Project, error) {
 		return nil, err
 	}
 	return &pr, nil
+}
+
+func resourceProjectImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	//d_debug := spew.Sprintf("%+v", d)
+	log.Println("resourceProjectImport d.Id:", d.Id())
+	//log.Println("resourceProjectImport d_debug", d_debug)
+
+	project := &systempb.Project{}
+
+	var metaD commonpb.Metadata
+	metaD.Name = d.Id()
+	project.Metadata = &metaD
+
+	err := d.Set("metadata", flattenMetaData(project.Metadata))
+	if err != nil {
+		return nil, err
+	}
+
+	d.SetId(project.Metadata.Name)
+
+	return []*schema.ResourceData{d}, nil
 }

@@ -20,11 +20,11 @@ resource "rafay_secretsealer" "tfdemosecretsealer1" {
     project = "terraform"
   }
   spec {
-    type = ""
+    type = "KubeSeal"
     sharing {
       enabled = false
     }
-    version = ""
+    version = "v-1"
   }
 }
 
@@ -34,14 +34,14 @@ resource "rafay_secretsealer" "tfdemosecretsealer2" {
     project = "terraform"
   }
   spec {
-    type = ""
+    type = "KubeSeal"
     sharing {
       enabled = true
       projects {
         name = "defaultproject"
       }
     }
-    version = ""
+    version = "v-1"
   }
 }
 ```
@@ -67,13 +67,11 @@ resource "rafay_secretsealer" "tfdemosecretsealer2" {
 ***Required***
 
 - `name` - (String) The name of the resource. This must be unique in your organization.
-- `project` - (String) The name of the Rafay project the pipeline will be associated with.
+- `project` - (String) The name of the Rafay project the secret sealer will be associated with.
 
 ***Optional***
 
-- `annotations` - (Map of String) Annotations of the resource.
 - `description` - (String) Description of the resource.
-- `labels` - (Map of String) Labels of the resource.
 
 ---
 
@@ -81,11 +79,14 @@ resource "rafay_secretsealer" "tfdemosecretsealer2" {
 
 ### Nested Schema for `spec`
 
+***Required***
+
+- `type` - (String) The type of secret sealer. The supported value is `KubeSeal`.
+- `version` - (String) The version of the secret sealer.
+
 ***Optional***
 
-- `sharing` - (Block List, Max: 1) Enables sharing the pipeline. (See [below for nested schema](#nestedblock--spec--sharing))
-- `type` - (String) The type of secret sealer.
-- `version` - (String) The version of the secret sealer.
+- `sharing` - (Block List, Max: 1) Enables sharing the secret sealer. (See [below for nested schema](#nestedblock--spec--sharing))
 
 <a id="nestedblock--spec--sharing"></a>
 
@@ -93,7 +94,7 @@ resource "rafay_secretsealer" "tfdemosecretsealer2" {
 
 ***Optional***
 
-- `enabled` - (Boolean) Enables sharing the pipeline.
+- `enabled` - (Boolean) Enables sharing the secret sealer.
 - `projects` - (Block List) List of projects this resource is shared with. (See [below for nested schema](#nestedblock--spec--sharing--projects))
 
 <a id="nestedblock--spec--sharing--projects"></a>

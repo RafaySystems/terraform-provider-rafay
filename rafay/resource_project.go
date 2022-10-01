@@ -91,6 +91,13 @@ func resourceProjectUpsert(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
+	if d.State() != nil && d.State().ID != "" {
+		if pr.Metadata.Name != d.State().ID {
+			log.Printf("Project name change not support")
+			return diag.FromErr(fmt.Errorf("%s", "project name change not supported"))
+		}
+	}
+
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 	if err != nil {
@@ -105,6 +112,11 @@ func resourceProjectUpsert(ctx context.Context, d *schema.ResourceData, m interf
 		log.Printf("Project apply error")
 		return diag.FromErr(err)
 	}
+
+	// projectId, err := config.GetProjectIdByName(pr.Metadata.Name)
+	// if err != nil {
+	// 	return diag.FromErr(err)
+	// }
 
 	d.SetId(pr.Metadata.Name)
 	return diags

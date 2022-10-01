@@ -951,11 +951,23 @@ func flattenResourceQuantity1170(in *commonpb.ResourceQuantity) []interface{} {
 
 	obj := make(map[string]interface{})
 	if in.Memory != nil {
+		for i := 0; i < 10; i++ {
+			in.GetMemory().Add(*in.GetMemory())
+			//log.Println("adding ", in.GetMemory().String())
+		}
 		obj["memory"] = in.GetMemory().String()
+		//log.Println("flattenResourceQuantity1170 memory string ", in.GetMemory().String())
 	}
 
 	if in.Cpu != nil {
+		cq := *in.Cpu
+		for i := 0; i < 999; i++ {
+			in.GetCpu().Add(cq)
+			//log.Println("adding ", in.GetCpu().String())
+		}
+		in.GetCpu().RoundUp(resource.Micro)
 		obj["cpu"] = in.GetCpu().String()
+		//log.Println("flattenResourceQuantity1170 cpu string ", in.GetCpu().String(), " => ")
 	}
 
 	log.Println("flattenResourceQuantityV101 obj", obj)

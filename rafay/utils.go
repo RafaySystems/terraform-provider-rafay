@@ -14,6 +14,7 @@ import (
 	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-yaml/yaml"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
@@ -966,4 +967,58 @@ func ResetImpersonateUser() {
 	config.ApiKey = ""
 	config.ApiSecret = ""
 	config.ResetOrigConfig()
+}
+
+func ReadMetaName(p []interface{}) string {
+	if p == nil || len(p) == 0 || p[0] == nil {
+		return ""
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		return v
+	}
+	return ""
+}
+
+func GetMetaName(in *schema.ResourceData) string {
+	if in == nil {
+		return ""
+	}
+
+	if v, ok := in.Get("metadata").([]interface{}); ok {
+		return ReadMetaName(v)
+	}
+
+	return ""
+}
+
+func ReadMeta(p []interface{}) *commonpb.Metadata {
+	if p == nil || len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	var meta commonpb.Metadata
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		meta.Name = v
+	}
+
+	if v, ok := in["project"].(string); ok && len(v) > 0 {
+		meta.Project = v
+	}
+
+	return &meta
+}
+func GetMetaData(in *schema.ResourceData) *commonpb.Metadata {
+	if in == nil {
+		return nil
+	}
+
+	if v, ok := in.Get("metadata").([]interface{}); ok {
+		return ReadMeta(v)
+	}
+
+	return nil
 }

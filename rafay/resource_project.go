@@ -85,6 +85,15 @@ func resourceProjectUpsert(ctx context.Context, d *schema.ResourceData, m interf
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
+	if d.State() != nil && d.State().ID != "" {
+		n := GetMetaName(d)
+		if n != "" && n != d.State().ID {
+			log.Printf("Project name change not supported")
+			d.State().Tainted = true
+			return diag.FromErr(fmt.Errorf("%s", "project name change not supported"))
+		}
+	}
+
 	pr, err := expandProject(d)
 	if err != nil {
 		log.Printf("Project expandProject error")
@@ -106,13 +115,18 @@ func resourceProjectUpsert(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
+	// projectId, err := config.GetProjectIdByName(pr.Metadata.Name)
+	// if err != nil {
+	// 	return diag.FromErr(err)
+	// }
+
 	d.SetId(pr.Metadata.Name)
 	return diags
 
 }
 
 func resourceProjectDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+	//var diags diag.Diagnostics
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -138,8 +152,6 @@ func resourceProjectDelete(ctx context.Context, d *schema.ResourceData, m interf
 
 	//v3 spec gave error try v2
 	return resourceProjectV2Delete(ctx, project)
-
-	return diags
 }
 
 func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -150,10 +162,19 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
-	tfProjectState, err := expandProject(d)
-	if err != nil {
-		return diag.FromErr(err)
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
 	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
+	// tfProjectState, err := expandProject(d)
+	// if err != nil {
+	// 	return diag.FromErr(err)
+	// }
 
 	// XXX Debug
 	// w1 := spew.Sprintf("%+v", tfProjectState)
@@ -166,8 +187,8 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	Project, err := client.SystemV3().Project().Get(ctx, options.GetOptions{
-		Name:    tfProjectState.Metadata.Name,
-		Project: tfProjectState.Metadata.Project,
+		Name: meta.Name,
+		//Project: meta.Project,
 	})
 	if err != nil {
 		return diag.FromErr(err)
@@ -253,81 +274,75 @@ func expandProjectResourceQuota(p []interface{}) *systempb.ProjectResourceQuota 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
-	/*
-			in := p[0].(map[string]interface{})
 
-		in := p[0].(map[string]interface{})
+	in := p[0].(map[string]interface{})
 
-		if v, ok := in["cpu_requests"].(string); ok && len(v) > 0 {
-			//obj.CpuRequests = expandQuantityString(v)
-			obj.CpuRequests = v
+	if v, ok := in["cpu_requests"].(string); ok && len(v) > 0 {
+		//obj.CpuRequests = expandQuantityString(v)
+		obj.CpuRequests = v
 
-		}
+	}
 
-		if v, ok := in["memory_requests"].(string); ok && len(v) > 0 {
-			//obj.MemoryRequests = expandQuantityString(v)
-			obj.MemoryRequests = v
-		}
+	if v, ok := in["memory_requests"].(string); ok && len(v) > 0 {
+		//obj.MemoryRequests = expandQuantityString(v)
+		obj.MemoryRequests = v
+	}
 
-		if v, ok := in["cpu_limits"].(string); ok && len(v) > 0 {
-			//obj.CpuLimits = expandQuantityString(v)
-			obj.CpuLimits = v
-		}
+	if v, ok := in["cpu_limits"].(string); ok && len(v) > 0 {
+		//obj.CpuLimits = expandQuantityString(v)
+		obj.CpuLimits = v
+	}
 
-		if v, ok := in["memory_limits"].(string); ok && len(v) > 0 {
-			//obj.MemoryLimits = expandQuantityString(v)
-			obj.MemoryLimits = v
-		}
+	if v, ok := in["memory_limits"].(string); ok && len(v) > 0 {
+		//obj.MemoryLimits = expandQuantityString(v)
+		obj.MemoryLimits = v
+	}
 
-		if v, ok := in["config_maps"].(string); ok && len(v) > 0 {
-			//obj.ConfigMaps = expandQuantityString(v)
-			obj.ConfigMaps = v
-		}
+	if v, ok := in["config_maps"].(string); ok && len(v) > 0 {
+		//obj.ConfigMaps = expandQuantityString(v)
+		obj.ConfigMaps = v
+	}
 
-		if v, ok := in["persistent_volume_claims"].(string); ok && len(v) > 0 {
-			//obj.PersistentVolumeClaims = expandQuantityString(v)
-			obj.PersistentVolumeClaims = v
-		}
+	if v, ok := in["persistent_volume_claims"].(string); ok && len(v) > 0 {
+		//obj.PersistentVolumeClaims = expandQuantityString(v)
+		obj.PersistentVolumeClaims = v
+	}
 
-		if v, ok := in["secrets"].(string); ok && len(v) > 0 {
-			//obj.Secrets = expandQuantityString(v)
-			obj.Secrets = v
-		}
+	if v, ok := in["secrets"].(string); ok && len(v) > 0 {
+		//obj.Secrets = expandQuantityString(v)
+		obj.Secrets = v
+	}
 
-		if v, ok := in["services"].(string); ok && len(v) > 0 {
-			//obj.Services = expandQuantityString(v)
-			obj.Services = v
-		}
+	if v, ok := in["services"].(string); ok && len(v) > 0 {
+		//obj.Services = expandQuantityString(v)
+		obj.Services = v
+	}
 
-		if v, ok := in["services_load_balancers"].(string); ok && len(v) > 0 {
-			//obj.ServicesLoadBalancers = expandQuantityString(v)
-			obj.ServicesLoadBalancers = v
-		}
+	if v, ok := in["services_load_balancers"].(string); ok && len(v) > 0 {
+		//obj.ServicesLoadBalancers = expandQuantityString(v)
+		obj.ServicesLoadBalancers = v
+	}
 
-		if v, ok := in["services_node_ports"].(string); ok && len(v) > 0 {
-			//obj.ServicesNodePorts = expandQuantityString(v)
-			obj.ServicesNodePorts = v
-		}
+	if v, ok := in["services_node_ports"].(string); ok && len(v) > 0 {
+		//obj.ServicesNodePorts = expandQuantityString(v)
+		obj.ServicesNodePorts = v
+	}
 
-		if v, ok := in["storage_requests"].(string); ok && len(v) > 0 {
-			//obj.StorageRequests = expandQuantityString(v)
-			obj.StorageRequests = v
-		}
+	if v, ok := in["storage_requests"].(string); ok && len(v) > 0 {
+		//obj.StorageRequests = expandQuantityString(v)
+		obj.StorageRequests = v
+	}
 
-		if v, ok := in["pods"].(string); ok && len(v) > 0 {
-			//obj.Pods = expandQuantityString(v)
-			obj.Pods = v
-		}
+	if v, ok := in["pods"].(string); ok && len(v) > 0 {
+		//obj.Pods = expandQuantityString(v)
+		obj.Pods = v
+	}
 
-		if v, ok := in["replication_controllers"].(string); ok && len(v) > 0 {
-			//obj.ReplicationControllers = expandQuantityString(v)
-			obj.ReplicationControllers = v
-		}
+	if v, ok := in["replication_controllers"].(string); ok && len(v) > 0 {
+		//obj.ReplicationControllers = expandQuantityString(v)
+		obj.ReplicationControllers = v
+	}
 
-			if v, ok := in["replication_controllers"].(string); ok && len(v) > 0 {
-				obj.ReplicationControllers = expandQuantityString(v)
-			}
-	*/
 	return obj
 }
 
@@ -389,173 +404,120 @@ func flattenProjectResourceQuota(in *systempb.ProjectResourceQuota) []interface{
 		return nil
 	}
 
-	//retNil := true
+	retNil := true
 	obj := make(map[string]interface{})
-	/*
-			if in.ConfigMaps != nil {
-				obj["config_maps"] = in.ConfigMaps.String()
-				retNil = false
-			}
-			if in.CpuLimits != nil {
-				obj["cpu_limits"] = in.CpuLimits.String()
-				retNil = false
-			}
-			if in.CpuRequests != nil {
-				obj["cpu_requests"] = in.CpuRequests.String()
-				retNil = false
-			}
-			if in.MemoryLimits != nil {
-				obj["memory_limits"] = in.MemoryLimits.String()
-				retNil = false
-			}
-			if in.MemoryRequests != nil {
-				obj["memory_requests"] = in.MemoryRequests.String()
-				retNil = false
-			}
-			if in.PersistentVolumeClaims != nil {
-				obj["persistent_volume_claims"] = in.PersistentVolumeClaims.String()
-				retNil = false
-			}
-			if in.Pods != nil {
-				obj["pods"] = in.Pods.String()
-				retNil = false
-			}
-			if in.ReplicationControllers != nil {
-				obj["replication_controllers"] = in.ReplicationControllers.String()
-				retNil = false
-			}
-			if in.Secrets != nil {
-				obj["secrets"] = in.Secrets.String()
-				retNil = false
-			}
-			if in.Services != nil {
-				obj["services"] = in.Services.String()
-				retNil = false
-			}
-			if in.ServicesLoadBalancers != nil {
-				obj["services_load_balancers"] = in.ServicesLoadBalancers.String()
-				retNil = false
-			}
-			if in.ServicesNodePorts != nil {
-				obj["services_node_ports"] = in.ServicesNodePorts.String()
-				retNil = false
-			}
-			if in.StorageRequests != nil {
-				obj["storage_requests"] = in.StorageRequests.String()
-				retNil = false
-			}
 
-		// if in.ConfigMaps != nil {
-		// 	obj["config_maps"] = in.ConfigMaps.String()
-		// 	retNil = false
-		// }
-		// if in.CpuLimits != nil {
-		// 	obj["cpu_limits"] = in.CpuLimits.String()
-		// 	retNil = false
-		// }
-		// if in.CpuRequests != nil {
-		// 	obj["cpu_requests"] = in.CpuRequests.String()
-		// 	retNil = false
-		// }
-		// if in.MemoryLimits != nil {
-		// 	obj["memory_limits"] = in.MemoryLimits.String()
-		// 	retNil = false
-		// }
-		// if in.MemoryRequests != nil {
-		// 	obj["memory_requests"] = in.MemoryRequests.String()
-		// 	retNil = false
-		// }
-		// if in.PersistentVolumeClaims != nil {
-		// 	obj["persistent_volume_claims"] = in.PersistentVolumeClaims.String()
-		// 	retNil = false
-		// }
-		// if in.Pods != nil {
-		// 	obj["pods"] = in.Pods.String()
-		// 	retNil = false
-		// }
-		// if in.ReplicationControllers != nil {
-		// 	obj["replication_controllers"] = in.ReplicationControllers.String()
-		// 	retNil = false
-		// }
-		// if in.Secrets != nil {
-		// 	obj["secrets"] = in.Secrets.String()
-		// 	retNil = false
-		// }
-		// if in.Services != nil {
-		// 	obj["services"] = in.Services.String()
-		// 	retNil = false
-		// }
-		// if in.ServicesLoadBalancers != nil {
-		// 	obj["services_load_balancers"] = in.ServicesLoadBalancers.String()
-		// 	retNil = false
-		// }
-		// if in.ServicesNodePorts != nil {
-		// 	obj["services_node_ports"] = in.ServicesNodePorts.String()
-		// 	retNil = false
-		// }
-		// if in.StorageRequests != nil {
-		// 	obj["storage_requests"] = in.StorageRequests.String()
-		// 	retNil = false
-		// }
+	// if in.ConfigMaps != nil {
+	// 	obj["config_maps"] = in.ConfigMaps.String()
+	// 	retNil = false
+	// }
+	// if in.CpuLimits != nil {
+	// 	obj["cpu_limits"] = in.CpuLimits.String()
+	// 	retNil = false
+	// }
+	// if in.CpuRequests != nil {
+	// 	obj["cpu_requests"] = in.CpuRequests.String()
+	// 	retNil = false
+	// }
+	// if in.MemoryLimits != nil {
+	// 	obj["memory_limits"] = in.MemoryLimits.String()
+	// 	retNil = false
+	// }
+	// if in.MemoryRequests != nil {
+	// 	obj["memory_requests"] = in.MemoryRequests.String()
+	// 	retNil = false
+	// }
+	// if in.PersistentVolumeClaims != nil {
+	// 	obj["persistent_volume_claims"] = in.PersistentVolumeClaims.String()
+	// 	retNil = false
+	// }
+	// if in.Pods != nil {
+	// 	obj["pods"] = in.Pods.String()
+	// 	retNil = false
+	// }
+	// if in.ReplicationControllers != nil {
+	// 	obj["replication_controllers"] = in.ReplicationControllers.String()
+	// 	retNil = false
+	// }
+	// if in.Secrets != nil {
+	// 	obj["secrets"] = in.Secrets.String()
+	// 	retNil = false
+	// }
+	// if in.Services != nil {
+	// 	obj["services"] = in.Services.String()
+	// 	retNil = false
+	// }
+	// if in.ServicesLoadBalancers != nil {
+	// 	obj["services_load_balancers"] = in.ServicesLoadBalancers.String()
+	// 	retNil = false
+	// }
+	// if in.ServicesNodePorts != nil {
+	// 	obj["services_node_ports"] = in.ServicesNodePorts.String()
+	// 	retNil = false
+	// }
+	// if in.StorageRequests != nil {
+	// 	obj["storage_requests"] = in.StorageRequests.String()
+	// 	retNil = false
+	// }
 
-		if len(in.ConfigMaps) > 0 {
-			obj["type"] = in.ConfigMaps
-			retNil = false
-		}
+	if len(in.ConfigMaps) > 0 {
+		obj["type"] = in.ConfigMaps
+		retNil = false
+	}
 
-		if len(in.CpuLimits) > 0 {
-			obj["cpu_limits"] = in.CpuLimits
-			retNil = false
-		}
-		if len(in.CpuRequests) > 0 {
-			obj["cpu_requests"] = in.CpuRequests
-			retNil = false
-		}
-		if len(in.MemoryLimits) > 0 {
-			obj["memory_limits"] = in.MemoryLimits
-			retNil = false
-		}
-		if len(in.MemoryRequests) > 0 {
-			obj["memory_requests"] = in.MemoryRequests
-			retNil = false
-		}
-		if len(in.PersistentVolumeClaims) > 0 {
-			obj["persistent_volume_claims"] = in.PersistentVolumeClaims
-			retNil = false
-		}
-		if len(in.Pods) > 0 {
-			obj["pods"] = in.Pods
-			retNil = false
-		}
-		if len(in.ReplicationControllers) > 0 {
-			obj["replication_controllers"] = in.ReplicationControllers
-			retNil = false
-		}
-		if len(in.Secrets) > 0 {
-			obj["secrets"] = in.Secrets
-			retNil = false
-		}
-		if len(in.Services) > 0 {
-			obj["services"] = in.Services
-			retNil = false
-		}
-		if len(in.ServicesLoadBalancers) > 0 {
-			obj["services_load_balancers"] = in.ServicesLoadBalancers
-			retNil = false
-		}
-		if len(in.ServicesNodePorts) > 0 {
-			obj["services_node_ports"] = in.ServicesNodePorts
-			retNil = false
-		}
-		if len(in.StorageRequests) > 0 {
-			obj["storage_requests"] = in.StorageRequests
-			retNil = false
-		}
+	if len(in.CpuLimits) > 0 {
+		obj["cpu_limits"] = in.CpuLimits
+		retNil = false
+	}
+	if len(in.CpuRequests) > 0 {
+		obj["cpu_requests"] = in.CpuRequests
+		retNil = false
+	}
+	if len(in.MemoryLimits) > 0 {
+		obj["memory_limits"] = in.MemoryLimits
+		retNil = false
+	}
+	if len(in.MemoryRequests) > 0 {
+		obj["memory_requests"] = in.MemoryRequests
+		retNil = false
+	}
+	if len(in.PersistentVolumeClaims) > 0 {
+		obj["persistent_volume_claims"] = in.PersistentVolumeClaims
+		retNil = false
+	}
+	if len(in.Pods) > 0 {
+		obj["pods"] = in.Pods
+		retNil = false
+	}
+	if len(in.ReplicationControllers) > 0 {
+		obj["replication_controllers"] = in.ReplicationControllers
+		retNil = false
+	}
+	if len(in.Secrets) > 0 {
+		obj["secrets"] = in.Secrets
+		retNil = false
+	}
+	if len(in.Services) > 0 {
+		obj["services"] = in.Services
+		retNil = false
+	}
+	if len(in.ServicesLoadBalancers) > 0 {
+		obj["services_load_balancers"] = in.ServicesLoadBalancers
+		retNil = false
+	}
+	if len(in.ServicesNodePorts) > 0 {
+		obj["services_node_ports"] = in.ServicesNodePorts
+		retNil = false
+	}
+	if len(in.StorageRequests) > 0 {
+		obj["storage_requests"] = in.StorageRequests
+		retNil = false
+	}
 
-		if retNil {
-			return nil
-		}
-	*/
+	if retNil {
+		return nil
+	}
+
 	return []interface{}{obj}
 }
 

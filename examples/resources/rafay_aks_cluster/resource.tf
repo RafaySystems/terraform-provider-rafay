@@ -32,6 +32,14 @@ resource "rafay_aks_cluster" "demo-terraform" {
             network_profile {
               network_plugin = "kubenet"
             }
+            addon_profiles {
+              oms_agent {
+                enabled = false
+                config {
+                  log_analytics_workspace_resource_id = ""
+                }
+              }
+            }
           }
           type = "Microsoft.ContainerService/managedClusters"
         }

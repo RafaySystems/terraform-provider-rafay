@@ -448,9 +448,8 @@ func expandApprovers(p []interface{}) []*gitopspb.Approver {
 			obj.SsoUser = false
 		}
 
-		if v, ok := in["sso_user"].(string); ok && len(v) > 0 {
-			obj.UserName = v
-			obj.SsoUser = true
+		if v, ok := in["sso_user"].(bool); ok {
+			obj.SsoUser = v
 		}
 
 		out[i] = &obj
@@ -473,8 +472,8 @@ func expandStageSpecConfigWorkload(p []interface{}) (*gitopspb.StageSpec_Workloa
 		obj.Workload.Workload = v
 	}
 
-	if v, ok := in["useRevisionFromWebhookTriggerEvent"].(bool); ok {
-		log.Println("expandStageSpecConfigWorkload useRevisionFromWebhookTriggerEvent")
+	if v, ok := in["use_revision_from_webhook_trigger_event"].(bool); ok {
+		log.Println("expandStageSpecConfigWorkload use_revision_from_webhook_trigger_event")
 		obj.Workload.UseRevisionFromWebhookTriggerEvent = v
 	}
 
@@ -637,8 +636,9 @@ func expandStageSpecConfigWorkloadTemplate(p []interface{}) (*gitopspb.StageSpec
 
 	in := p[0].(map[string]interface{})
 
-	if _, ok := in["overrides"].([]interface{}); ok {
-		return &obj, fmt.Errorf("%s", "expandStageSpecConfigWorkloadTemplate overrides not supported in terraform")
+	if v, ok := in["overrides"].([]interface{}); ok && len(v) > 0 {
+		obj.WorkloadTemplate.Overrides = expandOverrides(v)
+		//return &obj, fmt.Errorf("%s", "expandStageSpecConfigWorkloadTemplate overrides not supported in terraform")
 	}
 
 	if v, ok := in["workload_template"].(string); ok && len(v) > 0 {
@@ -937,17 +937,19 @@ func expandStageSpec(p []interface{}) ([]*gitopspb.StageSpec, error) {
 	return out, nil
 }
 
-func expandPreConditionExpression(p []interface{}) (*gitopspb.PreConditionSpec_Expression, error) {
+//func expandPreConditionExpression(p []interface{}) (*gitopspb.PreConditionSpec_Expression, error) {
+func expandPreConditionExpression(p string) (*gitopspb.PreConditionSpec_Expression, error) {
 	obj := gitopspb.PreConditionSpec_Expression{}
-	if len(p) == 0 || p[0] == nil {
-		return &obj, fmt.Errorf("%s", "expandPreConditionExpression empty input")
-	}
+	// if len(p) == 0 || p[0] == nil {
+	// 	return &obj, fmt.Errorf("%s", "expandPreConditionExpression empty input")
+	// }
 
-	in := p[0].(map[string]interface{})
+	// in := p[0].(map[string]interface{})
 
-	if v, ok := in["expression"].(string); ok && len(v) > 0 {
-		obj.Expression = v
-	}
+	// if v, ok := in["expression"].(string); ok && len(v) > 0 {
+	// 	obj.Expression = v
+	// }
+	obj.Expression = p
 	return &obj, nil
 }
 
@@ -967,7 +969,7 @@ func expandStageSpecPreConditions(p []interface{}) []*gitopspb.PreConditionSpec 
 			//precSpec.Type = v
 			obj.Type = v
 		}
-		if vp, ok := in["config"].([]interface{}); ok && len(vp) > 0 {
+		if vp, ok := in["config"].(string); ok && len(vp) > 0 {
 			//precSpec.Config.Expression = v
 			obj.Config, _ = expandPreConditionExpression(vp)
 		}
@@ -1498,7 +1500,7 @@ func flattenPreConditions(stSpec *stageSpec, p []interface{}) ([]interface{}, er
 		}
 
 		if len(in.Config.Expression) > 0 {
-			obj["expression"] = in.Config.Expression
+			obj["config"] = in.Config.Expression
 			retNil = false
 		}
 
@@ -1578,7 +1580,6 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 	}
 
 	//log.Println("flattenStageSpecConfig stSpec: ", stSpec)
-	retNil := true
 
 	// var start
 
@@ -1593,22 +1594,18 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 
 	if len(stSpec.Config.Timeout) > 0 {
 		obj["timeout"] = stSpec.Config.Timeout
-		retNil = false
 	}
 
 	if len(stSpec.Config.Workload) > 0 {
 		obj["workload"] = stSpec.Config.Workload
-		retNil = false
 	}
 
 	if len(stSpec.Config.WorkloadTemplate) > 0 {
 		obj["workload_template"] = stSpec.Config.WorkloadTemplate
-		retNil = false
 	}
 
 	if len(stSpec.Config.Namespace) > 0 {
 		obj["namespace"] = stSpec.Config.Namespace
-		retNil = false
 	}
 
 	if stSpec.Config.Placement != nil {
@@ -1626,30 +1623,21 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 		obj["overrides"] = nil
 	}
 
-	if stSpec.Config.UseRevisionFromWebhookTriggerEvent {
-		obj["use_revision_from_webhook_trigger_event"] = stSpec.Config.UseRevisionFromWebhookTriggerEvent
-		retNil = false
-	}
+	obj["use_revision_from_webhook_trigger_event"] = stSpec.Config.UseRevisionFromWebhookTriggerEvent
 
 	if len(stSpec.Config.Provisioner) > 0 {
 		obj["provisioner"] = stSpec.Config.Provisioner
-		retNil = false
 	}
 
 	if len(stSpec.Config.Revision) > 0 {
 		obj["revision"] = stSpec.Config.Revision
-		retNil = false
 	}
 
 	if len(stSpec.Config.WorkingDirectory) > 0 {
 		obj["working_directory"] = stSpec.Config.WorkingDirectory
-		retNil = false
 	}
 
-	if stSpec.Config.PersistWorkingDirectory {
-		obj["persist_working_directory"] = stSpec.Config.PersistWorkingDirectory
-		retNil = false
-	}
+	obj["persist_working_directory"] = stSpec.Config.PersistWorkingDirectory
 
 	if len(stSpec.Config.Agents) > 0 {
 		//log.Println("flattenStageSpecConfig Agents ")
@@ -1664,16 +1652,8 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 	}
 
 	obj["action"] = flattenStageSpecAction(stSpec)
-
-	if stSpec.Config.GitToSystemSync {
-		obj["git_to_system_sync"] = stSpec.Config.GitToSystemSync
-		retNil = false
-	}
-
-	if stSpec.Config.SystemToGitSync {
-		obj["system_to_git_sync"] = stSpec.Config.SystemToGitSync
-		retNil = false
-	}
+	obj["git_to_system_sync"] = stSpec.Config.GitToSystemSync
+	obj["system_to_git_sync"] = stSpec.Config.SystemToGitSync
 
 	if len(stSpec.Config.IncludedResources) > 0 {
 		v, ok := obj["included_resources"].([]interface{})
@@ -1705,14 +1685,7 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 		obj["destination_repo"] = flattenStageSpecSystemSyncRepo(stSpec.Config.DestinationRepo)
 	}
 
-	if stSpec.Config.SourceAsDestination {
-		obj["source_as_destination"] = stSpec.Config.SourceAsDestination
-		retNil = false
-	}
-
-	if retNil {
-		return nil, nil
-	}
+	obj["source_as_destination"] = stSpec.Config.SourceAsDestination
 
 	return []interface{}{obj}, nil
 
@@ -1736,9 +1709,7 @@ func flattenStageSpecApprovers(input []*gitopspb.Approver, p []interface{}) []in
 			obj["user_name"] = in.UserName
 		}
 
-		if in.SsoUser {
-			obj["sso_user"] = in.SsoUser
-		}
+		obj["sso_user"] = in.SsoUser
 
 		out[i] = &obj
 	}
@@ -1796,7 +1767,7 @@ func flattenStageSpecConfigOverridesTemplate(in stageSpecConfigWorkloadTemplateO
 	}
 
 	if in.Template.Paths != nil {
-		obj["path"] = flattenCommonpbFiles(in.Template.Paths)
+		obj["paths"] = flattenCommonpbFiles(in.Template.Paths)
 		retNil = false
 	}
 

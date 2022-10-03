@@ -82,6 +82,15 @@ func resourceClusterNetworkPolicyRuleUpsert(ctx context.Context, d *schema.Resou
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
+	if d.State() != nil && d.State().ID != "" {
+		n := GetMetaName(d)
+		if n != "" && n != d.State().ID {
+			log.Printf("metadata name change not supported")
+			d.State().Tainted = true
+			return diag.FromErr(fmt.Errorf("%s", "metadata name change not supported"))
+		}
+	}
+
 	clusterNetworkPolicyRule, err := expandClusterNetworkPolicyRule(d)
 	if err != nil {
 		log.Printf("clusterNetworkPolicyRule expandClusterNetworkPolicyRule error")

@@ -82,6 +82,15 @@ func resourceNetworkPolicyProfileUpsert(ctx context.Context, d *schema.ResourceD
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
+	if d.State() != nil && d.State().ID != "" {
+		n := GetMetaName(d)
+		if n != "" && n != d.State().ID {
+			log.Printf("metadata name change not supported")
+			d.State().Tainted = true
+			return diag.FromErr(fmt.Errorf("%s", "metadata name change not supported"))
+		}
+	}
+
 	namespaceNetworkPolicy, err := expandNetworkPolicyProfile(d)
 	if err != nil {
 		log.Printf("namespaceNetworkPolicy expandNetworkPolicyProfile error")

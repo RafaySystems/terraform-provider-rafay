@@ -169,16 +169,85 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 ***Optional***
 
+- `aad_profile` (Block List) Configurations for Azure active directory profile. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--aad_profiles))
+- `addons_profile` (Block List) Configurations for AKS managed addons. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles))
 - `api_server_access_profile` - (Block List) The AKS managed cluster API server access profile. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--api_server_access_profile))
-- `private_dns_zone` - (String) It requires you to create a Private DNS Zone in this format for Azure global cloud: privatelink.<region>.azmk8s.io or <subzone>.privatelink.<region>.azmk8s.io. You will need to specify the Resource ID of that Private DNS Zone. Additionally, you will need a user assigned identity or service principal with at least the private dns zone contributor and network contributor roles.
+- `auto_scaler_profile` - (Block List) The configurations for Cluter autoscaler profile. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--auto_scaler_profile))
 - `disk_encryption_set_id` - (String) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/diskEncryptionSets/{encryptionSetName}`
 - `dns_prefix` - (String) DNS prefix specified when creating the managed cluster. 
 This cannot be updated once the Managed Cluster has been created.
 - `identity_profile` - (Map of String) Identities associated with the cluster.
+- `linux_profile` - (Block List) The configurations for linux profile. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--linux_profile))
 - `network_profile` - (Block List) Profile of the network configuration. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--network_profile))
 - `node_resource_group` - (String) The name of the resource group containing agent pool nodes.
 - `service_principal_profile` - (Block List) Information about a service principal identity for the cluster to use for manipulating Azure APIs. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--service_principal_profile))
 
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--aad_profiles"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.aad_profiles`
+
+***Optional***
+
+- `admin_group_object_ids` (List of String) - The AKS managed cluster aad profile admin group object ids.
+- `enable_azure_rbac` (Boolean) - Enable/Disable azure rbac for kubernetes authorization.
+- `managed` (Boolean) - Enable/Disable managed Azure Active Directory integration.
+
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.addon_profiles`
+
+***Optional***
+
+- `azure_keyvault_secrets_provider` (Block List) Configurations for Azure keyvault secrets provider. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--azure_keyvault_secrets_provider))
+- `azure_policy` (Block List) Configurations for azure policy. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--azure_policy))
+- `http_application_routing` - (Block List) Configurations for HTTP application routing. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--http_application_routing))
+- `oms_agent` - (Block List) (See [below for nested schema] Configurations for OMS agent. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--oms_agent))
+
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--azure_keyvault_secrets_provider"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.addon_profiles.azure_keyvault_secrets_provider`
+
+***Required***
+
+- `enabled` - (Boolean) - Enable/Disable Azure keyVault secret provider.
+- `config` - (Block List) Configurations for Azure keyvault secrets provider. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--azure_keyvault_secrets_provider--config))
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--azure_keyvault_secrets_provider--config"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.addon_profiles.azure_keyvault_secrets_provider.config`
+
+***Required***
+
+- `enable_secret_rotation` (String) Enable/Disable secret rotation.
+- `rotation_poll_interval` (String) The interval to poll for secret rotation. Defaults to `2m`.
+
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--azure_policy"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.addon_profiles.azure_policy`
+
+***Required***
+
+- `enabled` - (Boolean) - Enable/Disable Azure Policy.
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--http_application_routing"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.addon_profiles.http_application_routing`
+
+***Required***
+
+- `enabled` - (Boolean) - Enable/Disable HTTP Application Routing.
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--oms_agent"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.addon_profiles.oms_agent`
+
+***Required***
+
+- `enabled` - (Boolean) - Enable/Disable OMS Agent.
+- `config` - (Block List) Configurations for OMS agent. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--oms_agent--config))
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--oms_agent--config"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.addon_profiles.oms_agent.config`
+
+***Required***
+
+- `log_analytics_workspace_resource_id` - (String) Log analytics workspace reource. This is of the form: `"/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.operationalinsights/workspaces/{logAnalyticsWorkspace}"`
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--api_server_access_profile"></a>
 ### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.api_server_access_profile`
@@ -187,8 +256,55 @@ This cannot be updated once the Managed Cluster has been created.
 
 - `authorized_ip_ranges` - (List of String) The AKS managed cluster properties server access profile server access profile. 
 - `enable_private_cluster` - (Boolean) Enable an AKS private cluster.
-- `private_dns_zone` - (String) The AKS managed cluster properties private DNS zone. **Note**: The value needs to be set to `null` or empty when the `enable_private_cluster` is set to `false`. 
+- `enable_private_cluster_public_fqdn` - (Boolean) Enable pubic FQDN for an AKS private cluster.
+- `private_dns_zone` - (String) It requires you to create a Private DNS Zone in this format for Azure global cloud: privatelink.<region>.azmk8s.io or <subzone>.privatelink.<region>.azmk8s.io. You will need to specify the Resource ID of that Private DNS Zone. Additionally, you will need a user assigned identity or service principal with at least the private dns zone contributor and network contributor roles.
 
+  **Note**: The value of `private_dns_zone` needs to be set to `null` or empty when the `enable_private_cluster` is set to `false`.
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--auto_scaler_profile"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.auto_scaler_profile`
+
+***Optional***
+
+- `balance_similar_node_groups` - (String) Balance number of nodes for similar node groups. Defaults to `"false"`
+- `expander` - (String) Expander to use. Supported values are `least-waste`, `most-pods`, `priority` and `random`. Defaults to `random`
+- `max_graceful_termination_sec` - (String) Maximum graceful termination time in seconds. Defaults to `600`.
+- `max_node_provision_time` - (String) Maximum wait time for node to be provisioned. Defaults to `15m`.
+- `ok_total_unready_count` - (String) Number of allowed unready nodes. Defaults to `"3"`.
+- `max_total_unready_percentage` - (String) Number of percentage of unready nodes. Defaults to `"45"`.
+- `new_pod_scale_up_delay` - (String) For scenarios like burst/batch scale where you don't want CA to act before the kubernetes scheduler could schedule all the pods, you can tell CA to ignore unscheduled pods before they're a certain age. Defaults to `10s`.
+- `scale_down_delay_after_add` - (String) How long after the scale up of AKS nodes the scale down evaluation resumes. Defaults to `10m`.
+- `scale_down_delay_after_delete` - (String) How long after node deletion that scale down evaluation resumes. Defaults to the value used for scan_interval (`10s`).
+- `scale_down_delay_after_failure` - (String) How long after scale down failure that scale down evaluation resumes. Defaults to `3m`.
+- `scan_interval` - (String) How often the AKS Cluster should be re-evaluated for scale up/down. Defaults to `10s`.
+- `scale_down_unneeded_time` - (String) How long a node should be unneeded before it is eligible for scale down. Defaults to `10m`.
+- `scale_down_unready_time` - (String) How long an unready node should be unneeded before it is eligible for scale down. Defaults to `20m`.
+- `scale_down_utilization_threshold` - (String) The scale down utilization threshold. Defaults to `"0.5"`
+- `max_empty_bulk_delete` - (String) Number of empty nodes that can be deleted at the same time. Defaults to `"10"`.
+- `skip_nodes_with_local_storage` - (String) Skip autoscaler to delete nodes with pods with local storage. Defaults to `"false"`.
+- `skip_nodes_with_system_pods` - (String) Skip autoscaler to delete nodes with system pods. Defaults to `"false"`.
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--linux_profile"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.linux_profile`
+
+***Optional***
+
+- `admin_username` - (String) The administrator username to use for Linux VMs.
+- `ssh` - (Block List) SSH configuration for Linux-based VMs running on Azure. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--linux_profile--ssh))
+
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--linux_profile--ssh"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.linux_profile.ssh`
+
+***Required***
+- `public_key` - (Block List) The list of SSH public keys used to authenticate with Linux-based VMs. A maximum of 1 key may be specified. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--linux_profile--ssh--public_key))
+
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--linux_profile--ssh--public_key"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.linux_profile.ssh.public_key`
+
+***Required***
+- `key_data` (String) The public key used to authenticate with VMs through SSH.
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--network_profile"></a>
 ### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.network_profile`
@@ -201,6 +317,8 @@ This cannot be updated once the Managed Cluster has been created.
 - `network_mode` - (String) This cannot be specified if `networkPlugin` is anything other than `azure`. The supported values are `transparent` and `bridge`. 
 - `network_plugin` - (String) The network plugin used for building the Kubernetes network. Supported values are: `azure` and `kubenet`.
 - `network_policy` - (String) The network policy used for building the Kubernetes network. Supported values are: `calico` and `azure`.
+- `outbound_type` - (String) The outbound/egress routing method.
+Supported values are: `loadBalancer` and `userDefinedRouting`.
 - `pod_cidr` - (String) A CIDR notation IP range from which to assign pod IPs when kubenet is used.
 - `service_cidr` - (String) A CIDR notation IP range from which to assign service cluster IPs.
 
@@ -228,6 +346,7 @@ This cannot be updated once the Managed Cluster has been created.
 ***Required***
 
 - `acr_name` - (String) The name of the Azure Container Registry resource.
+- `oms_workspace_location` - (String) The location of the Log analytics workspace.
 - `resource_group_name` - (String) If not specified, defaults to the resource group of the managed cluster. 
 
 
@@ -268,6 +387,7 @@ This cannot be updated once the Managed Cluster has been created.
 - `availability_zones` - (List of String) The list of availability zones to use for nodes. This can only be specified if the `AgentPoolType` property is `VirtualMachineScaleSets`.
 - `count` - (Number) The number of agents (VMs) to host docker containers. Allowed values must be in the range of `0` to `1000` (inclusive) for user pools and in the range of `1` to `1000` (inclusive) for system pools. The default value is `1`.
 - `enable_auto_scaling` - (Boolean) Enables the auto-scaler. 
+- `enable_node_public_ip` - (Booleab) Enables a Public IP for a Node Pool.
 - `max_count` - (Number) The maximum number of nodes for auto-scaling.
 - `max_pods` - (Number) The maximum number of pods that can run on a node.
 - `min_count` - (Number) The minimum number of nodes for auto-scaling
@@ -282,6 +402,7 @@ This cannot be updated once the Managed Cluster has been created.
 - `scale_set_eviction_policy` - (String) This cannot be specified unless the `scaleSetPriority` is `Spot`. If not specified, the default is `Delete`. Supported values are: `Delete` and `Deallocate`.
 - `scale_set_priority` - (String) The virtual machine scale set priority. If not specified, the default is `Regular`. Supported values are: `Spot` and `Regular`. 
 - `spot_max_price` - (Number) Supported values are: any decimal value greater than zero or -1 (which indicates the willingness to pay any on-demand price). For more details on spot pricing, see [Azure Spot Virtual Machines](https://azure.microsoft.com/en-us/services/virtual-machines/spot/).
+- `tags` - (Map of String) Resource tags.
 - `type` - (String) Supported values are `VirtualMachineScaleSets` and `AvailabilitySet`.
 - `upgrade_settings` - (Block List) Settings for upgrading an agentpool. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--node_pools--properties--upgrade_settings))
 - `vm_size` - (String) The AKS node pool VM size.

@@ -128,6 +128,32 @@ func clusterAKSClusterSpec() map[string]*schema.Schema {
 				Schema: clusterAKSClusterConfig(),
 			},
 		},
+		"sharing": &schema.Schema{
+			Description: "blueprint sharing configuration",
+			Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+				"enabled": &schema.Schema{
+					Description: "flag to specify if sharing is enabled for resource",
+					Optional:    true,
+					Type:        schema.TypeBool,
+				},
+				"projects": &schema.Schema{
+					Description: "list of projects this resource is shared to",
+					Elem: &schema.Resource{Schema: map[string]*schema.Schema{"name": &schema.Schema{
+						Description: "name of the project",
+						Optional:    true,
+						Type:        schema.TypeString,
+					}}},
+					MaxItems: 0,
+					MinItems: 0,
+					Optional: true,
+					Type:     schema.TypeList,
+				},
+			}},
+			MaxItems: 1,
+			MinItems: 1,
+			Optional: true,
+			Type:     schema.TypeList,
+		},
 	}
 	return s
 }
@@ -1835,6 +1861,10 @@ func expandAKSClusterSpec(p []interface{}) *AKSClusterSpec {
 		obj.AKSClusterConfig = expandAKSClusterConfig(v)
 	}
 
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		obj.Sharing = expandSharingSpec(v)
+	}
+
 	return obj
 }
 
@@ -3321,6 +3351,10 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}) []interface{} {
 			v = []interface{}{}
 		}
 		obj["cluster_config"] = flattenAKSClusterConfig(in.AKSClusterConfig, v)
+	}
+
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
 	}
 
 	return []interface{}{obj}

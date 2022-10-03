@@ -185,6 +185,14 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
             dns_prefix          = "testuser-test-dns"
             kubernetes_version  = "1.21.9"
             node_resource_group = "node-resource-name"
+            linux_profile  {
+              admin_username = "admin"
+              ssh {
+                public_keys {
+                  key_data = "ssh_public_key"
+                }
+              }
+            }
             network_profile {
               network_plugin = "kubenet"
               network_policy = "calico"
@@ -214,7 +222,6 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
                   enable_secret_rotation = "true"
                   rotation_poll_interval = "2m"
                 }
-
               }
             }
             auto_scaler_profile {

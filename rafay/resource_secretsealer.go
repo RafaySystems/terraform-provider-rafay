@@ -82,6 +82,15 @@ func resourceSecretSealerUpsert(ctx context.Context, d *schema.ResourceData, m i
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
+	if d.State() != nil && d.State().ID != "" {
+		n := GetMetaName(d)
+		if n != "" && n != d.State().ID {
+			log.Printf("metadata name change not supported")
+			d.State().Tainted = true
+			return diag.FromErr(fmt.Errorf("%s", "metadata name change not supported"))
+		}
+	}
+
 	secretSealer, err := expandSecretSealer(d)
 	if err != nil {
 		log.Printf("secret sealer expandSecretSealer error")

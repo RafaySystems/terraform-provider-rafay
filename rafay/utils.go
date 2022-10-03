@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/gitopspb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/integrationspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/utils"
@@ -301,6 +302,92 @@ func expandPlacement(p []interface{}) *commonpb.PlacementSpec {
 	}
 
 	return obj
+}
+
+func expandOverridesRepo(p []interface{}) (*gitopspb.OverrideTemplate_Repo, error) {
+	obj := gitopspb.OverrideTemplate_Repo{}
+	obj.Repo = &gitopspb.RepoOverrideTemplate{}
+
+	if len(p) == 0 || p[0] == nil {
+		return &obj, fmt.Errorf("%s", "expandOverridesRepo empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	log.Println("expandOverridesRepo")
+
+	if v, ok := in["repository"].(string); ok && len(v) > 0 {
+		obj.Repo.Repository = v
+	}
+
+	if v, ok := in["revision"].(string); ok && len(v) > 0 {
+		obj.Repo.Revision = v
+	}
+
+	if v, ok := in["revision"].(string); ok && len(v) > 0 {
+		obj.Repo.Revision = v
+	}
+
+	if v, ok := in["paths"].([]interface{}); ok && len(v) > 0 {
+		obj.Repo.Paths = expandCommonpbFiles(v)
+	}
+
+	return &obj, nil
+}
+
+func expandOverridesInline(p []interface{}) (*gitopspb.OverrideTemplate_Inline, error) {
+	obj := gitopspb.OverrideTemplate_Inline{}
+	obj.Inline = &gitopspb.InlineOverrideTemplate{}
+
+	if len(p) == 0 || p[0] == nil {
+		return &obj, fmt.Errorf("%s", "expandOverridesRepo empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	log.Println("expandOverridesRepo")
+
+	if v, ok := in["inline"].(string); ok && len(v) > 0 {
+		obj.Inline.Inline = v
+	}
+
+	return &obj, nil
+}
+
+func expandOverrides(p []interface{}) []*gitopspb.OverrideTemplate {
+	if len(p) == 0 || p[0] == nil {
+		return []*gitopspb.OverrideTemplate{}
+	}
+
+	out := make([]*gitopspb.OverrideTemplate, len(p))
+	for i := range p {
+		obj := gitopspb.OverrideTemplate{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+
+		if v, ok := in["weight"].(int32); ok {
+			obj.Weight = v
+		}
+
+		if vp, ok := in["template"].([]interface{}); ok && len(vp) > 0 {
+			if len(vp) == 0 || vp[0] == nil {
+				return nil
+			}
+			in := vp[0].(map[string]interface{})
+			if v, ok := in["inline"].(string); ok && len(v) > 0 {
+				obj.Template, _ = expandOverridesInline(vp)
+			} else {
+				obj.Template, _ = expandOverridesRepo(vp)
+			}
+		}
+
+		out[i] = &obj
+	}
+
+	return out
 }
 
 func expandAgents(p []interface{}) []*integrationspb.AgentMeta {

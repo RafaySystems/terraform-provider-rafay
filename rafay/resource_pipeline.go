@@ -303,6 +303,7 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	if pipelineStatus.Status != nil && pipelineStatus.Status.Extra != nil {
 		m := pipelineStatus.Status.Extra.Data.AsMap()
 		m = func(in map[string]interface{}) map[string]interface{} {
+			log.Println("status pipeline:", in)
 			type camelTriggerExtra struct {
 				Name          string `json:"name"`
 				WebhookURL    string `json:"webhookURL,omitempty"`
@@ -325,15 +326,19 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 
 			b, _ := json.Marshal(in)
 			json.Unmarshal(b, &ct)
+			log.Println("status pipeline:", string(b))
 
 			var st = snakeTriggers{}
 			for _, t := range ct.Triggers {
 				st.Triggers = append(st.Triggers, snakeTriggerExtra(t))
 			}
+			log.Println("status pipeline:", st)
 
 			b, _ = json.Marshal(st)
+			log.Println("status pipeline:", string(b))
 			var out = make(map[string]interface{})
 			json.Unmarshal(b, &out)
+			log.Println("status pipeline:", out)
 			return out
 		}(m)
 		d.Set("status", m)

@@ -302,7 +302,7 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	d.SetId(pipeline.Metadata.Name)
 	if pipelineStatus.Status != nil && pipelineStatus.Status.Extra != nil {
 		m := pipelineStatus.Status.Extra.Data.AsMap()
-		m = func(in map[string]interface{}) map[string]interface{} {
+		status := func(in map[string]interface{}) interface{} {
 			log.Println("status pipeline:", in)
 			type camelTriggerExtra struct {
 				Name          string `json:"name"`
@@ -339,9 +339,9 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 			var out = make(map[string]interface{})
 			json.Unmarshal(b, &out)
 			log.Println("status pipeline:", out)
-			return out
+			return []interface{}{out}
 		}(m)
-		d.Set("status", m)
+		d.Set("status", status)
 	}
 	return diags
 

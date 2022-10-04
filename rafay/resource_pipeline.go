@@ -309,7 +309,7 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 				WebhookSecret string `json:"webhookSecret,omitempty"`
 			}
 			type camelTriggers struct {
-				Triggers []camelTriggerExtra `json:"triggers"`
+				Triggers []camelTriggerExtra `json:"triggers,omitempty"`
 			}
 
 			type snakeTriggerExtra struct {
@@ -325,9 +325,12 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 
 			b, _ := json.Marshal(in)
 			json.Unmarshal(b, &ct)
-			b, _ = json.Marshal(ct)
-			var st snakeTriggers
-			json.Unmarshal(b, &st)
+
+			var st = snakeTriggers{}
+			for _, t := range ct.Triggers {
+				st.Triggers = append(st.Triggers, snakeTriggerExtra(t))
+			}
+
 			b, _ = json.Marshal(st)
 			var out = make(map[string]interface{})
 			json.Unmarshal(b, &out)

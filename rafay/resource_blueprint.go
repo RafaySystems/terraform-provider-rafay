@@ -899,8 +899,10 @@ func flattenBlueprintPlacement(in *infrapb.BlueprintPlacement, p []interface{}) 
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
+	if in.AutoPublish {
+		obj["auto_publish"] = in.AutoPublish
+	}
 
-	obj["auto_publish"] = in.AutoPublish
 	if in.FleetValues != nil && len(in.FleetValues) > 0 {
 		obj["fleet_values"] = toArrayInterfaceSorted(in.FleetValues)
 	}
@@ -1035,8 +1037,9 @@ func flattenMonitoringComponent(in *infrapb.MonitoringComponent, p []interface{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
-
-	obj["enabled"] = in.Enabled
+	if in.Enabled {
+		obj["enabled"] = in.Enabled
+	}
 	if in.Discovery != nil {
 		v, ok := obj["discovery"].([]interface{})
 		if !ok {

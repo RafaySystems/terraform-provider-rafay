@@ -31,6 +31,40 @@ func resourcePipeline() *schema.Resource {
 		Optional:    true,
 		Type:        schema.TypeString,
 	}
+	modSchema["status"] = &schema.Schema{
+		Description: "pipeline status",
+		Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+			"triggers": &schema.Schema{
+				Description: "pipeline trigger status",
+				Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+					"name": &schema.Schema{
+						Description: "name of the trigger",
+						Optional:    true,
+						Computed:    true,
+						Type:        schema.TypeString,
+					},
+					"webhookURL": &schema.Schema{
+						Description: "webhook url",
+						Optional:    true,
+						Computed:    true,
+						Type:        schema.TypeString,
+					},
+					"webhookSecret": &schema.Schema{
+						Description: "webhook secret",
+						Optional:    true,
+						Computed:    true,
+						Type:        schema.TypeString,
+					},
+				}},
+				Optional: true,
+				Computed: true,
+				Type:     schema.TypeList,
+			},
+		}},
+		Optional: true,
+		Computed: true,
+		Type:     schema.TypeList,
+	}
 	return &schema.Resource{
 		CreateContext: resourcePipelineCreate,
 		ReadContext:   resourcePipelineRead,
@@ -252,7 +286,23 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
+	pipelineStatus, err := client.GitopsV3().Pipeline().Status(ctx, options.StatusOptions{
+		Name:    pipeline.Metadata.Name,
+		Project: pipeline.Metadata.Project,
+	})
+	if err != nil {
+		// XXX Debug
+		n1 := spew.Sprintf("%+v", pipeline)
+		log.Println("pipeline delete pipeline:", n1)
+		log.Printf("pipeline status error")
+		return diag.FromErr(err)
+	}
+
 	d.SetId(pipeline.Metadata.Name)
+	if pipelineStatus.Status != nil && pipelineStatus.Status.Extra != nil {
+		m := pipelineStatus.Status.Extra.Data.AsMap()
+		d.Set("status", m)
+	}
 	return diags
 
 }

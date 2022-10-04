@@ -125,6 +125,15 @@ func resourceNetworkPolicyProfileRead(ctx context.Context, d *schema.ResourceDat
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	tfNetworkPolicyProfileState, err := expandNetworkPolicyProfile(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -137,7 +146,8 @@ func resourceNetworkPolicyProfileRead(ctx context.Context, d *schema.ResourceDat
 	}
 
 	npp, err := client.SecurityV3().NetworkPolicyProfile().Get(ctx, options.GetOptions{
-		Name:    tfNetworkPolicyProfileState.Metadata.Name,
+		//Name:    tfNetworkPolicyProfileState.Metadata.Name,
+		Name:    meta.Name,
 		Project: tfNetworkPolicyProfileState.Metadata.Project,
 	})
 	if err != nil {

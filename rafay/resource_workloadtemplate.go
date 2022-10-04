@@ -170,6 +170,15 @@ func resourceWorkloadTemplateRead(ctx context.Context, d *schema.ResourceData, m
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	tfWorkloadTemplateState, err := expandWorkloadTemplate(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -200,7 +209,8 @@ func resourceWorkloadTemplateRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	wt, err := client.AppsV3().WorkloadTemplate().Get(ctx, options.GetOptions{
-		Name:    tfWorkloadTemplateState.Metadata.Name,
+		//Name:    tfWorkloadTemplateState.Metadata.Name,
+		Name:    meta.Name,
 		Project: tfWorkloadTemplateState.Metadata.Project,
 	})
 	if err != nil {

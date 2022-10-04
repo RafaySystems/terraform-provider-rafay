@@ -265,6 +265,15 @@ func resourcePipelineRead(ctx context.Context, d *schema.ResourceData, m interfa
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	tfPipelineState, err := expandPipeline(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -295,7 +304,8 @@ func resourcePipelineRead(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	ag, err := client.GitopsV3().Pipeline().Get(ctx, options.GetOptions{
-		Name:    tfPipelineState.Metadata.Name,
+		//Name:    tfPipelineState.Metadata.Name,
+		Name:    meta.Name,
 		Project: tfPipelineState.Metadata.Project,
 	})
 	if err != nil {

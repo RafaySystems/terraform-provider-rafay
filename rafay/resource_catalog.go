@@ -99,6 +99,14 @@ func resourceCatalogRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 	log.Println("resourceCatalogRead ")
 
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	tfWorkloadState, err := expandCatalog(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -116,7 +124,8 @@ func resourceCatalogRead(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	cg, err := client.AppsV3().Catalog().Get(ctx, options.GetOptions{
-		Name:    tfWorkloadState.Metadata.Name,
+		//Name:    tfWorkloadState.Metadata.Name,
+		Name:    meta.Name,
 		Project: tfWorkloadState.Metadata.Project,
 	})
 	if err != nil {

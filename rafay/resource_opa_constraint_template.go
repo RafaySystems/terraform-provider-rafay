@@ -159,6 +159,15 @@ func resourceOPAConstraintTemplateRead(ctx context.Context, d *schema.ResourceDa
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	tfOPAConstraintTemplateState, err := expandOPAConstraintTemplate(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -171,7 +180,8 @@ func resourceOPAConstraintTemplateRead(ctx context.Context, d *schema.ResourceDa
 	}
 
 	ag, err := client.OpaV3().OPAConstraintTemplate().Get(ctx, options.GetOptions{
-		Name:    tfOPAConstraintTemplateState.Metadata.Name,
+		//Name:    tfOPAConstraintTemplateState.Metadata.Name,
+		Name:    meta.Name,
 		Project: tfOPAConstraintTemplateState.Metadata.Project,
 	})
 	if err != nil {

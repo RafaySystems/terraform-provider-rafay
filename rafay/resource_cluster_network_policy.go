@@ -126,6 +126,15 @@ func resourceClusterNetworkPolicyRead(ctx context.Context, d *schema.ResourceDat
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	tfClusterNetworkPolicyState, err := expandClusterNetworkPolicy(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -138,7 +147,8 @@ func resourceClusterNetworkPolicyRead(ctx context.Context, d *schema.ResourceDat
 	}
 
 	cnp, err := client.SecurityV3().ClusterNetworkPolicy().Get(ctx, options.GetOptions{
-		Name:    tfClusterNetworkPolicyState.Metadata.Name,
+		//Name:    tfClusterNetworkPolicyState.Metadata.Name,
+		Name:    meta.Name,
 		Project: tfClusterNetworkPolicyState.Metadata.Project,
 	})
 	if err != nil {

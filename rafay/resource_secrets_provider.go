@@ -125,6 +125,15 @@ func resourceSecretProviderRead(ctx context.Context, d *schema.ResourceData, m i
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	tfSecretSealerState, err := expandSecretProvider(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -137,7 +146,8 @@ func resourceSecretProviderRead(ctx context.Context, d *schema.ResourceData, m i
 	}
 
 	ag, err := client.IntegrationsV3().SecretProviderClass().Get(ctx, options.GetOptions{
-		Name:    tfSecretSealerState.Metadata.Name,
+		//Name:    tfSecretSealerState.Metadata.Name,
+		Name:    meta.Name,
 		Project: tfSecretSealerState.Metadata.Project,
 	})
 	if err != nil {

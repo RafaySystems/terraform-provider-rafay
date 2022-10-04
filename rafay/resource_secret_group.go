@@ -124,6 +124,15 @@ func resourceSecretGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	secretGroup, err := expandSecretGroup(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -136,7 +145,8 @@ func resourceSecretGroupRead(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	ag, err := client.GitopsV3().SecretGroup().Get(ctx, options.GetOptions{
-		Name:    secretGroup.Metadata.Name,
+		//Name:    secretGroup.Metadata.Name,
+		Name:    meta.Name,
 		Project: secretGroup.Metadata.Project,
 	})
 	if err != nil {

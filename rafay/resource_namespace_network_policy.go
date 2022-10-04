@@ -126,6 +126,15 @@ func resourceNamespaceNetworkPolicyRead(ctx context.Context, d *schema.ResourceD
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	tfNamespaceNetworkPolicyState, err := expandNamespaceNetworkPolicy(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -138,7 +147,8 @@ func resourceNamespaceNetworkPolicyRead(ctx context.Context, d *schema.ResourceD
 	}
 
 	nnp, err := client.SecurityV3().NamespaceNetworkPolicy().Get(ctx, options.GetOptions{
-		Name:    tfNamespaceNetworkPolicyState.Metadata.Name,
+		//Name:    tfNamespaceNetworkPolicyState.Metadata.Name,
+		Name:    meta.Name,
 		Project: tfNamespaceNetworkPolicyState.Metadata.Project,
 	})
 	if err != nil {

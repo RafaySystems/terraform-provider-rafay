@@ -132,6 +132,21 @@ func resourceUserUpsert(ctx context.Context, d *schema.ResourceData, create bool
 		isAPi = true
 	}
 
+	if d.State() != nil && d.State().ID != "" {
+		log.Println(" console_access ", d.State().Attributes["console_access"])
+		userAccount, err := user.GetUser(userName)
+		if err != nil {
+			log.Printf("get user account, error %s", err.Error())
+			return diag.FromErr(err)
+		}
+		if userAccount.Account.UserType != "CONSOLE" && d.Get("console_access").(bool) {
+			return diag.FromErr(fmt.Errorf("%s", "console_access change not supported"))
+		}
+		if userAccount.Account.UserType == "CONSOLE" && !d.Get("console_access").(bool) {
+			return diag.FromErr(fmt.Errorf("%s", "console_access change not supported"))
+		}
+	}
+
 	if d.Get("console_access").(bool) {
 		log.Println("create user console_access ")
 		isConsole = true
@@ -180,6 +195,12 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	// 	log.Printf("get user id failed to get group, error %s", err.Error())
 	// 	return diag.FromErr(err)
 	// }
+	if d.State() != nil && d.State().ID != "" {
+		if userName != d.State().ID {
+			log.Println("detected uername change ", userName, d.State().ID)
+			userName = d.State().ID
+		}
+	}
 
 	userAccount, err := user.GetUser(userName)
 	if err != nil {
@@ -207,6 +228,20 @@ func flattenUser(d *schema.ResourceData, in *models.UserResponse) error {
 		if err != nil {
 			return err
 		}
+	}
+	if len(in.Account.UserType) > 0 {
+		if in.Account.UserType == "CONSOLE" {
+			err := d.Set("console_access", true)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := d.Set("console_access", false)
+			if err != nil {
+				return err
+			}
+		}
+
 	}
 	if len(in.Account.FirstName) > 0 {
 		err := d.Set("first_name", in.Account.FirstName)

@@ -272,6 +272,14 @@ func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interf
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	nsTFState, err := expandNamespace(d)
 	if err != nil {
 		log.Println("expandNamespace err:", err)
@@ -307,7 +315,8 @@ func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interf
 	}
 
 	ns, err := client.InfraV3().Namespace().Get(ctx, options.GetOptions{
-		Name:    nsTFState.Metadata.Name,
+		//Name:    nsTFState.Metadata.Name,
+		Name:    meta.Name,
 		Project: nsTFState.Metadata.Project,
 	})
 	if err != nil {

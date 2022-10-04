@@ -170,6 +170,15 @@ func resourceAgentRead(ctx context.Context, d *schema.ResourceData, m interface{
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	tfAgentState, err := expandAgent(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -204,7 +213,8 @@ func resourceAgentRead(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 
 	ag, err := client.GitopsV3().Agent().Get(ctx, options.GetOptions{
-		Name:    tfAgentState.Metadata.Name,
+		//Name:    tfAgentState.Metadata.Name,
+		Name:    meta.Name,
 		Project: tfAgentState.Metadata.Project,
 	})
 	if err != nil {

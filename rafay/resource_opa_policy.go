@@ -130,6 +130,15 @@ func resourceOPAPolicyRead(ctx context.Context, d *schema.ResourceData, m interf
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	tfOPAPolicyState, err := expandOPAPolicy(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -142,7 +151,8 @@ func resourceOPAPolicyRead(ctx context.Context, d *schema.ResourceData, m interf
 	}
 
 	ag, err := client.OpaV3().OPAPolicy().Get(ctx, options.GetOptions{
-		Name:    tfOPAPolicyState.Metadata.Name,
+		//Name:    tfOPAPolicyState.Metadata.Name,
+		Name:    meta.Name,
 		Project: tfOPAPolicyState.Metadata.Project,
 	})
 	if err != nil {

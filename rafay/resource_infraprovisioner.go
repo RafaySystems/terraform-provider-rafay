@@ -178,6 +178,14 @@ func resourceInfraProvisionerDelete(ctx context.Context, d *schema.ResourceData,
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	ip, err := expandInfraProvisioner(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -190,7 +198,8 @@ func resourceInfraProvisionerDelete(ctx context.Context, d *schema.ResourceData,
 	}
 
 	err = client.GitopsV3().InfraProvisioner().Delete(ctx, options.DeleteOptions{
-		Name:    ip.Metadata.Name,
+		//Name:    ip.Metadata.Name,
+		Name:    meta.Name,
 		Project: ip.Metadata.Project,
 	})
 

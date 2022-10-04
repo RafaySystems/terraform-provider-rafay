@@ -154,6 +154,15 @@ func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	tfAddonState, err := expandAddon(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -170,7 +179,8 @@ func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 
 	addon, err := client.InfraV3().Addon().Get(ctx, options.GetOptions{
-		Name:    tfAddonState.Metadata.Name,
+		Name: meta.Name,
+		//Name:    tfAddonState.Metadata.Name,
 		Project: tfAddonState.Metadata.Project,
 	})
 	if err != nil {

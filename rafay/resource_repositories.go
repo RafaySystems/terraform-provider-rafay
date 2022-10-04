@@ -133,6 +133,14 @@ func resourceRepositoriesRead(ctx context.Context, d *schema.ResourceData, m int
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
+	meta := GetMetaData(d)
+	if meta == nil {
+		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	}
+	if d.State() != nil && d.State().ID != "" {
+		meta.Name = d.State().ID
+	}
+
 	repoTFState, err := expandRepository(d)
 	if err != nil {
 		log.Printf("repository expandRepository error")
@@ -168,7 +176,8 @@ func resourceRepositoriesRead(ctx context.Context, d *schema.ResourceData, m int
 	}
 
 	repo, err := client.IntegrationsV3().Repository().Get(ctx, options.GetOptions{
-		Name:    repoTFState.Metadata.Name,
+		//Name:    repoTFState.Metadata.Name,
+		Name:    meta.Name,
 		Project: repoTFState.Metadata.Project,
 	})
 	if err != nil {

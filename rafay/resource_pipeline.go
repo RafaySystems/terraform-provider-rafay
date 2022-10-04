@@ -43,17 +43,18 @@ func resourcePipeline() *schema.Resource {
 						Computed:    true,
 						Type:        schema.TypeString,
 					},
-					"webhookURL": &schema.Schema{
+					"webhook_url": &schema.Schema{
 						Description: "webhook url",
 						Optional:    true,
 						Computed:    true,
 						Type:        schema.TypeString,
 					},
-					"webhookSecret": &schema.Schema{
+					"webhook_secret": &schema.Schema{
 						Description: "webhook secret",
 						Optional:    true,
 						Computed:    true,
 						Type:        schema.TypeString,
+						Sensitive:   true,
 					},
 				}},
 				Optional: true,
@@ -301,6 +302,37 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	d.SetId(pipeline.Metadata.Name)
 	if pipelineStatus.Status != nil && pipelineStatus.Status.Extra != nil {
 		m := pipelineStatus.Status.Extra.Data.AsMap()
+		m = func(in map[string]interface{}) map[string]interface{} {
+			type camelTriggerExtra struct {
+				Name          string `json:"name"`
+				WebhookURL    string `json:"webhookURL,omitempty"`
+				WebhookSecret string `json:"webhookSecret,omitempty"`
+			}
+			type camelTriggers struct {
+				Triggers []camelTriggerExtra `json:"triggers"`
+			}
+
+			type snakeTriggerExtra struct {
+				Name          string `json:"name"`
+				WebhookURL    string `json:"webhook_url,omitempty"`
+				WebhookSecret string `json:"webhook_secret,omitempty"`
+			}
+			type snakeTriggers struct {
+				Triggers []snakeTriggerExtra `json:"triggers,omitempty"`
+			}
+
+			var ct camelTriggers
+
+			b, _ := json.Marshal(in)
+			json.Unmarshal(b, &ct)
+			b, _ = json.Marshal(ct)
+			var st snakeTriggers
+			json.Unmarshal(b, &st)
+			b, _ = json.Marshal(st)
+			var out = make(map[string]interface{})
+			json.Unmarshal(b, &out)
+			return out
+		}(m)
 		d.Set("status", m)
 	}
 	return diags

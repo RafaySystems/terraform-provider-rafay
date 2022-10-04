@@ -341,6 +341,7 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 			log.Println("status pipeline:", out)
 			return []interface{}{out}
 		}(m)
+		log.Println("status pipeline:", status)
 		d.Set("status", status)
 	}
 	return diags

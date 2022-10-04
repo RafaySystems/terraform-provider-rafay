@@ -7,13 +7,12 @@ import (
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/commands"
+	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/user"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/spf13/cobra"
 )
 
 func resourceUser() *schema.Resource {
@@ -22,6 +21,9 @@ func resourceUser() *schema.Resource {
 		ReadContext:   resourceUserRead,
 		UpdateContext: resourceUserUpdate,
 		DeleteContext: resourceUserDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceUserImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -34,7 +36,7 @@ func resourceUser() *schema.Resource {
 			"user_name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
+				//ForceNew: true,
 			},
 			"first_name": {
 				Type:     schema.TypeString,
@@ -49,6 +51,10 @@ func resourceUser() *schema.Resource {
 				Optional: true,
 			},
 			"generate_apikey": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"console_access": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -71,29 +77,31 @@ func resourceUser() *schema.Resource {
 }
 
 func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	cmd := &cobra.Command{
-		Use:     "user <group-name>",
-		Aliases: []string{"u"},
-		Short:   "Create a new user",
-		Long:    "Create a new user",
-		Example: `
-Using command:
-	rctl create user john.doe@example.com 
-	rctl create user john.doe@example.com --console John, Doe
-	rctl create user john.doe@example.com  --groups testingGroup, productionGroup --console John, Doe, 4089382091
-`,
+	return resourceUserUpsert(ctx, d, true)
+}
 
-		Args: nil,
-		RunE: nil,
-	}
+func resourceUserUpsert(ctx context.Context, d *schema.ResourceData, create bool) diag.Diagnostics {
+	var diags diag.Diagnostics
+	var err error
 	var groups []string
 	var consoleAccessInputs []string
+
+	isGroup := false
+	isAPi := false
+	isConsole := false
 	consoleAccessInputs = make([]string, 3)
 	userName := d.Get("user_name").(string)
 	first := d.Get("first_name").(string)
 	last := d.Get("last_name").(string)
 	phone := d.Get("phone").(string)
+
+	if d.State() != nil && d.State().ID != "" {
+		if userName != "" && userName != d.State().ID {
+			log.Printf("username change not supported")
+			d.State().Tainted = true
+			return diag.FromErr(fmt.Errorf("%s", "username change not supported"))
+		}
+	}
 
 	//convert groups interface to passable list for function
 	if v, ok := d.Get("groups").([]interface{}); ok && len(v) > 0 {
@@ -115,20 +123,28 @@ Using command:
 	}
 	//create user
 	log.Println("resource user create: ", userName, groups, consoleAccessInputs)
-	var localBool bool
-	var localStrings []string
-	cmd.Flags().BoolVar(&localBool, commands.NewAPIKeyFlag, false, "NewAPIKeyFlag")
-	cmd.Flags().StringSliceVarP(&localStrings, commands.CreateUserGroupAssocFlag, "", nil, "localStrings")
-
 	if len(groups) > 0 {
-		cmd.Flags().Set(commands.CreateUserGroupAssocFlag, "")
+		isGroup = true
 	}
 
 	if d.Get("generate_apikey").(bool) {
-		cmd.Flags().Set(commands.NewAPIKeyFlag, "true")
+		log.Println("create user generate_apikey ")
+		isAPi = true
 	}
 
-	err := commands.CreateUser(cmd, userName, groups, consoleAccessInputs)
+	if d.Get("console_access").(bool) {
+		log.Println("create user console_access ")
+		isConsole = true
+	}
+
+	var account *commands.CreateAccount
+	if create {
+		account, err = commands.CreateUserTF(userName, groups, consoleAccessInputs, isGroup, isAPi, isConsole)
+	} else {
+		account, err = commands.UpdateUserTF(userName, groups, consoleAccessInputs, isGroup, isAPi, isConsole)
+	}
+
+	log.Println(" UsertUser ", userName, groups, consoleAccessInputs, isGroup, isAPi, isConsole)
 	if err != nil {
 		log.Printf("create user error %s", err.Error())
 		return diag.FromErr(err)
@@ -140,6 +156,8 @@ Using command:
 		return diag.FromErr(err)
 	}
 
+	log.Println(" CreateUserTF account", account, userID)
+
 	if d.Get("generate_apikey").(bool) {
 		apiKey, _, err := user.GetUserAPIKey(userName)
 		log.Println("get user apikey len ", len(apiKey), " error ", err, " : ", apiKey)
@@ -148,14 +166,7 @@ Using command:
 		}
 	}
 
-	/*
-		//checking response of group id
-		currUser, err := user.NewUserFromResponse([]byte(userResp))
-		if err != nil {
-			log.Printf("create user from repsonse failed to get group, error %s", err.Error())
-			return diag.FromErr(err)
-		}*/
-	d.SetId(userID)
+	d.SetId(userName)
 	return diags
 }
 
@@ -164,21 +175,77 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	userName := d.Get("user_name").(string)
 
 	//checking the id of the group
-	userResp, err := user.GetUserIDByName(userName)
+	// userResp, err := user.GetUserIDByName(userName)
+	// if err != nil {
+	// 	log.Printf("get user id failed to get group, error %s", err.Error())
+	// 	return diag.FromErr(err)
+	// }
+
+	userAccount, err := user.GetUser(userName)
 	if err != nil {
-		log.Printf("get user id failed to get group, error %s", err.Error())
+		log.Printf("get user account, error %s", err.Error())
 		return diag.FromErr(err)
 	}
 
-	log.Println("user id:", userResp)
+	log.Println("userAccount ", userAccount)
+
+	err = flattenUser(d, userAccount)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
 
+func flattenUser(d *schema.ResourceData, in *models.UserResponse) error {
+	if in == nil {
+		return fmt.Errorf("%s", "failed to get user account(empty)")
+	}
+
+	if len(in.Account.Username) > 0 {
+		err := d.Set("user_name", in.Account.Username)
+		if err != nil {
+			return err
+		}
+	}
+	if len(in.Account.FirstName) > 0 {
+		err := d.Set("first_name", in.Account.FirstName)
+		if err != nil {
+			return err
+		}
+	}
+	if len(in.Account.LastName) > 0 {
+		err := d.Set("last_name", in.Account.LastName)
+		if err != nil {
+			return err
+		}
+	}
+	if len(in.Account.Phone) > 0 {
+		err := d.Set("phone", in.Account.Phone)
+		if err != nil {
+			return err
+		}
+	}
+
+	grps, err := user.GetUserGroups(in.Account.Username)
+	if err != nil {
+		return err
+	}
+	log.Println("grps", len(grps))
+	if len(grps) > 0 {
+		err := d.Set("groups", grps)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	//TODO implement update user
 	log.Printf("resource user update id %s", d.Id())
-	return diag.FromErr(fmt.Errorf("%s", "update not supported for user. Use group association to alter groups"))
+	return resourceUserUpsert(ctx, d, false)
+	//return diag.FromErr(fmt.Errorf("%s", "update not supported for user. Use group association to alter groups"))
 }
 
 func resourceUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -193,4 +260,11 @@ func resourceUserDelete(ctx context.Context, d *schema.ResourceData, m interface
 	}
 
 	return diags
+}
+
+func resourceUserImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	d.SetId(d.Id())
+	d.Set("user_name", d.Id())
+	log.Println("user_name", d.Id())
+	return []*schema.ResourceData{d}, nil
 }

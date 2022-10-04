@@ -59,6 +59,13 @@ func resourceUser() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"apikey": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Computed:  true,
+				ForceNew:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -132,6 +139,15 @@ Using command:
 		log.Printf("create user by id failed to get user, error %s", err.Error())
 		return diag.FromErr(err)
 	}
+
+	if d.Get("generate_apikey").(bool) {
+		apiKey, _, err := user.GetUserAPIKey(userName)
+		log.Println("get user apikey len ", len(apiKey), " error ", err, " : ", apiKey)
+		if err == nil {
+			d.Set("apikey", apiKey)
+		}
+	}
+
 	/*
 		//checking response of group id
 		currUser, err := user.NewUserFromResponse([]byte(userResp))

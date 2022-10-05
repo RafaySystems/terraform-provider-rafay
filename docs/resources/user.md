@@ -50,6 +50,7 @@ output "apikey" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
+- `apikey` (String) The Api Key (sensitive)
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

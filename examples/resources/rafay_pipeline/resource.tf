@@ -110,6 +110,9 @@ resource "rafay_pipeline" "tfdemopipeline" {
     stages {
         name = "s4"
         type = "InfraProvisioner"
+        next {
+          name = "s4"
+        }
         config {
           type =  "Terraform"
           provisioner =  "i1"
@@ -120,6 +123,44 @@ resource "rafay_pipeline" "tfdemopipeline" {
           action {
             action = "Apply"
             refresh = true
+            secret_groups = []
+          }
+        }
+    }
+    stages {
+        name = "s5"
+        type = "DeployWorkloadTemplate"
+        config {
+          workload_template =  "fayas-qctemp"
+          namespace =  "main"
+          placement {
+            selector = "rafay.dev/clusterName=shishir-gitops"
+          }
+          use_revision_from_webhook_trigger_event = false
+
+          overrides {
+            type = "HelmValues"
+            template {
+                repository = "test1"
+                revision = "main"
+                paths {
+                    name = "project1"
+                }
+            }
+            weight = 4
+          }
+
+          overrides {
+            type = "HelmValues"
+            template {
+                inline = "debug: {{ .stages.stage2.status}}"
+            }
+            weight = 2
+          }
+
+          action {
+            destroy = false
+            refresh = false
             secret_groups = []
           }
         }
@@ -162,26 +203,26 @@ resource "rafay_pipeline" "tfdemopipeline" {
             value = "trigger.name"
         }
     }
-    # triggers {
-    #     type =  "Cron"
-    #     name = "t3"
-    #     config {
-    #         cron_expression = "0 0 * * *"
-    #         repo {
-    #             provider = "AzureRepos"
-    #             repository = "test1"
-    #             revision =  "main"
-    #             paths {
-    #                 name = "project"
-    #             }
-    #         }
-    #     }
-    #     variables {
-    #         name = "x"
-    #         type = "String"
-    #         value = "trigger.name"
-    #     }
-    # }
+    triggers {
+        type =  "Cron"
+        name = "t3"
+        config {
+            cron_expression = "0 0 * * *"
+            repo {
+                provider = "AzureRepos"
+                repository = "test1"
+                revision =  "main"
+                paths {
+                    name = "project"
+                }
+            }
+        }
+        variables {
+            name = "x"
+            type = "String"
+            value = "trigger.name"
+        }
+    }
     sharing  {
       enabled = false
     }

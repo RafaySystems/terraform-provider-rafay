@@ -1209,7 +1209,7 @@ func expandCronTriggerGit(p []interface{}) *gitopspb.CronTriggerConfig_Git {
 		obj.Git.Revision = v
 	}
 
-	if v, ok := in["path"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["paths"].([]interface{}); ok && len(v) > 0 {
 		obj.Git.Paths = expandCommonpbFiles(v)
 	}
 
@@ -2106,6 +2106,10 @@ func flattenTriggerConfig(tSpec *triggerSpec, p []interface{}) []interface{} {
 
 	obj["repo"], _ = flattenTriggerConfigRepos(tSpec, v)
 
+	if len(tSpec.Config.CronExpression) > 0 {
+		obj["cron_expression"] = tSpec.Config.CronExpression
+	}
+
 	return []interface{}{obj}
 
 }
@@ -2143,11 +2147,6 @@ func flattenTriggerConfigRepos(tSpec *triggerSpec, p []interface{}) ([]interface
 
 	if len(tSpec.Config.Repo.ChartVersion) > 0 {
 		obj["chart_version"] = tSpec.Config.Repo.ChartVersion
-		retNil = false
-	}
-
-	if len(tSpec.Config.CronExpression) > 0 {
-		obj["cron_expression"] = tSpec.Config.CronExpression
 		retNil = false
 	}
 

@@ -368,8 +368,8 @@ func expandOverrides(p []interface{}) []*gitopspb.OverrideTemplate {
 			obj.Type = v
 		}
 
-		if v, ok := in["weight"].(int32); ok {
-			obj.Weight = v
+		if v, ok := in["weight"].(int); ok {
+			obj.Weight = int32(v)
 		}
 
 		if vp, ok := in["template"].([]interface{}); ok && len(vp) > 0 {

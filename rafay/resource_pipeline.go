@@ -318,8 +318,8 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 				WebhookURL    string `json:"webhook_url,omitempty"`
 				WebhookSecret string `json:"webhook_secret,omitempty"`
 			}
-			type snakeTriggers struct {
-				Triggers []snakeTriggerExtra `json:"triggers,omitempty"`
+			type snakeTrigger struct {
+				Trigger snakeTriggerExtra `json:"triggers,omitempty"`
 			}
 
 			var ct camelTriggers
@@ -328,18 +328,22 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 			json.Unmarshal(b, &ct)
 			log.Println("status pipeline:", string(b))
 
-			var st = snakeTriggers{}
-			for _, t := range ct.Triggers {
-				st.Triggers = append(st.Triggers, snakeTriggerExtra(t))
-			}
-			log.Println("status pipeline:", st)
+			var out []interface{}
 
-			b, _ = json.Marshal(st)
-			log.Println("status pipeline:", string(b))
-			var out = make(map[string]interface{})
-			json.Unmarshal(b, &out)
+			for _, t := range ct.Triggers {
+				var st = snakeTrigger{
+					Trigger: snakeTriggerExtra(t),
+				}
+				log.Println("status pipeline:", st)
+				b, _ = json.Marshal(st)
+				log.Println("status pipeline:", string(b))
+				var obj = make(map[string]interface{})
+				json.Unmarshal(b, &obj)
+				out = append(out, obj)
+			}
+
 			log.Println("status pipeline:", out)
-			return []interface{}{out}
+			return out
 		}(m)
 		log.Println("status pipeline:", status)
 		d.Set("status", status)

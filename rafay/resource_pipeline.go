@@ -339,7 +339,7 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 				log.Println("status pipeline:", string(b))
 				var obj = make(map[string]interface{})
 				json.Unmarshal(b, &obj)
-				out = append(out, obj)
+				out = append(out, []interface{}{obj})
 			}
 
 			log.Println("status pipeline:", out)
@@ -347,7 +347,7 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 		}(m)
 		log.Println("status pipeline:", status)
 		if err := d.Set("status", status); err != nil {
-			return diag.FromErr(err)
+			log.Println("status pipeline setting error :", err)
 		}
 	}
 	return diags

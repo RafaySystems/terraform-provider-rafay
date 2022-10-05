@@ -54,7 +54,7 @@ func resourcePipeline() *schema.Resource {
 						Optional:    true,
 						Computed:    true,
 						Type:        schema.TypeString,
-						Sensitive:   true,
+						//Sensitive:   true,
 					},
 				}},
 				Optional: true,

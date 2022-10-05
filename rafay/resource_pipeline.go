@@ -282,7 +282,7 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		// XXX Debug
 		n1 := spew.Sprintf("%+v", pipeline)
-		log.Println("pipeline apply pipeline:", n1)
+		log.Println("pipeline apply pipeline:", n1, err)
 		log.Printf("pipeline apply error")
 		return diag.FromErr(err)
 	}
@@ -294,8 +294,8 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		// XXX Debug
 		n1 := spew.Sprintf("%+v", pipeline)
-		log.Println("pipeline delete pipeline:", n1)
-		log.Printf("pipeline status error")
+		log.Println("pipeline status pipeline:", n1)
+		log.Printf("pipeline status error:", err)
 		return diag.FromErr(err)
 	}
 

@@ -1965,7 +1965,7 @@ func expandAKSConfigManagedCluster(p []interface{}) *AKSManagedCluster {
 	}
 
 	if v, ok := in["tags"].(map[string]interface{}); ok {
-		obj.Tags = toMapString(v)
+		obj.Tags = v
 	}
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
@@ -3502,7 +3502,7 @@ func flattenAKSManagedCluster(in *AKSManagedCluster, p []interface{}) []interfac
 	}
 
 	if in.Tags != nil && len(in.Tags) > 0 {
-		obj["tags"] = toMapInterface(in.Tags)
+		obj["tags"] = in.Tags
 	}
 
 	if len(in.Type) > 0 {
@@ -3667,7 +3667,7 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 		obj["network_profile"] = flattenAKSMCPropertiesNetworkProfile(in.NetworkProfile, v)
 	}
 
-	if len(in.FQDNSubdomain) > 0 {
+	if len(in.NodeResourceGroup) > 0 {
 		obj["node_resource_group"] = in.NodeResourceGroup
 	}
 
@@ -5088,8 +5088,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 	if res.TaskSetID == "" {
-		log.Println("response res.TaskSetID is empty")
-		return diag.FromErr(fmt.Errorf("%s", "response TaskSetID is empty"))
+		return nil
 	}
 	time.Sleep(20 * time.Second)
 	s, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)

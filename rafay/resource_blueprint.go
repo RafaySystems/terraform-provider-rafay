@@ -370,9 +370,9 @@ func expandBlueprintNamespaceConfig(p []interface{}) *infrapb.NsConfig {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["deny_out_of_band_creation"].(bool); ok {
-		obj.DenyOutOfBandCreation = v
-	}
+	// if v, ok := in["deny_out_of_band_creation"].(bool); ok {
+	// 	obj.DenyOutOfBandCreation = v
+	// }
 
 	if v, ok := in["enable_sync"].(bool); ok {
 		obj.EnableSync = v
@@ -883,7 +883,7 @@ func flattenBlueprintNamespaceConfig(in *infrapb.NsConfig, p []interface{}) []in
 
 	obj := make(map[string]interface{})
 
-	obj["deny_out_of_band_creation"] = in.DenyOutOfBandCreation
+	// obj["deny_out_of_band_creation"] = in.DenyOutOfBandCreation
 
 	obj["enable_sync"] = in.EnableSync
 
@@ -899,8 +899,10 @@ func flattenBlueprintPlacement(in *infrapb.BlueprintPlacement, p []interface{}) 
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
+	if in.AutoPublish {
+		obj["auto_publish"] = in.AutoPublish
+	}
 
-	obj["auto_publish"] = in.AutoPublish
 	if in.FleetValues != nil && len(in.FleetValues) > 0 {
 		obj["fleet_values"] = toArrayInterfaceSorted(in.FleetValues)
 	}
@@ -1035,8 +1037,9 @@ func flattenMonitoringComponent(in *infrapb.MonitoringComponent, p []interface{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
-
-	obj["enabled"] = in.Enabled
+	if in.Enabled {
+		obj["enabled"] = in.Enabled
+	}
 	if in.Discovery != nil {
 		v, ok := obj["discovery"].([]interface{})
 		if !ok {

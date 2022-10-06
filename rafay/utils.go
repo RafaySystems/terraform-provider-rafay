@@ -561,26 +561,26 @@ func expandQuantityString(str string) *resource.Quantity {
 	return nil
 }
 
-func expandResourceQuantity(p []interface{}) *commonpb.ResourceQuantity {
-	obj := commonpb.ResourceQuantity{}
-	if len(p) == 0 || p[0] == nil {
-		log.Println("expandResourceQuantity empty input")
-		return &obj
-	}
-	in := p[0].(map[string]interface{})
-	if v, ok := in["memory"].([]interface{}); ok {
-		obj.Memory = expandQuantity(v)
-		log.Println("expandResourceQuantity memory", obj.Memory)
-	}
+// func expandResourceQuantity(p []interface{}) *commonpb.ResourceQuantity {
+// 	obj := commonpb.ResourceQuantity{}
+// 	if len(p) == 0 || p[0] == nil {
+// 		log.Println("expandResourceQuantity empty input")
+// 		return &obj
+// 	}
+// 	in := p[0].(map[string]interface{})
+// 	if v, ok := in["memory"].([]interface{}); ok {
+// 		obj.Memory = expandQuantity(v)
+// 		log.Println("expandResourceQuantity memory", obj.Memory)
+// 	}
 
-	if v, ok := in["cpu"].([]interface{}); ok {
-		obj.Cpu = expandQuantity(v)
-		log.Println("expandResourceQuantity CPU", obj.Cpu)
-	}
+// 	if v, ok := in["cpu"].([]interface{}); ok {
+// 		obj.Cpu = expandQuantity(v)
+// 		log.Println("expandResourceQuantity CPU", obj.Cpu)
+// 	}
 
-	log.Println("expandResourceQuantity obj", obj)
-	return &obj
-}
+// 	log.Println("expandResourceQuantity obj", obj)
+// 	return &obj
+// }
 
 func expandResourceQuantityString(p []interface{}) *commonpb.ResourceQuantity {
 	obj := commonpb.ResourceQuantity{}
@@ -590,12 +590,12 @@ func expandResourceQuantityString(p []interface{}) *commonpb.ResourceQuantity {
 	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["memory"].(string); ok {
-		obj.Memory = expandQuantityString(v)
+		obj.Memory = v
 		log.Println("expandResourceQuantity memory", obj.Memory)
 	}
 
 	if v, ok := in["cpu"].(string); ok {
-		obj.Cpu = expandQuantityString(v)
+		obj.Cpu = v
 		log.Println("expandResourceQuantity CPU", obj.Cpu)
 	}
 
@@ -811,59 +811,59 @@ func flattenCommonpbFiles(input []*commonpb.File) []interface{} {
 	return out
 }
 
-func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
-	if in == nil {
-		return nil
-	}
+// func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
+// 	if in == nil {
+// 		return nil
+// 	}
 
-	obj := make(map[string]interface{})
-	if in.Memory != nil {
-		obj1 := make([]interface{}, 1)
-		obj2 := make(map[string]interface{})
-		obj2["string"] = in.GetMemory().String()
-		obj1[0] = obj2
-		obj["memory"] = obj1
-	}
+// 	obj := make(map[string]interface{})
+// 	if in.Memory != nil {
+// 		obj1 := make([]interface{}, 1)
+// 		obj2 := make(map[string]interface{})
+// 		obj2["string"] = in.GetMemory().String()
+// 		obj1[0] = obj2
+// 		obj["memory"] = obj1
+// 	}
 
-	if in.Cpu != nil {
-		obj1 := make([]interface{}, 1)
-		obj2 := make(map[string]interface{})
-		obj2["string"] = in.GetCpu().String()
-		obj1[0] = obj2
-		obj["cpu"] = obj1
-	}
+// 	if in.Cpu != nil {
+// 		obj1 := make([]interface{}, 1)
+// 		obj2 := make(map[string]interface{})
+// 		obj2["string"] = in.GetCpu().String()
+// 		obj1[0] = obj2
+// 		obj["cpu"] = obj1
+// 	}
 
-	log.Println("flattenResourceQuantity obj", obj)
-	return []interface{}{obj}
-}
+// 	log.Println("flattenResourceQuantity obj", obj)
+// 	return []interface{}{obj}
+// }
 
-func flattenResourceQuantities(in *commonpb.ResourceQuantity) []interface{} {
-	if in == nil {
-		return nil
-	}
-	objRoot := make([]interface{}, 1)
+// func flattenResourceQuantities(in *commonpb.ResourceQuantity) []interface{} {
+// 	if in == nil {
+// 		return nil
+// 	}
+// 	objRoot := make([]interface{}, 1)
 
-	obj := make(map[string]interface{})
-	if in.Memory != nil {
-		obj1 := make([]interface{}, 1)
-		obj2 := make(map[string]interface{})
-		obj2["string"] = in.GetMemory()
-		obj1[0] = obj2
-		obj["memory"] = obj1
-	}
+// 	obj := make(map[string]interface{})
+// 	if in.Memory != nil {
+// 		obj1 := make([]interface{}, 1)
+// 		obj2 := make(map[string]interface{})
+// 		obj2["string"] = in.GetMemory()
+// 		obj1[0] = obj2
+// 		obj["memory"] = obj1
+// 	}
 
-	if in.Cpu != nil {
-		obj1 := make([]interface{}, 1)
-		obj2 := make(map[string]interface{})
-		obj2["string"] = in.GetCpu()
-		obj1[0] = obj2
-		obj["cpu"] = obj1
-	}
+// 	if in.Cpu != nil {
+// 		obj1 := make([]interface{}, 1)
+// 		obj2 := make(map[string]interface{})
+// 		obj2["string"] = in.GetCpu()
+// 		obj1[0] = obj2
+// 		obj["cpu"] = obj1
+// 	}
 
-	objRoot[0] = obj
-	log.Println("flattenResourceQuantity obj", obj)
-	return []interface{}{objRoot}
-}
+// 	objRoot[0] = obj
+// 	log.Println("flattenResourceQuantity obj", obj)
+// 	return []interface{}{objRoot}
+// }
 
 func flattenRatio(in *commonpb.ResourceRatio) []interface{} {
 	if in == nil {
@@ -1005,12 +1005,14 @@ func expandResourceQuantity1170(p []interface{}) *commonpb.ResourceQuantity {
 	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["memory"].(string); ok {
-		obj.Memory = expandQuantity1170(v)
+		//obj.Memory = expandQuantity1170(v)
+		obj.Memory = v
 		log.Println("expandResourceQuantity1170 memory", obj.Memory)
 	}
 
 	if v, ok := in["cpu"].(string); ok {
-		obj.Cpu = expandQuantity1170(v)
+		//obj.Cpu = expandQuantity1170(v)
+		obj.Cpu = v
 		log.Println("expandResourceQuantity1170 CPU", obj.Cpu)
 	}
 
@@ -1037,23 +1039,24 @@ func flattenResourceQuantity1170(in *commonpb.ResourceQuantity) []interface{} {
 	}
 
 	obj := make(map[string]interface{})
-	if in.Memory != nil {
-		for i := 0; i < 10; i++ {
-			in.GetMemory().Add(*in.GetMemory())
-			//log.Println("adding ", in.GetMemory().String())
-		}
-		obj["memory"] = in.GetMemory().String()
+	if in.Memory != "" {
+		// for i := 0; i < 10; i++ {
+		// 	in.GetMemory().Add(*in.GetMemory())
+		// 	//log.Println("adding ", in.GetMemory().String())
+		// }
+		obj["memory"] = in.Memory
 		//log.Println("flattenResourceQuantity1170 memory string ", in.GetMemory().String())
 	}
 
-	if in.Cpu != nil {
-		cq := *in.Cpu
-		for i := 0; i < 999; i++ {
-			in.GetCpu().Add(cq)
-			//log.Println("adding ", in.GetCpu().String())
-		}
-		in.GetCpu().RoundUp(resource.Micro)
-		obj["cpu"] = in.GetCpu().String()
+	if in.Cpu != "" {
+		// cq := *in.Cpu
+		// for i := 0; i < 999; i++ {
+		// 	in.GetCpu().Add(cq)
+		// 	//log.Println("adding ", in.GetCpu().String())
+		// }
+		// in.GetCpu().RoundUp(resource.Micro)
+		// obj["cpu"] = in.GetCpu().String()
+		obj["cpu"] = in.Cpu
 		//log.Println("flattenResourceQuantity1170 cpu string ", in.GetCpu().String(), " => ")
 	}
 

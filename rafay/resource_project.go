@@ -465,7 +465,7 @@ func flattenProjectResourceQuota(in *systempb.ProjectResourceQuota) []interface{
 	// }
 
 	if len(in.ConfigMaps) > 0 {
-		obj["type"] = in.ConfigMaps
+		obj["config_maps"] = in.ConfigMaps
 		retNil = false
 	}
 

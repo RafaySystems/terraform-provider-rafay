@@ -475,6 +475,7 @@ func resourcePipelineV2Delete(ctx context.Context, pl *gitopspb.Pipeline) diag.D
 	err = pipeline.DeletePipeline(pl.Metadata.Name, projectId)
 	if err != nil {
 		log.Println("error deleting pipeline")
+		return diag.FromErr(err)
 	} else {
 		log.Println("Deleted pipeline: ", pl.Metadata.Name)
 	}

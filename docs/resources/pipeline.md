@@ -11,6 +11,7 @@ description: |-
 Associates a pipeline with a project.
 
 ## Example Usage
+Example of a pipeline with approval & workload deployment stage,
 
 ```terraform
 resource "rafay_pipeline" "email-test" {
@@ -19,11 +20,13 @@ resource "rafay_pipeline" "email-test" {
     project = "terraform"
   }
   spec {
-    active = false
-    sharing {
-      enabled = false
-    }
+    active = true
     stages {
+      name = "email"
+      type = "Approval"
+      next {
+          name = "deploy-wk"
+      }
       config {
         approvers {
           sso_user  = false
@@ -32,218 +35,227 @@ resource "rafay_pipeline" "email-test" {
         timeout = "2m0s"
         type    = "Email"
       }
-      name = "email"
-      type = "Approval"
+    }
+    stages {
+      name = "deploy-wk"
+      type = "DeployWorkload"
+      config {
+        use_revision_from_webhook_trigger_event = false
+        workload                                = "workload-name"
+      }
+    }
+    triggers {
+      type =  "Cron"
+      name = "trigger-name"
+      config {
+        cron_expression = "0 0 * * *"
+        repo {
+          provider = "Gitlab"
+          repository = "test1"
+          revision =  "main"
+          paths {
+              name = "project"
+          }
+        }
+      }
     }
   }
 }
+```
+---
 
-resource "rafay_pipeline" "tfdemopipeline" {
+Example of a pipeline with system-sync stage
+```terraform
+resource "rafay_pipeline" "sync-test" {
   metadata {
-    name = "tfdemopipeline"
+    name = "sync-test"
     project = "terraform"
-    annotations = {}
-    labels      = {}
   }
   spec {
     stages {
-        name =  "s1"
-        type = "SystemSync"
-        next {
-            name = "s2"
+      name =  "system-sync"
+      type = "SystemSync"
+      config  {
+        git_to_system_sync = true
+        included_resources {
+          name =  "Workload"
         }
-        config  {
-            git_to_system_sync = true
-            included_resources {
-                name =  "Workload"
-            }
-            excluded_resources {
-                name =  "OPAConstraint"
-            }
-             source_repo {
-                 repository = "test1"
-                 revision =  "main"
-                 path {
-                    name = "project"
-                 }
-             }
-            #destination_repo {}
-            source_as_destination = true
-            action {
-                destroy       = false
-                refresh       = false
-                secret_groups = []
-            }
-            
+        included_resources {
+          name =  "Namespace"
         }
-        variables {
-            name = "x"
-            type = "String"
-            value = "trigger.name"
+        included_resources {
+          name =  "Pipeline"
         }
-    }
-    stages{
-        name = "s2"
-        type = "Approval"
-        next {
-            name = "s3"
+        excluded_resources {
+          name =  "Cluster"
         }
-        config {
-          type = "Email"
-          approvers {
-              user_name = "user@company.co"
-          }  
-          timeout = "10s"
-          action {
-                destroy       = false
-                refresh       = false
-                secret_groups = []
-          }
-        }
-    }
-    stages {
-        name = "s3"
-        type = "DeployWorkload"
-        next {
-            name = "s4"
-        }
-        config {
-            git_to_system_sync                      = false
-            persist_working_directory               = false
-            source_as_destination                   = false
-            system_to_git_sync                      = false
-            use_revision_from_webhook_trigger_event = false
-            workload                                = "w2"
-
-            action {
-                destroy       = false
-                refresh       = false
-                secret_groups = []
-            }
-        }
-    }
-    stages {
-        name = "s4"
-        type = "InfraProvisioner"
-        next {
-          name = "s4"
-        }
-        config {
-          type =  "Terraform"
-          provisioner =  "i1"
+        source_repo {
+          repository = "test1"
           revision =  "main"
-          agents {
-              name = "agent1"
-          }
-          action {
-            action = "Apply"
-            refresh = true
-            secret_groups = []
+          path {
+             name = "project"
           }
         }
-    }
-    stages {
-        name = "s5"
-        type = "DeployWorkloadTemplate"
-        config {
-          workload_template =  "fayas-qctemp"
-          namespace =  "main"
-          placement {
-            selector = "rafay.dev/clusterName=shishir-gitops"
-          }
-          use_revision_from_webhook_trigger_event = false
-
-          overrides {
-            type = "HelmValues"
-            template {
-                repository = "test1"
-                revision = "main"
-                paths {
-                    name = "project1"
-                }
-            }
-            weight = 4
-          }
-
-          overrides {
-            type = "HelmValues"
-            template {
-                inline = "debug: {{ .stages.stage2.status}}"
-            }
-            weight = 2
-          }
-
-          action {
-            destroy = false
-            refresh = false
-            secret_groups = []
-          }
-        }
+        system_to_git_sync    = true
+        source_as_destination = true
+      }
     }
     triggers {
-        type =  "Webhook"
-        name = "t1"
-        config {
-            repo {
-                provider = "Github"
-                repository = "test1"
-                revision =  "main"
-                paths {
-                    name = "project"
-                }
-            }
+      type =  "Webhook"
+      name = "trigger-name"
+      config {
+        repo {
+          provider = "AzureRepos"
+          repository = "test1"
+          revision =  "main"
+          paths {
+              name = "project"
+          }
         }
-        variables {
-            name = "x"
-            type = "String"
-            value = "trigger.name"
-        }
-    }
-    triggers {
-        type =  "Webhook"
-        name = "t2"
-        config {
-            repo {
-                provider = "AzureRepos"
-                repository = "test1"
-                revision =  "main"
-                paths {
-                    name = "project"
-                }
-            }
-        }
-        variables {
-            name = "x"
-            type = "String"
-            value = "trigger.name"
-        }
-    }
-    triggers {
-        type =  "Cron"
-        name = "t3"
-        config {
-            cron_expression = "0 0 * * *"
-            repo {
-                provider = "AzureRepos"
-                repository = "test1"
-                revision =  "main"
-                paths {
-                    name = "project"
-                }
-            }
-        }
-        variables {
-            name = "x"
-            type = "String"
-            value = "trigger.name"
-        }
+      }
     }
     sharing  {
-      enabled = false
+      enabled = true
+      projects {
+        name = "defaultproject"
+      }
     }
-    active = false
+    active = true
   }
 }
+```
+
+---
+Example of pipeline with worklaod template.
+```terraform
+resource "rafay_pipeline" "workload-test" {
+  metadata {
+    name = "workload-test"
+    project = "terraform"
+  }
+  spec {
+    active = true
+    stages {
+      name = "deploy-workload-template"
+      type = "DeployWorkloadTemplate"
+      config {
+        workload_template =  "workload_template_name"
+        namespace =  "main"
+        placement {
+          labels {
+            key = "rafay.dev/clusterName"
+            value = "CLUSTER_NAME"
+          }
+        }
+        use_revision_from_webhook_trigger_event = false
+        overrides {
+          type = "HelmValues"
+          template {
+            repository = "test1"
+            revision = "main"
+            paths {
+                name = "project1/overrides_values.yaml"
+            }
+          }
+          weight = 10
+        }
+        overrides {
+          type = "HelmValues"
+          template {
+              inline = "debug: {{ .currentStage.var1 }}"
+          }
+          weight = 20
+        }
+        overrides {
+          type = "HelmSetString"
+          template {
+              inline = "debug=override_values"
+          }
+          weight = 30
+        }
+      }
+      variables {
+          name = "var1"
+          type = "String"
+          value = "\"test\""
+      }
+    }
+    triggers {
+      type =  "Webhook"
+      name = "trigger-name"
+      config {
+        repo {
+          provider = "Github"
+          repository = "test1"
+          revision =  "main"
+          paths {
+              name = "project"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+Example of a pipeline with InfraProvisioner/Terraform stage.
+```terraform
+resource "rafay_pipeline" "infaprovisioner-test" {
+  metadata {
+    name = "infraprovisioner-test"
+    project = "cbre-stage-tf-0000"
+  }
+  spec {
+    active = true
+    stages {
+      name = "plan"
+      type = "InfraProvisioner"
+      next {
+        name = "apply"
+      }
+      config {
+        type        =  "Terraform"
+        provisioner =  "mks"
+        revision    =  "main"
+        agents {
+            name = "a1"
+        }
+        persist_working_directory = true
+        action {
+          action  = "Plan"
+          version = "1.0.0"
+          refresh = true
+          env_vars {
+            key   = "env1"
+            type  = "Plain"
+            value = "value1"
+          }
+        }
+      }
+    }
+    stages {
+      name = "apply"
+      type = "InfraProvisioner"
+      config {
+        type        =  "Terraform"
+        provisioner =  "mks"
+        revision    =  "main"
+        agents {
+            name = "a1"
+        }
+        working_directory = "plan"
+        action {
+          action = "Apply"
+          version = "1.0.0"
+          refresh = true
+        }
+      }
+    }
+    
+  }
+}
+
 ```
 
 <!-- schema generated by tfplugindocs -->
@@ -259,6 +271,7 @@ resource "rafay_pipeline" "tfdemopipeline" {
 
 - `impersonate` (String) Impersonate a user.
 - `timeouts` (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts)).
+- `status`
 
 
 <a id="nestedblock--metadata"></a>
@@ -270,49 +283,18 @@ resource "rafay_pipeline" "tfdemopipeline" {
 - `name` - (String) The name of the resource. This must be unique in your organization.
 - `project` - (String) The name of the Rafay project the pipeline will be associated with.
 
-***Optional***
-
-- `annotations` - (Map of String) Annotations of the resource.
-- `description` - (String) Description of the resource.
-- `labels` - (Map of String) Labels of the resource.
-
-
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
+
+***Required***
+- `stages` (Block List) The stages in the pipeline. (See [below for nested schema](#nestedblock--spec--stages)).
 
 ***Optional***
 
 - `active` (Boolean) Enables the pipeline.
-- `secret` (Block List, Max: 1) Pipeline secrets. (See [below for nested schema](#nestedblock--spec--secret)).
 - `sharing` (Block List, Max: 1) Pipeline sharing configuration. (See [below for nested schema](#nestedblock--spec--sharing)).
-- `stages` (Block List) The stages in the pipeline. (See [below for nested schema](#nestedblock--spec--stages)).
 - `triggers` (Block List) The triggers for the pipeline. (See [below for nested schema](#nestedblock--spec--triggers)).
 - `variables` (Block List) The pipeline scoped variables. (See [below for nested schema](#nestedblock--spec--variables)).
-
-
-<a id="nestedblock--spec--secret"></a>
-### Nested Schema for `spec.secret`
-
-***Optional***
-
-- `name` (String) The relative path of a artifact.
-
-
-<a id="nestedblock--spec--sharing"></a>
-### Nested Schema for `spec.sharing`
-
-***Optional***
-
-- `enabled` (Boolean) Enables sharing for the resource.
-- `projects` (Block List) List of projects this resource is shared with. (See [below for nested schema](#nestedblock--spec--sharing--projects)).
-
-
-<a id="nestedblock--spec--sharing--projects"></a>
-### Nested Schema for `spec.sharing.projects`
-
-***Optional***
-
-- `name` (String) The name of the project.
 
 
 <a id="nestedblock--spec--stages"></a>
@@ -323,8 +305,8 @@ resource "rafay_pipeline" "tfdemopipeline" {
 - `config` (Block List, Max: 1) The stage configuration. (See [below for nested schema](#nestedblock--spec--stages--config)).
 - `name` (String) The name of the pipeline stage.
 - `next` (Block List) The list of stages to be executed after this stage. (See [below for nested schema](#nestedblock--spec--stages--next)).
-- `pre_conditions` (Block List) The conditions to be evaluated before executing the current stage. (See [below for nested schema](#nestedblock--spec--stages--pre_conditions)).
-- `type` (String) The type of pipeline stage.
+(#nestedblock--spec--stages--pre_conditions)).
+- `type` (String) The type of pipeline stage. Supported values are `Approval`, `DeployWorkload`, `DeployWorkloadTemplate`, `InfraProvisioner` and `SystemSync`
 - `variables` (Block List) The variables for the stage. (See [below for nested schema](#nestedblock--spec--stages--variables)).
 
 
@@ -350,7 +332,7 @@ resource "rafay_pipeline" "tfdemopipeline" {
 - `source_repo` (Block List, Max: 1) The Git repository for syncing from Git to the system. (See [below for nested schema](#nestedblock--spec--stages--config--source_repo)).
 - `system_to_git_sync` (Boolean) Enables synchronizing from the system to the Git repository.
 - `timeout` (String) The timeout for the approval.
-- `type` (String) The type of infraprovisioner.
+- `type` (String) The config type for supporred ations. Supported values are `Email` and `Terraform`
 - `use_revision_from_webhook_trigger_event` (Boolean) Enables deploying the workload using the revision received from the webhook trigger.
 - `working_directory` (String) The working directory for the provisioner.
 - `workload` (String) The name of the workload.
@@ -362,7 +344,7 @@ resource "rafay_pipeline" "tfdemopipeline" {
 
 ***Optional***
 
-- `action` (String) The Terraform action.
+- `action` (String) The Terraform action. Supported values are `Plan`, `Apply` and  `Destroy`
 - `backend_file_path` (Block List, Max: 1) The backend file path. (See [below for nested schema](#nestedblock--spec--stages--config--action--backend_file_path)).
 - `backend_vars` (Block List) The backend variables. (See [below for nested schema](#nestedblock--spec--stages--config--action--backend_vars)).
 - `destroy` (Boolean) Enables destroying the resource.
@@ -469,15 +451,17 @@ resource "rafay_pipeline" "tfdemopipeline" {
 
 ***Optional***
 
-- `name` (String) The name of the system sync resource.
-
+- `name` (String) The name of the system sync resource. Supported values are `Blueprint`,`Workload`,`WorkloadTemplate`,`Override`,`Addon`,`Catalog`,`Namespace`,`Pipeline`,`InfraProvisioner`,`Agent`,`Repository`,`SecretSealer`,`SecretStore`,`OPAProfile`,`OPAConstraint`,`OPAConstraintTemplate`,`OPAPolicy`,`SecretProviderClass`,`NetworkPolicyProfile`,`ClusterNetworkPolicy`,`NamespaceNetworkPolicy`,`ClusterNetworkPolicyRule`,`NamespaceNetworkPolicyRule`,`MeshProfile`,`ClusterMeshPolicy`,`NamespaceMeshPolicy`,`ClusterMeshRule`,`NamespaceMeshRule` and `Cluster`.
+  
 
 <a id="nestedblock--spec--stages--config--included_resources"></a>
 ### Nested Schema for `spec.stages.config.included_resources`
 
 ***Optional***
 
-- `name` (String) The name of the system sync resource.
+- `name` (String) The name of the system sync resource. Supported values are `Blueprint`,`Workload`,`WorkloadTemplate`,`Override`,`Addon`,`Catalog`,`Namespace`,`Pipeline`,`InfraProvisioner`,`Agent`,`Repository`,`SecretSealer`,`SecretStore`,`OPAProfile`,`OPAConstraint`,`OPAConstraintTemplate`,`OPAPolicy`,`SecretProviderClass`,`NetworkPolicyProfile`,`ClusterNetworkPolicy`,`NamespaceNetworkPolicy`,`ClusterNetworkPolicyRule`,`NamespaceNetworkPolicyRule`,`MeshProfile`,`ClusterMeshPolicy`,`NamespaceMeshPolicy`,`ClusterMeshRule`,`NamespaceMeshRule`,`Cluster` and  `*`. Defaults to `*`
+
+Note: Same resource name can not be used for `included_resources` and `excluded_resources` in the same gitops pipeline.
 
 
 <a id="nestedblock--spec--stages--config--overrides"></a>
@@ -486,7 +470,7 @@ resource "rafay_pipeline" "tfdemopipeline" {
 ***Optional***
 
 - `template` (Block List, Max: 1) The name of the override template. (See [below for nested schema](#nestedblock--spec--stages--config--overrides--template)).
-- `type` (String) The type of override template.
+- `type` (String) The type of override template. Supportred values are `HelmValues` and  `HelmSetString`
 - `weight` (Number) The weight of the override. Overrides are applied low to high weight.
 
 
@@ -515,7 +499,6 @@ resource "rafay_pipeline" "tfdemopipeline" {
 ***Optional***
 
 - `labels` (Block List) The list of labels for the placement. (See [below for nested schema](#nestedblock--spec--stages--config--placement--labels)).
-- `selector` (String) The Kubernetes style label selector.
 
 
 <a id="nestedblock--spec--stages--config--placement--labels"></a>
@@ -551,21 +534,6 @@ resource "rafay_pipeline" "tfdemopipeline" {
 ***Optional***
 
 - `name` (String) The name of the next stage.
-- `weight` (Number) The weight of the next stage.
-
-
-<a id="nestedblock--spec--stages--pre_conditions"></a>
-### Nested Schema for `spec.stages.pre_conditions`
-
-***Optional***
-
-- `config` (Block List, Max: 1) The configuration for the precondition. (See [below for nested schema](#nestedblock--spec--stages--pre_conditions--config)).
-- `type` (String) The type of the stage precondiiton.
-
-
-<a id="nestedblock--spec--stages--pre_conditions--config"></a>
-### Nested Schema for `spec.stages.pre_conditions.type`
-
 
 <a id="nestedblock--spec--stages--variables"></a>
 ### Nested Schema for `spec.stages.variables`
@@ -576,6 +544,22 @@ resource "rafay_pipeline" "tfdemopipeline" {
 - `type` (String) The type of the variable.
 - `value` (String) The value of the variable.
 
+<a id="nestedblock--spec--sharing"></a>
+### Nested Schema for `spec.sharing`
+
+***Optional***
+
+- `enabled` (Boolean) Enables sharing for the resource.
+- `projects` (Block List) List of projects this resource is shared with. (See [below for nested schema](#nestedblock--spec--sharing--projects)).
+
+
+<a id="nestedblock--spec--sharing--projects"></a>
+### Nested Schema for `spec.sharing.projects`
+
+***Optional***
+
+- `name` (String) The name of the project.
+
 
 <a id="nestedblock--spec--triggers"></a>
 ### Nested Schema for `spec.triggers`
@@ -584,7 +568,7 @@ resource "rafay_pipeline" "tfdemopipeline" {
 
 - `config` (Block List, Max: 1) The configuration for the trigger. (See [below for nested schema](#nestedblock--spec--triggers--config)).
 - `name` (String) The name of the trigger.
-- `type` (String) The trigger type.
+- `type` (String) The trigger type. Supported values are `Webhook` and `Cron`
 - `variables` (Block List) The trigger scoped variables. (See [below for nested schema](#nestedblock--spec--triggers--variables)).
 
 
@@ -605,7 +589,7 @@ resource "rafay_pipeline" "tfdemopipeline" {
 - `chart_name` (String) The name of the chart in repo.
 - `chart_version` (String) The version of the chart in repo.
 - `paths` (Block List) The paths in the Git repo to watch for changes. (See [below for nested schema](#nestedblock--spec--triggers--config--repo--paths)).
-- `provider` (String) The provider for the Git repo.
+- `provider` (String) The provider for the Git repo. Supported values are `Github`, `Gitlab`, `Bitbucket` and `AzureRepos`
 - `repository` (String) The name of the Helm repository.
 - `revision` (String) The branch or tag in the Git repository to watch for changes.
 
@@ -653,3 +637,4 @@ resource "rafay_pipeline" "tfdemopipeline" {
 ---
 
 - `id` - (String) The ID of the resource, generated by the system after you create the resource.
+- `status` - (Block List) This containts `webhook_url` and `webhook_secret` for the configured trigges in the pipeline. This can be configured in the repo for webhook.

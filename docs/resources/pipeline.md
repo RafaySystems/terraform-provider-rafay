@@ -271,7 +271,6 @@ resource "rafay_pipeline" "infaprovisioner-test" {
 
 - `impersonate` (String) Impersonate a user.
 - `timeouts` (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts)).
-- `status`
 
 
 <a id="nestedblock--metadata"></a>
@@ -279,6 +278,15 @@ resource "rafay_pipeline" "infaprovisioner-test" {
 
 
 ***Required***
+
+- `name` - (String) The name of the resource. This must be unique in your organization.
+- `project` - (String) The name of the Rafay project the pipeline will be associated with.
+
+***Optional***
+
+- `annotations` - (Map of String) Annotations of the resource.
+- `description` - (String) Description of the resource.
+- `labels` - (Map of String) Labels of the resource.
 
 - `name` - (String) The name of the resource. This must be unique in your organization.
 - `project` - (String) The name of the Rafay project the pipeline will be associated with.

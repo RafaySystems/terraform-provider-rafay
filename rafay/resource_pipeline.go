@@ -31,6 +31,41 @@ func resourcePipeline() *schema.Resource {
 		Optional:    true,
 		Type:        schema.TypeString,
 	}
+	modSchema["status"] = &schema.Schema{
+		Description: "pipeline status",
+		Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+			"triggers": &schema.Schema{
+				Description: "pipeline trigger status",
+				Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+					"name": &schema.Schema{
+						Description: "name of the trigger",
+						Optional:    true,
+						Computed:    true,
+						Type:        schema.TypeString,
+					},
+					"webhook_url": &schema.Schema{
+						Description: "webhook url",
+						Optional:    true,
+						Computed:    true,
+						Type:        schema.TypeString,
+					},
+					"webhook_secret": &schema.Schema{
+						Description: "webhook secret",
+						Optional:    true,
+						Computed:    true,
+						Type:        schema.TypeString,
+						//Sensitive:   true,
+					},
+				}},
+				Optional: true,
+				Computed: true,
+				Type:     schema.TypeList,
+			},
+		}},
+		Optional: true,
+		Computed: true,
+		Type:     schema.TypeList,
+	}
 	return &schema.Resource{
 		CreateContext: resourcePipelineCreate,
 		ReadContext:   resourcePipelineRead,
@@ -247,12 +282,72 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		// XXX Debug
 		n1 := spew.Sprintf("%+v", pipeline)
-		log.Println("pipeline apply pipeline:", n1)
+		log.Println("pipeline apply pipeline:", n1, err)
 		log.Printf("pipeline apply error")
 		return diag.FromErr(err)
 	}
 
+	pipelineStatus, err := client.GitopsV3().Pipeline().Status(ctx, options.StatusOptions{
+		Name:    pipeline.Metadata.Name,
+		Project: pipeline.Metadata.Project,
+	})
+	if err != nil {
+		// XXX Debug
+		n1 := spew.Sprintf("%+v", pipeline)
+		log.Println("pipeline status pipeline:", n1)
+		log.Printf("pipeline status error:", err)
+		return diag.FromErr(err)
+	}
+
 	d.SetId(pipeline.Metadata.Name)
+	if pipelineStatus.Status != nil && pipelineStatus.Status.Extra != nil {
+		m := pipelineStatus.Status.Extra.Data.AsMap()
+		status := func(in map[string]interface{}) interface{} {
+			log.Println("status pipeline:", in)
+			type camelTriggerExtra struct {
+				Name          string `json:"name"`
+				WebhookURL    string `json:"webhookURL,omitempty"`
+				WebhookSecret string `json:"webhookSecret,omitempty"`
+			}
+			type camelTriggers struct {
+				Triggers []camelTriggerExtra `json:"triggers,omitempty"`
+			}
+
+			type snakeTriggerExtra struct {
+				Name          string `json:"name"`
+				WebhookURL    string `json:"webhook_url,omitempty"`
+				WebhookSecret string `json:"webhook_secret,omitempty"`
+			}
+			type snakeTrigger struct {
+				Triggers []snakeTriggerExtra `json:"triggers,omitempty"`
+			}
+
+			var ct camelTriggers
+
+			b, _ := json.Marshal(in)
+			json.Unmarshal(b, &ct)
+			log.Println("status pipeline:", string(b))
+
+			var out []interface{}
+			var st = snakeTrigger{}
+			for _, t := range ct.Triggers {
+				st.Triggers = append(st.Triggers, snakeTriggerExtra(t))
+			}
+			log.Println("status pipeline:", st)
+			b, _ = json.Marshal(st)
+			log.Println("status pipeline:", string(b))
+			var obj = make(map[string]interface{})
+			json.Unmarshal(b, &obj)
+			out = append(out, obj)
+
+			log.Println("status pipeline:", []interface{}{out})
+			return out
+		}(m)
+		log.Println("status pipeline:", status)
+		if err := d.Set("status", status); err != nil {
+			log.Println("status pipeline setting error :", err)
+		}
+	}
 	return diags
 
 }

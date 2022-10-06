@@ -189,6 +189,9 @@ func resourceOPAPolicyDelete(ctx context.Context, d *schema.ResourceData, m inte
 		Name:    ag.Metadata.Name,
 		Project: ag.Metadata.Project,
 	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }

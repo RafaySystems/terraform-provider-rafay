@@ -69,10 +69,6 @@ resource "rafay_secretsealer" "tfdemosecretsealer2" {
 - `name` - (String) The name of the resource. This must be unique in your organization.
 - `project` - (String) The name of the Rafay project the secret sealer will be associated with.
 
-***Optional***
-
-- `description` - (String) Description of the resource.
-
 ---
 
 <a id="nestedblock--spec"></a>

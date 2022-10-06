@@ -186,7 +186,7 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
             kubernetes_version  = "1.21.9"
             node_resource_group = "node-resource-name"
             linux_profile  {
-              admin_username = "admin"
+              admin_username = "adminuser"
               ssh {
                 public_keys {
                   key_data = "ssh_public_key"

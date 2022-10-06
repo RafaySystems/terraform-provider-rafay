@@ -85,7 +85,7 @@ type AKSManagedCluster struct {
 	Identity           *AKSManagedClusterIdentity           `yaml:"identity,omitempty"`
 	Properties         *AKSManagedClusterProperties         `yaml:"properties,omitempty"`
 	SKU                *AKSManagedClusterSKU                `yaml:"sku,omitempty"`
-	Tags               map[string]string                    `yaml:"tags,omitempty"`
+	Tags               map[string]interface{}               `yaml:"tags,omitempty"`
 	AdditionalMetadata *AKSManagedClusterAdditionalMetadata `yaml:"additionalMetadata,omitempty"`
 }
 

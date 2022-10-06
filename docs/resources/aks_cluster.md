@@ -338,6 +338,7 @@ Supported values are: `loadBalancer` and `userDefinedRouting`.
 ***Optional***
 
 - `acr_profile` - (Block List) The profile for the Azure Container Registry configuration. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--additional_metadata--acr_profile))
+- `oms_workspace_location` - (String) The location of the Log analytics workspace.
 
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--additional_metadata--acr_profile"></a>
@@ -346,7 +347,7 @@ Supported values are: `loadBalancer` and `userDefinedRouting`.
 ***Required***
 
 - `acr_name` - (String) The name of the Azure Container Registry resource.
-- `oms_workspace_location` - (String) The location of the Log analytics workspace.
+
 - `resource_group_name` - (String) If not specified, defaults to the resource group of the managed cluster. 
 
 

@@ -25,6 +25,11 @@ type artifactTranspose struct {
 		Secret        *File   `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
 		Configuration *File   `protobuf:"bytes,3,opt,name=configuration,proto3" json:"configuration,omitempty"`
 		Statefulset   *File   `protobuf:"bytes,4,opt,name=statefulset,proto3" json:"statefulset,omitempty"`
+		ValuesRef     struct {
+			Repository  string  `protobuf:"bytes,1,opt,name=repository,proto3" json:"repository,omitempty"`
+			Revision    string  `protobuf:"bytes,2,opt,name=revision,proto3" json:"revision,omitempty"`
+			ValuesPaths []*File `protobuf:"bytes,3,rep,name=valuesPaths,proto3" json:"valuesPaths,omitempty"`
+		} `json:"valuesRef,omitempty"`
 	} `json:"artifact,omitempty"`
 
 	Options struct {
@@ -128,6 +133,31 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 
 		if v, ok := in["revision"].(string); ok && len(v) > 0 {
 			at.Artifact.Revision = v
+		}
+
+		if v, ok := in["values_ref"].([]interface{}); ok && len(v) > 0 {
+			//at.Artifact.Configmap = expandValuesRef(v)
+			if v[0] == nil {
+				log.Println("expandValuesRef empty options")
+			} else {
+				inVref := v[0].(map[string]interface{})
+				if v, ok := inVref["repository"].(string); ok && len(v) > 0 {
+					at.Artifact.ValuesRef.Repository = v
+				}
+
+				if v, ok := inVref["revision"].(string); ok && len(v) > 0 {
+					at.Artifact.ValuesRef.Revision = v
+				}
+
+				if v, ok := inVref["values_paths"].([]interface{}); ok && len(v) > 0 {
+					at.Artifact.ValuesRef.ValuesPaths, err = expandFiles(v)
+					if err != nil {
+						return nil, err
+					}
+					artfct = spew.Sprintf("%+v", at.Artifact.ValuesRef.ValuesPaths)
+					log.Println("at.Artifact.ValuesRef.ValuesPaths ", artfct)
+				}
+			}
 		}
 
 		artfct = spew.Sprintf("%+v", at.Artifact)
@@ -243,6 +273,27 @@ func ExpandArtifactSpec(p []interface{}) (*commonpb.ArtifactSpec, error) {
 
 // Flatten
 
+func flattenValuesRef(at *artifactTranspose, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(at.Artifact.ValuesRef.Repository) > 0 {
+		obj["repository"] = at.Artifact.ValuesRef.Repository
+	}
+
+	if len(at.Artifact.ValuesRef.Revision) > 0 {
+		obj["revision"] = at.Artifact.ValuesRef.Revision
+	}
+
+	if at.Artifact.ValuesRef.ValuesPaths != nil {
+		obj["values_paths"] = flattenFiles(at.Artifact.ValuesRef.ValuesPaths)
+	}
+
+	return []interface{}{obj}
+}
+
 // FlattenArtifact ArtifactSpec to TF State
 func FlattenArtifact(at *artifactTranspose, p []interface{}) ([]interface{}, error) {
 	obj := map[string]interface{}{}
@@ -292,6 +343,14 @@ func FlattenArtifact(at *artifactTranspose, p []interface{}) ([]interface{}, err
 
 	if at.Artifact.Statefulset != nil {
 		obj["statefulset"] = flattenFile(at.Artifact.Statefulset)
+	}
+
+	v, ok := obj["values_ref"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	if at.Artifact.ValuesRef.Repository != "" {
+		obj["values_ref"] = flattenValuesRef(at, v)
 	}
 
 	s1 := spew.Sprintf("%+v", obj)

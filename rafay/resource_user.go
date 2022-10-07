@@ -72,6 +72,13 @@ func resourceUser() *schema.Resource {
 				ForceNew:  true,
 				Sensitive: true,
 			},
+			"api_secret": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Computed:  true,
+				ForceNew:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -174,10 +181,12 @@ func resourceUserUpsert(ctx context.Context, d *schema.ResourceData, create bool
 	log.Println(" CreateUserTF account", account, userID)
 
 	if d.Get("generate_apikey").(bool) {
-		apiKey, _, err := user.GetUserAPIKey(userName)
-		log.Println("get user apikey len ", len(apiKey), " error ", err, " : ", apiKey)
+		apiKey, apiSecret, err := user.GetUserAPIKey(userName)
 		if err == nil {
 			d.Set("apikey", apiKey)
+			if len(apiSecret) > 0 {
+				d.Set("api_secret", apiSecret)
+			}
 		}
 	}
 

@@ -71,6 +71,9 @@ func resourcePipeline() *schema.Resource {
 		ReadContext:   resourcePipelineRead,
 		UpdateContext: resourcePipelineUpdate,
 		DeleteContext: resourcePipelineDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourcePipelineImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -2252,4 +2255,25 @@ func flattenTriggerConfigRepos(tSpec *triggerSpec, p []interface{}) ([]interface
 
 	return []interface{}{obj}, nil
 
+}
+
+func resourcePipelineImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	//d_debug := spew.Sprintf("%+v", d)
+	log.Println("resourceProjectImport d.Id:", d.Id())
+	//log.Println("resourceProjectImport d_debug", d_debug)
+
+	project := &gitopspb.Pipeline{}
+
+	var metaD commonpb.Metadata
+	metaD.Name = d.Id()
+	project.Metadata = &metaD
+
+	err := d.Set("metadata", flattenMetaData(project.Metadata))
+	if err != nil {
+		return nil, err
+	}
+
+	d.SetId(project.Metadata.Name)
+
+	return []*schema.ResourceData{d}, nil
 }

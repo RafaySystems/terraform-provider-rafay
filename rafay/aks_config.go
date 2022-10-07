@@ -1,5 +1,7 @@
 package rafay
 
+import "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+
 const AKSClusterAPIVersion = "rafay.io/v1alpha1"
 const AKSClusterKind = "Cluster"
 
@@ -41,11 +43,12 @@ type AKSClusterMetadata struct {
 }
 
 type AKSClusterSpec struct {
-	Type             string            `yaml:"type,omitempty"`
-	Blueprint        string            `yaml:"blueprint,omitempty"`
-	BlueprintVersion string            `yaml:"blueprintversion,omitempty"`
-	CloudProvider    string            `yaml:"cloudprovider,omitempty"`
-	AKSClusterConfig *AKSClusterConfig `yaml:"clusterConfig,omitempty"`
+	Type             string                `yaml:"type,omitempty"`
+	Blueprint        string                `yaml:"blueprint,omitempty"`
+	BlueprintVersion string                `yaml:"blueprintversion,omitempty"`
+	CloudProvider    string                `yaml:"cloudprovider,omitempty"`
+	AKSClusterConfig *AKSClusterConfig     `yaml:"clusterConfig,omitempty"`
+	Sharing          *commonpb.SharingSpec `yaml:"sharing,omitempty"`
 }
 
 type AzureRafayMetadata struct {

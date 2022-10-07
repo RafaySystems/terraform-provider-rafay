@@ -107,6 +107,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 - `cloudprovider` - (String) The name of the cloud credentials used to create and manage the cluster.
 - `cluster_config` - (Block List, Min: 1) The AKS specific cluster configuration. (See [below for nested schema](#nestedblock--spec--cluster_config))
+- `sharing` - (Block List, Max: 1) The sharing configuration for the Cluster. Cluster can be shared with one or more projects. (See [below for nested schema](#nestedblock--spec--sharing))
 - `type` - (String) The AKS Cluster type. The supported value is `aks`. 
 
 ***Optional***
@@ -130,7 +131,6 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ***Required***
 
 - `name` - (String) The name of the AKS cluster. 
-
 
 <a id="nestedblock--spec--cluster_config--spec"></a>
 ### Nested Schema for `spec.cluster_config.spec`
@@ -416,6 +416,21 @@ Supported values are: `loadBalancer` and `userDefinedRouting`.
 
 - `max_surge` - (String) This can either be set to an integer (e.g. 5) or a percentage (e.g. 50%). See [Customize node surge upgrade](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#customize-node-surge-upgrade) for more details. 
 
+<a id="nestedblock--spec--sharing"></a>
+### Nested Schema for `spec.sharing`
+
+***Required***
+
+- `enabled` - (Boolean) Enable sharing for this resource.
+- `projects` - (Block List) The list of projects this resource is shared with. (See [below for nested schema](#nestedblock--spec--sharing--projects))
+
+
+<a id="nestedblock--spec--sharing--projects"></a>
+### Nested Schema for `spec.sharing.projects`
+
+***Required***
+
+- `name` - (String) The name of the project to share the resource.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

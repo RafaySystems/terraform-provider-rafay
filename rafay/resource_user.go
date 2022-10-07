@@ -92,6 +92,7 @@ func resourceUserUpsert(ctx context.Context, d *schema.ResourceData, create bool
 	var err error
 	var groups []string
 	var consoleAccessInputs []string
+	var api, secret string
 
 	isGroup := false
 	isAPi := false
@@ -161,9 +162,21 @@ func resourceUserUpsert(ctx context.Context, d *schema.ResourceData, create bool
 
 	var account *commands.CreateAccount
 	if create {
-		account, err = commands.CreateUserTF(userName, groups, consoleAccessInputs, isGroup, isAPi, isConsole)
+		account, api, secret, err = commands.CreateUserTF(userName, groups, consoleAccessInputs, isGroup, isAPi, isConsole)
+		if len(api) > 0 {
+			d.Set("apikey", api)
+		}
+		if len(secret) > 0 {
+			d.Set("api_secret", secret)
+		}
 	} else {
-		account, err = commands.UpdateUserTF(userName, groups, consoleAccessInputs, isGroup, isAPi, isConsole)
+		account, api, secret, err = commands.UpdateUserTF(userName, groups, consoleAccessInputs, isGroup, isAPi, isConsole)
+		if len(api) > 0 {
+			d.Set("apikey", api)
+		}
+		if len(secret) > 0 {
+			d.Set("api_secret", secret)
+		}
 	}
 
 	log.Println(" UsertUser ", userName, groups, consoleAccessInputs, isGroup, isAPi, isConsole)
@@ -180,15 +193,15 @@ func resourceUserUpsert(ctx context.Context, d *schema.ResourceData, create bool
 
 	log.Println(" CreateUserTF account", account, userID)
 
-	if d.Get("generate_apikey").(bool) {
-		apiKey, apiSecret, err := user.GetUserAPIKey(userName)
-		if err == nil {
-			d.Set("apikey", apiKey)
-			if len(apiSecret) > 0 {
-				d.Set("api_secret", apiSecret)
-			}
-		}
-	}
+	// if d.Get("generate_apikey").(bool) {
+	// 	apiKey, apiSecret, err := user.GetUserAPIKey(userName)
+	// 	if err == nil {
+	// 		d.Set("apikey", apiKey)
+	// 		if len(apiSecret) > 0 {
+	// 			d.Set("api_secret", apiSecret)
+	// 		}
+	// 	}
+	// }
 
 	d.SetId(userName)
 	return diags

@@ -180,6 +180,10 @@ func resourceOPAInstallationProfileDelete(ctx context.Context, d *schema.Resourc
 		Project: ag.Metadata.Project,
 	})
 
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return diags
 }
 

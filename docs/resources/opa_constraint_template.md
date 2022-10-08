@@ -18,6 +18,9 @@ resource "rafay_opa_constraint_template" "opact" {
   metadata {
     name    = "k8srequiredlabels"
     project = "terraform"
+    labels = {
+      "rafay.dev/opa" = "template"
+    }
   }
   spec {
     artifact {
@@ -55,6 +58,8 @@ resource "rafay_opa_constraint_template" "opact" {
 
 - `name` (String) name of the resource
 - `project` (String) Project of the resource
+- `labels` (Map of String) labels of the resource
+
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`

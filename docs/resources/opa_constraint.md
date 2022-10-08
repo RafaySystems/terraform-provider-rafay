@@ -19,6 +19,9 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
   metadata {
     name    = "tfdemoopaconstraint1"
     project     = "terraform"
+    labels = {
+      "rafay.dev/opa" = "constraint"
+    }
   }
   spec {
     artifact {
@@ -58,6 +61,8 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
 
 - `name` (String) name of the resource
 - `project` (String) Project of the resource
+- `labels` (Map of String) labels of the resource
+
 
 
 <a id="nestedblock--spec"></a>

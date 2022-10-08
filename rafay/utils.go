@@ -607,6 +607,7 @@ func expandProjectMeta(p []interface{}) []*commonpb.ProjectMeta {
 	if len(p) == 0 {
 		return []*commonpb.ProjectMeta{}
 	}
+	var sortByName []string
 	out := make([]*commonpb.ProjectMeta, len(p))
 	for i := range p {
 		in := p[i].(map[string]interface{})
@@ -614,6 +615,7 @@ func expandProjectMeta(p []interface{}) []*commonpb.ProjectMeta {
 
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
+			sortByName = append(sortByName, v)
 		}
 		if v, ok := in["id"].(string); ok && len(v) > 0 {
 			obj.Id = v
@@ -622,8 +624,17 @@ func expandProjectMeta(p []interface{}) []*commonpb.ProjectMeta {
 		out[i] = &obj
 	}
 
-	log.Println("expandProjectMeta out", out)
-	return out
+	var sortedOut []*commonpb.ProjectMeta
+	for _, name := range sortByName {
+		for _, val := range out {
+			if name == val.Name {
+				sortedOut = append(sortedOut, val)
+			}
+		}
+	}
+
+	log.Println("expandProjectMeta out", sortedOut)
+	return sortedOut
 }
 
 func expandSharingSpec(p []interface{}) *commonpb.SharingSpec {

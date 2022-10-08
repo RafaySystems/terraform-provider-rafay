@@ -74,9 +74,57 @@ resource "rafay_namespace" "cloudops" {
             pods = "30"
             replication_controllers = "5"
             services = "10"
-            services_load_balancers = "3"
+            services_load_balancers = "10"
             services_node_ports = "10"
             storage_requests = "1Gi"
+        }
+
+        limit_range {
+            pod {
+                max {
+                    cpu  = "500m"
+                    memory = "128Mi"
+                }
+                min {
+                    cpu  = "250m"
+                    memory = "64Mi"
+                }
+                ratio {
+                    cpu    = 1
+                    memory = 1
+                }
+            }
+            container {
+                default {
+                    cpu  = "250m"
+                    memory = "64Mi"
+                }
+                default_request {
+                    cpu  = "250m"
+                    memory = "64Mi"
+                }
+
+                max {
+                    cpu  = "500m"
+                    memory = "128Mi"
+                }
+                min {
+                    cpu  = "250m"
+                    memory = "64Mi"
+                }
+                ratio {
+                    cpu    = 1
+                    memory = 1
+                }
+            }
+        }
+
+        network_policy_params {
+            network_policy_enabled = true
+            policies {
+                name    = "namespace_network_policy_name"
+                version = "v0"
+            }
         }
     }
 }

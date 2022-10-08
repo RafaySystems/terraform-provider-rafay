@@ -174,8 +174,8 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `api_server_access_profile` - (Block List) The AKS managed cluster API server access profile. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--api_server_access_profile))
 - `auto_scaler_profile` - (Block List) The configurations for Cluter autoscaler profile. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--auto_scaler_profile))
 - `disk_encryption_set_id` - (String) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/diskEncryptionSets/{encryptionSetName}`
-- `dns_prefix` - (String) DNS prefix specified when creating the managed cluster. 
-This cannot be updated once the Managed Cluster has been created.
+- `dns_prefix` - (String) DNS prefix specified when creating the managed cluster. This cannot be updated once the Managed Cluster has been created.
+- `enable_rbac` - (boolean) Enable Kubernetes Role-Based Access Control.
 - `identity_profile` - (Map of String) Identities associated with the cluster.
 - `linux_profile` - (Block List) The configurations for linux profile. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--linux_profile))
 - `network_profile` - (Block List) Profile of the network configuration. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--network_profile))

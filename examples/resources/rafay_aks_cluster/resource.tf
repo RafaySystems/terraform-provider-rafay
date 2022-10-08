@@ -28,6 +28,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
               enable_private_cluster = true
             }
             dns_prefix         = "testuser-test-dns"
+            enable_rbac        = true
             kubernetes_version = "1.21.9"
             network_profile {
               network_plugin = "kubenet"
@@ -97,6 +98,7 @@ resource "rafay_aks_cluster" "demo-terraform1" {
               enable_private_cluster = true
             }
             dns_prefix         = "testuser-test-dns"
+            enable_rbac        = true
             kubernetes_version = "1.21.9"
             network_profile {
               network_plugin = "kubenet"
@@ -183,6 +185,7 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
               private_dns_zone  = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateDnsZones/{dnsZoneName}"
             }
             dns_prefix          = "testuser-test-dns"
+            enable_rbac        = true
             kubernetes_version  = "1.21.9"
             node_resource_group = "node-resource-name"
             linux_profile  {

@@ -52,8 +52,6 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
  
 ### In Development 
 
-- `pipeline`
-- `secret_sealer`
 - `infra_provisioner`
 - `catalog`
 

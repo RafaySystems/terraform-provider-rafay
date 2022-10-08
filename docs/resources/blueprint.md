@@ -275,7 +275,7 @@ resource "rafay_blueprint" "golden_base_blueprint" {
 - `base` (Block List, Max: 1) blueprint base (see [below for nested schema](#nestedblock--spec--base))
 - `namespace_config` (Block List, Max: 1) namespace config (see [below for nested schema](#nestedblock--spec--namespace_config))
 - `opa_policy` (Block List, Max: 1) opa policy and version details (see [below for nested schema](#nestedblock--spec--opa_policy))
-- `network_policy` (Block List, Max: 1) Network policy and version details (see [below for nested schema](#nestedblock--spec--netwok_policy))
+- `network_policy` (Block List, Max: 1) Network policy and version details (see [below for nested schema](#nestedblock--spec--network_policy))
 <a id="nestedblock--spec--base"></a>
 ### Nested Schema for `spec.base`
 
@@ -458,7 +458,7 @@ resource "rafay_blueprint" "golden_base_blueprint" {
 
 ***Required***
 
--- `enabled` (Boolean) flag to specify if Network Policy is enabled for blueprint
+- `enabled` (Boolean) flag to specify if Network Policy is enabled for blueprint
 - `policies` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--network_policy--policies))
 - `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--network_policy--profile))
 

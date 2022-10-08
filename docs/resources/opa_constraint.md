@@ -32,8 +32,8 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
 		  }
 		}
 		options {
-			force =  false
-		    disable_open_api_validation = false
+		  force =  false
+		  disable_open_api_validation = false
 		}
 	  }
 	  template_name = "k8srequiredlabels"

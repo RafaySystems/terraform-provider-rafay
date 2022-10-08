@@ -29,10 +29,6 @@ resource "rafay_opa_constraint_template" "opact" {
           name = "file://artifacts/testk8srequiredlabels/k8srequiredlabels.yaml"
         }
       }
-      options {
-        force = false
-        disable_open_api_validation = false
-      }
       type = "Yaml"
     }
   }

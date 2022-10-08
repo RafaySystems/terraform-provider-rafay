@@ -31,10 +31,6 @@ resource "rafay_opa_constraint" "tfdemoopaconstraint1" {
           name = "file://artifacts/testk8srequiredlabels/k8srequiredlabels.yaml"
         }
       }
-      options {
-        force =  false
-        disable_open_api_validation = false 
-      }
     }
     template_name = "k8srequiredlabels"
     version = "v1"

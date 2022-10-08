@@ -13,8 +13,8 @@ Resource to create local user.
 ## Example Usage
 
 ```terraform
-resource "rafay_user" "user" {
-  user_name = "sampleUser"
+resource "rafay_user" "sampleuser" {
+  user_name = "sampleuser"
   first_name = "Bob"
   last_name = "Ross"
   groups = ["group1", "group2"]

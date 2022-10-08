@@ -8,6 +8,7 @@ description: |-
 
 # rafay_opa_constraint (Resource)
 
+Constraints are used to inform Gatekeeper what ConstraintTemplate to be enforced, and how.
 Create an Open Policy Agent (OPA) constraint resource.  
 
 

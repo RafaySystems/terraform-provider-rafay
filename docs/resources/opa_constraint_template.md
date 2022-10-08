@@ -8,7 +8,7 @@ description: |-
 
 # rafay_opa_constraint_template (Resource)
 
-
+ConstraintTemplates define a way to validate some set of Kubernetes objects in Gatekeeper's Kubernetes admission controller.
 
 ## Example Usage
 

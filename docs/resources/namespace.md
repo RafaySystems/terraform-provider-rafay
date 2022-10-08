@@ -64,59 +64,19 @@ resource "rafay_namespace" "namespace" {
             value = "cluster_name"
             }
         }
-        limit_range {
-            pod {
-                max {
-                    cpu  = "500m"
-                    memory = "128Mi"
-                }
-                min {
-                    cpu  = "250m"
-                    memory = "64Mi"
-                }
-                ratio {
-                    cpu    = 1
-                    memory = 1
-                }
-            }
-            container {
-                default {
-                    cpu  = "250m"
-                    memory = "64Mi"
-                }
-                default_request {
-                    cpu  = "250m"
-                    memory = "64Mi"
-                }
-
-                max {
-                    cpu  = "500m"
-                    memory = "128Mi"
-                }
-                min {
-                    cpu  = "250m"
-                    memory = "64Mi"
-                }
-                ratio {
-                    cpu    = 1
-                    memory = 1
-                }
-            }
-        }
         resource_quotas {
             config_maps = "10"
-            cpu_limits = "8"
-            memory_limits = "16Gi"
-            cpu_requests = "4"
-            memory_requests = "8Gi"
+            cpu_limits = "4000m"
+            memory_limits = "4096Mi"
+            cpu_requests = "2000m"
+            memory_requests = "2048Mi"
             persistent_volume_claims = "2"
             pods = "30"
             replication_controllers = "5"
-            secrets = "10"
             services = "10"
             services_load_balancers = "3"
             services_node_ports = "10"
-            storage_requests = "10737418240"
+            storage_requests = "1Gi"
         }
     }
 }
@@ -124,8 +84,6 @@ resource "rafay_namespace" "namespace" {
 ```
 
 ---
-
-
 
 
 ## Argument Reference
@@ -251,9 +209,13 @@ resource "rafay_namespace" "namespace" {
 
 - `config_maps` - (String) The maximum number of configuration maps allowed in the cluster. 
 - `cpu_limits` - (String) The maximum CPU resource. 
-- `cpu_requests` - (String) The number of CPU threads. 
+- `cpu_requests` - (String) The number of CPU threads.
+
+**Note**: For `cpu_limits` and `cpu_requests` specify units in millicores.
 - `memory_limits` - (String) The maximum memory resource.
-- `memory_requsts` - (String) The amount of memory, in gibibytes. A gigabyte is a close equivalent to a gibibyte. 
+- `memory_requests` - (String) The amount of memory, in Mebibytes. A Megabyte is a close equivalent to a Mebibytes.
+
+**Note**: For `memory_limits` and `memory_requests` specify units in Mebibyte
 - `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in the cluster. 
 - `pods` - (String) The maximum number of pods allowed in the cluster. 
 - `replication_controllers` - (String) The maximum number of replication controllers in the cluster. 
@@ -261,17 +223,9 @@ resource "rafay_namespace" "namespace" {
 - `services` - (String) The maximum number of services in the cluster. 
 - `services_load_balancers` - (String) The number of load balancers. 
 - `services_node_ports` - (String) The number of node ports. 
-- `storage_requests` - (String) The size of the storage request. 
+- `storage_requests` - (String) The size of the storage request in Gibibytes.
 
     See the Kubernetes [Resource Quotas](https://kubernetes.io/docs/concepts/policy/resource-quotas/) documentation page for more information.
-
-<a id="nestedblock--spec--resourcequota--limitsrequests"></a>
-### Nested Schema for `spec.resource_quotas.limits` and `spec.resource_quotas.requests`
-
-**Optional** 
-
-- `cpu` - (String) The number of CPU threads. 
-- `memory` - (String) The amount of memory, in gibibytes. A gigabyte is a close equivalent to a gibibyte. 
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

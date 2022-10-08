@@ -39,33 +39,31 @@ resource "rafay_project" "tfdemoproject2" {
   spec {
     default = false
     cluster_resource_quota {
-      cpu_requests = "8m"
-      memory_requests = "4Mi"
-      cpu_limits = "6m"
-      memory_limits = "8Mi"
+      cpu_requests = "4000m"
+      memory_requests = "4096Mi"
+      cpu_limits = "8000m"
+      memory_limits = "8192Mi"
       config_maps = "10"
       persistent_volume_claims = "5"
-      secrets = "4"
       services = "20"    
       pods = "200"
       replication_controllers = "10"
-      services_load_balancers = "3"
+      services_load_balancers = "10"
       services_node_ports = "10"
-      storage_requests = "10Gi"
+      storage_requests = "100Gi"
     }
     default_cluster_namespace_quota {
-      cpu_requests = "4m"
-      memory_requests = "2Mi"
-      cpu_limits = "2m"
-      memory_limits = "4Mi"
+      cpu_requests = "1000m"
+      memory_requests = "1024Mi"
+      cpu_limits = "2000m"
+      memory_limits = "2048Mi"
       config_maps = "5"
       persistent_volume_claims = "2"
-      secrets = "2"
       services = "10"
       pods = "20"
       replication_controllers = "4"
-      services_load_balancers = "3"
-      services_node_ports = "10"
+      services_load_balancers = "4"
+      services_node_ports = "4"
       storage_requests = "10Gi"
     }
   }
@@ -114,9 +112,13 @@ resource "rafay_project" "tfdemoproject2" {
 ***Optional*** 
 - `config_maps` - (String) The maximum number of configuration maps allowed in the cluster. 
 - `cpu_limits` - (String) The maximum CPU resource. 
-- `cpu_requests` - (String) The number of CPU threads. 
+- `cpu_requests` - (String) The number of CPU threads.
+  
+**Note**: For `cpu_limits` and `cpu_requests` specify units in millicores.
 - `memory_limits` - (String) The maximum memory resource.
-- `memory_requsts` - (String) The amount of memory, in gibibytes. A gigabyte is a close equivalent to a gibibyte. 
+- `memory_requests` - (String) The amount of memory, in Mebibytes. A Megabyte is a close equivalent to a Mebibytes.
+  
+**Note**: For `memory_limits` and `memory_requests` specify units in Mebibyte
 - `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in the cluster. 
 - `pods` - (String) The maximum number of pods allowed in the cluster. 
 - `replication_controllers` - (String) The maximum number of replication controllers in the cluster. 
@@ -124,7 +126,7 @@ resource "rafay_project" "tfdemoproject2" {
 - `services` - (String) The maximum number of services in the cluster. 
 - `services_load_balancers` - (String) The number of load balancers. 
 - `services_node_ports` - (String) The number of node ports. 
-- `storage_requests` - (String) The size of the storage request. 
+- `storage_requests` - (String) The size of the storage request in Gibibytes.
 
 
 <a id="nestedblock--specs--default_cluster_namespace_quota"></a>
@@ -133,9 +135,13 @@ resource "rafay_project" "tfdemoproject2" {
 ***Optional***
 - `config_maps` - (String) The maximum number of configuration maps allowed in the cluster. 
 - `cpu_limits` - (String) The maximum CPU resource. 
-- `cpu_requests` - (String) The number of CPU threads. 
+- `cpu_requests` - (String) The number of CPU threads.
+
+**Note**: For `cpu_limits` and `cpu_requests` specify units in millicores.
 - `memory_limits` - (String) The maximum memory resource.
-- `memory_requsts` - (String) The amount of memory, in gibibytes. A gigabyte is a close equivalent to a gibibyte. 
+- `memory_requests` - (String) The amount of memory, in Mebibytes. A Megabyte is a close equivalent to a Mebibytes.
+
+**Note**: For `memory_limits` and `memory_requests` specify units in Mebibyte
 - `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in the cluster. 
 - `pods` - (String) The maximum number of pods allowed in the cluster. 
 - `replication_controllers` - (String) The maximum number of replication controllers in the cluster. 
@@ -143,7 +149,7 @@ resource "rafay_project" "tfdemoproject2" {
 - `services` - (String) The maximum number of services in the cluster. 
 - `services_load_balancers` - (String) The number of load balancers. 
 - `services_node_ports` - (String) The number of node ports. 
-- `storage_requests` - (String) The size of the storage request. 
+- `storage_requests` - (String) The size of the storage request in Gibibytes.
 
 
 <a id="nestedblock--timeouts"></a>

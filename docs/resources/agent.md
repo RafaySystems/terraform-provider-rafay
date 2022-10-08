@@ -19,7 +19,7 @@ resource "rafay_agent" "tfdemoagent1" {
     project = "terraform"
   }
   spec {
-    type = "ClusterAgent"
+    type = "Cluster"
     cluster {
       name = "dev-test"
     }

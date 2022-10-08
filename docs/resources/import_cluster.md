@@ -14,7 +14,7 @@ Import a cluster.
 ## Example Usage
 
 ```terraform
-resource "rafay_import_cluster" "import_cluster" {
+resource "rafay_import_cluster" "terraform-importcluster" {
   clustername       = "terraform-importcluster"
   projectname       = "terraform"
   blueprint         = "default"

@@ -14,7 +14,7 @@ Resource to create local user.
 
 ```terraform
 resource "rafay_user" "sampleuser" {
-  user_name = "sampleuser"
+  user_name = "sampleuser@acme.com"
   first_name = "Bob"
   last_name = "Ross"
   groups = ["group1", "group2"]
@@ -25,12 +25,12 @@ resource "rafay_user" "sampleuser" {
 output "apikey" {
   description = "user api key"
   sensitive = true
-  value     = rafay_user.user.apikey
+  value     = rafay_user.sampleuser.apikey
 }
 output "api_secret" {
   description = "user api secret"
   sensitive = true
-  value       = rafay_user.user.api_secret
+  value       = rafay_user.sampleuser.api_secret
 }
 ```
 

@@ -94,5 +94,12 @@ resource "rafay_namespace" "namespace" {
             services_node_ports = "10"
             storage_requests = "10737418240"
         }
+        network_policy_params {
+            network_policy_enabled = true
+            policies {
+                name    = "namespace_network_policy_name"
+                version = "v0"
+            }
+        }
     }
 }

@@ -27,11 +27,12 @@ import (
 )
 
 type namespaceSpecTranspose struct {
-	Psp            *infrapb.NamespacePSP            `protobuf:"bytes,1,opt,name=psp,proto3" json:"psp,omitempty"`
-	Placement      *commonpb.PlacementSpec          `protobuf:"bytes,2,opt,name=placement,proto3" json:"placement,omitempty"`
-	Drift          *commonpb.DriftSpec              `protobuf:"bytes,3,opt,name=drift,proto3" json:"drift,omitempty"`
-	ResourceQuotas *infrapb.NamespaceResourceQuotas `protobuf:"bytes,4,opt,name=resourceQuotas,proto3" json:"resourceQuotas,omitempty"`
-	LimitRange     *infrapb.NamespaceLimitRange     `protobuf:"bytes,5,opt,name=limitRange,proto3" json:"limitRange,omitempty"`
+	Psp                *infrapb.NamespacePSP            `protobuf:"bytes,1,opt,name=psp,proto3" json:"psp,omitempty"`
+	Placement          *commonpb.PlacementSpec          `protobuf:"bytes,2,opt,name=placement,proto3" json:"placement,omitempty"`
+	Drift              *commonpb.DriftSpec              `protobuf:"bytes,3,opt,name=drift,proto3" json:"drift,omitempty"`
+	NetworkPolicyParms *infrapb.NetworkPolicyParams     `protobuf:"bytes,4,opt,name=network_policy_params,proto3" json:"networkPolicyParams,omitempty"`
+	ResourceQuotas     *infrapb.NamespaceResourceQuotas `protobuf:"bytes,4,opt,name=resourceQuotas,proto3" json:"resourceQuotas,omitempty"`
+	LimitRange         *infrapb.NamespaceLimitRange     `protobuf:"bytes,5,opt,name=limitRange,proto3" json:"limitRange,omitempty"`
 	// Types that are assignable to Artifact:
 	//	*NamespaceSpec_Uploaded
 	//	*NamespaceSpec_Repo
@@ -430,6 +431,10 @@ func expandNamespaceSpec(p []interface{}) (*infrapb.NamespaceSpec, error) {
 		nst.Psp = expandPsp(v)
 	}
 
+	if v, ok := in["network_policy_params"].([]interface{}); ok {
+		nst.NetworkPolicyParms = expandNetworkPolicyParams(v)
+	}
+
 	if v, ok := in["placement"].([]interface{}); ok {
 		nst.Placement = expandPlacement(v)
 	}
@@ -508,6 +513,51 @@ func expandPsp(p []interface{}) *infrapb.NamespacePSP {
 	return obj
 }
 
+func expandNetworkPolicyParams(p []interface{}) *infrapb.NetworkPolicyParams {
+	obj := &infrapb.NetworkPolicyParams{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["network_policy_enabled"].(bool); ok {
+		obj.NetworkPolicyEnabled = v
+	}
+
+	if v, ok := in["policies"].([]interface{}); ok && len(v) > 0 {
+		obj.Policies = expandNamespaceNetworkPolicyPolicies(v)
+	}
+
+	return obj
+}
+
+func expandNamespaceNetworkPolicyPolicies(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
+	if len(p) == 0 || p[0] == nil {
+		return []*commonpb.ResourceNameAndVersionRef{}
+	}
+
+	out := make([]*commonpb.ResourceNameAndVersionRef, len(p))
+
+	for i := range p {
+		obj := commonpb.ResourceNameAndVersionRef{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok {
+			obj.Name = v
+		}
+
+		if v, ok := in["version"].(string); ok {
+			obj.Version = v
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+
+}
+
 func expandNamespaceResourceQuotas(p []interface{}) *infrapb.NamespaceResourceQuotas {
 	obj := &infrapb.NamespaceResourceQuotas{}
 	if len(p) == 0 || p[0] == nil {
@@ -581,6 +631,7 @@ func expandNamespaceResourceQuotas(p []interface{}) *infrapb.NamespaceResourceQu
 		obj.ReplicationControllers = v
 	}
 
+	log.Println("expandNamespaceResourceQuotas obj ", obj)
 	return obj
 }
 
@@ -808,19 +859,19 @@ func flattenNamespaceLimitRangeConfig(in *infrapb.NamespaceLimitRangeConfig) []i
 	obj := make(map[string]interface{})
 
 	if in.Min != nil {
-		obj["min"] = flattenResourceQuantity1170(in.Min)
+		obj["min"] = flattenResourceQuantity(in.Min)
 	}
 
 	if in.Max != nil {
-		obj["max"] = flattenResourceQuantity1170(in.Max)
+		obj["max"] = flattenResourceQuantity(in.Max)
 	}
 
 	if in.Default != nil {
-		obj["default"] = flattenResourceQuantity1170(in.Default)
+		obj["default"] = flattenResourceQuantity(in.Default)
 	}
 
 	if in.Default != nil {
-		obj["default_request"] = flattenResourceQuantity1170(in.DefaultRequest)
+		obj["default_request"] = flattenResourceQuantity(in.DefaultRequest)
 	}
 
 	//log.Println("flattenNamespaceLimitRangeConfig ", in.Ratio)
@@ -886,12 +937,76 @@ func flattenNamespaceSpec(in *infrapb.NamespaceSpec, p []interface{}) ([]interfa
 		log.Println("flattenNamespaceArtifact error ", err)
 		return nil, err
 	}
-
 	// XXX Debug
 	w1 = spew.Sprintf("%+v", ret)
 	log.Println("flattenNamespaceArtifact after ", w1)
-
 	obj["artifact"] = ret
+
+	v, ok = obj["network_policy_params"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	if nsat.NetworkPolicyParms != nil {
+		ret, err = flattenNetworkPolicyParams(nsat.NetworkPolicyParms, v)
+		if err != nil {
+			log.Println("flattenNamespaceArtifact error ", err)
+			return nil, err
+		}
+		obj["network_policy_params"] = ret
+	}
+
+	return []interface{}{obj}, nil
+}
+
+func flattenNetworkPolicies(in []*commonpb.ResourceNameAndVersionRef, p []interface{}) ([]interface{}, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "empty network policy")
+	}
+
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Version) > 0 {
+			obj["version"] = in.Version
+		}
+
+		out[i] = obj
+	}
+
+	return out, nil
+}
+
+func flattenNetworkPolicyParams(in *infrapb.NetworkPolicyParams, p []interface{}) ([]interface{}, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "networkpolicyparams empty")
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["network_policy_enabled"] = in.NetworkPolicyEnabled
+	if len(in.Policies) > 0 {
+		v, ok := obj["policies"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret, err := flattenNetworkPolicies(in.Policies, v)
+		if err != nil {
+			log.Println("flattenNamespaceArtifact error ", err)
+			return nil, err
+		}
+		obj["policies"] = ret
+	}
 
 	return []interface{}{obj}, nil
 }

@@ -1075,6 +1075,41 @@ func flattenResourceQuantity1170(in *commonpb.ResourceQuantity) []interface{} {
 	return []interface{}{obj}
 }
 
+func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if in.Memory != "" {
+		var m resource.QuantityValue
+		m.Set(in.GetMemory())
+		for i := 0; i < 10; i++ {
+			m.Add(m.Quantity)
+			//in.GetMemory().Add(*in.GetMemory())
+			log.Println("adding ", m.String())
+		}
+		obj["memory"] = m.String()
+		log.Println("flattenResourceQuantity memory string ", m.String())
+	}
+
+	if in.Cpu != "" {
+		var cp resource.QuantityValue
+		cp.Set(in.GetCpu())
+		cp1 := cp
+		for i := 0; i < 999; i++ {
+			cp.Add(cp1.Quantity)
+			log.Println("adding ", cp.String())
+		}
+		cp.RoundUp(resource.Micro)
+		obj["cpu"] = cp.String()
+		log.Println("flattenResourceQuantity cpu string ", cp.String())
+	}
+
+	log.Println("flattenResourceQuantity obj", obj)
+	return []interface{}{obj}
+}
+
 func ResetImpersonateUser() {
 	log.Println("ResetImpersonateUser")
 	config.ApiKey = ""

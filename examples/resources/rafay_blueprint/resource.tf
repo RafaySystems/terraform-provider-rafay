@@ -33,8 +33,10 @@ resource "rafay_blueprint" "blueprint" {
           enabled = true
         }
         resources {
-          limits = "200Mi"
-          cpu = "100m"
+          limits {
+            memory = "200Mi"
+            cpu  = "100m"
+          }
         }
       }
     }
@@ -83,8 +85,10 @@ resource "rafay_blueprint" "blueprint" {
           enabled = true
         }
         resources {
-          limits = "200Mi"
-          cpu = "100m"
+          limits {
+            memory ="200Mi"
+            cpu = "100m"
+          }
         }
       }
     }
@@ -143,8 +147,10 @@ resource "rafay_blueprint" "blueprint" {
           enabled = true
         }
         resources {
-          limits = "200Mi"
-          cpu = "100m"
+          limits {
+            memory = "200Mi"
+            cpu  = "100m"
+          }
         }
       }
     }
@@ -156,6 +162,17 @@ resource "rafay_blueprint" "blueprint" {
       enabled = true
       projects {
         name = "terraform"
+      }
+    }
+  
+    opa_policy {
+      opa_policy {
+	      enabled = true
+	      name = "policy_name"
+	      version = "policy_version"
+      }
+      profile {
+	      name = "default"
       }
     }
   }

@@ -3,10 +3,15 @@ resource "rafay_cluster_network_policy_rule" "tfdemocnpr1" {
     name    = "tfdemocnpr1"
     project = "terraform"
   }
-  spec {
-    version = "example-version"
-    sharing {
-        enabled = false
+  spec { 
+    artifact { 
+      type = "Yaml"
+      artifact {
+        paths { 
+          name = "file://artifacts/cluster-network-policy.yaml" 
+        } 
+      } 
     }
+    version = "v0"
   }
 }

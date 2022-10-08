@@ -71,6 +71,9 @@ func resourcePipeline() *schema.Resource {
 		ReadContext:   resourcePipelineRead,
 		UpdateContext: resourcePipelineUpdate,
 		DeleteContext: resourcePipelineDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourcePipelineImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -133,6 +136,7 @@ type stageSpecConfig struct {
 		Refresh         bool                        `protobuf:"varint,8,opt,name=refresh,proto3" json:"refresh,omitempty"`
 		Targets         []*gitopspb.TerraformTarget `protobuf:"bytes,9,rep,name=targets,proto3" json:"targets,omitempty"`
 		Destroy         bool                        `protobuf:"varint,10,opt,name=destroy,proto3" json:"destroy,omitempty"`
+		SecretGroups    []string                    `protobuf:"bytes,11,rep,name=secretGroups,proto3" json:"secretGroups,omitempty"`
 	} `json:"action,omitempty"`
 	GitToSystemSync     bool                           `protobuf:"varint,1,opt,name=gitToSystemSync,proto3" json:"gitToSystemSync,omitempty"`
 	SystemToGitSync     bool                           `protobuf:"varint,2,opt,name=systemToGitSync,proto3" json:"systemToGitSync,omitempty"`
@@ -1050,7 +1054,7 @@ func expandStageSpec(p []interface{}) ([]*gitopspb.StageSpec, error) {
 	return out, nil
 }
 
-//func expandPreConditionExpression(p []interface{}) (*gitopspb.PreConditionSpec_Expression, error) {
+// func expandPreConditionExpression(p []interface{}) (*gitopspb.PreConditionSpec_Expression, error) {
 func expandPreConditionExpression(p string) (*gitopspb.PreConditionSpec_Expression, error) {
 	obj := gitopspb.PreConditionSpec_Expression{}
 	// if len(p) == 0 || p[0] == nil {
@@ -1764,7 +1768,10 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 		obj["agents"] = nil
 	}
 
-	obj["action"] = flattenStageSpecAction(stSpec)
+	if len(stSpec.Config.Provisioner) > 0 {
+		obj["action"] = flattenStageSpecAction(stSpec)
+	}
+
 	obj["git_to_system_sync"] = stSpec.Config.GitToSystemSync
 	obj["system_to_git_sync"] = stSpec.Config.SystemToGitSync
 
@@ -2002,6 +2009,11 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 
 	if in.Config.Action.Destroy {
 		obj["destroy"] = in.Config.Action.Destroy
+		retNil = false
+	}
+
+	if len(in.Config.Action.SecretGroups) > 0 {
+		obj["secret_groups"] = in.Config.Action.SecretGroups
 		retNil = false
 	}
 
@@ -2252,4 +2264,25 @@ func flattenTriggerConfigRepos(tSpec *triggerSpec, p []interface{}) ([]interface
 
 	return []interface{}{obj}, nil
 
+}
+
+func resourcePipelineImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	//d_debug := spew.Sprintf("%+v", d)
+	log.Println("resourceProjectImport d.Id:", d.Id())
+	//log.Println("resourceProjectImport d_debug", d_debug)
+
+	project := &gitopspb.Pipeline{}
+
+	var metaD commonpb.Metadata
+	metaD.Name = d.Id()
+	project.Metadata = &metaD
+
+	err := d.Set("metadata", flattenMetaData(project.Metadata))
+	if err != nil {
+		return nil, err
+	}
+
+	d.SetId(project.Metadata.Name)
+
+	return []*schema.ResourceData{d}, nil
 }

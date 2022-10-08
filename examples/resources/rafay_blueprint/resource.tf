@@ -163,10 +163,16 @@ resource "rafay_blueprint" "blueprint" {
         name = "terraform"
       }
     }
+  
     opa_policy {
-      enabled = true
-      name = "policy-name"
-      version = "policy-version"
+      opa_policy {
+	      enabled = true
+	      name = "policy_name"
+	      version = "policy_version"
+      }
+      profile {
+	      name = "default"
+      }
     }
   }
 }

@@ -21,6 +21,8 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 
 | Resource                                  | Version Released |
 | ----------------------------------------- | ---------------- |
+| `cluster_network_policy`                  | 1.1.0            |  
+| `cluster_network_policy_rule`             | 1.1.0            |  
 | `network_policy_profile`                  | 1.1.0            |  
 | `namespace_network_policy_rule`           | 1.1.0            | 
 | `namespace_network_policy`                | 1.1.0            | 

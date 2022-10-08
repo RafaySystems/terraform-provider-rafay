@@ -14,7 +14,7 @@ ConstraintTemplates define a way to validate some set of Kubernetes objects in G
 
 ```terraform
 #Basic example for opa constraint
-resource "rafay_opa_constraint_template" "opact" {
+resource "rafay_opa_constraint_template" "k8srequiredlabels" {
   metadata {
     name    = "k8srequiredlabels"
     project = "terraform"

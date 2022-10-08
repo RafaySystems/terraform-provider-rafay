@@ -136,6 +136,7 @@ type stageSpecConfig struct {
 		Refresh         bool                        `protobuf:"varint,8,opt,name=refresh,proto3" json:"refresh,omitempty"`
 		Targets         []*gitopspb.TerraformTarget `protobuf:"bytes,9,rep,name=targets,proto3" json:"targets,omitempty"`
 		Destroy         bool                        `protobuf:"varint,10,opt,name=destroy,proto3" json:"destroy,omitempty"`
+		SecretGroups    []string                    `protobuf:"bytes,11,rep,name=secretGroups,proto3" json:"secretGroups,omitempty"`
 	} `json:"action,omitempty"`
 	GitToSystemSync     bool                           `protobuf:"varint,1,opt,name=gitToSystemSync,proto3" json:"gitToSystemSync,omitempty"`
 	SystemToGitSync     bool                           `protobuf:"varint,2,opt,name=systemToGitSync,proto3" json:"systemToGitSync,omitempty"`
@@ -892,14 +893,6 @@ func expandInfraAction(p []interface{}) *gitopspb.InfraProvisionerConfig_Terrafo
 		obj.Terraform.SecretGroups = toArrayString(v)
 	}
 
-	if v, ok := in["secret_groups"].([]interface{}); ok && len(v) > 0 {
-		obj.Terraform.SecretGroups = toArrayString(v)
-	}
-
-	if v, ok := in["backend_file_path"].([]interface{}); ok && len(v) > 0 {
-		obj.Terraform.BackendFilePath = expandCommonpbFile(v)
-	}
-
 	if v, ok := in["backend_file_path"].([]interface{}); ok && len(v) > 0 {
 		obj.Terraform.BackendFilePath = expandCommonpbFile(v)
 	}
@@ -1053,7 +1046,7 @@ func expandStageSpec(p []interface{}) ([]*gitopspb.StageSpec, error) {
 	return out, nil
 }
 
-//func expandPreConditionExpression(p []interface{}) (*gitopspb.PreConditionSpec_Expression, error) {
+// func expandPreConditionExpression(p []interface{}) (*gitopspb.PreConditionSpec_Expression, error) {
 func expandPreConditionExpression(p string) (*gitopspb.PreConditionSpec_Expression, error) {
 	obj := gitopspb.PreConditionSpec_Expression{}
 	// if len(p) == 0 || p[0] == nil {
@@ -2005,6 +1998,11 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 
 	if in.Config.Action.Destroy {
 		obj["destroy"] = in.Config.Action.Destroy
+		retNil = false
+	}
+
+	if len(in.Config.Action.SecretGroups) > 0 {
+		obj["secret_groups"] = in.Config.Action.SecretGroups
 		retNil = false
 	}
 

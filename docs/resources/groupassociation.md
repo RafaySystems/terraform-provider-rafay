@@ -20,13 +20,18 @@ resource "rafay_groupassociation" "groupassociation" {
   roles      = ["PROJECT_READ_ONLY"]
 }
 
-
 resource "rafay_groupassociation" "groupassociation" {
   project = "terraform"
-  group = "dev1"
+  group = "dev2"
   namespaces = ["ns1", "ns2"]
   roles = ["NAMESPACE_ADMIN"]
   add_users = ["user1@org"]
+}
+
+resource "rafay_groupassociation" "groupassociation" {
+  project = "defaultproject"
+  group = "dev3"
+  roles = ["ADMIN"]
 }
 ```
 
@@ -37,7 +42,9 @@ resource "rafay_groupassociation" "groupassociation" {
 
 - `group` - (String) The name of the group to associate the roles to.
 - `project` - (String) The name of the project.
-- `roles` - (List of String) The roles to associate with the group. Supported values are: `CLUSTER_ADMIN`, `PROJECT_ADMIN`, `PROJECT_READ_ONLY`, `INFRA_ADMIN`, `INFRA_READ_ONLY`, `NAMESPACE_ADMIN`, `NAMESPACE_READ_ONLY`, and `WORKSPACE_ADMIN`.
+- `roles` - (List of String) The roles to associate with the group. Supported values are: `ADMIN`, `ADMINISTRATOR_READ_ONLY`, `CLUSTER_ADMIN`, `PROJECT_ADMIN`, `PROJECT_READ_ONLY`, `INFRA_ADMIN`, `INFRA_READ_ONLY`, `NAMESPACE_ADMIN`, `NAMESPACE_READ_ONLY`, and `WORKSPACE_ADMIN`.
+
+***Note***: For roles `ADMIN` and `ADMINISTRATOR_READ_ONLY`, project name `defaultproject` needs to be passed.
 
 ### Optional
 

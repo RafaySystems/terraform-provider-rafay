@@ -1760,7 +1760,10 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 		obj["agents"] = nil
 	}
 
-	obj["action"] = flattenStageSpecAction(stSpec)
+	if len(stSpec.Config.Provisioner) > 0 {
+		obj["action"] = flattenStageSpecAction(stSpec)
+	}
+
 	obj["git_to_system_sync"] = stSpec.Config.GitToSystemSync
 	obj["system_to_git_sync"] = stSpec.Config.SystemToGitSync
 

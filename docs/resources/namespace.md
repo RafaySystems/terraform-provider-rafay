@@ -125,6 +125,7 @@ resource "rafay_namespace" "namespace" {
 - `limit_range` - (Block List, Max: 1) By default, containers can consume all available resources in a cluster. By setting limit ranges, containers can only consume as much CPU and memory that you set. (See [below for nested schema](#nestedblock--spec--limitrange))
 - `placement` - (Block List, Max: 1) Defines the cluster(s) where namespace will be created. (See [below for nested schema](#nestedblock--spec--placement))
 - `resource_quotas` - (Block List, Max: 1) Can limit the resource consumption per namespace. When multiple projects or teams need their own namespaces, the resource quota makes sure one namespace does not consume more than its fair share of the resources. (See [below for nested schema](#nestedblock--spec--resourcequotas))
+- `network_policy_params` (Block List, Max: 1) namespace network policy (see [below for nested schema](#nestedblock--spec--network_policy_params))
 
 
 <a id="nestedblock--spec--limitrange"></a>
@@ -195,6 +196,25 @@ resource "rafay_namespace" "namespace" {
 ***Optional***
 
 - `labels` - (Block List; Max: 1) A list of labels for the placement. (See [below for nested schema](#nestedblock--spec--placement--labels))
+
+
+
+<a id="nestedblock--spec--network_policy_params"></a>
+### Nested Schema for `spec.network_policy_params`
+
+Optional:
+
+- `network_policy_enabled` (Boolean) Network policy enabled flag
+- `policies` (Block List) name and version of namespace network policy (see [below for nested schema](#nestedblock--spec--network_policy_params--policies))
+
+<a id="nestedblock--spec--network_policy_params--policies"></a>
+### Nested Schema for `spec.network_policy_params.policies`
+
+Optional:
+
+- `name` (String) name of the resource
+- `version` (String) version of the resource
+
 
 <a id="nestedblock--spec--placement--labels"></a>
 ### Nested Schema for `spec.placement.labels`

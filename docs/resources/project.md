@@ -17,7 +17,7 @@ Example of a project.
 ```terraform
 resource "rafay_project" "tfdemoproject1" {
   metadata {
-    name        = "terraform"
+    name        = "tfdemoproject1"
     description = "terraform project"
   }
   spec {
@@ -31,7 +31,7 @@ resource "rafay_project" "tfdemoproject1" {
 Example of a project with resouce quotas.
 
 ```terraform
-resource "rafay_project" "tfdemoproject2" {
+resource "rafay_project" "terraform-quota" {
   metadata {
     name        = "terraform-quota"
     description = "terraform quota project"

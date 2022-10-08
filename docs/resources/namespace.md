@@ -283,7 +283,7 @@ Optional:
 - `memory_limits` - (String) The maximum memory resource.
 - `memory_requests` - (String) The amount of memory, in Mebibytes. A Megabyte is a close equivalent to a Mebibytes.
 
-**Note**: For `memory_limits` and `memory_requests` specify units in Mebibyte
+**Note**: For `memory_limits` and `memory_requests` specify in multiples of 16 and units in Mebibyte (example 16Mi).
 - `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in the cluster. 
 - `pods` - (String) The maximum number of pods allowed in the cluster. 
 - `replication_controllers` - (String) The maximum number of replication controllers in the cluster. 

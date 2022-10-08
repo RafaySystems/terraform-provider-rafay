@@ -18,14 +18,14 @@ resource "rafay_cluster_network_policy_rule" "tfdemocnpr1" {
     name    = "tfdemocnpr1"
     project = "terraform"
   }
-  spec {
-    artifact {
-		  type = "Yaml"
-		  artifact {
-		    paths {
-			    name = "file://artifacts/cluster-network-policy.yaml"
-		    }
-		  }
+  spec { 
+    artifact { 
+      type = "Yaml"
+      artifact {
+        paths { 
+          name = "file://artifacts/cluster-network-policy.yaml" 
+        } 
+      } 
     }
     version = "v0"
   }
@@ -58,12 +58,12 @@ resource "rafay_cluster_network_policy_rule" "tfdemocnpr1" {
 
 ***Required***
 
-- `artifact` (Block List, Max: 1) cluster network rule artifact specification (see [below for nested schema](#nestedblock--spec--artifact))
-- `version` (String) version of the cluster policy rule
+- `artifact` (Block List, Max: 1) cluster network policy rule artifact specification (see [below for nested schema](#nestedblock--spec--artifact))
+- `version` (String) version of the cluster network policy rule
 
 ***Optional***	
 
-- `sharing` (Block List, Max: 1) cluster policy rule sharing configuration (see [below for nested schema](#nestedblock--spec--sharing))
+- `sharing` (Block List, Max: 1) cluster network policy rule sharing configuration (see [below for nested schema](#nestedblock--spec--sharing))
 
 <a id="nestedblock--spec--artifact"></a>
 ### Nested Schema for `spec.artifact`

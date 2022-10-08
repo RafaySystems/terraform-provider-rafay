@@ -1,4 +1,4 @@
-resource "rafay_pipeline" "tfdemopipeline1" {
+resource "rafay_pipeline" "email-test" {
   metadata {
     name    = "email-test"
     project = "terraform"
@@ -25,7 +25,7 @@ resource "rafay_pipeline" "tfdemopipeline1" {
 
 resource "rafay_pipeline" "tfdemopipeline" {
   metadata {
-    name = "test"
+    name = "tfdemopipeline"
     project = "terraform"
     annotations = {}
     labels      = {}

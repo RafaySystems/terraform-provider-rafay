@@ -442,6 +442,14 @@ func configField() map[string]*schema.Schema {
 				Schema: secretsEncryptionConfigFields(),
 			},
 		},
+		"identity_mappings": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "maps IAM user/roles to kubenetes RBAC groups",
+			Elem: &schema.Resource{
+				Schema: identityMappingsConfigFields(),
+			},
+		},
 	}
 	return s
 }
@@ -2127,6 +2135,52 @@ func secretsEncryptionConfigFields() map[string]*schema.Schema {
 	return s
 }
 
+func identityMappingsConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"arns": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "List of ARN objects",
+			Elem: &schema.Resource{
+				Schema: arnFields(),
+			},
+		},
+		"accounts": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "List of IAM accounts to map",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+	}
+	return s
+}
+
+func arnFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "ARN of user/role to be mapped",
+		},
+		"group": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "List of kubernetes groups to be mapped to",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"username": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The username to be used by kubernetes",
+		},
+	}
+	return s
+}
+
 func findBlueprintName(configBytes []byte) (string, string, error) {
 	var blueprint blueprintType
 	if err := yaml.Unmarshal(configBytes, &blueprint); err != nil {
@@ -2221,6 +2275,9 @@ func expandEKSClusterConfig(p []interface{}, d *schema.ResourceData, prefix stri
 	}
 	if v, ok := in["secrets_encryption"].([]interface{}); ok && len(v) > 0 {
 		obj.SecretsEncryption = expandSecretEncryption(v)
+	}
+	if v, ok := in["identity_mappings"].([]interface{}); ok && len(v) > 0 {
+		obj.IdentityMappings = expandIdentityMappings(v)
 	}
 	return obj
 }
@@ -2428,6 +2485,52 @@ func expandSecretEncryption(p []interface{}) *SecretsEncryption {
 		obj.KeyARN = v
 	}
 	return obj
+}
+
+func expandIdentityMappings(p []interface{}) *EKSClusterIdentityMappings {
+	obj := &EKSClusterIdentityMappings{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["arns"].([]interface{}); ok && len(v) > 0 {
+		obj.Arns = expandArnFields(v)
+	}
+	if v, ok := in["accounts"].([]interface{}); ok && len(v) > 0 {
+		obj.Accounts = toArrayString(v)
+	}
+
+	return obj
+}
+
+func expandArnFields(p []interface{}) []*IdentityMappingARN {
+	out := make([]*IdentityMappingARN, len(p))
+
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+
+	for i := range p {
+		obj := &IdentityMappingARN{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["arn"].(string); ok && len(v) > 0 {
+			obj.Arn = v
+		}
+
+		if v, ok := in["group"].([]interface{}); ok && len(v) > 0 {
+			obj.Group = toArrayString(v)
+		}
+
+		if v, ok := in["username"].(string); ok && len(v) > 0 {
+			obj.Username = v
+		}
+		out[i] = obj
+	}
+
+	return out
 }
 
 //expand cloud watch function (completed)
@@ -4250,6 +4353,21 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		}*/
 		obj["secrets_encryption"] = ret12
 	}
+	// setting up flatten identity mappings
+	//var ret13 []interface{}
+	if in.IdentityMappings != nil {
+		v, ok := obj["identity_mappings"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret13, err := flattenIdentityMappings(in.IdentityMappings, v)
+		if err != nil {
+			log.Println("flattenIdentityMapping err")
+			return nil, err
+		}
+		obj["identity_mappings"] = ret13
+	}
+
 	log.Println("end of flatten config")
 
 	return []interface{}{obj}, nil
@@ -5406,6 +5524,60 @@ func flattenEKSClusterSecretsEncryption(in *SecretsEncryption, p []interface{}) 
 		obj["key_arn"] = in.KeyARN
 	}
 	return []interface{}{obj}
+}
+
+func flattenIdentityMappings(in *EKSClusterIdentityMappings, p []interface{}) ([]interface{}, error) {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}, nil
+	}
+
+	if in.Arns != nil {
+		v, ok := obj["arns"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["arns"] = flattenArnFields(in.Arns, v)
+	}
+
+	if len(in.Accounts) > 0 {
+		obj["accounts"] = in.Accounts
+	}
+
+	return []interface{}{obj}, nil
+}
+
+func flattenArnFields(inp []*IdentityMappingARN, p []interface{}) []interface{} {
+	if inp == nil {
+		return nil
+	}
+	out := make([]interface{}, len(inp))
+
+	for i, in := range inp {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Arn) > 0 {
+			obj["arn"] = in.Arn
+		}
+
+		if len(in.Group) > 0 {
+			obj["group"] = in.Group
+		}
+
+		if len(in.Username) > 0 {
+			obj["username"] = in.Username
+		}
+
+		out[i] = &obj
+
+	}
+	return out
 }
 
 func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

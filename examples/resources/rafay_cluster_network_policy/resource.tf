@@ -4,9 +4,10 @@ resource "rafay_cluster_network_policy" "tfdemocnp2" {
     project = "terraform"
   }
   spec {
-    version = "example-version"
-    sharing {
-        enabled = false
+    version = "v0"
+    rules {
+      name = "cluster-network-rule"
+      version = "v0"
     }
   }
 }

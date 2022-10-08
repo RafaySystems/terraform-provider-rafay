@@ -18,11 +18,10 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
     apiversion = "rafay.io/v1alpha5"
     kind       = "ClusterConfig"
     metadata {
-      name    = "tolerations-test11"
+      name    = "eks-cluster-1"
       region  = "us-west-2"
       version = "1.22"
     }
- 
     iam {
      with_oidc = true
       service_accounts {
@@ -80,7 +79,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
           auto_scaler   = true
         }
       }
-      instance_type    = "t3.xlarge"
+      instance_type    = "m5.xlarge"
       desired_capacity = 1
       min_size         = 1
       max_size         = 2
@@ -271,6 +270,70 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
       max_size         = 2
       max_pods_per_node = 50
       version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      private_networking = true
+    }
+  }
+}
+
+resource "rafay_eks_cluster" "ekscluster-basic-im" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "testing-im-terraform"
+      project = "defaultproject"
+    }
+    spec {
+      type           = "eks"
+      blueprint      = "default"
+      blueprint_version = "Latest"
+      cloud_provider = "gopi-aws"
+      cni_provider   = "aws-cni"
+      proxy_config   = {}
+    }
+  }
+  cluster_config {
+
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "testing-im-terraform"
+      region  = "us-west-2"
+      version = "1.22"
+    }
+
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
+      }
+    }
+    identity_mappings {
+      arns {
+        arn = "arn:aws:iam::679196758854:user/gopi01@rafay.co"
+        group = ["dummy"]
+        username = "gopi01"
+      }
+    }
+    node_groups {
+      name       = "ng-1"
+      ami_family = "AmazonLinux2"
+      iam {
+        iam_node_group_with_addon_policies {
+          image_builder = true
+          auto_scaler   = true
+        }
+      }
+      instance_type    = "t3.xlarge"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      version          = "1.22"
       volume_size      = 80
       volume_type      = "gp3"
       private_networking = true

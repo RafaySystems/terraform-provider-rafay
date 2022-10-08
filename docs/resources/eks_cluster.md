@@ -14,7 +14,7 @@ Manage an AWS EKS cluster.
 Basic EKS cluster
 
 ```terraform
-resource "rafay_eks_cluster" "ekscluster-basic" {
+resource "rafay_eks_cluster" "eks-cluster-1" {
   cluster {
     kind = "Cluster"
     metadata {
@@ -37,6 +37,42 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       name    = "eks-cluster-1"
       region  = "us-west-2"
       version = "1.21"
+    }
+    iam {
+      service_accounts {
+        attach_policy = <<EOF
+        {
+	  "Version": "2012-10-17",
+	  "Statement": [
+	    {
+	      "Effect": "Allow",
+	      "Action": "ec2:Describe*",
+	      "Resource": "*"
+	    },
+	    {
+	      "Effect": "Allow",
+	      "Action": "ec2:AttachVolume",
+	      "Resource": "*"
+	    },
+	    {  
+	      "Effect": "Allow",
+	      "Action": "ec2:DetachVolume",
+	      "Resource": "*"
+	    },
+	    {
+	      "Effect": "Allow",
+	      "Action": ["ec2:*"],
+	      "Resource": ["*"]
+    	    },
+	    {
+	      "Effect": "Allow",
+	      "Action": ["elasticloadbalancing:*"],
+	      "Resource": ["*"]
+	     }
+	   ]
+	}
+	EOF
+      }
     }
     vpc {
       cidr = "192.168.0.0/16"
@@ -76,7 +112,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
 Advanced EKS cluster config with existing VPC & IAM.
 
 ```terraform
-resource "rafay_eks_cluster" "ekscluste-advanced" {
+resource "rafay_eks_cluster" "eks-cluster-2" {
   cluster {
     kind = "Cluster"
     metadata {
@@ -156,7 +192,7 @@ resource "rafay_eks_cluster" "ekscluste-advanced" {
 EKS config with custom CNI.
 
 ```terraform
-resource "rafay_eks_cluster" "ekscluster-custom-cni" {
+resource "rafay_eks_cluster" "eks-cluster-3" {
   cluster {
     kind = "Cluster"
     metadata {

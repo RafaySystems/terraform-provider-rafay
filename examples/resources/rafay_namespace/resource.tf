@@ -81,18 +81,25 @@ resource "rafay_namespace" "namespace" {
         }
         resource_quotas {
             config_maps = "10"
-            cpu_limits = "8"
-            memory_limits = "16Gi"
-            cpu_requests = "4"
-            memory_requests = "8Gi"
+            cpu_limits = "8000m"
+            memory_limits = "16384Mi"
+            cpu_requests = "4000m"
+            memory_requests = "8192Mi"
             persistent_volume_claims = "2"
             pods = "30"
             replication_controllers = "5"
             secrets = "10"
             services = "10"
-            services_load_balancers = "3"
-            services_node_ports = "10"
-            storage_requests = "10737418240"
+            services_load_balancers = "4"
+            services_node_ports = "4"
+            storage_requests = "10Gi"
+        }
+        network_policy_params {
+            network_policy_enabled = true
+            policies {
+                name    = "namespace_network_policy_name"
+                version = "v0"
+            }
         }
     }
 }

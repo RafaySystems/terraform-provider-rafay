@@ -15,7 +15,7 @@ Blueprints are a way to group resources and policies as a package that can be ro
 Example of a custom blueprint resource.
 
 ```terraform
-resource "rafay_blueprint" "blueprint" {
+resource "rafay_blueprint" "custom-blueprint" {
   metadata {
     name    = "custom-blueprint"
     project = "terraform"
@@ -69,7 +69,7 @@ resource "rafay_blueprint" "blueprint" {
 Example of a custom blueprint resource for fleet values of a cluster. 
 
 ```terraform
-resource "rafay_blueprint" "blueprint" {
+resource "rafay_blueprint" "custom-blueprint-advanced" {
   metadata {
     name    = "custom-blueprint-advanced"
     project = "terraform"
@@ -124,7 +124,7 @@ resource "rafay_blueprint" "blueprint" {
 Example of a custom blueprint resource with Rook-Ceph managed add-on and a custom add-on. 
 
 ```terraform
-resource "rafay_blueprint" "blueprint" {
+resource "rafay_blueprint" "custom-blueprint-advanced2" {
   metadata {
     name    = "custom-blueprint-advanced2"
     project = "terraform"
@@ -184,7 +184,7 @@ resource "rafay_blueprint" "blueprint" {
   }
 }
 # Example of a custom golden base blueprint resource.
-resource "rafay_blueprint" "golden_base_blueprint" {
+resource "rafay_blueprint" "custom-golden-blueprint" {
   metadata {
     name    = "custom-golden-blueprint"
     project = "terraform"

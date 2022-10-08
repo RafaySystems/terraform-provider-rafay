@@ -21,6 +21,22 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 
 | Resource                                  | Version Released |
 | ----------------------------------------- | ---------------- |
+| `cluster_network_policy`                  | 1.1.0            |  
+| `cluster_network_policy_rule`             | 1.1.0            |  
+| `network_policy_profile`                  | 1.1.0            |  
+| `namespace_network_policy_rule`           | 1.1.0            | 
+| `namespace_network_policy`                | 1.1.0            | 
+| `opa_constraint`                          | 1.1.0            |  
+| `opa_constraint_template`                 | 1.1.0            |  
+| `secret_sealer`                           | 1.1.0            |  
+| `user`                                    | 1.1.0            |
+| `pipeline`                                | 1.1.0            |
+| `blueprint` (with OPA support)            | 1.0.2            |
+| `workload`                                | 1.0.0            |
+| `workloadtemplate`                        | 1.0.0            |
+| `aks_cluster_spec`                        | 1.0.0            |
+| `eks_cluster_spec`                        | 1.0.0            |
+| `opa_policy`                              | 1.0.0            |
 | `group`                                   | 0.9.12           |
 | `groupassociation`                        | 0.9.12           |
 | `import_cluster`                          | 0.9.12           |
@@ -35,19 +51,11 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 | `project`                                 | 0.9.11           |
 | `repositories`                            | 0.9.11           |
 | | |
-
+ 
 ### In Development 
 
-- `aks_cluster_spec`
-- `blueprint` (support for fleet upgrade) 
-- `blueprint` (support for Rook Ceph) 
-- `eks_cluster_spec`
-- `namespace` (support for workspace admin)
-- `opa_policy` 
-- `pipeline`
-- `project` (support for workspace admin) 
-- `secret_sealer`
-
+- `infra_provisioner`
+- `catalog`
 
 ---
 

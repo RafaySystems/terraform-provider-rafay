@@ -607,6 +607,7 @@ func expandProjectMeta(p []interface{}) []*commonpb.ProjectMeta {
 	if len(p) == 0 {
 		return []*commonpb.ProjectMeta{}
 	}
+	var sortByName []string
 	out := make([]*commonpb.ProjectMeta, len(p))
 	for i := range p {
 		in := p[i].(map[string]interface{})
@@ -614,6 +615,7 @@ func expandProjectMeta(p []interface{}) []*commonpb.ProjectMeta {
 
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
+			sortByName = append(sortByName, v)
 		}
 		if v, ok := in["id"].(string); ok && len(v) > 0 {
 			obj.Id = v
@@ -622,8 +624,17 @@ func expandProjectMeta(p []interface{}) []*commonpb.ProjectMeta {
 		out[i] = &obj
 	}
 
-	log.Println("expandProjectMeta out", out)
-	return out
+	var sortedOut []*commonpb.ProjectMeta
+	for _, name := range sortByName {
+		for _, val := range out {
+			if name == val.Name {
+				sortedOut = append(sortedOut, val)
+			}
+		}
+	}
+
+	log.Println("expandProjectMeta out", sortedOut)
+	return sortedOut
 }
 
 func expandSharingSpec(p []interface{}) *commonpb.SharingSpec {
@@ -1061,6 +1072,41 @@ func flattenResourceQuantity1170(in *commonpb.ResourceQuantity) []interface{} {
 	}
 
 	log.Println("flattenResourceQuantityV101 obj", obj)
+	return []interface{}{obj}
+}
+
+func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if in.Memory != "" {
+		var m resource.QuantityValue
+		m.Set(in.GetMemory())
+		for i := 0; i < 10; i++ {
+			m.Add(m.Quantity)
+			//in.GetMemory().Add(*in.GetMemory())
+			log.Println("adding ", m.String())
+		}
+		obj["memory"] = m.String()
+		log.Println("flattenResourceQuantity memory string ", m.String())
+	}
+
+	if in.Cpu != "" {
+		var cp resource.QuantityValue
+		cp.Set(in.GetCpu())
+		cp1 := cp
+		for i := 0; i < 999; i++ {
+			cp.Add(cp1.Quantity)
+			log.Println("adding ", cp.String())
+		}
+		cp.RoundUp(resource.Micro)
+		obj["cpu"] = cp.String()
+		log.Println("flattenResourceQuantity cpu string ", cp.String())
+	}
+
+	log.Println("flattenResourceQuantity obj", obj)
 	return []interface{}{obj}
 }
 

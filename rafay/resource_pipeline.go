@@ -1760,6 +1760,7 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 		obj["agents"] = nil
 	}
 
+	obj["action"] = flattenStageSpecAction(stSpec)
 	obj["git_to_system_sync"] = stSpec.Config.GitToSystemSync
 	obj["system_to_git_sync"] = stSpec.Config.SystemToGitSync
 
@@ -1909,6 +1910,158 @@ func flattenStageSpecAgents(input []*gitopspb.AgentMeta, p []interface{}) []inte
 		// 	obj["id"] = in.Id
 		// }
 
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenStageSpecAction(in *stageSpec) []interface{} {
+	if in == nil {
+		return nil
+	}
+	retNil := true
+	obj := make(map[string]interface{})
+
+	if len(in.Config.Action.Action) > 0 {
+		obj["action"] = (in.Config.Action.Action)
+		retNil = false
+	}
+
+	if len(in.Config.Action.Version) > 0 {
+		obj["version"] = (in.Config.Action.Version)
+		retNil = false
+	}
+
+	if len(in.Config.Action.InputVars) > 0 {
+		retNil = false
+		v, ok := obj["input_vars"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["input_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
+	} else {
+		obj["input_vars"] = nil
+		retNil = false
+	}
+
+	if in.Config.Action.TfVarsFilePath != nil {
+		obj["tf_vars_file_path"] = flattenCommonpbFile(in.Config.Action.TfVarsFilePath)
+		retNil = false
+	}
+
+	if len(in.Config.Action.EnvVars) > 0 {
+		retNil = false
+		v, ok := obj["input_vars"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["env_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
+	} else {
+		obj["env_vars"] = nil
+		retNil = false
+	}
+
+	if len(in.Config.Action.BackendVars) > 0 {
+		retNil = false
+		v, ok := obj["backend_vars"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["backend_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
+	} else {
+		obj["backend_vars"] = nil
+		retNil = false
+	}
+
+	if in.Config.Action.BackendFilePath != nil {
+		obj["backend_file_path"] = flattenCommonpbFile(in.Config.Action.BackendFilePath)
+		retNil = false
+	}
+
+	if in.Config.Action.Refresh {
+		obj["refresh"] = in.Config.Action.Refresh
+		retNil = false
+	}
+
+	if len(in.Config.Action.Targets) > 0 {
+		retNil = false
+		v, ok := obj["targets"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["targets"] = flattenStageSpecConfigActionTargets(in.Config.Action.Targets, v)
+	} else {
+		obj["targets"] = nil
+		retNil = false
+	}
+
+	if in.Config.Action.Destroy {
+		obj["destroy"] = in.Config.Action.Destroy
+		retNil = false
+	}
+
+	if len(in.Config.Action.SecretGroups) > 0 {
+		obj["secret_groups"] = in.Config.Action.SecretGroups
+		retNil = false
+	}
+
+	if retNil {
+		return nil
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenStageSpecConfigActionKeyValue(input []*gitopspb.KeyValue, p []interface{}) []interface{} {
+	log.Println("flattenStageSpecConfigActionKeyValue")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flattenStageSpecConfigActionKeyValue in ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Key) > 0 {
+			obj["key"] = in.Key
+		}
+
+		if len(in.Value) > 0 {
+			obj["value"] = in.Value
+		}
+
+		if len(in.Type) > 0 {
+			obj["Type"] = in.Type
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenStageSpecConfigActionTargets(input []*gitopspb.TerraformTarget, p []interface{}) []interface{} {
+	log.Println("flattenStageSpecConfigActionTargets")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flattenStageSpecConfigActionTargets in ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
 		out[i] = &obj
 	}
 

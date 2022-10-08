@@ -14,7 +14,7 @@ Manage an AWS EKS cluster.
 Basic EKS cluster
 
 ```terraform
-resource "rafay_eks_cluster" "ekscluster-basic" {
+resource "rafay_eks_cluster" "eks-cluster-1" {
   cluster {
     kind = "Cluster"
     metadata {
@@ -112,7 +112,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
 Advanced EKS cluster config with existing VPC & IAM.
 
 ```terraform
-resource "rafay_eks_cluster" "ekscluste-advanced" {
+resource "rafay_eks_cluster" "eks-cluster-2" {
   cluster {
     kind = "Cluster"
     metadata {
@@ -192,7 +192,7 @@ resource "rafay_eks_cluster" "ekscluste-advanced" {
 EKS config with custom CNI.
 
 ```terraform
-resource "rafay_eks_cluster" "ekscluster-custom-cni" {
+resource "rafay_eks_cluster" "eks-cluster-3" {
   cluster {
     kind = "Cluster"
     metadata {

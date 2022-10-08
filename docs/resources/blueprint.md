@@ -34,7 +34,6 @@ resource "rafay_blueprint" "blueprint" {
       monitoring {
         metrics_server {
           enabled = true
-          discovery {}
         }
         helm_exporter {
           enabled = true
@@ -49,10 +48,8 @@ resource "rafay_blueprint" "blueprint" {
           enabled = true
         }
         resources {
-          limits {
-            memory  = "200Mi"
-            cpu = "100m"
-          }
+          limits = "200Mi"
+          cpu = "100m"
         }
       }
     }
@@ -91,7 +88,6 @@ resource "rafay_blueprint" "blueprint" {
       monitoring {
         metrics_server {
           enabled = true
-          discovery {}
         }
         helm_exporter {
           enabled = true
@@ -106,10 +102,8 @@ resource "rafay_blueprint" "blueprint" {
           enabled = true
         }
         resources {
-          limits {
-            memory = "200Mi"
-            cpu  = "100m"
-          }
+          limits = "200Mi"
+          cpu = "100m"
         }
       }
     }
@@ -158,7 +152,6 @@ resource "rafay_blueprint" "blueprint" {
       monitoring {
         metrics_server {
           enabled = true
-          discovery {}
         }
         helm_exporter {
           enabled = true
@@ -173,10 +166,8 @@ resource "rafay_blueprint" "blueprint" {
           enabled = true
         }
         resources {
-          limits {
-            memory = "200Mi"
-            cpu = "100m"
-          }
+          limits = "200Mi"
+          cpu = "100m"
         }
       }
     }
@@ -228,14 +219,8 @@ resource "rafay_blueprint" "golden_base_blueprint" {
           enabled = true
         }
         resources {
-          limits {
-            memory {
-              string = "200Mi"
-            }
-            cpu {
-              string = "100m"
-            }
-          }
+          limits = "200Mi"
+          cpu = "100m"
         }
       }
     }
@@ -290,13 +275,14 @@ resource "rafay_blueprint" "golden_base_blueprint" {
 - `base` (Block List, Max: 1) blueprint base (see [below for nested schema](#nestedblock--spec--base))
 - `namespace_config` (Block List, Max: 1) namespace config (see [below for nested schema](#nestedblock--spec--namespace_config))
 - `opa_policy` (Block List, Max: 1) opa policy and version details (see [below for nested schema](#nestedblock--spec--opa_policy))
+- `network_policy` (Block List, Max: 1) Network policy and version details (see [below for nested schema](#nestedblock--spec--network_policy))
 <a id="nestedblock--spec--base"></a>
 ### Nested Schema for `spec.base`
 
 ***Required***
 
 - `name` - (String) The name for the blueprint base. Supported values are: `default`, `minimal`, `default-openshift`, and `default-aks`.
-- `version` - (String) The version of the blueprint base. Example values are: `1.11.0`, `1.12.0`, and `1.13.0`.
+- `version` - (String) The version of the blueprint base. Example values are: `1.16.0`, `1.17.0`, and `1.18.0`.
 
 
 <a id="nestedblock--spec--custom_addons"></a>
@@ -430,31 +416,29 @@ resource "rafay_blueprint" "golden_base_blueprint" {
 
 ***Required***
 
-- `name` - (String) The names of the projects the resource belongs to. 
+- `name` - (String) The names of the project to share the resource. 
 
 
 <a id="nestedblock--spec--namespace_config"></a>
 ### Nested Schema for `spec.namespace_config`
 
-Optional:
+***Required***
 
-- `deny_out_of_band_creation` (Boolean) flag to deny out of band creation
 - `enable_sync` (Boolean) flag to enable namespace sync
-
 
 
 <a id="nestedblock--spec--opa_policy"></a>
 ### Nested Schema for `spec.opa_policy`
 
-Optional:
+***Required***
 
-- `opa_policy` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--opa_policy--opa_policy))
+- `opa_policy` (Block List, Max: 1) policy configuration (see [below for nested schema](#nestedblock--spec--opa_policy--opa_policy))
 - `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--opa_policy--profile))
 
 <a id="nestedblock--spec--opa_policy--opa_policy"></a>
 ### Nested Schema for `spec.opa_policy.opa_policy`
 
-Optional:
+***Required***
 
 - `enabled` (Boolean) flag to specify if OPA is enabled for blueprint
 - `name` (String) name of the opa policy
@@ -464,11 +448,35 @@ Optional:
 <a id="nestedblock--spec--opa_policy--profile"></a>
 ### Nested Schema for `spec.opa_policy.profile`
 
-Optional:
+***Required***
 
 - `name` (String) name of the opa profile
 - `version` (String) version of the opa profile
 
+<a id="nestedblock--spec--network_policy"></a>
+### Nested Schema for `spec.network_policy`
+
+***Required***
+
+- `enabled` (Boolean) flag to specify if Network Policy is enabled for blueprint
+- `policies` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--network_policy--policies))
+- `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--network_policy--profile))
+
+<a id="nestedblock--spec--network_policy--policies"></a>
+### Nested Schema for `spec.network_policy.policies`
+
+***Required***
+
+- `name` (String) name of the network policy
+- `version` (String) version of the network policy
+
+<a id="nestedblock--spec--network_policy--profile"></a>
+### Nested Schema for `spec.network_policy.profile`
+
+***Required***
+
+- `name` (String) name of the network profile
+- `version` (String) version of the network profile
 
 
 

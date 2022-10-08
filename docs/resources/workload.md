@@ -28,6 +28,7 @@ resource "rafay_workload" "tftestworkload1" {
       action  = "Deny"
       enabled = true
     }
+    version = "v0"
     artifact {
       type = "Helm"
       artifact {
@@ -58,6 +59,7 @@ resource "rafay_workload" "tftestworkload2" {
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
+    version = "v0"
     artifact {
       type = "Helm"
       artifact{
@@ -88,6 +90,7 @@ resource "rafay_workload" "tftestworkload3" {
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
+    version = "v0"
     artifact {
       type = "Helm"
       artifact {
@@ -117,6 +120,7 @@ resource "rafay_workload" "tftestworkload4" {
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
+    version = "v0"
     artifact {
       type = "Yaml"
       artifact {
@@ -148,6 +152,7 @@ resource "rafay_workload" "tftestworkload5" {
       action  = "Deny"
       enabled = true
     }
+    version = "v0"
     artifact {
       type = "Yaml"
       artifact {
@@ -188,32 +193,36 @@ resource "rafay_workload" "tftestworkload5" {
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
 
-***Optional***
+***Required***
 
 - `artifact` (Block List, Max: 1) The workload artifact specification. (See [below for nested schema](#nestedblock--spec--artifact))
-- `drift` - (Block List, Max: 1) Prevents configuration drift. Drift is a change to your live cluster that is different from the source of truth. (See [below for nested schema](#nestedblock--spec--drift))
-
-  **Note**: The only option is `false`. Drift configuration is currently not supported. 
-
 - `namespace` - (String) The namespace of the workload resource. 
 - `placement` - (Block List, Max: 1) Defines the cluster(s) where workload will be created. (See [below for nested schema](#nestedblock--spec--placement))
 - `version` - (String) The version of the workload resource. 
+
+***Optional***
+
+- `drift` - (Block List, Max: 1) Prevents configuration drift. Drift is a change to your live cluster that is different from the source of truth. (See [below for nested schema](#nestedblock--spec--drift))
 
 
 <a id="nestedblock--spec--artifact"></a>
 ### Nested Schema for `spec.artifact`
 
-***Optional***
+***Required***
 
 - `artifact` - (Block List, Max: 1) Contains data about the artifact repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact))
+- `type` - (String) The type of artifact. Supported values are: `Helm` and `Yaml`.
+
+***Optional***
+
 - `options` - (Block List, Max: 1) Helm options. (See [below for nested schema](#nestedblock--spec--artifact--options))
-- `type` - (String) The type of artifact. Supported values are: `Helm` and `Yaml`. 
+ 
 
 
 <a id="nestedblock--spec--artifact--artifact"></a>
 ### Nested Schema for `spec.artifact.artifact`
 
-***Optional***
+***Required***
 
 - `chart_name` - (String) The name of the chart. 
 - `chart_path` - (Block List, Max: 1) The relative path to the chart file in the Git repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
@@ -223,11 +232,18 @@ resource "rafay_workload" "tftestworkload5" {
 - `revision` - (String) The branch or tag in the Git repository. 
 - `values_paths` - (Block List) The relative path to the values file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 
+**Note**: 
+- For Yaml type worklaod, `paths` is required. 
+- For Helm type workload:
+  - If uploading the chart, `chart_path` is required.
+  - If pulling the chart from the Helm, `repository` and `chart_name` are required.
+  - If pulling the chart from the Git, `repository`, `chart_path`, and `revision` are required. 
+
 
 <a id="nestedblock--spec--artifact--artifact--chart_path"></a>
 ### Nested Schema for various resources under `spec.artifact.artifact.chart_path`, `.paths`, and `.value_paths`
 
-***Optional***
+***Required***
 
 - `name` - (String) The relative path of the artifact. 
 
@@ -268,16 +284,14 @@ Optional:
 <a id="nestedblock--spec--placement"></a>
 ### Nested Schema for `spec.placement`
 
-***Optional***
+***Required****
 
 - `labels` - (Block List; Max: 1) A list of labels for the placement. (See [below for nested schema](#nestedblock--spec--placement--labels))
-- `selector` (String) Kubernetes style label selector. 
-
 
 <a id="nestedblock--spec--placement--labels"></a>
 ### Nested Schema for `spec.placement.labels`
 
-***Optional***
+***Required****
 
 - `key` - (String) The key of the placement label. 
 - `value` - (String) The value of the placement label. 

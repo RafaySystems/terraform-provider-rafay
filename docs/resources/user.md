@@ -8,7 +8,7 @@ description: |-
 
 # rafay_user (Resource)
 
-
+Resource to create local user.
 
 ## Example Usage
 
@@ -17,7 +17,6 @@ resource "rafay_user" "user" {
   user_name = "sampleUser"
   first_name = "Bob"
   last_name = "Ross"
-  phone = "14083074010"
   groups = ["group1", "group2"]
   generate_apikey = true
   console_access = true
@@ -40,22 +39,25 @@ output "api_secret" {
 
 ### Required
 
-- `user_name` (String)
+- `user_name` (String) Unique username for local user.
 
 ### Optional
 
-- `first_name` (String) The user information.
+- `first_name` (String) The user's firstname
 - `generate_apikey` (Boolean) Create API Key for user.
-- `console_access` (Boolean) Enable Console Access for user. User type (API + Console)
+- `console_access` (Boolean) Enable Console Access for user.
 - `groups` (List of String) Group names.
-- `last_name` (String) The user information.
-- `phone` (String) The user information.
+- `last_name` (String) The user's lastname.
+- `phone` (String) The user's phone number.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+
+Note: `first_name` and `last_name` are required if `console_access` is set to true for the user.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
 - `apikey` (String) The Api Key (sensitive)
+- `api_secret` (String) The Api Secret (sensitive)
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
@@ -65,5 +67,4 @@ Optional:
 - `create` (String)
 - `delete` (String)
 - `update` (String)
-
 

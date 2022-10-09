@@ -6,6 +6,7 @@ import (
 	"log"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
@@ -1089,8 +1090,22 @@ func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
 			//in.GetMemory().Add(*in.GetMemory())
 			log.Println("adding ", m.String())
 		}
-		obj["memory"] = m.String()
-		log.Println("flattenResourceQuantity memory string ", m.String())
+		if strings.Contains(m.String(), "Gi") {
+			val := m.String()[:len(m.String())-2]
+			log.Println("flattenResourceQuantity adjust Gi ", m.String(), val)
+			intVar, err := strconv.Atoi(val)
+			if err == nil {
+				intVar = 1024 * intVar
+				val1 := strconv.Itoa(intVar)
+				obj["memory"] = val1 + "Mi"
+				log.Println("flattenResourceQuantity memory string ", val1+"Mi")
+			} else {
+				obj["memory"] = m.String()
+			}
+		} else {
+			obj["memory"] = m.String()
+			log.Println("flattenResourceQuantity memory string ", m.String())
+		}
 	}
 
 	if in.Cpu != "" {

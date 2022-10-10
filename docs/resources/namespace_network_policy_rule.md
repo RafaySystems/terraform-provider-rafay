@@ -29,6 +29,9 @@ resource "rafay_namespace_network_policy_rule" "tfdemonnpr1" {
       }
     }
     version = "v0"
+    sharing {
+      enabled = false
+    }
   }
 }
 ```

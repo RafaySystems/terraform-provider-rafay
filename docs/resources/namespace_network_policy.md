@@ -24,6 +24,9 @@ resource "rafay_namespace_network_policy" "tfdemonnp2" {
       name = "namespace-network-rule"
       version = "v0"
     }
+    sharing {
+      enabled = false
+    }
   }
 }
 ```

@@ -28,6 +28,9 @@ resource "rafay_cluster_network_policy_rule" "tfdemocnpr1" {
       } 
     }
     version = "v0"
+    sharing {
+      enabled = false
+    }
   }
 }
 ```

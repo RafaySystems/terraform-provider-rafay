@@ -6,32 +6,12 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
   }
   spec {
     constraint_list {
-      name = "se-linux"
-    }
-    installation_params {
-      audit_interval              = 60
-      audit_match_kind_only       = true
-      constraint_violations_limit = 20
-      audit_chunk_size = 20
-      log_denies = true
-      emit_audit_events = true
+      name = "tfdemoopaconstraint1"
+      version = "v1"
     }
     sharing {
-      enabled = true
-      projects {
-        name = "defaultproject"
-      }
+      enabled = false
     }
     version = "v0"
-    sync_objects{
-      version = "v1"
-      kind = "ConfigMap"
-      group = "tfuser"
-    }
-    excluded_namespaces {
-      namespaces {
-        name = "tfdemonamespace"
-      }
-    }
   }
 }

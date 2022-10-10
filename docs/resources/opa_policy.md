@@ -27,10 +27,7 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
       version = "v1"
     }
     sharing {
-      enabled = true
-      projects {
-        name = "defaultproject"
-      }
+      enabled = false
     }
     version = "v0"
   }

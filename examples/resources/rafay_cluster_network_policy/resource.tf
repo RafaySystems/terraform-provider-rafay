@@ -9,5 +9,8 @@ resource "rafay_cluster_network_policy" "tfdemocnp2" {
       name = "cluster-network-rule"
       version = "v0"
     }
+    sharing {
+      enabled = false
+    }
   }
 }

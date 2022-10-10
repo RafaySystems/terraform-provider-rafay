@@ -4,9 +4,13 @@ resource "rafay_namespace_network_policy" "tfdemonnp2" {
     project = "terraform"
   }
   spec {
-    version = "example-version"
+    version = "v0"
+    rules {
+      name = "namespace-network-rule"
+      version = "v0"
+    }
     sharing {
-        enabled = false
+      enabled = false
     }
   }
 }

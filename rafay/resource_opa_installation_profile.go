@@ -275,15 +275,15 @@ func expandOpaInstallationsProfileInstallationParams(p []interface{}) *opapb.Ins
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["audit_interval"].(int64); ok {
-		obj.AuditInterval = v
+	if v, ok := in["audit_interval"].(int); ok {
+		obj.AuditInterval = int64(v)
 	}
 
-	if v, ok := in["constraint_violations_limit"].(int64); ok {
-		obj.ConstraintViolationsLimit = v
+	if v, ok := in["constraint_violations_limit"].(int); ok {
+		obj.ConstraintViolationsLimit = int64(v)
 	}
 
-	if v, ok := in["audit_interval"].(bool); ok {
+	if v, ok := in["audit_from_cache"].(bool); ok {
 		obj.AuditFromCache = v
 	}
 
@@ -295,8 +295,8 @@ func expandOpaInstallationsProfileInstallationParams(p []interface{}) *opapb.Ins
 		obj.EnableDeleteOperations = v
 	}
 
-	if v, ok := in["audit_chunk_size"].(int64); ok {
-		obj.AuditChunkSize = v
+	if v, ok := in["audit_chunk_size"].(int); ok {
+		obj.AuditChunkSize = int64(v)
 	}
 
 	if v, ok := in["experimental_enable_mutation"].(bool); ok {
@@ -334,7 +334,7 @@ func expandOpaInstallationProfileExcludedNamespaces(p []interface{}) []*opapb.Ex
 		}
 
 		if v, ok := in["namespaces"].([]interface{}); ok && len(v) > 0 {
-			obj.Namespaces = expandOpaProfileExcludedNamespacesList(v)
+			obj.Namespaces = expandOpaInstallationProfileExcludedNamespacesList(v)
 		}
 
 		out[i] = &obj
@@ -344,7 +344,7 @@ func expandOpaInstallationProfileExcludedNamespaces(p []interface{}) []*opapb.Ex
 	return out
 }
 
-func expandOpaProfileExcludedNamespacesList(p []interface{}) []*commonpb.ResourceRef {
+func expandOpaInstallationProfileExcludedNamespacesList(p []interface{}) []*commonpb.ResourceRef {
 	if len(p) == 0 || p[0] == nil {
 		return []*commonpb.ResourceRef{}
 	}
@@ -469,11 +469,17 @@ func flattenOpaProfileInstallationParams(in *opapb.InstallationParams, p []inter
 		obj["audit_from_cache"] = in.AuditFromCache
 	}
 
-	obj["audit_chunk_size"] = in.AuditChunkSize
+	if in.AuditChunkSize != 0 {
+		obj["audit_chunk_size"] = in.AuditChunkSize
+	}
 
-	obj["audit_interval"] = in.AuditInterval
+	if in.ConstraintViolationsLimit != 0 {
+		obj["constraint_violations_limit"] = in.ConstraintViolationsLimit
+	}
 
-	obj["constraint_violations_limit"] = in.ConstraintViolationsLimit
+	if in.AuditInterval != 0 {
+		obj["audit_interval"] = in.AuditInterval
+	}
 
 	return []interface{}{obj}
 }

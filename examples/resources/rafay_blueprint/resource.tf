@@ -18,7 +18,6 @@ resource "rafay_blueprint" "blueprint" {
       monitoring {
         metrics_server {
           enabled = true
-          discovery {}
         }
         helm_exporter {
           enabled = true
@@ -69,7 +68,6 @@ resource "rafay_blueprint" "blueprint" {
       monitoring {
         metrics_server {
           enabled = true
-          discovery {}
         }
         helm_exporter {
           enabled = true
@@ -131,7 +129,6 @@ resource "rafay_blueprint" "blueprint" {
       monitoring {
         metrics_server {
           enabled = true
-          discovery {}
         }
         helm_exporter {
           enabled = true

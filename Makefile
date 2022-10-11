@@ -3,7 +3,7 @@ HOSTNAME=registry.terraform.io
 NAMESPACE=rafay
 NAME=rafay
 BINARY=terraform-provider-${NAME}
-VERSION=1.1.0
+VERSION=1.1.1
 OS_ARCH=darwin_amd64
 
 default: install

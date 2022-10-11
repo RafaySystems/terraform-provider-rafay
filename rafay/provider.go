@@ -64,9 +64,8 @@ func New(_ string) func() *schema.Provider {
 				"rafay_namespace_network_policy_rule": resourceNamespaceNetworkPolicyRule(),
 				"rafay_network_policy_profile":        resourceNetworkPolicyProfile(),
 				"rafay_user":                          resourceUser(),
-
-				//"rafay_trigger":          resourceTrigger(),
-
+				"rafay_opa_installation_profile":      resourceOPAInstallationProfile(),
+				"rafay_access_apikey":                 resourceAccessApikey(),
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,

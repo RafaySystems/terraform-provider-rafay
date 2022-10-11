@@ -1,8 +1,8 @@
 #Basic example for opa profile
-resource "rafay_opa_installation_profile" "tftestopaprofilefour" {
+resource "rafay_opa_installation_profile" "tftestopaprofileeleven" {
   metadata {
-    name    = "tftestopaprofilefour"
-    project = "cang-test"
+    name    = "tftestopaprofileeleven"
+    project = "terraform"
   }
   spec {
     version = "v1"
@@ -22,6 +22,12 @@ resource "rafay_opa_installation_profile" "tftestopaprofilefour" {
     excluded_namespaces {
       namespaces {
         name = "testtwelve"
+      }
+    }
+    sharing {
+      enabled = true
+      projects {
+        name = "defaultproject"
       }
     }
   }

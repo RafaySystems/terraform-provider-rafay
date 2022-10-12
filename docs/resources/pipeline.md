@@ -260,6 +260,7 @@ resource "rafay_pipeline" "infaprovisioner-test" {
 ## Argument Reference
 
 ---
+
 ***Required***
 
 - `metadata` (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata)).

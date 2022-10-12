@@ -103,7 +103,7 @@ resource "rafay_mesh_profile" "tfdemomeshprofile1" {
 - `projects` (Block List) list of projects this resource is shared to (see [below for nested schema](#nestedblock--spec--sharing--projects))
 
 <a id="nestedblock--spec--installation_params--resourcequota"></a>
-### Nested Schema for `spec.resource_quotas`
+### Nested Schema for `spec.installation_param.resource_quota`
  
 - `cpu_requests` - (String) The number of CPU threads.
 - `cpu_limits` - (String) The maximum CPU resource.

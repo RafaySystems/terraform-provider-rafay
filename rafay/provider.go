@@ -62,6 +62,11 @@ func New(_ string) func() *schema.Provider {
 				"rafay_namespace_network_policy":      resourceNamespaceNetworkPolicy(),
 				"rafay_namespace_network_policy_rule": resourceNamespaceNetworkPolicyRule(),
 				"rafay_network_policy_profile":        resourceNetworkPolicyProfile(),
+				"rafay_mesh_profile":                  resourceMeshProfile(),
+				"rafay_cluster_mesh_rule":             resourceClusterMeshRule(),
+				"rafay_cluster_mesh_policy":           resourceClusterMeshPolicy(),
+				"rafay_namespace_mesh_rule":           resourceNamespaceMeshRule(),
+				"rafay_namespace_mesh_policy":         resourceNamespaceMeshPolicy(),
 
 				//"rafay_trigger":          resourceTrigger(),
 

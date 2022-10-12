@@ -91,7 +91,7 @@ resource "rafay_mesh_profile" "tfdemomeshprofile1" {
 - `cert_type` (Number) Certificate Type. Valid values are `0` and `1`
 - `enable_ingress` (Boolean) flag to specify if ingress should be installed
 - `enable_namespaces_by_deafult` (Boolean) flag to specify if injection should be enabled globally for all namespaces
-- `resource_quota` - (Block List, Max: 1) resource requests and limits for service mesh control plane. (See [below for nested schema](#nestedblock--spec--resourcequota))
+- `resource_quota` - (Block List, Max: 1) resource requests and limits for service mesh control plane. (See [below for nested schema](#nestedblock--spec--installation_params--resourcequota))
 
 
 <a id="nestedblock--spec--sharing"></a>
@@ -102,7 +102,7 @@ resource "rafay_mesh_profile" "tfdemomeshprofile1" {
 - `enabled` (Boolean) flag to specify if sharing is enabled for resource
 - `projects` (Block List) list of projects this resource is shared to (see [below for nested schema](#nestedblock--spec--sharing--projects))
 
-<a id="nestedblock--spec--resourcequotas"></a>
+<a id="nestedblock--spec--installation_params--resourcequota"></a>
 ### Nested Schema for `spec.resource_quotas`
  
 - `cpu_requests` - (String) The number of CPU threads.

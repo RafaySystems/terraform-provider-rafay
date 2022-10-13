@@ -47,6 +47,27 @@ resource "rafay_aks_cluster" "demo-terraform" {
             network_profile {
               network_plugin = "kubenet"
             }
+            pod_identity_profile {
+              enabled = true
+              allow_network_plugin_kubenet = true
+              user_assigned_identities {
+                binding_selector = "aks-irsa-1"
+                identity {
+                  client_id = "CLIENT_ID"
+                  object_id = "OBJECT_ID"
+                  resource_id = "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourcegroups/hardik-terraform/providers/Microsoft.ManagedIdentity/userAssignedIdentities/hardik-pod-identity"
+                }
+                name = "sa-test-1"
+                namespace = "new-ns-1"
+              }
+              user_assigned_identity_exceptions {
+                name = "sa-test-exception-1"
+                namespace = "new-ns-1"
+                pod_labels = {
+                  "ns" = "new-ns-1"
+                }
+              }
+            }
           }
           type = "Microsoft.ContainerService/managedClusters"
         }
@@ -180,6 +201,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `linux_profile` - (Block List) The configurations for linux profile. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--linux_profile))
 - `network_profile` - (Block List) Profile of the network configuration. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--network_profile))
 - `node_resource_group` - (String) The name of the resource group containing agent pool nodes.
+- `pod_identity_profile` - (Block List) Azure Active Directory (Azure AD) pod-managed identities use Kubernetes primitives to associate managed identities for Azure resources and identities in Azure AD with pods. See [Use Azure AD Pod-Managed Identities](https://learn.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity) for more information. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--pod_identity_profile))
 - `service_principal_profile` - (Block List) Information about a service principal identity for the cluster to use for manipulating Azure APIs. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--service_principal_profile))
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--aad_profiles"></a>
@@ -321,6 +343,54 @@ resource "rafay_aks_cluster" "demo-terraform" {
 Supported values are: `loadBalancer` and `userDefinedRouting`.
 - `pod_cidr` - (String) A CIDR notation IP range from which to assign pod IPs when kubenet is used.
 - `service_cidr` - (String) A CIDR notation IP range from which to assign service cluster IPs.
+
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--pod_identity_profile"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.pod_identity_profile`
+
+***Required***
+
+- allow_network_plugin_kubenet - (Boolean) Enables running in Kubenet. **Note**: Running in Kubenet is disabled by default due to the security related nature of AAD Pod Identity and the risks of IP spoofing. See [Using Kubenet network plugin with AAD Pod Identity](https://learn.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity#using-kubenet-network-plugin-with-azure-active-directory-pod-managed-identities) for more information.
+- enabled - (Boolean) Enables the pod identity add-on.
+- user_assigned_identities - (Block List) The pod identities used in the cluster. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identities))
+
+***Optional***
+
+- user_assigned_identity_exceptions - (Block List) The pod identity exceptions to allow. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identity_exceptions))
+
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identities"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.pod_identity_profile.user_assigned_identities`
+
+***Required***
+
+- identity - (Block List) Details about the user assigned identity. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identities--identity))
+- name - (String) The name of the pod identity.
+- namespace - (String) The namespace of the pod identity.
+
+***Optional***
+
+- binding_selector - (String) The binding selector to use for the AzureIdentityBinding resource.
+
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identities--identity"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.pod_identity_profile.user_assigned_identities.identity`
+
+***Required***
+
+- client_id - (String) The client ID for the user assigned identity.
+- object_id - (String) The object ID for the user assigned identity.
+- resource_id - (String) The resource ID for the user assigned identity.
+
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--pod_identity_profile--user_assigned_identity_exceptions"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.pod_identity_profile.user_assigned_identity_exceptions`
+
+***Required***
+
+- name - (String) The name of the pod identity exception.
+- namespace - (String) The namespace of the pod identity exception.
+- pod_labels - (String) The pod labels to match.
 
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--service_principal_profile"></a>

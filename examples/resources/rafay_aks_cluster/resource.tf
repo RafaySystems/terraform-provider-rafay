@@ -188,6 +188,27 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
             enable_rbac        = true
             kubernetes_version  = "1.21.9"
             node_resource_group = "node-resource-name"
+            pod_identity_profile {
+              enabled = true
+              allow_network_plugin_kubenet = true
+              user_assigned_identities {
+                binding_selector = "selector-name"
+                identity {
+                  client_id = "CLIENT_ID"
+                  object_id = "OBJECT_ID"
+                  resource_id = "resource_id = /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}"
+                }
+                name = "pod-identity-name"
+                namespace = "namespace-name"
+              }
+              user_assigned_identity_exceptions {
+                name = "exception-name"
+                namespace = "namespace-name"
+                pod_labels = {
+                  "key" = "value"
+                }
+              }
+            }
             linux_profile  {
               admin_username = "adminuser"
               ssh {

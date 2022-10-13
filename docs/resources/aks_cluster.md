@@ -47,27 +47,6 @@ resource "rafay_aks_cluster" "demo-terraform" {
             network_profile {
               network_plugin = "kubenet"
             }
-            pod_identity_profile {
-              enabled = true
-              allow_network_plugin_kubenet = true
-              user_assigned_identities {
-                binding_selector = "aks-irsa-1"
-                identity {
-                  client_id = "CLIENT_ID"
-                  object_id = "OBJECT_ID"
-                  resource_id = "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourcegroups/hardik-terraform/providers/Microsoft.ManagedIdentity/userAssignedIdentities/hardik-pod-identity"
-                }
-                name = "sa-test-1"
-                namespace = "new-ns-1"
-              }
-              user_assigned_identity_exceptions {
-                name = "sa-test-exception-1"
-                namespace = "new-ns-1"
-                pod_labels = {
-                  "ns" = "new-ns-1"
-                }
-              }
-            }
           }
           type = "Microsoft.ContainerService/managedClusters"
         }

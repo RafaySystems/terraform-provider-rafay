@@ -27,12 +27,13 @@ import (
 )
 
 type namespaceSpecTranspose struct {
-	Psp                *infrapb.NamespacePSP            `protobuf:"bytes,1,opt,name=psp,proto3" json:"psp,omitempty"`
-	Placement          *commonpb.PlacementSpec          `protobuf:"bytes,2,opt,name=placement,proto3" json:"placement,omitempty"`
-	Drift              *commonpb.DriftSpec              `protobuf:"bytes,3,opt,name=drift,proto3" json:"drift,omitempty"`
-	NetworkPolicyParms *infrapb.NetworkPolicyParams     `protobuf:"bytes,4,opt,name=network_policy_params,proto3" json:"networkPolicyParams,omitempty"`
-	ResourceQuotas     *infrapb.NamespaceResourceQuotas `protobuf:"bytes,4,opt,name=resourceQuotas,proto3" json:"resourceQuotas,omitempty"`
-	LimitRange         *infrapb.NamespaceLimitRange     `protobuf:"bytes,5,opt,name=limitRange,proto3" json:"limitRange,omitempty"`
+	Psp                       *infrapb.NamespacePSP              `protobuf:"bytes,1,opt,name=psp,proto3" json:"psp,omitempty"`
+	Placement                 *commonpb.PlacementSpec            `protobuf:"bytes,2,opt,name=placement,proto3" json:"placement,omitempty"`
+	Drift                     *commonpb.DriftSpec                `protobuf:"bytes,3,opt,name=drift,proto3" json:"drift,omitempty"`
+	NetworkPolicyParms        *infrapb.NetworkPolicyParams       `protobuf:"bytes,4,opt,name=network_policy_params,proto3" json:"networkPolicyParams,omitempty"`
+	NamespaceMeshPolicyParams *infrapb.NamespaceMeshPolicyParams `protobuf:"bytes,4,opt,name=namespace_mesh_policy_params,proto3" json:"namespaceMeshPolicyParams,omitempty"`
+	ResourceQuotas            *infrapb.NamespaceResourceQuotas   `protobuf:"bytes,4,opt,name=resourceQuotas,proto3" json:"resourceQuotas,omitempty"`
+	LimitRange                *infrapb.NamespaceLimitRange       `protobuf:"bytes,5,opt,name=limitRange,proto3" json:"limitRange,omitempty"`
 	// Types that are assignable to Artifact:
 	//	*NamespaceSpec_Uploaded
 	//	*NamespaceSpec_Repo
@@ -435,6 +436,10 @@ func expandNamespaceSpec(p []interface{}) (*infrapb.NamespaceSpec, error) {
 		nst.NetworkPolicyParms = expandNetworkPolicyParams(v)
 	}
 
+	if v, ok := in["namespace_mesh_policy_params"].([]interface{}); ok {
+		nst.NamespaceMeshPolicyParams = expandNamespaceMeshPolicyParams(v)
+	}
+
 	if v, ok := in["placement"].([]interface{}); ok {
 		nst.Placement = expandPlacement(v)
 	}
@@ -533,6 +538,51 @@ func expandNetworkPolicyParams(p []interface{}) *infrapb.NetworkPolicyParams {
 }
 
 func expandNamespaceNetworkPolicyPolicies(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
+	if len(p) == 0 || p[0] == nil {
+		return []*commonpb.ResourceNameAndVersionRef{}
+	}
+
+	out := make([]*commonpb.ResourceNameAndVersionRef, len(p))
+
+	for i := range p {
+		obj := commonpb.ResourceNameAndVersionRef{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok {
+			obj.Name = v
+		}
+
+		if v, ok := in["version"].(string); ok {
+			obj.Version = v
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+
+}
+
+func expandNamespaceMeshPolicyParams(p []interface{}) *infrapb.NamespaceMeshPolicyParams {
+	obj := &infrapb.NamespaceMeshPolicyParams{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["mesh_enabled"].(bool); ok {
+		obj.MeshEnabled = v
+	}
+
+	if v, ok := in["policies"].([]interface{}); ok && len(v) > 0 {
+		obj.Policies = expandNamespaceMeshPolicies(v)
+	}
+
+	return obj
+}
+
+func expandNamespaceMeshPolicies(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
 	if len(p) == 0 || p[0] == nil {
 		return []*commonpb.ResourceNameAndVersionRef{}
 	}
@@ -955,6 +1005,19 @@ func flattenNamespaceSpec(in *infrapb.NamespaceSpec, p []interface{}) ([]interfa
 		obj["network_policy_params"] = ret
 	}
 
+	v, ok = obj["namespace_mesh_policy_params"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	if nsat.NamespaceMeshPolicyParams != nil {
+		ret, err = flattenNamespaceMeshPolicyParams(nsat.NamespaceMeshPolicyParams, v)
+		if err != nil {
+			log.Println("flattenNamespaceArtifact error ", err)
+			return nil, err
+		}
+		obj["namespace_mesh_policy_params"] = ret
+	}
+
 	return []interface{}{obj}, nil
 }
 
@@ -1001,6 +1064,59 @@ func flattenNetworkPolicyParams(in *infrapb.NetworkPolicyParams, p []interface{}
 			v = []interface{}{}
 		}
 		ret, err := flattenNetworkPolicies(in.Policies, v)
+		if err != nil {
+			log.Println("flattenNamespaceArtifact error ", err)
+			return nil, err
+		}
+		obj["policies"] = ret
+	}
+
+	return []interface{}{obj}, nil
+}
+
+func flattenNamespaceMeshPolicies(in []*commonpb.ResourceNameAndVersionRef, p []interface{}) ([]interface{}, error) {
+	if in == nil {
+		return nil, nil
+	}
+
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Version) > 0 {
+			obj["version"] = in.Version
+		}
+
+		out[i] = obj
+	}
+
+	return out, nil
+}
+
+func flattenNamespaceMeshPolicyParams(in *infrapb.NamespaceMeshPolicyParams, p []interface{}) ([]interface{}, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "namespacemeshpolicyparams empty")
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["mesh_enabled"] = in.MeshEnabled
+	if len(in.Policies) > 0 {
+		v, ok := obj["policies"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret, err := flattenNamespaceMeshPolicies(in.Policies, v)
 		if err != nil {
 			log.Println("flattenNamespaceArtifact error ", err)
 			return nil, err

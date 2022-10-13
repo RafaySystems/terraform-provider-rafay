@@ -276,6 +276,7 @@ resource "rafay_blueprint" "custom-golden-blueprint" {
 - `namespace_config` (Block List, Max: 1) namespace config (see [below for nested schema](#nestedblock--spec--namespace_config))
 - `opa_policy` (Block List, Max: 1) opa policy and version details (see [below for nested schema](#nestedblock--spec--opa_policy))
 - `network_policy` (Block List, Max: 1) Network policy and version details (see [below for nested schema](#nestedblock--spec--network_policy))
+- `mesh_ref` (Block List, Max: 1) Service Mesh Profile, Cluster Policies and version details (see [below for nested schema](#nestedblock--spec--mesh_ref))
 <a id="nestedblock--spec--base"></a>
 ### Nested Schema for `spec.base`
 
@@ -477,6 +478,31 @@ resource "rafay_blueprint" "custom-golden-blueprint" {
 
 - `name` (String) name of the network profile
 - `version` (String) version of the network profile
+
+
+<a id="nestedblock--spec--mesh_ref"></a>
+### Nested Schema for `spec.mesh_ref`
+
+***Required***
+
+- `policies` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--mesh_ref--policies))
+- `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--mesh_ref--profile))
+
+<a id="nestedblock--spec--mesh_ref--policies"></a>
+### Nested Schema for `spec.mesh_ref.policies`
+
+***Required***
+
+- `name` (String) name of the cluster mesh policy
+- `version` (String) version of the cluster mesh policy
+
+<a id="nestedblock--spec--mesh_ref--profile"></a>
+### Nested Schema for `spec.mesh_ref.profile`
+
+***Required***
+
+- `name` (String) name of the mesh profile
+- `version` (String) version of the mesh profile
 
 
 

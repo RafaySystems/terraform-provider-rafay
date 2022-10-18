@@ -246,8 +246,9 @@ func expandMeshProfileIP(p []interface{}) *servicemeshpb.InstallationParams {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["cert_type"].(servicemeshpb.MeshCertType); ok {
-		obj.CertType = v
+	if v, ok := in["cert_type"].(int); ok {
+		certType := servicemeshpb.MeshCertType(v)
+		obj.CertType = certType
 	}
 
 	if v, ok := in["enable_ingress"].(bool); ok {

@@ -38,9 +38,9 @@ resource "rafay_mesh_profile" "tfdemomeshprofile1" {
   spec {
     version = "v0"
     installation_params {
-      cert_type = 1
-      enable_ingress = true
-      enable_namespace_by_default = true
+      cert_type = 0
+      enable_ingress = false
+      enable_namespaces_by_default = false
       resource_quota {
         cpu_requests = "500m"
         memory_requests = "2048Mi"

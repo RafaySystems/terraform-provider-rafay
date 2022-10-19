@@ -74,7 +74,7 @@ func resourceEKSCluster() *schema.Resource {
 	}
 }
 
-//schema input for cluster file
+// schema input for cluster file
 func clusterMetadataField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"kind": {
@@ -169,7 +169,7 @@ func specField() map[string]*schema.Schema {
 		"system_components_placement": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "contains custom cni networking configurations",
+			Description: "Configure tolerations and nodeSelector for system components",
 			Elem: &schema.Resource{
 				Schema: systemComponentsPlacementFields(),
 			},
@@ -323,7 +323,7 @@ func cniSpecField() map[string]*schema.Schema {
 	return s
 }
 
-//schema input for cluster config file
+// schema input for cluster config file
 func configField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"kind": {
@@ -648,7 +648,7 @@ func serviceAccountsMetadata() map[string]*schema.Schema {
 	return s
 }
 
-//dealing with attach policy inline document object
+// dealing with attach policy inline document object
 func attachPolicyFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"version": {
@@ -1165,11 +1165,13 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 		"volume_iops": {
 			Type:        schema.TypeInt,
 			Optional:    true,
+			Default:     3000,
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"volume_throughput": {
 			Type:        schema.TypeInt,
 			Optional:    true,
+			Default:     125,
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"pre_bootstrap_commands": {
@@ -1313,7 +1315,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 	return s
 }
 
-//@@@
+// @@@
 func kubeLetExtraConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"kube_reserved": {
@@ -1846,11 +1848,13 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 		"volume_iops": {
 			Type:        schema.TypeInt,
 			Optional:    true,
+			Default:     3000,
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"volume_throughput": {
 			Type:        schema.TypeInt,
 			Optional:    true,
+			Default:     125,
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"pre_bootstrap_commands": {
@@ -2201,7 +2205,7 @@ func resourceEKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m int
 
 }
 
-//expand eks cluster function (completed)
+// expand eks cluster function (completed)
 func expandEKSCluster(p []interface{}) *EKSCluster {
 	obj := &EKSCluster{}
 
@@ -2222,7 +2226,7 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 	return obj
 }
 
-//expand eks cluster function (completed)
+// expand eks cluster function (completed)
 func expandEKSClusterConfig(p []interface{}, d *schema.ResourceData, prefix string) *EKSClusterConfig {
 	obj := &EKSClusterConfig{}
 
@@ -2427,7 +2431,7 @@ func eksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte,
 	return "", fmt.Errorf("%s", "config collate error")
 }
 
-//expand metadat for eks metadata file  (completed)
+// expand metadat for eks metadata file  (completed)
 func expandEKSMetaMetadata(p []interface{}) *EKSClusterMetadata {
 	obj := &EKSClusterMetadata{}
 
@@ -2447,7 +2451,7 @@ func expandEKSMetaMetadata(p []interface{}) *EKSClusterMetadata {
 	return obj
 }
 
-//expand metadata for eks spec metadata (completed)
+// expand metadata for eks spec metadata (completed)
 func expandEKSSpecMetadata(p []interface{}) *EKSClusterConfigMetadata {
 	obj := &EKSClusterConfigMetadata{}
 
@@ -2473,7 +2477,7 @@ func expandEKSSpecMetadata(p []interface{}) *EKSClusterConfigMetadata {
 	return obj
 }
 
-//expand secret encryption (completed)
+// expand secret encryption (completed)
 func expandSecretEncryption(p []interface{}) *SecretsEncryption {
 	obj := &SecretsEncryption{}
 
@@ -2533,7 +2537,7 @@ func expandArnFields(p []interface{}) []*IdentityMappingARN {
 	return out
 }
 
-//expand cloud watch function (completed)
+// expand cloud watch function (completed)
 func expandCloudWatch(p []interface{}) *EKSClusterCloudWatch {
 	obj := &EKSClusterCloudWatch{}
 
@@ -2560,7 +2564,7 @@ func expandCloudWatchClusterLogging(p []interface{}) *EKSClusterCloudWatchLoggin
 	return obj
 }
 
-//expand fargate profiles (completed)
+// expand fargate profiles (completed)
 func expandFargateProfiles(p []interface{}) []*FargateProfile {
 	obj := FargateProfile{}
 	out := make([]*FargateProfile, len(p))
@@ -2771,7 +2775,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 	return out
 }
 
-//expand managed node group taints function (completed) (can i use this to expand taints in node group?)
+// expand managed node group taints function (completed) (can i use this to expand taints in node group?)
 func expandManagedNodeGroupTaints(p []interface{}) []NodeGroupTaint {
 
 	out := make([]NodeGroupTaint, len(p))
@@ -2797,7 +2801,7 @@ func expandManagedNodeGroupTaints(p []interface{}) []NodeGroupTaint {
 	return out
 }
 
-//expand managed node group Launch Tempelate function (completed)
+// expand managed node group Launch Tempelate function (completed)
 func expandManagedNodeGroupLaunchTempelate(p []interface{}) *LaunchTemplate {
 	obj := &LaunchTemplate{}
 
@@ -2993,7 +2997,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 	return out
 }
 
-//@@expand KubeletExtraConfig function (completed)
+// @@expand KubeletExtraConfig function (completed)
 func expandKubeletExtraConfig(p []interface{}) *KubeletExtraConfig {
 	obj := &KubeletExtraConfig{}
 
@@ -3020,7 +3024,7 @@ func expandKubeletExtraConfig(p []interface{}) *KubeletExtraConfig {
 	return obj
 }
 
-//expand node group Update Config function (completed)
+// expand node group Update Config function (completed)
 func expandNodeGroupUpdateConfig(p []interface{}) *NodeGroupUpdateConfig {
 	obj := &NodeGroupUpdateConfig{}
 
@@ -3038,7 +3042,7 @@ func expandNodeGroupUpdateConfig(p []interface{}) *NodeGroupUpdateConfig {
 	return obj
 }
 
-//expand node group ASG Metrics Collection function (completed)
+// expand node group ASG Metrics Collection function (completed)
 func expandNodeGroupASGMetricCollection(p []interface{}) []MetricsCollection {
 	out := make([]MetricsCollection, len(p))
 	if len(p) == 0 || p[0] == nil {
@@ -3059,7 +3063,7 @@ func expandNodeGroupASGMetricCollection(p []interface{}) []MetricsCollection {
 	return out
 }
 
-//expand node group Instance Distribution function (completed)
+// expand node group Instance Distribution function (completed)
 func expandNodeGroupInstanceDistribution(p []interface{}) *NodeGroupInstancesDistribution {
 	obj := &NodeGroupInstancesDistribution{}
 
@@ -3091,7 +3095,7 @@ func expandNodeGroupInstanceDistribution(p []interface{}) *NodeGroupInstancesDis
 	return obj
 }
 
-//expand node group Bottle Rocket function (completed)
+// expand node group Bottle Rocket function (completed)
 func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
 	obj := &NodeGroupBottlerocket{}
 
@@ -3109,7 +3113,7 @@ func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
 	return obj
 }
 
-//expand node group instance selector function (completed)
+// expand node group instance selector function (completed)
 func expandNodeGroupInstanceSelector(p []interface{}) *InstanceSelector {
 	obj := &InstanceSelector{}
 
@@ -3133,7 +3137,7 @@ func expandNodeGroupInstanceSelector(p []interface{}) *InstanceSelector {
 	return obj
 }
 
-//expand node group placement function (completed)
+// expand node group placement function (completed)
 func expandNodeGroupPlacement(p []interface{}) *Placement {
 	obj := &Placement{}
 
@@ -3147,7 +3151,7 @@ func expandNodeGroupPlacement(p []interface{}) *Placement {
 	return obj
 }
 
-//expand node group security groups function (completed)
+// expand node group security groups function (completed)
 func expandNodeGroupSecurityGroups(p []interface{}) *NodeGroupSGs {
 	obj := &NodeGroupSGs{}
 
@@ -3167,7 +3171,7 @@ func expandNodeGroupSecurityGroups(p []interface{}) *NodeGroupSGs {
 	return obj
 }
 
-//expand node group iam function (completed/kind of)
+// expand node group iam function (completed/kind of)
 func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 	obj := &NodeGroupIAM{}
 
@@ -3201,7 +3205,7 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 	return obj
 }
 
-//expand attach policy (completed)@@@
+// expand attach policy (completed)@@@
 func expandStatement(p []interface{}) InlineStatement {
 	obj := InlineStatement{}
 
@@ -3221,7 +3225,7 @@ func expandStatement(p []interface{}) InlineStatement {
 	return obj
 }
 
-//expand attach policy (completed)
+// expand attach policy (completed)
 func expandAttachPolicy(p []interface{}) InlineDocument {
 	obj := InlineDocument{}
 
@@ -3238,7 +3242,7 @@ func expandAttachPolicy(p []interface{}) InlineDocument {
 	return obj
 }
 
-//expand node group IAm With Addon Policies function (completed/kind of)
+// expand node group IAm With Addon Policies function (completed/kind of)
 func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolicies {
 	obj := NodeGroupIAMAddonPolicies{}
 
@@ -3292,7 +3296,7 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 	return obj
 }
 
-//expand node group ssh function (completed/ kind of)
+// expand node group ssh function (completed/ kind of)
 func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, prefix string, managed bool) *NodeGroupSSH {
 	obj := &NodeGroupSSH{}
 
@@ -3323,7 +3327,7 @@ func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, pref
 	return obj
 }
 
-//expand private clusters function (completed)
+// expand private clusters function (completed)
 func expandPrivateCluster(p []interface{}) *PrivateCluster {
 	obj := &PrivateCluster{}
 
@@ -3344,7 +3348,7 @@ func expandPrivateCluster(p []interface{}) *PrivateCluster {
 	return obj
 }
 
-//expand addon(completed/kind of)
+// expand addon(completed/kind of)
 func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 	out := make([]*Addon, len(p))
 	if len(p) == 0 || p[0] == nil {
@@ -3385,7 +3389,7 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 	return out
 }
 
-//expand vpc function
+// expand vpc function
 func expandVPC(p []interface{}) *EKSClusterVPC {
 	obj := &EKSClusterVPC{}
 
@@ -3509,7 +3513,7 @@ func expandSubnetSpec(p []interface{}) AZSubnetMapping {
 	return obj
 }
 
-//struct IdentityProviders has one extra field not in documentation or the schema
+// struct IdentityProviders has one extra field not in documentation or the schema
 func expandIdentityProviders(p []interface{}) []IdentityProvider {
 	out := make([]IdentityProvider, len(p))
 	if len(p) == 0 || p[0] == nil {
@@ -4527,7 +4531,7 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 
 }
 
-//@@@Flatten attach policy
+// @@@Flatten attach policy
 func flattenAttachPolicy(in InlineDocument, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
@@ -5230,7 +5234,7 @@ func flattenNodeGroupUpdateConfig(in *NodeGroupUpdateConfig, p []interface{}) []
 	return []interface{}{obj}
 }
 
-//Flatten mnanaged Node Groups
+// Flatten mnanaged Node Groups
 func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}) ([]interface{}, error) {
 	if inp == nil {
 		return nil, fmt.Errorf("empty input for managedNodeGroup")
@@ -5426,7 +5430,7 @@ func flattenNodeGroupLaunchTemplate(in *LaunchTemplate, p []interface{}) []inter
 	return []interface{}{obj}
 }
 
-//Flatten Fargate Profiles
+// Flatten Fargate Profiles
 func flattenEKSClusterFargateProfiles(inp []*FargateProfile, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
@@ -5479,7 +5483,7 @@ func flattenFargateProfileSelectors(inp []FargateProfileSelector, p []interface{
 	return out
 }
 
-//flatten Cluster Cloudwatch
+// flatten Cluster Cloudwatch
 func flattenEKSClusterCloudWatch(in *EKSClusterCloudWatch, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
@@ -5511,7 +5515,7 @@ func flattenClusterCloudWatchLogging(in *EKSClusterCloudWatchLogging, p []interf
 	return []interface{}{obj}
 }
 
-//flatten secret encryption
+// flatten secret encryption
 func flattenEKSClusterSecretsEncryption(in *SecretsEncryption, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {

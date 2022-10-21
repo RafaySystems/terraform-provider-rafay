@@ -84,6 +84,14 @@ func toArrayStringSorted(in []interface{}) []string {
 	return out
 }
 
+func toArrayStringUnSorted(in []interface{}) []string {
+	if in == nil {
+		return nil
+	}
+	out := toArrayString(in)
+	return out
+}
+
 func toArrayInterface(in []string) []interface{} {
 	out := make([]interface{}, len(in))
 	for i, v := range in {
@@ -97,6 +105,14 @@ func toArrayInterfaceSorted(in []string) []interface{} {
 		return nil
 	}
 	sort.Strings(in)
+	out := toArrayInterface(in)
+	return out
+}
+
+func toArrayInterfaceUnSorted(in []string) []interface{} {
+	if in == nil {
+		return nil
+	}
 	out := toArrayInterface(in)
 	return out
 }

@@ -113,7 +113,7 @@ func resourceUserUpsert(ctx context.Context, d *schema.ResourceData, create bool
 
 	//convert groups interface to passable list for function
 	if v, ok := d.Get("groups").([]interface{}); ok && len(v) > 0 {
-		groups = toArrayStringSorted(v)
+		groups = toArrayStringUnSorted(v)
 	}
 	/*
 		if d.Get("groups") != nil {

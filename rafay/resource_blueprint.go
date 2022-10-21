@@ -394,7 +394,7 @@ func expandBlueprintPlacement(p []interface{}) *infrapb.BlueprintPlacement {
 	}
 
 	if v, ok := in["fleet_values"].([]interface{}); ok && len(v) > 0 {
-		obj.FleetValues = toArrayStringSorted(v)
+		obj.FleetValues = toArrayStringUnSorted(v)
 	}
 
 	return obj
@@ -904,7 +904,7 @@ func flattenBlueprintPlacement(in *infrapb.BlueprintPlacement, p []interface{}) 
 	}
 
 	if in.FleetValues != nil && len(in.FleetValues) > 0 {
-		obj["fleet_values"] = toArrayInterfaceSorted(in.FleetValues)
+		obj["fleet_values"] = toArrayInterfaceUnSorted(in.FleetValues)
 	}
 	return []interface{}{obj}
 }

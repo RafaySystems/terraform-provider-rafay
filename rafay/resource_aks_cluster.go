@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"sort"
 	"strings"
 	"time"
 
@@ -2860,7 +2859,7 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 	}
 
 	out := make([]*AKSNodePool, len(p))
-	outToSort := make([]AKSNodePool, len(p))
+	//outToSort := make([]AKSNodePool, len(p))
 	for i := range p {
 		obj := AKSNodePool{}
 		in := p[i].(map[string]interface{})
@@ -2884,13 +2883,14 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 		if v, ok := in["location"].(string); ok && len(v) > 0 {
 			obj.Location = v
 		}
-		outToSort[i] = obj
+		//outToSort[i] = obj
+		out[i] = &obj
 	}
 
-	sort.Sort(ByNodepoolName(outToSort))
-	for i := range outToSort {
-		out[i] = &outToSort[i]
-	}
+	//sort.Sort(ByNodepoolName(outToSort))
+	// for i := range outToSort {
+	// 	out[i] = &outToSort[i]
+	// }
 
 	return out
 }
@@ -4627,14 +4627,14 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 	}
 
 	// sort the incoming nodepools
-	inToSort := make([]AKSNodePool, len(in))
-	for i := range in {
-		inToSort[i] = *in[i]
-	}
-	sort.Sort(ByNodepoolName(inToSort))
-	for i := range inToSort {
-		in[i] = &inToSort[i]
-	}
+	// inToSort := make([]AKSNodePool, len(in))
+	// for i := range in {
+	// 	inToSort[i] = *in[i]
+	// }
+	//sort.Sort(ByNodepoolName(inToSort))
+	// for i := range inToSort {
+	// 	in[i] = &inToSort[i]
+	// }
 
 	out := make([]interface{}, len(in))
 	for i, in := range in {

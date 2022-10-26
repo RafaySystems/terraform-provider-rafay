@@ -89,8 +89,6 @@ github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/RafaySystems/eaas-playground v0.0.0-20221012075114-57fdd820f733 h1:nflDnvM16q8z6rs7TzyIbZ9PTLNNCuK7Rrdz8eUOVdo=
 github.com/RafaySystems/eaas-playground v0.0.0-20221012075114-57fdd820f733/go.mod h1:aD+hME1QpdKFBfva1o3vphDIV/TjA9yoBv9pHhTdelM=
-github.com/RafaySystems/rafay-common v1.19.1-0.20221012185143-51c8e550e35b h1:dMKbHgP/Z5f3anMEx/D1i67k4fV6sGKj9uvrhVDWcoU=
-github.com/RafaySystems/rafay-common v1.19.1-0.20221012185143-51c8e550e35b/go.mod h1:6LKBgNYpooprTI49awK+3OFUArB1KA/z1291Hodbyug=
 github.com/RafaySystems/rafay-common v1.19.1-0.20221018050020-a0f8815fae91 h1:Df59j4SLrwPn3SsZP4CMO1zmWw7MP/lxe70JzbeFHRM=
 github.com/RafaySystems/rafay-common v1.19.1-0.20221018050020-a0f8815fae91/go.mod h1:6LKBgNYpooprTI49awK+3OFUArB1KA/z1291Hodbyug=
 github.com/RafaySystems/rctl v1.18.1-beta5 h1:udy/ovvNERccyT4nxD0Fhwg21RvVu30nyfMVJg3h7CI=

@@ -5,15 +5,27 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cloudprovider"
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/utils"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+type clusterType int
+
+const (
+	awsProviderInt clusterType = iota + 1
+	gcpProviderInt
+	azureProviderInt
+	minioProviderInt
+	vsphereProviderInt
 )
 
 func resourceCloudCredential() *schema.Resource {
@@ -22,6 +34,9 @@ func resourceCloudCredential() *schema.Resource {
 		ReadContext:   resourceCloudCredentialRead,
 		UpdateContext: resourceCloudCredentialUpdate,
 		DeleteContext: resourceCloudCredentialDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceCloudCredentialImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -254,6 +269,49 @@ func resourceCloudCredentialRead(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 
+	var typeStr string
+	if c.Type == int(cloudprovider.CredTypeClusterProvisioning) {
+		typeStr = "cluster-provisioning"
+	} else if c.Type == int(cloudprovider.CredTypeDataBackup) {
+		typeStr = "data-backup"
+	}
+	if typeStr != "" {
+		if err := d.Set("type", typeStr); err != nil {
+			log.Printf("get cloud credential set type error %s", err.Error())
+			return diag.FromErr(err)
+		}
+	}
+
+	var providerString, credType string
+	if c.Provider == int(awsProviderInt) {
+		providerString = "AWS"
+		if c.CredentialType == int(cloudprovider.CredTypeAccessKey) {
+			credType = "accesskey"
+		} else if c.CredentialType == int(cloudprovider.CredTypeRole) {
+			credType = "rolearn"
+		}
+
+	} else if c.Provider == int(azureProviderInt) {
+		providerString = "AZURE"
+	} else if c.Provider == int(gcpProviderInt) {
+		providerString = "GCP"
+	} else if c.Provider == int(minioProviderInt) {
+		providerString = "MINIO"
+	}
+	if providerString != "" {
+		if err := d.Set("providertype", providerString); err != nil {
+			log.Printf("get cloud credential set providertype error %s", err.Error())
+			return diag.FromErr(err)
+		}
+	}
+
+	if credType != "" {
+		if err := d.Set("awscredtype", credType); err != nil {
+			log.Printf("get cloud credential set awscredtype error %s", err.Error())
+			return diag.FromErr(err)
+		}
+	}
+
 	return diags
 }
 
@@ -301,4 +359,41 @@ func resourceCloudCredentialDelete(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	return diags
+}
+
+func resourceCloudCredentialImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceCloudCredentialImport idParts:", idParts)
+	d_debug := spew.Sprintf("%+v", d)
+	log.Println("resourceCloudCredentialImport d.Id:", d.Id())
+	log.Println("resourceCloudCredentialImport d_debug", d_debug)
+
+	resp, err := project.GetProjectByName(idParts[1])
+	if err != nil {
+		log.Println("resourceCloudCredentialImport project does not exist ", err)
+		return nil, err
+	}
+
+	project, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		log.Println("resourceCloudCredentialImport project resp prase failed ", err)
+		return nil, err
+	}
+
+	c, err := cloudprovider.GetCloudProvider(idParts[0], project.ID)
+	if err != nil {
+		log.Printf("failed to get cloud provider %s", err.Error())
+		return nil, err
+	}
+
+	if err := d.Set("name", c.Name); err != nil {
+		return nil, err
+	}
+
+	if err := d.Set("project", idParts[1]); err != nil {
+		return nil, err
+	}
+
+	d.SetId(c.ID)
+	return []*schema.ResourceData{d}, nil
 }

@@ -183,6 +183,20 @@ resource "rafay_eks_cluster" "ekscluster-advanced" {
       min_size         = 1
       max_size         = 2
       max_pods_per_node = 50
+      labels = {
+        app = "infra"
+        dedicated = "true"
+      }
+     taints {
+        key  = "app"
+        value = "infra"
+        effect = "NoExecute"
+      }
+     taints {
+        key  = "dedicated"
+        value = true
+        effect = "NoSchedule"
+      }
       security_groups {
         attach_ids = ["sg-id-1", "sg-id-2"]
       }

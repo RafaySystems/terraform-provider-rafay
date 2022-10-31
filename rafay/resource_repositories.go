@@ -34,6 +34,7 @@ type repositorySpec struct {
 		Password   string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 		PrivateKey string `protobuf:"bytes,1,opt,name=privateKey,proto3" json:"privateKey,omitempty"`
 	} `json:"credentials,omitempty"`
+	Sharing *commonpb.SharingSpec `protobuf:"bytes,5,opt,name=sharing,proto3" json:"sharing,omitempty"`
 }
 
 func resourceRepositories() *schema.Resource {
@@ -332,6 +333,10 @@ func expandRepositorySpec(p []interface{}) (*integrationspb.RepositorySpec, erro
 		}
 	}
 
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		repoSpec.Sharing = expandSharingSpec(v)
+	}
+
 	// XXX Debug
 	s := spew.Sprintf("%+v", repoSpec)
 	log.Println("expandRepositorySpec repoSpec", s)
@@ -566,6 +571,10 @@ func flattenRepositorySpec(in *integrationspb.RepositorySpec, p []interface{}) (
 		obj["options"] = flattenRepoOptions(in.Options, v)
 	} else {
 		obj["options"] = nil
+	}
+
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
 	}
 
 	if in.Secret != nil {

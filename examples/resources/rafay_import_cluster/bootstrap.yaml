@@ -1,0 +1,596 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: rafay-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: system-sa
+  namespace: rafay-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rafay:manager
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- nonResourceURLs:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - cluster.rafay.dev
+  resources:
+  - namespaces
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cluster.rafay.dev
+  resources:
+  - namespaces/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cluster.rafay.dev
+  resources:
+  - tasklets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cluster.rafay.dev
+  resources:
+  - tasklets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cluster.rafay.dev
+  resources:
+  - tasks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cluster.rafay.dev
+  resources:
+  - tasks/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rafay:rafay-system:manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rafay:manager
+subjects:
+- kind: ServiceAccount
+  name: system-sa
+  namespace: rafay-system
+- kind: ServiceAccount
+  name: default
+  namespace: rafay-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rafay:proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rafay:rafay-system:proxy-rolebinding
+  namespace: rafay-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rafay:proxy-role
+subjects:
+- kind: ServiceAccount
+  name: system-sa
+  namespace: rafay-system
+- kind: ServiceAccount
+  name: default
+  namespace: rafay-system
+---
+apiVersion: scheduling.k8s.io/v1
+description: This priority class should be used for rafay service pods only.
+kind: PriorityClass
+metadata:
+  name: rafay-cluster-critical
+value: 1000000000
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rafay:leader-election-role
+  namespace: rafay-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rafay:leader-election-rolebinding
+  namespace: rafay-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rafay:leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: system-sa
+  namespace: rafay-system
+- kind: ServiceAccount
+  name: default
+  namespace: rafay-system
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: namespaces.cluster.rafay.dev
+spec:
+  conversion:
+    strategy: None
+  group: cluster.rafay.dev
+  names:
+    kind: Namespace
+    listKind: NamespaceList
+    plural: namespaces
+    shortNames:
+    - rns
+    singular: namespace
+  scope: Namespaced
+  versions:
+  - name: v2
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: tasklets.cluster.rafay.dev
+spec:
+  conversion:
+    strategy: None
+  group: cluster.rafay.dev
+  names:
+    kind: Tasklet
+    listKind: TaskletList
+    plural: tasklets
+    shortNames:
+    - rtl
+    singular: tasklet
+  scope: Namespaced
+  versions:
+  - name: v2
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: tasks.cluster.rafay.dev
+spec:
+  conversion:
+    strategy: None
+  group: cluster.rafay.dev
+  names:
+    kind: Task
+    listKind: TaskList
+    plural: tasks
+    shortNames:
+    - rt
+    singular: task
+  scope: Namespaced
+  versions:
+  - name: v2
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/port: "8443"
+    prometheus.io/scheme: https
+    prometheus.io/scrape: "true"
+  labels:
+    control-plane: controller-manager-v3
+  name: controller-manager-metrics-service-v3
+  namespace: rafay-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    targetPort: https
+  selector:
+    control-plane: controller-manager-v3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    meta.helm.sh/release-name: v2-infra
+    meta.helm.sh/release-namespace: rafay-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    control-plane: controller-manager-v3
+  name: controller-manager-v3
+  namespace: rafay-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager-v3
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager-v3
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - linux
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
+      containers:
+      - args:
+        - --enable-leader-election
+        command:
+        - /manager
+        image: qc-registry.stage.rafay-edge.net/rafay/cluster-controller:master-13
+        name: manager
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+      priorityClassName: rafay-cluster-critical
+      serviceAccountName: system-sa
+      terminationGracePeriodSeconds: 10
+---
+apiVersion: v1
+data:
+  apiAddr: qc-api.stage.rafay.dev
+  controlAddr: qc-control.stage.rafay-edge.net:443
+  token: cdc1093brf51gkv80470
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: v2-infra
+    meta.helm.sh/release-namespace: rafay-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: connector-config-v3
+  namespace: rafay-system
+---
+apiVersion: v1
+data:
+  allowInsecureBootstrap: ""
+  bootstrapCA: ""
+  httpProxy: ""
+  httpsProxy: ""
+  noProxy: ""
+  proxyAuth: ""
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: v2-infra
+    meta.helm.sh/release-namespace: rafay-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: proxy-config-v3
+  namespace: rafay-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    meta.helm.sh/release-name: v2-infra
+    meta.helm.sh/release-namespace: rafay-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: rafay-connector-v3
+  namespace: rafay-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rafay-connector-v3
+  template:
+    metadata:
+      labels:
+        app: rafay-connector-v3
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - linux
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
+      containers:
+      - env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: DRIFT_SVC_ENDPOINT
+          value: :22281
+        - name: HEALTH_ENDPOINT
+          value: :22280
+        - name: HTTP_PROXY
+          valueFrom:
+            configMapKeyRef:
+              key: httpProxy
+              name: proxy-config-v3
+              optional: true
+        - name: HTTPS_PROXY
+          valueFrom:
+            configMapKeyRef:
+              key: httpsProxy
+              name: proxy-config-v3
+              optional: true
+        - name: NO_PROXY
+          valueFrom:
+            configMapKeyRef:
+              key: noProxy
+              name: proxy-config-v3
+              optional: true
+        - name: BOOTSTRAP_CA_CERT
+          valueFrom:
+            configMapKeyRef:
+              key: bootstrapCA
+              name: proxy-config-v3
+              optional: true
+        - name: ALLOW_INSECURE_BOOTSTRAP
+          valueFrom:
+            configMapKeyRef:
+              key: allowInsecureBootstrap
+              name: proxy-config-v3
+              optional: true
+        - name: Proxy-Authorization
+          valueFrom:
+            configMapKeyRef:
+              key: proxyAuth
+              name: proxy-config-v3
+              optional: true
+        image: qc-registry.stage.rafay-edge.net/rafay/rafay-connector:master-36
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: 22280
+            scheme: HTTP
+          initialDelaySeconds: 90
+          periodSeconds: 30
+          timeoutSeconds: 10
+        name: connector
+        volumeMounts:
+        - mountPath: /etc/config
+          name: connector-config-v3
+      priorityClassName: rafay-cluster-critical
+      serviceAccountName: system-sa
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          name: connector-config-v3
+        name: connector-config-v3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    meta.helm.sh/release-name: v2-infra
+    meta.helm.sh/release-namespace: rafay-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: rafay-drift-v3
+  namespace: rafay-system
+spec:
+  ports:
+  - port: 8081
+    protocol: TCP
+    targetPort: 22281
+  selector:
+    app: rafay-connector-v3
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  annotations:
+    meta.helm.sh/release-name: v2-infra
+    meta.helm.sh/release-namespace: rafay-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: rafay-drift-validate-v3
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNCVENDQWF5Z0F3SUJBZ0lVZHA0OFF6TVVLQWFDc3lJM0hZL0ZUbXB4ekZrd0NnWUlLb1pJemowRUF3SXcKWVRFTE1Ba0dBMVVFQmhNQ1ZWTXhDekFKQmdOVkJBZ1RBa05CTVJJd0VBWURWUVFIRXdsVGRXNXVlWFpoYkdVeApGakFVQmdOVkJBb1REVkpoWm1GNUlGTjVjM1JsYlhNeEdUQVhCZ05WQkFNTUVGSmhabUY1WDFkbFltaHZiMnRmClEwRXdIaGNOTWpBeE1URTVNREl4TlRBd1doY05NalV4TVRFNE1ESXhOVEF3V2pCaE1Rc3dDUVlEVlFRR0V3SlYKVXpFTE1Ba0dBMVVFQ0JNQ1EwRXhFakFRQmdOVkJBY1RDVk4xYm01NWRtRnNaVEVXTUJRR0ExVUVDaE1OVW1GbQpZWGtnVTNsemRHVnRjekVaTUJjR0ExVUVBd3dRVW1GbVlYbGZWMlZpYUc5dmExOURRVEJaTUJNR0J5cUdTTTQ5CkFnRUdDQ3FHU000OUF3RUhBMElBQkJKZFBxK0ZhWTB6K1BMU1hsbmc5cEFXWXUyaDZYeGlsUnhjaGZIVHpHU1QKZjR5NkZTdkZNMGd4ZlAvV080bmJwOUJzS3ViTnBMYkllUHpPYkluOVRmMmpRakJBTUE0R0ExVWREd0VCL3dRRQpBd0lCQmpBUEJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJSd25qck1SYVRjTHpUNWoxaE51VUJjCnBoQTIzakFLQmdncWhrak9QUVFEQWdOSEFEQkVBaUFsMVlobXhsQlM5cmZBOWhwdFhUMGUyb2hUajFrOHVjbXQKaHFjVzBsUDgzUUlnUVhlUUU1RUJQWUkwU05ETzZsUk5PS20wQjBUbFFUbEtwR1RpMmhXdmNZbz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    service:
+      name: rafay-drift-v3
+      namespace: rafay-system
+      path: /drifthandler
+      port: 8081
+  failurePolicy: Ignore
+  name: rafay.drift.validate
+  rules:
+  - apiGroups:
+    - '*'
+    apiVersions:
+    - '*'
+    operations:
+    - '*'
+    resources:
+    - '*/*'
+    scope: '*'
+  sideEffects: None
+  timeoutSeconds: 1

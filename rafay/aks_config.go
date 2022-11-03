@@ -136,10 +136,11 @@ type AKSManagedClusterProperties struct {
 }
 
 type AddonProfiles struct {
-	HttpApplicationRouting       *AKSManagedClusterAddonProfile       `yaml:"httpApplicationRouting,omitempty"`
-	AzurePolicy                  *AKSManagedClusterAddonProfile       `yaml:"azurePolicy,omitempty"`
-	OmsAgent                     *OmsAgentProfile                     `yaml:"omsAgent,omitempty"`
-	AzureKeyvaultSecretsProvider *AzureKeyvaultSecretsProviderProfile `yaml:"azureKeyvaultSecretsProvider,omitempty"`
+	HttpApplicationRouting       *AKSManagedClusterAddonProfile         `yaml:"httpApplicationRouting,omitempty"`
+	AzurePolicy                  *AKSManagedClusterAddonProfile         `yaml:"azurePolicy,omitempty"`
+	OmsAgent                     *OmsAgentProfile                       `yaml:"omsAgent,omitempty"`
+	AzureKeyvaultSecretsProvider *AzureKeyvaultSecretsProviderProfile   `yaml:"azureKeyvaultSecretsProvider,omitempty"`
+	IngressApplicationGateway    *IngressApplicationGatewayAddonProfile `yaml:"ingressApplicationGateway,omitempty"`
 }
 
 type AKSManagedClusterAddonProfile struct {
@@ -164,6 +165,19 @@ type OmsAgentConfig struct {
 type AzureKeyvaultSecretsProviderProfileConfig struct {
 	EnableSecretRotation string `yaml:"enableSecretRotation,omitempty"`
 	RotationPollInterval string `yaml:"rotationPollInterval,omitempty"`
+}
+
+type IngressApplicationGatewayAddonProfile struct {
+	Enabled *bool                                 `yaml:"enabled,omitempty"`
+	Config  *IngressApplicationGatewayAddonConfig `yaml:"config,omitempty"`
+}
+
+type IngressApplicationGatewayAddonConfig struct {
+	ApplicationGatewayName string `yaml:"applicationGatewayName,omitempty"`
+	ApplicationGatewayID   string `yaml:"applicationGatewayId,omitempty"`
+	SubnetCIDR             string `yaml:"subnetCIDR,omitempty"`
+	SubnetID               string `yaml:"subnetId,omitempty"`
+	WatchNamespace         string `yaml:"watchNamespace,omitempty"`
 }
 
 type AKSManagedClusterNetworkProfile struct {

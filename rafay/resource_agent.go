@@ -293,6 +293,7 @@ func resourceAgentV2Delete(ctx context.Context, ag *gitopspb.Agent) diag.Diagnos
 	err = agent.DeleteAgent(ag.Metadata.Name, projectId)
 	if err != nil {
 		log.Println("error deleting agent")
+		return diag.FromErr(err)
 	} else {
 		log.Println("Deleted agent: ", ag.Metadata.Name)
 	}

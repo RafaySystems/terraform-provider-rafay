@@ -301,10 +301,10 @@ type AKSManagedClusterHTTPProxyConfig struct {
 }
 
 type AKSManagedClusterPodIdentityProfile struct {
-	AllowNetworkPluginKubenet      *bool                                               `yaml:"allowNetworkPluginKubenet,omitempty"`
-	Enabled                        *bool                                               `yaml:"enabled,omitempty"`
-	UserAssignedIdentities         *AKSManagedClusterPIPUserAssignedIdentities         `yaml:"userAssignedIdentities,omitempty"`
-	UserAssignedIdentityExceptions *AKSManagedClusterPIPUserAssignedIdentityExceptions `yaml:"userAssignedIdentityExceptions,omitempty"`
+	AllowNetworkPluginKubenet      *bool                                                 `yaml:"allowNetworkPluginKubenet,omitempty"`
+	Enabled                        *bool                                                 `yaml:"enabled,omitempty"`
+	UserAssignedIdentities         []*AKSManagedClusterPIPUserAssignedIdentities         `yaml:"userAssignedIdentities,omitempty"`
+	UserAssignedIdentityExceptions []*AKSManagedClusterPIPUserAssignedIdentityExceptions `yaml:"userAssignedIdentityExceptions,omitempty"`
 }
 
 type AKSManagedClusterPIPUserAssignedIdentities struct {

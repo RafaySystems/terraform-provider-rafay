@@ -121,8 +121,8 @@ func clusterAKSClusterSpec() map[string]*schema.Schema {
 			Description: "Cloud credentials provider used to create and manage the cluster.",
 		},
 		"cluster_config": {
-			Type:        schema.TypeList,
-			Required:    true,
+			Type:     schema.TypeList,
+			Required: true,
 			Description: "AKS specific cluster configuration	",
 			Elem: &schema.Resource{
 				Schema: clusterAKSClusterConfig(),
@@ -1119,8 +1119,8 @@ func clusterAKSManagedClusterNPOutboundIPs() map[string]*schema.Schema {
 func clusterAKSManagedClusterNPOutboundIPsPublicIps() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"id": {
-			Type:        schema.TypeString,
-			Optional:    true,
+			Type:     schema.TypeString,
+			Optional: true,
 			Description: " 	The fully qualified Azure resource id",
 		},
 	}
@@ -2766,30 +2766,33 @@ func expandAKSManagedClusterPodIdentityProfile(p []interface{}) *AKSManagedClust
 	return obj
 }
 
-func expandAKSManagedClusterPIPUserAssignedIdentities(p []interface{}) *AKSManagedClusterPIPUserAssignedIdentities {
-	obj := &AKSManagedClusterPIPUserAssignedIdentities{}
+func expandAKSManagedClusterPIPUserAssignedIdentities(p []interface{}) []*AKSManagedClusterPIPUserAssignedIdentities {
+	out := make([]*AKSManagedClusterPIPUserAssignedIdentities, len(p))
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return out
 	}
-	in := p[0].(map[string]interface{})
+	for i := range p {
+		obj := &AKSManagedClusterPIPUserAssignedIdentities{}
+		in := p[i].(map[string]interface{})
 
-	if v, ok := in["binding_selector"].(string); ok && len(v) > 0 {
-		obj.BindingSelector = v
+		if v, ok := in["binding_selector"].(string); ok && len(v) > 0 {
+			obj.BindingSelector = v
+		}
+
+		if v, ok := in["identity"].([]interface{}); ok && len(v) > 0 {
+			obj.Identity = expandAKSManagedClusterUAIIdentity(v)
+		}
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+			obj.Namespace = v
+		}
+		out[i] = obj
 	}
-
-	if v, ok := in["identity"].([]interface{}); ok && len(v) > 0 {
-		obj.Identity = expandAKSManagedClusterUAIIdentity(v)
-	}
-
-	if v, ok := in["name"].(string); ok && len(v) > 0 {
-		obj.Name = v
-	}
-
-	if v, ok := in["namespace"].(string); ok && len(v) > 0 {
-		obj.Namespace = v
-	}
-
-	return obj
+	return out
 }
 
 func expandAKSManagedClusterUAIIdentity(p []interface{}) *AKSManagedClusterUAIIdentity {
@@ -2813,26 +2816,29 @@ func expandAKSManagedClusterUAIIdentity(p []interface{}) *AKSManagedClusterUAIId
 	return obj
 }
 
-func expandAKSManagedClusterPIPUserAssignedIdentityExceptions(p []interface{}) *AKSManagedClusterPIPUserAssignedIdentityExceptions {
-	obj := &AKSManagedClusterPIPUserAssignedIdentityExceptions{}
+func expandAKSManagedClusterPIPUserAssignedIdentityExceptions(p []interface{}) []*AKSManagedClusterPIPUserAssignedIdentityExceptions {
+	out := make([]*AKSManagedClusterPIPUserAssignedIdentityExceptions, len(p))
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return out
 	}
-	in := p[0].(map[string]interface{})
+	for i := range p {
+		obj := &AKSManagedClusterPIPUserAssignedIdentityExceptions{}
+		in := p[i].(map[string]interface{})
 
-	if v, ok := in["name"].(string); ok && len(v) > 0 {
-		obj.Name = v
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+			obj.Namespace = v
+		}
+
+		if v, ok := in["pod_labels"].(map[string]interface{}); ok {
+			obj.PodLabels = toMapString(v)
+		}
+		out[i] = obj
 	}
-
-	if v, ok := in["namespace"].(string); ok && len(v) > 0 {
-		obj.Namespace = v
-	}
-
-	if v, ok := in["pod_labels"].(map[string]interface{}); ok {
-		obj.PodLabels = toMapString(v)
-	}
-
-	return obj
+	return out
 }
 
 func expandAKSManagedClusterPrivateLinkResources(p []interface{}) *AKSManagedClusterPrivateLinkResources {
@@ -4557,36 +4563,40 @@ func flattenAKSManagedClusterPodIdentityProfile(in *AKSManagedClusterPodIdentity
 	return []interface{}{obj}
 }
 
-func flattenAKSManagedClusterPIPUserAssignedIdentities(in *AKSManagedClusterPIPUserAssignedIdentities, p []interface{}) []interface{} {
-	if in == nil {
+func flattenAKSManagedClusterPIPUserAssignedIdentities(inp []*AKSManagedClusterPIPUserAssignedIdentities, p []interface{}) []interface{} {
+	if inp == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-
-	if len(in.BindingSelector) > 0 {
-		obj["binding_selector"] = in.BindingSelector
-	}
-
-	if in.Identity != nil {
-		v, ok := obj["identity"].([]interface{})
-		if !ok {
-			v = []interface{}{}
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
+		obj := map[string]interface{}{}
+		if len(p) != 0 && p[i] != nil {
+			obj = p[i].(map[string]interface{})
 		}
-		obj["identity"] = flattenAKSManagedClusterUAIIdentity(in.Identity, v)
+
+		if len(in.BindingSelector) > 0 {
+			obj["binding_selector"] = in.BindingSelector
+		}
+
+		if in.Identity != nil {
+			v, ok := obj["identity"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["identity"] = flattenAKSManagedClusterUAIIdentity(in.Identity, v)
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Namespace) > 0 {
+			obj["namespace"] = in.Namespace
+		}
+		out[i] = &obj
 	}
 
-	if len(in.Name) > 0 {
-		obj["name"] = in.Name
-	}
-
-	if len(in.Namespace) > 0 {
-		obj["namespace"] = in.Namespace
-	}
-
-	return []interface{}{obj}
+	return out
 }
 
 func flattenAKSManagedClusterUAIIdentity(in *AKSManagedClusterUAIIdentity, p []interface{}) []interface{} {
@@ -4614,28 +4624,31 @@ func flattenAKSManagedClusterUAIIdentity(in *AKSManagedClusterUAIIdentity, p []i
 
 }
 
-func flattenAKSManagedClusterPIPUserAssignedIdentityExceptions(in *AKSManagedClusterPIPUserAssignedIdentityExceptions, p []interface{}) []interface{} {
-	if in == nil {
+func flattenAKSManagedClusterPIPUserAssignedIdentityExceptions(inp []*AKSManagedClusterPIPUserAssignedIdentityExceptions, p []interface{}) []interface{} {
+	if inp == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
+		obj := map[string]interface{}{}
+		if len(p) != 0 && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
 
-	if len(in.Name) > 0 {
-		obj["name"] = in.Name
-	}
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
 
-	if len(in.Namespace) > 0 {
-		obj["namespace"] = in.Namespace
-	}
+		if len(in.Namespace) > 0 {
+			obj["namespace"] = in.Namespace
+		}
 
-	if in.PodLabels != nil && len(in.PodLabels) > 0 {
-		obj["pod_labels"] = toMapInterface(in.PodLabels)
+		if in.PodLabels != nil && len(in.PodLabels) > 0 {
+			obj["pod_labels"] = toMapInterface(in.PodLabels)
+		}
+		out[i] = &obj
 	}
-
-	return []interface{}{obj}
+	return out
 
 }
 
@@ -5161,40 +5174,41 @@ func aksClusterCTLStatus(taskid string) (string, error) {
 }
 
 func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Println("AKS process inputs")
 	obj := &AKSCluster{}
 
 	if v, ok := d.Get("apiversion").(string); ok {
 		obj.APIVersion = v
 	} else {
-		fmt.Print("apiversion unable to be found")
+		log.Println("apiversion unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Apiversion is missing"))
 	}
 
 	if v, ok := d.Get("kind").(string); ok {
 		obj.Kind = v
 	} else {
-		fmt.Print("kind unable to be found")
+		log.Println("kind unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Kind is missing"))
 	}
 
 	if v, ok := d.Get("metadata").([]interface{}); ok {
 		obj.Metadata = expandAKSClusterMetadata(v)
 	} else {
-		fmt.Print("metadata unable to be found")
+		log.Println("metadata unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
 	}
 
 	if v, ok := d.Get("spec").([]interface{}); ok {
 		obj.Spec = expandAKSClusterSpec(v)
 	} else {
-		fmt.Print("Cluster spec unable to be found")
+		log.Println("Cluster spec unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
 	}
 
 	projectName := obj.Metadata.Project
 	_, err := project.GetProjectByName(projectName)
 	if err != nil {
-		fmt.Print("project name missing in the resource")
+		log.Println("project name missing in the resource")
 		return diag.FromErr(fmt.Errorf("%s", "Project name missing in the resource"))
 	}
 
@@ -5204,6 +5218,7 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 
 	out, err := yamlf.Marshal(obj)
 	if err != nil {
+		log.Println("err marshall:", err)
 		return diag.FromErr(err)
 	}
 	log.Printf("AKS Cluster YAML SPEC \n---\n%s\n----\n", out)

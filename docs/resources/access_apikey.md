@@ -62,3 +62,4 @@ Optional:
 - `update` (String)
 
 
+**Note**: ORGANIZATION ADMIN Role manages API key for other users 

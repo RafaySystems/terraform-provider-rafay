@@ -237,7 +237,7 @@ resource "rafay_blueprint" "custom-golden-blueprint" {
 
 ---
 
-Example of a custom blueprint resource with service mesh. 
+Example of a custom blueprint resource with service mesh.
 
 ```terraform
 resource "rafay_blueprint" "mesh-blueprint" {
@@ -262,7 +262,7 @@ resource "rafay_blueprint" "mesh-blueprint" {
       enabled = true
     }
 
-    mesh_ref {
+    service_mesh {
       profile {
         name = "tfdemomeshprofile1"
         version = "v0"
@@ -272,6 +272,40 @@ resource "rafay_blueprint" "mesh-blueprint" {
         version = "v0"
       }
     }
+  }
+}
+```
+
+Example of a custom blueprint resource with cost profile.
+
+```
+resource "rafay_blueprint" "cost-blueprint" {
+  metadata {
+    name    = "custom-cost-blueprint"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "1.19.0"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_logging    = false
+      enable_monitoring = true
+      enable_vm         = false
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+
+    cost_profile {
+        name = "tfdemocostprofile1"
+        version = "v0"
+    }
+
   }
 }
 ```
@@ -317,7 +351,8 @@ resource "rafay_blueprint" "mesh-blueprint" {
 - `namespace_config` (Block List, Max: 1) namespace config (see [below for nested schema](#nestedblock--spec--namespace_config))
 - `opa_policy` (Block List, Max: 1) opa policy and version details (see [below for nested schema](#nestedblock--spec--opa_policy))
 - `network_policy` (Block List, Max: 1) Network policy and version details (see [below for nested schema](#nestedblock--spec--network_policy))
-- `mesh_ref` (Block List, Max: 1) Service Mesh Profile, Cluster Policies and version details (see [below for nested schema](#nestedblock--spec--mesh_ref))
+- `service_mesh` (Block List, Max: 1) Service Mesh Profile, Cluster Policies and version details (see [below for nested schema](#nestedblock--spec--service_mesh))
+- `cost_profile` (Block List, Max: 1) Cost Profile and version details (see [below for nested schema](#nestedblock--spec--cost_profile))
 <a id="nestedblock--spec--base"></a>
 ### Nested Schema for `spec.base`
 
@@ -521,31 +556,37 @@ resource "rafay_blueprint" "mesh-blueprint" {
 - `version` (String) version of the network profile
 
 
-<a id="nestedblock--spec--mesh_ref"></a>
-### Nested Schema for `spec.mesh_ref`
+<a id="nestedblock--spec--service_mesh"></a>
+### Nested Schema for `spec.service_mesh`
 
 ***Required***
 
-- `policies` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--mesh_ref--policies))
-- `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--mesh_ref--profile))
+- `policies` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--service_mesh--policies))
+- `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--service_mesh--profile))
 
-<a id="nestedblock--spec--mesh_ref--policies"></a>
-### Nested Schema for `spec.mesh_ref.policies`
+<a id="nestedblock--spec--service_mesh--policies"></a>
+### Nested Schema for `spec.service_mesh.policies`
 
 ***Required***
 
 - `name` (String) name of the cluster mesh policy
 - `version` (String) version of the cluster mesh policy
 
-<a id="nestedblock--spec--mesh_ref--profile"></a>
-### Nested Schema for `spec.mesh_ref.profile`
+<a id="nestedblock--spec--service_mesh--profile"></a>
+### Nested Schema for `spec.service_mesh.profile`
 
 ***Required***
 
 - `name` (String) name of the mesh profile
 - `version` (String) version of the mesh profile
 
+<a id="nestedblock--spec--cost_profile"></a>
+### Nested Schema for `spec.cost_profile`
 
+***Required***
+
+- `name` (String) name of the cost profile
+- `version` (String) version of the cost profile
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

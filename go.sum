@@ -78,8 +78,8 @@ github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/RafaySystems/eaas-playground v0.0.0-20221019065624-b5680ae1bb4e h1:FLsAitRDnxPtlCJ83mBfEYZ+lHWB27oOoRORvuE2zSw=
 github.com/RafaySystems/eaas-playground v0.0.0-20221019065624-b5680ae1bb4e/go.mod h1:5AeSRbniRwWhSEW1mJAfUVU7WiFMGvGSfcXhQA+fmdo=
-github.com/RafaySystems/rafay-common v1.19.1-0.20221103093331-514143084d28 h1:j+I7rvGdxpWRvgqCvgE2bNqD0AFRJiIgYakQ0E+bOUk=
-github.com/RafaySystems/rafay-common v1.19.1-0.20221103093331-514143084d28/go.mod h1:l+RL4HcUXaUIFlp2AmCnsw7lIhw/SFlM+tDT8jd2HjM=
+github.com/RafaySystems/rafay-common v1.19.1-0.20221107070805-453af286938e h1:I3jNgTXCSsgbVspLcPHL4UR6pHtuPxNPwtP2N8s3Vrk=
+github.com/RafaySystems/rafay-common v1.19.1-0.20221107070805-453af286938e/go.mod h1:l+RL4HcUXaUIFlp2AmCnsw7lIhw/SFlM+tDT8jd2HjM=
 github.com/RafaySystems/rctl v1.18.1-beta5 h1:udy/ovvNERccyT4nxD0Fhwg21RvVu30nyfMVJg3h7CI=
 github.com/RafaySystems/rctl v1.18.1-beta5/go.mod h1:2xnV+B8LiYVYNxnoYT3gAt7qriAgaiMPonWAFivST9I=
 github.com/RoaringBitmap/roaring v0.6.1 h1:O36Tdaj1Fi/zyr25shTHwlQPGdq53+u4WkM08AOEjiE=

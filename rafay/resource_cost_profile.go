@@ -251,18 +251,18 @@ func expandCostProfileIP(p []interface{}) *costpb.InstallationParams {
 	in := p[0].(map[string]interface{})
 
 	if _, ok := in["aws"]; ok {
-		if v, ok := in["aws"].([]interface{}); ok {
+		if v, ok := in["aws"].([]interface{}); ok && len(v) > 0 {
 			obj.Aws = expandCostProfileAwsCostProfile(v)
 		}
 	}
 
 	if _, ok := in["azure"]; ok {
-		if v, ok := in["azure"].([]interface{}); ok {
+		if v, ok := in["azure"].([]interface{}); ok && len(v) > 0 {
 			obj.Azure = expandCostProfileAzureCostProfile(v)
 		}
 	}
 
-	if v, ok := in["on_prem"].([]interface{}); ok {
+	if v, ok := in["on_prem"].([]interface{}); ok && len(v) > 0 {
 		obj.OnPrem = expandCostProfileOnPremCostProfile(v)
 	}
 
@@ -278,15 +278,15 @@ func expandCostProfileAwsCostProfile(p []interface{}) *costpb.AwsCostProfile {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["aws_credentials"].([]interface{}); ok {
+	if v, ok := in["aws_credentials"].([]interface{}); ok && len(v) > 0 {
 		obj.AwsCredentials = expandCostProfileAwsCredentials(v)
 	}
 
-	if v, ok := in["cur_integration"].([]interface{}); ok {
+	if v, ok := in["cur_integration"].([]interface{}); ok && len(v) > 0 {
 		obj.CurIntegration = expandCostProfileAwsCurIntegration(v)
 	}
 
-	if v, ok := in["spot_integration"].([]interface{}); ok {
+	if v, ok := in["spot_integration"].([]interface{}); ok && len(v) > 0 {
 		obj.SpotIntegration = expandCostProfileAwsSpotIntegration(v)
 	}
 
@@ -302,13 +302,13 @@ func expandCostProfileAwsCredentials(p []interface{}) *costpb.AwsCredsCostProfil
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["aws_service_key_name"].(string); ok {
+	if v, ok := in["aws_service_key_name"].(string); ok && len(v) > 0 {
 		obj.AwsServiceKeyName = v
 	}
-	if v, ok := in["aws_service_key_secret"].(string); ok {
+	if v, ok := in["aws_service_key_secret"].(string); ok && len(v) > 0 {
 		obj.AwsServiceKeySecret = v
 	}
-	if v, ok := in["cloud_credentials_name"].(string); ok {
+	if v, ok := in["cloud_credentials_name"].(string); ok && len(v) > 0 {
 		obj.CloudCredentialsName = v
 	}
 	if v, ok := in["role_arn"].(string); ok {
@@ -327,22 +327,22 @@ func expandCostProfileAwsCurIntegration(p []interface{}) *costpb.AwsCurIntegrati
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["athena_bucket_name"].(string); ok {
+	if v, ok := in["athena_bucket_name"].(string); ok && len(v) > 0 {
 		obj.AthenaBucketName = v
 	}
-	if v, ok := in["athena_database"].(string); ok {
+	if v, ok := in["athena_database"].(string); ok && len(v) > 0 {
 		obj.AthenaDatabase = v
 	}
-	if v, ok := in["athena_region"].(string); ok {
+	if v, ok := in["athena_region"].(string); ok && len(v) > 0 {
 		obj.AthenaRegion = v
 	}
-	if v, ok := in["athena_table"].(string); ok {
+	if v, ok := in["athena_table"].(string); ok && len(v) > 0 {
 		obj.AthenaTable = v
 	}
-	if v, ok := in["aws_account_id"].(string); ok {
+	if v, ok := in["aws_account_id"].(string); ok && len(v) > 0 {
 		obj.AwsAccountId = v
 	}
-	if v, ok := in["master_payer_arn"].(string); ok {
+	if v, ok := in["master_payer_arn"].(string); ok && len(v) > 0 {
 		obj.MasterPayerArn = v
 	}
 
@@ -358,22 +358,22 @@ func expandCostProfileAwsSpotIntegration(p []interface{}) *costpb.AwsSpotIntegra
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["aws_account_id"].(string); ok {
+	if v, ok := in["aws_account_id"].(string); ok && len(v) > 0 {
 		obj.AwsAccountId = v
 	}
-	if v, ok := in["aws_spot_data_bucket"].(string); ok {
+	if v, ok := in["aws_spot_data_bucket"].(string); ok && len(v) > 0 {
 		obj.AwsSpotDataBucket = v
 	}
-	if v, ok := in["aws_spot_data_prefix"].(string); ok {
+	if v, ok := in["aws_spot_data_prefix"].(string); ok && len(v) > 0 {
 		obj.AwsSpotDataPrefix = v
 	}
-	if v, ok := in["aws_spot_data_region"].(string); ok {
+	if v, ok := in["aws_spot_data_region"].(string); ok && len(v) > 0 {
 		obj.AwsSpotDataRegion = v
 	}
-	if v, ok := in["spot_label"].(string); ok {
+	if v, ok := in["spot_label"].(string); ok && len(v) > 0 {
 		obj.SpotLabel = v
 	}
-	if v, ok := in["spot_label_value"].(string); ok {
+	if v, ok := in["spot_label_value"].(string); ok && len(v) > 0 {
 		obj.SpotLabelValue = v
 	}
 
@@ -389,11 +389,11 @@ func expandCostProfileAzureCostProfile(p []interface{}) *costpb.AzureCostProfile
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["custom_pricing"].([]interface{}); ok {
+	if v, ok := in["custom_pricing"].([]interface{}); ok && len(v) > 0 {
 		obj.CustomPricing = expandCostProfileAzureCustomPricing(v)
 	}
 
-	if v, ok := in["gpu_estimates"].([]interface{}); ok {
+	if v, ok := in["gpu_estimates"].([]interface{}); ok && len(v) > 0 {
 		obj.GpuEstimates = expandCostProfileAzureGpuEstimates(v)
 	}
 
@@ -409,22 +409,22 @@ func expandCostProfileAzureCustomPricing(p []interface{}) *costpb.AzureCustomPri
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["azure_client_id"].(string); ok {
+	if v, ok := in["azure_client_id"].(string); ok && len(v) > 0 {
 		obj.AzureClientID = v
 	}
-	if v, ok := in["azure_client_secret"].(string); ok {
+	if v, ok := in["azure_client_secret"].(string); ok && len(v) > 0 {
 		obj.AzureClientSecret = v
 	}
-	if v, ok := in["azure_subscription_id"].(string); ok {
+	if v, ok := in["azure_subscription_id"].(string); ok && len(v) > 0 {
 		obj.AzureSubscriptionID = v
 	}
-	if v, ok := in["azure_tenant_id"].(string); ok {
+	if v, ok := in["azure_tenant_id"].(string); ok && len(v) > 0 {
 		obj.AzureTenantID = v
 	}
-	if v, ok := in["cloud_credentials_name"].(string); ok {
+	if v, ok := in["cloud_credentials_name"].(string); ok && len(v) > 0 {
 		obj.CloudCredentialsName = v
 	}
-	if v, ok := in["spot_instance"].([]interface{}); ok {
+	if v, ok := in["spot_instance"].([]interface{}); ok && len(v) > 0 {
 		obj.SpotInstance = expandCostProfileAzureSpotInstance(v)
 	}
 
@@ -440,10 +440,10 @@ func expandCostProfileAzureSpotInstance(p []interface{}) *costpb.SpotInstance {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["spot_label"].(string); ok {
+	if v, ok := in["spot_label"].(string); ok && len(v) > 0 {
 		obj.SpotLabel = v
 	}
-	if v, ok := in["spot_label_value"].(string); ok {
+	if v, ok := in["spot_label_value"].(string); ok && len(v) > 0 {
 		obj.SpotLabelValue = v
 	}
 
@@ -459,10 +459,10 @@ func expandCostProfileAzureGpuEstimates(p []interface{}) *costpb.GpuCostProfile 
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["gpu_label"].(string); ok {
+	if v, ok := in["gpu_label"].(string); ok && len(v) > 0 {
 		obj.GpuLabel = v
 	}
-	if v, ok := in["gpu_label_value"].(string); ok {
+	if v, ok := in["gpu_label_value"].(string); ok && len(v) > 0 {
 		obj.GpuLabelValue = v
 	}
 
@@ -478,23 +478,23 @@ func expandCostProfileOnPremCostProfile(p []interface{}) *costpb.OnPremCostProfi
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["cpu"].(string); ok {
+	if v, ok := in["cpu"].(string); ok && len(v) > 0 {
 		obj.Cpu = v
 	}
 
-	if v, ok := in["gpu"].(string); ok {
+	if v, ok := in["gpu"].(string); ok && len(v) > 0 {
 		obj.Gpu = v
 	}
 
-	if v, ok := in["ram"].(string); ok {
+	if v, ok := in["ram"].(string); ok && len(v) > 0 {
 		obj.Ram = v
 	}
 
-	if v, ok := in["spot_cpu"].(string); ok {
+	if v, ok := in["spot_cpu"].(string); ok && len(v) > 0 {
 		obj.SpotCpu = v
 	}
 
-	if v, ok := in["spot_ram"].(string); ok {
+	if v, ok := in["spot_ram"].(string); ok && len(v) > 0 {
 		obj.SpotRam = v
 	}
 

@@ -40,6 +40,7 @@ resource "rafay_cost_profile" "tfdemocostprofile1" {
           athena_database = "sample"
           athena_table = "sample"
           aws_account_id = "sample"
+          master_payer_arn = "sample"
         }
         aws_credentials {
           cloud_credentials_name = "sample"
@@ -87,9 +88,11 @@ resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
     provider_type = "onprem"
     installation_params {
       on_prem {
-        custom_pricing {
-          cloud_credentials_name = "sample"
-        }
+        cpu = "2"
+        gpu = "3"
+        ram = "4"
+        spot_cpu = "1"
+        spot_ram = "2"
       }
     }
   }

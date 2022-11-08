@@ -174,6 +174,32 @@ func specField() map[string]*schema.Schema {
 				Schema: systemComponentsPlacementFields(),
 			},
 		},
+		"sharing": &schema.Schema{
+			Description: "blueprint sharing configuration",
+			Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+				"enabled": &schema.Schema{
+					Description: "flag to specify if sharing is enabled for resource",
+					Optional:    true,
+					Type:        schema.TypeBool,
+				},
+				"projects": &schema.Schema{
+					Description: "list of projects this resource is shared to",
+					Elem: &schema.Resource{Schema: map[string]*schema.Schema{"name": &schema.Schema{
+						Description: "name of the project",
+						Optional:    true,
+						Type:        schema.TypeString,
+					}}},
+					MaxItems: 0,
+					MinItems: 0,
+					Optional: true,
+					Type:     schema.TypeList,
+				},
+			}},
+			MaxItems: 1,
+			MinItems: 1,
+			Optional: true,
+			Type:     schema.TypeList,
+		},
 	}
 	return s
 }
@@ -3745,6 +3771,9 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["system_components_placement"].([]interface{}); ok && len(v) > 0 {
 		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
 	}
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		obj.Sharing = expandSharingSpec(v)
+	}
 	log.Println("cluster spec cloud_provider: ", obj.CloudProvider)
 
 	return obj
@@ -3993,6 +4022,9 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 			v = []interface{}{}
 		}
 		obj["system_components_placement"] = flattenSystemComponentsPlacement(in.SystemComponentsPlacement, v)
+	}
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
 	}
 
 	return []interface{}{obj}, nil

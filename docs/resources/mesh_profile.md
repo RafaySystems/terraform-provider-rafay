@@ -38,7 +38,7 @@ resource "rafay_mesh_profile" "tfdemomeshprofile1" {
   spec {
     version = "v0"
     installation_params {
-      cert_type = 0
+      cert_type = "SelfSigned"
       enable_ingress = false
       enable_namespaces_by_default = false
       resource_quota {
@@ -88,7 +88,7 @@ resource "rafay_mesh_profile" "tfdemomeshprofile1" {
 
 ***Optional***
 
-- `cert_type` (Number) Certificate Type. Valid values are `0` and `1`
+- `cert_type` (String) Certificate Type. Valid values are `SelfSigned` and `CertManager`
 - `enable_ingress` (Boolean) flag to specify if ingress should be installed
 - `enable_namespaces_by_deafult` (Boolean) flag to specify if injection should be enabled globally for all namespaces
 - `resource_quota` - (Block List, Max: 1) resource requests and limits for service mesh control plane. (See [below for nested schema](#nestedblock--spec--installation_params--resourcequota))

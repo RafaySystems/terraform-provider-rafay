@@ -125,3 +125,40 @@ resource "rafay_workload" "tftestworkload5" {
     }
   }
 }
+
+
+# Create Helm workload from Git repo. Chart & default values from one repo, override values from another repo
+resource "rafay_workload" "tftestworkload6" {
+  metadata {
+    name    = "tftestworkload6"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload6"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm"
+      artifact {
+        repository = "test-repo1"
+        revision   = "main"
+        chart_path {
+          name = "chart/path/chart.tgz"
+        }
+        #default value from same repo as chart
+        values_paths {
+          name = "value/path/values.yaml"
+        }
+        #override value from another repo
+        values_ref {
+          repository = "test-repo2"
+          revision   = "main"
+          values_paths {
+            name = "value/path/values.yaml"
+          }
+        }
+      }
+    }
+  }
+}

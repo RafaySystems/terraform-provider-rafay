@@ -250,7 +250,7 @@ resource "rafay_blueprint" "mesh-blueprint" {
       enabled = true
     }
 
-    mesh_ref {
+    service_mesh {
       profile {
         name = "tfdemomeshprofile1"
         version = "v0"
@@ -259,6 +259,36 @@ resource "rafay_blueprint" "mesh-blueprint" {
         name = "tfdemocmp1"
         version = "v0"
       }
+    }
+
+  }
+}
+# Example of a custom blueprint resource with cost profile
+resource "rafay_blueprint" "cost-blueprint" {
+  metadata {
+    name    = "custom-cost-blueprint"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "1.19.0"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_logging    = false
+      enable_monitoring = true
+      enable_vm         = false
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+
+    cost_profile {
+        name = "tfdemocostprofile1"
+        version = "v0"
     }
 
   }

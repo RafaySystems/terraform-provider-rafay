@@ -201,6 +201,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `azure_keyvault_secrets_provider` (Block List) Configurations for Azure keyvault secrets provider. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--azure_keyvault_secrets_provider))
 - `azure_policy` (Block List) Configurations for azure policy. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--azure_policy))
 - `http_application_routing` - (Block List) Configurations for HTTP application routing. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--http_application_routing))
+- `ingress_application_gateway` - (Block List) Configurations for Azure Ingress Application Gateway. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--ingress_application_gateway))
 - `oms_agent` - (Block List) (See [below for nested schema] Configurations for OMS agent. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--oms_agent))
 
 
@@ -234,6 +235,25 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ***Required***
 
 - `enabled` - (Boolean) - Enable/Disable HTTP Application Routing.
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--ingress_application_gateway"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.addon_profiles.ingress_application_gateway`
+
+***Required***
+
+- `enabled` - (Boolean) - Enable/Disable Azure Ingress Application Gateway.
+- `config` - (Block List) Configurations for Azure Ingress Application Gateway. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--ingress_application_gateway--config)
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--ingress_application_gateway--config"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.addon_profiles.ingress_application_gateway.config`
+
+***Optional***
+
+- `application_gateway_name` - (String) - Name of the application gateway to create/use in the node resource group.
+- `application_gateway_id` - (String) - Resource Id of an existing Application Gateway to use with AGIC.
+- `subnet_cidr` - (String) - Subnet CIDR to use for a new subnet created to deploy the Application Gateway.
+- `subnet_id` - (String) - Resource Id of an existing Subnet used to deploy the Application Gateway.
+- `watch_namespace` - (String)- Specify the namespace, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces.
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--addon_profiles--oms_agent"></a>
 ### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.addon_profiles.oms_agent`

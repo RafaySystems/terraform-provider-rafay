@@ -163,7 +163,7 @@ func resourceWorkloadUpsert(ctx context.Context, d *schema.ResourceData, m inter
 				break
 			}
 			if wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed {
-				return diag.FromErr(fmt.Errorf("%s", "failed to publish workload"))
+				return diag.FromErr(fmt.Errorf("%s %s", "failed to publish workload", wls.Status))
 			}
 		} else {
 			break

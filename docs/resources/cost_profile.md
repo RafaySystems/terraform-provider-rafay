@@ -91,8 +91,6 @@ resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
         cpu = "2.5"
         gpu = "3.61"
         ram = "4.3"
-        spot_cpu = "1.74"
-        spot_ram = "2.4"
       }
     }
   }

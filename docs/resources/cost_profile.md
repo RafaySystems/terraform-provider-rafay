@@ -85,14 +85,12 @@ resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
   }
   spec {
     version = "v0"
-    provider_type = "onprem"
+    provider_type = "onPrem"
     installation_params {
       on_prem {
         cpu = "2.5"
         gpu = "3.61"
         ram = "4.3"
-        spot_cpu = "1.74"
-        spot_ram = "2.4"
       }
     }
   }

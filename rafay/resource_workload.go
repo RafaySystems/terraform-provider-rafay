@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/config"
@@ -147,7 +148,7 @@ func resourceWorkloadUpsert(ctx context.Context, d *schema.ResourceData, m inter
 
 	// wait for publish
 	for {
-		time.Sleep(30 * time.Second)
+		time.Sleep(60 * time.Second)
 		wls, err := client.AppsV3().Workload().Status(ctx, options.StatusOptions{
 			Name:    wl.Metadata.Name,
 			Project: wl.Metadata.Project,
@@ -227,6 +228,18 @@ func resourceWorkloadRead(ctx context.Context, d *schema.ResourceData, m interfa
 		Project: tfWorkloadState.Metadata.Project,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "request code 404") {
+			var ret []interface{}
+			err = d.Set("metadata", ret)
+			if err != nil {
+				return diags
+			}
+			err = d.Set("spec", ret)
+			if err != nil {
+				return diags
+			}
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

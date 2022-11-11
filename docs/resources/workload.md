@@ -183,6 +183,7 @@ resource "rafay_workload" "tftestworkload6" {
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
+    version = "v0"
     artifact {
       type = "Helm"
       artifact {

@@ -6,6 +6,7 @@ resource "rafay_workload" "tftestworkload1" {
   }
   spec {
     namespace = "test-workload1"
+    version = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -35,6 +36,7 @@ resource "rafay_workload" "tftestworkload2" {
   }
   spec {
     namespace = "test-workload2"
+    version = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -60,6 +62,7 @@ resource "rafay_workload" "tftestworkload3" {
   }
   spec {
     namespace = "test-workload3"
+    version = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -84,6 +87,7 @@ resource "rafay_workload" "tftestworkload4" {
   }
   spec {
     namespace = "test-workload4"
+    version = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -106,6 +110,7 @@ resource "rafay_workload" "tftestworkload5" {
   }
   spec {
     namespace = "test-workload5"
+    version = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -135,6 +140,7 @@ resource "rafay_workload" "tftestworkload6" {
   }
   spec {
     namespace = "test-workload6"
+    version = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }

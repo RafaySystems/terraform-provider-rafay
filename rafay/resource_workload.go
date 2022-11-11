@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/config"
@@ -227,6 +228,18 @@ func resourceWorkloadRead(ctx context.Context, d *schema.ResourceData, m interfa
 		Project: tfWorkloadState.Metadata.Project,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "request code 404") {
+			var ret []interface{}
+			err = d.Set("metadata", ret)
+			if err != nil {
+				return diags
+			}
+			err = d.Set("spec", ret)
+			if err != nil {
+				return diags
+			}
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

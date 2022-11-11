@@ -147,7 +147,7 @@ func resourceWorkloadUpsert(ctx context.Context, d *schema.ResourceData, m inter
 
 	// wait for publish
 	for {
-		time.Sleep(30 * time.Second)
+		time.Sleep(60 * time.Second)
 		wls, err := client.AppsV3().Workload().Status(ctx, options.StatusOptions{
 			Name:    wl.Metadata.Name,
 			Project: wl.Metadata.Project,

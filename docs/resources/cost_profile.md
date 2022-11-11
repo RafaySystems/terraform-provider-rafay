@@ -85,7 +85,7 @@ resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
   }
   spec {
     version = "v0"
-    provider_type = "onprem"
+    provider_type = "onPrem"
     installation_params {
       on_prem {
         cpu = "2.5"

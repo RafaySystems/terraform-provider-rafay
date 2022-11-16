@@ -28,6 +28,12 @@ resource "rafay_cost_profile" "tfdemocostprofile1" {
         }
       }
     }
+    sharing {
+      enabled = true
+      projects {
+        name = "terraformproject2"
+      }
+    }
   }
 }
 #Example cost profile for Azure

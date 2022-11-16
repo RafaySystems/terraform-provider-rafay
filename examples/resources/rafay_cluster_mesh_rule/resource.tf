@@ -14,7 +14,10 @@ resource "rafay_cluster_mesh_rule" "tfdemocmr1" {
     }
     version = "v0"
     sharing {
-      enabled = false
+      enabled = true
+      projects {
+        name = "terraformproject2"
+      }
     }
   }
 }

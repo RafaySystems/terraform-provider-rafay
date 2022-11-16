@@ -10,8 +10,6 @@ resource "rafay_cost_profile" "tfdemocostprofile1" {
     installation_params {
       aws {
         spot_integration {
-          spot_label = "sample"
-          spot_label_value = "sample"
           aws_spot_data_region = "sample"
           aws_spot_data_bucket = "sample"
           aws_spot_data_prefix = "sample"
@@ -28,6 +26,12 @@ resource "rafay_cost_profile" "tfdemocostprofile1" {
         aws_credentials {
           cloud_credentials_name = "sample"
         }
+      }
+    }
+    sharing {
+      enabled = true
+      projects {
+        name = "terraformproject2"
       }
     }
   }

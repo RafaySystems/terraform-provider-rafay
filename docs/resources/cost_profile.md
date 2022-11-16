@@ -27,8 +27,6 @@ resource "rafay_cost_profile" "tfdemocostprofile1" {
     installation_params {
       aws {
         spot_integration {
-          spot_label = "sample"
-          spot_label_value = "sample"
           aws_spot_data_region = "sample"
           aws_spot_data_bucket = "sample"
           aws_spot_data_prefix = "sample"
@@ -191,8 +189,6 @@ resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
 - `aws_spot_data_bucket` (String) Aws Spot Data Bucket.
 - `aws_spot_data_prefix` (String) Aws Spot Data Prefix.
 - `aws_spot_data_region` (String) Aws Spot Data Region.
-- `spot_label` (String) Aws Spot Label.
-- `spot_label_value` (String) Aws Spot Label Value.
 
 <a id="nestedblock--spec--installation_params--azure--custom_pricing"></a>
 ### Nested Schema for `spec.installation_params.azure.custom_pricing`

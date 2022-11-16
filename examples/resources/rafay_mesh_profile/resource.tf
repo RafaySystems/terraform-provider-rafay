@@ -6,7 +6,10 @@ resource "rafay_mesh_profile" "tfdemomeshprofile1" {
   spec {
     version = "v0"
     sharing {
-        enabled = false
+      enabled = true
+      projects {
+        name = "terraformproject2"
+      }
     }
   }
 }

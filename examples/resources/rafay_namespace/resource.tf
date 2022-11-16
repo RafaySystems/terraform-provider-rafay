@@ -107,7 +107,7 @@ resource "rafay_namespace" "namespace" {
 resource "rafay_namespace" "tfdemonamespacewithmesh" {
   metadata {
     name    = "tfdemonamespacewithmesh"
-    project = "mesh-project"
+    project = "terraform"
   }
   spec {
     drift {

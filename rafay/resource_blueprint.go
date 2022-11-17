@@ -341,6 +341,14 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 		obj.NetworkPolicy = expandBlueprintNetworkPolicy(v)
 	}
 
+	if v, ok := in["service_mesh"].([]interface{}); ok && len(v) > 0 {
+		obj.ServiceMesh = expandBlueprintServiceMesh(v)
+	}
+
+	if v, ok := in["cost_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.CostProfile = expandBlueprintCostProfile(v)
+	}
+
 	if v, ok := in["opa_policy"].([]interface{}); ok && len(v) > 0 {
 		obj.OpaPolicy = expandBlueprintOPAPolicy(v)
 	}
@@ -613,6 +621,52 @@ func expandBlueprintPSP(p []interface{}) *infrapb.BlueprintPSP {
 	return obj
 }
 
+func expandBlueprintServiceMesh(p []interface{}) *infrapb.ServiceMesh {
+	obj := &infrapb.ServiceMesh{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["profile"].([]interface{}); ok && len(v) > 0 {
+		obj.Profile = expandBlueprintMeshProfile(v)
+	}
+
+	if v, ok := in["policies"].([]interface{}); ok && len(v) > 0 {
+		obj.Policies = expandBlueprintClusterMeshPolicies(v)
+	}
+
+	return obj
+}
+
+func expandBlueprintCostProfile(p []interface{}) *infrapb.CostProfile {
+	obj := &infrapb.CostProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+
+	return obj
+}
+
 func expandBlueprintNetworkPolicy(p []interface{}) *infrapb.NetworkPolicy {
 	obj := &infrapb.NetworkPolicy{}
 	if len(p) == 0 || p[0] == nil {
@@ -723,6 +777,51 @@ func expandBlueprintNetworkPolicyProfile(p []interface{}) *commonpb.ResourceName
 }
 
 func expandBlueprintNetworkPolicyPolicies(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
+	if len(p) == 0 || p[0] == nil {
+		return []*commonpb.ResourceNameAndVersionRef{}
+	}
+
+	out := make([]*commonpb.ResourceNameAndVersionRef, len(p))
+
+	for i := range p {
+		obj := commonpb.ResourceNameAndVersionRef{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok {
+			obj.Name = v
+		}
+
+		if v, ok := in["version"].(string); ok {
+			obj.Version = v
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+
+}
+
+func expandBlueprintMeshProfile(p []interface{}) *commonpb.ResourceNameAndVersionRef {
+	obj := &commonpb.ResourceNameAndVersionRef{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+
+	return obj
+}
+
+func expandBlueprintClusterMeshPolicies(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
 	if len(p) == 0 || p[0] == nil {
 		return []*commonpb.ResourceNameAndVersionRef{}
 	}

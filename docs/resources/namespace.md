@@ -133,6 +133,32 @@ resource "rafay_namespace" "cloudops" {
 
 ---
 
+The following example demonstrates creating a namespace, with service mesh.
+
+```terraform
+#Example namespace with service mesh
+resource "rafay_namespace" "tfdemonamespacewithmesh" {
+  metadata {
+    name    = "tfdemonamespacewithmesh"
+    project = "terraform"
+  }
+  spec {
+    drift {
+      enabled = false
+    }
+    namespace_mesh_policy_params {
+      mesh_enabled = true
+      policies {
+        name    = "tfdemonmp1"
+        version = "v0"
+      }
+    }
+  }
+}
+```
+
+---
+
 
 ## Argument Reference
 
@@ -174,6 +200,7 @@ resource "rafay_namespace" "cloudops" {
 - `placement` - (Block List, Max: 1) Defines the cluster(s) where namespace will be created. (See [below for nested schema](#nestedblock--spec--placement))
 - `resource_quotas` - (Block List, Max: 1) Can limit the resource consumption per namespace. When multiple projects or teams need their own namespaces, the resource quota makes sure one namespace does not consume more than its fair share of the resources. (See [below for nested schema](#nestedblock--spec--resourcequotas))
 - `network_policy_params` (Block List, Max: 1) namespace network policy (see [below for nested schema](#nestedblock--spec--network_policy_params))
+- `namespace_mesh_policy_params` (Block List, Max: 1) namespace service mesh policy (see [below for nested schema](#nestedblock--spec--namespace_mesh_policy_params))
 
 
 <a id="nestedblock--spec--limitrange"></a>
@@ -263,6 +290,21 @@ Optional:
 - `name` (String) name of the resource
 - `version` (String) version of the resource
 
+<a id="nestedblock--spec--namespace_mesh_policy_params"></a>
+### Nested Schema for `spec.namespace_mesh_policy_params`
+
+Optional:
+
+- `mesh_enabled` (Boolean) Service Mesh enabled flag to enable sidecar injection in the namespace
+- `policies` (Block List) name and version of namespace mesh policy (see [below for nested schema](#nestedblock--spec--namespace_mesh_policy_params--policies))
+
+<a id="nestedblock--spec--namespace_mesh_policy_params--policies"></a>
+### Nested Schema for `spec.namespace_mesh_policy_params.policies`
+
+Optional:
+
+- `name` (String) name of the namespace mesh policy
+- `version` (String) version of the namespace mesh policy
 
 <a id="nestedblock--spec--placement--labels"></a>
 ### Nested Schema for `spec.placement.labels`

@@ -150,8 +150,8 @@ github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdko
 github.com/RafaySystems/eaas-playground v0.0.0-20221019065624-b5680ae1bb4e h1:FLsAitRDnxPtlCJ83mBfEYZ+lHWB27oOoRORvuE2zSw=
 github.com/RafaySystems/eaas-playground v0.0.0-20221019065624-b5680ae1bb4e/go.mod h1:5AeSRbniRwWhSEW1mJAfUVU7WiFMGvGSfcXhQA+fmdo=
 github.com/RafaySystems/rafay-common v1.17.0-opa.0.20220920101302-34e59452542d/go.mod h1:jI6qja62bbqn+0ZvmoaO7zhPx92HVyZXFtXBzLZ99yE=
-github.com/RafaySystems/rafay-common v1.18.13 h1:zSvELHnbcsGhnn5nmz7/X5Qkf0xpIWwK3dksS0bJL30=
-github.com/RafaySystems/rafay-common v1.18.13/go.mod h1:l+RL4HcUXaUIFlp2AmCnsw7lIhw/SFlM+tDT8jd2HjM=
+github.com/RafaySystems/rafay-common v1.20.0-beta1 h1:Pxw22+lVsSx63m8p7ldH1j4GaOaxZfei/ezClWocFZ0=
+github.com/RafaySystems/rafay-common v1.20.0-beta1/go.mod h1:l+RL4HcUXaUIFlp2AmCnsw7lIhw/SFlM+tDT8jd2HjM=
 github.com/RafaySystems/rctl v1.18.1-beta5 h1:udy/ovvNERccyT4nxD0Fhwg21RvVu30nyfMVJg3h7CI=
 github.com/RafaySystems/rctl v1.18.1-beta5/go.mod h1:2xnV+B8LiYVYNxnoYT3gAt7qriAgaiMPonWAFivST9I=
 github.com/RoaringBitmap/roaring v0.6.1 h1:O36Tdaj1Fi/zyr25shTHwlQPGdq53+u4WkM08AOEjiE=

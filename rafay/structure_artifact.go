@@ -98,10 +98,7 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 		}
 
 		if v, ok := in["paths"].([]interface{}); ok && len(v) > 0 {
-			at.Artifact.Paths, err = expandFiles(v)
-			if err != nil {
-				return nil, err
-			}
+			at.Artifact.Paths, _ = expandFiles(v)
 			artfct = spew.Sprintf("%+v", at.Artifact.Paths)
 			log.Println("ExpandArtifact  at.Artifact.Paths ", artfct)
 		}
@@ -123,10 +120,7 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 		}
 
 		if v, ok := in["values_paths"].([]interface{}); ok && len(v) > 0 {
-			at.Artifact.ValuesPaths, err = expandFiles(v)
-			if err != nil {
-				return nil, err
-			}
+			at.Artifact.ValuesPaths, _ = expandFiles(v)
 			artfct = spew.Sprintf("%+v", at.Artifact.ValuesPaths)
 			log.Println("ExpandArtifact  at.Artifact.ValuesPaths ", artfct)
 		}
@@ -150,10 +144,7 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 				}
 
 				if v, ok := inVref["values_paths"].([]interface{}); ok && len(v) > 0 {
-					at.Artifact.ValuesRef.ValuesPaths, err = expandFiles(v)
-					if err != nil {
-						return nil, err
-					}
+					at.Artifact.ValuesRef.ValuesPaths, _ = expandFiles(v)
 					artfct = spew.Sprintf("%+v", at.Artifact.ValuesRef.ValuesPaths)
 					log.Println("at.Artifact.ValuesRef.ValuesPaths ", artfct)
 				}

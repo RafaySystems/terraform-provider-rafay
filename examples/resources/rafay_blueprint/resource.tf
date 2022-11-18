@@ -173,6 +173,56 @@ resource "rafay_blueprint" "blueprint" {
     }
   }
 }
+# Example of a custom golden base blueprint resource.
+resource "rafay_blueprint" "golden_base_blueprint" {
+  metadata {
+    name    = "custom-golden-blueprint"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "1.16.0"
+    }
+    type = "golden"
+    default_addons {
+      enable_ingress    = true
+      enable_logging    = false
+      enable_monitoring = true
+      enable_vm         = false
+      monitoring {
+        metrics_server {
+          enabled = true
+          discovery {}
+        }
+        helm_exporter {
+          enabled = true
+        }
+        kube_state_metrics {
+          enabled = true
+        }
+        node_exporter {
+          enabled = true
+        }
+        prometheus_adapter {
+          enabled = true
+        }
+        resources {
+          limits = "200Mi"
+          cpu = "100m"
+        }
+      }
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    placement {
+      auto_publish = false
+    }
+  }
+}
 # Example of a custom blueprint resource with service mesh
 resource "rafay_blueprint" "mesh-blueprint" {
   metadata {

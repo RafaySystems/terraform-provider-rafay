@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -73,7 +74,7 @@ func resourceEKSCluster() *schema.Resource {
 	}
 }
 
-//schema input for cluster file
+// schema input for cluster file
 func clusterMetadataField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"kind": {
@@ -165,6 +166,128 @@ func specField() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Configure Proxy if your infrastructure uses an Outbound Proxy",
 		},
+		"system_components_placement": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Configure tolerations and nodeSelector for system components",
+			Elem: &schema.Resource{
+				Schema: systemComponentsPlacementFields(),
+			},
+		},
+		"sharing": &schema.Schema{
+			Description: "blueprint sharing configuration",
+			Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+				"enabled": &schema.Schema{
+					Description: "flag to specify if sharing is enabled for resource",
+					Optional:    true,
+					Type:        schema.TypeBool,
+				},
+				"projects": &schema.Schema{
+					Description: "list of projects this resource is shared to",
+					Elem: &schema.Resource{Schema: map[string]*schema.Schema{"name": &schema.Schema{
+						Description: "name of the project",
+						Optional:    true,
+						Type:        schema.TypeString,
+					}}},
+					MaxItems: 0,
+					MinItems: 0,
+					Optional: true,
+					Type:     schema.TypeList,
+				},
+			}},
+			MaxItems: 1,
+			MinItems: 1,
+			Optional: true,
+			Type:     schema.TypeList,
+		},
+	}
+	return s
+}
+
+func systemComponentsPlacementFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"node_selector": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "used to tag AWS resources created by the vendor",
+		},
+		"tolerations": {
+			Type: schema.TypeList,
+			//Type:        schema.TypeString,
+			Optional:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: tolerationsFields(),
+			},
+		},
+		"daemonset_override": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: daemonsetOverrideFields(),
+			},
+		},
+	}
+	return s
+}
+
+func tolerationsFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"key": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "the taint key that the toleration applies to",
+		},
+		"operator": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "represents a key's relationship to the value",
+		},
+		"value": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "the taint value the toleration matches to",
+		},
+		"effect": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "indicates the taint effect to match",
+		},
+		"toleration_seconds": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "represents the period of time the toleration tolerates the taint",
+		},
+	}
+	return s
+}
+
+func daemonsetOverrideFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"node_selection_enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enables node selection",
+		},
+		"tolerations": {
+			Type: schema.TypeList,
+			//Type:        schema.TypeString,
+			Optional:    true,
+			Description: "contains custom cni networking configurations",
+			Elem: &schema.Resource{
+				Schema: tolerationsFields(),
+			},
+		},
+		/*
+			"tolerations": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "contains custom cni networking configurations",
+				Elem: &schema.Resource{
+					Schema: tolerationsFields(),
+				},
+			},*/
 	}
 	return s
 }
@@ -226,7 +349,7 @@ func cniSpecField() map[string]*schema.Schema {
 	return s
 }
 
-//schema input for cluster config file
+// schema input for cluster config file
 func configField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"kind": {
@@ -551,7 +674,7 @@ func serviceAccountsMetadata() map[string]*schema.Schema {
 	return s
 }
 
-//dealing with attach policy inline document object
+// dealing with attach policy inline document object
 func attachPolicyFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"version": {
@@ -1068,11 +1191,13 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 		"volume_iops": {
 			Type:        schema.TypeInt,
 			Optional:    true,
+			Default:     3000,
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"volume_throughput": {
 			Type:        schema.TypeInt,
 			Optional:    true,
+			Default:     125,
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"pre_bootstrap_commands": {
@@ -1216,7 +1341,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 	return s
 }
 
-//@@@
+// @@@
 func kubeLetExtraConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"kube_reserved": {
@@ -1749,11 +1874,13 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 		"volume_iops": {
 			Type:        schema.TypeInt,
 			Optional:    true,
+			Default:     3000,
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"volume_throughput": {
 			Type:        schema.TypeInt,
 			Optional:    true,
+			Default:     125,
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"pre_bootstrap_commands": {
@@ -2104,7 +2231,7 @@ func resourceEKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m int
 
 }
 
-//expand eks cluster function (completed)
+// expand eks cluster function (completed)
 func expandEKSCluster(p []interface{}) *EKSCluster {
 	obj := &EKSCluster{}
 
@@ -2125,7 +2252,7 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 	return obj
 }
 
-//expand eks cluster function (completed)
+// expand eks cluster function (completed)
 func expandEKSClusterConfig(p []interface{}, d *schema.ResourceData, prefix string) *EKSClusterConfig {
 	obj := &EKSClusterConfig{}
 
@@ -2315,6 +2442,7 @@ func eksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte,
 	log.Printf("eksClusterCTL")
 	logger := glogger.GetLogger()
 	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
+	log.Println("errs:", errs)
 	if len(errs) == 0 && len(configMap) > 0 {
 		// Make request
 		log.Println("right bfr for loop->apply")
@@ -2329,7 +2457,7 @@ func eksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte,
 	return "", fmt.Errorf("%s", "config collate error")
 }
 
-//expand metadat for eks metadata file  (completed)
+// expand metadat for eks metadata file  (completed)
 func expandEKSMetaMetadata(p []interface{}) *EKSClusterMetadata {
 	obj := &EKSClusterMetadata{}
 
@@ -2349,7 +2477,7 @@ func expandEKSMetaMetadata(p []interface{}) *EKSClusterMetadata {
 	return obj
 }
 
-//expand metadata for eks spec metadata (completed)
+// expand metadata for eks spec metadata (completed)
 func expandEKSSpecMetadata(p []interface{}) *EKSClusterConfigMetadata {
 	obj := &EKSClusterConfigMetadata{}
 
@@ -2375,7 +2503,7 @@ func expandEKSSpecMetadata(p []interface{}) *EKSClusterConfigMetadata {
 	return obj
 }
 
-//expand secret encryption (completed)
+// expand secret encryption (completed)
 func expandSecretEncryption(p []interface{}) *SecretsEncryption {
 	obj := &SecretsEncryption{}
 
@@ -2435,7 +2563,7 @@ func expandArnFields(p []interface{}) []*IdentityMappingARN {
 	return out
 }
 
-//expand cloud watch function (completed)
+// expand cloud watch function (completed)
 func expandCloudWatch(p []interface{}) *EKSClusterCloudWatch {
 	obj := &EKSClusterCloudWatch{}
 
@@ -2462,7 +2590,7 @@ func expandCloudWatchClusterLogging(p []interface{}) *EKSClusterCloudWatchLoggin
 	return obj
 }
 
-//expand fargate profiles (completed)
+// expand fargate profiles (completed)
 func expandFargateProfiles(p []interface{}) []*FargateProfile {
 	obj := FargateProfile{}
 	out := make([]*FargateProfile, len(p))
@@ -2673,7 +2801,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 	return out
 }
 
-//expand managed node group taints function (completed) (can i use this to expand taints in node group?)
+// expand managed node group taints function (completed) (can i use this to expand taints in node group?)
 func expandManagedNodeGroupTaints(p []interface{}) []NodeGroupTaint {
 
 	out := make([]NodeGroupTaint, len(p))
@@ -2699,7 +2827,7 @@ func expandManagedNodeGroupTaints(p []interface{}) []NodeGroupTaint {
 	return out
 }
 
-//expand managed node group Launch Tempelate function (completed)
+// expand managed node group Launch Tempelate function (completed)
 func expandManagedNodeGroupLaunchTempelate(p []interface{}) *LaunchTemplate {
 	obj := &LaunchTemplate{}
 
@@ -2895,7 +3023,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 	return out
 }
 
-//@@expand KubeletExtraConfig function (completed)
+// @@expand KubeletExtraConfig function (completed)
 func expandKubeletExtraConfig(p []interface{}) *KubeletExtraConfig {
 	obj := &KubeletExtraConfig{}
 
@@ -2922,7 +3050,7 @@ func expandKubeletExtraConfig(p []interface{}) *KubeletExtraConfig {
 	return obj
 }
 
-//expand node group Update Config function (completed)
+// expand node group Update Config function (completed)
 func expandNodeGroupUpdateConfig(p []interface{}) *NodeGroupUpdateConfig {
 	obj := &NodeGroupUpdateConfig{}
 
@@ -2940,7 +3068,7 @@ func expandNodeGroupUpdateConfig(p []interface{}) *NodeGroupUpdateConfig {
 	return obj
 }
 
-//expand node group ASG Metrics Collection function (completed)
+// expand node group ASG Metrics Collection function (completed)
 func expandNodeGroupASGMetricCollection(p []interface{}) []MetricsCollection {
 	out := make([]MetricsCollection, len(p))
 	if len(p) == 0 || p[0] == nil {
@@ -2961,7 +3089,7 @@ func expandNodeGroupASGMetricCollection(p []interface{}) []MetricsCollection {
 	return out
 }
 
-//expand node group Instance Distribution function (completed)
+// expand node group Instance Distribution function (completed)
 func expandNodeGroupInstanceDistribution(p []interface{}) *NodeGroupInstancesDistribution {
 	obj := &NodeGroupInstancesDistribution{}
 
@@ -2993,7 +3121,7 @@ func expandNodeGroupInstanceDistribution(p []interface{}) *NodeGroupInstancesDis
 	return obj
 }
 
-//expand node group Bottle Rocket function (completed)
+// expand node group Bottle Rocket function (completed)
 func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
 	obj := &NodeGroupBottlerocket{}
 
@@ -3011,7 +3139,7 @@ func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
 	return obj
 }
 
-//expand node group instance selector function (completed)
+// expand node group instance selector function (completed)
 func expandNodeGroupInstanceSelector(p []interface{}) *InstanceSelector {
 	obj := &InstanceSelector{}
 
@@ -3035,7 +3163,7 @@ func expandNodeGroupInstanceSelector(p []interface{}) *InstanceSelector {
 	return obj
 }
 
-//expand node group placement function (completed)
+// expand node group placement function (completed)
 func expandNodeGroupPlacement(p []interface{}) *Placement {
 	obj := &Placement{}
 
@@ -3049,7 +3177,7 @@ func expandNodeGroupPlacement(p []interface{}) *Placement {
 	return obj
 }
 
-//expand node group security groups function (completed)
+// expand node group security groups function (completed)
 func expandNodeGroupSecurityGroups(p []interface{}) *NodeGroupSGs {
 	obj := &NodeGroupSGs{}
 
@@ -3069,7 +3197,7 @@ func expandNodeGroupSecurityGroups(p []interface{}) *NodeGroupSGs {
 	return obj
 }
 
-//expand node group iam function (completed/kind of)
+// expand node group iam function (completed/kind of)
 func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 	obj := &NodeGroupIAM{}
 
@@ -3103,7 +3231,7 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 	return obj
 }
 
-//expand attach policy (completed)@@@
+// expand attach policy (completed)@@@
 func expandStatement(p []interface{}) InlineStatement {
 	obj := InlineStatement{}
 
@@ -3123,7 +3251,7 @@ func expandStatement(p []interface{}) InlineStatement {
 	return obj
 }
 
-//expand attach policy (completed)
+// expand attach policy (completed)
 func expandAttachPolicy(p []interface{}) InlineDocument {
 	obj := InlineDocument{}
 
@@ -3140,7 +3268,7 @@ func expandAttachPolicy(p []interface{}) InlineDocument {
 	return obj
 }
 
-//expand node group IAm With Addon Policies function (completed/kind of)
+// expand node group IAm With Addon Policies function (completed/kind of)
 func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolicies {
 	obj := NodeGroupIAMAddonPolicies{}
 
@@ -3194,7 +3322,7 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 	return obj
 }
 
-//expand node group ssh function (completed/ kind of)
+// expand node group ssh function (completed/ kind of)
 func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, prefix string, managed bool) *NodeGroupSSH {
 	obj := &NodeGroupSSH{}
 
@@ -3225,7 +3353,7 @@ func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, pref
 	return obj
 }
 
-//expand private clusters function (completed)
+// expand private clusters function (completed)
 func expandPrivateCluster(p []interface{}) *PrivateCluster {
 	obj := &PrivateCluster{}
 
@@ -3246,7 +3374,7 @@ func expandPrivateCluster(p []interface{}) *PrivateCluster {
 	return obj
 }
 
-//expand addon(completed/kind of)
+// expand addon(completed/kind of)
 func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 	out := make([]*Addon, len(p))
 	if len(p) == 0 || p[0] == nil {
@@ -3287,7 +3415,7 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 	return out
 }
 
-//expand vpc function
+// expand vpc function
 func expandVPC(p []interface{}) *EKSClusterVPC {
 	obj := &EKSClusterVPC{}
 
@@ -3411,7 +3539,7 @@ func expandSubnetSpec(p []interface{}) AZSubnetMapping {
 	return obj
 }
 
-//struct IdentityProviders has one extra field not in documentation or the schema
+// struct IdentityProviders has one extra field not in documentation or the schema
 func expandIdentityProviders(p []interface{}) []IdentityProvider {
 	out := make([]IdentityProvider, len(p))
 	if len(p) == 0 || p[0] == nil {
@@ -3476,7 +3604,7 @@ func expandServiceAccountsMetadata(p []interface{}) *EKSClusterIAMMeta {
 	}
 	in := p[0].(map[string]interface{})
 
-	//is this okay or do i need to store it in metadata, golang gives me access to the containts inside the metadata struct
+	//is this okay or do i need to store it in metadata, golang gives me access to the contents inside the metadata struct
 	if v, ok := in["name"].(string); ok && len(v) > 0 {
 		obj.Name = v
 	}
@@ -3514,7 +3642,9 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 		////@@@TODO Store terraform input as inline document object correctly
 		if v, ok := in["attach_policy"].(string); ok && len(v) > 0 {
 			var policyDoc map[string]interface{}
-			json.Unmarshal([]byte(v), &policyDoc)
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
 			obj.AttachPolicy = policyDoc
 			log.Println("attach policy expanded correct")
 		}
@@ -3638,8 +3768,88 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["proxy_config"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.ProxyConfig = toMapString(v)
 	}
+	if v, ok := in["system_components_placement"].([]interface{}); ok && len(v) > 0 {
+		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
+	}
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		obj.Sharing = expandSharingSpec(v)
+	}
 	log.Println("cluster spec cloud_provider: ", obj.CloudProvider)
 
+	return obj
+}
+
+func expandSystemComponentsPlacement(p []interface{}) *SystemComponentsPlacement {
+	obj := &SystemComponentsPlacement{}
+	log.Println("expandSystemComponentsPlacement")
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["node_selector"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.NodeSelector = toMapString(v)
+	}
+
+	if v, ok := in["tolerations"].([]interface{}); ok && len(v) > 0 {
+		obj.Tolerations = expandTolerations(v)
+	}
+	if v, ok := in["daemonset_override"].([]interface{}); ok && len(v) > 0 {
+		obj.DaemonsetOverride = expandDaemonsetOverride(v)
+	}
+	return obj
+}
+
+func expandTolerations(p []interface{}) []*Tolerations {
+	out := make([]*Tolerations, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		obj := &Tolerations{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["key"].(string); ok && len(v) > 0 {
+			obj.Key = v
+		}
+		if v, ok := in["operator"].(string); ok && len(v) > 0 {
+			obj.Operator = v
+		}
+		if v, ok := in["value"].(string); ok && len(v) > 0 {
+			obj.Value = v
+		}
+		if v, ok := in["effect"].(string); ok && len(v) > 0 {
+			obj.Effect = v
+		}
+		if v, ok := in["toleration_seconds"].(int); ok {
+			if v == 0 {
+				obj.TolerationSeconds = nil
+			} else {
+				log.Println("setting toleration seconds")
+				obj.TolerationSeconds = &v
+			}
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+func expandDaemonsetOverride(p []interface{}) *DaemonsetOverride {
+	obj := &DaemonsetOverride{}
+	log.Println("expand CNI params")
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["node_selection_enabled"].(bool); ok {
+		obj.NodeSelectionEnabled = &v
+	}
+	if v, ok := in["tolerations"].([]interface{}); ok && len(v) > 0 {
+		obj.Tolerations = expandTolerations(v)
+	}
 	return obj
 }
 
@@ -3806,7 +4016,99 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 		obj["proxy_config"] = toMapInterface(in.ProxyConfig)
 	}
 
+	if in.SystemComponentsPlacement != nil {
+		v, ok := obj["system_components_placement"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["system_components_placement"] = flattenSystemComponentsPlacement(in.SystemComponentsPlacement, v)
+	}
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
+
 	return []interface{}{obj}, nil
+}
+
+func flattenSystemComponentsPlacement(in *SystemComponentsPlacement, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	log.Println("got to flatten system comp:", in)
+	log.Println("node_selectopr type: ", reflect.TypeOf(in.NodeSelector))
+	if in.NodeSelector != nil && len(in.NodeSelector) > 0 {
+		obj["node_selector"] = toMapInterface(in.NodeSelector)
+	}
+	if in.Tolerations != nil {
+		v, ok := obj["tolerations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		log.Println("type of read tolerations:", reflect.TypeOf(in.Tolerations), in.Tolerations)
+		obj["tolerations"] = flattenTolerations(in.Tolerations, v)
+	}
+	if in.DaemonsetOverride != nil {
+		v, ok := obj["daemonset_override"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["daemonset_override"] = flattenDaemonsetOverride(in.DaemonsetOverride, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenTolerations(in []*Tolerations, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	log.Println("flattenTolerations")
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Key) > 0 {
+			obj["key"] = in.Key
+		}
+		if len(in.Operator) > 0 {
+			obj["operator"] = in.Operator
+		}
+		if len(in.Value) > 0 {
+			obj["value"] = in.Value
+		}
+		if len(in.Effect) > 0 {
+			obj["effect"] = in.Effect
+		}
+		if in.TolerationSeconds != nil {
+			obj["toleration_seconds"] = in.TolerationSeconds
+		}
+
+		out[i] = &obj
+	}
+	return out
+}
+
+func flattenDaemonsetOverride(in *DaemonsetOverride, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["node_selection_enabled"] = in.NodeSelectionEnabled
+
+	if in.Tolerations != nil {
+		v, ok := obj["tolerations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["tolerations"] = flattenTolerations(in.Tolerations, v)
+	}
+
+	return []interface{}{obj}
 }
 
 func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {
@@ -4261,7 +4563,7 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 
 }
 
-//@@@Flatten attach policy
+// @@@Flatten attach policy
 func flattenAttachPolicy(in InlineDocument, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
@@ -4964,7 +5266,7 @@ func flattenNodeGroupUpdateConfig(in *NodeGroupUpdateConfig, p []interface{}) []
 	return []interface{}{obj}
 }
 
-//Flatten mnanaged Node Groups
+// Flatten mnanaged Node Groups
 func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}) ([]interface{}, error) {
 	if inp == nil {
 		return nil, fmt.Errorf("empty input for managedNodeGroup")
@@ -5160,7 +5462,7 @@ func flattenNodeGroupLaunchTemplate(in *LaunchTemplate, p []interface{}) []inter
 	return []interface{}{obj}
 }
 
-//Flatten Fargate Profiles
+// Flatten Fargate Profiles
 func flattenEKSClusterFargateProfiles(inp []*FargateProfile, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
@@ -5213,7 +5515,7 @@ func flattenFargateProfileSelectors(inp []FargateProfileSelector, p []interface{
 	return out
 }
 
-//flatten Cluster Cloudwatch
+// flatten Cluster Cloudwatch
 func flattenEKSClusterCloudWatch(in *EKSClusterCloudWatch, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
@@ -5245,7 +5547,7 @@ func flattenClusterCloudWatchLogging(in *EKSClusterCloudWatchLogging, p []interf
 	return []interface{}{obj}
 }
 
-//flatten secret encryption
+// flatten secret encryption
 func flattenEKSClusterSecretsEncryption(in *SecretsEncryption, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
@@ -5377,6 +5679,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		v = []interface{}{}
 	}
 	c1, err := flattenEKSCluster(&clusterSpec, v)
+	log.Println("finished flatten eks cluster", c1)
 	if err != nil {
 		log.Printf("flatten eks cluster error %s", err.Error())
 		return diag.FromErr(err)
@@ -5387,6 +5690,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	//flatten cluster config
+	log.Println("trying to unmarshal")
 	clusterConfigSpec := EKSClusterConfig{}
 	err = yaml.Unmarshal([]byte(cfgList["ClusterConfig"][0]), &clusterConfigSpec)
 	if err != nil {

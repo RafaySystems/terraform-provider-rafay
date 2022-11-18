@@ -61,5 +61,4 @@ Optional:
 - `delete` (String)
 - `update` (String)
 
-
 **Note**: ORGANIZATION ADMIN Role manages API key for other users 

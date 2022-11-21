@@ -63,7 +63,7 @@ resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
       on_prem {
         cpu = "2.5"
         gpu = "3.61"
-        ram = "4.3"
+        memory = "4.3"
       }
     }
   }

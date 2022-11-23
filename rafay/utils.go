@@ -528,6 +528,15 @@ func expandFiles(p []interface{}) ([]*File, error) {
 			} else {
 				of.Data = artifactData
 			}
+		} else if strings.HasPrefix(of.Name, "temp://") {
+			//get full path of artifact
+			artifactFullPath := filepath.Join(filepath.Dir("."), of.Name[7:])
+			//retrieve artifact data
+			artifactData, err := ioutil.ReadFile(artifactFullPath)
+			if err != nil {
+				log.Println("unable to read artifact at ", artifactFullPath)
+			}
+			of.Data = artifactData
 		}
 
 		obj[i] = &of

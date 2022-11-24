@@ -486,16 +486,8 @@ func expandCostProfileOnPremCostProfile(p []interface{}) *costpb.OnPremCostProfi
 		obj.Gpu = v
 	}
 
-	if v, ok := in["ram"].(string); ok && len(v) > 0 {
-		obj.Ram = v
-	}
-
-	if v, ok := in["spot_cpu"].(string); ok && len(v) > 0 {
-		obj.SpotCpu = v
-	}
-
-	if v, ok := in["spot_ram"].(string); ok && len(v) > 0 {
-		obj.SpotRam = v
+	if v, ok := in["memory"].(string); ok && len(v) > 0 {
+		obj.Memory = v
 	}
 
 	return obj
@@ -872,16 +864,8 @@ func flattenCostProfileOnPremIP(in *costpb.OnPremCostProfile, p []interface{}) [
 		obj["gpu"] = in.Gpu
 	}
 
-	if len(in.Ram) > 0 {
-		obj["ram"] = in.Ram
-	}
-
-	if len(in.SpotCpu) > 0 {
-		obj["spot_cpu"] = in.SpotCpu
-	}
-
-	if len(in.SpotRam) > 0 {
-		obj["spot_ram"] = in.SpotRam
+	if len(in.Memory) > 0 {
+		obj["memory"] = in.Memory
 	}
 
 	return []interface{}{obj}

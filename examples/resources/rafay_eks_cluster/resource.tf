@@ -319,6 +319,16 @@ resource "rafay_eks_cluster" "ekscluster-basic-im" {
         username = "gopi01"
       }
     }
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+      service_account_role_arn = "xxxxx"
+      attach_policy_arns = ["x","y"]
+    }
+    addons {
+       name = "aws-ebs-csi-driver"
+       version = "latest"
+    }
     node_groups {
       name       = "ng-1"
       ami_family = "AmazonLinux2"

@@ -71,6 +71,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_cluster_mesh_policy":           resourceClusterMeshPolicy(),
 				"rafay_namespace_mesh_rule":           resourceNamespaceMeshRule(),
 				"rafay_namespace_mesh_policy":         resourceNamespaceMeshPolicy(),
+				"rafay_container_registry":            resourceContainerRegistry(),
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,

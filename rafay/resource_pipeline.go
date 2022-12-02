@@ -234,7 +234,7 @@ func resourcePipelineUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("pipeline upsert starts")
+	/*log.Printf("pipeline upsert starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -351,7 +351,7 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 		if err := d.Set("status", status); err != nil {
 			log.Println("status pipeline setting error :", err)
 		}
-	}
+	}*/
 	return diags
 
 }

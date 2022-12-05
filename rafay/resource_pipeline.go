@@ -1467,9 +1467,7 @@ func flattenPipelineSpec(in *gitopspb.PipelineSpec, p []interface{}) ([]interfac
 		obj["triggers"] = flattenTriggerSpec(in.Triggers, v)
 	}
 
-	if in.Sharing != nil {
-		obj["sharing"] = flattenSharingSpec(in.Sharing)
-	}
+	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	obj["active"] = in.Active
 

@@ -962,6 +962,14 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["namespace_config"] = flattenBlueprintNamespaceConfig(in.NamespaceConfig, v)
 	}
 
+	if in.NetworkPolicy != nil {
+		v, ok := obj["network_policy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["network_policy"] = flattenBlueprintNetworkPolicy(in.NetworkPolicy, v)
+	}
+
 	if in.ServiceMesh != nil {
 		v, ok := obj["service_mesh"].([]interface{})
 		if !ok {
@@ -987,6 +995,82 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 	}
 
 	return []interface{}{obj}, nil
+}
+func flattenBlueprintNetworkPolicy(in *infrapb.NetworkPolicy, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.Enabled {
+		obj["enabled"] = in.Enabled
+	}
+
+	if in.Profile != nil {
+		v, ok := obj["profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["profile"] = flattenBlueprintNetworkPolicyProfile(in.Profile, v)
+	}
+
+	if in.Profile != nil {
+		v, ok := obj["policies"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["policies"] = flattenBlueprintNetworkPolicies(in.Policies, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenBlueprintNetworkPolicyProfile(in *commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenBlueprintNetworkPolicies(in []*commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(in))
+
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.Version) > 0 {
+			obj["version"] = in.Version
+		}
+		out[i] = obj
+	}
+	return out
 }
 
 func flattenBlueprintServiceMesh(in *infrapb.ServiceMesh, p []interface{}) []interface{} {

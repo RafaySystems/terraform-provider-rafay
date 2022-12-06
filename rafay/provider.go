@@ -64,6 +64,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_network_policy_profile":        resourceNetworkPolicyProfile(),
 				"rafay_opa_installation_profile":      resourceOPAInstallationProfile(),
 				"rafay_access_apikey":                 resourceAccessApikey(),
+				"rafay_credentials":                   resourceCredentials(),
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,

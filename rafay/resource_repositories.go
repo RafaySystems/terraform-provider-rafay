@@ -430,7 +430,7 @@ func flattenAgents(input []*integrationspb.AgentMeta, p []interface{}) []interfa
 	return out
 }
 
-func flattenCredentials(in *repositorySpec, p []interface{}) []interface{} {
+func flattenRepoCredentials(in *repositorySpec, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -602,7 +602,7 @@ func flattenRepositorySpec(in *integrationspb.RepositorySpec, p []interface{}) (
 	if !ok {
 		v = []interface{}{}
 	}
-	obj["credentials"] = flattenCredentials(&rs, v)
+	obj["credentials"] = flattenRepoCredentials(&rs, v)
 
 	// XXX Debug
 	o1 := spew.Sprintf("%+v", obj)

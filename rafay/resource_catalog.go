@@ -297,7 +297,9 @@ func flattenCatalogSpec(in *appspb.CatalogSpec, p []interface{}) ([]interface{},
 		obj["repository"] = in.Repository
 	}
 
-	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
 
 	if len(in.Type) > 0 {
 		obj["type"] = in.Type

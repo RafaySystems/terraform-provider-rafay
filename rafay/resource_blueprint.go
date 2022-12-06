@@ -964,6 +964,22 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["namespace_config"] = flattenBlueprintNamespaceConfig(in.NamespaceConfig, v)
 	}
 
+	if in.ServiceMesh != nil {
+		v, ok := obj["service_mesh"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["service_mesh"] = flattenBlueprintServiceMesh(in.ServiceMesh, v)
+	}
+
+	if in.CostProfile != nil {
+		v, ok := obj["cost_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["cost_profile"] = flattenBlueprintCostProfile(in.CostProfile, v)
+	}
+
 	if in.Placement != nil {
 		v, ok := obj["placement"].([]interface{})
 		if !ok {
@@ -973,6 +989,108 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 	}
 
 	return []interface{}{obj}, nil
+}
+
+func flattenBlueprintServiceMesh(in *infrapb.ServiceMesh, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.Enabled {
+		obj["enabled"] = in.Enabled
+	}
+
+	if in.Profile != nil {
+		v, ok := obj["profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["profile"] = flattenBlueprintServiceMeshProfile(in.Profile, v)
+	}
+
+	if in.Profile != nil {
+		v, ok := obj["policies"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["policies"] = flattenBlueprintServiceMeshPolicies(in.Policies, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenBlueprintServiceMeshProfile(in *commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenBlueprintServiceMeshPolicies(in []*commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(in))
+
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.Version) > 0 {
+			obj["version"] = in.Version
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+func flattenBlueprintCostProfile(in *infrapb.CostProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.Enabled {
+		obj["enabled"] = in.Enabled
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	return []interface{}{obj}
 }
 
 func flattenBlueprintNamespaceConfig(in *infrapb.NsConfig, p []interface{}) []interface{} {

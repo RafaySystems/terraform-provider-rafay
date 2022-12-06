@@ -393,7 +393,9 @@ func flattenWorkloadTemplateSpec(in *appspb.WorkloadTemplateSpec, p []interface{
 
 	obj["artifact"] = ret
 
-	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
 
 	return []interface{}{obj}, nil
 }

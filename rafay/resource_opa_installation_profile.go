@@ -436,7 +436,9 @@ func flattenOPAInstallationProfileSpec(in *opapb.OPAProfileSpec, p []interface{}
 		obj["excluded_namespaces"] = flattenOpaProfileExcludedNamespaces(in.ExcludedNamespaces, v)
 	}
 
-	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
 
 	return []interface{}{obj}, nil
 }

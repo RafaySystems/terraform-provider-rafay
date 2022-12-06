@@ -313,7 +313,9 @@ func flattenClusterMeshPolicySpec(in *servicemeshpb.ClusterMeshPolicySpec, p []i
 		obj["rules"] = flattenClusterMeshPolicySpecs(in.Rules, v)
 	}
 
-	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
 
 	if len(in.Version) > 0 {
 		obj["version"] = in.Version

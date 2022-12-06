@@ -282,7 +282,9 @@ func flattenNamespaceMeshRuleSpec(in *servicemeshpb.NamespaceMeshRuleSpec, p []i
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
 
 	if len(in.Version) > 0 {
 		obj["version"] = in.Version

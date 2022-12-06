@@ -279,7 +279,9 @@ func flattenSecretSealerSpec(in *integrationspb.SecretSealerSpec, p []interface{
 		obj["type"] = in.Type
 	}
 
-	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
 
 	if len(in.Version) > 0 {
 		obj["version"] = in.Version

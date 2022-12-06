@@ -477,7 +477,9 @@ func flattenOPAPolicySpec(in *opapb.OPAPolicySpec, p []interface{}) ([]interface
 	// 	obj["installation_params"] = flattenInstallationParams(in.InstallationParams, v)
 	// }
 
-	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
 
 	// if in.SyncObjects != nil && len(in.SyncObjects) > 0 {
 	// 	v, ok := obj["sync_objects"].([]interface{})

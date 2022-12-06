@@ -121,8 +121,8 @@ func clusterAKSClusterSpec() map[string]*schema.Schema {
 			Description: "Cloud credentials provider used to create and manage the cluster.",
 		},
 		"cluster_config": {
-			Type:     schema.TypeList,
-			Required: true,
+			Type:        schema.TypeList,
+			Required:    true,
 			Description: "AKS specific cluster configuration	",
 			Elem: &schema.Resource{
 				Schema: clusterAKSClusterConfig(),
@@ -1119,8 +1119,8 @@ func clusterAKSManagedClusterNPOutboundIPs() map[string]*schema.Schema {
 func clusterAKSManagedClusterNPOutboundIPsPublicIps() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"id": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
 			Description: " 	The fully qualified Azure resource id",
 		},
 	}

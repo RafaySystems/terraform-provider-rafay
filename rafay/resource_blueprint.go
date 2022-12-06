@@ -998,6 +998,7 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 
 	return []interface{}{obj}, nil
 }
+
 func flattenBlueprintNetworkPolicy(in *infrapb.NetworkPolicy, p []interface{}) []interface{} {
 	if in == nil {
 		return nil

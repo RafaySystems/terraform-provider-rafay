@@ -313,9 +313,7 @@ func flattenClusterNetworkPolicySpec(in *securitypb.ClusterNetworkPolicySpec, p 
 		obj["rules"] = flattenClusterNetworkPolicySpecRules(in.Rules, v)
 	}
 
-	if in.Sharing != nil {
-		obj["sharing"] = flattenSharingSpec(in.Sharing)
-	}
+	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	if len(in.Version) > 0 {
 		obj["version"] = in.Version

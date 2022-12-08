@@ -948,9 +948,7 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["private_kube_api_proxies"] = flattenKubeAPIProxyNetwork(in.PrivateKubeAPIProxies, v)
 	}
 
-	if in.Sharing != nil {
-		obj["sharing"] = flattenSharingSpec(in.Sharing)
-	}
+	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	if in.Drift != nil {
 		obj["drift"] = flattenDrift(in.Drift)

@@ -34,22 +34,24 @@ type credentialsSpecTranspose struct {
 	//	*CredentialsSpec_Azure
 	//	*CredentialsSpec_Vsphere
 	//	*CredentialsSpec_Minio
-	Credentials struct {
-		Type           string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-		Arn            string `protobuf:"bytes,1,opt,name=arn,proto3" json:"arn,omitempty"`
-		AccessId       string `protobuf:"bytes,1,opt,name=accessId,proto3" json:"accessId,omitempty"`
-		SecretKey      string `protobuf:"bytes,1,opt,name=secretKey,proto3" json:"secretKey,omitempty"`
-		SessionToken   string `protobuf:"bytes,1,opt,name=sessionToken,proto3" json:"sessionToken,omitempty"`
-		File           string `protobuf:"bytes,1,opt,name=file,proto3" json:"file,omitempty"`
-		TenantId       string `protobuf:"bytes,1,opt,name=tenantId,proto3" json:"tenantId,omitempty"`
-		SubscriptionId string `protobuf:"bytes,1,opt,name=subscriptionId,proto3" json:"subscriptionId,omitempty"`
-		ClientId       string `protobuf:"bytes,1,opt,name=clientId,proto3" json:"clientId,omitempty"`
-		ClientSecret   string `protobuf:"bytes,1,opt,name=clientSecret,proto3" json:"clientSecret,omitempty"`
-		GatewayId      string `protobuf:"bytes,1,opt,name=gatewayId,proto3" json:"gatewayId,omitempty"`
-		VsphereServer  string `protobuf:"bytes,1,opt,name=vsphereServer,proto3" json:"vsphereServer,omitempty"`
-		Username       string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
-		Password       string `protobuf:"bytes,1,opt,name=password,proto3" json:"password,omitempty"`
-	}
+	Credentials CredentialsDetailsTranspose `protobuf:"bytes,1,opt,name=credentials,proto3" json:"credentials,omitempty"`
+}
+
+type CredentialsDetailsTranspose struct {
+	Type           string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Arn            string `protobuf:"bytes,1,opt,name=arn,proto3" json:"arn,omitempty"`
+	AccessId       string `protobuf:"bytes,1,opt,name=accessId,proto3" json:"accessId,omitempty"`
+	SecretKey      string `protobuf:"bytes,1,opt,name=secretKey,proto3" json:"secretKey,omitempty"`
+	SessionToken   string `protobuf:"bytes,1,opt,name=sessionToken,proto3" json:"sessionToken,omitempty"`
+	File           string `protobuf:"bytes,1,opt,name=file,proto3" json:"file,omitempty"`
+	TenantId       string `protobuf:"bytes,1,opt,name=tenantId,proto3" json:"tenantId,omitempty"`
+	SubscriptionId string `protobuf:"bytes,1,opt,name=subscriptionId,proto3" json:"subscriptionId,omitempty"`
+	ClientId       string `protobuf:"bytes,1,opt,name=clientId,proto3" json:"clientId,omitempty"`
+	ClientSecret   string `protobuf:"bytes,1,opt,name=clientSecret,proto3" json:"clientSecret,omitempty"`
+	GatewayId      string `protobuf:"bytes,1,opt,name=gatewayId,proto3" json:"gatewayId,omitempty"`
+	VsphereServer  string `protobuf:"bytes,1,opt,name=vsphereServer,proto3" json:"vsphereServer,omitempty"`
+	Username       string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Password       string `protobuf:"bytes,1,opt,name=password,proto3" json:"password,omitempty"`
 }
 
 func resourceCredentials() *schema.Resource {

@@ -962,6 +962,16 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["namespace_config"] = flattenBlueprintNamespaceConfig(in.NamespaceConfig, v)
 	}
 
+	if in.OpaPolicy != nil {
+		v, ok := obj["opa_policy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["opa_policy"] = flattenBlueprintOpaPolicy(in.OpaPolicy, v)
+	} else {
+		obj["opa_policy"] = nil
+	}
+
 	if in.NetworkPolicy != nil {
 		v, ok := obj["network_policy"].([]interface{})
 		if !ok {
@@ -997,6 +1007,36 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 	return []interface{}{obj}, nil
 }
 
+func flattenBlueprintOpaPolicy(in *infrapb.OPAPolicy, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	//obj["enabled"] = true
+
+	if in.Profile != nil {
+		v, ok := obj["profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["profile"] = flattenBlueprintOpaPolicyProfile(in.Profile, v)
+	}
+
+	if in.Profile != nil {
+		v, ok := obj["opa_policy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["opa_policy"] = flattenBlueprintOpaPolicies(in.OpaPolicy, v)
+	}
+
+	return []interface{}{obj}
+}
+
 func flattenBlueprintNetworkPolicy(in *infrapb.NetworkPolicy, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
@@ -1029,6 +1069,27 @@ func flattenBlueprintNetworkPolicy(in *infrapb.NetworkPolicy, p []interface{}) [
 	return []interface{}{obj}
 }
 
+func flattenBlueprintOpaPolicyProfile(in *infrapb.OPAProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	return []interface{}{obj}
+}
+
 func flattenBlueprintNetworkPolicyProfile(in *commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
@@ -1048,6 +1109,33 @@ func flattenBlueprintNetworkPolicyProfile(in *commonpb.ResourceNameAndVersionRef
 	}
 
 	return []interface{}{obj}
+}
+
+func flattenBlueprintOpaPolicies(in []*infrapb.Policy, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(in))
+
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.Version) > 0 {
+			obj["version"] = in.Version
+		}
+
+		obj["enabled"] = true
+
+		out[i] = obj
+	}
+	return out
 }
 
 func flattenBlueprintNetworkPolicies(in []*commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {

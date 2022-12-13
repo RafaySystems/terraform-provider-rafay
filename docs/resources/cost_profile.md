@@ -158,7 +158,7 @@ resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
 
 - `cpu` (String) The cost of CPU per hour.
 - `gpu` (String) The cost of GPU per hour.
-- `memory` (String) The cost of memory per hour.
+- `memory` (String) The cost of memory per GB per hour.
 
 <a id="nestedblock--spec--installation_params--aws--aws_credentials"></a>
 ### Nested Schema for `spec.installation_params.aws.aws_credentials`

@@ -32,7 +32,7 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 | `cost_profile`                            | 1.1.2            |
 | `download_kubeconfig`                     | 1.1.2            |
 | `access_apikey`                           | 1.1.1            |
-| `opa_installation_profile` 
+| `opa_installation_profile`                | 1.1.1            |
 | `cluster_network_policy`                  | 1.1.0            |  
 | `cluster_network_policy_rule`             | 1.1.0            |  
 | `network_policy_profile`                  | 1.1.0            |  

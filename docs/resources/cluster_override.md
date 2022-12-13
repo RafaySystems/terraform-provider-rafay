@@ -11,6 +11,7 @@ description: |-
 A cluster override allows overriding values for add-ons in a cluster.
 
 ## Example Usage
+
 Cluster overrides with inline values.
 
 ```terraform
@@ -138,8 +139,9 @@ resource "rafay_cluster_override" "tfdemocluster-yamloverride1" {
 ### Nested Schema for `metadata`
 
 ***Required***
+
 - `name` - (String) The name of the resource. This must be unique in your organization.
-- `project` - (String) The name of the Rafay project the override will be created in.
+- `project` - (String) The name of the project the override will be created in.
 - `labels` - (Map) A map of string keys and values for organizing and categorizing overrides.
     Note: Same labels are required as shown in the examples.
   - For YAML based "rafay.dev/overrideType" : "manifestsFile"
@@ -149,16 +151,17 @@ resource "rafay_cluster_override" "tfdemocluster-yamloverride1" {
 ### Nested Schema for `spec`
 
 ***Required***
-- `artifact_Type` - (string) Pass only if its YAML based overrides , if not passed HELM type is considered as default override type
+
+- `artifact_Type` - (string) Use only for YAML based overrides. If this is not used, then HELM is used. The default override type is HELM.
 - `cluster_placement` - (Block List, Max: 1) The placement specification of the override resource. (See [below for nested schema](#nestedblock--spec--cluster_placement))
 - `cluster_selector` - (String) The Kubernetes style label selector.
 - `override_values` - (String) Specify override values inline.
 - `resource_selector` - (String) Set the resource for the override.
 - `type` - (String) The override type. Supported value is: `ClusterOverrideTypeAddon`.
 - `value_repo_ref` - (String) The repository name from where to fetch the override values.
-    Note: override_values or value_repo_ref is required.
+    Note: `override_values` or `value_repo_ref` is required.
 - `values_repo_artifact_meta` - (Block List, Max: 1) Repository information. (See [below for nested schema](#nestedblock--spec--values_repo_artifact_meta))
-    Note: This is required if value_repo_ref is used.
+    Note: This is required if `value_repo_ref` is used.
 
 <a id="nestedblock--spec--cluster_placement"></a>
 ### Nested Schema for `spec.cluster_placement`
@@ -189,21 +192,22 @@ resource "rafay_cluster_override" "tfdemocluster-yamloverride1" {
 ***Required***
 
 - `repo_artifact_files` - (Block List) Information about the artifact files for the repository. (See [below for nested schema](#nestedblock--spec--values_repo_artifact_meta--git_options--repo_artifact_files))
-- `revision` - (String) The repository revision(Branch).
+- `revision` - (String) The repository revision (Branch).
 
 <a id="nestedblock--spec--values_repo_artifact_meta--git_options--repo_artifact_files"></a>
 ### Nested Schema for `spec.values_repo_artifact_meta.git_options.revision`
 
 ***Required***
 
-- `file_type` - (String) The file type. Supported value is: `FileTypeNotSet`
+- `file_type` - (String) The file type. Supported value is: `FileTypeNotSet`.
 - `name` - (String) The file name.
-- `relative_path` - (String) The relative path including the filename in the repository.
+- `relative_path` - (String) The relative path, including the filename in the repository.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 ***Optional***
+
 - `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes.
 - `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes.
 - `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes.

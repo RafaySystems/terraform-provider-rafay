@@ -48,31 +48,31 @@ resource "rafay_secret_group" "tfdemosg" {
 
 ***Optional***
 
-- `annotations` (Map of String) A key value map stored with the resource that can be used to store metadata.
 - `description` (String) A description of the resource.
-- `labels` (Map of String) A map of string keys and values for organizing and categorizing resources.
 - `name` (String) The name of the resource.
 - `project` (String) The project of the resource.
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
 
-***Optional***
+***Required***
 
-- `secret` (Block List, Max: 1) The secrets for the secret group. (See [below for nested schema](#nestedblock--spec--secret))
 - `secrets` (Block List) (see [below for nested schema](#nestedblock--spec--secrets))
+
+***Optional***
+- `secret` (Block List, Max: 1) The secrets for the secret group. (See [below for nested schema](#nestedblock--spec--secret))
 
 <a id="nestedblock--spec--secret"></a>
 ### Nested Schema for `spec.secret`
 
-***Optional***
+***Required***
 
 - `name` (String) The relative path of an artifact.
 
 <a id="nestedblock--spec--secrets"></a>
 ### Nested Schema for `spec.secrets`
 
-***Optional***
+***Required***
 
 - `file_path` (String) The path to where the secret will be written.
 - `secret` (String) The name of the secret.

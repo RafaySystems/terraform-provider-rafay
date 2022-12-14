@@ -106,7 +106,7 @@ resource "rafay_eks_cluster" "ekscluster-advanced" {
     spec {
       type           = "eks"
       blueprint      = "default"
-      blueprint_version = "1.12.0"
+      blueprint_version = "1.21.0"
       cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
       proxy_config   = {}
@@ -221,7 +221,7 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
     spec {
       type           = "eks"
       blueprint      = "default"
-      blueprint_version = "1.12.0"
+      blueprint_version = "1.21.0"
       cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
       cni_params {
@@ -295,14 +295,14 @@ resource "rafay_eks_cluster" "ekscluster-basic-im" {
   cluster {
     kind = "Cluster"
     metadata {
-      name    = "testing-im-terraform"
-      project = "defaultproject"
+      name    = "eks-cluster-4"
+      project = "terraform"
     }
     spec {
       type           = "eks"
       blueprint      = "default"
       blueprint_version = "Latest"
-      cloud_provider = "gopi-aws"
+      cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
       proxy_config   = {}
     }
@@ -311,7 +311,7 @@ resource "rafay_eks_cluster" "ekscluster-basic-im" {
 
     kind       = "ClusterConfig"
     metadata {
-      name    = "testing-im-terraform"
+      name    = "eks-cluster-4"
       region  = "us-west-2"
       version = "1.22"
     }
@@ -328,9 +328,9 @@ resource "rafay_eks_cluster" "ekscluster-basic-im" {
     }
     identity_mappings {
       arns {
-        arn = "arn:aws:iam::679196758854:user/gopi01@rafay.co"
-        group = ["dummy"]
-        username = "gopi01"
+        arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:user/<USERNAME>"
+        group = ["groupname"]
+        username = "user"
       }
     }
     node_groups {

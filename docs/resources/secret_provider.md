@@ -13,18 +13,18 @@ A secret provider is a service for managing secrets.
 ## Example Usage
 
 ```terraform
-resource "rafay_secret_provider" "tfdemosecretprovider_gitrepo" {
+resource "rafay_secret_provider" "tfdemosecretprovider" {
   metadata {
-    name    = "test"
-    project = "defaultproject"
+    name    = "secret"
+    project = "terraform"
   }
   spec {
     artifact {
       artifact {
         paths {
-          name = "aws-csi1-bp-change/projects/defaultproject/secretproviderclasses/artifacts/two/aws-sample.yaml"
+          name = "projects/terraform/secretproviderclasses/artifacts/aws-sample.yaml"
         }
-        repository = "github-test"
+        repository = "github"
         revision   = "main"
       }
       options {}
@@ -57,116 +57,46 @@ resource "rafay_secret_provider" "tfdemosecretprovider_gitrepo" {
 
 ***Optional***
 
-- `annotations` (Map of String) The annotations of the resource.
 - `description` (String) The description of the resource.
-- `labels` (Map of String) Labels are key/value pairs that are attached to objects, such as pods. Labels are intended to be used to specify identifying attributes of objects that are meaningful and relevant to users.
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
 
-***Optional***
+***Required***
 
 - `artifact` (Block List, Max: 1) The secret provider class artifact specification. (See [below for nested schema](#nestedblock--spec--artifact))
+- `provider` (String) The name of the secret provider class. Supported value is: `AWS`
+
+***Optional***
+
 - `parameters` (Map of String) The secret provider class parameters.
-- `provider` (String) The name of the secret provider class.
+
 
 <a id="nestedblock--spec--artifact"></a>
 ### Nested Schema for `spec.artifact`
 
-***Optional***
+***Required***
 
 - `artifact` (Block List, Max: 1) Contains data about the artifact. (See [below for nested schema](#nestedblock--spec--artifact--artifact))
+
+***Optional***
+
 - `options` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--artifact--options))
-- `type` (String) The type of artifact.
+- `type` (String) The type of artifact. Supported value is: `Yaml`
 
 <a id="nestedblock--spec--artifact--artifact"></a>
 ### Nested Schema for `spec.artifact.artifact`
 
-***Optional***
+***Required***
 
-- `catalog` (String) The name of the Helm catalog.
-- `chart_name` (String) The name of the chart.
-- `chart_path` (Block List, Max: 1) The relative path to the chart file in the Git repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
-- `chart_version` (String) The version of the chart.
-- `configmap` (Block List, Max: 1) The relative paths to the alert manager configmap file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--configmap))
-- `configuration` (Block List, Max: 1) The relative paths to the alert manager configuration file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--configuration))
 - `paths` (Block List) The relative paths to the file in the Git repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact--paths))
 - `repository` (String) The name of the Helm repository.
 - `revision` (String) The branch or tag in the Git repository.
-- `secret` (Block List, Max: 1) The relative paths to the alert manager secret file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--secret))
-- `statefulset` (Block List, Max: 1) The relative paths to the alert manager statefulset file. (See [below for nested schema](#nestedblock--spec--artifact--artifact--statefulset))
-- `values_paths` (Block List) The relative paths to the values files. (See [below for nested schema](#nestedblock--spec--artifact--artifact--values_paths))
-- `values_ref` (Block List, Max: 1) Override the relative paths to the values files. (See [below for nested schema](#nestedblock--spec--artifact--artifact--values_ref))
 
-<a id="nestedblock--spec--artifact--artifact--chart_path"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
+<a id="nestedblock--spec--artifact--artifact--paths></a>
+### Nested Schema for `spec.artifact.artifact.paths`
 
-***Optional***
-
-- `name` (String) The relative path of an artifact.
-
-
-<a id="nestedblock--spec--artifact--artifact--configmap"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact.
-
-
-<a id="nestedblock--spec--artifact--artifact--configuration"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact.
-
-
-<a id="nestedblock--spec--artifact--artifact--paths"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact.
-
-
-<a id="nestedblock--spec--artifact--artifact--secret"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact.
-
-
-<a id="nestedblock--spec--artifact--artifact--statefulset"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact.
-
-
-<a id="nestedblock--spec--artifact--artifact--values_paths"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `name` (String) The relative path of an artifact.
-
-
-<a id="nestedblock--spec--artifact--artifact--values_ref"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref`
-
-***Optional***
-
-- `repository` (String) The name of the Git repository.
-- `revision` (String) The branch or tag in the Git repository.
-- `values_paths` (Block List) The relative path to the value file in the Git repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact--values_ref--values_paths))
-
-<a id="nestedblock--spec--artifact--artifact--values_ref--values_paths"></a>
-### Nested Schema for `spec.artifact.artifact.values_ref.values_paths`
-
-***Optional***
+***Required***
 
 - `name` (String) The relative path of an artifact.
 
@@ -175,21 +105,8 @@ resource "rafay_secret_provider" "tfdemosecretprovider_gitrepo" {
 
 ***Optional***
 
-- `atomic` (Boolean) Enables rolling back changes made in case of an upgrade fails.
-- `clean_up_on_fail` (Boolean) Enables deleting new resources created during an upgrade if the upgrade fails.
-- `description` (String) A description for the release.
 - `disable_open_api_validation` (Boolean) Disables the OpenAPI validation when upgrading.
 - `force` (Boolean) Enables forcing resource updates through a replacement strategy.
-- `keep_history` (Boolean) Enables keeping the release history after uninstalling.
-- `max_history` (Number) Sets the limit of the Helm artifact history.
-- `no_hooks` (Boolean) Disables pre and post upgrade hooks.
-- `render_sub_chart_notes` (Boolean) Enables rendering subchart notes.
-- `reset_values` (Boolean) Resets existing Helm values to the ones built into the chart when upgrading.
-- `reuse_values` (Boolean) Reuses existing values used in the last release when upgrading.
-- `set_string` (List of String) Enables passing custom Helm values as `key=value`.
-- `skip_crd` (Boolean) Skips deploying CRDs when upgrading.
-- `timeout` (String) Enables waiting for the resources to become ready.
-- `wait` (Boolean) Waits until resources are in the ready state before marking the release as successful.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

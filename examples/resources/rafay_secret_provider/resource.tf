@@ -1,13 +1,13 @@
-resource "rafay_secret_provider" "tfdemosecretprovider_gitrepo" {
+resource "rafay_secret_provider" "tfdemosecretprovider" {
   metadata {
-    name    = "test"
-    project = "defaultproject"
+    name    = "secret"
+    project = "terraform"
   }
   spec {
     artifact {
       artifact {
         paths {
-          name = "aws-csi1-bp-change/projects/defaultproject/secretproviderclasses/artifacts/two/aws-sample.yaml"
+          name = "projects/terraform/secretproviderclasses/artifacts/aws-sample.yaml"
         }
         repository = "github-test"
         revision = "main"

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"sort"
 	"strings"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/RafaySystems/rctl/pkg/project"
+	"github.com/davecgh/go-spew/spew"
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 
@@ -121,8 +121,8 @@ func clusterAKSClusterSpec() map[string]*schema.Schema {
 			Description: "Cloud credentials provider used to create and manage the cluster.",
 		},
 		"cluster_config": {
-			Type:        schema.TypeList,
-			Required:    true,
+			Type:     schema.TypeList,
+			Required: true,
 			Description: "AKS specific cluster configuration	",
 			Elem: &schema.Resource{
 				Schema: clusterAKSClusterConfig(),
@@ -1119,8 +1119,8 @@ func clusterAKSManagedClusterNPOutboundIPs() map[string]*schema.Schema {
 func clusterAKSManagedClusterNPOutboundIPsPublicIps() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"id": {
-			Type:        schema.TypeString,
-			Optional:    true,
+			Type:     schema.TypeString,
+			Optional: true,
 			Description: " 	The fully qualified Azure resource id",
 		},
 	}
@@ -2970,7 +2970,8 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 	}
 
 	out := make([]*AKSNodePool, len(p))
-	outToSort := make([]AKSNodePool, len(p))
+	//outToSort := make([]AKSNodePool, len(p))
+	//var sortByName []string
 	for i := range p {
 		obj := AKSNodePool{}
 		in := p[i].(map[string]interface{})
@@ -2981,6 +2982,7 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
+			//sortByName = append(sortByName, v)
 		}
 
 		if v, ok := in["properties"].([]interface{}); ok && len(v) > 0 {
@@ -2994,13 +2996,23 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 		if v, ok := in["location"].(string); ok && len(v) > 0 {
 			obj.Location = v
 		}
-		outToSort[i] = obj
+		out[i] = &obj
 	}
 
-	sort.Sort(ByNodepoolName(outToSort))
-	for i := range outToSort {
-		out[i] = &outToSort[i]
-	}
+	//var sortedOut []*commonpb.ProjectMeta
+	// for i, name := range sortByName {
+	// 	for _, val := range outToSort {
+	// 		if name == val.Name {
+	// 			out[i] = &val
+	// 		}
+	// 	}
+	// }
+	// sort.Sort(ByNodepoolName(outToSort))
+	// for i := range outToSort {
+	// 	out[i] = &outToSort[i]
+	// }
+	n1 := spew.Sprintf("%+v", out)
+	log.Println("expand sorted node pools:", n1)
 
 	return out
 }
@@ -4802,15 +4814,17 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 	}
 
 	// sort the incoming nodepools
-	inToSort := make([]AKSNodePool, len(in))
-	for i := range in {
-		inToSort[i] = *in[i]
-	}
-	sort.Sort(ByNodepoolName(inToSort))
-	for i := range inToSort {
-		in[i] = &inToSort[i]
-	}
-
+	// inToSort := make([]AKSNodePool, len(in))
+	// for i := range in {
+	// 	inToSort[i] = *in[i]
+	// }
+	// sort.Sort(ByNodepoolName(inToSort))
+	// for i := range inToSort {
+	// 	in[i] = &inToSort[i]
+	// }
+	n1 := spew.Sprintf("%+v", in)
+	log.Println("flatten sorted node pools:", n1)
+	//log.Println("sorted node pools:", in)
 	out := make([]interface{}, len(in))
 	for i, in := range in {
 
@@ -5193,6 +5207,7 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 
 	if v, ok := d.Get("metadata").([]interface{}); ok {
 		obj.Metadata = expandAKSClusterMetadata(v)
+		log.Println("md:", obj.Metadata)
 	} else {
 		log.Println("metadata unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
@@ -5208,7 +5223,7 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	projectName := obj.Metadata.Project
 	_, err := project.GetProjectByName(projectName)
 	if err != nil {
-		log.Println("project name missing in the resource")
+		log.Println("project name missing in the resource", err)
 		return diag.FromErr(fmt.Errorf("%s", "Project name missing in the resource"))
 	}
 

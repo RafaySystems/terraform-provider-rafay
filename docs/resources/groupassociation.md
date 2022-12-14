@@ -42,7 +42,7 @@ resource "rafay_groupassociation" "groupassociation" {
 
 - `group` - (String) The name of the group to associate the roles to.
 - `project` - (String) The name of the project.
-- `roles` - (List of String) The roles to associate with the group. Supported values are: `ADMIN`, `ADMINISTRATOR_READ_ONLY`, `CLUSTER_ADMIN`, `PROJECT_ADMIN`, `PROJECT_READ_ONLY`, `INFRA_ADMIN`, `INFRA_READ_ONLY`, `NAMESPACE_ADMIN`, `NAMESPACE_READ_ONLY`, and `WORKSPACE_ADMIN`.
+- `roles` - (List of String) The roles to associate with the group. Supported values are: `ADMIN`, `ADMINISTRATOR_READ_ONLY`, `CLUSTER_ADMIN`, `PROJECT_ADMIN`, `PROJECT_READ_ONLY`, `INFRA_ADMIN`, `INFRA_READ_ONLY`, `NAMESPACE_ADMIN`, `NAMESPACE_READ_ONLY`, `WORKSPACE_ADMIN` and `WORKSPACE_READ_ONLY`.
 
 ***Note***: For roles `ADMIN` and `ADMINISTRATOR_READ_ONLY`, project name `defaultproject` needs to be passed.
 

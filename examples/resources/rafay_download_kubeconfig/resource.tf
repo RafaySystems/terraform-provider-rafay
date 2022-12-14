@@ -1,6 +1,5 @@
 resource "rafay_download_kubeconfig" "tfkubeconfig" {
-  namespace          = "vault"
-  cluster            = "hardik-pwc-test"
-  output_folder_path = ""
-  filename           = "kc-testfile"
+  cluster            = "terraform"
+  output_folder_path = "/tmp"
+  filename           = "kubeconfig"
 }

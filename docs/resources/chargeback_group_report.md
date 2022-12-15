@@ -42,6 +42,8 @@ resource "rafay_chargeback_group_report" "tfdemochargebackgroupreport1" {
 
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
+<a id="nestedblock--metadata"></a>
+### Nested Schema for `metadata`
 
 ***Required***
 

@@ -37,6 +37,8 @@ resource "rafay_chargeback_share" "tfdemochargebackshare" {
 
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
+<a id="nestedblock--metadata"></a>
+### Nested Schema for `metadata`
 
 ***Required***
 

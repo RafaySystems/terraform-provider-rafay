@@ -1,0 +1,282 @@
+package rafay
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
+	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/systempb"
+	"github.com/RafaySystems/rctl/pkg/config"
+	"github.com/RafaySystems/rctl/pkg/versioninfo"
+	"github.com/davecgh/go-spew/spew"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+func resourceChargebackGroupReport() *schema.Resource {
+	return &schema.Resource{
+		CreateContext: resourceChargebackGroupReportCreate,
+		ReadContext:   resourceChargebackGroupReportRead,
+		UpdateContext: resourceChargebackGroupReportUpdate,
+		DeleteContext: resourceChargebackGroupReportDelete,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(10 * time.Minute),
+		},
+
+		SchemaVersion: 1,
+		Schema:        resource.ChargebackGroupReportSchema.Schema,
+	}
+}
+
+func resourceChargebackGroupReportCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("ChargebackGroupReport create starts")
+	diags := resourceChargebackGroupReportUpsert(ctx, d, m)
+	if diags.HasError() {
+		tflog := os.Getenv("TF_LOG")
+		if tflog == "TRACE" || tflog == "DEBUG" {
+			ctx = context.WithValue(ctx, "debug", "true")
+		}
+		log.Printf("chargebackGroupReport create got error, perform cleanup")
+		mp, err := expandChargebackGroupReport(d)
+		if err != nil {
+			log.Printf("chargebackGroupReport expandChargebackGroupReport error")
+			return diags
+		}
+		auth := config.GetConfig().GetAppAuthProfile()
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+		if err != nil {
+			return diags
+		}
+
+		err = client.SystemV3().ChargebackGroupReport().Delete(ctx, options.DeleteOptions{
+			Name:    mp.Metadata.Name,
+			Project: mp.Metadata.Project,
+		})
+		if err != nil {
+			return diags
+		}
+	}
+	return diags
+}
+
+func resourceChargebackGroupReportUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	err := fmt.Errorf("ChargebackGroupReport Read and Update not supported")
+	return diag.FromErr(err)
+}
+
+func resourceChargebackGroupReportUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	log.Printf("chargebackGroupReport upsert starts")
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
+
+	if d.State() != nil && d.State().ID != "" {
+		n := GetMetaName(d)
+		if n != "" && n != d.State().ID {
+			log.Printf("metadata name change not supported")
+			d.State().Tainted = true
+			return diag.FromErr(fmt.Errorf("%s", "metadata name change not supported"))
+		}
+	}
+
+	chargebackGroupReport, err := expandChargebackGroupReport(d)
+	if err != nil {
+		log.Printf("chargebackGroupReport expandChargebackGroupReport error")
+		return diag.FromErr(err)
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = client.SystemV3().ChargebackGroupReport().Apply(ctx, chargebackGroupReport, options.ApplyOptions{})
+	if err != nil {
+		// XXX Debug
+		n1 := spew.Sprintf("%+v", chargebackGroupReport)
+		log.Println("chargebackGroupReport apply chargebackGroupReport:", n1)
+		log.Printf("chargebackGroupReport apply error")
+		return diag.FromErr(err)
+	}
+
+	d.SetId(chargebackGroupReport.Metadata.Name)
+	return diags
+
+}
+
+func resourceChargebackGroupReportRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	err := fmt.Errorf("ChargebackGroupReport Read and Update not supported")
+	return diag.FromErr(err)
+}
+
+func resourceChargebackGroupReportDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	err := fmt.Errorf("ChargebackGroupReport Delete is not supported")
+	return diag.FromErr(err)
+}
+
+func expandChargebackGroupReport(in *schema.ResourceData) (*systempb.ChargebackGroupReport, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "expand chargebackGroupReport empty input")
+	}
+	obj := &systempb.ChargebackGroupReport{}
+
+	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
+		obj.Metadata = expandMetaData(v)
+	}
+
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
+		objSpec, err := expandChargebackGroupReportSpec(v)
+		if err != nil {
+			return nil, err
+		}
+		log.Println("expandChargebackGroupReportSpec got spec")
+		obj.Spec = objSpec
+	}
+
+	obj.ApiVersion = "system.k8smgmt.io/v3"
+	obj.Kind = "ChargebackGroupReport"
+	return obj, nil
+}
+
+func expandChargebackGroupReportSpec(p []interface{}) (*systempb.ChargebackGroupReportSpec, error) {
+	obj := &systempb.ChargebackGroupReportSpec{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, fmt.Errorf("%s", "expandChargebackGroupReportSpec empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["report_url"].(string); ok && len(v) > 0 {
+		obj.ReportUrl = v
+	}
+
+	if v, ok := in["start_date"].([]interface{}); ok {
+		startDate, err := expandEpochTimeStamp(v)
+		if err != nil {
+			return obj, err
+		}
+		obj.StartDate = startDate
+	}
+
+	if v, ok := in["end_date"].([]interface{}); ok {
+		endDate, err := expandEpochTimeStamp(v)
+		if err != nil {
+			return obj, err
+		}
+		obj.EndDate = endDate
+	}
+
+	if v, ok := in["group_name"].(string); ok && len(v) > 0 {
+		obj.GroupName = v
+	}
+
+	if v, ok := in["report_location"].(string); ok && len(v) > 0 {
+		obj.ReportLocation = v
+	}
+
+	if v, ok := in["url_expiry"].(string); ok && len(v) > 0 {
+		obj.UrlExpiry = v
+	}
+
+	return obj, nil
+}
+
+func expandEpochTimeStamp(p []interface{}) (*timestamppb.Timestamp, error) {
+	obj := &timestamppb.Timestamp{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, fmt.Errorf("%s", "expandEpochTimeStamp empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["seconds"].(int); ok {
+		obj.Seconds = int64(v)
+	}
+
+	if v, ok := in["nanos"].(int); ok {
+		obj.Nanos = int32(v)
+	}
+
+	return obj, nil
+}
+
+// Flatteners
+
+func flattenChargebackGroupReport(d *schema.ResourceData, in *systempb.ChargebackGroupReport) error {
+	if in == nil {
+		return nil
+	}
+
+	err := d.Set("metadata", flattenMetaData(in.Metadata))
+	if err != nil {
+		return err
+	}
+
+	v, ok := d.Get("spec").([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+
+	var ret []interface{}
+	ret, err = flattenChargebackGroupReportSpec(in.Spec, v)
+	if err != nil {
+		return err
+	}
+
+	err = d.Set("spec", ret)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func flattenChargebackGroupReportSpec(in *systempb.ChargebackGroupReportSpec, p []interface{}) ([]interface{}, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "flattenChargebackGroupReportSpec empty input")
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ReportUrl) > 0 {
+		obj["report_url"] = in.ReportUrl
+	}
+
+	if in.StartDate != nil {
+		obj["start_date"] = in.StartDate
+	}
+
+	if in.EndDate != nil {
+		obj["end_date"] = in.EndDate
+	}
+
+	if len(in.GroupName) > 0 {
+		obj["group_name"] = in.GroupName
+	}
+
+	if len(in.ReportLocation) > 0 {
+		obj["report_location"] = in.ReportLocation
+	}
+
+	if len(in.UrlExpiry) > 0 {
+		obj["url_expiry"] = in.UrlExpiry
+	}
+
+	return []interface{}{obj}, nil
+}

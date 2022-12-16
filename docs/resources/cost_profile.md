@@ -106,6 +106,9 @@ resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
 
 - `timeouts` (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
 
+<a id="nestedblock--metadata"></a>
+### Nested Schema for `metadata`
+
 ***Required***
 
 - `name` - (String) The name of the resource. This must be unique to the organization.

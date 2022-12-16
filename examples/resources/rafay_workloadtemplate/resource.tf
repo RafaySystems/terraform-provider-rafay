@@ -103,3 +103,24 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate5" {
     }
   }
 }
+
+# Create a workload template from catalog
+resource "rafay_workloadtemplate" "tftestworkloadtemplate6" {
+  metadata {
+    name    = "tftestworkloadtemplate6"
+    project = "terraform"
+  }
+  spec {
+    artifact {
+      type = "Helm"
+      artifact{
+        repository = "catalogName"
+        chart_name = "chartName"
+        chart_version = "chartVersion"
+        values_paths {
+          name = "file://relative/path/to/some/chart/values.yaml"
+        }
+      }
+    }
+  }
+}

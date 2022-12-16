@@ -2,11 +2,7 @@
 resource "rafay_addon" "tfdemoaddon1" {
   metadata {
     name    = "tfdemoaddon1"
-    project = "upgrade"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
+    project = "terraform"
   }
   spec {
     namespace = "tfdemonamespace1"
@@ -28,15 +24,10 @@ resource "rafay_addon" "tfdemoaddon1" {
 
 
 # Helm Chart Upload Example
-
 resource "rafay_addon" "tfdemoaddon4" {
   metadata {
     name    = "tfdemoaddon4"
-    project = "upgrade"
-    labels = {
-      env  = "dev"
-      name = "app"
-    }
+    project = "terraform"
   }
   spec {
     namespace = "tfdemonamespace1"
@@ -56,10 +47,37 @@ resource "rafay_addon" "tfdemoaddon4" {
     sharing {
       enabled = true
       projects {
-        name = "addons"
+        name = "project1"
       }
       projects {
-        name = "ankurp"
+        name = "project2"
+      }
+    }
+  }
+}
+
+# Catalog Example
+resource "rafay_addon" "tfdemoaddon2" {
+  metadata {
+    name    = "tfdemoaddon2"
+    project = "terraform"
+  }
+  spec {
+    namespace = "tfdemonamespace1"
+    version   = "v1.0"
+    artifact {
+      type = "Helm"
+      artifact {
+        catalog = "catalogName"
+        chart_name = "chartName"
+        chart_version = "chartVersion"
+        values_paths {
+          name = "file://relative/path/to/some/chart/values.yaml"
+        }
+      }
+      options {
+        max_history = 10
+        timeout = "5m0s"
       }
     }
   }

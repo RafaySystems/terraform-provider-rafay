@@ -168,3 +168,29 @@ resource "rafay_workload" "tftestworkload6" {
     }
   }
 }
+
+# Create a workload from catalog
+resource "rafay_workload" "tftestworkload7" {
+  metadata {
+    name    = "tftestworkload7"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload7"
+    version = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm"
+      artifact{
+        catalog = "catalogName"
+        chart_name = "chartName"
+        chart_version = "chartVersion"
+         values_paths {
+          name = "file://relative/path/to/some/chart/values.yaml"
+        }
+      }
+    }
+  }
+}

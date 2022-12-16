@@ -137,6 +137,7 @@ resource "rafay_addon" "tfdemoaddon2" {
 
 ***Optional***
 
+- `catalog` (String) The name of the Helm catalog.
 - `chart_name` - (String) The name of the chart. 
 - `chart_path` - (Block List, Max: 1) The relative path to the chart file in the Git repository. (See [below for nested schema](#nestedblock--spec--artifact--artifact--chart_path))
 - `chart_version` - (String) The version of the chart. 

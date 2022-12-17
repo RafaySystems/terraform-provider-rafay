@@ -154,6 +154,15 @@ func clusterAKSClusterSpec() map[string]*schema.Schema {
 			Optional: true,
 			Type:     schema.TypeList,
 		},
+		//is it fine if we link it to eks cluster system component placement?
+		"system_components_placement": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Configure tolerations and nodeSelector for system components",
+			Elem: &schema.Resource{
+				Schema: systemComponentsPlacementFields(),
+			},
+		},
 	}
 	return s
 }

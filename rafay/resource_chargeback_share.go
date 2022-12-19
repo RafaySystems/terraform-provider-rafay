@@ -250,9 +250,7 @@ func flattenChargebackShareSpec(in *systempb.ChargebackShareSpec, p []interface{
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.ShareEnabled {
-		obj["share_enabled"] = in.ShareEnabled
-	}
+	obj["share_enabled"] = in.ShareEnabled
 
 	if len(in.ShareType) > 0 {
 		obj["share_type"] = in.ShareType

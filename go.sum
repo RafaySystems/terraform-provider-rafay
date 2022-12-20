@@ -200,10 +200,10 @@ github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdko
 github.com/RafaySystems/eaas-playground v0.0.0-20221122191953-47bce7fa561b h1:sZn9W/cSUW0vBRwF3nLCRIwuS7v9/tssRj3KPBOokyk=
 github.com/RafaySystems/eaas-playground v0.0.0-20221122191953-47bce7fa561b/go.mod h1:vLzseiNZjIYRu9PsVegyG/ORPbcnaDkf5aSOZTI7PXU=
 github.com/RafaySystems/rafay-common v1.17.0-opa.0.20220920101302-34e59452542d/go.mod h1:jI6qja62bbqn+0ZvmoaO7zhPx92HVyZXFtXBzLZ99yE=
-github.com/RafaySystems/rafay-common v1.20.0-betac1 h1:HRwxCc3UfAndE6sv4efVWiyoOZyrUIrC4dgwH9VBtpQ=
-github.com/RafaySystems/rafay-common v1.20.0-betac1/go.mod h1:fzqQ/x2X/yMNZuvjY/CkyVTVQDmIlZlcEafbVp9B6vg=
-github.com/RafaySystems/rctl v1.18.1-beta5 h1:udy/ovvNERccyT4nxD0Fhwg21RvVu30nyfMVJg3h7CI=
-github.com/RafaySystems/rctl v1.18.1-beta5/go.mod h1:2xnV+B8LiYVYNxnoYT3gAt7qriAgaiMPonWAFivST9I=
+github.com/RafaySystems/rafay-common v1.21.0-alpha1.0.20221121102348-f1f0f65b9e4a h1:ahI4+X1o/t0V5EgAwYYhxGmkHEFfw6ZuGF+B5+82Guc=
+github.com/RafaySystems/rafay-common v1.21.0-alpha1.0.20221121102348-f1f0f65b9e4a/go.mod h1:/JJab3oqJnPVCvVJJ487zJYH64QdqQt+IaQ1fmTW+Fg=
+github.com/RafaySystems/rctl v1.18.1-beta6 h1:rCNpY4qlT9EMyqCULizP6uu81jFRuvOmQVWtlpcOQvU=
+github.com/RafaySystems/rctl v1.18.1-beta6/go.mod h1:2xnV+B8LiYVYNxnoYT3gAt7qriAgaiMPonWAFivST9I=
 github.com/RoaringBitmap/roaring v0.6.1 h1:O36Tdaj1Fi/zyr25shTHwlQPGdq53+u4WkM08AOEjiE=
 github.com/RoaringBitmap/roaring v0.6.1/go.mod h1:WZ83fjBF/7uBHi6QoFyfGL4+xuV4Qn+xFkm4+vSzrhE=
 github.com/Shopify/logrus-bugsnag v0.0.0-20171204204709-577dee27f20d/go.mod h1:HI8ITrYtUY+O+ZhtlqUnD8+KwNPOyugEhfP9fdUIaEQ=

@@ -183,7 +183,7 @@ resource "rafay_workload" "tftestworkload6" {
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
-    version = "v0"
+	version = "v0"
     artifact {
       type = "Helm"
       artifact {
@@ -279,6 +279,7 @@ resource "rafay_workload" "tftestworkload6" {
 
 ***Optional***
 
+- `catalog` (String) The name of the Helm catalog.
 - `values_ref` (Block List, Max: 1) Override relative paths to values files (see [below for nested schema](#nestedblock--spec--artifact--artifact--values_ref))
 
 **Note**: 

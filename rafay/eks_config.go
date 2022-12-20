@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 )
 
 // EKSNGInfoProvider interface provides node group information
@@ -97,13 +99,36 @@ type EKSCluster struct {
 }
 
 type EKSSpec struct {
-	Type             string            `yaml:"type,omitempty"`
-	Blueprint        string            `yaml:"blueprint,omitempty"`
-	BlueprintVersion string            `yaml:"blueprintversion,omitempty"`
-	CloudProvider    string            `yaml:"cloudprovider,omitempty"`
-	CniProvider      string            `yaml:"cniprovider,omitempty"`
-	ProxyConfig      map[string]string `yaml:"proxyconfig,omitempty"`
-	CniParams        *CustomCni        `yaml:"cniparams,omitempty"`
+	Type                      string                     `yaml:"type,omitempty"`
+	Blueprint                 string                     `yaml:"blueprint,omitempty"`
+	BlueprintVersion          string                     `yaml:"blueprintversion,omitempty"`
+	CloudProvider             string                     `yaml:"cloudprovider,omitempty"`
+	CniProvider               string                     `yaml:"cniprovider,omitempty"`
+	ProxyConfig               map[string]string          `yaml:"proxyconfig,omitempty"`
+	CniParams                 *CustomCni                 `yaml:"cniparams,omitempty"`
+	SystemComponentsPlacement *SystemComponentsPlacement `yaml:"systemComponentsPlacement,omitempty"`
+	Sharing                   *commonpb.SharingSpec      `yaml:"sharing,omitempty"`
+}
+
+type SystemComponentsPlacement struct {
+	NodeSelector map[string]string `yaml:"nodeSelector,omitempty"`
+	Tolerations  []*Tolerations    `yaml:"tolerations,omitempty"`
+	//Tolerations       map[string]interface{} `yaml:"tolerations,omitempty"`
+	DaemonsetOverride *DaemonsetOverride `yaml:"daemonsetOverride,omitempty"`
+}
+
+type Tolerations struct {
+	Key               string `yaml:"key,omitempty"`
+	Operator          string `yaml:"operator,omitempty"`
+	Value             string `yaml:"value,omitempty"`
+	Effect            string `yaml:"effect,omitempty"`
+	TolerationSeconds *int   `yaml:"tolerationSeconds,omitempty"`
+}
+
+type DaemonsetOverride struct {
+	NodeSelectionEnabled *bool          `yaml:"nodeSelectionEnabled,omitempty"`
+	Tolerations          []*Tolerations `yaml:"tolerations,omitempty"`
+	//Tolerations map[string]interface{} `yaml:"tolerations,omitempty"`
 }
 
 type CustomCNIMapping map[string][]CustomCniSpec

@@ -360,29 +360,23 @@ func flattenChargebackGroupSpec(in *systempb.ChargebackGroupSpec, p []interface{
 		obj["type"] = in.Type
 	}
 
-	if in.Aggregate != nil {
-		v, ok := obj["aggregate"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["aggregate"] = flattenChargebackGroupSpecAggregate(in.Aggregate, v)
+	v, ok := obj["aggregate"].([]interface{})
+	if !ok {
+		v = []interface{}{}
 	}
+	obj["aggregate"] = flattenChargebackGroupSpecAggregate(in.Aggregate, v)
 
-	if in.Inclusions != nil {
-		v, ok := obj["inclusions"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["inclusions"] = flattenChargebackGroupSpecFilters(in.Inclusions, v)
+	v, ok = obj["inclusions"].([]interface{})
+	if !ok {
+		v = []interface{}{}
 	}
+	obj["inclusions"] = flattenChargebackGroupSpecFilters(in.Inclusions, v)
 
-	if in.Exclusions != nil {
-		v, ok := obj["exclusions"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["exclusions"] = flattenChargebackGroupSpecFilters(in.Exclusions, v)
+	v, ok = obj["exclusions"].([]interface{})
+	if !ok {
+		v = []interface{}{}
 	}
+	obj["exclusions"] = flattenChargebackGroupSpecFilters(in.Exclusions, v)
 
 	return []interface{}{obj}, nil
 }

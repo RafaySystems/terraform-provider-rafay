@@ -17,6 +17,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/hashicorp/go-cty/cty"
 	jsoniter "github.com/json-iterator/go"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -2252,13 +2253,14 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 }
 
 // expand eks cluster function (completed)
-func expandEKSClusterConfig(p []interface{}) *EKSClusterConfig {
+func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterConfig {
 	obj := &EKSClusterConfig{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	rawConfig = rawConfig.AsValueSlice()[0]
 	if v, ok := in["kind"].(string); ok && len(v) > 0 {
 		obj.Kind = v
 	}
@@ -2288,7 +2290,7 @@ func expandEKSClusterConfig(p []interface{}) *EKSClusterConfig {
 		obj.NodeGroups = expandNodeGroups(v)
 	}
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
-		obj.VPC = expandVPC(v)
+		obj.VPC = expandVPC(v, rawConfig.GetAttr("vpc"))
 	}
 	if v, ok := in["managed_nodegroups"].([]interface{}); ok && len(v) > 0 {
 		obj.ManagedNodeGroups = expandManagedNodeGroups(v)
@@ -2315,6 +2317,7 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	//building cluster and cluster config yaml file
 	yamlCluster := &EKSCluster{}
 	yamlClusterConfig := &EKSClusterConfig{}
+	rawConfig := d.GetRawConfig()
 	//expand cluster yaml file
 	if v, ok := d.Get("cluster").([]interface{}); ok {
 		yamlCluster = expandEKSCluster(v)
@@ -2324,7 +2327,7 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	}
 	//expand cluster config yaml file
 	if v, ok := d.Get("cluster_config").([]interface{}); ok {
-		yamlClusterConfig = expandEKSClusterConfig(v)
+		yamlClusterConfig = expandEKSClusterConfig(v, rawConfig.GetAttr("cluster_config"))
 	} else {
 		fmt.Print("Cluster Config unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster Config is missing"))
@@ -3412,13 +3415,14 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 }
 
 // expand vpc function
-func expandVPC(p []interface{}) *EKSClusterVPC {
+func expandVPC(p []interface{}, rawConfig cty.Value) *EKSClusterVPC {
 	obj := &EKSClusterVPC{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	rawConfig = rawConfig.AsValueSlice()[0]
 
 	if v, ok := in["id"].(string); ok && len(v) > 0 {
 		obj.ID = v
@@ -3447,8 +3451,10 @@ func expandVPC(p []interface{}) *EKSClusterVPC {
 	if v, ok := in["shared_node_security_group"].(string); ok && len(v) > 0 {
 		obj.SharedNodeSecurityGroup = v
 	}
-	if v, ok := in["managed_shared_node_security_group_rules"].(bool); ok {
-		obj.ManageSharedNodeSecurityGroupRules = &v
+	rawManageSharedNodeSecurityGroupRules := rawConfig.GetAttr("manage_shared_node_security_group_rules")
+	if !rawManageSharedNodeSecurityGroupRules.IsNull() {
+		boolVal := rawManageSharedNodeSecurityGroupRules.True()
+		obj.ManageSharedNodeSecurityGroupRules = &boolVal
 	}
 	if v, ok := in["auto_allocate_ipv6"].(bool); ok {
 		obj.AutoAllocateIPv6 = &v

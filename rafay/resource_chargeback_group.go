@@ -409,8 +409,8 @@ func flattenChargebackGroupSpecFilters(in []*systempb.ChargebackFilter, p []inte
 			obj["label"] = in.Label
 		}
 
-		if len(in.ProjectName) > 0 {
-			obj["project_name"] = in.ProjectName
+		if len(in.Cluster) > 0 {
+			obj["cluster"] = in.Cluster
 		}
 
 		if len(in.ClusterName) > 0 {

@@ -7,7 +7,6 @@ import (
 	"log"
 	"reflect"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/hashicorp/go-cty/cty"
 	jsoniter "github.com/json-iterator/go"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -2253,13 +2253,14 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 }
 
 // expand eks cluster function (completed)
-func expandEKSClusterConfig(p []interface{}, d *schema.ResourceData, prefix string) *EKSClusterConfig {
+func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterConfig {
 	obj := &EKSClusterConfig{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	rawConfig = rawConfig.AsValueSlice()[0]
 	if v, ok := in["kind"].(string); ok && len(v) > 0 {
 		obj.Kind = v
 	}
@@ -2286,13 +2287,13 @@ func expandEKSClusterConfig(p []interface{}, d *schema.ResourceData, prefix stri
 		obj.PrivateCluster = expandPrivateCluster(v)
 	}
 	if v, ok := in["node_groups"].([]interface{}); ok && len(v) > 0 {
-		obj.NodeGroups = expandNodeGroups(v, d, prefix+".node_groups")
+		obj.NodeGroups = expandNodeGroups(v)
 	}
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
-		obj.VPC = expandVPC(v)
+		obj.VPC = expandVPC(v, rawConfig.GetAttr("vpc"))
 	}
 	if v, ok := in["managed_nodegroups"].([]interface{}); ok && len(v) > 0 {
-		obj.ManagedNodeGroups = expandManagedNodeGroups(v, d, prefix+".managed_nodegroups")
+		obj.ManagedNodeGroups = expandManagedNodeGroups(v)
 	}
 	if v, ok := in["fargate_profiles"].([]interface{}); ok && len(v) > 0 {
 		obj.FargateProfiles = expandFargateProfiles(v)
@@ -2316,6 +2317,7 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	//building cluster and cluster config yaml file
 	yamlCluster := &EKSCluster{}
 	yamlClusterConfig := &EKSClusterConfig{}
+	rawConfig := d.GetRawConfig()
 	//expand cluster yaml file
 	if v, ok := d.Get("cluster").([]interface{}); ok {
 		yamlCluster = expandEKSCluster(v)
@@ -2325,7 +2327,7 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	}
 	//expand cluster config yaml file
 	if v, ok := d.Get("cluster_config").([]interface{}); ok {
-		yamlClusterConfig = expandEKSClusterConfig(v, d, "cluster_config")
+		yamlClusterConfig = expandEKSClusterConfig(v, rawConfig.GetAttr("cluster_config"))
 	} else {
 		fmt.Print("Cluster Config unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster Config is missing"))
@@ -2643,7 +2645,7 @@ func expandFargateProfilesSelectors(p []interface{}) []FargateProfileSelector {
 	return out
 }
 
-func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []*ManagedNodeGroup { //not completed have questions in comments
+func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not completed have questions in comments
 	obj := &ManagedNodeGroup{}
 	out := make([]*ManagedNodeGroup, len(p))
 	outToSort := make([]ManagedNodeGroup, len(p))
@@ -2652,7 +2654,6 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 	}
 	log.Println("got to managed node group")
 	for i := range p {
-		prefix2 := prefix + "." + strconv.Itoa(i)
 		in := p[i].(map[string]interface{})
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
@@ -2688,7 +2689,7 @@ func expandManagedNodeGroups(p []interface{}, d *schema.ResourceData, prefix str
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2+".ssh", true)
+			obj.SSH = expandNodeGroupSsh(v, true)
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
@@ -2845,7 +2846,7 @@ func expandManagedNodeGroupLaunchTempelate(p []interface{}) *LaunchTemplate {
 	return obj
 }
 
-func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []*NodeGroup { //not completed have questions in comments
+func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have questions in comments
 	out := make([]*NodeGroup, len(p))
 	outToSort := make([]NodeGroup, len(p))
 
@@ -2854,7 +2855,6 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 	}
 
 	for i := range p {
-		prefix2 := prefix + "." + strconv.Itoa(i)
 		in := p[i].(map[string]interface{})
 		obj := NodeGroup{}
 		log.Println("expand_nodegroups")
@@ -2896,7 +2896,7 @@ func expandNodeGroups(p []interface{}, d *schema.ResourceData, prefix string) []
 			obj.VolumeSize = &v
 		}
 		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v, i, d, prefix2+".ssh", false)
+			obj.SSH = expandNodeGroupSsh(v, false)
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
@@ -3323,13 +3323,12 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 }
 
 // expand node group ssh function (completed/ kind of)
-func expandNodeGroupSsh(p []interface{}, index int, d *schema.ResourceData, prefix string, managed bool) *NodeGroupSSH {
+func expandNodeGroupSsh(p []interface{}, managed bool) *NodeGroupSSH {
 	obj := &NodeGroupSSH{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
-	prefix = prefix + ".0"
 	in := p[0].(map[string]interface{})
 	if v, ok := in["allow"].(bool); ok {
 		obj.Allow = &v
@@ -3416,13 +3415,14 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 }
 
 // expand vpc function
-func expandVPC(p []interface{}) *EKSClusterVPC {
+func expandVPC(p []interface{}, rawConfig cty.Value) *EKSClusterVPC {
 	obj := &EKSClusterVPC{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	rawConfig = rawConfig.AsValueSlice()[0]
 
 	if v, ok := in["id"].(string); ok && len(v) > 0 {
 		obj.ID = v
@@ -3451,8 +3451,10 @@ func expandVPC(p []interface{}) *EKSClusterVPC {
 	if v, ok := in["shared_node_security_group"].(string); ok && len(v) > 0 {
 		obj.SharedNodeSecurityGroup = v
 	}
-	if v, ok := in["managed_shared_node_security_group_rules"].(bool); ok {
-		obj.ManageSharedNodeSecurityGroupRules = &v
+	rawManageSharedNodeSecurityGroupRules := rawConfig.GetAttr("manage_shared_node_security_group_rules")
+	if !rawManageSharedNodeSecurityGroupRules.IsNull() {
+		boolVal := rawManageSharedNodeSecurityGroupRules.True()
+		obj.ManageSharedNodeSecurityGroupRules = &boolVal
 	}
 	if v, ok := in["auto_allocate_ipv6"].(bool); ok {
 		obj.AutoAllocateIPv6 = &v

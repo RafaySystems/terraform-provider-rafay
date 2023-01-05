@@ -16,7 +16,7 @@ Example Chargeback Group Report resource :
 ```terraform
 resource "rafay_chargeback_group_report" "tfdemochargebackgroupreport1" {
   metadata {
-    name = "tfdemochargebackgroupreport1"
+    name = "tfdemosummarycbgroup1"
   }
   spec {
     group_name = "tfdemosummarycbgroup1"
@@ -47,7 +47,9 @@ resource "rafay_chargeback_group_report" "tfdemochargebackgroupreport1" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the chargeback group report 
+
+**Note**: Chargeback group report name must be same as chargeback group
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`

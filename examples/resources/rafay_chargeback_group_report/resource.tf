@@ -1,7 +1,7 @@
 # Example chargeback group report resource
 resource "rafay_chargeback_group_report" "tfdemochargebackgroupreport1" {
   metadata {
-    name = "tfdemochargebackgroupreport1"
+    name = "tfdemosummarycbgroup1"
   }
   spec {
     group_name = "tfdemosummarycbgroup1"

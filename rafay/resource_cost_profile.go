@@ -262,8 +262,8 @@ func expandCostProfileIP(p []interface{}) *costpb.InstallationParams {
 		}
 	}
 
-	if v, ok := in["on_prem"].([]interface{}); ok && len(v) > 0 {
-		obj.OnPrem = expandCostProfileOnPremCostProfile(v)
+	if v, ok := in["other"].([]interface{}); ok && len(v) > 0 {
+		obj.Other = expandCostProfileOtherCostProfile(v)
 	}
 
 	return obj
@@ -470,8 +470,8 @@ func expandCostProfileAzureGpuEstimates(p []interface{}) *costpb.GpuCostProfile 
 
 }
 
-func expandCostProfileOnPremCostProfile(p []interface{}) *costpb.OnPremCostProfile {
-	obj := &costpb.OnPremCostProfile{}
+func expandCostProfileOtherCostProfile(p []interface{}) *costpb.OtherCostProfile {
+	obj := &costpb.OtherCostProfile{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
@@ -581,12 +581,12 @@ func flattenCostProfileSpecIP(in *costpb.InstallationParams, p []interface{}) []
 		obj["azure"] = flattenCostProfileAzureIP(in.Azure, v)
 	}
 
-	if in.OnPrem != nil {
-		v, ok := obj["on_prem"].([]interface{})
+	if in.Other != nil {
+		v, ok := obj["other"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["on_prem"] = flattenCostProfileOnPremIP(in.OnPrem, v)
+		obj["other"] = flattenCostProfileOtherIP(in.Other, v)
 	}
 
 	return []interface{}{obj}
@@ -844,7 +844,7 @@ func flattenCostProfileAzureGpuEstimate(in *costpb.GpuCostProfile, p []interface
 	return []interface{}{obj}
 }
 
-func flattenCostProfileOnPremIP(in *costpb.OnPremCostProfile, p []interface{}) []interface{} {
+func flattenCostProfileOtherIP(in *costpb.OtherCostProfile, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}

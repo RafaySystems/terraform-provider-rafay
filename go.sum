@@ -83,6 +83,8 @@ github.com/RafaySystems/rafay-common v1.21.0-alpha1.0.20221215074353-8ab990a10dc
 github.com/RafaySystems/rafay-common v1.21.0-alpha1.0.20221215074353-8ab990a10dc4/go.mod h1:fzqQ/x2X/yMNZuvjY/CkyVTVQDmIlZlcEafbVp9B6vg=
 github.com/RafaySystems/rafay-common v1.21.0-alpha1.0.20221216055350-69a620ac5e6d h1:hmzqvz02lFr7sn9t2EopmKsQOSwYdNbB6FKhgS2yO4U=
 github.com/RafaySystems/rafay-common v1.21.0-alpha1.0.20221216055350-69a620ac5e6d/go.mod h1:fzqQ/x2X/yMNZuvjY/CkyVTVQDmIlZlcEafbVp9B6vg=
+github.com/RafaySystems/rafay-common v1.21.0-alpha1.0.20230104051707-16c971124771 h1:XNWxk25JF8bZDwOxl/u6kqFri4HoG0cqJaymx/LraOQ=
+github.com/RafaySystems/rafay-common v1.21.0-alpha1.0.20230104051707-16c971124771/go.mod h1:fzqQ/x2X/yMNZuvjY/CkyVTVQDmIlZlcEafbVp9B6vg=
 github.com/RafaySystems/rctl v1.21.0-beta1 h1:PPvHiBo8SIO8GEgP2QwvrSbLgB4admivclgZFotfG4U=
 github.com/RafaySystems/rctl v1.21.0-beta1/go.mod h1:QrioR55UVFdtDpYyNEKuA3h/rUZ3arwzBYlZQQoTsW8=
 github.com/RoaringBitmap/roaring v0.6.1 h1:O36Tdaj1Fi/zyr25shTHwlQPGdq53+u4WkM08AOEjiE=

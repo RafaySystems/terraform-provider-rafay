@@ -1,15 +1,15 @@
 # Example chargeback group report resource
 resource "rafay_chargeback_group_report" "tfdemochargebackgroupreport1" {
   metadata {
-    name = "tfdemosummarycbgroup1"
+    name = "tfdemodetailedcbgroup1"
   }
   spec {
-    group_name = "tfdemosummarycbgroup1"
+    group_name = "tfdemodetailedcbgroup1"
     start_date {
-      seconds = 1669011971
+      seconds = 1669679998
     }
     end_date {
-      seconds = 1669616771
+      seconds = 1669680000
     }
   }
 }

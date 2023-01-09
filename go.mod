@@ -6,7 +6,7 @@ require (
 	github.com/RafaySystems/rafay-common v1.18.5-0.20221020030942-b0dbe6d2370f
 	github.com/RafaySystems/rctl v1.18.1-beta5
 	github.com/davecgh/go-spew v1.1.1
-	github.com/go-yaml/yaml v2.1.0+incompatible	
+	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/hashicorp/terraform-plugin-docs v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.1
 	github.com/pkg/errors v0.9.1

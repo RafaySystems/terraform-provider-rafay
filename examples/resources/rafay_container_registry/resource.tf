@@ -1,6 +1,5 @@
-
 # Username/Password example
-resource "rafay_container_registry" "tfdemocontainerregistry" {
+resource "rafay_container_registry" "tfdemocr" {
   metadata {
     name    = "cr-tf"
     project = "defaultproject"

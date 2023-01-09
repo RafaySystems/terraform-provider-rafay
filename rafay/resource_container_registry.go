@@ -77,7 +77,7 @@ func resourceContainerRegistryCreate(ctx context.Context, d *schema.ResourceData
 		log.Printf("ContainerRegistry create got error, perform cleanup")
 		cr, err := expandContainerRegistry(d)
 		if err != nil {
-			log.Printf("ContainerRegistry expandSecretSealer error")
+			log.Printf("ContainerRegistry resourceContainerRegistryCreate error")
 			return diags
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
@@ -104,7 +104,7 @@ func resourceContainerRegistryUpdate(ctx context.Context, d *schema.ResourceData
 
 func resourceContainerRegistryUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("secret provider upsert starts")
+	log.Printf("ContainerRegistryUpsert starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -121,7 +121,7 @@ func resourceContainerRegistryUpsert(ctx context.Context, d *schema.ResourceData
 
 	containerRegistry, err := expandContainerRegistry(d)
 	if err != nil {
-		log.Printf("secret sealer expandSecretSealer error")
+		log.Printf("container regsitry expandContainerRegistry error")
 		return diag.FromErr(err)
 	}
 
@@ -151,7 +151,7 @@ func resourceContainerRegistryUpsert(ctx context.Context, d *schema.ResourceData
 func resourceContainerRegistryRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	log.Println("resourceSecretSealerRead ")
+	log.Println("resourceContainerRegistryRead ")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -220,7 +220,7 @@ func resourceContainerRegistryDelete(ctx context.Context, d *schema.ResourceData
 
 func expandContainerRegistry(in *schema.ResourceData) (*integrationspb.ContainerRegistry, error) {
 	if in == nil {
-		return nil, fmt.Errorf("%s", "expand secret sealer empty input")
+		return nil, fmt.Errorf("%s", "expand container registry empty input")
 	}
 	obj := &integrationspb.ContainerRegistry{}
 
@@ -245,7 +245,7 @@ func expandContainerRegistry(in *schema.ResourceData) (*integrationspb.Container
 func expandContainerRegistrySpec(p []interface{}) (*integrationspb.ContainerRegistrySpec, error) {
 	obj := &integrationspb.ContainerRegistrySpec{}
 	if len(p) == 0 || p[0] == nil {
-		return obj, fmt.Errorf("%s", "expandSecretSealerSpec empty input")
+		return obj, fmt.Errorf("%s", "expandContainerRegistrySpec empty input")
 	}
 
 	in := p[0].(map[string]interface{})

@@ -1,6 +1,4 @@
 resource "rafay_aks_cluster_v3" "demo-terraform" {
-  api_version = "infra.k8smgmt.io/v3"
-  kind       = "Cluster"
   metadata {
     name    = "rafay-aks-v3-test"
     project = "defaultproject"
@@ -11,7 +9,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
       name = "default-aks"
       version = "1.21.0"
     }
-    cloudprovider = "azure-key-jon"
+    cloud_credentials = "azure-key-jon"
     config {
       api_version = "rafay.io/v1alpha1" # TODO: FIX THIS
       kind       = "aksClusterConfig"
@@ -23,6 +21,10 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
         resource_group_name = "rafay-atlantis-rg"
         managed_cluster {
           api_version = "2022-07-01"
+          sku {
+            name = "Basic"
+            tier = "Free"
+          }
           identity {
             type = "SystemAssigned"
           }
@@ -37,17 +39,13 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
               network_plugin = "kubenet"
               load_balancer_sku = "standard"
             }
-            sku {
-              name = "Basic"
-              tier = "Free"
-            }
           }
           type = "Microsoft.ContainerService/managedClusters"
         }
         node_pools {
           api_version = "2022-07-01"
-          location = "centralindia"
           name       = "primary"
+          location = "centralindia"
           properties {
             count                = 1
             enable_auto_scaling  = true

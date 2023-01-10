@@ -41,6 +41,14 @@ func resourceAKSClusterV3() *schema.Resource {
 
 func resourceAKSClusterV3Create(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	// calls upsert
+	log.Printf(">>>>>>>>>>>>>> Cluster create starts")
+	cluster, err := expandClusterV3(d)
+	if err != nil {
+		log.Printf(">>>>>>>>>>>>>> ERROR")
+	}
+	log.Println(">>>>>>>>>>>> CLUSTER", cluster)
+
+	return nil
 	return resourceAKSClusterV3Upsert(ctx, d, m)
 }
 
@@ -80,7 +88,7 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 		}
 	}
 
-	cluster, err := expandCluster(d)
+	cluster, err := expandClusterV3(d)
 	if err != nil {
 		log.Printf("Cluster expandCluster error")
 		return diag.FromErr(err)
@@ -105,7 +113,119 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 	return diags
 }
 
-func expandCluster(in *schema.ResourceData) (*infrapb.Cluster, error) {
+func expandClusterV3(in *schema.ResourceData) (*infrapb.Cluster, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "expand credentials empty input")
+	}
 	obj := &infrapb.Cluster{}
+
+	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
+		obj.Metadata = expandMetaData(v)
+	}
+
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
+		objSpec, err := expandClusterV3Spec(v)
+		if err != nil {
+			return nil, err
+		}
+		log.Println("expandClusterSpec got spec")
+		obj.Spec = objSpec
+	}
+
+	obj.ApiVersion = "infra.k8smgmt.io/v3"
+	obj.Kind = "Cluster"
+
 	return obj, nil
+}
+
+func expandClusterV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
+	obj := &infrapb.ClusterSpec{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, fmt.Errorf("%s", "expandClusterSpec empty input")
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		obj.Type = v
+	}
+
+	if obj.Type != "aks" {
+		log.Fatalln("Not Implemented")
+	}
+
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		obj.Sharing = expandSharingSpec(v)
+	}
+
+	if v, ok := in["blueprint_config"].([]interface{}); ok && len(v) > 0 {
+		obj.BlueprintConfig = expandClusterV3Blueprint(v)
+	}
+
+	if v, ok := in["cloud_credentials"].(string); ok && len(v) > 0 {
+		obj.CloudCredentials = v
+	}
+
+	switch obj.Type {
+	case "aks":
+		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+			obj.Config = expandAKSClusterV3Config(v)
+		}
+	default:
+		log.Fatalln("Not Implemented")
+	}
+
+	//if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+	//	obj.Spec.Config = &infrapb.ClusterSpec_Aks{Aks: &infrapb.AksV3ConfigObject{}}
+	//}
+
+	// &infrapb.ClusterSpec_Aks{Aks: &infrapb.AksV3ConfigObject{}}
+
+	// TODO: PROXY CONFIG
+
+	return obj, nil
+}
+
+func expandClusterV3Blueprint(p []interface{}) *infrapb.BlueprintConfig {
+	obj := infrapb.BlueprintConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return &obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["name"].(string); ok {
+		obj.Name = v
+	}
+
+	if v, ok := in["version"].(string); ok {
+		obj.Version = v
+	}
+
+	log.Println("expandClusterV3Blueprint obj", obj)
+	return &obj
+}
+
+func expandAKSClusterV3Config(p []interface{}) *infrapb.ClusterSpec_Aks {
+	obj := &infrapb.ClusterSpec_Aks{Aks: &infrapb.AksV3ConfigObject{}}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["api_version"].(string); ok && len(v) > 0 {
+		obj.Aks.ApiVersion = v
+	}
+
+	if v, ok := in["kind"].(string); ok && len(v) > 0 {
+		obj.Aks.Kind = v
+	}
+
+	if v, ok := in["metadata"].([]interface{}); ok && len(v) > 0 {
+		obj.Aks.Metadata = expandMetaData(v)
+	}
+
+	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
+		obj.Aks.Spec = expandAKSClusterV3ConfigSpec(v)
+	}
+
+	return obj
 }

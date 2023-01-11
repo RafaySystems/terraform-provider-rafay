@@ -54,12 +54,35 @@ func resourceAKSClusterV3Read(ctx context.Context, d *schema.ResourceData, m int
 }
 
 func resourceAKSClusterV3Update(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	// calls upsert
+	log.Printf("Cluster update starts")
 	return resourceAKSClusterV3Upsert(ctx, d, m)
 }
 
 func resourceAKSClusterV3Delete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	log.Printf("Cluster delete starts")
+
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
+
+	ag, err := expandClusterV3(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = client.InfraV3().Cluster().Delete(ctx, options.DeleteOptions{
+		Name:    ag.Metadata.Name,
+		Project: ag.Metadata.Project,
+	})
+
 	return diags
 }
 

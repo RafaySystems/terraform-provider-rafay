@@ -193,6 +193,7 @@ func resourceContainerRegistryRead(ctx context.Context, d *schema.ResourceData, 
 }
 
 func resourceContainerRegistryDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Println("resourceContainerRegistryDelete ")
 	var diags diag.Diagnostics
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
@@ -214,11 +215,16 @@ func resourceContainerRegistryDelete(ctx context.Context, d *schema.ResourceData
 		Name:    cr.Metadata.Name,
 		Project: cr.Metadata.Project,
 	})
+	if err != nil {
+		log.Println("hub delete call err: ", err)
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
 
 func expandContainerRegistry(in *schema.ResourceData) (*integrationspb.ContainerRegistry, error) {
+	log.Println("expandContainerRegistry")
 	if in == nil {
 		return nil, fmt.Errorf("%s", "expand container registry empty input")
 	}

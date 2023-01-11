@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
@@ -40,16 +42,10 @@ func resourceAKSClusterV3() *schema.Resource {
 }
 
 func resourceAKSClusterV3Create(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	// calls upsert
-	log.Printf(">>>>>>>>>>>>>> Cluster create starts")
-	cluster, err := expandClusterV3(d)
-	if err != nil {
-		log.Printf(">>>>>>>>>>>>>> ERROR")
-	}
-	log.Println(">>>>>>>>>>>> CLUSTER", cluster)
+	log.Printf("Cluster create starts")
 
-	return nil
-	return resourceAKSClusterV3Upsert(ctx, d, m)
+	diags := resourceAKSClusterV3Upsert(ctx, d, m)
+	return diags
 }
 
 func resourceAKSClusterV3Read(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -249,9 +245,9 @@ func expandAKSClusterV3ConfigSpec(p []interface{}) *infrapb.AksV3Spec {
 		obj.ManagedCluster = expandAKSConfigManagedClusterV3(v)
 	}
 
-	// if v, ok := in["node_pools"].([]interface{}); ok && len(v) > 0 {
-	// 	obj.NodePools = expandAKSNodePool(v)
-	// }
+	if v, ok := in["node_pools"].([]interface{}); ok && len(v) > 0 {
+		obj.NodePools = expandAKSV3NodePool(v)
+	}
 
 	return obj
 }
@@ -280,7 +276,7 @@ func expandAKSConfigManagedClusterV3(p []interface{}) *infrapb.Managedcluster {
 	}
 
 	if v, ok := in["properties"].([]interface{}); ok && len(v) > 0 {
-		obj.Properties = expandAKSManagedClusterProperties(v)
+		obj.Properties = expandAKSManagedClusterV3Properties(v)
 	}
 
 	if v, ok := in["sku"].([]interface{}); ok && len(v) > 0 {
@@ -467,21 +463,21 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.NodeResourceGroup = v
 	}
 
-	// TODO: STOPPED HERE
 	if v, ok := in["pod_identity_profile"].([]interface{}); ok && len(v) > 0 {
-		obj.PodIdentityProfile = expandAKSManagedClusterPodIdentityProfile(v)
+		obj.PodIdentityProfile = expandAKSManagedClusterV3PodIdentityProfile(v)
 	}
 
-	if v, ok := in["private_link_resources"].([]interface{}); ok && len(v) > 0 {
-		obj.PrivateLinkResources = expandAKSManagedClusterPrivateLinkResources(v)
-	}
+	// TODO: FIX THIS
+	// if v, ok := in["private_link_resources"].([]interface{}); ok && len(v) > 0 {
+	// 	obj.PrivateLinkResources = expandAKSManagedClusterPrivateLinkResources(v)
+	// }
 
 	if v, ok := in["service_principal_profile"].([]interface{}); ok && len(v) > 0 {
-		obj.ServicePrincipalProfile = expandAKSManagedClusterServicePrincipalProfile(v)
+		obj.ServicePrincipalProfile = expandAKSManagedClusterV3ServicePrincipalProfile(v)
 	}
 
 	if v, ok := in["windows_profile"].([]interface{}); ok && len(v) > 0 {
-		obj.WindowsProfile = expandAKSManagedClusterWindowsProfile(v)
+		obj.WindowsProfile = expandAKSManagedClusterV3WindowsProfile(v)
 	}
 
 	return obj
@@ -772,8 +768,8 @@ func expandAKSManagedClusterV3NPLoadBalancerProfile(p []interface{}) *infrapb.Lo
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["allocated_outbound_ports"].(uint32); ok && v > 0 {
-		obj.AllocatedOutboundPorts = v
+	if v, ok := in["allocated_outbound_ports"].(int); ok && v > 0 {
+		obj.AllocatedOutboundPorts = uint32(v)
 	}
 
 	if v, ok := in["effective_outbound_ips"].([]interface{}); ok && len(v) > 0 {
@@ -824,8 +820,8 @@ func expandAKSManagedClusterV3NPManagedOutboundIPs(p []interface{}) *infrapb.Man
 	}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["count"].(uint32); ok && v > 0 {
-		obj.Count = v
+	if v, ok := in["count"].(int); ok && v > 0 {
+		obj.Count = uint32(v)
 	}
 	return obj
 }
@@ -890,4 +886,587 @@ func expandAKSManagedClusterV3NPOutboundIPsPublicIps(p []interface{}) []*infrapb
 		out[i] = &obj
 	}
 	return out
+}
+
+func expandAKSManagedClusterV3PodIdentityProfile(p []interface{}) *infrapb.Podidentityprofile {
+	obj := &infrapb.Podidentityprofile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["allow_network_plugin_kubenet"].(bool); ok {
+		obj.AllowNetworkPluginKubenet = v
+	}
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["user_assigned_identities"].([]interface{}); ok && len(v) > 0 {
+		obj.UserAssignedIdentities = expandAKSManagedClusterV3PIPUserAssignedIdentities(v)
+	}
+
+	if v, ok := in["user_assigned_identity_exceptions"].([]interface{}); ok && len(v) > 0 {
+		obj.UserAssignedIdentityExceptions = expandAKSManagedClusterV3PIPUserAssignedIdentityExceptions(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterV3PIPUserAssignedIdentities(p []interface{}) []*infrapb.Userassignedidentities {
+	out := make([]*infrapb.Userassignedidentities, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		obj := &infrapb.Userassignedidentities{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["binding_selector"].(string); ok && len(v) > 0 {
+			obj.BindingSelector = v
+		}
+
+		if v, ok := in["identity"].([]interface{}); ok && len(v) > 0 {
+			obj.Identity = expandAKSManagedClusterV3UAIIdentity(v)
+		}
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+			obj.Namespace = v
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+func expandAKSManagedClusterV3UAIIdentity(p []interface{}) *infrapb.Identity1 {
+	obj := &infrapb.Identity1{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["client_id"].(string); ok && len(v) > 0 {
+		obj.ClientId = v
+	}
+
+	if v, ok := in["object_id"].(string); ok && len(v) > 0 {
+		obj.ObjectId = v
+	}
+
+	if v, ok := in["resource_id"].(string); ok && len(v) > 0 {
+		obj.ResourceId = v
+	}
+	return obj
+}
+
+func expandAKSManagedClusterV3PIPUserAssignedIdentityExceptions(p []interface{}) []*infrapb.Userassignedidentityexceptions {
+	out := make([]*infrapb.Userassignedidentityexceptions, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		obj := &infrapb.Userassignedidentityexceptions{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+			obj.Namespace = v
+		}
+
+		if v, ok := in["pod_labels"].(map[string]interface{}); ok {
+			obj.PodLabels = toMapString(v)
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+// TODO: FIX THIS NOT BEING USED
+func expandAKSManagedClusterV3PrivateLinkResources(p []interface{}) *infrapb.Privatelinkresources {
+	obj := &infrapb.Privatelinkresources{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["group_id"].(string); ok && len(v) > 0 {
+		obj.GroupId = v
+	}
+
+	if v, ok := in["id"].(string); ok && len(v) > 0 {
+		obj.Id = v
+	}
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+
+	if v, ok := in["required_members"].([]interface{}); ok && len(v) > 0 {
+		obj.RequiredMembers = toArrayString(v)
+	}
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		obj.Type = v
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterV3ServicePrincipalProfile(p []interface{}) *infrapb.Serviceprincipalprofile {
+	obj := &infrapb.Serviceprincipalprofile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["client_id"].(string); ok && len(v) > 0 {
+		obj.ClientId = v
+	}
+
+	if v, ok := in["secret"].(string); ok && len(v) > 0 {
+		obj.Secret = v
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterV3WindowsProfile(p []interface{}) *infrapb.Windowsprofile {
+	obj := &infrapb.Windowsprofile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["admin_username"].(string); ok && len(v) > 0 {
+		obj.AdminUsername = v
+	}
+
+	if v, ok := in["enable_csi_proxy"].(bool); ok {
+		obj.EnableCSIProxy = v
+	}
+
+	if v, ok := in["license_type"].(string); ok && len(v) > 0 {
+		obj.LicenseType = v
+	}
+	return obj
+}
+
+func expandAKSV3NodePool(p []interface{}) []*infrapb.Nodepool {
+	if len(p) == 0 || p[0] == nil {
+		return []*infrapb.Nodepool{}
+	}
+
+	out := make([]*infrapb.Nodepool, len(p))
+	outToSort := make([]infrapb.Nodepool, len(p))
+	for i := range p {
+		obj := infrapb.Nodepool{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["api_version"].(string); ok && len(v) > 0 {
+			obj.ApiVersion = v
+		}
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["properties"].([]interface{}); ok && len(v) > 0 {
+			obj.Properties = expandAKSV3NodePoolProperties(v)
+		}
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+
+		if v, ok := in["location"].(string); ok && len(v) > 0 {
+			obj.Location = v
+		}
+		outToSort[i] = obj
+	}
+
+	sort.Sort(ByNodepoolNameV3(outToSort))
+	for i := range outToSort {
+		out[i] = &outToSort[i]
+	}
+
+	return out
+}
+
+func expandAKSV3NodePoolProperties(p []interface{}) *infrapb.NodePoolProperties {
+	obj := &infrapb.NodePoolProperties{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
+		obj.AvailabilityZones = toArrayString(v)
+	}
+
+	if v, ok := in["count"].(int); ok && v > 0 {
+		log.Println(">>>>>>>>>>>> HEREEEE", v, ok)
+		obj.Count = int32(v)
+	}
+
+	if v, ok := in["enable_auto_scaling"].(bool); ok {
+		obj.EnableAutoScaling = v
+	}
+
+	if v, ok := in["enable_encryption_at_host"].(bool); ok {
+		obj.EnableEncryptionAtHost = v
+	}
+
+	if v, ok := in["enable_fips"].(bool); ok {
+		obj.EnableFIPS = v
+	}
+
+	if v, ok := in["enable_node_public_ip"].(bool); ok {
+		obj.EnableNodePublicIP = v
+	}
+
+	if v, ok := in["enable_ultra_ssd"].(bool); ok {
+		obj.EnableUltraSSD = v
+	}
+
+	if v, ok := in["gpu_instance_profile"].(string); ok && len(v) > 0 {
+		obj.GpuInstanceProfile = v
+	}
+
+	if v, ok := in["kubelet_config"].([]interface{}); ok && len(v) > 0 {
+		obj.KubeletConfig = expandAKSV3NodePoolKubeletConfig(v)
+	}
+
+	if v, ok := in["kubelet_disk_type"].(string); ok && len(v) > 0 {
+		obj.KubeletDiskType = v
+	}
+
+	if v, ok := in["linux_os_config"].([]interface{}); ok && len(v) > 0 {
+		obj.LinuxOSConfig = expandAKSV3NodePoolLinuxOsConfig(v)
+	}
+
+	if v, ok := in["max_count"].(int); ok && v > 0 {
+		obj.MaxCount = int32(v)
+	}
+
+	if v, ok := in["max_pods"].(int); ok && v > 0 {
+		obj.MaxPods = int32(v)
+	}
+
+	if v, ok := in["min_count"].(int); ok && v > 0 {
+		obj.MinCount = int32(v)
+	}
+
+	if v, ok := in["mode"].(string); ok && len(v) > 0 {
+		obj.Mode = v
+	}
+
+	if v, ok := in["node_labels"].(map[string]interface{}); ok {
+		obj.NodeLabels = toMapString(v)
+	}
+
+	if v, ok := in["node_public_ip_prefix_id"].(string); ok && len(v) > 0 {
+		obj.NodePublicIPPrefixID = v
+	}
+
+	if v, ok := in["node_taints"].([]interface{}); ok && len(v) > 0 {
+		obj.NodeTaints = toArrayString(v)
+	}
+
+	if v, ok := in["orchestrator_version"].(string); ok && len(v) > 0 {
+		obj.OrchestratorVersion = v
+	}
+
+	if v, ok := in["os_disk_size_gb"].(int); ok && v > 0 {
+		obj.OsDiskSizeGB = int32(v)
+	}
+
+	if v, ok := in["os_disk_type"].(string); ok && len(v) > 0 {
+		obj.OsDiskType = v
+	}
+
+	if v, ok := in["os_sku"].(string); ok && len(v) > 0 {
+		obj.OsSKU = v
+	}
+
+	if v, ok := in["os_type"].(string); ok && len(v) > 0 {
+		obj.OsType = v
+	}
+
+	if v, ok := in["pod_subnet_id"].(string); ok && len(v) > 0 {
+		obj.PodSubnetID = v
+	}
+
+	if v, ok := in["proximity_placement_group_id"].(string); ok && len(v) > 0 {
+		obj.ProximityPlacementGroupID = v
+	}
+
+	if v, ok := in["scale_set_eviction_policy"].(string); ok && len(v) > 0 {
+		obj.ScaleSetEvictionPolicy = v
+	}
+
+	if v, ok := in["scale_set_priority"].(string); ok && len(v) > 0 {
+		obj.ScaleSetPriority = v
+	}
+
+	if v, ok := in["spot_max_price"].(string); ok && len(v) > 0 {
+		obj.Type = v
+	}
+
+	if v, ok := in["tags"].(map[string]interface{}); ok {
+		obj.Tags = toMapString(v)
+	}
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		obj.Type = v
+	}
+
+	if v, ok := in["upgrade_settings"].([]interface{}); ok && len(v) > 0 {
+		obj.UpgradeSettings = expandAKSV3NodePoolUpgradeSettings(v)
+	}
+
+	if v, ok := in["vm_size"].(string); ok && len(v) > 0 {
+		obj.VmSize = v
+	}
+
+	if v, ok := in["vnet_subnet_id"].(string); ok && len(v) > 0 {
+		obj.VnetSubnetID = v
+	}
+
+	return obj
+}
+
+func expandAKSV3NodePoolKubeletConfig(p []interface{}) *infrapb.Kubeletconfig {
+	obj := &infrapb.Kubeletconfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["allowed_unsafe_sysctls"].([]interface{}); ok && len(v) > 0 {
+		obj.AllowedUnsafeSysctls = toArrayString(v)
+	}
+
+	if v, ok := in["container_log_max_files"].(int); ok && v > 0 {
+		obj.ContainerLogMaxFiles = int32(v)
+	}
+
+	if v, ok := in["container_log_max_size_mb"].(int); ok && v > 0 {
+		obj.ContainerLogMaxSizeMB = int32(v)
+	}
+
+	if v, ok := in["cpu_cfs_quota"].(bool); ok {
+		obj.CpuCfsQuota = v
+	}
+
+	if v, ok := in["cpu_cfs_quota_period"].(string); ok && len(v) > 0 {
+		obj.CpuCfsQuotaPeriod = v
+	}
+
+	if v, ok := in["cpu_manager_policy"].(string); ok && len(v) > 0 {
+		obj.CpuManagerPolicy = v
+	}
+
+	if v, ok := in["fail_swap_on"].(bool); ok {
+		obj.FailSwapOn = v
+	}
+
+	if v, ok := in["image_gc_high_threshold"].(int); ok && v > 0 {
+		obj.ImageGcHighThreshold = int32(v)
+	}
+
+	if v, ok := in["image_gc_low_threshold"].(int); ok && v > 0 {
+		obj.ImageGcLowThreshold = int32(v)
+	}
+
+	if v, ok := in["pod_max_pids"].(int); ok && v > 0 {
+		obj.PodMaxPids = int32(v)
+	}
+
+	if v, ok := in["topology_manager_policy"].(string); ok && len(v) > 0 {
+		obj.TopologyManagerPolicy = v
+	}
+
+	return obj
+}
+
+func expandAKSV3NodePoolLinuxOsConfig(p []interface{}) *infrapb.Linuxosconfig {
+	obj := &infrapb.Linuxosconfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["swap_file_size_mb"].(int); ok && v > 0 {
+		obj.SwapFileSizeMB = int32(v)
+	}
+
+	if v, ok := in["sysctls"].([]interface{}); ok && len(v) > 0 {
+		obj.Sysctls = expandAKSV3NodePoolLinuxOsConfigSysctls(v)
+	}
+
+	if v, ok := in["transparent_huge_page_defrag"].(string); ok && len(v) > 0 {
+		obj.TransparentHugePageDefrag = v
+	}
+
+	if v, ok := in["transparent_huge_page_enabled"].(string); ok && len(v) > 0 {
+		obj.TransparentHugePageEnabled = v
+	}
+	return obj
+}
+
+func expandAKSV3NodePoolLinuxOsConfigSysctls(p []interface{}) *infrapb.Sysctls {
+	obj := &infrapb.Sysctls{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["fs_aio_max_nr"].(int); ok && v > 0 {
+		obj.FsAioMaxNr = int32(v)
+	}
+
+	if v, ok := in["fs_file_max"].(int); ok && v > 0 {
+		obj.FsFileMax = int32(v)
+	}
+
+	if v, ok := in["fs_inotify_max_user_watches"].(int); ok && v > 0 {
+		obj.FsInotifyMaxUserWatches = int32(v)
+	}
+
+	if v, ok := in["fs_nr_open"].(int); ok && v > 0 {
+		obj.FsNrOpen = int32(v)
+	}
+
+	if v, ok := in["kernel_threads_max"].(int); ok && v > 0 {
+		obj.KernelThreadsMax = int32(v)
+	}
+
+	if v, ok := in["net_core_netdev_max_backlog"].(int); ok && v > 0 {
+		obj.NetCoreNetdevMaxBacklog = int32(v)
+	}
+
+	if v, ok := in["net_core_optmem_max"].(int); ok && v > 0 {
+		obj.NetCoreOptmemMax = int32(v)
+	}
+
+	if v, ok := in["net_core_rmem_default"].(int); ok && v > 0 {
+		obj.NetCoreRmemDefault = int32(v)
+	}
+
+	if v, ok := in["net_core_rmem_max"].(int); ok && v > 0 {
+		obj.NetCoreRmemMax = int32(v)
+	}
+
+	if v, ok := in["net_core_somaxconn"].(int); ok && v > 0 {
+		obj.NetCoreSomaxconn = int32(v)
+	}
+
+	if v, ok := in["net_core_wmem_default"].(int); ok && v > 0 {
+		obj.NetCoreWmemDefault = int32(v)
+	}
+
+	if v, ok := in["net_core_wmem_max"].(int); ok && v > 0 {
+		obj.NetCoreWmemMax = int32(v)
+	}
+
+	if v, ok := in["net_ipv4_ip_local_port_range"].(string); ok && len(v) > 0 {
+		obj.NetIpv4IpLocalPortRange = v
+	}
+
+	if v, ok := in["net_ipv4_neigh_default_gc_thresh1"].(int); ok && v > 0 {
+		obj.NetIpv4NeighDefaultGcThresh1 = int32(v)
+	}
+
+	if v, ok := in["net_ipv4_neigh_default_gc_thresh2"].(int); ok && v > 0 {
+		obj.NetIpv4NeighDefaultGcThresh2 = int32(v)
+	}
+
+	if v, ok := in["net_ipv4_neigh_default_gc_thresh3"].(int); ok && v > 0 {
+		obj.NetIpv4NeighDefaultGcThresh3 = int32(v)
+	}
+
+	if v, ok := in["net_ipv4_tcp_fin_timeout"].(int); ok && v > 0 {
+		obj.NetIpv4TcpFinTimeout = int32(v)
+	}
+
+	if v, ok := in["net_ipv4_tcpkeepalive_intvl"].(int); ok && v > 0 {
+		obj.NetIpv4TcpkeepaliveIntvl = int32(v)
+	}
+
+	if v, ok := in["net_ipv4_tcp_keepalive_probes"].(int); ok && v > 0 {
+		obj.NetIpv4TcpKeepaliveProbes = int32(v)
+	}
+
+	if v, ok := in["net_ipv4_tcp_keepalive_time"].(int); ok && v > 0 {
+		obj.NetIpv4TcpKeepaliveTime = int32(v)
+	}
+
+	if v, ok := in["net_ipv4_tcp_max_syn_backlog"].(int); ok && v > 0 {
+		obj.NetIpv4TcpMaxSynBacklog = int32(v)
+	}
+
+	if v, ok := in["net_ipv4_tcp_max_tw_buckets"].(int); ok && v > 0 {
+		obj.NetIpv4TcpMaxTwBuckets = int32(v)
+	}
+
+	if v, ok := in["net_ipv4_tcp_tw_reuse"].(bool); ok {
+		obj.NetIpv4TcpTwReuse = v
+	}
+
+	if v, ok := in["net_netfilter_nf_conntrack_buckets"].(int); ok && v > 0 {
+		obj.NetNetfilterNfConntrackBuckets = int32(v)
+	}
+
+	if v, ok := in["net_netfilter_nf_conntrack_max"].(int); ok && v > 0 {
+		obj.NetNetfilterNfConntrackMax = int32(v)
+	}
+
+	if v, ok := in["vm_max_map_count"].(int); ok && v > 0 {
+		obj.VmMaxMapCount = int32(v)
+	}
+
+	if v, ok := in["vm_swappiness"].(int); ok && v > 0 {
+		obj.VmSwappiness = int32(v)
+	}
+
+	if v, ok := in["vm_vfs_cache_pressure"].(int); ok && v > 0 {
+		obj.VmVfsCachePressure = int32(v)
+	}
+
+	return obj
+}
+
+func expandAKSV3NodePoolUpgradeSettings(p []interface{}) *infrapb.Upgradesettings {
+	obj := &infrapb.Upgradesettings{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["max_surge"].(string); ok && len(v) > 0 {
+		obj.MaxSurge = v
+	}
+	return obj
+}
+
+// Sort AKS Nodepool
+type ByNodepoolNameV3 []infrapb.Nodepool
+
+func (np ByNodepoolNameV3) Len() int      { return len(np) }
+func (np ByNodepoolNameV3) Swap(i, j int) { np[i], np[j] = np[j], np[i] }
+func (np ByNodepoolNameV3) Less(i, j int) bool {
+	ret := strings.Compare(np[i].Name, np[j].Name)
+	if ret < 0 {
+		return true
+	} else {
+		return false
+	}
 }

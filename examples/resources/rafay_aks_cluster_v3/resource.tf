@@ -9,7 +9,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
       name = "default-aks"
       version = "1.21.0"
     }
-    cloud_credentials = "azure-key-jon"
+    cloud_credentials = "pj-azure"
     config {
       api_version = "rafay.io/v1alpha1" # TODO: FIX THIS
       kind       = "aksClusterConfig"

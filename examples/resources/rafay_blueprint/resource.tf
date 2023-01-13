@@ -213,8 +213,10 @@ resource "rafay_blueprint" "golden_base_blueprint" {
           enabled = true
         }
         resources {
-          limits = "200Mi"
-          cpu = "100m"
+          limits {
+            memory = "200Mi"
+            cpu  = "100m"
+          }
         }
       }
     }

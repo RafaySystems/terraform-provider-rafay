@@ -102,8 +102,10 @@ resource "rafay_blueprint" "custom-blueprint-advanced" {
           enabled = true
         }
         resources {
-          limits = "200Mi"
-          cpu = "100m"
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
         }
       }
     }
@@ -166,8 +168,10 @@ resource "rafay_blueprint" "custom-blueprint-advanced2" {
           enabled = true
         }
         resources {
-          limits = "200Mi"
-          cpu = "100m"
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
         }
       }
     }
@@ -219,8 +223,10 @@ resource "rafay_blueprint" "custom-golden-blueprint" {
           enabled = true
         }
         resources {
-          limits = "200Mi"
-          cpu = "100m"
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
         }
       }
     }
@@ -278,7 +284,7 @@ resource "rafay_blueprint" "mesh-blueprint" {
 
 Example of a custom blueprint resource with cost profile.
 
-```
+```terraform
 resource "rafay_blueprint" "cost-blueprint" {
   metadata {
     name    = "custom-cost-blueprint"
@@ -398,7 +404,7 @@ resource "rafay_blueprint" "cost-blueprint" {
 - `node_exporter` - (Boolean) Monitors the host system. 
 - `prometheus_adapter` - (Boolean) Provides Kubernetes metrics APIs for Prometheus. 
 - `metrics_server` - (Boolean) A scalable, efficient source of container resource metrics for Kubernetes built-in autoscaling pipelines. 
-- `resources` - (Block List) (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources))
+- `resources` - (Block List) CPU and memory limits for the monitoring component (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources))
 
 
 <a id="nestedblock--spec--default_addons--monitoring--metrics"></a>
@@ -417,7 +423,6 @@ resource "rafay_blueprint" "cost-blueprint" {
 
 - `labels` - (Block List) Label of the monitoring component. 
 - `namespace` - (String) Namespace of the monitoring component. 
-- `resource` - (String) CPU and memory limits for the monitoring component. 
 
 
 <a id="nestedblock--spec--default_addons--monitoring--resources"></a>
@@ -433,21 +438,8 @@ resource "rafay_blueprint" "cost-blueprint" {
 
 ***Optional***
 
-- `cpu` - (String) The CPU resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--cpu)) 
-- `memory` - (String) The memory resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--memory)) 
-
-
-<a id="nestedblock--spec--default_addons--monitoring--resources--limits--cpu"></a>
-### Nested Schema for `spec.default_addons.monitoring.resources.limits.cpu`
-
-- `string` - (String) The CPU limit in millicpu, also known as millicores. 100m is 100 millicpu, which is 0.1 CPU cores.
-
-
-<a id="nestedblock--spec--default_addons--monitoring--resources--limits--memory"></a>
-### Nested Schema for `spec.default_addons.monitoring.resources.limits.memory`
-
-- `string` - (String) The memory limit in mebibytes. A megabyte is a close equivalent to a mebibyte.
-
+- `cpu` - (String) The CPU resource limit for the resource. The resource cannot use more than this limit. The CPU limit in millicpu, also known as millicores. 100m is 100 millicpu, which is 0.1 CPU cores.
+- `memory` - (String) The memory resource limit for the resource. The resource cannot use more than this limit.The memory limit in mebibytes. A megabyte is a close equivalent to a mebibyte.
 
 <a id="nestedblock--spec--drift"></a>
 ### Nested Schema for `spec.drift`

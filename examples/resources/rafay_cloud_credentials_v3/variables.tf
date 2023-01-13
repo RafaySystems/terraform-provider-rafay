@@ -3,4 +3,3 @@ variable "rafay_config_file" {
   sensitive   = true
   default     = "/Users/user1/.rafay/cli/config.json"
 }
-

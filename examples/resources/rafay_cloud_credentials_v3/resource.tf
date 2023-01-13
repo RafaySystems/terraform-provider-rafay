@@ -1,18 +1,17 @@
 
 #Basic example for credentials
-resource "rafay_credentials" "tftestcredentials1" {
+resource "rafay_cloud_credentials_v3" "tftestcredentials" {
   metadata {
-    name    = "tftestcredentials1"
-    project = "defaultproject"
+    name    = "terraform-demo-credentials-2"
+    project = "cang-test"
   }
   spec {
-    type = "ClusterProvisioning"
+    type = "CostManagement"
     provider = "aws"
     credentials {
         type = "AccessKey"
         access_id = "dummy-id"
         secret_key = "dummy-key"
-        session_token = "dummy-session"
     } 
     sharing {
       enabled = false

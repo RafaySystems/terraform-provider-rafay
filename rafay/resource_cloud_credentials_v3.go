@@ -102,7 +102,7 @@ func resourceCredentialsImport(d *schema.ResourceData, meta interface{}) ([]*sch
 }
 
 func resourceCredentialsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	log.Printf("resourceCredentialsCreate reate starts")
+	log.Printf("resourceCredentialsCreate create starts")
 	diags := resourceCredentialsUpsert(ctx, d, m)
 	if diags.HasError() {
 		tflog := os.Getenv("TF_LOG")

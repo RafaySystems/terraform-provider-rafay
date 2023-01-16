@@ -54,17 +54,17 @@ resource "rafay_cost_profile" "tfdemocostprofile-azure" {
     }
   }
 }
-#Example cost profile for OnPrem
-resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
+#Example cost profile for Other providers
+resource "rafay_cost_profile" "tfdemocostprofile-other" {
   metadata {
-    name    = "tfdemocostprofile-onprem"
+    name    = "tfdemocostprofile-other"
     project = "terraform"
   }
   spec {
     version = "v0"
-    provider_type = "onPrem"
+    provider_type = "other"
     installation_params {
-      on_prem {
+      other {
         cpu = "2.5"
         gpu = "3.61"
         memory = "4.3"

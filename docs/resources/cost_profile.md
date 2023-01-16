@@ -72,19 +72,19 @@ resource "rafay_cost_profile" "tfdemocostprofile-azure" {
 }
 ```
 
-Example cost profile for OnPrem
+Example cost profile for Other providers
 
 ```terraform
-resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
+resource "rafay_cost_profile" "tfdemocostprofile-other" {
   metadata {
-    name    = "tfdemocostprofile-onprem"
+    name    = "tfdemocostprofile-other"
     project = "terraform"
   }
   spec {
     version = "v0"
-    provider_type = "onPrem"
+    provider_type = "other"
     installation_params {
-      on_prem {
+      other {
         cpu = "2.5"
         gpu = "3.61"
         memory = "4.3"
@@ -121,7 +121,7 @@ resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
 
 - `installation_params` (Block List, Max: 1) The parameters for the profile installation. (See [below for nested schema](#nestedblock--spec--installation_params))
 - `version` (String) The version of the profile.
-- `provider_type` (String) The cloud provider type. The supported values are: `aws`, `azure`, and `onprem`.
+- `provider_type` (String) The cloud provider type. The supported values are: `aws`, `azure`, and `other`.
 
 ***Optional***
 
@@ -134,7 +134,7 @@ resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
 
 - `aws` (Block List, Max: 1) The AWS cost profile parameters. Use with AWS specific parameters. (See [below for nested schema](#nestedblock--spec--installation_params--aws))
 - `azure` (Block List, Max: 1) The Azure cost profile parameters. Use with Azure specific parameters. (See [below for nested schema](#nestedblock--spec--installation_params--azure))
-- `onprem` (Block List, Max: 1) The OnPrem cost profile parameters. Use custom on_prem parameters. (See [below for nested schema](#nestedblock--spec--installation_params--onprem))
+- `other` (Block List, Max: 1) The cost profile parameters for other providers. Use custom parameters for other providers. (See [below for nested schema](#nestedblock--spec--installation_params--other))
 
 <a id="nestedblock--spec--sharing"></a>
 ### Nested Schema for `spec.sharing`
@@ -156,8 +156,8 @@ resource "rafay_cost_profile" "tfdemocostprofile-onprem" {
 
 - `custom_pricing` (Block List, Max: 1) The Azure cost profile parameters. Use Azure specific parameters. (See [below for nested schema](#nestedblock--spec--installation_params--azure--custom_pricing))
 
-<a id="nestedblock--spec--installation_params--onprem"></a>
-### Nested Schema for `spec.installation_params.onprem`
+<a id="nestedblock--spec--installation_params--other"></a>
+### Nested Schema for `spec.installation_params.other`
 
 - `cpu` (String) The cost of CPU per hour.
 - `gpu` (String) The cost of GPU per hour.

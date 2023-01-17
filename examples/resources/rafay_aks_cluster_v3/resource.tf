@@ -1,6 +1,6 @@
 resource "rafay_aks_cluster_v3" "demo-terraform" {
   metadata {
-    name    = "rafay-aks-v3-test"
+    name    = "aks-v3-tf-1601202301"
     project = "defaultproject"
   }
   spec {
@@ -14,7 +14,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
       api_version = "rafay.io/v1alpha1" # TODO: FIX THIS
       kind       = "aksClusterConfig"
       metadata {
-        name = "rafay-aks-v3-test"
+        name = "aks-v3-tf-1601202301"
         project = "defaultproject"
       }
       spec {
@@ -33,7 +33,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             api_server_access_profile {
               enable_private_cluster = true
             }
-            dns_prefix         = "rafay-aks-v3-dns"
+            dns_prefix         = "aks-v3-tf-1601202301-dns"
             kubernetes_version = "1.23.12"
             network_profile {
               network_plugin = "kubenet"
@@ -60,6 +60,26 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
         }
+        
+        #node_pools {
+        #  api_version = "2022-07-01"
+        #  name       = "agentpool2"
+        #  location = "centralindia"
+        #  properties {
+        #    count                = 1
+        #    enable_auto_scaling  = true
+        #    max_count            = 1
+        #    max_pods             = 40
+        #    min_count            = 1
+        #    mode                 = "System"
+        #    orchestrator_version = "1.23.12"
+        #    os_type              = "Linux"
+        #    type                 = "VirtualMachineScaleSets"
+        #    vm_size              = "Standard_B4ms"
+        #  }
+        #  type = "Microsoft.ContainerService/managedClusters/agentPools"
+        #}
+
       }
     }
   }

@@ -12,6 +12,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
@@ -50,6 +51,36 @@ func resourceAKSClusterV3Create(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceAKSClusterV3Read(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+
+	log.Println("resourceClusterRead ")
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
+	tfClusterState, err := expandClusterV3(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	ag, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+		Name:    tfClusterState.Metadata.Name,
+		Project: tfClusterState.Metadata.Project,
+	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = flattenAKSClusterV3(d, ag)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return diags
 }
 
@@ -112,6 +143,8 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 		log.Printf("Cluster expandCluster error")
 		return diag.FromErr(err)
 	}
+
+	log.Println(">>>>>> CLUSTER: ", cluster)
 
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
@@ -1135,7 +1168,6 @@ func expandAKSV3NodePoolProperties(p []interface{}) *infrapb.NodePoolProperties 
 	}
 
 	if v, ok := in["count"].(int); ok && v > 0 {
-		log.Println(">>>>>>>>>>>> HEREEEE", v, ok)
 		obj.Count = int32(v)
 	}
 
@@ -1492,4 +1524,1208 @@ func (np ByNodepoolNameV3) Less(i, j int) bool {
 	} else {
 		return false
 	}
+}
+
+func flattenAKSClusterV3(d *schema.ResourceData, in *infrapb.Cluster) error {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+
+	if len(in.ApiVersion) > 0 {
+		obj["apiversion"] = in.ApiVersion
+	}
+	if len(in.Kind) > 0 {
+		obj["kind"] = in.Kind
+	}
+	var err error
+
+	var ret1 []interface{}
+	if in.Metadata != nil {
+		v, ok := obj["metadata"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret1 = flattenMetadataV3(in.Metadata, v)
+	}
+
+	err = d.Set("metadata", ret1)
+	if err != nil {
+		return err
+	}
+
+	var ret2 []interface{}
+	if in.Spec != nil {
+		v, ok := obj["spec"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		ret2 = flattenClusterV3Spec(in.Spec, v)
+	}
+
+	err = d.Set("spec", ret2)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func flattenMetadataV3(in *commonpb.Metadata, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Project) > 0 {
+		obj["project"] = in.Project
+	}
+
+	if in.Labels != nil && len(in.Labels) > 0 {
+		obj["labels"] = toMapInterface(in.Labels)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenClusterV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Type) > 0 {
+		obj["type"] = in.Type
+	}
+
+	// TODO: FIX BLUEPRINT FLATTEN
+	// if len(in.BlueprintConfig) > 0 {
+	// 	obj["blueprint"] = in.Blueprint
+	// }
+
+	// if len(in.BlueprintVersion) > 0 {
+	// 	obj["blueprintversion"] = in.BlueprintVersion
+	// }
+
+	if len(in.CloudCredentials) > 0 {
+		obj["cloud_credentials"] = in.CloudCredentials
+	}
+
+	if in.GetAks() != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenAKSClusterV3Config(in.GetAks(), v)
+	}
+
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSClusterV3Config(in *infrapb.AksV3ConfigObject, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ApiVersion) > 0 {
+		obj["apiversion"] = in.ApiVersion
+	}
+
+	if len(in.Kind) > 0 {
+		obj["kind"] = in.Kind
+	}
+
+	if in.Metadata != nil {
+		v, ok := obj["metadata"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["metadata"] = flattenMetadataV3(in.Metadata, v)
+	}
+
+	if in.Spec != nil {
+		v, ok := obj["spec"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["spec"] = flattenAKSClusterConfigSpec(in.Spec, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSClusterConfigV3Spec(in *infrapb.AksV3Spec, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.SubscriptionID) > 0 {
+		obj["subscription_id"] = in.SubscriptionID
+	}
+
+	if len(in.ResourceGroupName) > 0 {
+		obj["resource_group_name"] = in.ResourceGroupName
+	}
+
+	if in.ManagedCluster != nil {
+		v, ok := obj["managed_cluster"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["managed_cluster"] = flattenAKSV3ManagedCluster(in.ManagedCluster, v)
+	}
+
+	// @@@@@@@
+	if in.NodePools != nil && len(in.NodePools) > 0 {
+		v, ok := obj["node_pools"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["node_pools"] = flattenAKSNodePool(in.NodePools, v)
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedCluster(in *infrapb.Managedcluster, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ApiVersion) > 0 {
+		obj["api_version"] = in.ApiVersion
+	}
+
+	if in.ExtendedLocation != nil {
+		v, ok := obj["extended_location"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["extended_location"] = flattenAKSManagedClusterV3ExtendedLocation(in.ExtendedLocation, v)
+	}
+
+	if in.Identity != nil {
+		v, ok := obj["identity"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["identity"] = flattenAKSV3ManagedClusterIdentity(in.Identity, v)
+	}
+
+	if len(in.Location) > 0 {
+		obj["location"] = in.Location
+	}
+
+	if in.Properties != nil {
+		v, ok := obj["properties"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		log.Printf("About to enter flattenAKSManagedClusterProperties")
+		obj["properties"] = flattenAKSV3ManagedClusterProperties(in.Properties, v)
+	}
+
+	if in.Sku != nil {
+		v, ok := obj["sku"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["sku"] = flattenAKSV3ManagedClusterSKU(in.Sku, v)
+	}
+
+	if in.Tags != nil && len(in.Tags) > 0 {
+		obj["tags"] = in.Tags
+	}
+
+	if len(in.Type) > 0 {
+		obj["type"] = in.Type
+	}
+
+	if in.AdditionalMetadata != nil {
+		v, ok := obj["additional_metadata"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["additional_metadata"] = flattenAKSV3ManagedClusterAdditionalMetadata(in.AdditionalMetadata, v)
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSManagedClusterV3ExtendedLocation(in *infrapb.Extendedlocation, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Type) > 0 {
+		obj["type"] = in.Type
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterIdentity(in *infrapb.Identity, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Type) > 0 {
+		obj["type"] = in.Type
+	}
+
+	// TODO: FIX THIS
+	// if in.UserAssignedIdentities != nil && len(in.UserAssignedIdentities) > 0 {
+	// 	//obj["user_assigned_identities"] = toMapInterface(in.UserAssignedIdentities)
+	// 	obj["user_assigned_identities"] = toMapInterfaceObject(in.UserAssignedIdentities)
+	// }
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, p []interface{}) []interface{} {
+	log.Printf("Entered flattenAKSV3ManagedClusterProperties")
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.AadProfile != nil {
+		v, ok := obj["aad_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["aad_profile"] = flattenAKSV3ManagedClusterAzureADProfile(in.AadProfile, v)
+	}
+
+	// TODO: FIX THIS
+	// if in.AddonProfiles != nil {
+	// 	v, ok := obj["addon_profiles"].([]interface{})
+	// 	if !ok {
+	// 		v = []interface{}{}
+	// 	}
+	// 	obj["addon_profiles"] = flattenAddonProfile(in.AddonProfiles, v)
+	// }
+
+	if in.ApiServerAccessProfile != nil {
+		v, ok := obj["api_server_access_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["api_server_access_profile"] = flattenAKSV3ManagedClusterAPIServerAccessProfile(in.ApiServerAccessProfile, v)
+	}
+
+	if in.AutoScalerProfile != nil {
+		v, ok := obj["auto_scaler_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["auto_scaler_profile"] = flattenAKSV3ManagedClusterAutoScalerProfile(in.AutoScalerProfile, v)
+	}
+
+	if in.AutoUpgradeProfile != nil {
+		v, ok := obj["auto_upgrade_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["auto_upgrade_profile"] = flattenAKSV3ManagedClusterAutoUpgradeProfile(in.AutoUpgradeProfile, v)
+	}
+
+	obj["disable_local_accounts"] = in.DisableLocalAccounts
+
+	if len(in.DiskEncryptionSetID) > 0 {
+		obj["disk_encryption_set_id"] = in.DiskEncryptionSetID
+	}
+
+	if len(in.DnsPrefix) > 0 {
+		obj["dns_prefix"] = in.DnsPrefix
+	}
+
+	obj["enable_pod_security_policy"] = in.EnablePodSecurityPolicy
+
+	obj["enable_rbac"] = in.EnableRBAC
+
+	if len(in.FqdnSubdomain) > 0 {
+		obj["fqdn_subdomain"] = in.FqdnSubdomain
+	}
+
+	if in.HttpProxyConfig != nil {
+		v, ok := obj["http_proxy_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["http_proxy_config"] = flattenAKSV3ManagedClusterHTTPProxyConfig(in.HttpProxyConfig, v)
+	}
+
+	if in.IdentityProfile != nil && len(in.IdentityProfile) > 0 {
+		obj["identity_profile"] = toMapInterface(in.IdentityProfile)
+	}
+
+	if len(in.KubernetesVersion) > 0 {
+		obj["kubernetes_version"] = in.KubernetesVersion
+	}
+
+	if in.LinuxProfile != nil {
+		v, ok := obj["linux_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["linux_profile"] = flattenAKSV3ManagedClusterLinuxProfile(in.LinuxProfile, v)
+	}
+
+	if in.NetworkProfile != nil {
+		v, ok := obj["network_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["network_profile"] = flattenAKSV3MCPropertiesNetworkProfile(in.NetworkProfile, v)
+	}
+
+	if len(in.NodeResourceGroup) > 0 {
+		obj["node_resource_group"] = in.NodeResourceGroup
+	}
+
+	if in.PodIdentityProfile != nil {
+		v, ok := obj["pod_identity_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["pod_identity_profile"] = flattenAKSV3ManagedClusterPodIdentityProfile(in.PodIdentityProfile, v)
+	}
+
+	// TODO: FIX
+	// if in.PrivateLinkResources != nil {
+	// 	v, ok := obj["private_link_resources"].([]interface{})
+	// 	if !ok {
+	// 		v = []interface{}{}
+	// 	}
+	// 	obj["private_link_resources"] = flattenAKSV3ManagedClusterPrivateLinkResources(in.PrivateLinkResources, v)
+	// }
+
+	if in.ServicePrincipalProfile != nil {
+		v, ok := obj["service_principal_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["service_principal_profile"] = flattenAKSV3ManagedClusterServicePrincipalProfile(in.ServicePrincipalProfile, v)
+	}
+
+	if in.WindowsProfile != nil {
+		v, ok := obj["windows_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["windows_profile"] = flattenAKSV3ManagedClusterWindowsProfile(in.WindowsProfile, v)
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterAzureADProfile(in *infrapb.Aadprofile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.AdminGroupObjectIDs != nil && len(in.AdminGroupObjectIDs) > 0 {
+		obj["admin_group_object_ids"] = toArrayInterface(in.AdminGroupObjectIDs)
+	}
+
+	if len(in.ClientAppID) > 0 {
+		obj["client_app_id"] = in.ClientAppID
+	}
+
+	obj["enable_azure_rbac"] = in.EnableAzureRBAC
+
+	obj["managed"] = in.Managed
+
+	if len(in.ServerAppID) > 0 {
+		obj["server_app_id"] = in.ServerAppID
+	}
+
+	if len(in.ServerAppSecret) > 0 {
+		obj["server_app_id_secret"] = in.ServerAppSecret
+	}
+
+	if len(in.TenantID) > 0 {
+		obj["tenant_id"] = in.TenantID
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterAPIServerAccessProfile(in *infrapb.Apiserveraccessprofile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.AuthorizedIPRanges != nil && len(in.AuthorizedIPRanges) > 0 {
+		obj["authorized_ipr_ranges"] = toArrayInterface(in.AuthorizedIPRanges)
+	}
+
+	obj["enable_private_cluster"] = in.EnablePrivateCluster
+
+	obj["enable_private_cluster_public_fqdn"] = in.EnablePrivateClusterPublicFQDN
+
+	if len(in.PrivateDNSZone) > 0 {
+		obj["private_dns_zone"] = in.PrivateDNSZone
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterAutoScalerProfile(in *infrapb.Autoscalerprofile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.BalanceSimilarNodeGroups) > 0 {
+		obj["balance_similar_node_groups"] = in.BalanceSimilarNodeGroups
+	}
+
+	if len(in.Expander) > 0 {
+		obj["expander"] = in.Expander
+	}
+
+	if len(in.MaxEmptyBulkDelete) > 0 {
+		obj["max_empty_bulk_delete"] = in.MaxEmptyBulkDelete
+	}
+
+	if len(in.MaxGracefulTerminationSec) > 0 {
+		obj["max_graceful_termination_sec"] = in.MaxGracefulTerminationSec
+	}
+
+	if len(in.MaxNodeProvisionTime) > 0 {
+		obj["max_node_provision_time"] = in.MaxNodeProvisionTime
+	}
+
+	if len(in.MaxTotalUnreadyPercentage) > 0 {
+		obj["max_total_unready_percentage"] = in.MaxTotalUnreadyPercentage
+	}
+
+	if len(in.NewPodScaleUpDelay) > 0 {
+		obj["new_pod_scale_up_delay"] = in.NewPodScaleUpDelay
+	}
+
+	if len(in.OkTotalUnreadyCount) > 0 {
+		obj["ok_total_unready_count"] = in.OkTotalUnreadyCount
+	}
+	/*
+		if in.OkTotalUnreadyCount != nil {
+			obj["ok_total_unready_count"] = *in.OkTotalUnreadyCount
+		}
+	*/
+	if len(in.ScaleDownDelayAfterAdd) > 0 {
+		obj["scale_down_delay_after_add"] = in.ScaleDownDelayAfterAdd
+	}
+
+	if len(in.ScaleDownDelayAfterDelete) > 0 {
+		obj["scale_down_delay_after_delete"] = in.ScaleDownDelayAfterDelete
+	}
+
+	if len(in.ScaleDownDelayAfterFailure) > 0 {
+		obj["scale_down_delay_after_failure"] = in.ScaleDownDelayAfterFailure
+	}
+
+	if len(in.ScaleDownUnneededTime) > 0 {
+		obj["scale_down_unneeded_time"] = in.ScaleDownUnneededTime
+	}
+
+	if len(in.ScaleDownUnreadyTime) > 0 {
+		obj["scale_down_unready_time"] = in.ScaleDownUnreadyTime
+	}
+
+	if len(in.ScaleDownUtilizationThreshold) > 0 {
+		obj["scale_down_utilization_threshold"] = in.ScaleDownUtilizationThreshold
+	}
+
+	if len(in.ScanInterval) > 0 {
+		obj["scan_interval"] = in.ScanInterval
+	}
+
+	if len(in.SkipNodesWithLocalStorage) > 0 {
+		obj["skip_nodes_with_local_storage"] = in.SkipNodesWithLocalStorage
+	}
+
+	if len(in.SkipNodesWithSystemPods) > 0 {
+		obj["skip_nodes_with_system_pods"] = in.SkipNodesWithSystemPods
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterAutoUpgradeProfile(in *infrapb.Autoupgradeprofile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.UpgradeChannel) > 0 {
+		obj["upgrade_channel"] = in.UpgradeChannel
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterHTTPProxyConfig(in *infrapb.Httpproxyconfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.HttpProxy) > 0 {
+		obj["http_proxy"] = in.HttpProxy
+	}
+
+	if len(in.HttpProxy) > 0 {
+		obj["https_proxy"] = in.HttpProxy
+	}
+
+	if in.NoProxy != nil && len(in.NoProxy) > 0 {
+		obj["no_proxy"] = toArrayInterface(in.NoProxy)
+	}
+
+	if len(in.TrustedCa) > 0 {
+		obj["trusted_ca"] = in.TrustedCa
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterLinuxProfile(in *infrapb.Linuxprofile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.AdminUsername) > 0 {
+		obj["admin_username"] = in.AdminUsername
+	}
+
+	if in.Ssh != nil {
+		v, ok := obj["ssh"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["ssh"] = flattenAKSV3ManagedClusterSSHConfig(in.Ssh, v)
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterSSHConfig(in *infrapb.Ssh, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.PublicKeys != nil && len(in.PublicKeys) > 0 {
+		v, ok := obj["ssh"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["public_keys"] = flattenAKSV3ManagedClusterSSHKeyData(in.PublicKeys, v)
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterSSHKeyData(in []*infrapb.Publickeys, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.KeyData) > 0 {
+			obj["key_data"] = in.KeyData
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+
+}
+
+func flattenAKSV3MCPropertiesNetworkProfile(in *infrapb.Networkprofile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.DnsServiceIP) > 0 {
+		obj["dns_service_ip"] = in.DnsServiceIP
+	}
+
+	if len(in.DockerBridgeCidr) > 0 {
+		obj["docker_bridge_cidr"] = in.DockerBridgeCidr
+	}
+
+	if in.LoadBalancerProfile != nil {
+		v, ok := obj["load_balancer_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["load_balancer_profile"] = flattenAKSV3ManagedClusterNPLoadBalancerProfile(in.LoadBalancerProfile, v)
+	}
+
+	if len(in.LoadBalancerSku) > 0 {
+		obj["load_balancer_sku"] = in.LoadBalancerSku
+	}
+
+	if len(in.NetworkMode) > 0 {
+		obj["network_mode"] = in.NetworkMode
+	}
+
+	if len(in.NetworkPlugin) > 0 {
+		obj["network_plugin"] = in.NetworkPlugin
+	}
+
+	if len(in.NetworkPolicy) > 0 {
+		obj["network_policy"] = in.NetworkPolicy
+	}
+
+	if len(in.OutboundType) > 0 {
+		obj["outbound_type"] = in.OutboundType
+	}
+
+	if len(in.PodCidr) > 0 {
+		obj["pod_cidr"] = in.PodCidr
+	}
+
+	if len(in.ServiceCidr) > 0 {
+		obj["service_cidr"] = in.ServiceCidr
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterNPLoadBalancerProfile(in *infrapb.Loadbalancerprofile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	// TODO: REVIEW THIS
+	if in.AllocatedOutboundPorts != 0 {
+		obj["allocated_outbound_ports"] = in.AllocatedOutboundPorts
+	}
+
+	if in.EffectiveOutboundIPs != nil && len(in.EffectiveOutboundIPs) > 0 {
+		v, ok := obj["effective_outbound_ips"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["effective_outbound_ips"] = flattenAKSV3ManagedClusterNPEffectiveOutboundIPs(in.EffectiveOutboundIPs, v)
+	}
+
+	// TODO: REVIEW THIS
+	if in.IdleTimeoutInMinutes != 0 {
+		obj["idle_timeout_in_minutes"] = in.IdleTimeoutInMinutes
+	}
+
+	// TODO: FIX
+	// if in.ManagedOutboundIPs != nil {
+	// 	v, ok := obj["managed_outbound_ips"].([]interface{})
+	// 	if !ok {
+	// 		v = []interface{}{}
+	// 	}
+	// 	obj["managed_outbound_ips"] = flattenAKSManagedClusterNPManagedOutboundIPs(in.ManagedOutboundIPs, v)
+	// }
+
+	if in.OutboundIPPrefixes != nil {
+		v, ok := obj["outbound_ip_prefixes"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["outbound_ip_prefixes"] = flattenAKSV3ManagedClusterNPOutboundIPPrefixes(in.OutboundIPPrefixes, v)
+	}
+
+	if in.OutboundIPs != nil {
+		v, ok := obj["outbound_ips"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["outbound_ips"] = flattenAKSV3ManagedClusterNPOutboundIPs(in.OutboundIPs, v)
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterNPEffectiveOutboundIPs(in []*infrapb.Effectiveoutboundips, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Id) > 0 {
+			obj["id"] = in.Id
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+// TODO: FIX
+// func flattenAKSV3ManagedClusterNPManagedOutboundIPs(in *infrapb.Managedoutboundips, p []interface{}) []interface{} {
+// 	if in == nil {
+// 		return nil
+// 	}
+// 	obj := map[string]interface{}{}
+// 	if len(p) != 0 && p[0] != nil {
+// 		obj = p[0].(map[string]interface{})
+// 	}
+//
+// 	if in.Count != nil {
+// 		obj["count"] = *in.Count
+// 	}
+//
+// 	return []interface{}{obj}
+//
+// }
+
+func flattenAKSV3ManagedClusterNPOutboundIPPrefixes(in *infrapb.Outboundipprefixes, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.PublicIPPrefixes != nil && len(in.PublicIPPrefixes) > 0 {
+		v, ok := obj["public_ip_prefixes"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["public_ip_prefixes"] = flattenAKSV3ManagedClusterNPOutboundIPsPublicIPPrefixes(in.PublicIPPrefixes, v)
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterNPOutboundIPsPublicIPPrefixes(in []*infrapb.Publicipprefixes, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Id) > 0 {
+			obj["id"] = in.Id
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenAKSV3ManagedClusterNPOutboundIPs(in *infrapb.Outboundips, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.PublicIPs != nil && len(in.PublicIPs) > 0 {
+		v, ok := obj["public_ips"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["public_ips"] = flattenAKSV3ManagedClusterNPOutboundIPsPublicIPs(in.PublicIPs, v)
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterNPOutboundIPsPublicIPs(in []*infrapb.Publicips, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Id) > 0 {
+			obj["id"] = in.Id
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+
+}
+
+func flattenAKSV3ManagedClusterPodIdentityProfile(in *infrapb.Podidentityprofile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["allow_network_plugin_kubenet"] = in.AllowNetworkPluginKubenet
+
+	obj["enabled"] = in.Enabled
+
+	if in.UserAssignedIdentities != nil {
+		v, ok := obj["user_assigned_identities"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["user_assigned_identities"] = flattenAKSV3ManagedClusterPIPUserAssignedIdentities(in.UserAssignedIdentities, v)
+	}
+
+	if in.UserAssignedIdentityExceptions != nil {
+		v, ok := obj["user_assigned_identity_exceptions"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["user_assigned_identity_exceptions"] = flattenAKSV3ManagedClusterPIPUserAssignedIdentityExceptions(in.UserAssignedIdentityExceptions, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterPIPUserAssignedIdentities(inp []*infrapb.Userassignedidentities, p []interface{}) []interface{} {
+	if inp == nil {
+		return nil
+	}
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
+		obj := map[string]interface{}{}
+		if len(p) != 0 && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.BindingSelector) > 0 {
+			obj["binding_selector"] = in.BindingSelector
+		}
+
+		if in.Identity != nil {
+			v, ok := obj["identity"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["identity"] = flattenAKSV3ManagedClusterUAIIdentity(in.Identity, v)
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Namespace) > 0 {
+			obj["namespace"] = in.Namespace
+		}
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenAKSV3ManagedClusterUAIIdentity(in *infrapb.Identity1, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ClientId) > 0 {
+		obj["client_id"] = in.ClientId
+	}
+
+	if len(in.ObjectId) > 0 {
+		obj["object_id"] = in.ObjectId
+	}
+
+	if len(in.ResourceId) > 0 {
+		obj["resource_id"] = in.ResourceId
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterPIPUserAssignedIdentityExceptions(inp []*infrapb.Userassignedidentityexceptions, p []interface{}) []interface{} {
+	if inp == nil {
+		return nil
+	}
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
+		obj := map[string]interface{}{}
+		if len(p) != 0 && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Namespace) > 0 {
+			obj["namespace"] = in.Namespace
+		}
+
+		if in.PodLabels != nil && len(in.PodLabels) > 0 {
+			obj["pod_labels"] = toMapInterface(in.PodLabels)
+		}
+		out[i] = &obj
+	}
+	return out
+}
+
+func flattenAKSV3ManagedClusterPrivateLinkResources(in *infrapb.Privatelinkresources, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.GroupId) > 0 {
+		obj["group_id"] = in.GroupId
+	}
+
+	if len(in.Id) > 0 {
+		obj["id"] = in.Id
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if in.RequiredMembers != nil && len(in.RequiredMembers) > 0 {
+		obj["required_members"] = toArrayInterface(in.RequiredMembers)
+	}
+
+	if len(in.Type) > 0 {
+		obj["type"] = in.Type
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterServicePrincipalProfile(in *infrapb.Serviceprincipalprofile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ClientId) > 0 {
+		obj["client_id"] = in.ClientId
+	}
+
+	if len(in.Secret) > 0 {
+		obj["secret"] = in.Secret
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterWindowsProfile(in *infrapb.Windowsprofile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.AdminUsername) > 0 {
+		obj["admin_username"] = in.AdminUsername
+	}
+
+	if len(in.LicenseType) > 0 {
+		obj["license_type"] = in.LicenseType
+	}
+
+	obj["enable_csi_proxy"] = in.EnableCSIProxy
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterSKU(in *infrapb.Sku, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Tier) > 0 {
+		obj["tier"] = in.Tier
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterAdditionalMetadata(in *infrapb.Additionalmetadata, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.AcrProfile != nil {
+		v, ok := obj["acr_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["acr_profile"] = flattenAKSV3ManagedClusterAdditionalMetadataACRProfile(in.AcrProfile, v)
+	}
+
+	if len(in.OmsWorkspaceLocation) > 0 {
+		obj["oms_workspace_location"] = in.OmsWorkspaceLocation
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterAdditionalMetadataACRProfile(in *infrapb.AcrProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ResourceGroupName) > 0 {
+		obj["resource_group_name"] = in.ResourceGroupName
+	}
+
+	if len(in.AcrName) > 0 {
+		obj["acr_name"] = in.AcrName
+	}
+
+	return []interface{}{obj}
+
 }

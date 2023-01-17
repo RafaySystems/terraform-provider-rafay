@@ -1,4 +1,4 @@
-# Username/Password example
+# JFrog example
 resource "rafay_container_registry" "tfdemocr" {
   metadata {
     name    = "cr-tf"
@@ -6,13 +6,29 @@ resource "rafay_container_registry" "tfdemocr" {
   }
 
   spec {
-    provider = "Custom"
-    credentials {//only part that can be modified 
-      password = "password_token"
-      username = "sou"
+    provider = "JGrog"
+    credentials {
+      password = "Tesla@321"
+      username = "gayibot147@cnxcoin.com"
     }
-    endpoint = "myregistry.example.com:5000"
+    endpoint = "testqe.jfrog.io"
   }
 }
+# #Custom Example
+# resource "rafay_container_registry" "tfdemocr" {
+#   metadata {
+#     name    = "cr-tf"
+#     project = "defaultproject"
+#   }
+
+#   spec {
+#     provider = "Custom"
+#     credentials {
+#       password = "changeplz"
+#       username = "sougz"
+#     }
+#     endpoint = "myregistry.example.com:5000"
+#   }
+# }
 
 

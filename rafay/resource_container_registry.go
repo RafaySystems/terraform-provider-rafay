@@ -257,9 +257,19 @@ func expandContainerRegistrySpec(p []interface{}) (*integrationspb.ContainerRegi
 	in := p[0].(map[string]interface{})
 
 	crt := ContainerRegistrySpecTranspose{}
+	providersList := [11]string{"Custom", "JFrog", "System", "ECR", "DockerHub", "GCR", "Quay", "Nexus", "Harbor", "MCR", "ACR"}
 
 	if v, ok := in["provider"].(string); ok && len(v) > 0 {
-		crt.Provider = v
+		for _, x := range providersList {
+			log.Println(v, x)
+			log.Println(v == x)
+			if v == x {
+				crt.Provider = v
+			}
+		}
+		if crt.Provider == "" {
+			return obj, fmt.Errorf("Invalid provider")
+		}
 	}
 
 	if v, ok := in["endpoint"].(string); ok && len(v) > 0 {

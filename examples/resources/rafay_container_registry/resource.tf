@@ -6,7 +6,7 @@ resource "rafay_container_registry" "tfdemocr" {
   }
 
   spec {
-    provider = "JGrog"
+    provider = "JFrog"
     credentials {
       password = "Tesla@321"
       username = "gayibot147@cnxcoin.com"

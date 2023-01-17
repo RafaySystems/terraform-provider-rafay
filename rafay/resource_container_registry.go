@@ -68,14 +68,16 @@ func resourceContainerRegistry() *schema.Resource {
 
 func resourceContainerRegistryCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("ContainerRegistry create starts")
-	diags := resourceContainerRegistryUpsert(ctx, d, m)
+	call := "create"
+	diags := resourceContainerRegistryUpsert(ctx, d, m, call)
+	log.Println("Upsert err creation failed:", diags)
 	if diags.HasError() {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
 		}
 		log.Printf("ContainerRegistry create got error, perform cleanup")
-		cr, err := expandContainerRegistry(d)
+		cr, err := expandContainerRegistry(d, call)
 		if err != nil {
 			log.Printf("ContainerRegistry resourceContainerRegistryCreate error")
 			return diags
@@ -99,10 +101,11 @@ func resourceContainerRegistryCreate(ctx context.Context, d *schema.ResourceData
 
 func resourceContainerRegistryUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("ContainerRegistry update starts")
-	return resourceContainerRegistryUpsert(ctx, d, m)
+	call := "update"
+	return resourceContainerRegistryUpsert(ctx, d, m, call)
 }
 
-func resourceContainerRegistryUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceContainerRegistryUpsert(ctx context.Context, d *schema.ResourceData, m interface{}, call string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("ContainerRegistryUpsert starts")
 	tflog := os.Getenv("TF_LOG")
@@ -119,7 +122,7 @@ func resourceContainerRegistryUpsert(ctx context.Context, d *schema.ResourceData
 		}
 	}
 
-	containerRegistry, err := expandContainerRegistry(d)
+	containerRegistry, err := expandContainerRegistry(d, call)
 	if err != nil {
 		log.Printf("container regsitry expandContainerRegistry error")
 		return diag.FromErr(err)
@@ -165,7 +168,8 @@ func resourceContainerRegistryRead(ctx context.Context, d *schema.ResourceData, 
 		meta.Name = d.State().ID
 	}
 
-	containerRegistry, err := expandContainerRegistry(d)
+	call := "read"
+	containerRegistry, err := expandContainerRegistry(d, call)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -200,7 +204,8 @@ func resourceContainerRegistryDelete(ctx context.Context, d *schema.ResourceData
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
-	cr, err := expandContainerRegistry(d)
+	call := "delete"
+	cr, err := expandContainerRegistry(d, call)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -223,7 +228,7 @@ func resourceContainerRegistryDelete(ctx context.Context, d *schema.ResourceData
 	return diags
 }
 
-func expandContainerRegistry(in *schema.ResourceData) (*integrationspb.ContainerRegistry, error) {
+func expandContainerRegistry(in *schema.ResourceData, call string) (*integrationspb.ContainerRegistry, error) {
 	log.Println("expandContainerRegistry")
 	if in == nil {
 		return nil, fmt.Errorf("%s", "expand container registry empty input")
@@ -235,7 +240,7 @@ func expandContainerRegistry(in *schema.ResourceData) (*integrationspb.Container
 	}
 
 	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
-		objSpec, err := expandContainerRegistrySpec(v)
+		objSpec, err := expandContainerRegistrySpec(v, call)
 		if err != nil {
 			return nil, err
 		}
@@ -248,21 +253,24 @@ func expandContainerRegistry(in *schema.ResourceData) (*integrationspb.Container
 	return obj, nil
 }
 
-func expandContainerRegistrySpec(p []interface{}) (*integrationspb.ContainerRegistrySpec, error) {
+func expandContainerRegistrySpec(p []interface{}, call string) (*integrationspb.ContainerRegistrySpec, error) {
+	log.Println("expandContainerRegistrySpec")
 	obj := &integrationspb.ContainerRegistrySpec{}
 	if len(p) == 0 || p[0] == nil {
 		return obj, fmt.Errorf("%s", "expandContainerRegistrySpec empty input")
 	}
 
 	in := p[0].(map[string]interface{})
+	//log.Println("spec input", in)
 
 	crt := ContainerRegistrySpecTranspose{}
 	providersList := [11]string{"Custom", "JFrog", "System", "ECR", "DockerHub", "GCR", "Quay", "Nexus", "Harbor", "MCR", "ACR"}
+	nilSpace := [4]string{"", " ", "null", "nill"}
 
 	if v, ok := in["provider"].(string); ok && len(v) > 0 {
 		for _, x := range providersList {
-			log.Println(v, x)
-			log.Println(v == x)
+			//log.Println(v, x)
+			//log.Println(v == x)
 			if v == x {
 				crt.Provider = v
 			}
@@ -271,9 +279,17 @@ func expandContainerRegistrySpec(p []interface{}) (*integrationspb.ContainerRegi
 			return obj, fmt.Errorf("Invalid provider")
 		}
 	}
-
 	if v, ok := in["endpoint"].(string); ok && len(v) > 0 {
+		for _, x := range nilSpace {
+			//log.Println(v, x)
+			//log.Println(v == x)
+			if v == x {
+				return obj, fmt.Errorf("Empty Endpoint")
+			}
+		}
 		crt.Endpoint = v
+	} else if call == "update" {
+		return obj, fmt.Errorf("Empty Endpoint")
 	}
 
 	if v, ok := in["secret"].([]interface{}); ok {

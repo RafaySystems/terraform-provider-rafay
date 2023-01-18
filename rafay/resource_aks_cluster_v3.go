@@ -1533,7 +1533,7 @@ func flattenAKSClusterV3(d *schema.ResourceData, in *infrapb.Cluster) error {
 	obj := map[string]interface{}{}
 
 	if len(in.ApiVersion) > 0 {
-		obj["apiversion"] = in.ApiVersion
+		obj["api_version"] = in.ApiVersion
 	}
 	if len(in.Kind) > 0 {
 		obj["kind"] = in.Kind
@@ -1645,7 +1645,7 @@ func flattenAKSClusterV3Config(in *infrapb.AksV3ConfigObject, p []interface{}) [
 	}
 
 	if len(in.ApiVersion) > 0 {
-		obj["apiversion"] = in.ApiVersion
+		obj["api_version"] = in.ApiVersion
 	}
 
 	if len(in.Kind) > 0 {
@@ -2735,15 +2735,13 @@ func flattenAKSV3NodePool(in []*infrapb.Nodepool, p []interface{}) []interface{}
 		return nil
 	}
 
+	// TODO: TEST
 	// sort the incoming nodepools
-	inToSort := make([]infrapb.Nodepool, len(in))
-	for i := range in {
-		inToSort[i] = *in[i]
-	}
-	sort.Sort(ByNodepoolNameV3(inToSort))
-	for i := range inToSort {
-		in[i] = &inToSort[i]
-	}
+	// sortedIn := make([]infrapb.Nodepool, len(in))
+	// for i := range in {
+	// 	sortedIn[i] = *in[i]
+	// }
+	// sort.Sort(ByNodepoolNameV3(sortedIn))
 
 	out := make([]interface{}, len(in))
 	for i, in := range in {

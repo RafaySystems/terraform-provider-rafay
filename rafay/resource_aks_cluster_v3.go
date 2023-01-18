@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -118,6 +119,25 @@ func resourceAKSClusterV3Delete(ctx context.Context, d *schema.ResourceData, m i
 }
 
 func resourceAKSClusterV3Import(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceAKSClusterV3 idParts:", idParts)
+
+	cluster, err := expandClusterV3(d)
+	if err != nil {
+		log.Printf("resourceCluster expand error")
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	cluster.Metadata = &metaD
+
+	err = d.Set("metadata", flattenMetaData(cluster.Metadata))
+	if err != nil {
+		log.Println("import set err")
+		return nil, err
+	}
+	d.SetId(cluster.Metadata.Name)
 	return []*schema.ResourceData{d}, nil
 }
 
@@ -202,7 +222,7 @@ func expandClusterV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 	}
 
 	if obj.Type != "aks" {
-		log.Fatalln("Not Implemented")
+		return nil, errors.New("cluster type not implemented")
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
@@ -225,12 +245,6 @@ func expandClusterV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 	default:
 		log.Fatalln("Not Implemented")
 	}
-
-	//if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
-	//	obj.Spec.Config = &infrapb.ClusterSpec_Aks{Aks: &infrapb.AksV3ConfigObject{}}
-	//}
-
-	// &infrapb.ClusterSpec_Aks{Aks: &infrapb.AksV3ConfigObject{}}
 
 	// TODO: PROXY CONFIG
 
@@ -454,10 +468,9 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.AadProfile = expandAKSManagedClusterV3AzureADProfile(v)
 	}
 
-	// TODO: GO BACK TO THIS
-	// if v, ok := in["addon_profiles"].([]interface{}); ok && len(v) > 0 {
-	// 	obj.AddonProfiles = expandAddonProfiles(v)
-	// }
+	if v, ok := in["addon_profiles"].(map[string]*infrapb.AddonProfile); ok && len(v) > 0 {
+		obj.AddonProfiles = v
+	}
 
 	if v, ok := in["api_server_access_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.ApiServerAccessProfile = expandAKSManagedClusterV3APIServerAccessProfile(v)

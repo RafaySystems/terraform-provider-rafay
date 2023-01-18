@@ -1665,13 +1665,13 @@ func flattenAKSClusterV3Config(in *infrapb.AksV3ConfigObject, p []interface{}) [
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["spec"] = flattenAKSClusterConfigSpec(in.Spec, v)
+		obj["spec"] = flattenAKSV3ClusterConfigSpec(in.Spec, v)
 	}
 
 	return []interface{}{obj}
 }
 
-func flattenAKSClusterConfigV3Spec(in *infrapb.AksV3Spec, p []interface{}) []interface{} {
+func flattenAKSV3ClusterConfigSpec(in *infrapb.AksV3Spec, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -1702,7 +1702,7 @@ func flattenAKSClusterConfigV3Spec(in *infrapb.AksV3Spec, p []interface{}) []int
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["node_pools"] = flattenAKSNodePool(in.NodePools, v)
+		obj["node_pools"] = flattenAKSV3NodePool(in.NodePools, v)
 	}
 
 	return []interface{}{obj}
@@ -2724,6 +2724,371 @@ func flattenAKSV3ManagedClusterAdditionalMetadataACRProfile(in *infrapb.AcrProfi
 
 	if len(in.AcrName) > 0 {
 		obj["acr_name"] = in.AcrName
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3NodePool(in []*infrapb.Nodepool, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	// sort the incoming nodepools
+	inToSort := make([]infrapb.Nodepool, len(in))
+	for i := range in {
+		inToSort[i] = *in[i]
+	}
+	sort.Sort(ByNodepoolNameV3(inToSort))
+	for i := range inToSort {
+		in[i] = &inToSort[i]
+	}
+
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.ApiVersion) > 0 {
+			obj["api_version"] = in.ApiVersion
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if in.Properties != nil {
+			v, ok := obj["properties"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["properties"] = flattenAKSV3NodePoolProperties(in.Properties, v)
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		if len(in.Location) > 0 {
+			obj["location"] = in.Location
+		}
+
+		out[i] = obj
+	}
+	return out
+}
+
+func flattenAKSV3NodePoolProperties(in *infrapb.NodePoolProperties, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.AvailabilityZones != nil && len(in.AvailabilityZones) > 0 {
+		obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
+	}
+
+	obj["count"] = in.Count
+
+	// TODO:
+	// review this boolean flags
+	if in.EnableAutoScaling {
+		obj["enable_auto_scaling"] = in.EnableAutoScaling
+	}
+
+	if in.EnableEncryptionAtHost {
+		obj["enable_encryption_at_host"] = in.EnableEncryptionAtHost
+	}
+
+	if in.EnableFIPS {
+		obj["enable_fips"] = in.EnableFIPS
+	}
+
+	if in.EnableNodePublicIP {
+		obj["enable_node_public_ip"] = in.EnableNodePublicIP
+	}
+
+	if in.EnableUltraSSD {
+		obj["enable_ultra_ssd"] = in.EnableUltraSSD
+	}
+
+	if len(in.GpuInstanceProfile) > 0 {
+		obj["gpu_instance_profile"] = in.GpuInstanceProfile
+	}
+
+	if in.KubeletConfig != nil {
+		v, ok := obj["kubelet_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["kubelet_config"] = flattenAKSV3NodePoolKubeletConfig(in.KubeletConfig, v)
+	}
+
+	if len(in.KubeletDiskType) > 0 {
+		obj["kubelet_disk_type"] = in.KubeletDiskType
+	}
+
+	if in.LinuxOSConfig != nil {
+		v, ok := obj["linux_os_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["linux_os_config"] = flattenAKSV3NodePoolLinuxOsConfig(in.LinuxOSConfig, v)
+	}
+
+	obj["max_count"] = in.MaxCount
+
+	obj["max_pods"] = in.MaxPods
+
+	obj["min_count"] = in.MinCount
+
+	if len(in.Mode) > 0 {
+		obj["mode"] = in.Mode
+	}
+
+	if in.NodeLabels != nil && len(in.NodeLabels) > 0 {
+		obj["node_labels"] = toMapInterface(in.NodeLabels)
+	}
+
+	if len(in.NodePublicIPPrefixID) > 0 {
+		obj["node_public_ip_prefix_id"] = in.NodePublicIPPrefixID
+	}
+
+	if in.NodeTaints != nil && len(in.NodeTaints) > 0 {
+		obj["node_taints"] = toArrayInterface(in.NodeTaints)
+	}
+
+	if len(in.OrchestratorVersion) > 0 {
+		obj["orchestrator_version"] = in.OrchestratorVersion
+	}
+
+	obj["os_disk_size_gb"] = in.OsDiskSizeGB
+
+	if len(in.OsDiskType) > 0 {
+		obj["os_disk_type"] = in.OsDiskType
+	}
+
+	if len(in.OsSKU) > 0 {
+		obj["os_sku"] = in.OsSKU
+	}
+
+	if len(in.OsType) > 0 {
+		obj["os_type"] = in.OsType
+	}
+
+	if len(in.PodSubnetID) > 0 {
+		obj["pod_subnet_id"] = in.PodSubnetID
+	}
+
+	if len(in.ProximityPlacementGroupID) > 0 {
+		obj["proximity_placement_group_id"] = in.ProximityPlacementGroupID
+	}
+
+	if len(in.ScaleSetEvictionPolicy) > 0 {
+		obj["scale_set_eviction_policy"] = in.ScaleSetEvictionPolicy
+	}
+
+	if len(in.ScaleSetPriority) > 0 {
+		obj["scale_set_priority"] = in.ScaleSetPriority
+	}
+
+	obj["spot_max_price"] = in.SpotMaxPrice
+
+	if in.Tags != nil && len(in.Tags) > 0 {
+		obj["tags"] = toMapInterface(in.Tags)
+	}
+
+	if len(in.Type) > 0 {
+		obj["type"] = in.Type
+	}
+
+	if in.UpgradeSettings != nil {
+		v, ok := obj["upgrade_settings"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["upgrade_settings"] = flattenAKSV3NodePoolUpgradeSettings(in.UpgradeSettings, v)
+	}
+
+	if len(in.VmSize) > 0 {
+		obj["vm_size"] = in.VmSize
+	}
+
+	if len(in.VnetSubnetID) > 0 {
+		obj["vnet_subnet_id"] = in.VnetSubnetID
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3NodePoolKubeletConfig(in *infrapb.Kubeletconfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.AllowedUnsafeSysctls != nil && len(in.AllowedUnsafeSysctls) > 0 {
+		obj["allowed_unsafe_sysctls"] = toArrayInterface(in.AllowedUnsafeSysctls)
+	}
+
+	obj["container_log_max_files"] = in.ContainerLogMaxFiles
+
+	obj["container_log_max_size_mb"] = in.ContainerLogMaxSizeMB
+
+	if in.CpuCfsQuota {
+		obj["cpu_cfs_quota"] = in.CpuCfsQuota
+	}
+
+	if len(in.CpuCfsQuotaPeriod) > 0 {
+		obj["cpu_cfs_quota_period"] = in.CpuCfsQuotaPeriod
+	}
+
+	if len(in.CpuManagerPolicy) > 0 {
+		obj["cpu_manager_policy"] = in.CpuManagerPolicy
+	}
+
+	if in.FailSwapOn {
+		obj["fail_swap_on"] = in.FailSwapOn
+	}
+
+	obj["image_gc_high_threshold"] = in.ImageGcHighThreshold
+
+	obj["image_gc_low_threshold"] = in.ImageGcLowThreshold
+
+	obj["pod_max_pids"] = in.PodMaxPids
+
+	if len(in.TopologyManagerPolicy) > 0 {
+		obj["topology_manager_policy"] = in.TopologyManagerPolicy
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3NodePoolLinuxOsConfig(in *infrapb.Linuxosconfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.Sysctls != nil {
+		v, ok := obj["sysctls"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["sysctls"] = flattenAKSV3NodePoolLinuxOsConfigSysctls(in.Sysctls, v)
+	}
+
+	if len(in.TransparentHugePageDefrag) > 0 {
+		obj["transparent_huge_page_defrag"] = in.TransparentHugePageDefrag
+	}
+
+	if len(in.TransparentHugePageEnabled) > 0 {
+		obj["transparent_huge_page_enabled"] = in.TransparentHugePageEnabled
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3NodePoolLinuxOsConfigSysctls(in *infrapb.Sysctls, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["fs_aio_max_nr"] = in.FsAioMaxNr
+
+	obj["fs_file_max"] = in.FsFileMax
+
+	obj["fs_inotify_max_user_watches"] = in.FsInotifyMaxUserWatches
+
+	obj["fs_nr_open"] = in.FsNrOpen
+
+	obj["kernel_threads_max"] = in.KernelThreadsMax
+
+	obj["net_core_netdev_max_backlog"] = in.NetCoreNetdevMaxBacklog
+
+	obj["net_core_optmem_max"] = in.NetCoreOptmemMax
+
+	obj["net_core_rmem_default"] = in.NetCoreRmemDefault
+
+	obj["net_core_optmem_max"] = in.NetCoreRmemMax
+
+	obj["net_core_somaxconn"] = in.NetCoreSomaxconn
+
+	obj["net_core_wmem_default"] = in.NetCoreWmemDefault
+
+	obj["net_core_wmem_max"] = in.NetCoreWmemMax
+
+	if len(in.NetIpv4IpLocalPortRange) > 0 {
+		obj["net_ipv4_ip_local_port_range"] = in.NetIpv4IpLocalPortRange
+	}
+
+	obj["net_ipv4_neigh_default_gc_thresh1"] = in.NetIpv4NeighDefaultGcThresh1
+
+	obj["net_ipv4_neigh_default_gc_thresh2"] = in.NetIpv4NeighDefaultGcThresh2
+
+	obj["net_ipv4_neigh_default_gc_thresh3"] = in.NetIpv4NeighDefaultGcThresh3
+
+	obj["net_ipv4_tcp_fin_timeout"] = in.NetIpv4TcpFinTimeout
+
+	obj["net_ipv4_tcpkeepalive_intvl"] = in.NetIpv4TcpkeepaliveIntvl
+
+	obj["net_ipv4_tcp_keepalive_probes"] = in.NetIpv4TcpKeepaliveProbes
+
+	obj["net_ipv4_tcp_keepalive_time"] = in.NetIpv4TcpKeepaliveTime
+
+	obj["net_ipv4_tcp_max_syn_backlog"] = in.NetIpv4TcpMaxSynBacklog
+
+	obj["net_ipv4_tcp_max_tw_buckets"] = in.NetIpv4TcpMaxTwBuckets
+
+	if in.NetIpv4TcpTwReuse {
+		obj["net_ipv4_tcp_tw_reuse"] = in.NetIpv4TcpTwReuse
+	}
+
+	obj["net_netfilter_nf_conntrack_buckets"] = in.NetNetfilterNfConntrackBuckets
+
+	obj["net_netfilter_nf_conntrack_max"] = in.NetNetfilterNfConntrackMax
+
+	obj["vm_max_map_count"] = in.VmMaxMapCount
+
+	obj["vm_swappiness"] = in.VmSwappiness
+
+	obj["vm_vfs_cache_pressure"] = in.VmVfsCachePressure
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSV3NodePoolUpgradeSettings(in *infrapb.Upgradesettings, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.MaxSurge) > 0 {
+		obj["max_surge"] = in.MaxSurge
 	}
 
 	return []interface{}{obj}

@@ -217,13 +217,24 @@ func resourceCredentialsRead(ctx context.Context, d *schema.ResourceData, m inte
 
 func resourceCredentialsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	log.Println("resourceCredentialsDelete")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
-	ag, err := expandCredentials(d)
+	if d.State() != nil && d.State().ID != "" {
+		n := GetMetaName(d)
+		if n != "" && n != d.State().ID {
+			log.Printf("metadata name change not supported")
+			d.State().Tainted = true
+			return diag.FromErr(fmt.Errorf("%s", "metadata name change not supported"))
+		}
+	}
+
+	cred, err := expandCredentials(d)
 	if err != nil {
+		log.Println("delete expand err")
 		return diag.FromErr(err)
 	}
 
@@ -232,11 +243,14 @@ func resourceCredentialsDelete(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
 	err = client.InfraV3().Credentials().Delete(ctx, options.DeleteOptions{
-		Name:    ag.Metadata.Name,
-		Project: ag.Metadata.Project,
+		Name:    cred.Metadata.Name,
+		Project: cred.Metadata.Project,
 	})
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }

@@ -1620,14 +1620,9 @@ func flattenClusterV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{
 		obj["type"] = in.Type
 	}
 
-	// TODO: FIX BLUEPRINT FLATTEN
-	// if len(in.BlueprintConfig) > 0 {
-	// 	obj["blueprint"] = in.Blueprint
-	// }
-
-	// if len(in.BlueprintVersion) > 0 {
-	// 	obj["blueprintversion"] = in.BlueprintVersion
-	// }
+	if in.BlueprintConfig != nil {
+		obj["blueprint_config"] = flattenClusterV3Blueprint(in.BlueprintConfig)
+	}
 
 	if len(in.CloudCredentials) > 0 {
 		obj["cloud_credentials"] = in.CloudCredentials
@@ -1826,11 +1821,10 @@ func flattenAKSV3ManagedClusterIdentity(in *infrapb.Identity, p []interface{}) [
 		obj["type"] = in.Type
 	}
 
-	// TODO: FIX THIS
-	// if in.UserAssignedIdentities != nil && len(in.UserAssignedIdentities) > 0 {
-	// 	//obj["user_assigned_identities"] = toMapInterface(in.UserAssignedIdentities)
-	// 	obj["user_assigned_identities"] = toMapInterfaceObject(in.UserAssignedIdentities)
-	// }
+	// TODO: Test this
+	if in.UserAssignedIdentities != nil && len(in.UserAssignedIdentities) > 0 {
+		obj["user_assigned_identities"] = in.UserAssignedIdentities
+	}
 
 	return []interface{}{obj}
 
@@ -1854,14 +1848,10 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 		obj["aad_profile"] = flattenAKSV3ManagedClusterAzureADProfile(in.AadProfile, v)
 	}
 
-	// TODO: FIX THIS
-	// if in.AddonProfiles != nil {
-	// 	v, ok := obj["addon_profiles"].([]interface{})
-	// 	if !ok {
-	// 		v = []interface{}{}
-	// 	}
-	// 	obj["addon_profiles"] = flattenAddonProfile(in.AddonProfiles, v)
-	// }
+	// TODO: REVIEW
+	if in.AddonProfiles != nil {
+		obj["addon_profiles"] = in.AddonProfiles
+	}
 
 	if in.ApiServerAccessProfile != nil {
 		v, ok := obj["api_server_access_profile"].([]interface{})
@@ -1949,14 +1939,13 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 		obj["pod_identity_profile"] = flattenAKSV3ManagedClusterPodIdentityProfile(in.PodIdentityProfile, v)
 	}
 
-	// TODO: FIX
-	// if in.PrivateLinkResources != nil {
-	// 	v, ok := obj["private_link_resources"].([]interface{})
-	// 	if !ok {
-	// 		v = []interface{}{}
-	// 	}
-	// 	obj["private_link_resources"] = flattenAKSV3ManagedClusterPrivateLinkResources(in.PrivateLinkResources, v)
-	// }
+	if in.PrivateLinkResources != nil {
+		v, ok := obj["private_link_resources"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["private_link_resources"] = flattenAKSV3ManagedClusterPrivateLinkResources(in.PrivateLinkResources, v)
+	}
 
 	if in.ServicePrincipalProfile != nil {
 		v, ok := obj["service_principal_profile"].([]interface{})
@@ -2324,13 +2313,13 @@ func flattenAKSV3ManagedClusterNPLoadBalancerProfile(in *infrapb.Loadbalancerpro
 	}
 
 	// TODO: FIX
-	// if in.ManagedOutboundIPs != nil {
-	// 	v, ok := obj["managed_outbound_ips"].([]interface{})
-	// 	if !ok {
-	// 		v = []interface{}{}
-	// 	}
-	// 	obj["managed_outbound_ips"] = flattenAKSManagedClusterNPManagedOutboundIPs(in.ManagedOutboundIPs, v)
-	// }
+	if in.ManagedOutboundIPs != nil {
+		v, ok := obj["managed_outbound_ips"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["managed_outbound_ips"] = flattenAKSV3ManagedClusterNPManagedOutboundIPs(in.ManagedOutboundIPs, v)
+	}
 
 	if in.OutboundIPPrefixes != nil {
 		v, ok := obj["outbound_ip_prefixes"].([]interface{})
@@ -2374,23 +2363,22 @@ func flattenAKSV3ManagedClusterNPEffectiveOutboundIPs(in []*infrapb.Effectiveout
 	return out
 }
 
-// TODO: FIX
-// func flattenAKSV3ManagedClusterNPManagedOutboundIPs(in *infrapb.Managedoutboundips, p []interface{}) []interface{} {
-// 	if in == nil {
-// 		return nil
-// 	}
-// 	obj := map[string]interface{}{}
-// 	if len(p) != 0 && p[0] != nil {
-// 		obj = p[0].(map[string]interface{})
-// 	}
-//
-// 	if in.Count != nil {
-// 		obj["count"] = *in.Count
-// 	}
-//
-// 	return []interface{}{obj}
-//
-// }
+func flattenAKSV3ManagedClusterNPManagedOutboundIPs(in *infrapb.Managedoutboundips, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.Count > 0 {
+		obj["count"] = in.Count
+	}
+
+	return []interface{}{obj}
+
+}
 
 func flattenAKSV3ManagedClusterNPOutboundIPPrefixes(in *infrapb.Outboundipprefixes, p []interface{}) []interface{} {
 	if in == nil {
@@ -2599,36 +2587,39 @@ func flattenAKSV3ManagedClusterPIPUserAssignedIdentityExceptions(inp []*infrapb.
 	return out
 }
 
-func flattenAKSV3ManagedClusterPrivateLinkResources(in *infrapb.Privatelinkresources, p []interface{}) []interface{} {
+func flattenAKSV3ManagedClusterPrivateLinkResources(in []*infrapb.Privatelinkresources, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+	out := make([]interface{}, len(in))
+
+	for i, in := range in {
+		obj := map[string]interface{}{}
+
+		if len(in.GroupId) > 0 {
+			obj["group_id"] = in.GroupId
+		}
+
+		if len(in.Id) > 0 {
+			obj["id"] = in.Id
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if in.RequiredMembers != nil && len(in.RequiredMembers) > 0 {
+			obj["required_members"] = toArrayInterface(in.RequiredMembers)
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		out[i] = &obj
 	}
 
-	if len(in.GroupId) > 0 {
-		obj["group_id"] = in.GroupId
-	}
-
-	if len(in.Id) > 0 {
-		obj["id"] = in.Id
-	}
-
-	if len(in.Name) > 0 {
-		obj["name"] = in.Name
-	}
-
-	if in.RequiredMembers != nil && len(in.RequiredMembers) > 0 {
-		obj["required_members"] = toArrayInterface(in.RequiredMembers)
-	}
-
-	if len(in.Type) > 0 {
-		obj["type"] = in.Type
-	}
-
-	return []interface{}{obj}
+	return out
 
 }
 
@@ -3104,4 +3095,21 @@ func flattenAKSV3NodePoolUpgradeSettings(in *infrapb.Upgradesettings, p []interf
 
 	return []interface{}{obj}
 
+}
+
+func flattenClusterV3Blueprint(in *infrapb.BlueprintConfig) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	return []interface{}{obj}
 }

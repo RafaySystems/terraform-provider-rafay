@@ -173,6 +173,9 @@ func resourceContainerRegistryRead(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	// if containerRegistry.Metadata.Project == "" {
+	// 	return diag.FromErr(fmt.Errorf("project empty"))
+	// }
 
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
@@ -236,7 +239,20 @@ func expandContainerRegistry(in *schema.ResourceData, call string) (*integration
 	obj := &integrationspb.ContainerRegistry{}
 
 	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
-		obj.Metadata = expandMetaData(v)
+		if len(v) == 0 || v[0] == nil {
+			return nil, fmt.Errorf("%s", "expandRepoCredential empty ")
+		} else {
+			inp := v[0].(map[string]interface{})
+			if vp, ok := inp["project"].(string); ok && len(vp) > 0 {
+				log.Println("got project", ok, len(vp), vp)
+				obj.Metadata = expandMetaData(v)
+			} else if call == "update" {
+				log.Println("wth: ", ok, len(vp), vp)
+				return nil, fmt.Errorf("%s", "403 Forbidden: Project Input Field can not be empty")
+			}
+
+		}
+		//obj.Metadata = expandMetaData(v)
 	}
 
 	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {

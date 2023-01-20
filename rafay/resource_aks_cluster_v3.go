@@ -246,8 +246,6 @@ func expandClusterV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 		log.Fatalln("Not Implemented")
 	}
 
-	// TODO: PROXY CONFIG
-
 	return obj, nil
 }
 
@@ -536,10 +534,9 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.PodIdentityProfile = expandAKSManagedClusterV3PodIdentityProfile(v)
 	}
 
-	// TODO: FIX THIS
-	// if v, ok := in["private_link_resources"].([]interface{}); ok && len(v) > 0 {
-	// 	obj.PrivateLinkResources = expandAKSManagedClusterPrivateLinkResources(v)
-	// }
+	if v, ok := in["private_link_resources"].([]interface{}); ok && len(v) > 0 {
+		obj.PrivateLinkResources = expandAKSV3ManagedClusterPrivateLinkResources(v)
+	}
 
 	if v, ok := in["service_principal_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.ServicePrincipalProfile = expandAKSManagedClusterV3ServicePrincipalProfile(v)
@@ -1058,35 +1055,39 @@ func expandAKSManagedClusterV3PIPUserAssignedIdentityExceptions(p []interface{})
 	return out
 }
 
-// TODO: FIX THIS NOT BEING USED
-func expandAKSManagedClusterV3PrivateLinkResources(p []interface{}) *infrapb.Privatelinkresources {
-	obj := &infrapb.Privatelinkresources{}
+func expandAKSV3ManagedClusterPrivateLinkResources(p []interface{}) []*infrapb.Privatelinkresources {
+	out := make([]*infrapb.Privatelinkresources, len(p))
 	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["group_id"].(string); ok && len(v) > 0 {
-		obj.GroupId = v
+		return out
 	}
 
-	if v, ok := in["id"].(string); ok && len(v) > 0 {
-		obj.Id = v
+	for i := range p {
+		obj := &infrapb.Privatelinkresources{}
+		in := p[i].(map[string]interface{})
+		if v, ok := in["group_id"].(string); ok && len(v) > 0 {
+			obj.GroupId = v
+		}
+
+		if v, ok := in["id"].(string); ok && len(v) > 0 {
+			obj.Id = v
+		}
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["required_members"].([]interface{}); ok && len(v) > 0 {
+			obj.RequiredMembers = toArrayString(v)
+		}
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+
+		out[i] = obj
 	}
 
-	if v, ok := in["name"].(string); ok && len(v) > 0 {
-		obj.Name = v
-	}
-
-	if v, ok := in["required_members"].([]interface{}); ok && len(v) > 0 {
-		obj.RequiredMembers = toArrayString(v)
-	}
-
-	if v, ok := in["type"].(string); ok && len(v) > 0 {
-		obj.Type = v
-	}
-
-	return obj
+	return out
 }
 
 func expandAKSManagedClusterV3ServicePrincipalProfile(p []interface{}) *infrapb.Serviceprincipalprofile {

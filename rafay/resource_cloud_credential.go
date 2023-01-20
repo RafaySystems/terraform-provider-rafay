@@ -355,7 +355,7 @@ func resourceCloudCredentialDelete(ctx context.Context, d *schema.ResourceData, 
 	errDel := cloudprovider.DeleteCloudProvider(d.Get("name").(string), project.ID)
 	if errDel != nil {
 		log.Printf("delete cloud credential error %s", errDel.Error())
-		//return diag.FromErr(errDel)
+		return diag.FromErr(errDel)
 	}
 
 	return diags

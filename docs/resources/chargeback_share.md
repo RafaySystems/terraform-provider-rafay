@@ -19,8 +19,15 @@ resource "rafay_chargeback_share" "tfdemochargebackshare" {
     name = "chargebackshare"
   }
   spec {
-    share_enabled = true
-    share_type = "tenancy"
+    share_unallocated = true
+    share_type = "equal"
+    share_common = true
+    inclusions {
+      namespace = "common-namespace-1"
+    }
+    inclusions {
+      namespace = "common-namespace-2"
+    }
   }
 }
 ```
@@ -49,8 +56,18 @@ resource "rafay_chargeback_share" "tfdemochargebackshare" {
 
 ***Required***
 
-- `share_enabled` (Boolean) Enable/disable the Share unallocated cost (see [below for nested schema](#nestedblock--spec--time))
+- `share_unallocated` (Boolean) Enable/disable the Share unallocated cost
 - `share_type` (String) Share type. Valid values are `allocation` and `tenancy`.
+- `share_common` (Boolean) Enable/disable the Share common services cost
+- `inclusions` (Block List) Filter to include common services to share common services cost (see [below for nested schema](#nestedblock--spec--filter))
+
+
+<a id="nestedblock--spec--filter"></a>
+### Nested Schema for `spec.filter`
+
+***Required***
+- `namespace` (String) Name of namespace to include
+
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

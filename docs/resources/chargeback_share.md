@@ -7,7 +7,7 @@ description: |-
 ---
 
 # rafay_chargeback_share (Resource)
-Chargeback group share is to enable/disable the Share unallocated cost based on equal or resource allocation.
+Chargeback group share is to enable/disable the Share unallocated cost equally or based on resource allocation.
 
 ## Example Usage
 

@@ -7,7 +7,7 @@ description: |-
 ---
 
 # rafay_chargeback_share (Resource)
-Chargeback group share is to enable/disable the Share unallocated cost based on tenancy or resource allocation.
+Chargeback group share is to enable/disable the Share unallocated cost based on equal or resource allocation.
 
 ## Example Usage
 
@@ -57,7 +57,7 @@ resource "rafay_chargeback_share" "tfdemochargebackshare" {
 ***Required***
 
 - `share_unallocated` (Boolean) Enable/disable the Share unallocated cost
-- `share_type` (String) Share type. Valid values are `allocation` and `tenancy`.
+- `share_type` (String) Share type. Valid values are `allocation` and `equal`.
 - `share_common` (Boolean) Enable/disable the Share common services cost
 - `inclusions` (Block List) Filter to include common services to share common services cost (see [below for nested schema](#nestedblock--spec--filter))
 

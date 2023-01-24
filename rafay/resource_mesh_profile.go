@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
@@ -368,7 +367,6 @@ func flattenMeshProfileSpecIP(in *servicemeshpb.InstallationParams, p []interfac
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
-
 
 	if len(in.CertType) > 0 {
 		obj["cert_type"] = in.CertType

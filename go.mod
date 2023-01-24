@@ -1,6 +1,5 @@
 module github.com/RafaySystems/terraform-provider-rafay
 
-
 go 1.19
 
 require (
@@ -17,9 +16,7 @@ require (
 
 require (
 	github.com/goccy/go-yaml v1.9.5
-
 	github.com/google/go-cmp v0.5.9
-
 	go.uber.org/zap v1.23.0
 )
 
@@ -29,7 +26,6 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
-
 	github.com/RafaySystems/eaas-playground v0.0.0-20221122191953-47bce7fa561b // indirect
 	github.com/getkin/kin-openapi v0.76.0 // indirect
 	github.com/gomatic/clock v1.0.0 // indirect
@@ -44,18 +40,15 @@ require (
 )
 
 require (
-	github.com/Masterminds/goutils v1.1.1 // indirect
-	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20211112122917-428f8eabeeb3 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
-	github.com/RafaySystems/eaas-playground v0.0.0-20221122191953-47bce7fa561b // indirect
 	github.com/RafaySystems/edge-common v1.6.0-beta.1.0.20230120063743-38542a140aee // indirect
 	github.com/RoaringBitmap/roaring v0.6.1 // indirect
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef // indirect
+	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/aws/aws-sdk-go v1.44.68 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
@@ -63,7 +56,6 @@ require (
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/getkin/kin-openapi v0.76.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -85,7 +77,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/gomatic/clock v1.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -143,22 +134,14 @@ require (
 	github.com/rs/xid v1.4.0 // indirect
 	github.com/russross/blackfriday v1.6.0 // indirect
 	github.com/segmentio/encoding v0.2.3 // indirect
-	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spacemonkeygo/httpsig v0.0.0-20181218213338-2605ae379e47 // indirect
 	github.com/speps/go-hashids v2.0.0+incompatible // indirect
-
-	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/cobra v1.6.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/tidwall/match v1.1.1 // indirect
-	github.com/tidwall/pretty v1.2.1 // indirect
-
-	github.com/spf13/cobra v1.5.0 // indirect
-	github.com/tidwall/gjson v1.14.3 // indirect
+	github.com/tidwall/gjson v1.14.4 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.4 // indirect
-
 	github.com/tmc/scp v0.0.0-20170824174625-f7b48647feef // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/valyala/fastjson v1.4.1 // indirect
@@ -168,20 +151,14 @@ require (
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/willf/bitset v1.1.11 // indirect
-
-	github.com/zclconf/go-cty v1.11.0 // indirect
+	github.com/xanzy/ssh-agent v0.3.1 // indirect
+	github.com/zclconf/go-cty v1.12.1 // indirect
 	go.mongodb.org/mongo-driver v1.8.3 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.28.0 // indirect
 	go.opentelemetry.io/otel v1.9.0 // indirect
 	go.opentelemetry.io/otel/trace v1.9.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
-
-	github.com/xanzy/ssh-agent v0.3.1 // indirect
-	github.com/zclconf/go-cty v1.12.1 // indirect
-	go.mongodb.org/mongo-driver v1.7.0 // indirect
-	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220722155238-128564f6959c // indirect
@@ -198,7 +175,7 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220805133916-01dd62135a58 // indirect
 	google.golang.org/grpc v1.50.1 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	google.golang.org/protobuf v1.28.1
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/api v1.16.4 // indirect
@@ -215,16 +192,9 @@ require (
 )
 
 require (
-	github.com/ProtonMail/go-crypto v0.0.0-20211112122917-428f8eabeeb3 // indirect
-	github.com/aws/aws-sdk-go v1.44.68 // indirect
 	github.com/json-iterator/go v1.1.12
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
-	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/tidwall/gjson v1.14.4 // indirect
-	github.com/tidwall/sjson v1.2.4 // indirect
-	github.com/xanzy/ssh-agent v0.3.1 // indirect
-	go.uber.org/multierr v1.8.0 // indirect
 )
 
 replace (

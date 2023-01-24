@@ -15,7 +15,7 @@ description: |-
 ```terraform
 # To rotate the api key
 # terraform apply -replace=rafay_access_apikey.sampleuser
-resource "rafay_access_apikey" "sampleuser10" {
+resource "rafay_access_apikey" "sampleuser" {
   user_name = "sampleuser@sample.com"
   lifecycle {
     create_before_destroy = true
@@ -61,4 +61,4 @@ Optional:
 - `delete` (String)
 - `update` (String)
 
-
+**Note**: ORGANIZATION ADMIN Role manages API key for other users 

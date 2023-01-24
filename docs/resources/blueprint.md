@@ -102,8 +102,10 @@ resource "rafay_blueprint" "custom-blueprint-advanced" {
           enabled = true
         }
         resources {
-          limits = "200Mi"
-          cpu = "100m"
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
         }
       }
     }
@@ -166,8 +168,10 @@ resource "rafay_blueprint" "custom-blueprint-advanced2" {
           enabled = true
         }
         resources {
-          limits = "200Mi"
-          cpu = "100m"
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
         }
       }
     }
@@ -219,8 +223,10 @@ resource "rafay_blueprint" "custom-golden-blueprint" {
           enabled = true
         }
         resources {
-          limits = "200Mi"
-          cpu = "100m"
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
         }
       }
     }
@@ -237,7 +243,7 @@ resource "rafay_blueprint" "custom-golden-blueprint" {
 
 ---
 
-Example of a custom blueprint resource with service mesh. 
+Example of a custom blueprint resource with service mesh.
 
 ```terraform
 resource "rafay_blueprint" "mesh-blueprint" {
@@ -262,7 +268,7 @@ resource "rafay_blueprint" "mesh-blueprint" {
       enabled = true
     }
 
-    mesh_ref {
+    service_mesh {
       profile {
         name = "tfdemomeshprofile1"
         version = "v0"
@@ -272,6 +278,40 @@ resource "rafay_blueprint" "mesh-blueprint" {
         version = "v0"
       }
     }
+  }
+}
+```
+
+Example of a custom blueprint resource with cost profile.
+
+```terraform
+resource "rafay_blueprint" "cost-blueprint" {
+  metadata {
+    name    = "custom-cost-blueprint"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "1.19.0"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_logging    = false
+      enable_monitoring = true
+      enable_vm         = false
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+
+    cost_profile {
+        name = "tfdemocostprofile1"
+        version = "v0"
+    }
+
   }
 }
 ```
@@ -317,7 +357,8 @@ resource "rafay_blueprint" "mesh-blueprint" {
 - `namespace_config` (Block List, Max: 1) namespace config (see [below for nested schema](#nestedblock--spec--namespace_config))
 - `opa_policy` (Block List, Max: 1) opa policy and version details (see [below for nested schema](#nestedblock--spec--opa_policy))
 - `network_policy` (Block List, Max: 1) Network policy and version details (see [below for nested schema](#nestedblock--spec--network_policy))
-- `mesh_ref` (Block List, Max: 1) Service Mesh Profile, Cluster Policies and version details (see [below for nested schema](#nestedblock--spec--mesh_ref))
+- `service_mesh` (Block List, Max: 1) Service Mesh Profile, Cluster Policies and version details (see [below for nested schema](#nestedblock--spec--service_mesh))
+- `cost_profile` (Block List, Max: 1) Cost Profile and version details (see [below for nested schema](#nestedblock--spec--cost_profile))
 <a id="nestedblock--spec--base"></a>
 ### Nested Schema for `spec.base`
 
@@ -363,7 +404,7 @@ resource "rafay_blueprint" "mesh-blueprint" {
 - `node_exporter` - (Boolean) Monitors the host system. 
 - `prometheus_adapter` - (Boolean) Provides Kubernetes metrics APIs for Prometheus. 
 - `metrics_server` - (Boolean) A scalable, efficient source of container resource metrics for Kubernetes built-in autoscaling pipelines. 
-- `resources` - (Block List) (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources))
+- `resources` - (Block List) CPU and memory limits for the monitoring component (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources))
 
 
 <a id="nestedblock--spec--default_addons--monitoring--metrics"></a>
@@ -382,7 +423,6 @@ resource "rafay_blueprint" "mesh-blueprint" {
 
 - `labels` - (Block List) Label of the monitoring component. 
 - `namespace` - (String) Namespace of the monitoring component. 
-- `resource` - (String) CPU and memory limits for the monitoring component. 
 
 
 <a id="nestedblock--spec--default_addons--monitoring--resources"></a>
@@ -398,21 +438,8 @@ resource "rafay_blueprint" "mesh-blueprint" {
 
 ***Optional***
 
-- `cpu` - (String) The CPU resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--cpu)) 
-- `memory` - (String) The memory resource limit for the resource. The resource cannot use more than this limit. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits--memory)) 
-
-
-<a id="nestedblock--spec--default_addons--monitoring--resources--limits--cpu"></a>
-### Nested Schema for `spec.default_addons.monitoring.resources.limits.cpu`
-
-- `string` - (String) The CPU limit in millicpu, also known as millicores. 100m is 100 millicpu, which is 0.1 CPU cores.
-
-
-<a id="nestedblock--spec--default_addons--monitoring--resources--limits--memory"></a>
-### Nested Schema for `spec.default_addons.monitoring.resources.limits.memory`
-
-- `string` - (String) The memory limit in mebibytes. A megabyte is a close equivalent to a mebibyte.
-
+- `cpu` - (String) The CPU resource limit for the resource. The resource cannot use more than this limit. The CPU limit in millicpu, also known as millicores. 100m is 100 millicpu, which is 0.1 CPU cores.
+- `memory` - (String) The memory resource limit for the resource. The resource cannot use more than this limit.The memory limit in mebibytes. A megabyte is a close equivalent to a mebibyte.
 
 <a id="nestedblock--spec--drift"></a>
 ### Nested Schema for `spec.drift`
@@ -521,31 +548,37 @@ resource "rafay_blueprint" "mesh-blueprint" {
 - `version` (String) version of the network profile
 
 
-<a id="nestedblock--spec--mesh_ref"></a>
-### Nested Schema for `spec.mesh_ref`
+<a id="nestedblock--spec--service_mesh"></a>
+### Nested Schema for `spec.service_mesh`
 
 ***Required***
 
-- `policies` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--mesh_ref--policies))
-- `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--mesh_ref--profile))
+- `policies` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--service_mesh--policies))
+- `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--service_mesh--profile))
 
-<a id="nestedblock--spec--mesh_ref--policies"></a>
-### Nested Schema for `spec.mesh_ref.policies`
+<a id="nestedblock--spec--service_mesh--policies"></a>
+### Nested Schema for `spec.service_mesh.policies`
 
 ***Required***
 
 - `name` (String) name of the cluster mesh policy
 - `version` (String) version of the cluster mesh policy
 
-<a id="nestedblock--spec--mesh_ref--profile"></a>
-### Nested Schema for `spec.mesh_ref.profile`
+<a id="nestedblock--spec--service_mesh--profile"></a>
+### Nested Schema for `spec.service_mesh.profile`
 
 ***Required***
 
 - `name` (String) name of the mesh profile
 - `version` (String) version of the mesh profile
 
+<a id="nestedblock--spec--cost_profile"></a>
+### Nested Schema for `spec.cost_profile`
 
+***Required***
+
+- `name` (String) name of the cost profile
+- `version` (String) version of the cost profile
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

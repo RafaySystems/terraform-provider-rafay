@@ -1,6 +1,6 @@
 resource "rafay_secret_group" "tfdemosg" {
   metadata {
-    name    = "email-test"
+    name    = "tfdemosg"
     project = "terraform"
   }
   spec {

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 )
 
 // EKSNGInfoProvider interface provides node group information
@@ -105,6 +107,7 @@ type EKSSpec struct {
 	ProxyConfig               map[string]string          `yaml:"proxyconfig,omitempty"`
 	CniParams                 *CustomCni                 `yaml:"cniparams,omitempty"`
 	SystemComponentsPlacement *SystemComponentsPlacement `yaml:"systemComponentsPlacement,omitempty"`
+	Sharing                   *commonpb.SharingSpec      `yaml:"sharing,omitempty"`
 }
 
 type SystemComponentsPlacement struct {

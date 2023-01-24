@@ -6,7 +6,10 @@ resource "rafay_mesh_profile" "tfdemomeshprofile1" {
   spec {
     version = "v0"
     sharing {
-        enabled = false
+      enabled = true
+      projects {
+        name = "terraformproject2"
+      }
     }
   }
 }
@@ -20,7 +23,7 @@ resource "rafay_mesh_profile" "tfdemomeshprofile1" {
   spec {
     version = "v0"
     installation_params {
-      cert_type = 0
+      cert_type = "SelfSigned"
       enable_ingress = false
       enable_namespaces_by_default = false
       resource_quota {

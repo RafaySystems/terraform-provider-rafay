@@ -6,6 +6,7 @@ resource "rafay_workload" "tftestworkload1" {
   }
   spec {
     namespace = "test-workload1"
+    version = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -35,6 +36,7 @@ resource "rafay_workload" "tftestworkload2" {
   }
   spec {
     namespace = "test-workload2"
+    version = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -60,6 +62,7 @@ resource "rafay_workload" "tftestworkload3" {
   }
   spec {
     namespace = "test-workload3"
+    version = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -84,6 +87,7 @@ resource "rafay_workload" "tftestworkload4" {
   }
   spec {
     namespace = "test-workload4"
+    version = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -106,6 +110,7 @@ resource "rafay_workload" "tftestworkload5" {
   }
   spec {
     namespace = "test-workload5"
+    version = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -121,6 +126,70 @@ resource "rafay_workload" "tftestworkload5" {
         }
         repository = "release-check-ssh"
         revision   = "main"
+      }
+    }
+  }
+}
+
+
+# Create Helm workload from Git repo. Chart & default values from one repo, override values from another repo
+resource "rafay_workload" "tftestworkload6" {
+  metadata {
+    name    = "tftestworkload6"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload6"
+    version = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm"
+      artifact {
+        repository = "test-repo1"
+        revision   = "main"
+        chart_path {
+          name = "chart/path/chart.tgz"
+        }
+        #default value from same repo as chart
+        values_paths {
+          name = "value/path/values.yaml"
+        }
+        #override value from another repo
+        values_ref {
+          repository = "test-repo2"
+          revision   = "main"
+          values_paths {
+            name = "value/path/values.yaml"
+          }
+        }
+      }
+    }
+  }
+}
+
+# Create a workload from catalog
+resource "rafay_workload" "tftestworkload7" {
+  metadata {
+    name    = "tftestworkload7"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload7"
+    version = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm"
+      artifact{
+        catalog = "catalogName"
+        chart_name = "chartName"
+        chart_version = "chartVersion"
+         values_paths {
+          name = "file://relative/path/to/some/chart/values.yaml"
+        }
       }
     }
   }

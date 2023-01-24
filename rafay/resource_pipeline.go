@@ -145,6 +145,7 @@ type stageSpecConfig struct {
 	SourceRepo          *gitopspb.SystemSyncRepo       `protobuf:"bytes,5,opt,name=sourceRepo,proto3" json:"sourceRepo,omitempty"`
 	DestinationRepo     *gitopspb.SystemSyncRepo       `protobuf:"bytes,6,opt,name=destinationRepo,proto3" json:"destinationRepo,omitempty"`
 	SourceAsDestination bool                           `protobuf:"varint,7,opt,name=sourceAsDestination,proto3" json:"sourceAsDestination,omitempty"`
+	CommitterEmail      string                         `protobuf:"bytes,8,opt,name=committorEmail,proto3" json:"committorEmail,omitempty"`
 }
 
 type stageSpecConfigWorkloadTemplateOverrides struct {
@@ -714,6 +715,10 @@ func expandStageSpecConfigSystemSync(p []interface{}) (*gitopspb.StageSpec_Syste
 
 	if v, ok := in["source_as_destination"].(bool); ok {
 		obj.SystemSync.SourceAsDestination = v
+	}
+
+	if v, ok := in["committer_email"].(string); ok {
+		obj.SystemSync.CommitterEmail = v
 	}
 
 	log.Println("expandStageSpecConfigSystemSync obj: ", obj.SystemSync)
@@ -1462,9 +1467,7 @@ func flattenPipelineSpec(in *gitopspb.PipelineSpec, p []interface{}) ([]interfac
 		obj["triggers"] = flattenTriggerSpec(in.Triggers, v)
 	}
 
-	if in.Sharing != nil {
-		obj["sharing"] = flattenSharingSpec(in.Sharing)
-	}
+	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	obj["active"] = in.Active
 
@@ -1806,6 +1809,7 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 	}
 
 	obj["source_as_destination"] = stSpec.Config.SourceAsDestination
+	obj["committer_email"] = stSpec.Config.CommitterEmail
 
 	return []interface{}{obj}, nil
 

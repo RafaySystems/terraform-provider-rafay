@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"sort"
 	"strings"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/RafaySystems/rctl/pkg/project"
+	"github.com/davecgh/go-spew/spew"
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 
@@ -519,6 +519,14 @@ func addonProfileFields() map[string]*schema.Schema {
 				Schema: aKSManagedClusterAddonAzureKeyvaultSecretsProviderProfile(),
 			},
 		},
+		"ingress_application_gateway": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Azure Ingress Application Gateway Addon for AKS",
+			Elem: &schema.Resource{
+				Schema: aKSManagedClusterAddonIngressApplicationGatewayProfile(),
+			},
+		},
 	}
 	return s
 }
@@ -553,6 +561,56 @@ func aKSManagedClusterAddonOmsAgentProfile() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: aKSManagedClusterAddonOmsAgentConfigProfile(),
 			},
+		},
+	}
+	return s
+}
+
+func aKSManagedClusterAddonIngressApplicationGatewayProfile() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Whether to enable Ingress Application Gateway in Addon Profile",
+		},
+		"config": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Config for Ingress Application Gateway in Addon Profile",
+			Elem: &schema.Resource{
+				Schema: aKSManagedClusterAddonIngressApplicationGatewayConfigProfile(),
+			},
+		},
+	}
+	return s
+}
+
+func aKSManagedClusterAddonIngressApplicationGatewayConfigProfile() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"application_gateway_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Name of the application gateway to create/use in the node resource group.",
+		},
+		"application_gateway_id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Resource Id of an existing Application Gateway to use with AGIC.",
+		},
+		"subnet_cidr": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Subnet CIDR to use for a new subnet created to deploy the Application Gateway.",
+		},
+		"subnet_id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Resource Id of an existing Subnet used to deploy the Application Gateway.",
+		},
+		"watch_namespace": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Specify the namespace, which AGIC should watch. This could be a single string value, or a comma-separated list of namespaces.",
 		},
 	}
 	return s
@@ -2132,6 +2190,9 @@ func expandAddonProfiles(p []interface{}) *AddonProfiles {
 	if v, ok := in["azure_keyvault_secrets_provider"].([]interface{}); ok && len(v) > 0 {
 		obj.AzureKeyvaultSecretsProvider = expandAKSManagedClusterAddonAzureKeyvaultSecretsProviderProfile(v)
 	}
+	if v, ok := in["ingress_application_gateway"].([]interface{}); ok && len(v) > 0 {
+		obj.IngressApplicationGateway = expandAKSManagedClusterAddonIngressApplicationGatewayProfile(v)
+	}
 
 	return obj
 }
@@ -2218,6 +2279,49 @@ func expandAKSManagedClusterAddonAzureKeyvaultSecretsProviderConfigProfile(p []i
 	}
 	if v, ok := in["rotation_poll_interval"].(string); ok && len(v) > 0 {
 		obj.RotationPollInterval = v
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterAddonIngressApplicationGatewayProfile(p []interface{}) *IngressApplicationGatewayAddonProfile {
+	obj := &IngressApplicationGatewayAddonProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
+	}
+	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+		obj.Config = expandAKSManagedClusterAddonIngressApplicationGatewayConfig(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterAddonIngressApplicationGatewayConfig(p []interface{}) *IngressApplicationGatewayAddonConfig {
+	obj := &IngressApplicationGatewayAddonConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["application_gateway_name"].(string); ok && len(v) > 0 {
+		obj.ApplicationGatewayName = v
+	}
+	if v, ok := in["application_gateway_id"].(string); ok && len(v) > 0 {
+		obj.ApplicationGatewayID = v
+	}
+	if v, ok := in["subnet_cidr"].(string); ok && len(v) > 0 {
+		obj.SubnetCIDR = v
+	}
+	if v, ok := in["subnet_id"].(string); ok && len(v) > 0 {
+		obj.SubnetID = v
+	}
+	if v, ok := in["watch_namespace"].(string); ok && len(v) > 0 {
+		obj.WatchNamespace = v
 	}
 
 	return obj
@@ -2866,7 +2970,8 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 	}
 
 	out := make([]*AKSNodePool, len(p))
-	outToSort := make([]AKSNodePool, len(p))
+	//outToSort := make([]AKSNodePool, len(p))
+	//var sortByName []string
 	for i := range p {
 		obj := AKSNodePool{}
 		in := p[i].(map[string]interface{})
@@ -2877,6 +2982,7 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
+			//sortByName = append(sortByName, v)
 		}
 
 		if v, ok := in["properties"].([]interface{}); ok && len(v) > 0 {
@@ -2890,13 +2996,23 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 		if v, ok := in["location"].(string); ok && len(v) > 0 {
 			obj.Location = v
 		}
-		outToSort[i] = obj
+		out[i] = &obj
 	}
 
-	sort.Sort(ByNodepoolName(outToSort))
-	for i := range outToSort {
-		out[i] = &outToSort[i]
-	}
+	//var sortedOut []*commonpb.ProjectMeta
+	// for i, name := range sortByName {
+	// 	for _, val := range outToSort {
+	// 		if name == val.Name {
+	// 			out[i] = &val
+	// 		}
+	// 	}
+	// }
+	// sort.Sort(ByNodepoolName(outToSort))
+	// for i := range outToSort {
+	// 	out[i] = &outToSort[i]
+	// }
+	n1 := spew.Sprintf("%+v", out)
+	log.Println("expand sorted node pools:", n1)
 
 	return out
 }
@@ -3753,6 +3869,14 @@ func flattenAddonProfile(in *AddonProfiles, p []interface{}) []interface{} {
 		obj["azure_keyvault_secrets_provider"] = flattenAKSManagedClusterAddonAzureKeyvaultSecretsProviderProfile(in.AzureKeyvaultSecretsProvider, v)
 	}
 
+	if in.IngressApplicationGateway != nil {
+		v, ok := obj["ingress_application_gateway"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["ingress_application_gateway"] = flattenAKSManagedClusterAddonIngressApplicationGatewayProfile(in.IngressApplicationGateway, v)
+	}
+
 	return []interface{}{obj}
 }
 
@@ -3821,6 +3945,56 @@ func flattenAKSManagedClusterAddonAzureKeyvaultSecretsProviderProfile(in *AzureK
 			v = []interface{}{}
 		}
 		obj["config"] = flattenAKSManagedClusterAddonAzureKeyvaultSecretsProviderProfileConfigProfile(in.Config, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSManagedClusterAddonIngressApplicationGatewayProfile(in *IngressApplicationGatewayAddonProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+
+	if in.Config != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenAKSManagedClusterAddonIngressApplicationGatewayConfig(in.Config, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSManagedClusterAddonIngressApplicationGatewayConfig(in *IngressApplicationGatewayAddonConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ApplicationGatewayName) > 0 {
+		obj["application_gateway_name"] = in.ApplicationGatewayName
+	}
+	if len(in.ApplicationGatewayID) > 0 {
+		obj["application_gateway_id"] = in.ApplicationGatewayID
+	}
+	if len(in.SubnetCIDR) > 0 {
+		obj["subnet_cidr"] = in.SubnetCIDR
+	}
+	if len(in.SubnetID) > 0 {
+		obj["subnet_id"] = in.SubnetID
+	}
+	if len(in.WatchNamespace) > 0 {
+		obj["watch_namespace"] = in.WatchNamespace
 	}
 
 	return []interface{}{obj}
@@ -4640,15 +4814,17 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 	}
 
 	// sort the incoming nodepools
-	inToSort := make([]AKSNodePool, len(in))
-	for i := range in {
-		inToSort[i] = *in[i]
-	}
-	sort.Sort(ByNodepoolName(inToSort))
-	for i := range inToSort {
-		in[i] = &inToSort[i]
-	}
-
+	// inToSort := make([]AKSNodePool, len(in))
+	// for i := range in {
+	// 	inToSort[i] = *in[i]
+	// }
+	// sort.Sort(ByNodepoolName(inToSort))
+	// for i := range inToSort {
+	// 	in[i] = &inToSort[i]
+	// }
+	n1 := spew.Sprintf("%+v", in)
+	log.Println("flatten sorted node pools:", n1)
+	//log.Println("sorted node pools:", in)
 	out := make([]interface{}, len(in))
 	for i, in := range in {
 
@@ -5031,6 +5207,7 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 
 	if v, ok := d.Get("metadata").([]interface{}); ok {
 		obj.Metadata = expandAKSClusterMetadata(v)
+		log.Println("md:", obj.Metadata)
 	} else {
 		log.Println("metadata unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
@@ -5046,7 +5223,7 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	projectName := obj.Metadata.Project
 	_, err := project.GetProjectByName(projectName)
 	if err != nil {
-		log.Println("project name missing in the resource")
+		log.Println("project name missing in the resource", err)
 		return diag.FromErr(fmt.Errorf("%s", "Project name missing in the resource"))
 	}
 

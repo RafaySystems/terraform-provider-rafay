@@ -21,8 +21,9 @@ import (
 )
 
 type File struct {
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Data []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Name      string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Sensitive bool   `protobuf:"bytes,1,opt,name=sensitive,proto3" json:"sensitive,omitempty"`
+	Data      []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 /*
@@ -426,6 +427,10 @@ func expandFile(p []interface{}) *File {
 		obj.Name = v
 	}
 
+	if v, ok := in["sensitive"].(bool); ok {
+		obj.Sensitive = v
+	}
+
 	if strings.HasPrefix(obj.Name, "file://") {
 		//get full path of artifact
 		artifactFullPath := filepath.Join(filepath.Dir("."), obj.Name[7:])
@@ -523,6 +528,15 @@ func expandFiles(p []interface{}) ([]*File, error) {
 			} else {
 				of.Data = artifactData
 			}
+		} else if strings.HasPrefix(of.Name, "temp://") {
+			//get full path of artifact
+			artifactFullPath := filepath.Join(filepath.Dir("."), of.Name[7:])
+			//retrieve artifact data
+			artifactData, err := ioutil.ReadFile(artifactFullPath)
+			if err != nil {
+				log.Println("unable to read artifact at ", artifactFullPath)
+			}
+			of.Data = artifactData
 		}
 
 		obj[i] = &of
@@ -776,6 +790,7 @@ func flattenFile(in *File) []interface{} {
 	if len(in.Name) > 0 {
 		obj["name"] = in.Name
 	}
+	obj["sensitive"] = in.Sensitive
 	return []interface{}{obj}
 }
 

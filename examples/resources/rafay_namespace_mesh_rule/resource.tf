@@ -14,7 +14,10 @@ resource "rafay_namespace_mesh_rule" "tfdemonmr1" {
     }
     version = "v0"
     sharing {
-      enabled = false
+      enabled = true
+      projects {
+        name = "terraformproject2"
+      }
     }
   }
 }

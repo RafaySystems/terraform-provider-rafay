@@ -341,8 +341,14 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 		obj.NetworkPolicy = expandBlueprintNetworkPolicy(v)
 	}
 
-	if v, ok := in["mesh_ref"].([]interface{}); ok && len(v) > 0 {
-		obj.ServiceMesh = expandBlueprintMeshRef(v)
+
+	if v, ok := in["service_mesh"].([]interface{}); ok && len(v) > 0 {
+		obj.ServiceMesh = expandBlueprintServiceMesh(v)
+	}
+
+	if v, ok := in["cost_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.CostProfile = expandBlueprintCostProfile(v)
+
 	}
 
 	if v, ok := in["opa_policy"].([]interface{}); ok && len(v) > 0 {
@@ -617,7 +623,8 @@ func expandBlueprintPSP(p []interface{}) *infrapb.BlueprintPSP {
 	return obj
 }
 
-func expandBlueprintMeshRef(p []interface{}) *infrapb.ServiceMesh {
+
+func expandBlueprintServiceMesh(p []interface{}) *infrapb.ServiceMesh {
 	obj := &infrapb.ServiceMesh{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
@@ -635,6 +642,29 @@ func expandBlueprintMeshRef(p []interface{}) *infrapb.ServiceMesh {
 
 	if v, ok := in["policies"].([]interface{}); ok && len(v) > 0 {
 		obj.Policies = expandBlueprintClusterMeshPolicies(v)
+	}
+
+	return obj
+}
+
+func expandBlueprintCostProfile(p []interface{}) *infrapb.CostProfile {
+	obj := &infrapb.CostProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
 	}
 
 	return obj
@@ -921,9 +951,7 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["private_kube_api_proxies"] = flattenKubeAPIProxyNetwork(in.PrivateKubeAPIProxies, v)
 	}
 
-	if in.Sharing != nil {
-		obj["sharing"] = flattenSharingSpec(in.Sharing)
-	}
+	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	if in.Drift != nil {
 		obj["drift"] = flattenDrift(in.Drift)
@@ -937,6 +965,40 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["namespace_config"] = flattenBlueprintNamespaceConfig(in.NamespaceConfig, v)
 	}
 
+	if in.OpaPolicy != nil {
+		v, ok := obj["opa_policy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["opa_policy"] = flattenBlueprintOpaPolicy(in.OpaPolicy, v)
+	} else {
+		obj["opa_policy"] = nil
+	}
+
+	if in.NetworkPolicy != nil {
+		v, ok := obj["network_policy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["network_policy"] = flattenBlueprintNetworkPolicy(in.NetworkPolicy, v)
+	}
+
+	if in.ServiceMesh != nil {
+		v, ok := obj["service_mesh"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["service_mesh"] = flattenBlueprintServiceMesh(in.ServiceMesh, v)
+	}
+
+	if in.CostProfile != nil {
+		v, ok := obj["cost_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["cost_profile"] = flattenBlueprintCostProfile(in.CostProfile, v)
+	}
+
 	if in.Placement != nil {
 		v, ok := obj["placement"].([]interface{})
 		if !ok {
@@ -946,6 +1008,263 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 	}
 
 	return []interface{}{obj}, nil
+}
+
+func flattenBlueprintOpaPolicy(in *infrapb.OPAPolicy, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	//obj["enabled"] = true
+
+	if in.Profile != nil {
+		v, ok := obj["profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["profile"] = flattenBlueprintOpaPolicyProfile(in.Profile, v)
+	}
+
+	if in.Profile != nil {
+		v, ok := obj["opa_policy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["opa_policy"] = flattenBlueprintOpaPolicies(in.OpaPolicy, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenBlueprintNetworkPolicy(in *infrapb.NetworkPolicy, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.Enabled {
+		obj["enabled"] = in.Enabled
+	}
+
+	if in.Profile != nil {
+		v, ok := obj["profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["profile"] = flattenBlueprintNetworkPolicyProfile(in.Profile, v)
+	}
+
+	if in.Profile != nil {
+		v, ok := obj["policies"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["policies"] = flattenBlueprintNetworkPolicies(in.Policies, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenBlueprintOpaPolicyProfile(in *infrapb.OPAProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenBlueprintNetworkPolicyProfile(in *commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenBlueprintOpaPolicies(in []*infrapb.Policy, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(in))
+
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.Version) > 0 {
+			obj["version"] = in.Version
+		}
+
+		obj["enabled"] = true
+
+		out[i] = obj
+	}
+	return out
+}
+
+func flattenBlueprintNetworkPolicies(in []*commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(in))
+
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.Version) > 0 {
+			obj["version"] = in.Version
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+func flattenBlueprintServiceMesh(in *infrapb.ServiceMesh, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.Enabled {
+		obj["enabled"] = in.Enabled
+	}
+
+	if in.Profile != nil {
+		v, ok := obj["profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["profile"] = flattenBlueprintServiceMeshProfile(in.Profile, v)
+	}
+
+	if in.Profile != nil {
+		v, ok := obj["policies"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["policies"] = flattenBlueprintServiceMeshPolicies(in.Policies, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenBlueprintServiceMeshProfile(in *commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenBlueprintServiceMeshPolicies(in []*commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(in))
+
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.Version) > 0 {
+			obj["version"] = in.Version
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+func flattenBlueprintCostProfile(in *infrapb.CostProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.Enabled {
+		obj["enabled"] = in.Enabled
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	return []interface{}{obj}
 }
 
 func flattenBlueprintNamespaceConfig(in *infrapb.NsConfig, p []interface{}) []interface{} {

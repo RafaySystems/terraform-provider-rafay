@@ -247,10 +247,9 @@ func expandMeshProfileIP(p []interface{}) *servicemeshpb.InstallationParams {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["cert_type"].(int); ok {
-		certType := servicemeshpb.MeshCertType(v)
-		certTypeStr := strconv.Itoa(int(certType))
-		obj.CertType = certTypeStr
+	if v, ok := in["cert_type"].(string); ok {
+		obj.CertType = v
+
 	}
 
 	if v, ok := in["enable_ingress"].(bool); ok {
@@ -343,9 +342,7 @@ func flattenMeshProfileSpec(in *servicemeshpb.MeshProfileSpec, p []interface{}) 
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.Sharing != nil {
-		obj["sharing"] = flattenSharingSpec(in.Sharing)
-	}
+	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	if len(in.Version) > 0 {
 		obj["version"] = in.Version
@@ -372,8 +369,8 @@ func flattenMeshProfileSpecIP(in *servicemeshpb.InstallationParams, p []interfac
 		obj = p[0].(map[string]interface{})
 	}
 
-	certTypeStr := strconv.Itoa(int(servicemeshpb.MeshCertType_CertManager))
-	if in.CertType == certTypeStr {
+
+	if len(in.CertType) > 0 {
 		obj["cert_type"] = in.CertType
 	}
 

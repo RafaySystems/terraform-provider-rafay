@@ -293,6 +293,7 @@ func resourceAgentV2Delete(ctx context.Context, ag *gitopspb.Agent) diag.Diagnos
 	err = agent.DeleteAgent(ag.Metadata.Name, projectId)
 	if err != nil {
 		log.Println("error deleting agent")
+		return diag.FromErr(err)
 	} else {
 		log.Println("Deleted agent: ", ag.Metadata.Name)
 	}
@@ -341,6 +342,10 @@ func expandAgentSpec(p []interface{}) (*gitopspb.AgentSpec, error) {
 
 	if v, ok := in["active"].(bool); ok {
 		obj.Active = v
+	}
+
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		obj.Sharing = expandSharingSpec(v)
 	}
 
 	return obj, nil
@@ -425,6 +430,10 @@ func flattenAgentSpec(in *gitopspb.AgentSpec, p []interface{}) ([]interface{}, e
 	}
 
 	obj["active"] = in.Active
+
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
 
 	return []interface{}{obj}, nil
 }

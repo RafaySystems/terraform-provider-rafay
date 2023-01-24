@@ -21,6 +21,18 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 
 | Resource                                  | Version Released |
 | ----------------------------------------- | ---------------- |
+| `catalog`                           		| 1.1.2            |
+| `secret_group`                            | 1.1.2            |
+| `secret_provider`                         | 1.1.2            |
+| `mesh_profile`                         	| 1.1.2            |
+| `cluster_mesh_rule`                       | 1.1.2            |
+| `cluster_mesh_policy`                     | 1.1.2            |
+| `namespace_mesh_rule`                     | 1.1.2            |
+| `namespace_mesh_policy`                   | 1.1.2            |
+| `cost_profile`                            | 1.1.2            |
+| `download_kubeconfig`                     | 1.1.2            |
+| `access_apikey`                           | 1.1.1            |
+| `opa_installation_profile`                | 1.1.1            |
 | `cluster_network_policy`                  | 1.1.0            |  
 | `cluster_network_policy_rule`             | 1.1.0            |  
 | `network_policy_profile`                  | 1.1.0            |  
@@ -55,7 +67,7 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 ### In Development 
 
 - `infra_provisioner`
-- `catalog`
+
 
 ---
 

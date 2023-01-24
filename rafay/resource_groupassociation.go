@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/commands"
 	"github.com/RafaySystems/rctl/pkg/group"
 	"github.com/RafaySystems/rctl/pkg/groupassociation"
+	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/project"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -188,10 +190,35 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 		return diags
 	}
 	//check if there is a group association
-	_, err = groupassociation.GetProjectAssociatedWithGroup(g.Name)
+	respRoles, err := groupassociation.GetProjectAssociatedWithGroup(g.Name)
 	if err != nil {
 		log.Printf("create group association failed to get group, error %s", err.Error())
 		return diag.FromErr(err)
+	} else {
+		var roleLst []string
+		gaList := []models.GroupAssociationRoles{}
+		err = json.Unmarshal([]byte(respRoles), &gaList)
+		if err != nil {
+			log.Printf("read group association failed to get roles, error %s", err.Error())
+			return diag.FromErr(err)
+		}
+		for _, sn := range gaList {
+			for _, cp := range sn.Roles {
+				roleLst = append(roleLst, cp.Role.Name)
+			}
+		}
+		if len(roleLst) > 0 {
+			//sort.Strings(roleLst)
+			if err := d.Set("roles", roleLst); err != nil {
+				log.Printf("get group association set role error %s", err.Error())
+				return diag.FromErr(err)
+			}
+		} else {
+			if err := d.Set("roles", nil); err != nil {
+				log.Printf("get group association set role error %s", err.Error())
+				return diag.FromErr(err)
+			}
+		}
 	}
 	//seeting the group name
 	if err := d.Set("group", g.Name); err != nil {

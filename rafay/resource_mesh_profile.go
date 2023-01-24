@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
@@ -248,7 +249,8 @@ func expandMeshProfileIP(p []interface{}) *servicemeshpb.InstallationParams {
 
 	if v, ok := in["cert_type"].(int); ok {
 		certType := servicemeshpb.MeshCertType(v)
-		obj.CertType = certType
+		certTypeStr := strconv.Itoa(int(certType))
+		obj.CertType = certTypeStr
 	}
 
 	if v, ok := in["enable_ingress"].(bool); ok {
@@ -370,7 +372,8 @@ func flattenMeshProfileSpecIP(in *servicemeshpb.InstallationParams, p []interfac
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.CertType == servicemeshpb.MeshCertType_CertManager {
+	certTypeStr := strconv.Itoa(int(servicemeshpb.MeshCertType_CertManager))
+	if in.CertType == certTypeStr {
 		obj["cert_type"] = in.CertType
 	}
 

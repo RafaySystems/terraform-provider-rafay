@@ -342,7 +342,7 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 	}
 
 	if v, ok := in["mesh_ref"].([]interface{}); ok && len(v) > 0 {
-		obj.MeshRef = expandBlueprintMeshRef(v)
+		obj.ServiceMesh = expandBlueprintMeshRef(v)
 	}
 
 	if v, ok := in["opa_policy"].([]interface{}); ok && len(v) > 0 {
@@ -617,8 +617,8 @@ func expandBlueprintPSP(p []interface{}) *infrapb.BlueprintPSP {
 	return obj
 }
 
-func expandBlueprintMeshRef(p []interface{}) *infrapb.MeshRef {
-	obj := &infrapb.MeshRef{}
+func expandBlueprintMeshRef(p []interface{}) *infrapb.ServiceMesh {
+	obj := &infrapb.ServiceMesh{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}

@@ -1,6 +1,6 @@
 resource "rafay_aks_cluster_v3" "demo-terraform" {
   metadata {
-    name    = "aks-v3-tf-1801202302"
+    name    = "aks-v3-tf-2401202303"
     project = "defaultproject"
   }
   spec {
@@ -11,10 +11,9 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
     }
     cloud_credentials = "pj-azure"
     config {
-      api_version = "rafay.io/v1alpha1" # TODO: FIX THIS
       kind       = "aksClusterConfig"
       metadata {
-        name = "aks-v3-tf-1801202301"
+        name = "aks-v3-tf-2401202303"
         project = "defaultproject"
       }
       spec {
@@ -33,7 +32,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             api_server_access_profile {
               enable_private_cluster = true
             }
-            dns_prefix         = "aks-v3-tf-1801202301-dns"
+            dns_prefix         = "aks-v3-tf-2401202303-dns"
             kubernetes_version = "1.23.12"
             network_profile {
               network_plugin = "kubenet"

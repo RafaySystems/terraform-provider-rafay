@@ -226,7 +226,7 @@ func expandClusterV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing = expandSharingSpecV3(v)
 	}
 
 	if v, ok := in["blueprint_config"].([]interface{}); ok && len(v) > 0 {
@@ -1638,7 +1638,7 @@ func flattenClusterV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{
 	}
 
 	if in.Sharing != nil {
-		obj["sharing"] = flattenSharingSpec(in.Sharing)
+		obj["sharing"] = flattenSharingSpecV3(in.Sharing)
 	}
 
 	return []interface{}{obj}

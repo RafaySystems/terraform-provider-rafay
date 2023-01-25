@@ -605,12 +605,14 @@ func expandResourceQuantityString(p []interface{}) *commonpb.ResourceQuantity {
 	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["memory"].(string); ok {
-		obj.Memory = v
+		obj.Memory = expandQuantity1140(v)
+		//obj.Memory = v
 		log.Println("expandResourceQuantity memory", obj.Memory)
 	}
 
 	if v, ok := in["cpu"].(string); ok {
-		obj.Cpu = v
+		obj.Cpu = expandQuantity1140(v)
+		//obj.Cpu = v
 		log.Println("expandResourceQuantity CPU", obj.Cpu)
 	}
 
@@ -1032,14 +1034,14 @@ func expandResourceQuantity1170(p []interface{}) *commonpb.ResourceQuantity {
 	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["memory"].(string); ok {
-		//obj.Memory = expandQuantity1170(v)
-		obj.Memory = v
+		obj.Memory = expandQuantity1170(v).String()
+		//obj.Memory = v
 		log.Println("expandResourceQuantity1170 memory", obj.Memory)
 	}
 
 	if v, ok := in["cpu"].(string); ok {
-		//obj.Cpu = expandQuantity1170(v)
-		obj.Cpu = v
+		obj.Cpu = expandQuantity1140(v)
+		//obj.Cpu = v
 		log.Println("expandResourceQuantity1170 CPU", obj.Cpu)
 	}
 
@@ -1058,6 +1060,19 @@ func expandQuantity1170(p string) *resource.Quantity {
 	}
 	log.Println("expandQuantity1170 error", err)
 	return nil
+}
+
+func expandQuantity1140(p string) string {
+	if p == "" {
+		return ""
+	}
+	ob, err := resource.ParseQuantity(p)
+	if err == nil {
+		log.Println("expandQuantity1140 ob: ", ob)
+		return ob.String()
+	}
+	log.Println("expandQuantity1140 error", err)
+	return ""
 }
 
 func flattenResourceQuantity1170(in *commonpb.ResourceQuantity) []interface{} {
@@ -1099,7 +1114,7 @@ func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
 	obj := make(map[string]interface{})
 	if in.Memory != "" {
 		var m resource.QuantityValue
-		m.Set(in.GetMemory())
+		//m.Set(in.GetMemory())
 		for i := 0; i < 10; i++ {
 			m.Add(m.Quantity)
 			//in.GetMemory().Add(*in.GetMemory())
@@ -1125,7 +1140,7 @@ func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
 
 	if in.Cpu != "" {
 		var cp resource.QuantityValue
-		cp.Set(in.GetCpu())
+		//cp.Set(in.GetCpu())
 		cp1 := cp
 		for i := 0; i < 999; i++ {
 			cp.Add(cp1.Quantity)

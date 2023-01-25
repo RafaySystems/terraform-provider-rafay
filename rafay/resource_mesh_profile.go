@@ -248,6 +248,7 @@ func expandMeshProfileIP(p []interface{}) *servicemeshpb.InstallationParams {
 
 	if v, ok := in["cert_type"].(string); ok {
 		obj.CertType = v
+
 	}
 
 	if v, ok := in["enable_ingress"].(bool); ok {
@@ -273,29 +274,29 @@ func expandMeshResourceQuotas(p []interface{}) *servicemeshpb.MeshResourceQuotas
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	/*
+		in := p[0].(map[string]interface{})
 
-	in := p[0].(map[string]interface{})
+		if v, ok := in["cpu_requests"].(string); ok && len(v) > 0 {
+			//obj.CpuRequests = expandQuantityString(v)
+			obj.CpuRequests = v
+		}
 
-	if v, ok := in["cpu_requests"].(string); ok && len(v) > 0 {
-		//obj.CpuRequests = expandQuantityString(v)
-		obj.CpuRequests = v
-	}
+		if v, ok := in["memory_requests"].(string); ok && len(v) > 0 {
+			//obj.MemoryRequests = expandQuantityString(v)
+			obj.MemoryRequests = v
+		}
 
-	if v, ok := in["memory_requests"].(string); ok && len(v) > 0 {
-		//obj.MemoryRequests = expandQuantityString(v)
-		obj.MemoryRequests = v
-	}
+		if v, ok := in["cpu_limits"].(string); ok && len(v) > 0 {
+			//obj.CpuLimits = expandQuantityString(v)
+			obj.CpuLimits = v
+		}
 
-	if v, ok := in["cpu_limits"].(string); ok && len(v) > 0 {
-		//obj.CpuLimits = expandQuantityString(v)
-		obj.CpuLimits = v
-	}
-
-	if v, ok := in["memory_limits"].(string); ok && len(v) > 0 {
-		//obj.MemoryLimits = expandQuantityString(v)
-		obj.MemoryLimits = v
-	}
-
+		if v, ok := in["memory_limits"].(string); ok && len(v) > 0 {
+			//obj.MemoryLimits = expandQuantityString(v)
+			obj.MemoryLimits = v
+		}
+	*/
 	log.Println("expandNamespaceResourceQuotas obj ", obj)
 	return obj
 }
@@ -393,24 +394,24 @@ func flattenMeshResourceQuotas(in *servicemeshpb.MeshResourceQuotas) []interface
 
 	retNil := true
 	obj := make(map[string]interface{})
-
-	if len(in.CpuLimits) > 0 {
-		obj["cpu_limits"] = in.CpuLimits
-		retNil = false
-	}
-	if len(in.CpuRequests) > 0 {
-		obj["cpu_requests"] = in.CpuRequests
-		retNil = false
-	}
-	if len(in.MemoryLimits) > 0 {
-		obj["memory_limits"] = in.MemoryLimits
-		retNil = false
-	}
-	if len(in.MemoryRequests) > 0 {
-		obj["memory_requests"] = in.MemoryRequests
-		retNil = false
-	}
-
+	/*
+		if len(in.CpuLimits) > 0 {
+			obj["cpu_limits"] = in.CpuLimits
+			retNil = false
+		}
+		if len(in.CpuRequests) > 0 {
+			obj["cpu_requests"] = in.CpuRequests
+			retNil = false
+		}
+		if len(in.MemoryLimits) > 0 {
+			obj["memory_limits"] = in.MemoryLimits
+			retNil = false
+		}
+		if len(in.MemoryRequests) > 0 {
+			obj["memory_requests"] = in.MemoryRequests
+			retNil = false
+		}
+	*/
 	if retNil {
 		return nil
 	}

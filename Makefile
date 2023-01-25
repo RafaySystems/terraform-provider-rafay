@@ -14,7 +14,7 @@ default: install
 
 build:
 	export GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
-	go build -o ${BINARY}
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -o ${BINARY}
 	#go generate
 
 release:

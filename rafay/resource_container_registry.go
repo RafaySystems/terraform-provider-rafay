@@ -380,6 +380,37 @@ func expandContainerRegistrySpec(p []interface{}, call string) (*integrationspb.
 			}
 		}
 	}
+	//check if correct credentials are not nil based off of provider
+	nonUserPass := [4]string{"System", "ECR", "GCR", "ACR"}
+	userPassFlag := true
+	for _, x := range nonUserPass { //check if provider requires user/pass credentials
+		if crt.Provider == x {
+			userPassFlag = false
+		}
+	}
+	if userPassFlag == true && call != "read" { //need to verify username and password are not nill
+		if call != "delete" {
+			if crt.Credentials.Username == "" || crt.Credentials.Password == "" {
+				return nil, fmt.Errorf("Username or Password is empty")
+			}
+		}
+	} else if crt.Provider == "ECR" {
+		if call != "read" || call != "delete" {
+			if crt.Credentials.AccessKeyID == "" || crt.Credentials.AccessSecretKey == "" || crt.Credentials.Region == "" {
+				return nil, fmt.Errorf("AWS ECR Credentials are empty")
+			}
+		}
+	} else if crt.Provider == "GCR" {
+		if call != "read" || call != "delete" {
+			if crt.Credentials.JsonKeyData == "" {
+				return nil, fmt.Errorf("GCP GCR credentials are empty")
+			}
+		}
+	} else if crt.Provider == "ACR" {
+		if call != "read" || call != "delete" {
+			return nil, fmt.Errorf("Azure ACR credentials empty")
+		}
+	}
 	// XXX Debug
 	s := spew.Sprintf("%+v", crt)
 	log.Println("expandContainerRegistrySpec crt", s)

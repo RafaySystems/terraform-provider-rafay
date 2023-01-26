@@ -3,8 +3,8 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.19
 
 require (
-	github.com/RafaySystems/rafay-common v1.22.0-1
-	github.com/RafaySystems/rctl v1.22.0-1
+	github.com/RafaySystems/rafay-common v1.22.0-3
+	github.com/RafaySystems/rctl v1.22.0-3
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/hashicorp/terraform-plugin-docs v0.9.0
@@ -26,7 +26,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
-	github.com/RafaySystems/eaas-playground v0.0.0-20221122191953-47bce7fa561b // indirect
+	github.com/RafaySystems/eaas-playground v0.0.0-20230125164622-dd0d18937401 // indirect
 	github.com/getkin/kin-openapi v0.76.0 // indirect
 	github.com/gomatic/clock v1.0.0 // indirect
 	github.com/hashicorp/hc-install v0.4.0 // indirect
@@ -125,7 +125,7 @@ require (
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
-	github.com/processout/grpc-go-pool v1.2.1 // indirect
+	github.com/processout/grpc-go-pool v1.2.2-0.20200228131710-c0fcf3af0014 // indirect
 	github.com/prometheus/client_golang v1.12.2 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect

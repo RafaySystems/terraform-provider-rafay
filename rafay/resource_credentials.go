@@ -52,6 +52,8 @@ type CredentialsDetailsTranspose struct {
 	VsphereServer  string `protobuf:"bytes,1,opt,name=vsphereServer,proto3" json:"vsphereServer,omitempty"`
 	Username       string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Password       string `protobuf:"bytes,1,opt,name=password,proto3" json:"password,omitempty"`
+	ExternalId     string `protobuf:"bytes,1,opt,name=externalId,proto3" json:"externalId,omitempty"`
+	AccountId      string `protobuf:"bytes,1,opt,name=accountId,proto3" json:"accountId,omitempty"`
 }
 
 func resourceCredentials() *schema.Resource {
@@ -362,6 +364,14 @@ func expandCredentialsSpec(p []interface{}) (*infrapb.CredentialsSpec, error) {
 			if v, ok := ina["password"].(string); ok && len(v) > 0 {
 				cst.Credentials.Password = v
 			}
+
+			if v, ok := ina["account_id"].(string); ok && len(v) > 0 {
+				cst.Credentials.AccountId = v
+			}
+
+			if v, ok := ina["external_id"].(string); ok && len(v) > 0 {
+				cst.Credentials.ExternalId = v
+			}
 		}
 	}
 
@@ -545,6 +555,16 @@ func flattenCredentialsConfig(cst *credentialsSpecTranspose, p []interface{}) ([
 
 	if len(cst.Credentials.Password) > 0 {
 		obj["password"] = cst.Credentials.Password
+		retNil = false
+	}
+
+	if len(cst.Credentials.ExternalId) > 0 {
+		obj["external_id"] = cst.Credentials.ExternalId
+		retNil = false
+	}
+
+	if len(cst.Credentials.AccountId) > 0 {
+		obj["account_id"] = cst.Credentials.AccountId
 		retNil = false
 	}
 

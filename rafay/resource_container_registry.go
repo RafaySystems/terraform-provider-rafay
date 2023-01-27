@@ -263,24 +263,24 @@ func resourceContainerRegistryDelete(ctx context.Context, d *schema.ResourceData
 func expandContainerRegistry(in *schema.ResourceData, call string) (*integrationspb.ContainerRegistry, error) {
 	log.Println("expandContainerRegistry")
 	if in == nil {
-		return nil, fmt.Errorf("%s", "expand container registry empty input")
+		return nil, fmt.Errorf("%s", "Input fields are empty")
 	}
 	obj := &integrationspb.ContainerRegistry{}
+	nilSpace := [4]string{"", " ", "null", "nill"}
 
 	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
-		// if len(v) == 0 || v[0] == nil {
-		// 	return nil, fmt.Errorf("%s", "expandRepoCredential empty ")
-		// } else {
-		// 	inp := v[0].(map[string]interface{})
-		// 	if vp, ok := inp["project"].(string); ok && len(vp) > 0 {
-		// 		log.Println("got project", ok, len(vp), vp)
-		// 		obj.Metadata = expandMetaData(v)
-		// 	} else if call == "update" {
-		// 		log.Println("wth: ", ok, len(vp), vp)
-		// 		return nil, fmt.Errorf("%s", "403 Forbidden: Project Input Field can not be empty")
-		// 	}
-
-		// }
+		if len(v) == 0 || v[0] == nil {
+			return nil, fmt.Errorf("%s", "Metadata fields are empty ")
+			// } else {
+			// 	inp := v[0].(map[string]interface{})
+			// 	if vp, ok := inp["project"].(string); ok && len(vp) > 0 {
+			// 		log.Println("got project", ok, len(vp), vp)
+			// 		obj.Metadata = expandMetaData(v)
+			// 	} else if call == "update" {
+			// 		log.Println("wth: ", ok, len(vp), vp)
+			// 		return nil, fmt.Errorf("%s", "403 Forbidden: Project Input Field can not be empty")
+			// 	}
+		}
 		obj.Metadata = expandMetaData(v)
 	}
 
@@ -292,6 +292,28 @@ func expandContainerRegistry(in *schema.ResourceData, call string) (*integration
 		log.Println("expandContainerRegistry got spec")
 		obj.Spec = objSpec
 	}
+	nameFlag := true
+	projectFLag := true
+	for _, x := range nilSpace {
+		//log.Println(v, x)
+		//log.Println(v == x)
+		if obj.Metadata.Name == x {
+			nameFlag = false
+		}
+		if obj.Metadata.Project == x {
+			projectFLag = false
+		}
+	}
+	if nameFlag != true && call != "read" { //need to verify name are not nill
+		if call != "delete" {
+			return nil, fmt.Errorf("Name input field is empty")
+		}
+	}
+	if projectFLag != true && call != "read" { //need to verify project are not nill
+		if call != "delete" {
+			return nil, fmt.Errorf("Project input field is empty")
+		}
+	}
 
 	obj.ApiVersion = "integrations.k8smgmt.io/v3"
 	obj.Kind = "ContainerRegistry"
@@ -302,7 +324,7 @@ func expandContainerRegistrySpec(p []interface{}, call string) (*integrationspb.
 	log.Println("expandContainerRegistrySpec")
 	obj := &integrationspb.ContainerRegistrySpec{}
 	if len(p) == 0 || p[0] == nil {
-		return obj, fmt.Errorf("%s", "expandContainerRegistrySpec empty input")
+		return obj, fmt.Errorf("%s", "Spec input field is empty")
 	}
 
 	in := p[0].(map[string]interface{})
@@ -343,7 +365,7 @@ func expandContainerRegistrySpec(p []interface{}, call string) (*integrationspb.
 
 	if vp, ok := in["credentials"].([]interface{}); ok && len(vp) > 0 {
 		if len(vp) == 0 || vp[0] == nil {
-			return nil, fmt.Errorf("%s", "expandRepoCredential empty ")
+			return nil, fmt.Errorf("%s", "Credentials Field Empty")
 		} else {
 			inp := vp[0].(map[string]interface{})
 			//user pass

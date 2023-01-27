@@ -19,6 +19,7 @@ pipeline {
                     aws --version
                     export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
                     export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                    export GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
                     echo machine github.com login ${userName} password ${passWord} > ~/.netrc
                     chmod 400 ~/.netrc
                     GOPRIVATE="github.com/RafaySystems/*" go mod download

@@ -30,5 +30,6 @@ resource "rafay_opa_installation_profile" "tftestopaprofileeleven" {
         name = "defaultproject"
       }
     }
+    opa_version = "3.7.1"
   }
 }

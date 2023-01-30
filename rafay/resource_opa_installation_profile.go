@@ -239,6 +239,10 @@ func expandOPAInstallationProfileSpec(p []interface{}) (*opapb.OPAProfileSpec, e
 		obj.Sharing = expandSharingSpec(v)
 	}
 
+	if v, ok := in["opa_version"].(string); ok && len(v) > 0 {
+		obj.OpaVersion = v
+	}
+
 	return obj, nil
 }
 

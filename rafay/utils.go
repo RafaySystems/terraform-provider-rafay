@@ -11,6 +11,7 @@ import (
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/gitopspb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/integrationspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/utils"
@@ -642,6 +643,37 @@ func expandProjectMeta(p []interface{}) []*commonpb.ProjectMeta {
 	}
 
 	var sortedOut []*commonpb.ProjectMeta
+	for _, name := range sortByName {
+		for _, val := range out {
+			if name == val.Name {
+				sortedOut = append(sortedOut, val)
+			}
+		}
+	}
+
+	log.Println("expandProjectMeta out", sortedOut)
+	return sortedOut
+}
+
+func expandProjectMetaV3(p []interface{}) []*infrapb.Projects {
+	if len(p) == 0 {
+		return []*infrapb.Projects{}
+	}
+	var sortByName []string
+	out := make([]*infrapb.Projects, len(p))
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := infrapb.Projects{}
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+			sortByName = append(sortByName, v)
+		}
+
+		out[i] = &obj
+	}
+
+	var sortedOut []*infrapb.Projects
 	for _, name := range sortByName {
 		for _, val := range out {
 			if name == val.Name {

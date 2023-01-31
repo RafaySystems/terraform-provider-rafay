@@ -3,7 +3,11 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.19
 
 require (
+<<<<<<< HEAD
 	github.com/RafaySystems/rafay-common v1.24.0
+=======
+	github.com/RafaySystems/rafay-common v1.23.0-alpha1
+>>>>>>> 876f689 (updated deps)
 	github.com/RafaySystems/rctl v1.22.0-3
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible

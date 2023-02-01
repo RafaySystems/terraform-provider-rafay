@@ -263,7 +263,9 @@ func expandChargebackGroupAggregate(p []interface{}) *systempb.ChargebackAggrega
 	if v, ok := in["label"].([]interface{}); ok && len(v) > 0 {
 		obj.Label = make([]string, len(v))
 		for idx := range v {
-			obj.Label[idx] = v[idx].(string)
+			if v[idx] != nil {
+				obj.Label[idx] = v[idx].(string)
+			}
 		}
 	}
 

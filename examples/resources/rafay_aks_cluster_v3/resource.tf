@@ -9,7 +9,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
       name = "default-aks"
       version = "1.21.0"
     }
-    cloud_credentials = "pj-azure"
+    cloud_credentials = "poornima-aks-cred-dev"
     config {
       kind       = "aksClusterConfig"
       metadata {
@@ -17,7 +17,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
         project = "defaultproject"
       }
       spec {
-        resource_group_name = "rafay-atlantis-rg"
+        resource_group_name = "poornima-rafay-resource"
         managed_cluster {
           api_version = "2022-07-01"
           sku {

@@ -281,6 +281,10 @@ func expandChargebackGroupFilter(p []interface{}) []*systempb.ChargebackFilter {
 	out := make([]*systempb.ChargebackFilter, len(p))
 
 	for i := range p {
+		if p[i] == nil {
+			continue
+		}
+
 		obj := systempb.ChargebackFilter{}
 		in := p[i].(map[string]interface{})
 

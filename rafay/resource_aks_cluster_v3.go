@@ -2801,8 +2801,6 @@ func flattenAKSV3NodePoolProperties(in *infrapb.NodePoolProperties, p []interfac
 
 	obj["count"] = in.Count
 
-	// TODO:
-	// review this boolean flags
 	if in.EnableAutoScaling {
 		obj["enable_auto_scaling"] = in.EnableAutoScaling
 	}

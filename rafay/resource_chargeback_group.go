@@ -274,7 +274,7 @@ func expandChargebackGroupAggregate(p []interface{}) *systempb.ChargebackAggrega
 }
 
 func expandChargebackGroupFilter(p []interface{}) []*systempb.ChargebackFilter {
-	if len(p) == 0 || p[0] == nil {
+	if len(p) == 0 {
 		return []*systempb.ChargebackFilter{}
 	}
 

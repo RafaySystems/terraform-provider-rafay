@@ -263,7 +263,9 @@ func expandChargebackGroupAggregate(p []interface{}) *systempb.ChargebackAggrega
 	if v, ok := in["label"].([]interface{}); ok && len(v) > 0 {
 		obj.Label = make([]string, len(v))
 		for idx := range v {
-			obj.Label[idx] = v[idx].(string)
+			if v[idx] != nil {
+				obj.Label[idx] = v[idx].(string)
+			}
 		}
 	}
 
@@ -272,13 +274,17 @@ func expandChargebackGroupAggregate(p []interface{}) *systempb.ChargebackAggrega
 }
 
 func expandChargebackGroupFilter(p []interface{}) []*systempb.ChargebackFilter {
-	if len(p) == 0 || p[0] == nil {
+	if len(p) == 0 {
 		return []*systempb.ChargebackFilter{}
 	}
 
 	out := make([]*systempb.ChargebackFilter, len(p))
 
 	for i := range p {
+		if p[i] == nil {
+			continue
+		}
+
 		obj := systempb.ChargebackFilter{}
 		in := p[i].(map[string]interface{})
 

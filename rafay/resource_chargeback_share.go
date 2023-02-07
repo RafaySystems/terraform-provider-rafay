@@ -199,8 +199,20 @@ func expandChargebackShareSpec(p []interface{}) (*systempb.ChargebackShareSpec, 
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["share_enabled"].(bool); ok {
-		obj.ShareEnabled = v
+	if v, ok := in["share_unallocated"].(bool); ok {
+		obj.ShareUnallocated = v
+	}
+
+	if v, ok := in["share_common"].(bool); ok {
+		obj.ShareCommon = v
+	}
+
+	if v, ok := in["inclusions"].([]interface{}); ok && len(v) > 0 {
+		obj.Inclusions = expandChargebackGroupFilter(v)
+	}
+
+	if v, ok := in["exclusions"].([]interface{}); ok && len(v) > 0 {
+		obj.Exclusions = expandChargebackGroupFilter(v)
 	}
 
 	if v, ok := in["share_type"].(string); ok && len(v) > 0 {
@@ -250,11 +262,25 @@ func flattenChargebackShareSpec(in *systempb.ChargebackShareSpec, p []interface{
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["share_enabled"] = in.ShareEnabled
+	obj["share_unallocated"] = in.ShareUnallocated
+
+	obj["share_common"] = in.ShareCommon
 
 	if len(in.ShareType) > 0 {
 		obj["share_type"] = in.ShareType
 	}
+
+	v, ok := obj["inclusions"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	obj["inclusions"] = flattenChargebackGroupSpecFilters(in.Inclusions, v)
+
+	v, ok = obj["exclusions"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	obj["exclusions"] = flattenChargebackGroupSpecFilters(in.Exclusions, v)
 
 	return []interface{}{obj}, nil
 }

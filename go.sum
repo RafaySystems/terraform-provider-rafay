@@ -87,6 +87,12 @@ github.com/RafaySystems/rafay-common v1.21.0-alpha1.0.20230104051707-16c97112477
 github.com/RafaySystems/rafay-common v1.21.0-alpha1.0.20230104051707-16c971124771/go.mod h1:fzqQ/x2X/yMNZuvjY/CkyVTVQDmIlZlcEafbVp9B6vg=
 github.com/RafaySystems/rafay-common v1.21.1-betav16.0.20230113135457-8b2001d8676f h1:Wmc98vRf/CzDIJupOLBTZs1Yd89Iq75Sm0k695dSQ/k=
 github.com/RafaySystems/rafay-common v1.21.1-betav16.0.20230113135457-8b2001d8676f/go.mod h1:fzqQ/x2X/yMNZuvjY/CkyVTVQDmIlZlcEafbVp9B6vg=
+github.com/RafaySystems/rafay-common v1.21.1-betav16.0.20230123115341-79d142da2bc3 h1:rP6ltClb+uO3XyowCGt5sWOEuTzAEk+nZ64T9L/Ga5w=
+github.com/RafaySystems/rafay-common v1.21.1-betav16.0.20230123115341-79d142da2bc3/go.mod h1:arTTnevKPTqmusQxOf4bD609hRPdyXI52ZVtLtCGWv0=
+github.com/RafaySystems/rafay-common v1.21.1-betav16.0.20230123120921-4f93519af732 h1:qPcBhHhVAFiSbd7s83b7Tw8CtG27gwNuytML7Sx+Q5s=
+github.com/RafaySystems/rafay-common v1.21.1-betav16.0.20230123120921-4f93519af732/go.mod h1:arTTnevKPTqmusQxOf4bD609hRPdyXI52ZVtLtCGWv0=
+github.com/RafaySystems/rafay-common v1.21.1-betav16.0.20230123121618-26997eca8f7e h1:gxW9034RAwuf50IGjIG0xvN0yPiV+xCLqm/x0TGKTBo=
+github.com/RafaySystems/rafay-common v1.21.1-betav16.0.20230123121618-26997eca8f7e/go.mod h1:arTTnevKPTqmusQxOf4bD609hRPdyXI52ZVtLtCGWv0=
 github.com/RafaySystems/rctl v1.21.0-beta1 h1:PPvHiBo8SIO8GEgP2QwvrSbLgB4admivclgZFotfG4U=
 github.com/RafaySystems/rctl v1.21.0-beta1/go.mod h1:QrioR55UVFdtDpYyNEKuA3h/rUZ3arwzBYlZQQoTsW8=
 github.com/RoaringBitmap/roaring v0.6.1 h1:O36Tdaj1Fi/zyr25shTHwlQPGdq53+u4WkM08AOEjiE=

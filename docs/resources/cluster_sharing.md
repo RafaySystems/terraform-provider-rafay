@@ -72,7 +72,6 @@ Optional:
 
 Optional:
 
-- `id` (String, Sensitive) id of the project
 - `name` (String) name of the project
 
 

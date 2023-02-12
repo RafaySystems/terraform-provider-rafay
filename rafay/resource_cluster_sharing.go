@@ -129,6 +129,17 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 		sharingSpec = expandClusterSharingSpec(v)
 	}
 
+	if sharingSpec == nil {
+		// no sharing info. so set to none
+		_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{})
+		if err != nil {
+			log.Printf("cluster failed to unshare form all projects %s ", clusterName)
+			return diag.FromErr(err)
+		}
+		d.SetId(clusterName)
+		return diags
+	}
+
 	log.Println("clusterObj share type", clusterObj.ShareMode)
 	for _, p := range clusterObj.Projects {
 		if p.ProjectID == projectObj.ID {
@@ -148,7 +159,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 	}
 
 	// try to order cluster list based on local state
-	if len(projs) > 0 {
+	if len(projs) > 0 && sharingSpec.Projects != nil {
 		for _, p := range sharingSpec.Projects {
 			for _, pi := range projs {
 				if pi.Id == p.Id {

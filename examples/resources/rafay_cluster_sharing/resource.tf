@@ -17,7 +17,7 @@ resource "rafay_cluster_sharing" "demo-terraform-specific" {
 }
 
 
-#cluster sharing example, share to ALL projects
+#cluster sharing example, share with ALL projects
 resource "rafay_cluster_sharing" "demo-terraform-all" {
   clustername = "demo-terraform"
   project = "terraform"

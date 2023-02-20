@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
 	"time"
 
+	dynamic "github.com/RafaySystems/rafay-common/pkg/hub/client/dynamic"
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
@@ -33,8 +35,8 @@ func resourceAKSClusterV3() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(90 * time.Minute),
+			Update: schema.DefaultTimeout(90 * time.Minute),
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 
@@ -114,6 +116,42 @@ func resourceAKSClusterV3Delete(ctx context.Context, d *schema.ResourceData, m i
 		Name:    ag.Metadata.Name,
 		Project: ag.Metadata.Project,
 	})
+	if err != nil {
+		log.Printf("cluster delete failed for edgename: %s and projectname: %s", ag.Metadata.Name, ag.Metadata.Project)
+		return diag.FromErr(err)
+	}
+
+	ticker := time.NewTicker(time.Duration(30) * time.Second)
+	defer ticker.Stop()
+	timeout := time.After(time.Duration(10) * time.Minute)
+
+	edgeName := ag.Metadata.Name
+	projectName := ag.Metadata.Project
+
+LOOP:
+	for {
+		select {
+		case <-timeout:
+			log.Printf("Cluster Deletion for edgename: %s and projectname: %s got timeout out.", edgeName, projectName)
+			return diag.FromErr(fmt.Errorf("cluster deletion for edgename: %s and projectname: %s got timeout out", edgeName, projectName))
+		case <-ticker.C:
+			_, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+				Name:    edgeName,
+				Project: projectName,
+			})
+			if dErr, ok := err.(*dynamic.DynamicClientGetError); ok && dErr != nil {
+				switch dErr.StatusCode {
+				case http.StatusNotFound:
+					log.Printf("Cluster Deletion completes for edgename: %s and projectname: %s", edgeName, projectName)
+					break LOOP
+				default:
+					log.Printf("Cluster Deletion failed for edgename: %s and projectname: %s with error: %s", edgeName, projectName, dErr.Error())
+					return diag.FromErr(dErr)
+				}
+			}
+			log.Printf("Cluster Deletion is in progress for edgename: %s and projectname: %s", edgeName, projectName)
+		}
+	}
 
 	return diags
 }
@@ -179,6 +217,44 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 		log.Println("Cluster apply cluster:", n1)
 		log.Printf("Cluster apply error")
 		return diag.FromErr(err)
+	}
+	// wait for cluster creation
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
+	defer ticker.Stop()
+	timeout := time.After(time.Duration(90) * time.Minute)
+
+	edgeName := cluster.Metadata.Name
+	projectName := cluster.Metadata.Project
+
+LOOP:
+	for {
+		select {
+		case <-timeout:
+			log.Printf("Cluster operation timed out for edgeName: %s and projectname: %s", edgeName, projectName)
+			return diag.FromErr(fmt.Errorf("cluster operation timed out for edgeName: %s and projectname: %s", edgeName, projectName))
+		case <-ticker.C:
+			uCluster, err2 := client.InfraV3().Cluster().Status(ctx, options.StatusOptions{
+				Name:    edgeName,
+				Project: projectName,
+			})
+			if err2 != nil {
+				log.Printf("Fetching cluster having edgename: %s and projectname: %s failing due to err: %v", edgeName, projectName, err2)
+			} else if uCluster == nil {
+				log.Printf("Cluster operation has not started with edgename: %s and projectname: %s", edgeName, projectName)
+			} else if uCluster.Status != nil && uCluster.Status.CommonStatus != nil {
+				uClusterCommonStatus := uCluster.Status.CommonStatus
+				switch uClusterCommonStatus.ConditionStatus {
+				case commonpb.ConditionStatus_StatusSubmitted:
+					log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", edgeName, projectName)
+				case commonpb.ConditionStatus_StatusOK:
+					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", edgeName, projectName)
+					break LOOP
+				case commonpb.ConditionStatus_StatusFailed:
+					log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
+					break LOOP
+				}
+			}
+		}
 	}
 
 	d.SetId(cluster.Metadata.Name)
@@ -466,8 +542,8 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.AadProfile = expandAKSManagedClusterV3AzureADProfile(v)
 	}
 
-	if v, ok := in["addon_profiles"].(map[string]*infrapb.AddonProfile); ok && len(v) > 0 {
-		obj.AddonProfiles = v
+	if v, ok := in["addon_profiles"].([]interface{}); ok && len(v) > 0 {
+		obj.AddonProfiles = expandManagedClusterAddonProfile(v)
 	}
 
 	if v, ok := in["api_server_access_profile"].([]interface{}); ok && len(v) > 0 {
@@ -546,6 +622,161 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.WindowsProfile = expandAKSManagedClusterV3WindowsProfile(v)
 	}
 
+	return obj
+}
+
+func expandManagedClusterAddonProfile(p []interface{}) *infrapb.ManagedClusterAddonProfile {
+	obj := &infrapb.ManagedClusterAddonProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["http_application_routing"].([]interface{}); ok && len(v) > 0 {
+		obj.HttpApplicationRouting = expandAddonProfileGeneric(v)
+	}
+
+	if v, ok := in["azure_policy"].([]interface{}); ok && len(v) > 0 {
+		obj.AzurePolicy = expandAddonProfileGeneric(v)
+	}
+
+	if v, ok := in["azure_keyvault_secrets_provider"].([]interface{}); ok && len(v) > 0 {
+		obj.AzureKeyvaultSecretsProvider = expandAddonProfileAzureKeyvaultSecretsProvider(v)
+	}
+
+	if v, ok := in["oms_agent"].([]interface{}); ok && len(v) > 0 {
+		obj.OmsAgent = expandAddonProfileOmsAgent(v)
+	}
+
+	if v, ok := in["ingress_application_gateway"].([]interface{}); ok && len(v) > 0 {
+		obj.IngressApplicationGateway = expandAddonProfileIngressApplicationGateway(v)
+	}
+	return obj
+}
+
+func expandAddonProfileGeneric(p []interface{}) *infrapb.AddonProfileGeneric {
+	obj := &infrapb.AddonProfileGeneric{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+	return obj
+}
+
+func expandAddonProfileAzureKeyvaultSecretsProvider(p []interface{}) *infrapb.AddonProfileAzureKeyvaultSecretsProvider {
+	obj := &infrapb.AddonProfileAzureKeyvaultSecretsProvider{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+		obj.Config = expandAddonProfileAzureKeyvaultSecretsProviderConfig(v)
+	}
+	return obj
+}
+
+func expandAddonProfileAzureKeyvaultSecretsProviderConfig(p []interface{}) *infrapb.AzureKeyvaultSecretsProviderProfileConfig {
+	obj := &infrapb.AzureKeyvaultSecretsProviderProfileConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enable_secret_rotation"].(string); ok && len(v) > 0 {
+		obj.EnableSecretRotation = v
+	}
+
+	if v, ok := in["rotation_poll_interval"].(string); ok && len(v) > 0 {
+		obj.RotationPollInterval = v
+	}
+	return obj
+}
+
+func expandAddonProfileOmsAgent(p []interface{}) *infrapb.AddonProfileOmsAgent {
+	obj := &infrapb.AddonProfileOmsAgent{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+		obj.Config = expandAddonProfileOmsAgentConfig(v)
+	}
+	return obj
+}
+
+func expandAddonProfileOmsAgentConfig(p []interface{}) *infrapb.AddonProfileOmsAgentConfig {
+	obj := &infrapb.AddonProfileOmsAgentConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["log_analytics_workspace_resource_id"].(string); ok && len(v) > 0 {
+		obj.LogAnalyticsWorkspaceResourceID = v
+	}
+	return obj
+}
+
+func expandAddonProfileIngressApplicationGateway(p []interface{}) *infrapb.AddonProfileIngressApplicationGateway {
+	obj := &infrapb.AddonProfileIngressApplicationGateway{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+		obj.Config = expandAddonProfileIngressApplicationGatewayConfig(v)
+	}
+	return obj
+}
+
+func expandAddonProfileIngressApplicationGatewayConfig(p []interface{}) *infrapb.AddonProfileIngressApplicationGatewayConfig {
+	obj := &infrapb.AddonProfileIngressApplicationGatewayConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["application_gateway_name"].(string); ok && len(v) > 0 {
+		obj.ApplicationGatewayName = v
+	}
+
+	if v, ok := in["application_gateway_id"].(string); ok && len(v) > 0 {
+		obj.ApplicationGatewayID = v
+	}
+
+	if v, ok := in["subnet_cidr"].(string); ok && len(v) > 0 {
+		obj.SubnetCIDR = v
+	}
+
+	if v, ok := in["subnet_id"].(string); ok && len(v) > 0 {
+		obj.SubnetID = v
+	}
+
+	if v, ok := in["watch_namespace"].(string); ok && len(v) > 0 {
+		obj.WatchNamespace = v
+	}
 	return obj
 }
 
@@ -1851,7 +2082,11 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 
 	// TODO: REVIEW
 	if in.AddonProfiles != nil {
-		obj["addon_profiles"] = in.AddonProfiles
+		v, ok := obj["addon_profiles"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["addon_profiles"] = flattenAKSV3ManagedClusterAddonProfile(in.AddonProfiles, v)
 	}
 
 	if in.ApiServerAccessProfile != nil {
@@ -1966,6 +2201,179 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 
 	return []interface{}{obj}
 
+}
+
+func flattenAKSV3ManagedClusterAddonProfile(in *infrapb.ManagedClusterAddonProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.HttpApplicationRouting != nil {
+		v, ok := obj["http_application_routing"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["http_application_routing"] = flattenAKSV3ManagedClusterAddonOnGenericProfile(in.HttpApplicationRouting, v)
+	}
+
+	if in.AzurePolicy != nil {
+		v, ok := obj["azure_policy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["azure_policy"] = flattenAKSV3ManagedClusterAddonOnGenericProfile(in.AzurePolicy, v)
+	}
+
+	if in.AzureKeyvaultSecretsProvider != nil {
+		v, ok := obj["azure_keyvault_secrets_provider"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["azure_keyvault_secrets_provider"] = flattenAKSV3ManagedClusterAzureKeyvaultSecretsProviderProfile(in.AzureKeyvaultSecretsProvider, v)
+	}
+
+	if in.OmsAgent != nil {
+		v, ok := obj["oms_agent"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["oms_agent"] = flattenAKSV3ManagedClusterOmsAgentProfile(in.OmsAgent, v)
+	}
+
+	if in.IngressApplicationGateway != nil {
+		v, ok := obj["ingress_application_gateway"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["ingress_application_gateway"] = flattenAKSV3ManagedClusterIngressApplicationGatewayProfile(in.IngressApplicationGateway, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterAddonOnGenericProfile(in *infrapb.AddonProfileGeneric, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterAzureKeyvaultSecretsProviderProfile(in *infrapb.AddonProfileAzureKeyvaultSecretsProvider, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+
+	if in.Config != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenAKSV3ManagedClusterAzureKeyvaultSecretsProviderProfileConfig(in.Config, v)
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterAzureKeyvaultSecretsProviderProfileConfig(in *infrapb.AzureKeyvaultSecretsProviderProfileConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enable_secret_rotation"] = in.EnableSecretRotation
+	obj["rotation_poll_interval"] = in.RotationPollInterval
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterOmsAgentProfile(in *infrapb.AddonProfileOmsAgent, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+	if in.Config != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenAKSV3ManagedClusterOmsAgentProfileConfig(in.Config, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterOmsAgentProfileConfig(in *infrapb.AddonProfileOmsAgentConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["log_analytics_workspace_resource_id"] = in.LogAnalyticsWorkspaceResourceID
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterIngressApplicationGatewayProfile(in *infrapb.AddonProfileIngressApplicationGateway, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+	if in.Config != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenAKSV3ManagedClusterIngressApplicationGatewayProfileConfig(in.Config, v)
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterIngressApplicationGatewayProfileConfig(in *infrapb.AddonProfileIngressApplicationGatewayConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["application_gateway_id"] = in.ApplicationGatewayID
+	obj["application_gateway_name"] = in.ApplicationGatewayName
+	obj["subnet_cidr"] = in.SubnetCIDR
+	obj["subnet_id"] = in.SubnetID
+	obj["watch_namespace"] = in.WatchNamespace
+
+	return []interface{}{obj}
 }
 
 func flattenAKSV3ManagedClusterAzureADProfile(in *infrapb.Aadprofile, p []interface{}) []interface{} {

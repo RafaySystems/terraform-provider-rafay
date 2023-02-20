@@ -13,7 +13,6 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/RafaySystems/rctl/pkg/project"
-	"github.com/davecgh/go-spew/spew"
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 
@@ -3011,8 +3010,8 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 	// for i := range outToSort {
 	// 	out[i] = &outToSort[i]
 	// }
-	n1 := spew.Sprintf("%+v", out)
-	log.Println("expand sorted node pools:", n1)
+	// n1 := spew.Sprintf("%+v", out)
+	// log.Println("expand sorted node pools:", n1)
 
 	return out
 }
@@ -3375,10 +3374,39 @@ func expandAKSNodePoolUpgradeSettings(p []interface{}) *AKSNodePoolUpgradeSettin
 
 // Flatten f
 
+func extractNodepoolNamesFromExistingState(d *schema.ResourceData) []string {
+	var res []string
+	nodepoolsX := d.Get("spec.0.cluster_config.0.spec.0.node_pools")
+	nodepools, ok := nodepoolsX.([]interface{})
+	if !ok {
+		return res
+	}
+	for _, npX := range nodepools {
+		np, ok := npX.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		npNameX, ok := np["name"]
+		if !ok {
+			continue
+		}
+		npName, ok := npNameX.(string)
+		if !ok {
+			continue
+		}
+		res = append(res, npName)
+	}
+	return res
+}
+
 func flattenAKSCluster(d *schema.ResourceData, in *AKSCluster) error {
 	if in == nil {
 		return nil
 	}
+
+	// get existing nodepools present in the state file
+	existingNpNames := extractNodepoolNamesFromExistingState(d)
+
 	obj := map[string]interface{}{}
 
 	if len(in.APIVersion) > 0 {
@@ -3410,7 +3438,7 @@ func flattenAKSCluster(d *schema.ResourceData, in *AKSCluster) error {
 			v = []interface{}{}
 		}
 
-		ret2 = flattenAKSClusterSpec(in.Spec, v)
+		ret2 = flattenAKSClusterSpec(in.Spec, v, existingNpNames)
 	}
 
 	err = d.Set("spec", ret2)
@@ -3443,7 +3471,7 @@ func flattenAKSClusterMetadata(in *AKSClusterMetadata, p []interface{}) []interf
 	return []interface{}{obj}
 }
 
-func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}) []interface{} {
+func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}, existingNpNames []string) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -3472,7 +3500,7 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}) []interface{} {
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["cluster_config"] = flattenAKSClusterConfig(in.AKSClusterConfig, v)
+		obj["cluster_config"] = flattenAKSClusterConfig(in.AKSClusterConfig, v, existingNpNames)
 	}
 
 	if in.Sharing != nil {
@@ -3482,7 +3510,7 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}) []interface{} {
 	return []interface{}{obj}
 }
 
-func flattenAKSClusterConfig(in *AKSClusterConfig, p []interface{}) []interface{} {
+func flattenAKSClusterConfig(in *AKSClusterConfig, p []interface{}, existingNpNames []string) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -3512,7 +3540,7 @@ func flattenAKSClusterConfig(in *AKSClusterConfig, p []interface{}) []interface{
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["spec"] = flattenAKSClusterConfigSpec(in.Spec, v)
+		obj["spec"] = flattenAKSClusterConfigSpec(in.Spec, v, existingNpNames)
 	}
 
 	return []interface{}{obj}
@@ -3535,7 +3563,7 @@ func flattenAKSClusterConfigMetadata(in *AKSClusterConfigMetadata, p []interface
 
 }
 
-func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}) []interface{} {
+func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}, existingNpNames []string) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -3566,7 +3594,7 @@ func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}) []in
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["node_pools"] = flattenAKSNodePool(in.NodePools, v)
+		obj["node_pools"] = flattenAKSNodePools(in.NodePools, v, existingNpNames)
 	}
 
 	return []interface{}{obj}
@@ -4808,25 +4836,35 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfile(in *AKSManagedClusterA
 
 }
 
-func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
+func flattenAKSNodePools(in []*AKSNodePool, p []interface{}, existingNpNames []string) []interface{} {
 	if in == nil {
 		return nil
 	}
 
-	// sort the incoming nodepools
-	// inToSort := make([]AKSNodePool, len(in))
-	// for i := range in {
-	// 	inToSort[i] = *in[i]
-	// }
-	// sort.Sort(ByNodepoolName(inToSort))
-	// for i := range inToSort {
-	// 	in[i] = &inToSort[i]
-	// }
-	n1 := spew.Sprintf("%+v", in)
-	log.Println("flatten sorted node pools:", n1)
-	//log.Println("sorted node pools:", in)
-	out := make([]interface{}, len(in))
-	for i, in := range in {
+	// build a map of incoming nodepools indexed by its name
+	incomingNodepools := map[string]*AKSNodePool{}
+	for _, np := range in {
+		incomingNodepools[np.Name] = np
+	}
+
+	// maintain ordering with existing nodepools that we fetched from the state as much as possible
+	var finalNodepoolList []*AKSNodePool
+	for index, npName := range existingNpNames {
+		if np, ok := incomingNodepools[npName]; ok {
+			finalNodepoolList = append(finalNodepoolList, np)
+			delete(incomingNodepools, npName)
+		} else {
+			log.Printf("Nodepool %s at index in existing state %d is not present in incoming nodepools", npName, index)
+		}
+	}
+	// append any other stragglers not removed in the incoming nodepools map
+	for npName, np := range incomingNodepools {
+		log.Printf("Nodepool %s is present in incoming nodepool but not in state", npName)
+		finalNodepoolList = append(finalNodepoolList, np)
+	}
+
+	out := make([]interface{}, len(finalNodepoolList))
+	for i, in := range finalNodepoolList {
 
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {

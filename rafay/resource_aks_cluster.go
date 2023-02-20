@@ -4836,14 +4836,10 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfile(in *AKSManagedClusterA
 
 }
 
-func flattenAKSNodePools(in []*AKSNodePool, p []interface{}, existingNpNames []string) []interface{} {
-	if in == nil {
-		return nil
-	}
-
+func reorderNodepools(incomingNps []*AKSNodePool, existingNpNames []string) []*AKSNodePool {
 	// build a map of incoming nodepools indexed by its name
 	incomingNodepools := map[string]*AKSNodePool{}
-	for _, np := range in {
+	for _, np := range incomingNps {
 		incomingNodepools[np.Name] = np
 	}
 
@@ -4862,9 +4858,18 @@ func flattenAKSNodePools(in []*AKSNodePool, p []interface{}, existingNpNames []s
 		log.Printf("Nodepool %s is present in incoming nodepool but not in state", npName)
 		finalNodepoolList = append(finalNodepoolList, np)
 	}
+	return finalNodepoolList
+}
 
-	out := make([]interface{}, len(finalNodepoolList))
-	for i, in := range finalNodepoolList {
+func flattenAKSNodePools(in []*AKSNodePool, p []interface{}, existingNpNames []string) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	in = reorderNodepools(in, existingNpNames)
+
+	out := make([]interface{}, len(in))
+	for i, in := range in {
 
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {

@@ -576,7 +576,7 @@ func expandManagedClusterAddonProfile(p []interface{}) *infrapb.ManagedClusterAd
 	if v, ok := in["ingress_application_gateway"].([]interface{}); ok && len(v) > 0 {
 		obj.IngressApplicationGateway = expandAddonProfileIngressApplicationGateway(v)
 	}
-	return nil
+	return obj
 }
 
 func expandAddonProfileGeneric(p []interface{}) *infrapb.AddonProfileGeneric {

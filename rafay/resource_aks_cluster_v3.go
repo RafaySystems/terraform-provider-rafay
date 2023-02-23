@@ -20,6 +20,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 func resourceAKSClusterV3() *schema.Resource {
@@ -393,10 +394,12 @@ func expandAKSManagedClusterV3Identity(p []interface{}) *infrapb.Identity {
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		obj.Type = v
 	}
-
-	// TODO: TEST THIS CASE
 	if v, ok := in["user_assigned_identities"].(map[string]interface{}); ok {
-		obj.UserAssignedIdentities = toMapByte(v)
+		obj.UserAssignedIdentities = make(map[string]*structpb.Struct)
+		for identity := range v {
+			x, _ := structpb.NewStruct(map[string]interface{}{})
+			obj.UserAssignedIdentities[identity] = x
+		}
 	}
 	return obj
 }
@@ -980,13 +983,13 @@ func expandAKSManagedClusterV3PodIdentityProfile(p []interface{}) *infrapb.Podid
 	return obj
 }
 
-func expandAKSManagedClusterV3PIPUserAssignedIdentities(p []interface{}) []*infrapb.Userassignedidentities {
-	out := make([]*infrapb.Userassignedidentities, len(p))
+func expandAKSManagedClusterV3PIPUserAssignedIdentities(p []interface{}) []*infrapb.PodUserassignedidentities {
+	out := make([]*infrapb.PodUserassignedidentities, len(p))
 	if len(p) == 0 || p[0] == nil {
 		return out
 	}
 	for i := range p {
-		obj := &infrapb.Userassignedidentities{}
+		obj := &infrapb.PodUserassignedidentities{}
 		in := p[i].(map[string]interface{})
 
 		if v, ok := in["binding_selector"].(string); ok && len(v) > 0 {
@@ -1009,8 +1012,8 @@ func expandAKSManagedClusterV3PIPUserAssignedIdentities(p []interface{}) []*infr
 	return out
 }
 
-func expandAKSManagedClusterV3UAIIdentity(p []interface{}) *infrapb.Identity1 {
-	obj := &infrapb.Identity1{}
+func expandAKSManagedClusterV3UAIIdentity(p []interface{}) *infrapb.PodIdentity {
+	obj := &infrapb.PodIdentity{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
@@ -1822,9 +1825,12 @@ func flattenAKSV3ManagedClusterIdentity(in *infrapb.Identity, p []interface{}) [
 		obj["type"] = in.Type
 	}
 
-	// TODO: Test this
 	if in.UserAssignedIdentities != nil && len(in.UserAssignedIdentities) > 0 {
-		obj["user_assigned_identities"] = in.UserAssignedIdentities
+		identity := map[string]string{}
+		for k := range in.UserAssignedIdentities {
+			identity[k] = ""
+		}
+		obj["user_assigned_identities"] = identity
 	}
 
 	return []interface{}{obj}
@@ -2500,7 +2506,7 @@ func flattenAKSV3ManagedClusterPodIdentityProfile(in *infrapb.Podidentityprofile
 	return []interface{}{obj}
 }
 
-func flattenAKSV3ManagedClusterPIPUserAssignedIdentities(inp []*infrapb.Userassignedidentities, p []interface{}) []interface{} {
+func flattenAKSV3ManagedClusterPIPUserAssignedIdentities(inp []*infrapb.PodUserassignedidentities, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
 	}
@@ -2536,7 +2542,7 @@ func flattenAKSV3ManagedClusterPIPUserAssignedIdentities(inp []*infrapb.Userassi
 	return out
 }
 
-func flattenAKSV3ManagedClusterUAIIdentity(in *infrapb.Identity1, p []interface{}) []interface{} {
+func flattenAKSV3ManagedClusterUAIIdentity(in *infrapb.PodIdentity, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}

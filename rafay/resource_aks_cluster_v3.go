@@ -2273,11 +2273,11 @@ func flattenAKSV3ManagedClusterIngressApplicationGatewayProfile(in *infrapb.Addo
 
 	obj["enabled"] = in.Enabled
 	if in.Config != nil {
-		v, ok := obj["enabled"].([]interface{})
+		v, ok := obj["config"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["enabled"] = flattenAKSV3ManagedClusterIngressApplicationGatewayProfileConfig(in.Config, v)
+		obj["config"] = flattenAKSV3ManagedClusterIngressApplicationGatewayProfileConfig(in.Config, v)
 	}
 	return []interface{}{obj}
 }

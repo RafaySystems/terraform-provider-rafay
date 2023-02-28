@@ -33,7 +33,7 @@ func resourceAKSClusterV3() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(90 * time.Minute),
 			Update: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
@@ -179,6 +179,33 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 		log.Println("Cluster apply cluster:", n1)
 		log.Printf("Cluster apply error")
 		return diag.FromErr(err)
+	}
+	// wait for cluster creation
+	ticker := time.NewTicker(time.Duration(30) * time.Second)
+	defer ticker.Stop()
+	timeout := time.After(time.Duration(90) * time.Minute)
+
+	edgeName := cluster.Metadata.Name
+	projectName := cluster.Metadata.Project
+
+LOOP:
+	for {
+		select {
+		case <-timeout:
+			log.Printf("Cluster creation timed out for edgeName: %s and projectname: %s", edgeName, projectName)
+			return diag.FromErr(fmt.Errorf("cluster creation timed out for edgeName: %s and projectname: %s", edgeName, projectName))
+		case <-ticker.C:
+			uCluster, err2 := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+				Name:    edgeName,
+				Project: projectName,
+			})
+			if err2 != nil {
+				fmt.Printf("Fetching cluster having edgename: %s and projectname: %s failing due to err: %v", edgeName, projectName, err2)
+			} else if uCluster != nil && uCluster.Status != nil && uCluster.Status.ProvisionStatus == "CLUSTER_PROVISION_COMPLETE" {
+				break LOOP
+			}
+			fmt.Printf("Cluster provision not complete for edgename: %s and projectname: %s. Waiting 30 seconds for cluster to provision completely.", edgeName, projectName)
+		}
 	}
 
 	d.SetId(cluster.Metadata.Name)

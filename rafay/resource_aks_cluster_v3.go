@@ -34,7 +34,7 @@ func resourceAKSClusterV3() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(90 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(90 * time.Minute),
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 
@@ -114,6 +114,36 @@ func resourceAKSClusterV3Delete(ctx context.Context, d *schema.ResourceData, m i
 		Name:    ag.Metadata.Name,
 		Project: ag.Metadata.Project,
 	})
+	if err != nil {
+		log.Printf("cluster delete failed for edgename: %s and projectname: %s", ag.Metadata.Name, ag.Metadata.Project)
+		return diag.FromErr(err)
+	}
+
+	ticker := time.NewTicker(time.Duration(30) * time.Second)
+	defer ticker.Stop()
+	timeout := time.After(time.Duration(10) * time.Minute)
+
+	edgeName := ag.Metadata.Name
+	projectName := ag.Metadata.Project
+
+LOOP:
+	for {
+		select {
+		case <-timeout:
+			log.Printf("Cluster Deletion for edgename: %s and projectname: %s got timeout out.", edgeName, projectName)
+			return diag.FromErr(fmt.Errorf("cluster deletion for edgename: %s and projectname: %s got timeout out.", edgeName, projectName))
+		case <-ticker.C:
+			uCluster, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+				Name:    edgeName,
+				Project: projectName,
+			})
+			if err != nil && uCluster == nil {
+				log.Printf("Cluster Deletion completes for edgename: %s and projectname: %s", edgeName, projectName)
+				break LOOP
+			}
+			log.Printf("Cluster Deletion is in progress for edgename: %s and projectname: %s", edgeName, projectName)
+		}
+	}
 
 	return diags
 }
@@ -181,7 +211,7 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 	// wait for cluster creation
-	ticker := time.NewTicker(time.Duration(30) * time.Second)
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
 	timeout := time.After(time.Duration(90) * time.Minute)
 
@@ -195,16 +225,27 @@ LOOP:
 			log.Printf("Cluster creation timed out for edgeName: %s and projectname: %s", edgeName, projectName)
 			return diag.FromErr(fmt.Errorf("cluster creation timed out for edgeName: %s and projectname: %s", edgeName, projectName))
 		case <-ticker.C:
-			uCluster, err2 := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+			uCluster, err2 := client.InfraV3().Cluster().Status(ctx, options.StatusOptions{
 				Name:    edgeName,
 				Project: projectName,
 			})
 			if err2 != nil {
-				fmt.Printf("Fetching cluster having edgename: %s and projectname: %s failing due to err: %v", edgeName, projectName, err2)
-			} else if uCluster != nil && uCluster.Status != nil && uCluster.Status.ProvisionStatus == "CLUSTER_PROVISION_COMPLETE" {
-				break LOOP
+				log.Printf("Fetching cluster having edgename: %s and projectname: %s failing due to err: %v", edgeName, projectName, err2)
+			} else if uCluster == nil {
+				log.Printf("Cluster operation has not started with edgename: %s and projectname: %s", edgeName, projectName)
+			} else if uCluster.Status != nil && uCluster.Status.CommonStatus != nil {
+				uClusterCommonStatus := uCluster.Status.CommonStatus
+				switch uClusterCommonStatus.ConditionStatus {
+				case commonpb.ConditionStatus_StatusSubmitted:
+					log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to provision completely.", edgeName, projectName)
+				case commonpb.ConditionStatus_StatusOK:
+					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", edgeName, projectName)
+					break LOOP
+				case commonpb.ConditionStatus_StatusFailed:
+					log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
+					break LOOP
+				}
 			}
-			fmt.Printf("Cluster provision not complete for edgename: %s and projectname: %s. Waiting 30 seconds for cluster to provision completely.", edgeName, projectName)
 		}
 	}
 

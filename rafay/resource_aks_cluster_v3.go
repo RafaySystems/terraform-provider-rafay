@@ -131,15 +131,22 @@ LOOP:
 		select {
 		case <-timeout:
 			log.Printf("Cluster Deletion for edgename: %s and projectname: %s got timeout out.", edgeName, projectName)
-			return diag.FromErr(fmt.Errorf("cluster deletion for edgename: %s and projectname: %s got timeout out.", edgeName, projectName))
+			return diag.FromErr(fmt.Errorf("cluster deletion for edgename: %s and projectname: %s got timeout out", edgeName, projectName))
 		case <-ticker.C:
-			uCluster, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+			_, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
 				Name:    edgeName,
 				Project: projectName,
 			})
-			if err != nil && uCluster == nil {
-				log.Printf("Cluster Deletion completes for edgename: %s and projectname: %s", edgeName, projectName)
-				break LOOP
+			if err != nil {
+				errCode := fetchHubErrorCodeString(err.Error())
+				switch errCode {
+				case "Not Found":
+					log.Printf("Cluster Deletion completes for edgename: %s and projectname: %s", edgeName, projectName)
+					break LOOP
+				default:
+					log.Printf("Cluster Deletion failed for edgename: %s and projectname: %s with error: %v", edgeName, projectName, err)
+					return diag.FromErr(err)
+				}
 			}
 			log.Printf("Cluster Deletion is in progress for edgename: %s and projectname: %s", edgeName, projectName)
 		}

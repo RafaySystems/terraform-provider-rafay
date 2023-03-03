@@ -1,6 +1,7 @@
 package rafay
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -25,6 +26,12 @@ type File struct {
 	Name      string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Sensitive bool   `protobuf:"bytes,1,opt,name=sensitive,proto3" json:"sensitive,omitempty"`
 	Data      []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+}
+
+type HubError struct {
+	Internal string `json:"internal"`
+	Code     int    `json:"code"`
+	External string `json:"external"`
 }
 
 /*
@@ -1296,4 +1303,22 @@ func GetMetaData(in *schema.ResourceData) *commonpb.Metadata {
 	}
 
 	return nil
+}
+
+func fetchHubErrorCodeString(str string) string {
+	var errCode string
+
+	index1 := strings.Index(str, "{")
+	index2 := strings.Index(str, "}")
+
+	if index1 != -1 && index2 != -1 {
+		hbErr := &HubError{}
+
+		err := json.Unmarshal([]byte(str[index1:index2+1]), hbErr)
+		if err != nil {
+			return ""
+		}
+		errCode = hbErr.External
+	}
+	return errCode
 }

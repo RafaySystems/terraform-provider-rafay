@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
 	"time"
 
+	dynamic "github.com/RafaySystems/rafay-common/pkg/hub/client/dynamic"
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
@@ -137,15 +139,14 @@ LOOP:
 				Name:    edgeName,
 				Project: projectName,
 			})
-			if err != nil {
-				errCode := fetchHubErrorCodeString(err.Error())
-				switch errCode {
-				case "Not Found":
+			if dErr, ok := err.(*dynamic.DynamicClientGetError); ok && dErr != nil {
+				switch dErr.StatusCode {
+				case http.StatusNotFound:
 					log.Printf("Cluster Deletion completes for edgename: %s and projectname: %s", edgeName, projectName)
 					break LOOP
 				default:
-					log.Printf("Cluster Deletion failed for edgename: %s and projectname: %s with error: %v", edgeName, projectName, err)
-					return diag.FromErr(err)
+					log.Printf("Cluster Deletion failed for edgename: %s and projectname: %s with error: %s", edgeName, projectName, dErr.Error())
+					return diag.FromErr(dErr)
 				}
 			}
 			log.Printf("Cluster Deletion is in progress for edgename: %s and projectname: %s", edgeName, projectName)
@@ -229,8 +230,8 @@ LOOP:
 	for {
 		select {
 		case <-timeout:
-			log.Printf("Cluster creation timed out for edgeName: %s and projectname: %s", edgeName, projectName)
-			return diag.FromErr(fmt.Errorf("cluster creation timed out for edgeName: %s and projectname: %s", edgeName, projectName))
+			log.Printf("Cluster operation timed out for edgeName: %s and projectname: %s", edgeName, projectName)
+			return diag.FromErr(fmt.Errorf("cluster operation timed out for edgeName: %s and projectname: %s", edgeName, projectName))
 		case <-ticker.C:
 			uCluster, err2 := client.InfraV3().Cluster().Status(ctx, options.StatusOptions{
 				Name:    edgeName,
@@ -244,7 +245,7 @@ LOOP:
 				uClusterCommonStatus := uCluster.Status.CommonStatus
 				switch uClusterCommonStatus.ConditionStatus {
 				case commonpb.ConditionStatus_StatusSubmitted:
-					log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to provision completely.", edgeName, projectName)
+					log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", edgeName, projectName)
 				case commonpb.ConditionStatus_StatusOK:
 					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", edgeName, projectName)
 					break LOOP

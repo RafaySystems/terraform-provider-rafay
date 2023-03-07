@@ -1329,7 +1329,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 		},
 		"version": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Description: "Kuberenetes version for the nodegroup",
 		},
 		"subnet_cidr": {
@@ -1730,9 +1730,9 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "name of the node group",
 		},
 		"ami_family": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Default:     "AmazonLinux2",
+			Type:     schema.TypeString,
+			Optional: true,
+			// Default:     "AmazonLinux2",
 			Description: "Valid variants are: 'AmazonLinux2'.",
 		},
 		"instance_type": {
@@ -1983,7 +1983,7 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 		}, //@@@ check eks_config.go wats this release version, is it in launch tempelate or managedNodeGroups, doc vs eks_config is confusing
 		"version": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Description: "Kuberenetes version for the nodegroup",
 		},
 	}

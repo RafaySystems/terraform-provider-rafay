@@ -147,6 +147,11 @@ func resourceOPAPolicyRead(ctx context.Context, d *schema.ResourceData, m interf
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
 	if err != nil {
+		if strings.Contains(err.Error(), "code 404") {
+			log.Println("Resource Read ", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

@@ -192,7 +192,7 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 	//check if there is a group association
 	respRoles, err := groupassociation.GetProjectAssociatedWithGroup(g.Name)
 	if err != nil {
-		log.Printf("create group association failed to get group, error %s", err.Error())
+		log.Printf("read group association failed to get group, error %s", err.Error())
 		return diag.FromErr(err)
 	} else {
 		var roleLst []string

@@ -201,6 +201,11 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 		Project: tfBlueprintState.Metadata.Project,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "code 404") {
+			log.Println("Resource Read ", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 
@@ -341,14 +346,12 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 		obj.NetworkPolicy = expandBlueprintNetworkPolicy(v)
 	}
 
-
 	if v, ok := in["service_mesh"].([]interface{}); ok && len(v) > 0 {
 		obj.ServiceMesh = expandBlueprintServiceMesh(v)
 	}
 
 	if v, ok := in["cost_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.CostProfile = expandBlueprintCostProfile(v)
-
 	}
 
 	if v, ok := in["opa_policy"].([]interface{}); ok && len(v) > 0 {
@@ -622,7 +625,6 @@ func expandBlueprintPSP(p []interface{}) *infrapb.BlueprintPSP {
 
 	return obj
 }
-
 
 func expandBlueprintServiceMesh(p []interface{}) *infrapb.ServiceMesh {
 	obj := &infrapb.ServiceMesh{}

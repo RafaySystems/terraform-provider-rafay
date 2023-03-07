@@ -156,6 +156,11 @@ func resourceOPAConstraintRead(ctx context.Context, d *schema.ResourceData, m in
 		Project: tfOPAConstraintState.Metadata.Project,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "code 404") {
+			log.Println("Resource Read ", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

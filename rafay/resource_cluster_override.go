@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
@@ -359,6 +360,11 @@ func resourceClusterOverrideRead(ctx context.Context, d *schema.ResourceData, m 
 	remoteOr, err := clusteroverride.GetClusterOverride(tfLocalState.Metadata.Name, projectId, tfLocalState.Spec.Type)
 	if err != nil {
 		log.Println("get cluster override failed: ", err)
+		if strings.Contains(err.Error(), "resource does not exist") {
+			log.Println("Resource Read ", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

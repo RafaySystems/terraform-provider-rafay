@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/commands"
@@ -227,6 +228,11 @@ func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	userAccount, err := user.GetUser(userName)
 	if err != nil {
 		log.Printf("get user account, error %s", err.Error())
+		if strings.Contains(err.Error(), "does not exist") {
+			log.Println("Resource Read ", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

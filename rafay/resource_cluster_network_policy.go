@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
@@ -152,6 +153,11 @@ func resourceClusterNetworkPolicyRead(ctx context.Context, d *schema.ResourceDat
 		Project: tfClusterNetworkPolicyState.Metadata.Project,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "code 404") {
+			log.Println("Resource Read ", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

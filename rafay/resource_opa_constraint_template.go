@@ -185,6 +185,11 @@ func resourceOPAConstraintTemplateRead(ctx context.Context, d *schema.ResourceDa
 		Project: tfOPAConstraintTemplateState.Metadata.Project,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "code 404") {
+			log.Println("Resource Read ", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 	log.Println("opct:", ag)

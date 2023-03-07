@@ -97,13 +97,17 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, m interface{
 	//resp, err := project.GetProjectByName(d.Get("name").(string))
 	resp, err := getGroupById(d.Id())
 	if err != nil {
-		return diag.FromErr(err)
+		log.Printf("getGroupById, error %s", err.Error())
+		d.SetId("")
+		return diags
 	}
 
 	p, err := getGroupFromResponse([]byte(resp))
 	if err != nil {
-		log.Printf("get group by id, error %s", err.Error())
-		return diag.FromErr(err)
+		log.Printf("getGroupFromResponse, error %s", err.Error())
+		log.Println("Resource Read ", "error", err)
+		d.SetId("")
+		return diags
 	} else if p == nil {
 		log.Printf("get group response parse error")
 		d.SetId("")

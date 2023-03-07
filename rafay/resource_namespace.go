@@ -322,6 +322,11 @@ func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interf
 		Project: nsTFState.Metadata.Project,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "code 404") {
+			log.Println("Resource Read ", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 	log.Println("resourceNamespaceRead remoteState ", ns)

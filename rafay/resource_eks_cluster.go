@@ -5649,6 +5649,11 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	c, err := cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
+		if strings.Contains(err.Error(), "not found") {
+			log.Println("Resource Read ", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 	log.Println("got cluster from backend")

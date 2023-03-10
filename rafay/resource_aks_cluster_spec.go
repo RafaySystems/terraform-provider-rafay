@@ -258,6 +258,11 @@ func resourceAKSClusterSpecRead(ctx context.Context, d *schema.ResourceData, m i
 	c, err := cluster.GetCluster(d.Get("name").(string), project.ID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
+		if strings.Contains(err.Error(), "not found") {
+			log.Println("Resource Read ", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

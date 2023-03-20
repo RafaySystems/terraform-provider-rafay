@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
@@ -172,6 +173,11 @@ func resourceImportClusterRead(ctx context.Context, d *schema.ResourceData, m in
 	c, err := cluster.GetCluster(d.Get("clustername").(string), project.ID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
+		if strings.Contains(err.Error(), "not found") {
+			log.Println("Resource Read ", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 	if err := d.Set("clustername", c.Name); err != nil {

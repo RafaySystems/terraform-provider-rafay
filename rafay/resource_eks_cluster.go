@@ -994,14 +994,6 @@ func addonConfigFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "ARN of the permissions boundary to associate",
 		},
-		"well_known_policies": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "for attaching common IAM policies",
-			Elem: &schema.Resource{
-				Schema: serviceAccountsWellKnownPolicyFields(),
-			},
-		},
 		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
@@ -3401,9 +3393,6 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 		}
 		if v, ok := in["permissions_boundary"].(string); ok && len(v) > 0 {
 			obj.PermissionsBoundary = v
-		}
-		if v, ok := in["well_known_policies"].([]interface{}); ok && len(v) > 0 {
-			obj.WellKnownPolicies = expandIAMWellKnownPolicies(v)
 		}
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)

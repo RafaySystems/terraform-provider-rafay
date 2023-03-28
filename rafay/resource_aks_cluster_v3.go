@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sort"
 	"strings"
 	"time"
 
@@ -1369,7 +1368,6 @@ func expandAKSV3NodePool(p []interface{}) []*infrapb.Nodepool {
 	}
 
 	out := make([]*infrapb.Nodepool, len(p))
-	outToSort := make([]infrapb.Nodepool, len(p))
 	for i := range p {
 		obj := infrapb.Nodepool{}
 		in := p[i].(map[string]interface{})
@@ -1393,12 +1391,7 @@ func expandAKSV3NodePool(p []interface{}) []*infrapb.Nodepool {
 		if v, ok := in["location"].(string); ok && len(v) > 0 {
 			obj.Location = v
 		}
-		outToSort[i] = obj
-	}
-
-	sort.Sort(ByNodepoolNameV3(outToSort))
-	for i := range outToSort {
-		out[i] = &outToSort[i]
+		out[i] = &obj
 	}
 
 	return out

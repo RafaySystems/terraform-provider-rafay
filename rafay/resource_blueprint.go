@@ -209,6 +209,11 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
+	if tfBlueprintState.Spec.Sharing != nil && !tfBlueprintState.Spec.Sharing.Enabled && bp.Spec.Sharing == nil {
+		bp.Spec.Sharing = &commonpb.SharingSpec{}
+		bp.Spec.Sharing.Enabled = false
+	}
+
 	// XXX Debug
 	// w1 = spew.Sprintf("%+v", wl)
 	// log.Println("resourceBluePrintRead wl", w1)
@@ -634,10 +639,6 @@ func expandBlueprintServiceMesh(p []interface{}) *infrapb.ServiceMesh {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["enabled"].(bool); ok {
-		obj.Enabled = v
-	}
-
 	if v, ok := in["profile"].([]interface{}); ok && len(v) > 0 {
 		obj.Profile = expandBlueprintMeshProfile(v)
 	}
@@ -657,10 +658,6 @@ func expandBlueprintCostProfile(p []interface{}) *infrapb.CostProfile {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["enabled"].(bool); ok {
-		obj.Enabled = v
-	}
-
 	if v, ok := in["name"].(string); ok && len(v) > 0 {
 		obj.Name = v
 	}
@@ -679,10 +676,6 @@ func expandBlueprintNetworkPolicy(p []interface{}) *infrapb.NetworkPolicy {
 	}
 
 	in := p[0].(map[string]interface{})
-
-	if v, ok := in["enabled"].(bool); ok {
-		obj.Enabled = v
-	}
 
 	if v, ok := in["profile"].([]interface{}); ok && len(v) > 0 {
 		obj.Profile = expandBlueprintNetworkPolicyProfile(v)
@@ -705,10 +698,6 @@ func expandBlueprintOPAPolicies(p []interface{}) []*infrapb.Policy {
 	for i := range p {
 		obj := infrapb.Policy{}
 		in := p[i].(map[string]interface{})
-
-		if v, ok := in["enabled"].(bool); ok {
-			obj.Enabled = v
-		}
 
 		if v, ok := in["name"].(string); ok {
 			obj.Name = v
@@ -1051,10 +1040,6 @@ func flattenBlueprintNetworkPolicy(in *infrapb.NetworkPolicy, p []interface{}) [
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.Enabled {
-		obj["enabled"] = in.Enabled
-	}
-
 	if in.Profile != nil {
 		v, ok := obj["profile"].([]interface{})
 		if !ok {
@@ -1176,10 +1161,6 @@ func flattenBlueprintServiceMesh(in *infrapb.ServiceMesh, p []interface{}) []int
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.Enabled {
-		obj["enabled"] = in.Enabled
-	}
-
 	if in.Profile != nil {
 		v, ok := obj["profile"].([]interface{})
 		if !ok {
@@ -1252,10 +1233,6 @@ func flattenBlueprintCostProfile(in *infrapb.CostProfile, p []interface{}) []int
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
-	}
-
-	if in.Enabled {
-		obj["enabled"] = in.Enabled
 	}
 
 	if len(in.Name) > 0 {

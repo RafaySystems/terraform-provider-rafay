@@ -494,7 +494,7 @@ type Addon struct {
 	AttachPolicyARNs []string `yaml:"attachPolicyARNs,omitempty"`
 	// AttachPolicy holds a policy document to attach
 	// +optional
-	AttachPolicy InlineDocument `yaml:"attachPolicy,omitempty"`
+	AttachPolicy *InlineDocument `yaml:"attachPolicy,omitempty"`
 	// ARN of the permissions' boundary to associate
 	// +optional
 	PermissionsBoundary string `yaml:"permissionsBoundary,omitempty"`
@@ -912,7 +912,7 @@ type (
 	NodeGroupIAM struct {
 		// AttachPolicy holds a policy document to attach
 		// +optional
-		AttachPolicy InlineDocument `yaml:"attachPolicy,omitempty"`
+		AttachPolicy *InlineDocument `yaml:"attachPolicy,omitempty"`
 		// list of ARNs of the IAM policies to attach
 		// +optional
 		AttachPolicyARNs []string `yaml:"attachPolicyARNs,omitempty"`
@@ -925,7 +925,7 @@ type (
 		// +optional
 		InstanceRolePermissionsBoundary string `yaml:"instanceRolePermissionsBoundary,omitempty"`
 		// +optional
-		WithAddonPolicies NodeGroupIAMAddonPolicies `yaml:"withAddonPolicies,omitempty"`
+		WithAddonPolicies *NodeGroupIAMAddonPolicies `yaml:"withAddonPolicies,omitempty"`
 	}
 	// NodeGroupIAMAddonPolicies holds all IAM addon policies
 	NodeGroupIAMAddonPolicies struct {

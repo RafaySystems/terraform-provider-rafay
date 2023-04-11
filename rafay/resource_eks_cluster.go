@@ -3252,11 +3252,11 @@ func expandStatement(p []interface{}) InlineStatement {
 }
 
 // expand attach policy (completed)
-func expandAttachPolicy(p []interface{}) InlineDocument {
+func expandAttachPolicy(p []interface{}) *InlineDocument {
 	obj := InlineDocument{}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return &obj
 	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["version"].(string); ok && len(v) > 0 {
@@ -3265,15 +3265,15 @@ func expandAttachPolicy(p []interface{}) InlineDocument {
 	if v, ok := in["statement"].([]interface{}); ok && len(v) > 0 {
 		obj.Statement = expandStatement(v)
 	}
-	return obj
+	return &obj
 }
 
 // expand node group IAm With Addon Policies function (completed/kind of)
-func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolicies {
+func expandNodeGroupIAMWithAddonPolicies(p []interface{}) *NodeGroupIAMAddonPolicies {
 	obj := NodeGroupIAMAddonPolicies{}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return &obj
 	}
 	in := p[0].(map[string]interface{})
 	n1 := spew.Sprintf("%+v", in)
@@ -3319,7 +3319,7 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 	}
 	n2 := spew.Sprintf("%+v", obj)
 	log.Println("expandNodeGroupIAMWithAddonPolicies obj: ", n2)
-	return obj
+	return &obj
 }
 
 // expand node group ssh function (completed/ kind of)
@@ -4566,7 +4566,7 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 }
 
 // @@@Flatten attach policy
-func flattenAttachPolicy(in InlineDocument, p []interface{}) []interface{} {
+func flattenAttachPolicy(in *InlineDocument, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -4819,13 +4819,15 @@ func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, erro
 			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
 		}
 		//@@@TODO Store inline document object as terraform input correctly
-		v1, ok := obj["attach_policy"].([]interface{})
-		if !ok {
-			v1 = []interface{}{}
-		}
-		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
-		if len(in.PermissionsBoundary) > 0 {
-			obj["permissions_boundary"] = in.PermissionsBoundary
+		if in.AttachPolicy != nil {
+			v1, ok := obj["attach_policy"].([]interface{})
+			if !ok {
+				v1 = []interface{}{}
+			}
+			obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
+			if len(in.PermissionsBoundary) > 0 {
+				obj["permissions_boundary"] = in.PermissionsBoundary
+			}
 		}
 		v, ok := obj["well_known_policies"].([]interface{})
 		if !ok {
@@ -5098,11 +5100,13 @@ func flattenNodeGroupIAM(in *NodeGroupIAM, p []interface{}) []interface{} {
 		return []interface{}{obj}
 	}
 	//@@@TODO Store inline document object as terraform input correctly
-	v1, ok := obj["attach_policy"].([]interface{})
-	if !ok {
-		v1 = []interface{}{}
+	if in.AttachPolicy != nil {
+		v1, ok := obj["attach_policy"].([]interface{})
+		if !ok {
+			v1 = []interface{}{}
+		}
+		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
 	}
-	obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
 
 	if len(in.AttachPolicyARNs) > 0 {
 		obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
@@ -5125,12 +5129,15 @@ func flattenNodeGroupIAM(in *NodeGroupIAM, p []interface{}) []interface{} {
 		v = []interface{}{}
 
 	}
-	obj["iam_node_group_with_addon_policies"] = flattenNodeGroupIAMWithAddonPolicies(in.WithAddonPolicies, v)
+
+	if in.WithAddonPolicies != nil {
+		obj["iam_node_group_with_addon_policies"] = flattenNodeGroupIAMWithAddonPolicies(in.WithAddonPolicies, v)
+	}
 
 	return []interface{}{obj}
 }
 
-func flattenNodeGroupIAMWithAddonPolicies(in NodeGroupIAMAddonPolicies, p []interface{}) []interface{} {
+func flattenNodeGroupIAMWithAddonPolicies(in *NodeGroupIAMAddonPolicies, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})

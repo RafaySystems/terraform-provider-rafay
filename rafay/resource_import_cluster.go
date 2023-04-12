@@ -3,6 +3,8 @@ package rafay
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -12,7 +14,10 @@ import (
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
+	"github.com/RafaySystems/rctl/pkg/config"
+	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/project"
+	"github.com/RafaySystems/rctl/pkg/rerror"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -62,14 +67,56 @@ func resourceImportCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"bootstrap_path": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"values_path": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"values_data": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"bootstrap_data": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
+func GetValuesFile(name, project string) (string, error) {
+	auth := config.GetConfig().GetAppAuthProfile()
+	uri := fmt.Sprintf("/v2/scheduler/project/%s/cluster/%s/download/valuesyaml", project, name)
+	resp, err := auth.AuthAndRequest(uri, "GET", nil)
+	if err != nil {
+		return "", rerror.CrudErr{
+			Type: "cluster bootstrap",
+			Name: name,
+			Op:   "get",
+		}
+	}
+
+	f := &models.BootstrapFileDownload{}
+	err = json.Unmarshal([]byte(resp), f)
+	if err != nil {
+		return "", err
+	}
+
+	b, err := base64.StdEncoding.DecodeString(f.Data)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
+}
+
 func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	var bootstrap_path, values_path string
 
-	log.Printf("create import cluster resource")
 	//get project id with project name, p.id used to refer to project id -> need p.ID for calling getCluster and GetBootstrapFile and NewImportCluster
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
@@ -112,15 +159,55 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		}
 	}
 
+	values_file, err := GetValuesFile(d.Get("clustername").(string), project_id)
+	if err != nil {
+		log.Printf("values yaml file was not obtained correctly, error %s", err.Error())
+		return diag.FromErr(err)
+	}
+	log.Println("values_filepath fetched correctly: \n", values_file)
+	//write values file into values file path
+	if (d.Get("values_path").(string)) != "" {
+		log.Printf("Saving values file to: %s", d.Get("values_path").(string))
+		values_path = d.Get("values_path").(string)
+	} else {
+		values_filename := d.Get("clustername").(string) + "-values.yaml"
+		values_path, _ = filepath.Abs(values_filename)
+		log.Printf("Saving values file to: %s", values_path)
+		d.Set("values_path", values_path)
+	}
+	fv, err := os.Create(values_path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer fv.Close()
+
+	_, err2 := fv.WriteString(values_file)
+
+	if err2 != nil {
+		log.Printf("values yaml file was not written correctly, error %s", err2.Error())
+		return diag.FromErr(err2)
+	}
+	d.Set("values_data", values_file)
+
 	//then retrieve bootstrap yaml file, call GetBootstrapFile() -> make sure this function downloads the bootstrap file locally (i think the url request does)
-	bootsrap_file, err := cluster.GetBootstrapFile(d.Get("clustername").(string), project_id)
+	bootstrap_file, err := cluster.GetBootstrapFile(d.Get("clustername").(string), project_id)
 	if err != nil {
 		log.Printf("bootstrap yaml file was not obtained correctly, error %s", err.Error())
 		return diag.FromErr(err)
 	}
-	log.Println("bootstrap_filepath got correctly: \n", bootsrap_file)
+	log.Println("bootstrap_filepath got correctly: \n", bootstrap_file)
 	//write bootstrap file into bootstrap file path
-	f, err := os.Create("bootstrap.yaml")
+	if (d.Get("bootstrap_path").(string)) != "" {
+		log.Printf("Saving bootstrap file to: %s", d.Get("bootstrap_path").(string))
+		bootstrap_path = d.Get("bootstrap_path").(string)
+	} else {
+		bootstrap_path, _ = filepath.Abs("bootstrap.yaml")
+		log.Printf("Saving bootstrap file to: %s", bootstrap_path)
+		d.Set("bootstrap_path", bootstrap_path)
+	}
+	f, err := os.Create(bootstrap_path)
 
 	if err != nil {
 		log.Fatal(err)
@@ -128,19 +215,20 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 
 	defer f.Close()
 
-	_, err2 := f.WriteString(bootsrap_file)
+	_, err2 = f.WriteString(bootstrap_file)
 
 	if err2 != nil {
 		log.Printf("bootstrap yaml file was not written correctly, error %s", err2.Error())
 		return diag.FromErr(err2)
 	}
+	d.Set("bootstrap_data", bootstrap_file)
 	//pass in bootstrap file path into exec command
-	bootstrap_filepath, _ := filepath.Abs("bootstrap.yaml")
+	// bootstrap_filepath, _ := filepath.Abs("bootstrap.yaml")
 	//figure out how to apply bootstrap yaml file to created cluster STILL NEED TO COMPLETE
 	//add kube_config file as optional schema, call os/exec to cal kubectl apply on the filepath to kube config
 	time.Sleep(60 * time.Second)
 	if (d.Get("kubeconfig_path").(string)) != "" {
-		cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kubeconfig_path").(string), "apply", "-f", bootstrap_filepath)
+		cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kubeconfig_path").(string), "apply", "-f", bootstrap_file)
 		var out bytes.Buffer
 
 		//cmd.Stdout = &out

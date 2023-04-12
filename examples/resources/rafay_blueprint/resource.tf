@@ -167,7 +167,6 @@ resource "rafay_blueprint" "blueprint" {
   
     opa_policy {
       opa_policy {
-	      enabled = true
 	      name = "policy_name"
 	      version = "policy_version"
       }

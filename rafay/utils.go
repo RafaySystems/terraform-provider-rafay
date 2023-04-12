@@ -627,6 +627,9 @@ func expandProjectMeta(p []interface{}) []*commonpb.ProjectMeta {
 	var sortByName []string
 	out := make([]*commonpb.ProjectMeta, len(p))
 	for i := range p {
+		if p[i] == nil {
+			continue
+		}
 		in := p[i].(map[string]interface{})
 		obj := commonpb.ProjectMeta{}
 

@@ -1121,8 +1121,6 @@ func flattenBlueprintOpaPolicies(in []*infrapb.Policy, p []interface{}) []interf
 			obj["version"] = in.Version
 		}
 
-		obj["enabled"] = true
-
 		out[i] = obj
 	}
 	return out

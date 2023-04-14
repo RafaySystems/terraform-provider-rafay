@@ -1,6 +1,7 @@
 package rafay
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -15,7 +16,6 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/RafaySystems/rctl/pkg/project"
-	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-cty/cty"
 	jsoniter "github.com/json-iterator/go"
@@ -4720,7 +4720,7 @@ func flattenEKSClusterVPC(in *EKSClusterVPC, p []interface{}) ([]interface{}, er
 	return []interface{}{obj}, nil
 }
 func flattenVPCSubnets(in *ClusterSubnets, p []interface{}) []interface{} {
-	log.Println("got to flatten subnet")
+	log.Println("got to flatten subnet", in)
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -5631,29 +5631,32 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 }
 
 func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	yamlCluster := &EKSCluster{}
 	log.Println("READ eks cluster")
 	var diags diag.Diagnostics
-	//expand cluster yaml file
-	if v, ok := d.Get("cluster").([]interface{}); ok {
-		yamlCluster = expandEKSCluster(v)
-	} else {
-		fmt.Print("Cluster data unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
+	// find cluster name and project name
+	clusterName, ok := d.Get("cluster.0.metadata.0.name").(string)
+	if !ok || clusterName == "" {
+		fmt.Print("Cluster name unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "cluster name is missing"))
 	}
-	resp, err := project.GetProjectByName(yamlCluster.Metadata.Project)
+	projectName, ok := d.Get("cluster.0.metadata.0.project").(string)
+	if !ok || projectName == "" {
+		fmt.Print("Cluster project name unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "project name is missing"))
+	}
+	// derive project id from project name
+	resp, err := project.GetProjectByName(projectName)
 	if err != nil {
 		fmt.Print("project name missing in the resource")
 		return diags
 	}
-	log.Println("expanded cluster spec fine")
 
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
 		fmt.Printf("project does not exist")
 		return diags
 	}
-	c, err := cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+	c, err := cluster.GetCluster(clusterName, project.ID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
@@ -5673,21 +5676,20 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	log.Println("resourceEKSClusterRead clusterSpec ", clusterSpecYaml)
 
-	clusterByte := []byte(clusterSpecYaml)
-	cfgList, _, err := utils.SplitYamlAndGetListByKind(clusterByte)
-	if err != nil {
-		log.Println("read err with split yaml")
-		return diag.FromErr(err)
-	}
-	//flatten cluster
-	log.Println("cfgList: ", cfgList)
-	n1 := spew.Sprintf("%+v", cfgList)
-	log.Println("n1:", n1)
+	decoder := yaml.NewDecoder(bytes.NewReader([]byte(clusterSpecYaml)))
+
 	clusterSpec := EKSCluster{}
-	err = yaml.Unmarshal([]byte(cfgList["Cluster"][0]), &clusterSpec)
-	if err != nil {
+	if err := decoder.Decode(&clusterSpec); err != nil {
+		log.Println("error decoding cluster spec")
 		return diag.FromErr(err)
 	}
+
+	clusterConfigSpec := EKSClusterConfig{}
+	if err := decoder.Decode(&clusterConfigSpec); err != nil {
+		log.Println("error decoding cluster config spec")
+		return diag.FromErr(err)
+	}
+
 	v, ok := d.Get("cluster").([]interface{})
 	if !ok {
 		v = []interface{}{}
@@ -5703,13 +5705,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		log.Printf("err setting cluster %s", err.Error())
 		return diag.FromErr(err)
 	}
-	//flatten cluster config
-	log.Println("trying to unmarshal")
-	clusterConfigSpec := EKSClusterConfig{}
-	err = yaml.Unmarshal([]byte(cfgList["ClusterConfig"][0]), &clusterConfigSpec)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+
 	v2, ok := d.Get("cluster_config").([]interface{})
 	if !ok {
 		v2 = []interface{}{}

@@ -2332,49 +2332,37 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 		fmt.Print("Cluster Config unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster Config is missing"))
 	}
-	//print out struct after building
-	log.Printf("EKS Cluster Metadata yaml %v", yamlCluster)
-	log.Printf("EKS Cluster Config/Spec yaml %v", yamlClusterConfig)
-	//marshal yaml files for []bytes
-	clusterByte, err := yaml.Marshal(yamlCluster)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	log.Printf("EKS Cluster Metadata YAML \n---\n%s\n----\n", clusterByte)
-	n1 := spew.Sprintf("%+v", yamlClusterConfig)
-	log.Println("apply yamlClusterConfig:", n1)
-	configByte, err := yaml.Marshal(yamlClusterConfig)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	//print out []bytes
-	log.Printf("EKS Cluster Spec YAML \n---\n%s\n----\n", configByte)
 
-	return processEKSFilebytes(ctx, d, m, clusterByte, configByte, yamlCluster, yamlClusterConfig)
+	return processEKSFilebytes(ctx, d, m, yamlCluster, yamlClusterConfig)
 }
-func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interface{}, clusterByte, configByte []byte, yamlClusterMetadata *EKSCluster, yamlClusterConfig *EKSClusterConfig) diag.Diagnostics {
+func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interface{}, yamlClusterMetadata *EKSCluster, yamlClusterConfig *EKSClusterConfig) diag.Diagnostics {
 	log.Printf("process_filebytes")
 	var diags diag.Diagnostics
-	rctlCfg := config.GetConfig()
 
-	cfgList := make(map[string][][]byte)
-	cfgList["Cluster"] = append(cfgList["Cluster"], clusterByte)
-	cfgList["ClusterConfig"] = append(cfgList["ClusterConfig"], configByte)
-
-	// get project details
-	resp, err := project.GetProjectByName(yamlClusterMetadata.Metadata.Project)
+	clusterName := yamlClusterMetadata.Metadata.Name
+	projectName := yamlClusterMetadata.Metadata.Project
+	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		log.Println("project does not exist")
-		return diags
-	}
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		log.Println("project does not exist")
-		return diags
+		fmt.Print("error converting project name to id")
+		return diag.Errorf("error converting project name to project ID")
 	}
 
-	log.Println("calling cluster ctl")
-	response, err := eksClusterCTL(rctlCfg, cfgList["Cluster"], cfgList["ClusterConfig"], false)
+	var b bytes.Buffer
+	encoder := yaml.NewEncoder(&b)
+	if err := encoder.Encode(yamlClusterMetadata); err != nil {
+		log.Printf("error encoding cluster: %s", err)
+		return diag.FromErr(err)
+	}
+	if err := encoder.Encode(yamlClusterConfig); err != nil {
+		log.Printf("error encoding cluster config: %s", err)
+		return diag.FromErr(err)
+	}
+
+	logger := glogger.GetLogger()
+	rctlConfig := config.GetConfig()
+
+	log.Printf("calling cluster ctl:\n%s", b.String())
+	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		return diag.FromErr(err)
@@ -2391,7 +2379,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 		return nil
 	}
 	time.Sleep(10 * time.Second)
-	s, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+	s, errGet := cluster.GetCluster(clusterName, projectID)
 	if errGet != nil {
 		log.Printf("error while getCluster %s", errGet.Error())
 		return diag.FromErr(errGet)
@@ -2401,13 +2389,13 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	d.SetId(s.ID)
 	for { //wait for cluster to provision correctly
 		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, projectID)
 		if errGet != nil {
 			log.Printf("error while getCluster %s", errGet.Error())
 			return diag.FromErr(errGet)
 		}
 
-		statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+		statusResp, err := clusterctl.Status(logger, rctlConfig, res.TaskSetID)
 		if err != nil {
 			log.Println("status response parse error", err)
 			return diag.FromErr(err)
@@ -2439,24 +2427,6 @@ func eksClusterCTLStatus(taskid string) (string, error) {
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
 	return clusterctl.Status(logger, rctlCfg, taskid)
-}
-func eksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte, dryRun bool) (string, error) {
-	log.Printf("eksClusterCTL")
-	logger := glogger.GetLogger()
-	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
-	log.Println("errs:", errs)
-	if len(errs) == 0 && len(configMap) > 0 {
-		// Make request
-		log.Println("right bfr for loop->apply")
-		for clusterName, configBytes := range configMap {
-			log.Println("hope its not apply err")
-			x, applyErr := clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false)
-			log.Println("apply string: ", x)
-			log.Println("apply err: ", applyErr)
-			return x, applyErr
-		}
-	}
-	return "", fmt.Errorf("%s", "config collate error")
 }
 
 // expand metadat for eks metadata file  (completed)
@@ -5625,12 +5595,28 @@ func flattenArnFields(inp []*IdentityMappingARN, p []interface{}) []interface{} 
 	return out
 }
 
+func getProjectIDFromName(projectName string) (string, error) {
+	// derive project id from project name
+	resp, err := project.GetProjectByName(projectName)
+	if err != nil {
+		fmt.Print("project name missing in the resource")
+		return "", err
+	}
+
+	project, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		fmt.Printf("project does not exist")
+		return "", err
+	}
+	return project.ID, nil
+}
+
 func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("create EKS cluster resource")
 	return resourceEKSClusterUpsert(ctx, d, m)
 }
 
-func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics { 
 	log.Println("READ eks cluster")
 	var diags diag.Diagnostics
 	// find cluster name and project name
@@ -5644,19 +5630,12 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		fmt.Print("Cluster project name unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "project name is missing"))
 	}
-	// derive project id from project name
-	resp, err := project.GetProjectByName(projectName)
+	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("project name missing in the resource")
-		return diags
+		fmt.Print("error converting project name to id")
+		return diag.Errorf("error converting project name to project ID")
 	}
-
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
-	}
-	c, err := cluster.GetCluster(clusterName, project.ID)
+	c, err := cluster.GetCluster(clusterName, projectID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
@@ -5669,7 +5648,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	log.Println("got cluster from backend")
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
-	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID)
 	if err != nil {
 		log.Printf("error in get clusterspec %s", err.Error())
 		return diag.FromErr(err)
@@ -5726,66 +5705,61 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	yamlCluster := &EKSCluster{}
-	var diags diag.Diagnostics
-	//expand cluster yaml file
-	if v, ok := d.Get("cluster").([]interface{}); ok {
-		yamlCluster = expandEKSCluster(v)
-	} else {
-		fmt.Print("Cluster data unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
+	// find cluster name and project name
+	clusterName, ok := d.Get("cluster.0.metadata.0.name").(string)
+	if !ok || clusterName == "" {
+		fmt.Print("Cluster name unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "cluster name is missing"))
 	}
-	resp, err := project.GetProjectByName(yamlCluster.Metadata.Project)
+	projectName, ok := d.Get("cluster.0.metadata.0.project").(string)
+	if !ok || projectName == "" {
+		fmt.Print("Cluster project name unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "project name is missing"))
+	}
+	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("project name missing in the resource")
-		return diags
+		fmt.Print("error converting project name to id")
+		return diag.Errorf("error converting project name to project ID")
 	}
-
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
-	}
-	_, err = cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+	c, err := cluster.GetCluster(clusterName, projectID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
+	}
+	if c.ID != d.Id() {
+		log.Printf("edge id has changed, state: %s, current: %s", d.Id(), c.ID)
+		return diag.Errorf("remote and state id mismatch")
 	}
 	log.Println("finished update")
 	return resourceEKSClusterUpsert(ctx, d, m)
 }
 
 func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	yamlCluster := &EKSCluster{}
-	var diags diag.Diagnostics
-
-	if v, ok := d.Get("cluster").([]interface{}); ok {
-		yamlCluster = expandEKSCluster(v)
-	} else {
-		fmt.Print("Cluster data unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
+	// find cluster name and project name
+	clusterName, ok := d.Get("cluster.0.metadata.0.name").(string)
+	if !ok || clusterName == "" {
+		fmt.Print("Cluster name unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "cluster name is missing"))
 	}
-
-	resp, err := project.GetProjectByName(yamlCluster.Metadata.Project)
+	projectName, ok := d.Get("cluster.0.metadata.0.project").(string)
+	if !ok || projectName == "" {
+		fmt.Print("Cluster project name unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "project name is missing"))
+	}
+	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("project name missing in the resource")
-		return diags
+		fmt.Print("error converting project name to id")
+		return diag.Errorf("error converting project name to project ID")
 	}
 
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
-	}
-
-	errDel := cluster.DeleteCluster(yamlCluster.Metadata.Name, project.ID, false)
+	errDel := cluster.DeleteCluster(clusterName, projectID, false)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
 	}
 	for {
 		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+		check, errGet := cluster.GetCluster(clusterName, projectID)
 		if errGet != nil {
 			log.Printf("error while getCluster %s, delete success", errGet.Error())
 			break
@@ -5796,7 +5770,7 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 	}
 	log.Println("finished delete")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 // Sort EKS Nodepool

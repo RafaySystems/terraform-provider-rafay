@@ -360,13 +360,26 @@ func expandAKSClusterV3Config(p []interface{}) *infrapb.ClusterSpec_Aks {
 	}
 
 	if v, ok := in["metadata"].([]interface{}); ok && len(v) > 0 {
-		obj.Aks.Metadata = expandMetaData(v)
+		obj.Aks.Metadata = expandAKSClusterV3ConfigMetaData(v)
 	}
 
 	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
 		obj.Aks.Spec = expandAKSClusterV3ConfigSpec(v)
 	}
 
+	return obj
+}
+
+func expandAKSClusterV3ConfigMetaData(p []interface{}) *infrapb.AksV3ConfigMetadata {
+	obj := &infrapb.AksV3ConfigMetadata{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
 	return obj
 }
 
@@ -427,8 +440,8 @@ func expandAKSConfigManagedClusterV3(p []interface{}) *infrapb.Managedcluster {
 		obj.Sku = expandAKSManagedClusterV3SKU(v)
 	}
 
-	if v, ok := in["tags"].(map[string]string); ok {
-		obj.Tags = v
+	if v, ok := in["tags"].(map[string]interface{}); ok {
+		obj.Tags = toMapString(v)
 	}
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
@@ -1893,7 +1906,7 @@ func flattenAKSClusterV3Config(in *infrapb.AksV3ConfigObject, p []interface{}) [
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["metadata"] = flattenMetadataV3(in.Metadata, v)
+		obj["metadata"] = flattenAKSV3ClusterConfigMetadata(in.Metadata, v)
 	}
 
 	if in.Spec != nil {
@@ -1904,6 +1917,21 @@ func flattenAKSClusterV3Config(in *infrapb.AksV3ConfigObject, p []interface{}) [
 		obj["spec"] = flattenAKSV3ClusterConfigSpec(in.Spec, v)
 	}
 
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ClusterConfigMetadata(in *infrapb.AksV3ConfigMetadata, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
 	return []interface{}{obj}
 }
 
@@ -1996,7 +2024,7 @@ func flattenAKSV3ManagedCluster(in *infrapb.Managedcluster, p []interface{}) []i
 	}
 
 	if in.Tags != nil && len(in.Tags) > 0 {
-		obj["tags"] = in.Tags
+		obj["tags"] = toMapInterface(in.Tags)
 	}
 
 	if len(in.Type) > 0 {

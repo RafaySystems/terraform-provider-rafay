@@ -1,7 +1,6 @@
 package rafay
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -1303,22 +1302,4 @@ func GetMetaData(in *schema.ResourceData) *commonpb.Metadata {
 	}
 
 	return nil
-}
-
-func fetchHubErrorCodeString(str string) string {
-	var errCode string
-
-	index1 := strings.Index(str, "{")
-	index2 := strings.Index(str, "}")
-
-	if index1 != -1 && index2 != -1 {
-		hbErr := &HubError{}
-
-		err := json.Unmarshal([]byte(str[index1:index2+1]), hbErr)
-		if err != nil {
-			return ""
-		}
-		errCode = hbErr.External
-	}
-	return errCode
 }

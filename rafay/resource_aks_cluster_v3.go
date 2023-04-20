@@ -225,6 +225,7 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 
 	edgeName := cluster.Metadata.Name
 	projectName := cluster.Metadata.Project
+	d.SetId(cluster.Metadata.Name)
 
 LOOP:
 	for {
@@ -239,6 +240,7 @@ LOOP:
 			})
 			if err2 != nil {
 				log.Printf("Fetching cluster having edgename: %s and projectname: %s failing due to err: %v", edgeName, projectName, err2)
+				return diag.FromErr(err2)
 			} else if uCluster == nil {
 				log.Printf("Cluster operation has not started with edgename: %s and projectname: %s", edgeName, projectName)
 			} else if uCluster.Status != nil && uCluster.Status.CommonStatus != nil {
@@ -251,13 +253,11 @@ LOOP:
 					break LOOP
 				case commonpb.ConditionStatus_StatusFailed:
 					log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
-					break LOOP
+					return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
 				}
 			}
 		}
 	}
-
-	d.SetId(cluster.Metadata.Name)
 	return diags
 }
 

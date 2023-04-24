@@ -2646,7 +2646,6 @@ func expandFargateProfilesSelectors(p []interface{}) []FargateProfileSelector {
 }
 
 func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not completed have questions in comments
-	obj := &ManagedNodeGroup{}
 	out := make([]*ManagedNodeGroup, len(p))
 	outToSort := make([]ManagedNodeGroup, len(p))
 	if len(p) == 0 || p[0] == nil {
@@ -2654,6 +2653,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 	}
 	log.Println("got to managed node group")
 	for i := range p {
+		obj := &ManagedNodeGroup{}
 		in := p[i].(map[string]interface{})
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v

@@ -1115,6 +1115,11 @@ func flattenNamespaceMeshPolicyParams(in *infrapb.NamespaceMeshPolicyParams, p [
 		obj = p[0].(map[string]interface{})
 	}
 
+	if obj["mesh_enabled"] == nil {
+		if !in.MeshEnabled && len(in.Policies) <= 0 {
+			return nil, nil
+		}
+	}
 	obj["mesh_enabled"] = in.MeshEnabled
 	if len(in.Policies) > 0 {
 		v, ok := obj["policies"].([]interface{})

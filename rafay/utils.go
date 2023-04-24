@@ -1202,7 +1202,7 @@ func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
 	obj := make(map[string]interface{})
 	if in.Memory != "" {
 		var m resource.QuantityValue
-		//m.Set(in.GetMemory())
+		m.Set(in.GetMemory())
 		for i := 0; i < 10; i++ {
 			m.Add(m.Quantity)
 			//in.GetMemory().Add(*in.GetMemory())
@@ -1228,7 +1228,7 @@ func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
 
 	if in.Cpu != "" {
 		var cp resource.QuantityValue
-		//cp.Set(in.GetCpu())
+		cp.Set(in.GetCpu())
 		cp1 := cp
 		for i := 0; i < 999; i++ {
 			cp.Add(cp1.Quantity)

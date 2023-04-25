@@ -3,7 +3,7 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.19
 
 require (
-	github.com/RafaySystems/rafay-common v1.25.0-rc1.0.20230421054957-dd825ffb42ca
+	github.com/RafaySystems/rafay-common v1.25.0-rc1.0.20230425115459-50162add5a25
 	github.com/RafaySystems/rctl v1.22.0-3
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -28,20 +28,15 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
 	github.com/RafaySystems/eaas-playground v0.0.0-20230201061150-55a42eb6a430 // indirect
 	github.com/getkin/kin-openapi v0.76.0 // indirect
-	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gomatic/clock v1.0.0 // indirect
 	github.com/hashicorp/hc-install v0.4.0 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/terraform-plugin-log v0.7.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.0.0-20220623143253-7d51757b572c // indirect
 	github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734 // indirect
-	github.com/processout/grpc-go-pool v1.2.2-0.20200228131710-c0fcf3af0014 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/vmihailenco/msgpack/v4 v4.3.12 // indirect
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.28.0 // indirect
-	go.opentelemetry.io/otel v1.3.0 // indirect
-	go.opentelemetry.io/otel/trace v1.3.0 // indirect
 )
 
 require (
@@ -57,7 +52,6 @@ require (
 	github.com/aws/aws-sdk-go v1.44.68 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -108,8 +102,6 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
-	github.com/mattn/go-runewidth v0.0.12 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/mitchellh/cli v1.1.4 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
@@ -187,7 +179,7 @@ replace (
 	//github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
 	//github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	//github.com/RafaySystems/rctl => ../rctl
-	github.com/RafaySystems/rafay-common => ../rafay-common
+	//github.com/RafaySystems/rafay-common => ../rafay-common
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
 
 	k8s.io/api => k8s.io/api v0.23.1

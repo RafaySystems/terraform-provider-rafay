@@ -3,8 +3,9 @@ resource "rafay_import_cluster" "import_cluster" {
   projectname       = "terraform"
   blueprint         = "default"
   kubeconfig_path   = "<file-path/kubeconfig.yaml>"
-  values_path = "<optional_path/values.yaml>"
-  bootstrap_path = "<optional_path/bootstrap.yaml>"
+  location          = "losangeles-us"
+  values_path       = "<optional_path/values.yaml>"
+  bootstrap_path    = "<optional_path/bootstrap.yaml>"
 }
 
 output "values_data" {

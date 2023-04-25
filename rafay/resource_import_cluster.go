@@ -228,7 +228,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	//add kube_config file as optional schema, call os/exec to cal kubectl apply on the filepath to kube config
 	time.Sleep(60 * time.Second)
 	if (d.Get("kubeconfig_path").(string)) != "" {
-		cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kubeconfig_path").(string), "apply", "-f", bootstrap_file)
+		cmd := exec.Command("kubectl", "--kubeconfig", d.Get("kubeconfig_path").(string), "apply", "-f", bootstrap_path)
 		var out bytes.Buffer
 
 		//cmd.Stdout = &out

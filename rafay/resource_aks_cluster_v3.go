@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -243,7 +244,8 @@ LOOP:
 				return diag.FromErr(err2)
 			} else if uCluster == nil {
 				log.Printf("Cluster operation has not started with edgename: %s and projectname: %s", edgeName, projectName)
-			} else if uCluster.Status != nil && uCluster.Status.CommonStatus != nil {
+			} else if uCluster.Status != nil && uCluster.Status.Aks != nil && uCluster.Status.CommonStatus != nil {
+				aksStatus := uCluster.Status.Aks
 				uClusterCommonStatus := uCluster.Status.CommonStatus
 				switch uClusterCommonStatus.ConditionStatus {
 				case commonpb.ConditionStatus_StatusSubmitted:
@@ -252,13 +254,52 @@ LOOP:
 					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", edgeName, projectName)
 					break LOOP
 				case commonpb.ConditionStatus_StatusFailed:
-					log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
-					return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
+					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
+					failureReasons, err := collectAKSUpsertErrors(aksStatus.Nodepools, uCluster.Status.LastProvisionFailureReason, uCluster.Status.ProvisionStatus)
+					if err != nil {
+						return diag.FromErr(err)
+					}
+					return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s with failure reasons: %s", edgeName, projectName, failureReasons)
 				}
 			}
 		}
 	}
 	return diags
+}
+
+func collectAKSUpsertErrors(nodepools []*infrapb.NodepoolStatus, lastProvisionFailureReason string, provisionStatus string) (string, error) {
+	// Defining local struct just to collect errors in json-prettify format to display the same to end user for better visualization.
+	type AksNodepoolsErrorFormatter struct {
+		Name          string `json:"name"`
+		FailureReason string `json:"failureReason"`
+	}
+
+	type AksUpsertErrorFormatter struct {
+		FailureReason string                       `json:"failureReason"`
+		Nodepools     []AksNodepoolsErrorFormatter `json:"nodepools"`
+	}
+
+	// adding errors in AksUpsertErrorFormatter
+	collectedErrors := AksUpsertErrorFormatter{}
+	if len(lastProvisionFailureReason) > 0 || provisionStatus == "cluster operation failed" {
+		collectedErrors.FailureReason = lastProvisionFailureReason
+	}
+	collectedErrors.Nodepools = []AksNodepoolsErrorFormatter{}
+	for _, ng := range nodepools {
+		if len(ng.LastProvisionFailureReason) > 0 || ng.ProvisionStatus == "nodegroup operation failed" {
+			collectedErrors.Nodepools = append(collectedErrors.Nodepools, AksNodepoolsErrorFormatter{
+				Name:          ng.Name,
+				FailureReason: ng.LastProvisionFailureReason,
+			})
+		}
+	}
+	// Using MarshalIndent to indent the errors in json formatted bytes
+	collectedErrsFormattedBytes, err := json.MarshalIndent(collectedErrors, "", "    ")
+	if err != nil {
+		return "", err
+	}
+	fmt.Println("After MarshalIndent: ", "collectedErrsFormattedBytes", string(collectedErrsFormattedBytes))
+	return string(collectedErrsFormattedBytes), nil
 }
 
 func expandClusterV3(in *schema.ResourceData) (*infrapb.Cluster, error) {

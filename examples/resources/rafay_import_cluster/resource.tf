@@ -6,6 +6,10 @@ resource "rafay_import_cluster" "import_cluster" {
   location          = "losangeles-us"
   values_path       = "<optional_path/values.yaml>"
   bootstrap_path    = "<optional_path/bootstrap.yaml>"
+  labels            = {
+    "key1" = "value1"
+    "key2" = "value2"
+  }
 }
 
 output "values_data" {

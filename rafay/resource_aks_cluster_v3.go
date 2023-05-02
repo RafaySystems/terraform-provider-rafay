@@ -255,7 +255,7 @@ LOOP:
 					break LOOP
 				case commonpb.ConditionStatus_StatusFailed:
 					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
-					failureReasons, err := collectAKSUpsertErrors(aksStatus.Nodepools, uCluster.Status.LastProvisionFailureReason, uCluster.Status.ProvisionStatus)
+					failureReasons, err := collectAKSUpsertErrors(aksStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
 					if err != nil {
 						return diag.FromErr(err)
 					}
@@ -281,15 +281,15 @@ func collectAKSUpsertErrors(nodepools []*infrapb.NodepoolStatus, lastProvisionFa
 
 	// adding errors in AksUpsertErrorFormatter
 	collectedErrors := AksUpsertErrorFormatter{}
-	if len(lastProvisionFailureReason) > 0 || provisionStatus == "cluster operation failed" {
+	if strings.Contains(provisionStatus, "FAILED") {
 		collectedErrors.FailureReason = lastProvisionFailureReason
 	}
 	collectedErrors.Nodepools = []AksNodepoolsErrorFormatter{}
 	for _, ng := range nodepools {
-		if len(ng.LastProvisionFailureReason) > 0 || ng.ProvisionStatus == "nodegroup operation failed" {
+		if strings.Contains(ng.ProvisionStatus, "FAILED") {
 			collectedErrors.Nodepools = append(collectedErrors.Nodepools, AksNodepoolsErrorFormatter{
 				Name:          ng.Name,
-				FailureReason: ng.LastProvisionFailureReason,
+				FailureReason: ng.ProvisionStatusReason,
 			})
 		}
 	}
@@ -299,7 +299,7 @@ func collectAKSUpsertErrors(nodepools []*infrapb.NodepoolStatus, lastProvisionFa
 		return "", err
 	}
 	fmt.Println("After MarshalIndent: ", "collectedErrsFormattedBytes", string(collectedErrsFormattedBytes))
-	return string(collectedErrsFormattedBytes), nil
+	return "\n" + string(collectedErrsFormattedBytes), nil
 }
 
 func expandClusterV3(in *schema.ResourceData) (*infrapb.Cluster, error) {

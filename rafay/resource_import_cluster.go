@@ -3,6 +3,7 @@ package rafay
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -12,7 +13,9 @@ import (
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
+	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/project"
+	"github.com/RafaySystems/rctl/pkg/rerror"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -62,8 +65,61 @@ func resourceImportCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"labels": {
+				Type: schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
+}
+
+func getClusterlabels(name, projectId string) (map[string]string, error) {
+	uri := fmt.Sprintf("/v2/scheduler/project/%s/cluster/%s", projectId, name)
+	auth := config.GetConfig().GetAppAuthProfile()
+	respString, err := auth.AuthAndRequest(uri, "GET", nil)
+	if err != nil {
+		return nil, rerror.CrudErr{
+			Type: "cluster labels",
+			Name: name,
+			Op:   "get",
+		}
+	}
+
+	var resp struct {
+		Metadata struct {
+			Labels map[string]string `json:"labels,omitempty"`
+		} `json:"metadata,omitempty"`
+	}
+
+	if err := json.Unmarshal([]byte(respString), &resp); err != nil {
+		log.Printf("Error unmarshaling response from get v2 cluster: %s", err)
+		return nil, err
+	}
+
+	labels := map[string]string{}
+	for k, v := range resp.Metadata.Labels {
+		if !strings.HasPrefix(k, "rafay.dev/") {
+			labels[k] = v
+		}
+	}
+	return labels, nil
+}
+
+func updateClusterLabels(name, edgeId, projectId string, labels map[string]string) error {
+	uri := fmt.Sprintf("/edge/v1/projects/%s/edges/%s/labels/", projectId, edgeId)
+	auth := config.GetConfig().GetAppAuthProfile()
+	_, err := auth.AuthAndRequest(uri, "PUT", labels)
+	if err != nil {
+		return rerror.CrudErr{
+			Type: "cluster labels",
+			Name: name,
+			Op:   "update",
+		}
+	}
+	return nil
 }
 
 func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -108,6 +164,17 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		err = cluster.UpdateCluster(cluster_resp)
 		if err != nil {
 			log.Printf("setting cluster blueprint version failed, error %s", err.Error())
+			return diag.FromErr(err)
+		}
+	}
+
+	if labelsX, ok := d.Get("labels").(map[string]interface{}); ok && len(labelsX) > 0 {
+		labels := map[string]string{}
+		for k, v := range labelsX {
+			labels[k] = v.(string)
+		}
+		if err := updateClusterLabels(cluster_resp.Name, cluster_resp.ID, cluster_resp.ProjectID, labels); err != nil {
+			log.Printf("error setting labels on the cluster: %s", err.Error())
 			return diag.FromErr(err)
 		}
 	}
@@ -185,6 +252,16 @@ func resourceImportClusterRead(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
+	labels, err := getClusterlabels(c.Name, c.ProjectID)
+	if err != nil {
+		log.Printf("error getting cluster v2 labels: %s", err.Error())
+		return diag.FromErr(err)
+	}
+	if err := d.Set("labels", labels); err != nil {
+		log.Printf("set labels error %s", err.Error())
+		return diag.FromErr(err)
+	}
+
 	return diags
 }
 
@@ -231,6 +308,18 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	err = cluster.PublishClusterBlueprint(d.Get("clustername").(string), project_id)
 	if err != nil {
 		log.Printf("cluster was not updated, error %s", err.Error())
+		return diag.FromErr(err)
+	}
+
+	// update labels
+	labels := map[string]string{}
+	if labelsX, ok := d.Get("labels").(map[string]interface{}); ok && len(labelsX) > 0 {
+		for k, v := range labelsX {
+			labels[k] = v.(string)
+		}
+	}
+	if err := updateClusterLabels(cluster_resp.Name, cluster_resp.ID, cluster_resp.ProjectID, labels); err != nil {
+		log.Printf("error setting labels on the cluster: %s", err.Error())
 		return diag.FromErr(err)
 	}
 

@@ -8,23 +8,24 @@ description: |-
 
 # Rafay Provider
 
-Organizations that have invested in building complex Terraform based "Infrastructure as Code" for cluster provisioning can seamlessly integrate and use the controller for workload related operations. 
+Organizations that have invested in building complex Terraform based "Infrastructure as Code" for cluster provisioning can seamlessly integrate and use the controller for workload related operations.
 
-There are examples in the [GitHub repo](https://github.com/RafaySystems/terraform-provider-rafay). 
+There are examples in the [GitHub repo](https://github.com/RafaySystems/terraform-provider-rafay).
 
+There are Getting Started exercises on the [documentation website](https://docs.rafay.co/learn/overview/). An example is the [Create Blueprints](https://docs.rafay.co/learn/quickstart/blueprint/blueprintlifecycle/create/) that includes steps for creating a blueprint using the Web Console, RCTL CLI, or Terraform.
 
 ---
 
-## Terraform Resource List 
+## Terraform Resource List
 
-### Released 
+### Released
 
 | Resource                                  | Version Released |
 | ----------------------------------------- | ---------------- |
-| `catalog`                           		| 1.1.2            |
+| `catalog`                                 | 1.1.2            |
 | `secret_group`                            | 1.1.2            |
 | `secret_provider`                         | 1.1.2            |
-| `mesh_profile`                         	| 1.1.2            |
+| `mesh_profile`                            | 1.1.2            |
 | `cluster_mesh_rule`                       | 1.1.2            |
 | `cluster_mesh_policy`                     | 1.1.2            |
 | `namespace_mesh_rule`                     | 1.1.2            |
@@ -36,8 +37,8 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 | `cluster_network_policy`                  | 1.1.0            |  
 | `cluster_network_policy_rule`             | 1.1.0            |  
 | `network_policy_profile`                  | 1.1.0            |  
-| `namespace_network_policy_rule`           | 1.1.0            | 
-| `namespace_network_policy`                | 1.1.0            | 
+| `namespace_network_policy_rule`           | 1.1.0            |
+| `namespace_network_policy`                | 1.1.0            |
 | `opa_constraint`                          | 1.1.0            |  
 | `opa_constraint_template`                 | 1.1.0            |  
 | `secret_sealer`                           | 1.1.0            |  
@@ -63,11 +64,10 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 | `project`                                 | 0.9.11           |
 | `repositories`                            | 0.9.11           |
 | | |
- 
-### In Development 
+
+### In Development
 
 - `infra_provisioner`
-
 
 ---
 
@@ -97,7 +97,6 @@ explained below:
 - Environment variables
 - Credentials/configuration file
 
-
 ### Environment Variables
 
 You can provide your credentials via the `RCTL_REST_ENDPOINT`, `RCTL_API_KEY`,
@@ -120,7 +119,7 @@ $ terraform plan
 
 ### Credentials/configuration file
 
-You can use an [Rafay credentials or configuration file](https://docs.rafay.co/cli/config/#config-file) to specify your credentials. You can specify a location of the configuration file in the Terraform configuration by providing the `provider_config_file`  
+You can use an [Rafay credentials or configuration file](https://docs.rafay.co/cli/config/#config-file) to specify your credentials. You can specify a location of the configuration file in the Terraform configuration by providing the `provider_config_file`.
 
 Usage:
 

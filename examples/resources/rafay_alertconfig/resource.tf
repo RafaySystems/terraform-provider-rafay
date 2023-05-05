@@ -4,12 +4,12 @@ resource "rafay_alertconfig" "basic_rafay_alertconfig" {
     project = "defaultproject"
   }
   spec {
-    alerts = {
-      "cluster" = true,
-      "pod" = true,
-      "pvc" = false,
-      "node" = true,
-      "agent" = true,
+    alerts {
+      cluster = true
+      pod = true
+      pvc = true
+      node = false
+      agent_health = false
     }
     emails = [
       "nilay@rafay.co",

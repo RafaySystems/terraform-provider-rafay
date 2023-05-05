@@ -189,12 +189,21 @@ func expandAlertConfigSpec(p []interface{}) (*settingspb.AlertConfigSpec, error)
 	obj.Emails = list_email
 
 	alerts_map := map[string]bool{}
-	alerts_interfaces := in["alerts"].(map[string]interface{})
+	alerts_interface := in["alerts"].([]interface{})
+	alerts_interfaces := alerts_interface[0].(map[string]interface{})
 	for key, value := range alerts_interfaces {
 		alerts_map[key] = value.(bool)
 	}
-	obj.Alerts = alerts_map
 
+	alerts := &settingspb.AlertsConfig{
+		Pod:         alerts_map["pod"],
+		Pvc:         alerts_map["pvc"],
+		Cluster:     alerts_map["cluster"],
+		Node:        alerts_map["node"],
+		AgentHealth: alerts_map["agent_health"],
+	}
+
+	obj.Alerts = alerts
 	return obj, nil
 }
 
@@ -246,7 +255,7 @@ func flattenAlertConfigSpec(in *settingspb.AlertConfigSpec, p []interface{}) ([]
 		obj["emails"] = in.Emails
 	}
 
-	if len(in.Alerts) > 0 {
+	if in.Alerts != nil {
 		obj["alerts"] = in.Alerts
 	}
 

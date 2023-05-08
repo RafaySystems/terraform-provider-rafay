@@ -18,12 +18,12 @@ resource "rafay_organizationalertconfig" "basic_rafay_organizationalertconfig" {
     name = "test-organizationalertconfig-terraform-1"
   }
   spec {
-    alerts = {
-      "cluster"     = true,
-      "pod"         = true,
-      "pvc"         = false,
-      "node"        = true,
-      "agentHealth" = false,
+    alerts {
+      cluster      = false
+      pod          = true
+      pvc          = true
+      node         = true
+      agent_health = true
     }
     emails = [
       "email1@rafay.co",
@@ -67,8 +67,20 @@ resource "rafay_organizationalertconfig" "basic_rafay_organizationalertconfig" {
 
 ### Required:
 
-- `alerts` (Map of Boolean) List of the alerts to be subscribed
+- `alerts` (Block List, Max: 1) List of the alerts to be subscribed (see [below for nested schema](#nestedblock--spec--alerts))
 - `emails` (List of String) List of the emails to be subscribed
+
+<a id="nestedblock--spec--alerts"></a>
+### Nested Schema for `spec.alerts`
+
+Optional:
+
+- `agent_health` (Boolean)
+- `cluster` (Boolean)
+- `node` (Boolean)
+- `pod` (Boolean)
+- `pvc` (Boolean)
+
 
 
 <a id="nestedblock--timeouts"></a>

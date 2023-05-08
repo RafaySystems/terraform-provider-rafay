@@ -19,12 +19,12 @@ resource "rafay_alertconfig" "basic_rafay_alertconfig" {
     project = "defaultproject"
   }
   spec {
-    alerts = {
-      "cluster"     = true,
-      "pod"         = true,
-      "pvc"         = true,
-      "node"        = true,
-      "agentHealth" = false,
+    alerts {
+      cluster      = false
+      pod          = true
+      pvc          = true
+      node         = false
+      agent_health = false
     }
     emails = [
       "test1@rafay.co",
@@ -68,8 +68,20 @@ resource "rafay_alertconfig" "basic_rafay_alertconfig" {
 
 ### Required:
 
-- `alerts` (Map of Boolean) List of the alerts to be subscribed
+- `alerts` (Block List, Max: 1) List of the alerts to be subscribed (see [below for nested schema](#nestedblock--spec--alerts))
 - `emails` (List of String) List of the emails to be subscribed
+
+<a id="nestedblock--spec--alerts"></a>
+### Nested Schema for `spec.alerts`
+
+Required:
+
+- `agent_health` (Boolean)
+- `cluster` (Boolean)
+- `node` (Boolean)
+- `pod` (Boolean)
+- `pvc` (Boolean)
+
 
 
 <a id="nestedblock--timeouts"></a>

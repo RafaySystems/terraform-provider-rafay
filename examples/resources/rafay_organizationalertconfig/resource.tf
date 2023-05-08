@@ -3,12 +3,12 @@ resource "rafay_organizationalertconfig" "basic_rafay_organizationalertconfig" {
     name = "test-organizationalertconfig-terraform-1"
   }
   spec {
-    alerts = {
-      "cluster" = true,
-      "pod" = true,
-      "pvc" = false,
-      "node" = false,
-      "agentHealth" = false,
+    alerts {
+      cluster = false
+      pod = true
+      pvc = true
+      node = true
+      agent_health = true
     }
     emails = [
       "nilay+org1@rafay.co",

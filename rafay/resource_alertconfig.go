@@ -255,9 +255,5 @@ func flattenAlertConfigSpec(in *settingspb.AlertConfigSpec, p []interface{}) ([]
 		obj["emails"] = in.Emails
 	}
 
-	if in.Alerts != nil {
-		obj["alerts"] = in.Alerts
-	}
-
 	return []interface{}{obj}, nil
 }

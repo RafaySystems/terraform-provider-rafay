@@ -247,9 +247,5 @@ func flattenOrganizationAlertConfigSpec(in *systempb.AlertConfigSpec, p []interf
 		obj["emails"] = in.Emails
 	}
 
-	if in.Alerts != nil {
-		obj["alerts"] = in.Alerts
-	}
-
 	return []interface{}{obj}, nil
 }

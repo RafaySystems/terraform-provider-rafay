@@ -30,34 +30,35 @@ resource "rafay_chargeback_share" "tfdemochargebackshare" {
 
 ***Required***
 
-- `metadata` (Block List, Max: 1) Metadata of the chargeback group report resource (see [below for nested schema](#nestedblock--metadata))
-- `spec` (Block List, Max: 1) Specification of the chargeback group report resource (see [below for nested schema](#nestedblock--spec))
+- `metadata` (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata))
+- `spec` (Block List, Max: 1) Specification of the chargeback group report resource. (See [below for nested schema](#nestedblock--spec))
 
 ***Optional***
 
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `timeouts` (Block, Optional) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
 
 <a id="nestedblock--metadata"></a>
 ### Nested Schema for `metadata`
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) The name of the resource.
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
 
 ***Required***
 
-- `share_enabled` (Boolean) Enable/disable the Share unallocated cost (see [below for nested schema](#nestedblock--spec--time))
-- `share_type` (String) Share type. Valid values are `allocation` and `tenancy`.
+- `share_enabled` (Boolean) Enable/disable the Share unallocated cost. (See [below for nested schema](#nestedblock--spec--time))
+- `share_type` (String) The share type. The supported values are `allocation` and `tenancy`.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 ***Optional***
-- `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes. 
-- `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes. 
+
+- `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes.
+- `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes.
 
 ## Attribute Reference
 

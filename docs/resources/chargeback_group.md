@@ -93,17 +93,17 @@ resource "rafay_chargeback_group" "tfdemodetailedcbgroup1" {
 - `aggregate` (Block List) Filter to aggregate resources to track for summary report. (See [below for nested schema](#nestedblock--spec--aggregate-filter))
 
 <a id="nestedblock--spec--filter"></a>
-### Nested Schema for `spec.filter`
+### Nested Schema for `spec.includsion` and `spec.exclusions`
 
 ***Optional***
 
 - `project` (String) The name of project to include/exclude.
 - `cluster` (String) The name of cluster to include/exclude.
 - `namespace` (String) The name of namespace to include/exclude.
-- `label` - (List of String) Labels applied to resource.
+- `label` - (List of String) The labels to include/exclude.
 
-<a id="nestedblock--aggregate-filter"></a>
-### Nested Schema for `spec.filter`
+<a id="nestedblock--spec--aggregate-filter"></a>
+### Nested Schema for `spec.aggregate`
 
 ***Optional***
 

@@ -49,7 +49,7 @@ resource "rafay_chargeback_share" "tfdemochargebackshare" {
 
 ***Required***
 
-- `share_enabled` (Boolean) Enable/disable the Share unallocated cost. (See [below for nested schema](#nestedblock--spec--time))
+- `share_enabled` (Boolean) Enable/disable the Share unallocated cost.
 - `share_type` (String) The share type. The supported values are `allocation` and `tenancy`.
 
 <a id="nestedblock--timeouts"></a>

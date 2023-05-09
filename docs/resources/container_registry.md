@@ -75,7 +75,13 @@ resource "rafay_container_registry" "tfdemocr" {
 ***Required***
 
 - `name` - (String) The name of the resource. This must be unique to the organization.
-- `project` - (String) The Rafay project(s) the resource belongs to.
+- `project` - (String) The project(s) the resource belongs to.
+
+***Optional***
+
+- `annotations` - (Map of String) Annotations for the resource.
+- `description` - (String) A description for the resource.
+- `labels` - (Map of String) Labels for the resource.
 
 ---
 
@@ -88,13 +94,31 @@ resource "rafay_container_registry" "tfdemocr" {
 - `endpoint` - (String) The fully qualified domain name (FQDN) for the endpoint. This could include the port number.
 - `provider` - (String) The name of the provider for the resource. The supported values are: `custom` and `JFrog`.
 
+***Optional***
+
+- `secret` - (Block List, Max 1) The container registry secrets. (See [below for nested schema](#nestedblock--spec--secret))
+
 <a id="nestedblock--spec--credentials"></a>
-### Nested Schema for `spec.credentials
+### Nested Schema for `spec.credentials`
 
-***Required***
+***Optional***
 
-- `name` - (String) The username to access the resource.
+- `access_key_id` - (String) Get your AWS access and secret keys from the AWS management console.
+- `access_secret_key` - (String) The AWS secret key. Get your AWS access and secret keys from the AWS management console.
+- `json_key_data` - (String) The credential file. This is the relative path to the JSON file that contains the credentials.
 - `password` - (String) The password to access the resource.
+- `region` - (String) The region for the container registry, if required.
+- `service_principal_id` - (String) The Azure service principal ID.
+- `service_principal_password` - (String) The Azure service principal password.
+- `username` - (String) The username to access the resource.
+
+<a id="nestedblock--spec--secret"></a>
+### Nested Schema for `spec.secret`
+
+***Optional***
+
+- `name` - (String) The relative path of the artifact.
+- `sensitive` - (Boolean) If set to true, the contents of the file are encoded using base64.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

@@ -8,31 +8,80 @@ description: |-
 
 # rafay_cloud_credentials_v3 (Resource)
 
-Cloud credentials version 3
+Cloud credentials version 3.
 
 ## Example Usage
 
-Credentials Example
+The following example uses AWS access and secret keys.
 
 ```terraform
-resource "rafay_cloud_credentials_v3" "tftestcredentials" {
-  metadata {
-    name    = "tf-credentials-v3"
-    project = "terraform"
-  }
-  spec {
-    type = "ClusterProvisioning"
-    provider = "aws"
-    credentials {
-        type = "AccessKey"
-        access_id = "dummy-id"
-        secret_key = "dummy-key"
-        session_token = "fake-token"
-    } 
-    sharing {
-      enabled = false
-    }
-  }
+resource "rafay_cloud_credential" "tfcredential1" {
+  name         = "tfcredential1"
+  projectname  = "terraform"
+  description  = "description"
+  type         = "cluster-provisioning"
+  providertype = "AWS"
+  awscredtype  = "accesskey"
+  accesskey    = "aws-accesskey"
+  secretkey    = "aws-secretkey"
+}
+```
+
+The following example uses the Amazon Resource Name (ARN) and External ID.
+
+```terraform
+resource "rafay_cloud_credential" "tfcredential2" {
+  name         = "tfcredential2"
+  projectname  = "terraform"
+  description  = "description"
+  type         = "cluster-provisioning"
+  providertype = "AWS"
+  awscredtype  = "rolearn"
+  rolearn      = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/<role-name>"
+  externalid   = "aws-externalid"
+}
+```
+
+The following example uses a credential JSON file.
+
+```terraform
+resource "rafay_cloud_credential" "tfcredential3" {
+  name         = "tfcredential3"
+  projectname  = "terraform"
+  description  = "descriptions"
+  type         = "cluster-provisioning"
+  providertype = "GCP"
+  credfile     = "/Users/user1/gcpcredentials.json"
+}
+```
+
+The following example is for Azure credentials.
+
+```terraform
+resource "rafay_cloud_credential" "tfcredential4" {
+  name           = "tfcredential4"
+  projectname    = "terraform"
+  description    = "description"
+  type           = "cluster-provisioning"
+  providertype   = "AZURE"
+  clientid       = "azure-client-id"
+  clientsecret   = "azure-clientsecret"
+  subscriptionid = "azure-subscriptionid"
+  tenantid       = "azure-tenantid"
+}
+```
+
+The following example is for data backup.
+
+```terraform
+resource "rafay_cloud_credential" "tfcredential5" {
+  name         = "tfcredential5"
+  projectname  = "terraform"
+  type         = "data-backup"
+  providertype = "AWS"
+  awscredtype  = "accesskey"
+  accesskey    = "aws-accesskey"
+  secretkey    = "aws-secretkey"
 }
 ```
 
@@ -40,47 +89,55 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 ## Argument Reference
 
 ---
+***Required for all***
 
-***Required***
+- `name` - (String) The name of the cloud credential, provided by the user.
+- `projectname` - (String) The name of the project.
+- `providertype` - (String) The cloud provider type. The supported values are: `AWS`, `AZURE`, `GCP`, and `MINIO`.
+- `type` - (String) The cloud credential type. The supported values are: `cluster-provisioning` or `data-backup`. (See [below for value descriptions](#nestedblock--type))
 
-- `metadata` - (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata))
-- `spec` - (Block List, Max: 1) Defines the characteristics for the resource. (See [below for nested schema](#nestedblock--spec))
+***Required for AWS***
+
+- `awscredtype` - (String) The AWS cloud provider credential type. The supported values are: `rolearn` and `accesskey`. (See [below for value descriptions](#nestedblock--awscredtype))
+
+***Required for AWS accesskey***
+
+- `accesskey` - (String) The AWS access key. Get your AWS access and secret keys from the AWS management console. (See the [AWS documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) for more information)
+- `secretkey` (String) The AWS secret key. Get your AWS access and secret keys from the AWS management console. (See the [AWS documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) for more information)
+
+***Required for AWS rolearn***
+
+- `externalid` (String) The external ID.
+- `rolearn` (String) The AWS role Amazon Resource Name (ARN).
+
+***Required for GCP***
+
+- `credfile` (String) The credential file. This is the relative path to the JSON file that contains the credentials.
+
+***Required for Azure***
+
+- `clientid` (String) The Azure client ID.
+- `clientsecret` (String) The Azure client secret.
+- `subscriptionid` (String) The Azure subscription ID.
+- `tenantid` (String) The Azure tenant ID.
 
 ***Optional***
 
-- `timeouts` - (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
+- `description` (String) The description of the cloud credentials, provided by the user.
+- `id` (String) The ID of this resource.
+- `timeouts` - (Block, Optional) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
 
----
+<a id="nestedblock--awscredtype"></a>
+### Value descriptions for `awscredtype`
 
-<a id="nestedblock--metadata"></a>
-### Nested Schema for `metadata`
+- `accesskey` - Using this credential type requires including the AWS access and secret keys.
+- `rolearn` - Using this credential type requires including the Amazon Resource Name (ARN) and External ID.
 
-***Required***
+<a id="nestedblock--type"></a>
+### Value descriptions for `type`
 
-- `name` - (String) The name of the resource. This must be unique to the organization.
-- `project` - (String) The name of the project.
-
----
-
-<a id="nestedblock--spec"></a>
-### Nested Schema for `spec`
-
-***Required***
-
-- `credentials` - (Block List) Contains data for the credentials. (See [below for nested schema](#nestedblock--spec--credentials))
-- `provider` - (String) - The cloud provider. The supported value is: `aws`.
-- `sharing` - (Boolean) - Enables sharing the cloud credentials.
-- `type` - (String) The type of credentials. The supported value is: `ClusterProvisioning`.
-
-<a id="nestedblock--spec--credentials"></a>
-### Nested Schema for `spec.credentials`
-
-***Required***
-
-- `access_id` - (String) The access id for the credentials.
-- `secret_key` - (String) The secret key for the credentials.
-- `session_token` - (String) The session token for the credentials.
-- `type` - (String) The type of credential.
+- `cluster-provisioning` - Use this type when provisioning a cluster.
+- `data-backup` - Use this type when backing up data.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
@@ -90,9 +147,3 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 - `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes.
 - `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes.
 - `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes.
-
-## Attribute Reference
-
----
-
-- `id` - (String) The ID of the resource, generated by the system after you create the resource.

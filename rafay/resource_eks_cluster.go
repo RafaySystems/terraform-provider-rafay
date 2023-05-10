@@ -49,7 +49,7 @@ func resourceEKSCluster() *schema.Resource {
 		},
 
 		Importer: &schema.ResourceImporter{
-			State: resourceEKSClusterImport,
+			StateContext: resourceEKSClusterImport,
 		},
 
 		SchemaVersion: 1,
@@ -2322,14 +2322,14 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	if v, ok := d.Get("cluster").([]interface{}); ok {
 		yamlCluster = expandEKSCluster(v)
 	} else {
-		fmt.Print("Cluster data unable to be found")
+		log.Print("Cluster data unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
 	}
 	//expand cluster config yaml file
 	if v, ok := d.Get("cluster_config").([]interface{}); ok {
 		yamlClusterConfig = expandEKSClusterConfig(v, rawConfig.GetAttr("cluster_config"))
 	} else {
-		fmt.Print("Cluster Config unable to be found")
+		log.Print("Cluster Config unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster Config is missing"))
 	}
 
@@ -2343,7 +2343,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	projectName := yamlClusterMetadata.Metadata.Project
 	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("error converting project name to id")
+		log.Print("error converting project name to id")
 		return diag.Errorf("error converting project name to project ID")
 	}
 
@@ -5599,13 +5599,13 @@ func getProjectIDFromName(projectName string) (string, error) {
 	// derive project id from project name
 	resp, err := project.GetProjectByName(projectName)
 	if err != nil {
-		fmt.Print("project name missing in the resource")
+		log.Print("project name missing in the resource")
 		return "", err
 	}
 
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
-		fmt.Printf("project does not exist")
+		log.Printf("project does not exist")
 		return "", err
 	}
 	return project.ID, nil
@@ -5622,17 +5622,17 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	// find cluster name and project name
 	clusterName, ok := d.Get("cluster.0.metadata.0.name").(string)
 	if !ok || clusterName == "" {
-		fmt.Print("Cluster name unable to be found")
+		log.Print("Cluster name unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "cluster name is missing"))
 	}
 	projectName, ok := d.Get("cluster.0.metadata.0.project").(string)
 	if !ok || projectName == "" {
-		fmt.Print("Cluster project name unable to be found")
+		log.Print("Cluster project name unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "project name is missing"))
 	}
 	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("error converting project name to id")
+		log.Print("error converting project name to id")
 		return diag.Errorf("error converting project name to project ID")
 	}
 	c, err := cluster.GetCluster(clusterName, projectID)
@@ -5708,17 +5708,17 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 	// find cluster name and project name
 	clusterName, ok := d.Get("cluster.0.metadata.0.name").(string)
 	if !ok || clusterName == "" {
-		fmt.Print("Cluster name unable to be found")
+		log.Print("Cluster name unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "cluster name is missing"))
 	}
 	projectName, ok := d.Get("cluster.0.metadata.0.project").(string)
 	if !ok || projectName == "" {
-		fmt.Print("Cluster project name unable to be found")
+		log.Print("Cluster project name unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "project name is missing"))
 	}
 	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("error converting project name to id")
+		log.Print("error converting project name to id")
 		return diag.Errorf("error converting project name to project ID")
 	}
 	c, err := cluster.GetCluster(clusterName, projectID)
@@ -5738,17 +5738,17 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 	// find cluster name and project name
 	clusterName, ok := d.Get("cluster.0.metadata.0.name").(string)
 	if !ok || clusterName == "" {
-		fmt.Print("Cluster name unable to be found")
+		log.Print("Cluster name unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "cluster name is missing"))
 	}
 	projectName, ok := d.Get("cluster.0.metadata.0.project").(string)
 	if !ok || projectName == "" {
-		fmt.Print("Cluster project name unable to be found")
+		log.Print("Cluster project name unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "project name is missing"))
 	}
 	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("error converting project name to id")
+		log.Print("error converting project name to id")
 		return diag.Errorf("error converting project name to project ID")
 	}
 
@@ -5800,60 +5800,42 @@ func (np ByManagedNodeGroupName) Less(i, j int) bool {
 	}
 }
 
-func resourceEKSClusterImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceEKSClusterImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	idParts := strings.SplitN(d.Id(), "/", 2)
-	log.Println("resourceEKSClusterImport idParts:", idParts)
-	d_debug := spew.Sprintf("%+v", d)
-	log.Println("resourceEKSClusterImport d.Id:", d.Id())
-	log.Println("resourceEKSClusterImport d_debug", d_debug)
-
-	var yamlCluster *EKSCluster
-	if v, ok := d.Get("cluster").([]interface{}); ok {
-		yamlCluster = expandEKSCluster(v)
-	} else {
-		fmt.Print("Cluster data unable to be found")
-		return nil, fmt.Errorf("%s", "Cluster data is missing")
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		log.Printf("Invalid ID passed: %s", d.Id())
+		return nil, fmt.Errorf("invalid ID passed: %s", d.Id())
 	}
 
-	var metaD EKSClusterMetadata
-	metaD.Name = idParts[0]
-	metaD.Project = idParts[1]
-	yamlCluster.Metadata = &metaD
-
-	// get project details
-	resp, err := project.GetProjectByName(yamlCluster.Metadata.Project)
+	clusterName := idParts[0]
+	projectName := idParts[1]
+	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		log.Println("project does not exist")
-		return nil, fmt.Errorf("%s", "project does not exist")
+		log.Printf("error converting project name to id: %s", projectName)
+		return nil, fmt.Errorf("error converting project name to project ID")
 	}
 
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		log.Println("project does not exist")
-		return nil, fmt.Errorf("%s", "project does not exist")
-	}
-	log.Println("resourceEKSClusterImport yamlCluster:", yamlCluster)
-	v, ok := d.Get("cluster").([]interface{})
-	if !ok {
-		v = []interface{}{}
-	}
-	cl, err := flattenEKSCluster(yamlCluster, v)
-	if err != nil {
-		log.Printf("flatten eks cluster error %s", err.Error())
-		return nil, err
-	}
-
-	log.Println("resourceEKSClusterImport cl:", cl)
-	err = d.Set("cluster", cl)
-	if err != nil {
-		log.Printf("err setting cluster %s", err.Error())
-		return nil, err
-	}
-
-	s, errGet := cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+	s, errGet := cluster.GetCluster(clusterName, projectID)
 	if errGet != nil {
 		log.Printf("error while getCluster %s", errGet.Error())
 		return nil, errGet
+	}
+	log.Printf("resource eks cluster import id %s", s.ID)
+
+	clusters := []interface{}{
+		map[string][]interface{}{
+			"metadata": {
+				map[string]interface{}{
+					"name": clusterName,
+					"project": projectName,
+				},
+			},
+		},
+	}
+
+	if err := d.Set("cluster", clusters); err != nil {
+		log.Printf("error setting cluster in state to %+v", clusters)
+		return nil, err
 	}
 
 	log.Printf("resource eks cluster import id %s", s.ID)

@@ -40,10 +40,13 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 ## Argument Reference
 
 ---
-***Optional***
+***Required***
 
 - `metadata` - (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata))
 - `spec` - (Block List, Max: 1) Defines the characteristics for the resource. (See [below for nested schema](#nestedblock--spec))
+
+***Optional***
+
 - `timeouts` - (Block, Optional) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
 
 ***Read-Only***
@@ -55,61 +58,78 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 <a id="nestedblock--metadata"></a>
 ### Nested Schema for `metadata`
 
+***Required***
+
+- `name` - (String) The name of the resource.
+- `project` - (String) The name of the project.
+
 ***Optional***
 
 - `annotations` - (Map of String) The annotations of the resource.
 - `description` - (String) The description of the resource.
 - `labels` - (Map of String) The labels of the resource.
-- `name` - (String) The name of the resource.
-- `project` - (String) The name of the project.
+
 
 ---
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
 
-***Optional***
+***Required***
 
 - `credentials` - (Block List, Max: 1) Contains data for the credentials. (See [below for nested schema](#nestedblock--spec--credentials))
-- `provider` - (String) - The cloud provider. The supported value is: `aws`, `azure`, `gcp`, and `minio`.
-- `secret` - (Block List, Max: 1) The cloud credential secret. (See [below for nested schema](#nestedblock--spec--secret))
-- `sharing` - (Boolean) - Enables sharing the cloud credentials. (See [below for nested schema](#nestedblock--spec--sharing))
+- `provider` - (String) - The cloud provider. The supported value is: `aws`, `azure`, `gcp`, and `vsphere`.
 - `type` - (String) The type of credentials. The supported values is: `ClusterProvisioning` and `DataBackup`.
+
+***Optional***
+
+- `sharing` - (Boolean) - Enables sharing the cloud credentials. (See [below for nested schema](#nestedblock--spec--sharing))
+
 
 <a id="nestedblock--spec--credentials"></a>
 ### Nested Schema for `spec.credentials`
 
-***Optional***
+***Required***
 
-- `access_id` - (String) The access id for the credentials.
-- `account_id` - (String) The account ID.
+***Required for AWS*** 
+- `type` - (String) The type of AWS credentials access. The supported value is: `AccessKey`, `Role`
+
+***Required for AWS accesskey***
+- `access_id` - (String) The AWS access id for the credentials.
+- `secret_key` - (String) The AWS secret key for the credentials.
+
+***Optional for AWS accesskey***
+
+- `session_token` - (String) The AWS session token for the credentials.
+
+***Required for AWS rolearn***
+
+- `account_id` - (String) The AWS account ID.
 - `arn` - (String) The AWS role Amazon Resource Name (ARN).
+- `external_id` - (String) The external ID for RoleARN based credentials.
+
+***Required for Azure***
+
 - `client_id` - (String) The Azure client ID.
 - `client_secret` - (String) The Azure client secret.
-- `external_id` - (String) The external ID.
-- `file` - (String) The relative path to the credential file (JSON).
-- `gateway_id` - (String) The gateway ID.
-- `password` - (String) The password to access the resource.
-- `secret_key` - (String) The secret key for the credentials.
-- `session_token` - (String) The session token for the credentials.
 - `subscription_id` - (String) The Azure subscription ID.
 - `tenant_id` - (String) The Azure tenant ID.
-- `type` - (String) The type of AWS credentials access.
-- `username` - (String) The username to access the resource.
+
+***Required for GCP***
+
+- `file` - (String) The relative path to the GCP credential file (JSON).
+
+***Required for VmWare***
+
+- `gateway_id` - (String) The gateway ID.
+- `password` - (String) The vsphere password.
+- `username` - (String) The vsphere username to access the resource.
 - `vsphere_server` - (String) The VMware vSphere server.
-
-<a id="nestedblock--spec--secret"></a>
-### Nested Schema for `spec.secret`
-
-***Optional***
-
-- `name` - (String) The relative path of the artifact.
-- `sensitive` - (Boolean) If set to true, the contents of the file are encoded using base64.
 
 <a id="nestedblock--spec--sharing"></a>
 ### Nested Schema for `spec.sharing`
 
-***Optional***
+***Required***
 
 - `enabled` - (Boolean) Enables sharing the resource.
 - `projects` - (Block List) The list of projects this resource is shared to. (See [below for nested schema](#nestedblock--spec--sharing--projects))
@@ -117,7 +137,7 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 <a id="nestedblock--spec--sharing--projects"></a>
 ### Nested Schema for `spec.sharing.projects`
 
-***Optional***
+***Required***
 
 - `name` - (String) The name of the project.
 

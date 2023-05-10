@@ -7,7 +7,8 @@ description: |-
 ---
 
 # rafay_chargeback_group_report (Resource)
-Chargeback group report is cost report generated in CSV format.
+
+A chargeback group report is a cost report generated in CSV format.
 
 ## Example Usage
 
@@ -35,29 +36,29 @@ resource "rafay_chargeback_group_report" "tfdemochargebackgroupreport1" {
 
 ***Required***
 
-- `metadata` (Block List, Max: 1) Metadata of the chargeback group report resource (see [below for nested schema](#nestedblock--metadata))
-- `spec` (Block List, Max: 1) Specification of the chargeback group report resource (see [below for nested schema](#nestedblock--spec))
+- `metadata` (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata))
+- `spec` (Block List, Max: 1) Defines the characteristics for the resource. (See [below for nested schema](#nestedblock--spec))
 
 ***Optional***
 
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `timeouts` (Block, Optional) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
 
 <a id="nestedblock--metadata"></a>
 ### Nested Schema for `metadata`
 
 ***Required***
 
-- `name` (String) name of the chargeback group report 
+- `name` (String) The name of the of the chargeback group report.
 
-**Note**: Chargeback group report name must be same as chargeback group
+**Note**: The chargeback group report name must be same as chargeback group.
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
 
 ***Required***
 
-- `start_date` (Block List) Start date (see [below for nested schema](#nestedblock--spec--time))
-- `end_date` (Block List) End date (see [below for nested schema](#nestedblock--spec--time))
+- `start_date` (Block List) Start date. (See [below for nested schema](#nestedblock--spec--time))
+- `end_date` (Block List) End date. (See [below for nested schema](#nestedblock--spec--time))
 
 
 <a id="nestedblock--spec--time"></a>
@@ -65,16 +66,17 @@ resource "rafay_chargeback_group_report" "tfdemochargebackgroupreport1" {
 
 ***Optional***
 
-- `nanos` (String) Epoch time stamp in nano seconds
-- `seconds` (String) Epoch time stamp in seconds
+- `nanos` (String) Epoch time stamp in nano seconds.
+- `seconds` (String) Epoch time stamp in seconds.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 ***Optional***
+
 - `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes. 
 
-**Note**: Only create is supported for chargeback group report.
+**Note**: Only create is supported for the chargeback group report.
 
 ## Attribute Reference
 

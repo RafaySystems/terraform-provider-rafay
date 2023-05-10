@@ -7,6 +7,7 @@ description: |-
 ---
 
 # rafay_chargeback_group (Resource)
+
 A chargeback group is a collection of resources forming a logical entity in a customer's organization.
 
 ## Example Usage
@@ -64,63 +65,61 @@ resource "rafay_chargeback_group" "tfdemodetailedcbgroup1" {
 
 ***Required***
 
-- `metadata` (Block List, Max: 1) Metadata of the chargeback group resource (see [below for nested schema](#nestedblock--metadata))
-- `spec` (Block List, Max: 1) Specification of the chargeback group resource (see [below for nested schema](#nestedblock--spec))
+- `metadata` (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata))
+- `spec` (Block List, Max: 1) Specification of the chargeback group resource. (See [below for nested schema](#nestedblock--spec))
 
 ***Optional***
 
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `timeouts` (Block, Optional) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
 
 <a id="nestedblock--metadata"></a>
 ### Nested Schema for `metadata`
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) The name of the resource.
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
 
 ***Required***
 
-- `type` (String) Chargeback Group Type. Valid values are `summary` and `detailed`
+- `type` (String) The type of chargeback group. The supported values are: `summary` and `detailed`.
 
 ***Optional***
 
-- `inclusions` (Block List) Filter to include resources to track (see [below for nested schema](#nestedblock--spec--filter))
-- `exclusions` (Block List) Filter to exclude resources to track (see [below for nested schema](#nestedblock--spec--filter))
-- `aggregate` (Block List) Filter to aggregate resources to track for summary report (see [below for nested schema](#nestedblock--spec--aggregate-filter))
-
+- `inclusions` (Block List) Filter to include resources to track. (See [below for nested schema](#nestedblock--spec--filter))
+- `exclusions` (Block List) Filter to exclude resources to track. (See [below for nested schema](#nestedblock--spec--filter))
+- `aggregate` (Block List) Filter to aggregate resources to track for summary report. (See [below for nested schema](#nestedblock--spec--aggregate-filter))
 
 <a id="nestedblock--spec--filter"></a>
-### Nested Schema for `spec.filter`
+### Nested Schema for `spec.includsion` and `spec.exclusions`
 
 ***Optional***
 
-- `project` (String) Name of project to include/exclude
-- `cluster` (String) Name of cluster to include/exclude
-- `namespace` (String) Name of namespace to include/exclude
-- `label` - (List of String) Label applied to resource.
+- `project` (String) The name of project to include/exclude.
+- `cluster` (String) The name of cluster to include/exclude.
+- `namespace` (String) The name of namespace to include/exclude.
+- `label` - (List of String) The labels to include/exclude.
 
-<a id="nestedblock--aggregate-filter"></a>
-### Nested Schema for `spec.filter`
+<a id="nestedblock--spec--aggregate-filter"></a>
+### Nested Schema for `spec.aggregate`
 
 ***Optional***
 
-- `project` (Boolean) Aggregate based on project
-- `cluster` (Boolean) Aggregate based on cluster
-- `namespace` (Boolean) Aggregate based on namespace
-- `label` - (List of String) Aggregate based on label
-
+- `project` (Boolean) Enable aggregating based on project.
+- `cluster` (Boolean) Enable aggregating based on cluster.
+- `namespace` (Boolean) Enable aggregating based on namespace.
+- `label` - (List of String) Aggregate based on labels.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 ***Optional***
-- `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes. 
-- `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes. 
-- `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes. 
 
+- `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes.
+- `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes.
+- `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes.
 
 ## Attribute Reference
 

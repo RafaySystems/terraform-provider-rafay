@@ -149,3 +149,4 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 - `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes.
 - `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes.
 - `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes.
+

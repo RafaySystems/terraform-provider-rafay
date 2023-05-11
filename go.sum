@@ -33,7 +33,7 @@ github.com/RafaySystems/eaas-playground v0.0.0-20230201061150-55a42eb6a430 h1:YX
 github.com/RafaySystems/eaas-playground v0.0.0-20230201061150-55a42eb6a430/go.mod h1:vcTy8D3FzcX8YG6s16Vm+XJBZt5bbNi423VbmKY24PE=
 github.com/RafaySystems/edge-common v1.6.0-beta.1.0.20230120063743-38542a140aee h1:ESKjaDNdjF5zPQaVbu0IiCN2s0pObWLnp4WNA6BVAvs=
 github.com/RafaySystems/edge-common v1.6.0-beta.1.0.20230120063743-38542a140aee/go.mod h1:5Hp5L00Ring5eMHVfP+jjIoZvSeorC9tBfJx6tLIkxc=
-github.com/RafaySystems/rafay-common v1.24.0 h1:V3RhFAYMsIL0lrkYiXzYSx7pULvplPg2ie0A+eVUAhU=
+github.com/RafaySystems/rafay-common v1.24.0 h1:PB2ZpYcW9hSLRu2PjySf2Xjjpm/H3oga+MTKpTConUQ=
 github.com/RafaySystems/rafay-common v1.24.0/go.mod h1:mZ7nxKLPyKqU/5pZ2DikiO7mX7ID7gpvDjdk0UJbNiQ=
 github.com/RafaySystems/rctl v1.22.0-3 h1:OwK00WhdpK1u6C5xAxmLUYtSrXQZv3eKgFGWjQxwnaw=
 github.com/RafaySystems/rctl v1.22.0-3/go.mod h1:xaQXPY04g3WXBXyUEDdvDtP0lvXNq9THW+0Lr62q1Tk=

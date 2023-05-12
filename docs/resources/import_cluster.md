@@ -43,8 +43,8 @@ resource "rafay_import_cluster" "terraform-importcluster" {
 - `description` - (String) The description for the cluster. 
 - `kubeconfig_path` - (String) The path to the kubeconfig file. 
 - `location` - (String) The geo-location for the cluster. Example: losangeles-us. 
+- `labels` - (Map of String) Cluster Labels
 - `timeouts` - (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
-- `labels` (Map of String) Cluster Labels
 
 
 <a id="nestedblock--timeouts"></a>

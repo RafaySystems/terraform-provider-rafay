@@ -22,6 +22,10 @@ resource "rafay_import_cluster" "terraform-importcluster" {
   kubeconfig_path   = "<file-path/kubeconfig.yaml>"
   values_path       = "<optional_path/values.yaml>"
   bootstrap_path    = "<optional_path/bootstrap.yaml>"
+  labels            = {
+    "key1" = "value1"
+    "key2" = "value2"
+  }
 }
 
 output "values_data" {
@@ -57,6 +61,7 @@ output "bootstrap_path" {
 - `kubeconfig_path` - (String) The path to the kubeconfig file.
 - `values_path` - (String) The path to save the `values.yaml` file to. This is an optional parameter. If path is provided values.yaml will be downloaded to that path. Otherwise values.yaml will be downloaded to current directory and this output variable will be populated with path to the downloaded file.
 - `bootstrap_path` - (String) The path to save the `bootstrap.yaml` file to. This is an optional parameter. If path is provided bootstrap.yaml will be downloaded to that path. Otherwise bootstrap.yaml will be downloaded to current directory and this output variable will be populated with path to the downloaded file.
+- `labels` - (Map of String) Cluster Labels
 - `timeouts` - (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
 
 <a id="nestedblock--timeouts"></a>

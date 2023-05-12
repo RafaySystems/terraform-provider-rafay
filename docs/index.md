@@ -21,6 +21,11 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 
 | Resource                                  | Version Released |
 | ----------------------------------------- | ---------------- |
+| `rafay_container_registry`                | 1.1.7            |
+| `rafay_chargeback_group`                  | 1.1.7            |
+| `rafay_chargeback_group_report`           | 1.1.7            |
+| `rafay_chargeback_share`                  | 1.1.7            |
+| `rafay_cloud_credentials_v3`              | 1.1.7            |
 | `catalog`                           		| 1.1.2            |
 | `secret_group`                            | 1.1.2            |
 | `secret_provider`                         | 1.1.2            |

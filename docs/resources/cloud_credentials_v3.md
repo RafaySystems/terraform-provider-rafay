@@ -121,7 +121,7 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 
 ***Required for VmWare***
 
-- `gateway_id` - (String) The gateway ID.
+- `gateway_id` - (String) The gateway name.
 - `password` - (String) The vsphere password.
 - `username` - (String) The vsphere username to access the resource.
 - `vsphere_server` - (String) The VMware vSphere server.

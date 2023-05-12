@@ -21,15 +21,16 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 
 | Resource                                  | Version Released |
 | ----------------------------------------- | ---------------- |
-| `rafay_container_registry`                | 1.1.7            |
-| `rafay_chargeback_group`                  | 1.1.7            |
-| `rafay_chargeback_group_report`           | 1.1.7            |
-| `rafay_chargeback_share`                  | 1.1.7            |
-| `rafay_cloud_credentials_v3`              | 1.1.7            |
-| `catalog`                           		| 1.1.2            |
+| `rafay_container_registry`                | 1.1.9            |
+| `rafay_chargeback_group`                  | 1.1.9            |
+| `rafay_chargeback_group_report`           | 1.1.9            |
+| `rafay_chargeback_share`                  | 1.1.9            |
+| `rafay_cloud_credentials_v3`              | 1.1.9            |
+| `rafay_cluster_sharing`                   | 1.1.4            |
+| `catalog`                           	    | 1.1.2            |
 | `secret_group`                            | 1.1.2            |
 | `secret_provider`                         | 1.1.2            |
-| `mesh_profile`                         	| 1.1.2            |
+| `mesh_profile`                            | 1.1.2            |
 | `cluster_mesh_rule`                       | 1.1.2            |
 | `cluster_mesh_policy`                     | 1.1.2            |
 | `namespace_mesh_rule`                     | 1.1.2            |

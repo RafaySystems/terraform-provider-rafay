@@ -113,7 +113,7 @@ Usage:
 ```sh
 $ export RCTL_API_KEY="rafayaccesskey"
 $ export RCTL_API_SECRET="rafaysecretkey"
-$ export RCTL_REST_ENDPOINT="console.rafay.dev
+$ export RCTL_REST_ENDPOINT="console.rafay.dev"
 $ export RCTL_PROJECT="defaultproject"
 $ terraform plan
 ```

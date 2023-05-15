@@ -3,6 +3,7 @@ package rafay
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -26,14 +27,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-type blueprintSpec struct {
-	Blueprint        string `yaml:"blueprint"`
-	Blueprintversion string `yaml:"blueprintversion"`
-}
-
-type blueprintType struct {
-	Spec *blueprintSpec `yaml:"spec"`
-}
+// go:embed resource_eks_cluster_description.md
+var resourceEKSClusterDescription string
 
 func resourceEKSCluster() *schema.Resource {
 	return &schema.Resource{
@@ -57,20 +52,25 @@ func resourceEKSCluster() *schema.Resource {
 			"cluster": {
 				Type:        schema.TypeList,
 				Required:    true,
-				Description: "cluster yaml file",
+				Description: "Rafay specific cluster configuration",
 				Elem: &schema.Resource{
 					Schema: clusterMetadataField(),
 				},
+				MinItems: 1,
+				MaxItems: 1,
 			},
 			"cluster_config": {
 				Type:        schema.TypeList,
 				Required:    true,
-				Description: "cluster config yaml file",
+				Description: "EKS specific cluster configuration",
 				Elem: &schema.Resource{
 					Schema: configField(),
 				},
+				MinItems: 1,
+				MaxItems: 1,
 			},
 		},
+		Description: resourceEKSClusterDescription,
 	}
 }
 
@@ -81,23 +81,27 @@ func clusterMetadataField() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Default:     "Cluster",
-			Description: "kind",
+			Description: "The type of resource. Supported value is `Cluster`.",
 		},
 		"metadata": {
 			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "defines the configuration for KMS encryption provider",
+			Required:    true,
+			Description: "Contains data that helps uniquely identify the resource.",
 			Elem: &schema.Resource{
 				Schema: clusterMetaMetadataFields(),
 			},
+			MinItems: 1,
+			MaxItems: 1,
 		},
 		"spec": {
 			Type:        schema.TypeList,
 			Required:    true,
-			Description: "contains cluster networking options",
+			Description: "The specification associated with the cluster, including cluster networking options.",
 			Elem: &schema.Resource{
 				Schema: specField(),
 			},
+			MinItems: 1,
+			MaxItems: 1,
 		},
 	}
 	return s
@@ -107,17 +111,17 @@ func clusterMetaMetadataFields() map[string]*schema.Schema {
 		"name": {
 			Type:        schema.TypeString,
 			Required:    true,
-			Description: "EKS Cluster name",
+			Description: "The name of the EKS cluster in Rafay console. This must be unique in your organization.",
 		},
 		"project": {
 			Type:        schema.TypeString,
 			Required:    true,
-			Description: "Project for the cluster",
+			Description: "The name of the Rafay project the cluster will be created in.",
 		},
 		"labels": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Description: "Cluster Labels",
+			Description: "The labels for the cluster in Rafay console.",
 		},
 	}
 	return s
@@ -127,36 +131,36 @@ func specField() map[string]*schema.Schema {
 		"type": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Default:     "eks",
-			Description: "Cluster Type",
+			Default:     "aws-eks",
+			Description: "The cluster type. Supported value is `eks`.",
 		},
 		"blueprint": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Default:     "myblueprint",
-			Description: "Blueprint associated with the cluster",
+			Default:     "default",
+			Description: "The blueprint associated with the cluster. A blueprint defines the configuration and policy. Use blueprints to help standardize cluster configurations.",
 		},
 		"blueprint_version": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "Blueprint version associated with the cluster",
+			Description: "The blueprint version associated with the cluster.",
 		},
 		"cloud_provider": {
 			Type:        schema.TypeString,
-			Optional:    true,
-			Default:     "myprovider",
-			Description: "Cloud credentials provider used to create and manage the cluster",
+			Required:    true,
+			Description: "The cloud credentials provider used to create and manage the cluster.",
 		},
 		"cni_provider": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Default:     "Calico-v3.19.1",
-			Description: "Cni provider used to specify different cni options for the cluster",
+			Default:     "aws-cni",
+			Description: "The container network interface (CNI) provider used to specify different network connectivity options for the cluster.",
 		},
 		"cni_params": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "contains custom cni networking configurations",
+			MaxItems:    1,
+			Description: "The container network interface (CNI) parameters.",
 			Elem: &schema.Resource{
 				Schema: customCniField(),
 			},
@@ -164,44 +168,52 @@ func specField() map[string]*schema.Schema {
 		"proxy_config": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Description: "Configure Proxy if your infrastructure uses an Outbound Proxy",
+			Description: "The proxy configuration for the cluster. Use this if the infrastructure uses an outbound proxy.",
 		},
 		"system_components_placement": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "Configure tolerations and nodeSelector for system components",
+			MaxItems:    1,
+			Description: "Configure tolerations and nodeSelector for Rafay system components.",
 			Elem: &schema.Resource{
 				Schema: systemComponentsPlacementFields(),
 			},
 		},
-		"sharing": &schema.Schema{
-			Description: "blueprint sharing configuration",
-			Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-				"enabled": &schema.Schema{
-					Description: "flag to specify if sharing is enabled for resource",
-					Optional:    true,
-					Type:        schema.TypeBool,
-				},
-				"projects": &schema.Schema{
-					Description: "list of projects this resource is shared to",
-					Elem: &schema.Resource{Schema: map[string]*schema.Schema{"name": &schema.Schema{
-						Description: "name of the project",
-						Optional:    true,
-						Type:        schema.TypeString,
-					}}},
-					MaxItems: 0,
-					MinItems: 0,
-					Optional: true,
-					Type:     schema.TypeList,
-				},
-			}},
+		"sharing": {
+			Description: "The sharing configuration for the resource. A cluster can be shared with one or more projects. Note: If the resource is not shared, set enabled = false.",
+			Elem: &schema.Resource{
+				Schema: sharingFields(),
+			},
 			MaxItems: 1,
-			MinItems: 1,
 			Optional: true,
 			Type:     schema.TypeList,
 		},
 	}
 	return s
+}
+
+func sharingFields() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"enabled": {
+			Description: "Enable sharing for this resource.",
+			Optional:    true,
+			Type:        schema.TypeBool,
+		},
+		"projects": {
+			Description: "The list of projects this resource is shared with. Note: Required when project sharing is enabled.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Description: "The name of the project to share the resource.",
+						Required:    true,
+						Type:        schema.TypeString,
+					},
+				},
+			},
+			Optional: true,
+			Type:     schema.TypeList,
+		},
+	}
 }
 
 func systemComponentsPlacementFields() map[string]*schema.Schema {
@@ -297,12 +309,12 @@ func customCniField() map[string]*schema.Schema {
 		"custom_cni_cidr": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "Valid variants are: 'IPv4' defines an IP family of v4 to be used when creating a new VPC and cluster., 'IPv6' defines an IP family of v6 to be used when creating a new VPC and cluster..",
+			Description: "Secondary IPv4 CIDR block for the VPC. This should be specified if you choose to auto-create VPC and subnets while creating the EKS cluster.",
 		},
 		"custom_cni_crd_spec": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "contains custom cni networking configurations",
+			Description: "The custom container network interface custom resource definition specification. One or more of these blocks should be specified if you choose to use your existing VPC and subnets while creating the EKS cluster.",
 			Elem: &schema.Resource{
 				Schema: customCniSpecField(),
 			},
@@ -315,13 +327,14 @@ func customCniSpecField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"name": {
 			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "name of custom cni",
+			Required:    true,
+			Description: "The name of the Availability Zone (AZ). The availability zone specified here should be a part of the region specified for the EKS cluster.",
 		},
 		"cni_spec": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "contains custom cni networking configurations",
+			MaxItems:    1,
+			Description: "The custom CNI configuration for this AZ.",
 			Elem: &schema.Resource{
 				Schema: cniSpecField(),
 			},
@@ -335,12 +348,12 @@ func cniSpecField() map[string]*schema.Schema {
 		"subnet": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "",
+			Description: "The subnet associated with secondary ENIs for AWS EC2 nodes.",
 		},
 		"security_groups": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "security groups of custom CNI",
+			Description: "The security groups associated with secondary ENIs for AWS EC2 nodes.",
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
@@ -2042,31 +2055,6 @@ func updateConfigManagedNodeGroupsFields() map[string]*schema.Schema {
 	}
 	return s
 }
-func launchTemepelateField() map[string]*schema.Schema { //@@very different from doc double check
-	s := map[string]*schema.Schema{
-		"id": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Launch template ID",
-		},
-		"version": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Launch template version Defaults to the default launch template version TODO support $Default, $Latest",
-		},
-		"release_version": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "the AMI version of the EKS optimized AMI to use",
-		},
-		"kuberenetes_version": { //in doc version is used twice in this field (gives error, used diff name than version)
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Kuberenetes version for the nodegroup",
-		},
-	}
-	return s
-}
 
 func fargateProfilesConfigField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
@@ -2211,20 +2199,6 @@ func arnFields() map[string]*schema.Schema {
 	return s
 }
 
-func findBlueprintName(configBytes []byte) (string, string, error) {
-	var blueprint blueprintType
-	if err := yaml.Unmarshal(configBytes, &blueprint); err != nil {
-		return "", "", nil
-	} else if blueprint.Spec == nil {
-		return "", "", fmt.Errorf("%s", "Invalid resource: No spec found")
-	} else if blueprint.Spec.Blueprint == "" {
-		return "", "", fmt.Errorf("%s", "Invalid resource: No name specified in spec")
-	}
-
-	return blueprint.Spec.Blueprint, blueprint.Spec.Blueprintversion, nil
-
-}
-
 func resourceEKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("resourceEKSClusterUpsert")
 	return processEKSInputs(ctx, d, m)
@@ -2315,8 +2289,8 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 
 func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	//building cluster and cluster config yaml file
-	yamlCluster := &EKSCluster{}
-	yamlClusterConfig := &EKSClusterConfig{}
+	var yamlCluster *EKSCluster
+	var yamlClusterConfig *EKSClusterConfig
 	rawConfig := d.GetRawConfig()
 	//expand cluster yaml file
 	if v, ok := d.Get("cluster").([]interface{}); ok {
@@ -3512,16 +3486,16 @@ func expandSubnetSpec(p []interface{}) AZSubnetMapping {
 }
 
 // struct IdentityProviders has one extra field not in documentation or the schema
-func expandIdentityProviders(p []interface{}) []IdentityProvider {
-	out := make([]IdentityProvider, len(p))
+func expandIdentityProviders(p []interface{}) []*IdentityProvider {
+	out := make([]*IdentityProvider, len(p))
 	if len(p) == 0 || p[0] == nil {
 		return out
 	}
 	for i := range p {
 		in := p[i].(map[string]interface{})
-		obj := IdentityProvider{}
+		obj := &IdentityProvider{}
 		if v, ok := in["type"].(string); ok && len(v) > 0 {
-			obj.type_ = v
+			obj.Type = v
 		}
 		out[i] = obj
 	}
@@ -3744,11 +3718,43 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
 	}
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing = expandEKSClusterSharing(v)
 	}
 	log.Println("cluster spec cloud_provider: ", obj.CloudProvider)
 
 	return obj
+}
+
+func expandEKSClusterSharing(p []interface{}) *EKSClusterSharing {
+	obj := &EKSClusterSharing{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
+	}
+	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
+		obj.Projects = expandEKSClusterSharingProjects(v)
+	}
+	return obj
+}
+
+func expandEKSClusterSharingProjects(p []interface{}) []*EKSClusterSharingProject {
+	if len(p) == 0 {
+		return nil
+	}
+	var res []*EKSClusterSharingProject
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := &EKSClusterSharingProject{}
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+		res = append(res, obj)
+	}
+	return res
 }
 
 func expandSystemComponentsPlacement(p []interface{}) *SystemComponentsPlacement {
@@ -3844,8 +3850,8 @@ func expandCNIParams(p []interface{}) *CustomCni {
 	return obj
 }
 
-func expandCustomCNISpec(p []interface{}) CustomCNIMapping {
-	obj := make(CustomCNIMapping)
+func expandCustomCNISpec(p []interface{}) map[string][]CustomCniSpec {
+	obj := make(map[string][]CustomCniSpec)
 	log.Println("expand CNI Mapping")
 
 	if len(p) == 0 || p[0] == nil {
@@ -3996,10 +4002,39 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 		obj["system_components_placement"] = flattenSystemComponentsPlacement(in.SystemComponentsPlacement, v)
 	}
 	if in.Sharing != nil {
-		obj["sharing"] = flattenSharingSpec(in.Sharing)
+		obj["sharing"] = flattenEKSSharing(in.Sharing)
 	}
 
 	return []interface{}{obj}, nil
+}
+
+func flattenEKSSharing(in *EKSClusterSharing) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := make(map[string]interface{})
+	if in.Enabled != nil {
+		obj["enabled"] = *in.Enabled
+	}
+	if len(in.Projects) > 0 {
+		obj["projects"] = flattenEKSSharingProjects(in.Projects)
+	}
+	return []interface{}{obj}
+}
+
+func flattenEKSSharingProjects(in []*EKSClusterSharingProject) []interface{} {
+	if len(in) == 0 {
+		return nil
+	}
+	var out []interface{}
+	for _, x := range in {
+		obj := make(map[string]interface{})
+		if len(x.Name) > 0 {
+			obj["name"] = x.Name
+		}
+		out = append(out, obj)
+	}
+	return out
 }
 
 func flattenSystemComponentsPlacement(in *SystemComponentsPlacement, p []interface{}) []interface{} {
@@ -4103,7 +4138,7 @@ func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {
 	return []interface{}{obj}
 }
 
-func flattenCustomCNISpec(in CustomCNIMapping, p []interface{}) []interface{} {
+func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}) []interface{} {
 	log.Println("got to flatten custom CNI mapping", len(p))
 	out := make([]interface{}, len(in))
 	i := 0
@@ -4605,7 +4640,7 @@ func flattenIAMWellKnownPolicies(in WellKnownPolicies, p []interface{}) []interf
 	obj["efs_csi_controller"] = in.EFSCSIController
 	return []interface{}{obj}
 }
-func flattenEKSClusterIdentityProviders(inp []IdentityProvider, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterIdentityProviders(inp []*IdentityProvider, p []interface{}) ([]interface{}, error) {
 	out := make([]interface{}, len(inp))
 	if inp == nil {
 		return []interface{}{out}, nil
@@ -4615,8 +4650,8 @@ func flattenEKSClusterIdentityProviders(inp []IdentityProvider, p []interface{})
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
-		if len(in.type_) > 0 {
-			obj["type"] = in.type_
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
 		}
 
 		out[i] = &obj
@@ -5616,7 +5651,7 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 	return resourceEKSClusterUpsert(ctx, d, m)
 }
 
-func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics { 
+func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("READ eks cluster")
 	var diags diag.Diagnostics
 	// find cluster name and project name
@@ -5774,6 +5809,8 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 }
 
 // Sort EKS Nodepool
+
+// ByNodeGroupName struct
 type ByNodeGroupName []NodeGroup
 
 func (np ByNodeGroupName) Len() int      { return len(np) }
@@ -5826,7 +5863,7 @@ func resourceEKSClusterImport(ctx context.Context, d *schema.ResourceData, meta 
 		map[string][]interface{}{
 			"metadata": {
 				map[string]interface{}{
-					"name": clusterName,
+					"name":    clusterName,
 					"project": projectName,
 				},
 			},

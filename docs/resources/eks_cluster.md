@@ -292,8 +292,8 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 ***Required***
 
 - `spec` - (Block List, Max: 1) The specification associated with the cluster, including cluster networking options. (See [below for nested schema](#nestedblock--cluster--spec))
-- `kind` - (String) The type of resource. The supported value is `cluster`. 
-- `metadata` -(Block List) Contains data that helps uniquely identify the resource, including defining the configuration for KMS encryption provider. (See [below for nested schema](#nestedblock--cluster--metadata))
+- `kind` - (String) The type of resource. The supported value is `Cluster`.
+- `metadata` -(Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--cluster--metadata))
 
 
 <a id="nestedblock--cluster--spec"></a>

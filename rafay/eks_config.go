@@ -1,97 +1,6 @@
 package rafay
 
-import (
-	"fmt"
-	"math/rand"
-	"time"
-
-	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
-)
-
-// EKSNGInfoProvider interface provides node group information
-type EKSNGInfoProvider interface {
-	GetRegion() string
-	GetVersion() string
-	GetTags() map[string]string
-	GetEnableFullAccessToEcr() bool
-	GetEnableAsgAccess() bool
-	GetEnableExternalDnsAccess() bool
-	GetEnableAccessToAppmesh() bool
-	GetEnableAccessForAlbIngressController() bool
-	GetEnableEfs() bool
-	GetInstanceRoleArn() string
-	GetInstanceProfileArn() string
-	GetInstanceRolePermissionsBoundary() string
-	GetManaged() bool
-	GetNodes() int64
-	GetNodesMin() int64
-	GetNodesMax() int64
-	GetSshAccess() bool
-	GetSshPublicKey() string
-	GetNodegroupName() string
-	GetNodeAmiFamily() string
-	GetInstanceType() string
-	GetNodeZones() []string
-	GetNodeVolumeSize() int64
-	GetNodeLabels() map[string]string
-	GetNodePrivateNetworking() bool
-	GetNodeSecurityGroups() []string
-	GetNodeAmi() string
-	GetMaxPodsPerNode() int64
-	GetNodeVolumeType() string
-	GetVolumeEncrypted() bool
-	GetVolumeKmsKeyId() string
-	GetInstanceTypes() []string
-	GetMaxPrice() string
-	GetOnDemandBaseCapacity() int64
-	GetOnDemandPercentageAboveBaseCapacity() int64
-	GetSpotInstancePools() int64
-	GetSpotAllocationStrategy() string
-	GetSpot() bool
-	GetBootstrapCommands() []string
-	GetNodeTags() map[string]string
-	GetNodeSubnets() []string
-	GetSubnetCidr() string
-}
-
-// GenerateNodeGroupName generates a random nodegroup name
-func GenerateNodeGroupName() string {
-	const nameLength = 8
-	const components = "abcdef0123456789"
-	var r = rand.New(rand.NewSource(time.Now().UnixNano()))
-	name := make([]byte, nameLength)
-	for i := 0; i < nameLength; i++ {
-		name[i] = components[r.Intn(len(components))]
-	}
-	return fmt.Sprintf("ng-%s", string(name))
-}
-
-const (
-	// EKSConfigKind represents the kind of the config file
-	EKSConfigKind string = "ClusterConfig"
-
-	// EKSConfigAPIVersion represents the current API version of the YAML file
-	EKSConfigAPIVersion string = "rafay.io/v1alpha5"
-)
-
-const (
-	// EKSDefaultVPCClusterEndpointsPublicAccess holds the default value for cfg.vpc.ClusterEndpoints.PublicAccess (Rafay Override)
-	EKSDefaultVPCClusterEndpointsPublicAccess = "false"
-	// EKSDefaultVPCClusterEndpointsPrivateAccess holds the default value for cfg.vpc.ClusterEndpoints.PrivateAccess (Rafay Override)
-	EKSDefaultVPCClusterEndpointsPrivateAccess = "true"
-	// EKSDefaultNodegroupBaseVolumeSize holds the default value for cfg.*nodegroups[].volumeSize (in GB) (EKSCTL Default as of now)
-	EKSDefaultNodegroupBaseVolumeSize = 80
-	// EKSDefaultNodegroupBaseInstanceType holds the default value for cfg.*nodegroups[].instanceType (EKSCTL default as of now)
-	EKSDefaultNodegroupBaseInstanceType = "m5.xlarge"
-	// EKSDefaultNodegroupBaseVolumeType holds the default value for cfg.*nodegroups[].volumeType (EKSCTL default as of now)
-	EKSDefaultNodegroupBaseVolumeType = "gp3"
-	// EKSDefaultNodegroupBaseAMIFamily holds the default value for cfg.*nodegroups[].amiFamily (EKSCTL default as of now)
-	EKSDefaultNodegroupBaseAMIFamily = "AmazonLinux2"
-	// EKSDefaultNodegroupCount holds the default value for cfg.*nodegroups[].desiredCapacity (EKSCTL Default as of now)
-	EKSDefaultNodegroupCount = 2
-)
-
-//struct for eks cluster metadata (first part of the yaml file kind:cluster)
+// EKSCluster struct for eks cluster metadata (first part of the yaml file kind:cluster)
 type EKSCluster struct {
 	Kind     string              `yaml:"kind,omitempty"`
 	Metadata *EKSClusterMetadata `yaml:"metadata,omitempty"`
@@ -107,13 +16,12 @@ type EKSSpec struct {
 	ProxyConfig               map[string]string          `yaml:"proxyconfig,omitempty"`
 	CniParams                 *CustomCni                 `yaml:"cniparams,omitempty"`
 	SystemComponentsPlacement *SystemComponentsPlacement `yaml:"systemComponentsPlacement,omitempty"`
-	Sharing                   *commonpb.SharingSpec      `yaml:"sharing,omitempty"`
+	Sharing                   *EKSClusterSharing         `yaml:"sharing,omitempty"`
 }
 
 type SystemComponentsPlacement struct {
-	NodeSelector map[string]string `yaml:"nodeSelector,omitempty"`
-	Tolerations  []*Tolerations    `yaml:"tolerations,omitempty"`
-	//Tolerations       map[string]interface{} `yaml:"tolerations,omitempty"`
+	NodeSelector      map[string]string  `yaml:"nodeSelector,omitempty"`
+	Tolerations       []*Tolerations     `yaml:"tolerations,omitempty"`
 	DaemonsetOverride *DaemonsetOverride `yaml:"daemonsetOverride,omitempty"`
 }
 
@@ -128,15 +36,11 @@ type Tolerations struct {
 type DaemonsetOverride struct {
 	NodeSelectionEnabled *bool          `yaml:"nodeSelectionEnabled,omitempty"`
 	Tolerations          []*Tolerations `yaml:"tolerations,omitempty"`
-	//Tolerations map[string]interface{} `yaml:"tolerations,omitempty"`
 }
 
-type CustomCNIMapping map[string][]CustomCniSpec
-
 type CustomCni struct {
-	CustomCniCidr string `yaml:"customCniCidr,omitempty"`
-	//@@@makes more sense copying vpc->subnets, double check its not supposed to be map[string][]object
-	CustomCniCrdSpec CustomCNIMapping `yaml:"customCniCrdSpec,omitempty"`
+	CustomCniCidr    string                     `yaml:"customCniCidr,omitempty"`
+	CustomCniCrdSpec map[string][]CustomCniSpec `yaml:"customCniCrdSpec,omitempty"`
 }
 
 type CustomCniSpec struct {
@@ -150,31 +54,38 @@ type EKSClusterMetadata struct {
 	Labels  map[string]string `yaml:"labels,omitempty"`
 }
 
-//struct for eks cluster config sped (second part of the yaml file kind:clusterConfig)
+type EKSClusterSharing struct {
+	Enabled  *bool                       `yaml:"enabled,omitempty"`
+	Projects []*EKSClusterSharingProject `yaml:"projects,omitempty"`
+}
+
+type EKSClusterSharingProject struct {
+	Name string `yaml:"name,omitempty"`
+}
+
+// KubernetesNetworkConfig struct for eks cluster config sped (second part of the yaml file kind:clusterConfig)
 type KubernetesNetworkConfig struct {
 	IPFamily        string `yaml:"ipFamily,omitempty"`
 	ServiceIPv4CIDR string `yaml:"serviceIPv4CIDR,omitempty"`
 }
 
 type EKSClusterConfig struct {
-	APIVersion              string                    `yaml:"apiVersion,omitempty"`
-	Kind                    string                    `yaml:"kind,omitempty"`
-	Metadata                *EKSClusterConfigMetadata `yaml:"metadata,omitempty"`
-	KubernetesNetworkConfig *KubernetesNetworkConfig  `yaml:"kubernetesNetworkConfig,omitempty"`
-	IAM                     *EKSClusterIAM            `yaml:"iam,omitempty,omitempty"`
-	IdentityProviders       []IdentityProvider        `yaml:"identityProviders,omitempty"`
-	VPC                     *EKSClusterVPC            `yaml:"vpc,omitempty"`
-	// +optional
-	Addons []*Addon `yaml:"addons,omitempty"`
-	// +optional
-	PrivateCluster    *PrivateCluster             `yaml:"privateCluster,omitempty"`
-	NodeGroups        []*NodeGroup                `yaml:"nodeGroups,omitempty"`
-	ManagedNodeGroups []*ManagedNodeGroup         `yaml:"managedNodeGroups,omitempty"`
-	FargateProfiles   []*FargateProfile           `yaml:"fargateProfiles,omitempty"`
-	AvailabilityZones []string                    `yaml:"availabilityZones,omitempty"`
-	CloudWatch        *EKSClusterCloudWatch       `yaml:"cloudWatch,omitempty"`
-	SecretsEncryption *SecretsEncryption          `yaml:"secretsEncryption,omitempty"`
-	IdentityMappings  *EKSClusterIdentityMappings `yaml:"identityMappings,omitempty"`
+	APIVersion              string                      `yaml:"apiVersion,omitempty"`
+	Kind                    string                      `yaml:"kind,omitempty"`
+	Metadata                *EKSClusterConfigMetadata   `yaml:"metadata,omitempty"`
+	KubernetesNetworkConfig *KubernetesNetworkConfig    `yaml:"kubernetesNetworkConfig,omitempty"`
+	IAM                     *EKSClusterIAM              `yaml:"iam,omitempty,omitempty"`
+	IdentityProviders       []*IdentityProvider         `yaml:"identityProviders,omitempty"`
+	VPC                     *EKSClusterVPC              `yaml:"vpc,omitempty"`
+	Addons                  []*Addon                    `yaml:"addons,omitempty"`
+	PrivateCluster          *PrivateCluster             `yaml:"privateCluster,omitempty"`
+	NodeGroups              []*NodeGroup                `yaml:"nodeGroups,omitempty"`
+	ManagedNodeGroups       []*ManagedNodeGroup         `yaml:"managedNodeGroups,omitempty"`
+	FargateProfiles         []*FargateProfile           `yaml:"fargateProfiles,omitempty"`
+	AvailabilityZones       []string                    `yaml:"availabilityZones,omitempty"`
+	CloudWatch              *EKSClusterCloudWatch       `yaml:"cloudWatch,omitempty"`
+	SecretsEncryption       *SecretsEncryption          `yaml:"secretsEncryption,omitempty"`
+	IdentityMappings        *EKSClusterIdentityMappings `yaml:"identityMappings,omitempty"`
 	//do i need this? not in docs
 	//Karpenter *Karpenter `yaml:"karpenter,omitempty"`
 }
@@ -190,26 +101,30 @@ type IdentityMappingARN struct {
 	Username string   `yaml:"username,omitempty"`
 }
 
-/*Took this struct and modified it to fit documentation
+/*
+Took this struct and modified it to fit documentation
 // EKSClusterConfig struct -> cfg
-type EKSClusterConfig struct {
-	APIVersion  string          `yaml:"apiVersion"`
-	Kind        string          `yaml:"kind"`
-	ClusterMeta *EKSClusterMeta `yaml:"metadata"`
-	IAM         *EKSClusterIAM  `yaml:"iam,omitempty"`
-	// +optional
-	IdentityProviders []IdentityProvider     `yaml:"identityProviders,omitempty"`
-	VPC               *EKSClusterVPC         `yaml:"vpc,omitempty"`
-	NodeGroups        []*EKSNodeGroup        `yaml:"nodeGroups,omitempty"`
-	ManagedNodeGroups []*EKSManagedNodeGroup `yaml:"managedNodeGroups,omitempty"`
-	CloudWatch        *EKSClusterCloudWatch  `yaml:"cloudWatch,omitempty"`
 
-	AvailabilityZones []string `yaml:"availabilityZones,omitempty"`
-}
+	type EKSClusterConfig struct {
+		APIVersion  string          `yaml:"apiVersion"`
+		Kind        string          `yaml:"kind"`
+		ClusterMeta *EKSClusterMeta `yaml:"metadata"`
+		IAM         *EKSClusterIAM  `yaml:"iam,omitempty"`
+		// +optional
+		IdentityProviders []IdentityProvider     `yaml:"identityProviders,omitempty"`
+		VPC               *EKSClusterVPC         `yaml:"vpc,omitempty"`
+		NodeGroups        []*EKSNodeGroup        `yaml:"nodeGroups,omitempty"`
+		ManagedNodeGroups []*EKSManagedNodeGroup `yaml:"managedNodeGroups,omitempty"`
+		CloudWatch        *EKSClusterCloudWatch  `yaml:"cloudWatch,omitempty"`
+
+		AvailabilityZones []string `yaml:"availabilityZones,omitempty"`
+	}
 */
+
+// AWSPolicyInlineDocument struct
 type AWSPolicyInlineDocument map[string]interface{}
 
-// EKSClusterMeta struct -> cfg.EKSClusterMeta
+// EKSClusterConfigMetadata struct -> cfg.EKSClusterMeta
 type EKSClusterConfigMetadata struct {
 	Name        string            `yaml:"name,omitempty"`
 	Region      string            `yaml:"region,omitempty"`
@@ -218,7 +133,7 @@ type EKSClusterConfigMetadata struct {
 	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
-// EKSClusterIAM struct -> cfg.IAM.ServiceAccounts
+// EKSClusterIAMMeta struct -> cfg.IAM.ServiceAccounts
 type EKSClusterIAMMeta struct {
 	Name        string            `yaml:"name,omitempty"`
 	Namespace   string            `yaml:"namespace,omitempty"`
@@ -227,21 +142,23 @@ type EKSClusterIAMMeta struct {
 }
 
 /*
-type EKSClusterIAMServiceAccount struct {
-	EKSClusterIAMMeta   `yaml:"metadata,omitempty"`
-	AttachPolicyARNs    []string                `yaml:"attachPolicyARNs,omitempty"`
-	AttachPolicy        AWSPolicyInlineDocument `yaml:"attachPolicy,omitempty"`
-	PermissionsBoundary string                  `yaml:"permissionsBoundary,omitempty"`
-	RoleOnly            *bool                   `yaml:"roleOnly,omitempty"`
-	Tags                map[string]string       `yaml:"tags,omitempty"`
-	// RoleName string `yaml:"roleName,omitempty"`
-}
+	type EKSClusterIAMServiceAccount struct {
+		EKSClusterIAMMeta   `yaml:"metadata,omitempty"`
+		AttachPolicyARNs    []string                `yaml:"attachPolicyARNs,omitempty"`
+		AttachPolicy        AWSPolicyInlineDocument `yaml:"attachPolicy,omitempty"`
+		PermissionsBoundary string                  `yaml:"permissionsBoundary,omitempty"`
+		RoleOnly            *bool                   `yaml:"roleOnly,omitempty"`
+		Tags                map[string]string       `yaml:"tags,omitempty"`
+		// RoleName string `yaml:"roleName,omitempty"`
+	}
 */
+
+// IdentityProvider struct
 type IdentityProvider struct {
 	// Valid variants are:
 	// `"oidc"`: OIDC identity provider
 	// +required
-	type_ string `yaml:"type,omitempty"` //nolint
+	Type string `yaml:"type,omitempty"` //nolint
 	//Inner IdentityProviderInterface
 }
 
@@ -279,7 +196,7 @@ type EKSClusterIAM struct {
 	VPCResourceControllerPolicy *bool `yaml:"vpcResourceControllerPolicy,omitempty"`
 }
 
-// ClusterIAMServiceAccount holds an IAM service account metadata and configuration
+// EKSClusterIAMServiceAccount holds an IAM service account metadata and configuration
 type EKSClusterIAMServiceAccount struct {
 	Metadata *EKSClusterIAMMeta `yaml:"metadata,omitempty"`
 	/*Name        string            `yaml:"name,omitempty"`
@@ -349,7 +266,7 @@ type WellKnownPolicies struct {
 	EFSCSIController *bool `yaml:"efsCSIController,omitempty"`
 }
 
-//type InlineDocument map[string]interface{}
+// InlineDocument map[string]interface{}
 type InlineDocument struct {
 	Version   string          `yaml:"Version,omitempty"`
 	Statement InlineStatement `yaml:"Statement,omitempty"`
@@ -367,7 +284,7 @@ type ClusterIAMServiceAccountStatus struct {
 type AZSubnetMapping map[string]AZSubnetSpec
 type TFAZSubnetMapping map[string]TFAZSubnetSpec
 type (
-	// ClusterVPC holds global subnet and all child subnets
+	// EKSClusterVPC holds global subnet and all child subnets
 	EKSClusterVPC struct {
 		// global CIDR and VPC ID
 		// +optional
@@ -421,7 +338,7 @@ type (
 		// +optional
 		PublicAccessCIDRs []string `yaml:"publicAccessCIDRs,omitempty"`
 	}
-	// ClusterSubnets holds private and public subnets
+	// TFClusterSubnets holds private and public subnets
 	TFClusterSubnets struct {
 		Private TFAZSubnetMapping `yaml:"private,omitempty"`
 		Public  TFAZSubnetMapping `yaml:"public,omitempty"`
@@ -707,7 +624,7 @@ type NodeGroup struct {
 	ContainerRuntime string `yaml:"containerRuntime,omitempty"`
 }
 
-//@@@ added new kubeletExtraConfig Struct
+// KubeletExtraConfig Struct
 type KubeletExtraConfig struct {
 	KubeReserved       map[string]string `yaml:"kubeReserved,omitempty"`
 	KubeReservedCGroup string            `yaml:"kubeReservedCGroup,omitempty"`
@@ -884,7 +801,10 @@ type MetricsCollection struct {
 	// +optional
 	Metrics []string `yaml:"metrics,omitempty"`
 }
-type taintsWrapper []NodeGroupTaint
+
+// type taintsWrapper []NodeGroupTaint
+
+// NodeGroupTaint struct
 type NodeGroupTaint struct {
 	Key    string `yaml:"key,omitempty"`
 	Value  string `yaml:"value,omitempty"`
@@ -1262,6 +1182,7 @@ type EKSClusterNAT struct {
 	Gateway string `yaml:"gateway,omitempty"`
 }
 */
+
 // EKSClusterSubnets struct -> cfg.vpc.subnets
 type EKSClusterSubnets struct {
 	Private map[string]EKSAZSubnetSpec `yaml:"private,omitempty"`
@@ -1380,7 +1301,7 @@ const (
 	WildcardLogging          = "*"
 )
 
-// ClusterCloudWatchLogging container config parameters related to cluster logging
+// EKSClusterCloudWatchLogging container config parameters related to cluster logging
 type EKSClusterCloudWatchLogging struct {
 
 	// Types of logging to enable (see [CloudWatch docs](/usage/cloudwatch-cluster-logging/#clusterconfig-examples)).

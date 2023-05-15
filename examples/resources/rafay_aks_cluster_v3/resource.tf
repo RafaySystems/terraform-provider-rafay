@@ -13,7 +13,6 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
       kind       = "aksClusterConfig"
       metadata {
         name = "aks-v3-tf-1"
-        project = "defaultproject"
       }
       spec {
         resource_group_name = "rafay-resource"

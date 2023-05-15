@@ -7,7 +7,6 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
     type          = "aks"
     blueprint_config {
       name = "default-aks"
-      version = "1.21.0"
     }
     cloud_credentials = "aks-cred"
     config {
@@ -28,15 +27,34 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             type = "SystemAssigned"
           }
           location = "centralindia"
+          tags = {
+            "email" = "mayank@rafay.co"
+            "env" = "dev"
+          }
           properties {
             api_server_access_profile {
               enable_private_cluster = true
             }
             dns_prefix         = "aks-v3-tf-2401202303-dns"
-            kubernetes_version = "1.23.12"
+            kubernetes_version = "1.24.9"
             network_profile {
               network_plugin = "kubenet"
               load_balancer_sku = "standard"
+            }
+            addon_profiles {
+              http_application_routing {
+                enabled = true
+              }
+              azure_policy { 
+                enabled = true
+              }
+              azure_keyvault_secrets_provider {
+                enabled = true
+                config {
+                  enable_secret_rotation = false
+                  rotation_poll_interval = "2m"
+                }
+              }
             }
           }
           type = "Microsoft.ContainerService/managedClusters"
@@ -52,7 +70,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.23.12"
+            orchestrator_version = "1.24.9"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_DS2_v2"
@@ -71,7 +89,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.23.12"
+            orchestrator_version = "1.24.9"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_B4ms"

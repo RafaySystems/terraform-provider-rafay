@@ -5531,7 +5531,7 @@ func flattenEKSClusterCloudWatch(in *EKSClusterCloudWatch, p []interface{}) []in
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["selectors"] = flattenClusterCloudWatchLogging(in.ClusterLogging, v)
+		obj["cluster_logging"] = flattenClusterCloudWatchLogging(in.ClusterLogging, v)
 	}
 	return []interface{}{obj}
 }

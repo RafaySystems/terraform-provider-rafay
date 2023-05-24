@@ -509,7 +509,6 @@ resource "rafay_blueprint" "cost-blueprint" {
 
 ***Required***
 
-- `enabled` (Boolean) flag to specify if OPA is enabled for blueprint
 - `name` (String) name of the opa policy
 - `version` (String) version of the opa policy
 
@@ -527,7 +526,6 @@ resource "rafay_blueprint" "cost-blueprint" {
 
 ***Required***
 
-- `enabled` (Boolean) flag to specify if Network Policy is enabled for blueprint
 - `policies` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--network_policy--policies))
 - `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--network_policy--profile))
 

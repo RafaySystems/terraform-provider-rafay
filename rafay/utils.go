@@ -11,6 +11,7 @@ import (
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/gitopspb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/integrationspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/utils"
@@ -24,6 +25,12 @@ type File struct {
 	Name      string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Sensitive bool   `protobuf:"bytes,1,opt,name=sensitive,proto3" json:"sensitive,omitempty"`
 	Data      []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+}
+
+type HubError struct {
+	Internal string `json:"internal"`
+	Code     int    `json:"code"`
+	External string `json:"external"`
 }
 
 /*
@@ -657,6 +664,37 @@ func expandProjectMeta(p []interface{}) []*commonpb.ProjectMeta {
 	return sortedOut
 }
 
+func expandProjectMetaV3(p []interface{}) []*infrapb.Projects {
+	if len(p) == 0 {
+		return []*infrapb.Projects{}
+	}
+	var sortByName []string
+	out := make([]*infrapb.Projects, len(p))
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := infrapb.Projects{}
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+			sortByName = append(sortByName, v)
+		}
+
+		out[i] = &obj
+	}
+
+	var sortedOut []*infrapb.Projects
+	for _, name := range sortByName {
+		for _, val := range out {
+			if name == val.Name {
+				sortedOut = append(sortedOut, val)
+			}
+		}
+	}
+
+	log.Println("expandProjectMeta out", sortedOut)
+	return sortedOut
+}
+
 func expandSharingSpec(p []interface{}) *commonpb.SharingSpec {
 	obj := commonpb.SharingSpec{}
 	if len(p) == 0 || p[0] == nil {
@@ -670,6 +708,25 @@ func expandSharingSpec(p []interface{}) *commonpb.SharingSpec {
 
 	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
 		obj.Projects = expandProjectMeta(v)
+	}
+
+	log.Println("expandSharingSpec obj", obj)
+	return &obj
+}
+
+func expandSharingSpecV3(p []interface{}) *infrapb.Sharing {
+	obj := infrapb.Sharing{}
+	if len(p) == 0 || p[0] == nil {
+		return &obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
+		obj.Projects = expandProjectMetaV3(v)
 	}
 
 	log.Println("expandSharingSpec obj", obj)
@@ -929,6 +986,23 @@ func flattenProjectMeta(input []*commonpb.ProjectMeta) []interface{} {
 	return out
 }
 
+func flattenProjectMetaV3(input []*infrapb.Projects) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		obj := map[string]interface{}{}
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		out[i] = obj
+	}
+
+	return out
+}
+
 func flattenSharingSpec(in *commonpb.SharingSpec) []interface{} {
 	if in == nil {
 		return nil
@@ -938,6 +1012,20 @@ func flattenSharingSpec(in *commonpb.SharingSpec) []interface{} {
 	obj["enabled"] = in.Enabled
 	if len(in.Projects) > 0 {
 		obj["projects"] = flattenProjectMeta(in.Projects)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenSharingSpecV3(in *infrapb.Sharing) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["enabled"] = in.Enabled
+	if len(in.Projects) > 0 {
+		obj["projects"] = flattenProjectMetaV3(in.Projects)
 	}
 
 	return []interface{}{obj}
@@ -1117,7 +1205,7 @@ func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
 	obj := make(map[string]interface{})
 	if in.Memory != "" {
 		var m resource.QuantityValue
-		//m.Set(in.GetMemory())
+		m.Set(in.GetMemory())
 		for i := 0; i < 10; i++ {
 			m.Add(m.Quantity)
 			//in.GetMemory().Add(*in.GetMemory())
@@ -1143,7 +1231,7 @@ func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
 
 	if in.Cpu != "" {
 		var cp resource.QuantityValue
-		//cp.Set(in.GetCpu())
+		cp.Set(in.GetCpu())
 		cp1 := cp
 		for i := 0; i < 999; i++ {
 			cp.Add(cp1.Quantity)

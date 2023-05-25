@@ -2150,6 +2150,11 @@ func clusterLoggingFields() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
+		"log_retention_in_days": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "The number of days you want to retain log events in the specified log group. Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, and 3653.",
+		},
 	}
 	return s
 }
@@ -2589,6 +2594,10 @@ func expandCloudWatchClusterLogging(p []interface{}) *EKSClusterCloudWatchLoggin
 	if v, ok := in["enable_types"].([]interface{}); ok && len(v) > 0 {
 		obj.EnableTypes = toArrayString(v)
 	}
+	if v, ok := in["log_retention_in_days"].(int); ok {
+		obj.LogRetentionInDays = v
+	}
+
 	return obj
 }
 
@@ -5546,6 +5555,7 @@ func flattenClusterCloudWatchLogging(in *EKSClusterCloudWatchLogging, p []interf
 	if len(in.EnableTypes) > 0 {
 		obj["enable_types"] = toArrayInterface(in.EnableTypes)
 	}
+	obj["log_retention_in_days"] = in.LogRetentionInDays
 	return []interface{}{obj}
 }
 

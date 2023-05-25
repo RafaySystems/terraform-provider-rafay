@@ -1391,7 +1391,7 @@ type EKSClusterCloudWatchLogging struct {
 	// Valid values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731,
 	// 1827, and 3653.
 	//+optional
-	LogRetentionInDays int `json:"logRetentionInDays,omitempty"`
+	LogRetentionInDays int `yaml:"logRetentionInDays,omitempty"`
 }
 
 // SecretsEncryption defines the configuration for KMS encryption provider

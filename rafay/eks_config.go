@@ -1308,6 +1308,11 @@ type EKSClusterCloudWatchLogging struct {
 	// Valid entries are `CloudWatchLogging` constants
 	//+optional
 	EnableTypes []string `yaml:"enableTypes,omitempty"`
+	// LogRetentionInDays sets the number of days to retain the logs for (see [CloudWatch docs](https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html#API_PutRetentionPolicy_RequestSyntax)) .
+	// Valid values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731,
+	// 1827, and 3653.
+	//+optional
+	LogRetentionInDays int `json:"logRetentionInDays,omitempty"`
 }
 
 // SecretsEncryption defines the configuration for KMS encryption provider

@@ -16,13 +16,13 @@ This example is for the AKS Cluster v3.
 resource "rafay_aks_cluster_v3" "demo-terraform" {
   metadata {
     name    = "aks-v3-tf-1"
-    project = "defaultproject"
+    project = "terraform"
   }
   spec {
     type          = "aks"
     blueprint_config {
       name = "default-aks"
-      version = "1.21.0"
+      version = "1.25.0"
     }
     cloud_credentials = "aks-cred"
     config {
@@ -47,7 +47,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
               enable_private_cluster = true
             }
             dns_prefix         = "aks-v3-tf-2401202303-dns"
-            kubernetes_version = "1.23.12"
+            kubernetes_version = "1.25.6"
             network_profile {
               network_plugin = "kubenet"
               load_balancer_sku = "standard"
@@ -62,11 +62,11 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
           properties {
             count                = 1
             enable_auto_scaling  = true
-            max_count            = 1
+            max_count            = 2
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.23.12"
+            orchestrator_version = "1.25.6"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_DS2_v2"
@@ -81,11 +81,11 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
           properties {
             count                = 1
             enable_auto_scaling  = true
-            max_count            = 1
+            max_count            = 2
             max_pods             = 40
             min_count            = 1
-            mode                 = "System"
-            orchestrator_version = "1.23.12"
+            mode                 = "User"
+            orchestrator_version = "1.25.6"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_B4ms"
@@ -167,7 +167,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
 
 ***Required***
 
-- `apiversion` - (String) The Azure resource managed cluster API version. The supported value is `2021-05-01`.
+- `apiversion` - (String) The Azure resource managed cluster API version. The supported value is `2022-07-01`.
 - `location` - (String) The AKS cluster location.
 - `properties` - (Block List, Min: 1) The properties of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties))
 - `type` - (String) The supported value is `Microsoft.ContainerService/managedClusters`.
@@ -457,7 +457,7 @@ Supported values are: `loadBalancer` and `userDefinedRouting`.
 
 ***Required***
 
-- `apiversion` - (String) The AKS node pool API version. The supported value is `2021-05-01`.
+- `apiversion` - (String) The AKS node pool API version. The supported value is `2022-07-01`.
 - `location` - (String) The AKS node pool location. 
 - `name` - (String) The AKS node pool name. 
 - `properties` - (Block List, Min: 1) The AKS managed cluster properties. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties))

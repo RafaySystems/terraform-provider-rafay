@@ -88,19 +88,19 @@ resource "rafay_blueprint" "custom-blueprint" {
       enable_vm         = false
       monitoring {
         metrics_server {
-		  customization_enabled = true
+          customization_enabled = true
         }
         helm_exporter {
-		  customization_enabled = true
+	  customization_enabled = true
         }
         kube_state_metrics {
-		  customization_enabled = true
+	  customization_enabled = true
         }
         node_exporter {
-		  customization_enabled = true
+	  customization_enabled = true
         }
         prometheus_adapter {
-		  customization_enabled = true
+	  customization_enabled = true
         }
         resources {
           limits = "200Mi"

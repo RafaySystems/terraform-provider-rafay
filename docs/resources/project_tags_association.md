@@ -49,7 +49,6 @@ Optional:
 
 Optional:
 
-- `tag_id` (Number) tag id
 - `tag_key` (String) tag association key
 - `tag_type` (String) tag association type i.e. <Cost, K8s>
 

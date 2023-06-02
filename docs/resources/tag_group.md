@@ -50,7 +50,6 @@ Optional:
 Optional:
 
 - `key` (String) tag key
-- `tag_type` (String) tag association type i.e. <Cost, K8s>
 - `value` (String) tag value
 
 

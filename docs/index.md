@@ -21,6 +21,9 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 
 | Resource                                  | Version Released |
 | ----------------------------------------- | ---------------- |
+| `rafay_aks_cluster_v3`                    | 1.1.11           |
+| `rafay_tag_group`                         | 1.1.11           |
+| `rafay_project_tags_association`			| 1.1.11           |
 | `rafay_container_registry`                | 1.1.9            |
 | `rafay_chargeback_group`                  | 1.1.9            |
 | `rafay_chargeback_group_report`           | 1.1.9            |

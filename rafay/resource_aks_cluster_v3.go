@@ -3,7 +3,6 @@ package rafay
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -300,70 +299,6 @@ func collectAKSUpsertErrors(nodepools []*infrapb.NodepoolStatus, lastProvisionFa
 	}
 	fmt.Println("After MarshalIndent: ", "collectedErrsFormattedBytes", string(collectedErrsFormattedBytes))
 	return "\n" + string(collectedErrsFormattedBytes), nil
-}
-
-func expandClusterV3(in *schema.ResourceData) (*infrapb.Cluster, error) {
-	if in == nil {
-		return nil, fmt.Errorf("%s", "expand credentials empty input")
-	}
-	obj := &infrapb.Cluster{}
-
-	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
-		obj.Metadata = expandMetaData(v)
-	}
-
-	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
-		objSpec, err := expandClusterV3Spec(v)
-		if err != nil {
-			return nil, err
-		}
-		log.Println("expandClusterSpec got spec")
-		obj.Spec = objSpec
-	}
-
-	obj.ApiVersion = "infra.k8smgmt.io/v3"
-	obj.Kind = "Cluster"
-
-	return obj, nil
-}
-
-func expandClusterV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
-	obj := &infrapb.ClusterSpec{}
-	if len(p) == 0 || p[0] == nil {
-		return obj, fmt.Errorf("%s", "expandClusterSpec empty input")
-	}
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["type"].(string); ok && len(v) > 0 {
-		obj.Type = v
-	}
-
-	if obj.Type != "aks" {
-		return nil, errors.New("cluster type not implemented")
-	}
-
-	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpecV3(v)
-	}
-
-	if v, ok := in["blueprint_config"].([]interface{}); ok && len(v) > 0 {
-		obj.BlueprintConfig = expandClusterV3Blueprint(v)
-	}
-
-	if v, ok := in["cloud_credentials"].(string); ok && len(v) > 0 {
-		obj.CloudCredentials = v
-	}
-
-	switch obj.Type {
-	case "aks":
-		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
-			obj.Config = expandAKSClusterV3Config(v)
-		}
-	default:
-		log.Fatalln("Not Implemented")
-	}
-
-	return obj, nil
 }
 
 func expandClusterV3Blueprint(p []interface{}) *infrapb.BlueprintConfig {

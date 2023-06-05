@@ -56,7 +56,15 @@ resource "rafay_tag_group" "tftaggroup1" {
 
 ***Required***
 
-- `tags` - (Block List) Tags are key/value pairs that are attached to the object.
+- `tags` - (Block List) Tags are key/value pairs that are attached to the object. (See [below for nested schema](#nestedblock--spec--tags))
+
+<a id="nestedblock--spec--tags"></a>
+### Nested Schema for `spec.tags`
+
+***Required***
+
+- `key` - (String) tag key
+- `value` - (String) tag value
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

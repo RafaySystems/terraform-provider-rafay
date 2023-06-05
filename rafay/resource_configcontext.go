@@ -202,8 +202,8 @@ func expandConfigContext(in *schema.ResourceData) (*eaaspb.ConfigContext, error)
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "eaas.envmgmt.io/v3"
-	obj.Kind = "Resource"
+	obj.ApiVersion = "eaas.envmgmt.io/v1"
+	obj.Kind = "ConfigContext"
 	return obj, nil
 }
 

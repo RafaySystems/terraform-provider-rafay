@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -39,7 +40,7 @@ func resourceEnvironment() *schema.Resource {
 
 func resourceEnvironmentCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("environment create")
-	diags := environmentTemplateUpsert(ctx, d, m)
+	diags := environmentUpsert(ctx, d, m)
 	if diags.HasError() {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
@@ -89,6 +90,22 @@ func environmentUpsert(ctx context.Context, d *schema.ResourceData, m interface{
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	response, err := client.EaasV1().Environment().ExtApi().Publish(ctx, options.ExtOptions{
+		Name:    environment.Metadata.Name,
+		Project: environment.Metadata.Project,
+	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	triggerEvent := &eaaspb.TriggerEvent{}
+	err = json.Unmarshal(response.Body, triggerEvent)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("environment published with trigger id %s", triggerEvent.GetId())
 
 	d.SetId(environment.Metadata.Name)
 	return diags
@@ -172,11 +189,11 @@ func resourceEnvironmentDelete(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
 	err = client.EaasV1().Environment().Delete(ctx, options.DeleteOptions{
 		Name:    env.Metadata.Name,
 		Project: env.Metadata.Project,
 	})
-
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -203,7 +220,7 @@ func expandEnvironment(in *schema.ResourceData) (*eaaspb.Environment, error) {
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "eaas.envmgmt.io/v3"
+	obj.ApiVersion = "eaas.envmgmt.io/v1"
 	obj.Kind = "Environment"
 	return obj, nil
 }

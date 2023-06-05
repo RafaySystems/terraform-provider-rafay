@@ -203,7 +203,7 @@ func expandEnvironmentTemplate(in *schema.ResourceData) (*eaaspb.EnvironmentTemp
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "eaas.envmgmt.io/v3"
+	obj.ApiVersion = "eaas.envmgmt.io/v1"
 	obj.Kind = "EnvironmentTemplate"
 	return obj, nil
 }

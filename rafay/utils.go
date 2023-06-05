@@ -499,6 +499,10 @@ func expandCommonpbFiles(p []interface{}) []*commonpb.File {
 			}
 		}
 
+		if v, ok := in["name"].(bool); ok {
+			obj.Sensitive = v
+		}
+
 		out[i] = &obj
 	}
 
@@ -804,6 +808,7 @@ func flattenCommonpbFile(in *commonpb.File) []interface{} {
 	if len(in.Name) > 0 {
 		obj["name"] = in.Name
 	}
+	obj["sensitive"] = in.Sensitive
 	return []interface{}{obj}
 }
 
@@ -1232,7 +1237,8 @@ func expandVariables(p []interface{}) []*eaaspb.Variable {
 			obj.Name = v
 		}
 
-		if v, ok := in["type"].(string); ok && len(v) > 0 {
+		if v, ok := in["value_type"].(string); ok && len(v) > 0 {
+			fmt.Printf("expand variables with value type: %s", v)
 			obj.ValueType = v
 		}
 
@@ -1321,7 +1327,8 @@ func flattenVariables(input []*eaaspb.Variable, p []interface{}) []interface{} {
 		}
 
 		if len(in.ValueType) > 0 {
-			obj["type"] = in.ValueType
+			fmt.Printf("flatten variables with value type: %s", in.ValueType)
+			obj["value_type"] = in.ValueType
 		}
 
 		if len(in.Value) > 0 {
@@ -1338,7 +1345,7 @@ func flattenVariables(input []*eaaspb.Variable, p []interface{}) []interface{} {
 	return out
 }
 
-func flattenVariableOptions(input *eaaspb.VariableOptions) interface{} {
+func flattenVariableOptions(input *eaaspb.VariableOptions) []interface{} {
 	log.Println("flatten variable options")
 	if input == nil {
 		return nil
@@ -1355,10 +1362,10 @@ func flattenVariableOptions(input *eaaspb.VariableOptions) interface{} {
 		obj["override"] = flattenVariableOverrideOptions(input.GetOverride())
 	}
 
-	return obj
+	return []interface{}{obj}
 }
 
-func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) interface{} {
+func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) []interface{} {
 	log.Println("flatten variable override options")
 	if input == nil {
 		return nil
@@ -1373,7 +1380,7 @@ func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) inter
 		obj["restricted_values"] = input.RestrictedValues
 	}
 
-	return obj
+	return []interface{}{obj}
 }
 
 func expandHooks(p []interface{}) []*eaaspb.Hook {
@@ -1410,11 +1417,11 @@ func expandHooks(p []interface{}) []*eaaspb.Hook {
 			hook.TimeoutSeconds = d
 		}
 
-		if ro, ok := in["retry_options"].([]interface{}); ok {
+		if ro, ok := in["retry"].([]interface{}); ok {
 			hook.Retry = expandRetryOptions(ro)
 		}
 
-		if n, ok := in["onfailure"].(string); ok && len(n) > 0 {
+		if n, ok := in["on_failure"].(string); ok && len(n) > 0 {
 			hook.OnFailure = n
 		}
 
@@ -1480,7 +1487,7 @@ func expandApprovalOptions(p []interface{}) *eaaspb.ApprovalOptions {
 		ao.Jira = expandJiraApprovalOptions(jao)
 	}
 
-	if ghao, ok := in["github_pr"].([]interface{}); ok {
+	if ghao, ok := in["github_pull_request"].([]interface{}); ok {
 		ao.GithubPullRequest = expandGithubPRApprovalOptions(ghao)
 	}
 
@@ -1589,7 +1596,7 @@ func expandContainerOptions(p []interface{}) *eaaspb.ContainerOptions {
 		co.Commands = cmds
 	}
 
-	if ev, ok := in["env_vars"].(map[string]string); ok && len(ev) > 0 {
+	if ev, ok := in["envvars"].(map[string]string); ok && len(ev) > 0 {
 		co.Envvars = ev
 	}
 
@@ -1601,7 +1608,7 @@ func expandContainerOptions(p []interface{}) *eaaspb.ContainerOptions {
 		co.CpuLimitMilli = c
 	}
 
-	if m, ok := in["mem_limit_mb"].(string); ok && len(m) > 0 {
+	if m, ok := in["memory_limit_mb"].(string); ok && len(m) > 0 {
 		co.MemoryLimitMB = m
 	}
 
@@ -1697,7 +1704,7 @@ func flattenHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 
 		obj["agents"] = flattenEaasAgents(in.Agents)
 		obj["timeout_seconds"] = in.TimeoutSeconds
-		obj["retry_options"] = flattenRetryOptions(in.Retry)
+		obj["retry"] = flattenRetryOptions(in.Retry)
 		obj["on_failure"] = in.OnFailure
 
 		out[i] = &obj
@@ -1771,7 +1778,7 @@ func flattenApprovalOptions(input *eaaspb.ApprovalOptions, p []interface{}) []in
 	obj["internal"] = flattenInternalApprovalOptions(input.Internal)
 	obj["email"] = flattenEmailApprovalOptions(input.Email)
 	obj["jira"] = flattenJiraApprovalOptions(input.Jira)
-	obj["github_pr"] = flattenGithubPRApprovalOptions(input.GithubPullRequest)
+	obj["github_pull_request"] = flattenGithubPRApprovalOptions(input.GithubPullRequest)
 
 	return []interface{}{obj}
 
@@ -1856,10 +1863,10 @@ func flattenContainerOptions(input *eaaspb.ContainerOptions, p []interface{}) []
 	obj["image"] = input.Image
 	obj["arguments"] = input.Arguments
 	obj["commands"] = input.Commands
-	obj["env_vars"] = input.Envvars
+	obj["envvars"] = input.Envvars
 	obj["working_dir_path"] = input.WorkingDirPath
 	obj["cpu_limit_milli"] = input.CpuLimitMilli
-	obj["mem_limit_mb"] = input.MemoryLimitMB
+	obj["memory_limit_mb"] = input.MemoryLimitMB
 	obj["success_condition"] = input.SuccessCondition
 
 	return []interface{}{obj}

@@ -203,7 +203,7 @@ func expandResourceTemplate(in *schema.ResourceData) (*eaaspb.ResourceTemplate, 
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "eaas.envmgmt.io/v3"
+	obj.ApiVersion = "eaas.envmgmt.io/v1"
 	obj.Kind = "ResourceTemplate"
 	return obj, nil
 }
@@ -279,7 +279,7 @@ func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOpti
 		po.Pulumi = expandPulumiProviderOptions(p)
 	}
 
-	if rt, ok := in["retry"].([]interface{}); ok {
+	if rt, ok := in["retry_options"].([]interface{}); ok {
 		po.RetryOptions = expandRetryOptions(rt)
 	}
 
@@ -302,7 +302,7 @@ func expandResourceTemplateRepositoryOptions(p []interface{}) *eaaspb.ResourceTe
 		ro.Branch = b
 	}
 
-	if dp, ok := in["path"].(string); ok && len(dp) > 0 {
+	if dp, ok := in["directory_path"].(string); ok && len(dp) > 0 {
 		ro.DirectoryPath = dp
 	}
 
@@ -735,7 +735,7 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions) []interf
 	obj["system"] = flattenSystemProviderOptions(in.System)
 	obj["terragrunt"] = flattenTerragruntProviderOptions(in.Terragrunt)
 	obj["pulumi"] = flattenPulumiProviderOptions(in.Pulumi)
-	obj["retry"] = flattenRetryOptions(in.RetryOptions)
+	obj["retry_options"] = flattenRetryOptions(in.RetryOptions)
 
 	return []interface{}{obj}
 }
@@ -807,7 +807,7 @@ func flattenRepositoryOptions(in *eaaspb.ResourceTemplateRepositoryOptions) []in
 	obj := make(map[string]interface{})
 	obj["name"] = in.Name
 	obj["branch"] = in.Branch
-	obj["path"] = in.DirectoryPath
+	obj["directory_path"] = in.DirectoryPath
 
 	return []interface{}{obj}
 }

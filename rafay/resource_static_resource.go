@@ -202,7 +202,7 @@ func expandResource(in *schema.ResourceData) (*eaaspb.Resource, error) {
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "eaas.envmgmt.io/v3"
+	obj.ApiVersion = "eaas.envmgmt.io/v1"
 	obj.Kind = "Resource"
 	return obj, nil
 }

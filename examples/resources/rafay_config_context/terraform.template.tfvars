@@ -1,0 +1,1 @@
+provider_config_file = "/home/infracloud/development/vscode-workspace/rafay/terraform-provider-rafay/eaas-dev-nirav.parikh@rafay.co.json"

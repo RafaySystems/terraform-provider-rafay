@@ -64,7 +64,7 @@ resource "rafay_project_tags_association" "tfptagassociation1" {
 ***Required***
 
 - `tag_key` - (String) The tag key.
-- `tag_type` - (String) The tag type.
+- `tag_type` - (String) The tag type. Supported values are: `Cost` and `K8s`.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

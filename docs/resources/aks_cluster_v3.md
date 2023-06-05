@@ -43,8 +43,8 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
           }
           location = "centralindia"
           tags = {
-            "email" = "user@acme.net"
-            "env"   = "dev"
+            "email" = "user@company.com"
+            "env" = "terraform"
           }
           properties {
             api_server_access_profile {
@@ -55,6 +55,21 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             network_profile {
               network_plugin = "kubenet"
               load_balancer_sku = "standard"
+            }
+            addon_profiles {
+              http_application_routing {
+                enabled = true
+              }
+              azure_policy { 
+                enabled = true
+              }
+              azure_keyvault_secrets_provider {
+                enabled = true
+                config {
+                  enable_secret_rotation = false
+                  rotation_poll_interval = "2m"
+                }
+              }
             }
           }
           type = "Microsoft.ContainerService/managedClusters"

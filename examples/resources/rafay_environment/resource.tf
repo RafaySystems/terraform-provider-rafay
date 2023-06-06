@@ -1,12 +1,12 @@
 resource "rafay_environment" "eks-rds-env" {
   metadata {
-    name    = "eks-rds-env"
-    project = "terraform"
+    name    = var.name
+    project = var.project
   }
   spec {
     template {
-      name    = "aws-et"
-      version = "v1"
+      name    = var.et_name
+      version = var.et_version
     }
     variables {
       name       = "name"

@@ -1,7 +1,7 @@
 resource "rafay_static_resource" "static-resource" {
   metadata {
-    name    = "static-resource"
-    project = "terraform"
+    name    = var.name
+    project = var.project
   }
   spec {
     variables {

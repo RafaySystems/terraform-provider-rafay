@@ -1,10 +1,10 @@
 resource "rafay_resource_template" "aws-elasticache" {
   metadata {
-    name    = "aws-elasticache"
-    project = "terraform"
+    name    = var.name
+    project = var.project
   }
   spec {
-    version  = "v1"
+    version  = var.r_version
     provider = "terraform"
     provider_options {
       terraform {
@@ -13,12 +13,12 @@ resource "rafay_resource_template" "aws-elasticache" {
       }
     }
     repository_options {
-      name           = "envmgr-repo"
-      branch         = "tests"
-      directory_path = "test"
+      name           = var.repo_name
+      branch         = var.branch
+      directory_path = var.path
     }
     contexts {
-      name = "aws-rds-config"
+      name = var.configcontext_name
     }
     variables {
       name       = "name"

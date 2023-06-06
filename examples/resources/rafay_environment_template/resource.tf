@@ -1,19 +1,22 @@
 resource "rafay_environment_template" "aws-et" {
   metadata {
-    name    = "aws-et"
-    project = "terraform"
+    name    = var.name
+    project = var.project
   }
   spec {
-    version = "v1"
+    version = var.r_version
     resources {
       type = "dynamic"
       kind = "resourcetemplate"
-      name = "aws-elasticache"
+      name = var.rt_name
+      resource_options {
+       version = "v1" 
+      }
     }
     resources {
       type = "static"
       kind = "resource"
-      name = "static-resource"
+      name = var.sr_name
     }
     variables {
       name       = "name"

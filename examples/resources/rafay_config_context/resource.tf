@@ -1,7 +1,7 @@
 resource "rafay_config_context" "aws-rds-config" {
   metadata {
-    name    = "aws-rds-config"
-    project = "terraform"
+    name    = var.name
+    project = var.project
   }
   spec {
     envs {

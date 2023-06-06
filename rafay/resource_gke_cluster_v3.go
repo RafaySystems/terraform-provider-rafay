@@ -2,9 +2,11 @@ package rafay
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
@@ -129,12 +131,104 @@ func expandGKEClusterToV3(in *schema.ResourceData) (*infrapb.Cluster, error) {
 	}
 	obj := &infrapb.Cluster{}
 
-	obj.ApiVersion = "infra.k8smgmt.io/v3" // TODO: update to consts
-	obj.Kind = "Cluster"                   // TODO: update to consts
+	obj.ApiVersion = V3_CLUSTER_APIVERSION
+	obj.Kind = V3_CLUSTER_KIND
 
 	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandMetaData(v)
 	}
 
+	// spec
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
+		objSpec, err := expandGKEClusterToV3Spec(v)
+		if err != nil {
+			return nil, err
+		}
+		log.Println("expandClusterSpec got spec")
+		obj.Spec = objSpec
+	}
+
 	return obj, nil
+}
+
+func expandGKEClusterToV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
+	// expandGKESpec??
+	/*
+		type
+		sharing
+		cloudCredentials
+		blueprint
+		proxy
+		config --- gke
+
+	*/
+
+	obj := &infrapb.ClusterSpec{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, fmt.Errorf("%s", "expandClusterSpec empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		obj.Sharing = expandSharingSpecV3(v)
+	}
+
+	if v, ok := in["blueprint"].([]interface{}); ok && len(v) > 0 {
+		var err error
+		obj.Blueprint, err = expandGKEClusterToV3Blueprint(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand blueprint " + err.Error())
+		}
+	}
+
+	if v, ok := in["cloud_credentials"].(string); ok && len(v) > 0 {
+		obj.CloudCredentials = v
+	}
+
+	// TODO: Proxy
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		obj.Type = v
+	}
+
+	if !strings.EqualFold(obj.Type, GKE_CLUSTER_TYPE) {
+		return nil, errors.New("cluster type not implemented")
+	}
+
+	if strings.EqualFold(obj.Type, GKE_CLUSTER_TYPE) {
+		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+			var err error
+			obj.Config, err = expandToGkeV3ConfigObject(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand to gke config " + err.Error())
+			}
+		}
+	}
+
+	return obj, nil
+}
+
+func expandGKEClusterToV3Blueprint(p []interface{}) (*infrapb.ClusterBlueprint, error) {
+	obj := &infrapb.ClusterBlueprint{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, errors.New("empty blueprint in input")
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["name"].(string); ok {
+		obj.Name = v
+	} else if !ok {
+		return nil, errors.New("missing blueprint name")
+	}
+
+	if v, ok := in["version"].(string); ok {
+		obj.Version = v
+	} else if !ok {
+		return nil, errors.New("missing blueprint version")
+	}
+
+	log.Println("expandGKEClusterToV3Blueprint obj", obj)
+	return obj, nil
+
 }

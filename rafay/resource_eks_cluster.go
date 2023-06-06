@@ -3618,11 +3618,11 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 	return out
 }
 
-func expandIAMWellKnownPolicies(p []interface{}) WellKnownPolicies {
+func expandIAMWellKnownPolicies(p []interface{}) *WellKnownPolicies {
 	obj := WellKnownPolicies{}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return nil
 	}
 	in := p[0].(map[string]interface{})
 
@@ -3648,7 +3648,7 @@ func expandIAMWellKnownPolicies(p []interface{}) WellKnownPolicies {
 		obj.EFSCSIController = &v
 	}
 
-	return obj
+	return &obj
 }
 
 func expandIAMServiceAccountsStatusConfig(p []interface{}) *ClusterIAMServiceAccountStatus {
@@ -4625,7 +4625,10 @@ func flattenIAMStatus(in *ClusterIAMServiceAccountStatus, p []interface{}) []int
 
 	return []interface{}{obj}
 }
-func flattenIAMWellKnownPolicies(in WellKnownPolicies, p []interface{}) []interface{} {
+func flattenIAMWellKnownPolicies(in *WellKnownPolicies, p []interface{}) []interface{} {
+	if in == nil {
+		return make([]interface{}, 0)
+	}
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -4822,6 +4825,8 @@ func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, erro
 		}
 		if len(in.AttachPolicyARNs) > 0 {
 			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
+		} else {
+			obj["attach_policy_arns"] = make([]interface{}, 0)
 		}
 		//@@@TODO Store inline document object as terraform input correctly
 		if in.AttachPolicy != nil {
@@ -4840,9 +4845,7 @@ func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, erro
 		}
 		obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
 
-		if len(in.AttachPolicyARNs) > 0 {
-			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
-		}
+		obj["tags"] = toMapInterface(in.Tags)
 		//Force field for existing addon (not in doc)
 
 		out[i] = &obj

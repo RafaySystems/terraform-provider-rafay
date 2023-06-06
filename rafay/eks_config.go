@@ -209,7 +209,7 @@ type EKSClusterIAMServiceAccount struct {
 	// +optional
 	AttachPolicyARNs []string `yaml:"attachPolicyARNs,omitempty"`
 
-	WellKnownPolicies WellKnownPolicies `yaml:"wellKnownPolicies,omitempty"`
+	WellKnownPolicies *WellKnownPolicies `yaml:"wellKnownPolicies,omitempty"`
 
 	// AttachPolicy holds a policy document to attach to this service account
 	// +optional
@@ -417,7 +417,7 @@ type Addon struct {
 	PermissionsBoundary string `yaml:"permissionsBoundary,omitempty"`
 	// WellKnownPolicies for attaching common IAM policies
 	//WellKnown Policies not in documentation for addon? (same field as IAM wellknow-policies)
-	WellKnownPolicies WellKnownPolicies `yaml:"wellKnownPolicies,omitempty"`
+	WellKnownPolicies *WellKnownPolicies `yaml:"wellKnownPolicies,omitempty"`
 	// The metadata to apply to the cluster to assist with categorization and organization.
 	// Each tag consists of a key and an optional value, both of which you define.
 	// +optional

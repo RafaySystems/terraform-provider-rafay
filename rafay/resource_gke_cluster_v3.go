@@ -7,7 +7,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
+	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
+	"github.com/RafaySystems/rctl/pkg/config"
+	"github.com/RafaySystems/rctl/pkg/versioninfo"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -44,19 +50,44 @@ func resourceGKEClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 	if d.State() != nil && d.State().ID != "" {
 		n := GetMetaName(d)
 		if n != "" && n != d.State().ID {
-			log.Printf("metadata name change not supported")
+			log.Printf("cluster name change not supported")
 			d.State().Tainted = true
-			return diag.FromErr(fmt.Errorf("%s", "metadata name change not supported"))
+			return diag.FromErr(fmt.Errorf("%s", "cluster name change not supported"))
 		}
 	}
 
-	cluster, err := expandClusterV3(d)
+	//cluster, err := expandClusterV3(d)
+	cluster, err := expandGKEClusterToV3(d)
 	if err != nil {
-		log.Printf("Cluster expandCluster error")
+		log.Printf("Cluster expandCluster error " + err.Error())
 		return diag.FromErr(err)
 	}
 
 	log.Println(">>>>>> CLUSTER: ", cluster)
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = client.InfraV3().Cluster().Apply(ctx, cluster, options.ApplyOptions{})
+	if err != nil {
+		// XXX Debug
+		n1 := spew.Sprintf("%+v", cluster)
+		log.Println("Cluster apply cluster:", n1)
+		log.Printf("Cluster apply error")
+		return diag.FromErr(err)
+	}
+
+	// // wait for cluster creation
+	// ticker := time.NewTicker(time.Duration(60) * time.Second)
+	// defer ticker.Stop()
+	// timeout := time.After(time.Duration(90) * time.Minute)
+
+	// edgeName := cluster.Metadata.Name
+	// projectName := cluster.Metadata.Project
+	// d.SetId(cluster.Metadata.Name)
 
 	return diags
 }
@@ -90,4 +121,20 @@ func resourceGKEClusterV3Delete(ctx context.Context, d *schema.ResourceData, m i
 	log.Printf("GKE Cluster delete starts")
 
 	return diags
+}
+
+func expandGKEClusterToV3(in *schema.ResourceData) (*infrapb.Cluster, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "expand cluster invoked with empty input")
+	}
+	obj := &infrapb.Cluster{}
+
+	obj.ApiVersion = "infra.k8smgmt.io/v3" // TODO: update to consts
+	obj.Kind = "Cluster"                   // TODO: update to consts
+
+	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
+		obj.Metadata = expandMetaData(v)
+	}
+
+	return obj, nil
 }

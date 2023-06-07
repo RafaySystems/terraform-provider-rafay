@@ -216,7 +216,7 @@ func expandConfigContextSpec(p []interface{}) (*eaaspb.ConfigContextSpec, error)
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["env_vars"].([]interface{}); ok {
+	if v, ok := in["envs"].([]interface{}); ok {
 		spec.Envs = expandEnvVariables(v)
 	}
 
@@ -309,12 +309,12 @@ func flattenConfigContextSpec(in *eaaspb.ConfigContextSpec, p []interface{}) ([]
 	}
 
 	if len(in.Envs) > 0 {
-		v, ok := obj["env_vars"].([]interface{})
+		v, ok := obj["envs"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
 
-		obj["env_vars"] = flattenEnvVariables(in.Envs, v)
+		obj["envs"] = flattenEnvVariables(in.Envs, v)
 	}
 	obj["files"] = flattenCommonpbFiles(in.Files)
 	if len(in.Variables) > 0 {

@@ -6,24 +6,24 @@ variable "rafay_config_file" {
 
 variable "name" {
   description = "rafay provider environment name"
-  sensitive = false
-  default = "my-environment"
+  sensitive   = false
+  default     = "my-environment"
 }
 
 variable "project" {
   description = "project name where resource to be created"
-  sensitive = false
-  default = "terraform"
+  sensitive   = false
+  default     = "terraform"
 }
 
 variable "et_name" {
   description = "environment template name based of which environment has to be created"
-  sensitive = false
-  default = "my-environment-template"
+  sensitive   = false
+  default     = "my-environment-template"
 }
 
 variable "et_version" {
   description = "environment template version based of which environment has to be created"
-  sensitive = false
-  default = "v1"
+  sensitive   = false
+  default     = "v1"
 }

@@ -506,7 +506,7 @@ func expandCommonpbFiles(p []interface{}) []*commonpb.File {
 			}
 		}
 
-		if v, ok := in["name"].(bool); ok {
+		if v, ok := in["sensitive"].(bool); ok {
 			obj.Sensitive = v
 		}
 
@@ -1317,7 +1317,7 @@ func expandVariables(p []interface{}) []*eaaspb.Variable {
 	if len(p) == 0 || p[0] == nil {
 		return []*eaaspb.Variable{}
 	}
-
+	log.Println("expand variables start")
 	vars := make([]*eaaspb.Variable, len(p))
 
 	for i := range p {
@@ -1329,7 +1329,6 @@ func expandVariables(p []interface{}) []*eaaspb.Variable {
 		}
 
 		if v, ok := in["value_type"].(string); ok && len(v) > 0 {
-			fmt.Printf("expand variables with value type: %s", v)
 			obj.ValueType = v
 		}
 
@@ -1342,7 +1341,6 @@ func expandVariables(p []interface{}) []*eaaspb.Variable {
 		}
 
 		vars[i] = &obj
-
 	}
 
 	return vars
@@ -1482,6 +1480,9 @@ func expandHooks(p []interface{}) []*eaaspb.Hook {
 
 	for indx := range p {
 		hook := &eaaspb.Hook{}
+		if p[indx] == nil {
+			return hooks
+		}
 		in := p[indx].(map[string]interface{})
 
 		if n, ok := in["name"].(string); ok && len(n) > 0 {
@@ -1504,8 +1505,8 @@ func expandHooks(p []interface{}) []*eaaspb.Hook {
 			hook.Agents = expandEaasAgents(ag)
 		}
 
-		if d, ok := in["timeout_seconds"].(int64); ok {
-			hook.TimeoutSeconds = d
+		if d, ok := in["timeout_seconds"].(int); ok {
+			hook.TimeoutSeconds = int64(d)
 		}
 
 		if ro, ok := in["retry"].([]interface{}); ok {
@@ -1531,23 +1532,23 @@ func expandHookOptions(p []interface{}) *eaaspb.HookOptions {
 
 	in := p[0].(map[string]interface{})
 
-	if ao, ok := in["approval_options"].([]interface{}); ok {
+	if ao, ok := in["approval"].([]interface{}); ok {
 		ho.Approval = expandApprovalOptions(ao)
 	}
 
-	if no, ok := in["notification_options"].([]interface{}); ok {
+	if no, ok := in["notification"].([]interface{}); ok {
 		ho.Notification = expandNotificationOptions(no)
 	}
 
-	if so, ok := in["script_options"].([]interface{}); ok {
+	if so, ok := in["script"].([]interface{}); ok {
 		ho.Script = expandScriptOptions(so)
 	}
 
-	if co, ok := in["container_options"].([]interface{}); ok {
+	if co, ok := in["container"].([]interface{}); ok {
 		ho.Container = expandContainerOptions(co)
 	}
 
-	if o, ok := in["http_options"].([]interface{}); ok {
+	if o, ok := in["http"].([]interface{}); ok {
 		ho.Http = expandHttpOptions(o)
 	}
 
@@ -1648,7 +1649,7 @@ func expandScriptOptions(p []interface{}) *eaaspb.ShellScriptOptions {
 		so.Script = s
 	}
 
-	if ev, ok := in["env_vars"].(map[string]string); ok && len(ev) > 0 {
+	if ev, ok := in["envvars"].(map[string]string); ok && len(ev) > 0 {
 		so.Envvars = ev
 	}
 
@@ -1656,7 +1657,7 @@ func expandScriptOptions(p []interface{}) *eaaspb.ShellScriptOptions {
 		so.CpuLimitMilli = c
 	}
 
-	if m, ok := in["mem_limit_mb"].(string); ok && len(m) > 0 {
+	if m, ok := in["memory_limit_mb"].(string); ok && len(m) > 0 {
 		so.MemoryLimitMB = m
 	}
 
@@ -1753,8 +1754,8 @@ func expandRetryOptions(p []interface{}) *eaaspb.RetryOptions {
 		ro.Enabled = e
 	}
 
-	if m, ok := in["max_count"].(int32); ok {
-		ro.MaxCount = m
+	if m, ok := in["max_count"].(int); ok {
+		ro.MaxCount = int32(m)
 	}
 
 	return ro
@@ -1772,13 +1773,12 @@ func flattenHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
-
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
 		}
 
 		if len(in.Description) > 0 {
-			obj["descritpion"] = in.Description
+			obj["description"] = in.Description
 		}
 
 		if len(in.Type) > 0 {
@@ -1799,6 +1799,7 @@ func flattenHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		obj["on_failure"] = in.OnFailure
 
 		out[i] = &obj
+		log.Println("flatten hook setting object ", out[i])
 	}
 
 	return out
@@ -1933,9 +1934,9 @@ func flattenScriptOptions(input *eaaspb.ShellScriptOptions, p []interface{}) []i
 	}
 
 	obj["script"] = input.Script
-	obj["env_vars"] = input.Envvars
+	obj["envvars"] = input.Envvars
 	obj["cpu_limit_milli"] = input.CpuLimitMilli
-	obj["mem_limit_mb"] = input.MemoryLimitMB
+	obj["memory_limit_mb"] = input.MemoryLimitMB
 	obj["success_condition"] = input.SuccessCondition
 
 	return []interface{}{obj}

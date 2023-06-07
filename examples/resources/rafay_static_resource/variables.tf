@@ -6,11 +6,11 @@ variable "rafay_config_file" {
 
 variable "name" {
   description = "rafay provider static resource name"
-  sensitive = false
-  default = "my-static-resource"
+  sensitive   = false
+  default     = "my-static-resource"
 }
 
 variable "project" {
   description = "project name where resource to be created"
-  default = "terraform"
+  default     = "terraform"
 }

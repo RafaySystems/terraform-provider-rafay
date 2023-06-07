@@ -6,36 +6,36 @@ variable "rafay_config_file" {
 
 variable "name" {
   description = "rafay provider resource template name"
-  sensitive = false
-  default = "my-resource-template"
+  sensitive   = false
+  default     = "my-resource-template"
 }
 
 variable "project" {
   description = "project name where resource to be created"
-  default = "terraform"
+  default     = "terraform"
 }
 
 variable "r_version" {
   description = "version of the resource"
-  default = "v1"
+  default     = "v1"
 }
 
 variable "repo_name" {
   description = "repository name of the resource config"
-  default = "envmgr-repo"
+  default     = "envmgr-demo"
 }
 
 variable "branch" {
   description = "branch of the repository"
-  default = "tests"
+  default     = "main"
 }
 
 variable "path" {
   description = "path of the repository"
-  default = "test"
+  default     = "terraform/aws"
 }
 
 variable "configcontext_name" {
   description = "config context dependency"
-  default = "my-config-context"
+  default     = "my-config-context"
 }

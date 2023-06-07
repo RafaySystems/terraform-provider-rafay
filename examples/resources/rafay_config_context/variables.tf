@@ -1,7 +1,7 @@
 variable "rafay_config_file" {
   description = "rafay provider config file for authentication"
   sensitive   = true
-  default     = "/home/infracloud/development/vscode-workspace/rafay/terraform-provider-rafay/eaas-dev-nirav.parikh@rafay.co.json"
+  default     = "/Users/user1/.rafay/cli/config.json"
 }
 
 variable "name" {
@@ -12,6 +12,6 @@ variable "name" {
 
 variable "project" {
   description = "project name where resource to be created"
-  sensitive = false
-  default = "terraform"
+  sensitive   = false
+  default     = "terraform"
 }

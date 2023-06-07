@@ -347,10 +347,181 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 
 	out := make([]*infrapb.GkeNodePool, len(p))
 	for i := range p {
-		obj := &infrapb.GkeNodePool{} 
+		obj := &infrapb.GkeNodePool{}
+
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok {
+			obj.Name = v
+		}
+
+		if v, ok := in["node_version"].(string); ok {
+			obj.Name = v
+		}
+
+		if v, ok := in["size"].(int); ok && v > 0 {
+			obj.Size = int64(v)
+		}
+
+		// GkeNodeLocation
+		var err error
+		if v, ok := in["node_locations"].([]interface{}); ok && len(v) > 0 {
+			obj.NodeLocations, err = expandToV3GkeNodeLocation(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand Gke node locations " + err.Error())
+			}
+		}
+
+		// GkeNodeAutoScale
+		if v, ok := in["auto_scaling"].([]interface{}); ok && len(v) > 0 {
+			obj.AutoScaling, err = expandToV3GkeNodeAutoScale(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand Gke autoscaling " + err.Error())
+			}
+		}
+
+		// GkeNodeMachineConfig
+		if v, ok := in["machine_config"].([]interface{}); ok && len(v) > 0 {
+			obj.MachineConfig, err = expandToV3GkeNodeMachineConfig(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand Gke machine config " + err.Error())
+			}
+		}
+
+		// GkeNodeNetworking
+		if v, ok := in["networking"].([]interface{}); ok && len(v) > 0 {
+			obj.Networking, err = expandToV3GkeNodeNetworking(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand Gke node networking " + err.Error())
+			}
+		}
+
+		// GkeNodeSecurity
+		if v, ok := in["security"].([]interface{}); ok && len(v) > 0 {
+			obj.Security, err = expandToV3GkeNodeSecurity(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand Gke node security " + err.Error())
+			}
+		}
+
+		// TODO GkeNodeMetadata
+		// 		if v, ok := in[""].([]interface{}); ok && len(v) > 0 {
+		// 	if err != nil {
+		// 		return obj, fmt.Errorf("failed to expand Gke authorized networks " + err.Error())
+		// 	}
+		// }
+
 	}
 
 	return out, nil
+}
+
+// GkeNodeLocation
+func expandToV3GkeNodeLocation(p []interface{}) (*infrapb.GkeNodeLocation, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node location config")
+	}
+
+	obj := &infrapb.GkeNodeLocation{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["zones"].([]interface{}); ok && len(v) > 0 {
+		obj.Zones = toArrayString(v)
+	}
+
+	return obj, nil
+}
+
+// GkeNodeAutoScale
+func expandToV3GkeNodeAutoScale(p []interface{}) (*infrapb.GkeNodeAutoScale, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node autoscale config")
+	}
+
+	obj := &infrapb.GkeNodeAutoScale{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["min_nodes"].(int); ok && v > 0 {
+		obj.MinNodes = int64(v)
+	}
+
+	if v, ok := in["max_nodes"].(int); ok && v > 0 {
+		obj.MaxNodes = int64(v)
+	}
+
+	return obj, nil
+}
+
+// GkeNodeMachineConfig
+func expandToV3GkeNodeMachineConfig(p []interface{}) (*infrapb.GkeNodeMachineConfig, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node machine config")
+	}
+
+	obj := &infrapb.GkeNodeMachineConfig{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["machine_type"].(string); ok {
+		obj.MachineType = v
+	}
+
+	if v, ok := in["image_type"].(string); ok {
+		obj.ImageType = v
+	}
+
+	if v, ok := in["boot_disk_type"].(string); ok {
+		obj.BootDiskType = v
+	}
+
+	if v, ok := in["boot_disk_size"].(int); ok && v > 0 {
+		obj.BootDiskSize = int64(v)
+	}
+
+	return obj, nil
+}
+
+// GkeNodeNetworking
+func expandToV3GkeNodeNetworking(p []interface{}) (*infrapb.GkeNodeNetworking, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node network config")
+	}
+
+	obj := &infrapb.GkeNodeNetworking{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["max_pods_per_node"].(int); ok && v > 0 {
+		obj.MaxPodsPerNode = int64(v)
+	}
+
+	if v, ok := in["network_tags"].([]interface{}); ok && len(v) > 0 {
+		obj.NetworkTags = toArrayString(v)
+	}
+
+	return obj, nil
+}
+
+// GkeNodeSecurity
+func expandToV3GkeNodeSecurity(p []interface{}) (*infrapb.GkeNodeSecurity, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node security config")
+	}
+
+	obj := &infrapb.GkeNodeSecurity{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enable_integrity_monitoring"].(bool); ok {
+		obj.EnableIntegrityMonitoring = v
+	}
+
+	if v, ok := in["enable_secure_boot"].(bool); ok {
+		obj.EnableSecureBoot = v
+	}
+
+	return obj, nil
 }
 
 // func expandToV3GkeNetwork(p []interface{}) (*infrapb.GkeNetwork, error) {

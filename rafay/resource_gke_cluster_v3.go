@@ -199,7 +199,7 @@ func expandGKEClusterToV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 	if strings.EqualFold(obj.Type, GKE_CLUSTER_TYPE) {
 		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
 			var err error
-			obj.Config, err = expandToGkeV3ConfigObject(v)
+			obj.Config, err = expandToV3GkeConfigObject(v)
 			if err != nil {
 				return nil, fmt.Errorf("failed to expand to gke config " + err.Error())
 			}

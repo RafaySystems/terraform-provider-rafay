@@ -80,6 +80,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_chargeback_group_report": resourceChargebackGroupReport(),
 				"rafay_chargeback_share":        resourceChargebackShare(),
 				"rafay_cloud_credentials_v3":    resourceCredentials(),
+				"rafay_cluster_vaultdetails":    resourceClusterVaultDetails(),
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,

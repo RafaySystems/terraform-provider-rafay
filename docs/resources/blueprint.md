@@ -31,6 +31,7 @@ resource "rafay_blueprint" "custom-blueprint" {
       enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
+      enable_csi_secret_store = true
       monitoring {
         metrics_server {
           enabled = true
@@ -50,6 +51,15 @@ resource "rafay_blueprint" "custom-blueprint" {
         resources {
           limits = "200Mi"
           cpu = "100m"
+        }
+      }
+      csi_secret_store_config {
+        sync_secrets = true
+        enable_secret_rotation = true
+        rotation_poll_interval = "10s"
+        providers {
+          vault = true
+          aws = true
         }
       }
     }
@@ -391,6 +401,7 @@ resource "rafay_blueprint" "cost-blueprint" {
 - `enable_monitoring` - (Boolean) If enabled, monitoring is installed on the cluster. 
 - `enable_rook_ceph` - (Boolean) If enabled, run ceph inside a cluster. 
 - `enable_vm` - (Boolean) If enabled, VM operator (kubevirt) is installed on the cluster. 
+- `enable_csi_secret_store` - (Boolean) If enabled, CSI Secret Store Driver is installed on the cluster. 
 - `monitoring` - (Block List) The configuration for monitoring the resource is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring))
 
 

@@ -172,7 +172,7 @@ resource "rafay_blueprint" "blueprint" {
       }
       profile {
 	      name = "default"
-              version = "latest"
+          version = "latest"
       }
     }
   }

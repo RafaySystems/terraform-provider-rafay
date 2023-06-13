@@ -505,7 +505,9 @@ func expandMonitoringComponent(p []interface{}) *infrapb.MonitoringComponent {
 	if v, ok := in["enabled"].(bool); ok {
 		obj.Enabled = v
 	}
-
+	if v, ok := in["customization_enabled"].(bool); ok {
+		obj.CustomizationEnabled = v
+	}
 	if v, ok := in["discovery"].([]interface{}); ok && len(v) > 0 {
 		obj.Discovery = expandDiscovery(v)
 	}
@@ -1407,6 +1409,9 @@ func flattenMonitoringComponent(in *infrapb.MonitoringComponent, p []interface{}
 	}
 	if in.Enabled {
 		obj["enabled"] = in.Enabled
+	}
+	if in.CustomizationEnabled {
+		obj["customization_enabled"] = in.CustomizationEnabled
 	}
 	if in.Discovery != nil {
 		v, ok := obj["discovery"].([]interface{})

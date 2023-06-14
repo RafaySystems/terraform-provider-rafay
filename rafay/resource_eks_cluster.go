@@ -1,7 +1,9 @@
 package rafay
 
 import (
+	"bytes"
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -15,7 +17,6 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/RafaySystems/rctl/pkg/project"
-	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-cty/cty"
 	jsoniter "github.com/json-iterator/go"
@@ -26,14 +27,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-type blueprintSpec struct {
-	Blueprint        string `yaml:"blueprint"`
-	Blueprintversion string `yaml:"blueprintversion"`
-}
-
-type blueprintType struct {
-	Spec *blueprintSpec `yaml:"spec"`
-}
+// go:embed resource_eks_cluster_description.md
+var resourceEKSClusterDescription string
 
 func resourceEKSCluster() *schema.Resource {
 	return &schema.Resource{
@@ -49,7 +44,7 @@ func resourceEKSCluster() *schema.Resource {
 		},
 
 		Importer: &schema.ResourceImporter{
-			State: resourceEKSClusterImport,
+			StateContext: resourceEKSClusterImport,
 		},
 
 		SchemaVersion: 1,
@@ -57,20 +52,25 @@ func resourceEKSCluster() *schema.Resource {
 			"cluster": {
 				Type:        schema.TypeList,
 				Required:    true,
-				Description: "cluster yaml file",
+				Description: "Rafay specific cluster configuration",
 				Elem: &schema.Resource{
 					Schema: clusterMetadataField(),
 				},
+				MinItems: 1,
+				MaxItems: 1,
 			},
 			"cluster_config": {
 				Type:        schema.TypeList,
 				Required:    true,
-				Description: "cluster config yaml file",
+				Description: "EKS specific cluster configuration",
 				Elem: &schema.Resource{
 					Schema: configField(),
 				},
+				MinItems: 1,
+				MaxItems: 1,
 			},
 		},
+		Description: resourceEKSClusterDescription,
 	}
 }
 
@@ -81,23 +81,27 @@ func clusterMetadataField() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Default:     "Cluster",
-			Description: "kind",
+			Description: "The type of resource. Supported value is `Cluster`.",
 		},
 		"metadata": {
 			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "defines the configuration for KMS encryption provider",
+			Required:    true,
+			Description: "Contains data that helps uniquely identify the resource.",
 			Elem: &schema.Resource{
 				Schema: clusterMetaMetadataFields(),
 			},
+			MinItems: 1,
+			MaxItems: 1,
 		},
 		"spec": {
 			Type:        schema.TypeList,
 			Required:    true,
-			Description: "contains cluster networking options",
+			Description: "The specification associated with the cluster, including cluster networking options.",
 			Elem: &schema.Resource{
 				Schema: specField(),
 			},
+			MinItems: 1,
+			MaxItems: 1,
 		},
 	}
 	return s
@@ -107,17 +111,17 @@ func clusterMetaMetadataFields() map[string]*schema.Schema {
 		"name": {
 			Type:        schema.TypeString,
 			Required:    true,
-			Description: "EKS Cluster name",
+			Description: "The name of the EKS cluster in Rafay console. This must be unique in your organization.",
 		},
 		"project": {
 			Type:        schema.TypeString,
 			Required:    true,
-			Description: "Project for the cluster",
+			Description: "The name of the Rafay project the cluster will be created in.",
 		},
 		"labels": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Description: "Cluster Labels",
+			Description: "The labels for the cluster in Rafay console.",
 		},
 	}
 	return s
@@ -127,36 +131,36 @@ func specField() map[string]*schema.Schema {
 		"type": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Default:     "eks",
-			Description: "Cluster Type",
+			Default:     "aws-eks",
+			Description: "The cluster type. Supported value is `eks`.",
 		},
 		"blueprint": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Default:     "myblueprint",
-			Description: "Blueprint associated with the cluster",
+			Default:     "default",
+			Description: "The blueprint associated with the cluster. A blueprint defines the configuration and policy. Use blueprints to help standardize cluster configurations.",
 		},
 		"blueprint_version": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "Blueprint version associated with the cluster",
+			Description: "The blueprint version associated with the cluster.",
 		},
 		"cloud_provider": {
 			Type:        schema.TypeString,
-			Optional:    true,
-			Default:     "myprovider",
-			Description: "Cloud credentials provider used to create and manage the cluster",
+			Required:    true,
+			Description: "The cloud credentials provider used to create and manage the cluster.",
 		},
 		"cni_provider": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Default:     "Calico-v3.19.1",
-			Description: "Cni provider used to specify different cni options for the cluster",
+			Default:     "aws-cni",
+			Description: "The container network interface (CNI) provider used to specify different network connectivity options for the cluster.",
 		},
 		"cni_params": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "contains custom cni networking configurations",
+			MaxItems:    1,
+			Description: "The container network interface (CNI) parameters.",
 			Elem: &schema.Resource{
 				Schema: customCniField(),
 			},
@@ -164,44 +168,52 @@ func specField() map[string]*schema.Schema {
 		"proxy_config": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Description: "Configure Proxy if your infrastructure uses an Outbound Proxy",
+			Description: "The proxy configuration for the cluster. Use this if the infrastructure uses an outbound proxy.",
 		},
 		"system_components_placement": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "Configure tolerations and nodeSelector for system components",
+			MaxItems:    1,
+			Description: "Configure tolerations and nodeSelector for Rafay system components.",
 			Elem: &schema.Resource{
 				Schema: systemComponentsPlacementFields(),
 			},
 		},
-		"sharing": &schema.Schema{
-			Description: "blueprint sharing configuration",
-			Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-				"enabled": &schema.Schema{
-					Description: "flag to specify if sharing is enabled for resource",
-					Optional:    true,
-					Type:        schema.TypeBool,
-				},
-				"projects": &schema.Schema{
-					Description: "list of projects this resource is shared to",
-					Elem: &schema.Resource{Schema: map[string]*schema.Schema{"name": &schema.Schema{
-						Description: "name of the project",
-						Optional:    true,
-						Type:        schema.TypeString,
-					}}},
-					MaxItems: 0,
-					MinItems: 0,
-					Optional: true,
-					Type:     schema.TypeList,
-				},
-			}},
+		"sharing": {
+			Description: "The sharing configuration for the resource. A cluster can be shared with one or more projects. Note: If the resource is not shared, set enabled = false.",
+			Elem: &schema.Resource{
+				Schema: sharingFields(),
+			},
 			MaxItems: 1,
-			MinItems: 1,
 			Optional: true,
 			Type:     schema.TypeList,
 		},
 	}
 	return s
+}
+
+func sharingFields() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"enabled": {
+			Description: "Enable sharing for this resource.",
+			Optional:    true,
+			Type:        schema.TypeBool,
+		},
+		"projects": {
+			Description: "The list of projects this resource is shared with. Note: Required when project sharing is enabled.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Description: "The name of the project to share the resource.",
+						Required:    true,
+						Type:        schema.TypeString,
+					},
+				},
+			},
+			Optional: true,
+			Type:     schema.TypeList,
+		},
+	}
 }
 
 func systemComponentsPlacementFields() map[string]*schema.Schema {
@@ -297,12 +309,12 @@ func customCniField() map[string]*schema.Schema {
 		"custom_cni_cidr": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "Valid variants are: 'IPv4' defines an IP family of v4 to be used when creating a new VPC and cluster., 'IPv6' defines an IP family of v6 to be used when creating a new VPC and cluster..",
+			Description: "Secondary IPv4 CIDR block for the VPC. This should be specified if you choose to auto-create VPC and subnets while creating the EKS cluster.",
 		},
 		"custom_cni_crd_spec": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "contains custom cni networking configurations",
+			Description: "The custom container network interface custom resource definition specification. One or more of these blocks should be specified if you choose to use your existing VPC and subnets while creating the EKS cluster.",
 			Elem: &schema.Resource{
 				Schema: customCniSpecField(),
 			},
@@ -315,13 +327,14 @@ func customCniSpecField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"name": {
 			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "name of custom cni",
+			Required:    true,
+			Description: "The name of the Availability Zone (AZ). The availability zone specified here should be a part of the region specified for the EKS cluster.",
 		},
 		"cni_spec": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "contains custom cni networking configurations",
+			MaxItems:    1,
+			Description: "The custom CNI configuration for this AZ.",
 			Elem: &schema.Resource{
 				Schema: cniSpecField(),
 			},
@@ -335,12 +348,12 @@ func cniSpecField() map[string]*schema.Schema {
 		"subnet": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "",
+			Description: "The subnet associated with secondary ENIs for AWS EC2 nodes.",
 		},
 		"security_groups": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "security groups of custom CNI",
+			Description: "The security groups associated with secondary ENIs for AWS EC2 nodes.",
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
@@ -2042,31 +2055,6 @@ func updateConfigManagedNodeGroupsFields() map[string]*schema.Schema {
 	}
 	return s
 }
-func launchTemepelateField() map[string]*schema.Schema { //@@very different from doc double check
-	s := map[string]*schema.Schema{
-		"id": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Launch template ID",
-		},
-		"version": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Launch template version Defaults to the default launch template version TODO support $Default, $Latest",
-		},
-		"release_version": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "the AMI version of the EKS optimized AMI to use",
-		},
-		"kuberenetes_version": { //in doc version is used twice in this field (gives error, used diff name than version)
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Kuberenetes version for the nodegroup",
-		},
-	}
-	return s
-}
 
 func fargateProfilesConfigField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
@@ -2211,20 +2199,6 @@ func arnFields() map[string]*schema.Schema {
 	return s
 }
 
-func findBlueprintName(configBytes []byte) (string, string, error) {
-	var blueprint blueprintType
-	if err := yaml.Unmarshal(configBytes, &blueprint); err != nil {
-		return "", "", nil
-	} else if blueprint.Spec == nil {
-		return "", "", fmt.Errorf("%s", "Invalid resource: No spec found")
-	} else if blueprint.Spec.Blueprint == "" {
-		return "", "", fmt.Errorf("%s", "Invalid resource: No name specified in spec")
-	}
-
-	return blueprint.Spec.Blueprint, blueprint.Spec.Blueprintversion, nil
-
-}
-
 func resourceEKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("resourceEKSClusterUpsert")
 	return processEKSInputs(ctx, d, m)
@@ -2315,66 +2289,54 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 
 func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	//building cluster and cluster config yaml file
-	yamlCluster := &EKSCluster{}
-	yamlClusterConfig := &EKSClusterConfig{}
+	var yamlCluster *EKSCluster
+	var yamlClusterConfig *EKSClusterConfig
 	rawConfig := d.GetRawConfig()
 	//expand cluster yaml file
 	if v, ok := d.Get("cluster").([]interface{}); ok {
 		yamlCluster = expandEKSCluster(v)
 	} else {
-		fmt.Print("Cluster data unable to be found")
+		log.Print("Cluster data unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
 	}
 	//expand cluster config yaml file
 	if v, ok := d.Get("cluster_config").([]interface{}); ok {
 		yamlClusterConfig = expandEKSClusterConfig(v, rawConfig.GetAttr("cluster_config"))
 	} else {
-		fmt.Print("Cluster Config unable to be found")
+		log.Print("Cluster Config unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster Config is missing"))
 	}
-	//print out struct after building
-	log.Printf("EKS Cluster Metadata yaml %v", yamlCluster)
-	log.Printf("EKS Cluster Config/Spec yaml %v", yamlClusterConfig)
-	//marshal yaml files for []bytes
-	clusterByte, err := yaml.Marshal(yamlCluster)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	log.Printf("EKS Cluster Metadata YAML \n---\n%s\n----\n", clusterByte)
-	n1 := spew.Sprintf("%+v", yamlClusterConfig)
-	log.Println("apply yamlClusterConfig:", n1)
-	configByte, err := yaml.Marshal(yamlClusterConfig)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	//print out []bytes
-	log.Printf("EKS Cluster Spec YAML \n---\n%s\n----\n", configByte)
 
-	return processEKSFilebytes(ctx, d, m, clusterByte, configByte, yamlCluster, yamlClusterConfig)
+	return processEKSFilebytes(ctx, d, m, yamlCluster, yamlClusterConfig)
 }
-func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interface{}, clusterByte, configByte []byte, yamlClusterMetadata *EKSCluster, yamlClusterConfig *EKSClusterConfig) diag.Diagnostics {
+func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interface{}, yamlClusterMetadata *EKSCluster, yamlClusterConfig *EKSClusterConfig) diag.Diagnostics {
 	log.Printf("process_filebytes")
 	var diags diag.Diagnostics
-	rctlCfg := config.GetConfig()
 
-	cfgList := make(map[string][][]byte)
-	cfgList["Cluster"] = append(cfgList["Cluster"], clusterByte)
-	cfgList["ClusterConfig"] = append(cfgList["ClusterConfig"], configByte)
-
-	// get project details
-	resp, err := project.GetProjectByName(yamlClusterMetadata.Metadata.Project)
+	clusterName := yamlClusterMetadata.Metadata.Name
+	projectName := yamlClusterMetadata.Metadata.Project
+	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		log.Println("project does not exist")
-		return diags
-	}
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		log.Println("project does not exist")
-		return diags
+		log.Print("error converting project name to id")
+		return diag.Errorf("error converting project name to project ID")
 	}
 
-	log.Println("calling cluster ctl")
-	response, err := eksClusterCTL(rctlCfg, cfgList["Cluster"], cfgList["ClusterConfig"], false)
+	var b bytes.Buffer
+	encoder := yaml.NewEncoder(&b)
+	if err := encoder.Encode(yamlClusterMetadata); err != nil {
+		log.Printf("error encoding cluster: %s", err)
+		return diag.FromErr(err)
+	}
+	if err := encoder.Encode(yamlClusterConfig); err != nil {
+		log.Printf("error encoding cluster config: %s", err)
+		return diag.FromErr(err)
+	}
+
+	logger := glogger.GetLogger()
+	rctlConfig := config.GetConfig()
+
+	log.Printf("calling cluster ctl:\n%s", b.String())
+	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		return diag.FromErr(err)
@@ -2391,7 +2353,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 		return nil
 	}
 	time.Sleep(10 * time.Second)
-	s, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+	s, errGet := cluster.GetCluster(clusterName, projectID)
 	if errGet != nil {
 		log.Printf("error while getCluster %s", errGet.Error())
 		return diag.FromErr(errGet)
@@ -2401,13 +2363,13 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	d.SetId(s.ID)
 	for { //wait for cluster to provision correctly
 		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, project.ID)
+		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, projectID)
 		if errGet != nil {
 			log.Printf("error while getCluster %s", errGet.Error())
 			return diag.FromErr(errGet)
 		}
 
-		statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+		statusResp, err := clusterctl.Status(logger, rctlConfig, res.TaskSetID)
 		if err != nil {
 			log.Println("status response parse error", err)
 			return diag.FromErr(err)
@@ -2439,24 +2401,6 @@ func eksClusterCTLStatus(taskid string) (string, error) {
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
 	return clusterctl.Status(logger, rctlCfg, taskid)
-}
-func eksClusterCTL(config *config.Config, rafayConfigs, clusterConfigs [][]byte, dryRun bool) (string, error) {
-	log.Printf("eksClusterCTL")
-	logger := glogger.GetLogger()
-	configMap, errs := collateConfigsByName(rafayConfigs, clusterConfigs)
-	log.Println("errs:", errs)
-	if len(errs) == 0 && len(configMap) > 0 {
-		// Make request
-		log.Println("right bfr for loop->apply")
-		for clusterName, configBytes := range configMap {
-			log.Println("hope its not apply err")
-			x, applyErr := clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false)
-			log.Println("apply string: ", x)
-			log.Println("apply err: ", applyErr)
-			return x, applyErr
-		}
-	}
-	return "", fmt.Errorf("%s", "config collate error")
 }
 
 // expand metadat for eks metadata file  (completed)
@@ -3252,11 +3196,11 @@ func expandStatement(p []interface{}) InlineStatement {
 }
 
 // expand attach policy (completed)
-func expandAttachPolicy(p []interface{}) InlineDocument {
+func expandAttachPolicy(p []interface{}) *InlineDocument {
 	obj := InlineDocument{}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return &obj
 	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["version"].(string); ok && len(v) > 0 {
@@ -3265,15 +3209,15 @@ func expandAttachPolicy(p []interface{}) InlineDocument {
 	if v, ok := in["statement"].([]interface{}); ok && len(v) > 0 {
 		obj.Statement = expandStatement(v)
 	}
-	return obj
+	return &obj
 }
 
 // expand node group IAm With Addon Policies function (completed/kind of)
-func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolicies {
+func expandNodeGroupIAMWithAddonPolicies(p []interface{}) *NodeGroupIAMAddonPolicies {
 	obj := NodeGroupIAMAddonPolicies{}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return &obj
 	}
 	in := p[0].(map[string]interface{})
 	n1 := spew.Sprintf("%+v", in)
@@ -3319,7 +3263,7 @@ func expandNodeGroupIAMWithAddonPolicies(p []interface{}) NodeGroupIAMAddonPolic
 	}
 	n2 := spew.Sprintf("%+v", obj)
 	log.Println("expandNodeGroupIAMWithAddonPolicies obj: ", n2)
-	return obj
+	return &obj
 }
 
 // expand node group ssh function (completed/ kind of)
@@ -3542,16 +3486,16 @@ func expandSubnetSpec(p []interface{}) AZSubnetMapping {
 }
 
 // struct IdentityProviders has one extra field not in documentation or the schema
-func expandIdentityProviders(p []interface{}) []IdentityProvider {
-	out := make([]IdentityProvider, len(p))
+func expandIdentityProviders(p []interface{}) []*IdentityProvider {
+	out := make([]*IdentityProvider, len(p))
 	if len(p) == 0 || p[0] == nil {
 		return out
 	}
 	for i := range p {
 		in := p[i].(map[string]interface{})
-		obj := IdentityProvider{}
+		obj := &IdentityProvider{}
 		if v, ok := in["type"].(string); ok && len(v) > 0 {
-			obj.type_ = v
+			obj.Type = v
 		}
 		out[i] = obj
 	}
@@ -3674,11 +3618,11 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 	return out
 }
 
-func expandIAMWellKnownPolicies(p []interface{}) WellKnownPolicies {
+func expandIAMWellKnownPolicies(p []interface{}) *WellKnownPolicies {
 	obj := WellKnownPolicies{}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return nil
 	}
 	in := p[0].(map[string]interface{})
 
@@ -3704,7 +3648,7 @@ func expandIAMWellKnownPolicies(p []interface{}) WellKnownPolicies {
 		obj.EFSCSIController = &v
 	}
 
-	return obj
+	return &obj
 }
 
 func expandIAMServiceAccountsStatusConfig(p []interface{}) *ClusterIAMServiceAccountStatus {
@@ -3774,11 +3718,43 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
 	}
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing = expandEKSClusterSharing(v)
 	}
 	log.Println("cluster spec cloud_provider: ", obj.CloudProvider)
 
 	return obj
+}
+
+func expandEKSClusterSharing(p []interface{}) *EKSClusterSharing {
+	obj := &EKSClusterSharing{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
+	}
+	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
+		obj.Projects = expandEKSClusterSharingProjects(v)
+	}
+	return obj
+}
+
+func expandEKSClusterSharingProjects(p []interface{}) []*EKSClusterSharingProject {
+	if len(p) == 0 {
+		return nil
+	}
+	var res []*EKSClusterSharingProject
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := &EKSClusterSharingProject{}
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+		res = append(res, obj)
+	}
+	return res
 }
 
 func expandSystemComponentsPlacement(p []interface{}) *SystemComponentsPlacement {
@@ -3874,8 +3850,8 @@ func expandCNIParams(p []interface{}) *CustomCni {
 	return obj
 }
 
-func expandCustomCNISpec(p []interface{}) CustomCNIMapping {
-	obj := make(CustomCNIMapping)
+func expandCustomCNISpec(p []interface{}) map[string][]CustomCniSpec {
+	obj := make(map[string][]CustomCniSpec)
 	log.Println("expand CNI Mapping")
 
 	if len(p) == 0 || p[0] == nil {
@@ -4026,10 +4002,39 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 		obj["system_components_placement"] = flattenSystemComponentsPlacement(in.SystemComponentsPlacement, v)
 	}
 	if in.Sharing != nil {
-		obj["sharing"] = flattenSharingSpec(in.Sharing)
+		obj["sharing"] = flattenEKSSharing(in.Sharing)
 	}
 
 	return []interface{}{obj}, nil
+}
+
+func flattenEKSSharing(in *EKSClusterSharing) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := make(map[string]interface{})
+	if in.Enabled != nil {
+		obj["enabled"] = *in.Enabled
+	}
+	if len(in.Projects) > 0 {
+		obj["projects"] = flattenEKSSharingProjects(in.Projects)
+	}
+	return []interface{}{obj}
+}
+
+func flattenEKSSharingProjects(in []*EKSClusterSharingProject) []interface{} {
+	if len(in) == 0 {
+		return nil
+	}
+	var out []interface{}
+	for _, x := range in {
+		obj := make(map[string]interface{})
+		if len(x.Name) > 0 {
+			obj["name"] = x.Name
+		}
+		out = append(out, obj)
+	}
+	return out
 }
 
 func flattenSystemComponentsPlacement(in *SystemComponentsPlacement, p []interface{}) []interface{} {
@@ -4133,7 +4138,7 @@ func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {
 	return []interface{}{obj}
 }
 
-func flattenCustomCNISpec(in CustomCNIMapping, p []interface{}) []interface{} {
+func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}) []interface{} {
 	log.Println("got to flatten custom CNI mapping", len(p))
 	out := make([]interface{}, len(in))
 	i := 0
@@ -4566,7 +4571,7 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 }
 
 // @@@Flatten attach policy
-func flattenAttachPolicy(in InlineDocument, p []interface{}) []interface{} {
+func flattenAttachPolicy(in *InlineDocument, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -4620,7 +4625,10 @@ func flattenIAMStatus(in *ClusterIAMServiceAccountStatus, p []interface{}) []int
 
 	return []interface{}{obj}
 }
-func flattenIAMWellKnownPolicies(in WellKnownPolicies, p []interface{}) []interface{} {
+func flattenIAMWellKnownPolicies(in *WellKnownPolicies, p []interface{}) []interface{} {
+	if in == nil {
+		return make([]interface{}, 0)
+	}
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -4635,7 +4643,7 @@ func flattenIAMWellKnownPolicies(in WellKnownPolicies, p []interface{}) []interf
 	obj["efs_csi_controller"] = in.EFSCSIController
 	return []interface{}{obj}
 }
-func flattenEKSClusterIdentityProviders(inp []IdentityProvider, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterIdentityProviders(inp []*IdentityProvider, p []interface{}) ([]interface{}, error) {
 	out := make([]interface{}, len(inp))
 	if inp == nil {
 		return []interface{}{out}, nil
@@ -4645,8 +4653,8 @@ func flattenEKSClusterIdentityProviders(inp []IdentityProvider, p []interface{})
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
-		if len(in.type_) > 0 {
-			obj["type"] = in.type_
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
 		}
 
 		out[i] = &obj
@@ -4720,7 +4728,7 @@ func flattenEKSClusterVPC(in *EKSClusterVPC, p []interface{}) ([]interface{}, er
 	return []interface{}{obj}, nil
 }
 func flattenVPCSubnets(in *ClusterSubnets, p []interface{}) []interface{} {
-	log.Println("got to flatten subnet")
+	log.Println("got to flatten subnet", in)
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -4817,15 +4825,19 @@ func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, erro
 		}
 		if len(in.AttachPolicyARNs) > 0 {
 			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
+		} else {
+			obj["attach_policy_arns"] = make([]interface{}, 0)
 		}
 		//@@@TODO Store inline document object as terraform input correctly
-		v1, ok := obj["attach_policy"].([]interface{})
-		if !ok {
-			v1 = []interface{}{}
-		}
-		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
-		if len(in.PermissionsBoundary) > 0 {
-			obj["permissions_boundary"] = in.PermissionsBoundary
+		if in.AttachPolicy != nil {
+			v1, ok := obj["attach_policy"].([]interface{})
+			if !ok {
+				v1 = []interface{}{}
+			}
+			obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
+			if len(in.PermissionsBoundary) > 0 {
+				obj["permissions_boundary"] = in.PermissionsBoundary
+			}
 		}
 		v, ok := obj["well_known_policies"].([]interface{})
 		if !ok {
@@ -4833,9 +4845,7 @@ func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, erro
 		}
 		obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
 
-		if len(in.AttachPolicyARNs) > 0 {
-			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
-		}
+		obj["tags"] = toMapInterface(in.Tags)
 		//Force field for existing addon (not in doc)
 
 		out[i] = &obj
@@ -5098,11 +5108,13 @@ func flattenNodeGroupIAM(in *NodeGroupIAM, p []interface{}) []interface{} {
 		return []interface{}{obj}
 	}
 	//@@@TODO Store inline document object as terraform input correctly
-	v1, ok := obj["attach_policy"].([]interface{})
-	if !ok {
-		v1 = []interface{}{}
+	if in.AttachPolicy != nil {
+		v1, ok := obj["attach_policy"].([]interface{})
+		if !ok {
+			v1 = []interface{}{}
+		}
+		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
 	}
-	obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
 
 	if len(in.AttachPolicyARNs) > 0 {
 		obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
@@ -5125,12 +5137,15 @@ func flattenNodeGroupIAM(in *NodeGroupIAM, p []interface{}) []interface{} {
 		v = []interface{}{}
 
 	}
-	obj["iam_node_group_with_addon_policies"] = flattenNodeGroupIAMWithAddonPolicies(in.WithAddonPolicies, v)
+
+	if in.WithAddonPolicies != nil {
+		obj["iam_node_group_with_addon_policies"] = flattenNodeGroupIAMWithAddonPolicies(in.WithAddonPolicies, v)
+	}
 
 	return []interface{}{obj}
 }
 
-func flattenNodeGroupIAMWithAddonPolicies(in NodeGroupIAMAddonPolicies, p []interface{}) []interface{} {
+func flattenNodeGroupIAMWithAddonPolicies(in *NodeGroupIAMAddonPolicies, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -5618,35 +5633,47 @@ func flattenArnFields(inp []*IdentityMappingARN, p []interface{}) []interface{} 
 	return out
 }
 
+func getProjectIDFromName(projectName string) (string, error) {
+	// derive project id from project name
+	resp, err := project.GetProjectByName(projectName)
+	if err != nil {
+		log.Print("project name missing in the resource")
+		return "", err
+	}
+
+	project, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		log.Printf("project does not exist")
+		return "", err
+	}
+	return project.ID, nil
+}
+
 func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("create EKS cluster resource")
 	return resourceEKSClusterUpsert(ctx, d, m)
 }
 
 func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	yamlCluster := &EKSCluster{}
 	log.Println("READ eks cluster")
 	var diags diag.Diagnostics
-	//expand cluster yaml file
-	if v, ok := d.Get("cluster").([]interface{}); ok {
-		yamlCluster = expandEKSCluster(v)
-	} else {
-		fmt.Print("Cluster data unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
+	// find cluster name and project name
+	clusterName, ok := d.Get("cluster.0.metadata.0.name").(string)
+	if !ok || clusterName == "" {
+		log.Print("Cluster name unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "cluster name is missing"))
 	}
-	resp, err := project.GetProjectByName(yamlCluster.Metadata.Project)
+	projectName, ok := d.Get("cluster.0.metadata.0.project").(string)
+	if !ok || projectName == "" {
+		log.Print("Cluster project name unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "project name is missing"))
+	}
+	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("project name missing in the resource")
-		return diags
+		log.Print("error converting project name to id")
+		return diag.Errorf("error converting project name to project ID")
 	}
-	log.Println("expanded cluster spec fine")
-
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
-	}
-	c, err := cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+	c, err := cluster.GetCluster(clusterName, projectID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
@@ -5659,28 +5686,27 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	log.Println("got cluster from backend")
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
-	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID)
 	if err != nil {
 		log.Printf("error in get clusterspec %s", err.Error())
 		return diag.FromErr(err)
 	}
 	log.Println("resourceEKSClusterRead clusterSpec ", clusterSpecYaml)
 
-	clusterByte := []byte(clusterSpecYaml)
-	cfgList, _, err := utils.SplitYamlAndGetListByKind(clusterByte)
-	if err != nil {
-		log.Println("read err with split yaml")
-		return diag.FromErr(err)
-	}
-	//flatten cluster
-	log.Println("cfgList: ", cfgList)
-	n1 := spew.Sprintf("%+v", cfgList)
-	log.Println("n1:", n1)
+	decoder := yaml.NewDecoder(bytes.NewReader([]byte(clusterSpecYaml)))
+
 	clusterSpec := EKSCluster{}
-	err = yaml.Unmarshal([]byte(cfgList["Cluster"][0]), &clusterSpec)
-	if err != nil {
+	if err := decoder.Decode(&clusterSpec); err != nil {
+		log.Println("error decoding cluster spec")
 		return diag.FromErr(err)
 	}
+
+	clusterConfigSpec := EKSClusterConfig{}
+	if err := decoder.Decode(&clusterConfigSpec); err != nil {
+		log.Println("error decoding cluster config spec")
+		return diag.FromErr(err)
+	}
+
 	v, ok := d.Get("cluster").([]interface{})
 	if !ok {
 		v = []interface{}{}
@@ -5696,13 +5722,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		log.Printf("err setting cluster %s", err.Error())
 		return diag.FromErr(err)
 	}
-	//flatten cluster config
-	log.Println("trying to unmarshal")
-	clusterConfigSpec := EKSClusterConfig{}
-	err = yaml.Unmarshal([]byte(cfgList["ClusterConfig"][0]), &clusterConfigSpec)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+
 	v2, ok := d.Get("cluster_config").([]interface{})
 	if !ok {
 		v2 = []interface{}{}
@@ -5723,66 +5743,61 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	yamlCluster := &EKSCluster{}
-	var diags diag.Diagnostics
-	//expand cluster yaml file
-	if v, ok := d.Get("cluster").([]interface{}); ok {
-		yamlCluster = expandEKSCluster(v)
-	} else {
-		fmt.Print("Cluster data unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
+	// find cluster name and project name
+	clusterName, ok := d.Get("cluster.0.metadata.0.name").(string)
+	if !ok || clusterName == "" {
+		log.Print("Cluster name unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "cluster name is missing"))
 	}
-	resp, err := project.GetProjectByName(yamlCluster.Metadata.Project)
+	projectName, ok := d.Get("cluster.0.metadata.0.project").(string)
+	if !ok || projectName == "" {
+		log.Print("Cluster project name unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "project name is missing"))
+	}
+	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("project name missing in the resource")
-		return diags
+		log.Print("error converting project name to id")
+		return diag.Errorf("error converting project name to project ID")
 	}
-
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
-	}
-	_, err = cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+	c, err := cluster.GetCluster(clusterName, projectID)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
+	}
+	if c.ID != d.Id() {
+		log.Printf("edge id has changed, state: %s, current: %s", d.Id(), c.ID)
+		return diag.Errorf("remote and state id mismatch")
 	}
 	log.Println("finished update")
 	return resourceEKSClusterUpsert(ctx, d, m)
 }
 
 func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	yamlCluster := &EKSCluster{}
-	var diags diag.Diagnostics
-
-	if v, ok := d.Get("cluster").([]interface{}); ok {
-		yamlCluster = expandEKSCluster(v)
-	} else {
-		fmt.Print("Cluster data unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
+	// find cluster name and project name
+	clusterName, ok := d.Get("cluster.0.metadata.0.name").(string)
+	if !ok || clusterName == "" {
+		log.Print("Cluster name unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "cluster name is missing"))
 	}
-
-	resp, err := project.GetProjectByName(yamlCluster.Metadata.Project)
+	projectName, ok := d.Get("cluster.0.metadata.0.project").(string)
+	if !ok || projectName == "" {
+		log.Print("Cluster project name unable to be found")
+		return diag.FromErr(fmt.Errorf("%s", "project name is missing"))
+	}
+	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("project name missing in the resource")
-		return diags
+		log.Print("error converting project name to id")
+		return diag.Errorf("error converting project name to project ID")
 	}
 
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
-	}
-
-	errDel := cluster.DeleteCluster(yamlCluster.Metadata.Name, project.ID, false)
+	errDel := cluster.DeleteCluster(clusterName, projectID, false)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
 	}
 	for {
 		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+		check, errGet := cluster.GetCluster(clusterName, projectID)
 		if errGet != nil {
 			log.Printf("error while getCluster %s, delete success", errGet.Error())
 			break
@@ -5793,10 +5808,12 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 	}
 	log.Println("finished delete")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 // Sort EKS Nodepool
+
+// ByNodeGroupName struct
 type ByNodeGroupName []NodeGroup
 
 func (np ByNodeGroupName) Len() int      { return len(np) }
@@ -5823,60 +5840,42 @@ func (np ByManagedNodeGroupName) Less(i, j int) bool {
 	}
 }
 
-func resourceEKSClusterImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceEKSClusterImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	idParts := strings.SplitN(d.Id(), "/", 2)
-	log.Println("resourceEKSClusterImport idParts:", idParts)
-	d_debug := spew.Sprintf("%+v", d)
-	log.Println("resourceEKSClusterImport d.Id:", d.Id())
-	log.Println("resourceEKSClusterImport d_debug", d_debug)
-
-	var yamlCluster *EKSCluster
-	if v, ok := d.Get("cluster").([]interface{}); ok {
-		yamlCluster = expandEKSCluster(v)
-	} else {
-		fmt.Print("Cluster data unable to be found")
-		return nil, fmt.Errorf("%s", "Cluster data is missing")
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		log.Printf("Invalid ID passed: %s", d.Id())
+		return nil, fmt.Errorf("invalid ID passed: %s", d.Id())
 	}
 
-	var metaD EKSClusterMetadata
-	metaD.Name = idParts[0]
-	metaD.Project = idParts[1]
-	yamlCluster.Metadata = &metaD
-
-	// get project details
-	resp, err := project.GetProjectByName(yamlCluster.Metadata.Project)
+	clusterName := idParts[0]
+	projectName := idParts[1]
+	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		log.Println("project does not exist")
-		return nil, fmt.Errorf("%s", "project does not exist")
+		log.Printf("error converting project name to id: %s", projectName)
+		return nil, fmt.Errorf("error converting project name to project ID")
 	}
 
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		log.Println("project does not exist")
-		return nil, fmt.Errorf("%s", "project does not exist")
-	}
-	log.Println("resourceEKSClusterImport yamlCluster:", yamlCluster)
-	v, ok := d.Get("cluster").([]interface{})
-	if !ok {
-		v = []interface{}{}
-	}
-	cl, err := flattenEKSCluster(yamlCluster, v)
-	if err != nil {
-		log.Printf("flatten eks cluster error %s", err.Error())
-		return nil, err
-	}
-
-	log.Println("resourceEKSClusterImport cl:", cl)
-	err = d.Set("cluster", cl)
-	if err != nil {
-		log.Printf("err setting cluster %s", err.Error())
-		return nil, err
-	}
-
-	s, errGet := cluster.GetCluster(yamlCluster.Metadata.Name, project.ID)
+	s, errGet := cluster.GetCluster(clusterName, projectID)
 	if errGet != nil {
 		log.Printf("error while getCluster %s", errGet.Error())
 		return nil, errGet
+	}
+	log.Printf("resource eks cluster import id %s", s.ID)
+
+	clusters := []interface{}{
+		map[string][]interface{}{
+			"metadata": {
+				map[string]interface{}{
+					"name":    clusterName,
+					"project": projectName,
+				},
+			},
+		},
+	}
+
+	if err := d.Set("cluster", clusters); err != nil {
+		log.Printf("error setting cluster in state to %+v", clusters)
+		return nil, err
 	}
 
 	log.Printf("resource eks cluster import id %s", s.ID)

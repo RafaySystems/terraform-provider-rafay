@@ -21,7 +21,7 @@ resource "rafay_project_tags_association" "tfptagassociation1" {
   spec {
     associations {
       tag_key  = "tfkey1"
-      tag_type = "Cost"
+      tag_type = "cost"
     }
   }
 }
@@ -56,15 +56,15 @@ resource "rafay_project_tags_association" "tfptagassociation1" {
 
 ***Required***
 
-- `association` - (Map of String) The tags to attach to the project tag association. (See [below for nested schema](#nestedblock--spec--association))
+- `associations` - (Block List) Project tag associations (See [below for nested schema](#nestedblock--spec--associations))
 
-<a id="nestedblock--spec--association"></a>
-### Nested Schema for `spec.assocation`
+<a id="nestedblock--spec--associations"></a>
+### Nested Schema for `spec.assocations`
 
 ***Required***
 
 - `tag_key` - (String) The tag key.
-- `tag_type` - (String) The tag type. Supported values are: `Cost` and `K8s`.
+- `tag_type` - (String) The tag type. Supported values are: `cost` and `k8s`.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

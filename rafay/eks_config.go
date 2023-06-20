@@ -103,6 +103,7 @@ type EKSSpec struct {
 	Blueprint                 string                     `yaml:"blueprint,omitempty"`
 	BlueprintVersion          string                     `yaml:"blueprintversion,omitempty"`
 	CloudProvider             string                     `yaml:"cloudprovider,omitempty"`
+	CrossAccountRoleArn       string                     `yaml:"crossAccountRoleARN,omitempty"`
 	CniProvider               string                     `yaml:"cniprovider,omitempty"`
 	ProxyConfig               map[string]string          `yaml:"proxyconfig,omitempty"`
 	CniParams                 *CustomCni                 `yaml:"cniparams,omitempty"`

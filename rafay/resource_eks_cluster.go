@@ -147,6 +147,11 @@ func specField() map[string]*schema.Schema {
 			Default:     "myprovider",
 			Description: "Cloud credentials provider used to create and manage the cluster",
 		},
+		"cross_account_role_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Role ARN of the linked account",
+		},
 		"cni_provider": {
 			Type:        schema.TypeString,
 			Optional:    true,
@@ -3770,6 +3775,9 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["cloud_provider"].(string); ok && len(v) > 0 {
 		obj.CloudProvider = v
 	}
+	if v, ok := in["cross_account_role_arn"].(string); ok && len(v) > 0 {
+		obj.CrossAccountRoleArn = v
+	}
 	if v, ok := in["cni_provider"].(string); ok && len(v) > 0 {
 		obj.CniProvider = v
 	}
@@ -4012,6 +4020,9 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 	}
 	if len(in.CloudProvider) > 0 {
 		obj["cloud_provider"] = in.CloudProvider
+	}
+	if len(in.CrossAccountRoleArn) > 0 {
+		obj["cross_account_role_arn"] = in.CrossAccountRoleArn
 	}
 	if len(in.CniProvider) > 0 {
 		obj["cni_provider"] = in.CniProvider
@@ -4380,10 +4391,10 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 			v = []interface{}{}
 		}
 		ret11 = flattenEKSClusterCloudWatch(in.CloudWatch, v)
-		/*if err != nil {
+		if err != nil {
 			log.Println("flattenEKSClusterCloudWatch err")
 			return nil, err
-		}*/
+		}
 		obj["cloud_watch"] = ret11
 	}
 	//setting up flatten Secrets Encryption
@@ -5540,7 +5551,7 @@ func flattenEKSClusterCloudWatch(in *EKSClusterCloudWatch, p []interface{}) []in
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["selectors"] = flattenClusterCloudWatchLogging(in.ClusterLogging, v)
+		obj["cluster_logging"] = flattenClusterCloudWatchLogging(in.ClusterLogging, v)
 	}
 	return []interface{}{obj}
 }

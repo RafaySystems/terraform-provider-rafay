@@ -51,8 +51,16 @@ func downloadKubeConfig() *schema.Resource {
 }
 
 func downloadKubeConfigCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	return downloadKubeConfigUtil(ctx, d, m)
+}
+
+func downloadKubeConfigUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	return downloadKubeConfigUtil(ctx, d, m)
+}
+
+func downloadKubeConfigUtil(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("agent create starts")
+	log.Printf("download kube config starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -108,12 +116,6 @@ func downloadKubeConfigCreate(ctx context.Context, d *schema.ResourceData, m int
 	fmt.Printf("kubeconfig downloaded to file location - %s", fileLocation)
 
 	d.SetId(fileLocation)
-	return diags
-
-}
-
-func downloadKubeConfigUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
 	return diags
 }
 

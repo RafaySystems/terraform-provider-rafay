@@ -3,13 +3,123 @@ package rafay
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // takes input given in the format of the terraform schema and populate the backend structure for that resource.
 // convert from tf schema --> V3 schema in rafay-common proto
+
+func expandGKEClusterToV3(in *schema.ResourceData) (*infrapb.Cluster, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "expand cluster invoked with empty input")
+	}
+	obj := &infrapb.Cluster{}
+
+	obj.ApiVersion = V3_CLUSTER_APIVERSION
+	obj.Kind = V3_CLUSTER_KIND
+
+	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
+		obj.Metadata = expandMetaData(v)
+	}
+
+	// spec
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
+		objSpec, err := expandGKEClusterToV3Spec(v)
+		if err != nil {
+			return nil, err
+		}
+		log.Println("expandClusterSpec got spec")
+		obj.Spec = objSpec
+	}
+
+	return obj, nil
+}
+
+func expandGKEClusterToV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
+	// expandGKESpec??
+	/*
+		type
+		sharing
+		cloudCredentials
+		blueprint
+		proxy
+		config --- gke
+
+	*/
+
+	obj := &infrapb.ClusterSpec{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, fmt.Errorf("%s", "expandClusterSpec empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		obj.Sharing = expandSharingSpecV3(v)
+	}
+
+	if v, ok := in["blueprint"].([]interface{}); ok && len(v) > 0 {
+		var err error
+		obj.Blueprint, err = expandGKEClusterToV3Blueprint(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand blueprint " + err.Error())
+		}
+	}
+
+	if v, ok := in["cloud_credentials"].(string); ok && len(v) > 0 {
+		obj.CloudCredentials = v
+	}
+
+	// TODO: Proxy
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		obj.Type = v
+	}
+
+	if !strings.EqualFold(obj.Type, GKE_CLUSTER_TYPE) {
+		return nil, errors.New("cluster type not implemented")
+	}
+
+	if strings.EqualFold(obj.Type, GKE_CLUSTER_TYPE) {
+		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+			var err error
+			obj.Config, err = expandToV3GkeConfigObject(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand to gke config " + err.Error())
+			}
+		}
+	}
+
+	return obj, nil
+}
+
+func expandGKEClusterToV3Blueprint(p []interface{}) (*infrapb.ClusterBlueprint, error) {
+	obj := &infrapb.ClusterBlueprint{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, errors.New("empty blueprint in input")
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["name"].(string); ok {
+		obj.Name = v
+	} else if !ok {
+		return nil, errors.New("missing blueprint name")
+	}
+
+	if v, ok := in["version"].(string); ok {
+		obj.Version = v
+	} else if !ok {
+		return nil, errors.New("missing blueprint version")
+	}
+
+	log.Println("expandGKEClusterToV3Blueprint obj", obj)
+	return obj, nil
+
+}
 
 // GkeV3ConfigObject
 func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error) {
@@ -68,6 +178,9 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 	// nodepools
 	if v, ok := in["node_pools"].([]interface{}); ok && len(v) > 0 {
 		obj.Gke.NodePools, err = expandToV3GkeNodepools(v)
+		if err != nil {
+			return obj, fmt.Errorf("failed to expand gke nodepool " + err.Error())
+		}
 	}
 
 	// prebootstrapCommands
@@ -80,6 +193,8 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 }
 
 func expandToV3GkeLocation(p []interface{}) (*infrapb.GkeLocation, error) {
+	log.Printf("In expandToV3GkeLocation")
+	//fmt.Println("In expandToV3GkeLocation")
 	obj := &infrapb.GkeLocation{}
 
 	if len(p) == 0 || p[0] == nil {
@@ -101,14 +216,22 @@ func expandToV3GkeLocation(p []interface{}) (*infrapb.GkeLocation, error) {
 		}
 	}
 
+	log.Printf("In expandToV3GkeLocation %s", in)
+
 	// zonal/regional
 	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
 		if strings.EqualFold(obj.Type, GKE_ZONAL_CLUSTER_TYPE) {
+			log.Printf("Invoking expandToV3GkeZonalCluster %s ", v)
+			//	zonalConfig := &infrapb.GkeLocation_Zonal{}
 			obj.Config, err = expandToV3GkeZonalCluster(v)
-			return nil, fmt.Errorf("failed to expand gke zonal cluster " + err.Error())
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand gke zonal cluster " + err.Error())
+			}
 		} else if strings.EqualFold(obj.Type, GKE_REGIONAL_CLUSTER_TYPE) {
 			obj.Config, err = expandToV3GkeRegionalCluster(v)
-			return nil, fmt.Errorf("failed to expand gke regional cluster " + err.Error())
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand gke regional cluster " + err.Error())
+			}
 		}
 	}
 
@@ -139,6 +262,7 @@ func expandToV3GkeDefaultNodeLocation(p []interface{}) (*infrapb.GkeDefaultNodeL
 }
 
 func expandToV3GkeZonalCluster(p []interface{}) (*infrapb.GkeLocation_Zonal, error) {
+
 	obj := &infrapb.GkeLocation_Zonal{
 		Zonal: &infrapb.GkeZonalCluster{},
 	}
@@ -148,6 +272,7 @@ func expandToV3GkeZonalCluster(p []interface{}) (*infrapb.GkeLocation_Zonal, err
 	}
 
 	in := p[0].(map[string]interface{})
+	log.Printf("expandToV3GkeZonalCluster %s", in)
 
 	if v, ok := in["zone"].(string); ok && len(v) > 0 {
 		obj.Zonal.Zone = v
@@ -213,11 +338,11 @@ func expandToV3GkeNetwork(p []interface{}) (*infrapb.GkeNetwork, error) {
 	}
 
 	// pod_address_range
-	if v, ok := in["pod_address_range"].(string); ok {
+	if v, ok := in["pod_address_range"].(string); ok && len(v) > 0 {
 		obj.PodAddressRange = v
 	}
 
-	if v, ok := in["service_address_range"].(string); ok {
+	if v, ok := in["service_address_range"].(string); ok && len(v) > 0 {
 		obj.ServiceAddressRange = v
 	}
 
@@ -326,11 +451,11 @@ func expandToV3GkeAuthorizedNetwork(p []interface{}) ([]*infrapb.GkeAuthorizedNe
 		obj := &infrapb.GkeAuthorizedNetwork{}
 		in := p[i].(map[string]interface{})
 
-		if v, ok := in["name"].(string); ok {
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
 		}
 
-		if v, ok := in["cidr"].(string); ok {
+		if v, ok := in["cidr"].(string); ok && len(v) > 0 {
 			obj.Name = v
 		}
 		out[i] = obj
@@ -351,12 +476,14 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 
 		in := p[i].(map[string]interface{})
 
-		if v, ok := in["name"].(string); ok {
+		log.Printf("In expandToV3GkeNodepools %s", in)
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
 		}
 
-		if v, ok := in["node_version"].(string); ok {
-			obj.Name = v
+		if v, ok := in["node_version"].(string); ok && len(v) > 0 {
+			obj.NodeVersion = v
 		}
 
 		if v, ok := in["size"].(int); ok && v > 0 {
@@ -411,7 +538,10 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 		// 	}
 		// }
 
+		out[i] = obj
 	}
+
+	log.Printf("In expandToV3GkeNodepools after expand out= %s", out)
 
 	return out, nil
 }
@@ -465,15 +595,15 @@ func expandToV3GkeNodeMachineConfig(p []interface{}) (*infrapb.GkeNodeMachineCon
 	obj := &infrapb.GkeNodeMachineConfig{}
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["machine_type"].(string); ok {
+	if v, ok := in["machine_type"].(string); ok && len(v) > 0 {
 		obj.MachineType = v
 	}
 
-	if v, ok := in["image_type"].(string); ok {
+	if v, ok := in["image_type"].(string); ok && len(v) > 0 {
 		obj.ImageType = v
 	}
 
-	if v, ok := in["boot_disk_type"].(string); ok {
+	if v, ok := in["boot_disk_type"].(string); ok && len(v) > 0 {
 		obj.BootDiskType = v
 	}
 

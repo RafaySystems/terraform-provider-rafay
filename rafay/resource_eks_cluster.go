@@ -4396,10 +4396,10 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 			v = []interface{}{}
 		}
 		ret11 = flattenEKSClusterCloudWatch(in.CloudWatch, v)
-		if err != nil {
+		/*if err != nil {
 			log.Println("flattenEKSClusterCloudWatch err")
 			return nil, err
-		}
+		}*/
 		obj["cloud_watch"] = ret11
 	}
 	//setting up flatten Secrets Encryption

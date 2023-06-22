@@ -150,6 +150,11 @@ func specField() map[string]*schema.Schema {
 			Required:    true,
 			Description: "The cloud credentials provider used to create and manage the cluster.",
 		},
+		"cross_account_role_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Role ARN of the linked account",
+		},
 		"cni_provider": {
 			Type:        schema.TypeString,
 			Optional:    true,
@@ -2138,6 +2143,11 @@ func clusterLoggingFields() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
+		"log_retention_in_days": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "The number of days you want to retain log events in the specified log group. Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, and 3653.",
+		},
 	}
 	return s
 }
@@ -2533,6 +2543,10 @@ func expandCloudWatchClusterLogging(p []interface{}) *EKSClusterCloudWatchLoggin
 	if v, ok := in["enable_types"].([]interface{}); ok && len(v) > 0 {
 		obj.EnableTypes = toArrayString(v)
 	}
+	if v, ok := in["log_retention_in_days"].(int); ok {
+		obj.LogRetentionInDays = v
+	}
+
 	return obj
 }
 
@@ -3705,6 +3719,9 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["cloud_provider"].(string); ok && len(v) > 0 {
 		obj.CloudProvider = v
 	}
+	if v, ok := in["cross_account_role_arn"].(string); ok && len(v) > 0 {
+		obj.CrossAccountRoleArn = v
+	}
 	if v, ok := in["cni_provider"].(string); ok && len(v) > 0 {
 		obj.CniProvider = v
 	}
@@ -3979,6 +3996,9 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 	}
 	if len(in.CloudProvider) > 0 {
 		obj["cloud_provider"] = in.CloudProvider
+	}
+	if len(in.CrossAccountRoleArn) > 0 {
+		obj["cross_account_role_arn"] = in.CrossAccountRoleArn
 	}
 	if len(in.CniProvider) > 0 {
 		obj["cni_provider"] = in.CniProvider
@@ -5561,6 +5581,7 @@ func flattenClusterCloudWatchLogging(in *EKSClusterCloudWatchLogging, p []interf
 	if len(in.EnableTypes) > 0 {
 		obj["enable_types"] = toArrayInterface(in.EnableTypes)
 	}
+	obj["log_retention_in_days"] = in.LogRetentionInDays
 	return []interface{}{obj}
 }
 

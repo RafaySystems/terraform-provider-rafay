@@ -1709,13 +1709,11 @@ func managedSecurityGroupsConfigFields() map[string]*schema.Schema {
 		"with_shared": {
 			Type:        schema.TypeBool,
 			Optional:    true,
-			Default:     false,
 			Description: "attach the security group shared among all nodegroups in the cluster",
 		},
 		"with_local": {
 			Type:        schema.TypeBool,
 			Optional:    true,
-			Default:     false,
 			Description: "attach a security group local to this nodegroup Not supported for managed nodegroups",
 		},
 	}
@@ -2293,7 +2291,7 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 		obj.VPC = expandVPC(v, rawConfig.GetAttr("vpc"))
 	}
 	if v, ok := in["managed_nodegroups"].([]interface{}); ok && len(v) > 0 {
-		obj.ManagedNodeGroups = expandManagedNodeGroups(v)
+		obj.ManagedNodeGroups = expandManagedNodeGroups(v, rawConfig.GetAttr("managed_nodegroups"))
 	}
 	if v, ok := in["fargate_profiles"].([]interface{}); ok && len(v) > 0 {
 		obj.FargateProfiles = expandFargateProfiles(v)
@@ -2412,7 +2410,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Println("status response parse error", err)
 			return diag.FromErr(err)
 		}
-		log.Println("statusResp ", statusResp)
+		log.Println("statusResp:\n ", statusResp)
 		sres := clusterCTLResponse{}
 		err = json.Unmarshal([]byte(statusResp), &sres)
 		if err != nil {
@@ -2645,7 +2643,7 @@ func expandFargateProfilesSelectors(p []interface{}) []FargateProfileSelector {
 	return out
 }
 
-func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not completed have questions in comments
+func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNodeGroup { //not completed have questions in comments
 	out := make([]*ManagedNodeGroup, len(p))
 	outToSort := make([]ManagedNodeGroup, len(p))
 	if len(p) == 0 || p[0] == nil {
@@ -2655,6 +2653,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 	for i := range p {
 		obj := &ManagedNodeGroup{}
 		in := p[i].(map[string]interface{})
+		nRawConfig := rawConfig.AsValueSlice()[i]
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
 		}
@@ -2707,7 +2706,7 @@ func expandManagedNodeGroups(p []interface{}) []*ManagedNodeGroup { //not comple
 			obj.AMI = v
 		}
 		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
-			obj.SecurityGroups = expandNodeGroupSecurityGroups(v)
+			obj.SecurityGroups = expandManagedNodeGroupSecurityGroups(v, nRawConfig.GetAttr("security_groups"))
 		}
 		if v, ok := in["max_pods_per_node"].(int); ok {
 			obj.MaxPodsPerNode = &v
@@ -3194,6 +3193,34 @@ func expandNodeGroupSecurityGroups(p []interface{}) *NodeGroupSGs {
 	if v, ok := in["with_local"].(bool); ok {
 		obj.WithLocal = &v
 	}
+	return obj
+}
+
+func expandManagedNodeGroupSecurityGroups(p []interface{}, rawConfig cty.Value) *NodeGroupSGs {
+	obj := &NodeGroupSGs{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	rawConfig = rawConfig.AsValueSlice()[0]
+
+	if v, ok := in["attach_ids"].([]interface{}); ok && len(v) > 0 {
+		obj.AttachIDs = toArrayString(v)
+	}
+
+	rawWithShared := rawConfig.GetAttr("with_shared")
+	if !rawWithShared.IsNull() {
+		boolVal := rawWithShared.True()
+		obj.WithShared = &boolVal
+	}
+
+	rawWithLocal := rawConfig.GetAttr("with_local")
+	if !rawWithLocal.IsNull() {
+		boolVal := rawWithLocal.True()
+		obj.WithLocal = &boolVal
+	}
+
 	return obj
 }
 

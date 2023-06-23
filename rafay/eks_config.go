@@ -820,13 +820,13 @@ type (
 		// shared among all nodegroups in the cluster
 		// Defaults to `true`
 		// +optional
-		WithShared *bool `yaml:"withShared"`
+		WithShared *bool `yaml:"withShared,omitempty"`
 		// WithLocal attach a security group
 		// local to this nodegroup
 		// Not supported for managed nodegroups
 		// Defaults to `true`
 		// +optional
-		WithLocal *bool `yaml:"withLocal"`
+		WithLocal *bool `yaml:"withLocal,omitempty"`
 	}
 	// NodeGroupIAM holds all IAM attributes of a NodeGroup
 	NodeGroupIAM struct {

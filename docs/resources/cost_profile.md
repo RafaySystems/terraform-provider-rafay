@@ -65,6 +65,8 @@ resource "rafay_cost_profile" "tfdemocostprofile-azure" {
       azure {
         custom_pricing {
           cloud_credentials_name = "sample"
+          billing_account_id = "sample"
+          offer_id = "sample"
         }
       }
     }
@@ -193,6 +195,8 @@ resource "rafay_cost_profile" "tfdemocostprofile-other" {
 ### Nested Schema for `spec.installation_params.azure.custom_pricing`
 
 - `cloud_credentials_name` (String) The Azure cloud credentials name.
+- `billing_account_id` (String) The Azure Billing Account ID.
+- `offer_id` (String) The Azure Offer ID.
 
 <a id="nestedblock--spec--sharing--projects"></a>
 ### Nested Schema for `spec.sharing.projects`

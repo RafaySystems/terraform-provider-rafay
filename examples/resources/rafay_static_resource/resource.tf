@@ -22,11 +22,6 @@ resource "rafay_static_resource" "static-resource" {
         description = "this is another dummy variable"
         sensitive   = false
         required    = false
-        read_only   = true
-        override {
-          type              = "restricted"
-          restricted_values = ["my-value-one", "my-value-two"]
-        }
       }
     }
   }

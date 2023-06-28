@@ -56,10 +56,6 @@ resource "rafay_environment_template" "aws-et" {
             success_condition = "200 OK"
           }
         }
-        retry {
-          enabled = true
-          max_count = 2
-        }
         timeout_seconds = 1000
       }
     }

@@ -9,7 +9,9 @@ resource "rafay_resource_template" "aws-elasticache" {
     provider_options {
       terraform {
         version                = "v1.4.4"
-        use_system_state_store = true
+        use_system_state_store {
+          value = true
+        }
       }
     }
     repository_options {
@@ -54,6 +56,9 @@ resource "rafay_resource_template" "aws-elasticache" {
           }
         }
       }
+    }
+    agents {
+      name = var.agent_name
     }
   }
 }

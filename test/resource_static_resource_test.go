@@ -10,7 +10,7 @@ import (
 )
 
 func TestResourceStaticResource(t *testing.T) {
-	expectedName := "test-static-resource"
+	expectedName := randomString("terraform-static-resource", 10)
 	// Make a copy of the terraform module to a temporary directory. This allows running multiple tests in parallel
 	// against the same terraform module.
 	exampleFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/resources/rafay_static_resource")

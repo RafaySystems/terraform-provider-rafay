@@ -39,3 +39,8 @@ variable "configcontext_name" {
   description = "config context dependency"
   default     = "my-config-context"
 }
+
+variable "agent_name" {
+  description = "agent to process resource template"
+  default     = "test-agent"
+}

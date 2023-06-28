@@ -1366,10 +1366,6 @@ func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
 		options.Required = v
 	}
 
-	if v, ok := opts["read_only"].(bool); ok {
-		options.ReadOnly = v
-	}
-
 	if v, ok := opts["override"].([]interface{}); ok {
 		options.Override = expandVariableOverrideOptions(v)
 	}
@@ -1380,7 +1376,7 @@ func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
 
 func expandVariableOverrideOptions(p []interface{}) *eaaspb.VariableOverrideOptions {
 	if len(p) == 0 || p[0] == nil {
-		return &eaaspb.VariableOverrideOptions{}
+		return nil
 	}
 
 	override := &eaaspb.VariableOverrideOptions{}
@@ -1445,7 +1441,6 @@ func flattenVariableOptions(input *eaaspb.VariableOptions) []interface{} {
 	}
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
-	obj["read_only"] = input.ReadOnly
 
 	if input.Override != nil {
 		obj["override"] = flattenVariableOverrideOptions(input.GetOverride())
@@ -1507,10 +1502,6 @@ func expandHooks(p []interface{}) []*eaaspb.Hook {
 
 		if d, ok := in["timeout_seconds"].(int); ok {
 			hook.TimeoutSeconds = int64(d)
-		}
-
-		if ro, ok := in["retry"].([]interface{}); ok {
-			hook.Retry = expandRetryOptions(ro)
 		}
 
 		if n, ok := in["on_failure"].(string); ok && len(n) > 0 {
@@ -1795,7 +1786,6 @@ func flattenHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 
 		obj["agents"] = flattenEaasAgents(in.Agents)
 		obj["timeout_seconds"] = in.TimeoutSeconds
-		obj["retry"] = flattenRetryOptions(in.Retry)
 		obj["on_failure"] = in.OnFailure
 
 		out[i] = &obj

@@ -12,11 +12,11 @@ import (
 func TestResourceResourceTemplate(t *testing.T) {
 
 	ccSourceDir := "examples/resources/rafay_config_context"
-	ccName := "test-config-context"
+	ccName := randomString("test-config-context", 10)
 	createResource(t, ccSourceDir, ccName, "")
 	defer destroyResource(t, ccSourceDir, ccName, "")
 
-	expectedName := "test-resource-template"
+	expectedName := randomString("test-resource-template", 10)
 	// Make a copy of the terraform module to a temporary directory. This allows running multiple tests in parallel
 	// against the same terraform module.
 	exampleFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/resources/rafay_resource_template")

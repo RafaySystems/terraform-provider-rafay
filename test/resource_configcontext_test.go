@@ -10,7 +10,7 @@ import (
 )
 
 func TestResourceConfigContext(t *testing.T) {
-	expectedName := "test-config-context"
+	expectedName := randomString("test-config-context", 10)
 	// Make a copy of the terraform module to a temporary directory. This allows running multiple tests in parallel
 	// against the same terraform module.
 	exampleFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/resources/rafay_config_context")

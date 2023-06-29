@@ -51,7 +51,7 @@ func resourceAlertConfigCreate(ctx context.Context, d *schema.ResourceData, m in
 			return diags
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 		if err != nil {
 			return diags
 		}
@@ -80,7 +80,7 @@ func resourceAlertConfigUpsert(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -113,7 +113,7 @@ func resourceAlertConfigRead(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		log.Println("read client err")
 		return diag.FromErr(err)

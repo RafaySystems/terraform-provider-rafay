@@ -430,6 +430,12 @@ func expandCostProfileAzureCustomPricing(p []interface{}) *costpb.AzureCustomPri
 	if v, ok := in["cloud_credentials_name"].(string); ok && len(v) > 0 {
 		obj.CloudCredentialsName = v
 	}
+	if v, ok := in["billing_account_id"].(string); ok && len(v) > 0 {
+		obj.BillingAccountID = v
+	}
+	if v, ok := in["offer_id"].(string); ok && len(v) > 0 {
+		obj.OfferID = v
+	}
 	if v, ok := in["spot_instance"].([]interface{}); ok && len(v) > 0 {
 		obj.SpotInstance = expandCostProfileAzureSpotInstance(v)
 	}
@@ -795,6 +801,14 @@ func flattenCostProfileAzureCustomPricing(in *costpb.AzureCustomPricing, p []int
 
 	if len(in.CloudCredentialsName) > 0 {
 		obj["cloud_credentials_name"] = in.CloudCredentialsName
+	}
+
+	if len(in.BillingAccountID) > 0 {
+		obj["billing_account_id"] = in.BillingAccountID
+	}
+
+	if len(in.OfferID) > 0 {
+		obj["offer_id"] = in.OfferID
 	}
 
 	if in.SpotInstance != nil {

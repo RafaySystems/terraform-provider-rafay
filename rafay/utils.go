@@ -900,6 +900,7 @@ func flattenCommonpbFiles(input []*commonpb.File) []interface{} {
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
 		}
+		obj["sensitive"] = in.Sensitive
 		out[i] = obj
 	}
 

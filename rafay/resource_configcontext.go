@@ -140,7 +140,7 @@ func resourceConfigContextRead(ctx context.Context, d *schema.ResourceData, m in
 }
 
 func resourceConfigContextUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return resourceStaticResourceUpsert(ctx, d, m)
+	return resourceConfigContextUpsert(ctx, d, m)
 }
 
 func resourceConfigContextDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

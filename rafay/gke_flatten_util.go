@@ -7,47 +7,230 @@ import (
 
 // convert from V3 schema in rafay-common proto --> tf schema
 func flattenGKEClusterV3(d *schema.ResourceData, in *infrapb.Cluster) error {
+	/*
+		Cluster:
+		- apiversion
+		- kind
+		- metadata
+		- spec
+	*/
 	if in == nil {
 		return nil
 	}
-	// obj := map[string]interface{}{}
+	obj := map[string]interface{}{}
 
-	// if len(in.ApiVersion) > 0 {
-	// 	obj["api_version"] = in.ApiVersion
-	// }
-	// if len(in.Kind) > 0 {
-	// 	obj["kind"] = in.Kind
-	// }
-	// var err error
+	if len(in.ApiVersion) > 0 {
+		obj["api_version"] = in.ApiVersion
+	}
+	if len(in.Kind) > 0 {
+		obj["kind"] = in.Kind
+	}
+	var err error
 
-	// var ret1 []interface{}
-	// if in.Metadata != nil {
-	// 	v, ok := obj["metadata"].([]interface{})
-	// 	if !ok {
-	// 		v = []interface{}{}
-	// 	}
-	// 	ret1 = flattenMetadataV3(in.Metadata, v)
-	// }
+	var ret1 []interface{}
+	if in.Metadata != nil {
+		v, ok := obj["metadata"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret1 = flattenMetadataV3(in.Metadata, v)
+	}
 
-	// err = d.Set("metadata", ret1)
-	// if err != nil {
-	// 	return err
-	// }
+	err = d.Set("metadata", ret1)
+	if err != nil {
+		return err
+	}
 
-	// var ret2 []interface{}
-	// if in.Spec != nil {
-	// 	v, ok := obj["spec"].([]interface{})
-	// 	if !ok {
-	// 		v = []interface{}{}
-	// 	}
+	var ret2 []interface{}
+	if in.Spec != nil {
+		v, ok := obj["spec"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
 
-	// 	//	ret2 = flattenClusterV3Spec(in.Spec, v)
-	// }
+		ret2 = flattenGKEV3Spec(in.Spec, v)
+	}
 
-	// err = d.Set("spec", ret2)
-	// if err != nil {
-	// 	return err
-	// }
+	err = d.Set("spec", ret2)
+	if err != nil {
+		return err
+	}
 
 	return nil
+}
+
+func flattenGKEV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{} {
+	/*
+		Spec:
+		- type
+		- sharing
+		- cloudCredentials
+		- blueprint
+		- proxy
+		- config --- gke
+
+	*/
+
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Type) > 0 {
+		obj["type"] = in.Type
+	}
+
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpecV3(in.Sharing)
+	}
+
+	if len(in.CloudCredentials) > 0 {
+		obj["cloud_credentials"] = in.CloudCredentials
+	}
+
+	if in.Blueprint != nil {
+		obj["blueprint"] = flattenClusterGKEV3Blueprint(in.Blueprint)
+	}
+
+	// TODO: proxy
+
+	if in.GetGke() != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenGKEV3Config(in.GetGke(), v)
+	}
+
+	return []interface{}{obj}
+
+}
+
+// Note: this uses ClusterBlueprint
+func flattenClusterGKEV3Blueprint(in *infrapb.ClusterBlueprint) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interface{} {
+	/*
+		Config (gke/GkeV3ConfigObject):
+		- gcp project
+		- controlplaneversion
+		- prebootstrapcommands
+		- location
+		- network
+		- nodepools
+		- security
+		- Feature
+	*/
+
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.GcpProject) > 0 {
+		obj["gcp_project"] = in.GcpProject
+	}
+
+	if len(in.ControlPlaneVersion) > 0 {
+		obj["control_plane_version"] = in.ControlPlaneVersion
+	}
+
+	if in.PreBootstrapCommands != nil && len(in.PreBootstrapCommands) > 0 {
+		obj["pre_bootstrap_commands"] = toArrayInterface(in.PreBootstrapCommands)
+	}
+
+	if in.Location != nil {
+		v, ok := obj["location"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["location"] = flattenGKEV3Location(in.Location, v)
+	}
+
+	// network
+	if in.Network != nil {
+
+	}
+
+	// nodepools
+	if in.NodePools != nil {
+
+	}
+
+	if in.Security != nil {
+
+	}
+
+	if in.Features != nil {
+
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3Location(in *infrapb.GkeLocation, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Type) > 0 {
+		obj["type"] = in.Type
+	}
+
+	if in.DefaultNodeLocations != nil {
+		v, ok := obj["default_node_locations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["default_node_locations"] = flattenGKEV3DefaultNodeLocations(in.DefaultNodeLocations, v)
+	}
+
+	if in.GetRegional() != nil { // ???
+
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3DefaultNodeLocations(in *infrapb.GkeDefaultNodeLocation, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled // TODO: check if this works
+
+	if in.Zones != nil && len(in.Zones) > 0 {
+		obj["zones"] = toArrayInterface(in.Zones)
+	}
+
+	return []interface{}{obj}
 }

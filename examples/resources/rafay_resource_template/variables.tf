@@ -7,7 +7,7 @@ variable "rafay_config_file" {
 variable "name" {
   description = "rafay provider resource template name"
   sensitive   = false
-  default     = "my-resource-template"
+  default     = "test-rt-one"
 }
 
 variable "project" {
@@ -42,5 +42,5 @@ variable "configcontext_name" {
 
 variable "agent_name" {
   description = "agent to process resource template"
-  default     = "test-agent"
+  default     = "newagentd"
 }

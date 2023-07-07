@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb/datatypes"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/gitopspb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
@@ -1387,8 +1388,8 @@ func expandVariableOverrideOptions(p []interface{}) *eaaspb.VariableOverrideOpti
 		override.Type = v
 	}
 
-	if v, ok := in["restricted_values"].([]string); ok && len(v) > 0 {
-		override.RestrictedValues = v
+	if vals, ok := in["restricted_values"].([]interface{}); ok && len(vals) > 0 {
+		override.RestrictedValues = toArrayString(vals)
 	}
 
 	return override
@@ -1462,7 +1463,7 @@ func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) []int
 	}
 
 	if len(input.RestrictedValues) > 0 {
-		obj["restricted_values"] = input.RestrictedValues
+		obj["restricted_values"] = toArrayInterface(input.RestrictedValues)
 	}
 
 	return []interface{}{obj}
@@ -1586,8 +1587,8 @@ func expandInternalApprovalOptions(p []interface{}) *eaaspb.InternalApprovalOpti
 
 	in := p[0].(map[string]interface{})
 
-	if emails, ok := in["emails"].([]string); ok && len(emails) > 0 {
-		iao.Emails = emails
+	if emails, ok := in["emails"].([]interface{}); ok && len(emails) > 0 {
+		iao.Emails = toArrayString(emails)
 	}
 
 	return iao
@@ -1672,16 +1673,16 @@ func expandContainerOptions(p []interface{}) *eaaspb.ContainerOptions {
 		co.Image = i
 	}
 
-	if args, ok := in["arguments"].([]string); ok && len(args) > 0 {
-		co.Arguments = args
+	if args, ok := in["arguments"].([]interface{}); ok && len(args) > 0 {
+		co.Arguments = toArrayString(args)
 	}
 
-	if cmds, ok := in["commands"].([]string); ok && len(cmds) > 0 {
-		co.Commands = cmds
+	if cmds, ok := in["commands"].([]interface{}); ok && len(cmds) > 0 {
+		co.Commands = toArrayString(cmds)
 	}
 
-	if ev, ok := in["envvars"].(map[string]string); ok && len(ev) > 0 {
-		co.Envvars = ev
+	if ev, ok := in["envvars"].(map[string]interface{}); ok && len(ev) > 0 {
+		co.Envvars = toMapString(ev)
 	}
 
 	if wdp, ok := in["working_dir_path"].(string); ok && len(wdp) > 0 {
@@ -1719,8 +1720,8 @@ func expandHttpOptions(p []interface{}) *eaaspb.HttpOptions {
 		ho.Method = m
 	}
 
-	if h, ok := in["headers"].(map[string]string); ok && len(h) > 0 {
-		ho.Headers = h
+	if h, ok := in["headers"].(map[string]interface{}); ok && len(h) > 0 {
+		ho.Headers = toMapString(h)
 	}
 
 	if b, ok := in["body"].(string); ok && len(b) > 0 {
@@ -1732,25 +1733,6 @@ func expandHttpOptions(p []interface{}) *eaaspb.HttpOptions {
 	}
 
 	return ho
-}
-
-func expandRetryOptions(p []interface{}) *eaaspb.RetryOptions {
-	ro := &eaaspb.RetryOptions{}
-	if len(p) == 0 || p[0] == nil {
-		return ro
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if e, ok := in["enabled"].(bool); ok {
-		ro.Enabled = e
-	}
-
-	if m, ok := in["max_count"].(int); ok {
-		ro.MaxCount = int32(m)
-	}
-
-	return ro
 }
 
 func flattenHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
@@ -1873,7 +1855,7 @@ func flattenInternalApprovalOptions(input *eaaspb.InternalApprovalOptions) []int
 	}
 
 	obj := map[string]interface{}{}
-	obj["emails"] = input.Emails
+	obj["emails"] = toArrayInterface(input.Emails)
 
 	return []interface{}{obj}
 }
@@ -1925,7 +1907,7 @@ func flattenScriptOptions(input *eaaspb.ShellScriptOptions, p []interface{}) []i
 	}
 
 	obj["script"] = input.Script
-	obj["envvars"] = input.Envvars
+	obj["envvars"] = toMapInterface(input.Envvars)
 	obj["cpu_limit_milli"] = input.CpuLimitMilli
 	obj["memory_limit_mb"] = input.MemoryLimitMB
 	obj["success_condition"] = input.SuccessCondition
@@ -1944,9 +1926,9 @@ func flattenContainerOptions(input *eaaspb.ContainerOptions, p []interface{}) []
 	}
 
 	obj["image"] = input.Image
-	obj["arguments"] = input.Arguments
-	obj["commands"] = input.Commands
-	obj["envvars"] = input.Envvars
+	obj["arguments"] = toArrayInterface(input.Arguments)
+	obj["commands"] = toArrayInterface(input.Commands)
+	obj["envvars"] = toMapInterface(input.Envvars)
 	obj["working_dir_path"] = input.WorkingDirPath
 	obj["cpu_limit_milli"] = input.CpuLimitMilli
 	obj["memory_limit_mb"] = input.MemoryLimitMB
@@ -1967,10 +1949,30 @@ func flattenHttpOptions(input *eaaspb.HttpOptions, p []interface{}) []interface{
 
 	obj["endpoint"] = input.Endpoint
 	obj["method"] = input.Method
-	obj["headers"] = input.Headers
+	obj["headers"] = toMapInterface(input.Headers)
 	obj["body"] = input.Body
 	obj["success_condition"] = input.SuccessCondition
 
 	return []interface{}{obj}
 
+}
+
+func expandBoolValue(in []interface{}) *datatypes.BoolValue {
+	if len(in) == 0 {
+		return nil
+	}
+
+	bv := in[0].((map[string]interface{}))
+	return datatypes.NewBool(bv["value"].(bool))
+}
+
+func flattenBoolValue(in *datatypes.BoolValue) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["value"] = in.Value
+
+	return []interface{}{obj}
 }

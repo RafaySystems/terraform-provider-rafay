@@ -12,6 +12,16 @@ resource "rafay_resource_template" "aws-elasticache" {
         use_system_state_store {
           value = true
         }
+        backend_configs = ["path"]
+        var_files = ["path"]
+        plugin_dirs = ["path"]
+        lock {
+          value = true
+        }
+        refresh {
+          value = true
+        }
+        lock_timeout_seconds = 1
       }
     }
     repository_options {
@@ -43,14 +53,42 @@ resource "rafay_resource_template" "aws-elasticache" {
                 options {
                   container {
                     image = "eaasunittest/infracost:demo"
+                    arguments = ["--verbose"]
+                    commands = ["scan"]
                     envvars = {
                       DOWNLOAD_TOKEN = "$(ctx.activities[\"aws-elasticache.artifact\"].output.files[\"job.tar.zst\"].token)"
                       DOWNLOAD_URL   = "$(ctx.activities[\"aws-elasticache.artifact\"].output.files[\"job.tar.zst\"].url)"
                     }
-                    working_dir_path = "/tmp/workdir"
+                    working_dir_path = "/workdir"
                   }
                 }
                 on_failure = "continue"
+              }
+              after {
+                name = "internal-approval"
+                type = "approval"
+                options {
+                  approval {
+                    type = "internal"
+                  }
+                }
+              }
+            }
+            output {
+              before {
+                name = "webhook"
+                type = "http"
+                options {
+                  http {
+                    endpoint = "https://jsonplaceholder.typicode.com/todos/1"
+                    method = "POST"
+                    headers = {
+                      X-TOKEN = "shhh"
+                    }
+                    body = "gibberish"
+                    success_condition = "200OK"
+                  }
+                }
               }
             }
           }

@@ -12,7 +12,6 @@ import (
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
-	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb/datatypes"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
@@ -398,38 +397,35 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 	}
 
 	if h, ok := in["use_system_state_store"].([]interface{}); ok {
-		if len(h) > 0 {
-			ss := h[0].((map[string]interface{}))
-			tpo.UseSystemStateStore = datatypes.NewBool(ss["value"].(bool))
-		}
+		tpo.UseSystemStateStore = expandBoolValue(h)
 	}
 
-	if h, ok := in["var_files"].([]string); ok {
-		tpo.VarFiles = h
+	if vfiles, ok := in["var_files"].([]interface{}); ok && len(vfiles) > 0 {
+		tpo.VarFiles = toArrayString(vfiles)
 	}
 
-	if h, ok := in["backend_configs"].([]string); ok {
-		tpo.BackendConfigs = h
+	if bcfgs, ok := in["backend_configs"].([]interface{}); ok && len(bcfgs) > 0 {
+		tpo.BackendConfigs = toArrayString(bcfgs)
 	}
 
-	if h, ok := in["refresh"].(bool); ok {
-		tpo.Refresh = datatypes.NewBool(h)
+	if h, ok := in["refresh"].([]interface{}); ok {
+		tpo.Refresh = expandBoolValue(h)
 	}
 
-	if h, ok := in["lock"].(bool); ok {
-		tpo.Lock = datatypes.NewBool(h)
+	if h, ok := in["lock"].([]interface{}); ok {
+		tpo.Lock = expandBoolValue(h)
 	}
 
 	if h, ok := in["lock_timeout_seconds"].(int); ok {
 		tpo.LockTimeoutSeconds = uint64(h)
 	}
 
-	if h, ok := in["plugin_dirs"].([]string); ok {
-		tpo.PluginDirs = h
+	if pdirs, ok := in["plugin_dirs"].([]interface{}); ok && len(pdirs) > 0 {
+		tpo.PluginDirs = toArrayString(pdirs)
 	}
 
-	if h, ok := in["target_resources"].([]string); ok {
-		tpo.TargetResources = h
+	if tgtrs, ok := in["target_resources"].([]interface{}); ok && len(tgtrs) > 0 {
+		tpo.TargetResources = toArrayString(tgtrs)
 	}
 
 	return tpo
@@ -742,25 +738,14 @@ func flattenTerraformProviderOptions(in *eaaspb.TerraformProviderOptions) []inte
 
 	obj := make(map[string]interface{})
 	obj["version"] = in.Version
-	obj["use_system_state_store"] = flattenSystemStateStore(in.UseSystemStateStore)
-	obj["var_files"] = in.VarFiles
-	obj["backend_configs"] = in.BackendConfigs
-	obj["refresh"] = in.Refresh
-	obj["lock"] = in.Lock
+	obj["use_system_state_store"] = flattenBoolValue(in.UseSystemStateStore)
+	obj["var_files"] = toArrayInterface(in.VarFiles)
+	obj["backend_configs"] = toArrayInterface(in.BackendConfigs)
+	obj["refresh"] = flattenBoolValue(in.Refresh)
+	obj["lock"] = flattenBoolValue(in.Lock)
 	obj["lock_timeout_seconds"] = in.LockTimeoutSeconds
-	obj["plugin_dirs"] = in.PluginDirs
-	obj["target_resources"] = in.TargetResources
-
-	return []interface{}{obj}
-}
-
-func flattenSystemStateStore(in *datatypes.BoolValue) []interface{} {
-	if in == nil {
-		return nil
-	}
-
-	obj := make(map[string]interface{})
-	obj["value"] = in.Value
+	obj["plugin_dirs"] = toArrayInterface(in.PluginDirs)
+	obj["target_resources"] = toArrayInterface(in.TargetResources)
 
 	return []interface{}{obj}
 }

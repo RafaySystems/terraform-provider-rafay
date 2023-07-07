@@ -7,7 +7,7 @@ variable "rafay_config_file" {
 variable "name" {
   description = "rafay provider config context name"
   sensitive   = false
-  default     = "my-config-context"
+  default     = "test-cc-one"
 }
 
 variable "project" {

@@ -10,21 +10,27 @@ resource "rafay_config_context" "aws-rds-config" {
   }
   spec {
     envs {
-      key       = "name2"
-      value     = "my-value"
-      sensitive = true
+      key       = "name-modified"
+      value     = "modified-value"
+      sensitive = false
+    }
+    envs {
+      key       = "name-new"
+      value     = "new-value"
+      sensitive = false
     }
     files {
       name      = "file://variables.tf"
       sensitive = true
     }
     variables {
-      name       = "my-variable"
+      name       = "new-variable"
       value_type = "text"
-      value      = "my-value"
+      value      = "new-value"
       options {
         override {
-          type = "allowed"
+          type = "restricted"
+          restricted_values = ["new-value", "modified-value"]
         }
         description = "this is a dummy variable"
         sensitive   = false

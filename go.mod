@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230628101435-3b6265eae1f6
-	github.com/RafaySystems/rctl v1.22.0-3
+	github.com/RafaySystems/rctl v1.24.1-0.20230711200043-67da417f38ae
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/hashicorp/terraform-plugin-docs v0.9.0
@@ -34,6 +34,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.7.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.0.0-20220623143253-7d51757b572c // indirect
 	github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734 // indirect
+	github.com/jedib0t/go-pretty/v6 v6.4.6 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/vmihailenco/msgpack/v4 v4.3.12 // indirect
@@ -42,7 +43,7 @@ require (
 
 require (
 	github.com/ProtonMail/go-crypto v0.0.0-20211112122917-428f8eabeeb3 // indirect
-	github.com/RafaySystems/edge-common v1.6.0-beta.1.0.20230120063743-38542a140aee // indirect
+	github.com/RafaySystems/edge-common v1.24.1-0.20230531144217-c72f5a0a252a // indirect
 	github.com/RoaringBitmap/roaring v0.6.1 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
@@ -170,7 +171,7 @@ require (
 require (
 	github.com/json-iterator/go v1.1.12
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
-	github.com/mattn/go-runewidth v0.0.12 // indirect
+	github.com/mattn/go-runewidth v0.0.13 // indirect
 )
 
 replace (

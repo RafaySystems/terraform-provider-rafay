@@ -84,11 +84,19 @@ func resourceImportCluster() *schema.Resource {
 				Computed: true,
 			},
 			"labels": {
-				Type: schema.TypeMap,
+				Type:     schema.TypeMap,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+			},
+			"kubernetes_provider": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"provision_environment": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -186,7 +194,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	project_id := p.ID
 
 	//create imported cluster
-	resp, err = cluster.NewImportCluster(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string))
+	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string), d.Get("provision_environment").(string), d.Get("kubernetes_provider").(string))
 	if err != nil {
 		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
 		return diag.FromErr(err)

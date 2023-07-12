@@ -19,10 +19,10 @@ func flattenGKEClusterV3(d *schema.ResourceData, in *infrapb.Cluster) error {
 	}
 	obj := map[string]interface{}{}
 
-	if len(in.ApiVersion) > 0 {
+	if len(in.ApiVersion) > 0 { // TODO: why len check here???
 		obj["api_version"] = in.ApiVersion
 	}
-	if len(in.Kind) > 0 {
+	if len(in.Kind) > 0 { // TODO: why len check here???
 		obj["kind"] = in.Kind
 	}
 	var err error
@@ -79,7 +79,7 @@ func flattenGKEV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{} {
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.Type) > 0 {
+	if len(in.Type) > 0 { // TODO: why len check here???
 		obj["type"] = in.Type
 	}
 
@@ -188,11 +188,19 @@ func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interf
 	}
 
 	if in.Security != nil {
-
+		v, ok := obj["security"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["security"] = flattenGKEV3Security(in.Security, v)
 	}
 
 	if in.Features != nil {
-
+		v, ok := obj["features"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["features"] = flattenGKEV3Features(in.Features, v)
 	}
 
 	return []interface{}{obj}
@@ -328,39 +336,220 @@ func flattenGKEV3AuthorizedNetwork(in []*infrapb.GkeAuthorizedNetwork, p []inter
 		return nil
 	}
 	out := make([]interface{}, len(in))
-	for i, in := range in {
+	for i, j := range in {
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
 
-		obj["name"] = in.Name
-		obj["cidr"] = in.Cidr
+		obj["name"] = j.Name
+		obj["cidr"] = j.Cidr
+
+		out[i] = &obj
 	}
 
 	return out
 }
 
-func flattenGKEV3Nodepools(in []*infrapb.Nodepool, p []interface{}) []interface{} {
+func flattenGKEV3Security(in *infrapb.GkeSecurity, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enable_workload_identity"] = in.EnableWorkloadIdentity
+	obj["enable_google_groups_for_rabc"] = in.EnableGoogleGroupsForRabc
+	if in.EnableGoogleGroupsForRabc {
+		obj["security_group"] = in.SecurityGroup
+	}
+	obj["enable_legacy_authorization"] = in.EnableLegacyAuthorization
+	obj["issue_client_certificate"] = in.IssueClientCertificate
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3Features(in *infrapb.GkeFeatures, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enable_cloud_logging"] = in.EnableCloudLogging
+	if in.EnableCloudLogging {
+		obj["cloud_logging_components"] = toArrayInterface(in.CloudLoggingComponents)
+	}
+
+	obj["enable_cloud_monitoring"] = in.EnableCloudMonitoring
+	if in.EnableCloudMonitoring {
+		obj["cloud_monitoring_components"] = toArrayInterface(in.CloudMonitoringComponents)
+	}
+
+	obj["enable_managed_service_prometheus"] = in.EnableManagedServicePrometheus
+	obj["enable_application_manager_beta"] = in.EnableApplicationManagerBeta
+	obj["enable_backup_for_gke"] = in.EnableBackupForGke
+	obj["enable_compute_engine_persistent_disk_csi_driver"] = in.EnableComputeEnginePersistentDiskCSIDriver
+	obj["enable_filestore_csi_driver"] = in.EnableFilestoreCSIDriver
+	obj["enable_image_streaming"] = in.EnableImageStreaming
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3Nodepools(in []*infrapb.GkeNodePool, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
 	out := make([]interface{}, len(in))
-	for i, in := range in {
+	for i, j := range in {
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
 
-		// TODO all np fields
+		obj["name"] = j.Name
+		obj["node_version"] = j.NodeVersion
+		obj["size"] = j.Size // TODO: check if int works
 
+		if j.NodeLocations != nil {
+			v, ok := obj["node_locations"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["node_locations"] = flattenGKEV3NodeLocations(j.NodeLocations, v)
+		}
+
+		if j.AutoScaling != nil {
+			v, ok := obj["auto_scaling"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["auto_scaling"] = flattenGKEV3NodePoolAutoScaling(j.AutoScaling, v)
+		}
+
+		if j.MachineConfig != nil {
+			v, ok := obj["machine_config"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["machine_config"] = flattenGKEV3NodeMachineConfig(j.MachineConfig, v)
+		}
+
+		if j.Networking != nil {
+			v, ok := obj["networking"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["networking"] = flattenGKEV3NodeNetworking(j.Networking, v)
+		}
+
+		if j.Security != nil {
+			v, ok := obj["security"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["security"] = flattenGKEV3NodeSecurity(j.Security, v)
+
+		}
+
+		if j.Metadata != nil {
+
+		}
+
+		out[i] = &obj
 	}
 
 	return out
 
 }
 
-// func flattenGKEV3--(in *infrapb., p []interface{}) []interface{} {
+func flattenGKEV3NodeLocations(in *infrapb.GkeNodeLocation, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+	if in.Zones != nil && len(in.Zones) > 0 {
+		obj["zones"] = toArrayInterface(in.Zones)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodePoolAutoScaling(in *infrapb.GkeNodeAutoScale, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["min_nodes"] = in.MinNodes
+	obj["max_nodes"] = in.MaxNodes
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeMachineConfig(in *infrapb.GkeNodeMachineConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["image_type"] = in.ImageType
+	obj["machine_type"] = in.MachineType
+	obj["boot_disk_size"] = in.BootDiskSize
+	obj["boot_disk_type"] = in.BootDiskType
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeNetworking(in *infrapb.GkeNodeNetworking, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["max_pods_per_node"] = in.MaxPodsPerNode
+
+	if in.NetworkTags != nil && len(in.NetworkTags) > 0 {
+		obj["network_tags"] = toArrayInterface(in.NetworkTags)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeSecurity(in *infrapb.GkeNodeSecurity, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enable_secure_boot"] = in.EnableSecureBoot
+	obj["enable_integrity_monitoring"] = in.EnableIntegrityMonitoring
+
+	return []interface{}{obj}
+}
+
+// func flattenGKEV3(in *infrapb., p []interface{}) []interface{} {
 // 	if in == nil {
 // 		return nil
 // 	}

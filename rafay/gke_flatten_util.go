@@ -170,12 +170,21 @@ func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interf
 
 	// network
 	if in.Network != nil {
+		v, ok := obj["network"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["network"] = flattenGKEV3Network(in.Network, v)
 
 	}
 
 	// nodepools
-	if in.NodePools != nil {
-
+	if in.NodePools != nil && len(in.NodePools) > 0 {
+		v, ok := obj["node_pools"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["node_pools"] = flattenGKEV3Nodepools(in.NodePools, v)
 	}
 
 	if in.Security != nil {
@@ -210,7 +219,7 @@ func flattenGKEV3Location(in *infrapb.GkeLocation, p []interface{}) []interface{
 		obj["default_node_locations"] = flattenGKEV3DefaultNodeLocations(in.DefaultNodeLocations, v)
 	}
 
-	if in.GetRegional() != nil { // ???
+	if in.GetRegional() != nil { // ??? TODO
 
 	}
 
@@ -234,3 +243,133 @@ func flattenGKEV3DefaultNodeLocations(in *infrapb.GkeDefaultNodeLocation, p []in
 
 	return []interface{}{obj}
 }
+
+func flattenGKEV3Network(in *infrapb.GkeNetwork, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["name"] = in.Name
+	obj["subnet_name"] = in.SubnetName
+	obj["enable_vpc_nativetraffic"] = in.EnableVPCNativetraffic
+	obj["pod_address_range"] = in.PodAddressRange
+	obj["service_address_range"] = in.ServiceAddressRange
+
+	// max_pods_per_node
+	obj["max_pods_per_node"] = in.MaxPodsPerNode // TODO: check if this works
+
+	// access
+	if in.Access != nil {
+		v, ok := obj["access"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["access"] = flattenGKEV3NetworkAccess(in.Access, v)
+	}
+
+	// control_plane_authorized_network
+	if in.ControlPlaneAuthorizedNetwork != nil {
+		v, ok := obj["control_plane_authorized_network"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["control_plane_authorized_network"] = flattenGKEV3ControlPlaneAuthorizedNetwork(in.ControlPlaneAuthorizedNetwork, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NetworkAccess(in *infrapb.GkeAccess, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["type"] = in.Type
+
+	if in.GetPrivate() != nil { // TODO
+
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3ControlPlaneAuthorizedNetwork(in *infrapb.GkeControlPlaneAuthorizedNetwork, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+
+	if in.AuthorizedNetwork != nil && len(in.AuthorizedNetwork) > 0 {
+		v, ok := obj["authorized_network"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["authorized_network"] = flattenGKEV3AuthorizedNetwork(in.AuthorizedNetwork, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3AuthorizedNetwork(in []*infrapb.GkeAuthorizedNetwork, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		obj["name"] = in.Name
+		obj["cidr"] = in.Cidr
+	}
+
+	return out
+}
+
+func flattenGKEV3Nodepools(in []*infrapb.Nodepool, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		// TODO all np fields
+
+	}
+
+	return out
+
+}
+
+// func flattenGKEV3--(in *infrapb., p []interface{}) []interface{} {
+// 	if in == nil {
+// 		return nil
+// 	}
+// 	obj := map[string]interface{}{}
+// 	if len(p) != 0 && p[0] != nil {
+// 		obj = p[0].(map[string]interface{})
+// 	}
+
+// 	// TODO
+
+// 	return []interface{}{obj}
+// }

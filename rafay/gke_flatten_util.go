@@ -457,7 +457,11 @@ func flattenGKEV3Nodepools(in []*infrapb.GkeNodePool, p []interface{}) []interfa
 		}
 
 		if j.Metadata != nil {
-
+			v, ok := obj["metadata"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["metadata"] = flattenGKEV3NodeMetadata(j.Metadata, v)
 		}
 
 		out[i] = &obj
@@ -547,6 +551,103 @@ func flattenGKEV3NodeSecurity(in *infrapb.GkeNodeSecurity, p []interface{}) []in
 	obj["enable_integrity_monitoring"] = in.EnableIntegrityMonitoring
 
 	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeMetadata(in *infrapb.GkeNodeMetadata, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.KubernetesLabels != nil && len(in.KubernetesLabels) > 0 {
+		v, ok := obj["kubernetes_labels"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["kubernetes_labels"] = flattenGKEV3KubernetesLabels(in.KubernetesLabels, v)
+	}
+
+	if in.NodeTaints != nil && len(in.NodeTaints) > 0 {
+		v, ok := obj["node_taints"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["node_taints"] = flattenGKEV3NodeTaints(in.NodeTaints, v)
+	}
+
+	if in.GceInstanceMetadata != nil && len(in.GceInstanceMetadata) > 0 {
+		v, ok := obj["gce_instance_metadata"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["gce_instance_metadata"] = flattenGKEV3GceInstanceMetadata(in.GceInstanceMetadata, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeTaints(in []*infrapb.GkeNodeTaint, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, j := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		obj["key"] = j.Key
+		obj["value"] = j.Value
+		obj["effect"] = j.Effect
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenGKEV3KubernetesLabels(in []*infrapb.GkeKubernetesLabel, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, j := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		obj["key"] = j.Key
+		obj["value"] = j.Value
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenGKEV3GceInstanceMetadata(in []*infrapb.GkeGCEInstanceMetadata, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, j := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		obj["key"] = j.Key
+		obj["value"] = j.Value
+
+		out[i] = &obj
+	}
+
+	return out
 }
 
 // func flattenGKEV3(in *infrapb., p []interface{}) []interface{} {

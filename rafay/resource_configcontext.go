@@ -191,7 +191,7 @@ func expandConfigContext(in *schema.ResourceData) (*eaaspb.ConfigContext, error)
 	obj := &eaaspb.ConfigContext{}
 
 	if v, ok := in.Get("metadata").([]interface{}); ok {
-		obj.Metadata = expandMetaData(v)
+		obj.Metadata = expandV3MetaData(v)
 	}
 
 	if v, ok := in.Get("spec").([]interface{}); ok {
@@ -272,7 +272,7 @@ func flattenConfigContext(d *schema.ResourceData, in *eaaspb.ConfigContext) erro
 		return nil
 	}
 
-	err := d.Set("metadata", flattenMetaData(in.Metadata))
+	err := d.Set("metadata", flattenV3MetaData(in.Metadata))
 	if err != nil {
 		log.Println("flatten metadata err")
 		return err

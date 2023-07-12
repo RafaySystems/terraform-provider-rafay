@@ -209,7 +209,7 @@ func expandEnvironment(in *schema.ResourceData) (*eaaspb.Environment, error) {
 	obj := &eaaspb.Environment{}
 
 	if v, ok := in.Get("metadata").([]interface{}); ok {
-		obj.Metadata = expandMetaData(v)
+		obj.Metadata = expandV3MetaData(v)
 	}
 
 	if v, ok := in.Get("spec").([]interface{}); ok {
@@ -281,7 +281,7 @@ func flattenEnvironment(d *schema.ResourceData, in *eaaspb.Environment) error {
 		return nil
 	}
 
-	err := d.Set("metadata", flattenMetaData(in.Metadata))
+	err := d.Set("metadata", flattenV3MetaData(in.Metadata))
 	if err != nil {
 		log.Println("flatten metadata err")
 		return err

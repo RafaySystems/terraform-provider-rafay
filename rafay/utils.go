@@ -745,7 +745,7 @@ func flattenMetaData(in *commonpb.Metadata) []interface{} {
 	if in == nil {
 		return nil
 	}
-
+	log.Println("flatten metadata: ", in)
 	obj := make(map[string]interface{})
 
 	if len(in.Name) > 0 {
@@ -1973,6 +1973,63 @@ func flattenBoolValue(in *datatypes.BoolValue) []interface{} {
 
 	obj := make(map[string]interface{})
 	obj["value"] = in.Value
+
+	return []interface{}{obj}
+}
+
+func expandV3MetaData(p []interface{}) *commonpb.Metadata {
+	obj := &commonpb.Metadata{}
+	if p == nil || len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+	if v, ok := in["description"].(string); ok && len(v) > 0 {
+		obj.Description = v
+	}
+	if v, ok := in["project"].(string); ok && len(v) > 0 {
+		obj.Project = v
+	}
+
+	if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.Labels = toMapString(v)
+	}
+
+	if v, ok := in["annotations"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.Annotations = toMapString(v)
+	}
+	return obj
+}
+
+func flattenV3MetaData(in *commonpb.Metadata) []interface{} {
+	if in == nil {
+		return nil
+	}
+	log.Println("flatten metadata: ", in)
+	obj := make(map[string]interface{})
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Description) > 0 {
+		obj["description"] = in.Description
+	}
+
+	if len(in.Project) > 0 {
+		obj["project"] = in.Project
+	}
+
+	if len(in.Labels) > 0 {
+		obj["labels"] = toMapInterface(in.Labels)
+	}
+
+	if len(in.Annotations) > 0 {
+		obj["annotations"] = toMapInterface(in.Annotations)
+	}
 
 	return []interface{}{obj}
 }

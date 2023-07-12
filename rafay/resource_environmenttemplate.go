@@ -192,7 +192,7 @@ func expandEnvironmentTemplate(in *schema.ResourceData) (*eaaspb.EnvironmentTemp
 	obj := &eaaspb.EnvironmentTemplate{}
 
 	if v, ok := in.Get("metadata").([]interface{}); ok {
-		obj.Metadata = expandMetaData(v)
+		obj.Metadata = expandV3MetaData(v)
 	}
 
 	if v, ok := in.Get("spec").([]interface{}); ok {
@@ -373,7 +373,7 @@ func flattenEnvironmentTemplate(d *schema.ResourceData, in *eaaspb.EnvironmentTe
 		return nil
 	}
 
-	err := d.Set("metadata", flattenMetaData(in.Metadata))
+	err := d.Set("metadata", flattenV3MetaData(in.Metadata))
 	if err != nil {
 		log.Println("flatten metadata err")
 		return err

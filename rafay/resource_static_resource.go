@@ -191,7 +191,7 @@ func expandResource(in *schema.ResourceData) (*eaaspb.Resource, error) {
 	obj := &eaaspb.Resource{}
 
 	if v, ok := in.Get("metadata").([]interface{}); ok {
-		obj.Metadata = expandMetaData(v)
+		obj.Metadata = expandV3MetaData(v)
 	}
 
 	if v, ok := in.Get("spec").([]interface{}); ok {
@@ -234,7 +234,7 @@ func flattenResource(d *schema.ResourceData, in *eaaspb.Resource) error {
 		return nil
 	}
 
-	err := d.Set("metadata", flattenMetaData(in.Metadata))
+	err := d.Set("metadata", flattenV3MetaData(in.Metadata))
 	if err != nil {
 		log.Println("flatten metadata err")
 		return err

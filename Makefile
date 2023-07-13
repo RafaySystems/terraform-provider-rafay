@@ -58,3 +58,13 @@ push:
 
 bucket-name:
 	echo 'Build Folder URL:- https://$(BUCKET_NAME).s3.us-west-1.amazonaws.com/$(TAG)/$(BUILD_NUMBER)/'
+
+
+.PHONY: tidy
+tidy:
+	GOPRIVATE=github.com/RafaySystems/* go mod tidy
+
+.PHONY: update-deps 
+update-deps:
+	GOPRIVATE=github.com/RafaySystems/* go get -d github.com/RafaySystems/rafay-common@master
+

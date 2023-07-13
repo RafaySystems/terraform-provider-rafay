@@ -151,7 +151,7 @@ func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, 
 				s, err := cloudprovider.CreateAWSCloudRoleCredentials(
 					d.Get("name").(string),
 					project.ID, d.Get("rolearn").(string),
-					d.Get("externalid").(string),
+					"",
 					1)
 				if err != nil {
 					log.Printf("create cloud credential error %s", err.Error())
@@ -212,7 +212,7 @@ func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, 
 				if d.Get("rolearn").(string) == "" {
 					return diag.FromErr(fmt.Errorf("RoleARN cannot be empty"))
 				}
-				s, err := cloudprovider.CreateMinioCloudRoleCredentials(d.Get("name").(string), project.ID, d.Get("rolearn").(string), d.Get("externalid").(string))
+				s, err := cloudprovider.CreateMinioCloudRoleCredentials(d.Get("name").(string), project.ID, d.Get("rolearn").(string), d.Get("externalid").(string)) //check this as well
 				if err != nil {
 					log.Printf("create cloud credential error %s", err.Error())
 					return diag.FromErr(err)

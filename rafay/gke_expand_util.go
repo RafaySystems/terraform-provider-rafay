@@ -12,8 +12,15 @@ import (
 
 // takes input given in the format of the terraform schema and populate the backend structure for that resource.
 // convert from tf schema --> V3 schema in rafay-common proto
-
 func expandGKEClusterToV3(in *schema.ResourceData) (*infrapb.Cluster, error) {
+	/*
+		Cluster:
+		- apiversion
+		- kind
+		- metadata
+		- spec
+	*/
+
 	if in == nil {
 		return nil, fmt.Errorf("%s", "expand cluster invoked with empty input")
 	}
@@ -40,14 +47,14 @@ func expandGKEClusterToV3(in *schema.ResourceData) (*infrapb.Cluster, error) {
 }
 
 func expandGKEClusterToV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
-	// expandGKESpec??
 	/*
-		type
-		sharing
-		cloudCredentials
-		blueprint
-		proxy
-		config --- gke
+		Spec:
+		- type
+		- sharing
+		- cloudCredentials
+		- blueprint
+		- proxy
+		- config --- gke
 
 	*/
 
@@ -123,6 +130,18 @@ func expandGKEClusterToV3Blueprint(p []interface{}) (*infrapb.ClusterBlueprint, 
 
 // GkeV3ConfigObject
 func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error) {
+	/*
+		Config (gke/GkeV3ConfigObject):
+		- gcp project
+		- controlplaneversion
+		- prebootstrapcommands
+		- location
+		- network
+		- nodepools
+		- security
+		- Feature
+	*/
+
 	obj := &infrapb.ClusterSpec_Gke{
 		Gke: &infrapb.GkeV3ConfigObject{}}
 
@@ -130,17 +149,6 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 		return obj, errors.New("got nil or empty object for gke config") // TODO: review this: Does it matter whether we return nil or obj here?
 	}
 	in := p[0].(map[string]interface{})
-
-	/*
-		gcp project
-		location
-		controlplaneversion
-		network
-		security
-		Feature
-		nodepools
-		prebootstrapcommands
-	*/
 
 	if v, ok := in["gcp_project"].(string); ok && len(v) > 0 {
 		obj.Gke.GcpProject = v
@@ -172,8 +180,10 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 	}
 
 	// security
+	// TODO:
 
 	// feature
+	// TODO:
 
 	// nodepools
 	if v, ok := in["node_pools"].([]interface{}); ok && len(v) > 0 {
@@ -210,7 +220,7 @@ func expandToV3GkeLocation(p []interface{}) (*infrapb.GkeLocation, error) {
 	var err error
 	// GkeDefaultNodeLocation
 	if v, ok := in["default_node_locations"].([]interface{}); ok && len(v) > 0 {
-		obj.DefaultNodeLocations, err = expandToV3GkeDefaultNodeLocation(v)
+		obj.DefaultNodeLocations, err = expandToV3GkeDefaultNodeLocations(v)
 		if err != nil {
 			return obj, fmt.Errorf("failed to expand gke default node locations " + err.Error())
 		}
@@ -238,7 +248,7 @@ func expandToV3GkeLocation(p []interface{}) (*infrapb.GkeLocation, error) {
 	return obj, nil
 }
 
-func expandToV3GkeDefaultNodeLocation(p []interface{}) (*infrapb.GkeDefaultNodeLocation, error) {
+func expandToV3GkeDefaultNodeLocations(p []interface{}) (*infrapb.GkeDefaultNodeLocation, error) {
 	if len(p) == 0 || p[0] == nil {
 		return nil, errors.New("got nil for gke default node locations")
 	}

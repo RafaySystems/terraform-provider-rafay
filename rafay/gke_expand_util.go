@@ -81,8 +81,13 @@ func expandGKEClusterToV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 		obj.CloudCredentials = v
 	}
 
-	// TODO: Proxy
-
+	if v, ok := in["proxy"].([]interface{}); ok && len(v) > 0 {
+		var err error
+		obj.Proxy, err = expandToV3GKEProxy(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand proxy " + err.Error())
+		}
+	}
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		obj.Type = v
 	}
@@ -124,6 +129,47 @@ func expandGKEClusterToV3Blueprint(p []interface{}) (*infrapb.ClusterBlueprint, 
 	}
 
 	log.Println("expandGKEClusterToV3Blueprint obj", obj)
+	return obj, nil
+
+}
+
+// GkeProxy
+func expandToV3GKEProxy(p []interface{}) (*infrapb.ClusterProxy, error) {
+	obj := &infrapb.ClusterProxy{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, errors.New("empty proxy in input")
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["http_proxy"].(string); ok && len(v) > 0 {
+		obj.HttpProxy = v
+	}
+
+	if v, ok := in["https_proxy"].(string); ok && len(v) > 0 {
+		obj.HttpsProxy = v
+	}
+
+	if v, ok := in["no_proxy"].(string); ok && len(v) > 0 {
+		obj.NoProxy = v
+	}
+
+	if v, ok := in["proxy_auth"].(string); ok && len(v) > 0 {
+		obj.ProxyAuth = v
+	}
+
+	if v, ok := in["bootstrap_ca"].(string); ok && len(v) > 0 {
+		obj.BootstrapCA = v
+	}
+
+	if v, ok := in["allow_insecure_bootstrap"].(bool); ok {
+		obj.AllowInsecureBootstrap = v
+	}
+
+	log.Println("expandToV3GKEProxy obj", obj)
 	return obj, nil
 
 }
@@ -180,10 +226,20 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 	}
 
 	// security
-	// TODO:
+	if v, ok := in["security"].([]interface{}); ok && len(v) > 0 {
+		obj.Gke.Security, err = expandToV3GkeSecurity(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand gke security from schema " + err.Error())
+		}
+	}
 
 	// feature
-	// TODO:
+	if v, ok := in["features"].([]interface{}); ok && len(v) > 0 {
+		obj.Gke.Features, err = expandToV3GkeFeatures(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand gke feature from schema " + err.Error())
+		}
+	}
 
 	// nodepools
 	if v, ok := in["node_pools"].([]interface{}); ok && len(v) > 0 {
@@ -307,6 +363,88 @@ func expandToV3GkeRegionalCluster(p []interface{}) (*infrapb.GkeLocation_Regiona
 
 	if v, ok := in["zone"].(string); ok && len(v) > 0 {
 		obj.Regional.Zone = v
+	}
+
+	return obj, nil
+}
+
+func expandToV3GkeSecurity(p []interface{}) (*infrapb.GkeSecurity, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke security config")
+	}
+
+	obj := &infrapb.GkeSecurity{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enable_workload_identity"].(bool); ok {
+		obj.EnableWorkloadIdentity = v
+	}
+
+	if v, ok := in["enable_google_groups_for_rabc"].(bool); ok {
+		obj.EnableGoogleGroupsForRabc = v
+	}
+
+	if v, ok := in["security_group"].(string); ok && len(v) > 0 {
+		obj.SecurityGroup = v
+	}
+
+	if v, ok := in["enable_legacy_authorization"].(bool); ok {
+		obj.EnableLegacyAuthorization = v
+	}
+
+	if v, ok := in["issue_client_certificate"].(bool); ok {
+		obj.IssueClientCertificate = v
+	}
+
+	return obj, nil
+}
+
+func expandToV3GkeFeatures(p []interface{}) (*infrapb.GkeFeatures, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke security config")
+	}
+
+	obj := &infrapb.GkeFeatures{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enable_cloud_logging"].(bool); ok {
+		obj.EnableCloudLogging = v
+	}
+
+	if v, ok := in["cloud_logging_components"].([]interface{}); ok && len(v) > 0 {
+		obj.CloudLoggingComponents = toArrayString(v)
+	}
+
+	if v, ok := in["enable_cloud_monitoring"].(bool); ok {
+		obj.EnableCloudMonitoring = v
+	}
+
+	if v, ok := in["cloud_monitoring_components"].([]interface{}); ok && len(v) > 0 {
+		obj.CloudMonitoringComponents = toArrayString(v)
+	}
+
+	if v, ok := in["enable_managed_service_prometheus"].(bool); ok {
+		obj.EnableManagedServicePrometheus = v
+	}
+
+	if v, ok := in["enable_application_manager_beta"].(bool); ok {
+		obj.EnableApplicationManagerBeta = v
+	}
+
+	if v, ok := in["enable_backup_for_gke"].(bool); ok {
+		obj.EnableBackupForGke = v
+	}
+
+	if v, ok := in["enable_compute_engine_persistent_disk_csi_driver"].(bool); ok {
+		obj.EnableComputeEnginePersistentDiskCSIDriver = v
+	}
+
+	if v, ok := in["enable_filestore_csi_driver"].(bool); ok {
+		obj.EnableFilestoreCSIDriver = v
+	}
+
+	if v, ok := in["enable_image_streaming"].(bool); ok {
+		obj.EnableImageStreaming = v
 	}
 
 	return obj, nil
@@ -439,7 +577,6 @@ func expandToV3GkeControlPlaneAuthorizedNetwork(p []interface{}) (*infrapb.GkeCo
 
 	var err error
 	if v, ok := in["authorized_network"].([]interface{}); ok && len(v) > 0 {
-		//obj.Zones = toArrayString(v)
 		obj.AuthorizedNetwork, err = expandToV3GkeAuthorizedNetwork(v)
 		if err != nil {
 			return obj, fmt.Errorf("failed to expand Gke authorized networks " + err.Error())
@@ -541,12 +678,13 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 			}
 		}
 
-		// TODO GkeNodeMetadata
-		// 		if v, ok := in[""].([]interface{}); ok && len(v) > 0 {
-		// 	if err != nil {
-		// 		return obj, fmt.Errorf("failed to expand Gke authorized networks " + err.Error())
-		// 	}
-		// }
+		// GkeNodeMetadata
+		if v, ok := in["metadata"].([]interface{}); ok && len(v) > 0 {
+			obj.Metadata, err = expandToV3GkeNodeMetaData(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand Gke authorized networks " + err.Error())
+			}
+		}
 
 		out[i] = obj
 	}
@@ -662,6 +800,125 @@ func expandToV3GkeNodeSecurity(p []interface{}) (*infrapb.GkeNodeSecurity, error
 	}
 
 	return obj, nil
+}
+
+func expandToV3GkeNodeMetaData(p []interface{}) (*infrapb.GkeNodeMetadata, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node metadata config")
+	}
+
+	obj := &infrapb.GkeNodeMetadata{}
+	in := p[0].(map[string]interface{})
+
+	var err error
+
+	if v, ok := in["kubernetes_labels"].([]interface{}); ok && len(v) > 0 {
+		obj.KubernetesLabels, err = expandToV3GkeKubernetesLabels(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand Gke kubernetes labels " + err.Error())
+		}
+	}
+
+	if v, ok := in["gce_instance_metadata"].([]interface{}); ok && len(v) > 0 {
+		obj.GceInstanceMetadata, err = expandToV3GkeGceInstanceMetadata(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand Gke gce instance metadata " + err.Error())
+		}
+	}
+
+	if v, ok := in["node_taints"].([]interface{}); ok && len(v) > 0 {
+		obj.NodeTaints, err = expandToV3GkeNodeTaints(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand Gke node taints " + err.Error())
+		}
+	}
+
+	return obj, nil
+}
+
+func expandToV3GkeKubernetesLabels(p []interface{}) ([]*infrapb.GkeKubernetesLabel, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke kubernetes lables config")
+	}
+
+	out := make([]*infrapb.GkeKubernetesLabel, len(p))
+	for i := range p {
+		obj := &infrapb.GkeKubernetesLabel{}
+
+		in := p[i].(map[string]interface{})
+
+		log.Println("In expandToV3GkeKubernetesLabels ", in)
+
+		if v, ok := in["key"].(string); ok && len(v) > 0 {
+			obj.Key = v
+		}
+
+		if v, ok := in["value"].(string); ok && len(v) > 0 {
+			obj.Value = v
+		}
+
+		out[i] = obj
+	}
+
+	return out, nil
+}
+
+func expandToV3GkeGceInstanceMetadata(p []interface{}) ([]*infrapb.GkeGCEInstanceMetadata, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke gce instance metadata config")
+	}
+
+	out := make([]*infrapb.GkeGCEInstanceMetadata, len(p))
+	for i := range p {
+		obj := &infrapb.GkeGCEInstanceMetadata{}
+
+		in := p[i].(map[string]interface{})
+
+		log.Println("In expandToV3GkeGceInstanceMetadata ", in)
+
+		if v, ok := in["key"].(string); ok && len(v) > 0 {
+			obj.Key = v
+		}
+
+		if v, ok := in["value"].(string); ok && len(v) > 0 {
+			obj.Value = v
+		}
+
+		out[i] = obj
+	}
+
+	return out, nil
+}
+
+func expandToV3GkeNodeTaints(p []interface{}) ([]*infrapb.GkeNodeTaint, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node taints config")
+	}
+
+	out := make([]*infrapb.GkeNodeTaint, len(p))
+	for i := range p {
+		obj := &infrapb.GkeNodeTaint{}
+
+		in := p[i].(map[string]interface{})
+
+		log.Println("In expandToV3GkeNodeTaints ", in)
+
+		if v, ok := in["key"].(string); ok && len(v) > 0 {
+			obj.Key = v
+		}
+
+		if v, ok := in["value"].(string); ok && len(v) > 0 {
+			obj.Value = v
+		}
+
+		if v, ok := in["effect"].(string); ok && len(v) > 0 {
+			obj.Effect = v
+		}
+
+		out[i] = obj
+	}
+
+	return out, nil
 }
 
 // func expandToV3GkeNetwork(p []interface{}) (*infrapb.GkeNetwork, error) {

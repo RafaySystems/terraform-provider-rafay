@@ -1,18 +1,18 @@
 resource "rafay_gke_cluster_v3" "pv-gke-terraform" {
   metadata {
-    name    = "pv-gke-tf-1"
+    name    = "pv-gke-tf-3"
     project = "defaultproject"
   }
   spec {
-    type          = "Gke"
+    type          = "gke"
     blueprint {
       name = "minimal"
       version = "latest"
     }
-    cloud_credentials = "pv-gke-dev-cred"
+    cloud_credentials = "pv-dev-gke-cred"
     config {
       gcp_project = "dev-382813"
-      control_plane_version = "1.25"
+      control_plane_version = "1.24"
       location {
         type = "zonal"
         config {

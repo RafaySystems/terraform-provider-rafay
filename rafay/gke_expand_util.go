@@ -20,7 +20,7 @@ func expandGKEClusterToV3(in *schema.ResourceData) (*infrapb.Cluster, error) {
 		- metadata
 		- spec
 	*/
-
+	log.Println("expandGKEClusterToV3")
 	if in == nil {
 		return nil, fmt.Errorf("%s", "expand cluster invoked with empty input")
 	}
@@ -39,7 +39,7 @@ func expandGKEClusterToV3(in *schema.ResourceData) (*infrapb.Cluster, error) {
 		if err != nil {
 			return nil, err
 		}
-		log.Println("expandClusterSpec got spec")
+		log.Println("expandGKEClusterToV3Spec got spec")
 		obj.Spec = objSpec
 	}
 
@@ -93,7 +93,8 @@ func expandGKEClusterToV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 	}
 
 	if !strings.EqualFold(obj.Type, GKE_CLUSTER_TYPE) {
-		return nil, errors.New("cluster type not implemented")
+		log.Printf("In expandGKEClusterToV3Spec. Got non-GKE cluster. cluster type not implemented")
+		return nil, errors.New("expandGKEClusterToV3Spec got non-GKE cluster. cluster type not implemented")
 	}
 
 	if strings.EqualFold(obj.Type, GKE_CLUSTER_TYPE) {

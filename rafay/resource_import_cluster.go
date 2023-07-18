@@ -100,6 +100,7 @@ func resourceImportCluster() *schema.Resource {
 			"kubernetes_provider": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "OTHER",
 				ValidateDiagFunc: func(i interface{}, p cty.Path) diag.Diagnostics {
 					k8sProvider := i.(string)
 					if !slices.Contains(supportedK8sProviderList, k8sProvider) {
@@ -111,6 +112,7 @@ func resourceImportCluster() *schema.Resource {
 			"provision_environment": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "CLOUD",
 				ValidateDiagFunc: func(i interface{}, p cty.Path) diag.Diagnostics {
 					provisionEnv := i.(string)
 					if !slices.Contains(supportedProvisionEnvList, provisionEnv) {

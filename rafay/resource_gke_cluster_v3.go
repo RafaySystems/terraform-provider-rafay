@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
+	"net/http"
+	"strings"
 	"time"
 
+	dynamic "github.com/RafaySystems/rafay-common/pkg/hub/client/dynamic"
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
@@ -43,7 +45,28 @@ func resourceGKEClusterV3() *schema.Resource {
 func resourceGKEClusterV3Import(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	// TODO
 
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceGKEClusterV3 idParts:", idParts)
+
+	//cluster, err := expandClusterV3(d)
+	cluster, err := expandGKEClusterToV3(d)
+	if err != nil {
+		log.Printf("GKE resourceCluster expand error")
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	cluster.Metadata = &metaD
+
+	err = d.Set("metadata", flattenMetaData(cluster.Metadata))
+	if err != nil {
+		log.Println("import set err")
+		return nil, err
+	}
+	d.SetId(cluster.Metadata.Name)
 	return []*schema.ResourceData{d}, nil
+
 }
 
 func resourceGKEClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -84,8 +107,8 @@ func resourceGKEClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 	if err != nil {
 		// XXX Debug
 		n1 := spew.Sprintf("%+v", cluster)
-		log.Println("Cluster apply cluster:", n1)
-		log.Printf("Cluster apply error")
+		log.Println("GKE Cluster apply cluster:", n1)
+		log.Printf("GKE Cluster apply error")
 		return diag.FromErr(err)
 	}
 
@@ -110,10 +133,10 @@ LOOP:
 				Project: projectName,
 			})
 			if err2 != nil {
-				log.Printf("Fetching cluster having edgename: %s and projectname: %s failing due to err: %v", edgeName, projectName, err2)
+				log.Printf("Fetching cluster having cluster: %s and projectname: %s failing due to err: %v", edgeName, projectName, err2)
 				return diag.FromErr(err2)
 			} else if uCluster == nil {
-				log.Printf("Cluster operation has not started with edgename: %s and projectname: %s", edgeName, projectName)
+				log.Printf("Cluster operation has not started with cluster: %s and projectname: %s", edgeName, projectName)
 			} else if uCluster.Status != nil && uCluster.Status.Gke != nil {
 				// TODO: revisit this for gke status part
 				//	gkeStatus := uCluster.Status.Gke
@@ -121,18 +144,18 @@ LOOP:
 				uClusterCommonStatus := uCluster.Status.CommonStatus
 				switch uClusterCommonStatus.ConditionStatus {
 				case commonpb.ConditionStatus_StatusSubmitted:
-					log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", edgeName, projectName)
+					log.Printf("Cluster operation not completed for cluster: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", edgeName, projectName)
 				case commonpb.ConditionStatus_StatusOK:
-					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", edgeName, projectName)
+					log.Printf("Cluster operation completed for cluster: %s and projectname: %s", edgeName, projectName)
 					break LOOP
 				case commonpb.ConditionStatus_StatusFailed:
-					log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
+					log.Printf("Cluster operation failed for cluster: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
 					// failureReasons, err := collectGKEUpsertErrors(gkeStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
 					// if err != nil {
 					// 	return diag.FromErr(err)
 					// }
 					//return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s with failure reasons: %s", edgeName, projectName, failureReasons)
-					return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s", edgeName, projectName)
+					return diag.Errorf("Cluster operation failed for cluster: %s and projectname: %s", edgeName, projectName)
 				}
 
 			}
@@ -172,12 +195,19 @@ func resourceGKEClusterV3Create(ctx context.Context, d *schema.ResourceData, m i
 func resourceGKEClusterV3Read(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	log.Println("resourceClusterRead GKE")
-	tflog := os.Getenv("TF_LOG")
-	if tflog == "TRACE" || tflog == "DEBUG" {
-		ctx = context.WithValue(ctx, "debug", "true")
-	}
-	tfClusterState, err := expandClusterV3(d)
+	log.Printf("resourceGKEClusterV3Read GKE")
+	//	tflog := os.Getenv("TF_LOG")
+	//if tflog == "TRACE" || tflog == "DEBUG" {	// TODO -- revisit this
+	ctx = context.WithValue(ctx, "debug", "true")
+	//	}
+
+	// tfClusterState, err := expandClusterV3(d)
+	// if err != nil {
+	// 	return diag.FromErr(err)
+	// }
+
+	log.Printf("resourceGKEClusterV3Read GKE. Invoking expandGKEClusterToV3")
+	tfClusterState, err := expandGKEClusterToV3(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -217,6 +247,65 @@ func resourceGKEClusterV3Update(ctx context.Context, d *schema.ResourceData, m i
 func resourceGKEClusterV3Delete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("GKE Cluster delete starts")
+
+	//tflog := os.Getenv("TF_LOG")
+	//if tflog == "TRACE" || tflog == "DEBUG" {	// TODO -- revisit this
+	ctx = context.WithValue(ctx, "debug", "true")
+	//	}
+
+	log.Printf("GKE Cluster delete: Invoking expandGKEClusterToV3")
+	ag, err := expandGKEClusterToV3(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("GKE Cluster delete: Invoking V3 Cluster Delete")
+	err = client.InfraV3().Cluster().Delete(ctx, options.DeleteOptions{
+		Name:    ag.Metadata.Name,
+		Project: ag.Metadata.Project,
+	})
+	if err != nil {
+		log.Printf("cluster delete failed for cluster: %s and projectname: %s", ag.Metadata.Name, ag.Metadata.Project)
+		return diag.FromErr(err)
+	}
+
+	ticker := time.NewTicker(time.Duration(30) * time.Second)
+	defer ticker.Stop()
+	timeout := time.After(time.Duration(10) * time.Minute)
+
+	edgeName := ag.Metadata.Name
+	projectName := ag.Metadata.Project
+
+LOOP:
+	for {
+		select {
+		case <-timeout:
+			log.Printf("Cluster Deletion for cluster: %s and projectname: %s got timeout out.", edgeName, projectName)
+			return diag.FromErr(fmt.Errorf("cluster deletion for cluster: %s and projectname: %s got timeout out", edgeName, projectName))
+		case <-ticker.C:
+			_, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+				Name:    edgeName,
+				Project: projectName,
+			})
+			if dErr, ok := err.(*dynamic.DynamicClientGetError); ok && dErr != nil {
+				switch dErr.StatusCode {
+				case http.StatusNotFound:
+					log.Printf("Cluster Deletion completes for cluster: %s and projectname: %s", edgeName, projectName)
+					break LOOP
+				default:
+					log.Printf("Cluster Deletion failed for cluster: %s and projectname: %s with error: %s", edgeName, projectName, dErr.Error())
+					return diag.FromErr(dErr)
+				}
+			}
+			log.Printf("Cluster Deletion is in progress for cluster: %s and projectname: %s", edgeName, projectName)
+		}
+	}
 
 	return diags
 }

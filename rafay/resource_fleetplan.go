@@ -383,7 +383,7 @@ func expandFleetPlan(d *schema.ResourceData) (*infrapb.FleetPlan, error) {
 func expandFleetPlanSpec(p []interface{}) (*infrapb.FleetPlanSpec, error) {
 	obj := &infrapb.FleetPlanSpec{}
 	if len(p) == 0 || p[0] == nil {
-		return obj, fmt.Errorf("%s", "expandFleetPlanSpec empty input")
+		return nil, fmt.Errorf("%s", "expandFleetPlanSpec empty input")
 	}
 
 	in := p[0].(map[string]interface{})
@@ -408,7 +408,7 @@ func expandFleetSpec(p []interface{}) *infrapb.FleetSpec {
 
 	obj := &infrapb.FleetSpec{}
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return nil
 	}
 
 	in := p[0].(map[string]interface{})
@@ -447,7 +447,7 @@ func expandOperationWorkflow(v []interface{}) *infrapb.OperationWorkflowSpec {
 
 	obj := &infrapb.OperationWorkflowSpec{}
 	if len(v) == 0 || v[0] == nil {
-		return obj
+		return nil
 	}
 
 	in := v[0].(map[string]interface{})
@@ -479,7 +479,7 @@ func expandOperations(v []interface{}) []*infrapb.OperationSpec {
 func expandAction(in []interface{}) *infrapb.ActionSpec {
 	obj := &infrapb.ActionSpec{}
 	if len(in) == 0 || in[0] == nil {
-		return obj
+		return nil
 	}
 
 	v := in[0].(map[string]interface{})
@@ -519,7 +519,7 @@ func expandAction(in []interface{}) *infrapb.ActionSpec {
 func expandControlPlaneUpgradeConfig(in []interface{}) *infrapb.ControlPlaneUpgradeConfigSpec {
 	obj := &infrapb.ControlPlaneUpgradeConfigSpec{}
 	if len(in) == 0 || in[0] == nil {
-		return obj
+		return nil
 	}
 
 	v := in[0].(map[string]interface{})
@@ -533,7 +533,7 @@ func expandControlPlaneUpgradeConfig(in []interface{}) *infrapb.ControlPlaneUpgr
 func expandNodeGroupsAndControlPlaneUpgradeConfig(in []interface{}) *infrapb.NodeGroupsAndControlPlaneUpgradeConfigSpec {
 	obj := &infrapb.NodeGroupsAndControlPlaneUpgradeConfigSpec{}
 	if len(in) == 0 || in[0] == nil {
-		return obj
+		return nil
 	}
 
 	v := in[0].(map[string]interface{})
@@ -547,7 +547,7 @@ func expandNodeGroupsAndControlPlaneUpgradeConfig(in []interface{}) *infrapb.Nod
 func expandNodeGroupsUpgradeConfig(in []interface{}) *infrapb.NodeGroupsUpgradeConfigSpec {
 	obj := &infrapb.NodeGroupsUpgradeConfigSpec{}
 	if len(in) == 0 || in[0] == nil {
-		return obj
+		return nil
 	}
 
 	v := in[0].(map[string]interface{})
@@ -566,7 +566,7 @@ func expandPatchConfig(in []interface{}) []*infrapb.PatchConfigSpec {
 	obj := make([]*infrapb.PatchConfigSpec, 0)
 
 	if len(in) == 0 || in[0] == nil {
-		return obj
+		return nil
 	}
 
 	for _, patch := range in {
@@ -624,10 +624,10 @@ func expandHooks(in []interface{}) []*infrapb.HookSpec {
 }
 
 func expandContainerConfig(in []interface{}) *infrapb.ContainerConfigSpec {
-	obj := &infrapb.ContainerConfigSpec{}
 	if len(in) == 0 || in[0] == nil {
-		return obj
+		return nil
 	}
+	obj := &infrapb.ContainerConfigSpec{}
 
 	v := in[0].(map[string]interface{})
 
@@ -655,10 +655,10 @@ func expandContainerConfig(in []interface{}) *infrapb.ContainerConfigSpec {
 }
 
 func expandHttpConfig(in []interface{}) *infrapb.HttpConfigSpec {
-	obj := &infrapb.HttpConfigSpec{}
 	if len(in) == 0 || in[0] == nil {
-		return obj
+		return nil
 	}
+	obj := &infrapb.HttpConfigSpec{}
 
 	v := in[0].(map[string]interface{})
 
@@ -682,6 +682,10 @@ func expandHttpConfig(in []interface{}) *infrapb.HttpConfigSpec {
 }
 
 func expandFleetPlanAgent(in []interface{}) []*infrapb.Agent {
+
+	if len(in) == 0 || in[0] == nil {
+		return nil
+	}
 
 	var outAgents []*infrapb.Agent
 

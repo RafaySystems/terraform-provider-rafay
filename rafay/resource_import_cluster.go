@@ -18,10 +18,17 @@ import (
 	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/pkg/rerror"
+	"k8s.io/utils/strings/slices"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+var (
+	supportedK8sProviderList  []string = []string{"AKS", "EKS", "GKE", "OPENSHIFT", "OTHER", "RKE", "EKSANYWHERE"}
+	supportedProvisionEnvList []string = []string{"CLOUD", "ONPREM"}
 )
 
 func resourceImportCluster() *schema.Resource {
@@ -93,10 +100,26 @@ func resourceImportCluster() *schema.Resource {
 			"kubernetes_provider": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "OTHER",
+				ValidateDiagFunc: func(i interface{}, p cty.Path) diag.Diagnostics {
+					k8sProvider := i.(string)
+					if !slices.Contains(supportedK8sProviderList, k8sProvider) {
+						return diag.Errorf("Unsupported K8s Provider.Please refer list of K8s Provider supported: %v", supportedK8sProviderList)
+					}
+					return diag.Diagnostics{}
+				},
 			},
 			"provision_environment": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "CLOUD",
+				ValidateDiagFunc: func(i interface{}, p cty.Path) diag.Diagnostics {
+					provisionEnv := i.(string)
+					if !slices.Contains(supportedProvisionEnvList, provisionEnv) {
+						return diag.Errorf("Unsupported Provision Environment.Please refer list of Environment supported: %v", supportedProvisionEnvList)
+					}
+					return diag.Diagnostics{}
+				},
 			},
 		},
 	}

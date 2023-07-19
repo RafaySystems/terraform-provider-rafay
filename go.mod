@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230713060216-c6a0c9a466e8
-	github.com/RafaySystems/rctl v1.24.1-0.20230711200043-67da417f38ae
+	github.com/RafaySystems/rctl v1.24.1-0.20230719111517-13d4b793fcf5
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/hashicorp/terraform-plugin-docs v0.9.0
@@ -162,7 +162,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/api v1.16.4 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
-	k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5 // indirect
+	k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5
 	sigs.k8s.io/controller-runtime v0.11.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect

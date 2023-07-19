@@ -95,7 +95,9 @@ func flattenGKEV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{} {
 		obj["blueprint"] = flattenClusterGKEV3Blueprint(in.Blueprint)
 	}
 
-	// TODO: proxy
+	if in.Proxy != nil {
+		obj["proxy"] = flattenGkeV3Proxy(in.Proxy)
+	}
 
 	if in.GetGke() != nil {
 		v, ok := obj["config"].([]interface{})
@@ -107,6 +109,25 @@ func flattenGKEV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{} {
 
 	return []interface{}{obj}
 
+}
+
+func flattenGkeV3Proxy(in *infrapb.ClusterProxy) []interface{} {
+
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+
+	obj["enabled"] = in.Enabled // TODO: check difference between false and unset
+	obj["http_proxy"] = in.HttpProxy
+	obj["https_proxy"] = in.HttpsProxy
+	obj["no_proxy"] = in.NoProxy
+	obj["proxy_auth"] = in.ProxyAuth
+	obj["allow_insecure_bootstrap"] = in.AllowInsecureBootstrap
+	obj["bootstrap_ca"] = in.BootstrapCA
+
+	return []interface{}{obj}
 }
 
 // Note: this uses ClusterBlueprint
@@ -228,8 +249,44 @@ func flattenGKEV3Location(in *infrapb.GkeLocation, p []interface{}) []interface{
 	}
 
 	if in.GetRegional() != nil { // ??? TODO
-
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenGKEV3RegionalConfig(in.GetRegional(), v)
+	} else if in.GetZonal() != nil { // ??? TODO
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenGKEV3ZonalConfig(in.GetZonal(), v)
 	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3RegionalConfig(in *infrapb.GkeRegionalCluster, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["region"] = in.Region
+	obj["zone"] = in.Zone
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3ZonalConfig(in *infrapb.GkeZonalCluster, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+
+	obj["zone"] = in.Zone
 
 	return []interface{}{obj}
 }
@@ -318,7 +375,7 @@ func flattenGKEV3ControlPlaneAuthorizedNetwork(in *infrapb.GkeControlPlaneAuthor
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["enabled"] = in.Enabled
+	obj["enabled"] = in.Enabled // TODO: check difference between false and unset
 
 	if in.AuthorizedNetwork != nil && len(in.AuthorizedNetwork) > 0 {
 		v, ok := obj["authorized_network"].([]interface{})

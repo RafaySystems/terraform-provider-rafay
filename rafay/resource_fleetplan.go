@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
@@ -56,7 +57,7 @@ func resourceFleetPlanUpsert(ctx context.Context, d *schema.ResourceData) diag.D
 		n := GetMetaName(d)
 		if n != "" && n != d.State().ID {
 			log.Printf("metadata name change not supported")
-			//d.State().Tainted = true
+			d.State().Tainted = true
 			return diag.FromErr(fmt.Errorf("%s", "metadata name change not supported"))
 		}
 	}
@@ -75,11 +76,17 @@ func resourceFleetPlanUpsert(ctx context.Context, d *schema.ResourceData) diag.D
 
 	err = client.InfraV3().FleetPlan().Apply(ctx, fleetplan, options.ApplyOptions{})
 	if err != nil {
-		// XXX Debug
-		n1 := spew.Sprintf("%+v", fleetplan)
-		log.Println("fleetplan apply fleetplan:", n1)
-		log.Printf("fleetplan apply error: %v", err)
-		return diag.FromErr(err)
+		if strings.Contains(err.Error(), "Updated FleetPlan but could not execute the job") {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  err.Error(),
+			})
+		} else {
+			n1 := spew.Sprintf("%+v", fleetplan)
+			log.Println("fleetplan apply fleetplan:", n1)
+			log.Printf("fleetplan apply error: %v", err)
+			return diag.FromErr(err)
+		}
 	}
 
 	d.SetId(fleetplan.Metadata.Name)

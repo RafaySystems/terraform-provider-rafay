@@ -516,7 +516,7 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 - `ssh` - (Block List) Configures SSH access for this nodegroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--ssh))
 - `subnets` - (List of String) Limits the nodes to specific subnets. 
 - `tags` - (Map of Strings) Applied to the Autoscaling Group and to the EC2 instances (For self managed nodegroups) and the EKS Nodegroup resource and to the EC2 instances (For managed nodegroups). 
-- `taints` - (List) Taints to apply to the nodegroup. (See [belo for nested schema](#nestedblock--cluster_config--managed_nodegroups--taints))
+- `taints` - (List) Taints to apply to the nodegroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--taints))
 - `volume_encrypted` - (Boolean) Encrypts volumes attached to instances in the nodegroup. 
 - `volume_kms_key_id` - (String) The AWS KMS key used to encrypt data on the storage volume.
 - `volume_name` - (String) The name of the volume. 
@@ -556,7 +556,7 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 
 ***Optional***
 
-- `effect` - (String) The effect of the taint. Supported values are: `NoExecute` and `NoSchedule`.
+- `effect` - (String) The effect of the taint. Supported values are: `NoExecute`, `NoSchedule`, and `PreferNoSchedule`.
 - `key` - (String) The key for the key/value pair for the taint.
 - `value` - (String) The value for the key/value pair for the taint.
 

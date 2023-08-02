@@ -320,7 +320,7 @@ func flattenGKEV3Network(in *infrapb.GkeNetwork, p []interface{}) []interface{} 
 
 	obj["name"] = in.Name
 	obj["subnet_name"] = in.SubnetName
-	obj["enable_vpc_nativetraffic"] = in.EnableVPCNativetraffic
+	obj["enable_vpc_nativetraffic"] = in.EnableVPCNativetraffic // TODO: should we check if set and only then use in assignment?
 	obj["pod_address_range"] = in.PodAddressRange
 	obj["service_address_range"] = in.ServiceAddressRange
 
@@ -359,11 +359,38 @@ func flattenGKEV3NetworkAccess(in *infrapb.GkeAccess, p []interface{}) []interfa
 
 	obj["type"] = in.Type
 
-	if in.GetPrivate() != nil { // TODO
-
+	if in.GetPrivate() != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenGKEV3PrivateCluster(in.GetPrivate(), v)
 	}
+	// else if in.GetPublic() != nil {
+	// TODO in future when we have Public cluster specific config. Today this is empty
+	//}
 
 	return []interface{}{obj}
+}
+
+func flattenGKEV3PrivateCluster(in *infrapb.GkePrivateCluster, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ControlPlaneIPRange) > 0 {
+		obj["control_plane_ip_range"] = in.ControlPlaneIPRange
+	}
+
+	obj["enable_access_control_plane_external_ip"] = in.EnableAccessControlPlaneExternalIP
+	obj["enable_access_control_plane_global"] = in.EnableAccessControlPlaneGlobal
+	obj["disable_snat"] = in.DisableSNAT
+
+	return []interface{}{}
 }
 
 func flattenGKEV3ControlPlaneAuthorizedNetwork(in *infrapb.GkeControlPlaneAuthorizedNetwork, p []interface{}) []interface{} {

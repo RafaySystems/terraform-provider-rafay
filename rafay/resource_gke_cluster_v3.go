@@ -43,12 +43,11 @@ func resourceGKEClusterV3() *schema.Resource {
 }
 
 func resourceGKEClusterV3Import(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	// TODO
 
 	idParts := strings.SplitN(d.Id(), "/", 2)
-	log.Println("resourceGKEClusterV3 idParts:", idParts)
+	log.Println("resourceGKEClusterV3Import idParts:", idParts)
 
-	//cluster, err := expandClusterV3(d)
+	log.Println("resourceGKEClusterV3Import Invoking expandGKEClusterToV3")
 	cluster, err := expandGKEClusterToV3(d)
 	if err != nil {
 		log.Printf("GKE resourceCluster expand error")
@@ -61,7 +60,7 @@ func resourceGKEClusterV3Import(d *schema.ResourceData, meta interface{}) ([]*sc
 
 	err = d.Set("metadata", flattenMetaData(cluster.Metadata))
 	if err != nil {
-		log.Println("import set err")
+		log.Println("import set metadata err ", err)
 		return nil, err
 	}
 	d.SetId(cluster.Metadata.Name)
@@ -88,7 +87,6 @@ func resourceGKEClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 		}
 	}
 
-	//cluster, err := expandClusterV3(d)
 	cluster, err := expandGKEClusterToV3(d)
 	if err != nil {
 		log.Printf("Cluster expandCluster error " + err.Error())
@@ -150,6 +148,7 @@ LOOP:
 					break LOOP
 				case commonpb.ConditionStatus_StatusFailed:
 					log.Printf("Cluster operation failed for cluster: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
+					// TODO??
 					// failureReasons, err := collectGKEUpsertErrors(gkeStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
 					// if err != nil {
 					// 	return diag.FromErr(err)

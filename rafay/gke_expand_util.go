@@ -20,7 +20,6 @@ func expandGKEClusterToV3(in *schema.ResourceData) (*infrapb.Cluster, error) {
 		- metadata
 		- spec
 	*/
-	log.Println("expandGKEClusterToV3")
 	if in == nil {
 		return nil, fmt.Errorf("%s", "expand cluster invoked with empty input")
 	}
@@ -39,9 +38,10 @@ func expandGKEClusterToV3(in *schema.ResourceData) (*infrapb.Cluster, error) {
 		if err != nil {
 			return nil, err
 		}
-		log.Println("expandGKEClusterToV3Spec got spec")
 		obj.Spec = objSpec
 	}
+
+	log.Println("In expandGKEClusterToV3. infrapb obj", obj)
 
 	return obj, nil
 }
@@ -93,7 +93,7 @@ func expandGKEClusterToV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 	}
 
 	if !strings.EqualFold(obj.Type, GKE_CLUSTER_TYPE) {
-		log.Printf("In expandGKEClusterToV3Spec. Got non-GKE cluster. cluster type not implemented")
+		log.Println("In expandGKEClusterToV3Spec. Got non-GKE cluster. cluster type not implemented")
 		return nil, errors.New("expandGKEClusterToV3Spec got non-GKE cluster. cluster type not implemented")
 	}
 
@@ -170,7 +170,6 @@ func expandToV3GKEProxy(p []interface{}) (*infrapb.ClusterProxy, error) {
 		obj.AllowInsecureBootstrap = v
 	}
 
-	log.Println("expandToV3GKEProxy obj", obj)
 	return obj, nil
 
 }
@@ -193,7 +192,7 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 		Gke: &infrapb.GkeV3ConfigObject{}}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj, errors.New("got nil or empty object for gke config") // TODO: review this: Does it matter whether we return nil or obj here?
+		return obj, errors.New("got nil or empty object for gke config")
 	}
 	in := p[0].(map[string]interface{})
 
@@ -260,8 +259,6 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 }
 
 func expandToV3GkeLocation(p []interface{}) (*infrapb.GkeLocation, error) {
-	log.Printf("In expandToV3GkeLocation")
-	//fmt.Println("In expandToV3GkeLocation")
 	obj := &infrapb.GkeLocation{}
 
 	if len(p) == 0 || p[0] == nil {
@@ -282,8 +279,6 @@ func expandToV3GkeLocation(p []interface{}) (*infrapb.GkeLocation, error) {
 			return obj, fmt.Errorf("failed to expand gke default node locations " + err.Error())
 		}
 	}
-
-	log.Printf("In expandToV3GkeLocation %s", in)
 
 	// zonal/regional
 	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
@@ -318,11 +313,9 @@ func expandToV3GkeDefaultNodeLocations(p []interface{}) (*infrapb.GkeDefaultNode
 		obj.Enabled = v
 	}
 
-	//if obj.Enabled {
 	if v, ok := in["zones"].([]interface{}); ok && len(v) > 0 {
 		obj.Zones = toArrayString(v)
 	}
-	//}
 
 	return obj, nil
 
@@ -339,7 +332,6 @@ func expandToV3GkeZonalCluster(p []interface{}) (*infrapb.GkeLocation_Zonal, err
 	}
 
 	in := p[0].(map[string]interface{})
-	log.Printf("expandToV3GkeZonalCluster %s", in)
 
 	if v, ok := in["zone"].(string); ok && len(v) > 0 {
 		obj.Zonal.Zone = v
@@ -624,8 +616,6 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 
 		in := p[i].(map[string]interface{})
 
-		log.Printf("In expandToV3GkeNodepools %s", in)
-
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
 		}
@@ -689,8 +679,6 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 
 		out[i] = obj
 	}
-
-	log.Printf("In expandToV3GkeNodepools after expand out= %s", out)
 
 	return out, nil
 }
@@ -848,8 +836,6 @@ func expandToV3GkeKubernetesLabels(p []interface{}) ([]*infrapb.GkeKubernetesLab
 
 		in := p[i].(map[string]interface{})
 
-		log.Println("In expandToV3GkeKubernetesLabels ", in)
-
 		if v, ok := in["key"].(string); ok && len(v) > 0 {
 			obj.Key = v
 		}
@@ -902,8 +888,6 @@ func expandToV3GkeNodeTaints(p []interface{}) ([]*infrapb.GkeNodeTaint, error) {
 
 		in := p[i].(map[string]interface{})
 
-		log.Println("In expandToV3GkeNodeTaints ", in)
-
 		if v, ok := in["key"].(string); ok && len(v) > 0 {
 			obj.Key = v
 		}
@@ -921,14 +905,3 @@ func expandToV3GkeNodeTaints(p []interface{}) ([]*infrapb.GkeNodeTaint, error) {
 
 	return out, nil
 }
-
-// func expandToV3GkeNetwork(p []interface{}) (*infrapb.GkeNetwork, error) {
-// 	if len(p) == 0 || p[0] == nil {
-// 		return nil, errors.New("got nil for gke network config")
-// 	}
-
-// 	obj := &infrapb.GkeNetwork{}
-// in := p[0].(map[string]interface{})
-
-// 	return obj, nil
-// }

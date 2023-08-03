@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -19,7 +20,6 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -46,6 +46,7 @@ func resourceGKEClusterV3() *schema.Resource {
 }
 
 func resourceGKEClusterV3Import(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	log.Printf("GKE Cluster Import starts")
 
 	idParts := strings.SplitN(d.Id(), "/", 2)
 	log.Println("resourceGKEClusterV3Import idParts:", idParts)
@@ -72,14 +73,13 @@ func resourceGKEClusterV3Import(d *schema.ResourceData, meta interface{}) ([]*sc
 }
 
 func resourceGKEClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
 	log.Printf("GKE Cluster upsert starts")
-	// tflog := os.Getenv("TF_LOG")
-	//if tflog == "TRACE" || tflog == "DEBUG" {
-	ctx = context.WithValue(ctx, "debug", "true")
-	//}
 
-	tflog.Info(ctx, "In resourceGKEClusterV3Upsert")
+	var diags diag.Diagnostics
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
 
 	if d.State() != nil && d.State().ID != "" {
 		n := GetMetaName(d)
@@ -174,15 +174,10 @@ func resourceGKEClusterV3Read(ctx context.Context, d *schema.ResourceData, m int
 	var diags diag.Diagnostics
 
 	log.Printf("resourceGKEClusterV3Read GKE")
-	//	tflog := os.Getenv("TF_LOG")
-	//if tflog == "TRACE" || tflog == "DEBUG" {	// TODO -- revisit this
-	ctx = context.WithValue(ctx, "debug", "true")
-	//	}
-
-	// tfClusterState, err := expandClusterV3(d)
-	// if err != nil {
-	// 	return diag.FromErr(err)
-	// }
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
 
 	log.Printf("resourceGKEClusterV3Read GKE. Invoking expandGKEClusterToV3")
 	tfClusterState, err := expandGKEClusterToV3(d)
@@ -216,9 +211,7 @@ func resourceGKEClusterV3Read(ctx context.Context, d *schema.ResourceData, m int
 func resourceGKEClusterV3Update(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("GKE Cluster update starts")
 
-	var diags diag.Diagnostics
-
-	diags = resourceGKEClusterV3Upsert(ctx, d, m)
+	diags := resourceGKEClusterV3Upsert(ctx, d, m)
 	return diags
 }
 
@@ -226,10 +219,10 @@ func resourceGKEClusterV3Delete(ctx context.Context, d *schema.ResourceData, m i
 	var diags diag.Diagnostics
 	log.Printf("GKE Cluster delete starts")
 
-	//tflog := os.Getenv("TF_LOG")
-	//if tflog == "TRACE" || tflog == "DEBUG" {	// TODO -- revisit this
-	ctx = context.WithValue(ctx, "debug", "true")
-	//	}
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
 
 	log.Printf("GKE Cluster delete: Invoking expandGKEClusterToV3")
 	ag, err := expandGKEClusterToV3(d)
@@ -289,6 +282,10 @@ LOOP:
 }
 
 func collectGKEUpsertErrors(gkeStatus *infrapb.GkeStatus) (string, error) {
+	if gkeStatus == nil {
+		return "", fmt.Errorf("gkeStatus is nil")
+	}
+
 	// Defining local struct just to collect errors in json-prettify format to display the same to end user for better visualization.
 	type GkeUpsertErrorFormatter struct {
 		Name          string `json:"name"`
@@ -300,8 +297,6 @@ func collectGKEUpsertErrors(gkeStatus *infrapb.GkeStatus) (string, error) {
 	collectedErrors := GkeUpsertErrorFormatter{}
 
 	for _, c := range gkeStatus.Conditions {
-		//sts := c.Status
-		//	if sts == common.Failed.String() {
 		if c.Status == common.Failed.String() {
 			collectedErrors.Name = "Cluster"
 			collectedErrors.Type = c.Type

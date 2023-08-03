@@ -192,7 +192,7 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 		Gke: &infrapb.GkeV3ConfigObject{}}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj, errors.New("got nil or empty object for gke config") // TODO: review this: Does it matter whether we return nil or obj here?
+		return obj, errors.New("got nil or empty object for gke config")
 	}
 	in := p[0].(map[string]interface{})
 

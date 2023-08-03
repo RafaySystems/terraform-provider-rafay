@@ -1,6 +1,9 @@
 package rafay
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -14,15 +17,16 @@ func flattenGKEClusterV3(d *schema.ResourceData, in *infrapb.Cluster) error {
 		- metadata
 		- spec
 	*/
+	log.Println("flattenGKEClusterV3 in", in)
 	if in == nil {
 		return nil
 	}
 	obj := map[string]interface{}{}
 
-	if len(in.ApiVersion) > 0 { // TODO: why len check here???
+	if len(in.ApiVersion) > 0 {
 		obj["api_version"] = in.ApiVersion
 	}
-	if len(in.Kind) > 0 { // TODO: why len check here???
+	if len(in.Kind) > 0 {
 		obj["kind"] = in.Kind
 	}
 	var err error
@@ -36,6 +40,7 @@ func flattenGKEClusterV3(d *schema.ResourceData, in *infrapb.Cluster) error {
 		ret1 = flattenMetadataV3(in.Metadata, v)
 	}
 
+	//fmt.Printf("flattenGKEClusterV3 flattenMetadataV3 returned %+v\n", ret1)
 	err = d.Set("metadata", ret1)
 	if err != nil {
 		return err
@@ -51,11 +56,13 @@ func flattenGKEClusterV3(d *schema.ResourceData, in *infrapb.Cluster) error {
 		ret2 = flattenGKEV3Spec(in.Spec, v)
 	}
 
+	fmt.Printf("flattenGKEClusterV3 flattenGKEV3Spec returned %+v\n", ret2)
 	err = d.Set("spec", ret2)
 	if err != nil {
 		return err
 	}
 
+	//	fmt.Printf("flattenGKEClusterV3 after d.Set, d.GetSpec %+v\n", d.Get("spec"))
 	return nil
 }
 
@@ -79,7 +86,7 @@ func flattenGKEV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{} {
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.Type) > 0 { // TODO: why len check here???
+	if len(in.Type) > 0 {
 		obj["type"] = in.Type
 	}
 
@@ -119,7 +126,7 @@ func flattenGkeV3Proxy(in *infrapb.ClusterProxy) []interface{} {
 
 	obj := map[string]interface{}{}
 
-	obj["enabled"] = in.Enabled // TODO: check difference between false and unset
+	obj["enabled"] = in.Enabled
 	obj["http_proxy"] = in.HttpProxy
 	obj["https_proxy"] = in.HttpsProxy
 	obj["no_proxy"] = in.NoProxy
@@ -177,7 +184,9 @@ func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interf
 		obj["control_plane_version"] = in.ControlPlaneVersion
 	}
 
+	//	log.Println("flattenGKEV3Config len of prebootstrapcommands", len(in.PreBootstrapCommands))
 	if in.PreBootstrapCommands != nil && len(in.PreBootstrapCommands) > 0 {
+		//		log.Println("flattenGKEV3Config populating prebootstrapcommands")
 		obj["pre_bootstrap_commands"] = toArrayInterface(in.PreBootstrapCommands)
 	}
 
@@ -223,6 +232,7 @@ func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interf
 		}
 		obj["features"] = flattenGKEV3Features(in.Features, v)
 	}
+	fmt.Printf("flattenGKEV3Config complete %+v\n", obj)
 
 	return []interface{}{obj}
 }
@@ -248,13 +258,13 @@ func flattenGKEV3Location(in *infrapb.GkeLocation, p []interface{}) []interface{
 		obj["default_node_locations"] = flattenGKEV3DefaultNodeLocations(in.DefaultNodeLocations, v)
 	}
 
-	if in.GetRegional() != nil { // ??? TODO
+	if in.GetRegional() != nil {
 		v, ok := obj["config"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
 		obj["config"] = flattenGKEV3RegionalConfig(in.GetRegional(), v)
-	} else if in.GetZonal() != nil { // ??? TODO
+	} else if in.GetZonal() != nil {
 		v, ok := obj["config"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -300,7 +310,7 @@ func flattenGKEV3DefaultNodeLocations(in *infrapb.GkeDefaultNodeLocation, p []in
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["enabled"] = in.Enabled // TODO: check if this works
+	obj["enabled"] = in.Enabled
 
 	if in.Zones != nil && len(in.Zones) > 0 {
 		obj["zones"] = toArrayInterface(in.Zones)
@@ -320,12 +330,11 @@ func flattenGKEV3Network(in *infrapb.GkeNetwork, p []interface{}) []interface{} 
 
 	obj["name"] = in.Name
 	obj["subnet_name"] = in.SubnetName
-	obj["enable_vpc_nativetraffic"] = in.EnableVPCNativetraffic // TODO: should we check if set and only then use in assignment?
+	obj["enable_vpc_nativetraffic"] = in.EnableVPCNativetraffic
 	obj["pod_address_range"] = in.PodAddressRange
 	obj["service_address_range"] = in.ServiceAddressRange
 
-	// max_pods_per_node
-	obj["max_pods_per_node"] = in.MaxPodsPerNode // TODO: check if this works
+	obj["max_pods_per_node"] = in.MaxPodsPerNode
 
 	// access
 	if in.Access != nil {
@@ -402,7 +411,7 @@ func flattenGKEV3ControlPlaneAuthorizedNetwork(in *infrapb.GkeControlPlaneAuthor
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["enabled"] = in.Enabled // TODO: check difference between false and unset
+	obj["enabled"] = in.Enabled
 
 	if in.AuthorizedNetwork != nil && len(in.AuthorizedNetwork) > 0 {
 		v, ok := obj["authorized_network"].([]interface{})
@@ -465,12 +474,12 @@ func flattenGKEV3Features(in *infrapb.GkeFeatures, p []interface{}) []interface{
 	}
 
 	obj["enable_cloud_logging"] = in.EnableCloudLogging
-	if in.EnableCloudLogging {
+	if in.CloudLoggingComponents != nil && len(in.CloudLoggingComponents) > 0 {
 		obj["cloud_logging_components"] = toArrayInterface(in.CloudLoggingComponents)
 	}
 
 	obj["enable_cloud_monitoring"] = in.EnableCloudMonitoring
-	if in.EnableCloudMonitoring {
+	if in.CloudMonitoringComponents != nil && len(in.CloudMonitoringComponents) > 0 {
 		obj["cloud_monitoring_components"] = toArrayInterface(in.CloudMonitoringComponents)
 	}
 
@@ -497,7 +506,7 @@ func flattenGKEV3Nodepools(in []*infrapb.GkeNodePool, p []interface{}) []interfa
 
 		obj["name"] = j.Name
 		obj["node_version"] = j.NodeVersion
-		obj["size"] = j.Size // TODO: check if int works
+		obj["size"] = j.Size
 
 		if j.NodeLocations != nil {
 			v, ok := obj["node_locations"].([]interface{})
@@ -733,17 +742,3 @@ func flattenGKEV3GceInstanceMetadata(in []*infrapb.GkeGCEInstanceMetadata, p []i
 
 	return out
 }
-
-// func flattenGKEV3(in *infrapb., p []interface{}) []interface{} {
-// 	if in == nil {
-// 		return nil
-// 	}
-// 	obj := map[string]interface{}{}
-// 	if len(p) != 0 && p[0] != nil {
-// 		obj = p[0].(map[string]interface{})
-// 	}
-
-// 	// TODO
-
-// 	return []interface{}{obj}
-// }

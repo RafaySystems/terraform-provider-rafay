@@ -1846,34 +1846,6 @@ func clusterAKSNodePoolUpgradeSettings() map[string]*schema.Schema {
 
 ///Changes
 
-// New Expand Functions
-func expandAKSCluster(p []interface{}) *AKSCluster {
-	obj := &AKSCluster{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["apiversion"].(string); ok && len(v) > 0 {
-		obj.APIVersion = v
-	}
-
-	if v, ok := in["kind"].(string); ok && len(v) > 0 {
-		obj.Kind = v
-	}
-
-	if v, ok := in["metadata"].([]interface{}); ok && len(v) > 0 {
-		obj.Metadata = expandAKSClusterMetadata(v)
-	}
-
-	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
-		obj.Spec = expandAKSClusterSpec(v)
-	}
-
-	return obj
-}
-
 func expandAKSClusterMetadata(p []interface{}) *AKSClusterMetadata {
 	obj := &AKSClusterMetadata{}
 	if len(p) == 0 || p[0] == nil {
@@ -5349,48 +5321,6 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	var diags diag.Diagnostics
 	log.Println("resourceAKSClusterRead")
 
-	// obj := &AKSCluster{}
-	// if v, ok := d.Get("apiversion").(string); ok {
-	// 	obj.APIVersion = v
-	// } else {
-	// 	fmt.Print("apiversion unable to be found")
-	// 	return diag.FromErr(fmt.Errorf("%s", "Apiversion is missing"))
-	// }
-
-	// if v, ok := d.Get("kind").(string); ok {
-	// 	obj.Kind = v
-	// } else {
-	// 	fmt.Print("kind unable to be found")
-	// 	return diag.FromErr(fmt.Errorf("%s", "Kind is missing"))
-	// }
-
-	// if v, ok := d.Get("metadata").([]interface{}); ok {
-	// 	obj.Metadata = expandAKSClusterMetadata(v)
-	// } else {
-	// 	fmt.Print("metadata unable to be found")
-	// 	return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
-	// }
-
-	// if v, ok := d.Get("spec").([]interface{}); ok {
-	// 	obj.Spec = expandAKSClusterSpec(v)
-	// } else {
-	// 	fmt.Print("Cluster spec unable to be found")
-	// 	return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
-	// }
-
-	// //project details
-	// resp, err := project.GetProjectByName(obj.Metadata.Project)
-	// if err != nil {
-	// 	fmt.Print("project name missing in the resource")
-	// 	return diags
-	// }
-
-	// project, err := project.NewProjectFromResponse([]byte(resp))
-	// if err != nil {
-	// 	fmt.Printf("project does not exist")
-	// 	return diags
-	// }
-
 	clusterName, ok := d.Get("metadata.0.name").(string)
 	if !ok || clusterName == "" {
 		log.Print("Cluster name unable to be found")
@@ -5427,21 +5357,6 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	// cluster, err := cluster.GetCluster(c.Name, projectID)
-	// if err != nil {
-	// 	return diag.FromErr(err)
-	// }
-	// log.Printf("Cluster get cluster 2 worked")
-
-	//log.Printf("Cluster from name: %s", cluster)
-
-	// fmt.Println(cluster.ClusterType)
-
-	// var respGetCfgFile ResponseGetClusterSpec
-	// if err := json.Unmarshal([]byte(resp), &respGetCfgFile); err != nil {
-	// 	return diag.FromErr(err)
-	// }
-
 	clusterSpec := AKSCluster{}
 	err = yaml.Unmarshal([]byte(clusterSpecYaml), &clusterSpec)
 	if err != nil {
@@ -5458,53 +5373,6 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("update AKS cluster resource")
-	// var diags diag.Diagnostics
-	// obj := &AKSCluster{}
-
-	// if v, ok := d.Get("apiversion").(string); ok {
-	// 	obj.APIVersion = v
-	// } else {
-	// 	fmt.Print("apiversion unable to be found")
-	// 	return diag.FromErr(fmt.Errorf("%s", "Apiversion is missing"))
-	// }
-
-	// if v, ok := d.Get("kind").(string); ok {
-	// 	obj.Kind = v
-	// } else {
-	// 	fmt.Print("kind unable to be found")
-	// 	return diag.FromErr(fmt.Errorf("%s", "Kind is missing"))
-	// }
-
-	// if v, ok := d.Get("metadata").([]interface{}); ok {
-	// 	obj.Metadata = expandAKSClusterMetadata(v)
-	// } else {
-	// 	fmt.Print("metadata unable to be found")
-	// 	return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
-	// }
-
-	// if v, ok := d.Get("spec").([]interface{}); ok {
-	// 	obj.Spec = expandAKSClusterSpec(v)
-	// } else {
-	// 	fmt.Print("Cluster spec unable to be found")
-	// 	return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
-	// }
-
-	// resp, err := project.GetProjectByName(obj.Metadata.Project)
-	// if err != nil {
-	// 	fmt.Print("project name missing in the resource")
-	// 	return diags
-	// }
-
-	// project, err := project.NewProjectFromResponse([]byte(resp))
-	// if err != nil {
-	// 	fmt.Printf("project does not exist")
-	// 	return diags
-	// }
-	// _, err = cluster.GetCluster(obj.Metadata.Name, project.ID)
-	// if err != nil {
-	// 	log.Printf("error in get cluster %s", err.Error())
-	// 	return diag.FromErr(err)
-	// }
 
 	clusterName, ok := d.Get("metadata.0.name").(string)
 	if !ok || clusterName == "" {
@@ -5537,49 +5405,8 @@ func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 }
 
 func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	// var diags diag.Diagnostics
+
 	log.Printf("resource cluster delete id %s", d.Id())
-	// obj := &AKSCluster{}
-
-	// if v, ok := d.Get("apiversion").(string); ok {
-	// 	obj.APIVersion = v
-	// } else {
-	// 	fmt.Print("apiversion unable to be found")
-	// 	return diag.FromErr(fmt.Errorf("%s", "Apiversion is missing"))
-	// }
-
-	// if v, ok := d.Get("kind").(string); ok {
-	// 	obj.Kind = v
-	// } else {
-	// 	fmt.Print("kind unable to be found")
-	// 	return diag.FromErr(fmt.Errorf("%s", "Kind is missing"))
-	// }
-
-	// if v, ok := d.Get("metadata").([]interface{}); ok {
-	// 	obj.Metadata = expandAKSClusterMetadata(v)
-	// } else {
-	// 	fmt.Print("metadata unable to be found")
-	// 	return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
-	// }
-
-	// if v, ok := d.Get("spec").([]interface{}); ok {
-	// 	obj.Spec = expandAKSClusterSpec(v)
-	// } else {
-	// 	fmt.Print("Cluster spec unable to be found")
-	// 	return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
-	// }
-
-	// resp, err := project.GetProjectByName(obj.Metadata.Project)
-	// if err != nil {
-	// 	fmt.Print("project  does not exist")
-	// 	return diags
-	// }
-
-	// project, err := project.NewProjectFromResponse([]byte(resp))
-	// if err != nil {
-	// 	fmt.Printf("project  does not exist")
-	// 	return diags
-	// }
 
 	// find cluster name and project name
 	clusterName, ok := d.Get("metadata.0.name").(string)

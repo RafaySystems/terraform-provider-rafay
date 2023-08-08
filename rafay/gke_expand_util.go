@@ -28,7 +28,12 @@ func expandGKEClusterToV3(in *schema.ResourceData) (*infrapb.Cluster, error) {
 	obj.ApiVersion = V3_CLUSTER_APIVERSION
 	obj.Kind = V3_CLUSTER_KIND
 
-	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
+	v, ok := in.Get("metadata").([]interface{})
+	if !ok || len(v) == 0 {
+		return nil, fmt.Errorf("%s", "expand cluster invoked with empty metadata")
+	}
+
+	if ok && len(v) > 0 {
 		obj.Metadata = expandMetaData(v)
 	}
 

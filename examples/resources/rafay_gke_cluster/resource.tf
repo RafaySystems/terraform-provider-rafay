@@ -1,4 +1,4 @@
-resource "rafay_gke_cluster_v3" "pv-gke-terraform" {
+resource "rafay_gke_cluster" "pv-gke-terraform" {
   metadata {
     name    = "pv-gke-tf-3"
     project = "defaultproject"

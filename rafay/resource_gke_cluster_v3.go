@@ -96,6 +96,11 @@ func resourceGKEClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
+	if cluster == nil {
+		log.Printf("Cluster is nil")
+		return diag.FromErr(fmt.Errorf("cluster is nil"))
+	}
+
 	log.Println(">>>>>> CLUSTER: ", cluster)
 
 	auth := config.GetConfig().GetAppAuthProfile()
@@ -104,6 +109,7 @@ func resourceGKEClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
+	log.Println("GKE Cluster upsert: Invoking V3 Cluster Apply")
 	err = client.InfraV3().Cluster().Apply(ctx, cluster, options.ApplyOptions{})
 	if err != nil {
 		// XXX Debug

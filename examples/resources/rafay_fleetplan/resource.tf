@@ -50,11 +50,17 @@ resource "rafay_fleetplan" "fp1" {
             operations {
                 name = "op2"
                 action {
-                    type        = "nodeGroupsUpgrade"
+                    type        = "patch"
                     description = "upgrading control plane and nodegroup"
-                    node_groups_upgrade_config {
-                        version = "1.24.10"
-                        names = ["ng1", "ng2"]
+                    patch_config {
+                        op = "replace"
+                        path = ".spec.config.managedNodeGroups[0].maxSize"
+			value = jsonencode("18")
+                    }
+		    patch_config {
+                        op = "replace"
+                        path = ".spec.blueprintConfig.name"
+                        value = jsonencode("minimal")
                     }
                     name = "action2"
                 }
@@ -66,6 +72,17 @@ resource "rafay_fleetplan" "fp1" {
                         runner = "cluster"
                         image = "bitnami/kubectl"
                         arguments = ["get", "po", "-A"]
+                    }
+                }
+            }
+            operations {
+                name = "op3"
+                action {
+                    type = "nodeGroupsUpgrade"
+                    description = "upgrading nodegroup"
+                    node_groups_upgrade_config {
+                        version = "1.24.10"
+                        names = ["ng1", "ng2"]
                     }
                 }
             }

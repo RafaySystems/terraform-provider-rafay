@@ -454,8 +454,8 @@ func flattenGKEV3Security(in *infrapb.GkeSecurity, p []interface{}) []interface{
 	}
 
 	obj["enable_workload_identity"] = in.EnableWorkloadIdentity
-	obj["enable_google_groups_for_rabc"] = in.EnableGoogleGroupsForRabc
-	if in.EnableGoogleGroupsForRabc {
+	obj["enable_google_groups_for_rbac"] = in.EnableGoogleGroupsForRbac
+	if in.EnableGoogleGroupsForRbac {
 		obj["security_group"] = in.SecurityGroup
 	}
 	obj["enable_legacy_authorization"] = in.EnableLegacyAuthorization

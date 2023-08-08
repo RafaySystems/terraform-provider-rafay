@@ -378,8 +378,8 @@ func expandToV3GkeSecurity(p []interface{}) (*infrapb.GkeSecurity, error) {
 		obj.EnableWorkloadIdentity = v
 	}
 
-	if v, ok := in["enable_google_groups_for_rabc"].(bool); ok {
-		obj.EnableGoogleGroupsForRabc = v
+	if v, ok := in["enable_google_groups_for_rbac"].(bool); ok {
+		obj.EnableGoogleGroupsForRbac = v
 	}
 
 	if v, ok := in["security_group"].(string); ok && len(v) > 0 {

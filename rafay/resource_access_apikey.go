@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/commands"
@@ -103,6 +104,11 @@ func resourceAccessApiRead(ctx context.Context, d *schema.ResourceData, m interf
 	userName := d.Get("user_name").(string)
 	apikey := d.Get("apikey").(string)
 
+	s := strings.Split(apikey, ".")
+	if len(s) > 1 && s[0] == "ra2" {
+		apikey = s[0] + "." + s[1]
+	}
+
 	log.Println("resourceAccessApiRead ", userName, " apikey ", len(apikey))
 
 	if d.State() != nil && d.State().ID != "" {
@@ -124,6 +130,7 @@ func resourceAccessApiRead(ctx context.Context, d *schema.ResourceData, m interf
 		// there is an api key in the state. check key exist in controller
 		apikeys, err := user.GetUserAPIKeys(userName)
 		if err != nil {
+			log.Println("resourceAccessApiRead ", "error", err)
 			found = false
 		} else {
 			for _, ak := range apikeys {

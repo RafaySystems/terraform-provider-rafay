@@ -10,8 +10,6 @@ resource "rafay_import_cluster" "import_cluster" {
     "key1" = "value1"
     "key2" = "value2"
   }
-  kubernetes_provider = "AKS"
-  provision_environment = "CLOUD"
 }
 
 output "values_data" {

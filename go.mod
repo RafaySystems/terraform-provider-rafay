@@ -3,8 +3,8 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.19
 
 require (
-	github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230720083709-8defb4f3cee0
-	github.com/RafaySystems/rctl v1.24.1-0.20230719111517-13d4b793fcf5
+	github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230628101435-3b6265eae1f6
+	github.com/RafaySystems/rctl v1.22.0-3
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/hashicorp/terraform-plugin-docs v0.9.0
@@ -34,17 +34,15 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.7.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.0.0-20220623143253-7d51757b572c // indirect
 	github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734 // indirect
-	github.com/jedib0t/go-pretty/v6 v6.4.6 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/vmihailenco/msgpack/v4 v4.3.12 // indirect
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
-	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 )
 
 require (
 	github.com/ProtonMail/go-crypto v0.0.0-20211112122917-428f8eabeeb3 // indirect
-	github.com/RafaySystems/edge-common v1.24.1-0.20230531144217-c72f5a0a252a // indirect
+	github.com/RafaySystems/edge-common v1.6.0-beta.1.0.20230120063743-38542a140aee // indirect
 	github.com/RoaringBitmap/roaring v0.6.1 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
@@ -103,7 +101,6 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
-	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mitchellh/cli v1.1.4 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
@@ -154,6 +151,7 @@ require (
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4 // indirect
 	google.golang.org/grpc v1.53.0 // indirect
@@ -162,7 +160,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/api v1.16.4 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
-	k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5
+	k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5 // indirect
 	sigs.k8s.io/controller-runtime v0.11.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
@@ -172,6 +170,7 @@ require (
 require (
 	github.com/json-iterator/go v1.1.12
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
+	github.com/mattn/go-runewidth v0.0.12 // indirect
 )
 
 replace (
@@ -179,7 +178,7 @@ replace (
 	//github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
 	//github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	//github.com/RafaySystems/rctl => ../rctl
-	// github.com/RafaySystems/rafay-common => ../rafay-common
+	//github.com/RafaySystems/rafay-common => ../rafay-common
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
 
 	k8s.io/api => k8s.io/api v0.23.1

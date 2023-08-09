@@ -83,7 +83,6 @@ func New(_ string) func() *schema.Provider {
 				"rafay_organizationalertconfig":       resourceOrganizationAlertConfig(),
 				"rafay_tag_group":                     resourceTagGroup(),
 				"rafay_project_tags_association":      resourceProjectTagsAssociation(),
-				"rafay_fleetplan":                     resourceFleetPlan(),
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,

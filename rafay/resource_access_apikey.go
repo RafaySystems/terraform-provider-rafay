@@ -190,6 +190,11 @@ func resourceAccessApiDelete(ctx context.Context, d *schema.ResourceData, m inte
 	userName := d.Get("user_name").(string)
 	apiKey := d.Get("apikey").(string)
 
+	s := strings.Split(apiKey, ".")
+	if len(s) > 1 && s[0] == "ra2" {
+		apiKey = s[0] + "." + s[1]
+	}
+
 	log.Printf("resource user delete id %s", userName)
 	err := commands.DeleteUserAPIKey(userName, apiKey)
 	if err != nil {

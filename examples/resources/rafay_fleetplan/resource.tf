@@ -31,7 +31,9 @@ resource "rafay_fleetplan" "fp1" {
                     description = "list all pods 10"
                     inject = ["KUBECONFIG"]
                     container_config {
-                        runner = "cluster"
+                        runner {
+                            type = "cluster"
+                        }
                         image = "bitnami/kubectl"
                         arguments = ["get", "po", "-A"]
                     }
@@ -41,7 +43,9 @@ resource "rafay_fleetplan" "fp1" {
                     description = "list all pods 2"
                     inject = ["KUBECONFIG"]
                     container_config {
-                        runner = "cluster"
+                        runner {
+                            type = "cluster"
+                        }
                         image = "bitnami/kubectl"	
                         arguments = ["get", "po", "-A"]
                     }
@@ -69,7 +73,9 @@ resource "rafay_fleetplan" "fp1" {
                     description = "list all pods 1"
                     inject = ["KUBECONFIG"]
                     container_config {
-                        runner = "cluster"
+                        runner {
+                            type = "cluster"
+                        }
                         image = "bitnami/kubectl"
                         arguments = ["get", "po", "-A"]
                     }

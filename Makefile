@@ -66,5 +66,5 @@ tidy:
 
 .PHONY: update-deps 
 update-deps:
-	GOPRIVATE=github.com/RafaySystems/* go get -d github.com/RafaySystems/rafay-common@master
+	GOPRIVATE=github.com/RafaySystems/* go get -d github.com/RafaySystems/rafay-common@jainam/support-node-selector
 

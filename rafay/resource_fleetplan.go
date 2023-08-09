@@ -331,7 +331,7 @@ func flattenContainerConfig(config *infrapb.ContainerConfigSpec) []interface{} {
 		return []interface{}{}
 	}
 	obj := make(map[string]interface{})
-	obj["runner"] = config.Runner
+	obj["runner"] = flattenRunner(config.Runner)
 	obj["image"] = config.Image
 	if config.Env != nil {
 		obj["env"] = config.Env
@@ -361,6 +361,16 @@ func flattenHTTPConfig(config *infrapb.HttpConfigSpec) []interface{} {
 
 	return []interface{}{obj}
 
+}
+
+func flattenRunner(runner *infrapb.Runner) []interface{} {
+	if runner == nil {
+		return []interface{}{}
+	}
+	obj := make(map[string]interface{})
+	obj["type"] = runner.Type
+	obj["node_selector"] = runner.NodeSelector
+	return []interface{}{obj}
 }
 
 func expandFleetPlan(d *schema.ResourceData) (*infrapb.FleetPlan, error) {
@@ -638,8 +648,8 @@ func expandContainerConfig(in []interface{}) *infrapb.ContainerConfigSpec {
 
 	v := in[0].(map[string]interface{})
 
-	if v, ok := v["runner"].(string); ok {
-		obj.Runner = v
+	if v, ok := v["runner"].([]interface{}); ok {
+		obj.Runner = expandRunner(v)
 	}
 
 	if v, ok := v["image"].(string); ok {
@@ -659,6 +669,26 @@ func expandContainerConfig(in []interface{}) *infrapb.ContainerConfigSpec {
 	}
 
 	return obj
+}
+
+func expandRunner(in []interface{}) *infrapb.Runner {
+	if len(in) == 0 || in[0] == nil {
+		return nil
+	}
+	obj := &infrapb.Runner{}
+
+	v := in[0].(map[string]interface{})
+
+	if v, ok := v["type"].(string); ok {
+		obj.Type = v
+	}
+
+	if v, ok := v["node_selector"].(map[string]interface{}); ok {
+		obj.NodeSelector = toMapString(v)
+	}
+
+	return obj
+
 }
 
 func expandHttpConfig(in []interface{}) *infrapb.HttpConfigSpec {

@@ -142,17 +142,22 @@ func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	if d.Get("type").(string) == "cluster-provisioning" || d.Get("type").(string) == "data-backup" {
+		credType := cloudprovider.CredTypeClusterProvisioning
+		if d.Get("type").(string) == "data-backup" {
+			credType = cloudprovider.CredTypeDataBackup
+		}
 		if d.Get("providertype").(string) == "AWS" {
 			if d.Get("awscredtype").(string) == "rolearn" {
 				if d.Get("rolearn").(string) == "" {
 					return diag.FromErr(fmt.Errorf("RoleARN cannot be empty"))
 				}
 				log.Printf("create cloud credential with name %s, %s", d.Get("name").(string), project.ID)
+
 				s, err := cloudprovider.CreateAWSCloudRoleCredentials(
 					d.Get("name").(string),
 					project.ID, d.Get("rolearn").(string),
 					d.Get("externalid").(string),
-					1)
+					credType)
 				if err != nil {
 					log.Printf("create cloud credential error %s", err.Error())
 					return diag.FromErr(err)
@@ -170,7 +175,7 @@ func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, 
 					project.ID,
 					d.Get("accesskey").(string),
 					d.Get("secretkey").(string), "",
-					1)
+					credType)
 				if err != nil {
 					log.Printf("create cloud credential error %s", err.Error())
 					return diag.FromErr(err)
@@ -201,7 +206,7 @@ func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, 
 				d.Get("clientsecret").(string),
 				d.Get("subscriptionid").(string),
 				d.Get("tenantid").(string),
-				3)
+				credType)
 			if err != nil {
 				log.Printf("Error while create azure credentials  %s", err.Error())
 				return diag.FromErr(err)
@@ -209,15 +214,16 @@ func resourceCloudCredentialCreate(ctx context.Context, d *schema.ResourceData, 
 			d.SetId(s.ID)
 		} else if d.Get("providertype").(string) == "MINIO" {
 			if d.Get("awscredtype").(string) == "rolearn" {
-				if d.Get("rolearn").(string) == "" {
-					return diag.FromErr(fmt.Errorf("RoleARN cannot be empty"))
-				}
-				s, err := cloudprovider.CreateMinioCloudRoleCredentials(d.Get("name").(string), project.ID, d.Get("rolearn").(string), d.Get("externalid").(string))
-				if err != nil {
-					log.Printf("create cloud credential error %s", err.Error())
-					return diag.FromErr(err)
-				}
-				d.SetId(s.ID)
+				return diag.Errorf("Minio + Role ARN is not supported for data-backup.")
+				// if d.Get("rolearn").(string) == "" {
+				// 	return diag.FromErr(fmt.Errorf("RoleARN cannot be empty"))
+				// }
+				// s, err := cloudprovider.CreateMinioCloudRoleCredentials(d.Get("name").(string), project.ID, d.Get("rolearn").(string), d.Get("externalid").(string))
+				// if err != nil {
+				// 	log.Printf("create cloud credential error %s", err.Error())
+				// 	return diag.FromErr(err)
+				// }
+				// d.SetId(s.ID)
 			} else {
 				if d.Get("accesskey").(string) == "" {
 					return diag.FromErr(fmt.Errorf("accesskey cannot be empty"))

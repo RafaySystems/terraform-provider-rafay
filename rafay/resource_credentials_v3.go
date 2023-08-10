@@ -449,6 +449,8 @@ func flattenCredentialsSpec(in *infrapb.CredentialsSpec, p []interface{}) ([]int
 
 	if in.Sharing != nil {
 		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	} else {
+		obj["sharing"] = []interface{}{}
 	}
 
 	if len(in.Type) > 0 {

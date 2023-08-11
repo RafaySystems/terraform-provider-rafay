@@ -99,11 +99,13 @@ func resourceProjectUpsert(ctx context.Context, d *schema.ResourceData, m interf
 		}
 	}
 
+	log.Println("BEFORE")
 	pr, err := expandProject(d)
 	if err != nil {
 		log.Printf("Project expandProject error")
 		return diag.FromErr(err)
 	}
+	log.Println("AFTER ", pr)
 
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
@@ -167,6 +169,8 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
+	log.Println("SOMETHING")
 
 	meta := GetMetaData(d)
 	if meta == nil {
@@ -276,7 +280,31 @@ func expandProjectSpec(p []interface{}) (*systempb.ProjectSpec, error) {
 		obj.DefaultClusterNamespaceQuota = expandProjectResourceQuota(v)
 	}
 
+	if v, ok := in["drift_webhook"].([]interface{}); ok {
+		obj.DriftWebhook = expandProjectDriftWebhook(v)
+	} else {
+		obj.DriftWebhook = &commonpb.DriftWebhook{Enabled: true}
+	}
+
 	return obj, nil
+}
+
+func expandProjectDriftWebhook(p []interface{}) *commonpb.DriftWebhook {
+	obj := &commonpb.DriftWebhook{}
+	if len(p) == 0 || p[0] == nil {
+		obj.Enabled = true
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	} else {
+		obj.Enabled = true
+	}
+
+	return obj
 }
 
 func expandProjectResourceQuota(p []interface{}) *systempb.ProjectResourceQuota {
@@ -406,7 +434,22 @@ func flattenProjectSpec(in *systempb.ProjectSpec, p []interface{}) ([]interface{
 		obj["default_cluster_namespace_quota"] = flattenProjectResourceQuota(in.DefaultClusterNamespaceQuota)
 	}
 
+	if in.DriftWebhook != nil {
+		obj["drift_webhook"] = flattenProjectDriftWebhook(in.DriftWebhook)
+	}
+
 	return []interface{}{obj}, nil
+}
+
+func flattenProjectDriftWebhook(in *commonpb.DriftWebhook) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["enabled"] = in.GetEnabled()
+
+	return []interface{}{obj}
 }
 
 func flattenProjectResourceQuota(in *systempb.ProjectResourceQuota) []interface{} {

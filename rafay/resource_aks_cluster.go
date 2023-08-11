@@ -15,6 +15,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/davecgh/go-spew/spew"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -5318,6 +5319,10 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 			log.Println("task completed but cluster is not ready")
 		}
 		if strings.Contains(sres.Status, "STATUS_FAILED") {
+			if gjson.Valid(statusResp) {
+				result := gjson.Get(statusResp, "@pretty")
+				statusResp = strings.ReplaceAll(result.String(), "\\n", "\n")
+			}
 			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", obj.Metadata.Name, statusResp))
 		}
 	}

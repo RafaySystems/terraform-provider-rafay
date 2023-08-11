@@ -256,6 +256,7 @@ LOOP:
 				case commonpb.ConditionStatus_StatusFailed:
 					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
 					failureReasons, err := collectAKSUpsertErrors(aksStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
+					fmt.Printf("Debug2--- %s", failureReasons)
 					if err != nil {
 						return diag.FromErr(err)
 					}
@@ -298,8 +299,10 @@ func collectAKSUpsertErrors(nodepools []*infrapb.NodepoolStatus, lastProvisionFa
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("After MarshalIndent: ", "collectedErrsFormattedBytes", string(collectedErrsFormattedBytes))
-	return "\n" + string(collectedErrsFormattedBytes), nil
+	collectErrs := strings.ReplaceAll(string(collectedErrsFormattedBytes), "\\n", "\n")
+	fmt.Println("After MarshalIndent: ", "collectedErrsFormattedBytes", collectErrs)
+
+	return "\n" + collectErrs, nil
 }
 
 func expandClusterV3(in *schema.ResourceData) (*infrapb.Cluster, error) {

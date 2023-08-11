@@ -99,13 +99,11 @@ func resourceProjectUpsert(ctx context.Context, d *schema.ResourceData, m interf
 		}
 	}
 
-	log.Println("BEFORE")
 	pr, err := expandProject(d)
 	if err != nil {
 		log.Printf("Project expandProject error")
 		return diag.FromErr(err)
 	}
-	log.Println("AFTER ", pr)
 
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
@@ -169,8 +167,6 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
-
-	log.Println("SOMETHING")
 
 	meta := GetMetaData(d)
 	if meta == nil {

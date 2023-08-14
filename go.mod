@@ -3,7 +3,7 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.19
 
 require (
-	github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230810072549-736e2c21f9ad
+	github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230811160810-060e6d60e9f2
 	github.com/RafaySystems/rctl v1.24.1-0.20230810074126-a4f931514014
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -26,7 +26,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
-	github.com/RafaySystems/eaas-playground v0.0.0-20230530064910-e1d56c8d0be1 // indirect
+	github.com/RafaySystems/eaas-playground v0.0.0-20230719112650-493e634604d8 // indirect
 	github.com/Shopify/sarama v1.27.2 // indirect
 	github.com/eapache/go-resiliency v1.3.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect

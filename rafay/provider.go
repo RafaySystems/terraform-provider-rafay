@@ -38,6 +38,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_aks_cluster":                   resourceAKSCluster(),
 				"rafay_aks_cluster_v3":                resourceAKSClusterV3(),
 				"rafay_aks_cluster_spec":              resourceAKSClusterSpec(),
+				"rafay_gke_cluster":                   resourceGKEClusterV3(),
 				"rafay_addon":                         resourceAddon(),
 				"rafay_blueprint":                     resourceBluePrint(),
 				"rafay_import_cluster":                resourceImportCluster(),

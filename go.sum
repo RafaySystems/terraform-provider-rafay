@@ -30,10 +30,14 @@ github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbt
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/RafaySystems/eaas-playground v0.0.0-20230530064910-e1d56c8d0be1 h1:N59iEc6ZGZOYjL2cQ9NFmLyBDhw5vDAkvO/OnUhdZ3I=
 github.com/RafaySystems/eaas-playground v0.0.0-20230530064910-e1d56c8d0be1/go.mod h1:bQY6LEumznxKIFLqRP2WmwNTAL3qSiFeR/uyZ5qvEbQ=
+github.com/RafaySystems/eaas-playground v0.0.0-20230719112650-493e634604d8 h1:gTG4FAdLd7mP7uvNSmA3V11XrZmtPMXIBQObQWSkSng=
+github.com/RafaySystems/eaas-playground v0.0.0-20230719112650-493e634604d8/go.mod h1:c7HKFN+x4QYbGm1k5OxREd128ytjWZxvlur2fxMn3aI=
 github.com/RafaySystems/edge-common v1.24.1-0.20230531144217-c72f5a0a252a h1:W+3MfFqV4fL/ASDyVyIhw9tV50wrpGsPNjIE2q3sB3g=
 github.com/RafaySystems/edge-common v1.24.1-0.20230531144217-c72f5a0a252a/go.mod h1:M3B8fJpzp9olVp0o0a6Q9Nx7gR17SnkZCj7NX6jedFc=
 github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230810072549-736e2c21f9ad h1:ngsoebMcFwSS//tNo6Ef+i0pwSixouVgnTMPxIYXKH8=
 github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230810072549-736e2c21f9ad/go.mod h1:MsftHu0UMQSARTrXlOY0vENfxHCKevINEOe5RzTk6po=
+github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230811160810-060e6d60e9f2 h1:h+UsN9m8CZLmEM3xjmg1Ii6xmyXvHhdaobwufuA6o40=
+github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230811160810-060e6d60e9f2/go.mod h1:tCoP0lFNzJLiYHWKLaxmiz1eUNz+KY2ttCvJLRA5kg0=
 github.com/RafaySystems/rctl v1.24.1-0.20230810074126-a4f931514014 h1:55qNJsIpyreLN7nK1fdys1THZR06OJmsdA5Xqe11rlg=
 github.com/RafaySystems/rctl v1.24.1-0.20230810074126-a4f931514014/go.mod h1:t3H9sG3QuFVvzN1BucHi0OFGkSoJuTdm31809sgOFKU=
 github.com/RoaringBitmap/roaring v0.6.1 h1:O36Tdaj1Fi/zyr25shTHwlQPGdq53+u4WkM08AOEjiE=

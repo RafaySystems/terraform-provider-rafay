@@ -176,10 +176,10 @@ github.com/RafaySystems/eaas-playground v0.0.0-20230719112650-493e634604d8 h1:gT
 github.com/RafaySystems/eaas-playground v0.0.0-20230719112650-493e634604d8/go.mod h1:c7HKFN+x4QYbGm1k5OxREd128ytjWZxvlur2fxMn3aI=
 github.com/RafaySystems/edge-common v1.24.1-0.20230531144217-c72f5a0a252a h1:W+3MfFqV4fL/ASDyVyIhw9tV50wrpGsPNjIE2q3sB3g=
 github.com/RafaySystems/edge-common v1.24.1-0.20230531144217-c72f5a0a252a/go.mod h1:M3B8fJpzp9olVp0o0a6Q9Nx7gR17SnkZCj7NX6jedFc=
-github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230811160810-060e6d60e9f2 h1:h+UsN9m8CZLmEM3xjmg1Ii6xmyXvHhdaobwufuA6o40=
-github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230811160810-060e6d60e9f2/go.mod h1:tCoP0lFNzJLiYHWKLaxmiz1eUNz+KY2ttCvJLRA5kg0=
-github.com/RafaySystems/rctl v1.24.1-0.20230810074126-a4f931514014 h1:55qNJsIpyreLN7nK1fdys1THZR06OJmsdA5Xqe11rlg=
-github.com/RafaySystems/rctl v1.24.1-0.20230810074126-a4f931514014/go.mod h1:t3H9sG3QuFVvzN1BucHi0OFGkSoJuTdm31809sgOFKU=
+github.com/RafaySystems/rafay-common v1.29.0-rc3.0.20230816155650-8ce443eacbbd h1:l7AfBwCsOX7/fdthgAXRZtIrcriu+HTaA6NW/tWtpoM=
+github.com/RafaySystems/rafay-common v1.29.0-rc3.0.20230816155650-8ce443eacbbd/go.mod h1:lGTOQ+okB6oFWwvmhQziOPC1bOEMSgxL0xzOCsk9IC8=
+github.com/RafaySystems/rctl v1.24.1-0.20230711200043-67da417f38ae h1:F/MZ8/RIXF9kWAym48etREQEejzocKdJqlWIGRDx73A=
+github.com/RafaySystems/rctl v1.24.1-0.20230711200043-67da417f38ae/go.mod h1:sp0+SXAK/WonBtoJeLda1vok5GmHVbRiNmRvs1XyrBQ=
 github.com/RoaringBitmap/roaring v0.6.1 h1:O36Tdaj1Fi/zyr25shTHwlQPGdq53+u4WkM08AOEjiE=
 github.com/RoaringBitmap/roaring v0.6.1/go.mod h1:WZ83fjBF/7uBHi6QoFyfGL4+xuV4Qn+xFkm4+vSzrhE=
 github.com/Shopify/sarama v1.27.2 h1:1EyY1dsxNDUQEv0O/4TsjosHI2CgB1uo9H/v56xzTxc=

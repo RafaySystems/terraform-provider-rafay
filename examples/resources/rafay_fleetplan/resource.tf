@@ -59,7 +59,7 @@ resource "rafay_fleetplan" "fp1" {
                     patch_config {
                         op = "replace"
                         path = ".spec.config.managedNodeGroups[0].maxSize"
-			value = jsonencode("18")
+			value = jsonencode(18)
                     }
 		    patch_config {
                         op = "replace"
@@ -84,6 +84,7 @@ resource "rafay_fleetplan" "fp1" {
             operations {
                 name = "op3"
                 action {
+                    name = "action3"
                     type = "nodeGroupsUpgrade"
                     description = "upgrading nodegroup"
                     node_groups_upgrade_config {

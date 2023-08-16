@@ -54,7 +54,7 @@ func resourceCostProfileCreate(ctx context.Context, d *schema.ResourceData, m in
 			return diags
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 		if err != nil {
 			return diags
 		}
@@ -99,7 +99,7 @@ func resourceCostProfileUpsert(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -141,7 +141,7 @@ func resourceCostProfileRead(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -181,7 +181,7 @@ func resourceCostProfileDelete(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -429,6 +429,12 @@ func expandCostProfileAzureCustomPricing(p []interface{}) *costpb.AzureCustomPri
 	}
 	if v, ok := in["cloud_credentials_name"].(string); ok && len(v) > 0 {
 		obj.CloudCredentialsName = v
+	}
+	if v, ok := in["billing_account_id"].(string); ok && len(v) > 0 {
+		obj.BillingAccountID = v
+	}
+	if v, ok := in["offer_id"].(string); ok && len(v) > 0 {
+		obj.OfferID = v
 	}
 	if v, ok := in["spot_instance"].([]interface{}); ok && len(v) > 0 {
 		obj.SpotInstance = expandCostProfileAzureSpotInstance(v)
@@ -795,6 +801,14 @@ func flattenCostProfileAzureCustomPricing(in *costpb.AzureCustomPricing, p []int
 
 	if len(in.CloudCredentialsName) > 0 {
 		obj["cloud_credentials_name"] = in.CloudCredentialsName
+	}
+
+	if len(in.BillingAccountID) > 0 {
+		obj["billing_account_id"] = in.BillingAccountID
+	}
+
+	if len(in.OfferID) > 0 {
+		obj["offer_id"] = in.OfferID
 	}
 
 	if in.SpotInstance != nil {

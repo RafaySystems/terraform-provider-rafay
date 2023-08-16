@@ -3,7 +3,7 @@ HOSTNAME=registry.terraform.io
 NAMESPACE=rafay
 NAME=rafay
 BINARY=terraform-provider-${NAME}
-VERSION=1.1.12
+VERSION=1.1.17
 GIT_BRANCH ?= main
 OS_ARCH=darwin_amd64
 BUCKET_NAME ?= terraform-provider-rafay
@@ -58,3 +58,13 @@ push:
 
 bucket-name:
 	echo 'Build Folder URL:- https://$(BUCKET_NAME).s3.us-west-1.amazonaws.com/$(TAG)/$(BUILD_NUMBER)/'
+
+
+.PHONY: tidy
+tidy:
+	GOPRIVATE=github.com/RafaySystems/* go mod tidy
+
+.PHONY: update-deps 
+update-deps:
+	GOPRIVATE=github.com/RafaySystems/* go get -d github.com/RafaySystems/rafay-common@master
+

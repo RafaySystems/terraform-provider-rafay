@@ -347,19 +347,19 @@ func expandEnvironmentHooks(p []interface{}) *eaaspb.EnvironmentHooks {
 	in := p[0].(map[string]interface{})
 
 	if h, ok := in["on_completion"].([]interface{}); ok {
-		hooks.OnCompletion = expandHooks(h)
+		hooks.OnCompletion = expandEaasHooks(h)
 	}
 
 	if h, ok := in["on_success"].([]interface{}); ok {
-		hooks.OnSuccess = expandHooks(h)
+		hooks.OnSuccess = expandEaasHooks(h)
 	}
 
 	if h, ok := in["on_failure"].([]interface{}); ok {
-		hooks.OnFailure = expandHooks(h)
+		hooks.OnFailure = expandEaasHooks(h)
 	}
 
 	if h, ok := in["on_init"].([]interface{}); ok {
-		hooks.OnInit = expandHooks(h)
+		hooks.OnInit = expandEaasHooks(h)
 	}
 
 	return hooks
@@ -470,7 +470,7 @@ func flattenEnvironmentHooks(in *eaaspb.EnvironmentHooks, p []interface{}) []int
 			v = []interface{}{}
 		}
 
-		obj["on_completion"] = flattenHooks(in.OnCompletion, v)
+		obj["on_completion"] = flattenEaasHooks(in.OnCompletion, v)
 	}
 
 	if len(in.OnSuccess) > 0 {
@@ -479,7 +479,7 @@ func flattenEnvironmentHooks(in *eaaspb.EnvironmentHooks, p []interface{}) []int
 			v = []interface{}{}
 		}
 
-		obj["on_success"] = flattenHooks(in.OnSuccess, v)
+		obj["on_success"] = flattenEaasHooks(in.OnSuccess, v)
 	}
 
 	if len(in.OnFailure) > 0 {
@@ -488,7 +488,7 @@ func flattenEnvironmentHooks(in *eaaspb.EnvironmentHooks, p []interface{}) []int
 			v = []interface{}{}
 		}
 
-		obj["on_failure"] = flattenHooks(in.OnFailure, v)
+		obj["on_failure"] = flattenEaasHooks(in.OnFailure, v)
 	}
 
 	if len(in.OnInit) > 0 {
@@ -497,7 +497,7 @@ func flattenEnvironmentHooks(in *eaaspb.EnvironmentHooks, p []interface{}) []int
 			v = []interface{}{}
 		}
 
-		obj["on_init"] = flattenHooks(in.OnInit, v)
+		obj["on_init"] = flattenEaasHooks(in.OnInit, v)
 	}
 
 	return []interface{}{obj}

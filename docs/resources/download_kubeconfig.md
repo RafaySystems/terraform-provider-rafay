@@ -33,7 +33,11 @@ resource "rafay_download_kubeconfig" "tfkubeconfig" {
 ***Optional***
 
 - `namespace` (String) The namespace the cluster belongs to.
+- `username` (String) The username for whom you want to download the kubeconfig file. When using this argument, note that the usage of `cluster` and `namespace` is not supported.
 - `timeouts` (Block, Optional) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
+
+***Note***: Only Organization admins can download kubeconfig for other users.
+
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

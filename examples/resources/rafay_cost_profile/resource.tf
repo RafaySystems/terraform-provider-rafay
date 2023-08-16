@@ -49,6 +49,8 @@ resource "rafay_cost_profile" "tfdemocostprofile-azure" {
       azure {
         custom_pricing {
           cloud_credentials_name = "sample"
+          billing_account_id = "sample"
+          offer_id = "sample"
         }
       }
     }

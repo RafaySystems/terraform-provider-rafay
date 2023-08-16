@@ -336,19 +336,19 @@ func expandResourceHooks(p []interface{}) *eaaspb.ResourceHooks {
 	in := p[0].(map[string]interface{})
 
 	if h, ok := in["on_completion"].([]interface{}); ok {
-		hooks.OnCompletion = expandHooks(h)
+		hooks.OnCompletion = expandEaasHooks(h)
 	}
 
 	if h, ok := in["on_success"].([]interface{}); ok {
-		hooks.OnSuccess = expandHooks(h)
+		hooks.OnSuccess = expandEaasHooks(h)
 	}
 
 	if h, ok := in["on_failure"].([]interface{}); ok {
-		hooks.OnFailure = expandHooks(h)
+		hooks.OnFailure = expandEaasHooks(h)
 	}
 
 	if h, ok := in["on_init"].([]interface{}); ok {
-		hooks.OnInit = expandHooks(h)
+		hooks.OnInit = expandEaasHooks(h)
 	}
 
 	if h, ok := in["provider"].([]interface{}); ok {
@@ -626,11 +626,11 @@ func expandLifecycleEventHooks(p []interface{}) *eaaspb.LifecycleEventHooks {
 	in := p[0].(map[string]interface{})
 
 	if h, ok := in["before"].([]interface{}); ok {
-		lh.Before = expandHooks(h)
+		lh.Before = expandEaasHooks(h)
 	}
 
 	if h, ok := in["after"].([]interface{}); ok {
-		lh.After = expandHooks(h)
+		lh.After = expandEaasHooks(h)
 	}
 
 	return lh
@@ -843,7 +843,7 @@ func flattenResourceHooks(in *eaaspb.ResourceHooks, p []interface{}) []interface
 			v = []interface{}{}
 		}
 
-		obj["on_completion"] = flattenHooks(in.OnCompletion, v)
+		obj["on_completion"] = flattenEaasHooks(in.OnCompletion, v)
 	}
 
 	if len(in.OnSuccess) > 0 {
@@ -852,7 +852,7 @@ func flattenResourceHooks(in *eaaspb.ResourceHooks, p []interface{}) []interface
 			v = []interface{}{}
 		}
 
-		obj["on_success"] = flattenHooks(in.OnSuccess, v)
+		obj["on_success"] = flattenEaasHooks(in.OnSuccess, v)
 	}
 
 	if len(in.OnFailure) > 0 {
@@ -861,7 +861,7 @@ func flattenResourceHooks(in *eaaspb.ResourceHooks, p []interface{}) []interface
 			v = []interface{}{}
 		}
 
-		obj["on_failure"] = flattenHooks(in.OnFailure, v)
+		obj["on_failure"] = flattenEaasHooks(in.OnFailure, v)
 	}
 
 	if len(in.OnInit) > 0 {
@@ -870,7 +870,7 @@ func flattenResourceHooks(in *eaaspb.ResourceHooks, p []interface{}) []interface
 			v = []interface{}{}
 		}
 
-		obj["on_init"] = flattenHooks(in.OnInit, v)
+		obj["on_init"] = flattenEaasHooks(in.OnInit, v)
 	}
 
 	if in.Provider != nil {
@@ -1178,7 +1178,7 @@ func flattenLifecycleEventHooks(input *eaaspb.LifecycleEventHooks, p []interface
 			v = []interface{}{}
 		}
 
-		obj["before"] = flattenHooks(input.Before, v)
+		obj["before"] = flattenEaasHooks(input.Before, v)
 	}
 
 	if len(input.After) > 0 {
@@ -1187,7 +1187,7 @@ func flattenLifecycleEventHooks(input *eaaspb.LifecycleEventHooks, p []interface
 			v = []interface{}{}
 		}
 
-		obj["after"] = flattenHooks(input.After, v)
+		obj["after"] = flattenEaasHooks(input.After, v)
 	}
 
 	return []interface{}{obj}

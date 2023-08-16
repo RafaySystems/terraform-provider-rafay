@@ -1469,7 +1469,7 @@ func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) []int
 	return []interface{}{obj}
 }
 
-func expandHooks(p []interface{}) []*eaaspb.Hook {
+func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
 	hooks := make([]*eaaspb.Hook, 0)
 	if len(p) == 0 {
 		return hooks
@@ -1735,14 +1735,14 @@ func expandHttpOptions(p []interface{}) *eaaspb.HttpOptions {
 	return ho
 }
 
-func flattenHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
+func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 	if len(input) == 0 {
 		return nil
 	}
 
 	out := make([]interface{}, len(input))
 	for i, in := range input {
-		log.Println("flatten hook ", in)
+		log.Println("flatten eaas hook ", in)
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})

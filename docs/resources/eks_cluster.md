@@ -292,8 +292,8 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 ***Required***
 
 - `spec` - (Block List, Max: 1) The specification associated with the cluster, including cluster networking options. (See [below for nested schema](#nestedblock--cluster--spec))
-- `kind` - (String) The type of resource. The supported value is `cluster`. 
-- `metadata` -(Block List) Contains data that helps uniquely identify the resource, including defining the configuration for KMS encryption provider. (See [below for nested schema](#nestedblock--cluster--metadata))
+- `kind` - (String) The type of resource. The supported value is `Cluster`.
+- `metadata` -(Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--cluster--metadata))
 
 
 <a id="nestedblock--cluster--spec"></a>
@@ -516,6 +516,7 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 - `ssh` - (Block List) Configures SSH access for this nodegroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--ssh))
 - `subnets` - (List of String) Limits the nodes to specific subnets. 
 - `tags` - (Map of Strings) Applied to the Autoscaling Group and to the EC2 instances (For self managed nodegroups) and the EKS Nodegroup resource and to the EC2 instances (For managed nodegroups). 
+- `taints` - (List) Taints to apply to the nodegroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--taints))
 - `volume_encrypted` - (Boolean) Encrypts volumes attached to instances in the nodegroup. 
 - `volume_kms_key_id` - (String) The AWS KMS key used to encrypt data on the storage volume.
 - `volume_name` - (String) The name of the volume. 
@@ -550,7 +551,14 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 - `enable_ssm` - (Boolean) Enables the ability to SSH onto nodes using SSM.
 - `public_key_name` - (String) The public key name, in EC2, to be added to the nodes SSH keychain. If `allow` is `false`, this value is ignored.
 
+<a id="nestedblock--cluster_config--managed_nodegroups--taints"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.taint`
 
+***Optional***
+
+- `effect` - (String) The effect of the taint. Supported values are: `NoExecute`, `NoSchedule`, and `PreferNoSchedule`.
+- `key` - (String) The key for the key/value pair for the taint.
+- `value` - (String) The value for the key/value pair for the taint.
 
 <a id="nestedblock--cluster_config--node_groups"></a>
 ### Nested Schema for `cluster_config.node_groups`

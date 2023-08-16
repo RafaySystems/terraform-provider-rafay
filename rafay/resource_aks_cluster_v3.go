@@ -67,7 +67,7 @@ func resourceAKSClusterV3Read(ctx context.Context, d *schema.ResourceData, m int
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -108,7 +108,7 @@ func resourceAKSClusterV3Delete(ctx context.Context, d *schema.ResourceData, m i
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -206,7 +206,7 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 	log.Println(">>>>>> CLUSTER: ", cluster)
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -1866,27 +1866,6 @@ func flattenAKSClusterV3(d *schema.ResourceData, in *infrapb.Cluster) error {
 
 	return nil
 
-}
-
-func flattenMetadataV3(in *commonpb.Metadata, p []interface{}) []interface{} {
-	if in == nil {
-		return nil
-	}
-	obj := map[string]interface{}{}
-
-	if len(in.Name) > 0 {
-		obj["name"] = in.Name
-	}
-
-	if len(in.Project) > 0 {
-		obj["project"] = in.Project
-	}
-
-	if in.Labels != nil && len(in.Labels) > 0 {
-		obj["labels"] = toMapInterface(in.Labels)
-	}
-
-	return []interface{}{obj}
 }
 
 func flattenClusterV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{} {

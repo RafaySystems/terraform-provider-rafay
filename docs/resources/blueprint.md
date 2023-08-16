@@ -66,6 +66,61 @@ resource "rafay_blueprint" "custom-blueprint" {
 
 ---
 
+Example of a custom blueprint resource with customization enabled for monitoring add-on.
+
+
+```terraform
+resource "rafay_blueprint" "custom-blueprint" {
+  metadata {
+    name    = "custom-blueprint"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "1.16.0"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_logging    = false
+      enable_monitoring = true
+      enable_vm         = false
+      monitoring {
+        metrics_server {
+          customization_enabled = true
+        }
+        helm_exporter {
+	  customization_enabled = true
+        }
+        kube_state_metrics {
+	  customization_enabled = true
+        }
+        node_exporter {
+	  customization_enabled = true
+        }
+        prometheus_adapter {
+	  customization_enabled = true
+        }
+        resources {
+          limits = "200Mi"
+          cpu = "100m"
+        }
+      }
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    placement {
+      auto_publish = false
+    }
+  }
+}
+```
+
+---
+
 Example of a custom blueprint resource for fleet values of a cluster. 
 
 ```terraform
@@ -413,7 +468,8 @@ resource "rafay_blueprint" "cost-blueprint" {
 ***Optional***
 
 - `discovery` - (Block List) The discovery configuration. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--metrics--discovery)) 
-- `enabled` - (Boolean) If enabled, the monitoring metrics add-on is enabled for the resource. 
+- `enabled` - (Boolean) If enabled, the monitoring metrics add-on is enabled for the resource.
+- `customization_enabled` - (Boolean) If enabled, the monitoring metrics add-on customization is enabled for the resource.
 
 
 <a id="nestedblock--spec--default_addons--monitoring--metrics--discovery"></a>

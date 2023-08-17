@@ -282,7 +282,7 @@ func expandDriftWebhook(p []interface{}) *infrapb.DriftWebhook {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["enable"].(bool); ok {
+	if v, ok := in["enabled"].(bool); ok {
 		obj.Enabled = v
 	} else {
 		obj.Enabled = true

@@ -44,6 +44,9 @@ resource "rafay_blueprint" "blueprint" {
       action  = "Deny"
       enabled = true
     }
+    drift_webhook {
+      enabled = true
+    }
     placement {
       auto_publish = false
     }

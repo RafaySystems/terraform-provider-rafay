@@ -5,7 +5,7 @@ resource "rafay_blueprint" "blueprint" {
     project = "terraform"
   }
   spec {
-    version = "v1"
+    version = "v0"
     base {
       name    = "default"
       version = "1.16.0"

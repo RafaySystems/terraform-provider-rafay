@@ -291,10 +291,6 @@ resource "rafay_blueprint" "cost-blueprint" {
       enabled = true
     }
 
-    drift_webhook {
-      enabled = true
-    }
-
     cost_profile {
         name = "tfdemocostprofile1"
         version = "v0"

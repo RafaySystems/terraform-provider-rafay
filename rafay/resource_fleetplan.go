@@ -638,9 +638,9 @@ func expandContainerConfig(in []interface{}) *infrapb.ContainerConfigSpec {
 
 	v := in[0].(map[string]interface{})
 
-	if v, ok := v["runner"].(string); ok {
-		obj.Runner = v
-	}
+	// if v, ok := v["runner"].(string); ok {
+	// 	obj.Runner = v
+	// }
 
 	if v, ok := v["image"].(string); ok {
 		obj.Image = v

@@ -256,7 +256,6 @@ LOOP:
 				case commonpb.ConditionStatus_StatusFailed:
 					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
 					failureReasons, err := collectAKSUpsertErrors(aksStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
-					fmt.Printf("Debug2--- %s", failureReasons)
 					if err != nil {
 						return diag.FromErr(err)
 					}

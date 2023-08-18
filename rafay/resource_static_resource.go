@@ -11,6 +11,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
@@ -24,6 +25,9 @@ func resourceStaticResource() *schema.Resource {
 		ReadContext:   resourceStaticResourceRead,
 		UpdateContext: resourceStaticResourceUpdate,
 		DeleteContext: resourceStaticResourceDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceStaticResourceImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -190,11 +194,11 @@ func expandResource(in *schema.ResourceData) (*eaaspb.Resource, error) {
 	}
 	obj := &eaaspb.Resource{}
 
-	if v, ok := in.Get("metadata").([]interface{}); ok {
+	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandV3MetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok {
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandResourceSpec(v)
 		if err != nil {
 			return nil, err
@@ -282,4 +286,30 @@ func flattenResourceSpec(in *eaaspb.ResourceSpec, p []interface{}) ([]interface{
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	return []interface{}{obj}, nil
+}
+
+func resourceStaticResourceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	log.Printf("Static Resource Import Starts")
+
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceStaticResourceImport idParts:", idParts)
+
+	log.Println("resourceStaticResourceImport Invoking expandResource")
+	resource, err := expandResource(d)
+	if err != nil {
+		log.Printf("resourceStaticResourceImport  expand error %s", err.Error())
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	resource.Metadata = &metaD
+
+	err = d.Set("metadata", flattenV3MetaData(&metaD))
+	if err != nil {
+		log.Println("import set metadata err ", err)
+		return nil, err
+	}
+	d.SetId(resource.Metadata.Name)
+	return []*schema.ResourceData{d}, nil
 }

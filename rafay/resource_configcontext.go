@@ -11,6 +11,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
@@ -24,6 +25,9 @@ func resourceConfigContext() *schema.Resource {
 		ReadContext:   resourceConfigContextRead,
 		UpdateContext: resourceConfigContextUpdate,
 		DeleteContext: resourceConfigContextDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceConfigContextImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -190,11 +194,11 @@ func expandConfigContext(in *schema.ResourceData) (*eaaspb.ConfigContext, error)
 	}
 	obj := &eaaspb.ConfigContext{}
 
-	if v, ok := in.Get("metadata").([]interface{}); ok {
+	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandV3MetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok {
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandConfigContextSpec(v)
 		if err != nil {
 			return nil, err
@@ -357,4 +361,32 @@ func flattenEnvVariables(input []*eaaspb.EnvData, p []interface{}) []interface{}
 	}
 
 	return out
+}
+
+func resourceConfigContextImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+
+	log.Printf("Config Context Import Starts")
+
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceConfigContextImport idParts:", idParts)
+
+	log.Println("resourceConfigContextImport Invoking expandConfigContext")
+	cc, err := expandConfigContext(d)
+	if err != nil {
+		log.Printf("resourceConfigContextImport  expand error %s", err.Error())
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	cc.Metadata = &metaD
+
+	err = d.Set("metadata", flattenV3MetaData(&metaD))
+	if err != nil {
+		log.Println("import set metadata err ", err)
+		return nil, err
+	}
+	d.SetId(cc.Metadata.Name)
+	return []*schema.ResourceData{d}, nil
+
 }

@@ -25,6 +25,9 @@ func resourceResourceTemplate() *schema.Resource {
 		ReadContext:   resourceTemplateRead,
 		UpdateContext: resourceTemplateUpdate,
 		DeleteContext: resourceTemplateDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceResourceTemplateImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -191,11 +194,11 @@ func expandResourceTemplate(in *schema.ResourceData) (*eaaspb.ResourceTemplate, 
 	}
 	obj := &eaaspb.ResourceTemplate{}
 
-	if v, ok := in.Get("metadata").([]interface{}); ok {
+	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandV3MetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok {
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandResourceTemplateSpec(v)
 		if err != nil {
 			return nil, err
@@ -1212,4 +1215,32 @@ func flattenEaasAgents(input []*commonpb.ResourceNameAndVersionRef) []interface{
 	}
 
 	return out
+}
+
+func resourceResourceTemplateImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+
+	log.Printf("Resource Template Import Starts")
+
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceResourceTemplateImport idParts:", idParts)
+
+	log.Println("resourceResourceTemplateImport Invoking expandResourceTemplate")
+	rt, err := expandResourceTemplate(d)
+	if err != nil {
+		log.Printf("resourceResourceTemplateImport  expand error %s", err.Error())
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	rt.Metadata = &metaD
+
+	err = d.Set("metadata", flattenV3MetaData(&metaD))
+	if err != nil {
+		log.Println("import set metadata err ", err)
+		return nil, err
+	}
+	d.SetId(rt.Metadata.Name)
+	return []*schema.ResourceData{d}, nil
+
 }

@@ -26,6 +26,9 @@ func resourceEnvironment() *schema.Resource {
 		ReadContext:   resourceEnvironmentRead,
 		UpdateContext: resourceEnvironmentUpdate,
 		DeleteContext: resourceEnvironmentDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceEnvironmentImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -208,11 +211,11 @@ func expandEnvironment(in *schema.ResourceData) (*eaaspb.Environment, error) {
 	}
 	obj := &eaaspb.Environment{}
 
-	if v, ok := in.Get("metadata").([]interface{}); ok {
+	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandV3MetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok {
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandEnvironmentSpec(v)
 		if err != nil {
 			return nil, err
@@ -360,4 +363,32 @@ func flattenTemplate(input *commonpb.ResourceNameAndVersionRef, p []interface{})
 	}
 
 	return []interface{}{obj}
+}
+
+func resourceEnvironmentImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+
+	log.Printf("Environment Import Starts")
+
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceEnvironmentImport idParts:", idParts)
+
+	log.Println("resourceEnvironmentImport Invoking expandEnvironment")
+	env, err := expandEnvironment(d)
+	if err != nil {
+		log.Printf("resourceEnvironmentImport  expand error %s", err.Error())
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	env.Metadata = &metaD
+
+	err = d.Set("metadata", flattenV3MetaData(&metaD))
+	if err != nil {
+		log.Println("import set metadata err ", err)
+		return nil, err
+	}
+	d.SetId(env.Metadata.Name)
+	return []*schema.ResourceData{d}, nil
+
 }

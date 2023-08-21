@@ -17,6 +17,16 @@ const (
 	GKE_PUBLIC_CLUSTER_TYPE  = "public"
 )
 
+type AksNodepoolsErrorFormatter struct {
+	Name          string `json:"name,omitempty"`
+	FailureReason string `json:"failureReason,omitempty"`
+}
+
+type AksUpsertErrorFormatter struct {
+	FailureReason string                       `json:"failureReason,omitempty"`
+	Nodepools     []AksNodepoolsErrorFormatter `json:"nodepools,omitempty"`
+}
+
 func flattenMetadataV3(in *commonpb.Metadata, p []interface{}) []interface{} {
 	if in == nil {
 		return nil

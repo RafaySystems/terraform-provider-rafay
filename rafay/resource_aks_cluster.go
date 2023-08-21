@@ -15,7 +15,6 @@ import (
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/davecgh/go-spew/spew"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -27,8 +26,24 @@ import (
 )
 
 type clusterCTLResponse struct {
-	TaskSetID string `json:"taskset_id,omitempty"`
-	Status    string `json:"status,omitempty"`
+	TaskSetID  string                 `json:"taskset_id,omitempty"`
+	Status     string                 `json:"status,omitempty"`
+	Operations []*clusterCTLOperation `json:"operations"`
+	Error      *errorResponse         `json:"error,omitempty"`
+}
+
+type clusterCTLOperation struct {
+	Operation    string         `json:"operation,omitempty"`
+	ResourceName string         `json:"resource_name,omitempty"`
+	Status       string         `json:"status,omitempty"`
+	Error        *errorResponse `json:"error,omitempty"`
+}
+
+type errorResponse struct {
+	Type   string                 `json:"type,omitempty"`
+	Status int                    `json:"status,omitempty"`
+	Title  string                 `json:"title,omitempty"`
+	Detail map[string]interface{} `json:"detail,omitempty"`
 }
 
 func resourceAKSCluster() *schema.Resource {
@@ -5319,16 +5334,33 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 			log.Println("task completed but cluster is not ready")
 		}
 		if strings.Contains(sres.Status, "STATUS_FAILED") {
-			if gjson.Valid(statusResp) {
-				result := gjson.Get(statusResp, "@pretty")
-				statusResp = strings.ReplaceAll(result.String(), "\\n", "\n")
+			failureReasons, err := collectAKSUpsertErrors(sres.Operations)
+			if err != nil {
+				return diag.FromErr(err)
 			}
-			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", obj.Metadata.Name, statusResp))
+			return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s with failure reasons: %s", obj.Metadata.Name, obj.Metadata.Project, failureReasons)
 		}
 	}
 	log.Printf("resource aks cluster created/updated %s", s.ID)
 
 	return diags
+}
+
+func collectAKSUpsertErrors(operations []*clusterCTLOperation) (string, error) {
+	collectedErrors := AksUpsertErrorFormatter{}
+	for _, operation := range operations {
+		if strings.Contains(operation.Status, "STATUS_FAILED") && operation.Error != nil {
+			collectedErrors.FailureReason += operation.Error.Title + "\n"
+		}
+	}
+	collectedErrsFormattedBytes, err := json.MarshalIndent(collectedErrors, "", "    ")
+	if err != nil {
+		return "", err
+	}
+	collectErrs := strings.ReplaceAll(string(collectedErrsFormattedBytes), "\\n", "\n")
+	fmt.Println("After MarshalIndent: ", "collectedErrsFormattedBytes", collectErrs)
+
+	return "\n" + collectErrs, nil
 }
 
 func resourceAKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

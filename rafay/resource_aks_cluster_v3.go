@@ -255,7 +255,7 @@ LOOP:
 					break LOOP
 				case commonpb.ConditionStatus_StatusFailed:
 					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
-					failureReasons, err := collectAKSUpsertErrors(aksStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
+					failureReasons, err := collectAKSV3UpsertErrors(aksStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
 					if err != nil {
 						return diag.FromErr(err)
 					}
@@ -267,18 +267,7 @@ LOOP:
 	return diags
 }
 
-func collectAKSUpsertErrors(nodepools []*infrapb.NodepoolStatus, lastProvisionFailureReason string, provisionStatus string) (string, error) {
-	// Defining local struct just to collect errors in json-prettify format to display the same to end user for better visualization.
-	type AksNodepoolsErrorFormatter struct {
-		Name          string `json:"name"`
-		FailureReason string `json:"failureReason"`
-	}
-
-	type AksUpsertErrorFormatter struct {
-		FailureReason string                       `json:"failureReason"`
-		Nodepools     []AksNodepoolsErrorFormatter `json:"nodepools"`
-	}
-
+func collectAKSV3UpsertErrors(nodepools []*infrapb.NodepoolStatus, lastProvisionFailureReason string, provisionStatus string) (string, error) {
 	// adding errors in AksUpsertErrorFormatter
 	collectedErrors := AksUpsertErrorFormatter{}
 	if strings.Contains(provisionStatus, "FAILED") {

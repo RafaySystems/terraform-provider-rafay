@@ -215,6 +215,8 @@ func expandMetaData(p []interface{}) *commonpb.Metadata {
 
 	if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.Labels = toMapString(v)
+	} else {
+		obj.Labels = nil
 	}
 
 	log.Println("expandMetaData")

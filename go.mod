@@ -17,10 +17,17 @@ require (
 require (
 	github.com/goccy/go-yaml v1.9.5
 	github.com/google/go-cmp v0.5.9
+	github.com/gruntwork-io/terratest v0.43.0
+	github.com/stretchr/testify v1.8.2
 	go.uber.org/zap v1.23.0
 )
 
 require (
+	cloud.google.com/go v0.110.0 // indirect
+	cloud.google.com/go/compute v1.18.0 // indirect
+	cloud.google.com/go/compute/metadata v0.2.3 // indirect
+	cloud.google.com/go/iam v0.12.0 // indirect
+	cloud.google.com/go/storage v1.27.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
@@ -28,12 +35,24 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/RafaySystems/eaas-playground v0.0.0-20230719112650-493e634604d8 // indirect
 	github.com/Shopify/sarama v1.27.2 // indirect
+	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
+	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/eapache/go-resiliency v1.3.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/getkin/kin-openapi v0.76.0 // indirect
+	github.com/go-errors/errors v1.4.2 // indirect
+	github.com/go-sql-driver/mysql v1.4.1 // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomatic/clock v1.0.0 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
+	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
+	github.com/googleapis/gnostic v0.5.5 // indirect
+	github.com/gruntwork-io/go-commons v0.8.0 // indirect
+	github.com/hashicorp/go-getter v1.7.1 // indirect
+	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/hc-install v0.4.0 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/terraform-plugin-log v0.7.0 // indirect
@@ -41,18 +60,36 @@ require (
 	github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734 // indirect
 	github.com/jcmturner/gofork v1.7.6 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.4.6 // indirect
+	github.com/jinzhu/copier v0.3.5 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.16.0 // indirect
+	github.com/mattn/go-zglob v0.0.2-0.20190814121620-e3c945676326 // indirect
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/pierrec/lz4 v2.5.2+incompatible // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/pquerna/otp v1.2.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
+	github.com/tmccombs/hcl2json v0.5.0 // indirect
+	github.com/ulikunitz/xz v0.5.11 // indirect
+	github.com/urfave/cli v1.22.2 // indirect
 	github.com/vmihailenco/msgpack/v4 v4.3.12 // indirect
+	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
+	golang.org/x/oauth2 v0.5.0 // indirect
+	golang.org/x/term v0.6.0 // indirect
+	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
+	google.golang.org/api v0.110.0 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/gokrb5.v7 v7.5.0 // indirect
 	gopkg.in/jcmturner/rpc.v1 v1.1.0 // indirect
+	k8s.io/client-go v0.27.2 // indirect
+	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
 )
 
 require (
@@ -63,7 +100,7 @@ require (
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
-	github.com/aws/aws-sdk-go v1.44.68 // indirect
+	github.com/aws/aws-sdk-go v1.44.122 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect

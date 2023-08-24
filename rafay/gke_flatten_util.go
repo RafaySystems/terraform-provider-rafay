@@ -40,7 +40,7 @@ func flattenGKEClusterV3(d *schema.ResourceData, in *infrapb.Cluster) error {
 		ret1 = flattenMetadataV3(in.Metadata, v)
 	}
 
-	//fmt.Printf("flattenGKEClusterV3 flattenMetadataV3 returned %+v\n", ret1)
+	// fmt.Printf("flattenGKEClusterV3 flattenMetadataV3 returned %+v\n", ret1)
 	err = d.Set("metadata", ret1)
 	if err != nil {
 		return err
@@ -115,11 +115,9 @@ func flattenGKEV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{} {
 	}
 
 	return []interface{}{obj}
-
 }
 
 func flattenGkeV3Proxy(in *infrapb.ClusterProxy) []interface{} {
-
 	if in == nil {
 		return nil
 	}
@@ -205,7 +203,6 @@ func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interf
 			v = []interface{}{}
 		}
 		obj["network"] = flattenGKEV3Network(in.Network, v)
-
 	}
 
 	// nodepools
@@ -333,6 +330,8 @@ func flattenGKEV3Network(in *infrapb.GkeNetwork, p []interface{}) []interface{} 
 	obj["enable_vpc_nativetraffic"] = in.EnableVPCNativetraffic
 	obj["pod_address_range"] = in.PodAddressRange
 	obj["service_address_range"] = in.ServiceAddressRange
+	obj["pod_secondary_range_name"] = in.PodSecondaryRangeName
+	obj["service_secondary_range_name"] = in.ServiceSecondaryRangeName
 
 	obj["max_pods_per_node"] = in.MaxPodsPerNode
 
@@ -561,7 +560,6 @@ func flattenGKEV3Nodepools(in []*infrapb.GkeNodePool, p []interface{}) []interfa
 	}
 
 	return out
-
 }
 
 func flattenGKEV3NodeLocations(in *infrapb.GkeNodeLocation, p []interface{}) []interface{} {

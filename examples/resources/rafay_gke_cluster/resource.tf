@@ -22,8 +22,14 @@ resource "rafay_gke_cluster" "pv-gke-terraform" {
       network {
         name = "default"
         subnet_name = "default"
+        # we can configure shared VPC as well
+        # name = "projects/kr-test-200723/global/networks/km-1"
+        # subnet_name = "projects/kr-test-200723/regions/us-central1/subnetworks/km-1"
         enable_vpc_nativetraffic = "true"
         max_pods_per_node = 110
+        # configure below values when using shared VPC
+        # pod_secondary_range_name = "pod"
+        # service_secondary_range_name = "service"
         access {
           type = "public"
         }

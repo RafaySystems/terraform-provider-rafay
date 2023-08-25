@@ -12,6 +12,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/group"
 	"github.com/RafaySystems/rctl/pkg/groupassociation"
 	"github.com/RafaySystems/rctl/pkg/models"
+	"github.com/RafaySystems/rctl/pkg/namespace"
 	"github.com/RafaySystems/rctl/pkg/project"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -25,6 +26,9 @@ func resourceGroupAssociation() *schema.Resource {
 		ReadContext:   resourceGroupAssociationRead,
 		UpdateContext: resourceGroupAssociationUpdate,
 		DeleteContext: resourceGroupAssociationDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceGroupAssociationImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -79,6 +83,88 @@ func resourceGroupAssociation() *schema.Resource {
 			},
 		},
 	}
+}
+
+func RemoveDuplicatesFromSlice(strSlice []string) []string {
+	uniqueStrings := []string{}
+	keys := make(map[string]bool)
+	for _, item := range strSlice {
+		if _, value := keys[item]; !value {
+			keys[item] = true
+			uniqueStrings = append(uniqueStrings, item)
+		}
+	}
+	return uniqueStrings
+}
+
+func StringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+func returnValidNamespaceNames(namespace_id_list []string, projectID string) ([]string, error) {
+
+	var namespace_name_list []string
+
+	namespaceList, _, err := namespace.ListAllNamespaces(projectID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch namespace details %s", err)
+	}
+
+	for _, namespace := range namespaceList {
+		if StringInSlice(namespace.Metadata.ID, namespace_id_list) {
+			namespace_name_list = append(namespace_name_list, namespace.Metadata.Name)
+		}
+	}
+
+	return namespace_name_list, nil
+}
+
+func resourceGroupAssociationImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	s := strings.Split(d.Id(), "/")
+	if len(s) < 2 {
+		return nil, fmt.Errorf("group name or project name not provided, usage e.g terraform import resource group-name-project-name")
+	}
+
+	group_name := s[0]
+	project_name := s[1]
+
+	log.Println("Importing groupassociation for group name: ", group_name, "project name: ", project_name)
+
+	// convert group name to group id
+
+	resp, err := group.GetGroupByName(group_name)
+	if err != nil {
+		log.Printf("Failed to get group by name, error %s", err.Error())
+		return nil, fmt.Errorf("failed to get group by name, error %s", err.Error())
+	}
+
+	//checking response of GetGroupByName
+	currGroup, err := group.NewGroupFromResponse([]byte(resp))
+	if err != nil {
+		log.Printf("Failed to get group by name, error %s", err.Error())
+		return nil, fmt.Errorf("failed to get group by name, error %s", err.Error())
+	}
+
+	// get project by name
+	resp, err = project.GetProjectByName(project_name)
+	if err != nil {
+		log.Printf("Failed to get project by name, error %s", err.Error())
+		return nil, fmt.Errorf("failed to get project by name, error %s", err.Error())
+	}
+	p, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get project by name, error %s", err.Error())
+	}
+
+	d.SetId(currGroup.ID + "-" + p.ID)
+	log.Printf("ID set by import handler - %s", d.Id())
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -189,42 +275,7 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 		d.SetId("")
 		return diags
 	}
-	//check if there is a group association
-	respRoles, err := groupassociation.GetProjectAssociatedWithGroup(g.Name)
-	if err != nil {
-		log.Printf("read group association failed to get group, error %s", err.Error())
-		return diag.FromErr(err)
-	} else {
-		var roleLst []string
-		gaList := []models.GroupAssociationRoles{}
-		err = json.Unmarshal([]byte(respRoles), &gaList)
-		if err != nil {
-			log.Printf("read group association failed to get roles, error %s", err.Error())
-			return diag.FromErr(err)
-		}
-		for _, sn := range gaList {
-			for _, cp := range sn.Roles {
-				roleLst = append(roleLst, cp.Role.Name)
-			}
-		}
-		if len(roleLst) > 0 {
-			//sort.Strings(roleLst)
-			if err := d.Set("roles", roleLst); err != nil {
-				log.Printf("get group association set role error %s", err.Error())
-				return diag.FromErr(err)
-			}
-		} else {
-			if err := d.Set("roles", nil); err != nil {
-				log.Printf("get group association set role error %s", err.Error())
-				return diag.FromErr(err)
-			}
-		}
-	}
-	//seeting the group name
-	if err := d.Set("group", g.Name); err != nil {
-		log.Printf("get group association set error %s", err.Error())
-		return diag.FromErr(err)
-	}
+
 	//getting project name from id
 	resp, err = getProjectById(s[1])
 	if err != nil {
@@ -242,6 +293,63 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	//setting project name to p.Name
 	if err := d.Set("project", p.Name); err != nil {
+		log.Printf("get group association set error %s", err.Error())
+		return diag.FromErr(err)
+	}
+
+	//check if there is a group association
+	respRoles, err := groupassociation.GetProjectAssociatedWithGroup(g.Name)
+	if err != nil {
+		log.Printf("read group association failed to get group, error %s", err.Error())
+		return diag.FromErr(err)
+	} else {
+		var roleLst []string
+		var namespace_id_list []string
+		gaList := []models.GroupAssociationRoles{}
+		err = json.Unmarshal([]byte(respRoles), &gaList)
+		if err != nil {
+			log.Printf("read group association failed to get roles, error %s", err.Error())
+			return diag.FromErr(err)
+		}
+		for _, sn := range gaList {
+			if sn.Project.Name == p.Name {
+				for _, cp := range sn.Roles {
+					roleLst = append(roleLst, cp.Role.Name)
+					// get namespace from namespace_id
+					if cp.NamespaceID != "" {
+						namespace_id_list = append(namespace_id_list, cp.NamespaceID)
+					}
+				}
+			}
+		}
+		if len(roleLst) > 0 {
+			//sort.Strings(roleLst)
+			if err := d.Set("roles", RemoveDuplicatesFromSlice(roleLst)); err != nil {
+				log.Printf("get group association set role error %s", err.Error())
+				return diag.FromErr(err)
+			}
+		} else {
+			if err := d.Set("roles", nil); err != nil {
+				log.Printf("get group association set role error %s", err.Error())
+				return diag.FromErr(err)
+			}
+		}
+
+		if len(namespace_id_list) > 0 {
+			namespace_names, _ := returnValidNamespaceNames(namespace_id_list, p.ID)
+			if err := d.Set("namespaces", RemoveDuplicatesFromSlice(namespace_names)); err != nil {
+				log.Printf("get group association set namespace error %s", err.Error())
+				return diag.FromErr(err)
+			}
+		} else {
+			if err := d.Set("namespaces", nil); err != nil {
+				log.Printf("get group association set namespace error %s", err.Error())
+				return diag.FromErr(err)
+			}
+		}
+	}
+	//setting the group name
+	if err := d.Set("group", g.Name); err != nil {
 		log.Printf("get group association set error %s", err.Error())
 		return diag.FromErr(err)
 	}

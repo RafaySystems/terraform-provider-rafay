@@ -220,11 +220,11 @@ func expandResourceSpec(p []interface{}) (*eaaspb.ResourceSpec, error) {
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["variables"].([]interface{}); ok {
+	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
 		spec.Variables = expandVariables(v)
 	}
 
-	if v, ok := in["sharing"].([]interface{}); ok {
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
 	}
 

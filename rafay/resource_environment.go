@@ -238,18 +238,18 @@ func expandEnvironmentSpec(p []interface{}) (*eaaspb.EnvironmentSpec, error) {
 	in := p[0].(map[string]interface{})
 
 	var err error
-	if v, ok := in["template"].([]interface{}); ok {
+	if v, ok := in["template"].([]interface{}); ok && len(v) > 0 {
 		spec.Template, err = expandTemplate(v)
 		if err != nil {
 			return spec, err
 		}
 	}
 
-	if v, ok := in["variables"].([]interface{}); ok {
+	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
 		spec.Variables = expandVariables(v)
 	}
 
-	if v, ok := in["sharing"].([]interface{}); ok {
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
 	}
 

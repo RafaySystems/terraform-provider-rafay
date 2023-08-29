@@ -266,19 +266,19 @@ func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOpti
 	}
 	in := p[0].(map[string]interface{})
 
-	if tp, ok := in["terraform"].([]interface{}); ok {
+	if tp, ok := in["terraform"].([]interface{}); ok && len(tp) > 0 {
 		po.Terraform = expandTerraformProviderOptions(tp)
 	}
 
-	if s, ok := in["system"].([]interface{}); ok {
+	if s, ok := in["system"].([]interface{}); ok && len(s) > 0 {
 		po.System = expandSystemProviderOptions(s)
 	}
 
-	if t, ok := in["terragrunt"].([]interface{}); ok {
+	if t, ok := in["terragrunt"].([]interface{}); ok && len(t) > 0 {
 		po.Terragrunt = expandTerragruntProviderOptions(t)
 	}
 
-	if p, ok := in["pulumi"].([]interface{}); ok {
+	if p, ok := in["pulumi"].([]interface{}); ok && len(p) > 0 {
 		po.Pulumi = expandPulumiProviderOptions(p)
 	}
 
@@ -338,23 +338,23 @@ func expandResourceHooks(p []interface{}) *eaaspb.ResourceHooks {
 
 	in := p[0].(map[string]interface{})
 
-	if h, ok := in["on_completion"].([]interface{}); ok {
+	if h, ok := in["on_completion"].([]interface{}); ok && len(h) > 0 {
 		hooks.OnCompletion = expandEaasHooks(h)
 	}
 
-	if h, ok := in["on_success"].([]interface{}); ok {
+	if h, ok := in["on_success"].([]interface{}); ok && len(h) > 0 {
 		hooks.OnSuccess = expandEaasHooks(h)
 	}
 
-	if h, ok := in["on_failure"].([]interface{}); ok {
+	if h, ok := in["on_failure"].([]interface{}); ok && len(h) > 0 {
 		hooks.OnFailure = expandEaasHooks(h)
 	}
 
-	if h, ok := in["on_init"].([]interface{}); ok {
+	if h, ok := in["on_init"].([]interface{}); ok && len(h) > 0 {
 		hooks.OnInit = expandEaasHooks(h)
 	}
 
-	if h, ok := in["provider"].([]interface{}); ok {
+	if h, ok := in["provider"].([]interface{}); ok && len(h) > 0 {
 		hooks.Provider = expandProviderHooks(h)
 	}
 
@@ -399,7 +399,7 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 		tpo.Version = h
 	}
 
-	if h, ok := in["use_system_state_store"].([]interface{}); ok {
+	if h, ok := in["use_system_state_store"].([]interface{}); ok && len(h) > 0 {
 		tpo.UseSystemStateStore = expandBoolValue(h)
 	}
 
@@ -411,11 +411,11 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 		tpo.BackendConfigs = toArrayString(bcfgs)
 	}
 
-	if h, ok := in["refresh"].([]interface{}); ok {
+	if h, ok := in["refresh"].([]interface{}); ok && len(h) > 0 {
 		tpo.Refresh = expandBoolValue(h)
 	}
 
-	if h, ok := in["lock"].([]interface{}); ok {
+	if h, ok := in["lock"].([]interface{}); ok && len(h) > 0 {
 		tpo.Lock = expandBoolValue(h)
 	}
 
@@ -470,11 +470,11 @@ func expandProviderHooks(p []interface{}) *eaaspb.ResourceTemplateProviderHooks 
 
 	in := p[0].(map[string]interface{})
 
-	if h, ok := in["terraform"].([]interface{}); ok {
+	if h, ok := in["terraform"].([]interface{}); ok && len(h) > 0 {
 		rtph.Terraform = expandTerraformProviderHooks(h)
 	}
 
-	if h, ok := in["pulumi"].([]interface{}); ok {
+	if h, ok := in["pulumi"].([]interface{}); ok && len(h) > 0 {
 		rtph.Pulumi = expandPulumiProviderHooks(h)
 	}
 
@@ -490,11 +490,11 @@ func expandTerraformProviderHooks(p []interface{}) *eaaspb.TerraformProviderHook
 
 	in := p[0].(map[string]interface{})
 
-	if h, ok := in["deploy"].([]interface{}); ok {
+	if h, ok := in["deploy"].([]interface{}); ok && len(h) > 0 {
 		tph.Deploy = expandTerraformDeployHooks(h)
 	}
 
-	if h, ok := in["destroy"].([]interface{}); ok {
+	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
 		tph.Destroy = expandTerraformDestroyHooks(h)
 	}
 
@@ -528,19 +528,19 @@ func expandTerraformDeployHooks(p []interface{}) *eaaspb.TerraformDeployHooks {
 
 	in := p[0].(map[string]interface{})
 
-	if h, ok := in["init"].([]interface{}); ok {
+	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
 		tdh.Init = expandLifecycleEventHooks(h)
 	}
 
-	if h, ok := in["plan"].([]interface{}); ok {
+	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
 		tdh.Plan = expandLifecycleEventHooks(h)
 	}
 
-	if h, ok := in["apply"].([]interface{}); ok {
+	if h, ok := in["apply"].([]interface{}); ok && len(h) > 0 {
 		tdh.Apply = expandLifecycleEventHooks(h)
 	}
 
-	if h, ok := in["output"].([]interface{}); ok {
+	if h, ok := in["output"].([]interface{}); ok && len(h) > 0 {
 		tdh.Output = expandLifecycleEventHooks(h)
 	}
 
@@ -555,15 +555,15 @@ func expandTerraformDestroyHooks(p []interface{}) *eaaspb.TerraformDestroyHooks 
 
 	in := p[0].(map[string]interface{})
 
-	if h, ok := in["init"].([]interface{}); ok {
+	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
 		tdh.Init = expandLifecycleEventHooks(h)
 	}
 
-	if h, ok := in["plan"].([]interface{}); ok {
+	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
 		tdh.Plan = expandLifecycleEventHooks(h)
 	}
 
-	if h, ok := in["destroy"].([]interface{}); ok {
+	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
 		tdh.Destroy = expandLifecycleEventHooks(h)
 	}
 
@@ -578,19 +578,19 @@ func expandPulumiDeployHooks(p []interface{}) *eaaspb.PulumiDeployHooks {
 
 	in := p[0].(map[string]interface{})
 
-	if h, ok := in["login"].([]interface{}); ok {
+	if h, ok := in["login"].([]interface{}); ok && len(h) > 0 {
 		pdh.Login = expandLifecycleEventHooks(h)
 	}
 
-	if h, ok := in["preview"].([]interface{}); ok {
+	if h, ok := in["preview"].([]interface{}); ok && len(h) > 0 {
 		pdh.Preview = expandLifecycleEventHooks(h)
 	}
 
-	if h, ok := in["up"].([]interface{}); ok {
+	if h, ok := in["up"].([]interface{}); ok && len(h) > 0 {
 		pdh.Up = expandLifecycleEventHooks(h)
 	}
 
-	if h, ok := in["output"].([]interface{}); ok {
+	if h, ok := in["output"].([]interface{}); ok && len(h) > 0 {
 		pdh.Output = expandLifecycleEventHooks(h)
 	}
 
@@ -605,15 +605,15 @@ func expandPulumiDestroyHooks(p []interface{}) *eaaspb.PulumiDestroyHooks {
 
 	in := p[0].(map[string]interface{})
 
-	if h, ok := in["login"].([]interface{}); ok {
+	if h, ok := in["login"].([]interface{}); ok && len(h) > 0 {
 		pdh.Login = expandLifecycleEventHooks(h)
 	}
 
-	if h, ok := in["preview"].([]interface{}); ok {
+	if h, ok := in["preview"].([]interface{}); ok && len(h) > 0 {
 		pdh.Preview = expandLifecycleEventHooks(h)
 	}
 
-	if h, ok := in["destroy"].([]interface{}); ok {
+	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
 		pdh.Destroy = expandLifecycleEventHooks(h)
 	}
 
@@ -628,11 +628,11 @@ func expandLifecycleEventHooks(p []interface{}) *eaaspb.LifecycleEventHooks {
 
 	in := p[0].(map[string]interface{})
 
-	if h, ok := in["before"].([]interface{}); ok {
+	if h, ok := in["before"].([]interface{}); ok && len(h) > 0 {
 		lh.Before = expandEaasHooks(h)
 	}
 
-	if h, ok := in["after"].([]interface{}); ok {
+	if h, ok := in["after"].([]interface{}); ok && len(h) > 0 {
 		lh.After = expandEaasHooks(h)
 	}
 

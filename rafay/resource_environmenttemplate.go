@@ -232,23 +232,23 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 		}
 	}
 
-	if v, ok := in["variables"].([]interface{}); ok {
+	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
 		spec.Variables = expandVariables(v)
 	}
 
-	if h, ok := in["hooks"].([]interface{}); ok {
+	if h, ok := in["hooks"].([]interface{}); ok && len(h) > 0 {
 		spec.Hooks = expandEnvironmentHooks(h)
 	}
 
-	if ag, ok := in["agents"].([]interface{}); ok {
+	if ag, ok := in["agents"].([]interface{}); ok && len(ag) > 0 {
 		spec.Agents = expandEaasAgents(ag)
 	}
 
-	if v, ok := in["sharing"].([]interface{}); ok {
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
 	}
 
-	if v, ok := in["contexts"].([]interface{}); ok {
+	if v, ok := in["contexts"].([]interface{}); ok && len(v) > 0 {
 		spec.Contexts = expandContexts(v)
 	}
 
@@ -279,11 +279,11 @@ func expandEnvironmentResources(p []interface{}) ([]*eaaspb.EnvironmentResource,
 			obj.Name = v
 		}
 
-		if v, ok := in["resource_options"].([]interface{}); ok {
+		if v, ok := in["resource_options"].([]interface{}); ok && len(v) > 0 {
 			obj.ResourceOptions = expandResourceOptions(v)
 		}
 
-		if v, ok := in["depends_on"].([]interface{}); ok {
+		if v, ok := in["depends_on"].([]interface{}); ok && len(v) > 0 {
 			obj.DependsOn = expandDependsOn(v)
 		}
 
@@ -349,19 +349,19 @@ func expandEnvironmentHooks(p []interface{}) *eaaspb.EnvironmentHooks {
 
 	in := p[0].(map[string]interface{})
 
-	if h, ok := in["on_completion"].([]interface{}); ok {
+	if h, ok := in["on_completion"].([]interface{}); ok && len(h) > 0 {
 		hooks.OnCompletion = expandEaasHooks(h)
 	}
 
-	if h, ok := in["on_success"].([]interface{}); ok {
+	if h, ok := in["on_success"].([]interface{}); ok && len(h) > 0 {
 		hooks.OnSuccess = expandEaasHooks(h)
 	}
 
-	if h, ok := in["on_failure"].([]interface{}); ok {
+	if h, ok := in["on_failure"].([]interface{}); ok && len(h) > 0 {
 		hooks.OnFailure = expandEaasHooks(h)
 	}
 
-	if h, ok := in["on_init"].([]interface{}); ok {
+	if h, ok := in["on_init"].([]interface{}); ok && len(h) > 0 {
 		hooks.OnInit = expandEaasHooks(h)
 	}
 

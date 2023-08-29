@@ -220,19 +220,19 @@ func expandConfigContextSpec(p []interface{}) (*eaaspb.ConfigContextSpec, error)
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["envs"].([]interface{}); ok {
+	if v, ok := in["envs"].([]interface{}); ok && len(v) > 0 {
 		spec.Envs = expandEnvVariables(v)
 	}
 
-	if v, ok := in["files"].([]interface{}); ok {
+	if v, ok := in["files"].([]interface{}); ok && len(v) > 0 {
 		spec.Files = expandCommonpbFiles(v)
 	}
 
-	if v, ok := in["variables"].([]interface{}); ok {
+	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
 		spec.Variables = expandVariables(v)
 	}
 
-	if v, ok := in["sharing"].([]interface{}); ok {
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
 	}
 

@@ -1340,7 +1340,7 @@ func expandVariables(p []interface{}) []*eaaspb.Variable {
 			obj.Value = v
 		}
 
-		if v, ok := in["options"].([]interface{}); ok {
+		if v, ok := in["options"].([]interface{}); ok && len(v) > 0 {
 			obj.Options = expandVariableOptions(v)
 		}
 
@@ -1370,7 +1370,7 @@ func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
 		options.Required = v
 	}
 
-	if v, ok := opts["override"].([]interface{}); ok {
+	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
 		options.Override = expandVariableOverrideOptions(v)
 	}
 
@@ -1527,23 +1527,23 @@ func expandHookOptions(p []interface{}) *eaaspb.HookOptions {
 
 	in := p[0].(map[string]interface{})
 
-	if ao, ok := in["approval"].([]interface{}); ok {
+	if ao, ok := in["approval"].([]interface{}); ok && len(ao) > 0 {
 		ho.Approval = expandApprovalOptions(ao)
 	}
 
-	if no, ok := in["notification"].([]interface{}); ok {
+	if no, ok := in["notification"].([]interface{}); ok && len(no) > 0 {
 		ho.Notification = expandNotificationOptions(no)
 	}
 
-	if so, ok := in["script"].([]interface{}); ok {
+	if so, ok := in["script"].([]interface{}); ok && len(so) > 0 {
 		ho.Script = expandScriptOptions(so)
 	}
 
-	if co, ok := in["container"].([]interface{}); ok {
+	if co, ok := in["container"].([]interface{}); ok && len(co) > 0 {
 		ho.Container = expandContainerOptions(co)
 	}
 
-	if o, ok := in["http"].([]interface{}); ok {
+	if o, ok := in["http"].([]interface{}); ok && len(o) > 0 {
 		ho.Http = expandHttpOptions(o)
 	}
 
@@ -1562,19 +1562,19 @@ func expandApprovalOptions(p []interface{}) *eaaspb.ApprovalOptions {
 		ao.Type = t
 	}
 
-	if iao, ok := in["internal"].([]interface{}); ok {
+	if iao, ok := in["internal"].([]interface{}); ok && len(iao) > 0 {
 		ao.Internal = expandInternalApprovalOptions(iao)
 	}
 
-	if eao, ok := in["email"].([]interface{}); ok {
+	if eao, ok := in["email"].([]interface{}); ok && len(eao) > 0 {
 		ao.Email = expandEmailApprovalOptions(eao)
 	}
 
-	if jao, ok := in["jira"].([]interface{}); ok {
+	if jao, ok := in["jira"].([]interface{}); ok && len(jao) > 0 {
 		ao.Jira = expandJiraApprovalOptions(jao)
 	}
 
-	if ghao, ok := in["github_pull_request"].([]interface{}); ok {
+	if ghao, ok := in["github_pull_request"].([]interface{}); ok && len(ghao) > 0 {
 		ao.GithubPullRequest = expandGithubPRApprovalOptions(ghao)
 	}
 

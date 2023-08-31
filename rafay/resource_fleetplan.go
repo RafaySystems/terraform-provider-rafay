@@ -230,6 +230,7 @@ func flattenOperation(operation *infrapb.OperationSpec) map[string]interface{} {
 		return map[string]interface{}{}
 	}
 	obj := make(map[string]interface{})
+	obj["name"] = operation.Name
 	obj["action"] = flattenAction(operation.Action)
 	obj["prehooks"] = flattenHooks(operation.Prehooks)
 	obj["posthooks"] = flattenHooks(operation.Posthooks)
@@ -247,9 +248,29 @@ func flattenAction(action *infrapb.ActionSpec) []interface{} {
 	obj["control_plane_upgrade_config"] = flattenControlPlaneUpgradeConfig(action.ControlPlaneUpgradeConfig)
 	obj["node_groups_and_control_plane_upgrade_config"] = flattenNodeGroupsAndControlPlaneUpgradeConfig(action.NodeGroupsAndControlPlaneUpgradeConfig)
 	obj["node_groups_upgrade_config"] = flattenNodeGroupsUpgradeConfig(action.NodeGroupsUpgradeConfig)
-	// obj["patch_config"] = flattenPatchConfig(action.PatchConfig)
+	obj["patch_config"] = flattenPatchConfig(action.PatchConfig)
 
 	return []interface{}{obj}
+}
+
+func flattenPatchConfig(config []*infrapb.PatchConfigSpec) []interface{} {
+	if config == nil {
+		return []interface{}{}
+	}
+	obj := make([]interface{}, 0)
+	for _, v := range config {
+		p := make(map[string]interface{})
+		p["op"] = v.Op
+		p["path"] = v.Path
+		val, err := v.Value.MarshalJSON()
+		if err != nil {
+			fmt.Printf("error: %v\n", err)
+		}
+		p["value"] = string(val)
+		obj = append(obj, toMapString(p))
+	}
+
+	return obj
 }
 
 func flattenNodeGroupsUpgradeConfig(config *infrapb.NodeGroupsUpgradeConfigSpec) []interface{} {
@@ -331,7 +352,7 @@ func flattenContainerConfig(config *infrapb.ContainerConfigSpec) []interface{} {
 		return []interface{}{}
 	}
 	obj := make(map[string]interface{})
-	obj["runner"] = config.Runner
+	obj["runner"] = flattenRunner(config.Runner)
 	obj["image"] = config.Image
 	if config.Env != nil {
 		obj["env"] = config.Env
@@ -341,6 +362,15 @@ func flattenContainerConfig(config *infrapb.ContainerConfigSpec) []interface{} {
 	}
 	if config.Commands != nil {
 		obj["commands"] = config.Commands
+	}
+	if config.CpuLimitMilli != "" {
+		obj["cpu_limit_milli"] = config.CpuLimitMilli
+	}
+	if config.MemoryLimitMb != "" {
+		obj["memory_limit_mb"] = config.MemoryLimitMb
+	}
+	if config.WorkingDirPath != "" {
+		obj["working_dir_path"] = config.WorkingDirPath
 	}
 
 	return []interface{}{obj}
@@ -361,6 +391,16 @@ func flattenHTTPConfig(config *infrapb.HttpConfigSpec) []interface{} {
 
 	return []interface{}{obj}
 
+}
+
+func flattenRunner(runner *infrapb.Runner) []interface{} {
+	if runner == nil {
+		return []interface{}{}
+	}
+	obj := make(map[string]interface{})
+	obj["type"] = runner.Type
+	obj["node_selector"] = runner.NodeSelector
+	return []interface{}{obj}
 }
 
 func expandFleetPlan(d *schema.ResourceData) (*infrapb.FleetPlan, error) {
@@ -469,6 +509,10 @@ func expandOperationWorkflow(v []interface{}) *infrapb.OperationWorkflowSpec {
 func expandOperations(v []interface{}) []*infrapb.OperationSpec {
 	var operations []*infrapb.OperationSpec
 
+	if v == nil || len(v) == 0 {
+		return nil
+	}
+
 	for _, operation := range v {
 
 		op := operation.(map[string]interface{})
@@ -570,11 +614,12 @@ func expandNodeGroupsUpgradeConfig(in []interface{}) *infrapb.NodeGroupsUpgradeC
 }
 
 func expandPatchConfig(in []interface{}) []*infrapb.PatchConfigSpec {
-	obj := make([]*infrapb.PatchConfigSpec, 0)
 
 	if len(in) == 0 || in[0] == nil {
 		return nil
 	}
+
+	obj := make([]*infrapb.PatchConfigSpec, 0)
 
 	for _, patch := range in {
 
@@ -638,8 +683,8 @@ func expandContainerConfig(in []interface{}) *infrapb.ContainerConfigSpec {
 
 	v := in[0].(map[string]interface{})
 
-	if v, ok := v["runner"].(string); ok {
-		obj.Runner = v
+	if v, ok := v["runner"].([]interface{}); ok {
+		obj.Runner = expandRunner(v)
 	}
 
 	if v, ok := v["image"].(string); ok {
@@ -657,8 +702,37 @@ func expandContainerConfig(in []interface{}) *infrapb.ContainerConfigSpec {
 	if v, ok := v["commands"].([]interface{}); ok {
 		obj.Commands = toArrayString(v)
 	}
+	if v, ok := v["cpu_limit_milli"]; ok {
+		obj.CpuLimitMilli = v.(string)
+	}
+	if v, ok := v["memory_limit_mb"]; ok {
+		obj.MemoryLimitMb = v.(string)
+	}
+	if v, ok := v["working_dir_path"]; ok {
+		obj.WorkingDirPath = v.(string)
+	}
 
 	return obj
+}
+
+func expandRunner(in []interface{}) *infrapb.Runner {
+	if len(in) == 0 || in[0] == nil {
+		return nil
+	}
+	obj := &infrapb.Runner{}
+
+	v := in[0].(map[string]interface{})
+
+	if v, ok := v["type"].(string); ok {
+		obj.Type = v
+	}
+
+	if v, ok := v["node_selector"].(map[string]interface{}); ok {
+		obj.NodeSelector = toMapString(v)
+	}
+
+	return obj
+
 }
 
 func expandHttpConfig(in []interface{}) *infrapb.HttpConfigSpec {

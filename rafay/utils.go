@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb/datatypes"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/gitopspb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/integrationspb"
@@ -213,6 +215,8 @@ func expandMetaData(p []interface{}) *commonpb.Metadata {
 
 	if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.Labels = toMapString(v)
+	} else {
+		obj.Labels = nil
 	}
 
 	log.Println("expandMetaData")
@@ -523,6 +527,10 @@ func expandCommonpbFiles(p []interface{}) []*commonpb.File {
 			}
 		}
 
+		if v, ok := in["sensitive"].(bool); ok {
+			obj.Sensitive = v
+		}
+
 		out[i] = &obj
 	}
 
@@ -757,7 +765,7 @@ func flattenMetaData(in *commonpb.Metadata) []interface{} {
 	if in == nil {
 		return nil
 	}
-
+	log.Println("flatten metadata: ", in)
 	obj := make(map[string]interface{})
 
 	if len(in.Name) > 0 {
@@ -881,6 +889,7 @@ func flattenCommonpbFile(in *commonpb.File) []interface{} {
 	if len(in.Name) > 0 {
 		obj["name"] = in.Name
 	}
+	obj["sensitive"] = in.Sensitive
 	return []interface{}{obj}
 }
 
@@ -912,6 +921,7 @@ func flattenCommonpbFiles(input []*commonpb.File) []interface{} {
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
 		}
+		obj["sensitive"] = in.Sensitive
 		out[i] = obj
 	}
 
@@ -1323,4 +1333,723 @@ func GetMetaData(in *schema.ResourceData) *commonpb.Metadata {
 	}
 
 	return nil
+}
+
+func expandVariables(p []interface{}) []*eaaspb.Variable {
+	if len(p) == 0 || p[0] == nil {
+		return []*eaaspb.Variable{}
+	}
+	log.Println("expand variables start")
+	vars := make([]*eaaspb.Variable, len(p))
+
+	for i := range p {
+		obj := eaaspb.Variable{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["value_type"].(string); ok && len(v) > 0 {
+			obj.ValueType = v
+		}
+
+		if v, ok := in["value"].(string); ok && len(v) > 0 {
+			obj.Value = v
+		}
+
+		if v, ok := in["options"].([]interface{}); ok && len(v) > 0 {
+			obj.Options = expandVariableOptions(v)
+		}
+
+		vars[i] = &obj
+	}
+
+	return vars
+}
+
+func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
+	if len(p) == 0 || p[0] == nil {
+		return &eaaspb.VariableOptions{}
+	}
+
+	options := &eaaspb.VariableOptions{}
+	opts := p[0].(map[string]interface{})
+
+	if v, ok := opts["description"].(string); ok && len(v) > 0 {
+		options.Description = v
+	}
+
+	if v, ok := opts["sensitive"].(bool); ok {
+		options.Sensitive = v
+	}
+
+	if v, ok := opts["required"].(bool); ok {
+		options.Required = v
+	}
+
+	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
+		options.Override = expandVariableOverrideOptions(v)
+	}
+
+	return options
+
+}
+
+func expandVariableOverrideOptions(p []interface{}) *eaaspb.VariableOverrideOptions {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	override := &eaaspb.VariableOverrideOptions{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		override.Type = v
+	}
+
+	if vals, ok := in["restricted_values"].([]interface{}); ok && len(vals) > 0 {
+		override.RestrictedValues = toArrayString(vals)
+	}
+
+	return override
+}
+
+func flattenVariables(input []*eaaspb.Variable, p []interface{}) []interface{} {
+	log.Println("flatten variables start")
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flatten variable ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.ValueType) > 0 {
+			fmt.Printf("flatten variables with value type: %s", in.ValueType)
+			obj["value_type"] = in.ValueType
+		}
+
+		if len(in.Value) > 0 {
+			obj["value"] = in.Value
+		}
+
+		if in.Options != nil {
+			obj["options"] = flattenVariableOptions(in.Options)
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenVariableOptions(input *eaaspb.VariableOptions) []interface{} {
+	log.Println("flatten variable options")
+	if input == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(input.Description) > 0 {
+		obj["description"] = input.Description
+	}
+	obj["sensitive"] = input.Sensitive
+	obj["required"] = input.Required
+
+	if input.Override != nil {
+		obj["override"] = flattenVariableOverrideOptions(input.GetOverride())
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) []interface{} {
+	log.Println("flatten variable override options")
+	if input == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+
+	if len(input.Type) > 0 {
+		obj["type"] = input.Type
+	}
+
+	if len(input.RestrictedValues) > 0 {
+		obj["restricted_values"] = toArrayInterface(input.RestrictedValues)
+	}
+
+	return []interface{}{obj}
+}
+
+func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
+	hooks := make([]*eaaspb.Hook, 0)
+	if len(p) == 0 {
+		return hooks
+	}
+
+	for indx := range p {
+		hook := &eaaspb.Hook{}
+		if p[indx] == nil {
+			return hooks
+		}
+		in := p[indx].(map[string]interface{})
+
+		if n, ok := in["name"].(string); ok && len(n) > 0 {
+			hook.Name = n
+		}
+
+		if d, ok := in["description"].(string); ok && len(d) > 0 {
+			hook.Description = d
+		}
+
+		if t, ok := in["type"].(string); ok && len(t) > 0 {
+			hook.Type = t
+		}
+
+		if ho, ok := in["options"].([]interface{}); ok {
+			hook.Options = expandHookOptions(ho)
+		}
+
+		if ag, ok := in["agents"].([]interface{}); ok {
+			hook.Agents = expandEaasAgents(ag)
+		}
+
+		if d, ok := in["timeout_seconds"].(int); ok {
+			hook.TimeoutSeconds = int64(d)
+		}
+
+		if n, ok := in["on_failure"].(string); ok && len(n) > 0 {
+			hook.OnFailure = n
+		}
+
+		hooks = append(hooks, hook)
+
+	}
+
+	return hooks
+}
+
+func expandHookOptions(p []interface{}) *eaaspb.HookOptions {
+	ho := &eaaspb.HookOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return ho
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if ao, ok := in["approval"].([]interface{}); ok && len(ao) > 0 {
+		ho.Approval = expandApprovalOptions(ao)
+	}
+
+	if no, ok := in["notification"].([]interface{}); ok && len(no) > 0 {
+		ho.Notification = expandNotificationOptions(no)
+	}
+
+	if so, ok := in["script"].([]interface{}); ok && len(so) > 0 {
+		ho.Script = expandScriptOptions(so)
+	}
+
+	if co, ok := in["container"].([]interface{}); ok && len(co) > 0 {
+		ho.Container = expandContainerOptions(co)
+	}
+
+	if o, ok := in["http"].([]interface{}); ok && len(o) > 0 {
+		ho.Http = expandHttpOptions(o)
+	}
+
+	return ho
+}
+
+func expandApprovalOptions(p []interface{}) *eaaspb.ApprovalOptions {
+	ao := &eaaspb.ApprovalOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return ao
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if t, ok := in["type"].(string); ok && len(t) > 0 {
+		ao.Type = t
+	}
+
+	if iao, ok := in["internal"].([]interface{}); ok && len(iao) > 0 {
+		ao.Internal = expandInternalApprovalOptions(iao)
+	}
+
+	if eao, ok := in["email"].([]interface{}); ok && len(eao) > 0 {
+		ao.Email = expandEmailApprovalOptions(eao)
+	}
+
+	if jao, ok := in["jira"].([]interface{}); ok && len(jao) > 0 {
+		ao.Jira = expandJiraApprovalOptions(jao)
+	}
+
+	if ghao, ok := in["github_pull_request"].([]interface{}); ok && len(ghao) > 0 {
+		ao.GithubPullRequest = expandGithubPRApprovalOptions(ghao)
+	}
+
+	return ao
+}
+
+func expandInternalApprovalOptions(p []interface{}) *eaaspb.InternalApprovalOptions {
+	iao := &eaaspb.InternalApprovalOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return iao
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if emails, ok := in["emails"].([]interface{}); ok && len(emails) > 0 {
+		iao.Emails = toArrayString(emails)
+	}
+
+	return iao
+}
+
+func expandEmailApprovalOptions(p []interface{}) *eaaspb.EmailApprovalOptions {
+	eao := &eaaspb.EmailApprovalOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return eao
+	}
+
+	return eao
+}
+
+func expandJiraApprovalOptions(p []interface{}) *eaaspb.JiraApprovalOptions {
+	jao := &eaaspb.JiraApprovalOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return jao
+	}
+
+	return jao
+}
+
+func expandGithubPRApprovalOptions(p []interface{}) *eaaspb.GithubPullRequestApprovalOptions {
+	ghao := &eaaspb.GithubPullRequestApprovalOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return ghao
+	}
+
+	return ghao
+}
+
+func expandNotificationOptions(p []interface{}) *eaaspb.NotificationOptions {
+	no := &eaaspb.NotificationOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return no
+	}
+
+	return no
+}
+
+func expandScriptOptions(p []interface{}) *eaaspb.ShellScriptOptions {
+	so := &eaaspb.ShellScriptOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return so
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if s, ok := in["script"].(string); ok && len(s) > 0 {
+		so.Script = s
+	}
+
+	if ev, ok := in["envvars"].(map[string]string); ok && len(ev) > 0 {
+		so.Envvars = ev
+	}
+
+	if c, ok := in["cpu_limit_milli"].(string); ok && len(c) > 0 {
+		so.CpuLimitMilli = c
+	}
+
+	if m, ok := in["memory_limit_mb"].(string); ok && len(m) > 0 {
+		so.MemoryLimitMB = m
+	}
+
+	if s, ok := in["success_condition"].(string); ok && len(s) > 0 {
+		so.SuccessCondition = s
+	}
+
+	return so
+}
+
+func expandContainerOptions(p []interface{}) *eaaspb.ContainerOptions {
+	co := &eaaspb.ContainerOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return co
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if i, ok := in["image"].(string); ok && len(i) > 0 {
+		co.Image = i
+	}
+
+	if args, ok := in["arguments"].([]interface{}); ok && len(args) > 0 {
+		co.Arguments = toArrayString(args)
+	}
+
+	if cmds, ok := in["commands"].([]interface{}); ok && len(cmds) > 0 {
+		co.Commands = toArrayString(cmds)
+	}
+
+	if ev, ok := in["envvars"].(map[string]interface{}); ok && len(ev) > 0 {
+		co.Envvars = toMapString(ev)
+	}
+
+	if wdp, ok := in["working_dir_path"].(string); ok && len(wdp) > 0 {
+		co.WorkingDirPath = wdp
+	}
+
+	if c, ok := in["cpu_limit_milli"].(string); ok && len(c) > 0 {
+		co.CpuLimitMilli = c
+	}
+
+	if m, ok := in["memory_limit_mb"].(string); ok && len(m) > 0 {
+		co.MemoryLimitMB = m
+	}
+
+	if s, ok := in["success_condition"].(string); ok && len(s) > 0 {
+		co.SuccessCondition = s
+	}
+
+	return co
+}
+
+func expandHttpOptions(p []interface{}) *eaaspb.HttpOptions {
+	ho := &eaaspb.HttpOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return ho
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if ep, ok := in["endpoint"].(string); ok && len(ep) > 0 {
+		ho.Endpoint = ep
+	}
+
+	if m, ok := in["method"].(string); ok && len(m) > 0 {
+		ho.Method = m
+	}
+
+	if h, ok := in["headers"].(map[string]interface{}); ok && len(h) > 0 {
+		ho.Headers = toMapString(h)
+	}
+
+	if b, ok := in["body"].(string); ok && len(b) > 0 {
+		ho.Body = b
+	}
+
+	if s, ok := in["success_condition"].(string); ok && len(s) > 0 {
+		ho.SuccessCondition = s
+	}
+
+	return ho
+}
+
+func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flatten eaas hook ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Description) > 0 {
+			obj["description"] = in.Description
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		if in.Options != nil {
+			v, ok := obj["options"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["options"] = flattenHookOptions(in.Options, v)
+		}
+
+		obj["agents"] = flattenEaasAgents(in.Agents)
+		obj["timeout_seconds"] = in.TimeoutSeconds
+		obj["on_failure"] = in.OnFailure
+
+		out[i] = &obj
+		log.Println("flatten hook setting object ", out[i])
+	}
+
+	return out
+}
+
+func flattenHookOptions(input *eaaspb.HookOptions, p []interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) > 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if input.Approval != nil {
+		v, ok := obj["approval"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["approval"] = flattenApprovalOptions(input.Approval, v)
+	}
+
+	obj["notification"] = flattenNotificationOptions(input.Notification)
+
+	if input.Script != nil {
+		v, ok := obj["script"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["script"] = flattenScriptOptions(input.Script, v)
+	}
+
+	if input.Container != nil {
+		v, ok := obj["container"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["container"] = flattenContainerOptions(input.Container, v)
+	}
+
+	if input.Http != nil {
+		v, ok := obj["http"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["http"] = flattenHttpOptions(input.Http, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenApprovalOptions(input *eaaspb.ApprovalOptions, p []interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) > 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["type"] = input.Type
+	obj["internal"] = flattenInternalApprovalOptions(input.Internal)
+	obj["email"] = flattenEmailApprovalOptions(input.Email)
+	obj["jira"] = flattenJiraApprovalOptions(input.Jira)
+	obj["github_pull_request"] = flattenGithubPRApprovalOptions(input.GithubPullRequest)
+
+	return []interface{}{obj}
+
+}
+
+func flattenInternalApprovalOptions(input *eaaspb.InternalApprovalOptions) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	obj["emails"] = toArrayInterface(input.Emails)
+
+	return []interface{}{obj}
+}
+
+func flattenEmailApprovalOptions(input *eaaspb.EmailApprovalOptions) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	return []interface{}{obj}
+}
+
+func flattenJiraApprovalOptions(input *eaaspb.JiraApprovalOptions) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	return []interface{}{obj}
+}
+
+func flattenGithubPRApprovalOptions(input *eaaspb.GithubPullRequestApprovalOptions) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	return []interface{}{obj}
+}
+
+func flattenNotificationOptions(input *eaaspb.NotificationOptions) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	return []interface{}{obj}
+}
+
+func flattenScriptOptions(input *eaaspb.ShellScriptOptions, p []interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) > 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["script"] = input.Script
+	obj["envvars"] = toMapInterface(input.Envvars)
+	obj["cpu_limit_milli"] = input.CpuLimitMilli
+	obj["memory_limit_mb"] = input.MemoryLimitMB
+	obj["success_condition"] = input.SuccessCondition
+
+	return []interface{}{obj}
+}
+
+func flattenContainerOptions(input *eaaspb.ContainerOptions, p []interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) > 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["image"] = input.Image
+	obj["arguments"] = toArrayInterface(input.Arguments)
+	obj["commands"] = toArrayInterface(input.Commands)
+	obj["envvars"] = toMapInterface(input.Envvars)
+	obj["working_dir_path"] = input.WorkingDirPath
+	obj["cpu_limit_milli"] = input.CpuLimitMilli
+	obj["memory_limit_mb"] = input.MemoryLimitMB
+	obj["success_condition"] = input.SuccessCondition
+
+	return []interface{}{obj}
+}
+
+func flattenHttpOptions(input *eaaspb.HttpOptions, p []interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) > 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["endpoint"] = input.Endpoint
+	obj["method"] = input.Method
+	obj["headers"] = toMapInterface(input.Headers)
+	obj["body"] = input.Body
+	obj["success_condition"] = input.SuccessCondition
+
+	return []interface{}{obj}
+
+}
+
+func expandBoolValue(in []interface{}) *datatypes.BoolValue {
+	if len(in) == 0 {
+		return nil
+	}
+
+	bv := in[0].((map[string]interface{}))
+	return datatypes.NewBool(bv["value"].(bool))
+}
+
+func flattenBoolValue(in *datatypes.BoolValue) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["value"] = in.Value
+
+	return []interface{}{obj}
+}
+
+func expandV3MetaData(p []interface{}) *commonpb.Metadata {
+	obj := &commonpb.Metadata{}
+	if p == nil || len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
+	if v, ok := in["description"].(string); ok && len(v) > 0 {
+		obj.Description = v
+	}
+	if v, ok := in["project"].(string); ok && len(v) > 0 {
+		obj.Project = v
+	}
+
+	if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.Labels = toMapString(v)
+	}
+
+	if v, ok := in["annotations"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.Annotations = toMapString(v)
+	}
+	return obj
+}
+
+func flattenV3MetaData(in *commonpb.Metadata) []interface{} {
+	if in == nil {
+		return nil
+	}
+	log.Println("flatten metadata: ", in)
+	obj := make(map[string]interface{})
+
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	if len(in.Description) > 0 {
+		obj["description"] = in.Description
+	}
+
+	if len(in.Project) > 0 {
+		obj["project"] = in.Project
+	}
+
+	if len(in.Labels) > 0 {
+		obj["labels"] = toMapInterface(in.Labels)
+	}
+
+	if len(in.Annotations) > 0 {
+		obj["annotations"] = toMapInterface(in.Annotations)
+	}
+
+	return []interface{}{obj}
 }

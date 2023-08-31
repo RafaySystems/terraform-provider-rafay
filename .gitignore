@@ -149,3 +149,9 @@ kubeconfig_*
 
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,code,visualstudiocode,go
+
+
+### Config to override terraform provider for manual testing
+# Reference: https://developer.hashicorp.com/terraform/cli/config/config-file#development-overrides-for-provider-developers
+
+dev.tfrc

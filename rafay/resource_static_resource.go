@@ -14,7 +14,6 @@ import (
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rctl/pkg/config"
-	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -53,7 +52,7 @@ func resourceStaticResourceCreate(ctx context.Context, d *schema.ResourceData, m
 			return diags
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, getUserAgent())
 		if err != nil {
 			return diags
 		}
@@ -83,7 +82,7 @@ func resourceStaticResourceUpsert(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, getUserAgent())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -114,7 +113,7 @@ func resourceStaticResourceRead(ctx context.Context, d *schema.ResourceData, m i
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, getUserAgent())
 	if err != nil {
 		log.Println("read client err")
 		return diag.FromErr(err)
@@ -171,7 +170,7 @@ func resourceStaticResourceDelete(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, getUserAgent())
 	if err != nil {
 		return diag.FromErr(err)
 	}

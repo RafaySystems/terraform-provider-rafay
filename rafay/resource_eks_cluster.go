@@ -4855,13 +4855,28 @@ func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 }
 
 func getSubnetNamesOrderFromState(p []interface{}) []string {
+	extractValue := func(obj map[string]interface{}, key string) string {
+		if val, ok := obj[key]; ok {
+			if val2, ok2 := val.(string); ok2 {
+				return val2
+			}
+		}
+		return ""
+	}
 	res := make([]string, len(p))
 	for i := 0; i < len(p); i++ {
 		if p[i] != nil {
-			if obj, ok := p[i].(map[string]interface{}); ok && isKeyExists("name", obj) && len(obj["name"].(string)) > 0 {
-				res = append(res, obj["name"].(string))
+			if obj, ok := p[i].(map[string]interface{}); ok {
+				if x := extractValue(obj, "name"); x != "" {
+					res = append(res, obj["name"].(string))
+				}
 			}
 		}
+		// if p[i] != nil {
+		// 	if obj, ok := p[i].(map[string]interface{}); ok && isKeyExists("name", obj) && len(obj["name"].(string)) > 0 {
+		// 		res = append(res, obj["name"].(string))
+		// 	}
+		// }
 	}
 	return res
 }

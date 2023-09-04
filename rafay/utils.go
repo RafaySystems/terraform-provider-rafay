@@ -94,11 +94,6 @@ func toArrayStringSorted(in []interface{}) []string {
 	return out
 }
 
-func isKeyExists(key string, mp map[string]interface{}) bool {
-	_, ok := mp[key]
-	return ok
-}
-
 func toArrayInterface(in []string) []interface{} {
 	out := make([]interface{}, len(in))
 	for i, v := range in {

@@ -4872,11 +4872,6 @@ func getSubnetNamesOrderFromState(p []interface{}) []string {
 				}
 			}
 		}
-		// if p[i] != nil {
-		// 	if obj, ok := p[i].(map[string]interface{}); ok && isKeyExists("name", obj) && len(obj["name"].(string)) > 0 {
-		// 		res = append(res, obj["name"].(string))
-		// 	}
-		// }
 	}
 	return res
 }

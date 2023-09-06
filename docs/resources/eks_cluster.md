@@ -373,7 +373,7 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 ***Optional***
 
 - `availability_zones` - (List of String) The availability zones (AZ) of a cluster.
-- `cloud_watch` - (Block List) CloudWatch configuration for control plan logging. (See [below for nested schema](#nestedblock--cluster_config--cloud_watch))
+- `cloud_watch` - (Block List, Max: 1) CloudWatch configuration for control plane logging. (See [below for nested schema](#nestedblock--cluster_config--cloud_watch))
 - `fargate_profiles` - (Block List) The settings used to schedule a workload onto AWS Fargate. (See [below for nested schema](#nestedblock--cluster_config--fargate_profiles))
 - `iam` - (Block List) The AWS identity and access management (IAM) attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--iam))
 - `secrets_encryption` - (Block List) The Amazon EKS secrets encryption feature. (See [below for nested schema](#nestedblock--cluster_config--secrets_encryption))
@@ -397,7 +397,7 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 
 ***Required***
 
-- `cluster_logging` - (Block List) The config parameters related to cluster logging.  (See [below for nested schema](#nestedblock--cluster_config--cloud_watch--cluster_logging))
+- `cluster_logging` - (Block List, Max:1) The config parameters related to cluster logging.  (See [below for nested schema](#nestedblock--cluster_config--cloud_watch--cluster_logging))
 
 <a id="nestedblock--cluster_config--cloud_watch--cluster_logging"></a>
 ### Nested Schema for `cluster_config.cloud_watch.cluster_logging`

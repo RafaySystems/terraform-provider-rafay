@@ -204,8 +204,8 @@ If the runner type in the hooks configuration is set to agent, then this field i
 
 Optional:
 
-- `prehooks` (Block List) Post-hooks to execute after the action.  (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks))
-- `posthooks` Pre-hooks to execute before the action.  (Block List)  (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--posthooks))
+- `prehooks` (Block List) Pre-hooks to execute after the action.  (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks))
+- `posthooks` Post-hooks to execute before the action.  (Block List)  (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--posthooks))
 
 
 <a id="nestedblock--spec--operation_workflow--operations--action"></a>

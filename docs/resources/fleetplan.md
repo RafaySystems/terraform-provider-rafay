@@ -173,7 +173,7 @@ If the runner type in the hooks configuration is set to agent, then this field i
 
 ***Required***
 
-- `kind` (String)  Specifies the kind of Fleet.
+- `kind` (String)  Specifies the kind of Fleet. The supported value is `clusters`
 - `labels` (Map of String) This map allows you to attach key-value labels to the Fleet for selecting clusters.
 - `projects` (Block List) This block allows you to specify one or more projects, and you can select clusters from these specified projects. (see [below for nested schema](#nestedblock--spec--fleet--projects))
 
@@ -214,22 +214,19 @@ Optional:
 ***Required*** 
 
 - `name` (String) The name of the action.
-- `type` (String) The type of action  (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--action--type))
-- `patch_config` (Block List) Configuration required for the patch  type of action. (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--action--patch_config))
+- `type` (String) The type of action. The supported values are `controlPlaneUpgrade`, `nodeGroupsUpgrade`, `nodeGroupsAndControlPlaneUpgrade` and `patch`
 
-***Optional***
-
-- `description` (String) Description of action
-
-
-<a id="nestedblock--spec--operation_workflow--operations--action--type"></a>
-### Nested Schema for `spec.operation_workflow.operations.action.type`
+**Note**:
+- One of the following configuration is required based on value of of the `type`
 
 - `control_plane_upgrade_config` (Block List, Max: 1) Configuration for control plane upgrade action, used for upgrading the control plane only. (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks--control_plane_upgrade_config))
 - `node_groups_upgrade_config` (Block List, Max: 1)  Configuration for node group upgrade action, used for upgrading the node group only (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks--node_groups_upgrade_config))
 - `node_groups_and_control_plane_upgrade_config` (Block List, Max: 1)  Configuration for control plane and node group upgrade action, used for upgrading the both    (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks--node_groups_and_control_plane_upgrade_config))
-- `patch` (Block List, Max: 1) A cluster configuration file can be partially modified using a patch operation. YAML patch is used to update & modify specific fields in the configuration file. (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--action--patch_config))
-  
+- `patch_config` (Block List, Max: 1) A cluster configuration file can be partially modified using a patch operation. YAML patch is used to update & modify specific fields in the configuration file. (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--action--patch_config))
+
+***Optional***
+
+- `description` (String) Description of action
 
 <a id="nestedblock--spec--operation_workflow--operations--prehooks--control_plane_upgrade_config"></a>
 ### Nested Schema for `spec.operation_workflow.operations.prehooks.control_plane_upgrade_config`
@@ -261,26 +258,23 @@ Optional:
 
 ***Required***
 
-- `op` (String): The operation to perform. By default, it is set to `"REPLACE"`, which is currently the only supported operation.
-   - Example: `"replace"`
+- `op` (String): The operation to perform. The support values is `replace`
 - `path` (String)  The configuration path where the patch should be applied.  
    -  Example: `".spec.config.managedNodeGroups[1].ami"`
 - `value` (String)  Desired value required to be replaced.
 
-
-<a id="nestedblock--spec--operation_workflow--operations--posthooks"></a>
-### Nested Schema for `spec.operation_workflow.operations.posthooks`
+<a id="nestedblock--spec--operation_workflow--operations--prehooks"></a>
+### Nested Schema for `spec.operation_workflow.operations.prehooks`
 
 ***Required***
 
-- `name` (String)
-- `container_config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--posthooks--container_config))
+- `name` (String) The name of the pre-hook.
+- `container_config` (Block List, Max: 1) Configuration for the container to run. (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks--container_config))
 
 ***Optional***
 
-- `description` (String) Description of the post-hook.
-- `inject` (List of String) Specifies environment variables to inject into the container. By default, only `KUBECONFIG` is available, which can be used to set up the connection to the target clusters.
-
+- `description` (String) A description of the pre-hook.
+- `inject` (List of String): Specifies environment variables to inject into the container. By default, only `KUBECONFIG` is available, which can be used to set up the connection to the target clusters.
 
 <a id="nestedblock--spec--operation_workflow--operations--prehooks--container_config"></a>
 ### Nested Schema for `spec.operation_workflow.operations.prehooks.container_config`
@@ -301,20 +295,18 @@ Optional:
    - Example: `"cluster"` The Agent running on the Controller runs a prehook on the target cluster.
    - Example: `"Agent"` The Agent running on the target Cluster runs the prehook on the cluster.
 
-
-<a id="nestedblock--spec--operation_workflow--operations--prehooks"></a>
-### Nested Schema for `spec.operation_workflow.operations.prehooks`
+<a id="nestedblock--spec--operation_workflow--operations--posthooks"></a>
+### Nested Schema for `spec.operation_workflow.operations.posthooks`
 
 ***Required***
 
-- `name` (String) The name of the pre-hook.
-- `container_config` (Block List, Max: 1) Configuration for the container to run. (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks--container_config))
+- `name` (String)
+- `container_config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--posthooks--container_config))
 
 ***Optional***
 
-- `description` (String) A description of the pre-hook.
-- `inject` (List of String): Specifies environment variables to inject into the container. By default, only `KUBECONFIG` is available, which can be used to set up the connection to the target clusters.
-
+- `description` (String) Description of the post-hook.
+- `inject` (List of String) Specifies environment variables to inject into the container. By default, only `KUBECONFIG` is available, which can be used to set up the connection to the target clusters.
 
 <a id="nestedblock--spec--operation_workflow--operations--posthooks--container_config"></a>
 ### Nested Schema for `spec.operation_workflow.operations.posthooks.container_config`

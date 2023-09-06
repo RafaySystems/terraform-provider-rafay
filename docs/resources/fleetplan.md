@@ -258,7 +258,7 @@ Optional:
 
 ***Required***
 
-- `op` (String): The operation to perform. The support values is `replace`
+- `op` (String): The operation to perform. The supported values is `replace`
 - `path` (String)  The configuration path where the patch should be applied.  
    -  Example: `".spec.config.managedNodeGroups[1].ami"`
 - `value` (String)  Desired value required to be replaced.
@@ -292,15 +292,15 @@ Optional:
 - `image` (String) The container image to use.
    - Example: `"bitnami/kubectl"`
 - `runner` (String) The type of runner.
-   - Example: `"cluster"` The Agent running on the Controller runs a prehook on the target cluster.
-   - Example: `"Agent"` The Agent running on the target Cluster runs the prehook on the cluster.
+   - Example: `"cluster"` The Agent running on the Controller runs a pre-hook on the target cluster.
+   - Example: `"Agent"` The Agent running on the target Cluster runs the pre-hook on the cluster.
 
 <a id="nestedblock--spec--operation_workflow--operations--posthooks"></a>
 ### Nested Schema for `spec.operation_workflow.operations.posthooks`
 
 ***Required***
 
-- `name` (String)
+- `name` (String) The name of the post-hook.
 - `container_config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--posthooks--container_config))
 
 ***Optional***
@@ -315,13 +315,14 @@ Optional:
 
 - `arguments` (List of String)  Arguments to pass to the container.
 - `commands` (List of String) Specifies the commands to execute within the container.
-- `env` (Map of String) Pass variables to the pre-hook script that will be available at runtime.
+- `env` (Map of String) Pass variables to the post-hook script that will be available at runtime.
   - Example: `"key1:value1"`
 
 ***Required***
 
 - `image` (String) The container image to use.
 - `runner` (String) The type of runner.
-   - Example: `"cluster"`
+   - Example: `"cluster"` The Agent running on the Controller runs a post-hook on the target cluster.
+   - Example: `"Agent"` The Agent running on the target Cluster runs the post-hook on the cluster.
 
 

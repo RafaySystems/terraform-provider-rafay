@@ -49,7 +49,7 @@ resource "rafay_fleetplan" "demo-fleetplan" {
                 }
                 prehooks {
                     name = "cpngup-prehook1"
-                    description = "list all nodes at upg"
+                    description = "list all nodes before upgrade"
                     container_config {
                         runner {
                            type = "cluster"
@@ -103,7 +103,7 @@ resource "rafay_fleetplan" "demo-fleetplan" {
                 }
                 prehooks {
                     name = "ngupg-prehook1"
-                    description = "list all nodes at upg"
+                    description = "list all nodes before upgrade"
                     container_config {
                         runner {
                             type = "cluster"
@@ -114,7 +114,7 @@ resource "rafay_fleetplan" "demo-fleetplan" {
                 }
                 posthooks {
                     name = "ngupg-posthook1"
-                    description = "list all nodes at upg"
+                    description = "list all nodes after upgrade"
                     container_config {
                         runner {
                             type = "cluster"
@@ -182,8 +182,7 @@ If the runner type in the hooks configuration is set to agent, then this field i
 
 ***Required***
 
-- `name` (String) Name of the projects
-
+- `name` (String) Name of the project this fleet plan will act on applicable clusters.
 
 <a id="nestedblock--spec--operation_workflow"></a>
 ### Nested Schema for `spec.operation_workflow`
@@ -204,8 +203,8 @@ If the runner type in the hooks configuration is set to agent, then this field i
 
 Optional:
 
-- `prehooks` (Block List) Pre-hooks to execute after the action.  (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks))
-- `posthooks` Post-hooks to execute before the action.  (Block List)  (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--posthooks))
+- `prehooks` (Block List) Pre-hooks to execute before the action. (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks))
+- `posthooks` (Block List) Post-hooks to execute after the action. (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--posthooks))
 
 
 <a id="nestedblock--spec--operation_workflow--operations--action"></a>
@@ -279,21 +278,21 @@ Optional:
 <a id="nestedblock--spec--operation_workflow--operations--prehooks--container_config"></a>
 ### Nested Schema for `spec.operation_workflow.operations.prehooks.container_config`
 
-***Optional***
-
-- `arguments` (List of String)   Arguments to pass to the container.
-   - Example: `["get", "nodes", "-A"]
-- `commands` (List of String)  
-- `env` (Map of String)  Pass variables to the pre-hook script that will be available at runtime.
-   - Example: `"key1:value1"`
-
 ***Required***
 
 - `image` (String) The container image to use.
    - Example: `"bitnami/kubectl"`
-- `runner` (String) The type of runner.
-   - Example: `"cluster"` The Agent running on the Controller runs a pre-hook on the target cluster.
-   - Example: `"Agent"` The Agent running on the target Cluster runs the pre-hook on the cluster.
+- `runner` (String) The type of runner. The supported values are `cluster` and `agent`
+   - Example: `"cluster"` The container will run on all the targeted clusters for pre-hook operations.
+   - Example: `"agent"` The container will run on the selected agent for pre-hook operations.
+
+***Optional***
+
+- `arguments` (List of String) Arguments to pass to the container.
+   - Example: `["get", "nodes", "-A"]
+- `commands` (List of String) Specifies the commands to execute within the container.
+- `env` (Map of String)  Pass variables to the pre-hook script that will be available at runtime.
+   - Example: `"key1:value1"`
 
 <a id="nestedblock--spec--operation_workflow--operations--posthooks"></a>
 ### Nested Schema for `spec.operation_workflow.operations.posthooks`
@@ -311,18 +310,17 @@ Optional:
 <a id="nestedblock--spec--operation_workflow--operations--posthooks--container_config"></a>
 ### Nested Schema for `spec.operation_workflow.operations.posthooks.container_config`
 
+***Required***
+
+- `image` (String) The container image to use.
+- `runner` (String) The type of runner. The supported values are `cluster` and `agent`
+   - Example: `"cluster"` The container will run on all the targeted clusters for post-hook operations.
+   - Example: `"agent"` The container will run on the selected agent for post-hook operations.
+
 ***Optional***
 
 - `arguments` (List of String)  Arguments to pass to the container.
 - `commands` (List of String) Specifies the commands to execute within the container.
 - `env` (Map of String) Pass variables to the post-hook script that will be available at runtime.
   - Example: `"key1:value1"`
-
-***Required***
-
-- `image` (String) The container image to use.
-- `runner` (String) The type of runner.
-   - Example: `"cluster"` The Agent running on the Controller runs a post-hook on the target cluster.
-   - Example: `"Agent"` The Agent running on the target Cluster runs the post-hook on the cluster.
-
 

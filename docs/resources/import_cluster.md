@@ -62,8 +62,8 @@ output "bootstrap_path" {
 - `description` - (String) The description for the cluster.
 - `kubeconfig_path` - (String) The path to the kubeconfig file.
 - `labels` - (Block) Labels are key/value pairs that are attached to the object.
-- `kubernetes_provider` (String)  This field is used to define the Kubernetes provider, such as AKS (Azure Kubernetes Service).
-- `provision_environment` (String) This field is used to define the type of environment, such as "CLOUD".
+- `kubernetes_provider` (String)  This field is used to define the Kubernetes provider. Supported values are `EKS`, `AKS`, `GKE`, `OPENSHIFT`, `OTHER`, `RKE` and `EKSANYWHERE`
+- `provision_environment` (String) This field is used to define the type of environment. The supported values are `CLOUD` and `ONPREM`
 - `values_path` - (String) The path to save the `values.yaml` file to. This is an optional parameter. If path is provided values.yaml will be downloaded to that path. Otherwise values.yaml will be downloaded to current directory and this output variable will be populated with path to the downloaded file.
 - `bootstrap_path` - (String) The path to save the `bootstrap.yaml` file to. This is an optional parameter. If path is provided bootstrap.yaml will be downloaded to that path. Otherwise bootstrap.yaml will be downloaded to current directory and this output variable will be populated with path to the downloaded file.
 - `timeouts` - (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))

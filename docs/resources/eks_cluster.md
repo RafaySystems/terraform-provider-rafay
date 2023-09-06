@@ -372,7 +372,8 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 
 ***Optional***
 
-- `availability_zones` - (List of String) The availability zones (AZ) of a cluster. 
+- `availability_zones` - (List of String) The availability zones (AZ) of a cluster.
+- `cloud_watch` - (Block List, Max: 1) CloudWatch configuration for control plane logging. (See [below for nested schema](#nestedblock--cluster_config--cloud_watch))
 - `fargate_profiles` - (Block List) The settings used to schedule a workload onto AWS Fargate. (See [below for nested schema](#nestedblock--cluster_config--fargate_profiles))
 - `iam` - (Block List) The AWS identity and access management (IAM) attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--iam))
 - `secrets_encryption` - (Block List) The Amazon EKS secrets encryption feature. (See [below for nested schema](#nestedblock--cluster_config--secrets_encryption))
@@ -391,6 +392,20 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 
 - `tags` - (Map of String) The AWS resource tags created by the vendor. 
 
+<a id="nestedblock--cluster_config--cloud_watch"></a>
+### Nested Schema for `cluster_config.cloud_watch`
+
+***Required***
+
+- `cluster_logging` - (Block List, Max:1) The config parameters related to cluster logging.  (See [below for nested schema](#nestedblock--cluster_config--cloud_watch--cluster_logging))
+
+<a id="nestedblock--cluster_config--cloud_watch--cluster_logging"></a>
+### Nested Schema for `cluster_config.cloud_watch.cluster_logging`
+
+***Required***
+
+- `enable_types` - (List of string) Types of logging to enable. Supported values are: `api`, `audit`, `authenticator`, `controllerManager`, `scheduler`, `all` and `*`
+- `log_retention_in_days` - (Number) Sets the number of days to retain the logs for. Supported values are: `1`, `3`, `5`, `7`, `14`, `30`, `60`, `90`, `120`, `150`, `180`, `365`, `400`, `545`, `731`, `1827`, and `3653`
 
 <a id="nestedblock--cluster_config--fargate_profiles"></a>
 ### Nested Schema for `cluster_config.fargate_profiles`
@@ -505,6 +520,8 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 - `ami` - (String) Specify custom AMIs. The supported values are: `auto-ssm`, `auto`, and `static`.
 - `availability_zones` - (List of String) Limit nodes to specific AZs. 
 - `bottle_rocket` - (Block List) Specifies settings for Bottlerocket nodes. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--bottle_rocket))
+- `disable_imdsv1` - (Boolean) The metadata service to use IMDSv2 tokens. The default value is `false`
+- `disable_pods_imds` - (Boolean) Blocks all IMDS requests from non host networking pods. The default value is `false`
 - `iam` - (Block List) Holds all IAM attributes of a NodeGroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--iam))
 - `instance_name` - (String) For instances in the nodegroup. 
 - `instance_types` - (List of String) Specifies a list of instance types.
@@ -583,6 +600,8 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 
 - `ami` - (String) Specify custom AMIs. The supported values are: `auto-ssm`, `auto`, and `static`.
 - `availability_zones` - (List of String) Limit nodes to specific AZs. 
+- `disable_imdsv1` - (Boolean) The metadata service to use IMDSv2 tokens. The default value is `false`
+- `disable_pods_imds` - (Boolean) Blocks all IMDS requests from non host networking pods. The default value is `false`
 - `iam` - (Block List) Holds all IAM attributes of a nodegroup (See [below for nested schema](#nestedblock--cluster_config--node_groups--iam))
 - `instance_name` - (String) For instances in the nodegroup.
 - `instances_distribution` - (Block List) Holds the configuration for spot instances. (See [below for nested schema](#nestedblock--cluster_config--node_groups--instances_distribution))

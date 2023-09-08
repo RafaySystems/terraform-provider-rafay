@@ -209,7 +209,7 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	if tfBlueprintState.Spec.Sharing != nil && !tfBlueprintState.Spec.Sharing.Enabled && bp.Spec.Sharing == nil {
+	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.Sharing != nil && !tfBlueprintState.Spec.Sharing.Enabled && bp.Spec.Sharing == nil {
 		bp.Spec.Sharing = &commonpb.SharingSpec{}
 		bp.Spec.Sharing.Enabled = false
 	}

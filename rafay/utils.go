@@ -2035,3 +2035,7 @@ func flattenV3MetaData(in *commonpb.Metadata) []interface{} {
 
 	return []interface{}{obj}
 }
+
+func getUserAgent() string {
+	return "tf"
+}

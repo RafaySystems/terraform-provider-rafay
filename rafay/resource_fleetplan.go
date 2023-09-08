@@ -344,6 +344,7 @@ func flattenHook(hook *infrapb.HookSpec) map[string]interface{} {
 	obj["name"] = hook.Name
 	obj["container_config"] = flattenContainerConfig(hook.ContainerConfig)
 	obj["http_config"] = flattenHTTPConfig(hook.HttpConfig)
+	obj["timeout_seconds"] = hook.TimeoutSeconds
 	return obj
 }
 
@@ -666,6 +667,9 @@ func expandHooks(in []interface{}) []*infrapb.HookSpec {
 		}
 		if val, ok := inH["http_config"]; ok {
 			outHook.HttpConfig = expandHttpConfig(val.([]interface{}))
+		}
+		if val, ok := inH["timeout_seconds"]; ok {
+			outHook.TimeoutSeconds = int64(val.(int))
 		}
 
 		outHooks = append(outHooks, outHook)

@@ -37,6 +37,7 @@ resource "rafay_fleetplan" "fp1" {
             image     = "bitnami/kubectl"
             arguments = ["get", "po", "-A"]
           }
+          timeout_seconds = 100
         }
         prehooks {
           name        = "prehooks2"

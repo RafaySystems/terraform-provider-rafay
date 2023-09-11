@@ -557,6 +557,22 @@ func flattenGKEV3Nodepools(in []*infrapb.GkeNodePool, p []interface{}) []interfa
 			obj["metadata"] = flattenGKEV3NodeMetadata(j.Metadata, v)
 		}
 
+		if j.Management != nil {
+			v, ok := obj["management"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["management"] = flattenGKEV3NodeManagement(j.Management, v)
+		}
+
+		if j.UpgradeSettings != nil {
+			v, ok := obj["upgrade_settings"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["upgrade_settings"] = flattenGKEV3NodeUpgradeSettings(j.UpgradeSettings, v)
+		}
+
 		out[i] = &obj
 	}
 
@@ -741,4 +757,78 @@ func flattenGKEV3GceInstanceMetadata(in []*infrapb.GkeGCEInstanceMetadata, p []i
 	}
 
 	return out
+}
+
+func flattenGKEV3NodeManagement(in *infrapb.GkeNodeManagement, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	obj["auto_upgrade"] = in.AutoUpgrade
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeUpgradeSettings(in *infrapb.GkeNodeUpgradeSettings, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["strategy"] = in.Strategy
+
+	if in.SurgeSettings != nil {
+		v, ok := obj["surge_settings"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["surge_settings"] = flattenGKEV3NodeSurgeSettings(in.SurgeSettings, v)
+	}
+
+	if in.BlueGreenSettings != nil {
+		v, ok := obj["blue_green_settings"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["blue_green_settings"] = flattenGKEV3NodeBlueGreenSettings(in.BlueGreenSettings, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeSurgeSettings(in *infrapb.GkeNodeSurgeSettings, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["max_surge"] = in.MaxSurge
+	obj["max_unavailable"] = in.MaxUnavailable
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeBlueGreenSettings(in *infrapb.GkeNodeBlueGreenSettings, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["batch_node_count"] = in.BatchNodeCount
+	obj["batch_soak_duration"] = in.BatchSoakDuration
+	obj["node_pool_soak_duration"] = in.NodePoolSoakDuration
+
+	return []interface{}{obj}
 }

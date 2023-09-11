@@ -38,6 +38,16 @@ resource "rafay_gke_cluster" "pv-gke-terraform" {
           boot_disk_type = "pd-standard"
           boot_disk_size = 100
         }
+        management {
+          auto_upgrade = "true"
+        }
+        upgrade_settings {
+          strategy = "SURGE"
+          surge_settings {
+            max_surge = 0
+            max_unavailable = 1
+          }
+        }
       }
     }
   }

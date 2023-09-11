@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/RafaySystems/rafay-common v1.26.0-rc3.0.20230720083709-8defb4f3cee0
-	github.com/RafaySystems/rctl v1.24.1-0.20230719111517-13d4b793fcf5
+	github.com/RafaySystems/rctl v1.28.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/hashicorp/terraform-plugin-docs v0.9.0

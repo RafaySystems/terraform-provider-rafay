@@ -19,6 +19,6 @@ resource "rafay_customrole" "demo_rafay_customrole" {
       name    = "ztka-rule2"
       version = "v2"
     }
-    base_role = "v1"
+    base_role = "NAMESPACE_ADMIN"
   }
 }

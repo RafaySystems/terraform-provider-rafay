@@ -236,11 +236,11 @@ func expandCustomRoleSpec(p []interface{}) (*systempb.CustomRoleSpec, error) {
 		obj.BaseRole = v
 	}
 
-	if v, ok := in["ztka_rule_list"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["abac_policy_list"].([]interface{}); ok && len(v) > 0 {
 		obj.AbacPolicyList = expandPolicyList(v)
 	}
 
-	if v, ok := in["ztka_rule_list"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["ztka_policy_list"].([]interface{}); ok && len(v) > 0 {
 		obj.ZtkaPolicyList = expandPolicyList(v)
 	}
 
@@ -295,19 +295,19 @@ func flattenCustomRoleSpec(in *systempb.CustomRoleSpec, p []interface{}) ([]inte
 	}
 
 	if in.ZtkaPolicyList != nil && len(in.ZtkaPolicyList) > 0 {
-		v, ok := obj["ztka_rule_list"].([]interface{})
+		v, ok := obj["ztka_policy_list"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["ztka_rule_list"] = flattenPolicyList(in.ZtkaPolicyList, v)
+		obj["ztka_policy_list"] = flattenPolicyList(in.ZtkaPolicyList, v)
 	}
 
 	if in.AbacPolicyList != nil && len(in.AbacPolicyList) > 0 {
-		v, ok := obj["ztka_rule_list"].([]interface{})
+		v, ok := obj["abac_policy_list"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["ztka_rule_list"] = flattenPolicyList(in.AbacPolicyList, v)
+		obj["abac_policy_list"] = flattenPolicyList(in.AbacPolicyList, v)
 	}
 
 	return []interface{}{obj}, nil

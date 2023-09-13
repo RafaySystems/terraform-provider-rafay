@@ -90,6 +90,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_environment_template":          resourceEnvironmentTemplate(),
 				"rafay_environment":                   resourceEnvironment(),
 				"rafay_fleetplan":                     resourceFleetPlan(),
+				"rafay_driver":                        resourceDriver(),
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,

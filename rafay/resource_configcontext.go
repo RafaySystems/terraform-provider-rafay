@@ -290,7 +290,7 @@ func flattenConfigContext(d *schema.ResourceData, in *eaaspb.ConfigContext) erro
 	var ret []interface{}
 	ret, err = flattenConfigContextSpec(in.Spec, v)
 	if err != nil {
-		log.Println("flatten catalog spec err")
+		log.Println("flatten config context spec err")
 		return err
 	}
 

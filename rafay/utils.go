@@ -1,6 +1,7 @@
 package rafay
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -156,6 +157,19 @@ func toMapByte(in map[string]interface{}) map[string][]byte {
 			continue
 		}
 		value := v.(string)
+		out[i] = []byte(value)
+	}
+	return out
+}
+
+func toMapByteInterface(in map[string][]byte) map[string]interface{} {
+	out := make(map[string]interface{})
+	for i, v := range in {
+		if v == nil {
+			out[i] = []byte{}
+			continue
+		}
+		value := bytes.NewBuffer(v).String()
 		out[i] = []byte(value)
 	}
 	return out

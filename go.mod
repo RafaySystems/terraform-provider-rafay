@@ -3,7 +3,7 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.19
 
 require (
-	github.com/RafaySystems/rafay-common v1.29.0-rc3.0.20230816155650-8ce443eacbbd
+	github.com/RafaySystems/rafay-common v1.29.0-rc4.0.20230913064920-c23e4d2548bc
 	github.com/RafaySystems/rctl v1.24.1-0.20230711200043-67da417f38ae
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -229,7 +229,7 @@ replace (
 	//github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
 	//github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	//github.com/RafaySystems/rctl => ../rctl
-	github.com/RafaySystems/rafay-common => ../rafay-common
+	// github.com/RafaySystems/rafay-common => ../rafay-common
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
 
 	k8s.io/api => k8s.io/api v0.23.1

@@ -114,6 +114,7 @@ You can provide your credentials via the `RCTL_REST_ENDPOINT`, `RCTL_API_KEY`,
 `RCTL_API_SECRET` and `RCTL_PROJECT` environment variables, representing your Rafay
 Console Endpoint, Rafay Access Key, Rafay Secret Key and Rafay Project respectively.
 
+
 ```terraform
 provider "rafay" {}
 ```
@@ -127,6 +128,7 @@ $ export RCTL_REST_ENDPOINT="console.rafay.dev"
 $ export RCTL_PROJECT="defaultproject"
 $ terraform plan
 ```
+>! Note: For `RCTL_API_KEY`, use the entire output of the generated API key.
 
 ### Credentials/configuration file
 

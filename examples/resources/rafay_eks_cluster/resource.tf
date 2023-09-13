@@ -354,3 +354,76 @@ resource "rafay_eks_cluster" "ekscluster-basic-im" {
     }
   }
 }
+
+
+resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "ekscluster-basic-with-ipv6"
+      project = "defaultproject"
+    }
+    spec {
+      type              = "eks"
+      blueprint         = "minimal"
+      cloud_provider    = "aws"
+      cni_provider      = "aws-cni"
+      proxy_config      = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "ekscluster-basic-with-ipv6"
+      region  = "us-west-2"
+      version = "1.26"
+    }
+    kubernetes_network_config {
+      ip_family = "IPv6"
+    }
+    iam {
+     with_oidc = true
+    }
+
+    vpc {
+      cluster_endpoints {
+        private_access = true
+        public_access  = true
+      }
+    }
+    managed_nodegroups {
+      name = "ng1"
+      instance_type      = "t3.medium"
+      desired_capacity   = 3
+      min_size           = 0
+      max_size           = 4
+      volume_size        = 80
+      volume_type        = "gp3"
+      version            = "1.26"
+    }
+    managed_nodegroups {
+      name = "ng2"
+      instance_type      = "t3.medium"
+      desired_capacity   = 2
+      min_size           = 0
+      max_size           = 3
+      volume_size        = 80
+      volume_type        = "gp3"
+      version            = "1.26"
+    }
+    
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+    }
+    addons {
+      name = "coredns"
+      version = "latest"
+    }
+  }
+}

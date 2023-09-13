@@ -110,9 +110,8 @@ explained below:
 
 ### Environment Variables
 
-You can provide your credentials via the `RCTL_REST_ENDPOINT`, `RCTL_API_KEY`,
-`RCTL_API_SECRET` and `RCTL_PROJECT` environment variables, representing your Rafay
-Console Endpoint, Rafay Access Key, Rafay Secret Key and Rafay Project respectively.
+You can provide your credentials via the `RCTL_REST_ENDPOINT`, `RCTL_API_KEY`, and `RCTL_PROJECT` environment variables, representing your Rafay
+Console Endpoint, Rafay Access Key and Rafay Project respectively.
 
 
 ```terraform
@@ -123,7 +122,6 @@ Usage:
 
 ```sh
 $ export RCTL_API_KEY="rafayaccesskey"
-$ export RCTL_API_SECRET="rafaysecretkey"
 $ export RCTL_REST_ENDPOINT="console.rafay.dev"
 $ export RCTL_PROJECT="defaultproject"
 $ terraform plan

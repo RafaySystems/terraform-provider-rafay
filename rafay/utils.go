@@ -1526,6 +1526,10 @@ func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
 			hook.OnFailure = n
 		}
 
+		if n, ok := in["driver"].([]interface{}); ok && len(n) > 0 {
+			hook.Driver = expandDriverResourceRef(n)
+		}
+
 		hooks = append(hooks, hook)
 
 	}
@@ -1786,6 +1790,7 @@ func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		obj["agents"] = flattenEaasAgents(in.Agents)
 		obj["timeout_seconds"] = in.TimeoutSeconds
 		obj["on_failure"] = in.OnFailure
+		obj["driver"] = flattenDriverResourceRef(in.Driver)
 
 		out[i] = &obj
 		log.Println("flatten hook setting object ", out[i])

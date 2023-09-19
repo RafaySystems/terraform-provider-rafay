@@ -20,6 +20,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-cty/cty"
 	jsoniter "github.com/json-iterator/go"
+	"k8s.io/utils/strings/slices"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -4259,6 +4260,9 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		return nil, fmt.Errorf("empty cluster config input")
 	}
 	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
 
 	if len(in.APIVersion) > 0 {
 		obj["apiversion"] = in.APIVersion
@@ -4802,28 +4806,74 @@ func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 	log.Println("got to flatten subnet mapping", len(p))
 	out := make([]interface{}, len(in))
 	i := 0
-	for key, elem := range in {
+	orderedSubnetNames := getSubnetNamesOrderFromState(p)
+
+	for idx := 0; idx < len(orderedSubnetNames); idx++ {
 		obj := map[string]interface{}{}
-		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+		if idx < len(p) && p[idx] != nil {
+			obj = p[idx].(map[string]interface{})
 		}
-		if len(elem.ID) > 0 {
-			obj["id"] = elem.ID
+		name := orderedSubnetNames[idx]
+		if elem, ok := in[name]; ok {
+			if len(elem.ID) > 0 {
+				obj["id"] = elem.ID
+			}
+			if len(elem.AZ) > 0 {
+				obj["az"] = elem.AZ
+			}
+			if len(name) > 0 {
+				obj["name"] = name
+			}
+			if len(elem.CIDR) > 0 {
+				obj["cidr"] = elem.CIDR
+			}
+			out[i] = obj
+			i += 1
 		}
-		if len(elem.AZ) > 0 {
-			obj["az"] = elem.AZ
+	}
+	for key, elem := range in {
+		if !slices.Contains(orderedSubnetNames, key) {
+			obj := map[string]interface{}{}
+			if len(elem.ID) > 0 {
+				obj["id"] = elem.ID
+			}
+			if len(elem.AZ) > 0 {
+				obj["az"] = elem.AZ
+			}
+			if len(key) > 0 {
+				obj["name"] = key
+			}
+			if len(elem.CIDR) > 0 {
+				obj["cidr"] = elem.CIDR
+			}
+			out[i] = obj
+			i += 1
 		}
-		if len(key) > 0 {
-			obj["name"] = key
-		}
-		if len(elem.CIDR) > 0 {
-			obj["cidr"] = elem.CIDR
-		}
-		out[i] = obj
-		i += 1
 	}
 	log.Println("finished subnet mapping")
 	return out
+}
+
+func getSubnetNamesOrderFromState(p []interface{}) []string {
+	extractValue := func(obj map[string]interface{}, key string) string {
+		if val, ok := obj[key]; ok {
+			if val2, ok2 := val.(string); ok2 {
+				return val2
+			}
+		}
+		return ""
+	}
+	res := make([]string, len(p))
+	for i := 0; i < len(p); i++ {
+		if p[i] != nil {
+			if obj, ok := p[i].(map[string]interface{}); ok {
+				if x := extractValue(obj, "name"); x != "" {
+					res = append(res, obj["name"].(string))
+				}
+			}
+		}
+	}
+	return res
 }
 func flattenVPCNAT(in *ClusterNAT, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}

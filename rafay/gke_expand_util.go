@@ -136,7 +136,6 @@ func expandGKEClusterToV3Blueprint(p []interface{}) (*infrapb.ClusterBlueprint, 
 
 	log.Println("expandGKEClusterToV3Blueprint obj", obj)
 	return obj, nil
-
 }
 
 // GkeProxy
@@ -176,7 +175,6 @@ func expandToV3GKEProxy(p []interface{}) (*infrapb.ClusterProxy, error) {
 	}
 
 	return obj, nil
-
 }
 
 // GkeV3ConfigObject
@@ -194,7 +192,8 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 	*/
 
 	obj := &infrapb.ClusterSpec_Gke{
-		Gke: &infrapb.GkeV3ConfigObject{}}
+		Gke: &infrapb.GkeV3ConfigObject{},
+	}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj, errors.New("got nil or empty object for gke config")
@@ -260,7 +259,6 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 	}
 
 	return obj, nil
-
 }
 
 func expandToV3GkeLocation(p []interface{}) (*infrapb.GkeLocation, error) {
@@ -323,11 +321,9 @@ func expandToV3GkeDefaultNodeLocations(p []interface{}) (*infrapb.GkeDefaultNode
 	}
 
 	return obj, nil
-
 }
 
 func expandToV3GkeZonalCluster(p []interface{}) (*infrapb.GkeLocation_Zonal, error) {
-
 	obj := &infrapb.GkeLocation_Zonal{
 		Zonal: &infrapb.GkeZonalCluster{},
 	}
@@ -490,6 +486,14 @@ func expandToV3GkeNetwork(p []interface{}) (*infrapb.GkeNetwork, error) {
 
 	if v, ok := in["service_address_range"].(string); ok && len(v) > 0 {
 		obj.ServiceAddressRange = v
+	}
+
+	if v, ok := in["pod_secondary_range_name"].(string); ok && len(v) > 0 {
+		obj.PodSecondaryRangeName = v
+	}
+
+	if v, ok := in["service_secondary_range_name"].(string); ok && len(v) > 0 {
+		obj.ServiceSecondaryRangeName = v
 	}
 
 	if v, ok := in["control_plane_authorized_network"].([]interface{}); ok && len(v) > 0 {

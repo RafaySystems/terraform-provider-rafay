@@ -64,6 +64,10 @@ bucket-name:
 tidy:
 	GOPRIVATE=github.com/RafaySystems/* go mod tidy
 
+.PHONY: vendor
+vendor:
+	go mod vendor
+
 .PHONY: update-deps 
 update-deps:
 	GOPRIVATE=github.com/RafaySystems/* go get -d github.com/RafaySystems/rafay-common@master

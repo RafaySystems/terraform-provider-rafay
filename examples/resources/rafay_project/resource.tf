@@ -47,5 +47,8 @@ resource "rafay_project" "tfdemoproject2" {
       services_node_ports = "10"
       storage_requests = "10Gi"
     }
+    drift_webhook {
+      enabled = true
+    }
   }
 }

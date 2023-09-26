@@ -111,6 +111,7 @@ resource "rafay_chargeback_group" "tfdemodetailedcbgroup1" {
 - `cluster` (Boolean) Enable aggregating based on cluster.
 - `namespace` (Boolean) Enable aggregating based on namespace.
 - `label` - (List of String) Aggregate based on labels.
+- `namespace_label` - (List of String) Aggregate based on namespace labels.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

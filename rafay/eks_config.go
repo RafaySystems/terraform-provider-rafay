@@ -941,7 +941,7 @@ type (
 		// Settings contains any [bottlerocket
 		// settings](https://github.com/bottlerocket-os/bottlerocket/#description-of-settings)
 		// +optional
-		Settings map[string]string `yaml:"settings,omitempty"`
+		Settings map[string]interface{} `yaml:"settings,omitempty"`
 		//Settings *InlineDocument `yaml:"settings,omitempty"`
 	}
 

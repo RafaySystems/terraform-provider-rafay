@@ -157,7 +157,7 @@ Optional:
 
 ***Required***
 
-- `type` (String) GKE Cluster location can be either zonal or regional
+- `type` (String) GKE Cluster location can be either `zonal` or `regional`
 - `config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--location--config))
 
 ***Optional***
@@ -173,7 +173,7 @@ Cluster, both region and zone should be provided.
 
 
 <a id="nestedblock--spec--config--location--default_node_locations"></a>
-### Nested Schema for `spec.config.location.type`
+### Nested Schema for `spec.config.location.default_node_locations`
 
 Optional:
 
@@ -199,68 +199,66 @@ Optional:
 
 
 
-
-
-<a id="nestedblock--spec--config--metadata"></a>
-### Nested Schema for `spec.config.metadata`
-
-Optional:
-
-- `name` (String)
-
-
 <a id="nestedblock--spec--config--network"></a>
 ### Nested Schema for `spec.config.network`
 
-Optional:
+***Required***
 
+- `name` (String) Name of the network that the cluster is in. It determines which other Compute Engine resource it is able to communicate with
+- `subnet_name` (String) Subnetwork to which the Kubernetes cluster will belong. When VPC native is enabled, the subnetwork must contain at least two secondary ranges which are not used by other Kubernetes clusters. Subnet is permanent.
 - `access` (Block List, Max: 1) NetworkAccess config for describing access configurations for the cluster's workload (see [below for nested schema](#nestedblock--spec--config--network--access))
+
+***Optional***
+
 - `control_plane_authorized_network` (Block List, Max: 1) Add control plane authorized networks to block untrusted non-GCP source IPs from accessing the Kubernetes control plane through HTTPS (see [below for nested schema](#nestedblock--spec--config--network--control_plane_authorized_network))
 - `enable_vpc_nativetraffic` (Boolean) This feature uses alias IP and provides a more secure integration with Google Cloud Platform services
 - `max_pods_per_node` (Number) This value is used to optimize the partitioning of cluster's IP address range to sub-ranges at node level
-- `name` (String) Name of the network that the cluster is in. It determines which other Compute Engine resource it is able to communicate with
 - `pod_address_range` (String) All pods in the cluster are assigned an IP address from this range. Enter a range (in CIDR notation) within a network range, a mask, or leave this field blank to use a default range.
 - `pod_secondary_range_name` (String) Cluster pods are assigned an IP from the selected node subnet's secondary CIDR address range.
 - `service_address_range` (String) Cluster services will be assigned an IP address from this IP address range. Enter a range (in CIDR notation) within a network range, a mask, or leave this field blank to use a default range.
 - `service_secondary_range_name` (String) Cluster services are assigned an IP from the selected node subnetes secondary CIDR address range.
-- `subnet_name` (String) Subnetwork to which the Kubernetes cluster will belong. When VPC native is enabled, the subnetwork must contain at least two secondary ranges which are not used by other Kubernetes clusters. Subnet is permanent.
 
 <a id="nestedblock--spec--config--network--access"></a>
-### Nested Schema for `spec.config.network.subnet_name`
+### Nested Schema for `spec.config.network.access`
 
-Optional:
+***Required***
 
-- `config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--network--subnet_name--config))
-- `type` (String) Choose the type of network you want to allow to access your cluster's workloads. private or public
+- `config` (Block List, Max: 1) For `public` cluster config is null. But for `private` cluster, some settings are required. (see [below for nested schema](#nestedblock--spec--config--network--access--config))
+- `type` (String) Choose the type of network you want to allow to access your cluster's workloads. `private` or `public`
 
 <a id="nestedblock--spec--config--network--subnet_name--config"></a>
-### Nested Schema for `spec.config.network.subnet_name.config`
+### Nested Schema for `spec.config.network.access.config`
 
-Optional:
+***Required For Private Cluster***
 
-- `control_plane_ip_range` (String) Control plane IP range is for the control plane VPC. The control plane range must not overlap with any subnet in your cluster's VPC. The control plane and your cluster use VPC peering to communicate privately
+- `control_plane_ip_range` (String) This is required for private cluster type. Control plane IP range is for the control plane VPC. The control plane range must not overlap with any subnet in your cluster's VPC. The control plane and your cluster use VPC peering to communicate privately
+- `enable_access_control_plane_external_ip` (Boolean) Disabling this option locks down external access to the cluster control plane. There is still an external IP address used by Google for cluster management purposes, but the IP address is not accessible to anyone. If this is disabled, `control_plane_authorized_network` must be configured for Private Cluster.
+
+***Optional***
+
 - `disable_snat` (Boolean) To use Privately Used Public IPs (PUPI) ranges, the default source NAT used for IP masquerading needs to be disabled
-- `enable_access_control_plane_external_ip` (Boolean) Disabling this option locks down external access to the cluster control plane. There is still an external IP address used by Google for cluster management purposes, but the IP address is not accessible to anyone
 - `enable_access_control_plane_global` (Boolean) With control plane global access, you can access the control plane's private endpoint from any GCP region or on-premises environment no matter what the private cluster's region is
 
 
-
 <a id="nestedblock--spec--config--network--control_plane_authorized_network"></a>
-### Nested Schema for `spec.config.network.subnet_name`
+### Nested Schema for `spec.config.network.control_plane_authorized_network`
 
-Optional:
+- `enabled` (Boolean) Enable Control Plane Authorized Network. Configure the Networks now or later.
+
+***Optional***
 
 - `authorized_network` (Block List) Add control plane authorized networks to block untrusted non-GCP source IPs from accessing the Kubernetes control plane through HTTPS (see [below for nested schema](#nestedblock--spec--config--network--subnet_name--authorized_network))
-- `enabled` (Boolean) Enable Control Plane Authorized Network. Configure the Networks now or later.
 
 <a id="nestedblock--spec--config--network--subnet_name--authorized_network"></a>
 ### Nested Schema for `spec.config.network.subnet_name.authorized_network`
 
-Optional:
+***Required***
 
 - `cidr` (String) CIDR Example: 198.51.100.0/24
-- `name` (String) Name of the Authorized Network Example: Corporate Office
 
+***Optional***
+
+- `name` (String) Name of the Authorized Network Example: Corporate Office
 
 
 

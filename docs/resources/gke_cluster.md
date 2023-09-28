@@ -121,7 +121,7 @@ resource "rafay_gke_cluster" "tf-example" {
 - `type` - (String) The GKE Cluster type. The supported value is `gke`.
 - `blueprint` (Block List, Max: 1) The blueprint to be used for this cluster. Use this for GKE cluster type (see [below for nested schema](#nestedblock--spec--blueprint))
 
-Optional:
+***Optional***
 
 - `proxy` (Block List, Max: 1) The proxy to be used for this cluster. Use this for GKE cluster type (see [below for nested schema](#nestedblock--spec--proxy))
 - `sharing` (Block List, Max: 1) Sharing spec to be used for sharing the cluster with projects (see [below for nested schema](#nestedblock--spec--sharing))
@@ -137,235 +137,48 @@ Optional:
 <a id="nestedblock--spec--config"></a>
 ### Nested Schema for `spec.config`
 
-Optional:
+***Required***
 
-- `api_version` (String)
-- `control_plane_version` (String) Kubernetes version of ControlPlane
-- `eksa_cluster_config` (Block List, Max: 1) EKSA cluster configuration (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config))
-- `eksabm_project` (String) EksaBm Project name.
-- `features` (Block List, Max: 1) GKE cluster additional features configuration. (see [below for nested schema](#nestedblock--spec--config--features))
 - `gcp_project` (String) GCP Project name.
-- `kind` (String)
-- `kubernetes_provider` (String) kubernetes provider of the cluster
+- `control_plane_version` (String) Kubernetes version of ControlPlane
 - `location` (Block List, Max: 1) GKE cluster location configuration. (see [below for nested schema](#nestedblock--spec--config--location))
-- `metadata` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--metadata))
 - `network` (Block List, Max: 1) GKE cluster Network configuration. (see [below for nested schema](#nestedblock--spec--config--network))
 - `node_pools` (Block List) GKE cluster node pool configuration. (see [below for nested schema](#nestedblock--spec--config--node_pools))
+
+Optional:
+
+- `features` (Block List, Max: 1) GKE cluster additional features configuration. (see [below for nested schema](#nestedblock--spec--config--features))
 - `pre_bootstrap_commands` (List of String) Commands will be executed every time Cluster nodes come up. Example: Node Creation, Node Restart.
-- `provision_environment` (String) provisioning environment for the cluster
 - `security` (Block List, Max: 1) GKE cluster Network configuration. (see [below for nested schema](#nestedblock--spec--config--security))
-- `spec` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--spec))
-- `tinkerbell_datacenter_config` (Block List, Max: 1) EKSA data center where cluster will be launched (see [below for nested schema](#nestedblock--spec--config--tinkerbell_datacenter_config))
-- `tinkerbell_hardware_config` (Block List) EKSA hardware configuration that will serve as nodes for the cluster (see [below for nested schema](#nestedblock--spec--config--tinkerbell_hardware_config))
-- `tinkerbell_machine_config` (Block List) EKSA machine configuration to associate control-plane/worker-node-group with users and template (see [below for nested schema](#nestedblock--spec--config--tinkerbell_machine_config))
-- `tinkerbell_template_config` (Block List) EKSA template details that will be run as workflow for the node provisioning (see [below for nested schema](#nestedblock--spec--config--tinkerbell_template_config))
-
-<a id="nestedblock--spec--config--eksa_cluster_config"></a>
-### Nested Schema for `spec.config.eksa_cluster_config`
-
-Optional:
-
-- `api_version` (String) Api version of EKSA cluster resource
-- `kind` (String) Kind of EKSA cluster resource
-- `metadata` (Block List, Max: 1) Metadata associated with the EKSA cluster configuration (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--metadata))
-- `spec` (Block List, Max: 1) Specifications of EKSA cluster configuration (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec))
-
-<a id="nestedblock--spec--config--eksa_cluster_config--metadata"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec`
-
-Optional:
-
-- `annotations` (Map of String) EKSA Cluster Annotations
-- `labels` (Map of String) EKSA Cluster Labels
-- `name` (String) EKSA Cluster Name
 
 
-<a id="nestedblock--spec--config--eksa_cluster_config--spec"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec`
+<a id="nestedblock--spec--config--location"></a>
+### Nested Schema for `spec.config.location`
+
+***Required***
+
+- `type` (String) GKE Cluster location can be either zonal or regional
+- `config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--location--config))
+
+***Optional***
+
+- `default_node_locations` (Block List, Max: 1) For Zonal cluster increase availability by selecting more than one zone. For Regional cluster By default, Kubernetes Engine runs nodes of a regional cluster across three zones within a region. Select this option if you want to manually specify the zones in which this cluster's nodes run. All zones must be within the same region. (see [below for nested schema](#nestedblock--spec--config--location--default_node_locations))
+
+<a id="nestedblock--spec--config--location--config"></a>
+### Nested Schema for `spec.config.location.type`
+
+- `region` (String) Regional location in which the cluster's control plane and nodes are located. For ZonalCluster only zone information is sufficient. For Regional Cluster, both region and zone should be provided.
+- `zone` (String) Zone in the region where bootstrap VM is created for cluster provisioning. For ZonalCluster only zone information is sufficient. For Regional
+Cluster, both region and zone should be provided.
+
+
+<a id="nestedblock--spec--config--location--default_node_locations"></a>
+### Nested Schema for `spec.config.location.type`
 
 Optional:
 
-- `cluster_network` (Block List, Max: 1) Configuration specific to network of cluster (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--cluster_network))
-- `control_plane_configuration` (Block List, Max: 1) Specific control plane configuration for your Kubernetes cluster (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--control_plane_configuration))
-- `data_center_ref` (Block List, Max: 1) Refers to the kubernetes object with tinkerbell specific configuration (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--data_center_ref))
-- `kubernetes_version` (String) The Kubernetes version you want to use for your cluster
-- `management_cluster` (Block List, Max: 1) details of management cluster (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--management_cluster))
-- `worker_node_group_configurations` (Block List) This takes in a list of node groups that you can define for your workers (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--worker_node_group_configurations))
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--cluster_network"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.cluster_network`
-
-Optional:
-
-- `cni_config` (Block List, Max: 1) CNI plugin to be installed in the cluster. The only supported value at the moment is cilium (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--cni_config))
-- `nodes` (Block List, Max: 1) Node configurations (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--nodes))
-- `pods` (Block List, Max: 1) Pod configurations (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--pods))
-- `proxy` (Block List, Max: 1) Configuration specific to setup a proxy of cluster network (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--proxy))
-- `services` (Block List, Max: 1) Service configurations (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--services))
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--cni_config"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.cluster_network.services`
-
-Optional:
-
-- `cilium` (Block List, Max: 1) Cilium configuration (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--services--cilium))
-- `kindnetd` (Block List, Max: 1) Kindnetd configuration (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--services--kindnetd))
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--services--cilium"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.cluster_network.services.kindnetd`
-
-Optional:
-
-- `policy_enforcement_mode` (String) PolicyEnforcementMode
-
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--services--kindnetd"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.cluster_network.services.kindnetd`
-
-
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--nodes"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.cluster_network.services`
-
-Optional:
-
-- `cidr_mask_size` (Number) CidrMaskSize
-
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--pods"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.cluster_network.services`
-
-Optional:
-
-- `cidr_blocks` (List of String) Subnet used by pods in CIDR notation
-
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--proxy"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.cluster_network.services`
-
-Optional:
-
-- `allow_insecure_bootstrap` (Boolean) AllowInsecureBootstrap
-- `boot_strap_ca` (String) BootStrapCA
-- `enabled` (Boolean) Enabled
-- `http_proxy` (String) HttpProxy
-- `https_proxy` (String) HttpsProxy
-- `no_proxy` (String) NoProxy
-
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--cluster_network--services"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.cluster_network.services`
-
-Optional:
-
-- `cidr_blocks` (List of String) Subnet used by pods in CIDR notation
-
-
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--control_plane_configuration"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.control_plane_configuration`
-
-Optional:
-
-- `count` (Number) Number of control plane nodes
-- `endpoint` (Block List, Max: 1) Control plane endpoint details (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--control_plane_configuration--endpoint))
-- `labels` (Map of String) A list of labels to apply to the control plane nodes of the cluster. This is in addition to the labels that EKS Anywhere will add by default
-- `machine_group_ref` (Block List, Max: 1) Refers to the Kubernetes object with Tinkerbell-specific configuration for your nodes (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--control_plane_configuration--machine_group_ref))
-- `rollout_strategy` (Block List, Max: 1) Rollout strategy for cp nodes in case of upgrade operation - currently being set to defaults (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--control_plane_configuration--rollout_strategy))
-- `taints` (Map of String) A list of taints to apply to the control plane nodes of the cluster
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--control_plane_configuration--endpoint"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.control_plane_configuration.taints`
-
-Optional:
-
-- `host` (String) A unique IP you want to use for the control plane in your EKS Anywhere cluster. Choose an IP in your network range that does not conflict with other machines.
-
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--control_plane_configuration--machine_group_ref"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.control_plane_configuration.taints`
-
-Optional:
-
-- `kind` (String) Refers to the kind of resource to be associated with.
-- `name` (String) Refers to the name of resource to be associated with of above kind.
-
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--control_plane_configuration--rollout_strategy"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.control_plane_configuration.taints`
-
-Optional:
-
-- `rolling_update` (Block List, Max: 1) Configurations related to rolling update. (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--control_plane_configuration--taints--rolling_update))
-- `type` (String) Rollout strategy type - Default: 'RollingUpdate'.
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--control_plane_configuration--taints--rolling_update"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.control_plane_configuration.taints.type`
-
-Optional:
-
-- `max_surge` (Number) Maximum number of machines that can be scheduled above the desired number of machines - Default: 1.
-
-
-
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--data_center_ref"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.data_center_ref`
-
-Optional:
-
-- `kind` (String) Refers to the kind of resource to be associated with.
-- `name` (String) Refers to the name of resource to be associated with of above kind.
-
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--management_cluster"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.management_cluster`
-
-Optional:
-
-- `name` (String) Identifies the name of the management cluster.
-
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--worker_node_group_configurations"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.worker_node_group_configurations`
-
-Optional:
-
-- `count` (Number) Number of worker nodes
-- `labels` (Map of String) A list of labels to apply to the nodes in the worker node group. This is in addition to the labels that EKS Anywhere will add by default.
-- `machine_group_ref` (Block List, Max: 1) Refers to the Kubernetes object with Tinkerbell-specific configuration for your nodes (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--worker_node_group_configurations--machine_group_ref))
-- `name` (String) Worker node group's name
-- `rollout_strategy` (Block List, Max: 1) Rollout strategy for worker node group nodes in case of upgrade operation - currently being set to defaults (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--worker_node_group_configurations--rollout_strategy))
-- `taints` (Map of String) A list of taints to apply to the nodes in the worker node group. At least one node group must not have NoSchedule or NoExecute taints applied to it.
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--worker_node_group_configurations--machine_group_ref"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.worker_node_group_configurations.taints`
-
-Optional:
-
-- `kind` (String) Refers to the kind of resource to be associated with.
-- `name` (String) Refers to the name of resource to be associated with of above kind.
-
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--worker_node_group_configurations--rollout_strategy"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.worker_node_group_configurations.taints`
-
-Optional:
-
-- `rolling_update` (Block List, Max: 1) Configurations related to rolling update. (see [below for nested schema](#nestedblock--spec--config--eksa_cluster_config--spec--worker_node_group_configurations--taints--rolling_update))
-- `type` (String) Rollout strategy type - Default: 'RollingUpdate'.
-
-<a id="nestedblock--spec--config--eksa_cluster_config--spec--worker_node_group_configurations--taints--rolling_update"></a>
-### Nested Schema for `spec.config.eksa_cluster_config.spec.worker_node_group_configurations.taints.type`
-
-Optional:
-
-- `max_surge` (Number) Maximum number of machines that can be scheduled above the desired number of machines - Default: 1.
-- `max_unavailable` (Number) Maximum number of machines that can be unavailable during the upgrade - Default: 0.
-
-
-
-
+- `enabled` (Boolean) Enable providing default node locations
+- `zones` (List of String) List of zones. Increase availability by providing more than one zone. The same number of nodes will be deployed to each zone in the list.
 
 
 <a id="nestedblock--spec--config--features"></a>
@@ -385,31 +198,6 @@ Optional:
 - `enable_managed_service_prometheus` (Boolean) This option deploys managed collectors for Prometheus metrics within this cluster. These collectors must be configured using PodMonitoring resources. To enable Managed Service for Prometheus here, you'll need. Cluster version of 1.21.4-gke.300 or greater
 
 
-<a id="nestedblock--spec--config--location"></a>
-### Nested Schema for `spec.config.location`
-
-Optional:
-
-- `config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--location--config))
-- `default_node_locations` (Block List, Max: 1) For Zonal cluster increase availability by selecting more than one zone. For Regional cluster By default, Kubernetes Engine runs nodes of a regional cluster across three zones within a region. Select this option if you want to manually specify the zones in which this cluster's nodes run. All zones must be within the same region. (see [below for nested schema](#nestedblock--spec--config--location--default_node_locations))
-- `type` (String) GKE Cluster location can be either zonal or regional
-
-<a id="nestedblock--spec--config--location--config"></a>
-### Nested Schema for `spec.config.location.type`
-
-Optional:
-
-- `region` (String) Regional location in which the cluster's control plane and nodes are located
-- `zone` (String) Zone in the region where bootstrap VM is created for cluster provisioning
-
-
-<a id="nestedblock--spec--config--location--default_node_locations"></a>
-### Nested Schema for `spec.config.location.type`
-
-Optional:
-
-- `enabled` (Boolean) Enable providing default node locations
-- `zones` (List of String) List of zones. Increase availability by providing more than one zone. The same number of nodes will be deployed to each zone in the list.
 
 
 
@@ -1507,19 +1295,6 @@ Optional:
 - `proxy_auth` (String)
 
 
-<a id="nestedblock--spec--proxy_config"></a>
-### Nested Schema for `spec.proxy_config`
-
-Optional:
-
-- `allow_insecure_bootstrap` (Boolean)
-- `bootstrap_ca` (String)
-- `enabled` (Boolean)
-- `http_proxy` (String)
-- `https_proxy` (String)
-- `no_proxy` (String)
-- `proxy_auth` (String)
-
 
 <a id="nestedblock--spec--sharing"></a>
 ### Nested Schema for `spec.sharing`
@@ -1535,50 +1310,6 @@ Optional:
 Optional:
 
 - `name` (String)
-
-
-
-<a id="nestedblock--spec--system_components_placement"></a>
-### Nested Schema for `spec.system_components_placement`
-
-Optional:
-
-- `daemon_set_override` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--system_components_placement--daemon_set_override))
-- `node_selector` (Map of String)
-- `tolerations` (Block List) (see [below for nested schema](#nestedblock--spec--system_components_placement--tolerations))
-
-<a id="nestedblock--spec--system_components_placement--daemon_set_override"></a>
-### Nested Schema for `spec.system_components_placement.daemon_set_override`
-
-Optional:
-
-- `node_selection_enabled` (Boolean)
-- `tolerations` (Block List) (see [below for nested schema](#nestedblock--spec--system_components_placement--daemon_set_override--tolerations))
-
-<a id="nestedblock--spec--system_components_placement--daemon_set_override--tolerations"></a>
-### Nested Schema for `spec.system_components_placement.daemon_set_override.tolerations`
-
-Optional:
-
-- `effect` (String)
-- `key` (String)
-- `operator` (String)
-- `toleration_seconds` (Number)
-- `value` (String)
-
-
-
-<a id="nestedblock--spec--system_components_placement--tolerations"></a>
-### Nested Schema for `spec.system_components_placement.tolerations`
-
-Optional:
-
-- `effect` (String)
-- `key` (String)
-- `operator` (String)
-- `toleration_seconds` (Number)
-- `value` (String)
-
 
 
 

@@ -53,7 +53,7 @@ func resourceConfigContextCreate(ctx context.Context, d *schema.ResourceData, m 
 			return diags
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 		if err != nil {
 			return diags
 		}
@@ -83,7 +83,7 @@ func resourceConfigContextUpsert(ctx context.Context, d *schema.ResourceData, m 
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -114,7 +114,7 @@ func resourceConfigContextRead(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		log.Println("read client err")
 		return diag.FromErr(err)
@@ -171,7 +171,7 @@ func resourceConfigContextDelete(ctx context.Context, d *schema.ResourceData, m 
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}

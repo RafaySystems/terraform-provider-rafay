@@ -566,7 +566,7 @@ type NodeGroup struct {
 
 	// Bottlerocket specifies settings for Bottlerocket nodes
 	// +optional
-	Bottlerocket *NodeGroupBottlerocket `yaml:"bottleRocket,omitempty"`
+	Bottlerocket *NodeGroupBottlerocket `yaml:"bottlerocket,omitempty"`
 
 	// TODO remove this
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and
@@ -754,7 +754,7 @@ type NodeGroupBase struct {
 
 	// Bottlerocket specifies settings for Bottlerocket nodes
 	// +optional
-	Bottlerocket *NodeGroupBottlerocket `yaml:"bottleRocket,omitempty"`
+	Bottlerocket *NodeGroupBottlerocket `yaml:"bottlerocket,omitempty"`
 
 	// TODO remove this
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and
@@ -1082,7 +1082,7 @@ type ManagedNodeGroup struct {
 
 	// Bottlerocket specifies settings for Bottlerocket nodes
 	// +optional
-	Bottlerocket *NodeGroupBottlerocket `yaml:"bottleRocket,omitempty"`
+	Bottlerocket *NodeGroupBottlerocket `yaml:"bottlerocket,omitempty"`
 
 	// TODO remove this
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and

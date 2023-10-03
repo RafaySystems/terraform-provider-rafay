@@ -2,7 +2,6 @@ package rafay
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -92,22 +91,6 @@ func environmentUpsert(ctx context.Context, d *schema.ResourceData, m interface{
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
-	response, err := client.EaasV1().Environment().ExtApi().Publish(ctx, options.ExtOptions{
-		Name:    environment.Metadata.Name,
-		Project: environment.Metadata.Project,
-	})
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	triggerEvent := &eaaspb.TriggerEvent{}
-	err = json.Unmarshal(response.Body, triggerEvent)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	log.Printf("environment published with trigger id %s", triggerEvent.GetId())
 
 	d.SetId(environment.Metadata.Name)
 	return diags

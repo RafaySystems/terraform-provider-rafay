@@ -425,6 +425,8 @@ type Addon struct {
 	Tags map[string]string `yaml:"tags,omitempty"`
 	// Force applies the add-on to overwrite an existing add-on
 	Force *bool `yaml:"-"`
+	// Configuration values for addons
+	ConfigurationValues string `yaml:"configurationValues,omitempty"`
 }
 
 // PrivateCluster defines the configuration for a fully-private cluster

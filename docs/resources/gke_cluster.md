@@ -298,24 +298,24 @@ Optional:
 
 ***Optional***
 
-- `default_node_locations` (Block List, Max: 1) For Zonal cluster increase availability by selecting more than one zone. For Regional cluster By default, Kubernetes Engine runs nodes of a regional cluster across three zones within a region. Select this option if you want to manually specify the zones in which this cluster's nodes run. All zones must be within the same region. (see [below for nested schema](#nestedblock--spec--config--location--default_node_locations))
+- `default_node_locations` (Block List, Max: 1) 
+For Zonal cluster increase availability by selecting more than one zone. 
+For Regional cluster, by default Kubernetes Engine runs nodes of a regional cluster across three zones within a region. Select this option if you want to manually specify the zones in which this cluster's nodes run. All zones must be within the same region. (see [below for nested schema](#nestedblock--spec--config--location--default_node_locations))
 
 <a id="nestedblock--spec--config--location--config"></a>
 ### Nested Schema for `spec.config.location.config`
 
-- `region` (String) Regional location in which the cluster's control plane and nodes are located. For ZonalCluster only zone information is sufficient. For Regional Cluster, both region and zone should be provided.
-- `zone` (String) Zone in the region where bootstrap VM is created for cluster provisioning. For ZonalCluster only zone information is sufficient. For Regional
-Cluster, both region and zone should be provided.
+For ZonalCluster only zone information is sufficient. For Regional Cluster, both region and zone should be provided.
+
+- `region` (String) Regional location in which the cluster's control plane and nodes are located.
+- `zone` (String) Zone in the region where bootstrap VM is created for cluster provisioning. 
 
 
 <a id="nestedblock--spec--config--location--default_node_locations"></a>
 ### Nested Schema for `spec.config.location.default_node_locations`
 
-***Optional***
-
 - `enabled` (Boolean) Enable providing default node locations
 - `zones` (List of String) List of zones. Increase availability by providing more than one zone. The same number of nodes will be deployed to each zone in the list.
-
 
 
 <a id="nestedblock--spec--config--network"></a>

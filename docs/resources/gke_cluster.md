@@ -421,7 +421,7 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 
 
 <a id="nestedblock--spec--config--node_pools--machine_config"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings`
+### Nested Schema for `spec.config.node_pools.machine_config`
 
 ***Optional***
 
@@ -480,9 +480,9 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 
 ***Optional***
 
-- `gce_instance_metadata` (Block List) Metadata to be stored in the instance (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--gce_instance_metadata))
-- `kubernetes_labels` (Block List) Use Kubernetes labels to control how workloads are scheduled to your nodes. Labels are applied to all nodes in this node pool and cannot be changed once the cluster is created (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--kubernetes_labels))
-- `node_taints` (Block List) A node taint lets you mark a node so that the scheduler avoids or prevents using it for certain Pods. Node taints can be used with tolerations to ensure that Pods aren't scheduled onto inappropriate nodes (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--node_taints))
+- `gce_instance_metadata` (Block List) Metadata to be stored in the instance (see [below for nested schema](#nestedblock--spec--config--node_pools--metadata--gce_instance_metadata))
+- `kubernetes_labels` (Block List) Use Kubernetes labels to control how workloads are scheduled to your nodes. Labels are applied to all nodes in this node pool and cannot be changed once the cluster is created (see [below for nested schema](#nestedblock--spec--config--node_pools--metadata--kubernetes_labels))
+- `node_taints` (Block List) A node taint lets you mark a node so that the scheduler avoids or prevents using it for certain Pods. Node taints can be used with tolerations to ensure that Pods aren't scheduled onto inappropriate nodes (see [below for nested schema](#nestedblock--spec--config--node_pools--metadata--node_taints))
 
 <a id="nestedblock--spec--config--node_pools--metadata--gce_instance_metadata"></a>
 ### Nested Schema for `spec.config.node_pools.metadata.gce_instance_metadata`
@@ -516,16 +516,16 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 <a id="nestedblock--spec--config--node_pools--upgrade_settings"></a>
 ### Nested Schema for `spec.config.node_pools.upgrade_settings`
 
-***Optional***
+***Required***
+- `strategy` (String) Update strategy of the node pool. Possible values are SURGE and BLUE_GREEN
 
 - `blue_green_settings` (Block List, Max: 1) Settings for blue-green upgrade strategy (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--blue_green_settings))
-- `strategy` (String) Update strategy of the node pool. Possible values are SURGE and BLUE_GREEN
 - `surge_settings` (Block List, Max: 1) Settings for surge upgrade strategy (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--surge_settings))
 
 <a id="nestedblock--spec--config--node_pools--upgrade_settings--blue_green_settings"></a>
 ### Nested Schema for `spec.config.node_pools.upgrade_settings.blue_green_settings`
 
-***Optional***
+***Required***
 
 - `batch_node_count` (Number) Number of blue nodes to drain in a batch.
 - `batch_soak_duration` (String) Soak time after each batch gets drained.
@@ -535,7 +535,7 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 <a id="nestedblock--spec--config--node_pools--upgrade_settings--surge_settings"></a>
 ### Nested Schema for `spec.config.node_pools.upgrade_settings.surge_settings`
 
-***Optional***
+***Required***
 
 - `max_surge` (Number) The maximum number of nodes that can be created beyond the current size of the node pool during the upgrade process.
 - `max_unavailable` (Number) The maximum number of nodes that can be simultaneously unavailable during the upgrade process.
@@ -543,8 +543,6 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 
 <a id="nestedblock--spec--config--security"></a>
 ### Nested Schema for `spec.config.security`
-
-***Optional***
 
 - `enable_google_groups_for_rbac` (Boolean) Google Groups for RBAC allows you to grant roles to all members of a Google Workspace group
 - `enable_legacy_authorization` (Boolean) Enable legacy authorization to support in-cluster permissions for existing clusters or workflows. Prevents full RBAC support

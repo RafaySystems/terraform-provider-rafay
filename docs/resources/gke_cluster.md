@@ -285,7 +285,7 @@ Optional:
 
 - `features` (Block List, Max: 1) GKE cluster additional features configuration. (see [below for nested schema](#nestedblock--spec--config--features))
 - `pre_bootstrap_commands` (List of String) Commands will be executed every time Cluster nodes come up. Example: Node Creation, Node Restart.
-- `security` (Block List, Max: 1) GKE cluster Network configuration. (see [below for nested schema](#nestedblock--spec--config--security))
+- `security` (Block List, Max: 1) GKE cluster security configuration. (see [below for nested schema](#nestedblock--spec--config--security))
 
 
 <a id="nestedblock--spec--config--location"></a>
@@ -383,7 +383,7 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 <a id="nestedblock--spec--config--features"></a>
 ### Nested Schema for `spec.config.features`
 
-- `enable_compute_engine_persistent_disk_csi_driver` (Boolean) Enable to automatically deploy and manage the Compute Engine Persistent Disk CSI Driver. This feature is an alternative to using the gcePersistentDisk in-tree volume plugin. From k8s >1.25, this setting should be enabled.
+- `enable_compute_engine_persistent_disk_csi_driver` (Boolean) Enable to automatically deploy and manage the Compute Engine Persistent Disk CSI Driver. This feature is an alternative to using the gcePersistentDisk in-tree volume plugin. From controlplane k8s >1.25, this setting should be enabled and is mandatory.
 
 ***Optional***
 

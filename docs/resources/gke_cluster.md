@@ -101,7 +101,7 @@ resource "rafay_gke_cluster" "tf-example" {
 
 ***Required***
 
-- `name` - (String) The name of the AKS Cluster. This must be unique in your organization.
+- `name` - (String) The name of the GKE Cluster. This must be unique in your organization.
 - `project` - (String) The name of the Rafay project the cluster will be created in.
 
 ***Optional***
@@ -117,13 +117,13 @@ resource "rafay_gke_cluster" "tf-example" {
 ***Required***
 
 - `cloud_credentials` - (String) The name of the cloud credentials used to create and manage the cluster.
-- `config` - (Block List, Min: 1) The AKS specific cluster configuration. (See [below for nested schema](#nestedblock--spec--config))
+- `config` - (Block List, Min: 1) The GKE specific cluster configuration. (See [below for nested schema](#nestedblock--spec--config))
 - `type` - (String) The GKE Cluster type. The supported value is `gke`.
-- `blueprint` (Block List, Max: 1) The blueprint to be used for this cluster. Use this for GKE cluster type (see [below for nested schema](#nestedblock--spec--blueprint))
+- `blueprint` (Block List, Max: 1) The blueprint to be used for this cluster. (see [below for nested schema](#nestedblock--spec--blueprint))
 
 ***Optional***
 
-- `proxy` (Block List, Max: 1) The proxy to be used for this cluster. Use this for GKE cluster type (see [below for nested schema](#nestedblock--spec--proxy))
+- `proxy` (Block List, Max: 1) The proxy to be used for this cluster. (see [below for nested schema](#nestedblock--spec--proxy))
 - `sharing` (Block List, Max: 1) Sharing spec to be used for sharing the cluster with projects (see [below for nested schema](#nestedblock--spec--sharing))
 
 <a id="nestedblock--spec--blueprint"></a>
@@ -276,6 +276,8 @@ Cluster, both region and zone should be provided.
 <a id="nestedblock--spec--config--features"></a>
 ### Nested Schema for `spec.config.features`
 
+- `enable_compute_engine_persistent_disk_csi_driver` (Boolean) Enable to automatically deploy and manage the Compute Engine Persistent Disk CSI Driver. This feature is an alternative to using the gcePersistentDisk in-tree volume plugin. From k8s >1.25, this setting should be enabled.
+
 ***Optional***
 
 - `cloud_logging_components` (List of String) List of components for cloud logging
@@ -284,11 +286,9 @@ Cluster, both region and zone should be provided.
 - `enable_backup_for_gke` (Boolean) Backup for GKE allows you to back up and restore GKE workloads. There is no cost for enabling this feature, but you are charged for backups based on the size of the data and the number of pods you protect
 - `enable_cloud_logging` (Boolean) Logging collects logs emitted by your applications and by GKE infrastructure
 - `enable_cloud_monitoring` (Boolean) Monitoring collects metrics emitted by your applications and by GKE infrastructure
-- `enable_compute_engine_persistent_disk_csi_driver` (Boolean) Enable to automatically deploy and manage the Compute Engine Persistent Disk CSI Driver. This feature is an alternative to using the gcePersistentDisk in-tree volume plugin
 - `enable_filestore_csi_driver` (Boolean) Enable to automatically deploy and manage the Filestore CSI Driver
 - `enable_image_streaming` (Boolean) Image streaming allows your workloads to initialize without waiting for the entire image to download
 - `enable_managed_service_prometheus` (Boolean) This option deploys managed collectors for Prometheus metrics within this cluster. These collectors must be configured using PodMonitoring resources. To enable Managed Service for Prometheus here, you'll need. Cluster version of 1.21.4-gke.300 or greater
-
 
 
 <a id="nestedblock--spec--config--node_pools"></a>
@@ -325,7 +325,7 @@ Cluster, both region and zone should be provided.
 
 
 <a id="nestedblock--spec--config--node_pools--networking"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings`
+### Nested Schema for `spec.config.node_pools.networking`
 
 ***Optional***
 
@@ -334,7 +334,7 @@ Cluster, both region and zone should be provided.
 
 
 <a id="nestedblock--spec--config--node_pools--node_locations"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings`
+### Nested Schema for `spec.config.node_pools.node_locations`
 
 ***Optional***
 
@@ -343,7 +343,7 @@ Cluster, both region and zone should be provided.
 
 
 <a id="nestedblock--spec--config--node_pools--security"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings`
+### Nested Schema for `spec.config.node_pools.security`
 
 ***Optional***
 
@@ -352,7 +352,7 @@ Cluster, both region and zone should be provided.
 
 
 <a id="nestedblock--spec--config--node_pools--auto_scaling"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings`
+### Nested Schema for `spec.config.node_pools.auto_scaling`
 
 ***Optional***
 
@@ -361,7 +361,7 @@ Cluster, both region and zone should be provided.
 
 
 <a id="nestedblock--spec--config--node_pools--management"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings`
+### Nested Schema for `spec.config.node_pools.management`
 
 ***Optional***
 
@@ -369,7 +369,7 @@ Cluster, both region and zone should be provided.
 
 
 <a id="nestedblock--spec--config--node_pools--metadata"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings`
+### Nested Schema for `spec.config.node_pools.metadata`
 
 ***Optional***
 
@@ -377,8 +377,8 @@ Cluster, both region and zone should be provided.
 - `kubernetes_labels` (Block List) Use Kubernetes labels to control how workloads are scheduled to your nodes. Labels are applied to all nodes in this node pool and cannot be changed once the cluster is created (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--kubernetes_labels))
 - `node_taints` (Block List) A node taint lets you mark a node so that the scheduler avoids or prevents using it for certain Pods. Node taints can be used with tolerations to ensure that Pods aren't scheduled onto inappropriate nodes (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--node_taints))
 
-<a id="nestedblock--spec--config--node_pools--upgrade_settings--gce_instance_metadata"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings.gce_instance_metadata`
+<a id="nestedblock--spec--config--node_pools--metadata--gce_instance_metadata"></a>
+### Nested Schema for `spec.config.node_pools.metadata.gce_instance_metadata`
 
 ***Optional***
 
@@ -386,8 +386,8 @@ Cluster, both region and zone should be provided.
 - `value` (String) Value for this metadata
 
 
-<a id="nestedblock--spec--config--node_pools--upgrade_settings--kubernetes_labels"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings.kubernetes_labels`
+<a id="nestedblock--spec--config--node_pools--metadata--kubernetes_labels"></a>
+### Nested Schema for `spec.config.node_pools.metadata.kubernetes_labels`
 
 ***Optional***
 
@@ -395,8 +395,8 @@ Cluster, both region and zone should be provided.
 - `value` (String) Value for this kubernetes lable
 
 
-<a id="nestedblock--spec--config--node_pools--upgrade_settings--node_taints"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings.node_taints`
+<a id="nestedblock--spec--config--node_pools--metadata--node_taints"></a>
+### Nested Schema for `spec.config.node_pools.metadata.node_taints`
 
 ***Optional***
 

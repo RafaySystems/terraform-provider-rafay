@@ -357,7 +357,7 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 ***Optional***
 
 - `disable_snat` (Boolean) To use Privately Used Public IPs (PUPI) ranges, the default source NAT used for IP masquerading needs to be disabled
-- `enable_access_control_plane_global` (Boolean) With control plane global access, you can access the control plane's private endpoint from any GCP region or on-premises environment no matter what the private cluster's region is
+- `enable_access_control_plane_global` (Boolean) With control plane global access, you can access the control plane's private endpoint from any GCP region or on-premises environment no matter what the private cluster's region is.
 
 
 <a id="nestedblock--spec--config--network--control_plane_authorized_network"></a>
@@ -508,7 +508,7 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 
 ***Optional***
 
-- `effect` (String) Available effects are NoSchedule, PreferNoSchedule, NoExecute
+- `effect` (String) Available effects are `NoSchedue`, `PreferNoSchedule`, `NoExecute`
 - `key` (String) Key for this Taint effect
 - `value` (String) Value for this Taint effect
 
@@ -528,9 +528,9 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 
 ***Required***
 
-- `batch_node_count` (Number) Number of blue nodes to drain in a batch.
-- `batch_soak_duration` (String) Soak time after each batch gets drained.
-- `node_pool_soak_duration` (String) Time needed after draining entire blue pool. After this period, blue pool will be cleaned up.
+- `batch_node_count` (Number) The absolute number of nodes to drain in a batch. If it is set to zero, this phase will be skipped.
+- `batch_soak_duration` (String) Duration in seconds to wait after each batch finishes draining. This is an opportunity to verify your workload’s health for the batch upgraded.
+- `node_pool_soak_duration` (String) Duration in seconds to wait when all batches are completely drained. This is an opportunity to verify your workload’s health.
 
 
 <a id="nestedblock--spec--config--node_pools--upgrade_settings--surge_settings"></a>
@@ -557,8 +557,8 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 
 ***Optional***
 
-- `create` (String)
-- `delete` (String)
-- `update` (String)
+- `create` - (String) Sets the timeout duration for creating a resource. 
+- `delete` - (String) Sets the timeout duration for deleting a resource. 
+- `update` - (String) Sets the timeout duration for updating a resource.
 
 

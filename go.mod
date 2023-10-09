@@ -1,6 +1,8 @@
 module github.com/RafaySystems/terraform-provider-rafay
 
-go 1.19
+go 1.21
+
+toolchain go1.21.1
 
 require (
 	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20230926054541-4fa4b4e6310b

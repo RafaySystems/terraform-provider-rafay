@@ -2215,13 +2215,13 @@ func resourceEKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m int
 }
 
 // expand eks cluster function (completed)
-func expandEKSCluster(p []interface{}) *EKSCluster {
+func expandEKSCluster(p []interface{}, rawConfig cty.Value) *EKSCluster {
 	obj := &EKSCluster{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
-	//prefix = prefix + ".0"
+	rawConfig = rawConfig.AsValueSlice()[0]
 	in := p[0].(map[string]interface{})
 	if v, ok := in["kind"].(string); ok && len(v) > 0 {
 		obj.Kind = v
@@ -2230,7 +2230,7 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 		obj.Metadata = expandEKSMetaMetadata(v)
 	}
 	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
-		obj.Spec = expandEKSClusterSpecConfig(v)
+		obj.Spec = expandEKSClusterSpecConfig(v, rawConfig.GetAttr("spec"))
 	}
 	return obj
 }
@@ -2257,7 +2257,7 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 		obj.KubernetesNetworkConfig = expandKubernetesNetworkConfig(v)
 	}
 	if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
-		obj.IAM = expandIAMFields(v)
+		obj.IAM = expandIAMFields(v, rawConfig.GetAttr("iam"))
 	}
 	if v, ok := in["identity_providers"].([]interface{}); ok && len(v) > 0 {
 		obj.IdentityProviders = expandIdentityProviders(v)
@@ -2270,7 +2270,7 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 		obj.PrivateCluster = expandPrivateCluster(v)
 	}
 	if v, ok := in["node_groups"].([]interface{}); ok && len(v) > 0 {
-		obj.NodeGroups = expandNodeGroups(v)
+		obj.NodeGroups = expandNodeGroups(v, rawConfig.GetAttr("node_groups"))
 	}
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
 		obj.VPC = expandVPC(v, rawConfig.GetAttr("vpc"))
@@ -2282,7 +2282,7 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 		obj.FargateProfiles = expandFargateProfiles(v)
 	}
 	if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
-		obj.AvailabilityZones = toArrayStringSorted(v)
+		obj.AvailabilityZones = toArrayString(v)
 	}
 	if v, ok := in["cloud_watch"].([]interface{}); ok && len(v) > 0 {
 		obj.CloudWatch = expandCloudWatch(v)
@@ -2303,7 +2303,7 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	rawConfig := d.GetRawConfig()
 	//expand cluster yaml file
 	if v, ok := d.Get("cluster").([]interface{}); ok {
-		yamlCluster = expandEKSCluster(v)
+		yamlCluster = expandEKSCluster(v, rawConfig.GetAttr("cluster"))
 	} else {
 		log.Print("Cluster data unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
@@ -2623,7 +2623,7 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 			obj.InstanceType = v
 		}
 		if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
-			obj.AvailabilityZones = toArrayStringSorted(v)
+			obj.AvailabilityZones = toArrayString(v)
 		}
 		if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
 			obj.Subnets = toArrayString(v)
@@ -2652,14 +2652,14 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
 		}
-		if v, ok := in["private_networking"].(bool); ok {
+		if v, ok := isBoolExistsInConfig(nRawConfig.GetAttr("private_networking")); ok {
 			obj.PrivateNetworking = &v
 		}
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
 		}
 		if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
-			obj.IAM = expandNodeGroupIam(v)
+			obj.IAM = expandNodeGroupIam(v, nRawConfig.GetAttr("iam"))
 		}
 		if v, ok := in["ami"].(string); ok && len(v) > 0 {
 			obj.AMI = v
@@ -2667,13 +2667,13 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
 			obj.SecurityGroups = expandManagedNodeGroupSecurityGroups(v, nRawConfig.GetAttr("security_groups"))
 		}
-		if v, ok := in["max_pods_per_node"].(int); ok {
+		if v, ok := isIntExistsInConfig(nRawConfig.GetAttr("max_pods_per_node")); ok {
 			obj.MaxPodsPerNode = &v
 		}
 		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
 			obj.ASGSuspendProcesses = toArrayString(v)
 		}
-		if v, ok := in["ebs_optimized"].(bool); ok {
+		if v, ok := isBoolExistsInConfig(nRawConfig.GetAttr("ebs_optimized")); ok {
 			obj.EBSOptimized = &v
 		}
 		if v, ok := in["volume_type"].(string); ok && len(v) > 0 {
@@ -2682,16 +2682,16 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		if v, ok := in["volume_name"].(string); ok && len(v) > 0 {
 			obj.VolumeName = v
 		}
-		if v, ok := in["volume_encrypted"].(bool); ok {
+		if v, ok := isBoolExistsInConfig(nRawConfig.GetAttr("volume_encrypted")); ok {
 			obj.VolumeEncrypted = &v
 		}
 		if v, ok := in["volume_kms_key_id"].(string); ok && len(v) > 0 {
 			obj.VolumeKmsKeyID = v
 		}
-		if v, ok := in["volume_iops"].(int); ok {
+		if v, ok := isIntExistsInConfig(nRawConfig.GetAttr("volume_iops")); ok {
 			obj.VolumeIOPS = &v
 		}
-		if v, ok := in["volume_throughput"].(int); ok {
+		if v, ok := isIntExistsInConfig(nRawConfig.GetAttr("volume_throughput")); ok {
 			obj.VolumeThroughput = &v
 		}
 		if v, ok := in["pre_bootstrap_commands"].([]interface{}); ok && len(v) > 0 {
@@ -2700,16 +2700,16 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		if v, ok := in["override_bootstrap_command"].(string); ok && len(v) > 0 {
 			obj.OverrideBootstrapCommand = v
 		}
-		if v, ok := in["disable_imdsv1"].(bool); ok {
+		if v, ok := isBoolExistsInConfig(nRawConfig.GetAttr("disable_imdsv1")); ok {
 			obj.DisableIMDSv1 = &v
 		}
-		if v, ok := in["disable_pods_imds"].(bool); ok {
+		if v, ok := isBoolExistsInConfig(nRawConfig.GetAttr("disable_pods_imds")); ok {
 			obj.DisablePodIMDS = &v
 		}
 		if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
 			obj.Placement = expandNodeGroupPlacement(v)
 		}
-		if v, ok := in["efa_enabled"].(bool); ok {
+		if v, ok := isBoolExistsInConfig(nRawConfig.GetAttr("efa_enabled")); ok {
 			obj.EFAEnabled = &v
 		}
 		if v, ok := in["instance_selector"].([]interface{}); ok && len(v) > 0 {
@@ -2721,7 +2721,7 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 			obj.Bottlerocket = expandNodeGroupBottleRocket(v)
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does (says to remove)
-		if v, ok := in["enable_detailed_monitoring"].(bool); ok {
+		if v, ok := isBoolExistsInConfig(nRawConfig.GetAttr("enable_detailed_monitoring")); ok {
 			obj.EnableDetailedMonitoring = &v
 		}
 		if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
@@ -2804,7 +2804,7 @@ func expandManagedNodeGroupLaunchTempelate(p []interface{}) *LaunchTemplate {
 	return obj
 }
 
-func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have questions in comments
+func expandNodeGroups(p []interface{}, rawConfig cty.Value) []*NodeGroup { //not completed have questions in comments
 	out := make([]*NodeGroup, len(p))
 	outToSort := make([]NodeGroup, len(p))
 
@@ -2814,6 +2814,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 
 	for i := range p {
 		in := p[i].(map[string]interface{})
+		nRawConfig := rawConfig.AsValueSlice()[i]
 		obj := NodeGroup{}
 		log.Println("expand_nodegroups")
 		log.Println("ngs_yaml name: ", in["name"].(string))
@@ -2830,7 +2831,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 			obj.InstanceType = v
 		}
 		if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
-			obj.AvailabilityZones = toArrayStringSorted(v)
+			obj.AvailabilityZones = toArrayString(v)
 		}
 		if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
 			obj.Subnets = toArrayString(v)
@@ -2866,7 +2867,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 			obj.Tags = toMapString(v)
 		}
 		if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
-			obj.IAM = expandNodeGroupIam(v)
+			obj.IAM = expandNodeGroupIam(v, nRawConfig.GetAttr("iam"))
 		}
 		if v, ok := in["ami"].(string); ok && len(v) > 0 {
 			obj.AMI = v
@@ -3184,9 +3185,9 @@ func expandManagedNodeGroupSecurityGroups(p []interface{}, rawConfig cty.Value) 
 }
 
 // expand node group iam function (completed/kind of)
-func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
+func expandNodeGroupIam(p []interface{}, rawConfig cty.Value) *NodeGroupIAM {
 	obj := &NodeGroupIAM{}
-
+	rawConfig = rawConfig.AsValueSlice()[0]
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
@@ -3212,7 +3213,7 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 		obj.InstanceRolePermissionsBoundary = v
 	}
 	if v, ok := in["iam_node_group_with_addon_policies"].([]interface{}); ok && len(v) > 0 {
-		obj.WithAddonPolicies = expandNodeGroupIAMWithAddonPolicies(v)
+		obj.WithAddonPolicies = expandNodeGroupIAMWithAddonPolicies(v, rawConfig.GetAttr("iam_node_group_with_addon_policies"))
 	}
 	return obj
 }
@@ -3255,52 +3256,51 @@ func expandAttachPolicy(p []interface{}) *InlineDocument {
 }
 
 // expand node group IAm With Addon Policies function (completed/kind of)
-func expandNodeGroupIAMWithAddonPolicies(p []interface{}) *NodeGroupIAMAddonPolicies {
+func expandNodeGroupIAMWithAddonPolicies(p []interface{}, rawConfig cty.Value) *NodeGroupIAMAddonPolicies {
 	obj := NodeGroupIAMAddonPolicies{}
-
+	rawConfig = rawConfig.AsValueSlice()[0]
 	if len(p) == 0 || p[0] == nil {
 		return &obj
 	}
 	in := p[0].(map[string]interface{})
 	n1 := spew.Sprintf("%+v", in)
 	log.Println("expandNodeGroupIAMWithAddonPolicies: ", n1)
-	if v, ok := in["image_builder"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("image_builder")); ok {
 		obj.ImageBuilder = &v
 	}
-	if v, ok := in["auto_scaler"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("auto_scaler")); ok {
 		obj.AutoScaler = &v
 	}
-	if v, ok := in["external_dns"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("external_dns")); ok {
 		obj.ExternalDNS = &v
 	}
-	if v, ok := in["cert_manager"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("cert_manager")); ok {
 		obj.CertManager = &v
 	}
-	if v, ok := in["app_mesh"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("app_mesh")); ok {
 		obj.AppMesh = &v
 	}
-	if v, ok := in["app_mesh_review"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("app_mesh_review")); ok {
 		obj.AppMeshPreview = &v
 	}
-	if v, ok := in["ebs"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("ebs")); ok {
 		obj.EBS = &v
 	}
-	if v, ok := in["fsx"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("fsx")); ok {
 		obj.FSX = &v
 	}
-	if v, ok := in["efs"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("efs")); ok {
 		obj.EFS = &v
 	}
 	// @@@@ doc says it should be field alb_ingress,
 	// struct has field ABSLoadBalancerController?
-	if v, ok := in["alb_ingress"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("alb_ingress")); ok {
 		obj.AWSLoadBalancerController = &v
 	}
-
-	if v, ok := in["xray"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("xray")); ok {
 		obj.XRay = &v
 	}
-	if v, ok := in["cloud_watch"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("cloud_watch")); ok {
 		obj.CloudWatch = &v
 	}
 	n2 := spew.Sprintf("%+v", obj)
@@ -3437,12 +3437,10 @@ func expandVPC(p []interface{}, rawConfig cty.Value) *EKSClusterVPC {
 	if v, ok := in["shared_node_security_group"].(string); ok && len(v) > 0 {
 		obj.SharedNodeSecurityGroup = v
 	}
-	rawManageSharedNodeSecurityGroupRules := rawConfig.GetAttr("manage_shared_node_security_group_rules")
-	if !rawManageSharedNodeSecurityGroupRules.IsNull() {
-		boolVal := rawManageSharedNodeSecurityGroupRules.True()
-		obj.ManageSharedNodeSecurityGroupRules = &boolVal
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("manage_shared_node_security_group_rules")); ok {
+		obj.ManageSharedNodeSecurityGroupRules = &v
 	}
-	if v, ok := in["auto_allocate_ipv6"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("auto_allocate_ipv6")); ok {
 		obj.AutoAllocateIPv6 = &v
 	}
 	if v, ok := in["nat"].([]interface{}); ok && len(v) > 0 {
@@ -3545,12 +3543,13 @@ func expandIdentityProviders(p []interface{}) []*IdentityProvider {
 	return out
 }
 
-func expandIAMFields(p []interface{}) *EKSClusterIAM {
+func expandIAMFields(p []interface{}, rawConfig cty.Value) *EKSClusterIAM {
 	obj := &EKSClusterIAM{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	rawConfig = rawConfig.AsValueSlice()[0]
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["service_role_arn"].(string); ok && len(v) > 0 {
@@ -3569,15 +3568,14 @@ func expandIAMFields(p []interface{}) *EKSClusterIAM {
 		obj.FargatePodExecutionRolePermissionsBoundary = v
 	}
 
-	if v, ok := in["with_oidc"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("with_oidc")); ok {
 		obj.WithOIDC = &v
 	}
 
 	if v, ok := in["service_accounts"].([]interface{}); ok && len(v) > 0 {
 		obj.ServiceAccounts = expandIAMServiceAccountsConfig(v)
 	}
-
-	if v, ok := in["vpcResourceControllerPolicy"].(bool); ok {
+	if v, ok := isBoolExistsInConfig(rawConfig.GetAttr("vpc_resource_controller_policy")); ok {
 		obj.VPCResourceControllerPolicy = &v
 	}
 
@@ -3726,7 +3724,7 @@ func expandKubernetesNetworkConfig(p []interface{}) *KubernetesNetworkConfig {
 	return obj
 }
 
-func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
+func expandEKSClusterSpecConfig(p []interface{}, rawConfig cty.Value) *EKSSpec {
 	obj := &EKSSpec{}
 	log.Println("expandClusterSpec")
 
@@ -3734,7 +3732,7 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-
+	rawConfig = rawConfig.AsValueSlice()[0]
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		obj.Type = v
 	}
@@ -3756,8 +3754,9 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["cni_params"].([]interface{}); ok && len(v) > 0 {
 		obj.CniParams = expandCNIParams(v)
 	}
-	if v, ok := in["proxy_config"].(map[string]interface{}); ok && len(v) > 0 {
-		obj.ProxyConfig = toMapString(v)
+	if v, ok := in["proxy_config"].(map[string]interface{}); ok && !rawConfig.GetAttr("proxy_config").IsNull() {
+		mp := toMapString(v)
+		obj.ProxyConfig = &mp
 	}
 	if v, ok := in["system_components_placement"].([]interface{}); ok && len(v) > 0 {
 		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
@@ -4038,8 +4037,8 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 		}
 		obj["cni_params"] = flattenCNIParams(in.CniParams, v)
 	}
-	if in.ProxyConfig != nil && len(in.ProxyConfig) > 0 {
-		obj["proxy_config"] = toMapInterface(in.ProxyConfig)
+	if in.ProxyConfig != nil && len(*in.ProxyConfig) >= 0 {
+		obj["proxy_config"] = toMapInterface(*in.ProxyConfig)
 	}
 
 	if in.SystemComponentsPlacement != nil {
@@ -4417,7 +4416,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 	}
 	//setting up flatten Availability Zones
 	if in.AvailabilityZones != nil && len(in.AvailabilityZones) > 0 {
-		obj["availability_zones"] = toArrayInterfaceSorted(in.AvailabilityZones)
+		obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
 	}
 	//setting up flatten Cloud Watch
 	var ret11 []interface{}
@@ -4754,8 +4753,12 @@ func flattenEKSClusterVPC(in *EKSClusterVPC, p []interface{}) ([]interface{}, er
 		obj["shared_node_security_group"] = in.SharedNodeSecurityGroup
 	}
 
-	obj["manage_shared_node_security_group_rules"] = in.ManageSharedNodeSecurityGroupRules
-	obj["auto_allocate_ipv6"] = in.AutoAllocateIPv6
+	if in.ManageSharedNodeSecurityGroupRules != nil {
+		obj["manage_shared_node_security_group_rules"] = in.ManageSharedNodeSecurityGroupRules
+	}
+	if in.AutoAllocateIPv6 != nil {
+		obj["auto_allocate_ipv6"] = in.AutoAllocateIPv6
+	}
 
 	if in.NAT != nil {
 		v, ok := obj["nat"].([]interface{})
@@ -4993,7 +4996,7 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{
 			obj["instance_type"] = in.InstanceType
 		}
 		if len(in.AvailabilityZones) > 0 {
-			obj["availability_zones"] = toArrayInterfaceSorted(in.AvailabilityZones)
+			obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
 		}
 		if len(in.Subnets) > 0 {
 			obj["subnets"] = toArrayInterface(in.Subnets)
@@ -5408,10 +5411,10 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 			obj["instance_type"] = in.InstanceType
 		}
 		if len(in.AvailabilityZones) > 0 {
-			obj["availability_zones"] = toArrayInterfaceSorted(in.AvailabilityZones)
+			obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
 		}
 		if len(in.Subnets) > 0 {
-			obj["subnets"] = toArrayInterfaceSorted(in.Subnets)
+			obj["subnets"] = toArrayInterface(in.Subnets)
 		}
 		if len(in.InstancePrefix) > 0 {
 			obj["instance_prefix"] = in.InstancePrefix

@@ -19,6 +19,7 @@ import (
 	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-yaml/yaml"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -72,6 +73,21 @@ type ManagedAlertManager struct {
 	Statefulset   *File `protobuf:"bytes,4,opt,name=statefulset,proto3" json:"statefulset,omitempty"`
 }
 */
+
+func isBoolExistsInConfig(configVal cty.Value) (bool, bool) {
+	if !configVal.IsNull() {
+		return configVal.True(), true
+	}
+	return false, false
+}
+
+func isIntExistsInConfig(configVal cty.Value) (int, bool) {
+	if !configVal.IsNull() && configVal.Type() == cty.Number {
+		val, _ := configVal.AsBigFloat().Int64()
+		return int(val), true
+	}
+	return 0, false
+}
 
 func toArrayString(in []interface{}) []string {
 	out := make([]string, len(in))

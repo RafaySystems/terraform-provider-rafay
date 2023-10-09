@@ -8,13 +8,14 @@ type EKSCluster struct {
 }
 
 type EKSSpec struct {
-	Type                      string                     `yaml:"type,omitempty"`
-	Blueprint                 string                     `yaml:"blueprint,omitempty"`
-	BlueprintVersion          string                     `yaml:"blueprintversion,omitempty"`
-	CloudProvider             string                     `yaml:"cloudprovider,omitempty"`
-	CrossAccountRoleArn       string                     `yaml:"crossAccountRoleARN,omitempty"`
-	CniProvider               string                     `yaml:"cniprovider,omitempty"`
-	ProxyConfig               map[string]string          `yaml:"proxyconfig,omitempty"`
+	Type                string `yaml:"type,omitempty"`
+	Blueprint           string `yaml:"blueprint,omitempty"`
+	BlueprintVersion    string `yaml:"blueprintversion,omitempty"`
+	CloudProvider       string `yaml:"cloudprovider,omitempty"`
+	CrossAccountRoleArn string `yaml:"crossAccountRoleARN,omitempty"`
+	CniProvider         string `yaml:"cniprovider,omitempty"`
+	// ProxyConfig               map[string]string          `yaml:"proxyconfig,omitempty"`
+	ProxyConfig               *map[string]string         `yaml:"proxyconfig,omitempty"`
 	CniParams                 *CustomCni                 `yaml:"cniparams,omitempty"`
 	SystemComponentsPlacement *SystemComponentsPlacement `yaml:"systemComponentsPlacement,omitempty"`
 	Sharing                   *EKSClusterSharing         `yaml:"sharing,omitempty"`
@@ -1002,7 +1003,7 @@ type ManagedNodeGroup struct {
 	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
 	// for nodegroup
 	// +optional
-	PrivateNetworking *bool `yaml:"privateNetworking"`
+	PrivateNetworking *bool `yaml:"privateNetworking,omitempty"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
 	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional

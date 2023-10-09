@@ -437,8 +437,8 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 
 ***Optional***
 
-- `max_pods_per_node` (Number) This value is used to optimize the partitioning of cluster's IP address range to sub-ranges at node level
-- `network_tags` (List of String) This value is used to optimize the partitioning of cluster's IP address range to sub-ranges at node level
+- `max_pods_per_node` (Number) This value is used to optimize the partitioning of cluster's IP address range to sub-ranges at node level.This setting is permanent.
+- `network_tags` (List of String) Tags represent firewall rules applied to each node.
 
 
 <a id="nestedblock--spec--config--node_pools--node_locations"></a>

@@ -781,20 +781,18 @@ func flattenGKEV3NodeUpgradeSettings(in *infrapb.GkeNodeUpgradeSettings, p []int
 
 	obj["strategy"] = in.Strategy
 
-	if in.SurgeSettings != nil {
-		v, ok := obj["surge_settings"].([]interface{})
+	if in.GetSurge() != nil {
+		v, ok := obj["config"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["surge_settings"] = flattenGKEV3NodeSurgeSettings(in.SurgeSettings, v)
-	}
-
-	if in.BlueGreenSettings != nil {
-		v, ok := obj["blue_green_settings"].([]interface{})
+		obj["config"] = flattenGKEV3NodeSurgeSettings(in.GetSurge(), v)
+	} else if in.GetBlueGreen() != nil {
+		v, ok := obj["config"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["blue_green_settings"] = flattenGKEV3NodeBlueGreenSettings(in.BlueGreenSettings, v)
+		obj["config"] = flattenGKEV3NodeBlueGreenSettings(in.GetBlueGreen(), v)
 	}
 
 	return []interface{}{obj}

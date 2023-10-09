@@ -52,7 +52,7 @@ resource "rafay_gke_cluster" "tf-example" {
         }
         upgrade_settings {
           strategy = "SURGE"
-          surge_settings {
+          config {
             max_surge       = 0
             max_unavailable = 1
           }

@@ -690,7 +690,7 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 		if v, ok := in["management"].([]interface{}); ok && len(v) > 0 {
 			obj.Management, err = expandToV3GkeNodeManagement(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expact Gke node management " + err.Error())
+				return nil, fmt.Errorf("failed to expand Gke node management " + err.Error())
 			}
 		}
 
@@ -698,7 +698,7 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 		if v, ok := in["upgrade_settings"].([]interface{}); ok && len(v) > 0 {
 			obj.UpgradeSettings, err = expandToV3GkeNodeUpgradeSettings(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expact Gke node upgrade settings " + err.Error())
+				return nil, fmt.Errorf("failed to expand Gke node upgrade settings " + err.Error())
 			}
 		}
 
@@ -878,59 +878,66 @@ func expandToV3GkeNodeUpgradeSettings(p []interface{}) (*infrapb.GkeNodeUpgradeS
 	}
 
 	var err error
-	if v, ok := in["surge_settings"].([]interface{}); ok && len(v) > 0 {
-		obj.SurgeSettings, err = expandToV3GkeNodeSurgeSettings(v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to expand Gke Node surge settings " + err.Error())
+	if strings.EqualFold(obj.Strategy, GKE_NODEPOOL_UPGRADE_STRATEGY_SURGE) {
+		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+			obj.Config, err = expandToV3GkeNodeSurgeSettings(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand Gke Node surge settings " + err.Error())
+			}
 		}
 	}
-	if v, ok := in["blue_green_settings"].([]interface{}); ok && len(v) > 0 {
-		obj.BlueGreenSettings, err = expandToV3GkeNodeBlueGreenSettings(v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to expand Gke Node blue green settings " + err.Error())
+	if strings.EqualFold(obj.Strategy, GKE_NODEPOOL_UPGRADE_STRATEGY_BLUE_GREEN) {
+		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+			obj.Config, err = expandToV3GkeNodeBlueGreenSettings(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand Gke Node blue green settings " + err.Error())
+			}
 		}
 	}
 
 	return obj, nil
 }
 
-func expandToV3GkeNodeSurgeSettings(p []interface{}) (*infrapb.GkeNodeSurgeSettings, error) {
+func expandToV3GkeNodeSurgeSettings(p []interface{}) (*infrapb.GkeNodeUpgradeSettings_Surge, error) {
 	if len(p) == 0 || p[0] == nil {
 		return nil, errors.New("got nil for gke node surge settings config")
 	}
 
-	obj := &infrapb.GkeNodeSurgeSettings{}
+	obj := &infrapb.GkeNodeUpgradeSettings_Surge{
+		Surge: &infrapb.GkeNodeSurgeSettings{},
+	}
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["max_surge"].(int); ok {
-		log.Println("Inside max surge if condition")
-		obj.MaxSurge = int64(v)
+		obj.Surge.MaxSurge = int64(v)
 	}
 
 	if v, ok := in["max_unavailable"].(int); ok {
-		obj.MaxUnavailable = int64(v)
+		obj.Surge.MaxUnavailable = int64(v)
 	}
 
 	return obj, nil
 }
 
-func expandToV3GkeNodeBlueGreenSettings(p []interface{}) (*infrapb.GkeNodeBlueGreenSettings, error) {
+func expandToV3GkeNodeBlueGreenSettings(p []interface{}) (*infrapb.GkeNodeUpgradeSettings_BlueGreen, error) {
 	if len(p) == 0 || p[0] == nil {
 		return nil, errors.New("got nil for gke blue green settings config")
 	}
 
-	obj := &infrapb.GkeNodeBlueGreenSettings{}
+	obj := &infrapb.GkeNodeUpgradeSettings_BlueGreen{
+		BlueGreen: &infrapb.GkeNodeBlueGreenSettings{},
+	}
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["batch_node_count"].(int); ok {
-		obj.BatchNodeCount = int64(v)
+		obj.BlueGreen.BatchNodeCount = int64(v)
 	}
 
 	if v, ok := in["batch_soak_duration"].(string); ok {
-		obj.BatchSoakDuration = v
+		obj.BlueGreen.BatchSoakDuration = v
 	}
 	if v, ok := in["node_pool_soak_duration"].(string); ok {
-		obj.NodePoolSoakDuration = v
+		obj.BlueGreen.NodePoolSoakDuration = v
 	}
 	return obj, nil
 }

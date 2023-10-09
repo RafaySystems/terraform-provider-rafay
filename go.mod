@@ -1,9 +1,9 @@
 module github.com/RafaySystems/terraform-provider-rafay
 
-go 1.19
+go 1.20
 
 require (
-	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20230926054541-4fa4b4e6310b
+	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20231011035435-abf9971049bd
 	github.com/RafaySystems/rctl v1.29.1-0.20230926052942-5fea67172bba
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -34,14 +34,14 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect
-	github.com/prometheus/common v0.42.0 // indirect
+	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.11.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
-	k8s.io/apiextensions-apiserver v0.27.2 // indirect
+	k8s.io/apiextensions-apiserver v0.28.0 // indirect
 	k8s.io/cluster-bootstrap v0.27.2 // indirect
-	k8s.io/component-base v0.27.2 // indirect
-	sigs.k8s.io/cluster-api v1.4.3 // indirect
+	k8s.io/component-base v0.28.2 // indirect
+	sigs.k8s.io/cluster-api v1.5.2 // indirect
 )
 
 require (
@@ -227,11 +227,11 @@ require (
 	gopkg.in/jcmturner/rpc.v1 v1.1.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/api v1.16.4 // indirect
-	k8s.io/client-go v0.28.1 // indirect
+	k8s.io/client-go v0.28.2 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230816210353-14e408962443 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
-	sigs.k8s.io/controller-runtime v0.14.5 // indirect
+	sigs.k8s.io/controller-runtime v0.16.2 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
@@ -244,7 +244,6 @@ replace (
 	// github.com/RafaySystems/rctl => ../rctl
 	// github.com/RafaySystems/rafay-common => ../rafay-common
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
-
 	k8s.io/api => k8s.io/api v0.26.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.2
 	k8s.io/apimachinery => k8s.io/apimachinery v0.26.2
@@ -268,4 +267,5 @@ replace (
 	k8s.io/metrics => k8s.io/metrics v0.26.2
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.26.2
 	sigs.k8s.io/cluster-api => github.com/abhay-krishna/cluster-api v1.4.2-eksa.1
+	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.14.5
 )

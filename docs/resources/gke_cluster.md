@@ -284,7 +284,7 @@ resource "rafay_gke_cluster" "tf-example" {
 Optional:
 
 - `features` (Block List, Max: 1) GKE cluster additional features configuration. (see [below for nested schema](#nestedblock--spec--config--features))
-- `pre_bootstrap_commands` (List of String) Commands will be executed every time Cluster nodes come up. Example: Node Creation, Node Restart.
+- `pre_bootstrap_commands` (List of String) PreBootCommands is a list of (one of more) commands that the user wants run on their target cluster.These commands will be run every time a node comes up, both during cluster creation and cluster/nodepool scale. Example: Node restart and node creation. 
 - `security` (Block List, Max: 1) GKE cluster security configuration. (see [below for nested schema](#nestedblock--spec--config--security))
 
 

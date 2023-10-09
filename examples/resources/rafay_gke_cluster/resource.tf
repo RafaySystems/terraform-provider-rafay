@@ -9,9 +9,9 @@ resource "rafay_gke_cluster" "tf-example" {
       name    = "minimal"
       version = "latest"
     }
-    cloud_credentials = "-dev-"
+    cloud_credentials = "my-gcp-credential"
     config {
-      gcp_project           = "dev-382813"
+      gcp_project           = "my-gcp-project-id"
       control_plane_version = "1.26"
       location {
         type = "zonal"
@@ -22,14 +22,8 @@ resource "rafay_gke_cluster" "tf-example" {
       network {
         name                     = "default"
         subnet_name              = "default"
-        # we can configure shared VPC as well
-        # name = "projects/kr-test-200723/global/networks/km-1"
-        # subnet_name = "projects/kr-test-200723/regions/us-central1/subnetworks/km-1"
         enable_vpc_nativetraffic = "true"
         max_pods_per_node        = 110
-        # configure below values when using shared VPC
-        # pod_secondary_range_name = "pod"
-        # service_secondary_range_name = "service"
         access {
           type = "public"
         }

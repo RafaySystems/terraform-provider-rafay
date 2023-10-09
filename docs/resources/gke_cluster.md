@@ -342,10 +342,11 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 
 ***Required***
 
+-  `type` (String) Choose the type of network you want to allow to access your cluster's workloads. `private` or `public`
 - `config` (Block List, Max: 1) For `public` cluster config is null. But for `private` cluster, some settings are required. (see [below for nested schema](#nestedblock--spec--config--network--access--config))
-- `type` (String) Choose the type of network you want to allow to access your cluster's workloads. `private` or `public`
 
-<a id="nestedblock--spec--config--network--subnet_name--config"></a>
+
+<a id="nestedblock--spec--config--network--access--config"></a>
 ### Nested Schema for `spec.config.network.access.config`
 
 ***Required For Private Cluster***

@@ -48,6 +48,9 @@ resource "rafay_fleetplan" "fp1" {
             }
             image     = "bitnami/kubectl"
             arguments = ["get", "po", "-A"]
+            cpu_limit_milli = "1000"
+            memory_limit_mb = "100"
+            working_dir_path = "/var/"
           }
         }
       }

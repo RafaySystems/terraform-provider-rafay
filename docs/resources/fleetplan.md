@@ -56,6 +56,9 @@ resource "rafay_fleetplan" "demo-fleetplan" {
                         }
                         image = "bitnami/kubectl"
                         arguments = ["get", "nodes", "-A"]
+                        cpu_limit_milli = "1000"
+                        memory_limit_mb = "100"
+                        working_dir_path = "/var/"
                     }
                 }
             }
@@ -227,16 +230,16 @@ Optional:
 
 - `description` (String) Description of action
 
-<a id="nestedblock--spec--operation_workflow--operations--prehooks--control_plane_upgrade_config"></a>
-### Nested Schema for `spec.operation_workflow.operations.prehooks.control_plane_upgrade_config`
+<a id="nestedblock--spec--operation_workflow--operations--action--control_plane_upgrade_config"></a>
+### Nested Schema for `spec.operation_workflow.operations.action.control_plane_upgrade_config`
 
 ***Required***
 
 - `version` (String) kubernetes version required to be updated.
 
 
-<a id="nestedblock--spec--operation_workflow--operations--prehooks--node_groups_and_control_plane_upgrade_config"></a>
-### Nested Schema for `spec.operation_workflow.operations.prehooks.node_groups_and_control_plane_upgrade_config`
+<a id="nestedblock--spec--operation_workflow--operations--action--node_groups_and_control_plane_upgrade_config"></a>
+### Nested Schema for `spec.operation_workflow.operations.action.node_groups_and_control_plane_upgrade_config`
 
 ***Required***
 
@@ -244,7 +247,7 @@ Optional:
 
 
 <a id="nestedblock--spec--operation_workflow--operations--prehooks--node_groups_upgrade_config"></a>
-### Nested Schema for `spec.operation_workflow.operations.prehooks.node_groups_upgrade_config`
+### Nested Schema for `spec.operation_workflow.operations.action.node_groups_upgrade_config`
 
 ***Required***
 
@@ -268,31 +271,12 @@ Optional:
 ***Required***
 
 - `name` (String) The name of the pre-hook.
-- `container_config` (Block List, Max: 1) Configuration for the container to run. (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks--container_config))
+- `container_config` (Block List, Max: 1) Configuration for the container to run. (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--hooks--container_config))
 
 ***Optional***
 
 - `description` (String) A description of the pre-hook.
 - `inject` (List of String): Specifies environment variables to inject into the container. By default, only `KUBECONFIG` is available, which can be used to set up the connection to the target clusters.
-
-<a id="nestedblock--spec--operation_workflow--operations--prehooks--container_config"></a>
-### Nested Schema for `spec.operation_workflow.operations.prehooks.container_config`
-
-***Required***
-
-- `image` (String) The container image to use.
-   - Example: `"bitnami/kubectl"`
-- `runner` (String) The type of runner. The supported values are `cluster` and `agent`
-   - Example: `"cluster"` The container will run on all the targeted clusters for pre-hook operations.
-   - Example: `"agent"` The container will run on the selected agent for pre-hook operations.
-
-***Optional***
-
-- `arguments` (List of String) Arguments to pass to the container.
-   - Example: `["get", "nodes", "-A"]
-- `commands` (List of String) Specifies the commands to execute within the container.
-- `env` (Map of String)  Pass variables to the pre-hook script that will be available at runtime.
-   - Example: `"key1:value1"`
 
 <a id="nestedblock--spec--operation_workflow--operations--posthooks"></a>
 ### Nested Schema for `spec.operation_workflow.operations.posthooks`
@@ -300,20 +284,21 @@ Optional:
 ***Required***
 
 - `name` (String) The name of the post-hook.
-- `container_config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--posthooks--container_config))
+- `container_config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--hooks--container_config))
 
 ***Optional***
 
 - `description` (String) Description of the post-hook.
 - `inject` (List of String) Specifies environment variables to inject into the container. By default, only `KUBECONFIG` is available, which can be used to set up the connection to the target clusters.
 
-<a id="nestedblock--spec--operation_workflow--operations--posthooks--container_config"></a>
-### Nested Schema for `spec.operation_workflow.operations.posthooks.container_config`
+<a id="nestedblock--spec--operation_workflow--operations--hooks--container_config"></a>
+### Nested Schema for `spec.operation_workflow.operations.prehooks.container_config` and `spec.operation_workflow.operations.posthooks.container_config`
 
 ***Required***
 
 - `image` (String) The container image to use.
-- `runner` (String) The type of runner. The supported values are `cluster` and `agent`
+- `runner` (Block List, Max: 1) The type of runner. (See [below for nested schema](#nestedblock--spec--operation_workflow--operations--hooks--container_config--runner))
+ The supported values are `cluster` and `agent`
    - Example: `"cluster"` The container will run on all the targeted clusters for post-hook operations.
    - Example: `"agent"` The container will run on the selected agent for post-hook operations.
 
@@ -323,4 +308,17 @@ Optional:
 - `commands` (List of String) Specifies the commands to execute within the container.
 - `env` (Map of String) Pass variables to the post-hook script that will be available at runtime.
   - Example: `"key1:value1"`
+- `cpu_limit_milli` (string) CPU Limit in millicores
+  - Example: "1000"
+- `memory_limit_mb` (string) Maximum MB to be used by the container
+  - Example: "100"
+- `working_dir_path` (string) Path where the process should run
+  - Example: "/opt/"
 
+<a id="nestedblock--spec--operation_workflow--operations--hooks--container_config--runner"></a>
+### Nested Schema for `spec.operation_workflow.operations.prehooks.container_config.runner` and `spec.operation_workflow.operations.posthooks.container_config.runner`
+
+***Required***
+
+- `type` (string) Type of runner. "cluster" or "agent"
+- `node_selector` (Map of strings) Labels to select nodes in which you want to run the container. 

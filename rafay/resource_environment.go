@@ -235,6 +235,10 @@ func expandEnvironmentSpec(p []interface{}) (*eaaspb.EnvironmentSpec, error) {
 		spec.Sharing = expandSharingSpec(v)
 	}
 
+	if ag, ok := in["agents"].([]interface{}); ok && len(ag) > 0 {
+		spec.Agents = expandEaasAgents(ag)
+	}
+
 	return spec, nil
 }
 
@@ -321,6 +325,7 @@ func flattenEnvironmentSpec(in *eaaspb.EnvironmentSpec, p []interface{}) ([]inte
 	}
 
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	obj["agents"] = flattenEaasAgents(in.Agents)
 
 	return []interface{}{obj}, nil
 }

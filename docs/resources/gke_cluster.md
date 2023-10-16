@@ -87,7 +87,7 @@ resource "rafay_gke_cluster" "tf-example" {
 
 ***Required***
 
-- `name` - (String) The name of the GKE Cluster. This must be unique in your organization.
+- `name` - (String) The name of the Cluster. This must be unique in your organization.
 - `project` - (String) The name of the Rafay project the cluster will be created in.
 
 ***Optional***
@@ -104,7 +104,7 @@ resource "rafay_gke_cluster" "tf-example" {
 
 - `cloud_credentials` - (String) The name of the cloud credentials used to create and manage the cluster.
 - `config` - (Block List, Min: 1) The GKE specific cluster configuration. (See [below for nested schema](#nestedblock--spec--config))
-- `type` - (String) The GKE Cluster type. The supported value is `gke`.
+- `type` - (String) Cluster type. The supported value is `gke`.
 - `blueprint` (Block List, Max: 1) The blueprint to be used for this cluster. (see [below for nested schema](#nestedblock--spec--blueprint))
 
 ***Optional***
@@ -158,15 +158,15 @@ resource "rafay_gke_cluster" "tf-example" {
 
 - `gcp_project` (String) GCP Project name.
 - `control_plane_version` (String) Kubernetes version of ControlPlane
-- `location` (Block List, Max: 1) GKE cluster location configuration. (see [below for nested schema](#nestedblock--spec--config--location))
-- `network` (Block List, Max: 1) GKE cluster Network configuration. (see [below for nested schema](#nestedblock--spec--config--network))
-- `node_pools` (Block List) GKE cluster node pool configuration. (see [below for nested schema](#nestedblock--spec--config--node_pools))
+- `location` (Block List, Max: 1) Cluster location configuration. (see [below for nested schema](#nestedblock--spec--config--location))
+- `network` (Block List, Max: 1) Cluster Network configuration. (see [below for nested schema](#nestedblock--spec--config--network))
+- `node_pools` (Block List) Cluster node pool configuration. (see [below for nested schema](#nestedblock--spec--config--node_pools))
 
 Optional:
 
-- `features` (Block List, Max: 1) GKE cluster additional features configuration. (see [below for nested schema](#nestedblock--spec--config--features))
+- `features` (Block List, Max: 1) Cluster additional features configuration. (see [below for nested schema](#nestedblock--spec--config--features))
 - `pre_bootstrap_commands` (List of String) PreBootCommands is a list of (one of more) commands that the user wants run on their target cluster.These commands will be run every time a node comes up, both during cluster creation and cluster/nodepool scale. Example: Node restart and node creation. 
-- `security` (Block List, Max: 1) GKE cluster security configuration. (see [below for nested schema](#nestedblock--spec--config--security))
+- `security` (Block List, Max: 1) Cluster security configuration. (see [below for nested schema](#nestedblock--spec--config--security))
 
 
 <a id="nestedblock--spec--config--location"></a>
@@ -174,7 +174,7 @@ Optional:
 
 ***Required***
 
-- `type` (String) GKE Cluster location can be either `zonal` or `regional`
+- `type` (String) Cluster location can be either `zonal` or `regional`
 - `config` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--location--config))
 
 ***Optional***
@@ -214,9 +214,7 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `enable_vpc_nativetraffic` (Boolean) This feature uses alias IP and provides a more secure integration with Google Cloud Platform services
 - `max_pods_per_node` (Number) This value is used to optimize the partitioning of cluster's IP address range to sub-ranges at node level
 - `pod_address_range` (String) All pods in the cluster are assigned an IP address from this range. Enter a range (in CIDR notation) within a network range, a mask, or leave this field blank to use a default range.
-- `pod_secondary_range_name` (String) Cluster pods are assigned an IP from the selected node subnet's secondary CIDR address range.
 - `service_address_range` (String) Cluster services will be assigned an IP address from this IP address range. Enter a range (in CIDR notation) within a network range, a mask, or leave this field blank to use a default range.
-- `service_secondary_range_name` (String) Cluster services are assigned an IP from the selected node subnetes secondary CIDR address range.
 
 <a id="nestedblock--spec--config--network--access"></a>
 ### Nested Schema for `spec.config.network.access`
@@ -272,7 +270,7 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `cloud_logging_components` (List of String) List of components for cloud logging
 - `cloud_monitoring_components` (List of String) List of components for cloud monitoring
 - `enable_application_manager_beta` (Boolean) Application Manager is a GKE controller for managing the lifecycle of applications. It enables application delivery and updates following Kubernetes and GitOps best practices
-- `enable_backup_for_gke` (Boolean) Backup for GKE allows you to back up and restore GKE workloads. There is no cost for enabling this feature, but you are charged for backups based on the size of the data and the number of pods you protect
+- `enable_backup_for_gke` (Boolean) Backup for GKE allows you to back up and restore workloads. There is no cost for enabling this feature, but you are charged for backups based on the size of the data and the number of pods you protect
 - `enable_cloud_logging` (Boolean) Logging collects logs emitted by your applications and by GKE infrastructure
 - `enable_cloud_monitoring` (Boolean) Monitoring collects metrics emitted by your applications and by GKE infrastructure
 - `enable_filestore_csi_driver` (Boolean) Enable to automatically deploy and manage the Filestore CSI Driver
@@ -296,11 +294,8 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `networking` (Block List, Max: 1) Node networking settings will be used when new nodes are created using this node pool (see [below for nested schema](#nestedblock--spec--config--node_pools--networking))
 - `node_locations` (Block List, Max: 1) Additional node zones must be from the same region as the original zone. Kubernetes Engine allocates the same resource footprint for each zone. The Node pool setting overrides the defaults set in Cluster basics (see [below for nested schema](#nestedblock--spec--config--node_pools--node_locations))
 - `auto_scaling` (Block List, Max: 1) Cluster autoscaler automatically creates or deletes nodes based on workload needs (see [below for nested schema](#nestedblock--spec--config--node_pools--auto_scaling))
-- `management` (Block List, Max: 1) Node management configuration (see [below for nested schema](#nestedblock--spec--config--node_pools--management))
 - `metadata` (Block List, Max: 1) Node metadata settings will be used when new nodes are created using this node pool (see [below for nested schema](#nestedblock--spec--config--node_pools--metadata))
 - `security` (Block List, Max: 1) Node security settings will be used when new nodes are created using this node pool (see [below for nested schema](#nestedblock--spec--config--node_pools--security))
-- `upgrade_settings` (Block List, Max: 1) Node pool upgrade options (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings))
-
 
 <a id="nestedblock--spec--config--node_pools--machine_config"></a>
 ### Nested Schema for `spec.config.node_pools.machine_config`
@@ -348,15 +343,6 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `max_nodes` (Number) Maximum number of nodes (per zone)
 - `min_nodes` (Number) Minimum number of nodes (per zone)
 
-
-<a id="nestedblock--spec--config--node_pools--management"></a>
-### Nested Schema for `spec.config.node_pools.management`
-
-***Optional***
-
-- `auto_upgrade` (Boolean) Whether the nodes will be automatically upgraded
-
-
 <a id="nestedblock--spec--config--node_pools--metadata"></a>
 ### Nested Schema for `spec.config.node_pools.metadata`
 
@@ -392,35 +378,6 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `effect` (String) Available effects are `NoSchedue`, `PreferNoSchedule`, `NoExecute`
 - `key` (String) Key for this Taint effect
 - `value` (String) Value for this Taint effect
-
-
-
-<a id="nestedblock--spec--config--node_pools--upgrade_settings"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings`
-
-***Required***
-- `strategy` (String) Update strategy of the node pool. Possible values are `SURGE` or `BLUE_GREEN`
-
-- `blue_green_settings` (Block List, Max: 1) If `strategy` is `BLUE_GREEN`, configure this setting for upgrade strategy (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--blue_green_settings))
-- `surge_settings` (Block List, Max: 1) If `strategy` is `SURGE`, configure this setting for upgrade strategy (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--surge_settings))
-
-<a id="nestedblock--spec--config--node_pools--upgrade_settings--blue_green_settings"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings.blue_green_settings`
-
-***Required***
-
-- `batch_node_count` (Number) The absolute number of nodes to drain in a batch. If it is set to zero, this phase will be skipped.
-- `batch_soak_duration` (String) Duration in seconds to wait after each batch finishes draining. This is an opportunity to verify your workload’s health for the batch upgraded.
-- `node_pool_soak_duration` (String) Duration in seconds to wait when all batches are completely drained. This is an opportunity to verify your workload’s health.
-
-
-<a id="nestedblock--spec--config--node_pools--upgrade_settings--surge_settings"></a>
-### Nested Schema for `spec.config.node_pools.upgrade_settings.surge_settings`
-
-***Required***
-
-- `max_surge` (Number) The maximum number of nodes that can be created beyond the current size of the node pool during the upgrade process.
-- `max_unavailable` (Number) The maximum number of nodes that can be simultaneously unavailable during the upgrade process.
 
 
 <a id="nestedblock--spec--config--security"></a>

@@ -215,6 +215,8 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `max_pods_per_node` (Number) This value is used to optimize the partitioning of cluster's IP address range to sub-ranges at node level
 - `pod_address_range` (String) All pods in the cluster are assigned an IP address from this range. Enter a range (in CIDR notation) within a network range, a mask, or leave this field blank to use a default range.
 - `service_address_range` (String) Cluster services will be assigned an IP address from this IP address range. Enter a range (in CIDR notation) within a network range, a mask, or leave this field blank to use a default range.
+- `pod_secondary_range_name` (String) Cluster pods are assigned an IP from the selected node subnet's secondary CIDR address range.
+- `service_secondary_range_name` (String) Cluster services are assigned an IP from the selected node subnetes secondary CIDR address range.
 
 <a id="nestedblock--spec--config--network--access"></a>
 ### Nested Schema for `spec.config.network.access`
@@ -296,6 +298,9 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `auto_scaling` (Block List, Max: 1) Cluster autoscaler automatically creates or deletes nodes based on workload needs (see [below for nested schema](#nestedblock--spec--config--node_pools--auto_scaling))
 - `metadata` (Block List, Max: 1) Node metadata settings will be used when new nodes are created using this node pool (see [below for nested schema](#nestedblock--spec--config--node_pools--metadata))
 - `security` (Block List, Max: 1) Node security settings will be used when new nodes are created using this node pool (see [below for nested schema](#nestedblock--spec--config--node_pools--security))
+- `management` (Block List, Max: 1) Node management configuration (see [below for nested schema](#nestedblock--spec--config--node_pools--management))
+- `upgrade_settings` (Block List, Max: 1) Node pool upgrade options (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings))
+
 
 <a id="nestedblock--spec--config--node_pools--machine_config"></a>
 ### Nested Schema for `spec.config.node_pools.machine_config`
@@ -388,6 +393,42 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `enable_workload_identity` (Boolean) Workload Identity lets you connect securely to Google APIs from Kubernetes Engine workloads
 - `issue_client_certificate` (Boolean) Clients use this base64-encoded public certificate to authenticate to the cluster endpoint. Certificates don’t rotate automatically and are difficult to revoke
 - `security_group` (String) Provide the security groups here
+
+
+<a id="nestedblock--spec--config--node_pools--management"></a>
+### Nested Schema for `spec.config.node_pools.management`
+
+***Optional***
+
+- `auto_upgrade` (Boolean) Whether the nodes will be automatically upgraded
+
+
+<a id="nestedblock--spec--config--node_pools--upgrade_settings"></a>
+### Nested Schema for `spec.config.node_pools.upgrade_settings`
+
+***Required***
+- `strategy` (String) Update strategy of the node pool. Possible values are `SURGE` or `BLUE_GREEN`
+
+- `blue_green_settings` (Block List, Max: 1) If `strategy` is `BLUE_GREEN`, configure this setting for upgrade strategy (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--blue_green_settings))
+- `surge_settings` (Block List, Max: 1) If `strategy` is `SURGE`, configure this setting for upgrade strategy (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--surge_settings))
+
+<a id="nestedblock--spec--config--node_pools--upgrade_settings--blue_green_settings"></a>
+### Nested Schema for `spec.config.node_pools.upgrade_settings.blue_green_settings`
+
+***Required***
+
+- `batch_node_count` (Number) The absolute number of nodes to drain in a batch. If it is set to zero, this phase will be skipped.
+- `batch_soak_duration` (String) Duration in seconds to wait after each batch finishes draining. This is an opportunity to verify your workload’s health for the batch upgraded.
+- `node_pool_soak_duration` (String) Duration in seconds to wait when all batches are completely drained. This is an opportunity to verify your workload’s health.
+
+
+<a id="nestedblock--spec--config--node_pools--upgrade_settings--surge_settings"></a>
+### Nested Schema for `spec.config.node_pools.upgrade_settings.surge_settings`
+
+***Required***
+
+- `max_surge` (Number) The maximum number of nodes that can be created beyond the current size of the node pool during the upgrade process.
+- `max_unavailable` (Number) The maximum number of nodes that can be simultaneously unavailable during the upgrade process.
 
 
 <a id="nestedblock--timeouts"></a>

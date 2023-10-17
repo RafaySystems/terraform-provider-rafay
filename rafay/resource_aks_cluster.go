@@ -5197,9 +5197,10 @@ func aksClusterCTL(config *config.Config, clusterName string, configBytes []byte
 	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false)
 }
 
-func aksClusterCTLStatus(taskid string) (string, error) {
+func aksClusterCTLStatus(taskid, projectID string) (string, error) {
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
+	rctlCfg.ProjectID = projectID
 	return clusterctl.Status(logger, rctlCfg, taskid)
 }
 
@@ -5315,7 +5316,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 			return diag.FromErr(errGet)
 		}
 
-		statusResp, err := aksClusterCTLStatus(res.TaskSetID)
+		statusResp, err := aksClusterCTLStatus(res.TaskSetID, project.ID)
 		if err != nil {
 			log.Println("status response parse error", err)
 			return diag.FromErr(err)

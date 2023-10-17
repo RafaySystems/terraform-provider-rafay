@@ -398,8 +398,6 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 <a id="nestedblock--spec--config--node_pools--management"></a>
 ### Nested Schema for `spec.config.node_pools.management`
 
-***Optional***
-
 - `auto_upgrade` (Boolean) Whether the nodes will be automatically upgraded
 
 

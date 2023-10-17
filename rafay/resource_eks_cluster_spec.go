@@ -271,7 +271,7 @@ func resourceEKSClusterSpecCreate(ctx context.Context, d *schema.ResourceData, m
 				return diag.FromErr(errGet)
 			}
 
-			statusResp, err := eksClusterCTLStatus(res.TaskSetID)
+			statusResp, err := eksClusterCTLStatus(res.TaskSetID, project.ID)
 			if err != nil {
 				log.Println("status response parse error", err)
 				return diag.FromErr(err)

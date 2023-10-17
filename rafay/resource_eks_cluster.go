@@ -2377,7 +2377,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Printf("error while getCluster %s", errGet.Error())
 			return diag.FromErr(errGet)
 		}
-
+		rctlConfig.ProjectID = projectID
 		statusResp, err := clusterctl.Status(logger, rctlConfig, res.TaskSetID)
 		if err != nil {
 			log.Println("status response parse error", err)
@@ -2405,10 +2405,11 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 
 	return diags
 }
-func eksClusterCTLStatus(taskid string) (string, error) {
+func eksClusterCTLStatus(taskid, projectID string) (string, error) {
 	log.Println("eksClusterCTLStatus")
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
+	rctlCfg.ProjectID = projectID
 	return clusterctl.Status(logger, rctlCfg, taskid)
 }
 

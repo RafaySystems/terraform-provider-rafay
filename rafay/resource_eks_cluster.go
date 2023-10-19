@@ -2677,8 +2677,10 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		if v, ok := in["ebs_optimized"].(bool); ok {
 			obj.EBSOptimized = &v
 		}
+		volumeTypeFlag := true
 		if v, ok := in["volume_type"].(string); ok && len(v) > 0 {
 			obj.VolumeType = v
+			volumeTypeFlag = isNonSupportedVolumeType(obj.VolumeType)
 		}
 		if v, ok := in["volume_name"].(string); ok && len(v) > 0 {
 			obj.VolumeName = v
@@ -2689,10 +2691,10 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		if v, ok := in["volume_kms_key_id"].(string); ok && len(v) > 0 {
 			obj.VolumeKmsKeyID = v
 		}
-		if v, ok := in["volume_iops"].(int); ok {
+		if v, ok := in["volume_iops"].(int); ok && (volumeTypeFlag || !nRawConfig.GetAttr("volume_iops").IsNull()) {
 			obj.VolumeIOPS = &v
 		}
-		if v, ok := in["volume_throughput"].(int); ok {
+		if v, ok := in["volume_throughput"].(int); ok && (volumeTypeFlag || !nRawConfig.GetAttr("volume_throughput").IsNull()) {
 			obj.VolumeThroughput = &v
 		}
 		if v, ok := in["pre_bootstrap_commands"].([]interface{}); ok && len(v) > 0 {
@@ -2753,12 +2755,17 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		outToSort[i] = *obj
 	}
 
-	sort.Sort(ByManagedNodeGroupName(outToSort))
+	// sort.Sort(ByManagedNodeGroupName(outToSort))
 	for i := range outToSort {
 		out[i] = &outToSort[i]
 	}
 
 	return out
+}
+
+func isNonSupportedVolumeType(volumeType string) bool {
+	var nonSupportedVolumeTypes = []string{"gp2", "io1"}
+	return !slices.Contains(nonSupportedVolumeTypes, volumeType)
 }
 
 // expand managed node group taints function (completed) (can i use this to expand taints in node group?)
@@ -5391,7 +5398,7 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 	for i := range inp {
 		inpSorted[i] = *inp[i]
 	}
-	sort.Sort(ByManagedNodeGroupName(inpSorted))
+	// sort.Sort(ByManagedNodeGroupName(inpSorted))
 
 	out := make([]interface{}, len(inp))
 	for i, in := range inpSorted {

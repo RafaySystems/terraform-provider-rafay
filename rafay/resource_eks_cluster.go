@@ -1029,6 +1029,11 @@ func addonConfigFields() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
+		"configuration_values": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "configuration values for the addon",
+		},
 	}
 	return s
 }
@@ -3395,6 +3400,9 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
 		}
+		if v, ok := in["configuration_values"].(string); ok && len(v) > 0 {
+			obj.ConfigurationValues = v
+		}
 		//docs dont have force variable but struct does
 		out[i] = obj
 	}
@@ -4945,6 +4953,9 @@ func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, erro
 
 		obj["tags"] = toMapInterface(in.Tags)
 		//Force field for existing addon (not in doc)
+		if len(in.ConfigurationValues) > 0 {
+			obj["configuration_values"] = in.ConfigurationValues
+		}
 
 		out[i] = &obj
 	}

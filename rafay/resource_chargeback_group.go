@@ -269,6 +269,15 @@ func expandChargebackGroupAggregate(p []interface{}) *systempb.ChargebackAggrega
 		}
 	}
 
+	if v, ok := in["namespace_label"].([]interface{}); ok && len(v) > 0 {
+		obj.NamespaceLabel = make([]string, len(v))
+		for idx := range v {
+			if v[idx] != nil {
+				obj.NamespaceLabel[idx] = v[idx].(string)
+			}
+		}
+	}
+
 	return obj
 
 }
@@ -454,6 +463,11 @@ func flattenChargebackGroupSpecAggregate(in *systempb.ChargebackAggregate, p []i
 
 	if len(in.Label) > 0 {
 		obj["label"] = in.Label
+		retNil = false
+	}
+
+	if len(in.NamespaceLabel) > 0 {
+		obj["namespace_label"] = in.NamespaceLabel
 		retNil = false
 	}
 

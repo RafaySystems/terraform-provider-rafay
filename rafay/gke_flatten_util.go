@@ -40,7 +40,7 @@ func flattenGKEClusterV3(d *schema.ResourceData, in *infrapb.Cluster) error {
 		ret1 = flattenMetadataV3(in.Metadata, v)
 	}
 
-	//fmt.Printf("flattenGKEClusterV3 flattenMetadataV3 returned %+v\n", ret1)
+	// fmt.Printf("flattenGKEClusterV3 flattenMetadataV3 returned %+v\n", ret1)
 	err = d.Set("metadata", ret1)
 	if err != nil {
 		return err
@@ -115,11 +115,9 @@ func flattenGKEV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{} {
 	}
 
 	return []interface{}{obj}
-
 }
 
 func flattenGkeV3Proxy(in *infrapb.ClusterProxy) []interface{} {
-
 	if in == nil {
 		return nil
 	}
@@ -205,7 +203,6 @@ func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interf
 			v = []interface{}{}
 		}
 		obj["network"] = flattenGKEV3Network(in.Network, v)
-
 	}
 
 	// nodepools
@@ -333,6 +330,8 @@ func flattenGKEV3Network(in *infrapb.GkeNetwork, p []interface{}) []interface{} 
 	obj["enable_vpc_nativetraffic"] = in.EnableVPCNativetraffic
 	obj["pod_address_range"] = in.PodAddressRange
 	obj["service_address_range"] = in.ServiceAddressRange
+	obj["pod_secondary_range_name"] = in.PodSecondaryRangeName
+	obj["service_secondary_range_name"] = in.ServiceSecondaryRangeName
 
 	obj["max_pods_per_node"] = in.MaxPodsPerNode
 
@@ -557,11 +556,26 @@ func flattenGKEV3Nodepools(in []*infrapb.GkeNodePool, p []interface{}) []interfa
 			obj["metadata"] = flattenGKEV3NodeMetadata(j.Metadata, v)
 		}
 
+		if j.Management != nil {
+			v, ok := obj["management"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["management"] = flattenGKEV3NodeManagement(j.Management, v)
+		}
+
+		if j.UpgradeSettings != nil {
+			v, ok := obj["upgrade_settings"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["upgrade_settings"] = flattenGKEV3NodeUpgradeSettings(j.UpgradeSettings, v)
+		}
+
 		out[i] = &obj
 	}
 
 	return out
-
 }
 
 func flattenGKEV3NodeLocations(in *infrapb.GkeNodeLocation, p []interface{}) []interface{} {
@@ -741,4 +755,76 @@ func flattenGKEV3GceInstanceMetadata(in []*infrapb.GkeGCEInstanceMetadata, p []i
 	}
 
 	return out
+}
+
+func flattenGKEV3NodeManagement(in *infrapb.GkeNodeManagement, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	obj["auto_upgrade"] = in.AutoUpgrade
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeUpgradeSettings(in *infrapb.GkeNodeUpgradeSettings, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["strategy"] = in.Strategy
+
+	if in.GetSurge() != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenGKEV3NodeSurgeSettings(in.GetSurge(), v)
+	} else if in.GetBlueGreen() != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenGKEV3NodeBlueGreenSettings(in.GetBlueGreen(), v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeSurgeSettings(in *infrapb.GkeNodeSurgeSettings, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["max_surge"] = in.MaxSurge
+	obj["max_unavailable"] = in.MaxUnavailable
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeBlueGreenSettings(in *infrapb.GkeNodeBlueGreenSettings, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["batch_node_count"] = in.BatchNodeCount
+	obj["batch_soak_duration"] = in.BatchSoakDuration
+	obj["node_pool_soak_duration"] = in.NodePoolSoakDuration
+
+	return []interface{}{obj}
 }

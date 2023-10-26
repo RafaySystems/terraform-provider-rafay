@@ -1029,6 +1029,11 @@ func addonConfigFields() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
+		"configuration_values": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "configuration values for the addon",
+		},
 	}
 	return s
 }
@@ -2377,7 +2382,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Printf("error while getCluster %s", errGet.Error())
 			return diag.FromErr(errGet)
 		}
-
+		rctlConfig.ProjectID = projectID
 		statusResp, err := clusterctl.Status(logger, rctlConfig, res.TaskSetID)
 		if err != nil {
 			log.Println("status response parse error", err)
@@ -2405,10 +2410,11 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 
 	return diags
 }
-func eksClusterCTLStatus(taskid string) (string, error) {
+func eksClusterCTLStatus(taskid, projectID string) (string, error) {
 	log.Println("eksClusterCTLStatus")
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
+	rctlCfg.ProjectID = projectID
 	return clusterctl.Status(logger, rctlCfg, taskid)
 }
 
@@ -3393,6 +3399,9 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 		}
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
+		}
+		if v, ok := in["configuration_values"].(string); ok && len(v) > 0 {
+			obj.ConfigurationValues = v
 		}
 		//docs dont have force variable but struct does
 		out[i] = obj
@@ -4944,6 +4953,9 @@ func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, erro
 
 		obj["tags"] = toMapInterface(in.Tags)
 		//Force field for existing addon (not in doc)
+		if len(in.ConfigurationValues) > 0 {
+			obj["configuration_values"] = in.ConfigurationValues
+		}
 
 		out[i] = &obj
 	}

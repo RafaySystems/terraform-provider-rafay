@@ -118,6 +118,8 @@ type stageSpecConfig struct {
 	Workload                           string                                     `protobuf:"bytes,1,opt,name=workload,proto3" json:"workload,omitempty"`
 	WorkloadTemplate                   string                                     `protobuf:"bytes,1,opt,name=workloadTemplate,proto3" json:"workloadTemplate,omitempty"`
 	Namespace                          string                                     `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	ProjectName                        string                                     `protobuf:"bytes,2,opt,name=projectName,proto3" json:"projectName,omitempty"`
+	WorkloadName                       string                                     `protobuf:"bytes,2,opt,name=workloadName,proto3" json:"workloadName,omitempty"`
 	Placement                          *commonpb.PlacementSpec                    `protobuf:"bytes,3,opt,name=placement,proto3" json:"placement,omitempty"`
 	Overrides                          []stageSpecConfigWorkloadTemplateOverrides `protobuf:"bytes,4,rep,name=overrides,proto3" json:"overrides,omitempty"`
 	UseRevisionFromWebhookTriggerEvent bool                                       `protobuf:"varint,5,opt,name=useRevisionFromWebhookTriggerEvent,proto3" json:"useRevisionFromWebhookTriggerEvent,omitempty"`
@@ -777,6 +779,14 @@ func expandStageSpecConfigWorkloadTemplate(p []interface{}) (*gitopspb.StageSpec
 
 	if v, ok := in["namespace"].(string); ok && len(v) > 0 {
 		obj.WorkloadTemplate.Namespace = v
+	}
+
+	if v, ok := in["workload_name"].(string); ok && len(v) > 0 {
+		obj.WorkloadTemplate.WorkloadName = v
+	}
+
+	if v, ok := in["project_name"].(string); ok && len(v) > 0 {
+		obj.WorkloadTemplate.ProjectName = v
 	}
 
 	if v, ok := in["placement"].([]interface{}); ok {
@@ -1732,6 +1742,14 @@ func flattenStageSpecConfig(stSpec *stageSpec, p []interface{}) ([]interface{}, 
 
 	if len(stSpec.Config.Namespace) > 0 {
 		obj["namespace"] = stSpec.Config.Namespace
+	}
+
+	if len(stSpec.Config.WorkloadName) > 0 {
+		obj["workload_name"] = stSpec.Config.WorkloadName
+	}
+
+	if len(stSpec.Config.ProjectName) > 0 {
+		obj["project_name"] = stSpec.Config.ProjectName
 	}
 
 	if stSpec.Config.Placement != nil {

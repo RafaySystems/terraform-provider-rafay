@@ -1488,7 +1488,7 @@ func bottleRocketFields() map[string]*schema.Schema {
 			Description: "Enable admin container",
 		},
 		"settings": {
-			Type:        schema.TypeMap,
+			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "contains any bottlerocket settings",
 		},
@@ -3096,8 +3096,14 @@ func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
 	if v, ok := in["enable_admin_container"].(bool); ok {
 		obj.EnableAdminContainer = &v
 	}
-	if v, ok := in["settings"].(map[string]interface{}); ok && len(v) > 0 {
-		obj.Settings = toMapString(v)
+	////@@@TODO Store terraform input as inline document object correctly
+	if v, ok := in["settings"].(string); ok && len(v) > 0 {
+		var policyDoc map[string]interface{}
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		//json.Unmarshal(input, &data)
+		json2.Unmarshal([]byte(v), &policyDoc)
+		obj.Settings = policyDoc
+		log.Println("bottle rocket settings expanded correct")
 	}
 	//docs dont have field skip endpoint creation but struct does
 	return obj
@@ -5125,7 +5131,7 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{
 			obj["target_group_arns"] = toArrayInterface(in.TargetGroupARNs)
 		}
 		if in.Taints != nil {
-			v, ok := obj["bottle_rocket"].([]interface{})
+			v, ok := obj["taints"].([]interface{})
 			if !ok {
 				v = []interface{}{}
 			}
@@ -5323,16 +5329,23 @@ func flattenNodeGroupInstanceSelector(in *InstanceSelector, p []interface{}) []i
 }
 func flattenNodeGroupBottlerocket(in *NodeGroupBottlerocket, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
 	if in == nil {
 		return []interface{}{obj}
 	}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
 	obj["enable_admin_container"] = in.EnableAdminContainer
 
-	if len(in.Settings) > 0 {
-		obj["settings"] = toMapInterface(in.Settings)
+	if in.Settings != nil && len(in.Settings) > 0 {
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		jsonStr, err := json2.Marshal(in.Settings)
+		if err != nil {
+			log.Println("attach policy marshal err:", err)
+		}
+		log.Println("jsonSTR:", jsonStr)
+		obj["settings"] = string(jsonStr)
+		log.Println("bottlerocket settings flattened correct:", obj["settings"])
 	}
 	return []interface{}{obj}
 }
@@ -5524,7 +5537,7 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 		}
 		obj["spot"] = in.Spot
 		if in.Taints != nil {
-			v, ok := obj["bottle_rocket"].([]interface{})
+			v, ok := obj["taints"].([]interface{})
 			if !ok {
 				v = []interface{}{}
 			}

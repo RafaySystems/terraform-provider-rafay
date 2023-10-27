@@ -430,6 +430,10 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 		tpo.TargetResources = toArrayString(tgtrs)
 	}
 
+	if h, ok := in["with_terraform_cloud"].([]interface{}); ok && len(h) > 0 {
+		tpo.WithTerraformCloud = expandBoolValue(h)
+	}
+
 	return tpo
 }
 
@@ -748,6 +752,7 @@ func flattenTerraformProviderOptions(in *eaaspb.TerraformProviderOptions) []inte
 	obj["lock_timeout_seconds"] = in.LockTimeoutSeconds
 	obj["plugin_dirs"] = toArrayInterface(in.PluginDirs)
 	obj["target_resources"] = toArrayInterface(in.TargetResources)
+	obj["with_terraform_cloud"] = flattenBoolValue(in.WithTerraformCloud)
 
 	return []interface{}{obj}
 }

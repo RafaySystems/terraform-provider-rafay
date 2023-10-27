@@ -158,10 +158,10 @@ github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 h1:kkhsdkhsCv
 github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371/go.mod h1:EjAoLdwvbIOoOQr3ihjnSoLZRtE8azugULFRteWMNc0=
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
-github.com/RafaySystems/eaas-playground v0.0.0-20231026042935-fd776f431e8a h1:7XK8lQlQKRLPFr4gFh8h/G7fX1Nce1XJNgRGtdr+PGQ=
-github.com/RafaySystems/eaas-playground v0.0.0-20231026042935-fd776f431e8a/go.mod h1:cz2jNDWYn/S/egHnQf1z+dy2vWgTsBp6bxpEgTFv44A=
-github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20231026052546-8bd151a3caf8 h1:JqQ/+fXeyl1P+ASwXdl3rMHbBcuSG8fc8uI/0Gc5SRQ=
-github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20231026052546-8bd151a3caf8/go.mod h1:J0LMWepW0VzOY+0Pgz5T6jrIJxn2z6+1zLM1CTdL4fw=
+github.com/RafaySystems/eaas-playground v0.0.0-20231026132407-a66ce2bfda1c h1:lvMzBzw0/k7pUwpmZKqfj5dOVsRmZZJkbDIToG6dMco=
+github.com/RafaySystems/eaas-playground v0.0.0-20231026132407-a66ce2bfda1c/go.mod h1:cz2jNDWYn/S/egHnQf1z+dy2vWgTsBp6bxpEgTFv44A=
+github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20231027064321-0b492fb22406 h1:gcXXdm5PDWjnvWQ6Y5IjjOHSctbp4AcVUHyLkMt6cXU=
+github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20231027064321-0b492fb22406/go.mod h1:91Md85GyK6Me65lDCRuBwRId2reZ/YExmGi7ugW6upI=
 github.com/RafaySystems/rctl v1.29.1-0.20230926052942-5fea67172bba h1:2Oe/jafp8UzqGhhPxOZewKeAFc8psnfIAsbRf1D1UaU=
 github.com/RafaySystems/rctl v1.29.1-0.20230926052942-5fea67172bba/go.mod h1:mcKtIIA8mkk+MqcO9pYzHvrUmGYp6F5t5JSCHt9p4KM=
 github.com/RoaringBitmap/roaring v1.6.0 h1:dc7kRiroETgJcHhWX6BerXkZz2b3JgLGg9nTURJL/og=
@@ -335,8 +335,8 @@ github.com/go-openapi/swag v0.22.4 h1:QLMzNJnMGPRNDCbySlcj1x01tzU8/9LTTL9hZZZogB
 github.com/go-openapi/swag v0.22.4/go.mod h1:UzaqsxGiab7freDnrUUra0MwWfN/q7tE4j+VcZ0yl14=
 github.com/go-openapi/validate v0.22.1 h1:G+c2ub6q47kfX1sOBLwIQwzBVt8qmOAARyo/9Fqs9NU=
 github.com/go-openapi/validate v0.22.1/go.mod h1:rjnrwK57VJ7A8xqfpAOEKRH8yQSGUriMu5/zuPSQ1hg=
-github.com/go-pg/pg v8.0.7+incompatible h1:ty/sXL1OZLo+47KK9N8llRcmbA9tZasqbQ/OO4ld53g=
-github.com/go-pg/pg v8.0.7+incompatible/go.mod h1:a2oXow+aFOrvwcKs3eIA0lNFmMilrxK2sOkB5NWe0vA=
+github.com/go-pg/pg v6.15.1+incompatible h1:vO4P9WoCi+i4qomgcBXWlKgDk4GcHAqDAOIfkEpi7B4=
+github.com/go-pg/pg v6.15.1+incompatible/go.mod h1:a2oXow+aFOrvwcKs3eIA0lNFmMilrxK2sOkB5NWe0vA=
 github.com/go-pg/pg/v10 v10.11.1 h1:vYwbFpqoMpTDphnzIPshPPepdy3VpzD8qo29OFKp4vo=
 github.com/go-pg/pg/v10 v10.11.1/go.mod h1:ExJWndhDNNftBdw1Ow83xqpSf4WMSJK8urmXD5VXS1I=
 github.com/go-pg/zerochecker v0.2.0 h1:pp7f72c3DobMWOb2ErtZsnrPaSvHd2W4o9//8HtF4mU=

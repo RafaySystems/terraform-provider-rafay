@@ -321,8 +321,8 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 	da := spew.Sprintf("%+v", obj.DefaultAddons)
 	log.Println("expandBluePrintSpec DefaultAddons ", da)
 
-	if v, ok := in["custom_addons"].([]interface{}); ok && len(v) > 0 {
-		obj.CustomAddons = expandCustomAddons(v)
+	if v, ok := in["custom_addons"].(*schema.Set); ok && v.Len() > 0 {
+		obj.CustomAddons = expandCustomAddons(v.List())
 	}
 	ca := spew.Sprintf("%+v", obj.CustomAddons)
 	log.Println("expandBluePrintSpec CustomAddons ", ca)
@@ -927,11 +927,11 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 	}
 
 	if in.CustomAddons != nil && len(in.CustomAddons) > 0 {
-		v, ok := obj["custom_addons"].([]interface{})
+		v, ok := obj["custom_addons"].(*schema.Set)
 		if !ok {
-			v = []interface{}{}
+			v = &schema.Set{}
 		}
-		obj["custom_addons"] = flatteCustomAddons(in.CustomAddons, v)
+		obj["custom_addons"] = flatteCustomAddons(in.CustomAddons, v.List())
 	}
 
 	if in.Base != nil {

@@ -101,12 +101,13 @@ func expandV3Tolerations(p []interface{}) []*v1.Toleration {
 		if v, ok := in["effect"].(string); ok && len(v) > 0 {
 			obj.Effect = v1.TaintEffect(v)
 		}
-		if v, ok := in["toleration_seconds"].(int64); ok {
+		if v, ok := in["toleration_seconds"].(int); ok {
 			if v == 0 {
 				obj.TolerationSeconds = nil
 			} else {
+				ts := int64(v)
 				log.Println("setting toleration seconds")
-				obj.TolerationSeconds = &v
+				obj.TolerationSeconds = &ts
 			}
 		}
 		out[i] = &obj

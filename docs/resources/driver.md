@@ -60,10 +60,6 @@ resource "rafay_driver" "driver-example" {
 
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
-### Read-Only
-
-- `id` (String) The ID of this resource.
-
 <a id="nestedblock--metadata"></a>
 ### Nested Schema for `metadata`
 
@@ -74,9 +70,7 @@ resource "rafay_driver" "driver-example" {
 
 ***Optional***
 
-- `annotations` (Map of String) annotations of the resource
 - `description` (String) description of the resource
-- `labels` (Map of String) labels of the resource
 
 
 <a id="nestedblock--spec"></a>
@@ -88,7 +82,6 @@ resource "rafay_driver" "driver-example" {
 
 ***Optional***
 
-- `secret` (Block List, Max: 1) Driver secrets (see [below for nested schema](#nestedblock--spec--secret))
 - `sharing` (Block List, Max: 1) Sharing with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 
 <a id="nestedblock--spec--config"></a>
@@ -96,7 +89,7 @@ resource "rafay_driver" "driver-example" {
 
 ***Required***
 
-- `type` (String) Specify the type of driver
+- `type` (String) Specify the type of driver, Options are container, http
 - `container` (Block List, Max: 1) Specify the container driver config if type is container (see [below for nested schema](#nestedblock--spec--config--container))
 - `http` (Block List, Max: 1) Specify the http driver config if type is http (see [below for nested schema](#nestedblock--spec--config--http))
 
@@ -192,15 +185,6 @@ resource "rafay_driver" "driver-example" {
 
 - `body` (String) Specify the request body
 - `headers` (Map of String) Specify the http headers
-
-
-<a id="nestedblock--spec--secret"></a>
-### Nested Schema for `spec.secret`
-
-***Optional***
-
-- `name` (String) relative path of a artifact
-- `sensitive` (Boolean) data is the base64 encoded contents of the file if set to true
 
 
 <a id="nestedblock--spec--sharing"></a>

@@ -26,7 +26,6 @@ resource "rafay_static_resource" "static-resource-example" {
       options {
         description = "this is the resource name to be applied"
         sensitive   = false
-        required    = true
       }
     }
   }
@@ -45,10 +44,6 @@ resource "rafay_static_resource" "static-resource-example" {
 
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
-### Read-Only
-
-- `id` (String) The ID of this resource.
-
 <a id="nestedblock--metadata"></a>
 ### Nested Schema for `metadata`
 
@@ -59,9 +54,7 @@ resource "rafay_static_resource" "static-resource-example" {
 
 ***Optional***
 
-- `annotations` (Map of String) annotations of the resource
 - `description` (String) description of the resource
-- `labels` (Map of String) labels of the resource
 
 
 <a id="nestedblock--spec"></a>
@@ -69,35 +62,7 @@ resource "rafay_static_resource" "static-resource-example" {
 
 ***Optional***
 
-- `secret` (Block List, Max: 1) Resource secrets (see [below for nested schema](#nestedblock--spec--secret))
-- `sharing` (Block List, Max: 1) Defines if this is shared with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Variables data for resource (see [below for nested schema](#nestedblock--spec--variables))
-
-<a id="nestedblock--spec--secret"></a>
-### Nested Schema for `spec.secret`
-
-***Optional***
-
-- `name` (String) relative path of a artifact
-- `sensitive` (Boolean) data is the base64 encoded contents of the file if set to true
-
-
-<a id="nestedblock--spec--sharing"></a>
-### Nested Schema for `spec.sharing`
-
-***Optional***
-
-- `enabled` (Boolean) flag to specify if sharing is enabled for resource
-- `projects` (Block List) list of projects this resource is shared to (see [below for nested schema](#nestedblock--spec--sharing--projects))
-
-<a id="nestedblock--spec--sharing--projects"></a>
-### Nested Schema for `spec.sharing.projects`
-
-***Optional***
-
-- `name` (String) name of the project
-
-
 
 <a id="nestedblock--spec--variables"></a>
 ### Nested Schema for `spec.variables`
@@ -107,7 +72,7 @@ resource "rafay_static_resource" "static-resource-example" {
 - `name` (String) Name of the variable
 - `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 - `value` (String) Value of the variable in the specified format
-- `value_type` (String) Specify the variable value type
+- `value_type` (String) Specify the variable value type, Supported types are text, expression, json, hcl
 
 <a id="nestedblock--spec--variables--options"></a>
 ### Nested Schema for `spec.variables.options`
@@ -115,21 +80,7 @@ resource "rafay_static_resource" "static-resource-example" {
 ***Optional***
 
 - `description` (String) Description of the variable
-- `override` (Block List, Max: 1) Determines whether the variable can be overridden (see [below for nested schema](#nestedblock--spec--variables--options--override))
-- `required` (Boolean) Specify whether this variable is required or optional, by default it is optional
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
-
-<a id="nestedblock--spec--variables--options--override"></a>
-### Nested Schema for `spec.variables.options.sensitive`
-
-***Optional***
-
-- `restricted_values` (List of String) If the override type is restricted, values it is restricted to
-- `type` (String) Specify the type of ovverride this variable supports
-
-
-
-
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

@@ -49,10 +49,6 @@ resource "rafay_environment" "eks-rds-env-example" {
 
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
-### Read-Only
-
-- `id` (String) The ID of this resource.
-
 <a id="nestedblock--metadata"></a>
 ### Nested Schema for `metadata`
 
@@ -63,9 +59,7 @@ resource "rafay_environment" "eks-rds-env-example" {
 
 ***Optional***
 
-- `annotations` (Map of String) annotations of the resource
 - `description` (String) description of the resource
-- `labels` (Map of String) labels of the resource
 
 
 <a id="nestedblock--spec"></a>
@@ -78,26 +72,15 @@ resource "rafay_environment" "eks-rds-env-example" {
 ***Optional***
 
 - `agents` (Block List) Agents that are eligible to process the environment (see [below for nested schema](#nestedblock--spec--agents))
-- `secret` (Block List, Max: 1) Environment secrets (see [below for nested schema](#nestedblock--spec--secret))
 - `sharing` (Block List, Max: 1) Defines if this is shared with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Variables data for environment to be created (see [below for nested schema](#nestedblock--spec--variables))
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
 
-***Optional***
+***Required***
 
 - `name` (String) name of the resource
-- `version` (String) version of the resource
-
-
-<a id="nestedblock--spec--secret"></a>
-### Nested Schema for `spec.secret`
-
-***Optional***
-
-- `name` (String) relative path of a artifact
-- `sensitive` (Boolean) data is the base64 encoded contents of the file if set to true
 
 
 <a id="nestedblock--spec--sharing"></a>
@@ -132,7 +115,7 @@ resource "rafay_environment" "eks-rds-env-example" {
 ***Optional***
 
 - `name` (String) Name of the variable
-- `value_type` (String) Specify the variable value type
+- `value_type` (String) Specify the variable value type, Supported types are text, expression, json, hcl
 - `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 - `value` (String) Value of the variable in the specified format
 
@@ -152,7 +135,7 @@ resource "rafay_environment" "eks-rds-env-example" {
 ***Optional***
 
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
-- `type` (String) Specify the type of ovverride this variable supports
+- `type` (String) Specify the type of override this variable supports, Available types are allowed, notallowed, restricted
 
 
 

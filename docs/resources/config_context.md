@@ -18,10 +18,6 @@ resource "rafay_config_context" "config-context-example" {
     name        = var.name
     project     = var.project
     description = "this is a test config context created from terraform"
-    annotations = {
-      key   = "my-ann-key"
-      value = "my-ann-value"
-    }
   }
   spec {
     envs {
@@ -68,10 +64,6 @@ resource "rafay_config_context" "config-context-example" {
 
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
-### Read-Only
-
-- `id` (String) The ID of this resource.
-
 <a id="nestedblock--metadata"></a>
 ### Nested Schema for `metadata`
 
@@ -83,9 +75,7 @@ resource "rafay_config_context" "config-context-example" {
 
 ***Optional***
 
-- `annotations` (Map of String) annotations of the resource
 - `description` (String) description of the resource
-- `labels` (Map of String) labels of the resource
 
 
 <a id="nestedblock--spec"></a>
@@ -95,7 +85,6 @@ resource "rafay_config_context" "config-context-example" {
 
 - `envs` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--envs))
 - `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--files))
-- `secret` (Block List, Max: 1) Config Context secrets (see [below for nested schema](#nestedblock--spec--secret))
 - `sharing` (Block List, Max: 1) Defines if this is shared with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Variables data for config context (see [below for nested schema](#nestedblock--spec--variables))
 
@@ -123,40 +112,13 @@ resource "rafay_config_context" "config-context-example" {
 
 - `sensitive` (Boolean) data is the base64 encoded contents of the file if set to true
 
-
-<a id="nestedblock--spec--secret"></a>
-### Nested Schema for `spec.secret`
-
-***Optional***
-
-- `name` (String) relative path of a artifact
-- `sensitive` (Boolean) data is the base64 encoded contents of the file if set to true
-
-
-<a id="nestedblock--spec--sharing"></a>
-### Nested Schema for `spec.sharing`
-
-***Optional***
-
-- `enabled` (Boolean) flag to specify if sharing is enabled for resource
-- `projects` (Block List) list of projects this resource is shared to (see [below for nested schema](#nestedblock--spec--sharing--projects))
-
-<a id="nestedblock--spec--sharing--projects"></a>
-### Nested Schema for `spec.sharing.projects`
-
-Optional:
-
-- `name` (String) name of the project
-
-
-
 <a id="nestedblock--spec--variables"></a>
 ### Nested Schema for `spec.variables`
 
 ***Optional***
 
 - `name` (String) Name of the variable
-- `value_type` (String) Specify the variable value type
+- `value_type` (String) Specify the variable value type, Supported types are text, expression, json, hcl
 - `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 - `value` (String) Value of the variable in the specified format
 
@@ -171,15 +133,12 @@ Optional:
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
 
 <a id="nestedblock--spec--variables--options--override"></a>
-### Nested Schema for `spec.variables.options.sensitive`
+### Nested Schema for `spec.variables.options.override`
 
 ***Optional***
 
-- `restricted_values` (List of String) If the override type is restricted, values it is restricted to
-- `type` (String) Specify the type of ovverride this variable supports
-
-
-
+- `restricted_values` (List of String) If the override type is restricted, specify the values it is restricted to
+- `type` (String) Specify the type of override this variable supports, Available types are allowed, notallowed, restricted
 
 
 <a id="nestedblock--timeouts"></a>

@@ -96,10 +96,6 @@ resource "rafay_environment_template" "aws-et-example" {
 
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
-### Read-Only
-
-- `id` (String) The ID of this resource.
-
 <a id="nestedblock--metadata"></a>
 ### Nested Schema for `metadata`
 
@@ -110,9 +106,7 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Optional***
 
-- `annotations` (Map of String) annotations of the resource
 - `description` (String) description of the resource
-- `labels` (Map of String) labels of the resource
 
 
 <a id="nestedblock--spec"></a>
@@ -128,7 +122,6 @@ resource "rafay_environment_template" "aws-et-example" {
 - `agents` (Block List) Agents that are eligible to process the template (see [below for nested schema](#nestedblock--spec--agents))
 - `contexts` (Block List) Reference to config context data associated with environment templates (see [below for nested schema](#nestedblock--spec--contexts))
 - `hooks` (Block List, Max: 1) Specify lifecycle hook actions (see [below for nested schema](#nestedblock--spec--hooks))
-- `secret` (Block List, Max: 1) Environment Template secrets (see [below for nested schema](#nestedblock--spec--secret))
 - `sharing` (Block List, Max: 1) Sharing options with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Environment variables, file data and other variables (see [below for nested schema](#nestedblock--spec--variables))
 - `version_state` (String) Represents the current state of template version
@@ -136,19 +129,17 @@ resource "rafay_environment_template" "aws-et-example" {
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
 
-***Optional***
+***Required***
 
 - `name` (String) name of the resource
-- `version` (String) version of the resource
 
 
 <a id="nestedblock--spec--contexts"></a>
 ### Nested Schema for `spec.contexts`
 
-***Optional***
+***Required***
 
 - `name` (String) name of the resource
-- `version` (String) version of the resource
 
 
 <a id="nestedblock--spec--hooks"></a>
@@ -176,25 +167,23 @@ resource "rafay_environment_template" "aws-et-example" {
 - `type` (String) Specify the type of hook
 
 <a id="nestedblock--spec--hooks--on_completion--agents"></a>
-### Nested Schema for `spec.hooks.on_completion.type`
+### Nested Schema for `spec.hooks.on_completion.agents`
 
-***Optional***
+***Required***
 
 - `name` (String) name of the resource
-- `version` (String) version of the resource
 
 
 <a id="nestedblock--spec--hooks--on_completion--driver"></a>
-### Nested Schema for `spec.hooks.on_completion.type`
+### Nested Schema for `spec.hooks.on_completion.driver`
 
-***Optional***
+***Required***
 
 - `name` (String) name of the resource
-- `version` (String) version of the resource
 
 
 <a id="nestedblock--spec--hooks--on_completion--options"></a>
-### Nested Schema for `spec.hooks.on_completion.type`
+### Nested Schema for `spec.hooks.on_completion.options`
 
 ***Optional***
 
@@ -216,23 +205,23 @@ resource "rafay_environment_template" "aws-et-example" {
 - `type` (String) Specify the approval options
 
 <a id="nestedblock--spec--hooks--on_completion--type--approval--email"></a>
-### Nested Schema for `spec.hooks.on_completion.type.approval.type`
+### Nested Schema for `spec.hooks.on_completion.type.approval.email`
 
 
 <a id="nestedblock--spec--hooks--on_completion--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.on_completion.type.approval.type`
+### Nested Schema for `spec.hooks.on_completion.type.approval.github_pull_request`
 
 
 <a id="nestedblock--spec--hooks--on_completion--type--approval--internal"></a>
-### Nested Schema for `spec.hooks.on_completion.type.approval.type`
+### Nested Schema for `spec.hooks.on_completion.type.approval.internal`
 
-***Optional***
+***Required***
 
 - `emails` (List of String)
 
 
 <a id="nestedblock--spec--hooks--on_completion--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.on_completion.type.approval.type`
+### Nested Schema for `spec.hooks.on_completion.type.approval.jira`
 
 
 
@@ -296,21 +285,19 @@ resource "rafay_environment_template" "aws-et-example" {
 - `type` (String) Specify the type of hook
 
 <a id="nestedblock--spec--hooks--on_failure--agents"></a>
-### Nested Schema for `spec.hooks.on_failure.type`
+### Nested Schema for `spec.hooks.on_failure.agents`
 
-***Optional***
+***Required***
 
 - `name` (String) name of the resource
-- `version` (String) version of the resource
 
 
 <a id="nestedblock--spec--hooks--on_failure--driver"></a>
-### Nested Schema for `spec.hooks.on_failure.type`
+### Nested Schema for `spec.hooks.on_failure.driver`
 
-***Optional***
+***Required***
 
 - `name` (String) name of the resource
-- `version` (String) version of the resource
 
 
 <a id="nestedblock--spec--hooks--on_failure--options"></a>
@@ -336,23 +323,23 @@ resource "rafay_environment_template" "aws-et-example" {
 - `type` (String) Specify the approval options
 
 <a id="nestedblock--spec--hooks--on_failure--type--approval--email"></a>
-### Nested Schema for `spec.hooks.on_failure.type.approval.type`
+### Nested Schema for `spec.hooks.on_failure.type.approval.email`
 
 
 <a id="nestedblock--spec--hooks--on_failure--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.on_failure.type.approval.type`
+### Nested Schema for `spec.hooks.on_failure.type.approval.github_pull_request`
 
 
 <a id="nestedblock--spec--hooks--on_failure--type--approval--internal"></a>
-### Nested Schema for `spec.hooks.on_failure.type.approval.type`
+### Nested Schema for `spec.hooks.on_failure.type.approval.internal`
 
-***Optional***
+***Required***
 
 - `emails` (List of String)
 
 
 <a id="nestedblock--spec--hooks--on_failure--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.on_failure.type.approval.type`
+### Nested Schema for `spec.hooks.on_failure.type.approval.jira`
 
 
 
@@ -416,25 +403,23 @@ resource "rafay_environment_template" "aws-et-example" {
 - `type` (String) Specify the type of hook
 
 <a id="nestedblock--spec--hooks--on_init--agents"></a>
-### Nested Schema for `spec.hooks.on_init.type`
+### Nested Schema for `spec.hooks.on_init.agents`
 
-***Optional***
+***Required***
 
 - `name` (String) name of the resource
-- `version` (String) version of the resource
 
 
 <a id="nestedblock--spec--hooks--on_init--driver"></a>
-### Nested Schema for `spec.hooks.on_init.type`
+### Nested Schema for `spec.hooks.on_init.driver`
 
-***Optional***
+***Required***
 
 - `name` (String) name of the resource
-- `version` (String) version of the resource
 
 
 <a id="nestedblock--spec--hooks--on_init--options"></a>
-### Nested Schema for `spec.hooks.on_init.type`
+### Nested Schema for `spec.hooks.on_init.options`
 
 ***Optional***
 
@@ -456,23 +441,23 @@ resource "rafay_environment_template" "aws-et-example" {
 - `type` (String) Specify the approval options
 
 <a id="nestedblock--spec--hooks--on_init--type--approval--email"></a>
-### Nested Schema for `spec.hooks.on_init.type.approval.type`
+### Nested Schema for `spec.hooks.on_init.type.approval.email`
 
 
 <a id="nestedblock--spec--hooks--on_init--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.on_init.type.approval.type`
+### Nested Schema for `spec.hooks.on_init.type.approval.github_pull_request`
 
 
 <a id="nestedblock--spec--hooks--on_init--type--approval--internal"></a>
-### Nested Schema for `spec.hooks.on_init.type.approval.type`
+### Nested Schema for `spec.hooks.on_init.type.approval.internal`
 
-***Optional***
+***Required***
 
 - `emails` (List of String)
 
 
 <a id="nestedblock--spec--hooks--on_init--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.on_init.type.approval.type`
+### Nested Schema for `spec.hooks.on_init.type.approval.jira`
 
 
 
@@ -536,25 +521,23 @@ resource "rafay_environment_template" "aws-et-example" {
 - `type` (String) Specify the type of hook
 
 <a id="nestedblock--spec--hooks--on_success--agents"></a>
-### Nested Schema for `spec.hooks.on_success.type`
+### Nested Schema for `spec.hooks.on_success.agents`
 
-***Optional***
+***Required***
 
 - `name` (String) name of the resource
-- `version` (String) version of the resource
 
 
 <a id="nestedblock--spec--hooks--on_success--driver"></a>
-### Nested Schema for `spec.hooks.on_success.type`
+### Nested Schema for `spec.hooks.on_success.driver`
 
-***Optional***
+***Required***
 
 - `name` (String) name of the resource
-- `version` (String) version of the resource
 
 
 <a id="nestedblock--spec--hooks--on_success--options"></a>
-### Nested Schema for `spec.hooks.on_success.type`
+### Nested Schema for `spec.hooks.on_success.options`
 
 ***Optional***
 
@@ -576,23 +559,23 @@ resource "rafay_environment_template" "aws-et-example" {
 - `type` (String) Specify the approval options
 
 <a id="nestedblock--spec--hooks--on_success--type--approval--email"></a>
-### Nested Schema for `spec.hooks.on_success.type.approval.type`
+### Nested Schema for `spec.hooks.on_success.type.approval.email`
 
 
 <a id="nestedblock--spec--hooks--on_success--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.on_success.type.approval.type`
+### Nested Schema for `spec.hooks.on_success.type.approval.github_pull_request`
 
 
 <a id="nestedblock--spec--hooks--on_success--type--approval--internal"></a>
-### Nested Schema for `spec.hooks.on_success.type.approval.type`
+### Nested Schema for `spec.hooks.on_success.type.approval.internal`
 
-***Optional***
+***Required***
 
 - `emails` (List of String)
 
 
 <a id="nestedblock--spec--hooks--on_success--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.on_success.type.approval.type`
+### Nested Schema for `spec.hooks.on_success.type.approval.jira`
 
 
 
@@ -670,17 +653,6 @@ resource "rafay_environment_template" "aws-et-example" {
 - `dedicated` (Boolean) Specify if the resource is dedicated to workloads/apps
 - `version` (String) Specify the resource version, if blank will use the latest
 
-
-
-<a id="nestedblock--spec--secret"></a>
-### Nested Schema for `spec.secret`
-
-***Optional***
-
-- `name` (String) relative path of a artifact
-- `sensitive` (Boolean) data is the base64 encoded contents of the file if set to true
-
-
 <a id="nestedblock--spec--sharing"></a>
 ### Nested Schema for `spec.sharing`
 
@@ -706,7 +678,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `name` (String) Name of the variable
 - `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 - `value` (String) Value of the variable in the specified format
-- `value_type` (String) Specify the variable value type
+- `value_type` (String) Specify the variable value type, Supported types are text, expression, json, hcl
 
 <a id="nestedblock--spec--variables--options"></a>
 ### Nested Schema for `spec.variables.options`
@@ -724,7 +696,7 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Optional***
 
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
-- `type` (String) Specify the type of ovverride this variable supports
+- `type` (String) Specify the type of override this variable supports, Available types are allowed, notallowed, restricted
 
 
 

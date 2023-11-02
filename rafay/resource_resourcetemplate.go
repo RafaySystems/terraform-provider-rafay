@@ -14,7 +14,6 @@ import (
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rctl/pkg/config"
-	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -53,7 +52,7 @@ func resourceTemplateCreate(ctx context.Context, d *schema.ResourceData, m inter
 			return diags
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 		if err != nil {
 			return diags
 		}
@@ -83,7 +82,7 @@ func resourceTemplateUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -114,7 +113,7 @@ func resourceTemplateRead(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		log.Println("read client err")
 		return diag.FromErr(err)
@@ -171,7 +170,7 @@ func resourceTemplateDelete(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -452,6 +451,10 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 
 	if tgtrs, ok := in["target_resources"].([]interface{}); ok && len(tgtrs) > 0 {
 		tpo.TargetResources = toArrayString(tgtrs)
+	}
+
+	if h, ok := in["with_terraform_cloud"].([]interface{}); ok && len(h) > 0 {
+		tpo.WithTerraformCloud = expandBoolValue(h)
 	}
 
 	return tpo
@@ -773,6 +776,7 @@ func flattenTerraformProviderOptions(in *eaaspb.TerraformProviderOptions) []inte
 	obj["lock_timeout_seconds"] = in.LockTimeoutSeconds
 	obj["plugin_dirs"] = toArrayInterface(in.PluginDirs)
 	obj["target_resources"] = toArrayInterface(in.TargetResources)
+	obj["with_terraform_cloud"] = flattenBoolValue(in.WithTerraformCloud)
 
 	return []interface{}{obj}
 }

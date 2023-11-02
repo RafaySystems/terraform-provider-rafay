@@ -343,6 +343,12 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 		obj.Drift = expandDrift(v)
 	}
 
+	if v, ok := in["drift_webhook"].([]interface{}); ok && len(v) > 0 {
+		obj.DriftWebhook = expandDriftWebhook(v)
+	} else {
+		obj.DriftWebhook = &infrapb.DriftWebhook{Enabled: true}
+	}
+
 	if v, ok := in["namespace_config"].([]interface{}); ok && len(v) > 0 {
 		obj.NamespaceConfig = expandBlueprintNamespaceConfig(v)
 	}
@@ -968,6 +974,14 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["opa_policy"] = nil
 	}
 
+	if in.DriftWebhook != nil {
+		v, ok := obj["drift_webhook"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["drift_webhook"] = flattenDriftWebhook(in.DriftWebhook, v)
+	}
+
 	if in.NetworkPolicy != nil {
 		v, ok := obj["network_policy"].([]interface{})
 		if !ok {
@@ -1029,6 +1043,21 @@ func flattenBlueprintOpaPolicy(in *infrapb.OPAPolicy, p []interface{}) []interfa
 		}
 		obj["opa_policy"] = flattenBlueprintOpaPolicies(in.OpaPolicy, v)
 	}
+
+	return []interface{}{obj}
+}
+
+func flattenDriftWebhook(in *infrapb.DriftWebhook, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
 
 	return []interface{}{obj}
 }

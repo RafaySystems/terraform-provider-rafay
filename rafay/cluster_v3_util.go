@@ -15,6 +15,9 @@ const (
 
 	GKE_PRIVATE_CLUSTER_TYPE = "private"
 	GKE_PUBLIC_CLUSTER_TYPE  = "public"
+
+	GKE_NODEPOOL_UPGRADE_STRATEGY_SURGE      = "SURGE"
+	GKE_NODEPOOL_UPGRADE_STRATEGY_BLUE_GREEN = "BLUE_GREEN"
 )
 
 type AksNodepoolsErrorFormatter struct {

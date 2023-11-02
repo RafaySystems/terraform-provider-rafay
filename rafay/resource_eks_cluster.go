@@ -20,6 +20,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-cty/cty"
 	jsoniter "github.com/json-iterator/go"
+	"k8s.io/utils/strings/slices"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -1028,6 +1029,11 @@ func addonConfigFields() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
+		"configuration_values": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "configuration values for the addon",
+		},
 	}
 	return s
 }
@@ -1482,7 +1488,7 @@ func bottleRocketFields() map[string]*schema.Schema {
 			Description: "Enable admin container",
 		},
 		"settings": {
-			Type:        schema.TypeMap,
+			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "contains any bottlerocket settings",
 		},
@@ -2376,7 +2382,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 			log.Printf("error while getCluster %s", errGet.Error())
 			return diag.FromErr(errGet)
 		}
-
+		rctlConfig.ProjectID = projectID
 		statusResp, err := clusterctl.Status(logger, rctlConfig, res.TaskSetID)
 		if err != nil {
 			log.Println("status response parse error", err)
@@ -2404,10 +2410,11 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 
 	return diags
 }
-func eksClusterCTLStatus(taskid string) (string, error) {
+func eksClusterCTLStatus(taskid, projectID string) (string, error) {
 	log.Println("eksClusterCTLStatus")
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
+	rctlCfg.ProjectID = projectID
 	return clusterctl.Status(logger, rctlCfg, taskid)
 }
 
@@ -3089,8 +3096,14 @@ func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
 	if v, ok := in["enable_admin_container"].(bool); ok {
 		obj.EnableAdminContainer = &v
 	}
-	if v, ok := in["settings"].(map[string]interface{}); ok && len(v) > 0 {
-		obj.Settings = toMapString(v)
+	////@@@TODO Store terraform input as inline document object correctly
+	if v, ok := in["settings"].(string); ok && len(v) > 0 {
+		var policyDoc map[string]interface{}
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		//json.Unmarshal(input, &data)
+		json2.Unmarshal([]byte(v), &policyDoc)
+		obj.Settings = policyDoc
+		log.Println("bottle rocket settings expanded correct")
 	}
 	//docs dont have field skip endpoint creation but struct does
 	return obj
@@ -3392,6 +3405,9 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 		}
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
+		}
+		if v, ok := in["configuration_values"].(string); ok && len(v) > 0 {
+			obj.ConfigurationValues = v
 		}
 		//docs dont have force variable but struct does
 		out[i] = obj
@@ -4259,6 +4275,9 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		return nil, fmt.Errorf("empty cluster config input")
 	}
 	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
 
 	if len(in.APIVersion) > 0 {
 		obj["apiversion"] = in.APIVersion
@@ -4802,28 +4821,74 @@ func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 	log.Println("got to flatten subnet mapping", len(p))
 	out := make([]interface{}, len(in))
 	i := 0
-	for key, elem := range in {
+	orderedSubnetNames := getSubnetNamesOrderFromState(p)
+
+	for idx := 0; idx < len(orderedSubnetNames); idx++ {
 		obj := map[string]interface{}{}
-		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+		if idx < len(p) && p[idx] != nil {
+			obj = p[idx].(map[string]interface{})
 		}
-		if len(elem.ID) > 0 {
-			obj["id"] = elem.ID
+		name := orderedSubnetNames[idx]
+		if elem, ok := in[name]; ok {
+			if len(elem.ID) > 0 {
+				obj["id"] = elem.ID
+			}
+			if len(elem.AZ) > 0 {
+				obj["az"] = elem.AZ
+			}
+			if len(name) > 0 {
+				obj["name"] = name
+			}
+			if len(elem.CIDR) > 0 {
+				obj["cidr"] = elem.CIDR
+			}
+			out[i] = obj
+			i += 1
 		}
-		if len(elem.AZ) > 0 {
-			obj["az"] = elem.AZ
+	}
+	for key, elem := range in {
+		if !slices.Contains(orderedSubnetNames, key) {
+			obj := map[string]interface{}{}
+			if len(elem.ID) > 0 {
+				obj["id"] = elem.ID
+			}
+			if len(elem.AZ) > 0 {
+				obj["az"] = elem.AZ
+			}
+			if len(key) > 0 {
+				obj["name"] = key
+			}
+			if len(elem.CIDR) > 0 {
+				obj["cidr"] = elem.CIDR
+			}
+			out[i] = obj
+			i += 1
 		}
-		if len(key) > 0 {
-			obj["name"] = key
-		}
-		if len(elem.CIDR) > 0 {
-			obj["cidr"] = elem.CIDR
-		}
-		out[i] = obj
-		i += 1
 	}
 	log.Println("finished subnet mapping")
 	return out
+}
+
+func getSubnetNamesOrderFromState(p []interface{}) []string {
+	extractValue := func(obj map[string]interface{}, key string) string {
+		if val, ok := obj[key]; ok {
+			if val2, ok2 := val.(string); ok2 {
+				return val2
+			}
+		}
+		return ""
+	}
+	res := make([]string, len(p))
+	for i := 0; i < len(p); i++ {
+		if p[i] != nil {
+			if obj, ok := p[i].(map[string]interface{}); ok {
+				if x := extractValue(obj, "name"); x != "" {
+					res = append(res, obj["name"].(string))
+				}
+			}
+		}
+	}
+	return res
 }
 func flattenVPCNAT(in *ClusterNAT, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
@@ -4894,6 +4959,9 @@ func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, erro
 
 		obj["tags"] = toMapInterface(in.Tags)
 		//Force field for existing addon (not in doc)
+		if len(in.ConfigurationValues) > 0 {
+			obj["configuration_values"] = in.ConfigurationValues
+		}
 
 		out[i] = &obj
 	}
@@ -5063,7 +5131,7 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{
 			obj["target_group_arns"] = toArrayInterface(in.TargetGroupARNs)
 		}
 		if in.Taints != nil {
-			v, ok := obj["bottle_rocket"].([]interface{})
+			v, ok := obj["taints"].([]interface{})
 			if !ok {
 				v = []interface{}{}
 			}
@@ -5261,16 +5329,23 @@ func flattenNodeGroupInstanceSelector(in *InstanceSelector, p []interface{}) []i
 }
 func flattenNodeGroupBottlerocket(in *NodeGroupBottlerocket, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
 	if in == nil {
 		return []interface{}{obj}
 	}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
 	obj["enable_admin_container"] = in.EnableAdminContainer
 
-	if len(in.Settings) > 0 {
-		obj["settings"] = toMapInterface(in.Settings)
+	if in.Settings != nil && len(in.Settings) > 0 {
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		jsonStr, err := json2.Marshal(in.Settings)
+		if err != nil {
+			log.Println("attach policy marshal err:", err)
+		}
+		log.Println("jsonSTR:", jsonStr)
+		obj["settings"] = string(jsonStr)
+		log.Println("bottlerocket settings flattened correct:", obj["settings"])
 	}
 	return []interface{}{obj}
 }
@@ -5462,7 +5537,7 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 		}
 		obj["spot"] = in.Spot
 		if in.Taints != nil {
-			v, ok := obj["bottle_rocket"].([]interface{})
+			v, ok := obj["taints"].([]interface{})
 			if !ok {
 				v = []interface{}{}
 			}

@@ -21,6 +21,10 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 
 | Resource                                  | Version Released |
 | ----------------------------------------- | ---------------- |
+| `rafay_environment`                       | 1.1.18           |
+| `rafay_environment_template`              | 1.1.18           |
+| `rafay_resource_template`                 | 1.1.18           |
+| `rafay_static_resource`                   | 1.1.18           |
 | `rafay_aks_cluster_v3`                    | 1.1.11           |
 | `rafay_tag_group`                         | 1.1.11           |
 | `rafay_project_tags_association`          | 1.1.11           |
@@ -76,6 +80,7 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 ### In Development 
 
 - `infra_provisioner`
+- `rafay_driver`
 
 
 ---

@@ -8,13 +8,13 @@ resource "rafay_resource_template" "aws-elasticache" {
     provider = "terraform"
     provider_options {
       terraform {
-        version                = "v1.4.4"
+        version = "v1.4.4"
         use_system_state_store {
           value = true
         }
         backend_configs = ["path"]
-        var_files = ["path"]
-        plugin_dirs = ["path"]
+        var_files       = ["path"]
+        plugin_dirs     = ["path"]
         lock {
           value = true
         }
@@ -52,9 +52,9 @@ resource "rafay_resource_template" "aws-elasticache" {
                 type = "container"
                 options {
                   container {
-                    image = "eaasunittest/infracost:demo"
+                    image     = "eaasunittest/infracost:demo"
                     arguments = ["--verbose"]
-                    commands = ["scan"]
+                    commands  = ["scan"]
                     envvars = {
                       DOWNLOAD_TOKEN = "$(ctx.activities[\"aws-elasticache.artifact\"].output.files[\"job.tar.zst\"].token)"
                       DOWNLOAD_URL   = "$(ctx.activities[\"aws-elasticache.artifact\"].output.files[\"job.tar.zst\"].url)"
@@ -81,11 +81,11 @@ resource "rafay_resource_template" "aws-elasticache" {
                 options {
                   http {
                     endpoint = "https://jsonplaceholder.typicode.com/todos/1"
-                    method = "POST"
+                    method   = "POST"
                     headers = {
                       X-TOKEN = "shhh"
                     }
-                    body = "gibberish"
+                    body              = "gibberish"
                     success_condition = "200OK"
                   }
                 }

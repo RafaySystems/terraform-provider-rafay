@@ -1,10 +1,10 @@
 resource "rafay_config_context" "aws-rds-config" {
   metadata {
-    name    = var.name
-    project = var.project
+    name        = var.name
+    project     = var.project
     description = "this is a test config context created from terraform"
     annotations = {
-      key = "my-ann-key"
+      key   = "my-ann-key"
       value = "my-ann-value"
     }
   }
@@ -29,7 +29,7 @@ resource "rafay_config_context" "aws-rds-config" {
       value      = "new-value"
       options {
         override {
-          type = "restricted"
+          type              = "restricted"
           restricted_values = ["new-value", "modified-value"]
         }
         description = "this is a dummy variable"

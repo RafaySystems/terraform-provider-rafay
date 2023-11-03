@@ -110,7 +110,7 @@ resource "rafay_config_context" "config-context-example" {
 
 ***Optional***
 
-- `sensitive` (Boolean) data is the base64 encoded contents of the file if set to true
+- `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
 
 <a id="nestedblock--spec--variables"></a>
 ### Nested Schema for `spec.variables`

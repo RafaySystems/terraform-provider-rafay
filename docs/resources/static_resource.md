@@ -49,7 +49,7 @@ resource "rafay_static_resource" "static-resource-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) Name of the resource
 - `project` (String) Project of the resource
 
 ***Optional***
@@ -72,7 +72,7 @@ resource "rafay_static_resource" "static-resource-example" {
 - `name` (String) Name of the variable
 - `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 - `value` (String) Value of the variable in the specified format
-- `value_type` (String) Specify the variable value type, Supported types are text, expression, json, hcl
+- `value_type` (String) Specify the variable value type, Supported types are `text`, `expression`, `json`, `hcl`
 
 <a id="nestedblock--spec--variables--options"></a>
 ### Nested Schema for `spec.variables.options`
@@ -80,7 +80,7 @@ resource "rafay_static_resource" "static-resource-example" {
 ***Optional***
 
 - `description` (String) Description of the variable
-- `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
+- `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

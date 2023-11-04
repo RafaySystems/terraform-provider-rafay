@@ -134,12 +134,12 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) Name of the resource
 - `project` (String) Project of the resource
 
 ***Optional***
 
-- `description` (String) description of the resource
+- `description` (String) Description of the resource
 
 
 <a id="nestedblock--spec"></a>
@@ -200,8 +200,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http , Available options are approval, notification, script, container, http
-
+- `type` (String) Specify the type of hook, Available options are `approval`, `notification`, `script`, `container`, `http`.
 <a id="nestedblock--spec--hooks--on_completion--agents"></a>
 ### Nested Schema for `spec.hooks.on_completion.agents`
 
@@ -238,7 +237,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval--internal))
 - `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval--jira))
-- `type` (String) Specify the approval options, Available options are internal, email, jira, github_pull_request
+- `type` (String) Specify the approval options, Available options are `internal`, `email`, `jira`, `github_pull_request`
 
 <a id="nestedblock--spec--hooks--on_completion--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.on_completion.type.approval.email`
@@ -314,7 +313,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http
+- `type` (String) Specify the type of hook, Available options are `approval`, `notification`, `script`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--on_failure--agents"></a>
 ### Nested Schema for `spec.hooks.on_failure.agents`

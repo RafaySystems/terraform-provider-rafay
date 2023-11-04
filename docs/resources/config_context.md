@@ -118,7 +118,7 @@ resource "rafay_config_context" "config-context-example" {
 ***Optional***
 
 - `name` (String) Name of the variable
-- `value_type` (String) Specify the variable value type, Supported types are text, expression, json, hcl
+- `value_type` (String) Specify the variable value type, Supported types are `text`, `expression`, `json`, `hcl`.
 - `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 - `value` (String) Value of the variable in the specified format
 
@@ -138,7 +138,7 @@ resource "rafay_config_context" "config-context-example" {
 ***Optional***
 
 - `restricted_values` (List of String) If the override type is restricted, specify the values it is restricted to
-- `type` (String) Specify the type of override this variable supports, Available types are allowed, notallowed, restricted
+- `type` (String) Specify the type of override this variable supports, Available types are `allowed`, `notallowed`, `restricted`
 
 
 <a id="nestedblock--timeouts"></a>

@@ -67,12 +67,15 @@ resource "rafay_static_resource" "static-resource-example" {
 <a id="nestedblock--spec--variables"></a>
 ### Nested Schema for `spec.variables`
 
-***Optional***
+***Required***
 
 - `name` (String) Name of the variable
-- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 - `value` (String) Value of the variable in the specified format
 - `value_type` (String) Specify the variable value type, Supported types are `text`, `expression`, `json`, `hcl`
+
+***Optional***
+
+- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 
 <a id="nestedblock--spec--variables--options"></a>
 ### Nested Schema for `spec.variables.options`

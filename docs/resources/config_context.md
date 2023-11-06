@@ -88,6 +88,21 @@ resource "rafay_config_context" "config-context-example" {
 - `sharing` (Block List, Max: 1) Defines if this is shared with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Variables data for config context (see [below for nested schema](#nestedblock--spec--variables))
 
+<a id="nestedblock--spec--sharing"></a>
+### Nested Schema for `spec.sharing`
+
+***Optional***
+
+- `enabled` (Boolean) flag to specify if sharing is enabled for resource
+- `projects` (Block List) list of projects this resource is shared to (see [below for nested schema](#nestedblock--spec--sharing--projects))
+
+<a id="nestedblock--spec--sharing--projects"></a>
+### Nested Schema for `spec.sharing.projects`
+
+***Required***
+
+- `name` (String) name of the project, '*' if to be shared with all projects
+
 <a id="nestedblock--spec--envs"></a>
 ### Nested Schema for `spec.envs`
 
@@ -115,12 +130,15 @@ resource "rafay_config_context" "config-context-example" {
 <a id="nestedblock--spec--variables"></a>
 ### Nested Schema for `spec.variables`
 
-***Optional***
+***Required***
 
 - `name` (String) Name of the variable
 - `value_type` (String) Specify the variable value type, Supported types are `text`, `expression`, `json`, `hcl`.
-- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 - `value` (String) Value of the variable in the specified format
+
+***Optional***
+
+- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 
 <a id="nestedblock--spec--variables--options"></a>
 ### Nested Schema for `spec.variables.options`

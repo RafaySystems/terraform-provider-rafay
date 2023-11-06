@@ -94,9 +94,9 @@ resource "rafay_environment" "eks-rds-env-example" {
 <a id="nestedblock--spec--sharing--projects"></a>
 ### Nested Schema for `spec.sharing.projects`
 
-***Optional***
+***Required***
 
-- `name` (String) name of the project
+- `name` (String) name of the project, '*' if to be shared with all projects
 
 
 
@@ -112,12 +112,15 @@ resource "rafay_environment" "eks-rds-env-example" {
 <a id="nestedblock--spec--variables"></a>
 ### Nested Schema for `spec.variables`
 
-***Optional***
+***Required***
 
 - `name` (String) Name of the variable
-- `value_type` (String) Specify the variable value type, Supported types are text, expression, json, hcl
-- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
+- `value_type` (String) Specify the variable value type, Supported types are `text`, `expression`, `json`, `hcl`
 - `value` (String) Value of the variable in the specified format
+
+***Optional***
+
+- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 
 <a id="nestedblock--spec--variables--options"></a>
 ### Nested Schema for `spec.variables.options`
@@ -135,10 +138,7 @@ resource "rafay_environment" "eks-rds-env-example" {
 ***Optional***
 
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
-- `type` (String) Specify the type of override this variable supports, Available types are allowed, notallowed, restricted
-
-
-
+- `type` (String) Specify the type of override this variable supports, Available types are `allowed`, `notallowed`, `restricted`
 
 
 <a id="nestedblock--timeouts"></a>

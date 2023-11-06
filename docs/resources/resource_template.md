@@ -147,7 +147,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `provider` (String) Specify the resource template provider
+- `provider` (String) Specify the resource template provider, Accepted values are `terraform`
 - `repository_options` (Block List, Max: 1) Repository options to be provided (see [below for nested schema](#nestedblock--spec--repository_options))
 - `version` (String) Version of the resource template
 
@@ -159,14 +159,14 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `provider_options` (Block List, Max: 1) Provider specific options to be provided (see [below for nested schema](#nestedblock--spec--provider_options))
 - `sharing` (Block List, Max: 1) Sharing resource template across projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Variables associated with resource template (see [below for nested schema](#nestedblock--spec--variables))
-- `version_state` (String) Represents the current state of template version
+- `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent
 
 
 <a id="nestedblock--spec--contexts"></a>
@@ -174,7 +174,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the config context
 
 
 <a id="nestedblock--spec--hooks"></a>
@@ -201,12 +201,13 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
 - `type` (String) Specify the type of hook, Available options are `approval`, `notification`, `script`, `container`, `http`.
+
 <a id="nestedblock--spec--hooks--on_completion--agents"></a>
 ### Nested Schema for `spec.hooks.on_completion.agents`
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--on_completion--driver"></a>
@@ -214,7 +215,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--on_completion--options"></a>
@@ -250,7 +251,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--on_completion--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.on_completion.type.approval.internal`
 
-***Optional***
+***Required***
 
 - `emails` (List of String)
 
@@ -320,7 +321,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--on_failure--driver"></a>
@@ -328,7 +329,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--on_failure--options"></a>
@@ -438,7 +439,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Optional***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--on_init--driver"></a>
@@ -446,7 +447,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Optional***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--on_init--options"></a>
@@ -556,7 +557,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--on_success--driver"></a>
@@ -564,7 +565,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--on_success--options"></a>
@@ -704,11 +705,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--agents"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type`
+### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.agents`
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--driver"></a>
@@ -716,7 +717,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Optional***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--options"></a>
@@ -805,8 +806,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `success_condition` (String) Specify the success condition of the script
 
 
-
-
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before`
 
@@ -822,11 +821,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--agents"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type`
+### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.agents`
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--driver"></a>
@@ -834,7 +833,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--options"></a>
@@ -870,14 +869,13 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.internal`
 
-***Optional***
+***Required***
 
 - `emails` (List of String)
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container"></a>
@@ -949,11 +947,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--agents"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type`
+### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.agents`
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--driver"></a>
@@ -961,7 +959,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--options"></a>
@@ -997,7 +995,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.internal`
 
-***Optional***
+***Required***
 
 - `emails` (List of String)
 
@@ -1071,7 +1069,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--driver"></a>
@@ -1079,7 +1077,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--options"></a>
@@ -1198,7 +1196,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--driver"></a>
@@ -1206,7 +1204,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--options"></a>
@@ -1316,7 +1314,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--driver"></a>
@@ -1324,7 +1322,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--options"></a>
@@ -1411,9 +1409,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
 - `script` (String) Specify the script to be executed
 - `success_condition` (String) Specify the success condition of the script
-
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up"></a>
@@ -1443,7 +1438,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--driver"></a>
@@ -1451,7 +1446,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--options"></a>
@@ -1561,7 +1556,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--driver"></a>
@@ -1569,7 +1564,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--options"></a>
@@ -1656,9 +1651,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
 - `script` (String) Specify the script to be executed
 - `success_condition` (String) Specify the success condition of the script
-
-
-
 
 
 
@@ -1698,7 +1690,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--driver"></a>
@@ -1706,7 +1698,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--options"></a>
@@ -1742,7 +1734,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.internal`
 
-***Optional***
+***Required***
 
 - `emails` (List of String)
 
@@ -1816,7 +1808,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--driver"></a>
@@ -1824,7 +1816,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--options"></a>
@@ -1943,7 +1935,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--driver"></a>
@@ -1951,7 +1943,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--options"></a>
@@ -2061,7 +2053,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--driver"></a>
@@ -2069,7 +2061,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--options"></a>
@@ -2188,7 +2180,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--driver"></a>
@@ -2196,7 +2188,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--options"></a>
@@ -2306,7 +2298,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--driver"></a>
@@ -2314,7 +2306,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--options"></a>
@@ -2403,11 +2395,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `success_condition` (String) Specify the success condition of the script
 
 
-
-
-
-
-
 <a id="nestedblock--spec--hooks--provider--terraform"></a>
 ### Nested Schema for `spec.hooks.provider.terraform`
 
@@ -2453,7 +2440,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--driver"></a>
@@ -2461,7 +2448,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options"></a>
@@ -2571,7 +2558,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--driver"></a>
@@ -2579,7 +2566,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options"></a>
@@ -2615,7 +2602,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.internal`
 
-***Optional***
+***Required***
 
 - `emails` (List of String)
 
@@ -2698,7 +2685,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--driver"></a>
@@ -2706,7 +2693,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options"></a>
@@ -2816,7 +2803,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--driver"></a>
@@ -2824,7 +2811,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options"></a>
@@ -2943,7 +2930,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--driver"></a>
@@ -2951,7 +2938,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options"></a>
@@ -3061,7 +3048,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--driver"></a>
@@ -3069,7 +3056,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options"></a>
@@ -3105,7 +3092,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.internal`
 
-***Optional***
+***Required***
 
 - `emails` (List of String)
 
@@ -3188,7 +3175,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--driver"></a>
@@ -3196,7 +3183,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options"></a>
@@ -3306,7 +3293,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--driver"></a>
@@ -3314,7 +3301,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options"></a>
@@ -3403,10 +3390,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `success_condition` (String) Specify the success condition of the script
 
 
-
-
-
-
 <a id="nestedblock--spec--hooks--provider--terraform--destroy"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy`
 
@@ -3443,7 +3426,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--driver"></a>
@@ -3451,7 +3434,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options"></a>
@@ -3561,7 +3544,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--driver"></a>
@@ -3569,7 +3552,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options"></a>
@@ -3605,7 +3588,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.type`
 
-***Optional***
+***Required***
 
 - `emails` (List of String)
 
@@ -3688,7 +3671,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--driver"></a>
@@ -3696,7 +3679,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options"></a>
@@ -3806,7 +3789,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--driver"></a>
@@ -3814,7 +3797,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options"></a>
@@ -3933,7 +3916,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--driver"></a>
@@ -3941,7 +3924,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options"></a>
@@ -4051,7 +4034,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--driver"></a>
@@ -4059,7 +4042,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options"></a>
@@ -4149,12 +4132,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 
 
-
-
-
-
-
-
 <a id="nestedblock--spec--provider_options"></a>
 ### Nested Schema for `spec.provider_options`
 
@@ -4171,7 +4148,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--provider_options--pulumi"></a>
@@ -4252,7 +4229,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--repository_options"></a>
 ### Nested Schema for `spec.repository_options`
 
-***Optional***
+***Required***
 
 - `branch` (String) Specify the branch
 - `directory_path` (String) Specify the directory path
@@ -4270,21 +4247,24 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--sharing--projects"></a>
 ### Nested Schema for `spec.sharing.projects`
 
-***Optional***
+***Required***
 
-- `name` (String) name of the project
+- `name` (String) name of the project, '*' if to be shared with all projects
 
 
 
 <a id="nestedblock--spec--variables"></a>
 ### Nested Schema for `spec.variables`
 
-***Optional***
+***Required***
 
 - `name` (String) Name of the variable
-- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 - `value` (String) Value of the variable in the specified format
-- `value_type` (String) Specify the variable value type, Supported types are text, expression, json, hcl
+- `value_type` (String) Specify the variable value type, Supported types are `text`, `expression`, `json`, `hcl`
+
+***Optional***
+
+- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 
 <a id="nestedblock--spec--variables--options"></a>
 ### Nested Schema for `spec.variables.options`
@@ -4302,11 +4282,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
-- `type` (String) Specify the type of override this variable supports, Available types are allowed, notallowed, restricted
-
-
-
-
+- `type` (String) Specify the type of override this variable supports, Available types are `allowed`, `notallowed`, `restricted`
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

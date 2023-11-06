@@ -81,7 +81,6 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 ### In Development 
 
 - `infra_provisioner`
-- `rafay_driver`
 
 
 ---

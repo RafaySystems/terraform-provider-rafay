@@ -124,14 +124,14 @@ resource "rafay_environment_template" "aws-et-example" {
 - `hooks` (Block List, Max: 1) Specify lifecycle hook actions (see [below for nested schema](#nestedblock--spec--hooks))
 - `sharing` (Block List, Max: 1) Sharing options with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Environment variables, file data and other variables (see [below for nested schema](#nestedblock--spec--variables))
-- `version_state` (String) Represents the current state of template version
+- `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--contexts"></a>
@@ -139,7 +139,7 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the config context resource
 
 
 <a id="nestedblock--spec--hooks"></a>
@@ -171,7 +171,7 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--on_completion--driver"></a>
@@ -179,7 +179,7 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--on_completion--options"></a>
@@ -289,7 +289,7 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--on_failure--driver"></a>
@@ -297,7 +297,7 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--on_failure--options"></a>
@@ -407,7 +407,7 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--on_init--driver"></a>
@@ -415,7 +415,7 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--on_init--options"></a>
@@ -525,7 +525,7 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--on_success--driver"></a>
@@ -533,7 +533,7 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Required***
 
-- `name` (String) name of the resource
+- `name` (String) name of the driver resource
 
 
 <a id="nestedblock--spec--hooks--on_success--options"></a>
@@ -631,10 +631,10 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Optional***
 
 - `depends_on` (Block List) Specify the environment resource reference that it depends on (see [below for nested schema](#nestedblock--spec--resources--depends_on))
-- `kind` (String) Specify the environment resource kind
+- `kind` (String) Specify the environment resource kind, Accepted values are `resourcetemplate` if type is 'dynamic' and `resource`, `environment` if type is 'static'
 - `name` (String) Specify the environment resource name
 - `resource_options` (Block List, Max: 1) Specify the environment resource options (see [below for nested schema](#nestedblock--spec--resources--resource_options))
-- `type` (String) Specify the environment resource type
+- `type` (String) Specify the environment resource type, Accepted values are `dynamic`, `static`
 
 <a id="nestedblock--spec--resources--depends_on"></a>
 ### Nested Schema for `spec.resources.depends_on`
@@ -664,21 +664,23 @@ resource "rafay_environment_template" "aws-et-example" {
 <a id="nestedblock--spec--sharing--projects"></a>
 ### Nested Schema for `spec.sharing.projects`
 
-***Optional***
+***Required***
 
-- `name` (String) name of the project
-
+- `name` (String) name of the project, '*' if to be shared with all projects
 
 
 <a id="nestedblock--spec--variables"></a>
 ### Nested Schema for `spec.variables`
 
-***Optional***
+***Required***
 
 - `name` (String) Name of the variable
-- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 - `value` (String) Value of the variable in the specified format
-- `value_type` (String) Specify the variable value type, Supported types are text, expression, json, hcl
+- `value_type` (String) Specify the variable value type, Supported types are `text`, `expression`, `json`, `hcl`
+
+***Optional***
+
+- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 
 <a id="nestedblock--spec--variables--options"></a>
 ### Nested Schema for `spec.variables.options`
@@ -696,9 +698,7 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Optional***
 
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
-- `type` (String) Specify the type of override this variable supports, Available types are allowed, notallowed, restricted
-
-
+- `type` (String) Specify the type of override this variable supports, Available types are `allowed`, `notallowed`, `restricted`
 
 
 

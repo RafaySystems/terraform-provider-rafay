@@ -98,9 +98,9 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
                     endpoint = "https://jsonplaceholder.typicode.com/todos/1"
                     method   = "POST"
                     headers = {
-                      X-TOKEN = "shhh"
+                      X-TOKEN = "token"
                     }
-                    body              = "gibberish"
+                    body              = "request-body"
                     success_condition = "200OK"
                   }
                 }

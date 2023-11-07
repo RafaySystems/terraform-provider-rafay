@@ -320,6 +320,7 @@ Optional:
 - `skip_crd` - (Boolean) If enabled, the installation skips deploying CRDs. 
 - `timeout` - (String) The timeout for waiting for the resources to become ready. (See [below for nested schema](#nestedblock--spec--artifact--options--timeouts)) 
 - `wait` - (Boolean) If enabled, deploy the resource with wait flag. This means wait until the deployment is in a ready state before marking the release as successful. 
+- `wait_for_jobs` - (Boolean) if set and --wait enabled, will wait until all Jobs have been completed before marking the release as successful. It will wait for as long as --timeout
 
 
 <a id="nestedblock--spec--drift"></a>

@@ -398,7 +398,68 @@ func flattenGKEV3PrivateCluster(in *infrapb.GkePrivateCluster, p []interface{}) 
 	obj["enable_access_control_plane_global"] = in.EnableAccessControlPlaneGlobal
 	obj["disable_snat"] = in.DisableSNAT
 
+	if in.FirewallRules != nil && len(in.FirewallRules) > 0 {
+		v, ok := obj["firewall_rules"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["firewall_rules"] = flattenGKEV3Firewalls(in.FirewallRules, v)
+	}
+
 	return []interface{}{}
+}
+
+func flattenGKEV3FirewallRules(in []*infrapb.Rule, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, j := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		obj["protocol"] = j.Protocol
+		obj["ports"] = toArrayInterface(j.Ports)
+
+		out[i] = &obj
+	}
+	return out
+}
+
+func flattenGKEV3Firewalls(in []*infrapb.FirewallRule, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, j := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		obj["action"] = j.Action
+		obj["description"] = j.Description
+		obj["destination_ranges"] = j.DestinationRanges
+		obj["direction"] = j.Direction
+		obj["name"] = j.Name
+		obj["network"] = j.Network
+		obj["priority"] = j.Priority
+		obj["source_ranges"] = j.SourceRanges
+		obj["target_tags"] = j.TargetTags
+		if j.Rules != nil && len(j.Rules) > 0 {
+			v, ok := obj["rules"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["rules"] = flattenGKEV3FirewallRules(j.Rules, v)
+		}
+
+		out[i] = &obj
+	}
+
+	return out
 }
 
 func flattenGKEV3ControlPlaneAuthorizedNetwork(in *infrapb.GkeControlPlaneAuthorizedNetwork, p []interface{}) []interface{} {

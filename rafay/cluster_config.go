@@ -3,7 +3,7 @@ package rafay
 type SystemComponentsPlacement struct {
 	NodeSelector      map[string]string  `yaml:"nodeSelector,omitempty"`
 	Tolerations       []*Tolerations     `yaml:"tolerations,omitempty"`
-	DaemonsetOverride *DaemonsetOverride `yaml:"daemonsetOverride,omitempty"`
+	DaemonsetOverride *DaemonsetOverride `yaml:"daemonSetOverride,omitempty"`
 }
 
 type Tolerations struct {

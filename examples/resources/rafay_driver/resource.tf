@@ -5,25 +5,25 @@ resource "rafay_driver" "driver" {
   }
   spec {
     config {
-      type = var.type
+      type            = var.type
       timeout_seconds = 100
       max_retry_count = 3
       container {
-        image = var.image
+        image     = var.image
         arguments = ["--log-level=3"]
-        commands = ["run main.go"]
+        commands  = ["run main.go"]
         image_pull_credentials {
           password = "gibberesh"
           registry = "hub.docker.io"
           username = "randomuser"
         }
         kube_config_options {
-          kube_config = "path/to/kubeconfig.json"
+          kube_config    = "path/to/kubeconfig.json"
           out_of_cluster = true
         }
         kube_options {
           labels = {
-            "name": "terraform"
+            "name" : "terraform"
           }
           resources = ["pods", "deployments"]
         }

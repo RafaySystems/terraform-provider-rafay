@@ -48,6 +48,7 @@ type artifactTranspose struct {
 		Description              string   `protobuf:"bytes,13,opt,name=description,proto3" json:"description,omitempty"`
 		DisableOpenAPIValidation bool     `protobuf:"varint,14,opt,name=disable_open_api_validation,proto3" json:"disableOpenAPIValidation,omitempty"`
 		KeepHistory              bool     `protobuf:"varint,15,opt,name=keep_history,proto3" json:"keepHistory,omitempty"`
+		WaitForJobs              bool     `protobuf:"varint,16,opt,name=waitForJobs,proto3" json:"waitForJobs" yaml:"waitForJobs"`
 	} `json:"options,omitempty"`
 }
 
@@ -215,6 +216,9 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 			if v, ok := in["wait"].(bool); ok {
 				at.Options.Wait = v
 			}
+			if v, ok := in["wait_for_jobs"].(bool); ok {
+				at.Options.WaitForJobs = v
+			}
 			ops := spew.Sprintf("%+v", at.Options)
 			log.Println("ExpandArtifact ops ", ops)
 		}
@@ -368,6 +372,7 @@ func FlattenArtifactOptions(at *artifactTranspose, p []interface{}) ([]interface
 
 	obj["atomic"] = at.Options.Atomic
 	obj["wait"] = at.Options.Wait
+	obj["wait_for_jobs"] = at.Options.WaitForJobs
 	obj["force"] = at.Options.Force
 	obj["no_hooks"] = at.Options.NoHooks
 	obj["max_history"] = at.Options.MaxHistory

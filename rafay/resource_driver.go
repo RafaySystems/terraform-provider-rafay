@@ -387,8 +387,8 @@ func expandContainerDriverVolumeOptions(p []interface{}) *eaaspb.ContainerDriver
 		hc.PvcStorageClass = pvcsc
 	}
 
-	if usepvc, ok := in["use_pvc"].(bool); ok {
-		hc.UsePVC = usepvc
+	if usepvc, ok := in["use_pvc"].([]interface{}); ok && len(usepvc) > 0 {
+		hc.UsePVC = expandBoolValue(usepvc)
 	}
 
 	return &hc
@@ -770,7 +770,7 @@ func flattenContainerVolumeOptions(in *eaaspb.ContainerDriverVolumeOptions, p []
 		obj["pvc_storage_class"] = in.PvcStorageClass
 	}
 
-	obj["use_pvc"] = in.UsePVC
+	obj["use_pvc"] = flattenBoolValue(in.UsePVC)
 
 	return []interface{}{obj}
 }

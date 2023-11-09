@@ -525,19 +525,24 @@ func expandCommonpbFiles(p []interface{}) []*commonpb.File {
 		obj := commonpb.File{}
 		in := p[i].(map[string]interface{})
 
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj.Name = v
-		}
+		if name, ok := in["name"].(string); ok && len(name) > 0 {
 
-		if strings.HasPrefix(obj.Name, "file://") {
-			//get full path of artifact
-			artifactFullPath := filepath.Join(filepath.Dir("."), obj.Name[7:])
-			//retrieve artifact data
-			artifactData, err := ioutil.ReadFile(artifactFullPath)
-			if err != nil {
-				log.Println("unable to read artifact at ", artifactFullPath)
+			if strings.HasPrefix(obj.Name, "file://") {
+				//get full path of artifact
+				artifactFullPath := filepath.Join(filepath.Dir("."), obj.Name[7:])
+				//retrieve artifact data
+				artifactData, err := ioutil.ReadFile(artifactFullPath)
+				if err != nil {
+					log.Println("unable to read artifact at ", artifactFullPath)
+				} else {
+					obj.Data = artifactData
+				}
+				obj.Name = strings.TrimPrefix(name, "file://")
 			} else {
-				obj.Data = artifactData
+				obj.Name = name
+				if data, ok := in["data"].(string); ok && len(data) > 0 {
+					obj.Data = []byte(data)
+				}
 			}
 		}
 
@@ -936,6 +941,12 @@ func flattenCommonpbFiles(input []*commonpb.File) []interface{} {
 			obj["name"] = in.Name
 		}
 		obj["sensitive"] = in.Sensitive
+		if !in.Sensitive {
+			obj["data"] = string(in.Data)
+		}
+		if len(in.MountPath) > 0 {
+			obj["mount_path"] = in.MountPath
+		}
 		out[i] = obj
 	}
 

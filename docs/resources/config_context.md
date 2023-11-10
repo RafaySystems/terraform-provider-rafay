@@ -122,9 +122,11 @@ resource "rafay_config_context" "config-context-example" {
 ***Required***
 
 - `name` (String) relative path of a artifact
+- `mount_path` (String) Mount path of a artifact
 
 ***Optional***
 
+- `data` (String) Data of the file content ( required if name if not a relative path )
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
 
 <a id="nestedblock--spec--variables"></a>

@@ -546,6 +546,10 @@ func expandCommonpbFiles(p []interface{}) []*commonpb.File {
 			}
 		}
 
+		if mp, ok := in["mount_path"].(string); ok && len(mp) > 0 {
+			obj.MountPath = mp
+		}
+
 		if v, ok := in["sensitive"].(bool); ok {
 			obj.Sensitive = v
 		}

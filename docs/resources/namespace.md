@@ -190,6 +190,8 @@ resource "rafay_namespace" "tfdemonamespacewithmesh" {
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
 
+**Note**: `spec` cannot be an empty block.
+
 ***Optional***
 
 - `drift` - (Block List, Max: 1) Prevents configuration drift. Drift is a change to your live cluster that is different from the source of truth. 

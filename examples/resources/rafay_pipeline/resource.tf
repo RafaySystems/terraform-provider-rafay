@@ -133,6 +133,8 @@ resource "rafay_pipeline" "tfdemopipeline" {
         config {
           workload_template =  "fayas-qctemp"
           namespace =  "main"
+          project_name = "test-project"
+          workload_name = "workload-nginx"
           placement {
             selector = "rafay.dev/clusterName=shishir-gitops"
           }

@@ -8,7 +8,7 @@ resource "rafay_resource_template" "aws-elasticache" {
     provider = "terraform"
     provider_options {
       terraform {
-        version                = "v1.4.4"
+        version = "v1.4.4"
         use_system_state_store {
           value = true
         }
@@ -81,11 +81,11 @@ resource "rafay_resource_template" "aws-elasticache" {
                 options {
                   http {
                     endpoint = "https://jsonplaceholder.typicode.com/todos/1"
-                    method = "POST"
+                    method  = "POST"
                     headers = {
-                      X-TOKEN = "shhh"
+                      X-TOKEN = "token"
                     }
-                    body = "gibberish"
+                    body = "request-body"
                     success_condition = "200OK"
                   }
                 }

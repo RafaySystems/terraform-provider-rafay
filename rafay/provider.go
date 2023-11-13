@@ -93,6 +93,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_environment":                       resourceEnvironment(),
 				"rafay_fleetplan":                         resourceFleetPlan(),
 				"rafay_chargeback_common_services_policy": resourceChargebackCommonServicesPolicy(),
+				"rafay_driver":                            resourceDriver(),
 			},
 			DataSourcesMap:       map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,

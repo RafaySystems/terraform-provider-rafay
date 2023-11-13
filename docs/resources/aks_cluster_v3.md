@@ -25,6 +25,27 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
       version = "1.25.0"
     }
     cloud_credentials = "aks-cred"
+    system_components_placement {
+      node_selector = {
+        app = "infra"
+        dedicated = "true"
+      }
+      tolerations {
+        effect = "PreferNoSchedule"
+        key = "app"
+        operator = "Equal"
+        value =  "infra"
+      }
+      daemon_set_override {
+        node_selection_enabled = false
+        tolerations {
+          key = "app1dedicated"
+          value = true
+          effect = "NoSchedule"
+          operator = "Equal"
+        }
+      }
+    }
     config {
       kind       = "aksClusterConfig"
       metadata {
@@ -89,6 +110,11 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_DS2_v2"
+            node_labels = {
+              app = "infra"
+              dedicated = "true"
+            }
+            node_taints               = ["app=infra:PreferNoSchedule"]
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
         }
@@ -108,6 +134,11 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_B4ms"
+            node_labels = {
+              app = "infra"
+              dedicated = "true"
+            }
+            node_taints               = ["app=infra:PreferNoSchedule"]
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
         }
@@ -151,10 +182,42 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
 - `config` - (Block List, Min: 1) The AKS specific cluster configuration. (See [below for nested schema](#nestedblock--spec--config))
 - `sharing` - (Block List, Max: 1) The sharing configuration for the Cluster. Cluster can be shared with one or more projects. (See [below for nested schema](#nestedblock--spec--sharing))
 - `type` - (String) The AKS Cluster type. The supported value is `aks`.
+- `system_components_placement` - (Block, list, Max: 1) Configure tolerations and nodeSelector for Rafay system components. (See [below for nested schema](#nestedblock--spec--system_components_placement))
 
 ***Optional***
 
 - `blueprint_config` - (String) The blueprint name and version used with the cluster. (See [below for nested schema](#nestedblock--spec--blueprint_config)).
+
+<a id="nestedblock--spec--system_components_placement"></a>
+### Nested Schema for `spec.system_components_placement`
+
+***Required***
+
+- `node_selector` - (Map of String) Used to tag AWS resources created by the vendor
+- `tolerations` - (Block list, Min: 0) Contains custom cni networking configurations. (See [below for nested schema](#nestedblock--spec--system_components_placement--tolerations))
+- `daemonset_override` - (Block list, Min: 0) Contains custom cni networking configurations. (See [below for nested schema](#nestedblock--spec--system_components_placement--daemonset_override))
+
+<a id="nestedblock--spec--system_components_placement--tolerations"></a>
+### Nested Schema for `spec.system_components_placement.tolerations`
+
+***Required***
+
+- `key` - (String) The taint key that the toleration applies to.
+- `effect` - (String) Indicates the taint effect to match.
+- `operator`- (String) Represents a key's relationship to the value.
+
+***Optional***
+
+- `value` - (String) The taint value the toleration matches to.
+- `toleration_seconds` - (Number) Represents the period of time the toleration tolerates the taint
+
+<a id="nestedblock--spec--system_components_placement--daemonset_override"></a>
+### Nested Schema for `spec.system_components_placement.daemonset_override`
+
+***Required***
+
+- `node_selection_enabled` - (Bool) Enables node selection.
+- `tolerations` - (Block list, Min: 0) Contains custom cni networking configurations. (See [below for nested schema](#nestedblock--spec--system_components_placement--tolerations))
 
 <a id="nestedblock--spec--config"></a>
 ### Nested Schema for `spec.config`

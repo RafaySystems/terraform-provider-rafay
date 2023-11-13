@@ -281,6 +281,10 @@ func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOpti
 		po.Pulumi = expandPulumiProviderOptions(p)
 	}
 
+	if p, ok := in["driver"].([]interface{}); ok && len(p) > 0 {
+		po.Driver = expandDriverResourceRef(p)
+	}
+
 	return po
 
 }
@@ -386,6 +390,25 @@ func expandEaasAgents(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
 	return agents
 }
 
+func expandDriverResourceRef(p []interface{}) *commonpb.ResourceNameAndVersionRef {
+	driver := &commonpb.ResourceNameAndVersionRef{}
+	if len(p) == 0 || p[0] == nil {
+		return driver
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		driver.Name = v
+	}
+
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		driver.Version = v
+	}
+
+	return driver
+}
+
 func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOptions {
 	tpo := &eaaspb.TerraformProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
@@ -428,6 +451,10 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 
 	if tgtrs, ok := in["target_resources"].([]interface{}); ok && len(tgtrs) > 0 {
 		tpo.TargetResources = toArrayString(tgtrs)
+	}
+
+	if h, ok := in["with_terraform_cloud"].([]interface{}); ok && len(h) > 0 {
+		tpo.WithTerraformCloud = expandBoolValue(h)
 	}
 
 	return tpo
@@ -729,6 +756,7 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions) []interf
 	obj["system"] = flattenSystemProviderOptions(in.System)
 	obj["terragrunt"] = flattenTerragruntProviderOptions(in.Terragrunt)
 	obj["pulumi"] = flattenPulumiProviderOptions(in.Pulumi)
+	obj["driver"] = flattenDriverResourceRef(in.Driver)
 
 	return []interface{}{obj}
 }
@@ -748,6 +776,7 @@ func flattenTerraformProviderOptions(in *eaaspb.TerraformProviderOptions) []inte
 	obj["lock_timeout_seconds"] = in.LockTimeoutSeconds
 	obj["plugin_dirs"] = toArrayInterface(in.PluginDirs)
 	obj["target_resources"] = toArrayInterface(in.TargetResources)
+	obj["with_terraform_cloud"] = flattenBoolValue(in.WithTerraformCloud)
 
 	return []interface{}{obj}
 }
@@ -1214,6 +1243,25 @@ func flattenEaasAgents(input []*commonpb.ResourceNameAndVersionRef) []interface{
 	}
 
 	return out
+}
+
+func flattenDriverResourceRef(input *commonpb.ResourceNameAndVersionRef) interface{} {
+	log.Println("flatten provider options driver start")
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+
+	if len(input.Name) > 0 {
+		obj["name"] = input.Name
+	}
+
+	if len(input.Version) > 0 {
+		obj["version"] = input.Version
+	}
+
+	return obj
 }
 
 func resourceResourceTemplateImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {

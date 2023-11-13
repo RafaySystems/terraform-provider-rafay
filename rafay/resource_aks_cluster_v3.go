@@ -633,8 +633,8 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.HttpProxyConfig = expandAKSManagedClusterV3HTTPProxyConfig(v)
 	}
 
-	if v, ok := in["identity_profile"].(map[string]interface{}); ok {
-		obj.IdentityProfile = toMapString(v)
+	if v, ok := in["identity_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.IdentityProfile = expandAKSManagedClusterIdentityProfile(v)
 	}
 
 	if v, ok := in["kubernetes_version"].(string); ok {
@@ -669,6 +669,32 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.WindowsProfile = expandAKSManagedClusterV3WindowsProfile(v)
 	}
 
+	return obj
+}
+
+func expandAKSManagedClusterIdentityProfile(p []interface{}) *infrapb.ManagedClusterIdentityProfile {
+	obj := &infrapb.ManagedClusterIdentityProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["kubelet_identity"].([]interface{}); ok && len(v) > 0 {
+		obj.KubeletIdentity = expandAKSManagedClusterIdentityProfileKubeletIdentity(v)
+	}
+	return obj
+}
+
+func expandAKSManagedClusterIdentityProfileKubeletIdentity(p []interface{}) *infrapb.ManagedClusterIdentityProfileKubeletIdentity {
+	obj := &infrapb.ManagedClusterIdentityProfileKubeletIdentity{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["resource_id"].(string); ok && len(v) > 0 {
+		obj.ResourceId = v
+	}
 	return obj
 }
 
@@ -2177,8 +2203,12 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 		obj["http_proxy_config"] = flattenAKSV3ManagedClusterHTTPProxyConfig(in.HttpProxyConfig, v)
 	}
 
-	if in.IdentityProfile != nil && len(in.IdentityProfile) > 0 {
-		obj["identity_profile"] = toMapInterface(in.IdentityProfile)
+	if in.IdentityProfile != nil {
+		v, ok := obj["identity_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["identity_profile"] = flattenAKSV3ManagedClusterIdentityProfile(in.IdentityProfile, v)
 	}
 
 	if len(in.KubernetesVersion) > 0 {
@@ -2239,6 +2269,38 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 
 	return []interface{}{obj}
 
+}
+
+func flattenAKSV3ManagedClusterIdentityProfile(in *infrapb.ManagedClusterIdentityProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.KubeletIdentity != nil {
+		v, ok := obj["kubelet_identity"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["kubelet_identity"] = flattenAKSManagedClusterIdentityProfileKubeletIdentity(in.KubeletIdentity, v)
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSManagedClusterIdentityProfileKubeletIdentity(in *infrapb.ManagedClusterIdentityProfileKubeletIdentity, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["resource_id"] = in.ResourceId
+	return []interface{}{obj}
 }
 
 func flattenAKSV3ManagedClusterAddonProfile(in *infrapb.ManagedClusterAddonProfile, p []interface{}) []interface{} {

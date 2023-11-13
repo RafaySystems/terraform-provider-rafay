@@ -9,9 +9,9 @@ resource "rafay_gke_cluster" "tf-example" {
       name    = "minimal"
       version = "latest"
     }
-    cloud_credentials = "-dev-"
+    cloud_credentials = "my-gcp-credential"
     config {
-      gcp_project           = "dev-382813"
+      gcp_project           = "my-gcp-project-id"
       control_plane_version = "1.26"
       location {
         type = "zonal"

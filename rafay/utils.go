@@ -994,7 +994,7 @@ func flattenRatio(in *commonpb.ResourceRatio) []interface{} {
 	return []interface{}{obj}
 }
 
-func flattenProjectMeta(input []*commonpb.ProjectMeta) []interface{} {
+func flattenProjectMeta(input []*commonpb.ProjectMeta, includeProjectId bool) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -1005,7 +1005,7 @@ func flattenProjectMeta(input []*commonpb.ProjectMeta) []interface{} {
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
 		}
-		if len(in.Id) > 0 {
+		if includeProjectId && len(in.Id) > 0 {
 			obj["id"] = in.Id
 		}
 		out[i] = obj
@@ -1039,7 +1039,7 @@ func flattenSharingSpec(in *commonpb.SharingSpec) []interface{} {
 	obj := make(map[string]interface{})
 	obj["enabled"] = in.Enabled
 	if len(in.Projects) > 0 {
-		obj["projects"] = flattenProjectMeta(in.Projects)
+		obj["projects"] = flattenProjectMeta(in.Projects, false)
 	}
 
 	return []interface{}{obj}

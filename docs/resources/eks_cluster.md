@@ -456,7 +456,7 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 - `fargate_profiles` - (Block List) The settings used to schedule a workload onto AWS Fargate. (See [below for nested schema](#nestedblock--cluster_config--fargate_profiles))
 - `iam` - (Block List) The AWS identity and access management (IAM) attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--iam))
 - `secrets_encryption` - (Block List) The Amazon EKS secrets encryption feature. (See [below for nested schema](#nestedblock--cluster_config--secrets_encryption))
-
+- `addons` - (Block List) The list of EKS managed addons to include in the cluster.(See [below for nested schema](#nestedblock--cluster_config--addons))
 
 <a id="nestedblock--cluster_config--kubernetes_network_config"></a>
 ### Nested Schema for `cluster_config.kubernetes_network_config`
@@ -572,6 +572,25 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 - `efs_csi_controller` - (Boolean) Adds policies for using the efs-csi-controller.
 - `external_dns` - (Boolean) Adds external-dns policies for Amazon Route 53.
 - `image_builder` - (Boolean) Allow full Elastic Container Registry (ECR) access.
+
+<a id="nestedblock--cluster_config--addons"></a>
+### Nested Schema for `cluster_config.addons`
+
+***Required***
+
+- `name` - (String) Name of the EKS add-on. The name must match one of the names supported by Rafay. Supported addons: `vpc-cni`, `kube-proxy`, `coredns`, `aws-ebs-csi-driver`, `adot`, `aws-guardduty-agent`
+- `version` - (String) The version of the EKS add-on. The version must match one of the supported versions.
+
+***Optional***
+
+- `service_account_role_arn` - (String) The Amazon Resource Name (ARN) of an existing IAM role to bind to the add-on's service account. The role must be assigned the IAM permissions required by the add-on. If you don't specify an existing IAM role, then the add-on uses the permissions assigned to the node IAM role. 
+- `attach_policy_arns` - (List of String) The list of ARNs of the IAM policies to attach to the addons service account. 
+- `attach_policy` - (Block List, Max: 1) Holds a policy document to attach to the service account
+- `permissions_boundary` - (String) ARN of the permissions boundary to associate
+- `well_known_policies` - (Block List) Use to attach common IAM policies.
+- `tags` - (Map of String) The AWS tags for the service account.
+- `configuration_values` - (String) custom configuration values for addons with single JSON string. 
+
 
 
 <a id="nestedblock--cluster_config--secrets_encryption"></a>

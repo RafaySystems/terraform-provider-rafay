@@ -573,6 +573,25 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
 - `external_dns` - (Boolean) Adds external-dns policies for Amazon Route 53.
 - `image_builder` - (Boolean) Allow full Elastic Container Registry (ECR) access.
 
+<a id="nestedblock--cluster_config--addons"></a>
+### Nested Schema for `cluster_config.addons`
+
+***Required***
+
+- `name` - (String) Name of the EKS add-on. The name must match one of the names supported by Rafay. Supported addons: `vpc-cni`, `kube-proxy`, `coredns`, `aws-ebs-csi-driver`, `adot`, `aws-guardduty-agent`
+- `version` - (String) The version of the EKS add-on. The version must match one of the supported versions.
+
+***Optional***
+
+- `service_account_role_arn` - (String) The Amazon Resource Name (ARN) of an existing IAM role to bind to the add-on's service account. The role must be assigned the IAM permissions required by the add-on. If you don't specify an existing IAM role, then the add-on uses the permissions assigned to the node IAM role. 
+- `attach_policy_arns` - (List of String) The list of ARNs of the IAM policies to attach to the addon's service account. 
+- `attach_policy` - (Block List, Max: 1) Holds a policy document to attach to the service account
+- `permissions_boundary` - (String) ARN of the permissions' boundary to associate
+- `well_known_policies` - (Block List) Use to attach common IAM policies.
+- `tags` - (Map of String) The AWS tags for the service account.
+- `configuration_values` - (String) custom configuration values for addons with single JSON string. 
+
+
 
 <a id="nestedblock--cluster_config--secrets_encryption"></a>
 ### Nested Schema for `cluster_config.secrets_encryption`

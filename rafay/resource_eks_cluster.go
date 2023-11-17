@@ -3654,7 +3654,7 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 		if v, ok := in["attach_role_arn"].(string); ok && len(v) > 0 {
 			obj.AttachRoleARN = v
 		}
-		if v, ok := in["permission_boundary"].(string); ok && len(v) > 0 {
+		if v, ok := in["permissions_boundary"].(string); ok && len(v) > 0 {
 			obj.PermissionsBoundary = v
 		}
 		if v, ok := in["status"].([]interface{}); ok && len(v) > 0 {

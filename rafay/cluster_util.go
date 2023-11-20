@@ -13,13 +13,13 @@ func systemComponentsPlacementFields() map[string]*schema.Schema {
 		"node_selector": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Description: "used to tag AWS resources created by the vendor",
+			Description: "Key-Value pairs insuring pods to be scheduled on desired nodes.",
 		},
 		"tolerations": {
 			Type: schema.TypeList,
 			//Type:        schema.TypeString,
 			Optional:    true,
-			Description: "contains custom cni networking configurations",
+			Description: "Enables the kuberenetes scheduler to schedule pods with matching taints.",
 			Elem: &schema.Resource{
 				Schema: tolerationsFields(),
 			},
@@ -27,7 +27,7 @@ func systemComponentsPlacementFields() map[string]*schema.Schema {
 		"daemonset_override": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "contains custom cni networking configurations",
+			Description: "Allows users to override the default behaviour of DaemonSet for specific nodes, enabling the addition of additional tolerations for Daemonsets to match the taints available on the nodes.",
 			Elem: &schema.Resource{
 				Schema: daemonsetOverrideFields(),
 			},
@@ -78,7 +78,7 @@ func daemonsetOverrideFields() map[string]*schema.Schema {
 			Type: schema.TypeList,
 			//Type:        schema.TypeString,
 			Optional:    true,
-			Description: "contains custom cni networking configurations",
+			Description: "Additional tolerations for Daemonsets to match the taints available on the nodes",
 			Elem: &schema.Resource{
 				Schema: tolerationsFields(),
 			},

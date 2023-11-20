@@ -193,9 +193,9 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
 
 ***Required***
 
-- `node_selector` - (Map of String) Used to tag AWS resources created by the vendor
-- `tolerations` - (Block list, Min: 0) Contains custom cni networking configurations. (See [below for nested schema](#nestedblock--spec--system_components_placement--tolerations))
-- `daemonset_override` - (Block list, Min: 0) Contains custom cni networking configurations. (See [below for nested schema](#nestedblock--spec--system_components_placement--daemonset_override))
+- `node_selector` - (Map of String) Key-Value pairs insuring pods to be scheduled on desired nodes. Explore further in the [Kubernetes Documentation](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
+- `tolerations` - (Block list, Min: 0) Enables the kuberenetes scheduler to schedule pods with matching taints. Explore further in the [Kubernetes Documentation](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) (See [below for nested schema](#nestedblock--spec--system_components_placement--tolerations))
+- `daemonset_override` - (Block list, Min: 0) Allows users to override the default behaviour of DaemonSet for specific nodes, enabling the addition of additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--spec--system_components_placement--daemonset_override))
 
 <a id="nestedblock--spec--system_components_placement--tolerations"></a>
 ### Nested Schema for `spec.system_components_placement.tolerations`
@@ -217,7 +217,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
 ***Required***
 
 - `node_selection_enabled` - (Bool) Enables node selection.
-- `tolerations` - (Block list, Min: 0) Contains custom cni networking configurations. (See [below for nested schema](#nestedblock--spec--system_components_placement--tolerations))
+- `tolerations` - (Block list, Min: 0) Additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--spec--system_components_placement--tolerations))
 
 <a id="nestedblock--spec--config"></a>
 ### Nested Schema for `spec.config`

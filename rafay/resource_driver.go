@@ -387,8 +387,8 @@ func expandContainerDriverVolumeOptions(p []interface{}) *eaaspb.ContainerDriver
 		hc.PvcStorageClass = pvcsc
 	}
 
-	if usepvc, ok := in["use_pvc"].(bool); ok {
-		hc.UsePVC = usepvc
+	if usepvc, ok := in["use_pvc"].([]interface{}); ok && len(usepvc) > 0 {
+		hc.UsePVC = expandBoolValue(usepvc)
 	}
 
 	return &hc
@@ -437,12 +437,12 @@ func expandSecurityContext(p []interface{}) *eaaspb.KubeSecurityContext {
 
 	in := p[0].(map[string]interface{})
 
-	if privileged, ok := in["privileged"].(bool); ok {
-		ksc.Privileged = privileged
+	if privileged, ok := in["privileged"].([]interface{}); ok && len(privileged) > 0 {
+		ksc.Privileged = expandBoolValue(privileged)
 	}
 
-	if ro, ok := in["read_only_root_file_system"].(bool); ok {
-		ksc.ReadOnlyRootFileSystem = ro
+	if ro, ok := in["read_only_root_file_system"].([]interface{}); ok && len(ro) > 0 {
+		ksc.ReadOnlyRootFileSystem = expandBoolValue(ro)
 	}
 
 	return &ksc
@@ -741,8 +741,8 @@ func flattenSecurityContext(in *eaaspb.KubeSecurityContext, p []interface{}) []i
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["privileged"] = in.Privileged
-	obj["read_only_root_file_system"] = in.ReadOnlyRootFileSystem
+	obj["privileged"] = flattenBoolValue(in.Privileged)
+	obj["read_only_root_file_system"] = flattenBoolValue(in.ReadOnlyRootFileSystem)
 
 	return []interface{}{obj}
 }
@@ -770,7 +770,7 @@ func flattenContainerVolumeOptions(in *eaaspb.ContainerDriverVolumeOptions, p []
 		obj["pvc_storage_class"] = in.PvcStorageClass
 	}
 
-	obj["use_pvc"] = in.UsePVC
+	obj["use_pvc"] = flattenBoolValue(in.UsePVC)
 
 	return []interface{}{obj}
 }

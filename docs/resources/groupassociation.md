@@ -45,13 +45,15 @@ resource "rafay_groupassociation" "groupassociation" {
 - `group` - (String) The name of the group to associate the roles to.
 - `project` - (String) The name of the project.
 - `roles` - (List of String) The roles to associate with the group. Supported values are: `ADMIN`, `ADMINISTRATOR_READ_ONLY`, `CLUSTER_ADMIN`, `PROJECT_ADMIN`, `PROJECT_READ_ONLY`, `INFRA_ADMIN`, `INFRA_READ_ONLY`, `NAMESPACE_ADMIN`, `NAMESPACE_READ_ONLY`, `WORKSPACE_ADMIN` and `WORKSPACE_READ_ONLY`.
+- `custom_roles` - (List of String) Custom roles to associate with the group.
+
+***Note***: Either `custom_roles` or `roles` is required
 
 ***Note***: For roles `ADMIN` and `ADMINISTRATOR_READ_ONLY`, project name `defaultproject` needs to be passed.
 
 ### Optional
 
 - `add_users` - (List of String) Users to add to the group association.
-- `custom_roles` - (List of String) Custom roles to associate with the group.
 - `namespaces` - (List of String) Namespaces in your configuration. Only provide when the selected roles are `NAMESPACE_ADMIN` or `NAMESPACE_READ_ONLY`.
 - `remove_users` - (List of String) Users to remove from the group association.
 - `idp_user` (Boolean) Type of user is IDP (IDP users vs Local users)

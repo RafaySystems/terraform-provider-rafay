@@ -50,17 +50,19 @@ func resourceGroupAssociation() *schema.Resource {
 			},
 			"roles": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				AtLeastOneOf: []string{"custom_roles", "roles"},
 			},
 			"custom_roles": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				AtLeastOneOf: []string{"custom_roles", "roles"},
 			},
 			"namespaces": {
 				Type:     schema.TypeList,

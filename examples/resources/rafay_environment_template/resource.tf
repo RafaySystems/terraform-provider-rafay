@@ -10,7 +10,7 @@ resource "rafay_environment_template" "aws-et" {
       kind = "resourcetemplate"
       name = var.rt_name
       resource_options {
-        version = "v1"
+        version   = "v1"
         dedicated = true
       }
       depends_on {
@@ -37,22 +37,22 @@ resource "rafay_environment_template" "aws-et" {
     }
     hooks {
       on_init {
-        name = "infracost"
+        name        = "infracost"
         description = "this is an infracost hook"
-        type = "http"
+        type        = "http"
         agents {
           name = var.agent_name
         }
         on_failure = "continue"
         options {
           http {
-            body = "initializing environment template"
+            body     = "initializing environment template"
             endpoint = "https://some-endpoint.com/post"
             headers = {
               TOKEN = "my-token"
               KEY   = "my-key"
             }
-            method = "POST"
+            method            = "POST"
             success_condition = "200 OK"
           }
         }

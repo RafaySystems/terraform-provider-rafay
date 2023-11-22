@@ -5,8 +5,8 @@ go 1.21.1
 toolchain go1.21.2
 
 require (
-	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20231019071422-07f2d234a5ae
-	github.com/RafaySystems/rctl v1.29.1-0.20230926052942-5fea67172bba
+	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20231120174847-4e54f68e6bda
+	github.com/RafaySystems/rctl v1.29.1-0.20231122083233-9cb0f28f635f
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5
@@ -69,7 +69,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
-	github.com/RafaySystems/eaas-playground v0.0.0-20231023205543-944308c88d9c // indirect
+	github.com/RafaySystems/eaas-playground v0.0.0-20231120064045-32c7f71c9eff // indirect
 	github.com/RoaringBitmap/roaring v1.6.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
@@ -234,7 +234,7 @@ require (
 	k8s.io/api v1.16.4 // indirect
 	k8s.io/client-go v0.28.3 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20230918164632-68afd615200d // indirect
+	k8s.io/kube-openapi v0.0.0-20230928205116-a78145627833 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	sigs.k8s.io/controller-runtime v0.16.3 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect

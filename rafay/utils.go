@@ -1,6 +1,7 @@
 package rafay
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -156,6 +157,19 @@ func toMapByte(in map[string]interface{}) map[string][]byte {
 			continue
 		}
 		value := v.(string)
+		out[i] = []byte(value)
+	}
+	return out
+}
+
+func toMapByteInterface(in map[string][]byte) map[string]interface{} {
+	out := make(map[string]interface{})
+	for i, v := range in {
+		if v == nil {
+			out[i] = []byte{}
+			continue
+		}
+		value := bytes.NewBuffer(v).String()
 		out[i] = []byte(value)
 	}
 	return out
@@ -994,7 +1008,7 @@ func flattenRatio(in *commonpb.ResourceRatio) []interface{} {
 	return []interface{}{obj}
 }
 
-func flattenProjectMeta(input []*commonpb.ProjectMeta) []interface{} {
+func flattenProjectMeta(input []*commonpb.ProjectMeta, includeProjectId bool) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -1005,7 +1019,7 @@ func flattenProjectMeta(input []*commonpb.ProjectMeta) []interface{} {
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
 		}
-		if len(in.Id) > 0 {
+		if includeProjectId && len(in.Id) > 0 {
 			obj["id"] = in.Id
 		}
 		out[i] = obj
@@ -1039,7 +1053,7 @@ func flattenSharingSpec(in *commonpb.SharingSpec) []interface{} {
 	obj := make(map[string]interface{})
 	obj["enabled"] = in.Enabled
 	if len(in.Projects) > 0 {
-		obj["projects"] = flattenProjectMeta(in.Projects)
+		obj["projects"] = flattenProjectMeta(in.Projects, false)
 	}
 
 	return []interface{}{obj}
@@ -1530,6 +1544,10 @@ func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
 			hook.OnFailure = n
 		}
 
+		if n, ok := in["driver"].([]interface{}); ok && len(n) > 0 {
+			hook.Driver = expandDriverResourceRef(n)
+		}
+
 		hooks = append(hooks, hook)
 
 	}
@@ -1790,6 +1808,7 @@ func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		obj["agents"] = flattenEaasAgents(in.Agents)
 		obj["timeout_seconds"] = in.TimeoutSeconds
 		obj["on_failure"] = in.OnFailure
+		obj["driver"] = flattenDriverResourceRef(in.Driver)
 
 		out[i] = &obj
 		log.Println("flatten hook setting object ", out[i])

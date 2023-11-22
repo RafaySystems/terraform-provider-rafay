@@ -15,9 +15,11 @@ Associates a group with a role.
 
 ```terraform
 resource "rafay_groupassociation" "groupassociation" {
-  group      = "dev1"
-  project    = "terraform"
-  roles      = ["PROJECT_READ_ONLY"]
+  group             = "dev1"
+  project           = "terraform"
+  roles             = ["PROJECT_READ_ONLY"]
+  custom_roles      = ["test-custom-role"]
+  
 }
 
 resource "rafay_groupassociation" "groupassociation" {
@@ -49,6 +51,7 @@ resource "rafay_groupassociation" "groupassociation" {
 ### Optional
 
 - `add_users` - (List of String) Users to add to the group association.
+- `custom_roles` - (List of String) Custom roles to associate with the group.
 - `namespaces` - (List of String) Namespaces in your configuration. Only provide when the selected roles are `NAMESPACE_ADMIN` or `NAMESPACE_READ_ONLY`.
 - `remove_users` - (List of String) Users to remove from the group association.
 - `idp_user` (Boolean) Type of user is IDP (IDP users vs Local users)

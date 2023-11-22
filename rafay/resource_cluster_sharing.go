@@ -397,7 +397,7 @@ func flattenClusterSharingSpec(in *commonpb.SharingSpec, p []interface{}) ([]int
 	}
 	obj["all"] = in.Enabled
 	if len(in.Projects) > 0 {
-		obj["projects"] = flattenProjectMeta(in.Projects)
+		obj["projects"] = flattenProjectMeta(in.Projects, true)
 	}
 
 	return []interface{}{obj}, nil

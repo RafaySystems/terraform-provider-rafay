@@ -19,7 +19,7 @@ resource "rafay_chargeback_share" "tfdemochargebackshare" {
     name = "chargebackshare"
   }
   spec {
-    share_enabled = true
+    share_unallocated_cost = true
     share_type = "tenancy"
   }
 }
@@ -49,7 +49,8 @@ resource "rafay_chargeback_share" "tfdemochargebackshare" {
 
 ***Required***
 
-- `share_enabled` (Boolean) Enable/disable the Share unallocated cost.
+- `share_unallocated_cost` (Boolean) Enable/disable the Share unallocated cost.
+- `share_common_services_cost` (Boolean) Enable/disable the Share common services cost.
 - `share_type` (String) The share type. The supported values are `allocation` and `tenancy`.
 
 <a id="nestedblock--timeouts"></a>

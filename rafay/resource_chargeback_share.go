@@ -199,8 +199,12 @@ func expandChargebackShareSpec(p []interface{}) (*systempb.ChargebackShareSpec, 
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["share_enabled"].(bool); ok {
-		obj.ShareEnabled = v
+	if v, ok := in["share_unallocated_cost"].(bool); ok {
+		obj.ShareUnallocatedCost = v
+	}
+
+	if v, ok := in["share_common_services_cost"].(bool); ok {
+		obj.ShareCommonServicesCost = v
 	}
 
 	if v, ok := in["share_type"].(string); ok && len(v) > 0 {
@@ -250,7 +254,8 @@ func flattenChargebackShareSpec(in *systempb.ChargebackShareSpec, p []interface{
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["share_enabled"] = in.ShareEnabled
+	obj["share_unallocated_cost"] = in.ShareUnallocatedCost
+	obj["share_common_services_cost"] = in.ShareCommonServicesCost
 
 	if len(in.ShareType) > 0 {
 		obj["share_type"] = in.ShareType

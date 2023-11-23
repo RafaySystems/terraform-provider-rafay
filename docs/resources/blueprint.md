@@ -31,6 +31,15 @@ resource "rafay_blueprint" "custom-blueprint" {
       enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
+      enable_csi_secret_store = true
+      csi_secret_store_config {
+        enable_secret_rotation = true
+        sync_secrets = true
+        rotation_poll_interval = "2m"
+        providers {
+          aws = true
+        }
+      }
       monitoring {
         metrics_server {
           enabled = true

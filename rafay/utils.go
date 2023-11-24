@@ -156,8 +156,9 @@ func toMapByte(in map[string]interface{}) map[string][]byte {
 			out[i] = []byte{}
 			continue
 		}
-		value := v.(string)
-		out[i] = []byte(value)
+		if vstr, ok := v.(string); ok {
+			out[i] = []byte(vstr)
+		}
 	}
 	return out
 }
@@ -169,8 +170,7 @@ func toMapByteInterface(in map[string][]byte) map[string]interface{} {
 			out[i] = []byte{}
 			continue
 		}
-		value := bytes.NewBuffer(v).String()
-		out[i] = []byte(value)
+		out[i] = bytes.NewBuffer(v).String()
 	}
 	return out
 }

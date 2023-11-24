@@ -43,7 +43,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
               enable_private_cluster = true
             }
             dns_prefix         = "testuser-test-dns"
-            kubernetes_version = "1.21.9"
+            kubernetes_version = "1.25.6"
             network_profile {
               network_plugin = "kubenet"
             }
@@ -53,7 +53,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
         node_pools {
           apiversion = "2021-05-01"
           name       = "primary"
-		  location   = "centralindia"
+		      location   = "centralindia"
           properties {
             count                = 2
             enable_auto_scaling  = true
@@ -61,12 +61,39 @@ resource "rafay_aks_cluster" "demo-terraform" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.21.9"
+            orchestrator_version = "1.25.6"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
-            vm_size = "Standard_DS2_v2"
+            vm_size              = "Standard_DS2_v2"
+            node_labels = {
+              app = "infra"
+              dedicated = "true"
+            }
+            node_taints          = ["app=infra:PreferNoSchedule"]
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+    system_components_placement {
+      node_selector = {
+        app = "infra"
+        dedicated = "true"
+      }
+      tolerations {
+        effect = "PreferNoSchedule"
+        key = "app"
+        operator = "Equal"
+        value =  "infra"
+      }
+
+      daemonset_override {
+        node_selection_enabled = false
+        tolerations {
+          key = "app1dedicated"
+          value = true
+          effect = "NoSchedule"
+          operator = "Equal"
         }
       }
     }
@@ -109,11 +136,43 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `cluster_config` - (Block List, Min: 1) The AKS specific cluster configuration. (See [below for nested schema](#nestedblock--spec--cluster_config))
 - `sharing` - (Block List, Max: 1) The sharing configuration for the Cluster. Cluster can be shared with one or more projects. (See [below for nested schema](#nestedblock--spec--sharing))
 - `type` - (String) The AKS Cluster type. The supported value is `aks`. 
+- `system_components_placement` - (Block, list, Max: 1) Configure tolerations and nodeSelector for Rafay system components. (See [below for nested schema](#nestedblock--spec--system_components_placement))
 
 ***Optional***
 
 - `blueprint` - (String) The blueprint used with the cluster. The default is `default-aks`.
-- `blueprintversion` - (String) The blueprint version used with the cluster. The default is the latest version. 
+- `blueprintversion` - (String) The blueprint version used with the cluster. The default is the latest version.
+
+<a id="nestedblock--spec--system_components_placement"></a>
+### Nested Schema for `spec.system_components_placement`
+
+***Required***
+
+- `node_selector` - (Map of String) Key-Value pairs insuring pods to be scheduled on desired nodes. Explore further in the [Kubernetes Documentation](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
+- `tolerations` - (Block list, Min: 0) Enables the kuberenetes scheduler to schedule pods with matching taints. Explore further in the [Kubernetes Documentation](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) (See [below for nested schema](#nestedblock--spec--system_components_placement--tolerations))
+- `daemonset_override` - (Block list, Min: 0) Allows users to override the default behaviour of DaemonSet for specific nodes, enabling the addition of additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--spec--system_components_placement--daemonset_override))
+
+<a id="nestedblock--spec--system_components_placement--tolerations"></a>
+### Nested Schema for `spec.system_components_placement.tolerations`
+
+***Required***
+
+- `key` - (String) The taint key that the toleration applies to.
+- `effect` - (String) Indicates the taint effect to match.
+- `operator`- (String) Represents a key's relationship to the value.
+
+***Optional***
+
+- `value` - (String) The taint value the toleration matches to.
+- `toleration_seconds` - (Number) Represents the period of time the toleration tolerates the taint
+
+<a id="nestedblock--spec--system_components_placement--daemonset_override"></a>
+### Nested Schema for `spec.system_components_placement.daemonset_override`
+
+***Required***
+
+- `node_selection_enabled` - (Bool) Enables node selection.
+- `tolerations` - (Block list, Min: 0) Additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--spec--system_components_placement--tolerations))
 
 <a id="nestedblock--spec--cluster_config"></a>
 ### Nested Schema for `spec.cluster_config`

@@ -43,12 +43,13 @@ type AKSClusterMetadata struct {
 }
 
 type AKSClusterSpec struct {
-	Type             string                `yaml:"type,omitempty"`
-	Blueprint        string                `yaml:"blueprint,omitempty"`
-	BlueprintVersion string                `yaml:"blueprintversion,omitempty"`
-	CloudProvider    string                `yaml:"cloudprovider,omitempty"`
-	AKSClusterConfig *AKSClusterConfig     `yaml:"clusterConfig,omitempty"`
-	Sharing          *commonpb.SharingSpec `yaml:"sharing,omitempty"`
+	Type                      string                     `yaml:"type,omitempty"`
+	Blueprint                 string                     `yaml:"blueprint,omitempty"`
+	BlueprintVersion          string                     `yaml:"blueprintversion,omitempty"`
+	CloudProvider             string                     `yaml:"cloudprovider,omitempty"`
+	AKSClusterConfig          *AKSClusterConfig          `yaml:"clusterConfig,omitempty"`
+	Sharing                   *commonpb.SharingSpec      `yaml:"sharing,omitempty"`
+	SystemComponentsPlacement *SystemComponentsPlacement `yaml:"systemComponentsPlacement,omitempty"`
 }
 
 type AzureRafayMetadata struct {

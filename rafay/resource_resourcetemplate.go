@@ -1245,12 +1245,13 @@ func flattenEaasAgents(input []*commonpb.ResourceNameAndVersionRef) []interface{
 	return out
 }
 
-func flattenDriverResourceRef(input *commonpb.ResourceNameAndVersionRef) interface{} {
+func flattenDriverResourceRef(input *commonpb.ResourceNameAndVersionRef) []interface{} {
 	log.Println("flatten provider options driver start")
 	if input == nil {
 		return nil
 	}
 
+	out := make([]interface{}, 1)
 	obj := map[string]interface{}{}
 
 	if len(input.Name) > 0 {
@@ -1260,8 +1261,8 @@ func flattenDriverResourceRef(input *commonpb.ResourceNameAndVersionRef) interfa
 	if len(input.Version) > 0 {
 		obj["version"] = input.Version
 	}
-
-	return obj
+	out[0] = &obj
+	return out
 }
 
 func resourceResourceTemplateImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {

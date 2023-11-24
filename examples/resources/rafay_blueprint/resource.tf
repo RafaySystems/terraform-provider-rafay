@@ -10,6 +10,10 @@ resource "rafay_blueprint" "blueprint" {
       name    = "default"
       version = "1.16.0"
     }
+    namespace_config {
+      sync_type = "managed"
+      enable_sync = true
+    }
     default_addons {
       enable_ingress    = true
       enable_logging    = false

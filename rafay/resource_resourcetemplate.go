@@ -433,6 +433,10 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 		tpo.BackendConfigs = toArrayString(bcfgs)
 	}
 
+	if bt, ok := in["backend_type"].(string); ok {
+		tpo.BackendType = bt
+	}
+
 	if h, ok := in["refresh"].([]interface{}); ok && len(h) > 0 {
 		tpo.Refresh = expandBoolValue(h)
 	}
@@ -771,6 +775,7 @@ func flattenTerraformProviderOptions(in *eaaspb.TerraformProviderOptions) []inte
 	obj["use_system_state_store"] = flattenBoolValue(in.UseSystemStateStore)
 	obj["var_files"] = toArrayInterface(in.VarFiles)
 	obj["backend_configs"] = toArrayInterface(in.BackendConfigs)
+	obj["backend_type"] = in.BackendType
 	obj["refresh"] = flattenBoolValue(in.Refresh)
 	obj["lock"] = flattenBoolValue(in.Lock)
 	obj["lock_timeout_seconds"] = in.LockTimeoutSeconds

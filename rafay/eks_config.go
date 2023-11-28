@@ -14,10 +14,20 @@ type EKSSpec struct {
 	CloudProvider             string                     `yaml:"cloudprovider,omitempty"`
 	CrossAccountRoleArn       string                     `yaml:"crossAccountRoleARN,omitempty"`
 	CniProvider               string                     `yaml:"cniprovider,omitempty"`
-	ProxyConfig               map[string]string          `yaml:"proxyconfig,omitempty"`
+	ProxyConfig               *ProxyConfig               `yaml:"proxyconfig,omitempty"`
 	CniParams                 *CustomCni                 `yaml:"cniparams,omitempty"`
 	SystemComponentsPlacement *SystemComponentsPlacement `yaml:"systemComponentsPlacement,omitempty"`
 	Sharing                   *EKSClusterSharing         `yaml:"sharing,omitempty"`
+}
+
+type ProxyConfig struct {
+	HttpProxy              string `yaml:"httpProxy,omitempty"`
+	HttpsProxy             string `yaml:"httpsProxy,omitempty"`
+	NoProxy                string `yaml:"noProxy,omitempty"`
+	ProxyAuth              string `yaml:"proxyAuth,omitempty"`
+	AllowInsecureBootstrap *bool  `yaml:"allowInsecureBootstrap,omitempty"`
+	Enabled                *bool  `yaml:"enabled,omitempty"`
+	BootstrapCA            string `yaml:"bootstrapCA,omitempty"`
 }
 
 type SystemComponentsPlacement struct {

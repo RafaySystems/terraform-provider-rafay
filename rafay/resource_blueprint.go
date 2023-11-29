@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -134,6 +135,10 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		log.Printf("blueprint expandBluePrint error")
 		return diag.FromErr(err)
 	}
+
+	b, _ := json.Marshal(blueprint)
+
+	fmt.Println("debugging: blueprint", string(b))
 
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, "terraform", options.WithInsecureSkipVerify(auth.SkipServerCertValid))
@@ -452,6 +457,8 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 	if v, ok := in["enable_vm"].(bool); ok {
 		obj.EnableVM = v
 	}
+
+	fmt.Println("debugging expandDefaultAddons", obj)
 
 	if v, ok := in["monitoring"].([]interface{}); ok && len(v) > 0 {
 		obj.Monitoring = expandMonitoring(v)
@@ -1318,6 +1325,8 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
+
+	retNil = false
 
 	if in.EnableIngress {
 		obj["enable_ingress"] = in.EnableIngress

@@ -21,6 +21,7 @@ resource "rafay_config_context" "aws-rds-config" {
     }
     files {
       name      = "file://variables.tf"
+      mount_path = "/local/tmp"
       sensitive = true
     }
     variables {

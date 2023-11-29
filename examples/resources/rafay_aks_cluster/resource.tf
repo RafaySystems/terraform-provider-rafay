@@ -334,3 +334,99 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
     }
   }
 }
+
+resource "rafay_aks_cluster" "demo-terraform-scp" {
+  apiversion = "rafay.io/v1alpha1"
+  kind       = "Cluster"
+  metadata {
+    name    = "demo-terraform-scp"
+    project = "terraform"
+  }
+  spec {
+    type          = "aks"
+    blueprint     = "default-aks"
+    cloudprovider = "azure-cred"
+    cluster_config {
+      apiversion = "rafay.io/v1alpha1"
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "demo-terraform-scp"
+      }
+      spec {
+        resource_group_name = "testuser-terraform"
+        managed_cluster {
+          apiversion = "2021-05-01"
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "testuser-test-dns"
+            enable_rbac        = true
+            kubernetes_version = "1.25.6"
+            network_profile {
+              network_plugin = "kubenet"
+            }
+            addon_profiles {
+              oms_agent {
+                enabled = false
+                config {
+                  log_analytics_workspace_resource_id = ""
+                }
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          apiversion = "2021-05-01"
+          name       = "primary"
+          properties {
+            count                = 2
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.25.6"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+            node_labels = {
+              app = "infra"
+              dedicated = "true"
+            }
+            node_taints               = ["app=infra:PreferNoSchedule"]
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          location = "centralindia"
+        }
+      }
+    }
+    system_components_placement {
+      node_selector = {
+        app = "infra"
+        dedicated = "true"
+      }
+      tolerations {
+        effect = "PreferNoSchedule"
+        key = "app"
+        operator = "Equal"
+        value =  "infra"
+      }
+
+      daemonset_override {
+        node_selection_enabled = false
+        tolerations {
+          key = "app1dedicated"
+          value = true
+          effect = "NoSchedule"
+          operator = "Equal"
+        }
+      }
+    }
+  }
+}

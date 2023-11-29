@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker { 
-                image 'public.ecr.aws/bitnami/golang:1.19.13'
+                image 'public.ecr.aws/bitnami/golang:1.21.2'
                 args '-u root:sudo'
                 reuseNode false
             }
@@ -22,12 +22,36 @@ pipeline {
                     export GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
                     echo machine github.com login ${userName} password ${passWord} > ~/.netrc
                     chmod 400 ~/.netrc
-                    GOPRIVATE="github.com/RafaySystems/*" go mod download
+                    GOPROXY="direct" GOPRIVATE="github.com/RafaySystems/*" go mod download
                     make release
                     make push
                     make bucket-name
                 '''
                 }}
+            }
+        }
+    }
+    post {
+        success {
+            slackSend channel: "#build",
+            color: 'good',
+            message: "Build ${currentBuild.fullDisplayName} completed successfully."
+        }
+        failure {
+            slackSend channel: "#build",
+            color: 'RED',
+            message: "Attention ${env.JOB_NAME} ${env.BUILD_NUMBER} has failed."
+        }
+        always {
+                sh '''
+                chown -R 1000:1000 .
+                '''
+                deleteDir()
+                dir("${workspace}@tmp") {
+                    deleteDir()
+                }
+                dir("${workspace}@script") {
+                    deleteDir()
             }
         }
     }

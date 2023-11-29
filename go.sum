@@ -158,10 +158,10 @@ github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 h1:kkhsdkhsCv
 github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371/go.mod h1:EjAoLdwvbIOoOQr3ihjnSoLZRtE8azugULFRteWMNc0=
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
-github.com/RafaySystems/eaas-playground v0.0.0-20231120064045-32c7f71c9eff h1:UK8IWW0tq4kiXaHK0ViWcLt+h6PXgbhVuKH0BJZPL6s=
-github.com/RafaySystems/eaas-playground v0.0.0-20231120064045-32c7f71c9eff/go.mod h1:xTxDW1ZBxyrRwPnm2KNRjPgxUwC4j8KN8htB7YfhRGg=
-github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20231123075758-cd01db6be831 h1:o6EY4t7G+Xuy2QWqpRjvfitf0gTjzSNPLjHhvmZ5DYs=
-github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20231123075758-cd01db6be831/go.mod h1:5OUUIO1vAvYK+td0G6d+QElBv6hwX2UE+M2+Ru1RIQM=
+github.com/RafaySystems/eaas-playground v0.0.0-20231124071936-5a069e8cbffe h1:rx3XDozGXjj6x5NMJ/R4dYG59HVd2f0u7tBfJrspSWw=
+github.com/RafaySystems/eaas-playground v0.0.0-20231124071936-5a069e8cbffe/go.mod h1:xTxDW1ZBxyrRwPnm2KNRjPgxUwC4j8KN8htB7YfhRGg=
+github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20231124072155-9581cc84d7df h1:dSaqO4ltbFdCpmh37DvL+HTLM6KLq65HmwPU2mBBziU=
+github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20231124072155-9581cc84d7df/go.mod h1:gqBdF5EClxZAYJMc55qP6K4tJBbQwezyHkh9fpggkKA=
 github.com/RafaySystems/rctl v1.29.1-0.20231107103246-992b949c4436 h1:3FGcXvBs8/gB/KjURTZGM1iAeCE5/uKOeNmVP2eqGQQ=
 github.com/RafaySystems/rctl v1.29.1-0.20231107103246-992b949c4436/go.mod h1:u4adJb0+yvc+swmdF6WSNeqmAMqW3gx+DKWacVPjLFo=
 github.com/RoaringBitmap/roaring v1.6.0 h1:dc7kRiroETgJcHhWX6BerXkZz2b3JgLGg9nTURJL/og=

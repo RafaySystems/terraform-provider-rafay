@@ -136,6 +136,15 @@ func clusterAKSClusterSpec() map[string]*schema.Schema {
 			Required:    true,
 			Description: "Cloud credentials provider used to create and manage the cluster.",
 		},
+		"system_components_placement": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "Configure tolerations and nodeSelector for Rafay system components.",
+			Elem: &schema.Resource{
+				Schema: systemComponentsPlacementFields(),
+			},
+		},
 		"cluster_config": {
 			Type:        schema.TypeList,
 			Required:    true,
@@ -1939,6 +1948,10 @@ func expandAKSClusterSpec(p []interface{}) *AKSClusterSpec {
 		obj.Sharing = expandSharingSpec(v)
 	}
 
+	if v, ok := in["system_components_placement"].([]interface{}); ok && len(v) > 0 {
+		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
+	}
+
 	return obj
 }
 
@@ -3493,6 +3506,14 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}) []interface{} {
 
 	if in.Sharing != nil {
 		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
+
+	if in.SystemComponentsPlacement != nil {
+		v, ok := obj["system_components_placement"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["system_components_placement"] = flattenSystemComponentsPlacement(in.SystemComponentsPlacement, v)
 	}
 
 	return []interface{}{obj}

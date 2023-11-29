@@ -345,6 +345,10 @@ func expandClusterV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 		obj.CloudCredentials = v
 	}
 
+	if v, ok := in["system_components_placement"].([]interface{}); ok && len(v) > 0 {
+		obj.SystemComponentsPlacement = expandV3SystemComponentsPlacement(v)
+	}
+
 	switch obj.Type {
 	case "aks":
 		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
@@ -1916,6 +1920,14 @@ func flattenClusterV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{
 
 	if in.Sharing != nil {
 		obj["sharing"] = flattenSharingSpecV3(in.Sharing)
+	}
+
+	if in.SystemComponentsPlacement != nil {
+		v, ok := obj["system_components_placement"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["system_components_placement"] = flattenV3SystemComponentsPlacement(in.SystemComponentsPlacement, v)
 	}
 
 	return []interface{}{obj}

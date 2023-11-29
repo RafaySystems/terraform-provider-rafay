@@ -9,9 +9,7 @@ resource "rafay_resource_template" "aws-elasticache" {
     provider_options {
       terraform {
         version = "v1.4.4"
-        use_system_state_store {
-          value = true
-        }
+        backend_type = "custom"
         backend_configs = ["path"]
         var_files       = ["path"]
         plugin_dirs     = ["path"]

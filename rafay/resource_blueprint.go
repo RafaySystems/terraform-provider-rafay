@@ -349,9 +349,9 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 
 	if v, ok := in["drift_webhook"].([]interface{}); ok && len(v) > 0 {
 		obj.DriftWebhook = expandDriftWebhook(v)
-	} else {
-		obj.DriftWebhook = &infrapb.DriftWebhook{Enabled: true}
-	}
+	} // else {
+	// 	obj.DriftWebhook = &infrapb.DriftWebhook{Enabled: true}
+	// }
 
 	if v, ok := in["namespace_config"].([]interface{}); ok && len(v) > 0 {
 		obj.NamespaceConfig = expandBlueprintNamespaceConfig(v)

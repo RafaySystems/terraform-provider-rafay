@@ -171,9 +171,12 @@ func specField() map[string]*schema.Schema {
 			},
 		},
 		"proxy_config": {
-			Type:        schema.TypeMap,
+			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "The proxy configuration for the cluster. Use this if the infrastructure uses an outbound proxy.",
+			Elem: &schema.Resource{
+				Schema: proxyConfigFields(),
+			},
 		},
 		"system_components_placement": {
 			Type:        schema.TypeList,
@@ -276,6 +279,48 @@ func cniSpecField() map[string]*schema.Schema {
 			},
 		},
 	}
+	return s
+}
+
+func proxyConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"http_proxy": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Configure http proxy information with protocol, host and port information",
+		},
+		"https_proxy": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Configure https proxy information with protocol, host and port information",
+		},
+		"no_proxy": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Comma seperated list of hosts that need connectivity without proxy",
+		},
+		"proxy_auth": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Authentication for proxy",
+		},
+		"bootstrap_ca": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Root CA certificate of the proxy",
+		},
+		"enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Enable this option if your infrastructure is running behind a proxy",
+		},
+		"allow_insecure_bootstrap": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Allow insecure bootstrap",
+		},
+	}
+
 	return s
 }
 
@@ -3682,8 +3727,8 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["cni_params"].([]interface{}); ok && len(v) > 0 {
 		obj.CniParams = expandCNIParams(v)
 	}
-	if v, ok := in["proxy_config"].(map[string]interface{}); ok && len(v) > 0 {
-		obj.ProxyConfig = toMapString(v)
+	if v, ok := in["proxy_config"].([]interface{}); ok && len(v) > 0 {
+		obj.ProxyConfig = expandProxyConfig(v)
 	}
 	if v, ok := in["system_components_placement"].([]interface{}); ok && len(v) > 0 {
 		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
@@ -3793,6 +3838,47 @@ func expandCNISpec(p []interface{}) []CustomCniSpec {
 	return out
 }
 
+func expandProxyConfig(p []interface{}) *ProxyConfig {
+	obj := &ProxyConfig{}
+	log.Println("expandProxyConfig")
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["http_proxy"].(string); ok && len(v) > 0 {
+		obj.HttpProxy = v
+	}
+
+	if v, ok := in["https_proxy"].(string); ok && len(v) > 0 {
+		obj.HttpsProxy = v
+	}
+
+	if v, ok := in["no_proxy"].(string); ok && len(v) > 0 {
+		obj.NoProxy = v
+	}
+
+	if v, ok := in["proxy_auth"].(string); ok && len(v) > 0 {
+		obj.ProxyAuth = v
+	}
+
+	if v, ok := in["bootstrap_ca"].(string); ok && len(v) > 0 {
+		obj.BootstrapCA = v
+	}
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
+	}
+
+	if v, ok := in["allow_insecure_bootstrap"].(bool); ok {
+		obj.AllowInsecureBootstrap = &v
+	}
+
+	return obj
+
+}
+
 func flattenEKSCluster(in *EKSCluster, p []interface{}) ([]interface{}, error) {
 	obj := map[string]interface{}{}
 	if in == nil {
@@ -3890,8 +3976,8 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 		}
 		obj["cni_params"] = flattenCNIParams(in.CniParams, v)
 	}
-	if in.ProxyConfig != nil && len(in.ProxyConfig) > 0 {
-		obj["proxy_config"] = toMapInterface(in.ProxyConfig)
+	if in.ProxyConfig != nil {
+		obj["proxy_config"] = flattenProxyConfig(in.ProxyConfig)
 	}
 
 	if in.SystemComponentsPlacement != nil {
@@ -4002,6 +4088,39 @@ func flattenCNISpec(elem []CustomCniSpec, p []interface{}) []interface{} {
 		out[i] = &obj
 	}
 	return out
+}
+
+func flattenProxyConfig(in *ProxyConfig) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	log.Println("got to flatten proxy config:", in)
+
+	if len(in.HttpProxy) > 0 {
+		obj["http_proxy"] = in.HttpProxy
+	}
+	if len(in.HttpsProxy) > 0 {
+		obj["https_proxy"] = in.HttpsProxy
+	}
+	if len(in.NoProxy) > 0 {
+		obj["no_proxy"] = in.NoProxy
+	}
+	if len(in.ProxyAuth) > 0 {
+		obj["proxy_auth"] = in.ProxyAuth
+	}
+	if len(in.BootstrapCA) > 0 {
+		obj["bootstrap_ca"] = in.BootstrapCA
+	}
+	if in.Enabled != nil {
+		obj["enabled"] = *in.Enabled
+	}
+	if in.AllowInsecureBootstrap != nil {
+		obj["allow_insecure_bootstrap"] = *in.AllowInsecureBootstrap
+	}
+
+	return []interface{}{obj}
+
 }
 
 func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]interface{}, error) {

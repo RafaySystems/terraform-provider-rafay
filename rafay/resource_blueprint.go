@@ -503,6 +503,9 @@ func expandMonitoring(p []interface{}) *infrapb.MonitoringConfig {
 		log.Println("expandMonitoring Resources", rs)
 	}
 
+	b, _ := json.Marshal(obj)
+	fmt.Println("debugging expanded monitoring", "json", string(b))
+
 	return obj
 }
 
@@ -1319,11 +1322,13 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 		return nil
 	}
 
-	retNil := true
+	retNil := false
 
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
+	} else {
+		retNil = true
 	}
 
 	retNil = false
@@ -1431,6 +1436,9 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 		obj["resources"] = flattenResources(in.Resources, v)
 		log.Println("flattenMonitoring in.Resources ", in.Resources)
 	}
+
+	b, _ := json.Marshal(obj)
+	fmt.Println("debugging flattened monitoring", "json", string(b))
 
 	return []interface{}{obj}
 }

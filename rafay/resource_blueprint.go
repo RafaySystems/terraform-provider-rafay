@@ -29,6 +29,19 @@ const (
 )
 
 func resourceBluePrint() *schema.Resource {
+	bpSchema := resource.BlueprintSchema.Schema
+	if bpSpec, ok := bpSchema["spec"]; ok {
+		if specElems, ok := bpSpec.Elem.(*schema.Resource); ok {
+			if driftWebhook, ok := specElems.Schema["drift_webhook"]; ok {
+				if driftElems, ok := driftWebhook.Elem.(*schema.Resource); ok {
+					if driftEnabled, ok := driftElems.Schema["enabled"]; ok {
+						driftEnabled.Default = true
+					}
+				}
+			}
+		}
+	}
+
 	return &schema.Resource{
 		CreateContext: resourceBluePrintCreate,
 		ReadContext:   resourceBluePrintRead,
@@ -45,7 +58,7 @@ func resourceBluePrint() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.BlueprintSchema.Schema,
+		Schema:        bpSchema,
 	}
 }
 
@@ -349,7 +362,7 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 
 	if v, ok := in["drift_webhook"].([]interface{}); ok && len(v) > 0 {
 		obj.DriftWebhook = expandDriftWebhook(v)
-	} // else {
+	} //else {
 	// 	obj.DriftWebhook = &infrapb.DriftWebhook{Enabled: true}
 	// }
 
@@ -1330,8 +1343,6 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 	} else {
 		retNil = true
 	}
-
-	retNil = false
 
 	if in.EnableIngress {
 		obj["enable_ingress"] = in.EnableIngress

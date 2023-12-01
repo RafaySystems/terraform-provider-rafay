@@ -8,7 +8,7 @@ resource "rafay_blueprint" "blueprint" {
     version = "v0"
     base {
       name    = "default"
-      version = "2.2.0"
+      version = "1.16.0"
     }
     default_addons {
       enable_ingress    = true

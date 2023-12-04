@@ -4,7 +4,7 @@ resource "rafay_chargeback_share" "tfdemochargebackshare" {
     name = "chargebackshare"
   }
   spec {
-    share_enabled = true
+    share_unallocated_cost = true
     share_type = "tenancy"
   }
 }

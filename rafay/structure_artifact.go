@@ -25,6 +25,7 @@ type artifactTranspose struct {
 		Secret        *File   `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
 		Configuration *File   `protobuf:"bytes,3,opt,name=configuration,proto3" json:"configuration,omitempty"`
 		Statefulset   *File   `protobuf:"bytes,4,opt,name=statefulset,proto3" json:"statefulset,omitempty"`
+		Project       string  `protobuf:"bytes,4,opt,name=project,proto3" json:"project,omitempty"`
 		ValuesRef     struct {
 			Repository  string  `protobuf:"bytes,1,opt,name=repository,proto3" json:"repository,omitempty"`
 			Revision    string  `protobuf:"bytes,2,opt,name=revision,proto3" json:"revision,omitempty"`
@@ -113,6 +114,10 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 
 		if v, ok := in["revision"].(string); ok && len(v) > 0 {
 			at.Artifact.Revision = v
+		}
+
+		if v, ok := in["project"].(string); ok && len(v) > 0 {
+			at.Artifact.Project = v
 		}
 
 		if v, ok := in["secret"].([]interface{}); ok && len(v) > 0 {
@@ -311,6 +316,10 @@ func FlattenArtifact(at *artifactTranspose, p []interface{}) ([]interface{}, err
 
 	if len(at.Artifact.Revision) > 0 {
 		obj["revision"] = at.Artifact.Revision
+	}
+
+	if len(at.Artifact.Project) > 0 {
+		obj["project"] = at.Artifact.Project
 	}
 
 	if at.Artifact.ChartPath != nil {

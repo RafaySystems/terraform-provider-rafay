@@ -15,9 +15,11 @@ Associates a group with a role.
 
 ```terraform
 resource "rafay_groupassociation" "groupassociation" {
-  group      = "dev1"
-  project    = "terraform"
-  roles      = ["PROJECT_READ_ONLY"]
+  group             = "dev1"
+  project           = "terraform"
+  roles             = ["PROJECT_READ_ONLY"]
+  custom_roles      = ["test-custom-role"]
+  
 }
 
 resource "rafay_groupassociation" "groupassociation" {
@@ -43,6 +45,9 @@ resource "rafay_groupassociation" "groupassociation" {
 - `group` - (String) The name of the group to associate the roles to.
 - `project` - (String) The name of the project.
 - `roles` - (List of String) The roles to associate with the group. Supported values are: `ADMIN`, `ADMINISTRATOR_READ_ONLY`, `CLUSTER_ADMIN`, `PROJECT_ADMIN`, `PROJECT_READ_ONLY`, `INFRA_ADMIN`, `INFRA_READ_ONLY`, `NAMESPACE_ADMIN`, `NAMESPACE_READ_ONLY`, `WORKSPACE_ADMIN` and `WORKSPACE_READ_ONLY`.
+- `custom_roles` - (List of String) Custom roles to associate with the group.
+
+***Note***: Either `custom_roles` or `roles` is required
 
 ***Note***: For roles `ADMIN` and `ADMINISTRATOR_READ_ONLY`, project name `defaultproject` needs to be passed.
 

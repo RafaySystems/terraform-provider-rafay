@@ -11,3 +11,10 @@ resource "rafay_groupassociation" "groupassociation1" {
   roles      = ["NAMESPACE_ADMIN"]
   add_users  = ["user1@org"]
 }
+
+resource "rafay_groupassociation" "groupassociation2" {
+  group      = "dev2"
+  project    = "defaultproject"
+  custom_roles      = ["infra.customrole"]
+  add_users  = ["ankit+3@rafay.co"]
+}

@@ -50,10 +50,19 @@ func resourceGroupAssociation() *schema.Resource {
 			},
 			"roles": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				AtLeastOneOf: []string{"custom_roles", "roles"},
+			},
+			"custom_roles": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				AtLeastOneOf: []string{"custom_roles", "roles"},
 			},
 			"namespaces": {
 				Type:     schema.TypeList,
@@ -185,10 +194,16 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 			namespace[i] = raw.(string)
 		}
 	}
+	//convert custom roles interface to passable list for function
+	customRolesList := d.Get("custom_roles").([]interface{})
+	customRoles := make([]string, len(customRolesList))
+	for i, raw := range customRolesList {
+		customRoles[i] = raw.(string)
+	}
 	//create group association
 	log.Printf("resource group assocation create %s", d.Get("group").(string))
 	log.Println("roles: ", roles, "namespace: ", namespace)
-	err := commands.CreateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace)
+	err := commands.CreateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace, customRoles)
 	if err != nil {
 		log.Printf("create group association error %s", err.Error())
 		return diag.FromErr(err)
@@ -375,7 +390,13 @@ func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData,
 			namespace[i] = raw.(string)
 		}
 	}
-	err := commands.UpdateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace)
+	//convert custom roles interface to passable list for function
+	customRolesList := d.Get("custom_roles").([]interface{})
+	customRoles := make([]string, len(customRolesList))
+	for i, raw := range customRolesList {
+		customRoles[i] = raw.(string)
+	}
+	err := commands.UpdateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace, customRoles)
 	if err != nil {
 		log.Printf("update group association error %s", err.Error())
 		return diag.FromErr(err)

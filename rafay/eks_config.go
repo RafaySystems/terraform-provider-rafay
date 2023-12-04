@@ -14,29 +14,20 @@ type EKSSpec struct {
 	CloudProvider             string                     `yaml:"cloudprovider,omitempty"`
 	CrossAccountRoleArn       string                     `yaml:"crossAccountRoleARN,omitempty"`
 	CniProvider               string                     `yaml:"cniprovider,omitempty"`
-	ProxyConfig               map[string]string          `yaml:"proxyconfig,omitempty"`
+	ProxyConfig               *ProxyConfig               `yaml:"proxyconfig,omitempty"`
 	CniParams                 *CustomCni                 `yaml:"cniparams,omitempty"`
 	SystemComponentsPlacement *SystemComponentsPlacement `yaml:"systemComponentsPlacement,omitempty"`
 	Sharing                   *EKSClusterSharing         `yaml:"sharing,omitempty"`
 }
 
-type SystemComponentsPlacement struct {
-	NodeSelector      map[string]string  `yaml:"nodeSelector,omitempty"`
-	Tolerations       []*Tolerations     `yaml:"tolerations,omitempty"`
-	DaemonsetOverride *DaemonsetOverride `yaml:"daemonsetOverride,omitempty"`
-}
-
-type Tolerations struct {
-	Key               string `yaml:"key,omitempty"`
-	Operator          string `yaml:"operator,omitempty"`
-	Value             string `yaml:"value,omitempty"`
-	Effect            string `yaml:"effect,omitempty"`
-	TolerationSeconds *int   `yaml:"tolerationSeconds,omitempty"`
-}
-
-type DaemonsetOverride struct {
-	NodeSelectionEnabled *bool          `yaml:"nodeSelectionEnabled,omitempty"`
-	Tolerations          []*Tolerations `yaml:"tolerations,omitempty"`
+type ProxyConfig struct {
+	HttpProxy              string `yaml:"httpProxy,omitempty"`
+	HttpsProxy             string `yaml:"httpsProxy,omitempty"`
+	NoProxy                string `yaml:"noProxy,omitempty"`
+	ProxyAuth              string `yaml:"proxyAuth,omitempty"`
+	AllowInsecureBootstrap *bool  `yaml:"allowInsecureBootstrap,omitempty"`
+	Enabled                *bool  `yaml:"enabled,omitempty"`
+	BootstrapCA            string `yaml:"bootstrapCA,omitempty"`
 }
 
 type CustomCni struct {

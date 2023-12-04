@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
-	"sort"
 	"strings"
 	"time"
 
@@ -172,9 +170,12 @@ func specField() map[string]*schema.Schema {
 			},
 		},
 		"proxy_config": {
-			Type:        schema.TypeMap,
+			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "The proxy configuration for the cluster. Use this if the infrastructure uses an outbound proxy.",
+			Elem: &schema.Resource{
+				Schema: proxyConfigFields(),
+			},
 		},
 		"system_components_placement": {
 			Type:        schema.TypeList,
@@ -220,94 +221,6 @@ func sharingFields() map[string]*schema.Schema {
 			Type:     schema.TypeList,
 		},
 	}
-}
-
-func systemComponentsPlacementFields() map[string]*schema.Schema {
-	s := map[string]*schema.Schema{
-		"node_selector": {
-			Type:        schema.TypeMap,
-			Optional:    true,
-			Description: "used to tag AWS resources created by the vendor",
-		},
-		"tolerations": {
-			Type: schema.TypeList,
-			//Type:        schema.TypeString,
-			Optional:    true,
-			Description: "contains custom cni networking configurations",
-			Elem: &schema.Resource{
-				Schema: tolerationsFields(),
-			},
-		},
-		"daemonset_override": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "contains custom cni networking configurations",
-			Elem: &schema.Resource{
-				Schema: daemonsetOverrideFields(),
-			},
-		},
-	}
-	return s
-}
-
-func tolerationsFields() map[string]*schema.Schema {
-	s := map[string]*schema.Schema{
-		"key": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "the taint key that the toleration applies to",
-		},
-		"operator": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "represents a key's relationship to the value",
-		},
-		"value": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "the taint value the toleration matches to",
-		},
-		"effect": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "indicates the taint effect to match",
-		},
-		"toleration_seconds": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Description: "represents the period of time the toleration tolerates the taint",
-		},
-	}
-	return s
-}
-
-func daemonsetOverrideFields() map[string]*schema.Schema {
-	s := map[string]*schema.Schema{
-		"node_selection_enabled": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "enables node selection",
-		},
-		"tolerations": {
-			Type: schema.TypeList,
-			//Type:        schema.TypeString,
-			Optional:    true,
-			Description: "contains custom cni networking configurations",
-			Elem: &schema.Resource{
-				Schema: tolerationsFields(),
-			},
-		},
-		/*
-			"tolerations": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "contains custom cni networking configurations",
-				Elem: &schema.Resource{
-					Schema: tolerationsFields(),
-				},
-			},*/
-	}
-	return s
 }
 
 func customCniField() map[string]*schema.Schema {
@@ -365,6 +278,48 @@ func cniSpecField() map[string]*schema.Schema {
 			},
 		},
 	}
+	return s
+}
+
+func proxyConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"http_proxy": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Configure http proxy information with protocol, host and port information",
+		},
+		"https_proxy": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Configure https proxy information with protocol, host and port information",
+		},
+		"no_proxy": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Comma seperated list of hosts that need connectivity without proxy",
+		},
+		"proxy_auth": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Authentication for proxy",
+		},
+		"bootstrap_ca": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Root CA certificate of the proxy",
+		},
+		"enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Enable this option if your infrastructure is running behind a proxy",
+		},
+		"allow_insecure_bootstrap": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Allow insecure bootstrap",
+		},
+	}
+
 	return s
 }
 
@@ -2610,7 +2565,6 @@ func expandFargateProfilesSelectors(p []interface{}) []FargateProfileSelector {
 
 func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNodeGroup { //not completed have questions in comments
 	out := make([]*ManagedNodeGroup, len(p))
-	outToSort := make([]ManagedNodeGroup, len(p))
 	if len(p) == 0 || p[0] == nil {
 		return out
 	}
@@ -2755,12 +2709,7 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 
 		//check if this is how to build array of pointers
 		//out[i] = obj
-		outToSort[i] = *obj
-	}
-
-	sort.Sort(ByManagedNodeGroupName(outToSort))
-	for i := range outToSort {
-		out[i] = &outToSort[i]
+		out[i] = obj
 	}
 
 	return out
@@ -2812,7 +2761,6 @@ func expandManagedNodeGroupLaunchTempelate(p []interface{}) *LaunchTemplate {
 
 func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have questions in comments
 	out := make([]*NodeGroup, len(p))
-	outToSort := make([]NodeGroup, len(p))
 
 	if len(p) == 0 || p[0] == nil {
 		return out
@@ -2976,12 +2924,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		//how do i finish this?
 
 		//check if this is how to build array of pointers
-		outToSort[i] = obj
-	}
-
-	sort.Sort(ByNodeGroupName(outToSort))
-	for i := range outToSort {
-		out[i] = &outToSort[i]
+		out[i] = &obj
 	}
 
 	return out
@@ -3771,8 +3714,8 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["cni_params"].([]interface{}); ok && len(v) > 0 {
 		obj.CniParams = expandCNIParams(v)
 	}
-	if v, ok := in["proxy_config"].(map[string]interface{}); ok && len(v) > 0 {
-		obj.ProxyConfig = toMapString(v)
+	if v, ok := in["proxy_config"].([]interface{}); ok && len(v) > 0 {
+		obj.ProxyConfig = expandProxyConfig(v)
 	}
 	if v, ok := in["system_components_placement"].([]interface{}); ok && len(v) > 0 {
 		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
@@ -3815,80 +3758,6 @@ func expandEKSClusterSharingProjects(p []interface{}) []*EKSClusterSharingProjec
 		res = append(res, obj)
 	}
 	return res
-}
-
-func expandSystemComponentsPlacement(p []interface{}) *SystemComponentsPlacement {
-	obj := &SystemComponentsPlacement{}
-	log.Println("expandSystemComponentsPlacement")
-
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["node_selector"].(map[string]interface{}); ok && len(v) > 0 {
-		obj.NodeSelector = toMapString(v)
-	}
-
-	if v, ok := in["tolerations"].([]interface{}); ok && len(v) > 0 {
-		obj.Tolerations = expandTolerations(v)
-	}
-	if v, ok := in["daemonset_override"].([]interface{}); ok && len(v) > 0 {
-		obj.DaemonsetOverride = expandDaemonsetOverride(v)
-	}
-	return obj
-}
-
-func expandTolerations(p []interface{}) []*Tolerations {
-	out := make([]*Tolerations, len(p))
-	if len(p) == 0 || p[0] == nil {
-		return out
-	}
-	for i := range p {
-		obj := &Tolerations{}
-		in := p[i].(map[string]interface{})
-
-		if v, ok := in["key"].(string); ok && len(v) > 0 {
-			obj.Key = v
-		}
-		if v, ok := in["operator"].(string); ok && len(v) > 0 {
-			obj.Operator = v
-		}
-		if v, ok := in["value"].(string); ok && len(v) > 0 {
-			obj.Value = v
-		}
-		if v, ok := in["effect"].(string); ok && len(v) > 0 {
-			obj.Effect = v
-		}
-		if v, ok := in["toleration_seconds"].(int); ok {
-			if v == 0 {
-				obj.TolerationSeconds = nil
-			} else {
-				log.Println("setting toleration seconds")
-				obj.TolerationSeconds = &v
-			}
-		}
-		out[i] = obj
-	}
-	return out
-}
-
-func expandDaemonsetOverride(p []interface{}) *DaemonsetOverride {
-	obj := &DaemonsetOverride{}
-	log.Println("expand CNI params")
-
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["node_selection_enabled"].(bool); ok {
-		obj.NodeSelectionEnabled = &v
-	}
-	if v, ok := in["tolerations"].([]interface{}); ok && len(v) > 0 {
-		obj.Tolerations = expandTolerations(v)
-	}
-	return obj
 }
 
 func expandCNIParams(p []interface{}) *CustomCni {
@@ -3954,6 +3823,47 @@ func expandCNISpec(p []interface{}) []CustomCniSpec {
 	}
 
 	return out
+}
+
+func expandProxyConfig(p []interface{}) *ProxyConfig {
+	obj := &ProxyConfig{}
+	log.Println("expandProxyConfig")
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["http_proxy"].(string); ok && len(v) > 0 {
+		obj.HttpProxy = v
+	}
+
+	if v, ok := in["https_proxy"].(string); ok && len(v) > 0 {
+		obj.HttpsProxy = v
+	}
+
+	if v, ok := in["no_proxy"].(string); ok && len(v) > 0 {
+		obj.NoProxy = v
+	}
+
+	if v, ok := in["proxy_auth"].(string); ok && len(v) > 0 {
+		obj.ProxyAuth = v
+	}
+
+	if v, ok := in["bootstrap_ca"].(string); ok && len(v) > 0 {
+		obj.BootstrapCA = v
+	}
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
+	}
+
+	if v, ok := in["allow_insecure_bootstrap"].(bool); ok {
+		obj.AllowInsecureBootstrap = &v
+	}
+
+	return obj
+
 }
 
 func flattenEKSCluster(in *EKSCluster, p []interface{}) ([]interface{}, error) {
@@ -4053,8 +3963,8 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 		}
 		obj["cni_params"] = flattenCNIParams(in.CniParams, v)
 	}
-	if in.ProxyConfig != nil && len(in.ProxyConfig) > 0 {
-		obj["proxy_config"] = toMapInterface(in.ProxyConfig)
+	if in.ProxyConfig != nil {
+		obj["proxy_config"] = flattenProxyConfig(in.ProxyConfig)
 	}
 
 	if in.SystemComponentsPlacement != nil {
@@ -4098,87 +4008,6 @@ func flattenEKSSharingProjects(in []*EKSClusterSharingProject) []interface{} {
 		out = append(out, obj)
 	}
 	return out
-}
-
-func flattenSystemComponentsPlacement(in *SystemComponentsPlacement, p []interface{}) []interface{} {
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-	log.Println("got to flatten system comp:", in)
-	log.Println("node_selectopr type: ", reflect.TypeOf(in.NodeSelector))
-	if in.NodeSelector != nil && len(in.NodeSelector) > 0 {
-		obj["node_selector"] = toMapInterface(in.NodeSelector)
-	}
-	if in.Tolerations != nil {
-		v, ok := obj["tolerations"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		log.Println("type of read tolerations:", reflect.TypeOf(in.Tolerations), in.Tolerations)
-		obj["tolerations"] = flattenTolerations(in.Tolerations, v)
-	}
-	if in.DaemonsetOverride != nil {
-		v, ok := obj["daemonset_override"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["daemonset_override"] = flattenDaemonsetOverride(in.DaemonsetOverride, v)
-	}
-
-	return []interface{}{obj}
-}
-
-func flattenTolerations(in []*Tolerations, p []interface{}) []interface{} {
-	if in == nil {
-		return nil
-	}
-	log.Println("flattenTolerations")
-	out := make([]interface{}, len(in))
-	for i, in := range in {
-		obj := map[string]interface{}{}
-		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
-		}
-
-		if len(in.Key) > 0 {
-			obj["key"] = in.Key
-		}
-		if len(in.Operator) > 0 {
-			obj["operator"] = in.Operator
-		}
-		if len(in.Value) > 0 {
-			obj["value"] = in.Value
-		}
-		if len(in.Effect) > 0 {
-			obj["effect"] = in.Effect
-		}
-		if in.TolerationSeconds != nil {
-			obj["toleration_seconds"] = in.TolerationSeconds
-		}
-
-		out[i] = &obj
-	}
-	return out
-}
-
-func flattenDaemonsetOverride(in *DaemonsetOverride, p []interface{}) []interface{} {
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-
-	obj["node_selection_enabled"] = in.NodeSelectionEnabled
-
-	if in.Tolerations != nil {
-		v, ok := obj["tolerations"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["tolerations"] = flattenTolerations(in.Tolerations, v)
-	}
-
-	return []interface{}{obj}
 }
 
 func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {
@@ -4246,6 +4075,39 @@ func flattenCNISpec(elem []CustomCniSpec, p []interface{}) []interface{} {
 		out[i] = &obj
 	}
 	return out
+}
+
+func flattenProxyConfig(in *ProxyConfig) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	log.Println("got to flatten proxy config:", in)
+
+	if len(in.HttpProxy) > 0 {
+		obj["http_proxy"] = in.HttpProxy
+	}
+	if len(in.HttpsProxy) > 0 {
+		obj["https_proxy"] = in.HttpsProxy
+	}
+	if len(in.NoProxy) > 0 {
+		obj["no_proxy"] = in.NoProxy
+	}
+	if len(in.ProxyAuth) > 0 {
+		obj["proxy_auth"] = in.ProxyAuth
+	}
+	if len(in.BootstrapCA) > 0 {
+		obj["bootstrap_ca"] = in.BootstrapCA
+	}
+	if in.Enabled != nil {
+		obj["enabled"] = *in.Enabled
+	}
+	if in.AllowInsecureBootstrap != nil {
+		obj["allow_insecure_bootstrap"] = *in.AllowInsecureBootstrap
+	}
+
+	return []interface{}{obj}
+
 }
 
 func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]interface{}, error) {
@@ -4989,17 +4851,15 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{
 		return nil
 	}
 
-	inpSorted := make([]NodeGroup, len(inp))
-	for i := range inp {
-		inpSorted[i] = *inp[i]
-	}
-	sort.Sort(ByNodeGroupName(inpSorted))
-
 	out := make([]interface{}, len(inp))
-	for i, in := range inpSorted {
+	for i, in := range inp {
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
+		}
+		if in == nil {
+			out[i] = &obj
+			continue
 		}
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
@@ -5411,17 +5271,15 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 		return nil, fmt.Errorf("empty input for managedNodeGroup")
 	}
 
-	inpSorted := make([]ManagedNodeGroup, len(inp))
-	for i := range inp {
-		inpSorted[i] = *inp[i]
-	}
-	sort.Sort(ByManagedNodeGroupName(inpSorted))
-
 	out := make([]interface{}, len(inp))
-	for i, in := range inpSorted {
+	for i, in := range inp {
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
+		}
+		if in == nil {
+			out[i] = &obj
+			continue
 		}
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
@@ -5560,7 +5418,7 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 		if len(in.Version) > 0 {
 			obj["version"] = in.Version
 		}
-		out[i] = obj
+		out[i] = &obj
 	}
 	return out, nil
 }

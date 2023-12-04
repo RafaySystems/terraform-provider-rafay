@@ -454,6 +454,14 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 		obj.EnableVM = v
 	}
 
+	if v, ok := in["enable_csi_secret_store"].(bool); ok {
+		obj.EnableCsiSecretStore = v
+	}
+
+	if v, ok := in["csi_secret_store_config"].([]interface{}); ok && len(v) > 0 {
+		obj.CsiSecretStoreConfig = expandCsiSecretStoreConfig(v)
+	}
+
 	if v, ok := in["monitoring"].([]interface{}); ok && len(v) > 0 {
 		obj.Monitoring = expandMonitoring(v)
 		rs := spew.Sprintf("%+v", obj.Monitoring)
@@ -461,6 +469,53 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 	}
 
 	return obj, nil
+}
+
+func expandCsiSecretStoreConfig(p []interface{}) *infrapb.CsiSecretStoreConfig {
+	obj := &infrapb.CsiSecretStoreConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["sync_secrets"].(bool); ok {
+		obj.SyncSecrets = v
+	}
+
+	if v, ok := in["enable_secret_rotation"].(bool); ok {
+		obj.EnableSecretRotation = v
+	}
+
+	if v, ok := in["rotation_poll_interval"].(string); ok {
+		obj.RotationPollInterval = v
+	}
+
+	if v, ok := in["providers"].([]interface{}); ok && len(v) > 0 {
+		obj.Providers = expandCsiSecretStoreProviders(v)
+	}
+
+	return obj
+}
+
+func expandCsiSecretStoreProviders(p []interface{}) *infrapb.SecretStoreProvider {
+	obj := &infrapb.SecretStoreProvider{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["aws"].(bool); ok {
+		obj.Aws = v
+	}
+
+	if v, ok := in["vault"].(bool); ok {
+		obj.Vault = v
+	}
+
+	return obj
 }
 
 func expandMonitoring(p []interface{}) *infrapb.MonitoringConfig {
@@ -1343,6 +1398,19 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 		}
 	}
 
+	if in.EnableCsiSecretStore {
+		obj["enable_csi_secret_store"] = in.EnableCsiSecretStore
+		retNil = false
+
+		if in.CsiSecretStoreConfig != nil {
+			v, ok := obj["csi_secret_store_config"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["csi_secret_store_config"] = flattenCsiSecretStoreConfig(in.CsiSecretStoreConfig, v)
+		}
+	}
+
 	if in.EnableRookCeph {
 		obj["enable_rook_ceph"] = in.EnableRookCeph
 		retNil = false
@@ -1355,6 +1423,58 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 
 	if retNil {
 		return nil
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenCsiSecretStoreConfig(in *infrapb.CsiSecretStoreConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.EnableSecretRotation {
+		obj["enable_secret_rotation"] = in.EnableSecretRotation
+	}
+
+	if in.SyncSecrets {
+		obj["sync_secrets"] = in.SyncSecrets
+	}
+
+	if in.RotationPollInterval != "" {
+		obj["rotation_poll_interval"] = in.RotationPollInterval
+	}
+
+	if in.Providers != nil {
+		v, ok := obj["providers"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["providers"] = flattenCsiSecretStoreProviders(in.Providers, v)
+		log.Println("flattenCsiSecretStoreConfig in.Providers ", in.Providers)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenCsiSecretStoreProviders(in *infrapb.SecretStoreProvider, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+
+	if in.Aws {
+		obj["aws"] = in.Aws
+	}
+
+	if in.Vault {
+		obj["vault"] = in.Vault
 	}
 
 	return []interface{}{obj}

@@ -156,8 +156,9 @@ func toMapByte(in map[string]interface{}) map[string][]byte {
 			out[i] = []byte{}
 			continue
 		}
-		value := v.(string)
-		out[i] = []byte(value)
+		if vstr, ok := v.(string); ok {
+			out[i] = []byte(vstr)
+		}
 	}
 	return out
 }
@@ -169,8 +170,7 @@ func toMapByteInterface(in map[string][]byte) map[string]interface{} {
 			out[i] = []byte{}
 			continue
 		}
-		value := bytes.NewBuffer(v).String()
-		out[i] = []byte(value)
+		out[i] = bytes.NewBuffer(v).String()
 	}
 	return out
 }
@@ -525,20 +525,29 @@ func expandCommonpbFiles(p []interface{}) []*commonpb.File {
 		obj := commonpb.File{}
 		in := p[i].(map[string]interface{})
 
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj.Name = v
+		if name, ok := in["name"].(string); ok && len(name) > 0 {
+
+			if strings.HasPrefix(obj.Name, "file://") {
+				//get full path of artifact
+				artifactFullPath := filepath.Join(filepath.Dir("."), obj.Name[7:])
+				//retrieve artifact data
+				artifactData, err := ioutil.ReadFile(artifactFullPath)
+				if err != nil {
+					log.Println("unable to read artifact at ", artifactFullPath)
+				} else {
+					obj.Data = artifactData
+				}
+				obj.Name = strings.TrimPrefix(name, "file://")
+			} else {
+				obj.Name = name
+				if data, ok := in["data"].(string); ok && len(data) > 0 {
+					obj.Data = []byte(data)
+				}
+			}
 		}
 
-		if strings.HasPrefix(obj.Name, "file://") {
-			//get full path of artifact
-			artifactFullPath := filepath.Join(filepath.Dir("."), obj.Name[7:])
-			//retrieve artifact data
-			artifactData, err := ioutil.ReadFile(artifactFullPath)
-			if err != nil {
-				log.Println("unable to read artifact at ", artifactFullPath)
-			} else {
-				obj.Data = artifactData
-			}
+		if mp, ok := in["mount_path"].(string); ok && len(mp) > 0 {
+			obj.MountPath = mp
 		}
 
 		if v, ok := in["sensitive"].(bool); ok {
@@ -936,6 +945,12 @@ func flattenCommonpbFiles(input []*commonpb.File) []interface{} {
 			obj["name"] = in.Name
 		}
 		obj["sensitive"] = in.Sensitive
+		if !in.Sensitive {
+			obj["data"] = string(in.Data)
+		}
+		if len(in.MountPath) > 0 {
+			obj["mount_path"] = in.MountPath
+		}
 		out[i] = obj
 	}
 

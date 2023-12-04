@@ -9,6 +9,27 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
       name = "default-aks"
     }
     cloud_credentials = "aks-cred"
+    system_components_placement {
+      node_selector = {
+        app = "infra"
+        dedicated = "true"
+      }
+      tolerations {
+        effect = "PreferNoSchedule"
+        key = "app"
+        operator = "Equal"
+        value =  "infra"
+      }
+      daemon_set_override {
+        node_selection_enabled = false
+        tolerations {
+          key = "app1dedicated"
+          value = true
+          effect = "NoSchedule"
+          operator = "Equal"
+        }
+      }
+    }
     config {
       kind       = "aksClusterConfig"
       metadata {
@@ -35,7 +56,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
               enable_private_cluster = true
             }
             dns_prefix         = "aks-v3-tf-2401202303-dns"
-            kubernetes_version = "1.24.9"
+            kubernetes_version = "1.25.6"
             network_profile {
               network_plugin = "kubenet"
               load_balancer_sku = "standard"
@@ -69,10 +90,15 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.24.9"
+            orchestrator_version = "1.25.6"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_DS2_v2"
+            node_labels = {
+              app = "infra"
+              dedicated = "true"
+            }
+            node_taints               = ["app=infra:PreferNoSchedule"]
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
         }
@@ -88,10 +114,15 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.24.9"
+            orchestrator_version = "1.25.6"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_B4ms"
+            node_labels = {
+              app = "infra"
+              dedicated = "true"
+            }
+            node_taints               = ["app=infra:PreferNoSchedule"]
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
         }

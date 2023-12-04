@@ -12,9 +12,19 @@ resource "rafay_blueprint" "blueprint" {
     }
     default_addons {
       enable_ingress    = true
+      enable_csi_secret_store = true
       enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
+
+      csi_secret_store_config {
+        enable_secret_rotation = true
+        sync_secrets = true
+        rotation_poll_interval = "2m"
+        providers {
+          aws = true
+        }
+      }
       monitoring {
         metrics_server {
           enabled = true

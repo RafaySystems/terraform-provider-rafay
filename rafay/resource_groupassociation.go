@@ -136,7 +136,7 @@ func returnValidNamespaceNames(namespace_id_list []string, projectID string) ([]
 func resourceGroupAssociationImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	s := strings.Split(d.Id(), "/")
 	if len(s) < 2 {
-		return nil, fmt.Errorf("group name or project name not provided, usage e.g terraform import resource group-name-project-name")
+		return nil, fmt.Errorf("group name or project name not provided, usage e.g terraform import rafay_groupassociation.resource_name group_name/project_name")
 	}
 
 	group_name := s[0]

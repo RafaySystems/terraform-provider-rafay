@@ -1,8 +1,0 @@
-{
-    "profile": "dev",
-    "api_key": "ra2.d8651dda7acc8545d6540aa311a58af7c96123ea.1d874b780510ffac747d1749516776cbc372242aa2611b7e951004750122d1a9",
-    "api_secret": "1d874b780510ffac747d1749516776cbc372242aa2611b7e951004750122d1a9",
-    "project_id": "rx28oml",
-    "rest_endpoint": "console-eaas-dev.dev.rafay-edge.net",
-    "ops_endpoint": "ops-console-eaas-dev.dev.rafay-edge.net"
-}

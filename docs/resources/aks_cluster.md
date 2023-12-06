@@ -235,12 +235,27 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `disk_encryption_set_id` - (String) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/diskEncryptionSets/{encryptionSetName}`
 - `dns_prefix` - (String) DNS prefix specified when creating the managed cluster. This cannot be updated once the Managed Cluster has been created.
 - `enable_rbac` - (boolean) Enable Kubernetes Role-Based Access Control.
-- `identity_profile` - (Map of String) Identities associated with the cluster.
+- `identity_profile` - (Block List) Identities associated with the cluster. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--identity_profile))
 - `linux_profile` - (Block List) The configurations for linux profile. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--linux_profile))
 - `network_profile` - (Block List) Profile of the network configuration. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--network_profile))
 - `node_resource_group` - (String) The name of the resource group containing agent pool nodes.
 - `pod_identity_profile` - (Block List) Azure Active Directory (Azure AD) pod-managed identities use Kubernetes primitives to associate managed identities for Azure resources and identities in Azure AD with pods. See [Use Azure AD Pod-Managed Identities](https://learn.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity) for more information. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--pod_identity_profile))
 - `service_principal_profile` - (Block List) Information about a service principal identity for the cluster to use for manipulating Azure APIs. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--service_principal_profile))
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--identity_profile"></a>
+### Nested Schema for  `spec.cluster_config.spec.managed_cluster.properties.identity_profile`
+
+***Optional***
+
+- `kubelet_identity` - (Block List) Its  is a user-assigned managed identity used by the kubelet to access Azure resources. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--identity_profile--kubelet_identity))
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--identity_profile--kubelet_identity"></a>
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.identity_profile.kubelet_identity`
+
+***Optional***
+
+- `resource_id` (String) - ARM resource IDs in the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}`.
+
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--aad_profiles"></a>
 ### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.aad_profiles`
@@ -516,7 +531,8 @@ Supported values are: `loadBalancer` and `userDefinedRouting`.
 - `availability_zones` - (List of String) The list of availability zones to use for nodes. This can only be specified if the `AgentPoolType` property is `VirtualMachineScaleSets`.
 - `count` - (Number) The number of agents (VMs) to host docker containers. Allowed values must be in the range of `0` to `1000` (inclusive) for user pools and in the range of `1` to `1000` (inclusive) for system pools. The default value is `1`.
 - `enable_auto_scaling` - (Boolean) Enables the auto-scaler. 
-- `enable_node_public_ip` - (Booleab) Enables a Public IP for a Node Pool.
+- `enable_node_public_ip` - (Boolean) Assigns public IPs directly to nodes, allowing  external access.
+- `enable_encryption_at_host` - (Boolean) Encrypts data on nodes for added security.
 - `max_count` - (Number) The maximum number of nodes for auto-scaling.
 - `max_pods` - (Number) The maximum number of pods that can run on a node.
 - `min_count` - (Number) The minimum number of nodes for auto-scaling

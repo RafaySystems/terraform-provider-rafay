@@ -294,7 +294,6 @@ func expandDrift(p []interface{}) *commonpb.DriftSpec {
 func expandDriftWebhook(p []interface{}) *infrapb.DriftWebhook {
 	obj := &infrapb.DriftWebhook{}
 	if len(p) == 0 || p[0] == nil {
-		obj.Enabled = true
 		return obj
 	}
 
@@ -302,10 +301,7 @@ func expandDriftWebhook(p []interface{}) *infrapb.DriftWebhook {
 
 	if v, ok := in["enabled"].(bool); ok {
 		obj.Enabled = v
-	} else {
-		obj.Enabled = true
 	}
-
 	return obj
 }
 

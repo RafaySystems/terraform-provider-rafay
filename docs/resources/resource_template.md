@@ -24,9 +24,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
     provider_options {
       terraform {
         version = "v1.4.4"
-        use_system_state_store {
-          value = true
-        }
+        backend_type = "custom"
         backend_configs = ["path"]
         var_files       = ["path"]
         plugin_dirs     = ["path"]
@@ -4171,7 +4169,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `refresh` (Block List, Max: 1) Skip checking for external changes to remote objects while creating the plan. This can potentially make planning faster, but at the expense of possibly planning against a stale record of the remote system state. (see [below for nested schema](#nestedblock--spec--provider_options--terraform--refresh))
 - `target_resources` (List of String) Limit the planning operation to only the given module, resource, or resource instance and all of its dependencies
 - `timeout_seconds` (Number) Timeout in seconds
-- `use_system_state_store` (Block List, Max: 1) Use system state store, by default it is false (see [below for nested schema](#nestedblock--spec--provider_options--terraform--use_system_state_store))
+- `backend_type` (String) Specify the backend type, Supported types are `custom`, `system`, `terraform_cloud`  
 - `var_files` (List of String) Load variable values from the given file, in addition to the default files terraform.tfvars and *.auto.tfvars. Use this option more than once to include more than one variables files
 - `version` (String) Terraform version
 - `volumes` (Block List) volumes to be mounted into the terraform driver (see [below for nested schema](#nestedblock--spec--provider_options--terraform--volumes))
@@ -4193,14 +4191,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `value` (Boolean)
 
 
-<a id="nestedblock--spec--provider_options--terraform--use_system_state_store"></a>
-### Nested Schema for `spec.provider_options.terraform.with_terraform_cloud`
-
-***Optional***
-
-- `value` (Boolean)
-
-
 <a id="nestedblock--spec--provider_options--terraform--volumes"></a>
 ### Nested Schema for `spec.provider_options.terraform.with_terraform_cloud`
 
@@ -4209,8 +4199,15 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `mount_path` (String) Mount path for volume
 - `pvc_size_gb` (String) PVC size in GB
 - `pvc_storage_class` (String) PVC storage class
-- `use_pvc` (Boolean) Use PVC for volume
 
+- `use_pvc` (Block List, Max: 1) Use PVC for volume (see [below for nested schema](#nestedblock--spec--provider_options--terraform--with_terraform_cloud--use_pvc))
+
+<a id="nestedblock--spec--provider_options--terraform--with_terraform_cloud--use_pvc"></a>
+### Nested Schema for `spec.provider_options.terraform.with_terraform_cloud.use_pvc`
+
+***Required***
+
+- `value` (Boolean)
 
 <a id="nestedblock--spec--provider_options--terraform--with_terraform_cloud"></a>
 ### Nested Schema for `spec.provider_options.terraform.with_terraform_cloud`

@@ -402,6 +402,10 @@ func expandBlueprintNamespaceConfig(p []interface{}) *infrapb.NsConfig {
 		obj.EnableSync = v
 	}
 
+	if v, ok := in["sync_type"].(string); ok {
+		obj.SyncType = v
+	}
+
 	return obj
 }
 
@@ -1340,6 +1344,7 @@ func flattenBlueprintNamespaceConfig(in *infrapb.NsConfig, p []interface{}) []in
 	// obj["deny_out_of_band_creation"] = in.DenyOutOfBandCreation
 
 	obj["enable_sync"] = in.EnableSync
+	obj["sync_type"] = in.SyncType
 
 	return []interface{}{obj}
 }

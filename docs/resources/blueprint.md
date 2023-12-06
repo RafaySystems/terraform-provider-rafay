@@ -559,6 +559,7 @@ resource "rafay_blueprint" "cost-blueprint" {
 ***Required***
 
 - `enable_sync` (Boolean) flag to enable namespace sync
+- `sync_type` (String) indiactes if namespace sync can be Managed or Unmanaged
 
 
 <a id="nestedblock--spec--opa_policy"></a>

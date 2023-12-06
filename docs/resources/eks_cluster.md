@@ -361,15 +361,13 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
     kind = "Cluster"
     metadata {
       name    = "eks-cluster-bottlerocket-1"
-      project = "terraform"
+      project = "mayank"
     }
     spec {
       type           = "eks"
       blueprint      = "default"
-      blueprint_version = "1.13.0"
       cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
-      proxy_config   = {}
     }
   }
   cluster_config {
@@ -378,43 +376,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
     metadata {
       name    = "eks-cluster-bottlerocket-1"
       region  = "us-west-2"
-      version = "1.21"
-    }
-    iam {
-      service_accounts {
-        attach_policy = <<EOF
-        {
-	  "Version": "2012-10-17",
-	  "Statement": [
-	    {
-	      "Effect": "Allow",
-	      "Action": "ec2:Describe*",
-	      "Resource": "*"
-	    },
-	    {
-	      "Effect": "Allow",
-	      "Action": "ec2:AttachVolume",
-	      "Resource": "*"
-	    },
-	    {  
-	      "Effect": "Allow",
-	      "Action": "ec2:DetachVolume",
-	      "Resource": "*"
-	    },
-	    {
-	      "Effect": "Allow",
-	      "Action": ["ec2:*"],
-	      "Resource": ["*"]
-    	    },
-	    {
-	      "Effect": "Allow",
-	      "Action": ["elasticloadbalancing:*"],
-	      "Resource": ["*"]
-	     }
-	   ]
-	}
-	EOF
-      }
+      version = "1.25"
     }
     vpc {
       cidr = "192.168.0.0/16"
@@ -426,24 +388,17 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
         gateway = "Single"
       }
     }
-    node_groups {
-      name       = "ng-1"
+
+    managed_nodegroups {
+      name = "ng-1"
       ami_family = "AmazonLinux2"
-      iam {
-        iam_node_group_with_addon_policies {
-          image_builder = true
-          auto_scaler   = true
-        }
-      }
-      instance_type    = "m5.xlarge"
+      instance_type = "t3.medium"
       desired_capacity = 1
-      min_size         = 1
-      max_size         = 2
-      max_pods_per_node = 50
-      version          = "1.21"
-      volume_size      = 80
-      volume_type      = "gp3"
-      private_networking = true
+      min_size = 1
+      max_size = 2
+      version = "1.25"
+      volume_size = 80
+      volume_type = "gp3"
     }
 
     managed_nodegroups {

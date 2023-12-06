@@ -361,7 +361,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
     kind = "Cluster"
     metadata {
       name    = "eks-cluster-bottlerocket-1"
-      project = "mayank"
+      project = "terraform"
     }
     spec {
       type           = "eks"

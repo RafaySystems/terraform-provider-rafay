@@ -193,7 +193,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--identity_profile--kubelet_identity"></a>
 ### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.identity_profile.kubelet_identity`
 
-***Optional***
+***Required***
 
 - `resource_id` (String) - ARM resource IDs in the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}`.
 

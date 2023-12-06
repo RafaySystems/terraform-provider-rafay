@@ -461,6 +461,10 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 		tpo.WithTerraformCloud = expandBoolValue(h)
 	}
 
+	if v, ok := in["volumes"].([]interface{}); ok && len(v) > 0 {
+		tpo.Volumes = expandTerraformProviderVolumeOptions(v)
+	}
+
 	return tpo
 }
 
@@ -782,6 +786,14 @@ func flattenTerraformProviderOptions(in *eaaspb.TerraformProviderOptions) []inte
 	obj["plugin_dirs"] = toArrayInterface(in.PluginDirs)
 	obj["target_resources"] = toArrayInterface(in.TargetResources)
 	obj["with_terraform_cloud"] = flattenBoolValue(in.WithTerraformCloud)
+	if len(in.Volumes) > 0 {
+		v, ok := obj["volumes"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["volumes"] = flattenTerraformProviderVolumeOptions(in.Volumes, v)
+	}
 
 	return []interface{}{obj}
 }
@@ -1267,6 +1279,74 @@ func flattenDriverResourceRef(input *commonpb.ResourceNameAndVersionRef) []inter
 		obj["version"] = input.Version
 	}
 	out[0] = &obj
+	return out
+}
+
+func expandTerraformProviderVolumeOptions(p []interface{}) []*eaaspb.TerraformProviderVolumeOptions {
+	volumes := make([]*eaaspb.TerraformProviderVolumeOptions, 0)
+	if len(p) == 0 {
+		return volumes
+	}
+
+	for indx := range p {
+		volume := &eaaspb.TerraformProviderVolumeOptions{}
+		if p[indx] == nil {
+			return volumes
+		}
+		in := p[indx].(map[string]interface{})
+
+		if mp, ok := in["mount_path"].(string); ok && len(mp) > 0 {
+			volume.MountPath = mp
+		}
+
+		if pvcsz, ok := in["pvc_size_gb"].(string); ok && len(pvcsz) > 0 {
+			volume.PvcSizeGB = pvcsz
+		}
+
+		if pvcsc, ok := in["pvc_storage_class"].(string); ok && len(pvcsc) > 0 {
+			volume.PvcStorageClass = pvcsc
+		}
+
+		if usepvc, ok := in["use_pvc"].([]interface{}); ok && len(usepvc) > 0 {
+			volume.UsePVC = expandBoolValue(usepvc)
+		}
+
+		volumes = append(volumes, volume)
+
+	}
+
+	return volumes
+}
+
+func flattenTerraformProviderVolumeOptions(input []*eaaspb.TerraformProviderVolumeOptions, p []interface{}) []interface{} {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flatten terraform provider volume options", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		obj["use_pvc"] = flattenBoolValue(in.UsePVC)
+
+		if len(in.MountPath) > 0 {
+			obj["mount_path"] = in.MountPath
+		}
+
+		if len(in.PvcSizeGB) > 0 {
+			obj["pvc_size_gb"] = in.PvcSizeGB
+		}
+
+		if len(in.PvcStorageClass) > 0 {
+			obj["pvc_storage_class"] = in.PvcStorageClass
+		}
+
+		out[i] = &obj
+	}
+
 	return out
 }
 

@@ -24,9 +24,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
     provider_options {
       terraform {
         version = "v1.4.4"
-        use_system_state_store {
-          value = true
-        }
+        backend_type = "custom"
         backend_configs = ["path"]
         var_files       = ["path"]
         plugin_dirs     = ["path"]
@@ -4209,8 +4207,15 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `mount_path` (String) Mount path for volume
 - `pvc_size_gb` (String) PVC size in GB
 - `pvc_storage_class` (String) PVC storage class
-- `use_pvc` (Boolean) Use PVC for volume
 
+- `use_pvc` (Block List, Max: 1) Use PVC for volume (see [below for nested schema](#nestedblock--spec--provider_options--terraform--with_terraform_cloud--use_pvc))
+
+<a id="nestedblock--spec--provider_options--terraform--with_terraform_cloud--use_pvc"></a>
+### Nested Schema for `spec.provider_options.terraform.with_terraform_cloud.use_pvc`
+
+***Required***
+
+- `value` (Boolean)
 
 <a id="nestedblock--spec--provider_options--terraform--with_terraform_cloud"></a>
 ### Nested Schema for `spec.provider_options.terraform.with_terraform_cloud`

@@ -314,8 +314,8 @@ func expandDriverContainerConfig(p []interface{}) *eaaspb.ContainerDriverConfig 
 		cc.MemoryLimitMb = mlb
 	}
 
-	if v, ok := in["volume_options"].([]interface{}); ok && len(v) > 0 {
-		cc.VolumeOptions = expandContainerDriverVolumeOptions(v)
+	if v, ok := in["volumes"].([]interface{}); ok && len(v) > 0 {
+		cc.Volumes = expandContainerDriverVolumeOptions(v)
 	}
 
 	if wdp, ok := in["working_dir_path"].(string); ok && len(wdp) > 0 {
@@ -362,33 +362,6 @@ func expandKubeConfigOptions(p []interface{}) *eaaspb.ContainerKubeConfigOptions
 
 	if ofc, ok := in["out_of_cluster"].(bool); ok {
 		hc.OutOfCluster = ofc
-	}
-
-	return &hc
-}
-
-func expandContainerDriverVolumeOptions(p []interface{}) *eaaspb.ContainerDriverVolumeOptions {
-	hc := eaaspb.ContainerDriverVolumeOptions{}
-	if len(p) == 0 || p[0] == nil {
-		return &hc
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if mp, ok := in["mount_path"].(string); ok && len(mp) > 0 {
-		hc.MountPath = mp
-	}
-
-	if pvcsz, ok := in["pvc_size_gb"].(string); ok && len(pvcsz) > 0 {
-		hc.PvcSizeGB = pvcsz
-	}
-
-	if pvcsc, ok := in["pvc_storage_class"].(string); ok && len(pvcsc) > 0 {
-		hc.PvcStorageClass = pvcsc
-	}
-
-	if usepvc, ok := in["use_pvc"].([]interface{}); ok && len(usepvc) > 0 {
-		hc.UsePVC = expandBoolValue(usepvc)
 	}
 
 	return &hc
@@ -632,13 +605,13 @@ func flattenDriverContainerConfig(in *eaaspb.ContainerDriverConfig, p []interfac
 		obj["memory_limit_mb"] = in.MemoryLimitMb
 	}
 
-	if in.VolumeOptions != nil {
-		v, ok := obj["volume_options"].([]interface{})
+	if len(in.Volumes) > 0 {
+		v, ok := obj["volumes"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
 
-		obj["volume_options"] = flattenContainerVolumeOptions(in.VolumeOptions, v)
+		obj["volumes"] = flattenContainerDriverVolumeOptions(in.Volumes, v)
 	}
 
 	if len(in.WorkingDirPath) > 0 {
@@ -747,34 +720,6 @@ func flattenSecurityContext(in *eaaspb.KubeSecurityContext, p []interface{}) []i
 	return []interface{}{obj}
 }
 
-func flattenContainerVolumeOptions(in *eaaspb.ContainerDriverVolumeOptions, p []interface{}) []interface{} {
-	log.Println("flatten container driver volume options start")
-	if in == nil {
-		return nil
-	}
-
-	obj := make(map[string]interface{})
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-
-	if len(in.MountPath) > 0 {
-		obj["mount_path"] = in.MountPath
-	}
-
-	if len(in.PvcSizeGB) > 0 {
-		obj["pvc_size_gb"] = in.PvcSizeGB
-	}
-
-	if len(in.PvcStorageClass) > 0 {
-		obj["pvc_storage_class"] = in.PvcStorageClass
-	}
-
-	obj["use_pvc"] = flattenBoolValue(in.UsePVC)
-
-	return []interface{}{obj}
-}
-
 func flattenDriverHttpConfig(in *eaaspb.HTTPDriverConfig, p []interface{}) []interface{} {
 	log.Println("flatten http config start")
 	if in == nil {
@@ -801,6 +746,74 @@ func flattenDriverHttpConfig(in *eaaspb.HTTPDriverConfig, p []interface{}) []int
 	}
 
 	return []interface{}{obj}
+}
+
+func expandContainerDriverVolumeOptions(p []interface{}) []*eaaspb.ContainerDriverVolumeOptions {
+	volumes := make([]*eaaspb.ContainerDriverVolumeOptions, 0)
+	if len(p) == 0 {
+		return volumes
+	}
+
+	for indx := range p {
+		volume := &eaaspb.ContainerDriverVolumeOptions{}
+		if p[indx] == nil {
+			return volumes
+		}
+		in := p[indx].(map[string]interface{})
+
+		if mp, ok := in["mount_path"].(string); ok && len(mp) > 0 {
+			volume.MountPath = mp
+		}
+
+		if pvcsz, ok := in["pvc_size_gb"].(string); ok && len(pvcsz) > 0 {
+			volume.PvcSizeGB = pvcsz
+		}
+
+		if pvcsc, ok := in["pvc_storage_class"].(string); ok && len(pvcsc) > 0 {
+			volume.PvcStorageClass = pvcsc
+		}
+
+		if usepvc, ok := in["use_pvc"].([]interface{}); ok && len(usepvc) > 0 {
+			volume.UsePVC = expandBoolValue(usepvc)
+		}
+
+		volumes = append(volumes, volume)
+
+	}
+
+	return volumes
+}
+
+func flattenContainerDriverVolumeOptions(input []*eaaspb.ContainerDriverVolumeOptions, p []interface{}) []interface{} {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flatten container driver volume options", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		obj["use_pvc"] = flattenBoolValue(in.UsePVC)
+
+		if len(in.MountPath) > 0 {
+			obj["mount_path"] = in.MountPath
+		}
+
+		if len(in.PvcSizeGB) > 0 {
+			obj["pvc_size_gb"] = in.PvcSizeGB
+		}
+
+		if len(in.PvcStorageClass) > 0 {
+			obj["pvc_storage_class"] = in.PvcStorageClass
+		}
+
+		out[i] = &obj
+	}
+
+	return out
 }
 
 func resourceDriverImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {

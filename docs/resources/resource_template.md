@@ -146,8 +146,9 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `provider` (String) Specify the resource template provider, Accepted values are `terraform`
-- `repository_options` (Block List, Max: 1) Repository options to be provided (see [below for nested schema](#nestedblock--spec--repository_options))
+- `repository_options` (Block List, Max: 1) Repository options where the provider code resides (see [below for nested schema](#nestedblock--spec--repository_options))
 - `version` (String) Version of the resource template
+- `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`
 
 ***Optional***
 
@@ -157,7 +158,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `provider_options` (Block List, Max: 1) Provider specific options to be provided (see [below for nested schema](#nestedblock--spec--provider_options))
 - `sharing` (Block List, Max: 1) Sharing resource template across projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Variables associated with resource template (see [below for nested schema](#nestedblock--spec--variables))
-- `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
@@ -198,7 +198,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `notification`, `script`, `container`, `http`.
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`.
 
 <a id="nestedblock--spec--hooks--on_completion--agents"></a>
 ### Nested Schema for `spec.hooks.on_completion.agents`
@@ -224,8 +224,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--script))
 
 <a id="nestedblock--spec--hooks--on_completion--type--approval"></a>
 ### Nested Schema for `spec.hooks.on_completion.type.approval`
@@ -233,17 +231,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval--jira))
-- `type` (String) Specify the approval options, Available options are `internal`, `email`, `jira`, `github_pull_request`
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--on_completion--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.on_completion.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--on_completion--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.on_completion.type.approval.github_pull_request`
 
 
 <a id="nestedblock--spec--hooks--on_completion--type--approval--internal"></a>
@@ -252,9 +244,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-<a id="nestedblock--spec--hooks--on_completion--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.on_completion.type.approval.jira`
 
 
 <a id="nestedblock--spec--hooks--on_completion--type--container"></a>
@@ -284,22 +273,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `success_condition` (String) Specify the success condition of the request
 
 
-<a id="nestedblock--spec--hooks--on_completion--type--notification"></a>
-### Nested Schema for `spec.hooks.on_completion.type.notification`
-
-
-<a id="nestedblock--spec--hooks--on_completion--type--script"></a>
-### Nested Schema for `spec.hooks.on_completion.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 <a id="nestedblock--spec--hooks--on_failure"></a>
 ### Nested Schema for `spec.hooks.on_failure`
 
@@ -312,7 +285,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `notification`, `script`, `container`, `http`
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--on_failure--agents"></a>
 ### Nested Schema for `spec.hooks.on_failure.agents`
@@ -338,8 +311,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--script))
 
 <a id="nestedblock--spec--hooks--on_failure--type--approval"></a>
 ### Nested Schema for `spec.hooks.on_failure.type.approval`
@@ -347,17 +318,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--on_failure--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.on_failure.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--on_failure--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.on_failure.type.approval.github_pull_request`
 
 
 <a id="nestedblock--spec--hooks--on_failure--type--approval--internal"></a>
@@ -366,12 +331,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--on_failure--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.on_failure.type.approval.jira`
-
-
 
 <a id="nestedblock--spec--hooks--on_failure--type--container"></a>
 ### Nested Schema for `spec.hooks.on_failure.type.container`
@@ -400,24 +359,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `success_condition` (String) Specify the success condition of the request
 
 
-<a id="nestedblock--spec--hooks--on_failure--type--notification"></a>
-### Nested Schema for `spec.hooks.on_failure.type.notification`
-
-
-<a id="nestedblock--spec--hooks--on_failure--type--script"></a>
-### Nested Schema for `spec.hooks.on_failure.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
-
 <a id="nestedblock--spec--hooks--on_init"></a>
 ### Nested Schema for `spec.hooks.on_init`
 
@@ -430,7 +371,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--on_init--agents"></a>
 ### Nested Schema for `spec.hooks.on_init.agents`
@@ -456,8 +397,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--script))
 
 <a id="nestedblock--spec--hooks--on_init--type--approval"></a>
 ### Nested Schema for `spec.hooks.on_init.type.approval`
@@ -465,18 +404,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--on_init--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.on_init.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--on_init--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.on_init.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--on_init--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.on_init.type.approval.internal`
@@ -484,11 +416,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--on_init--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.on_init.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--on_init--type--container"></a>
@@ -518,24 +445,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `success_condition` (String) Specify the success condition of the request
 
 
-<a id="nestedblock--spec--hooks--on_init--type--notification"></a>
-### Nested Schema for `spec.hooks.on_init.type.notification`
-
-
-<a id="nestedblock--spec--hooks--on_init--type--script"></a>
-### Nested Schema for `spec.hooks.on_init.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
-
 <a id="nestedblock--spec--hooks--on_success"></a>
 ### Nested Schema for `spec.hooks.on_success`
 
@@ -548,7 +457,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--on_success--agents"></a>
 ### Nested Schema for `spec.hooks.on_success.agents`
@@ -574,8 +483,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--script))
 
 <a id="nestedblock--spec--hooks--on_success--type--approval"></a>
 ### Nested Schema for `spec.hooks.on_success.type.approval`
@@ -583,18 +490,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--on_success--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.on_success.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--on_success--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.on_success.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--on_success--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.on_success.type.approval.internal`
@@ -602,11 +502,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--on_success--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.on_success.type.approval.type`
-
 
 
 <a id="nestedblock--spec--hooks--on_success--type--container"></a>
@@ -636,49 +531,13 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `success_condition` (String) Specify the success condition of the request
 
 
-<a id="nestedblock--spec--hooks--on_success--type--notification"></a>
-### Nested Schema for `spec.hooks.on_success.type.notification`
-
-
-<a id="nestedblock--spec--hooks--on_success--type--script"></a>
-### Nested Schema for `spec.hooks.on_success.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
-
 <a id="nestedblock--spec--hooks--provider"></a>
 ### Nested Schema for `spec.hooks.provider`
 
 ***Optional***
 
-- `pulumi` (Block List, Max: 1) Pulumi provider hooks (see [below for nested schema](#nestedblock--spec--hooks--provider--pulumi))
 - `terraform` (Block List, Max: 1) Terraform provider hooks (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform))
 
-<a id="nestedblock--spec--hooks--provider--pulumi"></a>
-### Nested Schema for `spec.hooks.provider.pulumi`
-
-***Optional***
-
-- `deploy` (Block List, Max: 1) Pulumi deploy lifecycle hook (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy))
-- `destroy` (Block List, Max: 1) Pulumi deploy lifecycle hook (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy))
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy`
-
-***Optional***
-
-- `login` (Block List, Max: 1) Pulumi login deploy lifecycle hook (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--login))
-- `output` (Block List, Max: 1) Pulumi output deploy lifecycle hook (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--output))
-- `preview` (Block List, Max: 1) Pulumi preview deploy lifecycle hook (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--preview))
-- `up` (Block List, Max: 1) Pulumi up deploy lifecycle hook (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--login"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up`
@@ -700,7 +559,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.agents`
@@ -726,8 +585,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval`
@@ -735,18 +592,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.internal`
@@ -754,12 +604,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.jira`
-
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.container`
@@ -787,23 +631,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before`
 
@@ -816,7 +643,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.agents`
@@ -842,8 +669,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval`
@@ -851,18 +676,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.internal`
@@ -870,11 +688,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.jira`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.container`
@@ -901,26 +714,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--output"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up`
@@ -942,7 +735,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.agents`
@@ -968,8 +761,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval`
@@ -977,18 +768,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.internal`
@@ -996,11 +780,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container"></a>
@@ -1028,25 +807,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before`
@@ -1060,7 +820,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.agents`
@@ -1086,8 +846,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval`
@@ -1095,18 +854,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.internal`
@@ -1114,11 +866,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container"></a>
@@ -1146,25 +893,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--preview"></a>
@@ -1187,7 +915,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.agents`
@@ -1213,8 +941,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval`
@@ -1222,18 +948,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.internal`
@@ -1241,11 +960,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container"></a>
@@ -1273,24 +987,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before"></a>
@@ -1305,7 +1001,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.agents`
@@ -1331,8 +1027,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval`
@@ -1340,18 +1034,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.internal`
@@ -1359,11 +1046,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container"></a>
@@ -1391,22 +1073,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up"></a>
@@ -1429,7 +1095,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.agents`
@@ -1455,8 +1121,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval`
@@ -1464,18 +1129,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.internal`
@@ -1483,11 +1141,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container"></a>
@@ -1515,24 +1168,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before"></a>
@@ -1547,7 +1182,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.agents`
@@ -1573,8 +1208,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval`
@@ -1582,17 +1215,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.github_pull_request`
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--internal"></a>
@@ -1601,11 +1228,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--container"></a>
@@ -1633,33 +1255,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--up--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.up.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy`
-
-***Optional***
-
-- `destroy` (Block List, Max: 1) Pulumi destroy lifecycle hook (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--destroy))
-- `login` (Block List, Max: 1) Pulumi login destroy lifecycle hook (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--login))
-- `preview` (Block List, Max: 1) Pulumi preview destroy lifecycle hook (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview))
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--destroy"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview`
@@ -1681,7 +1276,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.agents`
@@ -1707,8 +1302,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval`
@@ -1716,18 +1309,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.internal`
@@ -1735,11 +1321,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--container"></a>
@@ -1767,24 +1348,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before"></a>
@@ -1799,7 +1362,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.agents`
@@ -1825,8 +1388,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval`
@@ -1834,18 +1395,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.internal`
@@ -1853,11 +1407,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--container"></a>
@@ -1885,25 +1434,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--login"></a>
@@ -1926,7 +1456,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.agents`
@@ -1952,8 +1482,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval`
@@ -1961,17 +1489,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.github_pull_request`
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal"></a>
@@ -1980,11 +1502,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--container"></a>
@@ -2012,24 +1529,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before"></a>
@@ -2044,7 +1543,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.agents`
@@ -2070,8 +1569,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval`
@@ -2079,18 +1577,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.internal`
@@ -2098,11 +1589,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--container"></a>
@@ -2130,25 +1616,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview"></a>
@@ -2171,7 +1638,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.agents`
@@ -2197,8 +1664,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval`
@@ -2206,18 +1672,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.internal`
@@ -2225,11 +1684,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--container"></a>
@@ -2257,24 +1711,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before"></a>
@@ -2289,7 +1725,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.agents`
@@ -2315,8 +1751,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval`
@@ -2324,18 +1759,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.internal`
@@ -2343,11 +1771,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--container"></a>
@@ -2375,22 +1798,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--preview--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.preview.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
 
 
 <a id="nestedblock--spec--hooks--provider--terraform"></a>
@@ -2431,7 +1838,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -2457,8 +1864,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval`
@@ -2466,18 +1872,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.internal`
@@ -2485,11 +1884,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container"></a>
@@ -2517,24 +1911,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before"></a>
@@ -2549,7 +1925,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -2575,8 +1951,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval`
@@ -2584,18 +1959,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.internal`
@@ -2603,11 +1971,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container"></a>
@@ -2635,25 +1998,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--init"></a>
@@ -2676,7 +2020,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -2702,8 +2046,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval`
@@ -2711,18 +2054,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.internal`
@@ -2730,11 +2066,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container"></a>
@@ -2762,24 +2093,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before"></a>
@@ -2794,7 +2107,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -2820,8 +2133,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval`
@@ -2829,18 +2141,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.internal`
@@ -2848,11 +2153,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container"></a>
@@ -2880,25 +2180,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--output"></a>
@@ -2921,7 +2202,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -2947,8 +2228,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval`
@@ -2956,18 +2235,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.internal`
@@ -2975,11 +2247,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container"></a>
@@ -3007,24 +2274,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before"></a>
@@ -3039,7 +2288,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -3065,8 +2314,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval`
@@ -3074,18 +2321,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.internal`
@@ -3093,11 +2333,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container"></a>
@@ -3125,26 +2360,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan`
@@ -3166,7 +2381,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -3192,8 +2407,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval`
@@ -3201,18 +2414,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.internal`
@@ -3220,11 +2426,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container"></a>
@@ -3252,24 +2453,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before"></a>
@@ -3284,7 +2467,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -3310,8 +2493,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval`
@@ -3319,18 +2501,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.internal`
@@ -3338,11 +2513,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--container"></a>
@@ -3370,23 +2540,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy`
@@ -3417,7 +2570,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.agents`
@@ -3443,8 +2596,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval`
@@ -3452,18 +2603,10 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.internal`
@@ -3471,12 +2614,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.jira`
-
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--container"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.container`
@@ -3503,24 +2640,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before"></a>
@@ -3535,7 +2654,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.agents`
@@ -3561,8 +2680,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval`
@@ -3570,18 +2688,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.type`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.type`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.type`
@@ -3589,11 +2700,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.type`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--container"></a>
@@ -3621,25 +2727,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--init"></a>
@@ -3662,7 +2749,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.agents`
@@ -3688,8 +2775,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval`
@@ -3697,18 +2783,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.internal`
@@ -3716,11 +2795,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--container"></a>
@@ -3748,24 +2822,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before"></a>
@@ -3780,7 +2836,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.agents`
@@ -3806,8 +2862,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--script))
+
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval`
@@ -3815,18 +2870,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.internal`
@@ -3834,11 +2882,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--container"></a>
@@ -3866,25 +2909,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan"></a>
@@ -3907,7 +2931,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.agents`
@@ -3933,8 +2957,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval`
@@ -3942,17 +2964,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.github_pull_request`
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal"></a>
@@ -3961,11 +2977,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--container"></a>
@@ -3993,24 +3004,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before"></a>
@@ -4025,7 +3018,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are approval, notification, script, container, http 
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.agents`
@@ -4051,8 +3044,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--script))
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval`
@@ -4060,17 +3051,11 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.github_pull_request`
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--internal"></a>
@@ -4079,11 +3064,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--container"></a>
@@ -4113,33 +3093,13 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `success_condition` (String) Specify the success condition of the request
 
 
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--notification"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.notification`
-
-
-<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--type--script"></a>
-### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
 <a id="nestedblock--spec--provider_options"></a>
 ### Nested Schema for `spec.provider_options`
 
 ***Optional***
 
 - `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
-- `pulumi` (Block List, Max: 1) Specify the pulumi specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--pulumi))
-- `system` (Block List, Max: 1) Specify the system specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--system))
 - `terraform` (Block List, Max: 1) Specify the terraform specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--terraform))
-- `terragrunt` (Block List, Max: 1) Specify the terrafrunt specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--terragrunt))
 
 <a id="nestedblock--spec--provider_options--driver"></a>
 ### Nested Schema for `spec.provider_options.driver`
@@ -4147,14 +3107,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `name` (String) name of the driver resource
-
-
-<a id="nestedblock--spec--provider_options--pulumi"></a>
-### Nested Schema for `spec.provider_options.pulumi`
-
-
-<a id="nestedblock--spec--provider_options--system"></a>
-### Nested Schema for `spec.provider_options.system`
 
 
 <a id="nestedblock--spec--provider_options--terraform"></a>
@@ -4192,22 +3144,22 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 
 <a id="nestedblock--spec--provider_options--terraform--volumes"></a>
-### Nested Schema for `spec.provider_options.terraform.with_terraform_cloud`
+### Nested Schema for `spec.provider_options.terraform.volumes`
 
 ***Optional***
 
 - `mount_path` (String) Mount path for volume
 - `pvc_size_gb` (String) PVC size in GB
 - `pvc_storage_class` (String) PVC storage class
-
-- `use_pvc` (Block List, Max: 1) Use PVC for volume (see [below for nested schema](#nestedblock--spec--provider_options--terraform--with_terraform_cloud--use_pvc))
+- `use_pvc` (Block List, Max: 1) Use PVC for volume (see [below for nested schema](#nestedblock--spec--provider_options--terraform--volumes--use_pvc))
 
 <a id="nestedblock--spec--provider_options--terraform--with_terraform_cloud--use_pvc"></a>
-### Nested Schema for `spec.provider_options.terraform.with_terraform_cloud.use_pvc`
+### Nested Schema for `spec.provider_options.terraform.volumes.use_pvc`
 
 ***Required***
 
 - `value` (Boolean)
+
 
 <a id="nestedblock--spec--provider_options--terraform--with_terraform_cloud"></a>
 ### Nested Schema for `spec.provider_options.terraform.with_terraform_cloud`
@@ -4289,5 +3241,3 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `create` (String)
 - `delete` (String)
 - `update` (String)
-
-

@@ -164,7 +164,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--on_completion--agents"></a>
 ### Nested Schema for `spec.hooks.on_completion.agents`
@@ -190,8 +190,6 @@ resource "rafay_environment_template" "aws-et-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--script))
 
 <a id="nestedblock--spec--hooks--on_completion--type--approval"></a>
 ### Nested Schema for `spec.hooks.on_completion.type.approval`
@@ -199,17 +197,11 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--on_completion--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.on_completion.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--on_completion--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.on_completion.type.approval.github_pull_request`
 
 
 <a id="nestedblock--spec--hooks--on_completion--type--approval--internal"></a>
@@ -218,11 +210,6 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--on_completion--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.on_completion.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--on_completion--type--container"></a>
@@ -252,24 +239,6 @@ resource "rafay_environment_template" "aws-et-example" {
 - `success_condition` (String) Specify the success condition of the request
 
 
-<a id="nestedblock--spec--hooks--on_completion--type--notification"></a>
-### Nested Schema for `spec.hooks.on_completion.type.notification`
-
-
-<a id="nestedblock--spec--hooks--on_completion--type--script"></a>
-### Nested Schema for `spec.hooks.on_completion.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
-
 <a id="nestedblock--spec--hooks--on_failure"></a>
 ### Nested Schema for `spec.hooks.on_failure`
 
@@ -282,7 +251,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--on_failure--agents"></a>
 ### Nested Schema for `spec.hooks.on_failure.agents`
@@ -308,8 +277,6 @@ resource "rafay_environment_template" "aws-et-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--script))
 
 <a id="nestedblock--spec--hooks--on_failure--type--approval"></a>
 ### Nested Schema for `spec.hooks.on_failure.type.approval`
@@ -317,18 +284,11 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--on_failure--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.on_failure.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--on_failure--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.on_failure.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--on_failure--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.on_failure.type.approval.internal`
@@ -336,12 +296,6 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--on_failure--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.on_failure.type.approval.jira`
-
-
 
 <a id="nestedblock--spec--hooks--on_failure--type--container"></a>
 ### Nested Schema for `spec.hooks.on_failure.type.container`
@@ -370,24 +324,6 @@ resource "rafay_environment_template" "aws-et-example" {
 - `success_condition` (String) Specify the success condition of the request
 
 
-<a id="nestedblock--spec--hooks--on_failure--type--notification"></a>
-### Nested Schema for `spec.hooks.on_failure.type.notification`
-
-
-<a id="nestedblock--spec--hooks--on_failure--type--script"></a>
-### Nested Schema for `spec.hooks.on_failure.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
-
 <a id="nestedblock--spec--hooks--on_init"></a>
 ### Nested Schema for `spec.hooks.on_init`
 
@@ -400,7 +336,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--on_init--agents"></a>
 ### Nested Schema for `spec.hooks.on_init.agents`
@@ -426,8 +362,6 @@ resource "rafay_environment_template" "aws-et-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--script))
 
 <a id="nestedblock--spec--hooks--on_init--type--approval"></a>
 ### Nested Schema for `spec.hooks.on_init.type.approval`
@@ -435,18 +369,11 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--on_init--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.on_init.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--on_init--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.on_init.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--on_init--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.on_init.type.approval.internal`
@@ -454,11 +381,6 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--on_init--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.on_init.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--on_init--type--container"></a>
@@ -488,24 +410,6 @@ resource "rafay_environment_template" "aws-et-example" {
 - `success_condition` (String) Specify the success condition of the request
 
 
-<a id="nestedblock--spec--hooks--on_init--type--notification"></a>
-### Nested Schema for `spec.hooks.on_init.type.notification`
-
-
-<a id="nestedblock--spec--hooks--on_init--type--script"></a>
-### Nested Schema for `spec.hooks.on_init.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
-
 <a id="nestedblock--spec--hooks--on_success"></a>
 ### Nested Schema for `spec.hooks.on_success`
 
@@ -518,7 +422,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
 
 <a id="nestedblock--spec--hooks--on_success--agents"></a>
 ### Nested Schema for `spec.hooks.on_success.agents`
@@ -544,8 +448,6 @@ resource "rafay_environment_template" "aws-et-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--http))
-- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--notification))
-- `script` (Block List, Max: 1) Specify the shell script options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--script))
 
 <a id="nestedblock--spec--hooks--on_success--type--approval"></a>
 ### Nested Schema for `spec.hooks.on_success.type.approval`
@@ -553,18 +455,11 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Optional***
 
 - `email` (Block List, Max: 1) Specify the options for email (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--approval--email))
-- `github_pull_request` (Block List, Max: 1) Specify the options for github pr approval (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--approval--github_pull_request))
 - `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--approval--internal))
-- `jira` (Block List, Max: 1) Specify the options for jira approval (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--approval--jira))
-- `type` (String) Specify the approval options
+- `type` (String) Specify the approval options, Available options are `internal`, `email`
 
 <a id="nestedblock--spec--hooks--on_success--type--approval--email"></a>
 ### Nested Schema for `spec.hooks.on_success.type.approval.email`
-
-
-<a id="nestedblock--spec--hooks--on_success--type--approval--github_pull_request"></a>
-### Nested Schema for `spec.hooks.on_success.type.approval.github_pull_request`
-
 
 <a id="nestedblock--spec--hooks--on_success--type--approval--internal"></a>
 ### Nested Schema for `spec.hooks.on_success.type.approval.internal`
@@ -572,11 +467,6 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Required***
 
 - `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--on_success--type--approval--jira"></a>
-### Nested Schema for `spec.hooks.on_success.type.approval.jira`
-
 
 
 <a id="nestedblock--spec--hooks--on_success--type--container"></a>
@@ -604,26 +494,6 @@ resource "rafay_environment_template" "aws-et-example" {
 - `headers` (Map of String) Specify the http headers in key,value pair
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--on_success--type--notification"></a>
-### Nested Schema for `spec.hooks.on_success.type.notification`
-
-
-<a id="nestedblock--spec--hooks--on_success--type--script"></a>
-### Nested Schema for `spec.hooks.on_success.type.script`
-
-***Optional***
-
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `script` (String) Specify the script to be executed
-- `success_condition` (String) Specify the success condition of the script
-
-
-
-
 
 <a id="nestedblock--spec--resources"></a>
 ### Nested Schema for `spec.resources`
@@ -710,5 +580,3 @@ resource "rafay_environment_template" "aws-et-example" {
 - `create` (String)
 - `delete` (String)
 - `update` (String)
-
-

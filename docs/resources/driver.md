@@ -88,11 +88,11 @@ resource "rafay_driver" "driver" {
 
 ***Required***
 
-- `type` (String) Specify the type of driver
+- `type` (String) Specify the type of driver, Accepted values are `container`.
+- `container` (Block List, Max: 1) Specify the container driver config (see [below for nested schema](#nestedblock--spec--config--container))
 
 ***Optional***
 
-- `container` (Block List, Max: 1) Specify the container driver config (see [below for nested schema](#nestedblock--spec--config--container))
 - `http` (Block List, Max: 1) Specify the http driver config (see [below for nested schema](#nestedblock--spec--config--http))
 - `max_retry_count` (Number) Specify the max retry count
 - `success_condition` (String) Specify the success condition
@@ -112,11 +112,10 @@ resource "rafay_driver" "driver" {
 - `cpu_limit_milli` (String) Specify the cpu limit in milli
 - `env_vars` (Map of String) Specify the environment variables to be set in key,value pair
 - `files` (Map of String) Specify the file data
-- `image_pull_credentials` (Block List, Max: 1) Specify the credentials for the registry to pull image from (see [below for nested schema](#nestedblock--spec--config--container--image_pull_credentials))
+- `image_pull_credentials` (Block List, Max: 1) Specify the credentials to pull image from private registry which requires authentication. (see [below for nested schema](#nestedblock--spec--config--container--image_pull_credentials))
 - `kube_config_options` (Block List, Max: 1) Specify the kube config options (see [below for nested schema](#nestedblock--spec--config--container--kube_config_options))
 - `kube_options` (Block List, Max: 1) Specify the kube options (see [below for nested schema](#nestedblock--spec--config--container--kube_options))
 - `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `volume_options` (Block List, Max: 1) Specify the container driver volume options (see [below for nested schema](#nestedblock--spec--config--container--volume_options))
 - `volumes` (Block List) Configure the container volumes (see [below for nested schema](#nestedblock--spec--config--container--volumes))
 - `working_dir_path` (String) Specify the working directory path
 
@@ -174,26 +173,6 @@ resource "rafay_driver" "driver" {
 
 - `value` (Boolean)
 
-
-<a id="nestedblock--spec--config--container--volume_options"></a>
-### Nested Schema for `spec.config.container.volume_options`
-
-***Optional***
-
-- `mount_path` (String) Specify the container mount path
-- `pvc_size_gb` (String) Specify the persistent volume claim size in GB
-- `pvc_storage_class` (String) Specify the persistent volume claim storage class
-- `use_pvc` (Block List, Max: 1) Specify if the container needs to use persistent volume claims (see [below for nested schema](#nestedblock--spec--config--container--working_dir_path--use_pvc))
-
-<a id="nestedblock--spec--config--container--working_dir_path--use_pvc"></a>
-### Nested Schema for `spec.config.container.working_dir_path.use_pvc`
-
-***Optional***
-
-- `value` (Boolean)
-
-
-
 <a id="nestedblock--spec--config--container--volumes"></a>
 ### Nested Schema for `spec.config.container.volumes`
 
@@ -248,5 +227,3 @@ resource "rafay_driver" "driver" {
 - `create` (String)
 - `delete` (String)
 - `update` (String)
-
-

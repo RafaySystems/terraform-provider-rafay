@@ -314,13 +314,6 @@ func expandDriverContainerConfig(p []interface{}) *eaaspb.ContainerDriverConfig 
 		cc.MemoryLimitMb = mlb
 	}
 
-	if v, ok := in["volume_options"].([]interface{}); ok && len(v) > 0 {
-		volumes := expandContainerDriverVolumeOptions(v)
-		if len(volumes) > 0 {
-			cc.VolumeOptions = volumes[0]
-		}
-	}
-
 	if v, ok := in["volumes"].([]interface{}); ok && len(v) > 0 {
 		cc.Volumes = expandContainerDriverVolumeOptions(v)
 	}
@@ -610,17 +603,6 @@ func flattenDriverContainerConfig(in *eaaspb.ContainerDriverConfig, p []interfac
 
 	if len(in.MemoryLimitMb) > 0 {
 		obj["memory_limit_mb"] = in.MemoryLimitMb
-	}
-
-	if in.VolumeOptions != nil {
-		v, ok := obj["volume_options"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["volume_options"] = flattenContainerDriverVolumeOptions([]*eaaspb.ContainerDriverVolumeOptions{
-			in.VolumeOptions,
-		}, v)
 	}
 
 	if len(in.Volumes) > 0 {

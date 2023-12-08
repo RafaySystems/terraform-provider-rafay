@@ -6,12 +6,12 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       project = "terraform"
     }
     spec {
-      type           = "eks"
-      blueprint      = "default"
+      type              = "eks"
+      blueprint         = "default"
       blueprint_version = "Latest"
-      cloud_provider = "aws-eks-role"
-      cni_provider   = "aws-cni"
-      proxy_config   = {}
+      cloud_provider    = "aws-eks-role"
+      cni_provider      = "aws-cni"
+      proxy_config      = {}
     }
   }
   cluster_config {
@@ -23,10 +23,10 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       version = "1.22"
     }
     iam {
-     with_oidc = true
+      with_oidc = true
       service_accounts {
         metadata {
-          name = "test-irsa"
+          name      = "test-irsa"
           namespace = "yaml1"
         }
         attach_policy = <<EOF
@@ -58,8 +58,8 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
         EOF
       }
     }
- 
-   
+
+
     vpc {
       cidr = "192.168.0.0/16"
       cluster_endpoints {
@@ -79,17 +79,17 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
           auto_scaler   = true
         }
       }
-      instance_type    = "m5.xlarge"
-      desired_capacity = 1
-      min_size         = 1
-      max_size         = 2
-      max_pods_per_node = 50
-      version          = "1.22"
-      volume_size      = 80
-      volume_type      = "gp3"
+      instance_type      = "m5.xlarge"
+      desired_capacity   = 1
+      min_size           = 1
+      max_size           = 2
+      max_pods_per_node  = 50
+      version            = "1.22"
+      volume_size        = 80
+      volume_type        = "gp3"
       private_networking = true
       labels = {
-        app = "infra"
+        app       = "infra"
         dedicated = "true"
       }
     }
@@ -104,36 +104,36 @@ resource "rafay_eks_cluster" "ekscluster-advanced" {
       project = "terraform"
     }
     spec {
-      type           = "eks"
-      blueprint      = "default"
+      type              = "eks"
+      blueprint         = "default"
       blueprint_version = "1.21.0"
-      cloud_provider = "eks-role"
-      cni_provider   = "aws-cni"
-      proxy_config   = {}
-      system_components_placement {      
+      cloud_provider    = "eks-role"
+      cni_provider      = "aws-cni"
+      proxy_config      = {}
+      system_components_placement {
         node_selector = {
-          app = "infra"
+          app       = "infra"
           dedicated = "true"
         }
         tolerations {
-          effect = "NoExecute"
-          key = "app"
+          effect   = "NoExecute"
+          key      = "app"
           operator = "Equal"
-          value =  "infra"
+          value    = "infra"
         }
         tolerations {
-          effect = "NoSchedule"
-          key = "dedicated"
+          effect   = "NoSchedule"
+          key      = "dedicated"
           operator = "Equal"
-          value = true
+          value    = true
         }
         daemonset_override {
           node_selection_enabled = false
           tolerations {
-            key = "app1dedicated"
-            value = true
-            effect = "NoSchedule"
-            operator = "Equal" 
+            key      = "app1dedicated"
+            value    = true
+            effect   = "NoSchedule"
+            operator = "Equal"
           }
         }
       }
@@ -175,37 +175,36 @@ resource "rafay_eks_cluster" "ekscluster-advanced" {
       name       = "managed-ng-1"
       ami_family = "AmazonLinux2"
       iam {
-        instance_profile_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:instance-profile/role_name"
         instance_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/role_name"
       }
-      instance_type    = "m5.xlarge"
-      desired_capacity = 1
-      min_size         = 1
-      max_size         = 2
+      instance_type     = "m5.xlarge"
+      desired_capacity  = 1
+      min_size          = 1
+      max_size          = 2
       max_pods_per_node = 50
       labels = {
-        app = "infra"
+        app       = "infra"
         dedicated = "true"
       }
-     taints {
-        key  = "app"
-        value = "infra"
+      taints {
+        key    = "app"
+        value  = "infra"
         effect = "NoExecute"
       }
-     taints {
-        key  = "dedicated"
-        value = true
+      taints {
+        key    = "dedicated"
+        value  = true
         effect = "NoSchedule"
       }
       security_groups {
         attach_ids = ["sg-id-1", "sg-id-2"]
       }
-      subnets = ["subnet-id-1", "subnet-id-2"]
-      version          = "1.21"
-      volume_size      = 80
-      volume_type      = "gp3"
-      volume_iops      = 3000
-      volume_throughput = 125
+      subnets            = ["subnet-id-1", "subnet-id-2"]
+      version            = "1.21"
+      volume_size        = 80
+      volume_type        = "gp3"
+      volume_iops        = 3000
+      volume_throughput  = 125
       private_networking = true
     }
   }
@@ -219,36 +218,36 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
       project = "terraform"
     }
     spec {
-      type           = "eks"
-      blueprint      = "default"
+      type              = "eks"
+      blueprint         = "default"
       blueprint_version = "1.21.0"
-      cloud_provider = "eks-role"
-      cni_provider   = "aws-cni"
+      cloud_provider    = "eks-role"
+      cni_provider      = "aws-cni"
       cni_params {
         custom_cni_crd_spec {
           name = "us-west-2a"
           cni_spec {
             security_groups = ["sg-xxxxxx", "sg-yyyyyy"]
-            subnet = "subnet-zzz"
+            subnet          = "subnet-zzz"
           }
           cni_spec {
             security_groups = ["sg-cccccc", "sg-dddddd"]
-            subnet = "subnet-kkk"
+            subnet          = "subnet-kkk"
           }
         }
         custom_cni_crd_spec {
           name = "us-west-2b"
           cni_spec {
             security_groups = ["sg-aaaaaa", "sg-xxxxxx"]
-            subnet = "subnet-qqq"
+            subnet          = "subnet-qqq"
           }
           cni_spec {
             security_groups = ["sg-cccccc", "sg-dddddd"]
-            subnet = "subnet-www"
+            subnet          = "subnet-www"
           }
         }
       }
-      proxy_config   = {}
+      proxy_config = {}
     }
   }
   cluster_config {
@@ -278,14 +277,14 @@ resource "rafay_eks_cluster" "ekscluster-custom-cni" {
           auto_scaler   = true
         }
       }
-      instance_type    = "m5.xlarge"
-      desired_capacity = 1
-      min_size         = 1
-      max_size         = 2
-      max_pods_per_node = 50
-      version          = "1.21"
-      volume_size      = 80
-      volume_type      = "gp3"
+      instance_type      = "m5.xlarge"
+      desired_capacity   = 1
+      min_size           = 1
+      max_size           = 2
+      max_pods_per_node  = 50
+      version            = "1.21"
+      volume_size        = 80
+      volume_type        = "gp3"
       private_networking = true
     }
   }
@@ -299,17 +298,17 @@ resource "rafay_eks_cluster" "ekscluster-basic-im" {
       project = "terraform"
     }
     spec {
-      type           = "eks"
-      blueprint      = "default"
+      type              = "eks"
+      blueprint         = "default"
       blueprint_version = "Latest"
-      cloud_provider = "eks-role"
-      cni_provider   = "aws-cni"
-      proxy_config   = {}
+      cloud_provider    = "eks-role"
+      cni_provider      = "aws-cni"
+      proxy_config      = {}
     }
   }
   cluster_config {
 
-    kind       = "ClusterConfig"
+    kind = "ClusterConfig"
     metadata {
       name    = "eks-cluster-4"
       region  = "us-west-2"
@@ -328,8 +327,8 @@ resource "rafay_eks_cluster" "ekscluster-basic-im" {
     }
     identity_mappings {
       arns {
-        arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:user/<USERNAME>"
-        group = ["groupname"]
+        arn      = "arn:aws:iam::<AWS_ACCOUNT_ID>:user/<USERNAME>"
+        group    = ["groupname"]
         username = "user"
       }
     }
@@ -342,14 +341,14 @@ resource "rafay_eks_cluster" "ekscluster-basic-im" {
           auto_scaler   = true
         }
       }
-      instance_type    = "t3.xlarge"
-      desired_capacity = 1
-      min_size         = 1
-      max_size         = 2
-      max_pods_per_node = 50
-      version          = "1.22"
-      volume_size      = 80
-      volume_type      = "gp3"
+      instance_type      = "t3.xlarge"
+      desired_capacity   = 1
+      min_size           = 1
+      max_size           = 2
+      max_pods_per_node  = 50
+      version            = "1.22"
+      volume_size        = 80
+      volume_type        = "gp3"
       private_networking = true
     }
   }
@@ -364,11 +363,11 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
       project = "defaultproject"
     }
     spec {
-      type              = "eks"
-      blueprint         = "minimal"
-      cloud_provider    = "aws"
-      cni_provider      = "aws-cni"
-      proxy_config      = {}
+      type           = "eks"
+      blueprint      = "minimal"
+      cloud_provider = "aws"
+      cni_provider   = "aws-cni"
+      proxy_config   = {}
     }
   }
   cluster_config {
@@ -383,7 +382,7 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
       ip_family = "IPv6"
     }
     iam {
-     with_oidc = true
+      with_oidc = true
     }
 
     vpc {
@@ -393,36 +392,36 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
       }
     }
     managed_nodegroups {
-      name = "ng1"
-      instance_type      = "t3.medium"
-      desired_capacity   = 3
-      min_size           = 0
-      max_size           = 4
-      volume_size        = 80
-      volume_type        = "gp3"
-      version            = "1.26"
+      name             = "ng1"
+      instance_type    = "t3.medium"
+      desired_capacity = 3
+      min_size         = 0
+      max_size         = 4
+      volume_size      = 80
+      volume_type      = "gp3"
+      version          = "1.26"
     }
     managed_nodegroups {
-      name = "ng2"
-      instance_type      = "t3.medium"
-      desired_capacity   = 2
-      min_size           = 0
-      max_size           = 3
-      volume_size        = 80
-      volume_type        = "gp3"
-      version            = "1.26"
+      name             = "ng2"
+      instance_type    = "t3.medium"
+      desired_capacity = 2
+      min_size         = 0
+      max_size         = 3
+      volume_size      = 80
+      volume_type      = "gp3"
+      version          = "1.26"
     }
-    
+
     addons {
-      name = "vpc-cni"
+      name    = "vpc-cni"
       version = "latest"
     }
     addons {
-      name = "kube-proxy"
+      name    = "kube-proxy"
       version = "latest"
     }
     addons {
-      name = "coredns"
+      name    = "coredns"
       version = "latest"
     }
   }

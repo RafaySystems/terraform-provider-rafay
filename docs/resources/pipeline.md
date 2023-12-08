@@ -141,6 +141,8 @@ resource "rafay_pipeline" "workload-test" {
       config {
         workload_template =  "workload_template_name"
         namespace =  "main"
+        project_name      = "test-project"
+        workload_name     = "workload-nginx"
         placement {
           labels {
             key = "rafay.dev/clusterName"
@@ -321,6 +323,7 @@ Note: `next` is required for multi stage pipeline.
 - `type` (String) The config type for supporred ations. Supported values are `Email` and `Terraform`
 - `workload` (String) The name of the workload.
 - `workload_template` (String) The name of the workload template.
+- `project_name` (String) Name of the project to deploy the workload in. Pipeline should be shared with the project being specified here.
 - `namespace` (String) The namespace the workload template should be deployed in.
 - `placement` (Block List, Max: 1) The placement for the workload template. (See [below for nested schema]
 
@@ -337,6 +340,7 @@ Note: `next` is required for multi stage pipeline.
 - `included_resources` (Block List) The resources to include for syncing. (See [below for nested schema](#nestedblock--spec--stages--config--included_resources)).
 - `timeout` (String) The timeout for the approval.
 - `use_revision_from_webhook_trigger_event` (Boolean) Enables deploying the workload using the revision received from the webhook trigger.
+- `workload_name` (String) Custom name to be given to the deployed workload. If left empty workload name will be automatically generated.
 - `overrides` (Block List) The overrides for the workload template. (See [below for nested schema](#nestedblock--spec--stages--config--overrides)).
 
   

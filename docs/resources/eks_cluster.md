@@ -242,7 +242,6 @@ resource "rafay_eks_cluster" "eks-cluster-2" {
       name       = "managed-ng-1"
       ami_family = "AmazonLinux2"
       iam {
-        instance_profile_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:instance-profile/role_name"
         instance_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/role_name"
       }
       instance_type    = "m5.xlarge"
@@ -602,6 +601,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 ***Optional***
 
 - `service_accounts` - (Block List) The service accounts to create in the cluster. (See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts))
+- `service_role_permission_boundary` - (String) - The service role permission bounadary policy ARN of the cluster.
 - `service_role_arn` - (String) The service role ARN of the cluster. 
 - `with_oidc` - (Boolean) Enables the IAM OpenID connect (OIDC) provider as well as the IAM roles for service accounts (IRSA) for the Amazon CNI plugin. 
 
@@ -739,7 +739,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `iam_node_group_with_addon_policies` - (Block List) Contains all of the IAM attributes for a nodegroup. (See [below for nested schema](#nestedblock--cluster_config--node_groups--iam--iam_node_group_with_addon_policies))
 - `instance_profile_arn` - (String) The instance profile for the ARNs. 
 - `instance_role_arn` - (String) The instance role for the ARNs.
-
+- `instance_role_permission_boundary` - (String) The instance role permission boundary policy ARN for the nodegroup.
 
 
 <a id="nestedblock--cluster_config--managed_nodegroups--security_groups"></a>
@@ -817,6 +817,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `iam_node_group_with_addon_policies` - (Block List) Contains all of the IAM attributes for a nodegroup. (See [below for nested schema](#nestedblock--cluster_config--node_groups--iam--iam_node_group_with_addon_policies))
 - `instance_profile_arn` - (String) The instance profile for the ARNs. 
 - `instance_role_arn` - (String) The instance role for the ARNs.
+- `instance_role_permission_boundary` - (String) The instance role permission boundary policy ARN for the nodegroup.
 
 
 

@@ -22,6 +22,9 @@ func resourceGroup() *schema.Resource {
 		ReadContext:   resourceGroupRead,
 		UpdateContext: resourceGroupUpdate,
 		DeleteContext: resourceGroupDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceGroupImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -42,6 +45,35 @@ func resourceGroup() *schema.Resource {
 			},
 		},
 	}
+}
+
+func resourceGroupImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if d.Id() == "" {
+		return nil, fmt.Errorf("group name not provided, usage e.g terraform import rafay_group.resource group-name")
+	}
+
+	group_name := d.Id()
+
+	log.Println("Importing group: ", group_name)
+
+	// convert group name to group id
+
+	resp, err := group.GetGroupByName(group_name)
+	if err != nil {
+		log.Printf("Failed to get group by name, error %s", err.Error())
+		return nil, fmt.Errorf("failed to get group by name, error %s", err.Error())
+	}
+
+	//checking response of GetGroupByName
+	currGroup, err := group.NewGroupFromResponse([]byte(resp))
+	if err != nil {
+		log.Printf("Failed to get group by name, error %s", err.Error())
+		return nil, fmt.Errorf("failed to get group by name, error %s", err.Error())
+	}
+
+	d.SetId(currGroup.ID)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

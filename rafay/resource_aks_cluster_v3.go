@@ -665,6 +665,10 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.PrivateLinkResources = expandAKSV3ManagedClusterPrivateLinkResources(v)
 	}
 
+	if v, ok := in["power_state"].([]interface{}); ok && len(v) > 0 {
+		obj.PowerState = expandAKSV3ManagedClusterPowerState(v)
+	}
+
 	if v, ok := in["service_principal_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.ServicePrincipalProfile = expandAKSManagedClusterV3ServicePrincipalProfile(v)
 	}
@@ -1396,6 +1400,20 @@ func expandAKSV3ManagedClusterPrivateLinkResources(p []interface{}) []*infrapb.P
 	}
 
 	return out
+}
+
+func expandAKSV3ManagedClusterPowerState(p []interface{}) *infrapb.PowerState {
+	obj := &infrapb.PowerState{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["code"].(string); ok && len(v) > 0 {
+		obj.Code = v
+	}
+
+	return obj
 }
 
 func expandAKSManagedClusterV3ServicePrincipalProfile(p []interface{}) *infrapb.Serviceprincipalprofile {
@@ -2255,6 +2273,14 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 		obj["pod_identity_profile"] = flattenAKSV3ManagedClusterPodIdentityProfile(in.PodIdentityProfile, v)
 	}
 
+	if in.PowerState != nil {
+		v, ok := obj["power_state"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["power_state"] = flattenAKSV3ManagedClusterPowerState(in.PowerState, v)
+	}
+
 	if in.PrivateLinkResources != nil {
 		v, ok := obj["private_link_resources"].([]interface{})
 		if !ok {
@@ -3016,6 +3042,20 @@ func flattenAKSV3ManagedClusterPodIdentityProfile(in *infrapb.Podidentityprofile
 		}
 		obj["user_assigned_identity_exceptions"] = flattenAKSV3ManagedClusterPIPUserAssignedIdentityExceptions(in.UserAssignedIdentityExceptions, v)
 	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterPowerState(in *infrapb.PowerState, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["code"] = in.Code
 
 	return []interface{}{obj}
 }

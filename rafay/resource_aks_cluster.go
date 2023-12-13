@@ -482,6 +482,14 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 				Schema: clusterAKSManagedClusterPodIdentityProfile(),
 			},
 		},
+		"power_state": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Cluster Power State",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterPowerState(),
+			},
+		},
 		"private_link_resources": {
 			Type:        schema.TypeList,
 			Optional:    true,
@@ -1179,6 +1187,20 @@ func clusterAKSManagedClusterPodIdentityProfile() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: clusterAKSManagedClusterPIPUserAssignedIdentityExceptions(),
 			},
+		},
+	}
+	return s
+}
+
+func clusterAKSManagedClusterPowerState() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"code": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Whether the cluster is running or stopped",
+			// ValidateFunc: schema.SchemaValidateFunc(func(v interface{}, k string) (ws []string, errors []error) {
+
+			// },
 		},
 	}
 	return s
@@ -2189,6 +2211,10 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 		obj.PrivateLinkResources = expandAKSManagedClusterPrivateLinkResources(v)
 	}
 
+	if v, ok := in["power_state"].([]interface{}); ok && len(v) > 0 {
+		obj.PowerState = expandAKSManagedClusterPowerState(v)
+	}
+
 	if v, ok := in["service_principal_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.ServicePrincipalProfile = expandAKSManagedClusterServicePrincipalProfile(v)
 	}
@@ -2895,6 +2921,20 @@ func expandAKSManagedClusterPrivateLinkResources(p []interface{}) *AKSManagedClu
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		obj.Type = v
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterPowerState(p []interface{}) *AKSManagedClusterPowerState {
+	obj := &AKSManagedClusterPowerState{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["code"].(string); ok && len(v) > 0 {
+		obj.Code = v
 	}
 
 	return obj
@@ -3838,6 +3878,14 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 		obj["pod_identity_profile"] = flattenAKSManagedClusterPodIdentityProfile(in.PodIdentityProfile, v)
 	}
 
+	if in.PowerState != nil {
+		v, ok := obj["power_state"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["power_state"] = flattenAKSManagedClusterPowerState(in.PowerState, v)
+	}
+
 	if in.PrivateLinkResources != nil {
 		v, ok := obj["private_link_resources"].([]interface{})
 		if !ok {
@@ -4608,6 +4656,20 @@ func flattenAKSManagedClusterPodIdentityProfile(in *AKSManagedClusterPodIdentity
 		}
 		obj["user_assigned_identity_exceptions"] = flattenAKSManagedClusterPIPUserAssignedIdentityExceptions(in.UserAssignedIdentityExceptions, v)
 	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSManagedClusterPowerState(in *AKSManagedClusterPowerState, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["code"] = in.Code
 
 	return []interface{}{obj}
 }

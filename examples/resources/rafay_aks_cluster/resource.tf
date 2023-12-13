@@ -33,6 +33,9 @@ resource "rafay_aks_cluster" "demo-terraform" {
             network_profile {
               network_plugin = "kubenet"
             }
+            power_state {
+              code = "Running"
+            }
             addon_profiles {
               oms_agent {
                 enabled = false
@@ -59,7 +62,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_DS2_v2"
           }
-          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
           location = "centralindia"
         }
       }
@@ -120,9 +123,9 @@ resource "rafay_aks_cluster" "demo-terraform1" {
             orchestrator_version = "1.27.3"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
-            vm_size = "Standard_DS2_v2"
+            vm_size              = "Standard_DS2_v2"
           }
-          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
           location = "centralindia"
         }
         node_pools {
@@ -136,9 +139,9 @@ resource "rafay_aks_cluster" "demo-terraform1" {
             orchestrator_version = "1.27.3"
             os_type              = "Windows"
             type                 = "VirtualMachineScaleSets"
-            vm_size = "Standard_DS2_v2"
+            vm_size              = "Standard_DS2_v2"
           }
-          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
           location = "centralindia"
         }
       }
@@ -169,9 +172,9 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
           apiversion = "2021-05-01"
           identity {
             type = "UserAssigned"
-             user_assigned_identities = {
-                "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}": "{}"
-                }
+            user_assigned_identities = {
+              "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}" : "{}"
+            }
           }
           sku {
             name = "Basic"
@@ -180,36 +183,36 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
           location = "centralindia"
           properties {
             api_server_access_profile {
-              enable_private_cluster = true
+              enable_private_cluster             = true
               enable_private_cluster_public_fqdn = false
-              private_dns_zone  = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateDnsZones/{dnsZoneName}"
+              private_dns_zone                   = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateDnsZones/{dnsZoneName}"
             }
             dns_prefix          = "testuser-test-dns"
-            enable_rbac        = true
+            enable_rbac         = true
             kubernetes_version  = "1.27.3"
             node_resource_group = "node-resource-name"
             pod_identity_profile {
-              enabled = true
+              enabled                      = true
               allow_network_plugin_kubenet = true
               user_assigned_identities {
                 binding_selector = "selector-name"
                 identity {
-                  client_id = "CLIENT_ID"
-                  object_id = "OBJECT_ID"
+                  client_id   = "CLIENT_ID"
+                  object_id   = "OBJECT_ID"
                   resource_id = "resource_id = /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}"
                 }
-                name = "pod-identity-name"
+                name      = "pod-identity-name"
                 namespace = "namespace-name"
               }
               user_assigned_identity_exceptions {
-                name = "exception-name"
+                name      = "exception-name"
                 namespace = "namespace-name"
                 pod_labels = {
                   "key" = "value"
                 }
               }
             }
-            linux_profile  {
+            linux_profile {
               admin_username = "adminuser"
               ssh {
                 public_keys {
@@ -231,7 +234,7 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
               http_application_routing {
                 enabled = false
               }
-              azure_policy  {
+              azure_policy {
                 enabled = false
               }
               oms_agent {
@@ -253,7 +256,7 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
               expander                         = "random"
               max_graceful_termination_sec     = "600"
               max_node_provision_time          = "15m"
-              ok_total_unready_count           =  "3"
+              ok_total_unready_count           = "3"
               max_total_unready_percentage     = "45"
               new_pod_scale_up_delay           = "10s"
               scale_down_delay_after_add       = "10m"
@@ -269,7 +272,7 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
             }
           }
           type = "Microsoft.ContainerService/managedClusters"
-           tags = {
+          tags = {
             "key" = "value"
           }
           additional_metadata {
@@ -292,8 +295,8 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
             type                  = "VirtualMachineScaleSets"
             availability_zones    = [1, 2, 3]
             enable_node_public_ip = false
-            vm_size = "Standard_DS2_v2"
-            vnet_subnet_id = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}"
+            vm_size               = "Standard_DS2_v2"
+            vnet_subnet_id        = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}"
             node_labels = {
               "key" = "value"
             }
@@ -301,7 +304,7 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
               "key" = "value"
             }
           }
-          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
           location = "centralindia"
         }
         node_pools {
@@ -318,8 +321,8 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
             type                  = "VirtualMachineScaleSets"
             availability_zones    = [1, 2, 3]
             enable_node_public_ip = false
-            vm_size = "Standard_DS2_v2"
-            vnet_subnet_id = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}"
+            vm_size               = "Standard_DS2_v2"
+            vnet_subnet_id        = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}/subnets/{subnetName}"
             node_labels = {
               "key" = "value"
             }
@@ -327,7 +330,7 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
               "key" = "value"
             }
           }
-          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
           location = "centralindia"
         }
       }
@@ -396,34 +399,34 @@ resource "rafay_aks_cluster" "demo-terraform-scp" {
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_DS2_v2"
             node_labels = {
-              app = "infra"
+              app       = "infra"
               dedicated = "true"
             }
-            node_taints               = ["app=infra:PreferNoSchedule"]
+            node_taints = ["app=infra:PreferNoSchedule"]
           }
-          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
           location = "centralindia"
         }
       }
     }
     system_components_placement {
       node_selector = {
-        app = "infra"
+        app       = "infra"
         dedicated = "true"
       }
       tolerations {
-        effect = "PreferNoSchedule"
-        key = "app"
+        effect   = "PreferNoSchedule"
+        key      = "app"
         operator = "Equal"
-        value =  "infra"
+        value    = "infra"
       }
 
       daemonset_override {
         node_selection_enabled = false
         tolerations {
-          key = "app1dedicated"
-          value = true
-          effect = "NoSchedule"
+          key      = "app1dedicated"
+          value    = true
+          effect   = "NoSchedule"
           operator = "Equal"
         }
       }
@@ -492,7 +495,7 @@ resource "rafay_aks_cluster" "demo-terraform-authType-localAccounts-k8sRBAC" {
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_B4ms"
           }
-          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
           location = "centralindia"
         }
       }
@@ -529,12 +532,12 @@ resource "rafay_aks_cluster" "demo-terraform-authType-azureAuthentication-k8sRBA
             api_server_access_profile {
               enable_private_cluster = true
             }
-            dns_prefix         = "demo-terraform5-test-dns"
-            enable_rbac        = true
+            dns_prefix             = "demo-terraform5-test-dns"
+            enable_rbac            = true
             disable_local_accounts = true
             aad_profile {
-              managed = true
-              admin_group_object_ids = [ "<aad-group-object-id>" ]
+              managed                = true
+              admin_group_object_ids = ["<aad-group-object-id>"]
             }
             kubernetes_version = "1.27.3"
             network_profile {
@@ -566,7 +569,7 @@ resource "rafay_aks_cluster" "demo-terraform-authType-azureAuthentication-k8sRBA
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_B4ms"
           }
-          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
           location = "centralindia"
         }
       }
@@ -603,11 +606,11 @@ resource "rafay_aks_cluster" "demo-terraform-authType-azureAuthentication-azureR
             api_server_access_profile {
               enable_private_cluster = true
             }
-            dns_prefix         = "demo-terraform6-test-dns"
-            enable_rbac        = true
+            dns_prefix             = "demo-terraform6-test-dns"
+            enable_rbac            = true
             disable_local_accounts = true
             aad_profile {
-              managed = true
+              managed           = true
               enable_azure_rbac = true
             }
             kubernetes_version = "1.27.3"
@@ -640,7 +643,7 @@ resource "rafay_aks_cluster" "demo-terraform-authType-azureAuthentication-azureR
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_B4ms"
           }
-          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
           location = "centralindia"
         }
       }
@@ -672,7 +675,7 @@ resource "rafay_aks_cluster" "demo-terraform-multiple-ACR" {
           additional_metadata {
             acr_profile {
               registries {
-                acr_name = "<acr-name>"
+                acr_name            = "<acr-name>"
                 resource_group_name = "<acr-resourcegroup>"
               }
             }
@@ -680,8 +683,8 @@ resource "rafay_aks_cluster" "demo-terraform-multiple-ACR" {
           identity {
             type = "UserAssigned"
             user_assigned_identities = {
-                "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>" = "{}"
-            } 
+              "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>" = "{}"
+            }
           }
           location = "centralindia"
           properties {
@@ -725,7 +728,7 @@ resource "rafay_aks_cluster" "demo-terraform-multiple-ACR" {
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_B4ms"
           }
-          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
           location = "centralindia"
         }
       }

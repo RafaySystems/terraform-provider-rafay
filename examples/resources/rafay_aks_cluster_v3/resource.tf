@@ -4,34 +4,34 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
     project = "defaultproject"
   }
   spec {
-    type          = "aks"
+    type = "aks"
     blueprint_config {
       name = "default-aks"
     }
     cloud_credentials = "aks-cred"
     system_components_placement {
       node_selector = {
-        app = "infra"
+        app       = "infra"
         dedicated = "true"
       }
       tolerations {
-        effect = "PreferNoSchedule"
-        key = "app"
+        effect   = "PreferNoSchedule"
+        key      = "app"
         operator = "Equal"
-        value =  "infra"
+        value    = "infra"
       }
       daemon_set_override {
         node_selection_enabled = false
         tolerations {
-          key = "app1dedicated"
-          value = true
-          effect = "NoSchedule"
+          key      = "app1dedicated"
+          value    = true
+          effect   = "NoSchedule"
           operator = "Equal"
         }
       }
     }
     config {
-      kind       = "aksClusterConfig"
+      kind = "aksClusterConfig"
       metadata {
         name = "aks-v3-tf-1"
       }
@@ -49,7 +49,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
           location = "centralindia"
           tags = {
             "email" = "mayank@rafay.co"
-            "env" = "dev"
+            "env"   = "dev"
           }
           properties {
             api_server_access_profile {
@@ -58,14 +58,17 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             dns_prefix         = "aks-v3-tf-2401202303-dns"
             kubernetes_version = "1.25.15"
             network_profile {
-              network_plugin = "kubenet"
+              network_plugin    = "kubenet"
               load_balancer_sku = "standard"
+            }
+            power_state {
+              code = "Running"
             }
             addon_profiles {
               http_application_routing {
                 enabled = true
               }
-              azure_policy { 
+              azure_policy {
                 enabled = true
               }
               azure_keyvault_secrets_provider {
@@ -81,8 +84,8 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
         }
         node_pools {
           api_version = "2022-07-01"
-          name       = "primary"
-          location = "centralindia"
+          name        = "primary"
+          location    = "centralindia"
           properties {
             count                = 1
             enable_auto_scaling  = true
@@ -108,13 +111,13 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
     project = "defaultproject"
   }
   spec {
-    type          = "aks"
+    type = "aks"
     blueprint_config {
       name = "default-aks"
     }
     cloud_credentials = "aks-cred"
     config {
-      kind       = "aksClusterConfig"
+      kind = "aksClusterConfig"
       metadata {
         name = "aks-v3-tf-2"
       }
@@ -126,7 +129,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
           additional_metadata {
             acr_profile {
               registries {
-                acr_name = "<acr-name>"
+                acr_name            = "<acr-name>"
                 resource_group_name = "<acr-rg>"
               }
             }
@@ -138,8 +141,8 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
           identity {
             type = "UserAssigned"
             user_assigned_identities = {
-                "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>" = "{}"
-            } 
+              "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>" = "{}"
+            }
           }
           location = "centralindia"
           properties {
@@ -149,7 +152,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
             dns_prefix         = "aks-v3-tf-2-2401202303-dns"
             kubernetes_version = "1.25.15"
             network_profile {
-              network_plugin = "kubenet"
+              network_plugin    = "kubenet"
               load_balancer_sku = "standard"
             }
             enable_rbac = true
@@ -163,8 +166,8 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
         }
         node_pools {
           api_version = "2022-07-01"
-          name       = "primary"
-          location = "centralindia"
+          name        = "primary"
+          location    = "centralindia"
           properties {
             count                = 1
             enable_auto_scaling  = true
@@ -190,13 +193,13 @@ resource "rafay_aks_cluster_v3" "demo-terraform3" {
     project = "defaultproject"
   }
   spec {
-    type          = "aks"
+    type = "aks"
     blueprint_config {
       name = "default-aks"
     }
     cloud_credentials = "aks-cred"
     config {
-      kind       = "aksClusterConfig"
+      kind = "aksClusterConfig"
       metadata {
         name = "aks-v3-tf-3"
       }
@@ -219,13 +222,13 @@ resource "rafay_aks_cluster_v3" "demo-terraform3" {
             dns_prefix         = "aks-v3-tf-3-2401202303-dns"
             kubernetes_version = "1.25.15"
             network_profile {
-              network_plugin = "kubenet"
+              network_plugin    = "kubenet"
               load_balancer_sku = "standard"
             }
-            enable_rbac = true
+            enable_rbac            = true
             disable_local_accounts = true
             aad_profile {
-              managed = true
+              managed           = true
               enable_azure_rbac = true
             }
           }
@@ -233,8 +236,8 @@ resource "rafay_aks_cluster_v3" "demo-terraform3" {
         }
         node_pools {
           api_version = "2022-07-01"
-          name       = "primary"
-          location = "centralindia"
+          name        = "primary"
+          location    = "centralindia"
           properties {
             count                = 1
             enable_auto_scaling  = true
@@ -260,13 +263,13 @@ resource "rafay_aks_cluster_v3" "demo-terraform4" {
     project = "defaultproject"
   }
   spec {
-    type          = "aks"
+    type = "aks"
     blueprint_config {
       name = "default-aks"
     }
     cloud_credentials = "aks-cred"
     config {
-      kind       = "aksClusterConfig"
+      kind = "aksClusterConfig"
       metadata {
         name = "aks-v3-tf-4"
       }
@@ -289,22 +292,22 @@ resource "rafay_aks_cluster_v3" "demo-terraform4" {
             dns_prefix         = "aks-v3-tf-4-2401202303-dns"
             kubernetes_version = "1.25.15"
             network_profile {
-              network_plugin = "kubenet"
+              network_plugin    = "kubenet"
               load_balancer_sku = "standard"
             }
-            enable_rbac = true
+            enable_rbac            = true
             disable_local_accounts = true
             aad_profile {
-              managed = true
-              admin_group_object_ids = [ "<aad-group-object-id>" ]
+              managed                = true
+              admin_group_object_ids = ["<aad-group-object-id>"]
             }
           }
           type = "Microsoft.ContainerService/managedClusters"
         }
         node_pools {
           api_version = "2022-07-01"
-          name       = "primary"
-          location = "centralindia"
+          name        = "primary"
+          location    = "centralindia"
           properties {
             count                = 1
             enable_auto_scaling  = true

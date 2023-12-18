@@ -25,8 +25,8 @@ type ProxyConfig struct {
 	HttpsProxy             string `yaml:"httpsProxy,omitempty"`
 	NoProxy                string `yaml:"noProxy,omitempty"`
 	ProxyAuth              string `yaml:"proxyAuth,omitempty"`
-	AllowInsecureBootstrap *bool  `yaml:"allowInsecureBootstrap,omitempty"`
-	Enabled                *bool  `yaml:"enabled,omitempty"`
+	AllowInsecureBootstrap bool   `yaml:"allowInsecureBootstrap,omitempty"`
+	Enabled                bool   `yaml:"enabled,omitempty"`
 	BootstrapCA            string `yaml:"bootstrapCA,omitempty"`
 }
 

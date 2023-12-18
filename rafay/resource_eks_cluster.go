@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -170,12 +171,9 @@ func specField() map[string]*schema.Schema {
 			},
 		},
 		"proxy_config": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeMap,
 			Optional:    true,
 			Description: "The proxy configuration for the cluster. Use this if the infrastructure uses an outbound proxy.",
-			Elem: &schema.Resource{
-				Schema: proxyConfigFields(),
-			},
 		},
 		"system_components_placement": {
 			Type:        schema.TypeList,
@@ -278,48 +276,6 @@ func cniSpecField() map[string]*schema.Schema {
 			},
 		},
 	}
-	return s
-}
-
-func proxyConfigFields() map[string]*schema.Schema {
-	s := map[string]*schema.Schema{
-		"http_proxy": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Configure http proxy information with protocol, host and port information",
-		},
-		"https_proxy": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Configure https proxy information with protocol, host and port information",
-		},
-		"no_proxy": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Comma seperated list of hosts that need connectivity without proxy",
-		},
-		"proxy_auth": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Authentication for proxy",
-		},
-		"bootstrap_ca": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Root CA certificate of the proxy",
-		},
-		"enabled": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "Enable this option if your infrastructure is running behind a proxy",
-		},
-		"allow_insecure_bootstrap": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "Allow insecure bootstrap",
-		},
-	}
-
 	return s
 }
 
@@ -3714,7 +3670,7 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	if v, ok := in["cni_params"].([]interface{}); ok && len(v) > 0 {
 		obj.CniParams = expandCNIParams(v)
 	}
-	if v, ok := in["proxy_config"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["proxy_config"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.ProxyConfig = expandProxyConfig(v)
 	}
 	if v, ok := in["system_components_placement"].([]interface{}); ok && len(v) > 0 {
@@ -3825,14 +3781,14 @@ func expandCNISpec(p []interface{}) []CustomCniSpec {
 	return out
 }
 
-func expandProxyConfig(p []interface{}) *ProxyConfig {
+func expandProxyConfig(p map[string]interface{}) *ProxyConfig {
 	obj := &ProxyConfig{}
 	log.Println("expandProxyConfig")
 
-	if len(p) == 0 || p[0] == nil {
+	if len(p) == 0 {
 		return obj
 	}
-	in := p[0].(map[string]interface{})
+	in := p
 
 	if v, ok := in["http_proxy"].(string); ok && len(v) > 0 {
 		obj.HttpProxy = v
@@ -3854,12 +3810,14 @@ func expandProxyConfig(p []interface{}) *ProxyConfig {
 		obj.BootstrapCA = v
 	}
 
-	if v, ok := in["enabled"].(bool); ok {
-		obj.Enabled = &v
+	if v, ok := in["enabled"].(string); ok {
+		x, _ := strconv.ParseBool(v)
+		obj.Enabled = x
 	}
 
-	if v, ok := in["allow_insecure_bootstrap"].(bool); ok {
-		obj.AllowInsecureBootstrap = &v
+	if v, ok := in["allow_insecure_bootstrap"].(string); ok {
+		x, _ := strconv.ParseBool(v)
+		obj.AllowInsecureBootstrap = x
 	}
 
 	return obj
@@ -4077,7 +4035,7 @@ func flattenCNISpec(elem []CustomCniSpec, p []interface{}) []interface{} {
 	return out
 }
 
-func flattenProxyConfig(in *ProxyConfig) []interface{} {
+func flattenProxyConfig(in *ProxyConfig) map[string]interface{} {
 	if in == nil {
 		return nil
 	}
@@ -4099,14 +4057,14 @@ func flattenProxyConfig(in *ProxyConfig) []interface{} {
 	if len(in.BootstrapCA) > 0 {
 		obj["bootstrap_ca"] = in.BootstrapCA
 	}
-	if in.Enabled != nil {
-		obj["enabled"] = *in.Enabled
+	if in.Enabled {
+		obj["enabled"] = "true"
 	}
-	if in.AllowInsecureBootstrap != nil {
-		obj["allow_insecure_bootstrap"] = *in.AllowInsecureBootstrap
+	if in.AllowInsecureBootstrap {
+		obj["allow_insecure_bootstrap"] = "true"
 	}
 
-	return []interface{}{obj}
+	return obj
 
 }
 

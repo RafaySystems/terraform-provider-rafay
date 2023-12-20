@@ -223,6 +223,10 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 		spec.Version = v
 	}
 
+	if vs, ok := in["version_state"].(string); ok && len(vs) > 0 {
+		spec.VersionState = vs
+	}
+
 	var err error
 	if p, ok := in["resources"].([]interface{}); ok && len(p) > 0 {
 		spec.Resources, err = expandEnvironmentResources(p)
@@ -403,7 +407,7 @@ func flattenEnvironmentTemplate(d *schema.ResourceData, in *eaaspb.EnvironmentTe
 
 func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
-		return nil, fmt.Errorf("%s", "flatten environment template spec empty input")
+		return nil, nil
 	}
 
 	obj := map[string]interface{}{}
@@ -412,6 +416,7 @@ func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []inte
 	}
 
 	obj["version"] = in.Version
+	obj["version_state"] = in.VersionState
 
 	if len(in.Resources) > 0 {
 		v, ok := obj["resources"].([]interface{})

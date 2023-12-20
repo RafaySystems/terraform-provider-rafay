@@ -223,6 +223,10 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 		spec.Version = v
 	}
 
+	if vs, ok := in["version_state"].(string); ok && len(vs) > 0 {
+		spec.VersionState = vs
+	}
+
 	if p, ok := in["provider"].(string); ok && len(p) > 0 {
 		spec.Provider = p
 	}
@@ -708,7 +712,7 @@ func flattenResourceTemplate(d *schema.ResourceData, in *eaaspb.ResourceTemplate
 
 func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
-		return nil, fmt.Errorf("%s", "flatten resource spec empty input")
+		return nil, nil
 	}
 
 	obj := map[string]interface{}{}
@@ -717,6 +721,7 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{
 	}
 
 	obj["version"] = in.Version
+	obj["version_state"] = in.VersionState
 	obj["provider"] = in.Provider
 	obj["provider_options"] = flattenProviderOptions(in.ProviderOptions)
 	obj["repository_options"] = flattenRepositoryOptions(in.RepositoryOptions)

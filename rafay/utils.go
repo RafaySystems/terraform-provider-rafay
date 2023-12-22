@@ -294,15 +294,17 @@ func expandDrift(p []interface{}) *commonpb.DriftSpec {
 func expandDriftWebhook(p []interface{}) *infrapb.DriftWebhook {
 	obj := &infrapb.DriftWebhook{}
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return nil
 	}
 
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["enabled"].(bool); ok {
 		obj.Enabled = v
+		return obj
 	}
-	return obj
+
+	return nil
 }
 
 func expandPlacementLabels(p []interface{}) []*commonpb.PlacementLabel {

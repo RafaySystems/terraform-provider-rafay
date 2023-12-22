@@ -28,19 +28,6 @@ const (
 )
 
 func resourceBluePrint() *schema.Resource {
-	bpSchema := resource.BlueprintSchema.Schema
-	if bpSpec, ok := bpSchema["spec"]; ok {
-		if specElems, ok := bpSpec.Elem.(*schema.Resource); ok {
-			if driftWebhook, ok := specElems.Schema["drift_webhook"]; ok {
-				if driftElems, ok := driftWebhook.Elem.(*schema.Resource); ok {
-					if driftEnabled, ok := driftElems.Schema["enabled"]; ok {
-						driftEnabled.Default = true
-					}
-				}
-			}
-		}
-	}
-
 	return &schema.Resource{
 		CreateContext: resourceBluePrintCreate,
 		ReadContext:   resourceBluePrintRead,
@@ -57,7 +44,7 @@ func resourceBluePrint() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        bpSchema,
+		Schema:        resource.BlueprintSchema.Schema,
 	}
 }
 

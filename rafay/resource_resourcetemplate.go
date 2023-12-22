@@ -231,31 +231,31 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 		spec.Provider = p
 	}
 
-	if po, ok := in["provider_options"].([]interface{}); ok {
+	if po, ok := in["provider_options"].([]interface{}); ok && len(po) > 0 {
 		spec.ProviderOptions = expandProviderOptions(po)
 	}
 
-	if ro, ok := in["repository_options"].([]interface{}); ok {
+	if ro, ok := in["repository_options"].([]interface{}); ok && len(ro) > 0 {
 		spec.RepositoryOptions = expandResourceTemplateRepositoryOptions(ro)
 	}
 
-	if v, ok := in["contexts"].([]interface{}); ok {
+	if v, ok := in["contexts"].([]interface{}); ok && len(v) > 0 {
 		spec.Contexts = expandContexts(v)
 	}
 
-	if v, ok := in["variables"].([]interface{}); ok {
+	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
 		spec.Variables = expandVariables(v)
 	}
 
-	if h, ok := in["hooks"].([]interface{}); ok {
+	if h, ok := in["hooks"].([]interface{}); ok && len(h) > 0 {
 		spec.Hooks = expandResourceHooks(h)
 	}
 
-	if ag, ok := in["agents"].([]interface{}); ok {
+	if ag, ok := in["agents"].([]interface{}); ok && len(ag) > 0 {
 		spec.Agents = expandEaasAgents(ag)
 	}
 
-	if v, ok := in["sharing"].([]interface{}); ok {
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
 	}
 

@@ -579,7 +579,33 @@ func expandAKSManagedClusterV3AdditionalMetadataACRProfile(p []interface{}) *inf
 		obj.AcrName = v
 	}
 
+	if v, ok := in["profiles"].([]interface{}); ok && len(v) > 0 {
+		obj.Profiles = expandAKSManagedClusterV3AdditionalMetadataACRProfiles(v)
+	}
 	return obj
+}
+
+func expandAKSManagedClusterV3AdditionalMetadataACRProfiles(p []interface{}) []*infrapb.AKSAcrProfile {
+	if len(p) == 0 || p[0] == nil {
+		return []*infrapb.AKSAcrProfile{}
+	}
+
+	out := make([]*infrapb.AKSAcrProfile, len(p))
+	for i := range p {
+		obj := infrapb.AKSAcrProfile{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["acr_name"].(string); ok && len(v) > 0 {
+			obj.AcrName = v
+		}
+
+		if v, ok := in["resource_group_name"].(string); ok && len(v) > 0 {
+			obj.ResourceGroupName = v
+		}
+		out[i] = &obj
+	}
+
+	return out
 }
 
 func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedClusterProperties {
@@ -3251,7 +3277,40 @@ func flattenAKSV3ManagedClusterAdditionalMetadataACRProfile(in *infrapb.AcrProfi
 		obj["acr_name"] = in.AcrName
 	}
 
+	if len(in.Profiles) > 0 {
+		v, ok := obj["profiles"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["profiles"] = flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in.Profiles, v)
+	}
+
 	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in []*infrapb.AKSAcrProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(in))
+
+	for i, in := range in {
+		obj := map[string]interface{}{}
+
+		if len(in.AcrName) > 0 {
+			obj["acr_name"] = in.AcrName
+		}
+
+		if len(in.ResourceGroupName) > 0 {
+			obj["resource_group_name"] = in.ResourceGroupName
+		}
+
+		out[i] = obj
+	}
+	
+	return out
 
 }
 
@@ -3259,14 +3318,6 @@ func flattenAKSV3NodePool(in []*infrapb.Nodepool, p []interface{}) []interface{}
 	if in == nil {
 		return nil
 	}
-
-	// TODO: TEST
-	// sort the incoming nodepools
-	// sortedIn := make([]infrapb.Nodepool, len(in))
-	// for i := range in {
-	// 	sortedIn[i] = *in[i]
-	// }
-	// sort.Sort(ByNodepoolNameV3(sortedIn))
 
 	out := make([]interface{}, len(in))
 	for i, in := range in {

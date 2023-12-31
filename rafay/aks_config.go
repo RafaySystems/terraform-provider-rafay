@@ -348,6 +348,12 @@ type AKSManagedClusterAdditionalMetadata struct {
 type AKSManagedClusterAdditionalMetadataACRProfile struct {
 	ResourceGroupName string `yaml:"resourceGroupName,omitempty"`
 	ACRName           string `yaml:"acrName,omitempty"`
+	Profiles          []*ACRProfile `yaml:"profiles,omitempty"`
+}
+
+type ACRProfile struct {
+	ACRName string `yaml:"acrName,omitempty"`
+	ResourceGroupName string `yaml:"resourceGroupName,omitempty"`
 }
 
 type AKSNodePool struct {

@@ -1375,7 +1375,7 @@ func clusterAKSManagedClusterAdditionalMetadataACRProfile() map[string]*schema.S
 			Optional:    true,
 			Description: "The name of the Azure Container Registry resource.",
 		},
-		"profiles": {
+		"registries": {
 			Type:		schema.TypeList,
 			Optional: 	true,
 			Description: "The list of Azure Container Registry Profiles",
@@ -3013,21 +3013,21 @@ func expandAKSManagedClusterAdditionalMetadataACRProfile(p []interface{}) *AKSMa
 	if v, ok := in["acr_name"].(string); ok && len(v) > 0 {
 		obj.ACRName = v
 	}
-	if v, ok := in["profiles"].([]interface{}); ok && len(v) > 0 {
-		obj.Profiles = expandAKSManagedClusterAdditionalMetadataACRProfiles(v)
+	if v, ok := in["registries"].([]interface{}); ok && len(v) > 0 {
+		obj.Registries = expandAKSManagedClusterAdditionalMetadataACRProfiles(v)
 	}
 
 	return obj
 }
 
-func expandAKSManagedClusterAdditionalMetadataACRProfiles(p []interface{}) []*ACRProfile {
+func expandAKSManagedClusterAdditionalMetadataACRProfiles(p []interface{}) []*AksRegistry {
 	if len(p) == 0 || p[0] == nil {
-		return []*ACRProfile{}
+		return []*AksRegistry{}
 	}
-	out := make([]*ACRProfile, len(p))
+	out := make([]*AksRegistry, len(p))
 
 	for i := range p {
-		obj := ACRProfile{}
+		obj := AksRegistry{}
 		in := p[i].(map[string]interface{})
 
 		if v, ok := in["acr_name"].(string); ok && len(v) > 0 {
@@ -4874,19 +4874,19 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfile(in *AKSManagedClusterA
 		obj["acr_name"] = in.ACRName
 	}
 	
-	if in.Profiles != nil && len(in.Profiles) > 0 {
-		v, ok := obj["profiles"].([]interface{})
+	if in.Registries != nil && len(in.Registries) > 0 {
+		v, ok := obj["registries"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["profiles"] = flattenAKSManagedClusterAdditionalMetadataACRProfiles(in.Profiles, v)
+		obj["registries"] = flattenAKSManagedClusterAdditionalMetadataACRProfiles(in.Registries, v)
 	}
 
 	return []interface{}{obj}
 
 }
 
-func flattenAKSManagedClusterAdditionalMetadataACRProfiles(in []*ACRProfile, p []interface{}) []interface{} {
+func flattenAKSManagedClusterAdditionalMetadataACRProfiles(in []*AksRegistry, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}

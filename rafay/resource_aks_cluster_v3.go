@@ -580,19 +580,19 @@ func expandAKSManagedClusterV3AdditionalMetadataACRProfile(p []interface{}) *inf
 	}
 
 	if v, ok := in["profiles"].([]interface{}); ok && len(v) > 0 {
-		obj.Profiles = expandAKSManagedClusterV3AdditionalMetadataACRProfiles(v)
+		obj.Registries = expandAKSManagedClusterV3AdditionalMetadataACRProfiles(v)
 	}
 	return obj
 }
 
-func expandAKSManagedClusterV3AdditionalMetadataACRProfiles(p []interface{}) []*infrapb.AKSAcrProfile {
+func expandAKSManagedClusterV3AdditionalMetadataACRProfiles(p []interface{}) []*infrapb.AksRegistry {
 	if len(p) == 0 || p[0] == nil {
-		return []*infrapb.AKSAcrProfile{}
+		return []*infrapb.AksRegistry{}
 	}
 
-	out := make([]*infrapb.AKSAcrProfile, len(p))
+	out := make([]*infrapb.AksRegistry, len(p))
 	for i := range p {
-		obj := infrapb.AKSAcrProfile{}
+		obj := infrapb.AksRegistry{}
 		in := p[i].(map[string]interface{})
 
 		if v, ok := in["acr_name"].(string); ok && len(v) > 0 {
@@ -3277,19 +3277,19 @@ func flattenAKSV3ManagedClusterAdditionalMetadataACRProfile(in *infrapb.AcrProfi
 		obj["acr_name"] = in.AcrName
 	}
 
-	if len(in.Profiles) > 0 {
+	if len(in.Registries) > 0 {
 		v, ok := obj["profiles"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["profiles"] = flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in.Profiles, v)
+		obj["profiles"] = flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in.Registries, v)
 	}
 
 	return []interface{}{obj}
 
 }
 
-func flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in []*infrapb.AKSAcrProfile, p []interface{}) []interface{} {
+func flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in []*infrapb.AksRegistry, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}

@@ -128,8 +128,6 @@ resource "rafay_environment" "eks-rds-env-example" {
 ***Optional***
 
 - `description` (String) Description of the variable
-- `override` (Block List, Max: 1) Determines whether the variable can be overridden (see [below for nested schema](#nestedblock--spec--variables--options--override))
-- `required` (Boolean) Specify whether this variable is required or optional, by default it is optional
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
 
 <a id="nestedblock--spec--variables--options--override"></a>
@@ -149,5 +147,3 @@ resource "rafay_environment" "eks-rds-env-example" {
 - `create` (String)
 - `delete` (String)
 - `update` (String)
-
-

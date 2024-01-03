@@ -70,7 +70,6 @@ resource "rafay_driver" "driver" {
 ***Optional***
 
 - `description` (String) description of the resource
-- `display_name` (String) Display Name of the resource
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`
@@ -147,7 +146,6 @@ resource "rafay_driver" "driver" {
 - `labels` (Map of String) Specify the labels
 - `namespace` (String) Specify the namespace
 - `node_selector` (Map of String) Specify the node selectors
-- `resources` (List of String) Specify the resources
 - `security_context` (Block List, Max: 1) Specify the security context (see [below for nested schema](#nestedblock--spec--config--container--working_dir_path--security_context))
 - `service_account_name` (String) Specify the service account name
 
@@ -248,5 +246,3 @@ resource "rafay_driver" "driver" {
 - `create` (String)
 - `delete` (String)
 - `update` (String)
-
-

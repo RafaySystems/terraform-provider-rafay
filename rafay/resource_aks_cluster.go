@@ -1372,8 +1372,32 @@ func clusterAKSManagedClusterAdditionalMetadataACRProfile() map[string]*schema.S
 		},
 		"acr_name": {
 			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The name of the Azure Container Registry resource.",
+		},
+		"registries": {
+			Type:		schema.TypeList,
+			Optional: 	true,
+			Description: "The list of Azure Container Registry Profiles",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterAdditionalMetadataACRProfiles(),
+			},
+		},
+	}
+	return s
+}
+
+func clusterAKSManagedClusterAdditionalMetadataACRProfiles() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"acr_name": {
+			Type:        schema.TypeString,
 			Required:    true,
 			Description: "The name of the Azure Container Registry resource.",
+		},
+		"resource_group_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The location of the Azure Container Registry resource.",
 		},
 	}
 	return s
@@ -2989,8 +3013,33 @@ func expandAKSManagedClusterAdditionalMetadataACRProfile(p []interface{}) *AKSMa
 	if v, ok := in["acr_name"].(string); ok && len(v) > 0 {
 		obj.ACRName = v
 	}
+	if v, ok := in["registries"].([]interface{}); ok && len(v) > 0 {
+		obj.Registries = expandAKSManagedClusterAdditionalMetadataACRProfiles(v)
+	}
 
 	return obj
+}
+
+func expandAKSManagedClusterAdditionalMetadataACRProfiles(p []interface{}) []*AksRegistry {
+	if len(p) == 0 || p[0] == nil {
+		return []*AksRegistry{}
+	}
+	out := make([]*AksRegistry, len(p))
+
+	for i := range p {
+		obj := AksRegistry{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["acr_name"].(string); ok && len(v) > 0 {
+			obj.ACRName = v
+		}
+
+		if v, ok := in["resource_group_name"].(string); ok && len(v) > 0 {
+			obj.ResourceGroupName = v
+		}
+		out[i] = &obj
+	}
+	return out
 }
 
 func expandAKSNodePool(p []interface{}) []*AKSNodePool {
@@ -2999,8 +3048,6 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 	}
 
 	out := make([]*AKSNodePool, len(p))
-	//outToSort := make([]AKSNodePool, len(p))
-	//var sortByName []string
 	for i := range p {
 		obj := AKSNodePool{}
 		in := p[i].(map[string]interface{})
@@ -3011,7 +3058,6 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
-			//sortByName = append(sortByName, v)
 		}
 
 		if v, ok := in["properties"].([]interface{}); ok && len(v) > 0 {
@@ -3027,19 +3073,6 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 		}
 		out[i] = &obj
 	}
-
-	//var sortedOut []*commonpb.ProjectMeta
-	// for i, name := range sortByName {
-	// 	for _, val := range outToSort {
-	// 		if name == val.Name {
-	// 			out[i] = &val
-	// 		}
-	// 	}
-	// }
-	// sort.Sort(ByNodepoolName(outToSort))
-	// for i := range outToSort {
-	// 	out[i] = &outToSort[i]
-	// }
 	n1 := spew.Sprintf("%+v", out)
 	log.Println("expand sorted node pools:", n1)
 
@@ -4840,8 +4873,42 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfile(in *AKSManagedClusterA
 	if len(in.ACRName) > 0 {
 		obj["acr_name"] = in.ACRName
 	}
+	
+	if in.Registries != nil && len(in.Registries) > 0 {
+		v, ok := obj["registries"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["registries"] = flattenAKSManagedClusterAdditionalMetadataACRProfiles(in.Registries, v)
+	}
 
 	return []interface{}{obj}
+
+}
+
+func flattenAKSManagedClusterAdditionalMetadataACRProfiles(in []*AksRegistry, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		
+		if len(in.ACRName) > 0 {
+			obj["acr_name"] = in.ACRName
+		}
+
+		if len(in.ResourceGroupName) > 0 {
+			obj["resource_group_name"] = in.ResourceGroupName
+		}
+
+		out[i] = &obj
+	}
+
+	return out
 
 }
 

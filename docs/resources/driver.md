@@ -87,7 +87,7 @@ resource "rafay_driver" "driver" {
 
 ***Required***
 
-- `type` (String) Specify the type of driver
+- `type` (String) Specify the type of driver, Accepted values are `container`, `http`.
 
 ***Optional***
 
@@ -111,11 +111,11 @@ resource "rafay_driver" "driver" {
 - `cpu_limit_milli` (String) Specify the cpu limit in milli
 - `env_vars` (Map of String) Specify the environment variables to be set in key,value pair
 - `files` (Map of String) Specify the file data
-- `image_pull_credentials` (Block List, Max: 1) Specify the credentials for the registry to pull image from (see [below for nested schema](#nestedblock--spec--config--container--image_pull_credentials))
+- `image_pull_credentials` (Block List, Max: 1) Specify the credentials for the registry to pull image from private registry which requires authentication. (see [below for nested schema](#nestedblock--spec--config--container--image_pull_credentials))
 - `kube_config_options` (Block List, Max: 1) Specify the kube config options (see [below for nested schema](#nestedblock--spec--config--container--kube_config_options))
 - `kube_options` (Block List, Max: 1) Specify the kube options (see [below for nested schema](#nestedblock--spec--config--container--kube_options))
 - `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `volume_options` (Block List, Max: 1) Specify the container driver volume options (see [below for nested schema](#nestedblock--spec--config--container--volume_options))
+- `volume_options` (Block List, Max: 1) [DEPRECATED] Specify the container driver volume options, use volumes instead. (see [below for nested schema](#nestedblock--spec--config--container--volume_options))
 - `volumes` (Block List) Configure the container volumes (see [below for nested schema](#nestedblock--spec--config--container--volumes))
 - `working_dir_path` (String) Specify the working directory path
 

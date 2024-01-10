@@ -207,10 +207,10 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 				at.Options.ResetValues = v
 			}
 			if v, ok := in["reuse_values"].(bool); ok {
-				at.Options.ResetValues = v
+				at.Options.ReuseValues = v
 			}
 			if v, ok := in["skip_crd"].(bool); ok {
-				at.Options.ResetValues = v
+				at.Options.SkipCRDs = v
 			}
 			if v, ok := in["set_string"].([]string); ok && len(v) > 0 {
 				at.Options.SetString = v

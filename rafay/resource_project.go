@@ -17,7 +17,6 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/project"
-	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -61,7 +60,7 @@ func resourceProjectCreate(ctx context.Context, d *schema.ResourceData, m interf
 			return diags
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 		if err != nil {
 			return diags
 		}
@@ -106,7 +105,7 @@ func resourceProjectUpsert(ctx context.Context, d *schema.ResourceData, m interf
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -186,7 +185,7 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 	// log.Println("resourceProjectRead tfProjectState", w1)
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -278,8 +277,6 @@ func expandProjectSpec(p []interface{}) (*systempb.ProjectSpec, error) {
 
 	if v, ok := in["drift_webhook"].([]interface{}); ok {
 		obj.DriftWebhook = expandProjectDriftWebhook(v)
-	} else {
-		obj.DriftWebhook = &commonpb.DriftWebhook{Enabled: true}
 	}
 
 	return obj, nil
@@ -288,19 +285,17 @@ func expandProjectSpec(p []interface{}) (*systempb.ProjectSpec, error) {
 func expandProjectDriftWebhook(p []interface{}) *commonpb.DriftWebhook {
 	obj := &commonpb.DriftWebhook{}
 	if len(p) == 0 || p[0] == nil {
-		obj.Enabled = true
-		return obj
+		return nil
 	}
 
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["enabled"].(bool); ok {
 		obj.Enabled = v
-	} else {
-		obj.Enabled = true
+		return obj
 	}
 
-	return obj
+	return nil
 }
 
 func expandProjectResourceQuota(p []interface{}) *systempb.ProjectResourceQuota {

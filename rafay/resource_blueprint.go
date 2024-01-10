@@ -16,7 +16,6 @@ import (
 	"github.com/RafaySystems/rctl/pkg/blueprint"
 	bp "github.com/RafaySystems/rctl/pkg/blueprint"
 	"github.com/RafaySystems/rctl/pkg/config"
-	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -92,7 +91,7 @@ func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m inte
 			return diags
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 		if err != nil {
 			return diags
 		}
@@ -137,7 +136,7 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -190,7 +189,7 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 	// log.Println("resourceBluePrintRead tfBlueprintState", w1)
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -239,7 +238,7 @@ func resourceBluePrintDelete(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -345,8 +344,6 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 
 	if v, ok := in["drift_webhook"].([]interface{}); ok && len(v) > 0 {
 		obj.DriftWebhook = expandDriftWebhook(v)
-	} else {
-		obj.DriftWebhook = &infrapb.DriftWebhook{Enabled: true}
 	}
 
 	if v, ok := in["namespace_config"].([]interface{}); ok && len(v) > 0 {
@@ -1373,11 +1370,13 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 		return nil
 	}
 
-	retNil := true
+	retNil := false
 
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
+	} else {
+		retNil = true
 	}
 
 	if in.EnableIngress {

@@ -579,7 +579,7 @@ func expandAKSManagedClusterV3AdditionalMetadataACRProfile(p []interface{}) *inf
 		obj.AcrName = v
 	}
 
-	if v, ok := in["profiles"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["registries"].([]interface{}); ok && len(v) > 0 {
 		obj.Registries = expandAKSManagedClusterV3AdditionalMetadataACRProfiles(v)
 	}
 	return obj
@@ -3278,11 +3278,11 @@ func flattenAKSV3ManagedClusterAdditionalMetadataACRProfile(in *infrapb.AcrProfi
 	}
 
 	if len(in.Registries) > 0 {
-		v, ok := obj["profiles"].([]interface{})
+		v, ok := obj["registries"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["profiles"] = flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in.Registries, v)
+		obj["registries"] = flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in.Registries, v)
 	}
 
 	return []interface{}{obj}

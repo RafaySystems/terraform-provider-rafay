@@ -68,3 +68,21 @@ Optional:
 - `delete` (String)
 - `update` (String)
 
+
+# rafay_user (data source)
+## Example Usage
+
+---
+
+```terraform
+data "rafay_user" "user" {
+    user_name    = "name"
+}
+
+output "user_groups" {
+  description = "user_groups"
+  value       = data.rafay_user.user.groups
+}
+```
+
+---

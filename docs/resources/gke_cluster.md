@@ -439,3 +439,24 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `update` - (String) Sets the timeout duration for updating a resource.
 
 
+
+# rafay_gke_cluster (data source)
+## Example Usage
+
+---
+
+```terraform
+data "rafay_gke_cluster" "cluster" {
+  metadata {
+	name    = "cluster-gke"
+	project = "demo"
+  }
+}
+  
+output "gke_cluster" {
+  description = "gke_cluster"
+  value       = data.rafay_gke_cluster.cluster
+}
+```
+
+---

@@ -327,6 +327,14 @@ func expandProjectResourceQuota(p []interface{}) *systempb.ProjectResourceQuota 
 		obj.CpuLimits = v
 	}
 
+	if v, ok := in["gpu_limits"].(string); ok && len(v) > 0 {
+		obj.GpuLimits = v
+	}
+
+	if v, ok := in["gpu_requests"].(string); ok && len(v) > 0 {
+		obj.GpuRequests = v
+	}
+
 	if v, ok := in["memory_limits"].(string); ok && len(v) > 0 {
 		//obj.MemoryLimits = expandQuantityString(v)
 		obj.MemoryLimits = v
@@ -520,6 +528,14 @@ func flattenProjectResourceQuota(in *systempb.ProjectResourceQuota) []interface{
 	}
 	if len(in.CpuRequests) > 0 {
 		obj["cpu_requests"] = in.CpuRequests
+		retNil = false
+	}
+	if len(in.GpuLimits) > 0 {
+		obj["gpu_limits"] = in.GpuLimits
+		retNil = false
+	}
+	if len(in.GpuRequests) > 0 {
+		obj["gpu_requests"] = in.GpuRequests
 		retNil = false
 	}
 	if len(in.MemoryLimits) > 0 {

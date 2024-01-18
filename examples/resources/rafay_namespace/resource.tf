@@ -85,6 +85,8 @@ resource "rafay_namespace" "namespace" {
             memory_limits = "16384Mi"
             cpu_requests = "4000m"
             memory_requests = "8192Mi"
+            gpu_requests = "10"
+            gpu_limits = "10"
             persistent_volume_claims = "2"
             pods = "30"
             replication_controllers = "5"

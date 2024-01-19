@@ -98,7 +98,9 @@ func New(_ string) func() *schema.Provider {
 				"rafay_ztkapolicy":                        resourceZTKAPolicy(),
 				"rafay_customrole":                        resourceCustomRole(),
 			},
-			DataSourcesMap:       map[string]*schema.Resource{},
+			DataSourcesMap: map[string]*schema.Resource{
+				"rafay_project": dataProject(),
+			},
 			ConfigureContextFunc: providerConfigure,
 		}
 

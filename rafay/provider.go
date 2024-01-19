@@ -99,7 +99,17 @@ func New(_ string) func() *schema.Provider {
 				"rafay_customrole":                        resourceCustomRole(),
 			},
 			DataSourcesMap: map[string]*schema.Resource{
-				"rafay_project": dataProject(),
+				"rafay_project":             dataProject(),
+				"rafay_addon":               dataAddon(),
+				"rafay_blueprint":           dataBluePrint(),
+				"rafay_download_kubeconfig": dataKubeConfig(),
+				"rafay_aks_cluster":         dataAKSCluster(),
+				"rafay_aks_cluster_v3":      dataAKSClusterV3(),
+				"rafay_eks_cluster":         dataEKSCluster(),
+				"rafay_gke_cluster":         dataGKEClusterV3(),
+				"rafay_user":                dataUser(),
+				"rafay_group":               dataGroup(),
+				"rafay_groupassociation":    dataGroupAssociation(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}

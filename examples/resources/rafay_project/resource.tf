@@ -17,6 +17,7 @@ resource "rafay_project" "tfdemoproject2" {
   }
   spec {
     default = false
+    sync_excluded_namespaces = ["one", "two"]
     cluster_resource_quota {
       cpu_requests = "8m"
       memory_requests = "4Mi"

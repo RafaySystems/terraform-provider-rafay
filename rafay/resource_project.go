@@ -279,6 +279,10 @@ func expandProjectSpec(p []interface{}) (*systempb.ProjectSpec, error) {
 		obj.DriftWebhook = expandProjectDriftWebhook(v)
 	}
 
+	if v, ok := in["sync_excluded_namespaces"].([]interface{}); ok {
+		obj.SyncExcludedNamespaces = toArrayStringSorted(v)
+	}
+
 	return obj, nil
 }
 
@@ -435,6 +439,10 @@ func flattenProjectSpec(in *systempb.ProjectSpec, p []interface{}) ([]interface{
 
 	if in.DriftWebhook != nil {
 		obj["drift_webhook"] = flattenProjectDriftWebhook(in.DriftWebhook)
+	}
+
+	if in.SyncExcludedNamespaces != nil {
+		obj["sync_excluded_namespaces"] = in.SyncExcludedNamespaces
 	}
 
 	return []interface{}{obj}, nil

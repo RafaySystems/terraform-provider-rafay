@@ -77,6 +77,8 @@ resource "rafay_namespace" "cloudops" {
             services_load_balancers = "10"
             services_node_ports = "10"
             storage_requests = "1Gi"
+            gpu_requests = "10"
+            gpu_limits = "10"
         }
 
         limit_range {
@@ -336,6 +338,8 @@ Optional:
 - `services_load_balancers` - (String) The number of load balancers. 
 - `services_node_ports` - (String) The number of node ports. 
 - `storage_requests` - (String) The size of the storage request in Gibibytes.
+- `gpu_limits` - (String) The maximum GPU resource. 
+- `gpu_requests` - (String) The number of GPU requests.
 
     See the Kubernetes [Resource Quotas](https://kubernetes.io/docs/concepts/policy/resource-quotas/) documentation page for more information.
 

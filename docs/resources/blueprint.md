@@ -455,6 +455,8 @@ resource "rafay_blueprint" "cost-blueprint" {
 - `enable_monitoring` - (Boolean) If enabled, monitoring is installed on the cluster. 
 - `enable_rook_ceph` - (Boolean) If enabled, run ceph inside a cluster. 
 - `enable_vm` - (Boolean) If enabled, VM operator (kubevirt) is installed on the cluster. 
+- `enable_csi_secret_store` - (Boolean) If enabled, Secrets Store CSI Driver Add-on is installed on the cluster. 
+- `csi_secret_store_config` - (Block List) The configuration for Secrets Store CSI Driver Add-on is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--csistore-config))
 - `monitoring` - (Block List) The configuration for monitoring the resource is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring))
 
 
@@ -505,6 +507,17 @@ resource "rafay_blueprint" "cost-blueprint" {
 
 - `cpu` - (String) The CPU resource limit for the resource. The resource cannot use more than this limit. The CPU limit in millicpu, also known as millicores. 100m is 100 millicpu, which is 0.1 CPU cores.
 - `memory` - (String) The memory resource limit for the resource. The resource cannot use more than this limit.The memory limit in mebibytes. A megabyte is a close equivalent to a mebibyte.
+
+
+<a id="nestedblock--spec--default_addons--csistore-config"></a>
+### Nested Schema for `spec.default_addons.csi_secret_store_config`
+
+***Optional***
+
+- `enable_secret_rotation` - (Boolean) Enable Auto rotation of mounted contents and synced Kubernetes secret.
+- `sync_secrets` - (Boolean) Toggle Sync as Kubernetes Secret.
+- `rotation_poll_interval` - (String) Rotation poll interval can be customized when 'Enable Secret Rotation' setting is selected, the default being 2 min
+- `providers` - (Block List) Secret store CSI Driver Provider. Currently AWS is supported. Set "aws = true" in the config to select this provider
 
 <a id="nestedblock--spec--drift"></a>
 ### Nested Schema for `spec.drift`

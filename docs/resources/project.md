@@ -51,6 +51,8 @@ resource "rafay_project" "terraform-quota" {
       services_load_balancers = "10"
       services_node_ports = "10"
       storage_requests = "100Gi"
+      gpu_requests = "10"
+      gpu_limits = "10"
     }
     default_cluster_namespace_quota {
       cpu_requests = "1000m"
@@ -65,6 +67,8 @@ resource "rafay_project" "terraform-quota" {
       services_load_balancers = "4"
       services_node_ports = "4"
       storage_requests = "10Gi"
+      gpu_requests = "10"
+      gpu_limits = "10"
     }
   }
 }
@@ -127,6 +131,8 @@ resource "rafay_project" "terraform-quota" {
 - `services_load_balancers` - (String) The number of load balancers. 
 - `services_node_ports` - (String) The number of node ports. 
 - `storage_requests` - (String) The size of the storage request in Gibibytes.
+- `gpu_limits` - (String) The maximum GPU resource. 
+- `gpu_requests` - (String) The number of GPU requests.
 
 
 <a id="nestedblock--specs--default_cluster_namespace_quota"></a>
@@ -150,6 +156,8 @@ resource "rafay_project" "terraform-quota" {
 - `services_load_balancers` - (String) The number of load balancers. 
 - `services_node_ports` - (String) The number of node ports. 
 - `storage_requests` - (String) The size of the storage request in Gibibytes.
+- `gpu_limits` - (String) The maximum GPU resource. 
+- `gpu_requests` - (String) The number of GPU requests.
 
 
 <a id="nestedblock--timeouts"></a>

@@ -1,8 +1,8 @@
 # Example of a custom blueprint resource.
 resource "rafay_blueprint" "blueprint" {
   metadata {
-    name    = "custom-blueprint10"
-    project = "vivek"
+    name    = "custom-blueprint"
+    project = "terraform"
   }
   spec {
     version = "v0"
@@ -181,7 +181,7 @@ resource "rafay_blueprint" "blueprint" {
         name = "terraform"
       }
     }
-
+  
     opa_policy {
       opa_policy {
 	      name = "policy_name"

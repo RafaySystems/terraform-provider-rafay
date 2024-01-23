@@ -24,6 +24,7 @@ require (
 require (
 	github.com/IBM/sarama v1.41.3 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
+	github.com/RafaySystems/edge-common v1.24.1-0.20231123110612-2655ca0f3b65 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
@@ -57,6 +58,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.28.3 // indirect
 	k8s.io/cluster-bootstrap v0.27.2 // indirect
 	k8s.io/component-base v0.28.3 // indirect
+	mellium.im/sasl v0.3.1 // indirect
 	sigs.k8s.io/cluster-api v1.5.2 // indirect
 )
 
@@ -244,11 +246,11 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
+	github.com/RafaySystems/rafay-common => ../rafay-common
 	//github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
 	//github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
-	//github.com/RafaySystems/rctl => ../rctl
+	github.com/RafaySystems/rctl => ../rctl
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
-	// github.com/RafaySystems/rafay-common => ../rafay-common
 	github.com/go-pg/pg => github.com/go-pg/pg v6.15.1+incompatible
 	k8s.io/api => k8s.io/api v0.26.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.2

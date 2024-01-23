@@ -319,6 +319,7 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	} else {
 		var roleLst []string
+		var customRoleLst []string
 		var namespace_id_list []string
 		gaList := []models.GroupAssociationRoles{}
 		err = json.Unmarshal([]byte(respRoles), &gaList)
@@ -335,6 +336,9 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 						namespace_id_list = append(namespace_id_list, cp.NamespaceID)
 					}
 				}
+				for _, cr := range sn.CustomRoles {
+					customRoleLst = append(customRoleLst, cr.CustomRole.Name)
+				}
 			}
 		}
 		if len(roleLst) > 0 {
@@ -346,6 +350,17 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 		} else {
 			if err := d.Set("roles", nil); err != nil {
 				log.Printf("get group association set role error %s", err.Error())
+				return diag.FromErr(err)
+			}
+		}
+		if len(customRoleLst) > 0 {
+			if err := d.Set("custom_roles", RemoveDuplicatesFromSlice(customRoleLst)); err != nil {
+				log.Printf("get group association set custom role error %s", err.Error())
+				return diag.FromErr(err)
+			}
+		} else {
+			if err := d.Set("custom_roles", nil); err != nil {
+				log.Printf("get group association set custom role error %s", err.Error())
 				return diag.FromErr(err)
 			}
 		}

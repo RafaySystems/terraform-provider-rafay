@@ -115,6 +115,9 @@ resource "rafay_project" "terraform-quota" {
 ### Nested Schema for `spec.cluster_resource_quota` 
 
 ***Optional*** 
+- `sync_excluded_namespaces` - (String Array) List of Namespaces that should be kept away from syncing (This is done at project level).
+
+***Optional*** 
 - `config_maps` - (String) The maximum number of configuration maps allowed in the cluster. 
 - `cpu_limits` - (String) The maximum CPU resource. 
 - `cpu_requests` - (String) The number of CPU threads.

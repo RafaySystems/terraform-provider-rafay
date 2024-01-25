@@ -127,6 +127,7 @@ func dataGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	} else {
 		var roleLst []string
+		var customRoleLst []string
 		var namespace_id_list []string
 		gaList := []models.GroupAssociationRoles{}
 
@@ -141,8 +142,21 @@ func dataGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m int
 		}
 		for _, sn := range gaList {
 			if sn.Project.Name == project.Name {
+				projectRoleMap := make(map[string]int)
+				for _, cr := range sn.CustomRoles {
+					customRoleLst = append(customRoleLst, cr.CustomRole.Name)
+					count := 1
+					if len(cr.Namespaces) > 0 {
+						count = len(cr.Namespaces)
+					}
+					projectRoleMap[cr.CustomRole.BaseRoleName] = projectRoleMap[cr.CustomRole.BaseRoleName] + count
+				}
 				for _, cp := range sn.Roles {
-					roleLst = append(roleLst, cp.Role.Name)
+					if v, ok := projectRoleMap[cp.Role.Name]; ok && v > 0 {
+						projectRoleMap[cp.Role.Name] = v - 1
+					} else {
+						roleLst = append(roleLst, cp.Role.Name)
+					}
 					// get namespace from namespace_id
 					if cp.NamespaceID != "" {
 						namespace_id_list = append(namespace_id_list, cp.NamespaceID)
@@ -159,6 +173,17 @@ func dataGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m int
 		} else {
 			if err := d.Set("roles", nil); err != nil {
 				log.Printf("get group association set role error %s", err.Error())
+				return diag.FromErr(err)
+			}
+		}
+		if len(customRoleLst) > 0 {
+			if err := d.Set("custom_roles", RemoveDuplicatesFromSlice(customRoleLst)); err != nil {
+				log.Printf("get group association set custom role error %s", err.Error())
+				return diag.FromErr(err)
+			}
+		} else {
+			if err := d.Set("custom_roles", nil); err != nil {
+				log.Printf("get group association set custom role error %s", err.Error())
 				return diag.FromErr(err)
 			}
 		}

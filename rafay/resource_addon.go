@@ -163,10 +163,10 @@ func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{
 		meta.Name = d.State().ID
 	}
 
-	tfAddonState, err := expandAddon(d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	//tfAddonState, err := expandAddon(d)
+	//if err != nil {
+	//	return diag.FromErr(err)
+	//}
 
 	// XXX Debug
 	// w1 := spew.Sprintf("%+v", tfAddonState)
@@ -181,7 +181,7 @@ func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{
 	addon, err := client.InfraV3().Addon().Get(ctx, options.GetOptions{
 		Name: meta.Name,
 		//Name:    tfAddonState.Metadata.Name,
-		Project: tfAddonState.Metadata.Project,
+		Project: meta.Project,
 	})
 	if err != nil {
 		if strings.Contains(err.Error(), "code 404") {

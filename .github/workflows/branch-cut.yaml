@@ -1,0 +1,35 @@
+name: Release Branch Cut Workflow
+
+on:
+  workflow_dispatch:  # manually trigger the workflow
+    inputs:
+      source_branch:
+        description: 'Source branch name from which branch cut need to be done.'
+        required: true
+        default: main|master
+      release_branch:
+        description: 'New branch release branch name'
+        required: true
+
+jobs:
+  branch-cut:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout PR Branch
+      uses: actions/checkout@v4  # This action checks out the branch associated with the PR
+      with:
+        token: ${{ secrets.JENKINS_PAT }}
+
+    - name: Create new branch
+      run: |
+        git fetch --all
+        if [ "${{ github.event.inputs.source_branch }}" == 'main|master' ] || [ "${{ github.event.inputs.source_branch }}" == 'master|main' ]; then
+            SOURCE_BRANCH=$(git remote set-head origin -a | egrep -oE 'master|main$')
+            echo source_branch=$SOURCE_BRANCH
+        else 
+            SOURCE_BRANCH="${{ github.event.inputs.source_branch }}"
+            echo source_branch=$SOURCE_BRANCH
+        fi
+        git checkout -b ${{ github.event.inputs.release_branch }} origin/$SOURCE_BRANCH
+        git push origin HEAD:${{ github.event.inputs.release_branch }}

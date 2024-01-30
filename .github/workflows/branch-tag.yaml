@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: Checkout PR Branch
-      uses: actions/checkout@v2  # This action checks out the branch associated with the PR
+      uses: actions/checkout@v4 # This action checks out the branch associated with the PR
 
     - name: Set Git config
       run: |
@@ -24,9 +24,9 @@ jobs:
         git config user.name "jenkinsrafay"
     - name: Create tag on the release branch
       run: |
-        git branch
         git fetch --all
         git checkout ${{ github.event.inputs.release_branch }}
+        git branch
         git log -1
         git pull origin ${{ github.event.inputs.release_branch }}
         git rebase origin/${{ github.event.inputs.release_branch }}

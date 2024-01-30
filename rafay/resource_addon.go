@@ -40,7 +40,8 @@ func resourceAddon() *schema.Resource {
 func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("addon create starts")
 	diags := resourceAddonUpsert(ctx, d, m)
-	if diags.HasError() {
+	diagsError := diags[0]
+	if diags.HasError() && !strings.Contains(diagsError.Summary, "application workloads or addons already exists with name") {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")

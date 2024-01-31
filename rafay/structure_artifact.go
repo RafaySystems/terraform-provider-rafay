@@ -55,7 +55,6 @@ type artifactTranspose struct {
 
 // ExpandArtifact expands tf state to ArtifactSpec
 func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSpec, error) {
-	log.Println("nside ExpandArtifact")
 	if len(ap) == 0 || ap[0] == nil {
 		return nil, fmt.Errorf("%s", "expandArtifact empty input")
 	}
@@ -66,9 +65,6 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 	var err error
 
 	inp := ap[0].(map[string]interface{})
-	for key, _ := range inp {
-		log.Println("Input keys are: ", key)
-	}
 	if vp, ok := inp["artifact"].([]interface{}); ok && len(vp) > 0 {
 		if len(vp) == 0 || vp[0] == nil {
 			return nil, fmt.Errorf("%s", "expandArtifact empty artifact")
@@ -179,9 +175,6 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 			log.Println("expandArtifact empty options")
 		} else {
 			in := vp[0].(map[string]interface{})
-			for key := range in {
-				log.Println("keys are1: ", key)
-			}
 			if v, ok := in["atomic"].(bool); ok {
 				at.Options.Atomic = v
 			}
@@ -278,7 +271,6 @@ func ExpandArtifactSpec(p []interface{}) (*commonpb.ArtifactSpec, error) {
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		artifactType := v
 		obj, err = ExpandArtifact(artifactType, p)
-		log.Println("ExpandArtifact information: ", obj.Artifact)
 		if err != nil {
 			return nil, err
 		}

@@ -866,6 +866,34 @@ func expandToV3GkeNodeMachineConfig(p []interface{}) (*infrapb.GkeNodeMachineCon
 		obj.BootDiskSize = int64(v)
 	}
 
+	var err error
+
+	// GkeNodeReservationAffinity
+	if v, ok := in["reservation_affinity"].([]interface{}); ok && len(v) > 0 {
+		obj.ReservationAffinity, err = expandToV3GkeNodeReservationAffinity(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand Gke reservation affinity " + err.Error())
+		}
+	}
+
+	return obj, nil
+}
+
+// GkeNodeReservationAffinity
+func expandToV3GkeNodeReservationAffinity(p []interface{}) (*infrapb.GkeNodeReservationAffinity, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node reservation affinity")
+	}
+
+	obj := &infrapb.GkeNodeReservationAffinity{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["consume_reservation_type"].(string); ok && len(v) > 0 {
+		obj.ConsumeReservationType = v
+	}
+	if v, ok := in["reservation_name"].(string); ok && len(v) > 0 {
+		obj.ReservationName = v
+	}
 	return obj, nil
 }
 

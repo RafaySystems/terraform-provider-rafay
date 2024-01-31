@@ -64,6 +64,10 @@ resource "rafay_gke_cluster" "tf-example" {
           image_type     = "COS_CONTAINERD"
           boot_disk_type = "pd-standard"
           boot_disk_size = 100
+          reservation_affinity {
+             consume_reservation_type = "any"
+          }
+
         }
         management {
           auto_upgrade = "true"

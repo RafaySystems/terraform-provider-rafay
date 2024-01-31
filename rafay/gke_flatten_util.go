@@ -685,6 +685,29 @@ func flattenGKEV3NodeMachineConfig(in *infrapb.GkeNodeMachineConfig, p []interfa
 	obj["boot_disk_size"] = in.BootDiskSize
 	obj["boot_disk_type"] = in.BootDiskType
 
+	if in.ReservationAffinity != nil {
+		v, ok := obj["reservation_affinity"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["reservation_affinity"] = flattenGKEV3NodeReservationAffinity(in.GetReservationAffinity(), v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeReservationAffinity(in *infrapb.GkeNodeReservationAffinity, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["consume_reservation_type"] = in.ConsumeReservationType
+	obj["reservation_name"] = in.ReservationName
+
 	return []interface{}{obj}
 }
 

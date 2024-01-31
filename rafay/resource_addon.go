@@ -257,9 +257,9 @@ func expandAddonSpec(p []interface{}) (*infrapb.AddonSpec, error) {
 		}
 		// XXX Debug
 		artfct = spew.Sprintf("%+v", objArtifact.Artifact)
-		log.Println("expandAddonSpec Artifact ater expand ", artfct)
+		log.Println("expandAddonSpec Artifact after expand ", artfct)
 		artfct = spew.Sprintf("%+v", objArtifact.Options)
-		log.Println("expandAddonSpec Options ater expand ", artfct)
+		log.Println("expandAddonSpec Options after expand ", artfct)
 
 		obj.Artifact = objArtifact
 	}

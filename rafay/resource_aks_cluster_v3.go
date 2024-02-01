@@ -891,7 +891,7 @@ func expandAKSManagedClusterV3AzureADProfile(p []interface{}) *infrapb.Aadprofil
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["admin_group_object_ids"].([]interface{}); ok && len(v) > 0 {
-		obj.AdminGroupObjectIDs = toArrayString(v)
+		obj.AdminGroupObjectIds = toArrayString(v)
 	}
 
 	if v, ok := in["client_app_id"].(string); ok && len(v) > 0 {
@@ -2523,8 +2523,8 @@ func flattenAKSV3ManagedClusterAzureADProfile(in *infrapb.Aadprofile, p []interf
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.AdminGroupObjectIDs != nil && len(in.AdminGroupObjectIDs) > 0 {
-		obj["admin_group_object_ids"] = toArrayInterface(in.AdminGroupObjectIDs)
+	if in.AdminGroupObjectIds != nil && len(in.AdminGroupObjectIds) > 0 {
+		obj["admin_group_object_ids"] = toArrayInterface(in.AdminGroupObjectIds)
 	}
 
 	if len(in.ClientAppID) > 0 {

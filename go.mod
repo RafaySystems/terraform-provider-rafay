@@ -5,7 +5,7 @@ go 1.21.1
 toolchain go1.21.2
 
 require (
-	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240123093830-988c2e28ccd3
+	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240201110426-cbd9e74aac4f
 	github.com/RafaySystems/rctl v1.29.1-0.20240201054308-da7bed0af82d
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -246,9 +246,9 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
-	//github.com/RafaySystems/rafay-common => ../rafay-common
+	// github.com/RafaySystems/rafay-common => ../rafay-common
 	//github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
-	//github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
+	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	//github.com/RafaySystems/rctl => ../rctl
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
 	github.com/go-pg/pg => github.com/go-pg/pg v6.15.1+incompatible

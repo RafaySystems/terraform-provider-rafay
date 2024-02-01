@@ -5,8 +5,8 @@ go 1.21.1
 toolchain go1.21.2
 
 require (
-	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240124095255-77148121008a
-	github.com/RafaySystems/rctl v1.29.1-0.20240125025602-4fb6445117b7
+	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240123093830-988c2e28ccd3
+	github.com/RafaySystems/rctl v1.29.1-0.20240201054308-da7bed0af82d
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5
@@ -24,7 +24,7 @@ require (
 require (
 	github.com/IBM/sarama v1.41.3 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/RafaySystems/edge-common v1.24.1-0.20231123110612-2655ca0f3b65 // indirect
+	github.com/RafaySystems/edge-common v1.24.1-0.20240129082509-281c87899d53 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
@@ -73,7 +73,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
-	github.com/RafaySystems/eaas-playground v0.0.0-20231227191128-cec3b85724e9 // indirect
+	github.com/RafaySystems/eaas-playground v0.0.0-20240110053221-e83d8a32f6f2 // indirect
 	github.com/RoaringBitmap/roaring v1.6.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect

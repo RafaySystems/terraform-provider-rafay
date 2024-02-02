@@ -664,7 +664,7 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 	}
 
 	if v, ok := in["identity_profile"].([]interface{}); ok && len(v) > 0 {
-		obj.IdentityProfile = expandAKSManagedClusterIdentityProfile(v)
+		obj.IdentityProfile = expandAKSManagedClusterV3IdentityProfile(v)
 	}
 
 	if v, ok := in["kubernetes_version"].(string); ok {
@@ -702,7 +702,7 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 	return obj
 }
 
-func expandAKSManagedClusterIdentityProfile(p []interface{}) *infrapb.ManagedClusterIdentityProfile {
+func expandAKSManagedClusterV3IdentityProfile(p []interface{}) *infrapb.ManagedClusterIdentityProfile {
 	obj := &infrapb.ManagedClusterIdentityProfile{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
@@ -711,12 +711,12 @@ func expandAKSManagedClusterIdentityProfile(p []interface{}) *infrapb.ManagedClu
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["kubelet_identity"].([]interface{}); ok && len(v) > 0 {
-		obj.KubeletIdentity = expandAKSManagedClusterIdentityProfileKubeletIdentity(v)
+		obj.KubeletIdentity = expandAKSManagedClusterV3IdentityProfileKubeletIdentity(v)
 	}
 	return obj
 }
 
-func expandAKSManagedClusterIdentityProfileKubeletIdentity(p []interface{}) *infrapb.ManagedClusterIdentityProfileKubeletIdentity {
+func expandAKSManagedClusterV3IdentityProfileKubeletIdentity(p []interface{}) *infrapb.ManagedClusterIdentityProfileKubeletIdentity {
 	obj := &infrapb.ManagedClusterIdentityProfileKubeletIdentity{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
@@ -2323,12 +2323,12 @@ func flattenAKSV3ManagedClusterIdentityProfile(in *infrapb.ManagedClusterIdentit
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["kubelet_identity"] = flattenAKSManagedClusterIdentityProfileKubeletIdentity(in.KubeletIdentity, v)
+		obj["kubelet_identity"] = flattenAKSV3ManagedClusterIdentityProfileKubeletIdentity(in.KubeletIdentity, v)
 	}
 	return []interface{}{obj}
 }
 
-func flattenAKSManagedClusterIdentityProfileKubeletIdentity(in *infrapb.ManagedClusterIdentityProfileKubeletIdentity, p []interface{}) []interface{} {
+func flattenAKSV3ManagedClusterIdentityProfileKubeletIdentity(in *infrapb.ManagedClusterIdentityProfileKubeletIdentity, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}

@@ -129,7 +129,7 @@ type AKSManagedClusterProperties struct {
 	LinuxProfile            *AKSManagedClusterLinuxProfile            `yaml:"linuxProfile,omitempty"`
 	WindowsProfile          *AKSManagedClusterWindowsProfile          `yaml:"windowsProfile,omitempty"`
 	HTTPProxyConfig         *AKSManagedClusterHTTPProxyConfig         `yaml:"httpProxyConfig,omitempty"`
-	IdentityProfile         map[string]string                         `yaml:"identityProfile,omitempty"`
+	IdentityProfile         *AKSManagedClusterIdentityProfile         `yaml:"identityProfile,omitempty"`
 	AutoScalerProfile       *AKSManagedClusterAutoScalerProfile       `yaml:"autoScalerProfile,omitempty"`
 	AutoUpgradeProfile      *AKSManagedClusterAutoUpgradeProfile      `yaml:"autoUpgradeProfile,omitempty"`
 	PodIdentityProfile      *AKSManagedClusterPodIdentityProfile      `yaml:"podIdentityProfile,omitempty"`
@@ -299,6 +299,14 @@ type AKSManagedClusterHTTPProxyConfig struct {
 	HTTPSProxy string   `yaml:"httpsProxy,omitempty"`
 	NoProxy    []string `yaml:"noProxy,omitempty"`
 	TrustedCA  string   `yaml:"trustedCa,omitempty"`
+}
+
+type AKSManagedClusterIdentityProfile struct {
+	KubeletIdentity *AKSManagedClusterKubeletIdentity	`yaml:"kubeletIdentity,omitempty"`
+}
+
+type AKSManagedClusterKubeletIdentity struct {
+	ResourceId string `yaml:"resourceId,omitempty"`
 }
 
 type AKSManagedClusterPodIdentityProfile struct {

@@ -444,9 +444,12 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 			},
 		},
 		"identity_profile": {
-			Type:        schema.TypeMap,
+			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "Identities associated with the cluster",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterIdentityProfile(),
+			},
 		},
 		"kubernetes_version": {
 			Type:        schema.TypeString,
@@ -904,6 +907,31 @@ func clusterAKSManagedClusterHTTPProxyConfig() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "Alternative CA cert to use for connecting to proxy servers.",
+		},
+	}
+	return s
+}
+
+func clusterAKSManagedClusterIdentityProfile() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"kubelet_identity": {
+			Type:	schema.TypeList,
+			Required: true,
+			Description: "Kubelet Identity for managed cluster identity profile",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterKubeletIdentity(),
+			},
+		},
+	}
+	return s
+}
+
+func clusterAKSManagedClusterKubeletIdentity() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"resource_id": {
+			Type:	schema.TypeString,
+			Required: true,
+			Description: "value must be ARM resource ID in the form: /subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>",
 		},
 	}
 	return s
@@ -2185,8 +2213,8 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 		obj.HTTPProxyConfig = expandAKSManagedClusterHTTPProxyConfig(v)
 	}
 
-	if v, ok := in["identity_profile"].(map[string]interface{}); ok {
-		obj.IdentityProfile = toMapString(v)
+	if v, ok := in["identity_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.IdentityProfile = expandAKSManagedClusterIdentityProfile(v)
 	}
 
 	if v, ok := in["kubernetes_version"].(string); ok {
@@ -2554,6 +2582,34 @@ func expandAKSManagedClusterHTTPProxyConfig(p []interface{}) *AKSManagedClusterH
 
 	if v, ok := in["trusted_ca"].(string); ok && len(v) > 0 {
 		obj.TrustedCA = v
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterIdentityProfile(p []interface{}) *AKSManagedClusterIdentityProfile {
+	obj := &AKSManagedClusterIdentityProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["kubelet_identity"].([]interface{}); ok && len(v) > 0 {
+		obj.KubeletIdentity = expandAKSManagedClusterIdentityProfileKubeletIdentity(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterIdentityProfileKubeletIdentity(p []interface{}) *AKSManagedClusterKubeletIdentity {
+	obj := &AKSManagedClusterKubeletIdentity{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["resource_id"].(string); ok && len(v) > 0 {
+		obj.ResourceId = v
 	}
 
 	return obj
@@ -3835,8 +3891,12 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 		obj["http_proxy_config"] = flattenAKSManagedClusterHTTPProxyConfig(in.HTTPProxyConfig, v)
 	}
 
-	if in.IdentityProfile != nil && len(in.IdentityProfile) > 0 {
-		obj["identity_profile"] = toMapInterface(in.IdentityProfile)
+	if in.IdentityProfile != nil {
+		v, ok := obj["identity_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["identity_profile"] = flattenAKSManagedClusterIdentityProfile(in.IdentityProfile, v)
 	}
 
 	if len(in.KubernetesVersion) > 0 {
@@ -4267,6 +4327,41 @@ func flattenAKSManagedClusterAutoUpgradeProfile(in *AKSManagedClusterAutoUpgrade
 
 	return []interface{}{obj}
 
+}
+
+func flattenAKSManagedClusterIdentityProfile(in *AKSManagedClusterIdentityProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.KubeletIdentity != nil {
+		v, ok := obj["kubelet_identity"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["kubelet_identity"] = flattenAKSManagedClusterIdentityProfileKubeletIdentity(in.KubeletIdentity, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSManagedClusterIdentityProfileKubeletIdentity(in *AKSManagedClusterKubeletIdentity, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ResourceId) > 0 {
+		obj["resource_id"] = in.ResourceId
+	}
+	return []interface{}{obj}
 }
 
 func flattenAKSManagedClusterHTTPProxyConfig(in *AKSManagedClusterHTTPProxyConfig, p []interface{}) []interface{} {

@@ -5618,6 +5618,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		if strings.Contains(err.Error(), "not found") {
 			log.Println("Resource Read ", "error", err)
 			d.SetId("")
+			diags = diag.FromErr(fmt.Errorf("Resource read failed, cluster not found. Error: %s",err.Error()))
 			return diags
 		}
 		return diag.FromErr(err)

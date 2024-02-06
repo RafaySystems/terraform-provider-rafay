@@ -5533,11 +5533,13 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
 		fmt.Printf("project does not exist")
+		diags = diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
 		return diags
 	}
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
 		fmt.Printf("project does not exist")
+		diags = diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
 		return diags
 	}
 
@@ -5663,12 +5665,14 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
 		fmt.Print("project name missing in the resource")
+		diags = diag.FromErr(fmt.Errorf("project name missing in the resource. Error: %s",err.Error()))
 		return diags
 	}
 
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
 		fmt.Printf("project does not exist")
+		diags = diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
 		return diags
 	}
 
@@ -5678,6 +5682,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		if strings.Contains(err.Error(), "not found") {
 			log.Println("Resource Read ", "error", err)
 			d.SetId("")
+			diags = diag.FromErr(fmt.Errorf("Resource read failed, cluster not found. Error: %s",err.Error()))
 			return diags
 		}
 		return diag.FromErr(err)
@@ -5750,12 +5755,14 @@ func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
 		fmt.Print("project name missing in the resource")
+		diags = diag.FromErr(fmt.Errorf("project name missing in the resource. Error: %s",err.Error()))
 		return diags
 	}
 
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
 		fmt.Printf("project does not exist")
+		diags = diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
 		return diags
 	}
 	_, err = cluster.GetCluster(obj.Metadata.Name, project.ID)
@@ -5796,12 +5803,14 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
 		fmt.Print("project  does not exist")
+		diags = diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
 		return diags
 	}
 
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
 		fmt.Printf("project  does not exist")
+		diags = diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
 		return diags
 	}
 

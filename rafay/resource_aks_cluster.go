@@ -17,6 +17,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	// Yaml pkg that have no limit for key length
@@ -1942,13 +1943,14 @@ func clusterAKSNodePoolUpgradeSettings() map[string]*schema.Schema {
 ///Changes
 
 // New Expand Functions
-func expandAKSCluster(p []interface{}) *AKSCluster {
+func expandAKSCluster(p []interface{}, rawConfig cty.Value) *AKSCluster {
 	obj := &AKSCluster{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 
 	in := p[0].(map[string]interface{})
+	rawConfig = rawConfig.AsValueSlice()[0]
 
 	if v, ok := in["apiversion"].(string); ok && len(v) > 0 {
 		obj.APIVersion = v
@@ -1963,7 +1965,7 @@ func expandAKSCluster(p []interface{}) *AKSCluster {
 	}
 
 	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
-		obj.Spec = expandAKSClusterSpec(v)
+		obj.Spec = expandAKSClusterSpec(v, rawConfig.GetAttr("spec"))
 	}
 
 	return obj
@@ -1991,12 +1993,13 @@ func expandAKSClusterMetadata(p []interface{}) *AKSClusterMetadata {
 	return obj
 }
 
-func expandAKSClusterSpec(p []interface{}) *AKSClusterSpec {
+func expandAKSClusterSpec(p []interface{}, rawConfig cty.Value) *AKSClusterSpec {
 	obj := &AKSClusterSpec{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	rawConfig = rawConfig.AsValueSlice()[0]
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		obj.Type = v
@@ -2015,7 +2018,7 @@ func expandAKSClusterSpec(p []interface{}) *AKSClusterSpec {
 	}
 
 	if v, ok := in["cluster_config"].([]interface{}); ok && len(v) > 0 {
-		obj.AKSClusterConfig = expandAKSClusterConfig(v)
+		obj.AKSClusterConfig = expandAKSClusterConfig(v, rawConfig.GetAttr("cluster_config"))
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
@@ -2029,13 +2032,13 @@ func expandAKSClusterSpec(p []interface{}) *AKSClusterSpec {
 	return obj
 }
 
-func expandAKSClusterConfig(p []interface{}) *AKSClusterConfig {
+func expandAKSClusterConfig(p []interface{}, rawConfig cty.Value) *AKSClusterConfig {
 	obj := &AKSClusterConfig{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-
+	rawConfig = rawConfig.AsValueSlice()[0]
 	if v, ok := in["apiversion"].(string); ok && len(v) > 0 {
 		obj.APIVersion = v
 	}
@@ -2049,7 +2052,7 @@ func expandAKSClusterConfig(p []interface{}) *AKSClusterConfig {
 	}
 
 	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
-		obj.Spec = expandAKSClusterConfigSpec(v)
+		obj.Spec = expandAKSClusterConfigSpec(v, rawConfig.GetAttr("spec"))
 	}
 
 	return obj
@@ -2068,13 +2071,13 @@ func expandAKSClusterConfigMetadata(p []interface{}) *AKSClusterConfigMetadata {
 	return obj
 }
 
-func expandAKSClusterConfigSpec(p []interface{}) *AKSClusterConfigSpec {
+func expandAKSClusterConfigSpec(p []interface{}, rawConfig cty.Value) *AKSClusterConfigSpec {
 	obj := &AKSClusterConfigSpec{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-
+	rawConfig = rawConfig.AsValueSlice()[0]
 	if v, ok := in["subscription_id"].(string); ok && len(v) > 0 {
 		obj.SubscriptionID = v
 	}
@@ -2088,7 +2091,7 @@ func expandAKSClusterConfigSpec(p []interface{}) *AKSClusterConfigSpec {
 	}
 
 	if v, ok := in["node_pools"].([]interface{}); ok && len(v) > 0 {
-		obj.NodePools = expandAKSNodePool(v)
+		obj.NodePools = expandAKSNodePool(v, rawConfig.GetAttr("node_pools"))
 	}
 
 	return obj
@@ -3138,7 +3141,7 @@ func expandAKSManagedClusterAdditionalMetadataACRProfiles(p []interface{}) []*Ak
 	return out
 }
 
-func expandAKSNodePool(p []interface{}) []*AKSNodePool {
+func expandAKSNodePool(p []interface{}, rawConfig cty.Value) []*AKSNodePool {
 	if len(p) == 0 || p[0] == nil {
 		return []*AKSNodePool{}
 	}
@@ -3147,6 +3150,7 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 	for i := range p {
 		obj := AKSNodePool{}
 		in := p[i].(map[string]interface{})
+		nRawConfig := rawConfig.AsValueSlice()[i]
 
 		if v, ok := in["apiversion"].(string); ok && len(v) > 0 {
 			obj.APIVersion = v
@@ -3157,7 +3161,7 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 		}
 
 		if v, ok := in["properties"].([]interface{}); ok && len(v) > 0 {
-			obj.Properties = expandAKSNodePoolProperties(v)
+			obj.Properties = expandAKSNodePoolProperties(v, nRawConfig.GetAttr("properties"))
 		}
 
 		if v, ok := in["type"].(string); ok && len(v) > 0 {
@@ -3175,19 +3179,23 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 	return out
 }
 
-func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
+func expandAKSNodePoolProperties(p []interface{}, rawConfig cty.Value) *AKSNodePoolProperties {
 	obj := &AKSNodePoolProperties{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	rawConfig = rawConfig.AsValueSlice()[0]
 
 	if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
 		obj.AvailabilityZones = toArrayString(v)
 	}
 
-	if v, ok := in["count"].(int); ok && v > 0 {
-		obj.Count = &v
+	rawCount := rawConfig.GetAttr("count")
+	if !rawCount.IsNull() && rawCount.Type().IsPrimitiveType() && rawCount.AsBigFloat().IsInt() {
+		val64, _ := rawCount.AsBigFloat().Int64()
+		val := int(val64)
+		obj.Count = &val
 	}
 
 	if v, ok := in["enable_auto_scaling"].(bool); ok {
@@ -3226,16 +3234,22 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 		obj.LinuxOSConfig = expandAKSNodePoolLinuxOsConfig(v)
 	}
 
-	if v, ok := in["max_count"].(int); ok && v > 0 {
-		obj.MaxCount = &v
+	rawCount = rawConfig.GetAttr("max_count")
+	if !rawCount.IsNull() && rawCount.Type().IsPrimitiveType() && rawCount.AsBigFloat().IsInt() {
+		val64, _ := rawCount.AsBigFloat().Int64()
+		val := int(val64)
+		obj.MaxCount = &val
 	}
 
 	if v, ok := in["max_pods"].(int); ok && v > 0 {
 		obj.MaxPods = &v
 	}
 
-	if v, ok := in["min_count"].(int); ok && v > 0 {
-		obj.MinCount = &v
+	rawCount = rawConfig.GetAttr("min_count")
+	if !rawCount.IsNull() && rawCount.Type().IsPrimitiveType() && rawCount.AsBigFloat().IsInt() {
+		val64, _ := rawCount.AsBigFloat().Int64()
+		val := int(val64)
+		obj.MinCount = &val
 	}
 
 	if v, ok := in["mode"].(string); ok && len(v) > 0 {
@@ -5452,6 +5466,7 @@ func aksClusterCTLStatus(taskid, projectID string) (string, error) {
 func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("AKS process inputs")
 	obj := &AKSCluster{}
+	rawConfig := d.GetRawConfig()
 
 	if v, ok := d.Get("apiversion").(string); ok {
 		obj.APIVersion = v
@@ -5476,7 +5491,7 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	}
 
 	if v, ok := d.Get("spec").([]interface{}); ok {
-		obj.Spec = expandAKSClusterSpec(v)
+		obj.Spec = expandAKSClusterSpec(v, rawConfig.GetAttr("spec"))
 	} else {
 		log.Println("Cluster spec unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
@@ -5644,13 +5659,6 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
 	}
 
-	if v, ok := d.Get("spec").([]interface{}); ok {
-		obj.Spec = expandAKSClusterSpec(v)
-	} else {
-		fmt.Print("Cluster spec unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
-	}
-
 	//project details
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
@@ -5739,13 +5747,6 @@ func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
 	}
 
-	if v, ok := d.Get("spec").([]interface{}); ok {
-		obj.Spec = expandAKSClusterSpec(v)
-	} else {
-		fmt.Print("Cluster spec unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
-	}
-
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
 		fmt.Print("project name missing in the resource")
@@ -5790,13 +5791,6 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 	} else {
 		fmt.Print("metadata unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
-	}
-
-	if v, ok := d.Get("spec").([]interface{}); ok {
-		obj.Spec = expandAKSClusterSpec(v)
-	} else {
-		fmt.Print("Cluster spec unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
 	}
 
 	resp, err := project.GetProjectByName(obj.Metadata.Project)

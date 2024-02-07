@@ -212,8 +212,12 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 			if v, ok := in["skip_crd"].(bool); ok {
 				at.Options.SkipCRDs = v
 			}
-			if v, ok := in["set_string"].([]string); ok && len(v) > 0 {
-				at.Options.SetString = v
+			if v, ok := in["set_string"].([]interface{}); ok && len(v) > 0 {
+				for _, value := range v {
+					if value.(string) != "" {
+						at.Options.SetString = append(at.Options.SetString, value.(string))
+					}
+				}
 			}
 			if v, ok := in["timeout"].(string); ok && len(v) > 0 {
 				at.Options.Timeout = v

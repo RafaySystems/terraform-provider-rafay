@@ -30,7 +30,6 @@ resource "rafay_environment" "eks-rds-env-example" {
       options {
         description = "this is the name of resource created"
         sensitive   = false
-        required    = true
       }
     }
   }

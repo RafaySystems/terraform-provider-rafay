@@ -29,7 +29,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
             }
             dns_prefix         = "testuser-test-dns"
             enable_rbac        = true
-            kubernetes_version = "1.21.9"
+            kubernetes_version = "1.27.3"
             network_profile {
               network_plugin = "kubenet"
             }
@@ -54,7 +54,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.21.9"
+            orchestrator_version = "1.27.3"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_DS2_v2"
@@ -99,7 +99,7 @@ resource "rafay_aks_cluster" "demo-terraform1" {
             }
             dns_prefix         = "testuser-test-dns"
             enable_rbac        = true
-            kubernetes_version = "1.21.9"
+            kubernetes_version = "1.27.3"
             network_profile {
               network_plugin = "kubenet"
               network_policy = "calico"
@@ -117,7 +117,7 @@ resource "rafay_aks_cluster" "demo-terraform1" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.21.9"
+            orchestrator_version = "1.27.3"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size = "Standard_DS2_v2"
@@ -133,7 +133,7 @@ resource "rafay_aks_cluster" "demo-terraform1" {
             enable_auto_scaling  = false
             max_pods             = 40
             mode                 = "User"
-            orchestrator_version = "1.21.9"
+            orchestrator_version = "1.27.3"
             os_type              = "Windows"
             type                 = "VirtualMachineScaleSets"
             vm_size = "Standard_DS2_v2"
@@ -186,7 +186,7 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
             }
             dns_prefix          = "testuser-test-dns"
             enable_rbac        = true
-            kubernetes_version  = "1.21.9"
+            kubernetes_version  = "1.27.3"
             node_resource_group = "node-resource-name"
             pod_identity_profile {
               enabled = true
@@ -286,7 +286,7 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
             max_pods              = 40
             min_count             = 1
             mode                  = "System"
-            orchestrator_version  = "1.21.9"
+            orchestrator_version  = "1.27.3"
             os_type               = "Linux"
             os_disk_size_gb       = 30
             type                  = "VirtualMachineScaleSets"
@@ -312,7 +312,7 @@ resource "rafay_aks_cluster" "demo-terraform-existing-vnet" {
             enable_auto_scaling   = false
             max_pods              = 40
             mode                  = "User"
-            orchestrator_version  = "1.21.9"
+            orchestrator_version  = "1.27.3"
             os_type               = "Windows"
             os_disk_size_gb       = 30
             type                  = "VirtualMachineScaleSets"
@@ -425,6 +425,308 @@ resource "rafay_aks_cluster" "demo-terraform-scp" {
           value = true
           effect = "NoSchedule"
           operator = "Equal"
+        }
+      }
+    }
+  }
+}
+
+resource "rafay_aks_cluster" "demo-terraform-authType-localAccounts-k8sRBAC" {
+  apiversion = "rafay.io/v1alpha1"
+  kind       = "Cluster"
+  metadata {
+    name    = "demo-terraform3"
+    project = "terraform"
+  }
+  spec {
+    type          = "aks"
+    blueprint     = "minimal"
+    cloudprovider = "aks-cred"
+    cluster_config {
+      apiversion = "rafay.io/v1alpha1"
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "demo-terraform3"
+      }
+      spec {
+        resource_group_name = "aks-resourcegroup"
+        managed_cluster {
+          apiversion = "2021-05-01"
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "demo-terraform3-test-dns"
+            enable_rbac        = true
+            kubernetes_version = "1.27.3"
+            network_profile {
+              network_plugin = "kubenet"
+            }
+            addon_profiles {
+              oms_agent {
+                enabled = false
+                config {
+                  log_analytics_workspace_resource_id = ""
+                }
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          apiversion = "2021-05-01"
+          name       = "primary"
+          properties {
+            count                = 2
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.27.3"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_B4ms"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          location = "centralindia"
+        }
+      }
+    }
+  }
+}
+
+resource "rafay_aks_cluster" "demo-terraform-authType-azureAuthentication-k8sRBAC" {
+  apiversion = "rafay.io/v1alpha1"
+  kind       = "Cluster"
+  metadata {
+    name    = "demo-terraform5"
+    project = "terraform"
+  }
+  spec {
+    type          = "aks"
+    blueprint     = "minimal"
+    cloudprovider = "azure-cred"
+    cluster_config {
+      apiversion = "rafay.io/v1alpha1"
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "demo-terraform5"
+      }
+      spec {
+        resource_group_name = "azure-resourcegroup"
+        managed_cluster {
+          apiversion = "2021-05-01"
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "demo-terraform5-test-dns"
+            enable_rbac        = true
+            disable_local_accounts = true
+            aad_profile {
+              managed = true
+              admin_group_object_ids = [ "<aad-group-object-id>" ]
+            }
+            kubernetes_version = "1.27.3"
+            network_profile {
+              network_plugin = "kubenet"
+            }
+            addon_profiles {
+              oms_agent {
+                enabled = false
+                config {
+                  log_analytics_workspace_resource_id = ""
+                }
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          apiversion = "2021-05-01"
+          name       = "primary"
+          properties {
+            count                = 2
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.27.3"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_B4ms"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          location = "centralindia"
+        }
+      }
+    }
+  }
+}
+
+resource "rafay_aks_cluster" "demo-terraform-authType-azureAuthentication-azureRBAC" {
+  apiversion = "rafay.io/v1alpha1"
+  kind       = "Cluster"
+  metadata {
+    name    = "demo-terraform6"
+    project = "terraform"
+  }
+  spec {
+    type          = "aks"
+    blueprint     = "minimal"
+    cloudprovider = "azure-cred"
+    cluster_config {
+      apiversion = "rafay.io/v1alpha1"
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "demo-terraform6"
+      }
+      spec {
+        resource_group_name = "mayank-rg"
+        managed_cluster {
+          apiversion = "2021-05-01"
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "demo-terraform6-test-dns"
+            enable_rbac        = true
+            disable_local_accounts = true
+            aad_profile {
+              managed = true
+              enable_azure_rbac = true
+            }
+            kubernetes_version = "1.27.3"
+            network_profile {
+              network_plugin = "kubenet"
+            }
+            addon_profiles {
+              oms_agent {
+                enabled = false
+                config {
+                  log_analytics_workspace_resource_id = ""
+                }
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          apiversion = "2021-05-01"
+          name       = "primary"
+          properties {
+            count                = 2
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.27.3"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_B4ms"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          location = "centralindia"
+        }
+      }
+    }
+  }
+}
+
+resource "rafay_aks_cluster" "demo-terraform-multiple-ACR" {
+  apiversion = "rafay.io/v1alpha1"
+  kind       = "Cluster"
+  metadata {
+    name    = "demo-terraform7"
+    project = "terraform"
+  }
+  spec {
+    type          = "aks"
+    blueprint     = "default-aks"
+    cloudprovider = "azure-cred"
+    cluster_config {
+      apiversion = "rafay.io/v1alpha1"
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "demo-terraform7"
+      }
+      spec {
+        resource_group_name = "azure-resourcegroup"
+        managed_cluster {
+          apiversion = "2021-05-01"
+          additional_metadata {
+            acr_profile {
+              registries {
+                acr_name = "<acr-name>"
+                resource_group_name = "<acr-resourcegroup>"
+              }
+            }
+          }
+          identity {
+            type = "UserAssigned"
+            user_assigned_identities = {
+                "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>" = "{}"
+            } 
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "testuser-test-dns"
+            enable_rbac        = true
+            kubernetes_version = "1.27.3"
+            network_profile {
+              network_plugin = "kubenet"
+            }
+            addon_profiles {
+              oms_agent {
+                enabled = false
+                config {
+                  log_analytics_workspace_resource_id = ""
+                }
+              }
+            }
+            identity_profile {
+              kubelet_identity {
+                resource_id = "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>"
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          apiversion = "2021-05-01"
+          name       = "primary"
+          properties {
+            count                = 2
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.27.3"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_B4ms"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+          location = "centralindia"
         }
       }
     }

@@ -56,7 +56,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
               enable_private_cluster = true
             }
             dns_prefix         = "aks-v3-tf-2401202303-dns"
-            kubernetes_version = "1.25.6"
+            kubernetes_version = "1.25.15"
             network_profile {
               network_plugin = "kubenet"
               load_balancer_sku = "standard"
@@ -90,22 +90,80 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.25.6"
+            orchestrator_version = "1.25.15"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_DS2_v2"
-            node_labels = {
-              app = "infra"
-              dedicated = "true"
-            }
-            node_taints               = ["app=infra:PreferNoSchedule"]
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
         }
+      }
+    }
+  }
+}
 
+resource "rafay_aks_cluster_v3" "demo-terraform2" {
+  metadata {
+    name    = "aks-v3-tf-2"
+    project = "defaultproject"
+  }
+  spec {
+    type          = "aks"
+    blueprint_config {
+      name = "default-aks"
+    }
+    cloud_credentials = "aks-cred"
+    config {
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "aks-v3-tf-2"
+      }
+      spec {
+        resource_group_name = "rafay-resource"
+        managed_cluster {
+          api_version = "2022-07-01"
+
+          additional_metadata {
+            acr_profile {
+              registries {
+                acr_name = "<acr-name>"
+                resource_group_name = "<acr-rg>"
+              }
+            }
+          }
+          sku {
+            name = "Basic"
+            tier = "Free"
+          }
+          identity {
+            type = "UserAssigned"
+            user_assigned_identities = {
+                "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>" = "{}"
+            } 
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = false
+            }
+            dns_prefix         = "aks-v3-tf-2-2401202303-dns"
+            kubernetes_version = "1.25.15"
+            network_profile {
+              network_plugin = "kubenet"
+              load_balancer_sku = "standard"
+            }
+            enable_rbac = true
+            identity_profile {
+              kubelet_identity {
+                resource_id = "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>"
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
         node_pools {
           api_version = "2022-07-01"
-          name       = "agentpool2"
+          name       = "primary"
           location = "centralindia"
           properties {
             count                = 1
@@ -114,19 +172,153 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.25.6"
+            orchestrator_version = "1.25.15"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_B4ms"
-            node_labels = {
-              app = "infra"
-              dedicated = "true"
-            }
-            node_taints               = ["app=infra:PreferNoSchedule"]
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
         }
+      }
+    }
+  }
+}
 
+resource "rafay_aks_cluster_v3" "demo-terraform3" {
+  metadata {
+    name    = "aks-v3-tf-3"
+    project = "defaultproject"
+  }
+  spec {
+    type          = "aks"
+    blueprint_config {
+      name = "default-aks"
+    }
+    cloud_credentials = "aks-cred"
+    config {
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "aks-v3-tf-3"
+      }
+      spec {
+        resource_group_name = "rafay-resource"
+        managed_cluster {
+          api_version = "2022-07-01"
+          sku {
+            name = "Basic"
+            tier = "Free"
+          }
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = false
+            }
+            dns_prefix         = "aks-v3-tf-3-2401202303-dns"
+            kubernetes_version = "1.25.15"
+            network_profile {
+              network_plugin = "kubenet"
+              load_balancer_sku = "standard"
+            }
+            enable_rbac = true
+            disable_local_accounts = true
+            aad_profile {
+              managed = true
+              enable_azure_rbac = true
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          api_version = "2022-07-01"
+          name       = "primary"
+          location = "centralindia"
+          properties {
+            count                = 1
+            enable_auto_scaling  = true
+            max_count            = 1
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.25.15"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_B4ms"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+  }
+}
+
+resource "rafay_aks_cluster_v3" "demo-terraform4" {
+  metadata {
+    name    = "aks-v3-tf-4"
+    project = "defaultproject"
+  }
+  spec {
+    type          = "aks"
+    blueprint_config {
+      name = "default-aks"
+    }
+    cloud_credentials = "aks-cred"
+    config {
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "aks-v3-tf-4"
+      }
+      spec {
+        resource_group_name = "rafay-resource"
+        managed_cluster {
+          api_version = "2022-07-01"
+          sku {
+            name = "Basic"
+            tier = "Free"
+          }
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = false
+            }
+            dns_prefix         = "aks-v3-tf-4-2401202303-dns"
+            kubernetes_version = "1.25.15"
+            network_profile {
+              network_plugin = "kubenet"
+              load_balancer_sku = "standard"
+            }
+            enable_rbac = true
+            disable_local_accounts = true
+            aad_profile {
+              managed = true
+              admin_group_object_ids = [ "<aad-group-object-id>" ]
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          api_version = "2022-07-01"
+          name       = "primary"
+          location = "centralindia"
+          properties {
+            count                = 1
+            enable_auto_scaling  = true
+            max_count            = 1
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.25.15"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_B4ms"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
       }
     }
   }

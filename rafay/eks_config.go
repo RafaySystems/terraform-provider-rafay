@@ -1011,7 +1011,7 @@ type ManagedNodeGroup struct {
 	SecurityGroups *NodeGroupSGs `yaml:"securityGroups,omitempty"`
 
 	// +optional
-	MaxPodsPerNode *int `yaml:"maxPodsPerNode,omitempty"`
+	MaxPodsPerNode int `yaml:"maxPodsPerNode,omitempty"`
 
 	// See [relevant AWS
 	// docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html#cfn-attributes-updatepolicy-rollingupdate-suspendprocesses)

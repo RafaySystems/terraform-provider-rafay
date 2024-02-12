@@ -5,7 +5,7 @@ go 1.21.1
 toolchain go1.21.2
 
 require (
-	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240208071956-bf09302edb85
+	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240212065517-9a0e2b409bd5
 	github.com/RafaySystems/rctl v1.29.1-0.20240208083842-d70ec2da33de
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -114,8 +114,8 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
-	github.com/google/uuid v1.3.1 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.3.1 // indirect
+	github.com/google/uuid v1.4.0 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1 // indirect
@@ -157,7 +157,7 @@ require (
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/mattn/go-zglob v0.0.2-0.20190814121620-e3c945676326 // indirect
 	github.com/mitchellh/cli v1.1.5 // indirect
@@ -215,16 +215,16 @@ require (
 	go.opentelemetry.io/otel/metric v1.19.0 // indirect
 	go.opentelemetry.io/otel/trace v1.19.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/crypto v0.15.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.13.0 // indirect
 	golang.org/x/sync v0.4.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/term v0.13.0 // indirect
+	golang.org/x/sys v0.14.0 // indirect
+	golang.org/x/term v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/api v0.143.0 // indirect
+	google.golang.org/api v0.149.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20231030173426-d783a09b4405 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231106174013-bbf56f31fb17 // indirect

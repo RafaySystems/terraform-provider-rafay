@@ -134,6 +134,7 @@ type AKSManagedClusterProperties struct {
 	AutoUpgradeProfile      *AKSManagedClusterAutoUpgradeProfile      `yaml:"autoUpgradeProfile,omitempty"`
 	PodIdentityProfile      *AKSManagedClusterPodIdentityProfile      `yaml:"podIdentityProfile,omitempty"`
 	PrivateLinkResources    *AKSManagedClusterPrivateLinkResources    `yaml:"privateLinkResources,omitempty"`
+	PowerState              *AKSManagedClusterPowerState              `yaml:"powerState,omitempty"`
 }
 
 type AddonProfiles struct {
@@ -333,6 +334,10 @@ type AKSManagedClusterPIPUserAssignedIdentityExceptions struct {
 	Name      string            `yaml:"name,omitempty"`
 	Namespace string            `yaml:"namespace,omitempty"`
 	PodLabels map[string]string `yaml:"podLabels,omitempty"`
+}
+
+type AKSManagedClusterPowerState struct {
+	Code string `yaml:"code,omitempty"`
 }
 
 type AKSManagedClusterPrivateLinkResources struct {

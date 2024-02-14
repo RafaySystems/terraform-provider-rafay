@@ -44,6 +44,30 @@ resource "rafay_gke_cluster" "tf-example" {
         access {
           type = "public"
         }
+        # firewall config for private cluster
+        # access {
+        #   type = "private"
+        #   config {
+        #     control_plane_ip_range                  = "172.16.3.0/28"
+        #     enable_access_control_plane_external_ip = "true"
+        #     enable_access_control_plane_global      = "true"
+        #     disable_snat                            = "true"
+        #     firewall_rules {
+        #       action      = "allow"
+        #       description = "allow traffic"
+        #       direction   = "INGRESS"
+        #       name        = "allow-ingress"
+        #       priority    = 1000
+        #       source_ranges = [
+        #         "172.16.3.0/28"
+        #       ]
+        #       rules {
+        #         ports    = ["22383", "9447"]
+        #         protocol = "udp"
+        #       }
+        #     }
+        #   }
+        # }
       }
       features {
         enable_compute_engine_persistent_disk_csi_driver = "true"
@@ -57,6 +81,9 @@ resource "rafay_gke_cluster" "tf-example" {
           image_type     = "COS_CONTAINERD"
           boot_disk_type = "pd-standard"
           boot_disk_size = 100
+          reservation_affinity {
+             consume_reservation_type = "any"
+          }
         }
       }
     }
@@ -239,7 +266,31 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 
 - `disable_snat` (Boolean) To use Privately Used Public IPs (PUPI) ranges, the default source NAT used for IP masquerading needs to be disabled
 - `enable_access_control_plane_global` (Boolean) With control plane global access, you can access the control plane's private endpoint from any GCP region or on-premises environment no matter what the private cluster's region is.
+- `firewall_rules` (Block List) Use FirewallRule config to specify additional firewall rules. Only Private clusters are supported.By default, tcp:9443 and tcp:22281 are opened for private cluster. (see [below for nested schema](#nestedblock--spec--config--network--access--config--firewall_rules))
 
+<a id="nestedblock--spec--config--network--access--config--firewall_rules"></a>
+### Nested Schema for `spec.config.network.access.config.firewall_rules`
+
+Optional:
+
+- `action` (String)
+- `description` (String)
+- `destination_ranges` (List of String)
+- `direction` (String)
+- `name` (String)
+- `network` (String)
+- `priority` (Number)
+- `rules` (Block List) (see [below for nested schema](#nestedblock--spec--config--network--access--config--firewall_rules--rules))
+- `source_ranges` (List of String)
+- `target_tags` (List of String)
+
+<a id="nestedblock--spec--config--network--access--config--firewall_rules--rules"></a>
+### Nested Schema for `spec.config.network.access.config.firewall_rules.rules`
+
+Optional:
+
+- `ports` (List of String)
+- `protocol` (String)
 
 <a id="nestedblock--spec--config--network--control_plane_authorized_network"></a>
 ### Nested Schema for `spec.config.network.control_plane_authorized_network`
@@ -311,7 +362,15 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `boot_disk_type` (String) Select Boot disk type. Storage space is less expensive for a standard persistent disk. An SSD persistent disk is better for random IOPS or for streaming throughput with low latency
 - `image_type` (String) Choose which operating system image you want to run on each node of this cluster
 - `machine_type` (String) Choose the machine type that will best fit the resource needs of your cluster
+- `reservation_affinity` (Block List, Max: 1) Zonal compute reservation to this node pool (see [below for nested schema](#nestedblock--spec--config--node_pools--machine_config--reservation_affinity))
 
+<a id="nestedblock--spec--config--node_pools--machine_config--reservation_affinity"></a>
+### Nested Schema for `spec.config.node_pools.machine_config.reservation_affinity`
+
+***Optional***
+
+- `consume_reservation_type` (String) Type of reservation consumption.
+- `reservation_name` (String) The name of the Reservation to be consumed. Only mandatory when consumeReservationType is set to specific
 
 <a id="nestedblock--spec--config--node_pools--networking"></a>
 ### Nested Schema for `spec.config.node_pools.networking`

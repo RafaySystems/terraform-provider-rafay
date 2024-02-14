@@ -5609,8 +5609,8 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		log.Print("error converting project name to id")
-		return diag.Errorf("error converting project name to project ID")
+		log.Print("Cluster project name is invalid")
+		return diag.Errorf("Cluster project name is invalid")
 	}
 	c, err := cluster.GetCluster(clusterName, projectID)
 	if err != nil {
@@ -5618,7 +5618,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		if strings.Contains(err.Error(), "not found") {
 			log.Println("Resource Read ", "error", err)
 			d.SetId("")
-			return diags
+			return diag.FromErr(fmt.Errorf("Resource read failed, cluster not found. Error: %s",err.Error()))
 		}
 		return diag.FromErr(err)
 	}

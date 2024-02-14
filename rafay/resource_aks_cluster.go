@@ -5470,8 +5470,8 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	projectName := obj.Metadata.Project
 	_, err := project.GetProjectByName(projectName)
 	if err != nil {
-		log.Println("project name missing in the resource", err)
-		return diag.FromErr(fmt.Errorf("%s", "Project name missing in the resource"))
+		log.Println("Cluster project name is invalid", err)
+		return diag.FromErr(fmt.Errorf("%s", "Cluster project name is invalid"))
 	}
 
 	if obj.Metadata.Name != obj.Spec.AKSClusterConfig.Metadata.Name {
@@ -5503,14 +5503,12 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
 		fmt.Printf("project does not exist")
-		diags = diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
-		return diags
+		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
 	}
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
 		fmt.Printf("project does not exist")
-		diags = diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
-		return diags
+		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
 	}
 
 	// cluster
@@ -5608,44 +5606,33 @@ type ResponseGetClusterSpec struct {
 func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("resourceAKSClusterRead")
-
+	
 	projectName, ok := d.Get("metadata.0.project").(string)
 	if !ok || projectName == "" {
-		diags = diag.FromErr(errors.New("project name unable to be found."))
-		return diags
+		return diag.FromErr(errors.New("project name unable to be found."))
 	}
 
 	clusterName, ok := d.Get("metadata.0.name").(string)
 	if !ok || clusterName == "" {
-		diags = diag.FromErr(errors.New("cluster name unable to be found."))
-		return diags
+		return diag.FromErr(errors.New("cluster name unable to be found."))
 	}
 
 	fmt.Printf("Found project_name: %s, cluster_name: %s", projectName, clusterName)
 
 	//project details
-	resp, err := project.GetProjectByName(projectName)
+	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("project name missing in the resource")
-		diags = diag.FromErr(fmt.Errorf("project name missing in the resource. Error: %s",err.Error()))
-		return diags
+		fmt.Print("Cluster project name is invalid")
+		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s",err.Error()))
 	}
 
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		diags = diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
-		return diags
-	}
-
-	c, err := cluster.GetCluster(clusterName, project.ID)
+	c, err := cluster.GetCluster(clusterName, projectId)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
 			log.Println("Resource Read ", "error", err)
 			d.SetId("")
-			diags = diag.FromErr(fmt.Errorf("Resource read failed, cluster not found. Error: %s",err.Error()))
-			return diags
+			return diag.FromErr(fmt.Errorf("Resource read failed, cluster not found. Error: %s",err.Error()))
 		}
 		return diag.FromErr(err)
 	}
@@ -5653,7 +5640,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	// another
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
-	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectId)
 	if err != nil {
 		log.Printf("error in get clusterspec %s", err.Error())
 		return diag.FromErr(err)
@@ -5675,37 +5662,26 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("update AKS cluster resource")
-	var diags diag.Diagnostics
 
 	projectName, ok := d.Get("metadata.0.project").(string)
 	if !ok || projectName == "" {
-		diags = diag.FromErr(errors.New("project name unable to be found."))
-		return diags
+		return diag.FromErr(errors.New("project name unable to be found."))
 	}
 
 	clusterName, ok := d.Get("metadata.0.name").(string)
 	if !ok || clusterName == "" {
-		diags = diag.FromErr(errors.New("cluster name unable to be found."))
-		return diags
+		return diag.FromErr(errors.New("cluster name unable to be found."))
 	}
 
 	fmt.Printf("Found project_name: %s, cluster_name: %s", projectName, clusterName)
 
-
-	resp, err := project.GetProjectByName(projectName)
+	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("project name missing in the resource")
-		diags = diag.FromErr(fmt.Errorf("project name missing in the resource. Error: %s",err.Error()))
-		return diags
+		fmt.Print("Cluster project name is invalid")
+		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s",err.Error()))
 	}
-
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		diags = diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
-		return diags
-	}
-	_, err = cluster.GetCluster(clusterName, project.ID)
+	
+	_, err = cluster.GetCluster(clusterName, projectId)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
@@ -5719,33 +5695,23 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 	log.Printf("resource cluster delete id %s", d.Id())
 	projectName, ok := d.Get("metadata.0.project").(string)
 	if !ok || projectName == "" {
-		diags = diag.FromErr(errors.New("project name unable to be found."))
-		return diags
+		return diag.FromErr(errors.New("project name unable to be found."))
 	}
 
 	clusterName, ok := d.Get("metadata.0.name").(string)
 	if !ok || clusterName == "" {
-		diags = diag.FromErr(errors.New("cluster name unable to be found."))
-		return diags
+		return diag.FromErr(errors.New("cluster name unable to be found."))
 	}
 
 	fmt.Printf("Found project_name: %s, cluster_name: %s", projectName, clusterName)
 
-	resp, err := project.GetProjectByName(projectName)
+	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("project  does not exist")
-		diags = diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
-		return diags
+		fmt.Print("Cluster project name is invalid")
+		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s",err.Error()))
 	}
 
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project  does not exist")
-		diags = diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
-		return diags
-	}
-
-	errDel := cluster.DeleteCluster(clusterName, project.ID, false)
+	errDel := cluster.DeleteCluster(clusterName, projectId, false)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
@@ -5753,7 +5719,7 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 
 	for {
 		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(clusterName, project.ID)
+		check, errGet := cluster.GetCluster(clusterName, projectId)
 		if errGet != nil {
 			log.Printf("error while getCluster %s, delete success", errGet.Error())
 			break

@@ -465,7 +465,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
 - `proxy_config` - (Map of String) The proxy configuration for the cluster. Use this if the infrastructure uses an outbound proxy. 
 - `cni_params` - (Block List) The container network interface (CNI) parameters. (See [below for nested schema](#nestedblock--cluster.spec--cni_params))
-
+- `cross_account_role_arn` - (String) ARN of target cross account role. Use this to delegate cluster provisioning.
 
 <a id="nestedblock--cluster.spec--cni_params"></a>
 ### Nested Schema for `cluster.spec.cni_params` 

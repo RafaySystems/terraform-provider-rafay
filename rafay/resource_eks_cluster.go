@@ -5498,8 +5498,10 @@ func flattenClusterCloudWatchLogging(in *EKSClusterCloudWatchLogging, p []interf
 	}
 	if len(in.EnableTypes) > 0 {
 		obj["enable_types"] = toArrayInterface(in.EnableTypes)
+		if in.LogRetentionInDays != 0 {
+			obj["log_retention_in_days"] = in.LogRetentionInDays
+		}
 	}
-	obj["log_retention_in_days"] = in.LogRetentionInDays
 	return []interface{}{obj}
 }
 

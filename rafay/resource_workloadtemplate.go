@@ -391,7 +391,7 @@ func flattenWorkloadTemplateSpec(in *appspb.WorkloadTemplateSpec, p []interface{
 
 	var ret []interface{}
 	var err error
-	ret, err = FlattenArtifactSpec(in.Artifact, v)
+	ret, err = FlattenArtifactSpec(false, in.Artifact, v)
 	if err != nil {
 		log.Println("FlattenArtifactSpec error ", err)
 		return nil, err

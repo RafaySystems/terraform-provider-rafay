@@ -196,7 +196,7 @@ func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{
 	addst := spew.Sprintf("%+v", addon)
 	log.Println("resourceAddonRead addst", addst)
 
-	err = flattenAddon(d, addon)
+	err = flattenAddon(d, addon, false)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -272,7 +272,7 @@ func expandAddonSpec(p []interface{}) (*infrapb.AddonSpec, error) {
 
 // Flatteners
 
-func flattenAddon(d *schema.ResourceData, in *infrapb.Addon) error {
+func flattenAddon(d *schema.ResourceData, in *infrapb.Addon, dataResource bool) error {
 	if in == nil {
 		return nil
 	}
@@ -291,7 +291,7 @@ func flattenAddon(d *schema.ResourceData, in *infrapb.Addon) error {
 	// w1 := spew.Sprintf("%+v", v)
 	// log.Println("flattenAddon before ", w1)
 	var ret []interface{}
-	ret, err = flattenAddonSpec(in.Spec, v)
+	ret, err = flattenAddonSpec(dataResource, in.Spec, v)
 	if err != nil {
 		return err
 	}
@@ -306,7 +306,7 @@ func flattenAddon(d *schema.ResourceData, in *infrapb.Addon) error {
 	return nil
 }
 
-func flattenAddonSpec(in *infrapb.AddonSpec, p []interface{}) ([]interface{}, error) {
+func flattenAddonSpec(dataResource bool, in *infrapb.AddonSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
 		return nil, fmt.Errorf("%s", "flattenAddonSpec empty input")
 	}
@@ -334,7 +334,7 @@ func flattenAddonSpec(in *infrapb.AddonSpec, p []interface{}) ([]interface{}, er
 
 	var ret []interface{}
 	var err error
-	ret, err = FlattenArtifactSpec(in.Artifact, v)
+	ret, err = FlattenArtifactSpec(dataResource, in.Artifact, v)
 	if err != nil {
 		log.Println("FlattenArtifactSpec error ", err)
 		return nil, err

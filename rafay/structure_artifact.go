@@ -406,7 +406,7 @@ func FlattenArtifactOptions(at *artifactTranspose, p []interface{}) ([]interface
 }
 
 // FlattenArtifactSpec ArtifactSpec to TF State
-func FlattenArtifactSpec(in *commonpb.ArtifactSpec, p []interface{}) ([]interface{}, error) {
+func FlattenArtifactSpec(dataResource bool, in *commonpb.ArtifactSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
 		log.Println("FlattenArtifactSpec empty input")
 		return nil, fmt.Errorf("%s", "FlattenArtifactSpec empty input")
@@ -446,13 +446,19 @@ func FlattenArtifactSpec(in *commonpb.ArtifactSpec, p []interface{}) ([]interfac
 	if !ok {
 		v = []interface{}{}
 	}
-	FlattenArtifact(&at, v)
+	artfct, err := FlattenArtifact(&at, v)
+	if dataResource && err == nil {
+		obj["artifact"] = artfct
+	}
 
 	v, ok = obj["options"].([]interface{})
 	if !ok {
 		v = []interface{}{}
 	}
-	FlattenArtifactOptions(&at, v)
+	artfctOpts, err := FlattenArtifactOptions(&at, v)
+	if dataResource && err == nil {
+		obj["options"] = artfctOpts
+	}
 
 	// XXX Debug
 	// ob = spew.Sprintf("%+v", p)

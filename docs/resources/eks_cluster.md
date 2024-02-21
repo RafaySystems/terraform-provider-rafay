@@ -109,7 +109,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
 ---
 
-Basic EKS cluster config with IPv6 as the IP family and cross account role set
+Basic EKS cluster config with IPv6 as the IP family
 
 ```terraform
 resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
@@ -123,7 +123,6 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
       type              = "eks"
       blueprint         = "minimal"
       cloud_provider    = "aws"
-      cross_account_role_arn = "arn:aws:iam::xxxxxxxxxxx:role/cross-account-role"
       cni_provider      = "aws-cni"
       proxy_config      = {}
     }
@@ -173,12 +172,10 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
     addons {
       name = "vpc-cni"
       version = "latest"
-      configuration_values = "{\"enableNetworkPolicy\":\"true\"}"
     }
     addons {
       name = "kube-proxy"
       version = "latest"
-      configuration_values = "{\"replicaCount\":3}"
     }
     addons {
       name = "coredns"
@@ -425,6 +422,74 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
         )
       }
     }
+  }
+}
+```
+
+Basic EKS cluster with cross account role setup and managed addons with customisations
+
+```terraform
+resource "rafay_eks_cluster" "eks-cluster-1" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-cluster-1"
+      project = "terraform"
+    }
+    spec {
+      type           = "eks"
+      blueprint      = "default"
+      cloud_provider = "eks-role"
+      cross_account_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/cross-account-role"
+      cni_provider   = "aws-cni"
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-cluster-1"
+      region  = "us-west-2"
+      version = "1.28"
+    }
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
+      }
+    }
+
+    managed_nodegroups {
+      name = "ng-1"
+      ami_family = "AmazonLinux2"
+      instance_type = "t3.medium"
+      desired_capacity = 1
+      min_size = 1
+      max_size = 2
+      version = "1.25"
+      volume_size = 80
+      volume_type = "gp3"
+    }
+
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+      configuration_values = "{\"enableNetworkPolicy\":\"true\"}"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+      configuration_values = "{\"replicaCount\":3}"
+    }
+    addons {
+      name = "coredns"
+      version = "v1.11.1-eksbuild.6"
+    }
+
   }
 }
 ```

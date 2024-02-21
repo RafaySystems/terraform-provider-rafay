@@ -125,7 +125,7 @@ func dataWorkloadRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	// w1 = spew.Sprintf("%+v", wl)
 	// log.Println("dataWorkloadRead wl", w1)
 
-	err = flattenWorkload(d, wl)
+	err = flattenWorkload(d, wl, true)
 	if err != nil {
 		return diag.FromErr(err)
 	}

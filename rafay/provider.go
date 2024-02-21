@@ -110,6 +110,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_user":                dataUser(),
 				"rafay_group":               dataGroup(),
 				"rafay_groupassociation":    dataGroupAssociation(),
+				"rafay_workload":            dataWorkload(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}

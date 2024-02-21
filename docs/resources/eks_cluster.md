@@ -109,7 +109,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
 ---
 
-Basic EKS cluster config with IPv6 as the IP family
+Basic EKS cluster config with IPv6 as the IP family and cross account role set
 
 ```terraform
 resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
@@ -123,6 +123,7 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
       type              = "eks"
       blueprint         = "minimal"
       cloud_provider    = "aws"
+      cross_account_role_arn = "arn:aws:iam::xxxxxxxxxxx:role/cross-account-role"
       cni_provider      = "aws-cni"
       proxy_config      = {}
     }
@@ -176,6 +177,7 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
     addons {
       name = "kube-proxy"
       version = "latest"
+      configuration_values = "{\"replicaCount\":3}"
     }
     addons {
       name = "coredns"

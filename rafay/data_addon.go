@@ -73,7 +73,7 @@ func dataAddonRead(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	addst := spew.Sprintf("%+v", addon)
 	log.Println("dataAddonRead addst", addst)
 
-	err = flattenAddon(d, addon)
+	err = flattenAddon(d, addon, true)
 	if err != nil {
 		return diag.FromErr(err)
 	}

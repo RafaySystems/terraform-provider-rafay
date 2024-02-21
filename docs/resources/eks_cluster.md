@@ -173,6 +173,7 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
     addons {
       name = "vpc-cni"
       version = "latest"
+      configuration_values = "{\"enableNetworkPolicy\":\"true\"}"
     }
     addons {
       name = "kube-proxy"

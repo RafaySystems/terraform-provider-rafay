@@ -1063,6 +1063,11 @@ func clusterAKSManagedClusterNetworkProfile() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "A CIDR notation IP range from which to assign service cluster IPs.",
 		},
+		"network_plugin_mode": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Network plugin mode used for building the Azure CNI. Valid values are 'overlay'",
+		},
 	}
 	return s
 }
@@ -2703,8 +2708,16 @@ func expandAKSManagedClusterNetworkProfile(p []interface{}) *AKSManagedClusterNe
 		obj.NetworkPlugin = v
 	}
 
+	if v, ok := in["network_plugin_mode"].(string); ok && len(v) > 0 {
+		obj.NetworkPluginMode = v
+	}
+
 	if v, ok := in["network_policy"].(string); ok && len(v) > 0 {
 		obj.NetworkPolicy = v
+	}
+
+	if v, ok := in["network_dataplane"].(string); ok && len(v) > 0 {
+		obj.NetworkDataplane = v
 	}
 
 	if v, ok := in["outbound_type"].(string); ok && len(v) > 0 {
@@ -4539,8 +4552,16 @@ func flattenAKSMCPropertiesNetworkProfile(in *AKSManagedClusterNetworkProfile, p
 		obj["network_plugin"] = in.NetworkPlugin
 	}
 
+	if len(in.NetworkPluginMode) > 0 {
+		obj["network_plugin_mode"] = in.NetworkPluginMode
+	}
+
 	if len(in.NetworkPolicy) > 0 {
 		obj["network_policy"] = in.NetworkPolicy
+	}
+
+	if len(in.NetworkDataplane) > 0 {
+		obj["network_dataplane"] = in.NetworkDataplane
 	}
 
 	if len(in.OutboundType) > 0 {

@@ -255,10 +255,45 @@ func customCniSpecField() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: cniSpecField(),
 			},
+			// DiffSuppressFunc: SchemaDiffSuppressFunc,
 		},
 	}
 	return s
 }
+
+// func SchemaDiffSuppressFunc(key, old, new string, d *schema.ResourceData) bool {
+// 	rawConfig := d.GetRawConfig()
+// 	var yamlCluster *EKSCluster
+// 	if v, ok := d.Get("cluster").([]interface{}); ok {
+// 		yamlCluster = expandEKSCluster(v)
+// 	}
+
+// 	var oldList, newList []string
+	
+// 	switch key {
+// 	case "cni_spec":
+// 		newList = findCniSpecValuesInRawConfig(key, "", rawConfig)
+// 		oldList = findValuesInState(yamlCluster)
+// 	default:
+// 		fmt.Println("invalid key found. key: ", key)
+// 	}
+
+// 	slice.Sort(oldList)
+// 	slice.Sort(newList)
+
+// 	if len(oldList) == len(newList) && slices.Equal(oldList, newList){
+// 		return true
+// 	}
+// 	return false
+// }
+
+// func findCniSpecValuesInRawConfig(key string, path string, rawConfig cty.Value) []string {
+// 	fieldName, next := findNextFieldInPath(path)
+// 	if !next && fieldName == key {
+		
+// 	}
+	
+// }
 
 func cniSpecField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
@@ -2131,13 +2166,14 @@ func resourceEKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m int
 }
 
 // expand eks cluster function (completed)
-func expandEKSCluster(p []interface{}) *EKSCluster {
+func expandEKSCluster(p []interface{}, rawConfig cty.Value) *EKSCluster {
 	obj := &EKSCluster{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	//prefix = prefix + ".0"
+	rawConfig = rawConfig.AsValueSlice()[0]
 	in := p[0].(map[string]interface{})
 	if v, ok := in["kind"].(string); ok && len(v) > 0 {
 		obj.Kind = v
@@ -2146,7 +2182,7 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 		obj.Metadata = expandEKSMetaMetadata(v)
 	}
 	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
-		obj.Spec = expandEKSClusterSpecConfig(v)
+		obj.Spec = expandEKSClusterSpecConfig(v, rawConfig.GetAttr("spec"))
 	}
 	return obj
 }
@@ -2219,7 +2255,7 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	rawConfig := d.GetRawConfig()
 	//expand cluster yaml file
 	if v, ok := d.Get("cluster").([]interface{}); ok {
-		yamlCluster = expandEKSCluster(v)
+		yamlCluster = expandEKSCluster(v, rawConfig.GetAttr("cluster"))
 	} else {
 		log.Print("Cluster data unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
@@ -3640,13 +3676,14 @@ func expandKubernetesNetworkConfig(p []interface{}) *KubernetesNetworkConfig {
 	return obj
 }
 
-func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
+func expandEKSClusterSpecConfig(p []interface{}, rawConfig cty.Value) *EKSSpec {
 	obj := &EKSSpec{}
 	log.Println("expandClusterSpec")
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	rawConfig = rawConfig.AsValueSlice()[0]
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
@@ -3668,7 +3705,7 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 		obj.CniProvider = v
 	}
 	if v, ok := in["cni_params"].([]interface{}); ok && len(v) > 0 {
-		obj.CniParams = expandCNIParams(v)
+		obj.CniParams = expandCNIParams(v, rawConfig)
 	}
 	if v, ok := in["proxy_config"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.ProxyConfig = expandProxyConfig(v)
@@ -3716,7 +3753,7 @@ func expandEKSClusterSharingProjects(p []interface{}) []*EKSClusterSharingProjec
 	return res
 }
 
-func expandCNIParams(p []interface{}) *CustomCni {
+func expandCNIParams(p []interface{}, rawConfig cty.Value) *CustomCni {
 	obj := &CustomCni{}
 	log.Println("expand CNI params")
 
@@ -3724,46 +3761,81 @@ func expandCNIParams(p []interface{}) *CustomCni {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	rawConfig = rawConfig.AsValueSlice()[0]   
 
 	if v, ok := in["custom_cni_cidr"].(string); ok && len(v) > 0 {
 		obj.CustomCniCidr = v
 	}
 	//@@@what to do for expanding map[string][]object
 	if v, ok := in["custom_cni_crd_spec"].([]interface{}); ok && len(v) > 0 {
-		obj.CustomCniCrdSpec = expandCustomCNISpec(v)
+		obj.CustomCniCrdSpec = expandCustomCNISpec(v, rawConfig.GetAttr("custom_cni_crd_spec"))
 	}
 	return obj
 }
 
-func expandCustomCNISpec(p []interface{}) map[string][]CustomCniSpec {
+func expandCustomCNISpec(p []interface{}, rawConfig cty.Value) map[string][]CustomCniSpec {
+	temp := make(map[string][]CustomCniSpec)
 	obj := make(map[string][]CustomCniSpec)
 	log.Println("expand CNI Mapping")
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	namesOrder := make([]string, 0)
 
 	for i := range p {
+		nrawConfig := rawConfig.AsValueSlice()[i]
 		in := p[i].(map[string]interface{})
 		elem2 := []CustomCniSpec{}
 
 		if v, ok := in["cni_spec"].([]interface{}); ok && len(v) > 0 {
-			elem2 = expandCNISpec(v)
+			elem2 = expandCNISpec(v, rawConfig.GetAttr("cni_spec"))
 		}
 
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj[v] = elem2
+			temp[v] = elem2
+			namesOrder = append(namesOrder, nrawConfig.GetAttr("name").AsString())
+		}
+	}
+	for _, name := range namesOrder {
+		if v, ok := temp[name]; ok {
+			obj[name] = v
 		}
 	}
 	log.Println("Mapping Complete: ", obj)
 	return obj
 }
 
-func expandCNISpec(p []interface{}) []CustomCniSpec {
+func getConfigNamesIndexMap(orderKey string, rawConfig cty.Value) map[string]int {
+	rawConfig = rawConfig.GetAttr("")
+	res := make(map[string]int, 0)
+	i := 0
+	if rawConfig.CanIterateElements() {
+		iterator := rawConfig.ElementIterator()
+		for iterator.Next() {
+			_, it := iterator.Element()
+			for k,v := range it.AsValueMap() {
+				if k == "subnets" && !v.IsNull() {
+					res[v.AsString()] = i
+					i++
+					break
+				}
+			}
+		}
+	}
+	for k,v := range res {
+		fmt.Println("Debug--- ", "key: ", k, "value: ", v)
+	}
+	return res
+}
+
+func expandCNISpec(p []interface{}, rawConfig cty.Value) []CustomCniSpec {
 	out := make([]CustomCniSpec, len(p))
 	if len(p) == 0 || p[0] == nil {
 		return out
 	}
+	// orderedSubnetNamesIndex := getConfigSubnetNamesIndex(rawConfig)
+	// fmt.Println("Debug--- orderedSubnetNames: ", orderedSubnetNamesIndex)
 	for i := range p {
 		obj := CustomCniSpec{}
 		in := p[i].(map[string]interface{})
@@ -3776,10 +3848,36 @@ func expandCNISpec(p []interface{}) []CustomCniSpec {
 		}
 
 		out[i] = obj
+		// if idx, ok := orderedSubnetNamesIndex[obj.Subnet]; ok {
+		// 	out[idx] = obj
+		// }
 	}
 
 	return out
 }
+
+// func getConfigSubnetNamesIndex(rawConfig cty.Value) map[string]int {
+// 	rawConfig = rawConfig.GetAttr("cni_spec")
+// 	res := make(map[string]int, 0)
+// 	i := 0
+// 	if rawConfig.CanIterateElements() {
+// 		iterator := rawConfig.ElementIterator()
+// 		for iterator.Next() {
+// 			_, it := iterator.Element()
+// 			for k,v := range it.AsValueMap() {
+// 				if k == "subnets" && !v.IsNull() {
+// 					res[v.AsString()] = i
+// 					i++
+// 					break
+// 				}
+// 			}
+// 		}
+// 	}
+// 	for k,v := range res {
+// 		fmt.Println("Debug--- ", "key: ", k, "value: ", v)
+// 	}
+// 	return res
+// }
 
 func expandProxyConfig(p map[string]interface{}) *ProxyConfig {
 	obj := &ProxyConfig{}

@@ -90,6 +90,7 @@ func dataEKSCluster() *schema.Resource {
 
 func dataEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("READ eks cluster")
+	rawState := d.GetRawState()
 	var diags diag.Diagnostics
 	// find cluster name and project name
 	clusterName, ok := d.Get("cluster.0.metadata.0.name").(string)
@@ -145,7 +146,7 @@ func dataEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface
 	if !ok {
 		v = []interface{}{}
 	}
-	c1, err := flattenEKSCluster(&clusterSpec, v)
+	c1, err := flattenEKSCluster(&clusterSpec, v, rawState.GetAttr("cluster"))
 	log.Println("finished flatten eks cluster", c1)
 	if err != nil {
 		log.Printf("flatten eks cluster error %s", err.Error())

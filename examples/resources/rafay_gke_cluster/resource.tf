@@ -27,6 +27,30 @@ resource "rafay_gke_cluster" "tf-example" {
         access {
           type = "public"
         }
+        # firewall config for private cluster
+        # access {
+        #   type = "private"
+        #   config {
+        #     control_plane_ip_range                  = "172.16.3.0/28"
+        #     enable_access_control_plane_external_ip = "true"
+        #     enable_access_control_plane_global      = "true"
+        #     disable_snat                            = "true"
+        #     firewall_rules {
+        #       action      = "allow"
+        #       description = "allow traffic"
+        #       direction   = "INGRESS"
+        #       name        = "allow-ingress"
+        #       priority    = 1000
+        #       source_ranges = [
+        #         "172.16.3.0/28"
+        #       ]
+        #       rules {
+        #         ports    = ["22383", "9447"]
+        #         protocol = "udp"
+        #       }
+        #     }
+        #   }
+        # }
       }
       features {
         enable_compute_engine_persistent_disk_csi_driver = "true"
@@ -40,6 +64,10 @@ resource "rafay_gke_cluster" "tf-example" {
           image_type     = "COS_CONTAINERD"
           boot_disk_type = "pd-standard"
           boot_disk_size = 100
+          reservation_affinity {
+             consume_reservation_type = "any"
+          }
+
         }
         management {
           auto_upgrade = "true"

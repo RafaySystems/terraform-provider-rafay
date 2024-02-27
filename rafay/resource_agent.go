@@ -15,7 +15,6 @@ import (
 	"github.com/RafaySystems/rctl/pkg/agent"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/user"
-	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -81,7 +80,7 @@ func resourceAgentCreate(ctx context.Context, d *schema.ResourceData, m interfac
 		}
 
 		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 		if err != nil {
 			return diags
 		}
@@ -144,7 +143,7 @@ func resourceAgentUpsert(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -208,7 +207,7 @@ func resourceAgentRead(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -270,7 +269,7 @@ func resourceAgentDelete(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}

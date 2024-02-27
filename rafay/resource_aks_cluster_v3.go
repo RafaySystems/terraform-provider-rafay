@@ -579,7 +579,33 @@ func expandAKSManagedClusterV3AdditionalMetadataACRProfile(p []interface{}) *inf
 		obj.AcrName = v
 	}
 
+	if v, ok := in["registries"].([]interface{}); ok && len(v) > 0 {
+		obj.Registries = expandAKSManagedClusterV3AdditionalMetadataACRProfiles(v)
+	}
 	return obj
+}
+
+func expandAKSManagedClusterV3AdditionalMetadataACRProfiles(p []interface{}) []*infrapb.AksRegistry {
+	if len(p) == 0 || p[0] == nil {
+		return []*infrapb.AksRegistry{}
+	}
+
+	out := make([]*infrapb.AksRegistry, len(p))
+	for i := range p {
+		obj := infrapb.AksRegistry{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["acr_name"].(string); ok && len(v) > 0 {
+			obj.AcrName = v
+		}
+
+		if v, ok := in["resource_group_name"].(string); ok && len(v) > 0 {
+			obj.ResourceGroupName = v
+		}
+		out[i] = &obj
+	}
+
+	return out
 }
 
 func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedClusterProperties {
@@ -638,7 +664,7 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 	}
 
 	if v, ok := in["identity_profile"].([]interface{}); ok && len(v) > 0 {
-		obj.IdentityProfile = expandAKSManagedClusterIdentityProfile(v)
+		obj.IdentityProfile = expandAKSManagedClusterV3IdentityProfile(v)
 	}
 
 	if v, ok := in["kubernetes_version"].(string); ok {
@@ -665,6 +691,10 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.PrivateLinkResources = expandAKSV3ManagedClusterPrivateLinkResources(v)
 	}
 
+	if v, ok := in["power_state"].([]interface{}); ok && len(v) > 0 {
+		obj.PowerState = expandAKSV3ManagedClusterPowerState(v)
+	}
+
 	if v, ok := in["service_principal_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.ServicePrincipalProfile = expandAKSManagedClusterV3ServicePrincipalProfile(v)
 	}
@@ -676,7 +706,7 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 	return obj
 }
 
-func expandAKSManagedClusterIdentityProfile(p []interface{}) *infrapb.ManagedClusterIdentityProfile {
+func expandAKSManagedClusterV3IdentityProfile(p []interface{}) *infrapb.ManagedClusterIdentityProfile {
 	obj := &infrapb.ManagedClusterIdentityProfile{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
@@ -685,12 +715,12 @@ func expandAKSManagedClusterIdentityProfile(p []interface{}) *infrapb.ManagedClu
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["kubelet_identity"].([]interface{}); ok && len(v) > 0 {
-		obj.KubeletIdentity = expandAKSManagedClusterIdentityProfileKubeletIdentity(v)
+		obj.KubeletIdentity = expandAKSManagedClusterV3IdentityProfileKubeletIdentity(v)
 	}
 	return obj
 }
 
-func expandAKSManagedClusterIdentityProfileKubeletIdentity(p []interface{}) *infrapb.ManagedClusterIdentityProfileKubeletIdentity {
+func expandAKSManagedClusterV3IdentityProfileKubeletIdentity(p []interface{}) *infrapb.ManagedClusterIdentityProfileKubeletIdentity {
 	obj := &infrapb.ManagedClusterIdentityProfileKubeletIdentity{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
@@ -865,7 +895,7 @@ func expandAKSManagedClusterV3AzureADProfile(p []interface{}) *infrapb.Aadprofil
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["admin_group_object_ids"].([]interface{}); ok && len(v) > 0 {
-		obj.AdminGroupObjectIDs = toArrayString(v)
+		obj.AdminGroupObjectIds = toArrayString(v)
 	}
 
 	if v, ok := in["client_app_id"].(string); ok && len(v) > 0 {
@@ -1396,6 +1426,20 @@ func expandAKSV3ManagedClusterPrivateLinkResources(p []interface{}) []*infrapb.P
 	}
 
 	return out
+}
+
+func expandAKSV3ManagedClusterPowerState(p []interface{}) *infrapb.PowerState {
+	obj := &infrapb.PowerState{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["code"].(string); ok && len(v) > 0 {
+		obj.Code = v
+	}
+
+	return obj
 }
 
 func expandAKSManagedClusterV3ServicePrincipalProfile(p []interface{}) *infrapb.Serviceprincipalprofile {
@@ -2255,6 +2299,14 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 		obj["pod_identity_profile"] = flattenAKSV3ManagedClusterPodIdentityProfile(in.PodIdentityProfile, v)
 	}
 
+	if in.PowerState != nil {
+		v, ok := obj["power_state"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["power_state"] = flattenAKSV3ManagedClusterPowerState(in.PowerState, v)
+	}
+
 	if in.PrivateLinkResources != nil {
 		v, ok := obj["private_link_resources"].([]interface{})
 		if !ok {
@@ -2297,12 +2349,12 @@ func flattenAKSV3ManagedClusterIdentityProfile(in *infrapb.ManagedClusterIdentit
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["kubelet_identity"] = flattenAKSManagedClusterIdentityProfileKubeletIdentity(in.KubeletIdentity, v)
+		obj["kubelet_identity"] = flattenAKSV3ManagedClusterIdentityProfileKubeletIdentity(in.KubeletIdentity, v)
 	}
 	return []interface{}{obj}
 }
 
-func flattenAKSManagedClusterIdentityProfileKubeletIdentity(in *infrapb.ManagedClusterIdentityProfileKubeletIdentity, p []interface{}) []interface{} {
+func flattenAKSV3ManagedClusterIdentityProfileKubeletIdentity(in *infrapb.ManagedClusterIdentityProfileKubeletIdentity, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -2497,8 +2549,8 @@ func flattenAKSV3ManagedClusterAzureADProfile(in *infrapb.Aadprofile, p []interf
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.AdminGroupObjectIDs != nil && len(in.AdminGroupObjectIDs) > 0 {
-		obj["admin_group_object_ids"] = toArrayInterface(in.AdminGroupObjectIDs)
+	if in.AdminGroupObjectIds != nil && len(in.AdminGroupObjectIds) > 0 {
+		obj["admin_group_object_ids"] = toArrayInterface(in.AdminGroupObjectIds)
 	}
 
 	if len(in.ClientAppID) > 0 {
@@ -3020,6 +3072,20 @@ func flattenAKSV3ManagedClusterPodIdentityProfile(in *infrapb.Podidentityprofile
 	return []interface{}{obj}
 }
 
+func flattenAKSV3ManagedClusterPowerState(in *infrapb.PowerState, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["code"] = in.Code
+
+	return []interface{}{obj}
+}
+
 func flattenAKSV3ManagedClusterPIPUserAssignedIdentities(inp []*infrapb.PodUserassignedidentities, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
@@ -3251,7 +3317,40 @@ func flattenAKSV3ManagedClusterAdditionalMetadataACRProfile(in *infrapb.AcrProfi
 		obj["acr_name"] = in.AcrName
 	}
 
+	if len(in.Registries) > 0 {
+		v, ok := obj["registries"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["registries"] = flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in.Registries, v)
+	}
+
 	return []interface{}{obj}
+
+}
+
+func flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in []*infrapb.AksRegistry, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(in))
+
+	for i, in := range in {
+		obj := map[string]interface{}{}
+
+		if len(in.AcrName) > 0 {
+			obj["acr_name"] = in.AcrName
+		}
+
+		if len(in.ResourceGroupName) > 0 {
+			obj["resource_group_name"] = in.ResourceGroupName
+		}
+
+		out[i] = obj
+	}
+	
+	return out
 
 }
 
@@ -3259,14 +3358,6 @@ func flattenAKSV3NodePool(in []*infrapb.Nodepool, p []interface{}) []interface{}
 	if in == nil {
 		return nil
 	}
-
-	// TODO: TEST
-	// sort the incoming nodepools
-	// sortedIn := make([]infrapb.Nodepool, len(in))
-	// for i := range in {
-	// 	sortedIn[i] = *in[i]
-	// }
-	// sort.Sort(ByNodepoolNameV3(sortedIn))
 
 	out := make([]interface{}, len(in))
 	for i, in := range in {

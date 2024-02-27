@@ -247,7 +247,7 @@ func resourceWorkloadRead(ctx context.Context, d *schema.ResourceData, m interfa
 	// w1 = spew.Sprintf("%+v", wl)
 	// log.Println("resourceWorkloadRead wl", w1)
 
-	err = flattenWorkload(d, wl)
+	err = flattenWorkload(d, wl, false)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -366,7 +366,7 @@ func expandWorkloadSpec(p []interface{}) (*appspb.WorkloadSpec, error) {
 
 // Flatteners
 
-func flattenWorkload(d *schema.ResourceData, in *appspb.Workload) error {
+func flattenWorkload(d *schema.ResourceData, in *appspb.Workload, dataResource bool) error {
 	if in == nil {
 		return nil
 	}
@@ -385,7 +385,7 @@ func flattenWorkload(d *schema.ResourceData, in *appspb.Workload) error {
 	// w1 := spew.Sprintf("%+v", v)
 	// log.Println("flattenWorkload before ", w1)
 	var ret []interface{}
-	ret, err = flattenWorkloadSpec(in.Spec, v)
+	ret, err = flattenWorkloadSpec(dataResource, in.Spec, v)
 	if err != nil {
 		return err
 	}
@@ -400,7 +400,7 @@ func flattenWorkload(d *schema.ResourceData, in *appspb.Workload) error {
 	return nil
 }
 
-func flattenWorkloadSpec(in *appspb.WorkloadSpec, p []interface{}) ([]interface{}, error) {
+func flattenWorkloadSpec(dataResource bool, in *appspb.WorkloadSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
 		return nil, fmt.Errorf("%s", "flattenWorkloadSpec empty input")
 	}
@@ -436,7 +436,7 @@ func flattenWorkloadSpec(in *appspb.WorkloadSpec, p []interface{}) ([]interface{
 
 	var ret []interface{}
 	var err error
-	ret, err = FlattenArtifactSpec(in.Artifact, v)
+	ret, err = FlattenArtifactSpec(dataResource, in.Artifact, v)
 	if err != nil {
 		log.Println("FlattenArtifactSpec error ", err)
 		return nil, err

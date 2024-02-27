@@ -129,11 +129,12 @@ type AKSManagedClusterProperties struct {
 	LinuxProfile            *AKSManagedClusterLinuxProfile            `yaml:"linuxProfile,omitempty"`
 	WindowsProfile          *AKSManagedClusterWindowsProfile          `yaml:"windowsProfile,omitempty"`
 	HTTPProxyConfig         *AKSManagedClusterHTTPProxyConfig         `yaml:"httpProxyConfig,omitempty"`
-	IdentityProfile         map[string]string                         `yaml:"identityProfile,omitempty"`
+	IdentityProfile         *AKSManagedClusterIdentityProfile         `yaml:"identityProfile,omitempty"`
 	AutoScalerProfile       *AKSManagedClusterAutoScalerProfile       `yaml:"autoScalerProfile,omitempty"`
 	AutoUpgradeProfile      *AKSManagedClusterAutoUpgradeProfile      `yaml:"autoUpgradeProfile,omitempty"`
 	PodIdentityProfile      *AKSManagedClusterPodIdentityProfile      `yaml:"podIdentityProfile,omitempty"`
 	PrivateLinkResources    *AKSManagedClusterPrivateLinkResources    `yaml:"privateLinkResources,omitempty"`
+	PowerState              *AKSManagedClusterPowerState              `yaml:"powerState,omitempty"`
 }
 
 type AddonProfiles struct {
@@ -301,6 +302,14 @@ type AKSManagedClusterHTTPProxyConfig struct {
 	TrustedCA  string   `yaml:"trustedCa,omitempty"`
 }
 
+type AKSManagedClusterIdentityProfile struct {
+	KubeletIdentity *AKSManagedClusterKubeletIdentity	`yaml:"kubeletIdentity,omitempty"`
+}
+
+type AKSManagedClusterKubeletIdentity struct {
+	ResourceId string `yaml:"resourceId,omitempty"`
+}
+
 type AKSManagedClusterPodIdentityProfile struct {
 	AllowNetworkPluginKubenet      *bool                                                 `yaml:"allowNetworkPluginKubenet,omitempty"`
 	Enabled                        *bool                                                 `yaml:"enabled,omitempty"`
@@ -327,6 +336,10 @@ type AKSManagedClusterPIPUserAssignedIdentityExceptions struct {
 	PodLabels map[string]string `yaml:"podLabels,omitempty"`
 }
 
+type AKSManagedClusterPowerState struct {
+	Code string `yaml:"code,omitempty"`
+}
+
 type AKSManagedClusterPrivateLinkResources struct {
 	GroupId         string   `yaml:"groupId,omitempty"`
 	ID              string   `yaml:"id,omitempty"`
@@ -346,8 +359,14 @@ type AKSManagedClusterAdditionalMetadata struct {
 }
 
 type AKSManagedClusterAdditionalMetadataACRProfile struct {
+	ResourceGroupName string 		 `yaml:"resourceGroupName,omitempty"`
+	ACRName           string 		 `yaml:"acrName,omitempty"`
+	Registries        []*AksRegistry `yaml:"registries,omitempty"`
+}
+
+type AksRegistry struct {
+	ACRName string `yaml:"acrName,omitempty"`
 	ResourceGroupName string `yaml:"resourceGroupName,omitempty"`
-	ACRName           string `yaml:"acrName,omitempty"`
 }
 
 type AKSNodePool struct {

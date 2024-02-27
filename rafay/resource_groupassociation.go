@@ -14,6 +14,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/namespace"
 	"github.com/RafaySystems/rctl/pkg/project"
+	"github.com/RafaySystems/rctl/pkg/user"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -206,7 +207,18 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 	err := commands.CreateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace, customRoles)
 	if err != nil {
 		log.Printf("create group association error %s", err.Error())
-		return diag.FromErr(err)
+		if strings.Contains(err.Error(), "already assigned") {
+			// try to update the association
+			err := commands.UpdateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace, customRoles)
+			if err != nil {
+				log.Printf("update group association error %s", err.Error())
+				if !strings.Contains(err.Error(), "already assigned") {
+					return diag.FromErr(err)
+				}
+			}
+		} else {
+			return diag.FromErr(err)
+		}
 	}
 	//make sure group project association gets created
 	_, err = groupassociation.GetProjectAssociatedWithGroup(d.Get("group").(string))
@@ -242,17 +254,37 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 	}
 	//create user association to group if users are included in resources
 	if d.Get("add_users") != nil {
+		var addUsers []string
 		//convert users interface to passable list for function create
 		usersList := d.Get("add_users").([]interface{})
 		users := make([]string, len(usersList))
 		for i, raw := range usersList {
 			users[i] = raw.(string)
 		}
+		// check user group associationalready exists
+		for _, usr := range users {
+			grps, err := user.GetUserGroups(usr)
+			if err == nil {
+				found := false
+				for _, grp := range grps {
+					if grp == d.Get("group").(string) {
+						log.Println("user already associated with group")
+						found = true
+						break
+					}
+				}
+				if !found {
+					addUsers = append(addUsers, usr)
+				}
+			} else {
+				addUsers = append(addUsers, usr)
+			}
+		}
 		//call create user association
 		if d.Get("idp_user").(bool) {
-			err = groupassociation.CreateIDPUserAssociation(d.Get("group").(string), users)
+			err = groupassociation.CreateIDPUserAssociation(d.Get("group").(string), addUsers)
 		} else {
-			err = commands.CreateUserAssociation(nil, d.Get("group").(string), users)
+			err = commands.CreateUserAssociation(nil, d.Get("group").(string), addUsers)
 		}
 		if err != nil {
 			log.Println("user association create DID NOT WORK")
@@ -319,6 +351,7 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	} else {
 		var roleLst []string
+		var customRoleLst []string
 		var namespace_id_list []string
 		gaList := []models.GroupAssociationRoles{}
 		err = json.Unmarshal([]byte(respRoles), &gaList)
@@ -328,8 +361,21 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 		}
 		for _, sn := range gaList {
 			if sn.Project.Name == p.Name {
+				projectRoleMap := make(map[string]int)
+				for _, cr := range sn.CustomRoles {
+					customRoleLst = append(customRoleLst, cr.CustomRole.Name)
+					count := 1
+					if len(cr.Namespaces) > 0 {
+						count = len(cr.Namespaces)
+					}
+					projectRoleMap[cr.CustomRole.BaseRoleName] = projectRoleMap[cr.CustomRole.BaseRoleName] + count
+				}
 				for _, cp := range sn.Roles {
-					roleLst = append(roleLst, cp.Role.Name)
+					if v, ok := projectRoleMap[cp.Role.Name]; ok && v > 0 {
+						projectRoleMap[cp.Role.Name] = v - 1
+					} else {
+						roleLst = append(roleLst, cp.Role.Name)
+					}
 					// get namespace from namespace_id
 					if cp.NamespaceID != "" {
 						namespace_id_list = append(namespace_id_list, cp.NamespaceID)
@@ -346,6 +392,17 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 		} else {
 			if err := d.Set("roles", nil); err != nil {
 				log.Printf("get group association set role error %s", err.Error())
+				return diag.FromErr(err)
+			}
+		}
+		if len(customRoleLst) > 0 {
+			if err := d.Set("custom_roles", RemoveDuplicatesFromSlice(customRoleLst)); err != nil {
+				log.Printf("get group association set custom role error %s", err.Error())
+				return diag.FromErr(err)
+			}
+		} else {
+			if err := d.Set("custom_roles", nil); err != nil {
+				log.Printf("get group association set custom role error %s", err.Error())
 				return diag.FromErr(err)
 			}
 		}
@@ -402,6 +459,7 @@ func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	if d.Get("remove_users") != nil || d.Get("add_users") != nil {
+		var usersToAdd []string
 		//convert remove users interface to passable list for function create
 		removeUsersList := d.Get("remove_users").([]interface{})
 		removeUsers := make([]string, len(removeUsersList))
@@ -415,13 +473,32 @@ func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData,
 			addUsers[i] = raw.(string)
 		}
 
+		// check user group associationalready exists
+		for _, usr := range addUsers {
+			grps, err := user.GetUserGroups(usr)
+			if err == nil {
+				found := false
+				for _, grp := range grps {
+					if grp == d.Get("group").(string) {
+						log.Println("user already associated with group")
+						found = true
+						break
+					}
+				}
+				if !found {
+					usersToAdd = append(usersToAdd, usr)
+				}
+			} else {
+				usersToAdd = append(usersToAdd, usr)
+			}
+		}
 		//call create user association
 		if d.Get("idp_user").(bool) {
-			err = groupassociation.UpdateIDPUserAssociation(d.Get("group").(string), addUsers, removeUsers)
+			err = groupassociation.UpdateIDPUserAssociation(d.Get("group").(string), usersToAdd, removeUsers)
 		} else {
-			err = commands.UpdateUserAssociation(nil, d.Get("group").(string), addUsers, removeUsers)
+			err = commands.UpdateUserAssociation(nil, d.Get("group").(string), usersToAdd, removeUsers)
 		}
-		log.Println("users to add: ", addUsers)
+		log.Println("users to add: ", usersToAdd)
 		log.Println("users to delete: ", removeUsers)
 		if err != nil {
 			log.Println("user association update DID NOT WORK: ", err)
@@ -443,12 +520,17 @@ func resourceGroupAssociationDelete(ctx context.Context, d *schema.ResourceData,
 		log.Printf("delete group error %s", err.Error())
 		return diag.FromErr(err)
 	}
-	if d.Get("remove_users") != nil {
+	if d.Get("remove_users") != nil || d.Get("add_users") != nil {
 		//convert users interface to passable list for function create
 		usersList := d.Get("remove_users").([]interface{})
 		users := make([]string, len(usersList))
 		for i, raw := range usersList {
 			users[i] = raw.(string)
+		}
+
+		usersList = d.Get("add_users").([]interface{})
+		for _, raw := range usersList {
+			users = append(users, raw.(string))
 		}
 
 		//call create user association

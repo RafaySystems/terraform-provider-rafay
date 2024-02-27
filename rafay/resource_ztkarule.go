@@ -322,7 +322,7 @@ func flattenZTKARuleSpec(in *systempb.ZTKARuleSpec, p []interface{}) ([]interfac
 	}
 	var flattenArtifact []interface{}
 	var err error
-	flattenArtifact, err = FlattenArtifactSpec(in.Artifact, v)
+	flattenArtifact, err = FlattenArtifactSpec(false, in.Artifact, v)
 	if err != nil {
 		log.Println("FlattenArtifactSpec error ", err)
 		return nil, err

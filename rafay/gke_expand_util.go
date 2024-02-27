@@ -561,7 +561,100 @@ func expandToV3GkePrivateCluster(p []interface{}) (*infrapb.GkeAccess_Private, e
 		obj.Private.DisableSNAT = v
 	}
 
+	var err error
+	if v, ok := in["firewall_rules"].([]interface{}); ok && len(v) > 0 {
+		obj.Private.FirewallRules, err = expandToV3GkeFirewalls(v)
+		if err != nil {
+			return obj, fmt.Errorf("failed to expand gke private cluster firewall rules " + err.Error())
+		}
+	}
+
 	return obj, nil
+}
+
+// expandToV3GkeFirewalls
+func expandToV3GkeFirewalls(p []interface{}) ([]*infrapb.FirewallRule, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke firewall rule config")
+	}
+
+	out := make([]*infrapb.FirewallRule, len(p))
+
+	for i := range p {
+		obj := &infrapb.FirewallRule{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["action"].(string); ok && len(v) > 0 {
+			obj.Action = v
+		}
+
+		if v, ok := in["description"].(string); ok && len(v) > 0 {
+			obj.Description = v
+		}
+
+		if v, ok := in["destination_ranges"].([]interface{}); ok && len(v) > 0 {
+			obj.DestinationRanges = toArrayString(v)
+		}
+
+		if v, ok := in["direction"].(string); ok && len(v) > 0 {
+			obj.Direction = v
+		}
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["network"].(string); ok && len(v) > 0 {
+			obj.Network = v
+		}
+
+		if v, ok := in["priority"].(int); ok {
+			obj.Priority = int32(v)
+		}
+
+		if v, ok := in["source_ranges"].([]interface{}); ok && len(v) > 0 {
+			obj.SourceRanges = toArrayString(v)
+		}
+
+		if v, ok := in["target_tags"].([]interface{}); ok && len(v) > 0 {
+			obj.TargetTags = toArrayString(v)
+		}
+
+		var err error
+		if v, ok := in["rules"].([]interface{}); ok && len(v) > 0 {
+			obj.Rules, err = expandToV3GkeFirewallRules(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand gke private cluster firewall rules " + err.Error())
+			}
+		}
+
+		out[i] = obj
+	}
+
+	return out, nil
+}
+
+func expandToV3GkeFirewallRules(p []interface{}) ([]*infrapb.Rule, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke firewall rule config")
+	}
+
+	out := make([]*infrapb.Rule, len(p))
+	for i := range p {
+		obj := &infrapb.Rule{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["protocol"].(string); ok && len(v) > 0 {
+			obj.Protocol = v
+		}
+
+		if v, ok := in["ports"].([]interface{}); ok && len(v) > 0 {
+			obj.Ports = toArrayString(v)
+		}
+		out[i] = obj
+	}
+
+	return out, nil
 }
 
 // GkeControlPlaneAuthorizedNetwork
@@ -773,6 +866,34 @@ func expandToV3GkeNodeMachineConfig(p []interface{}) (*infrapb.GkeNodeMachineCon
 		obj.BootDiskSize = int64(v)
 	}
 
+	var err error
+
+	// GkeNodeReservationAffinity
+	if v, ok := in["reservation_affinity"].([]interface{}); ok && len(v) > 0 {
+		obj.ReservationAffinity, err = expandToV3GkeNodeReservationAffinity(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand Gke reservation affinity " + err.Error())
+		}
+	}
+
+	return obj, nil
+}
+
+// GkeNodeReservationAffinity
+func expandToV3GkeNodeReservationAffinity(p []interface{}) (*infrapb.GkeNodeReservationAffinity, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node reservation affinity")
+	}
+
+	obj := &infrapb.GkeNodeReservationAffinity{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["consume_reservation_type"].(string); ok && len(v) > 0 {
+		obj.ConsumeReservationType = v
+	}
+	if v, ok := in["reservation_name"].(string); ok && len(v) > 0 {
+		obj.ReservationName = v
+	}
 	return obj, nil
 }
 

@@ -2053,6 +2053,10 @@ func expandV3MetaData(p []interface{}) *commonpb.Metadata {
 	if v, ok := in["annotations"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.Annotations = toMapString(v)
 	}
+
+	if v, ok := in["display_name"].(string); ok && len(v) > 0 {
+		obj.DisplayName = v
+	}
 	return obj
 }
 
@@ -2081,6 +2085,10 @@ func flattenV3MetaData(in *commonpb.Metadata) []interface{} {
 
 	if len(in.Annotations) > 0 {
 		obj["annotations"] = toMapInterface(in.Annotations)
+	}
+
+	if len(in.DisplayName) > 0 {
+		obj["display_name"] = in.DisplayName
 	}
 
 	return []interface{}{obj}

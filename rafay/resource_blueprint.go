@@ -1007,6 +1007,7 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 	}
 
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	obj["type"] = in.Type
 
 	if in.Drift != nil {
 		obj["drift"] = flattenDrift(in.Drift)

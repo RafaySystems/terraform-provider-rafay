@@ -227,6 +227,14 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 		spec.VersionState = vs
 	}
 
+	if iconurl, ok := in["icon_url"].(string); ok && len(iconurl) > 0 {
+		spec.IconURL = iconurl
+	}
+
+	if readme, ok := in["readme"].(string); ok && len(readme) > 0 {
+		spec.Readme = readme
+	}
+
 	var err error
 	if p, ok := in["resources"].([]interface{}); ok && len(p) > 0 {
 		spec.Resources, err = expandEnvironmentResources(p)
@@ -417,6 +425,8 @@ func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []inte
 
 	obj["version"] = in.Version
 	obj["version_state"] = in.VersionState
+	obj["icon_url"] = in.IconURL
+	obj["readme"] = in.Readme
 
 	if len(in.Resources) > 0 {
 		v, ok := obj["resources"].([]interface{})

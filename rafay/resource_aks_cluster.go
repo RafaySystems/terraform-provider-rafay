@@ -3,6 +3,7 @@ package rafay
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -17,6 +18,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	// Yaml pkg that have no limit for key length
@@ -444,9 +446,12 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 			},
 		},
 		"identity_profile": {
-			Type:        schema.TypeMap,
+			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "Identities associated with the cluster",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterIdentityProfile(),
+			},
 		},
 		"kubernetes_version": {
 			Type:        schema.TypeString,
@@ -480,6 +485,14 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 			Description: "Aspect of pod identity integration.",
 			Elem: &schema.Resource{
 				Schema: clusterAKSManagedClusterPodIdentityProfile(),
+			},
+		},
+		"power_state": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Cluster Power State",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterPowerState(),
 			},
 		},
 		"private_link_resources": {
@@ -909,6 +922,31 @@ func clusterAKSManagedClusterHTTPProxyConfig() map[string]*schema.Schema {
 	return s
 }
 
+func clusterAKSManagedClusterIdentityProfile() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"kubelet_identity": {
+			Type:	schema.TypeList,
+			Required: true,
+			Description: "Kubelet Identity for managed cluster identity profile",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterKubeletIdentity(),
+			},
+		},
+	}
+	return s
+}
+
+func clusterAKSManagedClusterKubeletIdentity() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"resource_id": {
+			Type:	schema.TypeString,
+			Required: true,
+			Description: "value must be ARM resource ID in the form: /subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>",
+		},
+	}
+	return s
+}
+
 func clusterAKSManagedClusterLinuxProfile() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"admin_username": {
@@ -1184,6 +1222,20 @@ func clusterAKSManagedClusterPodIdentityProfile() map[string]*schema.Schema {
 	return s
 }
 
+func clusterAKSManagedClusterPowerState() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"code": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Whether the cluster is running or stopped",
+			// ValidateFunc: schema.SchemaValidateFunc(func(v interface{}, k string) (ws []string, errors []error) {
+
+			// },
+		},
+	}
+	return s
+}
+
 func clusterAKSManagedClusterPIPUserAssignedIdentities() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"binding_selector": {
@@ -1372,8 +1424,32 @@ func clusterAKSManagedClusterAdditionalMetadataACRProfile() map[string]*schema.S
 		},
 		"acr_name": {
 			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The name of the Azure Container Registry resource.",
+		},
+		"registries": {
+			Type:		schema.TypeList,
+			Optional: 	true,
+			Description: "The list of Azure Container Registry Profiles",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterAdditionalMetadataACRProfiles(),
+			},
+		},
+	}
+	return s
+}
+
+func clusterAKSManagedClusterAdditionalMetadataACRProfiles() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"acr_name": {
+			Type:        schema.TypeString,
 			Required:    true,
 			Description: "The name of the Azure Container Registry resource.",
+		},
+		"resource_group_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The location of the Azure Container Registry resource.",
 		},
 	}
 	return s
@@ -1865,36 +1941,6 @@ func clusterAKSNodePoolUpgradeSettings() map[string]*schema.Schema {
 	return s
 }
 
-///Changes
-
-// New Expand Functions
-func expandAKSCluster(p []interface{}) *AKSCluster {
-	obj := &AKSCluster{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["apiversion"].(string); ok && len(v) > 0 {
-		obj.APIVersion = v
-	}
-
-	if v, ok := in["kind"].(string); ok && len(v) > 0 {
-		obj.Kind = v
-	}
-
-	if v, ok := in["metadata"].([]interface{}); ok && len(v) > 0 {
-		obj.Metadata = expandAKSClusterMetadata(v)
-	}
-
-	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
-		obj.Spec = expandAKSClusterSpec(v)
-	}
-
-	return obj
-}
-
 func expandAKSClusterMetadata(p []interface{}) *AKSClusterMetadata {
 	obj := &AKSClusterMetadata{}
 	if len(p) == 0 || p[0] == nil {
@@ -1917,12 +1963,13 @@ func expandAKSClusterMetadata(p []interface{}) *AKSClusterMetadata {
 	return obj
 }
 
-func expandAKSClusterSpec(p []interface{}) *AKSClusterSpec {
+func expandAKSClusterSpec(p []interface{}, rawConfig cty.Value) *AKSClusterSpec {
 	obj := &AKSClusterSpec{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	rawConfig = rawConfig.AsValueSlice()[0]
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		obj.Type = v
@@ -1941,7 +1988,7 @@ func expandAKSClusterSpec(p []interface{}) *AKSClusterSpec {
 	}
 
 	if v, ok := in["cluster_config"].([]interface{}); ok && len(v) > 0 {
-		obj.AKSClusterConfig = expandAKSClusterConfig(v)
+		obj.AKSClusterConfig = expandAKSClusterConfig(v, rawConfig.GetAttr("cluster_config"))
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
@@ -1955,13 +2002,13 @@ func expandAKSClusterSpec(p []interface{}) *AKSClusterSpec {
 	return obj
 }
 
-func expandAKSClusterConfig(p []interface{}) *AKSClusterConfig {
+func expandAKSClusterConfig(p []interface{}, rawConfig cty.Value) *AKSClusterConfig {
 	obj := &AKSClusterConfig{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-
+	rawConfig = rawConfig.AsValueSlice()[0]
 	if v, ok := in["apiversion"].(string); ok && len(v) > 0 {
 		obj.APIVersion = v
 	}
@@ -1975,7 +2022,7 @@ func expandAKSClusterConfig(p []interface{}) *AKSClusterConfig {
 	}
 
 	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
-		obj.Spec = expandAKSClusterConfigSpec(v)
+		obj.Spec = expandAKSClusterConfigSpec(v, rawConfig.GetAttr("spec"))
 	}
 
 	return obj
@@ -1994,13 +2041,13 @@ func expandAKSClusterConfigMetadata(p []interface{}) *AKSClusterConfigMetadata {
 	return obj
 }
 
-func expandAKSClusterConfigSpec(p []interface{}) *AKSClusterConfigSpec {
+func expandAKSClusterConfigSpec(p []interface{}, rawConfig cty.Value) *AKSClusterConfigSpec {
 	obj := &AKSClusterConfigSpec{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-
+	rawConfig = rawConfig.AsValueSlice()[0]
 	if v, ok := in["subscription_id"].(string); ok && len(v) > 0 {
 		obj.SubscriptionID = v
 	}
@@ -2014,7 +2061,7 @@ func expandAKSClusterConfigSpec(p []interface{}) *AKSClusterConfigSpec {
 	}
 
 	if v, ok := in["node_pools"].([]interface{}); ok && len(v) > 0 {
-		obj.NodePools = expandAKSNodePool(v)
+		obj.NodePools = expandAKSNodePool(v, rawConfig.GetAttr("node_pools"))
 	}
 
 	return obj
@@ -2161,8 +2208,8 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 		obj.HTTPProxyConfig = expandAKSManagedClusterHTTPProxyConfig(v)
 	}
 
-	if v, ok := in["identity_profile"].(map[string]interface{}); ok {
-		obj.IdentityProfile = toMapString(v)
+	if v, ok := in["identity_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.IdentityProfile = expandAKSManagedClusterIdentityProfile(v)
 	}
 
 	if v, ok := in["kubernetes_version"].(string); ok {
@@ -2187,6 +2234,10 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 
 	if v, ok := in["private_link_resources"].([]interface{}); ok && len(v) > 0 {
 		obj.PrivateLinkResources = expandAKSManagedClusterPrivateLinkResources(v)
+	}
+
+	if v, ok := in["power_state"].([]interface{}); ok && len(v) > 0 {
+		obj.PowerState = expandAKSManagedClusterPowerState(v)
 	}
 
 	if v, ok := in["service_principal_profile"].([]interface{}); ok && len(v) > 0 {
@@ -2530,6 +2581,34 @@ func expandAKSManagedClusterHTTPProxyConfig(p []interface{}) *AKSManagedClusterH
 
 	if v, ok := in["trusted_ca"].(string); ok && len(v) > 0 {
 		obj.TrustedCA = v
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterIdentityProfile(p []interface{}) *AKSManagedClusterIdentityProfile {
+	obj := &AKSManagedClusterIdentityProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["kubelet_identity"].([]interface{}); ok && len(v) > 0 {
+		obj.KubeletIdentity = expandAKSManagedClusterIdentityProfileKubeletIdentity(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterIdentityProfileKubeletIdentity(p []interface{}) *AKSManagedClusterKubeletIdentity {
+	obj := &AKSManagedClusterKubeletIdentity{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["resource_id"].(string); ok && len(v) > 0 {
+		obj.ResourceId = v
 	}
 
 	return obj
@@ -2900,6 +2979,20 @@ func expandAKSManagedClusterPrivateLinkResources(p []interface{}) *AKSManagedClu
 	return obj
 }
 
+func expandAKSManagedClusterPowerState(p []interface{}) *AKSManagedClusterPowerState {
+	obj := &AKSManagedClusterPowerState{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["code"].(string); ok && len(v) > 0 {
+		obj.Code = v
+	}
+
+	return obj
+}
+
 func expandAKSManagedClusterServicePrincipalProfile(p []interface{}) *AKSManagedClusterServicePrincipalProfile {
 	obj := &AKSManagedClusterServicePrincipalProfile{}
 	if len(p) == 0 || p[0] == nil {
@@ -2989,21 +3082,45 @@ func expandAKSManagedClusterAdditionalMetadataACRProfile(p []interface{}) *AKSMa
 	if v, ok := in["acr_name"].(string); ok && len(v) > 0 {
 		obj.ACRName = v
 	}
+	if v, ok := in["registries"].([]interface{}); ok && len(v) > 0 {
+		obj.Registries = expandAKSManagedClusterAdditionalMetadataACRProfiles(v)
+	}
 
 	return obj
 }
 
-func expandAKSNodePool(p []interface{}) []*AKSNodePool {
+func expandAKSManagedClusterAdditionalMetadataACRProfiles(p []interface{}) []*AksRegistry {
+	if len(p) == 0 || p[0] == nil {
+		return []*AksRegistry{}
+	}
+	out := make([]*AksRegistry, len(p))
+
+	for i := range p {
+		obj := AksRegistry{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["acr_name"].(string); ok && len(v) > 0 {
+			obj.ACRName = v
+		}
+
+		if v, ok := in["resource_group_name"].(string); ok && len(v) > 0 {
+			obj.ResourceGroupName = v
+		}
+		out[i] = &obj
+	}
+	return out
+}
+
+func expandAKSNodePool(p []interface{}, rawConfig cty.Value) []*AKSNodePool {
 	if len(p) == 0 || p[0] == nil {
 		return []*AKSNodePool{}
 	}
 
 	out := make([]*AKSNodePool, len(p))
-	//outToSort := make([]AKSNodePool, len(p))
-	//var sortByName []string
 	for i := range p {
 		obj := AKSNodePool{}
 		in := p[i].(map[string]interface{})
+		nRawConfig := rawConfig.AsValueSlice()[i]
 
 		if v, ok := in["apiversion"].(string); ok && len(v) > 0 {
 			obj.APIVersion = v
@@ -3011,11 +3128,10 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
-			//sortByName = append(sortByName, v)
 		}
 
 		if v, ok := in["properties"].([]interface{}); ok && len(v) > 0 {
-			obj.Properties = expandAKSNodePoolProperties(v)
+			obj.Properties = expandAKSNodePoolProperties(v, nRawConfig.GetAttr("properties"))
 		}
 
 		if v, ok := in["type"].(string); ok && len(v) > 0 {
@@ -3027,38 +3143,29 @@ func expandAKSNodePool(p []interface{}) []*AKSNodePool {
 		}
 		out[i] = &obj
 	}
-
-	//var sortedOut []*commonpb.ProjectMeta
-	// for i, name := range sortByName {
-	// 	for _, val := range outToSort {
-	// 		if name == val.Name {
-	// 			out[i] = &val
-	// 		}
-	// 	}
-	// }
-	// sort.Sort(ByNodepoolName(outToSort))
-	// for i := range outToSort {
-	// 	out[i] = &outToSort[i]
-	// }
 	n1 := spew.Sprintf("%+v", out)
 	log.Println("expand sorted node pools:", n1)
 
 	return out
 }
 
-func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
+func expandAKSNodePoolProperties(p []interface{}, rawConfig cty.Value) *AKSNodePoolProperties {
 	obj := &AKSNodePoolProperties{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
+	rawConfig = rawConfig.AsValueSlice()[0]
 
 	if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
 		obj.AvailabilityZones = toArrayString(v)
 	}
 
-	if v, ok := in["count"].(int); ok && v > 0 {
-		obj.Count = &v
+	rawCount := rawConfig.GetAttr("count")
+	if !rawCount.IsNull() && rawCount.Type().IsPrimitiveType() && rawCount.AsBigFloat().IsInt() {
+		val64, _ := rawCount.AsBigFloat().Int64()
+		val := int(val64)
+		obj.Count = &val
 	}
 
 	if v, ok := in["enable_auto_scaling"].(bool); ok {
@@ -3097,16 +3204,22 @@ func expandAKSNodePoolProperties(p []interface{}) *AKSNodePoolProperties {
 		obj.LinuxOSConfig = expandAKSNodePoolLinuxOsConfig(v)
 	}
 
-	if v, ok := in["max_count"].(int); ok && v > 0 {
-		obj.MaxCount = &v
+	rawCount = rawConfig.GetAttr("max_count")
+	if !rawCount.IsNull() && rawCount.Type().IsPrimitiveType() && rawCount.AsBigFloat().IsInt() {
+		val64, _ := rawCount.AsBigFloat().Int64()
+		val := int(val64)
+		obj.MaxCount = &val
 	}
 
 	if v, ok := in["max_pods"].(int); ok && v > 0 {
 		obj.MaxPods = &v
 	}
 
-	if v, ok := in["min_count"].(int); ok && v > 0 {
-		obj.MinCount = &v
+	rawCount = rawConfig.GetAttr("min_count")
+	if !rawCount.IsNull() && rawCount.Type().IsPrimitiveType() && rawCount.AsBigFloat().IsInt() {
+		val64, _ := rawCount.AsBigFloat().Int64()
+		val := int(val64)
+		obj.MinCount = &val
 	}
 
 	if v, ok := in["mode"].(string); ok && len(v) > 0 {
@@ -3802,8 +3915,12 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 		obj["http_proxy_config"] = flattenAKSManagedClusterHTTPProxyConfig(in.HTTPProxyConfig, v)
 	}
 
-	if in.IdentityProfile != nil && len(in.IdentityProfile) > 0 {
-		obj["identity_profile"] = toMapInterface(in.IdentityProfile)
+	if in.IdentityProfile != nil {
+		v, ok := obj["identity_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["identity_profile"] = flattenAKSManagedClusterIdentityProfile(in.IdentityProfile, v)
 	}
 
 	if len(in.KubernetesVersion) > 0 {
@@ -3836,6 +3953,14 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 			v = []interface{}{}
 		}
 		obj["pod_identity_profile"] = flattenAKSManagedClusterPodIdentityProfile(in.PodIdentityProfile, v)
+	}
+
+	if in.PowerState != nil {
+		v, ok := obj["power_state"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["power_state"] = flattenAKSManagedClusterPowerState(in.PowerState, v)
 	}
 
 	if in.PrivateLinkResources != nil {
@@ -4236,6 +4361,41 @@ func flattenAKSManagedClusterAutoUpgradeProfile(in *AKSManagedClusterAutoUpgrade
 
 }
 
+func flattenAKSManagedClusterIdentityProfile(in *AKSManagedClusterIdentityProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.KubeletIdentity != nil {
+		v, ok := obj["kubelet_identity"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["kubelet_identity"] = flattenAKSManagedClusterIdentityProfileKubeletIdentity(in.KubeletIdentity, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSManagedClusterIdentityProfileKubeletIdentity(in *AKSManagedClusterKubeletIdentity, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ResourceId) > 0 {
+		obj["resource_id"] = in.ResourceId
+	}
+	return []interface{}{obj}
+}
+
 func flattenAKSManagedClusterHTTPProxyConfig(in *AKSManagedClusterHTTPProxyConfig, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
@@ -4612,6 +4772,20 @@ func flattenAKSManagedClusterPodIdentityProfile(in *AKSManagedClusterPodIdentity
 	return []interface{}{obj}
 }
 
+func flattenAKSManagedClusterPowerState(in *AKSManagedClusterPowerState, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["code"] = in.Code
+
+	return []interface{}{obj}
+}
+
 func flattenAKSManagedClusterPIPUserAssignedIdentities(inp []*AKSManagedClusterPIPUserAssignedIdentities, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
@@ -4840,8 +5014,42 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfile(in *AKSManagedClusterA
 	if len(in.ACRName) > 0 {
 		obj["acr_name"] = in.ACRName
 	}
+	
+	if in.Registries != nil && len(in.Registries) > 0 {
+		v, ok := obj["registries"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["registries"] = flattenAKSManagedClusterAdditionalMetadataACRProfiles(in.Registries, v)
+	}
 
 	return []interface{}{obj}
+
+}
+
+func flattenAKSManagedClusterAdditionalMetadataACRProfiles(in []*AksRegistry, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		
+		if len(in.ACRName) > 0 {
+			obj["acr_name"] = in.ACRName
+		}
+
+		if len(in.ResourceGroupName) > 0 {
+			obj["resource_group_name"] = in.ResourceGroupName
+		}
+
+		out[i] = &obj
+	}
+
+	return out
 
 }
 
@@ -5228,6 +5436,7 @@ func aksClusterCTLStatus(taskid, projectID string) (string, error) {
 func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("AKS process inputs")
 	obj := &AKSCluster{}
+	rawConfig := d.GetRawConfig()
 
 	if v, ok := d.Get("apiversion").(string); ok {
 		obj.APIVersion = v
@@ -5252,7 +5461,7 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	}
 
 	if v, ok := d.Get("spec").([]interface{}); ok {
-		obj.Spec = expandAKSClusterSpec(v)
+		obj.Spec = expandAKSClusterSpec(v, rawConfig.GetAttr("spec"))
 	} else {
 		log.Println("Cluster spec unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
@@ -5261,8 +5470,8 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	projectName := obj.Metadata.Project
 	_, err := project.GetProjectByName(projectName)
 	if err != nil {
-		log.Println("project name missing in the resource", err)
-		return diag.FromErr(fmt.Errorf("%s", "Project name missing in the resource"))
+		log.Println("Cluster project name is invalid", err)
+		return diag.FromErr(fmt.Errorf("%s", "Cluster project name is invalid"))
 	}
 
 	if obj.Metadata.Name != obj.Spec.AKSClusterConfig.Metadata.Name {
@@ -5294,12 +5503,12 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
 		fmt.Printf("project does not exist")
-		return diags
+		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
 	}
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
 		fmt.Printf("project does not exist")
-		return diags
+		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
 	}
 
 	// cluster
@@ -5397,56 +5606,33 @@ type ResponseGetClusterSpec struct {
 func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("resourceAKSClusterRead")
-
-	obj := &AKSCluster{}
-	if v, ok := d.Get("apiversion").(string); ok {
-		obj.APIVersion = v
-	} else {
-		fmt.Print("apiversion unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Apiversion is missing"))
+	
+	projectName, ok := d.Get("metadata.0.project").(string)
+	if !ok || projectName == "" {
+		return diag.FromErr(errors.New("project name unable to be found."))
 	}
 
-	if v, ok := d.Get("kind").(string); ok {
-		obj.Kind = v
-	} else {
-		fmt.Print("kind unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Kind is missing"))
+	clusterName, ok := d.Get("metadata.0.name").(string)
+	if !ok || clusterName == "" {
+		return diag.FromErr(errors.New("cluster name unable to be found."))
 	}
 
-	if v, ok := d.Get("metadata").([]interface{}); ok {
-		obj.Metadata = expandAKSClusterMetadata(v)
-	} else {
-		fmt.Print("metadata unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
-	}
-
-	if v, ok := d.Get("spec").([]interface{}); ok {
-		obj.Spec = expandAKSClusterSpec(v)
-	} else {
-		fmt.Print("Cluster spec unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
-	}
+	fmt.Printf("Found project_name: %s, cluster_name: %s", projectName, clusterName)
 
 	//project details
-	resp, err := project.GetProjectByName(obj.Metadata.Project)
+	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("project name missing in the resource")
-		return diags
+		fmt.Print("Cluster project name is invalid")
+		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s",err.Error()))
 	}
 
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
-	}
-
-	c, err := cluster.GetCluster(obj.Metadata.Name, project.ID)
+	c, err := cluster.GetCluster(clusterName, projectId)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
 			log.Println("Resource Read ", "error", err)
 			d.SetId("")
-			return diags
+			return diag.FromErr(fmt.Errorf("Resource read failed, cluster not found. Error: %s",err.Error()))
 		}
 		return diag.FromErr(err)
 	}
@@ -5454,24 +5640,9 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	// another
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
-	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectId)
 	if err != nil {
 		log.Printf("error in get clusterspec %s", err.Error())
-		return diag.FromErr(err)
-	}
-
-	cluster, err := cluster.GetCluster(c.Name, project.ID)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	log.Printf("Cluster get cluster 2 worked")
-
-	//log.Printf("Cluster from name: %s", cluster)
-
-	fmt.Println(cluster.ClusterType)
-
-	var respGetCfgFile ResponseGetClusterSpec
-	if err := json.Unmarshal([]byte(resp), &respGetCfgFile); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -5491,49 +5662,26 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("update AKS cluster resource")
-	var diags diag.Diagnostics
-	obj := &AKSCluster{}
 
-	if v, ok := d.Get("apiversion").(string); ok {
-		obj.APIVersion = v
-	} else {
-		fmt.Print("apiversion unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Apiversion is missing"))
+	projectName, ok := d.Get("metadata.0.project").(string)
+	if !ok || projectName == "" {
+		return diag.FromErr(errors.New("project name unable to be found."))
 	}
 
-	if v, ok := d.Get("kind").(string); ok {
-		obj.Kind = v
-	} else {
-		fmt.Print("kind unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Kind is missing"))
+	clusterName, ok := d.Get("metadata.0.name").(string)
+	if !ok || clusterName == "" {
+		return diag.FromErr(errors.New("cluster name unable to be found."))
 	}
 
-	if v, ok := d.Get("metadata").([]interface{}); ok {
-		obj.Metadata = expandAKSClusterMetadata(v)
-	} else {
-		fmt.Print("metadata unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
-	}
+	fmt.Printf("Found project_name: %s, cluster_name: %s", projectName, clusterName)
 
-	if v, ok := d.Get("spec").([]interface{}); ok {
-		obj.Spec = expandAKSClusterSpec(v)
-	} else {
-		fmt.Print("Cluster spec unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
-	}
-
-	resp, err := project.GetProjectByName(obj.Metadata.Project)
+	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("project name missing in the resource")
-		return diags
+		fmt.Print("Cluster project name is invalid")
+		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s",err.Error()))
 	}
-
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
-	}
-	_, err = cluster.GetCluster(obj.Metadata.Name, project.ID)
+	
+	_, err = cluster.GetCluster(clusterName, projectId)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
@@ -5545,49 +5693,25 @@ func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("resource cluster delete id %s", d.Id())
-	obj := &AKSCluster{}
-
-	if v, ok := d.Get("apiversion").(string); ok {
-		obj.APIVersion = v
-	} else {
-		fmt.Print("apiversion unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Apiversion is missing"))
+	projectName, ok := d.Get("metadata.0.project").(string)
+	if !ok || projectName == "" {
+		return diag.FromErr(errors.New("project name unable to be found."))
 	}
 
-	if v, ok := d.Get("kind").(string); ok {
-		obj.Kind = v
-	} else {
-		fmt.Print("kind unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Kind is missing"))
+	clusterName, ok := d.Get("metadata.0.name").(string)
+	if !ok || clusterName == "" {
+		return diag.FromErr(errors.New("cluster name unable to be found."))
 	}
 
-	if v, ok := d.Get("metadata").([]interface{}); ok {
-		obj.Metadata = expandAKSClusterMetadata(v)
-	} else {
-		fmt.Print("metadata unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
-	}
+	fmt.Printf("Found project_name: %s, cluster_name: %s", projectName, clusterName)
 
-	if v, ok := d.Get("spec").([]interface{}); ok {
-		obj.Spec = expandAKSClusterSpec(v)
-	} else {
-		fmt.Print("Cluster spec unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
-	}
-
-	resp, err := project.GetProjectByName(obj.Metadata.Project)
+	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
-		fmt.Print("project  does not exist")
-		return diags
+		fmt.Print("Cluster project name is invalid")
+		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s",err.Error()))
 	}
 
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project  does not exist")
-		return diags
-	}
-
-	errDel := cluster.DeleteCluster(obj.Metadata.Name, project.ID, false)
+	errDel := cluster.DeleteCluster(clusterName, projectId, false)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
@@ -5595,7 +5719,7 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 
 	for {
 		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
+		check, errGet := cluster.GetCluster(clusterName, projectId)
 		if errGet != nil {
 			log.Printf("error while getCluster %s, delete success", errGet.Error())
 			break

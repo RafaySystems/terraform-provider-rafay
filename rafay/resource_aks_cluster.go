@@ -1063,6 +1063,11 @@ func clusterAKSManagedClusterNetworkProfile() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "A CIDR notation IP range from which to assign service cluster IPs.",
 		},
+		"network_plugin_mode": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Network plugin mode used for building the Azure CNI. Valid values are 'overlay'",
+		},
 	}
 	return s
 }
@@ -2701,6 +2706,10 @@ func expandAKSManagedClusterNetworkProfile(p []interface{}) *AKSManagedClusterNe
 
 	if v, ok := in["network_plugin"].(string); ok && len(v) > 0 {
 		obj.NetworkPlugin = v
+	}
+
+	if v, ok := in["network_plugin_mode"].(string); ok && len(v) > 0 {
+		obj.NetworkPluginMode = v
 	}
 
 	if v, ok := in["network_policy"].(string); ok && len(v) > 0 {
@@ -4537,6 +4546,10 @@ func flattenAKSMCPropertiesNetworkProfile(in *AKSManagedClusterNetworkProfile, p
 
 	if len(in.NetworkPlugin) > 0 {
 		obj["network_plugin"] = in.NetworkPlugin
+	}
+
+	if len(in.NetworkPluginMode) > 0 {
+		obj["network_plugi_mode"] = in.NetworkPluginMode
 	}
 
 	if len(in.NetworkPolicy) > 0 {

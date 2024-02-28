@@ -1147,6 +1147,10 @@ func expandAKSManagedClusterV3NetworkProfile(p []interface{}) *infrapb.Networkpr
 		obj.NetworkPlugin = v
 	}
 
+	if v, ok := in["network_plugin_mode"].(string); ok && len(v) > 0 {
+		obj.NetworkPluginMode = v
+	}
+
 	if v, ok := in["network_policy"].(string); ok && len(v) > 0 {
 		obj.NetworkPolicy = v
 	}
@@ -2838,6 +2842,10 @@ func flattenAKSV3MCPropertiesNetworkProfile(in *infrapb.Networkprofile, p []inte
 		obj["network_plugin"] = in.NetworkPlugin
 	}
 
+	if len(in.NetworkPluginMode) > 0 {
+		obj["network_plugin"] = in.NetworkPluginMode
+	}
+
 	if len(in.NetworkPolicy) > 0 {
 		obj["network_policy"] = in.NetworkPolicy
 	}
@@ -3349,7 +3357,7 @@ func flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in []*infrapb.AksRe
 
 		out[i] = obj
 	}
-	
+
 	return out
 
 }

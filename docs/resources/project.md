@@ -38,6 +38,7 @@ resource "rafay_project" "terraform-quota" {
   }
   spec {
     default = false
+    sync_excluded_namespaces = ["namespace1", "namespace2", "namespace3"]
     cluster_resource_quota {
       cpu_requests = "4000m"
       memory_requests = "4096Mi"
@@ -112,6 +113,9 @@ resource "rafay_project" "terraform-quota" {
 
 <a id="nestedblock--spec--cluster_resource_quota"></a>
 ### Nested Schema for `spec.cluster_resource_quota` 
+
+***Optional*** 
+- `sync_excluded_namespaces` - (String Array) List of Namespaces that should be kept away from syncing (This is done at project level).
 
 ***Optional*** 
 - `config_maps` - (String) The maximum number of configuration maps allowed in the cluster. 

@@ -195,6 +195,16 @@ var ClusterBPStatus = &schema.Resource{
 													Optional:    true,
 													Type:        schema.TypeString,
 												},
+												"reason": &schema.Schema{
+													Description: "component failure reason the blueprint addon publish",
+													Optional:    true,
+													Type:        schema.TypeString,
+												},
+												"name": &schema.Schema{
+													Description: "component name blueprint addon publish",
+													Optional:    true,
+													Type:        schema.TypeString,
+												},
 											}},
 											MaxItems: 0,
 											MinItems: 0,
@@ -231,6 +241,8 @@ var ClusterBPStatus = &schema.Resource{
 type ClusterBlueprintWorkloadConditionsComponentsFailures struct {
 	Message   string `json:"message,omitempty"`
 	Timestamp string `json:"timestamp,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Reason    string `json:"reason,omitempty"`
 }
 
 type ClusterBlueprintWorkloadConditionsComponents struct {
@@ -564,6 +576,14 @@ func flattenAddonStatusConditionCompFails(input []ClusterBlueprintWorkloadCondit
 
 		if len(in.Timestamp) > 0 {
 			obj["timestamp"] = in.Timestamp
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Reason) > 0 {
+			obj["reason"] = in.Reason
 		}
 
 		out[i] = &obj

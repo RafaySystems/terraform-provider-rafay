@@ -40,29 +40,32 @@ func resourceAddon() *schema.Resource {
 func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("addon create starts")
 	diags := resourceAddonUpsert(ctx, d, m)
-	if diags.HasError() {
-		tflog := os.Getenv("TF_LOG")
-		if tflog == "TRACE" || tflog == "DEBUG" {
-			ctx = context.WithValue(ctx, "debug", "true")
-		}
-		log.Printf("addon create got error, perform cleanup")
-		ns, err := expandAddon(d)
-		if err != nil {
-			log.Printf("addon expandAddon error")
-			return diags
-		}
-		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
-		if err != nil {
-			return diags
-		}
+	if diags.HasError() && len(diags) > 0 {
+		diagsError := diags[0]
+		if !strings.Contains(diagsError.Summary, "AlreadyExists") {
+			tflog := os.Getenv("TF_LOG")
+			if tflog == "TRACE" || tflog == "DEBUG" {
+				ctx = context.WithValue(ctx, "debug", "true")
+			}
+			log.Printf("addon create got error, perform cleanup")
+			ns, err := expandAddon(d)
+			if err != nil {
+				log.Printf("addon expandAddon error")
+				return diags
+			}
+			auth := config.GetConfig().GetAppAuthProfile()
+			client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+			if err != nil {
+				return diags
+			}
 
-		err = client.InfraV3().Addon().Delete(ctx, options.DeleteOptions{
-			Name:    ns.Metadata.Name,
-			Project: ns.Metadata.Project,
-		})
-		if err != nil {
-			return diags
+			err = client.InfraV3().Addon().Delete(ctx, options.DeleteOptions{
+				Name:    ns.Metadata.Name,
+				Project: ns.Metadata.Project,
+			})
+			if err != nil {
+				return diags
+			}
 		}
 	}
 	return diags

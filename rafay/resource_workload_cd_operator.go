@@ -2,8 +2,10 @@ package rafay
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -19,7 +21,10 @@ import (
 	"github.com/RafaySystems/rafay-common/proto/types/hub/appspb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/integrationspb"
+	rctl_cluster "github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/config"
+	rctl_project "github.com/RafaySystems/rctl/pkg/project"
+
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/julienschmidt/httprouter"
@@ -31,52 +36,67 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// Repo Credentials
 type CDCredentials struct {
-	Username   string `json:"username,omitempty"`
-	Password   string `json:"password,omitempty"`
-	PrivateKey string `json:"privateKey,omitempty"`
-	Token      string `json:"token,omitempty"`
+	Username   string `json:"username,omitempty"`   // the username to access the repository
+	Password   string `json:"password,omitempty"`   // the password to access the repository
+	PrivateKey string `json:"privateKey,omitempty"` // the private key to access the repository
+	Token      string `json:"token,omitempty"`      // the token to access the repository
 }
 
+// The config spec for the WorkloadCD resource
 type WorkloadCDConfigSpec struct {
-	Type                string                            `json:"type,omitempty"`
-	RepoURL             string                            `json:"repourl,omitempty"`
-	RepoBranch          string                            `json:"repobranch,omitempty"`
-	Credentials         *CDCredentials                    `json:"credentials,omitempty"`
-	Options             *integrationspb.RepositoryOptions `json:"options,omitempty"`
-	Insecure            bool                              `json:"insecure,omitempty"`
-	PathMatchPattern    string                            `json:"pathMatchPattern,omitempty"` // the path  pattern to extract project name from
-	RepositoryLocalPath string                            `json:"repositoryLocalPath,omitempty"`
-	BasePath            string                            `json:"basePath,omitempty"` // the path  pattern to extract base chart from
-	ScratchPad          string                            `json:"scratchPad,omitempty"`
-	ClusterNames        string                            `json:"clusterNames,omitempty"`
+	Type                string                            `json:"type,omitempty"`                // type of the repository - not used for now
+	RepoURL             string                            `json:"repourl,omitempty"`             // the url of the repository
+	RepoBranch          string                            `json:"repobranch,omitempty"`          // the branch of the repository
+	Credentials         *CDCredentials                    `json:"credentials,omitempty"`         // the credentials to access the repository
+	Options             *integrationspb.RepositoryOptions `json:"options,omitempty"`             // the options for the repository
+	Insecure            bool                              `json:"insecure,omitempty"`            // allow insecure connection
+	PathMatchPattern    string                            `json:"pathMatchPattern,omitempty"`    // the path  pattern to extract project name from
+	RepositoryLocalPath string                            `json:"repositoryLocalPath,omitempty"` // the local path of the repository to clone
+	BasePath            string                            `json:"basePath,omitempty"`            // the path  pattern to extract base chart from
+	ClusterNames        string                            `json:"clusterNames,omitempty"`        // the cluster names to deploy the workload
+	PlacementLabels     map[string]string                 `json:"placementLabels,omitempty"`     // the placement labels for the clusters
 }
 
+type WorkloadCDStatus struct {
+	Project      string           `json:"project,omitempty"`      // the project of the workload
+	Namespace    string           `json:"namespace,omitempty"`    // the namespace of the workload
+	WorkloadName string           `json:"workloadName,omitempty"` // the name of the workload
+	RepoFolder   string           `json:"repoFolder,omitempty"`   // the name of the workload
+	Version      string           `json:"version,omitempty"`      // the version of the workload
+	Status       *commonpb.Status `json:"status,omitempty"`       // the status of the workload
+}
 type WorkloadCDConfig struct {
-	ApiVersion string                `json:"apiVersion,omitempty"`
-	Kind       string                `json:"kind,omitempty"`
-	Metadata   *commonpb.Metadata    `json:"metadata,omitempty"`
-	Spec       *WorkloadCDConfigSpec `json:"spec,omitempty"`
+	ApiVersion string                `json:"apiVersion,omitempty"` // the api version of the resource
+	Kind       string                `json:"kind,omitempty"`       // the kind of the resource
+	Metadata   *commonpb.Metadata    `json:"metadata,omitempty"`   // the metadata of the resource
+	Spec       *WorkloadCDConfigSpec `json:"spec,omitempty"`       // the specification of the resource
+	Status     []WorkloadCDStatus    `json:"status,omitempty"`     // the status of the resource
 }
 
+const charset = "abcdefghijklmnopqrstuvwxyz"                                // 36 characters
+var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano())) // a source to generate random numbers
+
 var (
-	hubYAMLCodec = codec.NewYAMLCodec(hub_types.DefaultScheme)
+	hubYAMLCodec = codec.NewYAMLCodec(hub_types.DefaultScheme) // the codec to encode/decode hub resources
 )
 
 var (
-	commitSHARegex = regexp.MustCompile("^[0-9A-Fa-f]{40}$")
-	sshURLRegex    = regexp.MustCompile("^(ssh://)?([^/:]*?)@[^@]+$")
-	httpsURLRegex  = regexp.MustCompile("^(https://).*")
-	httpURLRegex   = regexp.MustCompile("^(http://).*")
+	commitSHARegex = regexp.MustCompile("^[0-9A-Fa-f]{40}$")          // the regex to validate a commit SHA
+	sshURLRegex    = regexp.MustCompile("^(ssh://)?([^/:]*?)@[^@]+$") // the regex to validate an SSH URL
+	httpsURLRegex  = regexp.MustCompile("^(https://).*")              // the regex to validate an HTTPS URL
+	httpURLRegex   = regexp.MustCompile("^(http://).*")               // the regex to validate an HTTP URL
 )
 
-var _dummyHandler = func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {}
+var _dummyHandler = func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {} // a dummy handler to be used for routing
 
+// WorkloadCDRepositorySchema is the schema for the WorkloadCD resource
 var WorkloadCDRepositorySchema = &schema.Resource{
 	Description: "Workload CD Repository  definition",
 	Schema: map[string]*schema.Schema{
-		"always_run": &schema.Schema{
-			Description: "name of the resource",
+		"always_run": &schema.Schema{ // always run the resource when this is set to time
+			Description: "always run",
 			Optional:    true,
 			Type:        schema.TypeString,
 		},
@@ -172,11 +192,6 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 		"spec": &schema.Schema{
 			Description: "Specification of the repository resource",
 			Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-				"scratch_pad": &schema.Schema{
-					Description: "folder to create temporary file",
-					Optional:    true,
-					Type:        schema.TypeString,
-				},
 				"base_path": &schema.Schema{
 					Description: "repository local path",
 					Optional:    true,
@@ -189,13 +204,19 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 				},
 				"path_match_pattern": &schema.Schema{
 					Description: "project/namespace/workload name path match pattern",
-					Optional:    true,
+					Required:    true,
 					Type:        schema.TypeString,
 				},
 				"cluster_names": &schema.Schema{
 					Description: "cluster names ',' separated",
 					Optional:    true,
 					Type:        schema.TypeString,
+				},
+				"placement_labels": &schema.Schema{
+					Description: "placement labels of the cluster",
+					Elem:        &schema.Schema{Type: schema.TypeString},
+					Optional:    true,
+					Type:        schema.TypeMap,
 				},
 				"credentials": &schema.Schema{
 					Description: "",
@@ -346,16 +367,66 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 			Optional: true,
 			Type:     schema.TypeList,
 		},
+		"status": &schema.Schema{ // status of the resource get updated when the resource is created
+			Description: "Status of the workload resource",
+			Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+				"project": &schema.Schema{
+					Description: "Project of the resource",
+					Optional:    true,
+					Type:        schema.TypeString,
+				},
+				"namespace": &schema.Schema{
+					Description: "Namespace of the resource",
+					Optional:    true,
+					Type:        schema.TypeString,
+				},
+				"workload_name": &schema.Schema{
+					Description: "Workload Name of the resource",
+					Optional:    true,
+					Type:        schema.TypeString,
+				},
+				"workload_version": &schema.Schema{
+					Description: "Workload Name of the resource",
+					Optional:    true,
+					Type:        schema.TypeString,
+				},
+				"repo_folder": &schema.Schema{
+					Description: "repo path of the Workload resource",
+					Optional:    true,
+					Type:        schema.TypeString,
+				},
+				"condition_status": &schema.Schema{
+					Description: "Condition Status",
+					Optional:    true,
+					Type:        schema.TypeInt,
+				},
+				"clusters": &schema.Schema{
+					Description: "deployed clusters",
+					Optional:    true,
+					Type:        schema.TypeString,
+				},
+				"condition_type": &schema.Schema{
+					Description: "Status message",
+					Optional:    true,
+					Type:        schema.TypeString,
+				},
+				"reason": &schema.Schema{
+					Description: "Status message",
+					Optional:    true,
+					Type:        schema.TypeString,
+				},
+			}},
+			MaxItems: 0,
+			MinItems: 0,
+			Optional: true,
+			Type:     schema.TypeList,
+		},
 	},
 }
 
+// WorkloadCDRepositorySchema is the schema for the WorkloadCD resource
 func resourceWorkloadCDOperator() *schema.Resource {
 	modSchema := WorkloadCDRepositorySchema.Schema
-	modSchema["impersonate"] = &schema.Schema{
-		Description: "impersonate user",
-		Optional:    true,
-		Type:        schema.TypeString,
-	}
 	return &schema.Resource{
 		CreateContext: resourceWorkloadCDOperatorCreate,
 		ReadContext:   resourceWorkloadCDOperatorRead,
@@ -378,6 +449,20 @@ func IsHTTPSURL(url string) bool {
 	return httpsURLRegex.MatchString(url)
 }
 
+// StringWithCharset returns a random string of length with the supplied charset
+func StringWithCharset(length int, charset string) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
+}
+
+// RandomString returns a random string of length
+func RandomString(length int) string {
+	return StringWithCharset(length, charset)
+}
+
 func resourceWorkloadCDOperatorCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("resourceWorkloadCDOperator create starts")
 	diags := resourceWorkloadCDOperatorUpsert(ctx, d, m)
@@ -388,7 +473,7 @@ func resourceWorkloadCDOperatorCreate(ctx context.Context, d *schema.ResourceDat
 func resourceWorkloadCDOperatorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("resourceWorkloadCDOperator create starts")
 	var diags diag.Diagnostics
-
+	// dummy for now
 	return diags
 }
 
@@ -406,6 +491,7 @@ func resourceWorkloadCDOperatorDelete(ctx context.Context, d *schema.ResourceDat
 	return diags
 }
 
+// resourceWorkloadCDOperatorUpsert create or update the WorkloadCD resource
 func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("resourceWorkloadCDOperator upsert starts")
@@ -433,42 +519,93 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 	cdConf := spew.Sprintf("%+v", workloadCDConfig)
 	log.Println("expandWorkloadCDConfig  ", cdConf)
 
-	if workloadCDConfig.Spec.PathMatchPattern != "" {
-		projectCheck := httprouter.New()
-		projectCheck.Handle("POST", workloadCDConfig.Spec.PathMatchPattern, _dummyHandler)
-
-		h, p, _ := projectCheck.Lookup("POST", "/project1/ns1/w1/values.yaml")
-		log.Println("h:", h)
-
-		if h != nil {
-			// got a hit for URL
-			project := p.ByName("project")
-			log.Println("project:", project)
-		}
-	}
-
 	output, err := cloneRepo(workloadCDConfig)
 	if err != nil {
 		log.Println("cloneRepo error", err)
+		return diag.FromErr(err)
 	}
 	log.Println("cloneRepo output", output)
 
 	folders, files, baseChart, err := walkRepo(workloadCDConfig)
 	if err != nil {
 		log.Println("getRepoFiles error", err)
+		return diag.FromErr(err)
 	}
 	log.Println("cloneRepo files", files)
 	log.Println("baseChart", baseChart)
 	log.Println("folders", folders)
 
 	processApplicationFolders(ctx, workloadCDConfig, baseChart, folders)
+
+	if workloadCDConfig.Status != nil && len(workloadCDConfig.Status) > 0 {
+		v, ok := d.Get("stattus").([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret := flattenWorkloaStatus(workloadCDConfig.Status, v)
+		d.Set("status", ret)
+	}
+
 	d.SetId(workloadCDConfig.Metadata.Name)
 	return diags
 }
 
+func flattenWorkloaStatus(input []WorkloadCDStatus, p []interface{}) []interface{} {
+	log.Println("flattenWorkloaStatus")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Namespace) > 0 {
+			obj["namespace"] = in.Namespace
+		}
+
+		if len(in.Project) > 0 {
+			obj["project"] = in.Project
+		}
+
+		if len(in.WorkloadName) > 0 {
+			obj["workload_name"] = in.WorkloadName
+		}
+
+		if len(in.Version) > 0 {
+			obj["workload_version"] = in.Version
+		}
+
+		if len(in.RepoFolder) > 0 {
+			obj["repo_folder"] = in.RepoFolder
+		}
+
+		if len(in.Status.ConditionType) > 0 {
+			obj["condition_type"] = in.Status.ConditionType
+		}
+
+		obj["condition_status"] = in.Status.ConditionStatus
+
+		if len(in.Status.DeployedClusters) > 0 {
+			obj["clusters"] = strings.Join(in.Status.DeployedClusters[:], ",")
+		}
+
+		if len(in.Status.Reason) > 0 {
+			obj["reason"] = in.Status.Reason
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
 func expandWorkloadCDConfig(in *schema.ResourceData) (*WorkloadCDConfig, error) {
 	if in == nil {
-		return nil, fmt.Errorf("%s", "expand addon empty input")
+		return nil, fmt.Errorf("%s", "expand WorkloadCD empty input")
 	}
 	obj := &WorkloadCDConfig{}
 
@@ -528,20 +665,15 @@ func expandWorkloadCDConfigSpec(p []interface{}) (*WorkloadCDConfigSpec, error) 
 		obj.ClusterNames = v
 	}
 
+	if v, ok := in["placement_labels"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.PlacementLabels = toMapString(v)
+	} else {
+		obj.PlacementLabels = nil
+	}
+
 	if v, ok := in["base_path"].(string); ok && len(v) > 0 {
 		obj.BasePath = v
 	}
-
-	if v, ok := in["scratch_pad"].(string); ok && len(v) > 0 {
-		obj.ScratchPad = v
-	}
-	// if v, ok := in["namespace_path_prefix"].(string); ok && len(v) > 0 {
-	// 	obj.NamespacePathPrefix = v
-	// }
-
-	// if v, ok := in["workload_path_prefix"].(string); ok && len(v) > 0 {
-	// 	obj.WorkloadNamePathPrefix = v
-	// }
 
 	if v, ok := in["credentials"].([]interface{}); ok && len(v) > 0 {
 		// XXX Debug
@@ -632,11 +764,12 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 	token := workloadCdCfg.Spec.Credentials.Token
 	path := workloadCdCfg.Spec.RepositoryLocalPath
 
-	//git -C ./repo pull || git clone https://stephan-rafay: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@github.com/stephan-rafay/test-tfcd.git ./repo
-	out, err := runCmd(workloadCdCfg, workloadCdCfg.Spec.RepositoryLocalPath, "-C", path, "pull", "||")
+	//git -C ./repo pull
+	out, err := runCmd(workloadCdCfg, ".", "-C", path, "pull")
 	if err != nil {
 		var url string
 		// if the repo doesn't exist, we need to clone it
+		// git clone https://stephan-rafay:api-key@url <path>
 		if strings.Contains(repo_url, "https://") {
 			strs := strings.Split(repo_url, "https://")
 			if password != "" {
@@ -673,6 +806,7 @@ func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, error) {
 	root := cfg.Spec.RepositoryLocalPath
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if strings.Contains(path, ".git") {
+			// ignore .git folder
 			return nil
 		}
 		if !info.IsDir() {
@@ -681,9 +815,9 @@ func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, error) {
 				baseChart = path
 			}
 		} else {
+			// check if the folder is a leaf
 			var isLeaf = true
 			filepath.Walk(path, func(path1 string, info1 os.FileInfo, err1 error) error {
-				//log.Println("path1", path1, "info", info1)
 				if path != path1 && info1.IsDir() {
 					isLeaf = false
 					return nil
@@ -716,8 +850,12 @@ func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, baseC
 		valuePaths, _ := getValuesInFolder(folder)
 		wg.Add(1)
 		// create application
-		go createApplication(ctx, cfg, folder, chartPath, valuePaths, &wg)
-		time.Sleep(time.Duration(2) * time.Second)
+		if chartPath != "" && len(valuePaths) > 0 {
+			go createApplication(ctx, cfg, folder, chartPath, valuePaths, &wg)
+			time.Sleep(time.Duration(2) * time.Second)
+		} else {
+			log.Println("processApplicationFolders ignore folder ", folder, "  chartPath or valuePaths is empty")
+		}
 	}
 	wg.Wait()
 	return nil
@@ -748,27 +886,19 @@ func getValuesInFolder(folder string) ([]string, error) {
 	return valuePaths, err
 }
 
-func getWorkLoadValues(project, namespace, workloadName, chartPath, clusterNames string, valuePaths []string) string {
-	var vPth string
-
-	log.Println("getWorkLoadValues project:", project)
-	// get the workload values
-	valueStr := "WorkloadName: " + workloadName + "\n"
-	valueStr += "Project: " + project + "\n"
-	valueStr += "ChartPath: " + chartPath + "\n"
-	valueStr += "Namespace: " + namespace + "\n"
-	for _, valuePath := range valuePaths {
-		vPth += "- name: " + valuePath + "\n"
+func pruneRepolocalPath(localPtah, path string) string {
+	lp1 := strings.TrimPrefix(localPtah, "./")
+	if strings.HasPrefix(path, lp1) {
+		return strings.TrimPrefix(path, lp1+"/")
 	}
-	valueStr += "ValuesPaths:\n" + vPth
-	valueStr += "ClusterNames: " + clusterNames + "\n"
-
-	log.Println("getWorkLoadValues", valueStr)
-	return valueStr
+	return path
 }
 
 /*
-`kind: Workload
+Example Workload Spec
+
+apiVersion: apps.k8smgmt.io/v3
+kind: Workload
 metadata:
 
 	name: {{ .WorkloadName }}
@@ -789,9 +919,14 @@ spec:
 	namespace: {{ .Namespace }}
 	placement:
 	  selector: rafay.dev/clusterName in ({{ .ClusterNames }})
+	  labels:
+	    - key: {{ .LabelKey }}
+		  value: {{ .LabelValue }}
 	version: {{ .Version }}
 */
-func getWorkLoadSpec(project, namespace, workloadName, chartPath, clusterNames string, valuePaths []string) string {
+
+// getWorkLoadSpec returns the Workload spec
+func getWorkLoadSpec(cfg *WorkloadCDConfig, project, namespace, workloadName, chartPath, clusterNames, version string, valuePaths []string) string {
 	var vPth string
 	var spec string
 
@@ -816,64 +951,51 @@ func getWorkLoadSpec(project, namespace, workloadName, chartPath, clusterNames s
 	spec += "    type: Helm\n"
 	spec += "  namespace: " + namespace + "\n"
 	spec += "  placement:\n"
-	spec += "    selector: rafay.dev/clusterName in (" + clusterNames + ")\n"
-	spec += "  version: 1.0.0\n"
+	if clusterNames != "" {
+		spec += "    selector: rafay.dev/clusterName in (" + clusterNames + ")\n"
+	}
+	if len(cfg.Spec.PlacementLabels) > 0 {
+		spec += "    labels:\n"
+		for k, v := range cfg.Spec.PlacementLabels {
+			spec += "      - key: " + k + "\n"
+			if v != "" {
+				spec += "        value: " + v + "\n"
+			}
+		}
+	}
+
+	spec += "  version: " + version + "\n"
 
 	return spec
 
 }
 
-func createTempFile(cfg *WorkloadCDConfig, prefix, workload string, b []byte) (string, error) {
-	var root string
-	if cfg.Spec.ScratchPad == "" {
-		root = os.TempDir()
-	} else {
-		root = cfg.Spec.ScratchPad
-	}
-	dir, err := os.MkdirTemp(root, "workloadcd-"+workload)
-	if err != nil {
-		log.Println("createTempFile error", err)
-		return "", err
-	}
-	filepath := dir + "/" + prefix + ".yaml"
-	log.Println("createTempFile", filepath)
-	return filepath, os.WriteFile(filepath, b, 0644)
-}
-
 func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string, chartPath string, valuePaths []string, wg *sync.WaitGroup) error {
 	// create application
-	// use the template to create the application
 	var project, namespace, workload string
+	var clusterNames string
+	var chartVersion string
+	var valueVersion string
+	var workloadVersion string
 	defer wg.Done()
 
-	if cfg.Spec.PathMatchPattern != "" {
-		projectCheck := httprouter.New()
+	projectCheck := httprouter.New()
+	pattern := strings.TrimPrefix(strings.TrimSuffix(cfg.Spec.RepositoryLocalPath, "/"), ".") + cfg.Spec.PathMatchPattern
+	log.Println("folder:", folder, "PathMatchPattern", pattern)
+	projectCheck.Handle("POST", pattern, _dummyHandler)
+	h, p, _ := projectCheck.Lookup("POST", "/"+folder)
+	log.Println("h:", h)
 
-		pattern := strings.TrimPrefix(strings.TrimSuffix(cfg.Spec.RepositoryLocalPath, "/"), ".") + cfg.Spec.PathMatchPattern
-		log.Println("folder:", folder, "PathMatchPattern", pattern)
-		projectCheck.Handle("POST", pattern, _dummyHandler)
-		h, p, _ := projectCheck.Lookup("POST", "/"+folder)
-		log.Println("h:", h)
+	if h != nil {
+		// got a hit for URL
+		project = p.ByName("project")
+		log.Println("project:", project)
 
-		if h != nil {
-			// got a hit for URL
-			project = p.ByName("project")
-			log.Println("project:", project)
+		namespace = p.ByName("namespace")
+		log.Println("namespace:", namespace)
 
-			namespace = p.ByName("namespace")
-			log.Println("namespace:", namespace)
-
-			workload = p.ByName("workload")
-			log.Println("workload:", workload)
-
-		}
-	}
-
-	// check if project exist
-	err := checkProject(ctx, project)
-	if err != nil {
-		log.Println("createApplication checkProject error", err)
-		return err
+		workload = p.ByName("workload")
+		log.Println("workload:", workload)
 	}
 
 	if workload == "" {
@@ -884,22 +1006,133 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 		log.Println("workload:", workload)
 	}
 
+	if project == "" || namespace == "" || workload == "" {
+		log.Println("createApplication: project, namespace or workload is empty ignore folder", folder)
+		return fmt.Errorf("createApplication: project, namespace or workload is empty ignore folder %s", folder)
+	}
+
+	// check if project exist
+	_, clusterList, err := checkProject(ctx, project)
+	if err != nil {
+		log.Println("createApplication: checkProject error", err)
+		status := WorkloadCDStatus{}
+		status.RepoFolder = folder
+		status.Project = project
+		status.Namespace = namespace
+		status.WorkloadName = workload
+		status.Status.ConditionType = "Failed"
+		status.Status.Reason = err.Error()
+		cfg.Status = append(cfg.Status, status)
+		return err
+	}
+
+	if cfg.Spec.ClusterNames == "" && len(cfg.Spec.PlacementLabels) <= 0 {
+		// get cluster names from clusterList in the project
+		if len(clusterList) <= 0 {
+			err = fmt.Errorf("createApplication: no clusters found for project %s", project)
+			log.Println(err)
+			status := WorkloadCDStatus{}
+			status.RepoFolder = folder
+			status.Project = project
+			status.Namespace = namespace
+			status.WorkloadName = workload
+			status.Status = &commonpb.Status{}
+			status.Status.ConditionType = "Failed"
+			status.Status.Reason = err.Error()
+			cfg.Status = append(cfg.Status, status)
+			return err
+		}
+		// get cluster names from clusterList in the project
+		clusterNames = strings.Join(clusterList, ",")
+	}
+	if cfg.Spec.ClusterNames != "" {
+		clusterNames = cfg.Spec.ClusterNames
+	}
+
+	// get chartPath version
+	// git log -n1 --oneline --pretty=format:%H
+	trimPath := pruneRepolocalPath(cfg.Spec.RepositoryLocalPath, chartPath)
+	out, err := runCmd(cfg, cfg.Spec.RepositoryLocalPath, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
+	if err != nil {
+		log.Println("failed to runCmd ", err, "trimPath", trimPath)
+		chartVersion = RandomString(7)
+	} else {
+		chartVersion = out[:7]
+	}
+
+	// get valuePath version
+	for _, valuePath := range valuePaths {
+		trimPath = pruneRepolocalPath(cfg.Spec.RepositoryLocalPath, valuePath)
+		out, err := runCmd(cfg, cfg.Spec.RepositoryLocalPath, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
+		if err != nil {
+			log.Println("failed to runCmd ", err, "trimPath", trimPath)
+			valueVersion += "." + RandomString(7)
+		} else {
+			valueVersion += "." + out[:7]
+		}
+	}
+
+	version := chartVersion + valueVersion
+	hashVar := sha256.New()
+	hashVar.Write([]byte(version))
+	bs := hashVar.Sum(nil)
+	workloadVersion = fmt.Sprintf("%x", bs)
+	log.Println("createApplication: chart and values commit", version, "workloadVersion", workloadVersion[:7])
+
+	// check worklaod version exist
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		log.Println("deployWorkload client error", err)
+		return err
+	}
+	wl, err := client.AppsV3().Workload().Get(ctx, options.GetOptions{
+		Name:    workload,
+		Project: project,
+	})
+	if err == nil {
+		if wl.Spec.Version == workloadVersion[:7] {
+			log.Println("workload version exist NOOP", workloadVersion[:7])
+			st, err := getWorkLoadStatus(ctx, cfg, wl, folder, workloadVersion[:7])
+			if err == nil {
+				cfg.Status = append(cfg.Status, *st)
+			}
+			return nil
+		}
+	}
+
 	log.Println("createApplication project:", project)
-	workloadSpec := getWorkLoadSpec(project, namespace, workload, chartPath, cfg.Spec.ClusterNames, valuePaths)
+	workloadSpec := getWorkLoadSpec(cfg, project, namespace, workload, chartPath, clusterNames, workloadVersion[:7], valuePaths)
 	log.Println("workloadSpec", "\n---\n", workloadSpec, "\n---")
 
-	deployWorkload(ctx, cfg, workloadSpec)
+	err = deployWorkload(ctx, cfg, workloadSpec, folder, workloadVersion[:7])
+	if err != nil {
+		log.Println("createApplication: deployWorkload error", err)
+		status := WorkloadCDStatus{}
+		status.RepoFolder = folder
+		status.Project = project
+		status.Namespace = namespace
+		status.WorkloadName = workload
+		status.Version = workloadVersion[:7]
+		status.Status = &commonpb.Status{}
+		status.Status.ConditionType = "Failed"
+		status.Status.Reason = err.Error()
+		cfg.Status = append(cfg.Status, status)
+		return err
+	}
+
 	return nil
 }
 
-func checkProject(ctx context.Context, project string) error {
+func checkProject(ctx context.Context, project string) (string, []string, error) {
 	// check if project exist
+	var clusterNames []string
 
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		log.Println("checkProject client error", err)
-		return err
+		return "", nil, err
 	}
 
 	_, err = client.SystemV3().Project().Get(ctx, options.GetOptions{
@@ -908,13 +1141,32 @@ func checkProject(ctx context.Context, project string) error {
 	if err != nil {
 		if strings.Contains(err.Error(), "code 404") {
 			log.Println("Resource Read ", "error", err)
-			return err
+			return "", nil, err
 		}
 	}
-	return nil
+	resp, err := rctl_project.GetProjectByName(project)
+	if err != nil {
+		log.Println("project does not exist ", "error", err)
+		return "", nil, err
+	}
+	pr, err := rctl_project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		log.Println("project does not exist ", "error", err)
+		return "", nil, err
+	}
+
+	clusterList, err := rctl_cluster.ListAllClusters(pr.ID, "")
+	if err != nil {
+		log.Println("failed to list clusters in project ", "error", err)
+	}
+	for _, cl := range *clusterList {
+		clusterNames = append(clusterNames, cl.Name)
+	}
+	log.Println("project", project, "clusterNames", clusterNames)
+	return pr.ID, clusterNames, nil
 }
 
-func deployWorkload(ctx context.Context, cfg *WorkloadCDConfig, workloadSpec string) error {
+func deployWorkload(ctx context.Context, cfg *WorkloadCDConfig, workloadSpec, folder, version string) error {
 	// deploy the workload
 	h, err := hubYAMLCodec.Decode([]byte(workloadSpec))
 	if err != nil {
@@ -974,6 +1226,12 @@ func deployWorkload(ctx context.Context, cfg *WorkloadCDConfig, workloadSpec str
 		return err
 	}
 
+	status := WorkloadCDStatus{}
+	status.RepoFolder = folder
+	status.Project = wl.Metadata.Project
+	status.Namespace = wl.Spec.Namespace
+	status.WorkloadName = wl.Metadata.Name
+	status.Version = version
 	// wait for publish
 	for {
 		time.Sleep(60 * time.Second)
@@ -986,6 +1244,7 @@ func deployWorkload(ctx context.Context, cfg *WorkloadCDConfig, workloadSpec str
 			return err
 		}
 		log.Println("wls.Status", wls.Status)
+		status.Status = wls.Status
 		if wls.Status != nil {
 			//check if workload can be placed on a cluster, if true break out of loop
 			if wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusOK ||
@@ -1001,5 +1260,51 @@ func deployWorkload(ctx context.Context, cfg *WorkloadCDConfig, workloadSpec str
 		}
 
 	}
+	log.Println("deployWorkload: workload status", status)
+	cfg.Status = append(cfg.Status, status)
 	return nil
+}
+
+func getWorkLoadStatus(ctx context.Context, cfg *WorkloadCDConfig, wl *appspb.Workload, folder, version string) (*WorkloadCDStatus, error) {
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		log.Println("deployWorkload client error", err)
+		return nil, err
+	}
+
+	err = client.AppsV3().Workload().Apply(ctx, wl, options.ApplyOptions{})
+	if err != nil {
+		log.Println("deployWorkload workload apply error", err)
+		return nil, err
+	}
+
+	status := WorkloadCDStatus{}
+	status.RepoFolder = folder
+	status.Project = wl.Metadata.Project
+	status.Namespace = wl.Spec.Namespace
+	status.WorkloadName = wl.Metadata.Name
+	status.Version = version
+
+	wls, err := client.AppsV3().Workload().Status(ctx, options.StatusOptions{
+		Name:    wl.Metadata.Name,
+		Project: wl.Metadata.Project,
+	})
+	if err != nil {
+		log.Println("deployWorkload workload status check error", err)
+		return nil, err
+	}
+	log.Println("wls.Status", wls.Status)
+	status.Status = wls.Status
+	if wls.Status != nil {
+		//check if workload can be placed on a cluster, if true break out of loop
+		if wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusOK ||
+			wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusNotSet {
+		}
+		if wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed {
+			log.Println("failed to publish workload", wls.Status)
+			return nil, (fmt.Errorf("%s %s", "failed to publish workload", wls.Status))
+		}
+	}
+	return &status, nil
 }

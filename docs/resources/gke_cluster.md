@@ -57,6 +57,9 @@ resource "rafay_gke_cluster" "tf-example" {
           image_type     = "COS_CONTAINERD"
           boot_disk_type = "pd-standard"
           boot_disk_size = 100
+          reservation_affinity {
+             consume_reservation_type = "any"
+          }
         }
       }
     }
@@ -311,6 +314,15 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `boot_disk_type` (String) Select Boot disk type. Storage space is less expensive for a standard persistent disk. An SSD persistent disk is better for random IOPS or for streaming throughput with low latency
 - `image_type` (String) Choose which operating system image you want to run on each node of this cluster
 - `machine_type` (String) Choose the machine type that will best fit the resource needs of your cluster
+- `reservation_affinity` (Block List, Max: 1) Zonal compute reservation to this node pool (see [below for nested schema](#nestedblock--spec--config--node_pools--machine_config--reservation_affinity))
+
+<a id="nestedblock--spec--config--node_pools--machine_config--reservation_affinity"></a>
+### Nested Schema for `spec.config.node_pools.machine_config.reservation_affinity`
+
+***Optional***
+
+- `consume_reservation_type` (String) Type of reservation consumption. It can be one of `none`, `any`, `specific` values.
+- `reservation_name` (String) The name of the Reservation to be consumed. Only mandatory when consumeReservationType is set to `specific`.
 
 
 <a id="nestedblock--spec--config--node_pools--networking"></a>

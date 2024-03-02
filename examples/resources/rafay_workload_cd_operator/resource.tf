@@ -5,10 +5,10 @@ resource "rafay_workload_cd_operator" "operator-demo" {
   }
   spec {
     repo_local_path = "./application-repo"
-    repo_url        = "https://github.com/stephan-rafay/test-tfcd.git"
+    repo_url        = "https://github.com/demo-user/test-tfcd.git"
     repo_branch     = "main"
     credentials {
-      username = "stephan-rafay"
+      username = "demo-user"
       token = "ghp_XXXXAPIKEYXXXX"
     }
 

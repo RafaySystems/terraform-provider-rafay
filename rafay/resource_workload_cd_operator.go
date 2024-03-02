@@ -55,6 +55,7 @@ type WorkloadCDConfigSpec struct {
 	PathMatchPattern    string                            `json:"pathMatchPattern,omitempty"`    // the path  pattern to extract project name from
 	RepositoryLocalPath string                            `json:"repositoryLocalPath,omitempty"` // the local path of the repository to clone
 	BasePath            string                            `json:"basePath,omitempty"`            // the path  pattern to extract base chart from
+	DeleteAction        string                            `json:"enableDelete,omitempty"`        // delete the workload
 	ClusterNames        string                            `json:"clusterNames,omitempty"`        // the cluster names to deploy the workload
 	PlacementLabels     map[string]string                 `json:"placementLabels,omitempty"`     // the placement labels for the clusters
 }
@@ -200,6 +201,7 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 				"repo_local_path": &schema.Schema{
 					Description: "repository local path",
 					Optional:    true,
+					Default:     "./apprepo",
 					Type:        schema.TypeString,
 				},
 				"path_match_pattern": &schema.Schema{
@@ -261,6 +263,12 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 					Description: "repository allow insecure connection",
 					Optional:    true,
 					Type:        schema.TypeBool,
+				},
+				"delete_action": &schema.Schema{
+					Description: "workload delete action",
+					Optional:    true,
+					Default:     "none",
+					Type:        schema.TypeString,
 				},
 				"options": &schema.Schema{
 					Description: "repository options",
@@ -535,6 +543,10 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 	log.Println("baseChart", baseChart)
 	log.Println("folders", folders)
 
+	if workloadCDConfig.Spec.DeleteAction != "none" {
+		processApplicationFoldersForDelete(ctx, workloadCDConfig, baseChart, folders)
+	}
+
 	processApplicationFolders(ctx, workloadCDConfig, baseChart, folders)
 
 	if workloadCDConfig.Status != nil && len(workloadCDConfig.Status) > 0 {
@@ -665,6 +677,10 @@ func expandWorkloadCDConfigSpec(p []interface{}) (*WorkloadCDConfigSpec, error) 
 		obj.ClusterNames = v
 	}
 
+	if v, ok := in["delete_action"].(string); ok && len(v) > 0 {
+		obj.DeleteAction = strings.ToLower(v)
+	}
+
 	if v, ok := in["placement_labels"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.PlacementLabels = toMapString(v)
 	} else {
@@ -718,12 +734,12 @@ func expandWorkloadCDCredentials(p []interface{}) (*CDCredentials, error) {
 }
 
 // runCmd is a convenience function to run a command in a given directory and return its output
-func runCmd(workloadCdCfg *WorkloadCDConfig, cmdDir string, args ...string) (string, error) {
+func runCmd(workloadCdCfg *WorkloadCDConfig, cmdDir string, senstive bool, args ...string) (string, error) {
 	cmd := exec.Command("git", args...)
-	return runCmdOutput(workloadCdCfg, cmdDir, cmd)
+	return runCmdOutput(workloadCdCfg, cmdDir, cmd, senstive)
 }
 
-func runCmdOutput(workloadCdCfg *WorkloadCDConfig, cmdDir string, cmd *exec.Cmd) (string, error) {
+func runCmdOutput(workloadCdCfg *WorkloadCDConfig, cmdDir string, cmd *exec.Cmd, senstive bool) (string, error) {
 	cmd.Dir = cmdDir
 	cmd.Env = append(os.Environ(), cmd.Env...)
 	// Set $HOME to nowhere, so we can be execute Git regardless of any external
@@ -751,11 +767,15 @@ func runCmdOutput(workloadCdCfg *WorkloadCDConfig, cmdDir string, cmd *exec.Cmd)
 	}
 
 	out, err := RunWithExecRunOpts(cmd, opts)
-	log.Println("runCmdOutput", cmd, "out", out, "err", err)
+	if !senstive {
+		log.Println("runCmdOutput", cmd, "out", out, "err", err)
+	}
 	return out, err
 }
 
 func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
+	var out string
+
 	log.Printf("cloneRepo starts")
 	repo_url := workloadCdCfg.Spec.RepoURL
 	//repo_branch := workloadCdCfg.Spec.RepoBranch
@@ -764,12 +784,23 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 	token := workloadCdCfg.Spec.Credentials.Token
 	path := workloadCdCfg.Spec.RepositoryLocalPath
 
-	//git -C ./repo pull
-	out, err := runCmd(workloadCdCfg, ".", "-C", path, "pull")
+	//git -C ./apprepo pull
+	out, err := runCmd(workloadCdCfg, ".", false, "-C", path, "pull")
+	if err == nil {
+		if workloadCdCfg.Spec.RepoBranch != "" {
+			_, err := runCmd(workloadCdCfg, path, false, "checkout", workloadCdCfg.Spec.RepoBranch)
+			if err != nil {
+				log.Println("failed to checkout branch error", err)
+			}
+		}
+	}
 	if err != nil {
 		var url string
+
+		// remove the local repo if it exists
+		runCmd(workloadCdCfg, ".", false, "rm -rf", path)
 		// if the repo doesn't exist, we need to clone it
-		// git clone https://stephan-rafay:api-key@url <path>
+		// git clone --branch <branchname> https://stephan-rafay:api-key@url <path>
 		if strings.Contains(repo_url, "https://") {
 			strs := strings.Split(repo_url, "https://")
 			if password != "" {
@@ -785,7 +816,11 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 				url = fmt.Sprintf("http://%s:%s@%s", user, token, strs[1])
 			}
 		}
-		out, err := runCmd(workloadCdCfg, ".", "clone", url, path)
+		if workloadCdCfg.Spec.RepoBranch != "" {
+			out, err = runCmd(workloadCdCfg, ".", true, "clone", "--branch", workloadCdCfg.Spec.RepoBranch, url, path)
+		} else {
+			out, err = runCmd(workloadCdCfg, ".", true, "clone", url, path)
+		}
 		if err != nil {
 			return nil, fmt.Errorf("failed to clone repo: %s", out)
 		}
@@ -811,8 +846,10 @@ func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, error) {
 		}
 		if !info.IsDir() {
 			files = append(files, path)
-			if strings.Contains(path, cfg.Spec.BasePath) && strings.HasSuffix(path, ".tgz") {
-				baseChart = path
+			if cfg.Spec.BasePath != "" {
+				if strings.Contains(path, cfg.Spec.BasePath) && strings.HasSuffix(path, ".tgz") {
+					baseChart = path
+				}
 			}
 		} else {
 			// check if the folder is a leaf
@@ -833,24 +870,175 @@ func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, error) {
 	return folders, files, baseChart, err
 }
 
-func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, baseChart string, folders []string) error {
-	var chartPath string
+func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConfig, baseChart string, folders []string) error {
 	var wg sync.WaitGroup
+	var wrkList appspb.WorkloadList
+	var wrkPrunedList appspb.WorkloadList
 
-	if baseChart != "" {
-		chartPath = baseChart
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		log.Println("checkProject client error", err)
+		return err
+	}
+
+	// Get all the projects
+	projectList, err := client.SystemV3().Project().List(ctx, options.ListOptions{})
+	if err != nil {
+		log.Println("processApplicationFoldersForDelete failed to get projectList error", err)
+		return err
+	}
+
+	// Get all the workloads created by the operator
+	for _, pr := range projectList.Items {
+		// Get all the workloads in the project
+		wList, err := client.AppsV3().Workload().List(ctx, options.ListOptions{
+			Project: pr.Metadata.Name,
+		})
+		if err != nil {
+			log.Println("processApplicationFoldersForDelete failed to get workload List for project", pr.Metadata.Name, "error", err)
+			return err
+		}
+		for _, w := range wList.Items {
+			for k, _ := range w.Metadata.Labels {
+				if k == "k8smgmt.io/helm-deployer-tfcd" {
+					log.Println("found operator deployed workload", w.Metadata.Name, "project", w.Metadata.Project, "namespace", w.Spec.Namespace)
+					wrkList.Items = append(wrkList.Items, w)
+				}
+			}
+		}
 	}
 
 	for _, folder := range folders {
-		// process folder and create application
+		// prune workload list
+		var project, namespace, workload string
+		var chartPath string
+
+		if baseChart != "" {
+			chartPath = baseChart
+		}
+
 		if chartPath == "" {
 			// get the chart in the folder
 			chartPath, _ = getChartInFolder(folder)
 		}
 		valuePaths, _ := getValuesInFolder(folder)
-		wg.Add(1)
+
+		projectCheck := httprouter.New()
+		pattern := strings.TrimPrefix(strings.TrimSuffix(cfg.Spec.RepositoryLocalPath, "/"), ".") + cfg.Spec.PathMatchPattern
+		log.Println("folder:", folder, "PathMatchPattern", pattern)
+		projectCheck.Handle("POST", pattern, _dummyHandler)
+		h, p, _ := projectCheck.Lookup("POST", "/"+folder)
+		log.Println("h:", h)
+
+		if h != nil {
+			// got a hit for URL
+			project = p.ByName("project")
+			log.Println("project:", project)
+
+			namespace = p.ByName("namespace")
+			log.Println("namespace:", namespace)
+
+			workload = p.ByName("workload")
+			log.Println("workload:", workload)
+		}
+
+		if workload == "" {
+			// use chart name as workload name
+			strs := strings.Split(chartPath, "/")
+			chartName := strs[len(strs)-1]
+			w1 := strings.TrimSuffix(chartName, ".tgz")
+			w2 := strings.ReplaceAll(w1, ".", "-")
+			workload = strings.ReplaceAll(w2, "_", "-")
+			log.Println("workload:", workload)
+		}
+		for _, w := range wrkList.Items {
+			if w.Metadata.Name == workload && w.Spec.Namespace == namespace && w.Metadata.Project == project {
+				if chartPath != "" && len(valuePaths) > 0 {
+					wrkPrunedList.Items = append(wrkPrunedList.Items, w)
+				}
+			}
+		}
+	}
+
+	for _, w := range wrkList.Items {
+		found := false
+		for _, pw := range wrkPrunedList.Items {
+			if w.Metadata.Name == pw.Metadata.Name &&
+				w.Spec.Namespace == pw.Spec.Namespace &&
+				w.Metadata.Project == pw.Metadata.Project {
+				found = true
+				break
+			}
+		}
+		if !found {
+			// delete application
+			wg.Add(1)
+			log.Println("deleteApplication", w.Metadata.Project, w.Metadata.Name)
+			go deleteApplication(ctx, cfg, w.Metadata.Project, w.Metadata.Name, &wg)
+		}
+	}
+
+	wg.Wait()
+	return nil
+}
+
+func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, project, workload string, wg *sync.WaitGroup) error {
+	defer wg.Done()
+
+	resp, err := rctl_project.GetProjectByName(project)
+	if err != nil {
+		log.Println("project does not exist ", "error", err)
+		return err
+	}
+	pr, err := rctl_project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		log.Println("project does not exist ", "error", err)
+		return err
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+
+	if cfg.Spec.DeleteAction == "delete" {
+		uri := fmt.Sprintf("/v2/config/project/%s/workload/%s", pr.ID, workload)
+		println("delete uri", uri)
+		_, err := auth.AuthAndRequest(uri, "DELETE", nil)
+		if err != nil {
+			log.Println("delete workload uri", uri, "error", err)
+			return err
+		}
+	} else if cfg.Spec.DeleteAction == "unpublish" {
+
+		uri := fmt.Sprintf("/v2/config/project/%s/workload/%s/unpublish", pr.ID, workload)
+		println("unpublish uri", uri)
+		_, err := auth.AuthAndRequest(uri, "POST", nil)
+		if err != nil {
+			log.Println("unpublish workload uri", uri, "error", err)
+			return err
+		}
+	}
+	return nil
+}
+
+func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, baseChart string, folders []string) error {
+	var chartPath string
+	var wg sync.WaitGroup
+
+	for _, folder := range folders {
+		// process folder and create application
+
+		chartPath = ""
+		if baseChart != "" {
+			chartPath = baseChart
+		}
+		if chartPath == "" {
+			// get the chart in the folder
+			chartPath, _ = getChartInFolder(folder)
+		}
+		valuePaths, _ := getValuesInFolder(folder)
 		// create application
 		if chartPath != "" && len(valuePaths) > 0 {
+			wg.Add(1)
 			go createApplication(ctx, cfg, folder, chartPath, valuePaths, &wg)
 			time.Sleep(time.Duration(2) * time.Second)
 		} else {
@@ -938,6 +1126,8 @@ func getWorkLoadSpec(cfg *WorkloadCDConfig, project, namespace, workloadName, ch
 	spec += "metadata:\n"
 	spec += "  name: " + workloadName + "\n"
 	spec += "  project: " + project + "\n"
+	spec += "  labels:\n"
+	spec += "    k8smgmt.io/helm-deployer-tfcd: cd-operator\n"
 	spec += "spec:\n"
 	spec += "  artifact:\n"
 	spec += "    artifact:\n"
@@ -1002,7 +1192,9 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 		// use chart name as workload name
 		strs := strings.Split(chartPath, "/")
 		chartName := strs[len(strs)-1]
-		workload = strings.TrimSuffix(chartName, ".tgz")
+		w1 := strings.TrimSuffix(chartName, ".tgz")
+		w2 := strings.ReplaceAll(w1, ".", "-")
+		workload = strings.ReplaceAll(w2, "_", "-")
 		log.Println("workload:", workload)
 	}
 
@@ -1052,7 +1244,7 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 	// get chartPath version
 	// git log -n1 --oneline --pretty=format:%H
 	trimPath := pruneRepolocalPath(cfg.Spec.RepositoryLocalPath, chartPath)
-	out, err := runCmd(cfg, cfg.Spec.RepositoryLocalPath, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
+	out, err := runCmd(cfg, cfg.Spec.RepositoryLocalPath, false, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
 	if err != nil {
 		log.Println("failed to runCmd ", err, "trimPath", trimPath)
 		chartVersion = RandomString(7)
@@ -1063,7 +1255,7 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 	// get valuePath version
 	for _, valuePath := range valuePaths {
 		trimPath = pruneRepolocalPath(cfg.Spec.RepositoryLocalPath, valuePath)
-		out, err := runCmd(cfg, cfg.Spec.RepositoryLocalPath, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
+		out, err := runCmd(cfg, cfg.Spec.RepositoryLocalPath, false, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
 		if err != nil {
 			log.Println("failed to runCmd ", err, "trimPath", trimPath)
 			valueVersion += "." + RandomString(7)

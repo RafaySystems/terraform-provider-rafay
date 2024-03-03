@@ -540,7 +540,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 	}
 	log.Println("cloneRepo output", output)
 
-	folders, files, baseChart, err := walkRepo(workloadCDConfig)
+	folders, files, baseChart, baseValues, err := walkRepo(workloadCDConfig)
 	if err != nil {
 		log.Println("getRepoFiles error", err)
 		return diag.FromErr(err)
@@ -548,12 +548,13 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 	log.Println("cloneRepo files", files)
 	log.Println("baseChart", baseChart)
 	log.Println("folders", folders)
+	log.Println("baseValues", baseValues)
 
 	if workloadCDConfig.Spec.DeleteAction != "none" {
 		processApplicationFoldersForDelete(ctx, workloadCDConfig, baseChart, folders)
 	}
 
-	processApplicationFolders(ctx, workloadCDConfig, baseChart, folders)
+	processApplicationFolders(ctx, workloadCDConfig, baseChart, baseValues, folders)
 
 	if workloadCDConfig.Status != nil && len(workloadCDConfig.Status) > 0 {
 		v, ok := d.Get("stattus").([]interface{})
@@ -843,10 +844,11 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 // walkRepo walks the repository and returns all files and folders
 // it also returns the base chart if it exists
 // it returns an error if the walk fails
-func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, error) {
+func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, []string, error) {
 	var files []string
 	var folders []string
 	var baseChart string
+	var baseValues []string
 
 	root := cfg.Spec.RepositoryLocalPath
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -859,6 +861,10 @@ func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, error) {
 			if cfg.Spec.BasePath != "" {
 				if strings.Contains(path, cfg.Spec.BasePath) && strings.HasSuffix(path, ".tgz") {
 					baseChart = path
+				}
+				if strings.Contains(path, cfg.Spec.BasePath) &&
+					(strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".yml")) {
+					baseValues = append(baseValues, path)
 				}
 			}
 		} else {
@@ -877,7 +883,7 @@ func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, error) {
 		}
 		return nil
 	})
-	return folders, files, baseChart, err
+	return folders, files, baseChart, baseValues, err
 }
 
 func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConfig, baseChart string, folders []string) error {
@@ -1029,7 +1035,7 @@ func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, project, work
 	return nil
 }
 
-func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, baseChart string, folders []string) error {
+func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, baseChart string, baseValues, folders []string) error {
 	var chartPath string
 	var wg sync.WaitGroup
 
@@ -1046,10 +1052,11 @@ func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, baseC
 		}
 
 		if cfg.Spec.IncludeBaseValue {
+			log.Println("processApplicationFolders include base values", baseValues)
+
 			// add base values
-			baseValuePaths, err := getValuesInFolder(cfg.Spec.BasePath)
-			if err == nil && len(baseValuePaths) > 0 {
-				valuePaths = append(valuePaths, baseValuePaths...)
+			if len(baseValues) > 0 {
+				valuePaths = append(valuePaths, baseValues...)
 			}
 		}
 

@@ -55,6 +55,7 @@ type WorkloadCDConfigSpec struct {
 	PathMatchPattern    string                            `json:"pathMatchPattern,omitempty"`    // the path  pattern to extract project name from
 	RepositoryLocalPath string                            `json:"repositoryLocalPath,omitempty"` // the local path of the repository to clone
 	BasePath            string                            `json:"basePath,omitempty"`            // the path  pattern to extract base chart from
+	IncludeBaseValue    bool                              `json:"includeBaseValue,omitempty"`    // include base value.yaml
 	DeleteAction        string                            `json:"enableDelete,omitempty"`        // delete the workload
 	ClusterNames        string                            `json:"clusterNames,omitempty"`        // the cluster names to deploy the workload
 	PlacementLabels     map[string]string                 `json:"placementLabels,omitempty"`     // the placement labels for the clusters
@@ -197,6 +198,11 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 					Description: "repository local path",
 					Optional:    true,
 					Type:        schema.TypeString,
+				},
+				"include_base_value": &schema.Schema{
+					Description: "include values from base path",
+					Optional:    true,
+					Type:        schema.TypeBool,
 				},
 				"repo_local_path": &schema.Schema{
 					Description: "repository local path",
@@ -691,6 +697,10 @@ func expandWorkloadCDConfigSpec(p []interface{}) (*WorkloadCDConfigSpec, error) 
 		obj.BasePath = v
 	}
 
+	if v, ok := in["include_base_value"].(bool); ok {
+		obj.IncludeBaseValue = v
+	}
+
 	if v, ok := in["credentials"].([]interface{}); ok && len(v) > 0 {
 		// XXX Debug
 		objCreds, err := expandWorkloadCDCredentials(v)
@@ -914,14 +924,13 @@ func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConf
 		var project, namespace, workload string
 		var chartPath string
 
-		if baseChart != "" {
+		// get the chart in the folder
+		chartPath, _ = getChartInFolder(folder)
+		if chartPath == "" && baseChart != "" {
+			// get chart from baseChart
 			chartPath = baseChart
 		}
 
-		if chartPath == "" {
-			// get the chart in the folder
-			chartPath, _ = getChartInFolder(folder)
-		}
 		valuePaths, _ := getValuesInFolder(folder)
 
 		projectCheck := httprouter.New()
@@ -1025,17 +1034,30 @@ func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, baseC
 	var wg sync.WaitGroup
 
 	for _, folder := range folders {
-		// process folder and create application
+		var valuePaths []string
 
+		// process folder and create application
 		chartPath = ""
-		if baseChart != "" {
+
+		// get the chart in the folder
+		chartPath, _ = getChartInFolder(folder)
+		if chartPath == "" && baseChart != "" {
 			chartPath = baseChart
 		}
-		if chartPath == "" {
-			// get the chart in the folder
-			chartPath, _ = getChartInFolder(folder)
+
+		if cfg.Spec.IncludeBaseValue {
+			// add base values
+			baseValuePaths, err := getValuesInFolder(cfg.Spec.BasePath)
+			if err == nil && len(baseValuePaths) > 0 {
+				valuePaths = append(valuePaths, baseValuePaths...)
+			}
 		}
-		valuePaths, _ := getValuesInFolder(folder)
+
+		vPaths, err := getValuesInFolder(folder)
+		if err == nil && len(vPaths) > 0 {
+			valuePaths = append(valuePaths, vPaths...)
+		}
+
 		// create application
 		if chartPath != "" && len(valuePaths) > 0 {
 			wg.Add(1)

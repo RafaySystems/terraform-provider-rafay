@@ -5,13 +5,13 @@ Helm Workload Deployer
 ## Table of Contents
 - [Overview](#overview)
 - [Usage](#usage)
-  - [Workload Deployer Resource](#workload-deployer-resource)
-    - [Features](#features)
+  - [Features](#features)
   - [Repository Folder Structure](#repository-folder-structure)
     - [Path Match Pattern Examples](#path-match-pattern-examples)
       - [Example1](#example1)
 	  - [Example2](#example2)
   - [Base Path](#base-path)
+    - [Chart Selection for Deployment](#chart-selection-for-deployment)
   - [Managing Different Chart Versions](#managing-different-chart-versions)
 - [Examples](#examples)
 - [Variables](#variables)
@@ -24,27 +24,48 @@ Helm Workload Deployer
 
 
 ## Overview
-This terraform resource facilitates the deployment of Helm workloads (applications) from a Git repository. It streamlines the process of managing and deploying Helm charts directly from version-controlled repositories, providing a seamless integration for your workloads.
+This terraform resource facilitates the deployment of Helm workloads (applications) from a Git repository. It streamlines the process of managing and deploying Helm charts directly from version-controlled repositories, providing a seamless GitOps integration for your workloads.
 
 ## Usage
 
-### Workload Deployer Resource
-
 The Workload Deployer resource facilitates the cloning of the provided repository and orchestrates the deployment of Helm charts to designated clusters. 
 
-#### Features:
+### Workload Deployer Features
 
-- Clones the specified repository.
-- Deploys Helm charts to the designated clusters.
-- Supports flexible combinations of `project`, `namespace`, and `workload` folder structure <br>
-  -`/:project/:namespace/:workload` <br>
-  -`/:workload/:namespace/:project` etc. <br>
+- **Cloning Repository:**
+  The deployer initiates the process by cloning the specified repository.
 
-  Note:  `project` and `namespace` are mandatory, and `workload` is optional.
+- **Rafay Workloads Creation:**
+  It then creates Rafay Workloads to deploy Helm charts to the designated clusters.
+
+- **Flexible Configuration:**
+  Supports flexible combinations of `project`, `namespace`, and `workload` folder structures.
+
+- **Version Control:**
+  Allows the deployment of different chart versions for various workloads.
+
+- **Workload Republishing:**
+  Facilitates the republishing of workloads when the repository undergoes updates.
+
+- **Workload Deletion and Unpublishing:**
+  - Compares existing workloads with the repository.
+  - Deletes or unpublishes workloads from the project when corresponding folders or values are removed from the repository.
+
+
 
 
 ### Repository Folder Structure
 The repository folder structure is designed to organize Helm charts in a way that reflects the project name, namespace, and workload name. The folder structure is flexible and can be customized to suit your specific requirements using `path_match_pattern`.
+
+Note:  `project` and `namespace` are mandatory, and `workload` is optional.
+
+Examples:
+
+- `/:project/:namespace/:workload` <br>
+- `/somefolder/:project/:namespace/:workload` <br>
+- `/somefolder/:project/:namespace/:workload/anotherfolder` <br>
+- `/somefolder/production/:project/:namespace/:workload` <br>
+- `/:workload/:namespace/:project` etc. <br>
 
 #### Path Match Pattern Examples
 
@@ -89,14 +110,40 @@ In this scenario, if `base_path = "common"`, two workloads will be deployed in r
 
 The workload name will be derived from the chartname `chart-1-0-1`. <br>
 
+
+#### Example3: All three folders are present inside another folder
+If the folder structure is like below, then the `path_match_pattern` can be specified in the following format:<br> `/production/:project/:namespace/:workload` <br>
+```
+- production
+  - common
+    - chart-1.0.1.tgz
+  - project1
+    - namespace1
+      - workload1
+	    - values.yaml 
+  - project2
+    - namespace1
+      - workload1
+	  - values.yaml
+```
+
+In this scenario, if `base_path = "production/common"`, two workloads will be deployed in respective projects using the same chart file located in the `production/common` folder. <br>
+1. The first workload will use the chart file from the `production/common` folder and values from the `production/project1/namespace1/workload1` folder. <br>
+2. The second workload will use the chart file from the `production/common` folder and values from the `production/project2/namespace1/workload1` folder. <br>
+
+
 ### Base Path
 The `base_path` is the common path for the chart.
 
-If `base_path` is not specified, the chart file is selected from the respective folder where the values.yaml is present.
+#### Chart and Value Selection for Deployment
+
+If the chart is found in the respective folder, it takes precedence for deployment over the specified `base_path`. This ensures that the deployment process prioritizes the chart present in the workload folder, providing flexibility to deploy different version of the applicatin.
 
 If the chart or value file is missing for a specific folder, the entire folder will be skipped during the deployment process. This ensures that the deployment focuses only on folders with the necessary files, avoiding any errors caused by missing components.
 
 If more than one value file is present in the folder, the deployment will use all the files with extenstions `.yaml` or `.yml` present in the folder.
+
+If `include_base_values` is set to `true`, the values from the `base_path` will be merged with the values from the workload folder. 
 
 ### Managing Different Chart Versions
 

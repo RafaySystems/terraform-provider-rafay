@@ -2519,6 +2519,16 @@ func expandFargateProfilesSelectors(p []interface{}) []FargateProfileSelector {
 	return out
 }
 
+func jpp(v interface{}) string {
+	b, _ := json.Marshal(v)
+	return string(b)
+}
+
+func ypp(v interface{}) string {
+	b, _ := yaml.Marshal(v)
+	return string(b)
+}
+
 func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNodeGroup { //not completed have questions in comments
 	out := make([]*ManagedNodeGroup, len(p))
 	if len(p) == 0 || p[0] == nil {
@@ -2526,7 +2536,9 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 	}
 	log.Println("got to managed node group")
 	for i := range p {
+		log.Printf("[RAFAY-DEBUG] managed nodegroup input %d: %+v", i, jpp(p[i]))
 		obj := &ManagedNodeGroup{}
+		log.Printf("obj: %p %+v", obj, obj)
 		in := p[i].(map[string]interface{})
 		nRawConfig := rawConfig.AsValueSlice()[i]
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
@@ -2541,8 +2553,12 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
 			obj.AvailabilityZones = toArrayStringSorted(v)
 		}
+		log.Printf("[RAFAY-DEBUG] in[subnets]: %s", jpp(in["subnets"]))
 		if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
 			obj.Subnets = toArrayString(v)
+			log.Printf("[RAFAY-DEBUG] obj.Subnets: %s", ypp(obj.Subnets))
+		} else {
+			log.Printf("[RAFAY-DEBUG] subnets not found")
 		}
 		if v, ok := in["instance_prefix"].(string); ok && len(v) > 0 {
 			obj.InstancePrefix = v
@@ -2662,6 +2678,8 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		//struct has field ReleaseVersion
 		//also has internal field unowned -> will leave blank for now
 		//how do i finish this?
+
+		log.Printf("[RAFAY-DEBUG] managed nodegroup output %d: %+v", i, ypp(obj))
 
 		//check if this is how to build array of pointers
 		//out[i] = obj

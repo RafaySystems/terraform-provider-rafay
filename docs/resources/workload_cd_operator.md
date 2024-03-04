@@ -265,7 +265,7 @@ Specification of the resource
 | Property            | Description                                        | Type                  | Default |
 |---------------------|----------------------------------------------------|-----------------------|---------|
 | base_path           | Common path for the chart                          | `string`              | `""`    |
-| repo_local_path     | Repository local path to clone                     | `string`              | `""`    |
+| repo_local_path     | Repository local path to clone                     | `string`              | `./apprepo`    |
 | path_match_pattern  | Project/namespace/workload name path match pattern | `string` (required)   | -       |
 | cluster_names       | Cluster names (comma-separated)                    | `string`              | `""`    |
 | placement_labels    | Placement labels of the cluster                    | `map(string)`         | `{}`    |

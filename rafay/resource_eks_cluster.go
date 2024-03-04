@@ -2584,7 +2584,7 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 			obj.SecurityGroups = expandManagedNodeGroupSecurityGroups(v, nRawConfig.GetAttr("security_groups"))
 		}
 		if v, ok := in["max_pods_per_node"].(int); ok {
-			obj.MaxPodsPerNode = &v
+			obj.MaxPodsPerNode = v
 		}
 		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
 			obj.ASGSuspendProcesses = toArrayString(v)

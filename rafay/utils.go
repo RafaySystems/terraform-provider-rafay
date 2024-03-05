@@ -22,6 +22,7 @@ import (
 	"github.com/go-yaml/yaml"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 type File struct {
@@ -2092,4 +2093,21 @@ func flattenV3MetaData(in *commonpb.Metadata) []interface{} {
 	}
 
 	return []interface{}{obj}
+}
+
+func validateResourceName(name string) error {
+	errs := validation.IsDNS1123Subdomain(name)
+	if len(errs) != 0 {
+		var wrongInputError string
+		for _, val := range errs {
+			wrongInputError += val
+		}
+		return fmt.Errorf("%s", wrongInputError)
+	}
+	return nil
+}
+
+func checkStandardInputTextError(input string) bool {
+	dns1123ValidationErrMsg := "a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters"
+	return strings.Contains(input, dns1123ValidationErrMsg)
 }

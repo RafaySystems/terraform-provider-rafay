@@ -106,6 +106,9 @@ func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 	log.Printf("namespace create starts")
 	diags := resourceNamespaceUpsert(ctx, d, m)
 	if diags.HasError() {
+		if checkStandardInputTextError(diags[0].Summary) {
+			return diags
+		}
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
@@ -175,6 +178,11 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 	ns, err := expandNamespace(d)
 	if err != nil {
 		log.Printf("namespace expandNamespace error")
+		return diag.FromErr(err)
+	}
+
+	err = validateResourceName(ns.Metadata.Name)
+	if err != nil {
 		return diag.FromErr(err)
 	}
 

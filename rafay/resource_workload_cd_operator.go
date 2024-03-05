@@ -207,7 +207,7 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 				"repo_local_path": &schema.Schema{
 					Description: "repository local path",
 					Optional:    true,
-					Default:     "./apprepo",
+					Default:     "/tmp/apprepo",
 					Type:        schema.TypeString,
 				},
 				"path_match_pattern": &schema.Schema{
@@ -673,7 +673,12 @@ func expandWorkloadCDConfigSpec(p []interface{}) (*WorkloadCDConfigSpec, error) 
 	}
 
 	if v, ok := in["repo_local_path"].(string); ok && len(v) > 0 {
-		obj.RepositoryLocalPath = v
+		abs, err := filepath.Abs(v)
+		if err == nil {
+			obj.RepositoryLocalPath = abs
+		} else {
+			obj.RepositoryLocalPath = "/tmp/apprepo"
+		}
 	}
 
 	if v, ok := in["path_match_pattern"].(string); ok && len(v) > 0 {
@@ -786,16 +791,19 @@ func runCmdOutput(workloadCdCfg *WorkloadCDConfig, cmdDir string, cmd *exec.Cmd,
 
 func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 	var out string
+	var user, password, token string
 
 	log.Printf("cloneRepo starts")
 	repo_url := workloadCdCfg.Spec.RepoURL
 	//repo_branch := workloadCdCfg.Spec.RepoBranch
-	user := workloadCdCfg.Spec.Credentials.Username
-	password := workloadCdCfg.Spec.Credentials.Password
-	token := workloadCdCfg.Spec.Credentials.Token
+	if workloadCdCfg.Spec.Credentials != nil {
+		user = workloadCdCfg.Spec.Credentials.Username
+		password = workloadCdCfg.Spec.Credentials.Password
+		token = workloadCdCfg.Spec.Credentials.Token
+	}
 	path := workloadCdCfg.Spec.RepositoryLocalPath
 
-	//git -C ./apprepo pull
+	//git -C /tmp/apprepo pull
 	out, err := runCmd(workloadCdCfg, ".", false, "-C", path, "pull")
 	if err == nil {
 		if workloadCdCfg.Spec.RepoBranch != "" {
@@ -818,6 +826,8 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 				url = fmt.Sprintf("https://%s:%s@%s", user, password, strs[1])
 			} else if token != "" {
 				url = fmt.Sprintf("https://%s:%s@%s", user, token, strs[1])
+			} else {
+				url = repo_url
 			}
 		} else if strings.Contains(repo_url, "http://") {
 			strs := strings.Split(repo_url, "http://")
@@ -825,6 +835,8 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 				url = fmt.Sprintf("http://%s:%s@%s", user, password, strs[1])
 			} else if token != "" {
 				url = fmt.Sprintf("http://%s:%s@%s", user, token, strs[1])
+			} else {
+				url = repo_url
 			}
 		}
 		if workloadCdCfg.Spec.RepoBranch != "" {
@@ -857,14 +869,29 @@ func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, []string, erro
 			return nil
 		}
 		if !info.IsDir() {
-			files = append(files, path)
+			abs, err := filepath.Abs(path)
+			if err == nil {
+				files = append(files, abs)
+			} else {
+				log.Println("failed to get absolute path for files", err)
+			}
 			if cfg.Spec.BasePath != "" {
 				if strings.Contains(path, cfg.Spec.BasePath) && strings.HasSuffix(path, ".tgz") {
-					baseChart = path
+					abs, err := filepath.Abs(path)
+					if err == nil {
+						baseChart = abs
+					} else {
+						log.Println("failed to get absolute path for baseChart", err)
+					}
 				}
 				if strings.Contains(path, cfg.Spec.BasePath) &&
 					(strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".yml")) {
-					baseValues = append(baseValues, path)
+					abs, err := filepath.Abs(path)
+					if err == nil {
+						baseValues = append(baseValues, abs)
+					} else {
+						log.Println("failed to get absolute path for baseValues", err)
+					}
 				}
 			}
 		} else {
@@ -878,7 +905,12 @@ func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, []string, erro
 				return nil
 			})
 			if isLeaf {
-				folders = append(folders, path)
+				abs, err := filepath.Abs(path)
+				if err == nil {
+					folders = append(folders, abs)
+				} else {
+					log.Println("failed to get absolute path for folders", err)
+				}
 			}
 		}
 		return nil
@@ -941,11 +973,10 @@ func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConf
 
 		projectCheck := httprouter.New()
 		pattern := strings.TrimPrefix(strings.TrimSuffix(cfg.Spec.RepositoryLocalPath, "/"), ".") + cfg.Spec.PathMatchPattern
-		log.Println("folder:", folder, "PathMatchPattern", pattern)
+		log.Println("Delete folder:", folder, "PathMatchPattern", pattern)
 		projectCheck.Handle("POST", pattern, _dummyHandler)
-		h, p, _ := projectCheck.Lookup("POST", "/"+folder)
+		h, p, _ := projectCheck.Lookup("POST", folder)
 		log.Println("h:", h)
-
 		if h != nil {
 			// got a hit for URL
 			project = p.ByName("project")
@@ -1202,7 +1233,7 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 	pattern := strings.TrimPrefix(strings.TrimSuffix(cfg.Spec.RepositoryLocalPath, "/"), ".") + cfg.Spec.PathMatchPattern
 	log.Println("folder:", folder, "PathMatchPattern", pattern)
 	projectCheck.Handle("POST", pattern, _dummyHandler)
-	h, p, _ := projectCheck.Lookup("POST", "/"+folder)
+	h, p, _ := projectCheck.Lookup("POST", folder)
 	log.Println("h:", h)
 
 	if h != nil {

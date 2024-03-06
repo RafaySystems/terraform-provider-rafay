@@ -2099,9 +2099,7 @@ func validateResourceName(name string) error {
 	errs := validation.IsDNS1123Subdomain(name)
 	if len(errs) != 0 {
 		var wrongInputError string
-		for _, val := range errs {
-			wrongInputError += val
-		}
+		strings.Join(errs, " ")
 		return fmt.Errorf("%s", wrongInputError)
 	}
 	return nil

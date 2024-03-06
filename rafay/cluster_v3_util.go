@@ -78,8 +78,7 @@ func expandV3SystemComponentsPlacement(p []interface{}) *infrapb.SystemComponent
 	if v, ok := in["daemon_set_override"].([]interface{}); ok {
 		obj.DaemonSetOverride = expandV3DaemonsetOverride(v)
 	}
-
-	log.Println("expandClusterV3Blueprint obj", obj)
+	
 	return &obj
 }
 

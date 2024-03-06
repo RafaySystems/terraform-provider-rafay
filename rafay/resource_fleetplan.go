@@ -249,7 +249,18 @@ func flattenAction(action *infrapb.ActionSpec) []interface{} {
 	obj["node_groups_and_control_plane_upgrade_config"] = flattenNodeGroupsAndControlPlaneUpgradeConfig(action.NodeGroupsAndControlPlaneUpgradeConfig)
 	obj["node_groups_upgrade_config"] = flattenNodeGroupsUpgradeConfig(action.NodeGroupsUpgradeConfig)
 	obj["patch_config"] = flattenPatchConfig(action.PatchConfig)
+	obj["blueprint_update_config"] = flattenBlueprintUpdateConfig(action.BlueprintUpdateConfig)
 
+	return []interface{}{obj}
+}
+
+func flattenBlueprintUpdateConfig(config *infrapb.BlueprintUpdateConfigSpec) []interface{} {
+	if config == nil {
+		return []interface{}{}
+	}
+	obj := make(map[string]interface{})
+	obj["name"] = config.Name
+	obj["version"] = config.Version
 	return []interface{}{obj}
 }
 
@@ -564,8 +575,29 @@ func expandAction(in []interface{}) *infrapb.ActionSpec {
 		obj.PatchConfig = expandPatchConfig(v)
 	}
 
+	if v, ok := v["blueprint_update_config"].([]interface{}); ok {
+		obj.BlueprintUpdateConfig = expandBlueprintConfig(v)
+	}
+
 	return obj
 
+}
+
+func expandBlueprintConfig(in []interface{}) *infrapb.BlueprintUpdateConfigSpec {
+	obj := &infrapb.BlueprintUpdateConfigSpec{}
+	if len(in) == 0 || in[0] == nil {
+		return nil
+	}
+
+	v := in[0].(map[string]interface{})
+	if v, ok := v["name"].(string); ok {
+		obj.Name = v
+	}
+
+	if v, ok := v["version"].(string); ok {
+		obj.Version = v
+	}
+	return obj
 }
 
 func expandControlPlaneUpgradeConfig(in []interface{}) *infrapb.ControlPlaneUpgradeConfigSpec {

@@ -50,6 +50,9 @@ func resourceWorkload() *schema.Resource {
 func resourceWorkloadCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	diags := resourceWorkloadUpsert(ctx, d, m)
 	if diags.HasError() {
+		if checkStandardInputTextError(diags[0].Summary) {
+			return diags
+		}
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
@@ -113,6 +116,11 @@ func resourceWorkloadUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	wl, err := expandWorkload(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = validateResourceName(wl.Metadata.Name)
 	if err != nil {
 		return diag.FromErr(err)
 	}

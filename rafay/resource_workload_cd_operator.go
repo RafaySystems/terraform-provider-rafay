@@ -1207,9 +1207,6 @@ func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConf
 
 	// Get all the workloads created by the operator
 	for _, pr := range projectList.Items {
-		if pr.Metadata.Name != "project1" && pr.Metadata.Name != "project2" && pr.Metadata.Name != "project3" && pr.Metadata.Name != "project4" && pr.Metadata.Name != "project5" {
-			continue
-		}
 		// Get all the workloads in the project
 		wList, err := client.AppsV3().Workload().List(ctx, options.ListOptions{
 			Project: pr.Metadata.Name,

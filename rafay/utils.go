@@ -2098,9 +2098,7 @@ func flattenV3MetaData(in *commonpb.Metadata) []interface{} {
 func validateResourceName(name string) error {
 	errs := validation.IsDNS1123Subdomain(name)
 	if len(errs) != 0 {
-		var wrongInputError string
-		strings.Join(errs, " ")
-		return fmt.Errorf("%s", wrongInputError)
+		return fmt.Errorf("%s", strings.Join(errs, " "))
 	}
 	return nil
 }

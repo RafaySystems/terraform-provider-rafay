@@ -69,12 +69,25 @@ type WorkloadCDStatus struct {
 	Version      string           `json:"version,omitempty"`      // the version of the workload
 	Status       *commonpb.Status `json:"status,omitempty"`       // the status of the workload
 }
+type WorkloadsUpsert struct {
+	Project      string `json:"project,omitempty"`      // the project of the workload
+	Namespace    string `json:"namespace,omitempty"`    // the namespace of the workload
+	WorkloadName string `json:"workloadName,omitempty"` // the name of the workload
+}
+type WorkloadsDecommission struct {
+	Project      string `json:"project,omitempty"`      // the project of the workload
+	Namespace    string `json:"namespace,omitempty"`    // the namespace of the workload
+	WorkloadName string `json:"workloadName,omitempty"` // the name of the workload
+}
+
 type WorkloadCDConfig struct {
-	ApiVersion string                `json:"apiVersion,omitempty"` // the api version of the resource
-	Kind       string                `json:"kind,omitempty"`       // the kind of the resource
-	Metadata   *commonpb.Metadata    `json:"metadata,omitempty"`   // the metadata of the resource
-	Spec       *WorkloadCDConfigSpec `json:"spec,omitempty"`       // the specification of the resource
-	Status     []WorkloadCDStatus    `json:"status,omitempty"`     // the status of the resource
+	ApiVersion    string                   `json:"apiVersion,omitempty"`    // the api version of the resource
+	Kind          string                   `json:"kind,omitempty"`          // the kind of the resource
+	Metadata      *commonpb.Metadata       `json:"metadata,omitempty"`      // the metadata of the resource
+	Spec          *WorkloadCDConfigSpec    `json:"spec,omitempty"`          // the specification of the resource
+	Status        []*WorkloadCDStatus      `json:"status,omitempty"`        // the status of the resource
+	Decommissions []*WorkloadsDecommission `json:"decommissions,omitempty"` // the status of the resource
+	Upserts       []*WorkloadsUpsert       `json:"upserts,omitempty"`       // the status of the resource
 }
 
 const charset = "abcdefghijklmnopqrstuvwxyz"                                // 36 characters
@@ -357,6 +370,7 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 						"insecure": &schema.Schema{
 							Description: "insecure",
 							Optional:    true,
+							Default:     false,
 							Type:        schema.TypeBool,
 						},
 						"max_retires": &schema.Schema{
@@ -381,59 +395,128 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 			Optional: true,
 			Type:     schema.TypeList,
 		},
-		"status": &schema.Schema{ // status of the resource get updated when the resource is created
+		"workload_status": &schema.Schema{ // status of the resource get updated when the resource is created
 			Description: "Status of the workload resource",
 			Elem: &schema.Resource{Schema: map[string]*schema.Schema{
 				"project": &schema.Schema{
 					Description: "Project of the resource",
 					Optional:    true,
+					Computed:    true,
 					Type:        schema.TypeString,
 				},
 				"namespace": &schema.Schema{
 					Description: "Namespace of the resource",
 					Optional:    true,
+					Computed:    true,
 					Type:        schema.TypeString,
 				},
 				"workload_name": &schema.Schema{
 					Description: "Workload Name of the resource",
 					Optional:    true,
+					Computed:    true,
 					Type:        schema.TypeString,
 				},
 				"workload_version": &schema.Schema{
 					Description: "Workload Name of the resource",
 					Optional:    true,
+					Computed:    true,
 					Type:        schema.TypeString,
 				},
 				"repo_folder": &schema.Schema{
 					Description: "repo path of the Workload resource",
 					Optional:    true,
+					Computed:    true,
 					Type:        schema.TypeString,
 				},
 				"condition_status": &schema.Schema{
 					Description: "Condition Status",
 					Optional:    true,
+					Computed:    true,
 					Type:        schema.TypeInt,
 				},
 				"clusters": &schema.Schema{
 					Description: "deployed clusters",
 					Optional:    true,
+					Computed:    true,
 					Type:        schema.TypeString,
 				},
 				"condition_type": &schema.Schema{
 					Description: "Status message",
 					Optional:    true,
+					Computed:    true,
 					Type:        schema.TypeString,
 				},
 				"reason": &schema.Schema{
 					Description: "Status message",
 					Optional:    true,
+					Computed:    true,
 					Type:        schema.TypeString,
 				},
 			}},
 			MaxItems: 0,
 			MinItems: 0,
 			Optional: true,
-			Type:     schema.TypeList,
+			Computed: true,
+			//ForceNew: true,
+			Type: schema.TypeList,
+		},
+		"workload_upserts": &schema.Schema{ // status of the resource get updated when the resource is created
+			Description: "created/updated workload resources",
+			Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+				"project": &schema.Schema{
+					Description: "Project of the resource",
+					Optional:    true,
+					Computed:    true,
+					Type:        schema.TypeString,
+				},
+				"namespace": &schema.Schema{
+					Description: "Namespace of the resource",
+					Optional:    true,
+					Computed:    true,
+					Type:        schema.TypeString,
+				},
+				"workload_name": &schema.Schema{
+					Description: "Workload Name of the resource",
+					Optional:    true,
+					Computed:    true,
+					Type:        schema.TypeString,
+				},
+			}},
+			MaxItems: 0,
+			MinItems: 0,
+			Optional: true,
+			Computed: true,
+			//ForceNew: true,
+			Type: schema.TypeList,
+		},
+		"workload_decommissions": &schema.Schema{
+			Description: "List of deleted/unpublished the workloads",
+			Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+				"project": &schema.Schema{
+					Description: "Project of the resource",
+					Optional:    true,
+					Computed:    true,
+					Type:        schema.TypeString,
+				},
+				"namespace": &schema.Schema{
+					Description: "Namespace of the resource",
+					Optional:    true,
+					Computed:    true,
+					Type:        schema.TypeString,
+				},
+				"workload_name": &schema.Schema{
+					Description: "Workload Name of the resource",
+					Optional:    true,
+					Computed:    true,
+					Type:        schema.TypeString,
+				},
+			}},
+			MaxItems: 0,
+			MinItems: 0,
+			Optional: true,
+			Computed: true,
+			//ForceNew: true,
+			Type: schema.TypeList,
 		},
 	},
 }
@@ -477,6 +560,56 @@ func RandomString(length int) string {
 	return StringWithCharset(length, charset)
 }
 
+func expandStatus(p []interface{}) []*WorkloadCDStatus {
+	if len(p) == 0 || p[0] == nil {
+		return []*WorkloadCDStatus{}
+	}
+
+	out := make([]*WorkloadCDStatus, len(p))
+
+	for i := range p {
+		obj := WorkloadCDStatus{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["project"].(string); ok && len(v) > 0 {
+			obj.Project = v
+		}
+
+		if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+			obj.Namespace = v
+		}
+
+		if v, ok := in["workload_name"].(string); ok && len(v) > 0 {
+			obj.WorkloadName = v
+		}
+
+		if v, ok := in["repo_folder"].(string); ok && len(v) > 0 {
+			obj.RepoFolder = v
+		}
+
+		if v, ok := in["workload_version"].(string); ok && len(v) > 0 {
+			obj.Version = v
+		}
+
+		out[i] = &obj
+
+	}
+
+	return out
+}
+
+func readWorkLoadStatus(in *schema.ResourceData) []*WorkloadCDStatus {
+	if in == nil {
+		return nil
+	}
+
+	if v, ok := in.Get("workload_status").([]interface{}); ok && len(v) > 0 {
+		return expandStatus(v)
+	}
+
+	return nil
+}
+
 func resourceWorkloadCDOperatorCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("resourceWorkloadCDOperator create starts")
 	diags := resourceWorkloadCDOperatorUpsert(ctx, d, m)
@@ -485,9 +618,26 @@ func resourceWorkloadCDOperatorCreate(ctx context.Context, d *schema.ResourceDat
 }
 
 func resourceWorkloadCDOperatorRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	log.Printf("resourceWorkloadCDOperator create starts")
+	log.Printf("resourceWorkloadCDOperator read starts")
 	var diags diag.Diagnostics
-	// dummy for now
+
+	// tflog := os.Getenv("TF_LOG")
+	// if tflog == "TRACE" || tflog == "DEBUG" {
+	// 	ctx = context.WithValue(ctx, "debug", "true")
+	// }
+
+	// meta := GetMetaData(d)
+	// if meta == nil {
+	// 	return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
+	// }
+
+	// if d.State() != nil && d.State().ID != "" {
+	// 	meta.Name = d.State().ID
+	// }
+
+	// ret := readWorkLoadStatus(d)
+	// d.Set("status", ret)
+
 	return diags
 }
 
@@ -557,23 +707,74 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 	processApplicationFolders(ctx, workloadCDConfig, baseChart, baseValues, folders)
 
 	if workloadCDConfig.Status != nil && len(workloadCDConfig.Status) > 0 {
-		v, ok := d.Get("stattus").([]interface{})
+		log.Println("workloadCDConfig.Status", workloadCDConfig.Status)
+		v, ok := d.Get("workload_status").([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		ret := flattenWorkloaStatus(workloadCDConfig.Status, v)
-		d.Set("status", ret)
+		ret := flattenWorkloadStatus(workloadCDConfig.Status, v)
+		if ret == nil {
+			log.Println("flattenWorkloadStatus returned nil")
+		}
+		err = d.Set("workload_status", ret)
+		if err != nil {
+			log.Println("failed to set status error ", err)
+		}
+	} else {
+		log.Println("Set workload_status nil")
+		d.Set("workload_status", nil)
+	}
+
+	if workloadCDConfig.Decommissions != nil && len(workloadCDConfig.Decommissions) > 0 {
+		log.Println("workloadCDConfig.Decommissions", workloadCDConfig.Decommissions)
+		v, ok := d.Get("workload_decommissions").([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret := flattenWorkloadDecommisions(workloadCDConfig.Decommissions, v)
+		if ret == nil {
+			log.Println("flattenWorkloadDecommisions returned nil")
+		}
+		err = d.Set("workload_decommissions", ret)
+		if err != nil {
+			log.Println("failed to set decommissions error ", err)
+		}
+		log.Println("flattenWorkloadDecommisions returned ret", ret)
+	} else {
+		log.Println("Set workload_decommissions nil")
+		d.Set("workload_decommissions", nil)
+	}
+
+	if workloadCDConfig.Upserts != nil && len(workloadCDConfig.Upserts) > 0 {
+		log.Println("workloadCDConfig.Upserts", workloadCDConfig.Upserts)
+		v, ok := d.Get("workload_upserts").([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret := flattenWorkloadUpserts(workloadCDConfig.Upserts, v)
+		if ret == nil {
+			log.Println("flattenWorkloadUpserts returned nil")
+		}
+		err = d.Set("workload_upserts", ret)
+		if err != nil {
+			log.Println("failed to set upserts error ", err)
+		}
+	} else {
+		log.Println("Set workload_upserts nil")
+		d.Set("workload_upserts", nil)
 	}
 
 	d.SetId(workloadCDConfig.Metadata.Name)
 	return diags
 }
 
-func flattenWorkloaStatus(input []WorkloadCDStatus, p []interface{}) []interface{} {
-	log.Println("flattenWorkloaStatus")
+func flattenWorkloadStatus(input []*WorkloadCDStatus, p []interface{}) []interface{} {
+	log.Println("flattenWorkloadStatus")
 	if input == nil {
 		return nil
 	}
+
+	log.Println("flattenWorkloadStatus len input", len(input))
 
 	out := make([]interface{}, len(input))
 	for i, in := range input {
@@ -614,6 +815,73 @@ func flattenWorkloaStatus(input []WorkloadCDStatus, p []interface{}) []interface
 
 		if len(in.Status.Reason) > 0 {
 			obj["reason"] = in.Status.Reason
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenWorkloadDecommisions(input []*WorkloadsDecommission, p []interface{}) []interface{} {
+	log.Println("flattenWorkloadDecommisions")
+	if input == nil {
+		return nil
+	}
+
+	log.Println("flattenWorkloadDecommisions len input", len(input))
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		log.Println("flattenWorkloadDecommisions in", in)
+
+		if len(in.Namespace) > 0 {
+			obj["namespace"] = in.Namespace
+		}
+
+		if len(in.Project) > 0 {
+			obj["project"] = in.Project
+		}
+
+		if len(in.WorkloadName) > 0 {
+			obj["workload_name"] = in.WorkloadName
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenWorkloadUpserts(input []*WorkloadsUpsert, p []interface{}) []interface{} {
+	log.Println("flattenWorkloadUpserts")
+	if input == nil {
+		return nil
+	}
+
+	log.Println("flattenWorkloadUpserts len input", len(input))
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Namespace) > 0 {
+			obj["namespace"] = in.Namespace
+		}
+
+		if len(in.Project) > 0 {
+			obj["project"] = in.Project
+		}
+
+		if len(in.WorkloadName) > 0 {
+			obj["workload_name"] = in.WorkloadName
 		}
 
 		out[i] = &obj
@@ -939,6 +1207,9 @@ func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConf
 
 	// Get all the workloads created by the operator
 	for _, pr := range projectList.Items {
+		if pr.Metadata.Name != "project1" && pr.Metadata.Name != "project2" && pr.Metadata.Name != "project3" && pr.Metadata.Name != "project4" && pr.Metadata.Name != "project5" {
+			continue
+		}
 		// Get all the workloads in the project
 		wList, err := client.AppsV3().Workload().List(ctx, options.ListOptions{
 			Project: pr.Metadata.Name,
@@ -1021,7 +1292,7 @@ func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConf
 			// delete application
 			wg.Add(1)
 			log.Println("deleteApplication", w.Metadata.Project, w.Metadata.Name)
-			go deleteApplication(ctx, cfg, w.Metadata.Project, w.Metadata.Name, &wg)
+			go deleteApplication(ctx, cfg, w.Metadata.Project, w.Spec.Namespace, w.Metadata.Name, &wg)
 		}
 	}
 
@@ -1029,7 +1300,7 @@ func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConf
 	return nil
 }
 
-func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, project, workload string, wg *sync.WaitGroup) error {
+func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, project, namespace, workload string, wg *sync.WaitGroup) error {
 	defer wg.Done()
 
 	resp, err := rctl_project.GetProjectByName(project)
@@ -1045,6 +1316,11 @@ func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, project, work
 
 	auth := config.GetConfig().GetAppAuthProfile()
 
+	decommission := WorkloadsDecommission{}
+	decommission.Project = project
+	decommission.Namespace = namespace
+	decommission.WorkloadName = workload
+
 	if cfg.Spec.DeleteAction == "delete" {
 		uri := fmt.Sprintf("/v2/config/project/%s/workload/%s", pr.ID, workload)
 		println("delete uri", uri)
@@ -1053,6 +1329,7 @@ func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, project, work
 			log.Println("delete workload uri", uri, "error", err)
 			return err
 		}
+		cfg.Decommissions = append(cfg.Decommissions, &decommission)
 	} else if cfg.Spec.DeleteAction == "unpublish" {
 
 		uri := fmt.Sprintf("/v2/config/project/%s/workload/%s/unpublish", pr.ID, workload)
@@ -1062,6 +1339,7 @@ func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, project, work
 			log.Println("unpublish workload uri", uri, "error", err)
 			return err
 		}
+		cfg.Decommissions = append(cfg.Decommissions, &decommission)
 	}
 	return nil
 }
@@ -1274,7 +1552,7 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 		status.WorkloadName = workload
 		status.Status.ConditionType = "Failed"
 		status.Status.Reason = err.Error()
-		cfg.Status = append(cfg.Status, status)
+		cfg.Status = append(cfg.Status, &status)
 		return err
 	}
 
@@ -1291,7 +1569,7 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 			status.Status = &commonpb.Status{}
 			status.Status.ConditionType = "Failed"
 			status.Status.Reason = err.Error()
-			cfg.Status = append(cfg.Status, status)
+			cfg.Status = append(cfg.Status, &status)
 			return err
 		}
 		// get cluster names from clusterList in the project
@@ -1347,7 +1625,7 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 			log.Println("workload version exist NOOP", workloadVersion[:7])
 			st, err := getWorkLoadStatus(ctx, cfg, wl, folder, workloadVersion[:7])
 			if err == nil {
-				cfg.Status = append(cfg.Status, *st)
+				cfg.Status = append(cfg.Status, st)
 			}
 			return nil
 		}
@@ -1369,7 +1647,7 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 		status.Status = &commonpb.Status{}
 		status.Status.ConditionType = "Failed"
 		status.Status.Reason = err.Error()
-		cfg.Status = append(cfg.Status, status)
+		cfg.Status = append(cfg.Status, &status)
 		return err
 	}
 
@@ -1478,6 +1756,12 @@ func deployWorkload(ctx context.Context, cfg *WorkloadCDConfig, workloadSpec, fo
 		return err
 	}
 
+	upsert := WorkloadsUpsert{}
+	upsert.Project = wl.Metadata.Project
+	upsert.Namespace = wl.Spec.Namespace
+	upsert.WorkloadName = wl.Metadata.Name
+	cfg.Upserts = append(cfg.Upserts, &upsert)
+
 	status := WorkloadCDStatus{}
 	status.RepoFolder = folder
 	status.Project = wl.Metadata.Project
@@ -1486,7 +1770,7 @@ func deployWorkload(ctx context.Context, cfg *WorkloadCDConfig, workloadSpec, fo
 	status.Version = version
 	// wait for publish
 	for {
-		time.Sleep(60 * time.Second)
+		time.Sleep(15 * time.Second)
 		wls, err := client.AppsV3().Workload().Status(ctx, options.StatusOptions{
 			Name:    wl.Metadata.Name,
 			Project: wl.Metadata.Project,
@@ -1513,7 +1797,7 @@ func deployWorkload(ctx context.Context, cfg *WorkloadCDConfig, workloadSpec, fo
 
 	}
 	log.Println("deployWorkload: workload status", status)
-	cfg.Status = append(cfg.Status, status)
+	cfg.Status = append(cfg.Status, &status)
 	return nil
 }
 

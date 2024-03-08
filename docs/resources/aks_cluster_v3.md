@@ -290,6 +290,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
 - `disk_encryption_set_id` - (String) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/diskEncryptionSets/{encryptionSetName}`
 - `dns_prefix` - (String) DNS prefix specified when creating the managed cluster. This cannot be updated once the Managed Cluster has been created.
 - `enable_rbac` - (boolean) Enable Kubernetes Role-Based Access Control.
+- `disable_local_accounts` - (boolean) If set to true, getting static credentials will be disabled for this cluster. This must only be used on Managed Clusters that are AAD enabled.
 - `identity_profile` - (Block List) Identities associated with the cluster. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--identity_profile))
 - `linux_profile` - (Block List) The configurations for linux profile. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--linux_profile))
 - `network_profile` - (Block List) Profile of the network configuration. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--network_profile))
@@ -557,9 +558,20 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
 
 ### Nested Schema for `spec.config.spec.managed_cluster.additional_metadata.acr_profile`
 
+**_Optional_**
+
+- `registries` - (Block List) Registry for the Azure Container Registry configuration. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--additional_metadata--acr_profile--registries))
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--additional_metadata--acr_profile--registries"></a>
+
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.additional_metadata.acr_profile--registries`
+
 **_Required_**
 
 - `acr_name` - (String) The name of the Azure Container Registry resource.
+
+**_Optional_**
+
 - `resource_group_name` - (String) If not specified, defaults to the resource group of the managed cluster.
 
 <a id="nestedblock--spec--config--spec--managed_cluster--identity"></a>

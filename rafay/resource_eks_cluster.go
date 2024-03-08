@@ -3824,11 +3824,12 @@ func expandProxyConfig(p map[string]interface{}) *ProxyConfig {
 
 }
 
-func flattenEKSCluster(in *EKSCluster, p []interface{}) ([]interface{}, error) {
+func flattenEKSCluster(in *EKSCluster, p []interface{}, rawState cty.Value) ([]interface{}, error) {
 	obj := map[string]interface{}{}
 	if in == nil {
 		return nil, fmt.Errorf("empty cluster input")
 	}
+	rawState = rawState.AsValueSlice()[0]
 
 	if len(in.Kind) > 0 {
 		obj["kind"] = in.Kind
@@ -3857,7 +3858,7 @@ func flattenEKSCluster(in *EKSCluster, p []interface{}) ([]interface{}, error) {
 		if !ok {
 			v = []interface{}{}
 		}
-		ret2, err = flattenEKSClusterSpec(in.Spec, v)
+		ret2, err = flattenEKSClusterSpec(in.Spec, v, rawState.GetAttr("spec"))
 		if err != nil {
 			log.Println("flattenEKSClusterSpec err")
 			return nil, err
@@ -3890,11 +3891,12 @@ func flattenEKSClusterMetadata(in *EKSClusterMetadata, p []interface{}) ([]inter
 	log.Println("md 3")
 	return []interface{}{obj}, nil
 }
-func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterSpec(in *EKSSpec, p []interface{}, rawState cty.Value) ([]interface{}, error) {
 	if in == nil {
 		return nil, fmt.Errorf("%s", "flattenEKSClusterMetaData empty input")
 	}
 	obj := map[string]interface{}{}
+	rawState = rawState.AsValueSlice()[0]
 
 	if len(in.Type) > 0 {
 		obj["type"] = in.Type
@@ -3919,7 +3921,7 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}) ([]interface{}, error) 
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["cni_params"] = flattenCNIParams(in.CniParams, v)
+		obj["cni_params"] = flattenCNIParams(in.CniParams, v, rawState.GetAttr("cni_params"))
 	}
 	if in.ProxyConfig != nil {
 		obj["proxy_config"] = flattenProxyConfig(in.ProxyConfig)
@@ -3968,11 +3970,12 @@ func flattenEKSSharingProjects(in []*EKSClusterSharingProject) []interface{} {
 	return out
 }
 
-func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {
+func flattenCNIParams(in *CustomCni, p []interface{}, rawState cty.Value) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
+	rawState = rawState.AsValueSlice()[0]
 
 	if len(in.CustomCniCidr) > 0 {
 		obj["custom_cni_cidr"] = in.CustomCniCidr
@@ -3982,33 +3985,58 @@ func flattenCNIParams(in *CustomCni, p []interface{}) []interface{} {
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["custom_cni_crd_spec"] = flattenCustomCNISpec(in.CustomCniCrdSpec, v)
+		obj["custom_cni_crd_spec"] = flattenCustomCNISpec(in.CustomCniCrdSpec, v, rawState.GetAttr("custom_cni_crd_spec"))
 	}
 
 	return []interface{}{obj}
 }
 
-func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}) []interface{} {
+func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}, rawState cty.Value) []interface{} {
 	log.Println("got to flatten custom CNI mapping", len(p))
-	out := make([]interface{}, len(in))
-	i := 0
-	for key, elem := range in {
-		obj := map[string]interface{}{}
-		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
-		}
-		if elem != nil {
-			v, ok := obj["cni_spec"].([]interface{})
-			if !ok {
-				v = []interface{}{}
+
+	findLocalOrder := func (rawState cty.Value) []string {
+		var order []string
+		for _, crdSpec := range rawState.AsValueSlice() {
+			if subnetValue, ok := crdSpec.AsValueMap()["name"]; ok {
+				order = append(order, subnetValue.AsString())
 			}
-			obj["cni_spec"] = flattenCNISpec(elem, v)
 		}
-		if len(key) > 0 {
-			obj["name"] = key
+		return order
+	}
+
+	indexOf := func(item string, list []string) int  {
+		for i, v := range list {
+			if v == item {
+				return i
+			}
 		}
-		out[i] = obj
-		i += 1
+		return -1
+	}
+
+	azOrderInState := findLocalOrder(rawState)
+
+	var out []interface{}
+	for _, key := range azOrderInState {
+		elem, ok := in[key]
+		if !ok {
+			// found only in local, ignore this.
+			continue
+		}
+		obj := map[string]interface{}{
+			"name": key,
+			"cni_spec": flattenCNISpec(elem, []interface{}{}),
+		}
+		out = append(out, obj)
+	}
+	for key, elem := range in {
+		if i := indexOf(key, azOrderInState); i < 0 {
+			// not found in local copy. this subnet was removed by the user
+			obj := map[string]interface{}{
+				"name": key,
+				"cni_spec": flattenCNISpec(elem, []interface{}{}),
+			}
+			out = append(out, obj)
+		}
 	}
 	log.Println("finished customCNI mapping")
 	return out
@@ -5597,6 +5625,7 @@ func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m int
 
 func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("READ eks cluster")
+	rawState := d.GetRawState()
 	var diags diag.Diagnostics
 	// find cluster name and project name
 	clusterName, ok := d.Get("cluster.0.metadata.0.name").(string)
@@ -5652,7 +5681,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	if !ok {
 		v = []interface{}{}
 	}
-	c1, err := flattenEKSCluster(&clusterSpec, v)
+	c1, err := flattenEKSCluster(&clusterSpec, v, rawState.GetAttr("cluster"))
 	log.Println("finished flatten eks cluster", c1)
 	if err != nil {
 		log.Printf("flatten eks cluster error %s", err.Error())

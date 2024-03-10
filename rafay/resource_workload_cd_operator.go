@@ -21,6 +21,7 @@ import (
 	"github.com/RafaySystems/rafay-common/proto/types/hub/appspb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/integrationspb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/systempb"
 	rctl_cluster "github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/config"
 	rctl_project "github.com/RafaySystems/rctl/pkg/project"
@@ -44,6 +45,45 @@ type CDCredentials struct {
 	Token      string `json:"token,omitempty"`      // the token to access the repository
 }
 
+// HelmOptions
+type HelmOptions struct {
+	Atomic                   bool     `json:"atomic,omitempty"`
+	Wait                     bool     `json:"wait,omitempty"`
+	Force                    bool     `json:"force,omitempty"`
+	NoHooks                  bool     `json:"noHooks,omitempty"`
+	MaxHistory               int32    `json:"maxHistory,omitempty"`
+	RenderSubChartNotes      bool     `json:"renderSubChartNotes,omitempty"`
+	ResetValues              bool     `json:"resetValues,omitempty"`
+	ReuseValues              bool     `json:"reuseValues,omitempty"`
+	SetString                []string `json:"setString,omitempty"`
+	SkipCRDs                 bool     `json:"skipCRDs,omitempty"`
+	Timeout                  string   `json:"timeout,omitempty"`
+	CleanUpOnFail            bool     `json:"cleanUpOnFail,omitempty"`
+	Description              string   `json:"description,omitempty"`
+	DisableOpenAPIValidation bool     `json:"disableOpenAPIValidation,omitempty"`
+	KeepHistory              bool     `json:"keepHistory,omitempty"`
+	WaitForJobs              bool     `json:"waitForJobs,omitempty"`
+	WaitForUninstall         bool     `json:"waitForUninstall,omitempty"`
+}
+
+type Workload struct {
+	Name               string            `json:"name,omitempty"`               // the name of the workload
+	PathMatchPattern   string            `json:"pathMatchPattern,omitempty"`   // the path  pattern to extract project name from
+	BasePath           string            `json:"basePath,omitempty"`           // the path  pattern to extract base chart from
+	IncludeBaseValue   bool              `json:"includeBaseValue,omitempty"`   // include base value.yaml
+	DeleteAction       string            `json:"enableDelete,omitempty"`       // delete the workload
+	ClusterNames       string            `json:"clusterNames,omitempty"`       // the cluster names to deploy the workload
+	PlacementLabels    map[string]string `json:"placementLabels,omitempty"`    // the placement labels for the clusters
+	HelmChartName      string            `json:"helmChartName,omitempty"`      // the name of the helm chart
+	HelmChartVersion   string            `json:"helmChartVersion,omitempty"`   // the version of the helm chart
+	HelmOptions        *HelmOptions      `json:"helmChartOptions,omitempty"`   // the options for the helm chart
+	ChartHelmRepoName  string            `json:"chartHelmRepoName,omitempty"`  // the name of the helm repo
+	ChartGitRepoName   string            `json:"chartGitRepoName,omitempty"`   // the name of the git repo
+	ChartGitRepoBranch string            `json:"chartGitRepoBranch,omitempty"` // the branch of the git repo
+	ChartGitRepoPath   string            `json:"chartGitRepoPath,omitempty"`   // the path of the git repo
+	ChartCatalogName   string            `json:"chartGitRepoPath,omitempty"`   // the name of the catalog to source the chart
+}
+
 // The config spec for the WorkloadCD resource
 type WorkloadCDConfigSpec struct {
 	Type                string                            `json:"type,omitempty"`                // type of the repository - not used for now
@@ -52,13 +92,8 @@ type WorkloadCDConfigSpec struct {
 	Credentials         *CDCredentials                    `json:"credentials,omitempty"`         // the credentials to access the repository
 	Options             *integrationspb.RepositoryOptions `json:"options,omitempty"`             // the options for the repository
 	Insecure            bool                              `json:"insecure,omitempty"`            // allow insecure connection
-	PathMatchPattern    string                            `json:"pathMatchPattern,omitempty"`    // the path  pattern to extract project name from
 	RepositoryLocalPath string                            `json:"repositoryLocalPath,omitempty"` // the local path of the repository to clone
-	BasePath            string                            `json:"basePath,omitempty"`            // the path  pattern to extract base chart from
-	IncludeBaseValue    bool                              `json:"includeBaseValue,omitempty"`    // include base value.yaml
-	DeleteAction        string                            `json:"enableDelete,omitempty"`        // delete the workload
-	ClusterNames        string                            `json:"clusterNames,omitempty"`        // the cluster names to deploy the workload
-	PlacementLabels     map[string]string                 `json:"placementLabels,omitempty"`     // the placement labels for the clusters
+	Workloads           []*Workload                       `json:"workloads,omitempty"`           // the workloads to deploy
 }
 
 type WorkloadCDStatus struct {
@@ -105,6 +140,10 @@ var (
 )
 
 var _dummyHandler = func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {} // a dummy handler to be used for routing
+
+// guard is a channel that used to make sure that only N=10
+// goroutines will run at a time
+var guard = make(chan struct{}, 10)
 
 // WorkloadCDRepositorySchema is the schema for the WorkloadCD resource
 var WorkloadCDRepositorySchema = &schema.Resource{
@@ -207,37 +246,31 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 		"spec": &schema.Schema{
 			Description: "Specification of the repository resource",
 			Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-				"base_path": &schema.Schema{
-					Description: "repository local path",
-					Optional:    true,
-					Type:        schema.TypeString,
-				},
-				"include_base_value": &schema.Schema{
-					Description: "include values from base path",
-					Optional:    true,
-					Type:        schema.TypeBool,
-				},
 				"repo_local_path": &schema.Schema{
 					Description: "repository local path",
 					Optional:    true,
 					Default:     "/tmp/apprepo",
 					Type:        schema.TypeString,
 				},
-				"path_match_pattern": &schema.Schema{
-					Description: "project/namespace/workload name path match pattern",
+				"repo_url": &schema.Schema{
+					Description: "repository repo_url",
 					Required:    true,
 					Type:        schema.TypeString,
 				},
-				"cluster_names": &schema.Schema{
-					Description: "cluster names ',' separated",
+				"repo_branch": &schema.Schema{
+					Description: "repository branch",
 					Optional:    true,
 					Type:        schema.TypeString,
 				},
-				"placement_labels": &schema.Schema{
-					Description: "placement labels of the cluster",
-					Elem:        &schema.Schema{Type: schema.TypeString},
+				"insecure": &schema.Schema{
+					Description: "repository allow insecure connection",
 					Optional:    true,
-					Type:        schema.TypeMap,
+					Type:        schema.TypeBool,
+				},
+				"repo_type": &schema.Schema{
+					Description: "repository type",
+					Optional:    true,
+					Type:        schema.TypeString,
 				},
 				"credentials": &schema.Schema{
 					Description: "",
@@ -268,86 +301,169 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 					Optional: true,
 					Type:     schema.TypeList,
 				},
-				"repo_url": &schema.Schema{
-					Description: "repository repo_url",
-					Required:    true,
-					Type:        schema.TypeString,
-				},
-				"repo_branch": &schema.Schema{
-					Description: "repository branch",
-					Optional:    true,
-					Type:        schema.TypeString,
-				},
-				"insecure": &schema.Schema{
-					Description: "repository allow insecure connection",
-					Optional:    true,
-					Type:        schema.TypeBool,
-				},
-				"delete_action": &schema.Schema{
-					Description: "workload delete action",
-					Optional:    true,
-					Default:     "none",
-					Type:        schema.TypeString,
-				},
-				"options": &schema.Schema{
-					Description: "repository options",
+
+				"workload": &schema.Schema{
+					Description: "",
 					Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-						"ca_cert": &schema.Schema{
-							Description: "ca certificate",
+						"name": &schema.Schema{
+							Description: "workload name",
+							Optional:    true,
+							Type:        schema.TypeString,
+						},
+						"path_match_pattern": &schema.Schema{
+							Description: "project/namespace/workload name path match pattern",
+							Required:    true,
+							Type:        schema.TypeString,
+						},
+						"base_path": &schema.Schema{
+							Description: "repository local path",
+							Optional:    true,
+							Type:        schema.TypeString,
+						},
+						"include_base_value": &schema.Schema{
+							Description: "include values from base path",
+							Optional:    true,
+							Type:        schema.TypeBool,
+						},
+						"cluster_names": &schema.Schema{
+							Description: "cluster names ',' separated",
+							Optional:    true,
+							Type:        schema.TypeString,
+						},
+						"placement_labels": &schema.Schema{
+							Description: "placement labels of the cluster",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Optional:    true,
+							Type:        schema.TypeMap,
+						},
+						"delete_action": &schema.Schema{
+							Description: "workload delete action",
+							Optional:    true,
+							Default:     "none",
+							Type:        schema.TypeString,
+						},
+						"chart_helm_repo_name": &schema.Schema{
+							Description: "rafay helm repo name to source chart",
+							Optional:    true,
+							Type:        schema.TypeString,
+						},
+						"chart_git_repo_name": &schema.Schema{
+							Description: "rafay git repo name to source chart",
+							Optional:    true,
+							Type:        schema.TypeString,
+						},
+						"chart_catalog_name": &schema.Schema{
+							Description: "rafay catalog name to source chart",
+							Optional:    true,
+							Type:        schema.TypeString,
+						},
+						"chart_git_repo_branch": &schema.Schema{
+							Description: "rafay git repo branch to source chart",
+							Optional:    true,
+							Type:        schema.TypeString,
+						},
+						"chart_git_repo_path": &schema.Schema{
+							Description: "rafay git repo path",
+							Optional:    true,
+							Default:     "/",
+							Type:        schema.TypeString,
+						},
+						"helm_chart_name": &schema.Schema{
+							Description: "helm chart name",
+							Required:    true,
+							Type:        schema.TypeString,
+						},
+						"helm_chart_version": &schema.Schema{
+							Description: "helm chart version",
+							Required:    true,
+							Type:        schema.TypeString,
+						},
+						"helm_options": &schema.Schema{
+							Description: "",
 							Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-								"data": &schema.Schema{
-									Description: "data is the base64 encoded contents of the file",
+								"atomic": &schema.Schema{
+									Description: "deploy Helm artifact with atomic flag",
+									Optional:    true,
+									Type:        schema.TypeBool,
+								},
+								"clean_up_on_fail": &schema.Schema{
+									Description: "cleanup deployed resources when chart fails to deploy",
+									Optional:    true,
+									Type:        schema.TypeBool,
+								},
+								"description": &schema.Schema{
+									Description: "custom description for the release",
 									Optional:    true,
 									Type:        schema.TypeString,
 								},
-								"mount_path": &schema.Schema{
-									Description: "specify mount path of the file",
+								"disable_open_api_validation": &schema.Schema{
+									Description: "disable OpenAPI validation while deploying the YAML",
+									Optional:    true,
+									Type:        schema.TypeBool,
+								},
+								"force": &schema.Schema{
+									Description: "deploy YAML artifact with force flag",
+									Optional:    true,
+									Type:        schema.TypeBool,
+								},
+								"keep_history": &schema.Schema{
+									Description: "keep release history after uninstalling",
+									Optional:    true,
+									Type:        schema.TypeBool,
+								},
+								"max_history": &schema.Schema{
+									Description: "limit Helm artifact history",
+									Optional:    true,
+									Type:        schema.TypeInt,
+								},
+								"no_hooks": &schema.Schema{
+									Description: "deploy Helm artifact without hooks",
+									Optional:    true,
+									Type:        schema.TypeBool,
+								},
+								"render_sub_chart_notes": &schema.Schema{
+									Description: "render sub chart notes",
+									Optional:    true,
+									Type:        schema.TypeBool,
+								},
+								"reset_values": &schema.Schema{
+									Description: "reset existing helm values",
+									Optional:    true,
+									Type:        schema.TypeBool,
+								},
+								"reuse_values": &schema.Schema{
+									Description: "reuse existing values",
+									Optional:    true,
+									Type:        schema.TypeBool,
+								},
+								"set_string": &schema.Schema{
+									Description: "pass custom helm values as key=value",
+									Elem:        &schema.Schema{Type: schema.TypeString},
+									Optional:    true,
+									Type:        schema.TypeList,
+								},
+								"skip_crd": &schema.Schema{
+									Description: "skip deploying crds",
+									Optional:    true,
+									Type:        schema.TypeBool,
+								},
+								"timeout": &schema.Schema{
+									Description: "timeout for waiting for the resources to become ready",
 									Optional:    true,
 									Type:        schema.TypeString,
 								},
-								"name": &schema.Schema{
-									Description: "Name or relative path of a artifact",
+								"wait": &schema.Schema{
+									Description: "deploy Helm artifact with wait flag",
 									Optional:    true,
-									Type:        schema.TypeString,
+									Type:        schema.TypeBool,
 								},
-								"options": &schema.Schema{
-									Description: "specify options for the file",
-									Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-										"description": &schema.Schema{
-											Description: "Description of the file",
-											Optional:    true,
-											Type:        schema.TypeString,
-										},
-										"override": &schema.Schema{
-											Description: "Override options for file",
-											Elem: &schema.Resource{Schema: map[string]*schema.Schema{"type": &schema.Schema{
-												Description: "Specify the type of override this file supports",
-												Optional:    true,
-												Type:        schema.TypeString,
-											}}},
-											MaxItems: 1,
-											MinItems: 1,
-											Optional: true,
-											Type:     schema.TypeList,
-										},
-										"required": &schema.Schema{
-											Description: "Determines whether the file is required / mandatory",
-											Optional:    true,
-											Type:        schema.TypeBool,
-										},
-										"sensitive": &schema.Schema{
-											Description: "data is encrypted  if sensitive is set to true",
-											Optional:    true,
-											Type:        schema.TypeBool,
-										},
-									}},
-									MaxItems: 1,
-									MinItems: 1,
-									Optional: true,
-									Type:     schema.TypeList,
+								"wait_for_jobs": &schema.Schema{
+									Description: "deploy Helm artifact with --wait-for-jobs flag",
+									Optional:    true,
+									Type:        schema.TypeBool,
 								},
-								"sensitive": &schema.Schema{
-									Description: "Deprected: use options.sensitive. data is encrypted  if sensitive is set to true",
+								"wait_for_uninstall": &schema.Schema{
+									Description: "uninstall Helm artifact with --wait flag",
 									Optional:    true,
 									Type:        schema.TypeBool,
 								},
@@ -357,37 +473,11 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 							Optional: true,
 							Type:     schema.TypeList,
 						},
-						"enable_lfs": &schema.Schema{
-							Description: "enable git large file support",
-							Optional:    true,
-							Type:        schema.TypeBool,
-						},
-						"enable_submodules": &schema.Schema{
-							Description: "enable git submodules",
-							Optional:    true,
-							Type:        schema.TypeBool,
-						},
-						"insecure": &schema.Schema{
-							Description: "insecure",
-							Optional:    true,
-							Default:     false,
-							Type:        schema.TypeBool,
-						},
-						"max_retires": &schema.Schema{
-							Description: "max retries",
-							Optional:    true,
-							Type:        schema.TypeInt,
-						},
 					}},
-					MaxItems: 1,
-					MinItems: 1,
+					MaxItems: 0,
+					MinItems: 0,
 					Optional: true,
 					Type:     schema.TypeList,
-				},
-				"type": &schema.Schema{
-					Description: "repository type",
-					Optional:    true,
-					Type:        schema.TypeString,
 				},
 			}},
 			MaxItems: 1,
@@ -457,8 +547,8 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 			MinItems: 0,
 			Optional: true,
 			Computed: true,
-			//ForceNew: true,
-			Type: schema.TypeList,
+			ForceNew: true,
+			Type:     schema.TypeList,
 		},
 		"workload_upserts": &schema.Schema{ // status of the resource get updated when the resource is created
 			Description: "created/updated workload resources",
@@ -486,8 +576,8 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 			MinItems: 0,
 			Optional: true,
 			Computed: true,
-			//ForceNew: true,
-			Type: schema.TypeList,
+			ForceNew: true,
+			Type:     schema.TypeList,
 		},
 		"workload_decommissions": &schema.Schema{
 			Description: "List of deleted/unpublished the workloads",
@@ -515,8 +605,8 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 			MinItems: 0,
 			Optional: true,
 			Computed: true,
-			//ForceNew: true,
-			Type: schema.TypeList,
+			ForceNew: true,
+			Type:     schema.TypeList,
 		},
 	},
 }
@@ -658,6 +748,10 @@ func resourceWorkloadCDOperatorDelete(ctx context.Context, d *schema.ResourceDat
 // resourceWorkloadCDOperatorUpsert create or update the WorkloadCD resource
 func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	var wg, dwg, cwg sync.WaitGroup
+	var mu sync.Mutex
+	var golbalWorkloadList = appspb.WorkloadList{}
+
 	log.Printf("resourceWorkloadCDOperator upsert starts")
 
 	tflog := os.Getenv("TF_LOG")
@@ -690,21 +784,73 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 	}
 	log.Println("cloneRepo output", output)
 
-	folders, files, baseChart, baseValues, err := walkRepo(workloadCDConfig)
+	// Get all the projects
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
-		log.Println("getRepoFiles error", err)
+		log.Println("checkProject client error", err)
 		return diag.FromErr(err)
 	}
-	log.Println("cloneRepo files", files)
-	log.Println("baseChart", baseChart)
-	log.Println("folders", folders)
-	log.Println("baseValues", baseValues)
-
-	if workloadCDConfig.Spec.DeleteAction != "none" {
-		processApplicationFoldersForDelete(ctx, workloadCDConfig, baseChart, folders)
+	projectList, err := client.SystemV3().Project().List(ctx, options.ListOptions{})
+	if err != nil {
+		log.Println("resourceWorkloadCDOperatorUpsert failed to get projectList error", err)
+		return diag.FromErr(err)
 	}
 
-	processApplicationFolders(ctx, workloadCDConfig, baseChart, baseValues, folders)
+	for _, pr := range projectList.Items {
+		// as we loop through put an empty struct to channel guard.
+		// If the channel is still empty, the process will continue.
+		// Else, the process will be blocked until there are rooms in the channel to put the empty struct.
+		guard <- struct{}{}
+		wg.Add(1)
+		go getProjectWorkloadList(ctx, pr, &golbalWorkloadList, &mu, &wg)
+	}
+	//wait for all the go routines to finish
+	wg.Wait()
+
+	log.Println("resourceWorkloadCDOperatorUpsertprocess Spec.Workloads", workloadCDConfig.Spec.Workloads)
+
+	for _, workload := range workloadCDConfig.Spec.Workloads {
+		log.Println("resourceWorkloadCDOperatorUpsert process delete workload", workload)
+
+		folders, files, baseChart, baseValues, err := walkRepo(workloadCDConfig, workload)
+		if err != nil {
+			log.Println("getRepoFiles error", err)
+			return diag.FromErr(err)
+		}
+		log.Println("resourceWorkloadCDOperatorUpsert ", "files", files)
+		log.Println("resourceWorkloadCDOperatorUpsert ", "baseChart", baseChart)
+		log.Println("resourceWorkloadCDOperatorUpsert ", "folders", folders)
+		log.Println("resourceWorkloadCDOperatorUpsert ", "baseValues", baseValues)
+
+		if workload.DeleteAction != "none" {
+			dwg.Add(1)
+			go processApplicationFoldersForDelete(ctx, workloadCDConfig, workload, baseChart, folders, &golbalWorkloadList, &dwg)
+			time.Sleep(time.Duration(10) * time.Second)
+		}
+	}
+	//wait for all the go routines to finish
+	dwg.Wait()
+
+	for _, workload := range workloadCDConfig.Spec.Workloads {
+		log.Println("resourceWorkloadCDOperatorUpsert process create workload", workload)
+
+		folders, files, baseChart, baseValues, err := walkRepo(workloadCDConfig, workload)
+		if err != nil {
+			log.Println("getRepoFiles error", err)
+			return diag.FromErr(err)
+		}
+		log.Println("resourceWorkloadCDOperatorUpsert ", "files", files)
+		log.Println("resourceWorkloadCDOperatorUpsert ", "baseChart", baseChart)
+		log.Println("resourceWorkloadCDOperatorUpsert ", "folders", folders)
+		log.Println("resourceWorkloadCDOperatorUpsert ", "baseValues", baseValues)
+
+		cwg.Add(1)
+		go processApplicationFolders(ctx, workloadCDConfig, workload, baseChart, baseValues, folders, &golbalWorkloadList, &cwg)
+		time.Sleep(time.Duration(10) * time.Second)
+	}
+	//wait for all the go routines to finish
+	cwg.Wait()
 
 	if workloadCDConfig.Status != nil && len(workloadCDConfig.Status) > 0 {
 		log.Println("workloadCDConfig.Status", workloadCDConfig.Status)
@@ -766,6 +912,44 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 
 	d.SetId(workloadCDConfig.Metadata.Name)
 	return diags
+}
+
+func getProjectWorkloadList(ctx context.Context, pr *systempb.Project, gWorkloadList *appspb.WorkloadList, mu *sync.Mutex, wg *sync.WaitGroup) error {
+	defer func() {
+		wg.Done()
+		<-guard
+	}()
+
+	var tmpList = appspb.WorkloadList{}
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		log.Println("getProjectWorkloadList client error", err)
+		return err
+	}
+	// Get all the workloads created by the operator
+
+	// Get all the workloads in the project
+	wList, err := client.AppsV3().Workload().List(ctx, options.ListOptions{
+		Project: pr.Metadata.Name,
+	})
+	if err != nil {
+		log.Println("getProjectWorkloadList failed to get workload List for project", pr.Metadata.Name, "error", err)
+		return err
+	}
+	for _, w := range wList.Items {
+		for k, _ := range w.Metadata.Labels {
+			if k == "k8smgmt.io/helm-deployer-tfcd" {
+				log.Println("found operator deployed workload", w.Metadata.Name, "project", w.Metadata.Project, "namespace", w.Spec.Namespace)
+				tmpList.Items = append(tmpList.Items, w)
+			}
+		}
+	}
+	log.Println("getProjectWorkloadList pr.Metadata.Name", pr.Metadata.Name, "tmpList", tmpList.Items)
+	mu.Lock()
+	gWorkloadList.Items = append(gWorkloadList.Items, tmpList.Items...)
+	mu.Unlock()
+	return nil
 }
 
 func flattenWorkloadStatus(input []*WorkloadCDStatus, p []interface{}) []interface{} {
@@ -924,7 +1108,7 @@ func expandWorkloadCDConfigSpec(p []interface{}) (*WorkloadCDConfigSpec, error) 
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["type"].(string); ok && len(v) > 0 {
+	if v, ok := in["repo_type"].(string); ok && len(v) > 0 {
 		obj.Type = v
 	}
 
@@ -949,32 +1133,6 @@ func expandWorkloadCDConfigSpec(p []interface{}) (*WorkloadCDConfigSpec, error) 
 		}
 	}
 
-	if v, ok := in["path_match_pattern"].(string); ok && len(v) > 0 {
-		obj.PathMatchPattern = v
-	}
-
-	if v, ok := in["cluster_names"].(string); ok && len(v) > 0 {
-		obj.ClusterNames = v
-	}
-
-	if v, ok := in["delete_action"].(string); ok && len(v) > 0 {
-		obj.DeleteAction = strings.ToLower(v)
-	}
-
-	if v, ok := in["placement_labels"].(map[string]interface{}); ok && len(v) > 0 {
-		obj.PlacementLabels = toMapString(v)
-	} else {
-		obj.PlacementLabels = nil
-	}
-
-	if v, ok := in["base_path"].(string); ok && len(v) > 0 {
-		obj.BasePath = v
-	}
-
-	if v, ok := in["include_base_value"].(bool); ok {
-		obj.IncludeBaseValue = v
-	}
-
 	if v, ok := in["credentials"].([]interface{}); ok && len(v) > 0 {
 		// XXX Debug
 		objCreds, err := expandWorkloadCDCredentials(v)
@@ -987,7 +1145,170 @@ func expandWorkloadCDConfigSpec(p []interface{}) (*WorkloadCDConfigSpec, error) 
 		obj.Credentials = objCreds
 	}
 
+	if v, ok := in["workload"].([]interface{}); ok && len(v) > 0 {
+		obj.Workloads = expandWorkloads(v)
+	}
+
 	return obj, nil
+}
+
+func expandWorkloads(p []interface{}) []*Workload {
+	if len(p) == 0 || p[0] == nil {
+		return []*Workload{}
+	}
+
+	out := make([]*Workload, len(p))
+
+	for i := range p {
+		obj := Workload{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["cluster_names"].(string); ok && len(v) > 0 {
+			obj.ClusterNames = v
+		}
+
+		if v, ok := in["delete_action"].(string); ok && len(v) > 0 {
+			obj.DeleteAction = strings.ToLower(v)
+		}
+
+		if v, ok := in["placement_labels"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.PlacementLabels = toMapString(v)
+		} else {
+			obj.PlacementLabels = nil
+		}
+
+		if v, ok := in["path_match_pattern"].(string); ok && len(v) > 0 {
+			obj.PathMatchPattern = v
+		}
+
+		if v, ok := in["base_path"].(string); ok && len(v) > 0 {
+			obj.BasePath = v
+		}
+
+		if v, ok := in["include_base_value"].(bool); ok {
+			obj.IncludeBaseValue = v
+		}
+
+		if v, ok := in["chart_catalog_name"].(string); ok && len(v) > 0 {
+			obj.ChartCatalogName = v
+		}
+
+		if v, ok := in["chart_helm_repo_name"].(string); ok && len(v) > 0 {
+			obj.ChartHelmRepoName = v
+		}
+
+		if v, ok := in["chart_git_repo_name"].(string); ok && len(v) > 0 {
+			obj.ChartGitRepoName = v
+		}
+
+		if v, ok := in["chart_git_repo_branch"].(string); ok && len(v) > 0 {
+			obj.ChartGitRepoBranch = v
+		}
+
+		if v, ok := in["chart_git_repo_path"].(string); ok && len(v) > 0 {
+			obj.ChartGitRepoPath = v
+		}
+
+		if v, ok := in["helm_chart_name"].(string); ok && len(v) > 0 {
+			obj.HelmChartName = v
+		}
+
+		if v, ok := in["helm_chart_version"].(string); ok && len(v) > 0 {
+			obj.HelmChartVersion = v
+		}
+
+		if v, ok := in["helm_options"].([]interface{}); ok && len(v) > 0 {
+			obj.HelmOptions = expandHelmOptions(v)
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func expandHelmOptions(p []interface{}) *HelmOptions {
+	obj := &HelmOptions{}
+	if len(p) == 0 || p[0] == nil {
+		log.Println("expandHelmOptions empty input")
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["atomic"].(bool); ok {
+		obj.Atomic = v
+	}
+
+	if v, ok := in["clean_up_on_fail"].(bool); ok {
+		obj.CleanUpOnFail = v
+	}
+
+	if v, ok := in["description"].(string); ok && len(v) > 0 {
+		obj.Description = v
+	}
+
+	if v, ok := in["disable_open_api_validation"].(bool); ok {
+		obj.DisableOpenAPIValidation = v
+	}
+
+	if v, ok := in["force"].(bool); ok {
+		obj.Force = v
+	}
+
+	if v, ok := in["keep_history"].(bool); ok {
+		obj.KeepHistory = v
+	}
+
+	if v, ok := in["max_history"].(int32); ok {
+		obj.MaxHistory = v
+	}
+
+	if v, ok := in["no_hooks"].(bool); ok {
+		obj.NoHooks = v
+	}
+
+	if v, ok := in["render_sub_chart_notes"].(bool); ok {
+		obj.RenderSubChartNotes = v
+	}
+
+	if v, ok := in["reset_values"].(bool); ok {
+		obj.ResetValues = v
+	}
+
+	if v, ok := in["reuse_values"].(bool); ok {
+		obj.ReuseValues = v
+	}
+
+	if v, ok := in["set_string"].([]interface{}); ok && len(v) > 0 {
+		obj.SetString = toArrayString(v)
+	}
+
+	if v, ok := in["skip_crd"].(bool); ok {
+		obj.SkipCRDs = v
+	}
+
+	if v, ok := in["timeout"].(string); ok && len(v) > 0 {
+		obj.Timeout = v
+	}
+
+	if v, ok := in["wait"].(bool); ok {
+		obj.Wait = v
+	}
+
+	if v, ok := in["wait_for_jobs"].(bool); ok {
+		obj.WaitForJobs = v
+	}
+
+	if v, ok := in["wait_for_uninstall"].(bool); ok {
+		obj.WaitForUninstall = v
+	}
+
+	return obj
 }
 
 func expandWorkloadCDCredentials(p []interface{}) (*CDCredentials, error) {
@@ -1124,7 +1445,7 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 // walkRepo walks the repository and returns all files and folders
 // it also returns the base chart if it exists
 // it returns an error if the walk fails
-func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, []string, error) {
+func walkRepo(cfg *WorkloadCDConfig, wl *Workload) ([]string, []string, string, []string, error) {
 	var files []string
 	var folders []string
 	var baseChart string
@@ -1139,12 +1460,14 @@ func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, []string, erro
 		if !info.IsDir() {
 			abs, err := filepath.Abs(path)
 			if err == nil {
-				files = append(files, abs)
+				if strings.Contains(abs, wl.Name) {
+					files = append(files, abs)
+				}
 			} else {
 				log.Println("failed to get absolute path for files", err)
 			}
-			if cfg.Spec.BasePath != "" {
-				if strings.Contains(path, cfg.Spec.BasePath) && strings.HasSuffix(path, ".tgz") {
+			if wl.BasePath != "" {
+				if strings.Contains(path, wl.BasePath) && strings.HasSuffix(path, ".tgz") {
 					abs, err := filepath.Abs(path)
 					if err == nil {
 						baseChart = abs
@@ -1152,7 +1475,7 @@ func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, []string, erro
 						log.Println("failed to get absolute path for baseChart", err)
 					}
 				}
-				if strings.Contains(path, cfg.Spec.BasePath) &&
+				if strings.Contains(path, wl.BasePath) &&
 					(strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".yml")) {
 					abs, err := filepath.Abs(path)
 					if err == nil {
@@ -1175,72 +1498,32 @@ func walkRepo(cfg *WorkloadCDConfig) ([]string, []string, string, []string, erro
 			if isLeaf {
 				abs, err := filepath.Abs(path)
 				if err == nil {
-					folders = append(folders, abs)
+					if strings.Contains(abs, wl.Name) {
+						folders = append(folders, abs)
+					}
 				} else {
 					log.Println("failed to get absolute path for folders", err)
 				}
 			}
+
 		}
 		return nil
 	})
 	return folders, files, baseChart, baseValues, err
 }
 
-func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConfig, baseChart string, folders []string) error {
+func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConfig, workload *Workload, baseChart string, folders []string, gWorkloadList *appspb.WorkloadList, dwg *sync.WaitGroup) error {
 	var wg sync.WaitGroup
-	var wrkList appspb.WorkloadList
 	var wrkPrunedList appspb.WorkloadList
 
-	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
-	if err != nil {
-		log.Println("checkProject client error", err)
-		return err
-	}
-
-	// Get all the projects
-	projectList, err := client.SystemV3().Project().List(ctx, options.ListOptions{})
-	if err != nil {
-		log.Println("processApplicationFoldersForDelete failed to get projectList error", err)
-		return err
-	}
-
-	// Get all the workloads created by the operator
-	for _, pr := range projectList.Items {
-		// Get all the workloads in the project
-		wList, err := client.AppsV3().Workload().List(ctx, options.ListOptions{
-			Project: pr.Metadata.Name,
-		})
-		if err != nil {
-			log.Println("processApplicationFoldersForDelete failed to get workload List for project", pr.Metadata.Name, "error", err)
-			return err
-		}
-		for _, w := range wList.Items {
-			for k, _ := range w.Metadata.Labels {
-				if k == "k8smgmt.io/helm-deployer-tfcd" {
-					log.Println("found operator deployed workload", w.Metadata.Name, "project", w.Metadata.Project, "namespace", w.Spec.Namespace)
-					wrkList.Items = append(wrkList.Items, w)
-				}
-			}
-		}
-	}
-
+	defer dwg.Done()
 	for _, folder := range folders {
 		// prune workload list
-		var project, namespace, workload string
+		var project, namespace, workloadName string
 		var chartPath string
 
-		// get the chart in the folder
-		chartPath, _ = getChartInFolder(folder)
-		if chartPath == "" && baseChart != "" {
-			// get chart from baseChart
-			chartPath = baseChart
-		}
-
-		valuePaths, _ := getValuesInFolder(folder)
-
 		projectCheck := httprouter.New()
-		pattern := strings.TrimPrefix(strings.TrimSuffix(cfg.Spec.RepositoryLocalPath, "/"), ".") + cfg.Spec.PathMatchPattern
+		pattern := strings.TrimPrefix(strings.TrimSuffix(cfg.Spec.RepositoryLocalPath, "/"), ".") + workload.PathMatchPattern
 		log.Println("Delete folder:", folder, "PathMatchPattern", pattern)
 		projectCheck.Handle("POST", pattern, _dummyHandler)
 		h, p, _ := projectCheck.Lookup("POST", folder)
@@ -1253,29 +1536,42 @@ func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConf
 			namespace = p.ByName("namespace")
 			log.Println("namespace:", namespace)
 
-			workload = p.ByName("workload")
-			log.Println("workload:", workload)
+			workloadName = p.ByName("workload")
+			log.Println("workload:", workloadName)
 		}
 
-		if workload == "" {
-			// use chart name as workload name
-			strs := strings.Split(chartPath, "/")
-			chartName := strs[len(strs)-1]
-			w1 := strings.TrimSuffix(chartName, ".tgz")
-			w2 := strings.ReplaceAll(w1, ".", "-")
-			workload = strings.ReplaceAll(w2, "_", "-")
-			log.Println("workload:", workload)
+		if workloadName != workload.Name {
+			// not interested in this workload
+			continue
 		}
-		for _, w := range wrkList.Items {
-			if w.Metadata.Name == workload && w.Spec.Namespace == namespace && w.Metadata.Project == project {
-				if chartPath != "" && len(valuePaths) > 0 {
+
+		// get the chart in the folder
+		chartPath, _ = getChartInFolder(folder)
+		if chartPath == "" && baseChart != "" {
+			// get chart from baseChart
+			chartPath = baseChart
+		}
+		valuePaths, _ := getValuesInFolder(folder)
+
+		log.Println("prepare pruned list", workloadName, " folder:", folder, "chartPath", chartPath, "valuePaths", valuePaths)
+		for _, w := range gWorkloadList.Items {
+			if w.Metadata.Name == workload.Name && w.Spec.Namespace == namespace && w.Metadata.Project == project {
+				if (chartPath != "" ||
+					workload.ChartCatalogName != "" ||
+					workload.ChartHelmRepoName != "" ||
+					workload.ChartGitRepoName != "") && len(valuePaths) > 0 {
 					wrkPrunedList.Items = append(wrkPrunedList.Items, w)
 				}
 			}
 		}
 	}
 
-	for _, w := range wrkList.Items {
+	for _, w := range gWorkloadList.Items {
+		if w.Metadata.Name != workload.Name {
+			// not interested in this workload
+			continue
+		}
+		log.Println("find app to delete", w.Metadata.Project, w.Metadata.Name, w.Spec.Namespace)
 		found := false
 		for _, pw := range wrkPrunedList.Items {
 			if w.Metadata.Name == pw.Metadata.Name &&
@@ -1289,7 +1585,7 @@ func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConf
 			// delete application
 			wg.Add(1)
 			log.Println("deleteApplication", w.Metadata.Project, w.Metadata.Name)
-			go deleteApplication(ctx, cfg, w.Metadata.Project, w.Spec.Namespace, w.Metadata.Name, &wg)
+			go deleteApplication(ctx, cfg, workload, w.Metadata.Project, w.Spec.Namespace, w.Metadata.Name, &wg)
 		}
 	}
 
@@ -1297,7 +1593,7 @@ func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConf
 	return nil
 }
 
-func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, project, namespace, workload string, wg *sync.WaitGroup) error {
+func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, workload *Workload, project, namespace, workloadName string, wg *sync.WaitGroup) error {
 	defer wg.Done()
 
 	resp, err := rctl_project.GetProjectByName(project)
@@ -1316,10 +1612,10 @@ func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, project, name
 	decommission := WorkloadsDecommission{}
 	decommission.Project = project
 	decommission.Namespace = namespace
-	decommission.WorkloadName = workload
+	decommission.WorkloadName = workloadName
 
-	if cfg.Spec.DeleteAction == "delete" {
-		uri := fmt.Sprintf("/v2/config/project/%s/workload/%s", pr.ID, workload)
+	if workload.DeleteAction == "delete" {
+		uri := fmt.Sprintf("/v2/config/project/%s/workload/%s", pr.ID, workloadName)
 		println("delete uri", uri)
 		_, err := auth.AuthAndRequest(uri, "DELETE", nil)
 		if err != nil {
@@ -1327,9 +1623,9 @@ func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, project, name
 			return err
 		}
 		cfg.Decommissions = append(cfg.Decommissions, &decommission)
-	} else if cfg.Spec.DeleteAction == "unpublish" {
+	} else if workload.DeleteAction == "unpublish" {
 
-		uri := fmt.Sprintf("/v2/config/project/%s/workload/%s/unpublish", pr.ID, workload)
+		uri := fmt.Sprintf("/v2/config/project/%s/workload/%s/unpublish", pr.ID, workloadName)
 		println("unpublish uri", uri)
 		_, err := auth.AuthAndRequest(uri, "POST", nil)
 		if err != nil {
@@ -1341,15 +1637,45 @@ func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, project, name
 	return nil
 }
 
-func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, baseChart string, baseValues, folders []string) error {
+func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, workload *Workload, baseChart string, baseValues, folders []string, gWorkloadList *appspb.WorkloadList, cwg *sync.WaitGroup) error {
 	var chartPath string
 	var wg sync.WaitGroup
+	defer cwg.Done()
 
 	for _, folder := range folders {
+		var project, namespace, workloadName string
 		var valuePaths []string
-
 		// process folder and create application
 		chartPath = ""
+
+		projectCheck := httprouter.New()
+		pattern := strings.TrimPrefix(strings.TrimSuffix(cfg.Spec.RepositoryLocalPath, "/"), ".") + workload.PathMatchPattern
+		log.Println("folder:", folder, "PathMatchPattern", pattern)
+		projectCheck.Handle("POST", pattern, _dummyHandler)
+		h, p, _ := projectCheck.Lookup("POST", folder)
+		log.Println("h:", h)
+
+		if h != nil {
+			// got a hit for URL
+			project = p.ByName("project")
+			log.Println("project:", project)
+
+			namespace = p.ByName("namespace")
+			log.Println("namespace:", namespace)
+
+			workloadName = p.ByName("workload")
+			log.Println("workloadName:", workloadName)
+
+		}
+
+		if project == "" || namespace == "" || workloadName == "" {
+			log.Println("createApplication: project, namespace or workload is empty ignore folder", folder)
+			continue
+		}
+		if workloadName != workload.Name {
+			// not interested in this workload
+			continue
+		}
 
 		// get the chart in the folder
 		chartPath, _ = getChartInFolder(folder)
@@ -1357,7 +1683,7 @@ func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, baseC
 			chartPath = baseChart
 		}
 
-		if cfg.Spec.IncludeBaseValue {
+		if workload.IncludeBaseValue {
 			log.Println("processApplicationFolders include base values", baseValues)
 
 			// add base values
@@ -1372,12 +1698,15 @@ func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, baseC
 		}
 
 		// create application
-		if chartPath != "" && len(valuePaths) > 0 {
+		if (chartPath != "" ||
+			workload.ChartCatalogName != "" ||
+			workload.ChartHelmRepoName != "" ||
+			workload.ChartGitRepoName != "") && len(valuePaths) > 0 {
 			wg.Add(1)
-			go createApplication(ctx, cfg, folder, chartPath, valuePaths, &wg)
-			time.Sleep(time.Duration(2) * time.Second)
+			go createApplication(ctx, cfg, workload, folder, project, namespace, workload.Name, chartPath, valuePaths, &wg)
+			time.Sleep(time.Duration(5) * time.Second)
 		} else {
-			log.Println("processApplicationFolders ignore folder ", folder, "  chartPath or valuePaths is empty")
+			log.Println("processApplicationFolders ignore folder ", folder, "  chartPath or valuePaths (or) catalog (or) helm-repo (or) gitrepo is empty")
 		}
 	}
 	wg.Wait()
@@ -1449,7 +1778,7 @@ spec:
 */
 
 // getWorkLoadSpec returns the Workload spec
-func getWorkLoadSpec(cfg *WorkloadCDConfig, project, namespace, workloadName, chartPath, clusterNames, version string, valuePaths []string) string {
+func getWorkLoadSpec(cfg *WorkloadCDConfig, workload *Workload, project, namespace, workloadName, chartPath, clusterNames, version string, valuePaths []string) string {
 	var vPth string
 	var spec string
 
@@ -1466,8 +1795,28 @@ func getWorkLoadSpec(cfg *WorkloadCDConfig, project, namespace, workloadName, ch
 	spec += "spec:\n"
 	spec += "  artifact:\n"
 	spec += "    artifact:\n"
-	spec += "      chartPath:\n"
-	spec += "        name: file://" + chartPath + "\n"
+	if chartPath != "" {
+		spec += "      chartPath:\n"
+		spec += "        name: file://" + chartPath + "\n"
+	} else if workload.ChartCatalogName != "" {
+		spec += "      catalog: " + workload.ChartCatalogName + "\n"
+	} else if workload.ChartHelmRepoName != "" {
+		spec += "      repository: " + workload.ChartHelmRepoName + "\n"
+	} else if workload.ChartGitRepoName != "" {
+		spec += "      repository: " + workload.ChartGitRepoName + "\n"
+		spec += "      revision: " + workload.ChartGitRepoBranch + "\n"
+		spec += "      chartPath:\n"
+		spec += "        name: " + workload.ChartGitRepoPath + "\n"
+
+	}
+	if workload.ChartGitRepoName == "" {
+		if workload.HelmChartName != "" {
+			spec += "      chartName: " + workload.HelmChartName + "\n"
+		}
+		if workload.HelmChartVersion != "" {
+			spec += "      chartVersion: " + workload.HelmChartVersion + "\n"
+		}
+	}
 	spec += "      valuesPaths:\n"
 	spec += vPth
 	spec += "    options:\n"
@@ -1479,9 +1828,9 @@ func getWorkLoadSpec(cfg *WorkloadCDConfig, project, namespace, workloadName, ch
 	if clusterNames != "" {
 		spec += "    selector: rafay.dev/clusterName in (" + clusterNames + ")\n"
 	}
-	if len(cfg.Spec.PlacementLabels) > 0 {
+	if len(workload.PlacementLabels) > 0 {
 		spec += "    labels:\n"
-		for k, v := range cfg.Spec.PlacementLabels {
+		for k, v := range workload.PlacementLabels {
 			spec += "      - key: " + k + "\n"
 			if v != "" {
 				spec += "        value: " + v + "\n"
@@ -1495,48 +1844,13 @@ func getWorkLoadSpec(cfg *WorkloadCDConfig, project, namespace, workloadName, ch
 
 }
 
-func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string, chartPath string, valuePaths []string, wg *sync.WaitGroup) error {
+func createApplication(ctx context.Context, cfg *WorkloadCDConfig, workload *Workload, folder, project, namespace, workloadName, chartPath string, valuePaths []string, wg *sync.WaitGroup) error {
 	// create application
-	var project, namespace, workload string
-	var clusterNames string
+	var clusterNames []string
 	var chartVersion string
 	var valueVersion string
 	var workloadVersion string
 	defer wg.Done()
-
-	projectCheck := httprouter.New()
-	pattern := strings.TrimPrefix(strings.TrimSuffix(cfg.Spec.RepositoryLocalPath, "/"), ".") + cfg.Spec.PathMatchPattern
-	log.Println("folder:", folder, "PathMatchPattern", pattern)
-	projectCheck.Handle("POST", pattern, _dummyHandler)
-	h, p, _ := projectCheck.Lookup("POST", folder)
-	log.Println("h:", h)
-
-	if h != nil {
-		// got a hit for URL
-		project = p.ByName("project")
-		log.Println("project:", project)
-
-		namespace = p.ByName("namespace")
-		log.Println("namespace:", namespace)
-
-		workload = p.ByName("workload")
-		log.Println("workload:", workload)
-	}
-
-	if workload == "" {
-		// use chart name as workload name
-		strs := strings.Split(chartPath, "/")
-		chartName := strs[len(strs)-1]
-		w1 := strings.TrimSuffix(chartName, ".tgz")
-		w2 := strings.ReplaceAll(w1, ".", "-")
-		workload = strings.ReplaceAll(w2, "_", "-")
-		log.Println("workload:", workload)
-	}
-
-	if project == "" || namespace == "" || workload == "" {
-		log.Println("createApplication: project, namespace or workload is empty ignore folder", folder)
-		return fmt.Errorf("createApplication: project, namespace or workload is empty ignore folder %s", folder)
-	}
 
 	// check if project exist
 	_, clusterList, err := checkProject(ctx, project)
@@ -1546,14 +1860,14 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 		status.RepoFolder = folder
 		status.Project = project
 		status.Namespace = namespace
-		status.WorkloadName = workload
+		status.WorkloadName = workload.Name
 		status.Status.ConditionType = "Failed"
 		status.Status.Reason = err.Error()
 		cfg.Status = append(cfg.Status, &status)
 		return err
 	}
 
-	if cfg.Spec.ClusterNames == "" && len(cfg.Spec.PlacementLabels) <= 0 {
+	if workload.ClusterNames == "" && len(workload.PlacementLabels) <= 0 {
 		// get cluster names from clusterList in the project
 		if len(clusterList) <= 0 {
 			err = fmt.Errorf("createApplication: no clusters found for project %s", project)
@@ -1562,7 +1876,7 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 			status.RepoFolder = folder
 			status.Project = project
 			status.Namespace = namespace
-			status.WorkloadName = workload
+			status.WorkloadName = workload.Name
 			status.Status = &commonpb.Status{}
 			status.Status.ConditionType = "Failed"
 			status.Status.Reason = err.Error()
@@ -1570,26 +1884,43 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 			return err
 		}
 		// get cluster names from clusterList in the project
-		clusterNames = strings.Join(clusterList, ",")
-	}
-	if cfg.Spec.ClusterNames != "" {
-		clusterNames = cfg.Spec.ClusterNames
+		clusterNames = append(clusterNames, clusterList...)
 	}
 
-	// get chartPath version
-	// git log -n1 --oneline --pretty=format:%H
-	trimPath := pruneRepolocalPath(cfg.Spec.RepositoryLocalPath, chartPath)
-	out, err := runCmd(cfg, cfg.Spec.RepositoryLocalPath, false, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
-	if err != nil {
-		log.Println("failed to runCmd ", err, "trimPath", trimPath)
-		chartVersion = RandomString(7)
-	} else {
-		chartVersion = out[:7]
+	if workload.ClusterNames != "" {
+		clusterNames = append(clusterNames, workload.ClusterNames)
 	}
 
+	if chartPath != "" {
+		// get chartPath version
+		// git log -n1 --oneline --pretty=format:%H
+		trimPath := pruneRepolocalPath(cfg.Spec.RepositoryLocalPath, chartPath)
+		out, err := runCmd(cfg, cfg.Spec.RepositoryLocalPath, false, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
+		if err != nil {
+			log.Println("failed to runCmd ", err, "trimPath", trimPath)
+			chartVersion = RandomString(7)
+		} else {
+			chartVersion = out[:7]
+		}
+	} else if workload.ChartCatalogName != "" {
+		hashVar := sha256.New()
+		hashVar.Write([]byte(workload.ChartCatalogName + workload.HelmChartName + workload.HelmChartVersion))
+		bs := hashVar.Sum(nil)
+		chartVersion = fmt.Sprintf("%x", bs)
+	} else if workload.ChartHelmRepoName != "" {
+		hashVar := sha256.New()
+		hashVar.Write([]byte(workload.ChartHelmRepoName + workload.HelmChartName + workload.HelmChartVersion))
+		bs := hashVar.Sum(nil)
+		chartVersion = fmt.Sprintf("%x", bs)
+	} else if workload.ChartGitRepoName != "" {
+		hashVar := sha256.New()
+		hashVar.Write([]byte(workload.ChartGitRepoName + workload.ChartGitRepoBranch + workload.ChartGitRepoPath + workload.HelmChartName + workload.HelmChartVersion))
+		bs := hashVar.Sum(nil)
+		chartVersion = fmt.Sprintf("%x", bs)
+	}
 	// get valuePath version
 	for _, valuePath := range valuePaths {
-		trimPath = pruneRepolocalPath(cfg.Spec.RepositoryLocalPath, valuePath)
+		trimPath := pruneRepolocalPath(cfg.Spec.RepositoryLocalPath, valuePath)
 		out, err := runCmd(cfg, cfg.Spec.RepositoryLocalPath, false, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
 		if err != nil {
 			log.Println("failed to runCmd ", err, "trimPath", trimPath)
@@ -1614,7 +1945,7 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 		return err
 	}
 	wl, err := client.AppsV3().Workload().Get(ctx, options.GetOptions{
-		Name:    workload,
+		Name:    workload.Name,
 		Project: project,
 	})
 	if err == nil {
@@ -1628,8 +1959,9 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 		}
 	}
 
+	clusters := strings.Join(clusterNames, ",")
 	log.Println("createApplication project:", project)
-	workloadSpec := getWorkLoadSpec(cfg, project, namespace, workload, chartPath, clusterNames, workloadVersion[:7], valuePaths)
+	workloadSpec := getWorkLoadSpec(cfg, workload, project, namespace, workloadName, chartPath, clusters, workloadVersion[:7], valuePaths)
 	log.Println("workloadSpec", "\n---\n", workloadSpec, "\n---")
 
 	err = deployWorkload(ctx, cfg, workloadSpec, folder, workloadVersion[:7])
@@ -1639,7 +1971,7 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, folder string
 		status.RepoFolder = folder
 		status.Project = project
 		status.Namespace = namespace
-		status.WorkloadName = workload
+		status.WorkloadName = workload.Name
 		status.Version = workloadVersion[:7]
 		status.Status = &commonpb.Status{}
 		status.Status.ConditionType = "Failed"
@@ -1689,7 +2021,7 @@ func checkProject(ctx context.Context, project string) (string, []string, error)
 	for _, cl := range *clusterList {
 		clusterNames = append(clusterNames, cl.Name)
 	}
-	log.Println("project", project, "clusterNames", clusterNames)
+	log.Println("project", project, "clusterNames in the project", clusterNames)
 	return pr.ID, clusterNames, nil
 }
 

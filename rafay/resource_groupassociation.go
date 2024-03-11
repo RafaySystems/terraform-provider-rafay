@@ -15,6 +15,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/namespace"
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/pkg/user"
+	"github.com/RafaySystems/rctl/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -46,7 +47,8 @@ func resourceGroupAssociation() *schema.Resource {
 			},
 			"project": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				// Required: false,
 				ForceNew: true,
 			},
 			"roles": {
@@ -204,27 +206,57 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 	//create group association
 	log.Printf("resource group assocation create %s", d.Get("group").(string))
 	log.Println("roles: ", roles, "namespace: ", namespace)
-	err := commands.CreateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace, customRoles)
-	if err != nil {
-		log.Printf("create group association error %s", err.Error())
-		if strings.Contains(err.Error(), "already assigned") {
-			// try to update the association
-			err := commands.UpdateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace, customRoles)
-			if err != nil {
-				log.Printf("update group association error %s", err.Error())
-				if !strings.Contains(err.Error(), "already assigned") {
-					return diag.FromErr(err)
+	if d.Get("project") != nil && d.Get("project").(string) != "" {
+		err := commands.CreateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace, customRoles)
+		if err != nil {
+			log.Printf("create group association error %s", err.Error())
+			if strings.Contains(err.Error(), "already assigned") {
+				// try to update the association
+				err := commands.UpdateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace, customRoles)
+				if err != nil {
+					log.Printf("update group association error %s", err.Error())
+					if !strings.Contains(err.Error(), "already assigned") {
+						return diag.FromErr(err)
+					}
 				}
+			} else {
+				return diag.FromErr(err)
 			}
-		} else {
+		}
+		//make sure group project association gets created
+		_, err = groupassociation.GetProjectAssociatedWithGroup(d.Get("group").(string))
+		if err != nil {
+			log.Printf("create group association failed to get group, error %s", err.Error())
 			return diag.FromErr(err)
 		}
-	}
-	//make sure group project association gets created
-	_, err = groupassociation.GetProjectAssociatedWithGroup(d.Get("group").(string))
-	if err != nil {
-		log.Printf("create group association failed to get group, error %s", err.Error())
-		return diag.FromErr(err)
+	} else {
+		// admin role
+		isAdminRole := false
+		if utils.StringInSlice("ADMIN", roles) || utils.StringInSlice("ADMINISTRATOR_READ_ONLY", roles) || utils.StringInSlice("FINOPS_ADMIN", roles) {
+			isAdminRole = true
+		} else if len(customRoles) > 0 {
+			// custom role could have an admin base role, not breaking the flow
+			isAdminRole = true
+		}
+		if !isAdminRole {
+			return diag.FromErr(fmt.Errorf("project name is missing for non admin/project scoped role"))
+		}
+		err := commands.CreateAdminRoleAssociation(nil, d.Get("group").(string), roles, customRoles)
+		if err != nil {
+			log.Printf("create admin role group association error %s", err.Error())
+			if strings.Contains(err.Error(), "already assigned") {
+				// try to update the association
+				err := commands.UpdateAdminRoleAssociation(nil, d.Get("group").(string), roles, customRoles)
+				if err != nil {
+					log.Printf("update admin role group association error %s", err.Error())
+					if !strings.Contains(err.Error(), "already assigned") {
+						return diag.FromErr(err)
+					}
+				}
+			} else {
+				return diag.FromErr(err)
+			}
+		}
 	}
 	//checking the id of the group
 	groupResp, err := group.GetGroupByName(d.Get("group").(string))
@@ -244,13 +276,21 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 		log.Printf("get project after creation failed, error %s", err.Error())
 		return diag.FromErr(err)
 	}
-	//checking response of project id
-	p, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		return diag.FromErr(err)
-	} else if p == nil {
-		d.SetId("")
-		return diags
+
+	projectID := ""
+
+	if d.Get("project") != nil && d.Get("project").(string) != "" {
+		//checking response of project id
+		p, err := project.NewProjectFromResponse([]byte(resp))
+		if err != nil {
+			return diag.FromErr(err)
+		} else if p == nil {
+			d.SetId("")
+			return diags
+		}
+		projectID = p.ID
+	} else {
+		projectID = "all_projects"
 	}
 	//create user association to group if users are included in resources
 	if d.Get("add_users") != nil {
@@ -294,7 +334,7 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 
 	}
 	//creating association id by combining group and project id
-	d.SetId(currGroup.ID + "-" + p.ID)
+	d.SetId(currGroup.ID + "-" + projectID)
 
 	return diags
 }
@@ -324,99 +364,100 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	//getting project name from id
-	resp, err = getProjectById(s[1])
-	if err != nil {
-		log.Printf("failed to get project ID, error %s", err.Error())
-		return diag.FromErr(err)
-	}
-	//parse response to retrieve only project name
-	p, err := getProjectFromResponse([]byte(resp))
-	if err != nil {
-		log.Printf("get project response error %s", err.Error())
-		return diag.FromErr(err)
-	} else if p == nil {
-		d.SetId("")
-		return diags
-	}
-	//setting project name to p.Name
-	if err := d.Set("project", p.Name); err != nil {
-		log.Printf("get group association set error %s", err.Error())
-		return diag.FromErr(err)
-	}
-
-	//check if there is a group association
-	respRoles, err := groupassociation.GetProjectAssociatedWithGroup(g.Name)
-	if err != nil {
-		log.Printf("read group association failed to get group, error %s", err.Error())
-		return diag.FromErr(err)
-	} else {
-		var roleLst []string
-		var customRoleLst []string
-		var namespace_id_list []string
-		gaList := []models.GroupAssociationRoles{}
-		err = json.Unmarshal([]byte(respRoles), &gaList)
+	if s[1] != "all_projects" {
+		resp, err = getProjectById(s[1])
 		if err != nil {
-			log.Printf("read group association failed to get roles, error %s", err.Error())
+			log.Printf("failed to get project ID, error %s", err.Error())
 			return diag.FromErr(err)
 		}
-		for _, sn := range gaList {
-			if sn.Project.Name == p.Name {
-				projectRoleMap := make(map[string]int)
-				for _, cr := range sn.CustomRoles {
-					customRoleLst = append(customRoleLst, cr.CustomRole.Name)
-					count := 1
-					if len(cr.Namespaces) > 0 {
-						count = len(cr.Namespaces)
-					}
-					projectRoleMap[cr.CustomRole.BaseRoleName] = projectRoleMap[cr.CustomRole.BaseRoleName] + count
-				}
-				for _, cp := range sn.Roles {
-					if v, ok := projectRoleMap[cp.Role.Name]; ok && v > 0 {
-						projectRoleMap[cp.Role.Name] = v - 1
-					} else {
-						roleLst = append(roleLst, cp.Role.Name)
-					}
-					// get namespace from namespace_id
-					if cp.NamespaceID != "" {
-						namespace_id_list = append(namespace_id_list, cp.NamespaceID)
-					}
-				}
-			}
+		//parse response to retrieve only project name
+		p, err := getProjectFromResponse([]byte(resp))
+		if err != nil {
+			log.Printf("get project response error %s", err.Error())
+			return diag.FromErr(err)
+		} else if p == nil {
+			d.SetId("")
+			return diags
 		}
-		if len(roleLst) > 0 {
-			//sort.Strings(roleLst)
-			if err := d.Set("roles", RemoveDuplicatesFromSlice(roleLst)); err != nil {
-				log.Printf("get group association set role error %s", err.Error())
-				return diag.FromErr(err)
-			}
+		//setting project name to p.Name
+		if err := d.Set("project", p.Name); err != nil {
+			log.Printf("get group association set error %s", err.Error())
+			return diag.FromErr(err)
+		}
+		//check if there is a group association
+		respRoles, err := groupassociation.GetProjectAssociatedWithGroup(g.Name)
+		if err != nil {
+			log.Printf("read group association failed to get group, error %s", err.Error())
+			return diag.FromErr(err)
 		} else {
-			if err := d.Set("roles", nil); err != nil {
-				log.Printf("get group association set role error %s", err.Error())
+			var roleLst []string
+			var customRoleLst []string
+			var namespace_id_list []string
+			gaList := []models.GroupAssociationRoles{}
+			err = json.Unmarshal([]byte(respRoles), &gaList)
+			if err != nil {
+				log.Printf("read group association failed to get roles, error %s", err.Error())
 				return diag.FromErr(err)
 			}
-		}
-		if len(customRoleLst) > 0 {
-			if err := d.Set("custom_roles", RemoveDuplicatesFromSlice(customRoleLst)); err != nil {
-				log.Printf("get group association set custom role error %s", err.Error())
-				return diag.FromErr(err)
+			for _, sn := range gaList {
+				if sn.Project.Name == p.Name {
+					projectRoleMap := make(map[string]int)
+					for _, cr := range sn.CustomRoles {
+						customRoleLst = append(customRoleLst, cr.CustomRole.Name)
+						count := 1
+						if len(cr.Namespaces) > 0 {
+							count = len(cr.Namespaces)
+						}
+						projectRoleMap[cr.CustomRole.BaseRoleName] = projectRoleMap[cr.CustomRole.BaseRoleName] + count
+					}
+					for _, cp := range sn.Roles {
+						if v, ok := projectRoleMap[cp.Role.Name]; ok && v > 0 {
+							projectRoleMap[cp.Role.Name] = v - 1
+						} else {
+							roleLst = append(roleLst, cp.Role.Name)
+						}
+						// get namespace from namespace_id
+						if cp.NamespaceID != "" {
+							namespace_id_list = append(namespace_id_list, cp.NamespaceID)
+						}
+					}
+				}
 			}
-		} else {
-			if err := d.Set("custom_roles", nil); err != nil {
-				log.Printf("get group association set custom role error %s", err.Error())
-				return diag.FromErr(err)
+			if len(roleLst) > 0 {
+				//sort.Strings(roleLst)
+				if err := d.Set("roles", RemoveDuplicatesFromSlice(roleLst)); err != nil {
+					log.Printf("get group association set role error %s", err.Error())
+					return diag.FromErr(err)
+				}
+			} else {
+				if err := d.Set("roles", nil); err != nil {
+					log.Printf("get group association set role error %s", err.Error())
+					return diag.FromErr(err)
+				}
 			}
-		}
+			if len(customRoleLst) > 0 {
+				if err := d.Set("custom_roles", RemoveDuplicatesFromSlice(customRoleLst)); err != nil {
+					log.Printf("get group association set custom role error %s", err.Error())
+					return diag.FromErr(err)
+				}
+			} else {
+				if err := d.Set("custom_roles", nil); err != nil {
+					log.Printf("get group association set custom role error %s", err.Error())
+					return diag.FromErr(err)
+				}
+			}
 
-		if len(namespace_id_list) > 0 {
-			namespace_names, _ := returnValidNamespaceNames(namespace_id_list, p.ID)
-			if err := d.Set("namespaces", RemoveDuplicatesFromSlice(namespace_names)); err != nil {
-				log.Printf("get group association set namespace error %s", err.Error())
-				return diag.FromErr(err)
-			}
-		} else {
-			if err := d.Set("namespaces", nil); err != nil {
-				log.Printf("get group association set namespace error %s", err.Error())
-				return diag.FromErr(err)
+			if len(namespace_id_list) > 0 {
+				namespace_names, _ := returnValidNamespaceNames(namespace_id_list, p.ID)
+				if err := d.Set("namespaces", RemoveDuplicatesFromSlice(namespace_names)); err != nil {
+					log.Printf("get group association set namespace error %s", err.Error())
+					return diag.FromErr(err)
+				}
+			} else {
+				if err := d.Set("namespaces", nil); err != nil {
+					log.Printf("get group association set namespace error %s", err.Error())
+					return diag.FromErr(err)
+				}
 			}
 		}
 	}
@@ -432,6 +473,7 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	var namespace []string
+	var err error
 	//schema List returns interface
 	//convert roles interface to passable list for function
 	rolesList := d.Get("roles").([]interface{})
@@ -453,11 +495,32 @@ func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData,
 	for i, raw := range customRolesList {
 		customRoles[i] = raw.(string)
 	}
-	err := commands.UpdateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace, customRoles)
-	if err != nil {
-		log.Printf("update group association error %s", err.Error())
-		return diag.FromErr(err)
+	if d.Get("project") != nil && d.Get("project").(string) != "" {
+		//update group association
+		err := commands.UpdateProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string), roles, namespace, customRoles)
+		if err != nil {
+			log.Printf("update group association error %s", err.Error())
+			return diag.FromErr(err)
+		}
+	} else {
+		// admin role
+		isAdminRole := false
+		if utils.StringInSlice("ADMIN", roles) || utils.StringInSlice("ADMINISTRATOR_READ_ONLY", roles) || utils.StringInSlice("FINOPS_ADMIN", roles) {
+			isAdminRole = true
+		} else if len(customRoles) > 0 {
+			// custom role could have an admin base role, not breaking the flow
+			isAdminRole = true
+		}
+		if !isAdminRole {
+			return diag.FromErr(fmt.Errorf("project name is missing for non admin/project scoped role"))
+		}
+		err := commands.UpdateAdminRoleAssociation(nil, d.Get("group").(string), roles, customRoles)
+		if err != nil {
+			log.Printf("update admin role group association error %s", err.Error())
+			return diag.FromErr(err)
+		}
 	}
+
 	if d.Get("remove_users") != nil || d.Get("add_users") != nil {
 		var usersToAdd []string
 		//convert remove users interface to passable list for function create

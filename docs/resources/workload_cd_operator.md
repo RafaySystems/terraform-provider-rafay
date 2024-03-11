@@ -74,7 +74,7 @@ Please refer to the [test-tfcd](https://github.com/stephan-rafay/test-tfcd) repo
 ### Repository Folder Structure
 The repository folder structure is designed to organize Helm charts in a way that reflects the project name, namespace, and workload name. The folder structure is flexible and can be customized to suit your specific requirements using `path_match_pattern`.
 
-Note:  `project`, `namespace` and `workload` are mandatory, 
+Note:  `project`, `namespace` and `workload` are mandatory.
 
 Examples:
 

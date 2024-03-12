@@ -97,6 +97,18 @@ resource "rafay_fleetplan" "fp1" {
           }
         }
       }
+      operations {
+        name = "op4"
+        action {
+          name = "action4"
+          type = "blueprintUpdate"
+          description = "updating blueprint with named action"
+          blueprint_update_config {
+            name = "default"
+            version = "latest"
+          }
+        }
+      }
     }
 
     agents {

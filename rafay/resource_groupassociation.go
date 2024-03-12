@@ -575,10 +575,16 @@ func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData,
 
 func resourceGroupAssociationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	var err error
 	//delete association with group name and project name
 	//both should be parsed correctly from the response in read function
 	log.Printf("group name: %s, project name: %s", d.Get("group").(string), d.Get("project").(string))
-	err := commands.DeleteProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string))
+	if d.Get("project") != nil && d.Get("project").(string) != "" {
+		err = commands.DeleteProjectAssociation(nil, d.Get("group").(string), d.Get("project").(string))
+	} else {
+		log.Println("Dissociating admin role from group")
+		err = commands.DeleteProjectAssociation(nil, d.Get("group").(string), "ALL_PROJECTS")
+	}
 	if err != nil {
 		log.Printf("delete group error %s", err.Error())
 		return diag.FromErr(err)

@@ -843,6 +843,7 @@ func expandToV3GkeNodeAutoScale(p []interface{}) (*infrapb.GkeNodeAutoScale, err
 
 // GkeNodeMachineConfig
 func expandToV3GkeNodeMachineConfig(p []interface{}) (*infrapb.GkeNodeMachineConfig, error) {
+	var err error
 	if len(p) == 0 || p[0] == nil {
 		return nil, errors.New("got nil for gke node machine config")
 	}
@@ -866,13 +867,19 @@ func expandToV3GkeNodeMachineConfig(p []interface{}) (*infrapb.GkeNodeMachineCon
 		obj.BootDiskSize = int64(v)
 	}
 
-	var err error
-
 	// GkeNodeReservationAffinity
 	if v, ok := in["reservation_affinity"].([]interface{}); ok && len(v) > 0 {
 		obj.ReservationAffinity, err = expandToV3GkeNodeReservationAffinity(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to expand Gke reservation affinity " + err.Error())
+		}
+	}
+
+	// GkeNodeAccelerators
+	if v, ok := in["accelerators"].([]interface{}); ok && len(v) > 0 {
+		obj.Accelerators, err = expandToV3GkeNodeAccelerators(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand Gke node accelerators " + err.Error())
 		}
 	}
 
@@ -894,6 +901,130 @@ func expandToV3GkeNodeReservationAffinity(p []interface{}) (*infrapb.GkeNodeRese
 	if v, ok := in["reservation_name"].(string); ok && len(v) > 0 {
 		obj.ReservationName = v
 	}
+	return obj, nil
+}
+
+func expandToV3GkeNodeAccelerators(p []interface{}) ([]*infrapb.GkeNodeAccelerator, error) {
+	var err error
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node accelerators config")
+	}
+
+	out := make([]*infrapb.GkeNodeAccelerator, len(p))
+	for i := range p {
+		obj := &infrapb.GkeNodeAccelerator{}
+
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+
+		if v, ok := in["count"].(int); ok && v > 0 {
+			obj.Count = int64(v)
+		}
+
+		if v, ok := in["accelerator_sharing"].([]interface{}); ok && len(v) > 0 {
+			obj.AcceleratorSharing, err = expandToV3GkeNodeAcceleratorSharing(v)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if v, ok := in["gpu_driver_installation"].([]interface{}); ok && len(v) > 0 {
+			obj.GpuDriverInstallation, err = expandToV3GkeNodeGpuDriverInstallation(v)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if v, ok := in["gpu_partition_size"].(string); ok && len(v) > 0 {
+			obj.GpuPartitionSize = v
+		}
+
+		out[i] = obj
+	}
+
+	return out, nil
+}
+
+func expandToV3GkeNodeGpuDriverInstallation(p []interface{}) (*infrapb.GPUDriverInstallation, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node gpu driver installation config")
+	}
+
+	obj := &infrapb.GPUDriverInstallation{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["type"].(string); ok {
+		obj.Type = v
+	}
+
+	var err error
+	if strings.EqualFold(obj.Type, GKE_ACCELERATOR_GOOGLE_DRIVER_INSTALATION) {
+		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+			obj.Config, err = expandToV3GoogleDriverInstallation(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand Google driver installation settings" + err.Error())
+			}
+		}
+	}
+	if strings.EqualFold(obj.Type, GKE_ACCELERATOR_USER_DRIVER_INSTALATION) {
+		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+			obj.Config, err = expandToV3UserDriverInstallation(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand User driver installation settings" + err.Error())
+			}
+		}
+	}
+
+	return obj, nil
+}
+
+func expandToV3UserDriverInstallation(p []interface{}) (*infrapb.GPUDriverInstallation_UserManaged, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node gpu driver installation config")
+	}
+
+	obj := &infrapb.GPUDriverInstallation_UserManaged{}
+	// in := p[0].(map[string]interface{})
+
+	return obj, nil
+}
+
+func expandToV3GoogleDriverInstallation(p []interface{}) (*infrapb.GPUDriverInstallation_GoogleManaged, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node gpu driver installation config")
+	}
+
+	obj := &infrapb.GPUDriverInstallation_GoogleManaged{
+		GoogleManaged: &infrapb.GPUGoogleManagedDriverInstallation{},
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["version"].(string); ok {
+		obj.GoogleManaged.Version = v
+	}
+
+	return obj, nil
+}
+
+func expandToV3GkeNodeAcceleratorSharing(p []interface{}) (*infrapb.GkeAcceleratorSharing, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, errors.New("got nil for gke node accelerator sharing config")
+	}
+
+	obj := &infrapb.GkeAcceleratorSharing{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["max_shared_clients"].(int); ok {
+		obj.MaxSharedClients = int64(v)
+	}
+
+	if v, ok := in["strategy"].(string); ok {
+		obj.Strategy = v
+	}
+
 	return obj, nil
 }
 

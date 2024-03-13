@@ -78,7 +78,7 @@ Optional:
 
 ***Required***
 
-- `base_role` (String) Base Role Name
+- `base_role` (String) Base Role Name. Supported values are: `ADMIN`, `ADMINISTRATOR_READ_ONLY`, `PROJECT_ADMIN`, `PROJECT_READ_ONLY`, `INFRA_ADMIN`, `INFRA_READ_ONLY`, `NAMESPACE_ADMIN`, `NAMESPACE_READ_ONLY`, `CLUSTER_ADMIN`, `WORKSPACE_ADMIN`, `WORKSPACE_READ_ONLY`, `CLUSTER_TEMPLATE_USER`, `FINOPS_ADMIN`, and `ENVIRONMENT_TEMPLATE_USER`
 
 **Note**: Either `abac_policy_list` or `ztka_policy_list` required
 

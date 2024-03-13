@@ -123,7 +123,7 @@ resource "rafay_ztkarule" "test_rafay_ztkarule_local_file" {
 ***Required***
 
 - `artifact` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--artifact--artifact))
-- `type` (String) type of the artifact
+- `type` (String) type of the artifact, Supported values are: `Yaml`
 
 ***Optional***
 

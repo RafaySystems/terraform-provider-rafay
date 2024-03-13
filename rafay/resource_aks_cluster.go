@@ -4549,7 +4549,7 @@ func flattenAKSMCPropertiesNetworkProfile(in *AKSManagedClusterNetworkProfile, p
 	}
 
 	if len(in.NetworkPluginMode) > 0 {
-		obj["network_plugi_mode"] = in.NetworkPluginMode
+		obj["network_plugin_mode"] = in.NetworkPluginMode
 	}
 
 	if len(in.NetworkPolicy) > 0 {

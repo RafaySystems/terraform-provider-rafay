@@ -2843,7 +2843,7 @@ func flattenAKSV3MCPropertiesNetworkProfile(in *infrapb.Networkprofile, p []inte
 	}
 
 	if len(in.NetworkPluginMode) > 0 {
-		obj["network_plugin"] = in.NetworkPluginMode
+		obj["network_plugin_mode"] = in.NetworkPluginMode
 	}
 
 	if len(in.NetworkPolicy) > 0 {

@@ -776,8 +776,16 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 
 	cdConf := spew.Sprintf("%+v", workloadCDConfig)
 	log.Println("expandWorkloadCDConfig  ", cdConf)
-
-	output, err := cloneRepo(workloadCDConfig)
+	var output []string
+	var ssh_key_path string
+	if workloadCDConfig.Spec.Credentials != nil && workloadCDConfig.Spec.Credentials.PrivateKey != "" {
+		output, ssh_key_path, err = cloneRepoSSH(workloadCDConfig)
+		if ssh_key_path != "" {
+			defer os.Remove(ssh_key_path)
+		}
+	} else {
+		output, err = cloneRepo(workloadCDConfig)
+	}
 	if err != nil {
 		log.Println("cloneRepo error", err)
 		return diag.FromErr(err)
@@ -1338,9 +1346,15 @@ func expandWorkloadCDCredentials(p []interface{}) (*CDCredentials, error) {
 	return obj, nil
 }
 
-// runCmd is a convenience function to run a command in a given directory and return its output
-func runCmd(workloadCdCfg *WorkloadCDConfig, cmdDir string, senstive bool, args ...string) (string, error) {
+// runGitCmd is a convenience function to run a command in a given directory and return its output
+func runGitCmd(workloadCdCfg *WorkloadCDConfig, cmdDir string, senstive bool, args ...string) (string, error) {
 	cmd := exec.Command("git", args...)
+	return runCmdOutput(workloadCdCfg, cmdDir, cmd, senstive)
+}
+
+// runCmd is a convenience function to run a command in a given directory and return its output
+func runCmd(workloadCdCfg *WorkloadCDConfig, cmnd, cmdDir string, senstive bool, args ...string) (string, error) {
+	cmd := exec.Command(cmnd, args...)
 	return runCmdOutput(workloadCdCfg, cmdDir, cmd, senstive)
 }
 
@@ -1378,6 +1392,47 @@ func runCmdOutput(workloadCdCfg *WorkloadCDConfig, cmdDir string, cmd *exec.Cmd,
 	return out, err
 }
 
+func cloneRepoSSH(workloadCdCfg *WorkloadCDConfig) ([]string, string, error) {
+	var out string
+	var sshKey string
+
+	log.Printf("cloneRepoSSH starts")
+	repo_url := workloadCdCfg.Spec.RepoURL
+	//repo_branch := workloadCdCfg.Spec.RepoBranch
+	if workloadCdCfg.Spec.Credentials != nil {
+		sshKey = workloadCdCfg.Spec.Credentials.PrivateKey
+	}
+
+	path := workloadCdCfg.Spec.RepositoryLocalPath
+	// remove the local repo if it exists
+	runCmd(workloadCdCfg, "rm", ".", false, "-rf", path)
+	f, err := os.CreateTemp("", "tfcd_ssh_key")
+	if err != nil {
+		log.Println("failed to create file", err)
+		return nil, "", err
+	}
+	f.Write([]byte(sshKey))
+	f.Close()
+	ssh_key_path := f.Name()
+
+	time.Sleep(5 * time.Second)
+	// if the repo doesn't exist, we need to clone it
+	// git clone -c "core.sshCommand=ssh -i ssh_key_path" --branch <branchname> git@github.com:stephan-rafay/test-tfcd.git <path>
+	sshCmd := "core.sshCommand=ssh -i " + ssh_key_path
+	if workloadCdCfg.Spec.RepoBranch != "" {
+		out, err = runGitCmd(workloadCdCfg, ".", true, "clone", "-c", sshCmd, "--branch", workloadCdCfg.Spec.RepoBranch, repo_url, path)
+	} else {
+		out, err = runGitCmd(workloadCdCfg, ".", true, "clone", "-c", sshCmd, repo_url, path)
+	}
+	if err != nil {
+		return nil, ssh_key_path, fmt.Errorf("failed to clone repo: error %+v out %s", err, out)
+	}
+
+	// remove last element, which is blank regardless of whether we're using nullbyte or newline
+	ss := strings.Split(out, "\000")
+	return ss[:len(ss)-1], ssh_key_path, nil
+}
+
 func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 	var out string
 	var user, password, token string
@@ -1393,10 +1448,10 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 	path := workloadCdCfg.Spec.RepositoryLocalPath
 
 	//git -C /tmp/apprepo pull
-	out, err := runCmd(workloadCdCfg, ".", false, "-C", path, "pull")
+	out, err := runGitCmd(workloadCdCfg, ".", false, "-C", path, "pull")
 	if err == nil {
 		if workloadCdCfg.Spec.RepoBranch != "" {
-			_, err := runCmd(workloadCdCfg, path, false, "checkout", workloadCdCfg.Spec.RepoBranch)
+			_, err := runGitCmd(workloadCdCfg, path, false, "checkout", workloadCdCfg.Spec.RepoBranch)
 			if err != nil {
 				log.Println("failed to checkout branch error", err)
 			}
@@ -1406,7 +1461,7 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 		var url string
 
 		// remove the local repo if it exists
-		runCmd(workloadCdCfg, ".", false, "rm -rf", path)
+		runCmd(workloadCdCfg, "rm", ".", false, "-rf", path)
 		// if the repo doesn't exist, we need to clone it
 		// git clone --branch <branchname> https://stephan-rafay:api-key@url <path>
 		if strings.Contains(repo_url, "https://") {
@@ -1429,9 +1484,9 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 			}
 		}
 		if workloadCdCfg.Spec.RepoBranch != "" {
-			out, err = runCmd(workloadCdCfg, ".", true, "clone", "--branch", workloadCdCfg.Spec.RepoBranch, url, path)
+			out, err = runGitCmd(workloadCdCfg, ".", true, "clone", "--branch", workloadCdCfg.Spec.RepoBranch, url, path)
 		} else {
-			out, err = runCmd(workloadCdCfg, ".", true, "clone", url, path)
+			out, err = runGitCmd(workloadCdCfg, ".", true, "clone", url, path)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("failed to clone repo: %s", out)
@@ -1895,9 +1950,9 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, workload *Wor
 		// get chartPath version
 		// git log -n1 --oneline --pretty=format:%H
 		trimPath := pruneRepolocalPath(cfg.Spec.RepositoryLocalPath, chartPath)
-		out, err := runCmd(cfg, cfg.Spec.RepositoryLocalPath, false, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
+		out, err := runGitCmd(cfg, cfg.Spec.RepositoryLocalPath, false, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
 		if err != nil {
-			log.Println("failed to runCmd ", err, "trimPath", trimPath)
+			log.Println("failed to runGitCmd ", err, "trimPath", trimPath)
 			chartVersion = RandomString(7)
 		} else {
 			chartVersion = out[:7]
@@ -1921,9 +1976,9 @@ func createApplication(ctx context.Context, cfg *WorkloadCDConfig, workload *Wor
 	// get valuePath version
 	for _, valuePath := range valuePaths {
 		trimPath := pruneRepolocalPath(cfg.Spec.RepositoryLocalPath, valuePath)
-		out, err := runCmd(cfg, cfg.Spec.RepositoryLocalPath, false, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
+		out, err := runGitCmd(cfg, cfg.Spec.RepositoryLocalPath, false, "log", "-n1", "--oneline", "--pretty=format:%H", trimPath)
 		if err != nil {
-			log.Println("failed to runCmd ", err, "trimPath", trimPath)
+			log.Println("failed to runGitCmd ", err, "trimPath", trimPath)
 			valueVersion += "." + RandomString(7)
 		} else {
 			valueVersion += "." + out[:7]

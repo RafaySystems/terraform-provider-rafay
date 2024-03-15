@@ -925,8 +925,8 @@ func clusterAKSManagedClusterHTTPProxyConfig() map[string]*schema.Schema {
 func clusterAKSManagedClusterIdentityProfile() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"kubelet_identity": {
-			Type:	schema.TypeList,
-			Required: true,
+			Type:        schema.TypeList,
+			Required:    true,
 			Description: "Kubelet Identity for managed cluster identity profile",
 			Elem: &schema.Resource{
 				Schema: clusterAKSManagedClusterKubeletIdentity(),
@@ -939,8 +939,8 @@ func clusterAKSManagedClusterIdentityProfile() map[string]*schema.Schema {
 func clusterAKSManagedClusterKubeletIdentity() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"resource_id": {
-			Type:	schema.TypeString,
-			Required: true,
+			Type:        schema.TypeString,
+			Required:    true,
 			Description: "value must be ARM resource ID in the form: /subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>",
 		},
 	}
@@ -1428,8 +1428,8 @@ func clusterAKSManagedClusterAdditionalMetadataACRProfile() map[string]*schema.S
 			Description: "The name of the Azure Container Registry resource.",
 		},
 		"registries": {
-			Type:		schema.TypeList,
-			Optional: 	true,
+			Type:        schema.TypeList,
+			Optional:    true,
 			Description: "The list of Azure Container Registry Profiles",
 			Elem: &schema.Resource{
 				Schema: clusterAKSManagedClusterAdditionalMetadataACRProfiles(),
@@ -5014,7 +5014,7 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfile(in *AKSManagedClusterA
 	if len(in.ACRName) > 0 {
 		obj["acr_name"] = in.ACRName
 	}
-	
+
 	if in.Registries != nil && len(in.Registries) > 0 {
 		v, ok := obj["registries"].([]interface{})
 		if !ok {
@@ -5037,7 +5037,7 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfiles(in []*AksRegistry, p 
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
-		
+
 		if len(in.ACRName) > 0 {
 			obj["acr_name"] = in.ACRName
 		}
@@ -5423,7 +5423,7 @@ func aksClusterCTL(config *config.Config, clusterName string, configBytes []byte
 	log.Printf("aks cluster ctl start")
 	glogger.SetLevel(zap.DebugLevel)
 	logger := glogger.GetLogger()
-	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false)
+	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false, false)
 }
 
 func aksClusterCTLStatus(taskid, projectID string) (string, error) {
@@ -5503,12 +5503,12 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
 		fmt.Printf("project does not exist")
-		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
+		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s", err.Error()))
 	}
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
 		fmt.Printf("project does not exist")
-		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
+		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s", err.Error()))
 	}
 
 	// cluster
@@ -5606,7 +5606,7 @@ type ResponseGetClusterSpec struct {
 func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("resourceAKSClusterRead")
-	
+
 	projectName, ok := d.Get("metadata.0.project").(string)
 	if !ok || projectName == "" {
 		return diag.FromErr(errors.New("project name unable to be found."))
@@ -5623,7 +5623,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
 		fmt.Print("Cluster project name is invalid")
-		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s",err.Error()))
+		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s", err.Error()))
 	}
 
 	c, err := cluster.GetCluster(clusterName, projectId)
@@ -5632,7 +5632,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		if strings.Contains(err.Error(), "not found") {
 			log.Println("Resource Read ", "error", err)
 			d.SetId("")
-			return diag.FromErr(fmt.Errorf("Resource read failed, cluster not found. Error: %s",err.Error()))
+			return diag.FromErr(fmt.Errorf("Resource read failed, cluster not found. Error: %s", err.Error()))
 		}
 		return diag.FromErr(err)
 	}
@@ -5678,9 +5678,9 @@ func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
 		fmt.Print("Cluster project name is invalid")
-		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s",err.Error()))
+		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s", err.Error()))
 	}
-	
+
 	_, err = cluster.GetCluster(clusterName, projectId)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
@@ -5708,7 +5708,7 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
 		fmt.Print("Cluster project name is invalid")
-		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s",err.Error()))
+		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s", err.Error()))
 	}
 
 	errDel := cluster.DeleteCluster(clusterName, projectId, false)

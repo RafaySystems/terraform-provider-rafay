@@ -2261,7 +2261,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	rctlConfig := config.GetConfig()
 
 	log.Printf("calling cluster ctl:\n%s", b.String())
-	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false)
+	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		return diag.FromErr(err)
@@ -3994,7 +3994,7 @@ func flattenCNIParams(in *CustomCni, p []interface{}, rawState cty.Value) []inte
 func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}, rawState cty.Value) []interface{} {
 	log.Println("got to flatten custom CNI mapping", len(p))
 
-	findLocalOrder := func (rawState cty.Value) []string {
+	findLocalOrder := func(rawState cty.Value) []string {
 		var order []string
 		for _, crdSpec := range rawState.AsValueSlice() {
 			if subnetValue, ok := crdSpec.AsValueMap()["name"]; ok {
@@ -4004,7 +4004,7 @@ func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}, rawSta
 		return order
 	}
 
-	indexOf := func(item string, list []string) int  {
+	indexOf := func(item string, list []string) int {
 		for i, v := range list {
 			if v == item {
 				return i
@@ -4023,7 +4023,7 @@ func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}, rawSta
 			continue
 		}
 		obj := map[string]interface{}{
-			"name": key,
+			"name":     key,
 			"cni_spec": flattenCNISpec(elem, []interface{}{}),
 		}
 		out = append(out, obj)
@@ -4032,7 +4032,7 @@ func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}, rawSta
 		if i := indexOf(key, azOrderInState); i < 0 {
 			// not found in local copy. this subnet was removed by the user
 			obj := map[string]interface{}{
-				"name": key,
+				"name":     key,
 				"cni_spec": flattenCNISpec(elem, []interface{}{}),
 			}
 			out = append(out, obj)
@@ -5649,7 +5649,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		if strings.Contains(err.Error(), "not found") {
 			log.Println("Resource Read ", "error", err)
 			d.SetId("")
-			return diag.FromErr(fmt.Errorf("Resource read failed, cluster not found. Error: %s",err.Error()))
+			return diag.FromErr(fmt.Errorf("resource read failed, cluster not found. Error: %s", err.Error()))
 		}
 		return diag.FromErr(err)
 	}

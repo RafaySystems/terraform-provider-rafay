@@ -90,7 +90,7 @@ func aksClusterSpecCTL(config *config.Config, rafayConfigs, clusterConfigs [][]b
 	// Make request
 	for clusterName, configBytes := range configMap {
 		/* only suppoort one cluster */
-		rsponse, err := clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false)
+		rsponse, err := clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false, false)
 
 		if err != nil {
 			log.Println("error performing apply on cluster: ", clusterName, err)

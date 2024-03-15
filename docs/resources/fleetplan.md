@@ -60,6 +60,8 @@ resource "rafay_fleetplan" "demo-fleetplan" {
                         memory_limit_mb = "100"
                         working_dir_path = "/var/"
                     }
+                    succes_condition = "if #status.container.exitCode == 0 { success: true }"
+                    continue_on_failure = true
                 }
             }
             operations {
@@ -242,6 +244,7 @@ Optional:
 ***Optional***
 
 - `description` (String) Description of action
+- `continue_on_failure` (Bool) Decides whether to proceed forward if the hook fails
 
 <a id="nestedblock--spec--operation_workflow--operations--prehooks--blueprint_update_config"></a>
 ### Nested Schema for `spec.operation_workflow.operations.action.blueprint_update_config`
@@ -302,6 +305,9 @@ Optional:
 
 - `description` (String) A description of the pre-hook.
 - `inject` (List of String): Specifies environment variables to inject into the container. By default, only `KUBECONFIG` is available, which can be used to set up the connection to the target clusters.
+- `success_condition` (String) A cue lang syntax to decide the success of the hook
+    -  Example: `"if #status.container.exitCode == 0 { success: true }"`
+- `continue_on_failure` (Bool) Decides whether to proceed forward if the hook fails
 
 <a id="nestedblock--spec--operation_workflow--operations--posthooks"></a>
 ### Nested Schema for `spec.operation_workflow.operations.posthooks`
@@ -315,6 +321,9 @@ Optional:
 
 - `description` (String) Description of the post-hook.
 - `inject` (List of String) Specifies environment variables to inject into the container. By default, only `KUBECONFIG` is available, which can be used to set up the connection to the target clusters.
+- `success_condition` (String) A cue lang syntax to decide the success of the hook
+    -  Example: `"if #status.container.exitCode == 0 { success: true }"`
+- `continue_on_failure` (Bool) Decides whether to proceed forward if the hook fails
 
 <a id="nestedblock--spec--operation_workflow--operations--hooks--container_config"></a>
 ### Nested Schema for `spec.operation_workflow.operations.prehooks.container_config` and `spec.operation_workflow.operations.posthooks.container_config`

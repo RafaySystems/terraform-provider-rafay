@@ -250,6 +250,7 @@ func flattenAction(action *infrapb.ActionSpec) []interface{} {
 	obj["node_groups_upgrade_config"] = flattenNodeGroupsUpgradeConfig(action.NodeGroupsUpgradeConfig)
 	obj["patch_config"] = flattenPatchConfig(action.PatchConfig)
 	obj["blueprint_update_config"] = flattenBlueprintUpdateConfig(action.BlueprintUpdateConfig)
+	obj["continue_on_failure"] = action.ContinueOnFailure
 
 	return []interface{}{obj}
 }
@@ -356,6 +357,8 @@ func flattenHook(hook *infrapb.HookSpec) map[string]interface{} {
 	obj["container_config"] = flattenContainerConfig(hook.ContainerConfig)
 	obj["http_config"] = flattenHTTPConfig(hook.HttpConfig)
 	obj["timeout_seconds"] = hook.TimeoutSeconds
+	obj["continue_on_failure"] = hook.ContinueOnFailure
+	obj["success_condition"] = hook.SuccessCondition
 	return obj
 }
 
@@ -579,6 +582,10 @@ func expandAction(in []interface{}) *infrapb.ActionSpec {
 		obj.BlueprintUpdateConfig = expandBlueprintConfig(v)
 	}
 
+	if v, ok := v["continue_on_failure"].(bool); ok {
+		obj.ContinueOnFailure = v
+	}
+
 	return obj
 
 }
@@ -702,6 +709,12 @@ func expandHooks(in []interface{}) []*infrapb.HookSpec {
 		}
 		if val, ok := inH["timeout_seconds"]; ok {
 			outHook.TimeoutSeconds = int64(val.(int))
+		}
+		if val, ok := inH["success_condition"].(string); ok {
+			outHook.SuccessCondition = val
+		}
+		if val, ok := inH["continue_on_failure"].(bool); ok {
+			outHook.ContinueOnFailure = val
 		}
 
 		outHooks = append(outHooks, outHook)

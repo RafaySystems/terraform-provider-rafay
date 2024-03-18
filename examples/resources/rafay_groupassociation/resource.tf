@@ -18,3 +18,8 @@ resource "rafay_groupassociation" "groupassociation2" {
   custom_roles      = ["infra.customrole"]
   add_users  = ["ankit+3@rafay.co"]
 }
+
+resource "rafay_groupassociation" "groupassociation3" {
+  group      = "dev1"
+  roles      = ["ADMIN"]
+}

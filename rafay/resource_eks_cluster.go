@@ -38,9 +38,9 @@ func resourceEKSCluster() *schema.Resource {
 		DeleteContext: resourceEKSClusterDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(100 * time.Minute), //90 min - cluster creation timeout in edgesrv + 10 min - client side buffer
+			Update: schema.DefaultTimeout(130 * time.Minute), //120 min - cluster update timeout in edgesrv + 10 min - client side buffer
+			Delete: schema.DefaultTimeout(70 * time.Minute),  //60 min - cluster deletion timeout in edgesrv + 10 min - client side buffer
 		},
 
 		Importer: &schema.ResourceImporter{
@@ -2286,7 +2286,18 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
 	d.SetId(s.ID)
-	for { //wait for cluster to provision correctly
+
+	for {
+		//Check for cluster operation timeout
+		select {
+		case <-ctx.Done():
+			log.Println("Cluster operation stopped due to operation timeout.")
+			return diag.Errorf("cluster operation stopped for cluster: `%s` due to operation timeout", clusterName)
+		default:
+			log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, projectName)
+		}
+
+		//wait for cluster to provision correctly
 		time.Sleep(60 * time.Second)
 		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, projectID)
 		if errGet != nil {
@@ -2310,7 +2321,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 			if check.Status == "READY" {
 				break
 			}
-			log.Println("task completed but cluster is not ready")
+			log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
 		}
 		if strings.Contains(sres.Status, "STATUS_FAILED") {
 			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
@@ -5620,7 +5631,15 @@ func getProjectIDFromName(projectName string) (string, error) {
 
 func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("create EKS cluster resource")
-	return resourceEKSClusterUpsert(ctx, d, m)
+	err := resourceEKSClusterUpsert(ctx, d, m)
+	if err != nil {
+		deleteErr := resourceEKSClusterDelete(ctx, d, m)
+		if deleteErr != nil {
+			log.Println("error deleting partially-provisioned cluster.")
+			return err
+		}
+	}
+	return err
 }
 
 func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

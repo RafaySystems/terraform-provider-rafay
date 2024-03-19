@@ -36,9 +36,9 @@ func resourceAKSClusterV3() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(90 * time.Minute),
-			Update: schema.DefaultTimeout(90 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(100 * time.Minute), //90 min - cluster creation timeout in edgesrv + 10 min - client side buffer
+			Update: schema.DefaultTimeout(130 * time.Minute), //120 min - cluster update timeout in edgesrv + 10 min - client side buffer
+			Delete: schema.DefaultTimeout(70 * time.Minute),  //60 min - cluster deletion timeout in edgesrv + 10 min - client side buffer
 		},
 
 		SchemaVersion: 1,
@@ -222,7 +222,6 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 	// wait for cluster creation
 	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
-	timeout := time.After(time.Duration(90) * time.Minute)
 
 	edgeName := cluster.Metadata.Name
 	projectName := cluster.Metadata.Project
@@ -231,7 +230,7 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 LOOP:
 	for {
 		select {
-		case <-timeout:
+		case <-ctx.Done():
 			log.Printf("Cluster operation timed out for edgeName: %s and projectname: %s", edgeName, projectName)
 			return diag.FromErr(fmt.Errorf("cluster operation timed out for edgeName: %s and projectname: %s", edgeName, projectName))
 		case <-ticker.C:
@@ -251,8 +250,11 @@ LOOP:
 				case commonpb.ConditionStatus_StatusSubmitted:
 					log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", edgeName, projectName)
 				case commonpb.ConditionStatus_StatusOK:
-					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", edgeName, projectName)
-					break LOOP
+					if isClusterReady(uCluster.Status.Conditions) {
+						log.Printf("Cluster operation completed for edgename: %s and projectname: %s", edgeName, projectName)
+						break LOOP
+					}
+					log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
 				case commonpb.ConditionStatus_StatusFailed:
 					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
 					failureReasons, err := collectAKSV3UpsertErrors(aksStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
@@ -265,6 +267,16 @@ LOOP:
 		}
 	}
 	return diags
+}
+
+func isClusterReady(clusterConditions []*infrapb.ClusterCondition) bool {
+	//Checking cluster readiness
+	for _, condition := range clusterConditions {
+		if condition.Type == infrapb.ClusterConditionType_ClusterReady && condition.Status == infrapb.V3ConditionStatus_True {
+			return true
+		}
+	}
+	return false
 }
 
 func collectAKSV3UpsertErrors(nodepools []*infrapb.NodepoolStatus, lastProvisionFailureReason string, provisionStatus string) (string, error) {
@@ -3349,7 +3361,7 @@ func flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in []*infrapb.AksRe
 
 		out[i] = obj
 	}
-	
+
 	return out
 
 }

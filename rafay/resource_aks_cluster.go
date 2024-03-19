@@ -56,9 +56,9 @@ func resourceAKSCluster() *schema.Resource {
 		DeleteContext: resourceAKSClusterDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(100 * time.Minute), //90 min - cluster creation timeout in edgesrv + 10 min - client side buffer
+			Update: schema.DefaultTimeout(130 * time.Minute), //120 min - cluster update timeout in edgesrv + 10 min - client side buffer
+			Delete: schema.DefaultTimeout(70 * time.Minute),  //60 min - cluster deletion timeout in edgesrv + 10 min - client side buffer
 		},
 
 		SchemaVersion: 1,
@@ -5539,6 +5539,15 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	log.Printf("Cluster Provision may take upto 15-20 Minutes")
 	d.SetId(s.ID)
 	for {
+		//Check for cluster operation timeout
+		select {
+		case <-ctx.Done():
+			log.Println("Cluster operation stopped due to operation timeout.")
+			return diag.Errorf("cluster operation stopped for cluster: `%s` due to operation timeout", clusterName)
+		default:
+			log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, obj.Metadata.Project)
+		}
+
 		time.Sleep(60 * time.Second)
 		check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
 		if errGet != nil {
@@ -5562,7 +5571,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 			if check.Status == "READY" {
 				break
 			}
-			log.Println("task completed but cluster is not ready")
+			log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
 		}
 		if strings.Contains(sres.Status, "STATUS_FAILED") {
 			failureReasons, err := collectAKSUpsertErrors(sres.Operations)

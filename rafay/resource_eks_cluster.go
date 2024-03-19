@@ -4143,11 +4143,12 @@ func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]
 
 	return []interface{}{obj}, nil
 }
-func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	if in == nil {
 		return nil, fmt.Errorf("empty cluster config input")
 	}
 	obj := map[string]interface{}{}
+	rawState = rawState.AsValueSlice()[0]
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -4194,7 +4195,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		if !ok {
 			v = []interface{}{}
 		}
-		ret3, err = flattenEKSClusterIAM(in.IAM, v)
+		ret3, err = flattenEKSClusterIAM(in.IAM, rawState.GetAttr("iam"), v)
 		if err != nil {
 			log.Println("flattenEKSClusterIAM err")
 			return nil, err
@@ -4265,7 +4266,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		if !ok {
 			v = []interface{}{}
 		}
-		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, v)
+		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, rawState.GetAttr("node_groups"), v)
 		/*
 			if err != nil {
 				log.Println("flattenEKSClusterNodeGroups err")
@@ -4281,7 +4282,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		if !ok {
 			v = []interface{}{}
 		}
-		ret9, err = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, v)
+		ret9, err = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, rawState.GetAttr("managed_nodegroups"), v)
 		if err != nil {
 			log.Println("flattenEKSClusterManagedNodeGroups err")
 			return nil, err
@@ -4372,8 +4373,9 @@ func flattenEKSClusterKubernetesNetworkConfig(in *KubernetesNetworkConfig, p []i
 	}
 	return []interface{}{obj}, nil
 }
-func flattenEKSClusterIAM(in *EKSClusterIAM, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterIAM(in *EKSClusterIAM, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	obj := map[string]interface{}{}
+	rawState = rawState.AsValueSlice()[0]
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -4401,7 +4403,7 @@ func flattenEKSClusterIAM(in *EKSClusterIAM, p []interface{}) ([]interface{}, er
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["service_accounts"] = flattenIAMServiceAccounts(in.ServiceAccounts, v)
+		obj["service_accounts"] = flattenIAMServiceAccounts(in.ServiceAccounts, rawState.GetAttr("service_accounts"), v)
 	}
 
 	obj["vpc_resource_controller_policy"] = in.VPCResourceControllerPolicy
@@ -4432,42 +4434,67 @@ func flattenIAMServiceAccountMetadata(in *EKSClusterIAMMeta, p []interface{}) []
 	return []interface{}{obj}
 }
 
-func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface{}) []interface{} {
+func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, rawState cty.Value, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
 	}
 	out := make([]interface{}, len(inp))
-	for i, in := range inp {
 
-		obj := map[string]interface{}{}
-		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+	indexOf := func(item string, list []string) int {
+		for i, v := range list {
+			if v == item {
+				return i
+			}
 		}
-
-		v, ok := obj["metadata"].([]interface{})
-		if !ok {
-			v = []interface{}{}
+		return -1
+	}
+	findLocalOrder := func(rawState cty.Value) []string {
+		var order []string
+		for _, crdSpec := range rawState.AsValueSlice() {
+			item := ""
+			if saName, ok := crdSpec.AsValueMap()["name"]; ok {
+				item += fmt.Sprintf("%s/", saName.AsString())
+			}
+			if saNamespace, ok := crdSpec.AsValueMap()["namespace"]; ok {
+				item += saNamespace.AsString()
+			}
+			order = append(order, item)
 		}
-		obj["metadata"] = flattenIAMServiceAccountMetadata(in.Metadata, v)
-
+		return order
+	}
+	findRemoteOrder := func(inp []*EKSClusterIAMServiceAccount) []string {
+		var order []string
+		for _, in := range inp {
+			item := ""
+			if in.Metadata != nil {
+				item += fmt.Sprintf("%s/", in.Metadata.Name)
+				item += in.Metadata.Namespace
+			}
+			order = append(order, item)
+		}
+		return order
+	}
+	findInRemoteOnly := func(local []string, remote []string, inp []*EKSClusterIAMServiceAccount) []*EKSClusterIAMServiceAccount {
+		res := make([]*EKSClusterIAMServiceAccount, 0)
+		for i, item := range remote {
+			if indexOf(item, local) < 0 {
+				res = append(res, inp[i])
+			}
+		}
+		return res
+	}
+	flattenServiceAccount := func(in *EKSClusterIAMServiceAccount) []interface{} {
+		if in == nil {
+			return nil
+		}
+		obj := map[string]interface{}{
+			"metadata":            flattenIAMServiceAccountMetadata(in.Metadata, []interface{}{}),
+			"well_known_policies": flattenIAMWellKnownPolicies(in.WellKnownPolicies, []interface{}{}),
+			"role_only":           in.RoleOnly,
+		}
 		if in.AttachPolicyARNs != nil && len(in.AttachPolicyARNs) > 0 {
 			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
 		}
-
-		v, ok = obj["well_known_policies"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
-
-		//@@@TODO Store inline document object as terraform input correctly
-		/*v1, ok := obj["attach_policy"].([]interface{})
-		if !ok {
-			v1 = []interface{}{}
-		}
-		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
-		*/
-		log.Println("input attach policy:", in.AttachPolicy)
 		if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
 			//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -4486,23 +4513,37 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface
 			obj["permissions_boundary"] = in.PermissionsBoundary
 		}
 		if in.Status != nil {
-			v, ok := obj["status"].([]interface{})
-			if !ok {
-				v = []interface{}{}
-			}
-			obj["status"] = flattenIAMStatus(in.Status, v)
+			obj["status"] = flattenIAMStatus(in.Status, []interface{}{})
 		}
 		if len(in.RoleName) > 0 {
 			obj["role_name"] = in.RoleName
 		}
 
-		obj["role_only"] = in.RoleOnly
-
 		if in.Tags != nil && len(in.Tags) > 0 {
 			obj["tags"] = toMapInterface(in.Tags)
 		}
+		return []interface{}{obj}
+	}
 
-		out[i] = &obj
+	saOrderInState := findLocalOrder(rawState)
+	saOrderInRemote := findRemoteOrder(inp)
+	saInRemoteOnly := findInRemoteOnly(saOrderInState, saOrderInRemote, inp)
+
+	for _, key := range saOrderInState {
+		if i := indexOf(key, saOrderInRemote); i >= 0 {
+			in := inp[i]
+			obj := flattenServiceAccount(in)
+			out = append(out, obj)
+		} else if len(saInRemoteOnly) > 0 {
+			removedEntry := saInRemoteOnly[0]
+			saInRemoteOnly = saInRemoteOnly[1:]
+			obj := flattenServiceAccount(removedEntry)
+			out = append(out, obj)
+		}
+	}
+	for _, in := range saInRemoteOnly {
+		obj := flattenServiceAccount(in)
+		out = append(out, obj)
 	}
 
 	return out
@@ -4857,14 +4898,53 @@ func flattenEKSClusterPrivateCluster(in *PrivateCluster, p []interface{}) []inte
 	}
 	return []interface{}{obj}
 }
-func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{} {
+func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
+	}
+	indexOf := func(item string, list []string) int {
+		for i, v := range list {
+			if v == item {
+				return i
+			}
+		}
+		return -1
+	}
+	findLocalOrder := func(rawState cty.Value) []string {
+		var order []string
+		for _, val := range rawState.AsValueSlice() {
+			order = append(order, val.AsString())
+		}
+		return order
+	}
+	flattenListOfString := func(inp []string, rawState cty.Value) []interface{} {
+		out := make([]interface{}, 0)
+		localStateOrder := findLocalOrder(rawState)
+		remoteStateOrder := inp
+		remoteOnlyOrder := make([]string, 0)
+		for _, elem := range remoteStateOrder {
+			if indexOf(elem, localStateOrder) < 0 {
+				remoteOnlyOrder = append(remoteOnlyOrder, elem)
+			}
+		}
+		for _, elem := range localStateOrder {
+			if i := indexOf(elem, remoteStateOrder); i >= 0 {
+				out = append(out, elem)
+			} else if len(remoteOnlyOrder) > 0 {
+				out = append(out, remoteOnlyOrder[0])
+				remoteOnlyOrder = remoteOnlyOrder[1:]
+			}
+		}
+		for _, elem := range remoteOnlyOrder {
+			out = append(out, elem)
+		}
+		return out
 	}
 
 	out := make([]interface{}, len(inp))
 	for i, in := range inp {
 		obj := map[string]interface{}{}
+		nRawState := rawState.AsValueSlice()[i]
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
@@ -4882,10 +4962,10 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{
 			obj["instance_type"] = in.InstanceType
 		}
 		if len(in.AvailabilityZones) > 0 {
-			obj["availability_zones"] = toArrayInterfaceSorted(in.AvailabilityZones)
+			obj["availability_zones"] = flattenListOfString(in.AvailabilityZones, nRawState.GetAttr("availability_zones"))
 		}
 		if len(in.Subnets) > 0 {
-			obj["subnets"] = toArrayInterface(in.Subnets)
+			obj["subnets"] = flattenListOfString(in.Subnets, nRawState.GetAttr("subnets"))
 		}
 		if len(in.InstancePrefix) > 0 {
 			obj["instance_prefix"] = in.InstancePrefix
@@ -5277,13 +5357,53 @@ func flattenNodeGroupUpdateConfig(in *NodeGroupUpdateConfig, p []interface{}) []
 }
 
 // Flatten mnanaged Node Groups
-func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	if inp == nil {
 		return nil, fmt.Errorf("empty input for managedNodeGroup")
 	}
 
+	indexOf := func(item string, list []string) int {
+		for i, v := range list {
+			if v == item {
+				return i
+			}
+		}
+		return -1
+	}
+	findLocalOrder := func(rawState cty.Value) []string {
+		var order []string
+		for _, val := range rawState.AsValueSlice() {
+			order = append(order, val.AsString())
+		}
+		return order
+	}
+	flattenListOfString := func(inp []string, rawState cty.Value) []interface{} {
+		out := make([]interface{}, 0)
+		localStateOrder := findLocalOrder(rawState)
+		remoteStateOrder := inp
+		remoteOnlyOrder := make([]string, 0)
+		for _, elem := range remoteStateOrder {
+			if indexOf(elem, localStateOrder) < 0 {
+				remoteOnlyOrder = append(remoteOnlyOrder, elem)
+			}
+		}
+		for _, elem := range localStateOrder {
+			if i := indexOf(elem, remoteStateOrder); i >= 0 {
+				out = append(out, elem)
+			} else if len(remoteOnlyOrder) > 0 {
+				out = append(out, remoteOnlyOrder[0])
+				remoteOnlyOrder = remoteOnlyOrder[1:]
+			}
+		}
+		for _, elem := range remoteOnlyOrder {
+			out = append(out, elem)
+		}
+		return out
+	}
+
 	out := make([]interface{}, len(inp))
 	for i, in := range inp {
+		nRawState := rawState.AsValueSlice()[i]
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -5302,10 +5422,10 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 			obj["instance_type"] = in.InstanceType
 		}
 		if len(in.AvailabilityZones) > 0 {
-			obj["availability_zones"] = toArrayInterfaceSorted(in.AvailabilityZones)
+			obj["availability_zones"] = flattenListOfString(in.AvailabilityZones, nRawState.GetAttr("availability_zones"))
 		}
 		if len(in.Subnets) > 0 {
-			obj["subnets"] = toArrayInterfaceSorted(in.Subnets)
+			obj["subnets"] = flattenListOfString(in.Subnets, nRawState.GetAttr("subnets"))
 		}
 		if len(in.InstancePrefix) > 0 {
 			obj["instance_prefix"] = in.InstancePrefix
@@ -5706,7 +5826,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	if !ok {
 		v2 = []interface{}{}
 	}
-	c2, err := flattenEKSClusterConfig(&clusterConfigSpec, v2)
+	c2, err := flattenEKSClusterConfig(&clusterConfigSpec, rawState.GetAttr("cluster_config"), v2)
 	if err != nil {
 		log.Printf("flatten eks cluster config error %s", err.Error())
 		return diag.FromErr(err)

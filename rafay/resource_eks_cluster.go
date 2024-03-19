@@ -5631,15 +5631,7 @@ func getProjectIDFromName(projectName string) (string, error) {
 
 func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("create EKS cluster resource")
-	err := resourceEKSClusterUpsert(ctx, d, m)
-	if err != nil {
-		deleteErr := resourceEKSClusterDelete(ctx, d, m)
-		if deleteErr != nil {
-			log.Println("error deleting partially-provisioned cluster.")
-			return err
-		}
-	}
-	return err
+	return resourceEKSClusterUpsert(ctx, d, m)
 }
 
 func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

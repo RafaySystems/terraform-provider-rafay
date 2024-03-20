@@ -56,9 +56,9 @@ func resourceAKSCluster() *schema.Resource {
 		DeleteContext: resourceAKSClusterDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(100 * time.Minute), //90 min - cluster creation timeout in edgesrv + 10 min - client side buffer
-			Update: schema.DefaultTimeout(130 * time.Minute), //120 min - cluster update timeout in edgesrv + 10 min - client side buffer
-			Delete: schema.DefaultTimeout(70 * time.Minute),  //60 min - cluster deletion timeout in edgesrv + 10 min - client side buffer
+			Create: schema.DefaultTimeout(100 * time.Minute),
+			Update: schema.DefaultTimeout(130 * time.Minute),
+			Delete: schema.DefaultTimeout(70 * time.Minute),
 		},
 
 		SchemaVersion: 1,
@@ -5538,51 +5538,55 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 
 	log.Printf("Cluster Provision may take upto 15-20 Minutes")
 	d.SetId(s.ID)
+
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
+	defer ticker.Stop()
+
+LOOP:
 	for {
 		//Check for cluster operation timeout
 		select {
 		case <-ctx.Done():
 			log.Println("Cluster operation stopped due to operation timeout.")
 			return diag.Errorf("cluster operation stopped for cluster: `%s` due to operation timeout", clusterName)
-		default:
-			log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, obj.Metadata.Project)
-		}
-
-		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
-		if errGet != nil {
-			log.Printf("error while getCluster for %s %s", obj.Metadata.Name, errGet.Error())
-			return diag.FromErr(errGet)
-		}
-
-		statusResp, err := aksClusterCTLStatus(res.TaskSetID, project.ID)
-		if err != nil {
-			log.Println("status response parse error", err)
-			return diag.FromErr(err)
-		}
-		log.Println("statusResp ", statusResp)
-		sres := clusterCTLResponse{}
-		err = json.Unmarshal([]byte(statusResp), &sres)
-		if err != nil {
-			log.Println("status response unmarshal error", err)
-			return diag.FromErr(err)
-		}
-		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-			if check.Status == "READY" {
-				break
+		case <-ticker.C:
+			check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
+			if errGet != nil {
+				log.Printf("error while getCluster for %s %s", obj.Metadata.Name, errGet.Error())
+				return diag.FromErr(errGet)
 			}
-			log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
-		}
-		if strings.Contains(sres.Status, "STATUS_FAILED") {
-			failureReasons, err := collectAKSUpsertErrors(sres.Operations)
+
+			statusResp, err := aksClusterCTLStatus(res.TaskSetID, project.ID)
 			if err != nil {
+				log.Println("status response parse error", err)
 				return diag.FromErr(err)
 			}
-			return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s with failure reasons: %s", obj.Metadata.Name, obj.Metadata.Project, failureReasons)
+
+			log.Println("statusResp ", statusResp)
+			sres := clusterCTLResponse{}
+			err = json.Unmarshal([]byte(statusResp), &sres)
+			if err != nil {
+				log.Println("status response unmarshal error", err)
+				return diag.FromErr(err)
+			}
+			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+				if check.Status == "READY" {
+					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", clusterName, obj.Metadata.Project)
+					break LOOP
+				}
+				log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
+			} else if strings.Contains(sres.Status, "STATUS_FAILED") {
+				failureReasons, err := collectAKSUpsertErrors(sres.Operations)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s with failure reasons: %s", obj.Metadata.Name, obj.Metadata.Project, failureReasons)
+			} else {
+				log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, obj.Metadata.Project)
+			}
+
 		}
 	}
-	log.Printf("resource aks cluster created/updated %s", s.ID)
-
 	return diags
 }
 
@@ -5726,18 +5730,27 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(errDel)
 	}
 
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
+	defer ticker.Stop()
+LOOP:
 	for {
-		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(clusterName, projectId)
-		if errGet != nil {
-			log.Printf("error while getCluster %s, delete success", errGet.Error())
-			break
+		select {
+		case <-ctx.Done():
+			log.Printf("Cluster Deletion for edgename: %s and projectname: %s got timeout out.", clusterName, projectName)
+			return diag.FromErr(fmt.Errorf("cluster deletion for edgename: %s and projectname: %s got timeout out", clusterName, projectName))
+		case <-ticker.C:
+			check, errGet := cluster.GetCluster(clusterName, projectId)
+			if errGet != nil {
+				log.Printf("error while getCluster %s, delete success", errGet.Error())
+				break LOOP
+			}
+			if check == nil || check.Status != "READY" {
+				break LOOP
+			}
+			log.Printf("Cluster Deletion is in progress for edgename: %s and projectname: %s. Waiting 60 seconds more for operation to complete.", clusterName, projectName)
 		}
-		if check == nil || (check != nil && check.Status != "READY") {
-			break
-		}
+		log.Printf("Cluster Deletion completes for edgename: %s and projectname: %s", clusterName, projectName)
 	}
-
 	return diags
 }
 

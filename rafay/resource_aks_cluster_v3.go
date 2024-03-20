@@ -36,9 +36,9 @@ func resourceAKSClusterV3() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(100 * time.Minute), //90 min - cluster creation timeout in edgesrv + 10 min - client side buffer
-			Update: schema.DefaultTimeout(130 * time.Minute), //120 min - cluster update timeout in edgesrv + 10 min - client side buffer
-			Delete: schema.DefaultTimeout(70 * time.Minute),  //60 min - cluster deletion timeout in edgesrv + 10 min - client side buffer
+			Create: schema.DefaultTimeout(100 * time.Minute),
+			Update: schema.DefaultTimeout(130 * time.Minute),
+			Delete: schema.DefaultTimeout(70 * time.Minute),
 		},
 
 		SchemaVersion: 1,
@@ -124,7 +124,6 @@ func resourceAKSClusterV3Delete(ctx context.Context, d *schema.ResourceData, m i
 
 	ticker := time.NewTicker(time.Duration(30) * time.Second)
 	defer ticker.Stop()
-	timeout := time.After(time.Duration(10) * time.Minute)
 
 	edgeName := ag.Metadata.Name
 	projectName := ag.Metadata.Project
@@ -132,7 +131,7 @@ func resourceAKSClusterV3Delete(ctx context.Context, d *schema.ResourceData, m i
 LOOP:
 	for {
 		select {
-		case <-timeout:
+		case <-ctx.Done():
 			log.Printf("Cluster Deletion for edgename: %s and projectname: %s got timeout out.", edgeName, projectName)
 			return diag.FromErr(fmt.Errorf("cluster deletion for edgename: %s and projectname: %s got timeout out", edgeName, projectName))
 		case <-ticker.C:

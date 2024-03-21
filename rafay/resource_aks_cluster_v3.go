@@ -249,7 +249,10 @@ LOOP:
 				case commonpb.ConditionStatus_StatusSubmitted:
 					log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", edgeName, projectName)
 				case commonpb.ConditionStatus_StatusOK:
-					if isClusterReady(uCluster.Status.Conditions) {
+					if checkV3ClusterConditionsFailure(uCluster.Status.Conditions) {
+						log.Printf("blueprint sync failed for edgename: %s and projectname: %s", edgeName, projectName)
+						return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", edgeName, projectName))
+					} else if isClusterReady(uCluster.Status.Conditions) {
 						log.Printf("Cluster operation completed for edgename: %s and projectname: %s", edgeName, projectName)
 						break LOOP
 					}

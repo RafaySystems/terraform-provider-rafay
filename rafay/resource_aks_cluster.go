@@ -5570,7 +5570,10 @@ LOOP:
 				return diag.FromErr(err)
 			}
 			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-				if check.Status == "READY" {
+				if checkClusterConditionsFailure(check.Cluster.Conditions) {
+					log.Printf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, obj.Metadata.Project)
+					return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, obj.Metadata.Project))
+				} else if check.Status == "READY" {
 					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", clusterName, obj.Metadata.Project)
 					break LOOP
 				}

@@ -3,7 +3,9 @@ package rafay
 import (
 	"log"
 	"reflect"
+	"slices"
 
+	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -242,4 +244,21 @@ func flattenDaemonsetOverride(in *DaemonsetOverride, p []interface{}) []interfac
 	}
 
 	return []interface{}{obj}
+}
+
+var BlueprintSyncConditions = []models.ClusterConditionType{
+	models.ClusterRegister,
+	models.ClusterCheckIn,
+	models.ClusterNamespaceSync,
+	models.ClusterBlueprintSync,
+}
+
+func checkClusterConditionsFailure(conditions []models.ClusterCondition) bool {
+	failureFlag := false
+	for _, condition := range conditions {
+		if slices.Contains(BlueprintSyncConditions, condition.Type) && condition.Status == models.Failed {
+			failureFlag = true
+		}
+	}
+	return failureFlag
 }

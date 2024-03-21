@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"log"
+	"slices"
 
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
@@ -78,7 +79,7 @@ func expandV3SystemComponentsPlacement(p []interface{}) *infrapb.SystemComponent
 	if v, ok := in["daemon_set_override"].([]interface{}); ok {
 		obj.DaemonSetOverride = expandV3DaemonsetOverride(v)
 	}
-	
+
 	return &obj
 }
 
@@ -217,4 +218,21 @@ func flattenV3Tolerations(in []*v1.Toleration, p []interface{}) []interface{} {
 	}
 
 	return out
+}
+
+var V3BlueprintSyncConditions = []infrapb.ClusterConditionType{
+	infrapb.ClusterConditionType_ClusterRegisterSucceeded,
+	infrapb.ClusterConditionType_ClusterCheckInSucceeded,
+	infrapb.ClusterConditionType_ClusterNamespaceSyncSucceeded,
+	infrapb.ClusterConditionType_ClusterBlueprintSyncSucceeded,
+}
+
+func checkV3ClusterConditionsFailure(conditions []*infrapb.ClusterCondition) bool {
+	failureFlag := false
+	for _, condition := range conditions {
+		if condition != nil && slices.Contains(V3BlueprintSyncConditions, condition.Type) && condition.Status == infrapb.V3ConditionStatus_False {
+			failureFlag = true
+		}
+	}
+	return failureFlag
 }

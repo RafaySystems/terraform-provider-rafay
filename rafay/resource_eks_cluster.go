@@ -2303,6 +2303,12 @@ LOOP:
 				log.Printf("error while getCluster %s", errGet.Error())
 				return diag.FromErr(errGet)
 			}
+			edgeId := check.ID
+			check, errGet = cluster.GetClusterWithEdgeID(edgeId, projectID)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				return diag.FromErr(errGet)
+			}
 			rctlConfig.ProjectID = projectID
 			statusResp, err := clusterctl.Status(logger, rctlConfig, res.TaskSetID)
 			if err != nil {
@@ -2317,6 +2323,7 @@ LOOP:
 				return diag.FromErr(err)
 			}
 			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+				log.Println("Checking in cluster conditions for blueprint sync failure..")
 				if checkClusterConditionsFailure(check.Cluster.Conditions) {
 					log.Printf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, projectName)
 					return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, projectName))

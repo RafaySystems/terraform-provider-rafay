@@ -5555,7 +5555,12 @@ LOOP:
 				log.Printf("error while getCluster for %s %s", obj.Metadata.Name, errGet.Error())
 				return diag.FromErr(errGet)
 			}
-
+			edgeId := check.ID
+			check, errGet = cluster.GetClusterWithEdgeID(edgeId, project.ID)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				return diag.FromErr(errGet)
+			}
 			statusResp, err := aksClusterCTLStatus(res.TaskSetID, project.ID)
 			if err != nil {
 				log.Println("status response parse error", err)

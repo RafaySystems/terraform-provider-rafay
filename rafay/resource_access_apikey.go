@@ -2,12 +2,15 @@ package rafay
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/commands"
+	"github.com/RafaySystems/rctl/pkg/config"
+	"github.com/RafaySystems/rctl/pkg/exit"
 	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/user"
 
@@ -15,6 +18,53 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+type Role struct {
+	ID              string `json:"id"`
+	Name            string `json:"name"`
+	IsGlobal        bool   `json:"is_global"`
+	Scope           string `json:"scope"`
+	NamespaceIDList any    `json:"namespace_id_list"`
+	RoleType        string `json:"role_type"`
+}
+
+type Group struct {
+	ID         string `json:"id"`
+	Type       string `json:"type"`
+	Name       string `json:"name"`
+	CreatedAt  any    `json:"created_at"`
+	ModifiedAt any    `json:"modified_at"`
+}
+
+type Roles []struct {
+	Project      any   `json:"project"`
+	Roles        Role  `json:"role"`
+	Group        Group `json:"group"`
+	NamespaceAgg any   `json:"namespace_agg"`
+	Organization any   `json:"organization"`
+	Partner      any   `json:"partner"`
+}
+
+type Account struct {
+	ID            string `json:"id"`
+	CreatedAt     string `json:"createdAt"`
+	ModifiedAt    string `json:"modifiedAt"`
+	LastLogin     string `json:"last_login"`
+	Username      string `json:"username"`
+	FirstName     string `json:"first_name"`
+	LastName      string `json:"last_name"`
+	EmailVerified bool   `json:"emailVerified"`
+	UserType      string `json:"user_type"`
+	Password      string `json:"password"`
+	IsSso         bool   `json:"is_sso"`
+}
+
+type UserProfile struct {
+	Roles        Roles   `json:"roles"`
+	Account      Account `json:"account"`
+	Organization any     `json:"organization"`
+	Partner      any     `json:"partner"`
+}
 
 func resourceAccessApikey() *schema.Resource {
 	return &schema.Resource{
@@ -67,6 +117,10 @@ func resourceAccessApiUpsert(ctx context.Context, d *schema.ResourceData, create
 	var api, secret string
 
 	userName := d.Get("user_name").(string)
+	usrProf, err := checkConfigRole(ctx, userName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	log.Println("resourceAccessApiUpsert ", userName)
 
@@ -78,9 +132,15 @@ func resourceAccessApiUpsert(ctx context.Context, d *schema.ResourceData, create
 		}
 	}
 
-	log.Println("resourceAccessApiUpsert ", userName)
-	api, secret, err = commands.CreateUserAPIKey(userName)
+	if usrProf != nil {
+		log.Println("resourceAccessApiUpsert ", userName, "Account", usrProf.Account)
+		api, secret, err = createUserAPIKeyByID(userName, usrProf.Account.ID)
+	} else {
+		log.Println("resourceAccessApiUpsert ", userName)
+		api, secret, err = commands.CreateUserAPIKey(userName)
+	}
 	if err != nil {
+		log.Println("resourceAccessApiUpsert error", err)
 		return diag.FromErr(err)
 	}
 
@@ -100,13 +160,31 @@ func resourceAccessApiUpsert(ctx context.Context, d *schema.ResourceData, create
 func resourceAccessApiRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	var found bool
+	var userAccount models.UserResponse
 
-	userName := d.Get("user_name").(string)
 	apikey := d.Get("apikey").(string)
 
 	s := strings.Split(apikey, ".")
 	if len(s) > 1 && s[0] == "ra2" {
 		apikey = s[0] + "." + s[1]
+	}
+
+	userName := d.Get("user_name").(string)
+	usrProf, err := checkConfigRole(ctx, userName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	if usrProf != nil {
+		userAccount.Account.Username = userName
+		userAccount.Account.ID = usrProf.Account.ID
+	} else {
+		ua, err := user.GetUser(userName)
+		userAccount = *ua
+		if err != nil {
+			log.Printf("get user account, error %s", err.Error())
+			return diag.FromErr(err)
+		}
+		userName = userAccount.Account.Username
 	}
 
 	log.Println("resourceAccessApiRead ", userName, " apikey ", len(apikey))
@@ -118,17 +196,17 @@ func resourceAccessApiRead(ctx context.Context, d *schema.ResourceData, m interf
 		}
 	}
 
-	userAccount, err := user.GetUser(userName)
-	if err != nil {
-		log.Printf("get user account, error %s", err.Error())
-		return diag.FromErr(err)
-	}
-
 	log.Println("userAccount ", userAccount)
 
 	if len(apikey) > 0 {
+		var apikeys []models.UserAPIKeyStatus
 		// there is an api key in the state. check key exist in controller
-		apikeys, err := user.GetUserAPIKeys(userName)
+		if usrProf != nil {
+			// get current user api keys
+			apikeys, err = getUserAPIKeysByID(userName, usrProf.Account.ID)
+		} else {
+			apikeys, err = user.GetUserAPIKeys(userName)
+		}
 		if err != nil {
 			log.Println("resourceAccessApiRead ", "error", err)
 			found = false
@@ -146,7 +224,7 @@ func resourceAccessApiRead(ctx context.Context, d *schema.ResourceData, m interf
 		apikey = ""
 	}
 
-	err = flattenAccessApi(d, userAccount, apikey)
+	err = flattenAccessApi(d, &userAccount, apikey)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -187,7 +265,13 @@ func resourceAccessApiUpdate(ctx context.Context, d *schema.ResourceData, m inte
 
 func resourceAccessApiDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+
 	userName := d.Get("user_name").(string)
+	usrProf, err := checkConfigRole(ctx, userName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	apiKey := d.Get("apikey").(string)
 
 	s := strings.Split(apiKey, ".")
@@ -196,11 +280,130 @@ func resourceAccessApiDelete(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	log.Printf("resource user delete id %s", userName)
-	err := commands.DeleteUserAPIKey(userName, apiKey)
+	if usrProf != nil {
+		err = deleteUserAPIKeyByUserID(userName, usrProf.Account.ID, apiKey)
+	} else {
+		err = commands.DeleteUserAPIKey(userName, apiKey)
+	}
+
 	if err != nil {
 		log.Printf("delete apikey error %s", err.Error())
 		return diag.FromErr(err)
 	}
 
 	return diags
+}
+
+func resourceAccessApiGetCurrentUser(ctx context.Context) (*UserProfile, diag.Diagnostics, error) {
+	var diags diag.Diagnostics
+
+	// Get current user profile based on API key
+	auth := config.GetConfig().GetAppAuthProfile()
+
+	uri := "/auth/v1/users/-/profile"
+	resp, err := auth.AuthAndRequest(uri, "GET", nil)
+	if err != nil {
+		log.Println("get user profile uri", uri, "error", err)
+		return nil, diag.FromErr(err), err
+	}
+
+	var respGetProfile UserProfile
+	if err := json.Unmarshal([]byte(resp), &respGetProfile); err != nil {
+		return nil, diag.FromErr(err), err
+	}
+
+	log.Println("get user profile", respGetProfile)
+
+	return &respGetProfile, diags, nil
+}
+
+func getUserAPIKeysByID(userName, id string) ([]models.UserAPIKeyStatus, error) {
+	var userApiKeys []models.UserAPIKeyStatus
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	uriAPIUrl := fmt.Sprintf("/auth/v1/users/%s/apikeys/", id)
+	resp, err := auth.AuthAndRequest(uriAPIUrl, "GET", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user %s %v", userName, err)
+	}
+
+	errVal := json.Unmarshal([]byte(resp), &userApiKeys)
+	if errVal != nil {
+		exit.SetExitWithError(err, fmt.Sprintf("Internal CLI error. Error: %s", errVal))
+		return nil, fmt.Errorf("failed to get user %s apikeys %v", userName, errVal)
+	}
+
+	if len(userApiKeys) <= 0 {
+		return nil, fmt.Errorf("empty api key for user %s", userName)
+	}
+
+	return userApiKeys, nil
+}
+
+func deleteUserAPIKeyByUserID(username, id, apikey string) error {
+	auth := config.GetConfig().GetAppAuthProfile()
+
+	userApiKeys, err := getUserAPIKeysByID(username, id)
+	if err != nil {
+		return fmt.Errorf("failed to get api keys for user %s err %v", username, err)
+	}
+
+	for _, ak := range userApiKeys {
+		if apikey == ak.Key {
+			uriAPIUrl := fmt.Sprintf("/auth/v1/apikeys/%s/", ak.ID)
+			_, err := auth.AuthAndRequest(uriAPIUrl, "DELETE", uriAPIUrl)
+			if err != nil {
+				return fmt.Errorf("failed to delete apikey for user %s error %v", username, err)
+			}
+			return nil
+		}
+	}
+
+	return nil
+}
+
+func createUserAPIKeyByID(username, userId string) (string, string, error) {
+	var userApiKey models.UserAPIKeyStatus
+
+	uriAPIUrl := fmt.Sprintf("/auth/v1/users/%s/apikey/", userId)
+	postApiKeyVal := commands.NewAPIKeyPost{
+		Name: "dynamic",
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	resp, err := auth.AuthAndRequest(uriAPIUrl, "POST", postApiKeyVal)
+	if err != nil {
+		log.Println("create user api key error", err)
+		return "", "", fmt.Errorf("user %s api key create error %v", username, err)
+	}
+
+	err = json.Unmarshal([]byte(resp), &userApiKey)
+	if err != nil {
+		return "", "", fmt.Errorf("user %s api creation failed %v", username, err)
+	}
+
+	return userApiKey.Key, userApiKey.Secret, nil
+
+}
+
+func checkConfigRole(ctx context.Context, username string) (*UserProfile, error) {
+	_, err := user.GetUserIDByName(username)
+	if err == nil {
+		// has permission to manage other users
+		return nil, nil
+	}
+
+	usrProf, _, err := resourceAccessApiGetCurrentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if usrProf == nil {
+		return nil, fmt.Errorf("failed to get current user %s", username)
+	}
+
+	if usrProf.Account.Username != username {
+		return nil, fmt.Errorf("forbidden: failed to manage user %s", username)
+	}
+	return usrProf, nil
 }

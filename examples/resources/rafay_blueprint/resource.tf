@@ -135,6 +135,11 @@ resource "rafay_blueprint" "blueprint" {
       name = "addon1"
       version = "v0"
     }
+    custom_addons {
+      depends_on = ["addon1"]
+      name = "addon2"
+      version = "v0"
+    }
     components_criticality {
         name = "addon1"
         version = "v0"

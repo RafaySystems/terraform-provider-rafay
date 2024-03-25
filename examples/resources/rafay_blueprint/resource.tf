@@ -140,6 +140,10 @@ resource "rafay_blueprint" "blueprint" {
       name = "addon2"
       version = "v0"
     }
+    components_criticality {
+        name = "addon1"
+        version = "v0"
+    }
     default_addons {
       enable_ingress    = true
       enable_logging    = false

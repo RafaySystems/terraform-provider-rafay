@@ -1155,6 +1155,10 @@ func expandAKSManagedClusterV3NetworkProfile(p []interface{}) *infrapb.Networkpr
 		obj.NetworkPolicy = v
 	}
 
+	if v, ok := in["network_dataplane"].(string); ok && len(v) > 0 {
+		obj.NetworkDataplane = v
+	}
+
 	if v, ok := in["outbound_type"].(string); ok && len(v) > 0 {
 		obj.OutboundType = v
 	}
@@ -2848,6 +2852,10 @@ func flattenAKSV3MCPropertiesNetworkProfile(in *infrapb.Networkprofile, p []inte
 
 	if len(in.NetworkPolicy) > 0 {
 		obj["network_policy"] = in.NetworkPolicy
+	}
+
+	if len(in.NetworkDataplane) > 0 {
+		obj["network_dataplane"] = in.NetworkDataplane
 	}
 
 	if len(in.OutboundType) > 0 {

@@ -3702,15 +3702,15 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
 	}
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandEKSClusterSharing(v)
+		obj.Sharing = expandV1ClusterSharing(v)
 	}
 	log.Println("cluster spec cloud_provider: ", obj.CloudProvider)
 
 	return obj
 }
 
-func expandEKSClusterSharing(p []interface{}) *EKSClusterSharing {
-	obj := &EKSClusterSharing{}
+func expandV1ClusterSharing(p []interface{}) *V1ClusterSharing {
+	obj := &V1ClusterSharing{}
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
@@ -3960,13 +3960,13 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}, rawState cty.Value) ([]
 		obj["system_components_placement"] = flattenSystemComponentsPlacement(in.SystemComponentsPlacement, v)
 	}
 	if in.Sharing != nil {
-		obj["sharing"] = flattenEKSSharing(in.Sharing)
+		obj["sharing"] = flattenV1ClusterSharing(in.Sharing)
 	}
 
 	return []interface{}{obj}, nil
 }
 
-func flattenEKSSharing(in *EKSClusterSharing) []interface{} {
+func flattenV1ClusterSharing(in *V1ClusterSharing) []interface{} {
 	if in == nil {
 		return nil
 	}

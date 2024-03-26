@@ -1992,7 +1992,7 @@ func expandAKSClusterSpec(p []interface{}, rawConfig cty.Value) *AKSClusterSpec 
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing = expandV1ClusterSharing(v)
 	}
 
 	if v, ok := in["system_components_placement"].([]interface{}); ok && len(v) > 0 {
@@ -3618,7 +3618,7 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}) []interface{} {
 	}
 
 	if in.Sharing != nil {
-		obj["sharing"] = flattenSharingSpec(in.Sharing)
+		obj["sharing"] = flattenV1ClusterSharing(in.Sharing)
 	}
 
 	if in.SystemComponentsPlacement != nil {

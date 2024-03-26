@@ -1,7 +1,5 @@
 package rafay
 
-import "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
-
 const AKSClusterAPIVersion = "rafay.io/v1alpha1"
 const AKSClusterKind = "Cluster"
 
@@ -48,7 +46,7 @@ type AKSClusterSpec struct {
 	BlueprintVersion          string                     `yaml:"blueprintversion,omitempty"`
 	CloudProvider             string                     `yaml:"cloudprovider,omitempty"`
 	AKSClusterConfig          *AKSClusterConfig          `yaml:"clusterConfig,omitempty"`
-	Sharing                   *commonpb.SharingSpec      `yaml:"sharing,omitempty"`
+	Sharing                   *V1ClusterSharing          `yaml:"sharing,omitempty"`
 	SystemComponentsPlacement *SystemComponentsPlacement `yaml:"systemComponentsPlacement,omitempty"`
 }
 
@@ -303,7 +301,7 @@ type AKSManagedClusterHTTPProxyConfig struct {
 }
 
 type AKSManagedClusterIdentityProfile struct {
-	KubeletIdentity *AKSManagedClusterKubeletIdentity	`yaml:"kubeletIdentity,omitempty"`
+	KubeletIdentity *AKSManagedClusterKubeletIdentity `yaml:"kubeletIdentity,omitempty"`
 }
 
 type AKSManagedClusterKubeletIdentity struct {
@@ -359,13 +357,13 @@ type AKSManagedClusterAdditionalMetadata struct {
 }
 
 type AKSManagedClusterAdditionalMetadataACRProfile struct {
-	ResourceGroupName string 		 `yaml:"resourceGroupName,omitempty"`
-	ACRName           string 		 `yaml:"acrName,omitempty"`
+	ResourceGroupName string         `yaml:"resourceGroupName,omitempty"`
+	ACRName           string         `yaml:"acrName,omitempty"`
 	Registries        []*AksRegistry `yaml:"registries,omitempty"`
 }
 
 type AksRegistry struct {
-	ACRName string `yaml:"acrName,omitempty"`
+	ACRName           string `yaml:"acrName,omitempty"`
 	ResourceGroupName string `yaml:"resourceGroupName,omitempty"`
 }
 

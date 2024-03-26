@@ -17,7 +17,7 @@ type EKSSpec struct {
 	ProxyConfig               *ProxyConfig               `yaml:"proxyconfig,omitempty"`
 	CniParams                 *CustomCni                 `yaml:"cniparams,omitempty"`
 	SystemComponentsPlacement *SystemComponentsPlacement `yaml:"systemComponentsPlacement,omitempty"`
-	Sharing                   *EKSClusterSharing         `yaml:"sharing,omitempty"`
+	Sharing                   *V1ClusterSharing          `yaml:"sharing,omitempty"`
 }
 
 type ProxyConfig struct {
@@ -46,7 +46,7 @@ type EKSClusterMetadata struct {
 	Labels  map[string]string `yaml:"labels,omitempty"`
 }
 
-type EKSClusterSharing struct {
+type V1ClusterSharing struct {
 	Enabled  *bool                       `yaml:"enabled,omitempty"`
 	Projects []*EKSClusterSharingProject `yaml:"projects,omitempty"`
 }

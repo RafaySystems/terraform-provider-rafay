@@ -745,7 +745,7 @@ func expandManagedClusterAddonProfile(p []interface{}) *infrapb.ManagedClusterAd
 	}
 
 	if v, ok := in["azure_policy"].([]interface{}); ok && len(v) > 0 {
-		obj.AzurePolicy = expandAddonProfileGeneric(v)
+		obj.Azurepolicy = expandAddonProfileGeneric(v)
 	}
 
 	if v, ok := in["azure_keyvault_secrets_provider"].([]interface{}); ok && len(v) > 0 {
@@ -2384,12 +2384,12 @@ func flattenAKSV3ManagedClusterAddonProfile(in *infrapb.ManagedClusterAddonProfi
 		obj["http_application_routing"] = flattenAKSV3ManagedClusterAddonOnGenericProfile(in.HttpApplicationRouting, v)
 	}
 
-	if in.AzurePolicy != nil {
+	if in.Azurepolicy != nil {
 		v, ok := obj["azure_policy"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["azure_policy"] = flattenAKSV3ManagedClusterAddonOnGenericProfile(in.AzurePolicy, v)
+		obj["azure_policy"] = flattenAKSV3ManagedClusterAddonOnGenericProfile(in.Azurepolicy, v)
 	}
 
 	if in.AzureKeyvaultSecretsProvider != nil {
@@ -3349,7 +3349,7 @@ func flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in []*infrapb.AksRe
 
 		out[i] = obj
 	}
-	
+
 	return out
 
 }

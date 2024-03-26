@@ -4434,11 +4434,53 @@ func flattenIAMServiceAccountMetadata(in *EKSClusterIAMMeta, p []interface{}) []
 	return []interface{}{obj}
 }
 
+func flattenSingleIAMServiceAccount(in *EKSClusterIAMServiceAccount) map[string]interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{
+		"metadata":            flattenIAMServiceAccountMetadata(in.Metadata, []interface{}{}),
+		"well_known_policies": flattenIAMWellKnownPolicies(in.WellKnownPolicies, []interface{}{}),
+		"role_only":           in.RoleOnly,
+	}
+	if in.AttachPolicyARNs != nil && len(in.AttachPolicyARNs) > 0 {
+		obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
+	}
+	if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
+		//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		jsonStr, err := json2.Marshal(in.AttachPolicy)
+		if err != nil {
+			log.Println("attach policy marshal err:", err)
+		}
+		//log.Println("jsonSTR:", jsonStr)
+		obj["attach_policy"] = string(jsonStr)
+		//log.Println("attach policy flattened correct:", obj["attach_policy"])
+	}
+	if len(in.AttachRoleARN) > 0 {
+		obj["attach_role_arn"] = in.AttachRoleARN
+	}
+	if len(in.PermissionsBoundary) > 0 {
+		obj["permissions_boundary"] = in.PermissionsBoundary
+	}
+	if in.Status != nil {
+		obj["status"] = flattenIAMStatus(in.Status, []interface{}{})
+	}
+	if len(in.RoleName) > 0 {
+		obj["role_name"] = in.RoleName
+	}
+
+	if in.Tags != nil && len(in.Tags) > 0 {
+		obj["tags"] = toMapInterface(in.Tags)
+	}
+	return obj
+}
+
 func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, rawState cty.Value, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
 	}
-	out := make([]interface{}, len(inp))
+	var out []interface{}
 
 	indexOf := func(item string, list []string) int {
 		for i, v := range list {
@@ -4483,47 +4525,6 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, rawState cty.
 		}
 		return res
 	}
-	flattenServiceAccount := func(in *EKSClusterIAMServiceAccount) []interface{} {
-		if in == nil {
-			return nil
-		}
-		obj := map[string]interface{}{
-			"metadata":            flattenIAMServiceAccountMetadata(in.Metadata, []interface{}{}),
-			"well_known_policies": flattenIAMWellKnownPolicies(in.WellKnownPolicies, []interface{}{}),
-			"role_only":           in.RoleOnly,
-		}
-		if in.AttachPolicyARNs != nil && len(in.AttachPolicyARNs) > 0 {
-			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
-		}
-		if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
-			//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
-			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-			jsonStr, err := json2.Marshal(in.AttachPolicy)
-			if err != nil {
-				log.Println("attach policy marshal err:", err)
-			}
-			//log.Println("jsonSTR:", jsonStr)
-			obj["attach_policy"] = string(jsonStr)
-			//log.Println("attach policy flattened correct:", obj["attach_policy"])
-		}
-		if len(in.AttachRoleARN) > 0 {
-			obj["attach_role_arn"] = in.AttachRoleARN
-		}
-		if len(in.PermissionsBoundary) > 0 {
-			obj["permissions_boundary"] = in.PermissionsBoundary
-		}
-		if in.Status != nil {
-			obj["status"] = flattenIAMStatus(in.Status, []interface{}{})
-		}
-		if len(in.RoleName) > 0 {
-			obj["role_name"] = in.RoleName
-		}
-
-		if in.Tags != nil && len(in.Tags) > 0 {
-			obj["tags"] = toMapInterface(in.Tags)
-		}
-		return []interface{}{obj}
-	}
 
 	saOrderInState := findLocalOrder(rawState)
 	saOrderInRemote := findRemoteOrder(inp)
@@ -4532,17 +4533,17 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, rawState cty.
 	for _, key := range saOrderInState {
 		if i := indexOf(key, saOrderInRemote); i >= 0 {
 			in := inp[i]
-			obj := flattenServiceAccount(in)
+			obj := flattenSingleIAMServiceAccount(in)
 			out = append(out, obj)
 		} else if len(saInRemoteOnly) > 0 {
 			removedEntry := saInRemoteOnly[0]
 			saInRemoteOnly = saInRemoteOnly[1:]
-			obj := flattenServiceAccount(removedEntry)
+			obj := flattenSingleIAMServiceAccount(removedEntry)
 			out = append(out, obj)
 		}
 	}
 	for _, in := range saInRemoteOnly {
-		obj := flattenServiceAccount(in)
+		obj := flattenSingleIAMServiceAccount(in)
 		out = append(out, obj)
 	}
 

@@ -378,7 +378,7 @@ type AKSNodePool struct {
 }
 
 type AKSNodePoolProperties struct {
-	OsDiskSizeGB              *int                        `yaml:"osDiskSizeGb,omitempty"`
+	OsDiskSizeGB              *int                        `yaml:"osDiskSizeGB,omitempty"`
 	Mode                      string                      `yaml:"mode,omitempty"`
 	AvailabilityZones         []string                    `yaml:"availabilityZones,omitempty"`
 	EnableAutoScaling         *bool                       `yaml:"enableAutoScaling,omitempty"`

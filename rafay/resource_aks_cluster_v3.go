@@ -3349,7 +3349,7 @@ func flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in []*infrapb.AksRe
 
 		out[i] = obj
 	}
-	
+
 	return out
 
 }

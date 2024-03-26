@@ -18,3 +18,12 @@ type DaemonsetOverride struct {
 	NodeSelectionEnabled *bool          `yaml:"nodeSelectionEnabled,omitempty"`
 	Tolerations          []*Tolerations `yaml:"tolerations,omitempty"`
 }
+
+type V1ClusterSharing struct {
+	Enabled  *bool                      `yaml:"enabled,omitempty"`
+	Projects []*V1ClusterSharingProject `yaml:"projects,omitempty"`
+}
+
+type V1ClusterSharingProject struct {
+	Name string `yaml:"name,omitempty"`
+}

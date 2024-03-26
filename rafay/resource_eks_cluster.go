@@ -3709,38 +3709,6 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 	return obj
 }
 
-func expandV1ClusterSharing(p []interface{}) *V1ClusterSharing {
-	obj := &V1ClusterSharing{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-
-	in := p[0].(map[string]interface{})
-	if v, ok := in["enabled"].(bool); ok {
-		obj.Enabled = &v
-	}
-	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
-		obj.Projects = expandEKSClusterSharingProjects(v)
-	}
-	return obj
-}
-
-func expandEKSClusterSharingProjects(p []interface{}) []*EKSClusterSharingProject {
-	if len(p) == 0 {
-		return nil
-	}
-	var res []*EKSClusterSharingProject
-	for i := range p {
-		in := p[i].(map[string]interface{})
-		obj := &EKSClusterSharingProject{}
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj.Name = v
-		}
-		res = append(res, obj)
-	}
-	return res
-}
-
 func expandCNIParams(p []interface{}) *CustomCni {
 	obj := &CustomCni{}
 	log.Println("expand CNI params")
@@ -3964,35 +3932,6 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}, rawState cty.Value) ([]
 	}
 
 	return []interface{}{obj}, nil
-}
-
-func flattenV1ClusterSharing(in *V1ClusterSharing) []interface{} {
-	if in == nil {
-		return nil
-	}
-	obj := make(map[string]interface{})
-	if in.Enabled != nil {
-		obj["enabled"] = *in.Enabled
-	}
-	if len(in.Projects) > 0 {
-		obj["projects"] = flattenEKSSharingProjects(in.Projects)
-	}
-	return []interface{}{obj}
-}
-
-func flattenEKSSharingProjects(in []*EKSClusterSharingProject) []interface{} {
-	if len(in) == 0 {
-		return nil
-	}
-	var out []interface{}
-	for _, x := range in {
-		obj := make(map[string]interface{})
-		if len(x.Name) > 0 {
-			obj["name"] = x.Name
-		}
-		out = append(out, obj)
-	}
-	return out
 }
 
 func flattenCNIParams(in *CustomCni, p []interface{}, rawState cty.Value) []interface{} {

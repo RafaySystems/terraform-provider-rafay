@@ -5556,11 +5556,6 @@ LOOP:
 				return diag.FromErr(errGet)
 			}
 			edgeId := check.ID
-			check, errGet = cluster.GetClusterWithEdgeID(edgeId, project.ID)
-			if errGet != nil {
-				log.Printf("error while getCluster %s", errGet.Error())
-				return diag.FromErr(errGet)
-			}
 			statusResp, err := aksClusterCTLStatus(res.TaskSetID, project.ID)
 			if err != nil {
 				log.Println("status response parse error", err)
@@ -5575,22 +5570,29 @@ LOOP:
 				return diag.FromErr(err)
 			}
 			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-				if checkClusterConditionsFailure(check.Cluster.Conditions) {
-					log.Printf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, obj.Metadata.Project)
-					return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, obj.Metadata.Project))
-				} else if check.Status == "READY" {
-					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", clusterName, obj.Metadata.Project)
-					break LOOP
+				log.Println("Checking in cluster conditions for blueprint sync success..")
+				conditionsFailure, clusterReadiness, err := getClusterConditions(edgeId, project.ID)
+				if err != nil {
+					log.Printf("error while getCluster %s", err.Error())
+					return diag.FromErr(err)
 				}
-				log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
+				if conditionsFailure {
+					log.Printf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, project.Name)
+					return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, project.Name))
+				} else if clusterReadiness {
+					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", clusterName, project.Name)
+					break LOOP
+				} else {
+					log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
+				}
 			} else if strings.Contains(sres.Status, "STATUS_FAILED") {
 				failureReasons, err := collectAKSUpsertErrors(sres.Operations)
 				if err != nil {
 					return diag.FromErr(err)
 				}
-				return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s with failure reasons: %s", obj.Metadata.Name, obj.Metadata.Project, failureReasons)
+				return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s with failure reasons: %s", clusterName, project.Name, failureReasons)
 			} else {
-				log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, obj.Metadata.Project)
+				log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, project.Name)
 			}
 
 		}
@@ -5752,12 +5754,12 @@ LOOP:
 				log.Printf("error while getCluster %s, delete success", errGet.Error())
 				break LOOP
 			}
-			if check == nil || check.Status != "READY" {
+			if check == nil {
+				log.Printf("Cluster Deletion completes for edgename: %s and projectname: %s", clusterName, projectName)
 				break LOOP
 			}
 			log.Printf("Cluster Deletion is in progress for edgename: %s and projectname: %s. Waiting 60 seconds more for operation to complete.", clusterName, projectName)
 		}
-		log.Printf("Cluster Deletion completes for edgename: %s and projectname: %s", clusterName, projectName)
 	}
 	return diags
 }

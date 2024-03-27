@@ -5,7 +5,9 @@ import (
 	"reflect"
 	"slices"
 
+	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/models"
+	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -253,12 +255,39 @@ var BlueprintSyncConditions = []models.ClusterConditionType{
 	models.ClusterBlueprintSync,
 }
 
-func checkClusterConditionsFailure(conditions []models.ClusterCondition) bool {
+func getProjectIDFromName(projectName string) (string, error) {
+	// derive project id from project name
+	resp, err := project.GetProjectByName(projectName)
+	if err != nil {
+		log.Print("project name missing in the resource")
+		return "", err
+	}
+
+	project, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		log.Printf("project does not exist")
+		return "", err
+	}
+	return project.ID, nil
+}
+
+func getClusterConditions(edgeId, projectId string) (bool, bool, error) {
+	cluster, err := cluster.GetClusterWithEdgeID(edgeId, projectId)
+	if err != nil {
+		log.Printf("error while getCluster %s", err.Error())
+		return false, false, err
+	}
+
+	clusterConditions := cluster.Cluster.Conditions
 	failureFlag := false
-	for _, condition := range conditions {
+	readyFlag := false
+	for _, condition := range clusterConditions {
 		if slices.Contains(BlueprintSyncConditions, condition.Type) && condition.Status == models.Failed {
 			failureFlag = true
 		}
+		if condition.Type == models.ClusterReady && condition.Status == models.Success {
+			readyFlag = true
+		}
 	}
-	return failureFlag
+	return failureFlag, readyFlag, nil
 }

@@ -15,7 +15,6 @@ import (
 	"github.com/RafaySystems/rctl/pkg/clusterctl"
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
-	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-cty/cty"
 	jsoniter "github.com/json-iterator/go"
@@ -2323,15 +2322,21 @@ LOOP:
 				return diag.FromErr(err)
 			}
 			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-				log.Println("Checking in cluster conditions for blueprint sync failure..")
-				if checkClusterConditionsFailure(check.Cluster.Conditions) {
+				log.Println("Checking in cluster conditions for blueprint sync success..")
+				conditionsFailure, clusterReadiness, err := getClusterConditions(edgeId, projectID)
+				if err != nil {
+					log.Printf("error while getCluster %s", err.Error())
+					return diag.FromErr(err)
+				}
+				if conditionsFailure {
 					log.Printf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, projectName)
 					return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, projectName))
-				} else if check.Status == "READY" {
+				} else if clusterReadiness {
 					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", clusterName, projectName)
 					break LOOP
+				} else {
+					log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
 				}
-				log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
 			} else if strings.Contains(sres.Status, "STATUS_FAILED") {
 				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", clusterName, statusResp))
 			} else {
@@ -5622,22 +5627,6 @@ func flattenArnFields(inp []*IdentityMappingARN, p []interface{}) []interface{} 
 	return out
 }
 
-func getProjectIDFromName(projectName string) (string, error) {
-	// derive project id from project name
-	resp, err := project.GetProjectByName(projectName)
-	if err != nil {
-		log.Print("project name missing in the resource")
-		return "", err
-	}
-
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		log.Printf("project does not exist")
-		return "", err
-	}
-	return project.ID, nil
-}
-
 func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("create EKS cluster resource")
 	return resourceEKSClusterUpsert(ctx, d, m)
@@ -5801,7 +5790,7 @@ LOOP:
 				log.Printf("error while getCluster %s, delete success", errGet.Error())
 				break LOOP
 			}
-			if check == nil || check.Status != "READY" {
+			if check == nil {
 				break LOOP
 			}
 			log.Printf("Cluster Deletion is in progress for edgename: %s and projectname: %s. Waiting 60 seconds more for operation to complete.", clusterName, projectName)

@@ -122,7 +122,7 @@ func resourceAKSClusterV3Delete(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
-	ticker := time.NewTicker(time.Duration(30) * time.Second)
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
 
 	edgeName := ag.Metadata.Name
@@ -243,20 +243,33 @@ LOOP:
 			} else if uCluster == nil {
 				log.Printf("Cluster operation has not started with edgename: %s and projectname: %s", edgeName, projectName)
 			} else if uCluster.Status != nil && uCluster.Status.Aks != nil && uCluster.Status.CommonStatus != nil {
+				edgeId := uCluster.Status.Id
+				projectId, err := getProjectIDFromName(projectName)
+				if err != nil {
+					log.Print("error converting project name to id")
+					return diag.Errorf("error converting project name to project ID")
+				}
 				aksStatus := uCluster.Status.Aks
 				uClusterCommonStatus := uCluster.Status.CommonStatus
 				switch uClusterCommonStatus.ConditionStatus {
 				case commonpb.ConditionStatus_StatusSubmitted:
 					log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", edgeName, projectName)
 				case commonpb.ConditionStatus_StatusOK:
-					if checkV3ClusterConditionsFailure(uCluster.Status.Conditions) {
+					log.Println("Checking in cluster conditions for blueprint sync success..")
+					conditionsFailure, clusterReadiness, err := getClusterConditions(edgeId, projectId)
+					if err != nil {
+						log.Printf("error while getCluster %s", err.Error())
+						return diag.FromErr(err)
+					}
+					if conditionsFailure {
 						log.Printf("blueprint sync failed for edgename: %s and projectname: %s", edgeName, projectName)
 						return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", edgeName, projectName))
-					} else if isClusterReady(uCluster.Status.Conditions) {
+					} else if clusterReadiness {
 						log.Printf("Cluster operation completed for edgename: %s and projectname: %s", edgeName, projectName)
 						break LOOP
+					} else {
+						log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
 					}
-					log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
 				case commonpb.ConditionStatus_StatusFailed:
 					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
 					failureReasons, err := collectAKSV3UpsertErrors(aksStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
@@ -269,16 +282,6 @@ LOOP:
 		}
 	}
 	return diags
-}
-
-func isClusterReady(clusterConditions []*infrapb.ClusterCondition) bool {
-	//Checking cluster readiness
-	for _, condition := range clusterConditions {
-		if condition.Type == infrapb.ClusterConditionType_ClusterReady && condition.Status == infrapb.V3ConditionStatus_True {
-			return true
-		}
-	}
-	return false
 }
 
 func collectAKSV3UpsertErrors(nodepools []*infrapb.NodepoolStatus, lastProvisionFailureReason string, provisionStatus string) (string, error) {

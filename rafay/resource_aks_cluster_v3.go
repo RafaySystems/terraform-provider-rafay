@@ -36,9 +36,9 @@ func resourceAKSClusterV3() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(90 * time.Minute),
-			Update: schema.DefaultTimeout(90 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(100 * time.Minute),
+			Update: schema.DefaultTimeout(130 * time.Minute),
+			Delete: schema.DefaultTimeout(70 * time.Minute),
 		},
 
 		SchemaVersion: 1,
@@ -122,9 +122,8 @@ func resourceAKSClusterV3Delete(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
-	ticker := time.NewTicker(time.Duration(30) * time.Second)
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
-	timeout := time.After(time.Duration(10) * time.Minute)
 
 	edgeName := ag.Metadata.Name
 	projectName := ag.Metadata.Project
@@ -132,7 +131,7 @@ func resourceAKSClusterV3Delete(ctx context.Context, d *schema.ResourceData, m i
 LOOP:
 	for {
 		select {
-		case <-timeout:
+		case <-ctx.Done():
 			log.Printf("Cluster Deletion for edgename: %s and projectname: %s got timeout out.", edgeName, projectName)
 			return diag.FromErr(fmt.Errorf("cluster deletion for edgename: %s and projectname: %s got timeout out", edgeName, projectName))
 		case <-ticker.C:
@@ -222,7 +221,6 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 	// wait for cluster creation
 	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
-	timeout := time.After(time.Duration(90) * time.Minute)
 
 	edgeName := cluster.Metadata.Name
 	projectName := cluster.Metadata.Project
@@ -231,7 +229,7 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 LOOP:
 	for {
 		select {
-		case <-timeout:
+		case <-ctx.Done():
 			log.Printf("Cluster operation timed out for edgeName: %s and projectname: %s", edgeName, projectName)
 			return diag.FromErr(fmt.Errorf("cluster operation timed out for edgeName: %s and projectname: %s", edgeName, projectName))
 		case <-ticker.C:
@@ -245,14 +243,33 @@ LOOP:
 			} else if uCluster == nil {
 				log.Printf("Cluster operation has not started with edgename: %s and projectname: %s", edgeName, projectName)
 			} else if uCluster.Status != nil && uCluster.Status.Aks != nil && uCluster.Status.CommonStatus != nil {
+				edgeId := uCluster.Status.Id
+				projectId, err := getProjectIDFromName(projectName)
+				if err != nil {
+					log.Print("error converting project name to id")
+					return diag.Errorf("error converting project name to project ID")
+				}
 				aksStatus := uCluster.Status.Aks
 				uClusterCommonStatus := uCluster.Status.CommonStatus
 				switch uClusterCommonStatus.ConditionStatus {
 				case commonpb.ConditionStatus_StatusSubmitted:
 					log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", edgeName, projectName)
 				case commonpb.ConditionStatus_StatusOK:
-					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", edgeName, projectName)
-					break LOOP
+					log.Println("Checking in cluster conditions for blueprint sync success..")
+					conditionsFailure, clusterReadiness, err := getClusterConditions(edgeId, projectId)
+					if err != nil {
+						log.Printf("error while getCluster %s", err.Error())
+						return diag.FromErr(err)
+					}
+					if conditionsFailure {
+						log.Printf("blueprint sync failed for edgename: %s and projectname: %s", edgeName, projectName)
+						return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", edgeName, projectName))
+					} else if clusterReadiness {
+						log.Printf("Cluster operation completed for edgename: %s and projectname: %s", edgeName, projectName)
+						break LOOP
+					} else {
+						log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
+					}
 				case commonpb.ConditionStatus_StatusFailed:
 					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
 					failureReasons, err := collectAKSV3UpsertErrors(aksStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
@@ -3349,7 +3366,7 @@ func flattenAKSV3ManagedClusterAdditionalMetadataACRProfiles(in []*infrapb.AksRe
 
 		out[i] = obj
 	}
-	
+
 	return out
 
 }

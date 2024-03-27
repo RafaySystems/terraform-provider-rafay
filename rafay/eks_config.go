@@ -17,7 +17,7 @@ type EKSSpec struct {
 	ProxyConfig               *ProxyConfig               `yaml:"proxyconfig,omitempty"`
 	CniParams                 *CustomCni                 `yaml:"cniparams,omitempty"`
 	SystemComponentsPlacement *SystemComponentsPlacement `yaml:"systemComponentsPlacement,omitempty"`
-	Sharing                   *EKSClusterSharing         `yaml:"sharing,omitempty"`
+	Sharing                   *V1ClusterSharing          `yaml:"sharing,omitempty"`
 }
 
 type ProxyConfig struct {
@@ -44,15 +44,6 @@ type EKSClusterMetadata struct {
 	Name    string            `yaml:"name,omitempty"`
 	Project string            `yaml:"project,omitempty"`
 	Labels  map[string]string `yaml:"labels,omitempty"`
-}
-
-type EKSClusterSharing struct {
-	Enabled  *bool                       `yaml:"enabled,omitempty"`
-	Projects []*EKSClusterSharingProject `yaml:"projects,omitempty"`
-}
-
-type EKSClusterSharingProject struct {
-	Name string `yaml:"name,omitempty"`
 }
 
 // KubernetesNetworkConfig struct for eks cluster config sped (second part of the yaml file kind:clusterConfig)

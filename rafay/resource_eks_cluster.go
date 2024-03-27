@@ -3702,43 +3702,11 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
 	}
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandEKSClusterSharing(v)
+		obj.Sharing = expandV1ClusterSharing(v)
 	}
 	log.Println("cluster spec cloud_provider: ", obj.CloudProvider)
 
 	return obj
-}
-
-func expandEKSClusterSharing(p []interface{}) *EKSClusterSharing {
-	obj := &EKSClusterSharing{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-
-	in := p[0].(map[string]interface{})
-	if v, ok := in["enabled"].(bool); ok {
-		obj.Enabled = &v
-	}
-	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
-		obj.Projects = expandEKSClusterSharingProjects(v)
-	}
-	return obj
-}
-
-func expandEKSClusterSharingProjects(p []interface{}) []*EKSClusterSharingProject {
-	if len(p) == 0 {
-		return nil
-	}
-	var res []*EKSClusterSharingProject
-	for i := range p {
-		in := p[i].(map[string]interface{})
-		obj := &EKSClusterSharingProject{}
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj.Name = v
-		}
-		res = append(res, obj)
-	}
-	return res
 }
 
 func expandCNIParams(p []interface{}) *CustomCni {
@@ -3960,39 +3928,10 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}, rawState cty.Value) ([]
 		obj["system_components_placement"] = flattenSystemComponentsPlacement(in.SystemComponentsPlacement, v)
 	}
 	if in.Sharing != nil {
-		obj["sharing"] = flattenEKSSharing(in.Sharing)
+		obj["sharing"] = flattenV1ClusterSharing(in.Sharing)
 	}
 
 	return []interface{}{obj}, nil
-}
-
-func flattenEKSSharing(in *EKSClusterSharing) []interface{} {
-	if in == nil {
-		return nil
-	}
-	obj := make(map[string]interface{})
-	if in.Enabled != nil {
-		obj["enabled"] = *in.Enabled
-	}
-	if len(in.Projects) > 0 {
-		obj["projects"] = flattenEKSSharingProjects(in.Projects)
-	}
-	return []interface{}{obj}
-}
-
-func flattenEKSSharingProjects(in []*EKSClusterSharingProject) []interface{} {
-	if len(in) == 0 {
-		return nil
-	}
-	var out []interface{}
-	for _, x := range in {
-		obj := make(map[string]interface{})
-		if len(x.Name) > 0 {
-			obj["name"] = x.Name
-		}
-		out = append(out, obj)
-	}
-	return out
 }
 
 func flattenCNIParams(in *CustomCni, p []interface{}, rawState cty.Value) []interface{} {

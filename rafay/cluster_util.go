@@ -248,6 +248,67 @@ func flattenDaemonsetOverride(in *DaemonsetOverride, p []interface{}) []interfac
 	return []interface{}{obj}
 }
 
+func flattenV1ClusterSharing(in *V1ClusterSharing) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := make(map[string]interface{})
+	if in.Enabled != nil {
+		obj["enabled"] = *in.Enabled
+	}
+	if len(in.Projects) > 0 {
+		obj["projects"] = flattenV1SharingProjects(in.Projects)
+	}
+	return []interface{}{obj}
+}
+
+func flattenV1SharingProjects(in []*V1ClusterSharingProject) []interface{} {
+	if len(in) == 0 {
+		return nil
+	}
+	var out []interface{}
+	for _, x := range in {
+		obj := make(map[string]interface{})
+		if len(x.Name) > 0 {
+			obj["name"] = x.Name
+		}
+		out = append(out, obj)
+	}
+	return out
+}
+
+func expandV1ClusterSharing(p []interface{}) *V1ClusterSharing {
+	obj := &V1ClusterSharing{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
+	}
+	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
+		obj.Projects = expandV1ClusterSharingProjects(v)
+	}
+	return obj
+}
+
+func expandV1ClusterSharingProjects(p []interface{}) []*V1ClusterSharingProject {
+	if len(p) == 0 {
+		return nil
+	}
+	var res []*V1ClusterSharingProject
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := &V1ClusterSharingProject{}
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+		res = append(res, obj)
+	}
+	return res
+}
+
 var BlueprintSyncConditions = []models.ClusterConditionType{
 	models.ClusterRegister,
 	models.ClusterCheckIn,

@@ -71,6 +71,10 @@ resource "rafay_gke_cluster" "tf-example" {
       }
       features {
         enable_compute_engine_persistent_disk_csi_driver = "true"
+        enable_cloud_logging                             = "true"
+        cloud_logging_components                         = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+        enable_cloud_monitoring                          = "true"
+        cloud_monitoring_components                      = ["SYSTEM_COMPONENTS"]
       }
       node_pools {
         name         = "np"
@@ -335,8 +339,8 @@ Optional:
 
 ***Optional***
 
-- `cloud_logging_components` (List of String) List of components for cloud logging
-- `cloud_monitoring_components` (List of String) List of components for cloud monitoring
+- `cloud_logging_components` (List of String) List of components for cloud logging. Values: "SYSTEM_COMPONENTS", "WORKLOADS".
+- `cloud_monitoring_components` (List of String) List of components for cloud monitoring. Values: "SYSTEM_COMPONENTS"
 - `enable_application_manager_beta` (Boolean) Application Manager is a GKE controller for managing the lifecycle of applications. It enables application delivery and updates following Kubernetes and GitOps best practices
 - `enable_backup_for_gke` (Boolean) Backup for GKE allows you to back up and restore workloads. There is no cost for enabling this feature, but you are charged for backups based on the size of the data and the number of pods you protect
 - `enable_cloud_logging` (Boolean) Logging collects logs emitted by your applications and by GKE infrastructure

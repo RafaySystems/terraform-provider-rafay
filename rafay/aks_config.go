@@ -30,7 +30,7 @@ const AzureRoleIDMonitoringMetricsPublisher = "3913510d-42f4-4e42-8a64-420c39005
 const AzureRoleIDContributor = "b24988ac-6180-42a0-ab88-20f7382dd24c"
 
 type AKSCluster struct {
-	APIVersion string              `yaml:"apiVersion,omitempty"`
+	APIVersion string              `yaml:"apiversion,omitempty"`
 	Kind       string              `yaml:"kind,omitempty"`
 	Metadata   *AKSClusterMetadata `yaml:"metadata,omitempty"`
 	Spec       *AKSClusterSpec     `yaml:"spec,omitempty"`
@@ -58,7 +58,7 @@ type AzureRafayMetadata struct {
 }
 
 type AKSClusterConfig struct {
-	APIVersion string                    `yaml:"apiVersion,omitempty"`
+	APIVersion string                    `yaml:"apiversion,omitempty"`
 	Kind       string                    `yaml:"kind,omitempty"`
 	Metadata   *AKSClusterConfigMetadata `yaml:"metadata,omitempty"`
 	Spec       *AKSClusterConfigSpec     `yaml:"spec,omitempty"`
@@ -84,7 +84,7 @@ type AKSClusterConfigSpec struct {
 type AKSManagedCluster struct {
 	ExtendedLocation   *AKSClusterExtendedLocation          `yaml:"extendedLocation,omitempty"`
 	Type               string                               `yaml:"type,omitempty"`
-	APIVersion         string                               `yaml:"apiVersion,omitempty"`
+	APIVersion         string                               `yaml:"apiversion,omitempty"`
 	Location           string                               `yaml:"location,omitempty"`
 	Identity           *AKSManagedClusterIdentity           `yaml:"identity,omitempty"`
 	Properties         *AKSManagedClusterProperties         `yaml:"properties,omitempty"`
@@ -113,7 +113,7 @@ type AKSManagedClusterIdentity struct {
 
 type AKSManagedClusterProperties struct {
 	KubernetesVersion       string                                   `yaml:"kubernetesVersion,omitempty"`
-	EnableRBAC              *bool                                    `yaml:"enableRBAC,omitempty"`
+	EnableRBAC              *bool                                    `yaml:"enableRbac,omitempty"`
 	FQDNSubdomain           string                                   `yaml:"fqdnSubdomain,omitempty"`
 	DNSPrefix               string                                   `yaml:"dnsPrefix,omitempty"`
 	EnablePodSecurityPolicy *bool                                    `yaml:"enablePodSecurityPolicy,omitempty"`
@@ -122,7 +122,7 @@ type AKSManagedClusterProperties struct {
 	AzureADProfile          *AKSManagedClusterAzureADProfile         `yaml:"aadProfile,omitempty"`
 	APIServerAccessProfile  *AKSManagedClusterAPIServerAccessProfile `yaml:"apiServerAccessProfile,omitempty"`
 	DisableLocalAccounts    *bool                                    `yaml:"disableLocalAccounts,omitempty"`
-	DiskEncryptionSetID     string                                   `yaml:"diskEncryptionSetID,omitempty"`
+	DiskEncryptionSetID     string                                   `yaml:"diskEncryptionSetId,omitempty"`
 	AddonProfiles           *AddonProfiles                           `yaml:"addonProfiles,omitempty"`
 	//AddonProfiles           map[string]string                         `yaml:"addonProfiles,omitempty"`
 	ServicePrincipalProfile *AKSManagedClusterServicePrincipalProfile `yaml:"servicePrincipalProfile,omitempty"`
@@ -199,11 +199,11 @@ type AKSManagedClusterNetworkProfile struct {
 
 type AKSManagedClusterNPLoadBalancerProfile struct {
 	AllocatedOutboundPorts *int                                       `yaml:"allocatedOutboundPorts,omitempty"`
-	EffectiveOutboundIPs   []*AKSManagedClusterNPEffectiveOutboundIPs `yaml:"effectiveOutboundIPs,omitempty"`
+	EffectiveOutboundIPs   []*AKSManagedClusterNPEffectiveOutboundIPs `yaml:"effectiveOutboundIps,omitempty"`
 	IdleTimeoutInMinutes   *int                                       `yaml:"idleTimeoutInMinutes,omitempty"`
-	ManagedOutboundIPs     *AKSManagedClusterNPManagedOutboundIPs     `yaml:"managedOutboundIPs,omitempty"`
-	OutboundIPPrefixes     *AKSManagedClusterNPOutboundIPPrefixes     `yaml:"outboundIPPrefixes,omitempty"`
-	OutboundIPs            *AKSManagedClusterNPOutboundIPs            `yaml:"outboundIPs,omitempty"`
+	ManagedOutboundIPs     *AKSManagedClusterNPManagedOutboundIPs     `yaml:"managedOutboundIps,omitempty"`
+	OutboundIPPrefixes     *AKSManagedClusterNPOutboundIPPrefixes     `yaml:"outboundIpPrefixes,omitempty"`
+	OutboundIPs            *AKSManagedClusterNPOutboundIPs            `yaml:"outboundIps,omitempty"`
 }
 
 type AKSManagedClusterNPEffectiveOutboundIPs struct {
@@ -215,14 +215,14 @@ type AKSManagedClusterNPManagedOutboundIPs struct {
 }
 
 type AKSManagedClusterNPOutboundIPs struct {
-	PublicIPs []*AKSManagedClusterNPOutboundIPsPublicIps `yaml:"publicIPs,omitempty"`
+	PublicIPs []*AKSManagedClusterNPOutboundIPsPublicIps `yaml:"publicIps,omitempty"`
 }
 type AKSManagedClusterNPOutboundIPsPublicIps struct {
 	ID string `yaml:"id,omitempty"`
 }
 
 type AKSManagedClusterNPOutboundIPPrefixes struct {
-	PublicIPPrefixes []*AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes `yaml:"publicIPPrefixes,omitempty"`
+	PublicIPPrefixes []*AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes `yaml:"publicIpPrefixes,omitempty"`
 }
 
 type AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes struct {
@@ -230,20 +230,20 @@ type AKSManagedClusterNPManagedOutboundIPsPublicIpPrefixes struct {
 }
 
 type AKSManagedClusterAzureADProfile struct {
-	AdminGroupObjectIDs []string `yaml:"adminGroupObjectIDs,omitempty"`
-	ClientAppId         string   `yaml:"clientAppID,omitempty"`
-	EnableAzureRbac     *bool    `yaml:"enableAzureRBAC,omitempty"`
+	AdminGroupObjectIDs []string `yaml:"adminGroupObjectIds,omitempty"`
+	ClientAppId         string   `yaml:"clientAppId,omitempty"`
+	EnableAzureRbac     *bool    `yaml:"enableAzureRbac,omitempty"`
 	Managed             *bool    `yaml:"managed,omitempty"`
-	ServerAppId         string   `yaml:"serverAppID,omitempty"`
+	ServerAppId         string   `yaml:"serverAppId,omitempty"`
 	ServerAppSecret     string   `yaml:"serverAppSecret,omitempty"`
-	TenantId            string   `yaml:"tenantID,omitempty"`
+	TenantId            string   `yaml:"tenantId,omitempty"`
 }
 
 type AKSManagedClusterAPIServerAccessProfile struct {
-	AuthorizedIPRanges             []string `yaml:"authorizedIPRanges,omitempty"`
+	AuthorizedIPRanges             []string `yaml:"authorizedIprRanges,omitempty"`
 	EnablePrivateCluster           *bool    `yaml:"enablePrivateCluster,omitempty"`
-	EnablePrivateClusterPublicFQDN *bool    `yaml:"enablePrivateClusterPublicFQDN,omitempty"`
-	PrivateDnsZone                 string   `yaml:"privateDNSZone,omitempty"`
+	EnablePrivateClusterPublicFQDN *bool    `yaml:"enablePrivateClusterPublicFqdn,omitempty"`
+	PrivateDnsZone                 string   `yaml:"privateDnsZone,omitempty"`
 }
 
 type AKSManagedClusterAutoScalerProfile struct {
@@ -372,7 +372,7 @@ type AksRegistry struct {
 }
 
 type AKSNodePool struct {
-	APIVersion string                 `yaml:"apiVersion,omitempty"`
+	APIVersion string                 `yaml:"apiversion,omitempty"`
 	Name       string                 `yaml:"name,omitempty"`
 	Properties *AKSNodePoolProperties `yaml:"properties,omitempty"`
 	Type       string                 `yaml:"type,omitempty"`
@@ -389,28 +389,28 @@ type AKSNodePoolProperties struct {
 	MaxCount                  *int                        `yaml:"maxCount,omitempty"`
 	MaxPods                   *int                        `yaml:"maxPods,omitempty"`
 	Type                      string                      `yaml:"type,omitempty"`
-	EnableNodePublicIP        *bool                       `yaml:"enableNodePublicIP,omitempty"`
+	EnableNodePublicIP        *bool                       `yaml:"enableNodePublicIp,omitempty"`
 	NodeLabels                map[string]string           `yaml:"nodeLabels,omitempty"`
 	NodeTaints                []string                    `yaml:"nodeTaints,omitempty"`
-	VnetSubnetID              string                      `yaml:"vnetSubnetID,omitempty"`
+	VnetSubnetID              string                      `yaml:"vnetSubnetId,omitempty"`
 	UpgradeSettings           *AKSNodePoolUpgradeSettings `yaml:"upgradeSettings,omitempty"`
 	ScaleSetPriority          string                      `yaml:"scaleSetPriority,omitempty"`
 	ScaleSetEvictionPolicy    string                      `yaml:"scaleSetEvictionPolicy,omitempty"`
 	SpotMaxPrice              *float64                    `yaml:"spotMaxPrice,omitempty"`
 	EnableEncryptionAtHost    *bool                       `yaml:"enableEncryptionAtHost,omitempty"`
 	OrchestratorVersion       string                      `yaml:"orchestratorVersion,omitempty"`
-	EnableFIPS                *bool                       `yaml:"enableFIPS,omitempty"`
+	EnableFIPS                *bool                       `yaml:"enableFips,omitempty"`
 	EnableUltraSSD            *bool                       `yaml:"enableUltraSsd,omitempty"`
 	GpuInstanceProfile        string                      `yaml:"gpuInstanceProfile,omitempty"`
 	KubeletConfig             *AKSNodePoolKubeletConfig   `yaml:"kubeletConfig,omitempty"`
 	KubeletDiskType           string                      `yaml:"kubeletDiskType,omitempty"`
 	LinuxOSConfig             *AKSNodePoolLinuxOsConfig   `yaml:"linuxOsConfig,omitempty"`
-	NodePublicIPPrefixID      string                      `yaml:"nodePublicIPPrefixID,omitempty"`
+	NodePublicIPPrefixID      string                      `yaml:"nodePublicIpPrefixId,omitempty"`
 	OsDiskType                string                      `yaml:"osDiskType,omitempty"`
 	OsSku                     string                      `yaml:"osSku,omitempty"`
 	OsType                    string                      `yaml:"osType,omitempty"`
-	PodSubnetID               string                      `yaml:"podSubnetID,omitempty"`
-	ProximityPlacementGroupID string                      `yaml:"proximityPlacementGroupID,omitempty"`
+	PodSubnetID               string                      `yaml:"podSubnetId,omitempty"`
+	ProximityPlacementGroupID string                      `yaml:"proximityPlacementGroupId,omitempty"`
 	Tags                      map[string]string           `yaml:"tags,omitempty"`
 	VmSize                    string                      `yaml:"vmSize,omitempty"`
 }
@@ -422,7 +422,7 @@ type AKSNodePoolUpgradeSettings struct {
 type AKSNodePoolKubeletConfig struct {
 	AllowedUnsafeSysctls  []string `yaml:"allowedUnsafeSysctls,omitempty"`
 	ContainerLogMaxFiles  *int     `yaml:"containerLogMaxFiles,omitempty"`
-	ContainerLogMaxSizeMB *int     `yaml:"containerLogMaxSizeMB,omitempty"`
+	ContainerLogMaxSizeMB *int     `yaml:"containerLogMaxSizeMb,omitempty"`
 	CpuCfsQuota           *bool    `yaml:"cpuCfsQuota,omitempty"`
 	CpuCfsQuotaPeriod     string   `yaml:"cpuCfsQuotaPeriod,omitempty"`
 	CpuManagerPolicy      string   `yaml:"cpuManagerPolicy,omitempty"`
@@ -434,7 +434,7 @@ type AKSNodePoolKubeletConfig struct {
 }
 
 type AKSNodePoolLinuxOsConfig struct {
-	SwapFileSizeMB             *int                             `yaml:"swapFileSizeMB,omitempty"`
+	SwapFileSizeMB             *int                             `yaml:"swapFileSizeMb,omitempty"`
 	Sysctls                    *AKSNodePoolLinuxOsConfigSysctls `yaml:"sysctls,omitempty"`
 	TransparentHugePageDefrag  string                           `yaml:"transparentHugePageDefrag,omitempty"`
 	TransparentHugePageEnabled string                           `yaml:"transparentHugePageEnabled,omitempty"`

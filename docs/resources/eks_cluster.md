@@ -722,7 +722,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
 ***Required***
 
-- `name` - (String) Name of the EKS add-on. The name must match one of the names supported by Rafay. Supported addons: `vpc-cni`, `kube-proxy`, `coredns`, `aws-ebs-csi-driver`, `adot`, `aws-guardduty-agent`
+- `name` - (String) Name of the EKS add-on. The name must match one of the names supported by Rafay. Supported addons: `vpc-cni`, `kube-proxy`, `coredns`, `aws-ebs-csi-driver`, `adot`, `aws-guardduty-agent`, `aws-efs-csi-driver`,`snapshot-controller`,`amazon-cloudwatch-observability`,`aws-mountpoint-s3-csi-driver`
 - `version` - (String) The version of the EKS add-on. The version must match one of the supported versions.
 
 ***Optional***

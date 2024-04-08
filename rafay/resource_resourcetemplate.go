@@ -1248,26 +1248,6 @@ func flattenEaasAgents(input []*commonpb.ResourceNameAndVersionRef) []interface{
 	return out
 }
 
-func flattenDriverResourceRef(input *commonpb.ResourceNameAndVersionRef) []interface{} {
-	log.Println("flatten provider options driver start")
-	if input == nil {
-		return nil
-	}
-
-	out := make([]interface{}, 1)
-	obj := map[string]interface{}{}
-
-	if len(input.Name) > 0 {
-		obj["name"] = input.Name
-	}
-
-	if len(input.Version) > 0 {
-		obj["version"] = input.Version
-	}
-	out[0] = &obj
-	return out
-}
-
 func expandTerraformProviderVolumeOptions(p []interface{}) []*eaaspb.TerraformProviderVolumeOptions {
 	volumes := make([]*eaaspb.TerraformProviderVolumeOptions, 0)
 	if len(p) == 0 {

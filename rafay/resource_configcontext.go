@@ -214,7 +214,7 @@ func expandConfigContextSpec(p []interface{}) (*eaaspb.ConfigContextSpec, error)
 	log.Println("expand config context spec")
 	spec := &eaaspb.ConfigContextSpec{}
 	if len(p) == 0 || p[0] == nil {
-		return spec, fmt.Errorf("%s", "expand config context spec empty input")
+		return spec, fmt.Errorf("expand config context spec empty input")
 	}
 
 	in := p[0].(map[string]interface{})
@@ -266,6 +266,62 @@ func expandEnvVariables(p []interface{}) []*eaaspb.EnvData {
 	}
 
 	return envvars
+}
+
+func expandConfigContextCompoundRefs(p []interface{}) []*eaaspb.ConfigContextCompoundRef {
+	var ccs []*eaaspb.ConfigContextCompoundRef
+	if len(p) == 0 || p[0] == nil {
+		return ccs
+	}
+
+	for i := range p {
+		cc := expandConfigContextCompoundRef(p[i].([]interface{}))
+		ccs = append(ccs, cc)
+	}
+
+	return ccs
+}
+
+func expandConfigContextCompoundRef(p []interface{}) *eaaspb.ConfigContextCompoundRef {
+	cc := &eaaspb.ConfigContextCompoundRef{}
+	if len(p) == 0 || p[0] == nil {
+		return cc
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		cc.Name = v
+	}
+
+	if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
+		cc.Data = expandConfigContextInline(v)
+	}
+
+	return cc
+}
+
+func expandConfigContextInline(p []interface{}) *eaaspb.ConfigContextInline {
+	cc := &eaaspb.ConfigContextInline{}
+	if len(p) == 0 || p[0] == nil {
+		return cc
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["envs"].([]interface{}); ok && len(v) > 0 {
+		cc.Envs = expandEnvVariables(v)
+	}
+
+	if v, ok := in["files"].([]interface{}); ok && len(v) > 0 {
+		cc.Files = expandCommonpbFiles(v)
+	}
+
+	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
+		cc.Variables = expandVariables(v)
+	}
+
+	return cc
 }
 
 // Flatteners
@@ -360,6 +416,53 @@ func flattenEnvVariables(input []*eaaspb.EnvData, p []interface{}) []interface{}
 	}
 
 	return out
+}
+
+func flattenConfigContextCompoundRefs(input []*eaaspb.ConfigContextCompoundRef) []interface{} {
+	var ccs []interface{}
+	if input == nil {
+		return ccs
+	}
+
+	for _, cc := range input {
+		ccs = append(ccs, flattenConfigContextCompoundRef(cc))
+	}
+
+	return ccs
+}
+
+func flattenConfigContextCompoundRef(input *eaaspb.ConfigContextCompoundRef) []interface{} {
+	cc := make(map[string]interface{})
+	if input == nil {
+		return []interface{}{cc}
+	}
+
+	if len(input.Name) > 0 {
+		cc["name"] = input.Name
+	}
+
+	cc["data"] = flattenConfigContextInline(input.Data)
+
+	return []interface{}{cc}
+}
+
+func flattenConfigContextInline(input *eaaspb.ConfigContextInline) []interface{} {
+	cc := make(map[string]interface{})
+	if input == nil {
+		return []interface{}{cc}
+	}
+
+	if len(input.Envs) > 0 {
+		cc["envs"] = flattenEnvVariables(input.Envs, nil)
+	}
+	if len(input.Files) > 0 {
+		cc["files"] = flattenCommonpbFiles(input.Files)
+	}
+	if len(input.Variables) > 0 {
+		cc["variables"] = flattenVariables(input.Variables, nil)
+	}
+
+	return []interface{}{cc}
 }
 
 func resourceConfigContextImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {

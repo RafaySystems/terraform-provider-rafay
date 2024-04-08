@@ -286,7 +286,7 @@ func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOpti
 	}
 
 	if p, ok := in["driver"].([]interface{}); ok && len(p) > 0 {
-		po.Driver = expandDriverResourceRef(p)
+		po.Driver = expandDriverCompoundRef(p)
 	}
 
 	return po
@@ -392,25 +392,6 @@ func expandEaasAgents(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
 	}
 
 	return agents
-}
-
-func expandDriverResourceRef(p []interface{}) *commonpb.ResourceNameAndVersionRef {
-	driver := &commonpb.ResourceNameAndVersionRef{}
-	if len(p) == 0 || p[0] == nil {
-		return driver
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["name"].(string); ok && len(v) > 0 {
-		driver.Name = v
-	}
-
-	if v, ok := in["version"].(string); ok && len(v) > 0 {
-		driver.Version = v
-	}
-
-	return driver
 }
 
 func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOptions {
@@ -769,7 +750,7 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions) []interf
 	obj["system"] = flattenSystemProviderOptions(in.System)
 	obj["terragrunt"] = flattenTerragruntProviderOptions(in.Terragrunt)
 	obj["pulumi"] = flattenPulumiProviderOptions(in.Pulumi)
-	obj["driver"] = flattenDriverResourceRef(in.Driver)
+	obj["driver"] = flattenDriverCompoundRef(in.Driver)
 
 	return []interface{}{obj}
 }

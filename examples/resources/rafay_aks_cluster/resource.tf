@@ -735,3 +735,93 @@ resource "rafay_aks_cluster" "demo-terraform-multiple-ACR" {
     }
   }
 }
+
+resource "rafay_aks_cluster" "aks_cluster_azure_cni_overlay" {
+  apiversion = "rafay.io/v1alpha1"
+  kind       = "Cluster"
+  metadata {
+    name    = "aks_cluster_azure_cni_overlay"
+    project = "defaultproject"
+  }
+  spec {
+    type          = "aks"
+    blueprint     = "minimal"
+    cloudprovider = "azure-creds"
+    cluster_config {
+      apiversion = "rafay.io/v1alpha1"
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "aks_cluster_azure_cni_overlay"
+      }
+      spec {
+        resource_group_name = "gautham-rg-ci"
+        managed_cluster {
+          apiversion = "2023-11-01"
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "testuser-test-dns"
+            enable_rbac        = true
+            kubernetes_version = "1.28.3"
+            network_profile {
+              network_plugin      = "azure"
+              load_balancer_sku   = "standard"
+              network_plugin_mode = "overlay"
+              pod_cidr            = "192.168.0.0/16"
+              service_cidr        = "10.0.0.0/16"
+              dns_service_ip      = "10.0.0.10"
+            }
+            power_state {
+              code = "Running"
+            }
+            addon_profiles {
+              http_application_routing {
+                enabled = false
+              }
+              azure_policy {
+                enabled = false
+              }
+              oms_agent {
+                enabled = true
+                config {
+                  log_analytics_workspace_resource_id = "/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.operationalinsights/workspaces/{loganalyticsWorkspaceName}"
+                }
+              }
+              azure_keyvault_secrets_provider {
+                enabled = true
+                config {
+                  enable_secret_rotation = "true"
+                  rotation_poll_interval = "2m"
+                }
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          apiversion = "2023-11-01"
+          name       = "primary"
+          properties {
+            count                = 2
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.28.3"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+          }
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
+          location = "centralindia"
+        }
+      }
+    }
+  }
+}

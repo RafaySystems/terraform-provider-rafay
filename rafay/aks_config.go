@@ -186,7 +186,7 @@ type AKSManagedClusterNetworkProfile struct {
 	LoadBalancerSKU     string                                  `yaml:"loadBalancerSku,omitempty"`
 	NetworkPlugin       string                                  `yaml:"networkPlugin,omitempty"`
 	NetworkPolicy       string                                  `yaml:"networkPolicy,omitempty"`
-	DNSServiceIP        string                                  `yaml:"dnsServiceIp,omitempty"`
+	DNSServiceIP        string                                  `yaml:"dnsServiceIP,omitempty"`
 	DockerBridgeCidr    string                                  `yaml:"dockerBridgeCidr,omitempty"`
 	LoadBalancerProfile *AKSManagedClusterNPLoadBalancerProfile `yaml:"loadBalancerProfile,omitempty"`
 	NetworkMode         string                                  `yaml:"networkMode,omitempty"`

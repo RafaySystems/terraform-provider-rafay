@@ -411,6 +411,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 		cluster_resp.ClusterBlueprint = d.Get("blueprint").(string)
 	}
 	// read the blueprint version
+	oldClusterBlueprintVersion := cluster_resp.ClusterBlueprintVersion
 	if d.Get("blueprint_version").(string) != "" {
 		cluster_resp.ClusterBlueprintVersion = d.Get("blueprint_version").(string)
 	}
@@ -422,7 +423,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 
 	//publish cluster bp
-	if cluster_resp.ClusterBlueprint != oldClusterBlueprint {
+	if (cluster_resp.ClusterBlueprint != oldClusterBlueprint) || (cluster_resp.ClusterBlueprintVersion != oldClusterBlueprintVersion) {
 		err = cluster.PublishClusterBlueprint(d.Get("clustername").(string), project_id, false)
 		if err != nil {
 			log.Printf("cluster was not updated, error %s", err.Error())

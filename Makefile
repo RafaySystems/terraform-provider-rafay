@@ -80,3 +80,6 @@ vendor:
 update-deps:
 	GOPRIVATE=github.com/RafaySystems/* go get -d github.com/RafaySystems/rafay-common@master
 
+.PHONY: test-migrate
+test-migrate:
+	go test -v ./rafay/migrate/...

@@ -405,6 +405,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 		log.Printf("imported cluster was not created, error %s", err.Error())
 		return diag.FromErr(err)
 	}
+	oldClusterBlueprint := cluster_resp.ClusterBlueprint
 	// read the blueprint name
 	if d.Get("blueprint").(string) != "" {
 		cluster_resp.ClusterBlueprint = d.Get("blueprint").(string)
@@ -421,10 +422,12 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 
 	//publish cluster bp
-	err = cluster.PublishClusterBlueprint(d.Get("clustername").(string), project_id, false)
-	if err != nil {
-		log.Printf("cluster was not updated, error %s", err.Error())
-		return diag.FromErr(err)
+	if cluster_resp.ClusterBlueprint != oldClusterBlueprint {
+		err = cluster.PublishClusterBlueprint(d.Get("clustername").(string), project_id, false)
+		if err != nil {
+			log.Printf("cluster was not updated, error %s", err.Error())
+			return diag.FromErr(err)
+		}
 	}
 
 	// update labels

@@ -14,6 +14,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/RafaySystems/rctl/pkg/project"
+	"github.com/RafaySystems/terraform-provider-rafay/rafay/migrate/aks/fromV1"
 	"github.com/davecgh/go-spew/spew"
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
@@ -61,7 +62,7 @@ func resourceAKSCluster() *schema.Resource {
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		Schema: map[string]*schema.Schema{
 			"apiversion": {
 				Type:        schema.TypeString,
@@ -89,6 +90,13 @@ func resourceAKSCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: clusterAKSClusterSpec(),
 				},
+			},
+		},
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type: fromV1.Resource().CoreConfigSchema().ImpliedType(),
+				Upgrade: fromV1.Migrate,
+				Version: fromV1.Version,
 			},
 		},
 	}

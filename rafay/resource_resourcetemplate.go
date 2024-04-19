@@ -289,6 +289,10 @@ func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOpti
 		po.Driver = expandDriverCompoundRef(p)
 	}
 
+	if p, ok := in["open_tofu"].([]interface{}); ok && len(p) > 0 {
+		po.OpenTofu = expandOpenTofuProviderOptions(p)
+	}
+
 	return po
 
 }
@@ -447,7 +451,58 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 	}
 
 	if v, ok := in["volumes"].([]interface{}); ok && len(v) > 0 {
-		tpo.Volumes = expandTerraformProviderVolumeOptions(v)
+		tpo.Volumes = expandProviderVolumeOptions(v)
+	}
+
+	return tpo
+}
+
+func expandOpenTofuProviderOptions(p []interface{}) *eaaspb.OpenTofuProviderOptions {
+	tpo := &eaaspb.OpenTofuProviderOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return tpo
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["version"].(string); ok {
+		tpo.Version = h
+	}
+
+	if vfiles, ok := in["var_files"].([]interface{}); ok && len(vfiles) > 0 {
+		tpo.VarFiles = toArrayString(vfiles)
+	}
+
+	if bcfgs, ok := in["backend_configs"].([]interface{}); ok && len(bcfgs) > 0 {
+		tpo.BackendConfigs = toArrayString(bcfgs)
+	}
+
+	if bt, ok := in["backend_type"].(string); ok {
+		tpo.BackendType = bt
+	}
+
+	if h, ok := in["refresh"].([]interface{}); ok && len(h) > 0 {
+		tpo.Refresh = expandBoolValue(h)
+	}
+
+	if h, ok := in["lock"].([]interface{}); ok && len(h) > 0 {
+		tpo.Lock = expandBoolValue(h)
+	}
+
+	if h, ok := in["lock_timeout_seconds"].(int); ok {
+		tpo.LockTimeoutSeconds = uint64(h)
+	}
+
+	if pdirs, ok := in["plugin_dirs"].([]interface{}); ok && len(pdirs) > 0 {
+		tpo.PluginDirs = toArrayString(pdirs)
+	}
+
+	if tgtrs, ok := in["target_resources"].([]interface{}); ok && len(tgtrs) > 0 {
+		tpo.TargetResources = toArrayString(tgtrs)
+	}
+
+	if v, ok := in["volumes"].([]interface{}); ok && len(v) > 0 {
+		tpo.Volumes = expandProviderVolumeOptions(v)
 	}
 
 	return tpo
@@ -751,6 +806,36 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions) []interf
 	obj["terragrunt"] = flattenTerragruntProviderOptions(in.Terragrunt)
 	obj["pulumi"] = flattenPulumiProviderOptions(in.Pulumi)
 	obj["driver"] = flattenDriverCompoundRef(in.Driver)
+	obj["open_tofu"] = flattenOpenTofuProviderOptions(in.OpenTofu)
+
+	return []interface{}{obj}
+}
+
+func flattenOpenTofuProviderOptions(in *eaaspb.OpenTofuProviderOptions) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["version"] = in.Version
+	// obj["use_system_state_store"] = flattenBoolValue(in.UseSystemStateStore)
+	obj["var_files"] = toArrayInterface(in.VarFiles)
+	obj["backend_configs"] = toArrayInterface(in.BackendConfigs)
+	obj["backend_type"] = in.BackendType
+	obj["refresh"] = flattenBoolValue(in.Refresh)
+	obj["lock"] = flattenBoolValue(in.Lock)
+	obj["lock_timeout_seconds"] = in.LockTimeoutSeconds
+	obj["plugin_dirs"] = toArrayInterface(in.PluginDirs)
+	obj["target_resources"] = toArrayInterface(in.TargetResources)
+	// obj["with_terraform_cloud"] = flattenBoolValue(in.WithTerraformCloud)
+	if len(in.Volumes) > 0 {
+		v, ok := obj["volumes"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["volumes"] = flattenProviderVolumeOptions(in.Volumes, v)
+	}
 
 	return []interface{}{obj}
 }
@@ -778,7 +863,7 @@ func flattenTerraformProviderOptions(in *eaaspb.TerraformProviderOptions) []inte
 			v = []interface{}{}
 		}
 
-		obj["volumes"] = flattenTerraformProviderVolumeOptions(in.Volumes, v)
+		obj["volumes"] = flattenProviderVolumeOptions(in.Volumes, v)
 	}
 
 	return []interface{}{obj}
@@ -1248,14 +1333,14 @@ func flattenEaasAgents(input []*commonpb.ResourceNameAndVersionRef) []interface{
 	return out
 }
 
-func expandTerraformProviderVolumeOptions(p []interface{}) []*eaaspb.TerraformProviderVolumeOptions {
-	volumes := make([]*eaaspb.TerraformProviderVolumeOptions, 0)
+func expandProviderVolumeOptions(p []interface{}) []*eaaspb.ProviderVolumeOptions {
+	volumes := make([]*eaaspb.ProviderVolumeOptions, 0)
 	if len(p) == 0 {
 		return volumes
 	}
 
 	for indx := range p {
-		volume := &eaaspb.TerraformProviderVolumeOptions{}
+		volume := &eaaspb.ProviderVolumeOptions{}
 		if p[indx] == nil {
 			return volumes
 		}
@@ -1284,14 +1369,14 @@ func expandTerraformProviderVolumeOptions(p []interface{}) []*eaaspb.TerraformPr
 	return volumes
 }
 
-func flattenTerraformProviderVolumeOptions(input []*eaaspb.TerraformProviderVolumeOptions, p []interface{}) []interface{} {
+func flattenProviderVolumeOptions(input []*eaaspb.ProviderVolumeOptions, p []interface{}) []interface{} {
 	if len(input) == 0 {
 		return nil
 	}
 
 	out := make([]interface{}, len(input))
 	for i, in := range input {
-		log.Println("flatten terraform provider volume options", in)
+		log.Println("flatten provider volume options", in)
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})

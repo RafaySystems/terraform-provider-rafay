@@ -104,6 +104,19 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
       private_networking = true
     }
   }
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+
+    }
+    addons {
+      name = "coredns"
+      version = "latest"
+    }
 }
 ```
 
@@ -479,16 +492,39 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
       name = "vpc-cni"
       version = "latest"
       configuration_values = "{\"enableNetworkPolicy\":\"true\"}"
+      service_account_role_arn = "arn:aws:iam::account:role/AmazonEKSCNIAccess"
     }
     addons {
       name = "kube-proxy"
       version = "latest"
       configuration_values = "{\"replicaCount\":3}"
+      attach_policy {
+        version = "2012-10-17"
+        statement {
+            effect = "Allow"
+            action = ["sts:AssumeRole"]
+            resource = "*"
+        }
+    }
     }
     addons {
       name = "coredns"
       version = "v1.11.1-eksbuild.6"
+      attach_policy_arns = ["arn:aws:iam::account:policy/AmazonEKS_CNI_Policy"]
+      permissions_boundary = "arn:aws:iam::account:policy/BoundaryPolicy"
     }
+
+    addons {
+      name = "aws-ebs-cs-driver"
+      version = "latest"
+      well_known_policies {
+        image_builder = true
+        ebs_csi_controller = true
+      }
+      tags = {
+            "key" = "value"
+        }
+     }
 
   }
 }

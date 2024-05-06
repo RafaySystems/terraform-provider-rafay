@@ -335,6 +335,9 @@ func flattenGKEV3Network(in *infrapb.GkeNetwork, p []interface{}) []interface{} 
 
 	obj["max_pods_per_node"] = in.MaxPodsPerNode
 
+	obj["data_plane_v_2"] = in.DataPlaneV2
+	obj["network_policy"] = in.NetworkPolicy
+
 	// access
 	if in.Access != nil {
 		v, ok := obj["access"].([]interface{})

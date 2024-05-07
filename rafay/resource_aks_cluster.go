@@ -94,7 +94,7 @@ func resourceAKSCluster() *schema.Resource {
 		},
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type: fromV1.Resource().CoreConfigSchema().ImpliedType(),
+				Type:    fromV1.Resource().CoreConfigSchema().ImpliedType(),
 				Upgrade: fromV1.Migrate,
 				Version: fromV1.Version,
 			},
@@ -3286,12 +3286,12 @@ func expandAKSNodePoolProperties(p []interface{}, rawConfig cty.Value) *AKSNodeP
 	if v, ok := in["proximity_placement_group_id"].(string); ok && len(v) > 0 {
 		obj.ProximityPlacementGroupID = v
 	}
-
-	if v, ok := in["scale_set_eviction_policy"].(string); ok && len(v) > 0 {
+	rawScaleSetEvictionPolicy := rawConfig.GetAttr("scale_set_eviction_policy")
+	if v, ok := in["scale_set_eviction_policy"].(string); ok && len(v) > 0 && !rawScaleSetEvictionPolicy.IsNull() {
 		obj.ScaleSetEvictionPolicy = v
 	}
-
-	if v, ok := in["scale_set_priority"].(string); ok && len(v) > 0 {
+	rawScaleSetPriority := rawConfig.GetAttr("scale_set_priority")
+	if v, ok := in["scale_set_priority"].(string); ok && len(v) > 0 && !rawScaleSetPriority.IsNull() {
 		obj.ScaleSetPriority = v
 	}
 
@@ -3543,6 +3543,7 @@ func flattenAKSCluster(d *schema.ResourceData, in *AKSCluster) error {
 		return nil
 	}
 	obj := map[string]interface{}{}
+	rawState := d.GetRawState()
 
 	if len(in.APIVersion) > 0 {
 		obj["apiversion"] = in.APIVersion
@@ -3573,7 +3574,7 @@ func flattenAKSCluster(d *schema.ResourceData, in *AKSCluster) error {
 			v = []interface{}{}
 		}
 
-		ret2 = flattenAKSClusterSpec(in.Spec, v)
+		ret2 = flattenAKSClusterSpec(in.Spec, v, rawState.GetAttr("spec"))
 	}
 
 	err = d.Set("spec", ret2)
@@ -3606,11 +3607,12 @@ func flattenAKSClusterMetadata(in *AKSClusterMetadata, p []interface{}) []interf
 	return []interface{}{obj}
 }
 
-func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}) []interface{} {
+func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}, rawState cty.Value) []interface{} {
 	if in == nil {
 		return nil
 	}
 	obj := map[string]interface{}{}
+	rawState = rawState.AsValueSlice()[0]
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -3635,7 +3637,7 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}) []interface{} {
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["cluster_config"] = flattenAKSClusterConfig(in.AKSClusterConfig, v)
+		obj["cluster_config"] = flattenAKSClusterConfig(in.AKSClusterConfig, v, rawState.GetAttr("cluster_config"))
 	}
 
 	if in.Sharing != nil {
@@ -3653,11 +3655,12 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}) []interface{} {
 	return []interface{}{obj}
 }
 
-func flattenAKSClusterConfig(in *AKSClusterConfig, p []interface{}) []interface{} {
+func flattenAKSClusterConfig(in *AKSClusterConfig, p []interface{}, rawState cty.Value) []interface{} {
 	if in == nil {
 		return nil
 	}
 	obj := map[string]interface{}{}
+	rawState = rawState.AsValueSlice()[0]
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -3683,7 +3686,7 @@ func flattenAKSClusterConfig(in *AKSClusterConfig, p []interface{}) []interface{
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["spec"] = flattenAKSClusterConfigSpec(in.Spec, v)
+		obj["spec"] = flattenAKSClusterConfigSpec(in.Spec, v, rawState.GetAttr("spec"))
 	}
 
 	return []interface{}{obj}
@@ -3706,10 +3709,11 @@ func flattenAKSClusterConfigMetadata(in *AKSClusterConfigMetadata, p []interface
 
 }
 
-func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}) []interface{} {
+func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}, rawState cty.Value) []interface{} {
 	if in == nil {
 		return nil
 	}
+	rawState = rawState.AsValueSlice()[0]
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -3737,7 +3741,7 @@ func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}) []in
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["node_pools"] = flattenAKSNodePool(in.NodePools, v)
+		obj["node_pools"] = flattenAKSNodePool(in.NodePools, v, rawState.GetAttr("node_pools"))
 	}
 
 	return []interface{}{obj}
@@ -5082,7 +5086,7 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfiles(in []*AksRegistry, p 
 
 }
 
-func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
+func flattenAKSNodePool(in []*AKSNodePool, p []interface{}, rawState cty.Value) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -5101,7 +5105,10 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 	//log.Println("sorted node pools:", in)
 	out := make([]interface{}, len(in))
 	for i, in := range in {
-
+		var nRawState cty.Value
+		if len(rawState.AsValueSlice()) > i {
+			nRawState = rawState.AsValueSlice()[0]
+		}
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -5120,7 +5127,11 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 			if !ok {
 				v = []interface{}{}
 			}
-			obj["properties"] = flattenAKSNodePoolProperties(in.Properties, v)
+			if nRawState.IsNull() {
+				obj["properties"] = flattenAKSNodePoolProperties(in.Properties, v, nRawState)
+			} else {
+				obj["properties"] = flattenAKSNodePoolProperties(in.Properties, v, nRawState.GetAttr("properties"))
+			}
 		}
 
 		if len(in.Type) > 0 {
@@ -5136,11 +5147,13 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 	return out
 }
 
-func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}) []interface{} {
+func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}, rawState cty.Value) []interface{} {
 	if in == nil {
 		return nil
 	}
-
+	if !rawState.IsNull() {
+		rawState = rawState.AsValueSlice()[0]
+	}
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -5246,10 +5259,16 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}) []
 
 	if len(in.ScaleSetEvictionPolicy) > 0 {
 		obj["scale_set_eviction_policy"] = in.ScaleSetEvictionPolicy
+	} else if !rawState.IsNull() {
+		rawStateScaleSetEvictionPolicy := rawState.GetAttr("scale_set_eviction_policy")
+		obj["scale_set_eviction_policy"] = rawStateScaleSetEvictionPolicy.AsString()
 	}
 
 	if len(in.ScaleSetPriority) > 0 {
 		obj["scale_set_priority"] = in.ScaleSetPriority
+	} else if !rawState.IsNull() {
+		rawStateScaleSetPriority := rawState.GetAttr("scale_set_priority")
+		obj["scale_set_priority"] = rawStateScaleSetPriority.AsString()
 	}
 
 	obj["spot_max_price"] = in.SpotMaxPrice
@@ -5661,12 +5680,12 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	projectName, ok := d.Get("metadata.0.project").(string)
 	if !ok || projectName == "" {
-		return diag.FromErr(errors.New("project name unable to be found."))
+		return diag.FromErr(errors.New("project name unable to be found"))
 	}
 
 	clusterName, ok := d.Get("metadata.0.name").(string)
 	if !ok || clusterName == "" {
-		return diag.FromErr(errors.New("cluster name unable to be found."))
+		return diag.FromErr(errors.New("cluster name unable to be found"))
 	}
 
 	fmt.Printf("Found project_name: %s, cluster_name: %s", projectName, clusterName)
@@ -5675,7 +5694,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
 		fmt.Print("Cluster project name is invalid")
-		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s", err.Error()))
+		return diag.FromErr(fmt.Errorf("cluster project name is invalid. Error: %s", err.Error()))
 	}
 
 	c, err := cluster.GetCluster(clusterName, projectId)
@@ -5684,7 +5703,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		if strings.Contains(err.Error(), "not found") {
 			log.Println("Resource Read ", "error", err)
 			d.SetId("")
-			return diag.FromErr(fmt.Errorf("Resource read failed, cluster not found. Error: %s", err.Error()))
+			return diag.FromErr(fmt.Errorf("resource read failed, cluster not found. Error: %s", err.Error()))
 		}
 		return diag.FromErr(err)
 	}

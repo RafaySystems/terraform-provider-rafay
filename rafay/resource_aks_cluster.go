@@ -3290,7 +3290,7 @@ func expandAKSNodePoolProperties(p []interface{}, rawConfig cty.Value) *AKSNodeP
 	if v, ok := in["scale_set_eviction_policy"].(string); ok && len(v) > 0 && !rawScaleSetEvictionPolicy.IsNull() {
 		obj.ScaleSetEvictionPolicy = v
 	}
-	rawScaleSetPriority := rawConfig.GetAttr("scale_set_eviction_policy")
+	rawScaleSetPriority := rawConfig.GetAttr("scale_set_priority")
 	if v, ok := in["scale_set_priority"].(string); ok && len(v) > 0 && !rawScaleSetPriority.IsNull() {
 		obj.ScaleSetPriority = v
 	}

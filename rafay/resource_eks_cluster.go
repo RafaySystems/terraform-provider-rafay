@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -611,6 +612,11 @@ func attachPolicyFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Attach policy version",
 		},
+		"id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Attach policy id",
+		},
 		"statement": {
 			Type:        schema.TypeList,
 			Optional:    true,
@@ -639,9 +645,48 @@ func statementFields() map[string]*schema.Schema {
 			},
 		},
 		"resource": {
-			Type:        schema.TypeString,
+			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "Attach policy resource",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"condition": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Attach policy Statement",
+		},
+		"sid": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Sid of policy",
+		},
+		"not_action": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Attach policy NotAction",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"not_resource": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Attach policy NotResource",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"principal": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Attach policy principal",
+		},
+		"not_principal": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Attach policy NotPrincipal",
 		},
 	}
 	return s
@@ -917,6 +962,11 @@ func addonConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: attachPolicyFields(),
 			},
+		},
+		"attach_policy_v2": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "holds a policy document to attach to this addon in json string format",
 		},
 		"permissions_boundary": {
 			Type:        schema.TypeString,
@@ -1486,6 +1536,11 @@ func iamNodeGroupConfigFields() map[string]*schema.Schema { //@@@TODO: need to c
 			Elem: &schema.Resource{
 				Schema: attachPolicyFields(),
 			},
+		},
+		"attach_policy_v2": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "attach policy in json string format ",
 		},
 		"attach_policy_arns": {
 			Type:        schema.TypeList,
@@ -3132,6 +3187,15 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 		obj.AttachPolicy = expandAttachPolicy(v)
 	}
 
+	if v, ok := in["attach_policy_v2"].(string); ok && len(v) > 0 {
+		var policyDoc *InlineDocument
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		//json.Unmarshal(input, &data)
+		json2.Unmarshal([]byte(v), &policyDoc)
+		obj.AttachPolicy = policyDoc
+		//log.Println("attach policy expanded correct")
+	}
+
 	if v, ok := in["attach_policy_arns"].([]interface{}); ok && len(v) > 0 {
 		obj.AttachPolicyARNs = toArrayString(v)
 	}
@@ -3154,23 +3218,62 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 }
 
 // expand attach policy (completed)@@@
-func expandStatement(p []interface{}) InlineStatement {
-	obj := InlineStatement{}
+func expandStatement(p []interface{}) []InlineStatement {
+	out := make([]InlineStatement, len(p))
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return out
 	}
-	in := p[0].(map[string]interface{})
-	if v, ok := in["effect"].(string); ok && len(v) > 0 {
-		obj.Effect = v
+
+	for i := range p {
+		obj := &InlineStatement{}
+		in := p[0].(map[string]interface{})
+		if v, ok := in["effect"].(string); ok && len(v) > 0 {
+			obj.Effect = v
+		}
+		if v, ok := in["action"].([]interface{}); ok && len(v) > 0 {
+			obj.Action = toArrayStringSorted(v)
+		}
+		if v, ok := in["not_action"].([]interface{}); ok && len(v) > 0 {
+			obj.NotAction = toArrayStringSorted(v)
+		}
+		if v, ok := in["resource"].([]interface{}); ok && len(v) > 0 {
+			obj.Resource = toArrayStringSorted(v)
+		}
+		if v, ok := in["not_resource"].([]interface{}); ok && len(v) > 0 {
+			obj.NotResource = toArrayStringSorted(v)
+		}
+		if v, ok := in["sid"].(string); ok && len(v) > 0 {
+			obj.Sid = v
+		}
+		if v, ok := in["condition"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
+			obj.Condition = policyDoc
+		}
+
+		if v, ok := in["principal"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
+			obj.Principal = policyDoc
+		}
+
+		if v, ok := in["not_principal"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
+			obj.NotPrincipal = policyDoc
+		}
+
+		out[i] = *obj
 	}
-	if v, ok := in["action"].([]interface{}); ok && len(v) > 0 {
-		obj.Action = toArrayStringSorted(v)
-	}
-	if v, ok := in["resource"].(string); ok && len(v) > 0 {
-		obj.Resource = v
-	}
-	return obj
+
+	return out
 }
 
 // expand attach policy (completed)
@@ -3183,6 +3286,9 @@ func expandAttachPolicy(p []interface{}) *InlineDocument {
 	in := p[0].(map[string]interface{})
 	if v, ok := in["version"].(string); ok && len(v) > 0 {
 		obj.Version = v
+	}
+	if v, ok := in["id"].(string); ok && len(v) > 0 {
+		obj.Id = v
 	}
 	if v, ok := in["statement"].([]interface{}); ok && len(v) > 0 {
 		obj.Statement = expandStatement(v)
@@ -3321,6 +3427,16 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 		if v, ok := in["attach_policy"].([]interface{}); ok && len(v) > 0 {
 			obj.AttachPolicy = expandAttachPolicy(v)
 		}
+
+		if v, ok := in["attach_policy_v2"].(string); ok && len(v) > 0 {
+			var policyDoc *InlineDocument
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
+			obj.AttachPolicy = policyDoc
+			//log.Println("attach policy expanded correct")
+		}
+
 		if v, ok := in["permissions_boundary"].(string); ok && len(v) > 0 {
 			obj.PermissionsBoundary = v
 		}
@@ -4176,7 +4292,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		if !ok {
 			v = []interface{}{}
 		}
-		ret6, err = flattenEKSClusterAddons(in.Addons, v)
+		ret6, err = flattenEKSClusterAddons(in.Addons, rawState.GetAttr("addons"), v)
 		if err != nil {
 			log.Println("flattenEKSClusterAddons err")
 			return nil, err
@@ -4386,15 +4502,15 @@ func flattenSingleIAMServiceAccount(in *EKSClusterIAMServiceAccount) map[string]
 		obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
 	}
 	if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
-		//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
+		log.Println("type:", reflect.TypeOf(in.AttachPolicy))
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.AttachPolicy)
 		if err != nil {
 			log.Println("attach policy marshal err:", err)
 		}
-		//log.Println("jsonSTR:", jsonStr)
+		log.Println("jsonSTR:", jsonStr)
 		obj["attach_policy"] = string(jsonStr)
-		//log.Println("attach policy flattened correct:", obj["attach_policy"])
+		log.Println("attach policy flattened correct:", obj["attach_policy"])
 	}
 	if len(in.AttachRoleARN) > 0 {
 		obj["attach_role_arn"] = in.AttachRoleARN
@@ -4504,6 +4620,10 @@ func flattenAttachPolicy(in *InlineDocument, p []interface{}) []interface{} {
 		obj["version"] = in.Version
 	}
 
+	if len(in.Id) > 0 {
+		obj["id"] = in.Id
+	}
+
 	v, ok := obj["statement"].([]interface{})
 	if !ok {
 		v = []interface{}{}
@@ -4513,23 +4633,69 @@ func flattenAttachPolicy(in *InlineDocument, p []interface{}) []interface{} {
 	return []interface{}{obj}
 }
 
-func flattenStatement(in InlineStatement, p []interface{}) []interface{} {
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+func flattenStatement(in []InlineStatement, p []interface{}) []interface{} {
+
+	if in == nil {
+		return nil
 	}
 
-	if len(in.Effect) > 0 {
-		obj["effect"] = in.Effect
-	}
-	if len(in.Action) > 0 {
-		obj["action"] = toArrayInterface(in.Action)
-	}
-	if len(in.Resource) > 0 {
-		obj["resource"] = in.Resource
-	}
+	out := make([]interface{}, len(in))
 
-	return []interface{}{obj}
+	for i, in := range in {
+		obj := map[string]interface{}{}
+
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Effect) > 0 {
+			obj["effect"] = in.Effect
+		}
+		if len(in.Sid) > 0 {
+			obj["sid"] = in.Sid
+		}
+		if len(in.Action) > 0 {
+			obj["action"] = toArrayInterfaceSorted(in.Action)
+		}
+		if len(in.NotAction) > 0 {
+			obj["not_action"] = toArrayInterfaceSorted(in.NotAction)
+		}
+		if len(in.Resource) > 0 {
+			obj["resource"] = toArrayInterfaceSorted(in.Resource)
+		}
+		if len(in.NotResource) > 0 {
+			obj["not_resource"] = toArrayInterfaceSorted(in.NotResource)
+		}
+
+		if len(in.Condition) > 0 {
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.Condition)
+			if err != nil {
+				log.Println("attach policy marshal err:", err)
+			}
+			obj["condition"] = string(jsonStr)
+			log.Println("condition output", obj["condition"])
+		}
+		if len(in.Principal) > 0 {
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.Principal)
+			if err != nil {
+				log.Println("attach policy marshal err:", err)
+			}
+			obj["principal"] = string(jsonStr)
+			log.Println("condition output", obj["principal"])
+		}
+		if len(in.NotPrincipal) > 0 {
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.NotPrincipal)
+			if err != nil {
+				log.Println("attach policy marshal err:", err)
+			}
+			obj["not_principal"] = string(jsonStr)
+			log.Println("condition output", obj["not_principal"])
+		}
+		out[i] = obj
+	}
+	return out
 }
 func flattenIAMStatus(in *ClusterIAMServiceAccountStatus, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
@@ -4770,13 +4936,48 @@ func flattenVPCClusterEndpoints(in *ClusterEndpoints, p []interface{}) []interfa
 	return []interface{}{obj}
 }
 
-func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	if inp == nil {
 		return nil, fmt.Errorf("emptyinput flatten addons")
 	}
-	out := make([]interface{}, len(inp))
-	for i, in := range inp {
+
+	isPolicyV2 := func(rawState cty.Value, name string) bool {
+		for _, addon := range rawState.AsValueSlice() {
+			if addonName, ok := addon.AsValueMap()["name"]; ok {
+				if attachPolicyVersion, ok := addon.AsValueMap()["attach_policy_v2"]; ok {
+					//log.Println("isPolicyV2 check:", addonName.AsString(), name, attachPolicyVersion.AsString())
+					if addonName.AsString() == name && attachPolicyVersion.AsString() != "" {
+						return true
+					}
+				}
+			}
+		}
+		return false
+	}
+
+	isSetInState := func(rawState cty.Value, name string) bool {
+		for _, addon := range rawState.AsValueSlice() {
+			if addonName, ok := addon.AsValueMap()["name"]; ok {
+				if addonName.AsString() == name {
+					return true
+				}
+			}
+		}
+		return false
+	}
+
+	filterAddon := make([]*Addon, 0)
+	for _, addon := range inp {
+		if isSetInState(rawState, addon.Name) {
+			filterAddon = append(filterAddon, addon)
+		}
+	}
+
+	out := make([]interface{}, len(filterAddon))
+	for i, in := range filterAddon {
+
 		obj := map[string]interface{}{}
+
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
@@ -4796,15 +4997,28 @@ func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, erro
 		}
 		//@@@TODO Store inline document object as terraform input correctly
 		if in.AttachPolicy != nil {
-			v1, ok := obj["attach_policy"].([]interface{})
-			if !ok {
-				v1 = []interface{}{}
-			}
-			obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
-			if len(in.PermissionsBoundary) > 0 {
-				obj["permissions_boundary"] = in.PermissionsBoundary
+			if !isPolicyV2(rawState, in.Name) {
+				v1, ok := obj["attach_policy"].([]interface{})
+				if !ok {
+					v1 = []interface{}{}
+				}
+				obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
+			} else {
+				var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+				jsonStr, err := json2.Marshal(in.AttachPolicy)
+				if err != nil {
+					log.Println("attach policy marshal err:", err)
+				}
+				//log.Println("jsonSTR:", jsonStr)
+				obj["attach_policy_v2"] = string(jsonStr)
+				log.Println("jsonSTR: for v2", obj)
 			}
 		}
+
+		if len(in.PermissionsBoundary) > 0 {
+			obj["permissions_boundary"] = in.PermissionsBoundary
+		}
+
 		v, ok := obj["well_known_policies"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -4938,7 +5152,7 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 			if !ok {
 				v = []interface{}{}
 			}
-			obj["iam"] = flattenNodeGroupIAM(in.IAM, v)
+			obj["iam"] = flattenNodeGroupIAM(in.IAM, nRawState.GetAttr("iam"), v)
 		}
 		if len(in.AMI) > 0 {
 			obj["ami"] = in.AMI
@@ -5105,7 +5319,7 @@ func flattenNodeGroupSSH(in *NodeGroupSSH, p []interface{}) []interface{} {
 	obj["enable_ssm"] = in.EnableSSM
 	return []interface{}{obj}
 }
-func flattenNodeGroupIAM(in *NodeGroupIAM, p []interface{}) []interface{} {
+func flattenNodeGroupIAM(in *NodeGroupIAM, rawState cty.Value, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -5113,13 +5327,34 @@ func flattenNodeGroupIAM(in *NodeGroupIAM, p []interface{}) []interface{} {
 	if in == nil {
 		return []interface{}{obj}
 	}
+
+	isPolicyV2 := func(rawState cty.Value) bool {
+		iamSpec := rawState.AsValueSlice()[0]
+		if attachPolicyV2, ok := iamSpec.AsValueMap()["attach_policy_v2"]; ok {
+			return attachPolicyV2.AsString() != ""
+		}
+		return false
+	}
+
 	//@@@TODO Store inline document object as terraform input correctly
 	if in.AttachPolicy != nil {
-		v1, ok := obj["attach_policy"].([]interface{})
-		if !ok {
-			v1 = []interface{}{}
+		if !isPolicyV2(rawState) {
+			v1, ok := obj["attach_policy"].([]interface{})
+			if !ok {
+				v1 = []interface{}{}
+			}
+			obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
+		} else {
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.AttachPolicy)
+			if err != nil {
+				log.Println("attach policy marshal err:", err)
+			}
+			//log.Println("jsonSTR:", jsonStr)
+			obj["attach_policy_v2"] = string(jsonStr)
+			log.Println("jsonSTR: for v2 nodegroup", obj)
 		}
-		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
+
 	}
 
 	if len(in.AttachPolicyARNs) > 0 {
@@ -5398,7 +5633,7 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 			if !ok {
 				v = []interface{}{}
 			}
-			obj["iam"] = flattenNodeGroupIAM(in.IAM, v)
+			obj["iam"] = flattenNodeGroupIAM(in.IAM, nRawState.GetAttr("iam"), v)
 		}
 		if len(in.AMI) > 0 {
 			obj["ami"] = in.AMI

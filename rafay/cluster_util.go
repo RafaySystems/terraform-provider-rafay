@@ -352,3 +352,22 @@ func getClusterConditions(edgeId, projectId string) (bool, bool, error) {
 	}
 	return failureFlag, readyFlag, nil
 }
+
+func isBlueprintSyncPending(edgeId, projectId string) bool {
+	cluster, err := cluster.GetClusterWithEdgeID(edgeId, projectId)
+	if err != nil {
+		log.Printf("error while getCluster %s", err.Error())
+		return true
+	}
+
+	clusterConditions := cluster.Cluster.Conditions
+	pendingFlag := true
+
+	for _, condition := range clusterConditions {
+		if condition.Type == BlueprintSyncConditions[0] && (condition.Status == models.InProgress || condition.Status == models.Success) {
+			pendingFlag = false
+			break
+		}
+	}
+	return pendingFlag
+}

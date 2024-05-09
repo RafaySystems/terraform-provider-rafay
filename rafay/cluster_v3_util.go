@@ -218,3 +218,69 @@ func flattenV3Tolerations(in []*v1.Toleration, p []interface{}) []interface{} {
 
 	return out
 }
+
+func expandV3ProxyConfig(p []interface{}) *infrapb.ProxyConfig {
+	obj := infrapb.ProxyConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return &obj
+	}
+	// rawConfig = rawConfig.AsValueSlice()[0]
+	in := p[0].(map[string]interface{})
+
+	// rawAllowInsecureBootstrap := rawConfig.GetAttr("allow_insecure_bootstrap")
+	if v, ok := in["allow_insecure_bootstrap"].(bool); ok {
+		obj.AllowInsecureBootstrap = v
+	}
+	// rawEnabled := rawConfig.GetAttr("enabled")
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+	if v, ok := in["bootstrap_ca"].(string); ok {
+		obj.BootstrapCA = v
+	}
+	if v, ok := in["http_proxy"].(string); ok {
+		obj.HttpProxy = v
+	}
+	if v, ok := in["https_proxy"].(string); ok {
+		obj.HttpsProxy = v
+	}
+	if v, ok := in["proxy_auth"].(string); ok {
+		obj.NoProxy = v
+	}
+	if v, ok := in["bootstrap_ca"].(string); ok {
+		obj.ProxyAuth = v
+	}
+
+	return &obj
+}
+
+func flattenV3ProxyConfig(in *infrapb.ProxyConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["allow_insecure_bootstrap"] = in.AllowInsecureBootstrap
+	obj["enabled"] = in.Enabled
+
+	if len(in.BootstrapCA) > 0 {
+		obj["bootstrap_ca"] = in.BootstrapCA
+	}
+	if len(in.HttpProxy) > 0 {
+		obj["http_proxy"] = in.HttpProxy
+	}
+	if len(in.HttpsProxy) > 0 {
+		obj["https_proxy"] = in.HttpsProxy
+	}
+	if len(in.NoProxy) > 0 {
+		obj["no_proxy"] = in.NoProxy
+	}
+	if len(in.ProxyAuth) > 0 {
+		obj["proxy_auth"] = in.ProxyAuth
+	}
+
+	return []interface{}{obj}
+}

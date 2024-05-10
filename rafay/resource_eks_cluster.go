@@ -644,12 +644,9 @@ func statementFields() map[string]*schema.Schema {
 			},
 		},
 		"resource": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "Attach policy resource",
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
 		},
 		"condition": {
 			Type:        schema.TypeString,
@@ -3236,8 +3233,8 @@ func expandStatement(p []interface{}) []InlineStatement {
 		if v, ok := in["not_action"].([]interface{}); ok && len(v) > 0 {
 			obj.NotAction = toArrayStringSorted(v)
 		}
-		if v, ok := in["resource"].([]interface{}); ok && len(v) > 0 {
-			obj.Resource = toArrayStringSorted(v)
+		if v, ok := in["resource"].(string); ok && len(v) > 0 {
+			obj.Resource = v
 		}
 		if v, ok := in["not_resource"].([]interface{}); ok && len(v) > 0 {
 			obj.NotResource = toArrayStringSorted(v)
@@ -4610,17 +4607,17 @@ func flattenStatement(in []InlineStatement, p []interface{}) []interface{} {
 		if len(in.Sid) > 0 {
 			obj["sid"] = in.Sid
 		}
-		if len(in.Action) > 0 {
-			obj["action"] = toArrayInterfaceSorted(in.Action)
+		if len(in.Action.([]string)) > 0 {
+			obj["action"] = toArrayInterfaceSorted(in.Action.([]string))
 		}
-		if len(in.NotAction) > 0 {
-			obj["not_action"] = toArrayInterfaceSorted(in.NotAction)
+		if len(in.NotAction.([]string)) > 0 {
+			obj["not_action"] = toArrayInterfaceSorted(in.NotAction.([]string))
 		}
-		if len(in.Resource) > 0 {
-			obj["resource"] = toArrayInterfaceSorted(in.Resource)
+		if len(in.Resource.(string)) > 0 {
+			obj["resource"] = in.Resource.(string)
 		}
-		if len(in.NotResource) > 0 {
-			obj["not_resource"] = toArrayInterfaceSorted(in.NotResource)
+		if len(in.NotResource.([]string)) > 0 {
+			obj["not_resource"] = toArrayInterfaceSorted(in.NotResource.([]string))
 		}
 
 		if len(in.Condition) > 0 {

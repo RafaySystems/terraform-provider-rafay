@@ -256,14 +256,14 @@ type InlineDocument struct {
 	Version   string            `yaml:"Version,omitempty" json:"Version,omitempty"`
 }
 type InlineStatement struct {
-	Action       []string               `yaml:"Action,omitempty" json:"Action,omitempty"`
+	Action       interface{}            `yaml:"Action,omitempty" json:"Action,omitempty"`
 	Condition    map[string]interface{} `yaml:"Condition,omitempty" json:"Condition,omitempty"`
 	Effect       string                 `yaml:"Effect,omitempty" json:"Effect,omitempty"`
-	NotAction    []string               `yaml:"NotAction,omitempty" json:"NotAction,omitempty"`
+	NotAction    interface{}            `yaml:"NotAction,omitempty" json:"NotAction,omitempty"`
 	NotPrincipal map[string]interface{} `yaml:"NotPrincipal,omitempty" json:"NotPrincipal,omitempty"`
-	NotResource  []string               `yaml:"NotResource,omitempty" json:"NotResource,omitempty"`
+	NotResource  interface{}            `yaml:"NotResource,omitempty" json:"NotResource,omitempty"`
 	Principal    map[string]interface{} `yaml:"Principal,omitempty" json:"Principal,omitempty"`
-	Resource     []string               `yaml:"Resource,omitempty" json:"Resource,omitempty"`
+	Resource     interface{}            `yaml:"Resource,omitempty" json:"Resource,omitempty"`
 	Sid          string                 `yaml:"Sid,omitempty" json:"Sid,omitempty"`
 }
 

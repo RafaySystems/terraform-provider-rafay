@@ -37,8 +37,30 @@ func resourceImportClusterV3() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.ClusterSchema.Schema,
+		Schema:        getImportedV3ResourceSchema(),
 	}
+}
+
+func getImportedV3ResourceSchema() map[string]*schema.Schema {
+	clusterSchema := resource.ClusterSchema.Schema
+	additionalSchema := map[string]*schema.Schema{
+		"bootstrap_path": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Specify bootstrap file path to store rafay bootstrap file content.",
+		},
+		"kubeconfig_path": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Specify kubeconfig file path.",
+		},
+	}
+	for k, v := range additionalSchema {
+		if _, ok := clusterSchema[k]; !ok {
+			clusterSchema[k] = v
+		}
+	}
+	return clusterSchema
 }
 
 func resourceImportClusterV3Create(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -167,6 +189,7 @@ func resourceImportClusterV3Upsert(ctx context.Context, d *schema.ResourceData, 
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
+	rawConfig := d.GetRawConfig()
 	if d.State() != nil && d.State().ID != "" {
 		n := GetMetaName(d)
 		if n != "" && n != d.State().ID {
@@ -219,6 +242,7 @@ func resourceImportClusterV3Upsert(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	applyBootstrap := true
+	bootstrapFilePath := ""
 	if !resourceAlreadyExists || isBlueprintSyncPending(resourceId, projectId) {
 		// Fetch Bootstrap from remote
 		getBootstrapContentResp, err := client.InfraV3().Cluster().ExtApi().Bootstrap(
@@ -241,22 +265,21 @@ func resourceImportClusterV3Upsert(ctx context.Context, d *schema.ResourceData, 
 		// 	return diag.FromErr(fmt.Errorf("internal error: Invalid bootstrap content found for resource: %s in project: %s. Error: %s", cluster.Metadata.Name, cluster.Metadata.Project, err.Error()))
 		// }
 		bootstrapContent := string(getBootstrapContentResp.Body)
-
-		// write bootstrapContent in File specified by bootstrap_filepath
-		bootstrapFilePath, ok := d.Get("bootstrap_path").(string)
-		if !ok {
+		rawBootstrapPath := rawConfig.GetAttr("bootstrap_path")
+		if rawBootstrapPath.IsNull() || len(rawBootstrapPath.AsString()) == 0 {
 			bootstrapFilePath = ClusterBootstrapFileName
+		} else {
+			bootstrapFilePath = rawBootstrapPath.AsString()
 		}
-
-		f, err := os.Create(bootstrapFilePath)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to create bootstrap file on specified path: %s", bootstrapFilePath))
-		}
-		defer f.Close()
-
 		if len(bootstrapContent) > 0 {
+			// write bootstrapContent in File specified by bootstrap_filepath
+			f, err := os.Create(bootstrapFilePath)
+			if err != nil {
+				return diag.FromErr(fmt.Errorf("failed to create bootstrap file on specified path: %s", bootstrapFilePath))
+			}
+			defer f.Close()
 			log.Printf("started writing bootstrap content in file: %s", bootstrapFilePath)
-			_, err := f.WriteString(bootstrapContent)
+			_, err = f.WriteString(bootstrapContent)
 			if err != nil {
 				log.Printf("Failed to write bootstrap content: %s in file created on specified path: %s", bootstrapContent, bootstrapFilePath)
 				return diag.FromErr(fmt.Errorf("failed to write bootstrap content in file created on specified path: %s", bootstrapFilePath))
@@ -265,12 +288,12 @@ func resourceImportClusterV3Upsert(ctx context.Context, d *schema.ResourceData, 
 		}
 
 		// look for kubeconfig submitted if any and apply bootstrap accordingly
-		kubeConfigFilePath, ok := d.Get("kubeconfig_path").(string)
-		if !ok || len(kubeConfigFilePath) == 0 {
+		rawKubeconfigPath := rawConfig.GetAttr("kubeconfig_path")
+		if rawKubeconfigPath.IsNull() || len(rawKubeconfigPath.AsString()) == 0 {
 			log.Println("kubeconfig_path not set for resource to apply bootstrap. Kindly specify kubeconfig_path and retrigger apply to apply bootstrap.")
 			applyBootstrap = false
-		}
-		if applyBootstrap {
+		} else {
+			kubeConfigFilePath := rawKubeconfigPath.AsString()
 			cmd := exec.Command("kubectl", "--kubeconfig", kubeConfigFilePath, "apply", "-f", bootstrapFilePath)
 			b, err := cmd.CombinedOutput()
 			if err != nil {
@@ -294,7 +317,7 @@ LOOP:
 			if !applyBootstrap {
 				diags = append(diags, diag.Diagnostic{
 					Severity: diag.Warning,
-					Summary:  "Unable to apply bootstrap as no kubeconfig_path found. Kindly refer to bootstrap.yaml for generated bootstrap.",
+					Summary:  "Unable to apply bootstrap as no kubeconfig_path found in resource configuration. Kindly refer to " + bootstrapFilePath + "for generated bootstrap.",
 				})
 				break LOOP
 			}

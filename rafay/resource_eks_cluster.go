@@ -4650,17 +4650,17 @@ func flattenStatement(in []InlineStatement, p []interface{}) []interface{} {
 		if len(in.Sid) > 0 {
 			obj["sid"] = in.Sid
 		}
-		if len(in.Action.([]string)) > 0 {
-			obj["action"] = toArrayInterfaceSorted(in.Action.([]string))
+		if in.Action != nil && len(in.Action.([]interface{})) > 0 {
+			obj["action"] = in.Action
 		}
-		if len(in.NotAction.([]string)) > 0 {
-			obj["not_action"] = toArrayInterfaceSorted(in.NotAction.([]string))
+		if in.NotAction != nil && len(in.NotAction.([]interface{})) > 0 {
+			obj["not_action"] = in.NotAction
 		}
 		if len(in.Resource.(string)) > 0 {
 			obj["resource"] = in.Resource.(string)
 		}
-		if len(in.NotResource.([]string)) > 0 {
-			obj["not_resource"] = toArrayInterfaceSorted(in.NotResource.([]string))
+		if in.NotResource != nil && len(in.NotResource.([]interface{})) > 0 {
+			obj["not_resource"] = in.NotResource
 		}
 
 		if len(in.Condition) > 0 {

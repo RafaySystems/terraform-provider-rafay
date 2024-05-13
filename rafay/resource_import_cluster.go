@@ -231,6 +231,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		log.Printf("imported cluster was not created, error %s", err.Error())
 		return diag.FromErr(err)
 	}
+	edge_id := cluster_resp.ID
 
 	//set ID for imported cluster id, d.SetID()
 	d.SetId(cluster_resp.ID)
@@ -334,10 +335,16 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 			log.Println("kubectl command failed to apply bootstrap yaml file", string(b))
 			log.Println("command", "id", project_id, "error", err, "out", out.String())
 		}
+		//trigger waiter for blueprint sync to complete
+		ticker := time.NewTicker(60 * time.Second)
+		defer ticker.Stop()
+		err = resourceBlueprintSyncWaiter(ctx, ticker, d.Get("clustername").(string), d.Get("projectname").(string), edge_id, project_id)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return diags
-
 }
 
 func resourceImportClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -405,6 +412,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 		log.Printf("imported cluster was not created, error %s", err.Error())
 		return diag.FromErr(err)
 	}
+	edge_id := cluster_resp.ID
 	oldClusterBlueprint := cluster_resp.ClusterBlueprint
 	// read the blueprint name
 	if d.Get("blueprint").(string) != "" {
@@ -427,6 +435,13 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 		err = cluster.PublishClusterBlueprint(d.Get("clustername").(string), project_id, false)
 		if err != nil {
 			log.Printf("cluster was not updated, error %s", err.Error())
+			return diag.FromErr(err)
+		}
+		// trigger waiter for blueprint check
+		ticker := time.NewTicker(60 * time.Second)
+		defer ticker.Stop()
+		err = resourceBlueprintSyncWaiter(ctx, ticker, d.Get("clustername").(string), d.Get("projectname").(string), edge_id, project_id)
+		if err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -474,4 +489,34 @@ func resourceImportClusterDelete(ctx context.Context, d *schema.ResourceData, m 
 	}
 
 	return diags
+}
+
+func resourceBlueprintSyncWaiter(ctx context.Context, ticker *time.Ticker, resourceName, projectName, edge_id, project_id string) error {
+
+LOOP:
+	for {
+		//Check for cluster operation timeout
+		select {
+		case <-ctx.Done():
+			log.Println("Cluster operation stopped due to operation timeout.")
+			return fmt.Errorf("cluster operation stopped for cluster: `%s` due to operation timeout", resourceName)
+		case <-ticker.C:
+			log.Println("Checking in cluster conditions for blueprint sync success..")
+			conditionsFailure, clusterReadiness, err := getClusterConditions(edge_id, project_id)
+			if err != nil {
+				log.Printf("error while getClusterConditions %s", err.Error())
+				return err
+			}
+			if conditionsFailure {
+				log.Printf("blueprint sync failed for edgename: %s and projectname: %s", resourceName, projectName)
+				return fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", resourceName, projectName)
+			} else if clusterReadiness {
+				log.Printf("Cluster operation completed for edgename: %s and projectname: %s", resourceName, projectName)
+				break LOOP
+			} else {
+				log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
+			}
+		}
+	}
+	return nil
 }

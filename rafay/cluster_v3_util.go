@@ -1,10 +1,16 @@
 package rafay
 
 import (
+	"context"
+	"fmt"
 	"log"
+	"time"
 
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
+	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
+	"github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -283,4 +289,58 @@ func flattenV3ProxyConfig(in *infrapb.ProxyConfig, p []interface{}) []interface{
 	}
 
 	return []interface{}{obj}
+}
+
+func clusterV3UpsertWaiter(ctx context.Context, client typed.Client, ticker *time.Ticker, resourceName, projectName string) error {
+LOOP:
+	for {
+		select {
+		case <-ctx.Done():
+			log.Printf("Cluster operation timed out for resource: %s and projectname: %s", resourceName, projectName)
+			return fmt.Errorf("cluster operation timed out for resource: %s and projectname: %s", resourceName, projectName)
+		case <-ticker.C:
+			resourceRemoteData, err := client.InfraV3().Cluster().Status(ctx, options.StatusOptions{
+				Name:    resourceName,
+				Project: projectName,
+			})
+			if err != nil {
+				log.Printf("Fetching cluster having resource: %s and projectname: %s failing due to err: %v", resourceName, projectName, err)
+				return err
+			} else if resourceRemoteData == nil {
+				log.Printf("Cluster operation has not started with resource: %s and projectname: %s", resourceName, projectName)
+			} else if resourceRemoteData.Status != nil && resourceRemoteData.Status.Imported != nil && resourceRemoteData.Status.CommonStatus != nil {
+				resourceId := resourceRemoteData.Status.Id
+				projectId, err := getProjectIDFromName(projectName)
+				if err != nil {
+					log.Print("error converting project name to id")
+					return errors.New("error converting project name to project ID")
+				}
+				resourceCommonStatus := resourceRemoteData.Status.CommonStatus
+				switch resourceCommonStatus.ConditionStatus {
+				case commonpb.ConditionStatus_StatusSubmitted:
+					log.Printf("Cluster operation not completed for resource: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", resourceName, projectName)
+				case commonpb.ConditionStatus_StatusOK:
+					log.Println("Checking in cluster conditions for blueprint sync success..")
+					conditionsFailure, clusterReadiness, err := getClusterConditions(resourceId, projectId)
+					if err != nil {
+						log.Printf("error while getCluster %s", err.Error())
+						return err
+					}
+					if conditionsFailure {
+						log.Printf("blueprint sync failed for resource: %s and projectname: %s", resourceName, projectName)
+						return fmt.Errorf("blueprint sync failed for resource: %s and projectname: %s", resourceName, projectName)
+					} else if clusterReadiness {
+						log.Printf("Cluster operation completed for resource: %s and projectname: %s", resourceName, projectName)
+						break LOOP
+					} else {
+						log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
+					}
+				case commonpb.ConditionStatus_StatusFailed:
+					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
+					return fmt.Errorf("cluster operation failed for resource: %s and projectname: %s with failure reasons: %s", resourceName, projectName, resourceRemoteData.Status.ProvisionStatusReason)
+				}
+			}
+		}
+	}
+	return nil
 }

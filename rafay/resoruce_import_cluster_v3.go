@@ -13,7 +13,6 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
-	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
@@ -241,7 +240,7 @@ func resourceImportClusterV3Upsert(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 
-	applyBootstrap := true
+	isBootstrapApplied := true
 	bootstrapFilePath := ""
 	if !resourceAlreadyExists || isBlueprintSyncPending(resourceId, projectId) {
 		// Fetch Bootstrap from remote
@@ -291,7 +290,7 @@ func resourceImportClusterV3Upsert(ctx context.Context, d *schema.ResourceData, 
 		rawKubeconfigPath := rawConfig.GetAttr("kubeconfig_path")
 		if rawKubeconfigPath.IsNull() || len(rawKubeconfigPath.AsString()) == 0 {
 			log.Println("kubeconfig_path not set for resource to apply bootstrap. Kindly specify kubeconfig_path and retrigger apply to apply bootstrap.")
-			applyBootstrap = false
+			isBootstrapApplied = false
 		} else {
 			kubeConfigFilePath := rawKubeconfigPath.AsString()
 			cmd := exec.Command("kubectl", "--kubeconfig", kubeConfigFilePath, "apply", "-f", bootstrapFilePath)
@@ -303,66 +302,19 @@ func resourceImportClusterV3Upsert(ctx context.Context, d *schema.ResourceData, 
 		}
 	}
 	d.SetId(cluster.Metadata.Name)
-	// wait for cluster creation
-	ticker := time.NewTicker(time.Duration(60) * time.Second)
-	defer ticker.Stop()
-
-LOOP:
-	for {
-		select {
-		case <-ctx.Done():
-			log.Printf("Cluster operation timed out for resource: %s and projectname: %s", resourceName, projectName)
-			return diag.FromErr(fmt.Errorf("cluster operation timed out for resource: %s and projectname: %s", resourceName, projectName))
-		case <-ticker.C:
-			if !applyBootstrap {
-				diags = append(diags, diag.Diagnostic{
-					Severity: diag.Warning,
-					Summary:  "Unable to apply bootstrap as no kubeconfig_path found in resource configuration. Kindly refer to " + bootstrapFilePath + "for generated bootstrap.",
-				})
-				break LOOP
-			}
-			resourceRemoteData, err = client.InfraV3().Cluster().Status(ctx, options.StatusOptions{
-				Name:    resourceName,
-				Project: projectName,
-			})
-			if err != nil {
-				log.Printf("Fetching cluster having resource: %s and projectname: %s failing due to err: %v", resourceName, projectName, err)
-				return diag.FromErr(err)
-			} else if resourceRemoteData == nil {
-				log.Printf("Cluster operation has not started with resource: %s and projectname: %s", resourceName, projectName)
-			} else if resourceRemoteData.Status != nil && resourceRemoteData.Status.Imported != nil && resourceRemoteData.Status.CommonStatus != nil {
-				resourceId := resourceRemoteData.Status.Id
-				projectId, err := getProjectIDFromName(projectName)
-				if err != nil {
-					log.Print("error converting project name to id")
-					return diag.Errorf("error converting project name to project ID")
-				}
-				resourceCommonStatus := resourceRemoteData.Status.CommonStatus
-				switch resourceCommonStatus.ConditionStatus {
-				case commonpb.ConditionStatus_StatusSubmitted:
-					log.Printf("Cluster operation not completed for resource: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", resourceName, projectName)
-				case commonpb.ConditionStatus_StatusOK:
-					log.Println("Checking in cluster conditions for blueprint sync success..")
-					conditionsFailure, clusterReadiness, err := getClusterConditions(resourceId, projectId)
-					if err != nil {
-						log.Printf("error while getCluster %s", err.Error())
-						return diag.FromErr(err)
-					}
-					if conditionsFailure {
-						log.Printf("blueprint sync failed for resource: %s and projectname: %s", resourceName, projectName)
-						return diag.FromErr(fmt.Errorf("blueprint sync failed for resource: %s and projectname: %s", resourceName, projectName))
-					} else if clusterReadiness {
-						log.Printf("Cluster operation completed for resource: %s and projectname: %s", resourceName, projectName)
-						break LOOP
-					} else {
-						log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
-					}
-				case commonpb.ConditionStatus_StatusFailed:
-					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
-					return diag.Errorf("Cluster operation failed for resource: %s and projectname: %s with failure reasons: %s", resourceName, projectName, resourceRemoteData.Status.ProvisionStatusReason)
-				}
-			}
+	if isBootstrapApplied {
+		// wait for cluster creation
+		ticker := time.NewTicker(time.Duration(60) * time.Second)
+		defer ticker.Stop()
+		err = clusterV3UpsertWaiter(ctx, client, ticker, resourceName, projectName)
+		if err != nil {
+			return diag.FromErr(err)
 		}
+	} else {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Unable to apply bootstrap as no kubeconfig_path found in resource configuration. Kindly refer to " + bootstrapFilePath + "for generated bootstrap.",
+		})
 	}
 	return diags
 }
@@ -524,6 +476,7 @@ func flattenImportClusterV3Spec(in *infrapb.ClusterSpec, p []interface{}) []inte
 	if in == nil {
 		return nil
 	}
+	log.Println("Debug--- ", "in", in)
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})

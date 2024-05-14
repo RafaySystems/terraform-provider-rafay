@@ -485,8 +485,8 @@ func expandDriverInline(p []interface{}) *eaaspb.DriverInline {
 		driver.Config = expandDriverConfig(v)
 	}
 
-	if v, ok := in["contexts"].([]interface{}); ok && len(v) > 0 {
-		driver.Contexts = expandConfigContextCompoundRefs(v)
+	if v, ok := in["inputs"].([]interface{}); ok && len(v) > 0 {
+		driver.Inputs = expandConfigContextCompoundRefs(v)
 	}
 
 	return driver
@@ -921,8 +921,8 @@ func flattenDriverInline(input *eaaspb.DriverInline) []interface{} {
 	if input.Config != nil {
 		obj["config"] = flattenDriverConfig(input.Config, []interface{}{})
 	}
-	if len(input.Contexts) > 0 {
-		obj["contexts"] = flattenConfigContextCompoundRefs(input.Contexts)
+	if len(input.Inputs) > 0 {
+		obj["inputs"] = flattenConfigContextCompoundRefs(input.Inputs)
 	}
 	return []interface{}{obj}
 }

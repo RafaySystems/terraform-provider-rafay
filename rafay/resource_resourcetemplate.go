@@ -286,7 +286,7 @@ func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOpti
 	}
 
 	if p, ok := in["driver"].([]interface{}); ok && len(p) > 0 {
-		po.Driver = expandDriverCompoundRef(p)
+		po.Driver = expandWorkflowHandlerCompoundRef(p)
 	}
 
 	if p, ok := in["open_tofu"].([]interface{}); ok && len(p) > 0 {
@@ -805,7 +805,7 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions) []interf
 	obj["system"] = flattenSystemProviderOptions(in.System)
 	obj["terragrunt"] = flattenTerragruntProviderOptions(in.Terragrunt)
 	obj["pulumi"] = flattenPulumiProviderOptions(in.Pulumi)
-	obj["driver"] = flattenDriverCompoundRef(in.Driver)
+	obj["driver"] = flattenWorkflowHandlerCompoundRef(in.Driver)
 	obj["open_tofu"] = flattenOpenTofuProviderOptions(in.OpenTofu)
 
 	return []interface{}{obj}

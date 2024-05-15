@@ -2032,7 +2032,7 @@ func flattenBoolValue(in *datatypes.BoolValue) []interface{} {
 
 func expandV3MetaData(p []interface{}) *commonpb.Metadata {
 	obj := &commonpb.Metadata{}
-	if p == nil || len(p) == 0 || p[0] == nil {
+	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 
@@ -2108,6 +2108,7 @@ func checkStandardInputTextError(input string) bool {
 	return strings.Contains(input, dns1123ValidationErrMsg)
 }
 
+<<<<<<< Updated upstream
 func expandWorkflowHandlerCompoundRef(p []interface{}) *eaaspb.WorkflowHandlerCompoundRef {
 	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
 	if len(p) == 0 || p[0] == nil {
@@ -2259,34 +2260,163 @@ func flattenWorkflowHandlerConfig(input *eaaspb.WorkflowHandlerConfig, p []inter
 
 	if input.Container != nil {
 		v, ok := obj["container"].([]interface{})
+=======
+func expandContextDataCompoundRef(p []interface{}) *eaaspb.ContextDataCompoundRef {
+	data := eaaspb.ContextDataCompoundRef{}
+	if len(p) == 0 || p[0] == nil {
+		return &data
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
+		data.Variables = expandVariableCompoundRef(v)
+	}
+
+	if v, ok := in["envs"].([]interface{}); ok && len(v) > 0 {
+		data.Envs = expandEnvDataCompoundRef(v)
+	}
+
+	if v, ok := in["files"].([]interface{}); ok && len(v) > 0 {
+		data.Files = expandFileCompoundRef(v)
+	}
+
+	return &data
+}
+
+func expandVariableCompoundRef(p []interface{}) []*eaaspb.VariableCompoundRef {
+	vars := make([]*eaaspb.VariableCompoundRef, 0)
+	if len(p) == 0 || p[0] == nil {
+		return vars
+	}
+
+	for i := range p {
+		vcr := eaaspb.VariableCompoundRef{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			vcr.Name = v
+		}
+
+		if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
+			vcr.Data = expandVariables(v)[0]
+		}
+
+		vars = append(vars, &vcr)
+	}
+
+	return vars
+}
+
+func expandEnvDataCompoundRef(p []interface{}) []*eaaspb.EnvDataCompoundRef {
+	envs := make([]*eaaspb.EnvDataCompoundRef, 0)
+	if len(p) == 0 || p[0] == nil {
+		return envs
+	}
+
+	for i := range p {
+		ecr := eaaspb.EnvDataCompoundRef{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["key"].(string); ok && len(v) > 0 {
+			ecr.Key = v
+		}
+
+		if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
+			ecr.Data = expandEnvVariables(v)[0]
+		}
+
+		envs = append(envs, &ecr)
+	}
+
+	return envs
+}
+
+func expandFileCompoundRef(p []interface{}) []*eaaspb.FileCompoundRef {
+	files := make([]*eaaspb.FileCompoundRef, 0)
+	if len(p) == 0 || p[0] == nil {
+		return files
+	}
+
+	for i := range p {
+		fcr := eaaspb.FileCompoundRef{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			fcr.Name = v
+		}
+
+		if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
+			fcr.Data = expandCommonpbFiles(v)[0]
+		}
+
+		files = append(files, &fcr)
+	}
+
+	return files
+}
+
+func flattenContextDataCompoundRef(in *eaaspb.ContextDataCompoundRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Variables) > 0 {
+		v, ok := obj["variables"].([]interface{})
+>>>>>>> Stashed changes
 		if !ok {
 			v = []interface{}{}
 		}
 
+<<<<<<< Updated upstream
 		obj["container"] = flattenDriverContainerConfig(input.Container, v)
 	}
 
 	if input.Http != nil {
 		v, ok := obj["http"].([]interface{})
+=======
+		obj["variables"] = flattenVariableCompoundRef(in.Variables, v)
+	}
+
+	if len(in.Envs) > 0 {
+		v, ok := obj["envs"].([]interface{})
+>>>>>>> Stashed changes
 		if !ok {
 			v = []interface{}{}
 		}
 
+<<<<<<< Updated upstream
 		obj["http"] = flattenDriverHttpConfig(input.Http, v)
 	}
 
 	if input.PollingConfig != nil {
 		v, ok := obj["polling_config"].([]interface{})
+=======
+		obj["envs"] = flattenEnvDataCompoundRef(in.Envs, v)
+	}
+
+	if len(in.Files) > 0 {
+		v, ok := obj["files"].([]interface{})
+>>>>>>> Stashed changes
 		if !ok {
 			v = []interface{}{}
 		}
 
+<<<<<<< Updated upstream
 		obj["polling_config"] = flattenPollingConfig(input.PollingConfig, v)
+=======
+		obj["files"] = flattenFileCompoundRef(in.Files, v)
+>>>>>>> Stashed changes
 	}
 
 	return []interface{}{obj}
 }
 
+<<<<<<< Updated upstream
 func flattenPollingConfig(in *eaaspb.PollingConfig, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
@@ -2297,4 +2427,83 @@ func flattenPollingConfig(in *eaaspb.PollingConfig, p []interface{}) []interface
 	obj["until"] = in.Until
 
 	return []interface{}{obj}
+=======
+func flattenVariableCompoundRef(input []*eaaspb.VariableCompoundRef, p []interface{}) []interface{} {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if in.Data != nil {
+			v, ok := obj["data"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["data"] = flattenVariables([]*eaaspb.Variable{in.Data}, v)
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenEnvDataCompoundRef(input []*eaaspb.EnvDataCompoundRef, p []interface{}) []interface{} {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Key) > 0 {
+			obj["key"] = in.Key
+		}
+
+		if in.Data != nil {
+			v, ok := obj["data"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["data"] = flattenEnvVariables([]*eaaspb.EnvData{in.Data}, v)
+		}
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenFileCompoundRef(input []*eaaspb.FileCompoundRef, p []interface{}) []interface{} {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		obj["data"] = flattenCommonpbFile(in.Data)
+		out[i] = &obj
+	}
+
+	return out
+>>>>>>> Stashed changes
 }

@@ -296,7 +296,44 @@ func expandEnvironmentSpec(p []interface{}) (*eaaspb.EnvironmentSpec, error) {
 		spec.Agents = expandEaasAgents(ag)
 	}
 
+	if ag, ok := in["env_vars"].([]interface{}); ok && len(ag) > 0 {
+		spec.EnvVars = expandEnvVariables(ag)
+	}
+
+	if ag, ok := in["files"].([]interface{}); ok && len(ag) > 0 {
+		spec.Files = expandCommonpbFiles(ag)
+	}
+
+	if ag, ok := in["schedule_optouts"].([]interface{}); ok && len(ag) > 0 {
+		spec.ScheduleOptouts = expandScheduleOptOuts(ag)
+	}
+
 	return spec, nil
+}
+
+func expandScheduleOptOuts(p []interface{}) []*eaaspb.ScheduleOptOut {
+	soo := make([]*eaaspb.ScheduleOptOut, 0)
+	if len(p) == 0 || p[0] == nil {
+		return soo
+	}
+
+	for i := range p {
+		obj := eaaspb.ScheduleOptOut{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["duration"].(string); ok && len(v) > 0 {
+			obj.Duration = v
+		}
+
+		soo[i] = &obj
+
+	}
+
+	return soo
 }
 
 func expandTemplate(p []interface{}) (*commonpb.ResourceNameAndVersionRef, error) {
@@ -384,7 +421,57 @@ func flattenEnvironmentSpec(in *eaaspb.EnvironmentSpec, p []interface{}) ([]inte
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 	obj["agents"] = flattenEaasAgents(in.Agents)
 
+	if len(in.EnvVars) > 0 {
+		v, ok := obj["env_vars"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["env_vars"] = flattenEnvVariables(in.EnvVars, v)
+	}
+
+	if len(in.Files) > 0 {
+		obj["files"] = flattenCommonpbFiles(in.Files)
+	}
+
+	if len(in.ScheduleOptouts) > 0 {
+		v, ok := obj["schedule_optouts"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["schedule_optouts"] = flattenScheduleOptOuts(in.ScheduleOptouts, v)
+	}
+
 	return []interface{}{obj}, nil
+}
+
+func flattenScheduleOptOuts(input []*eaaspb.ScheduleOptOut, p []interface{}) []interface{} {
+	log.Println("flatten schedule optout start")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flatten schedule optout ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Duration) > 0 {
+			obj["duration"] = in.Duration
+		}
+
+		out[i] = &obj
+	}
+
+	return out
 }
 
 func flattenTemplate(input *commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {

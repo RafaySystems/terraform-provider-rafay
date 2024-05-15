@@ -2108,7 +2108,6 @@ func checkStandardInputTextError(input string) bool {
 	return strings.Contains(input, dns1123ValidationErrMsg)
 }
 
-<<<<<<< Updated upstream
 func expandWorkflowHandlerCompoundRef(p []interface{}) *eaaspb.WorkflowHandlerCompoundRef {
 	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
 	if len(p) == 0 || p[0] == nil {
@@ -2230,7 +2229,7 @@ func flattenWorkflowHandlerInline(input *eaaspb.WorkflowHandlerInline) []interfa
 		obj["config"] = flattenWorkflowHandlerConfig(input.Config, []interface{}{})
 	}
 	if len(input.Inputs) > 0 {
-		obj["inputs"] = flattenConfigContextCompoundRefs(input.Inputs)
+		obj["contexts"] = flattenConfigContextCompoundRefs(input.Inputs)
 	}
 	return []interface{}{obj}
 }
@@ -2260,7 +2259,46 @@ func flattenWorkflowHandlerConfig(input *eaaspb.WorkflowHandlerConfig, p []inter
 
 	if input.Container != nil {
 		v, ok := obj["container"].([]interface{})
-=======
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["container"] = flattenDriverContainerConfig(input.Container, v)
+	}
+
+	if input.Http != nil {
+		v, ok := obj["http"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["http"] = flattenDriverHttpConfig(input.Http, v)
+	}
+
+	if input.PollingConfig != nil {
+		v, ok := obj["polling_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["polling_config"] = flattenPollingConfig(input.PollingConfig, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenPollingConfig(in *eaaspb.PollingConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["repeat"] = in.Repeat
+	obj["until"] = in.Until
+
+	return []interface{}{obj}
+}
+
 func expandContextDataCompoundRef(p []interface{}) *eaaspb.ContextDataCompoundRef {
 	data := eaaspb.ContextDataCompoundRef{}
 	if len(p) == 0 || p[0] == nil {
@@ -2367,67 +2405,31 @@ func flattenContextDataCompoundRef(in *eaaspb.ContextDataCompoundRef, p []interf
 
 	if len(in.Variables) > 0 {
 		v, ok := obj["variables"].([]interface{})
->>>>>>> Stashed changes
 		if !ok {
 			v = []interface{}{}
 		}
-
-<<<<<<< Updated upstream
-		obj["container"] = flattenDriverContainerConfig(input.Container, v)
-	}
-
-	if input.Http != nil {
-		v, ok := obj["http"].([]interface{})
-=======
 		obj["variables"] = flattenVariableCompoundRef(in.Variables, v)
 	}
 
 	if len(in.Envs) > 0 {
 		v, ok := obj["envs"].([]interface{})
->>>>>>> Stashed changes
 		if !ok {
 			v = []interface{}{}
 		}
-
-<<<<<<< Updated upstream
-		obj["http"] = flattenDriverHttpConfig(input.Http, v)
-	}
-
-	if input.PollingConfig != nil {
-		v, ok := obj["polling_config"].([]interface{})
-=======
 		obj["envs"] = flattenEnvDataCompoundRef(in.Envs, v)
 	}
 
 	if len(in.Files) > 0 {
 		v, ok := obj["files"].([]interface{})
->>>>>>> Stashed changes
 		if !ok {
 			v = []interface{}{}
 		}
-
-<<<<<<< Updated upstream
-		obj["polling_config"] = flattenPollingConfig(input.PollingConfig, v)
-=======
 		obj["files"] = flattenFileCompoundRef(in.Files, v)
->>>>>>> Stashed changes
 	}
 
 	return []interface{}{obj}
 }
 
-<<<<<<< Updated upstream
-func flattenPollingConfig(in *eaaspb.PollingConfig, p []interface{}) []interface{} {
-	if in == nil {
-		return nil
-	}
-
-	obj := make(map[string]interface{})
-	obj["repeat"] = in.Repeat
-	obj["until"] = in.Until
-
-	return []interface{}{obj}
-=======
 func flattenVariableCompoundRef(input []*eaaspb.VariableCompoundRef, p []interface{}) []interface{} {
 	if len(input) == 0 {
 		return nil
@@ -2505,5 +2507,4 @@ func flattenFileCompoundRef(input []*eaaspb.FileCompoundRef, p []interface{}) []
 	}
 
 	return out
->>>>>>> Stashed changes
 }

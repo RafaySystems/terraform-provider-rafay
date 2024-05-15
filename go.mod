@@ -5,11 +5,7 @@ go 1.21.1
 toolchain go1.21.2
 
 require (
-<<<<<<< Updated upstream
-	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240513100125-8c563219f9dd
-=======
-	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240509060719-aa44276aaf41
->>>>>>> Stashed changes
+	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240515103417-47d0b06c4a66
 	github.com/RafaySystems/rctl v1.29.1-0.20240318065512-edb415b3a5b6
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -81,11 +77,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
-<<<<<<< Updated upstream
-	github.com/RafaySystems/eaas-playground v0.0.0-20240422131519-33c803555d95 // indirect
-=======
 	github.com/RafaySystems/eaas-playground v0.0.0-20240509050144-fb168715a2b9 // indirect
->>>>>>> Stashed changes
 	github.com/RoaringBitmap/roaring v1.6.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect

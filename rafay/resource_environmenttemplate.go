@@ -267,6 +267,10 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 		spec.Schedules = expandSchedules(s)
 	}
 
+	if s, ok := in["actions"].([]interface{}); ok && len(s) > 0 {
+		spec.Actions = expandActions(s)
+	}
+
 	return spec, nil
 }
 
@@ -574,6 +578,15 @@ func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []inte
 		}
 
 		obj["schedules"] = flattenSchedules(in.Schedules, v)
+	}
+
+	if len(in.Actions) > 0 {
+		v, ok := obj["actions"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["actions"] = flattenActions(in.Actions, v)
 	}
 
 	return []interface{}{obj}, nil

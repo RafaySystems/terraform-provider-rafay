@@ -259,7 +259,55 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 		spec.Sharing = expandSharingSpec(v)
 	}
 
+	if v, ok := in["artifact_driver"].([]interface{}); ok && len(v) > 0 {
+		spec.ArtifactDriver = expandWorkflowHandlerCompoundRef(v)
+	}
+
+	if v, ok := in["actions"].([]interface{}); ok && len(v) > 0 {
+		spec.Actions = expandActions(v)
+	}
+
 	return spec, nil
+}
+
+func expandActions(p []interface{}) []*eaaspb.Action {
+	actions := make([]*eaaspb.Action, 0)
+	if len(p) == 0 {
+		return actions
+	}
+
+	for indx := range p {
+		action := &eaaspb.Action{}
+		if p[indx] == nil {
+			return actions
+		}
+		in := p[indx].(map[string]interface{})
+		if n, ok := in["name"].(string); ok && len(n) > 0 {
+			action.Name = n
+		}
+
+		if d, ok := in["description"].(string); ok && len(d) > 0 {
+			action.Description = d
+		}
+
+		if t, ok := in["type"].(string); ok && len(t) > 0 {
+			action.Type = t
+		}
+
+		if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
+			action.Data = expandContextDataCompoundRef(v)
+		}
+
+		if h, ok := in["workflows"].([]interface{}); ok && len(h) > 0 {
+			action.Workflows = expandWorkflowProviderOptions(h)
+		}
+
+		actions = append(actions, action)
+
+	}
+
+	return actions
+
 }
 
 func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOptions {
@@ -791,8 +839,66 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{
 
 	obj["agents"] = flattenEaasAgents(in.Agents)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	obj["artifact_driver"] = flattenWorkflowHandlerCompoundRef(in.ArtifactDriver)
+
+	if len(in.Actions) > 0 {
+		v, ok := obj["actions"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["actions"] = flattenActions(in.Actions, v)
+	}
 
 	return []interface{}{obj}, nil
+}
+
+func flattenActions(input []*eaaspb.Action, p []interface{}) []interface{} {
+	log.Println("flatten actions start")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flatten action ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Description) > 0 {
+			obj["description"] = in.Description
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		if in.Data != nil {
+			v, ok := obj["data"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["data"] = flattenContextDataCompoundRef(in.Data, v)
+		}
+
+		if in.Workflows != nil {
+			v, ok := obj["workflows"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["workflows"] = flattenWorkflowProviderOptions(in.Workflows, v)
+		}
+
+		out[i] = &obj
+	}
+
+	return out
 }
 
 func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions) []interface{} {

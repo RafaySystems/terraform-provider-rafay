@@ -92,6 +92,31 @@ func environmentUpsert(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 
+	// wait for publish
+	for {
+		time.Sleep(60 * time.Second)
+		envs, err := client.EaasV1().Environment().Status(ctx, options.StatusOptions{
+			Name:    environment.Metadata.Name,
+			Project: environment.Metadata.Project,
+		})
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if envs.GetStatus() != nil {
+			//check if environment provisioning, if true break out of loop
+			if status := envs.GetStatus().GetDigestedStatus().GetConditionStatus(); status == commonpb.ConditionStatus_StatusOK ||
+				status == commonpb.ConditionStatus_StatusNotSet {
+				break
+			}
+			if envs.GetStatus().GetDigestedStatus().GetConditionStatus() == commonpb.ConditionStatus_StatusFailed {
+				return diag.FromErr(fmt.Errorf("%s %s", "failed to publish environment", envs.GetStatus().GetDigestedStatus().GetReason()))
+			}
+		} else {
+			break
+		}
+
+	}
+
 	d.SetId(environment.Metadata.Name)
 	return diags
 }
@@ -181,6 +206,38 @@ func resourceEnvironmentDelete(ctx context.Context, d *schema.ResourceData, m in
 	})
 	if err != nil {
 		return diag.FromErr(err)
+	}
+
+	// wait for destroy
+	for {
+		time.Sleep(60 * time.Second)
+		envs, err := client.EaasV1().Environment().Status(ctx, options.StatusOptions{
+			Name:    env.Metadata.Name,
+			Project: env.Metadata.Project,
+		})
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				log.Printf("environment %s deleted successfully", env.Metadata.Name)
+				return diags
+			}
+
+			log.Printf("environment %s deletion failed with error: %s", env.Metadata.Name, err.Error())
+			return diag.FromErr(err)
+		}
+
+		if envs.GetStatus() != nil {
+			//check if environment provisioning, if true break out of loop
+			if status := envs.GetStatus().GetDigestedStatus().GetConditionStatus(); status == commonpb.ConditionStatus_StatusOK ||
+				status == commonpb.ConditionStatus_StatusNotSet {
+				break
+			}
+			if envs.GetStatus().GetDigestedStatus().GetConditionStatus() == commonpb.ConditionStatus_StatusFailed {
+				return diag.FromErr(fmt.Errorf("%s %s", "failed to destroy environment", envs.GetStatus().GetDigestedStatus().GetReason()))
+			}
+		} else {
+			break
+		}
+
 	}
 
 	return diags

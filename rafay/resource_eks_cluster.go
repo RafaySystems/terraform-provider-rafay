@@ -3186,7 +3186,6 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 	if v, ok := in["attach_policy_v2"].(string); ok && len(v) > 0 {
 		var policyDoc *InlineDocument
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		//json.Unmarshal(input, &data)
 		json2.Unmarshal([]byte(v), &policyDoc)
 		obj.AttachPolicy = policyDoc
 		//log.Println("attach policy expanded correct")
@@ -4627,7 +4626,7 @@ func flattenStatement(in []InlineStatement, p []interface{}) []interface{} {
 				log.Println("attach policy marshal err:", err)
 			}
 			obj["condition"] = string(jsonStr)
-			log.Println("condition output", obj["condition"])
+
 		}
 		if len(in.Principal) > 0 {
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -4636,7 +4635,7 @@ func flattenStatement(in []InlineStatement, p []interface{}) []interface{} {
 				log.Println("attach policy marshal err:", err)
 			}
 			obj["principal"] = string(jsonStr)
-			log.Println("condition output", obj["principal"])
+
 		}
 		if len(in.NotPrincipal) > 0 {
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -4645,7 +4644,7 @@ func flattenStatement(in []InlineStatement, p []interface{}) []interface{} {
 				log.Println("attach policy marshal err:", err)
 			}
 			obj["not_principal"] = string(jsonStr)
-			log.Println("condition output", obj["not_principal"])
+
 		}
 		out[i] = obj
 	}
@@ -4965,7 +4964,7 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 				}
 				//log.Println("jsonSTR:", jsonStr)
 				obj["attach_policy_v2"] = string(jsonStr)
-				log.Println("jsonSTR: for v2", obj)
+
 			}
 		}
 
@@ -4987,6 +4986,8 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 
 		out[i] = &obj
 	}
+
+	log.Println("Flatten eks addons", out)
 	return out, nil
 }
 func flattenEKSClusterPrivateCluster(in *PrivateCluster, p []interface{}) []interface{} {
@@ -5267,7 +5268,7 @@ func flattenNodeGroupIAM(in *NodeGroupIAM, rawState cty.Value, p []interface{}) 
 			}
 			//log.Println("jsonSTR:", jsonStr)
 			obj["attach_policy_v2"] = string(jsonStr)
-			log.Println("jsonSTR: for v2 nodegroup", obj)
+			//log.Println("jsonSTR: for v2 nodegroup", obj)
 		}
 
 	}

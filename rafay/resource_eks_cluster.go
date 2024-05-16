@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -3187,7 +3186,6 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 	if v, ok := in["attach_policy_v2"].(string); ok && len(v) > 0 {
 		var policyDoc *InlineDocument
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		//json.Unmarshal(input, &data)
 		json2.Unmarshal([]byte(v), &policyDoc)
 		obj.AttachPolicy = policyDoc
 		//log.Println("attach policy expanded correct")
@@ -4499,15 +4497,13 @@ func flattenSingleIAMServiceAccount(in *EKSClusterIAMServiceAccount) map[string]
 		obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
 	}
 	if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
-		log.Println("type:", reflect.TypeOf(in.AttachPolicy))
+		//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.AttachPolicy)
 		if err != nil {
 			log.Println("attach policy marshal err:", err)
 		}
-		log.Println("jsonSTR:", jsonStr)
 		obj["attach_policy"] = string(jsonStr)
-		log.Println("attach policy flattened correct:", obj["attach_policy"])
 	}
 	if len(in.AttachRoleARN) > 0 {
 		obj["attach_role_arn"] = in.AttachRoleARN
@@ -4670,7 +4666,7 @@ func flattenStatement(in []InlineStatement, p []interface{}) []interface{} {
 				log.Println("attach policy marshal err:", err)
 			}
 			obj["condition"] = string(jsonStr)
-			log.Println("condition output", obj["condition"])
+
 		}
 		if len(in.Principal) > 0 {
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -4679,7 +4675,7 @@ func flattenStatement(in []InlineStatement, p []interface{}) []interface{} {
 				log.Println("attach policy marshal err:", err)
 			}
 			obj["principal"] = string(jsonStr)
-			log.Println("condition output", obj["principal"])
+
 		}
 		if len(in.NotPrincipal) > 0 {
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -4688,7 +4684,7 @@ func flattenStatement(in []InlineStatement, p []interface{}) []interface{} {
 				log.Println("attach policy marshal err:", err)
 			}
 			obj["not_principal"] = string(jsonStr)
-			log.Println("condition output", obj["not_principal"])
+
 		}
 		out[i] = obj
 	}
@@ -5008,7 +5004,7 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 				}
 				//log.Println("jsonSTR:", jsonStr)
 				obj["attach_policy_v2"] = string(jsonStr)
-				log.Println("jsonSTR: for v2", obj)
+
 			}
 		}
 
@@ -5030,6 +5026,8 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 
 		out[i] = &obj
 	}
+
+	log.Println("Flatten eks addons", out)
 	return out, nil
 }
 func flattenEKSClusterPrivateCluster(in *PrivateCluster, p []interface{}) []interface{} {
@@ -5349,7 +5347,7 @@ func flattenNodeGroupIAM(in *NodeGroupIAM, rawState cty.Value, p []interface{}) 
 			}
 			//log.Println("jsonSTR:", jsonStr)
 			obj["attach_policy_v2"] = string(jsonStr)
-			log.Println("jsonSTR: for v2 nodegroup", obj)
+			//log.Println("jsonSTR: for v2 nodegroup", obj)
 		}
 
 	}

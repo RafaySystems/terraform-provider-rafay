@@ -679,10 +679,6 @@ func expandCustomAddons(p []interface{}) []*infrapb.BlueprintAddon {
 			obj.Version = v
 		}
 
-		if v, ok := in["is_critical"].(string); ok && len(v) > 0 {
-			obj.IsCritical = v
-		}
-
 		if v, ok := in["depends_on"].([]interface{}); ok && len(v) > 0 {
 			obj.DependsOn = toArrayString(v)
 			log.Println("expandCustomAddons depends_on ", obj.DependsOn)
@@ -1707,13 +1703,9 @@ func flattenComponenetCriticality(input []*infrapb.SnapshotRef, p []interface{})
 		if in.IsGlobal {
 			obj["isGlobal"] = in.IsGlobal
 		}
-		if len(in.IsCriticalForSync.String()) > 0 {
-			obj["isCriticalForSync"] = in.IsCriticalForSync
-		}
 		if len(in.PublishedGeneration) > 0 {
 			obj["publishedGeneration"] = in.PublishedGeneration
 		}
-		obj["refType"] = in.RefType
 
 		if len(in.Selector) > 0 {
 			obj["selector"] = in.Selector
@@ -1749,10 +1741,6 @@ func flatteCustomAddons(input []*infrapb.BlueprintAddon, p []interface{}) []inte
 
 		if len(in.DependsOn) > 0 {
 			obj["depends_on"] = toArrayInterface(in.DependsOn)
-		}
-
-		if len(in.IsCritical) > 0 {
-			obj["is_critical"] = in.IsCritical
 		}
 
 		out[i] = &obj

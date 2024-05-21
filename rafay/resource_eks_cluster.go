@@ -4908,26 +4908,26 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 		return false
 	}
 
-	// isSetInState := func(rawState cty.Value, name string) bool {
-	// 	for _, addon := range rawState.AsValueSlice() {
-	// 		if addonName, ok := addon.AsValueMap()["name"]; ok {
-	// 			if addonName.AsString() == name {
-	// 				return true
-	// 			}
-	// 		}
-	// 	}
-	// 	return false
-	// }
+	isSetInState := func(rawState cty.Value, name string) bool {
+		for _, addon := range rawState.AsValueSlice() {
+			if addonName, ok := addon.AsValueMap()["name"]; ok {
+				if addonName.AsString() == name {
+					return true
+				}
+			}
+		}
+		return false
+	}
 
-	// filterAddon := make([]*Addon, 0)
-	// for _, addon := range inp {
-	// 	if isSetInState(rawState, addon.Name) {
-	// 		filterAddon = append(filterAddon, addon)
-	// 	}
-	// }
+	filterAddon := make([]*Addon, 0)
+	for _, addon := range inp {
+		if isSetInState(rawState, addon.Name) {
+			filterAddon = append(filterAddon, addon)
+		}
+	}
 
-	out := make([]interface{}, len(inp))
-	for i, in := range inp {
+	out := make([]interface{}, len(filterAddon))
+	for i, in := range filterAddon {
 
 		obj := map[string]interface{}{}
 

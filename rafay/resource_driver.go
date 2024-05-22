@@ -832,6 +832,10 @@ func expandContainerDriverVolumeOptions(p []interface{}) []*eaaspb.ContainerDriv
 			volume.UsePVC = expandBoolValue(usepvc)
 		}
 
+		if enableBackupAndRestore, ok := in["enable_backup_and_restore"].(bool); ok {
+			volume.EnableBackupAndRestore = enableBackupAndRestore
+		}
+
 		volumes = append(volumes, volume)
 
 	}
@@ -864,6 +868,8 @@ func flattenContainerDriverVolumeOptions(input []*eaaspb.ContainerDriverVolumeOp
 		if len(in.PvcStorageClass) > 0 {
 			obj["pvc_storage_class"] = in.PvcStorageClass
 		}
+
+		obj["enable_backup_and_restore"] = in.EnableBackupAndRestore
 
 		out[i] = &obj
 	}

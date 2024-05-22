@@ -44,7 +44,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
             dns_prefix         = "testuser-test-dns"
             kubernetes_version = "1.25.6"
             network_profile {
-              network_plugin = "kubenet"
+              network_plugin      = "kubenet"
             }
             power_state {
               code = "Running"
@@ -653,6 +653,111 @@ data "rafay_aks_cluster" "cluster" {
 	description = "aks_cluster"
 	value       = data.rafay_aks_cluster.cluster
   }
+```
+
+---
+
+# rafay_aks_cluster (Azure CNI Overlay)
+
+## Example Usage
+
+---
+
+```terraform
+resource "rafay_aks_cluster" "demo-terraform" {
+  apiversion = "rafay.io/v1alpha1"
+  kind       = "Cluster"
+  metadata {
+    name    = "demo-terraform"
+    project = "terraform"
+  }
+  spec {
+    type          = "aks"
+    blueprint     = "default-aks"
+    cloudprovider = "testuser-azure"
+    cluster_config {
+      apiversion = "rafay.io/v1alpha1"
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "demo-terraform"
+      }
+      spec {
+        resource_group_name = "testuser-terraform"
+        managed_cluster {
+          apiversion = "2023-11-01"
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "testuser-test-dns"
+            kubernetes_version = "1.28.5"
+            network_profile {
+              network_plugin      = "azure"
+              load_balancer_sku   = "standard"
+              network_plugin_mode = "overlay"
+              pod_cidr            = "192.168.0.0/16"
+              service_cidr        = "10.0.0.0/16"
+              dns_service_ip      = "10.0.0.10"
+            }
+            power_state {
+              code = "Running"
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          apiversion = "2023-11-01"
+          name       = "primary"
+		      location   = "centralindia"
+          properties {
+            count                = 2
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.28.5"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+            node_labels = {
+              app = "infra"
+              dedicated = "true"
+            }
+            node_taints          = ["app=infra:PreferNoSchedule"]
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+    system_components_placement {
+      node_selector = {
+        app = "infra"
+        dedicated = "true"
+      }
+      tolerations {
+        effect = "PreferNoSchedule"
+        key = "app"
+        operator = "Equal"
+        value =  "infra"
+      }
+
+      daemonset_override {
+        node_selection_enabled = false
+        tolerations {
+          key = "app1dedicated"
+          value = true
+          effect = "NoSchedule"
+          operator = "Equal"
+        }
+      }
+    }
+  }
+}
 ```
 
 ---

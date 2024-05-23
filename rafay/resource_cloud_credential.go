@@ -88,16 +88,19 @@ func resourceCloudCredential() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "External ID.",
 				Optional:    true,
+				Sensitive:   true,
 			},
 			"accesskey": {
 				Type:        schema.TypeString,
 				Description: "AWS accesskey.",
 				Optional:    true,
+				Sensitive:   true,
 			},
 			"secretkey": {
 				Type:        schema.TypeString,
 				Description: "AWS secret key.",
 				Optional:    true,
+				Sensitive:   true,
 			},
 			"credfile": {
 				Type:        schema.TypeString,
@@ -108,21 +111,25 @@ func resourceCloudCredential() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "Azure client ID.",
 				Optional:    true,
+				Sensitive:   true,
 			},
 			"clientsecret": {
 				Type:        schema.TypeString,
 				Description: "Azure client secret.",
 				Optional:    true,
+				Sensitive:   true,
 			},
 			"tenantid": {
 				Type:        schema.TypeString,
 				Description: "Azure tenant ID.",
 				Optional:    true,
+				Sensitive:   true,
 			},
 			"subscriptionid": {
 				Type:        schema.TypeString,
 				Description: "Azure subscription ID.",
 				Optional:    true,
+				Sensitive:   true,
 			},
 		},
 	}
@@ -222,9 +229,12 @@ func resourceCloudCredentialRead(ctx context.Context, d *schema.ResourceData, m 
 			if err := setCredentialAttrState(d, "clientid", c.ClientID); err != nil {
 				return diag.FromErr(err)
 			}
+		case "GCP":
+			/*TODO: Handle credentials remote read here*/
+		case "MINIO":
+			/*TODO: Handle credentials remote read here*/
 		}
 	}
-
 	return diags
 }
 

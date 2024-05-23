@@ -5471,7 +5471,7 @@ func aksClusterCTL(config *config.Config, clusterName string, configBytes []byte
 	log.Printf("aks cluster ctl start")
 	glogger.SetLevel(zap.DebugLevel)
 	logger := glogger.GetLogger()
-	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false, false)
+	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false, false, uaDef)
 }
 
 func aksClusterCTLStatus(taskid, projectID string) (string, error) {
@@ -5578,7 +5578,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 		return nil
 	}
 	time.Sleep(20 * time.Second)
-	s, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
+	s, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID, uaDef)
 	if errGet != nil {
 		log.Printf("error while getCluster for %s %s", obj.Metadata.Name, errGet.Error())
 		return diag.FromErr(errGet)
@@ -5598,7 +5598,7 @@ LOOP:
 			log.Println("Cluster operation stopped due to operation timeout.")
 			return diag.Errorf("cluster operation stopped for cluster: `%s` due to operation timeout", clusterName)
 		case <-ticker.C:
-			check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
+			check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID, uaDef)
 			if errGet != nil {
 				log.Printf("error while getCluster for %s %s", obj.Metadata.Name, errGet.Error())
 				return diag.FromErr(errGet)
@@ -5697,7 +5697,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(fmt.Errorf("cluster project name is invalid. Error: %s", err.Error()))
 	}
 
-	c, err := cluster.GetCluster(clusterName, projectId)
+	c, err := cluster.GetCluster(clusterName, projectId, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
@@ -5711,7 +5711,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	// another
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
-	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectId)
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectId, uaDef)
 	if err != nil {
 		log.Printf("error in get clusterspec %s", err.Error())
 		return diag.FromErr(err)
@@ -5752,7 +5752,7 @@ func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s", err.Error()))
 	}
 
-	_, err = cluster.GetCluster(clusterName, projectId)
+	_, err = cluster.GetCluster(clusterName, projectId, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
@@ -5782,7 +5782,7 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s", err.Error()))
 	}
 
-	errDel := cluster.DeleteCluster(clusterName, projectId, false)
+	errDel := cluster.DeleteCluster(clusterName, projectId, false, uaDef)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
@@ -5797,7 +5797,7 @@ LOOP:
 			log.Printf("Cluster Deletion for edgename: %s and projectname: %s got timeout out.", clusterName, projectName)
 			return diag.FromErr(fmt.Errorf("cluster deletion for edgename: %s and projectname: %s got timeout out", clusterName, projectName))
 		case <-ticker.C:
-			check, errGet := cluster.GetCluster(clusterName, projectId)
+			check, errGet := cluster.GetCluster(clusterName, projectId, uaDef)
 			if errGet != nil {
 				log.Printf("error while getCluster %s, delete success", errGet.Error())
 				break LOOP

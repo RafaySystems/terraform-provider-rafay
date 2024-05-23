@@ -106,7 +106,7 @@ func dataAKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface
 		return diags
 	}
 
-	c, err := cluster.GetCluster(obj.Metadata.Name, project.ID)
+	c, err := cluster.GetCluster(obj.Metadata.Name, project.ID, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
@@ -124,13 +124,13 @@ func dataAKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface
 	// another
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
-	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID, uaDef)
 	if err != nil {
 		log.Printf("error in get clusterspec %s", err.Error())
 		return diag.FromErr(err)
 	}
 
-	cluster, err := cluster.GetCluster(c.Name, project.ID)
+	cluster, err := cluster.GetCluster(c.Name, project.ID, uaDef)
 	if err != nil {
 		return diag.FromErr(err)
 	}

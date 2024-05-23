@@ -109,7 +109,7 @@ func dataEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface
 		log.Print("error converting project name to id")
 		return diag.Errorf("error converting project name to project ID")
 	}
-	c, err := cluster.GetCluster(clusterName, projectID)
+	c, err := cluster.GetCluster(clusterName, projectID, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
@@ -122,7 +122,7 @@ func dataEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface
 	log.Println("got cluster from backend")
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
-	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID)
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID, uaDef)
 	if err != nil {
 		log.Printf("error in get clusterspec %s", err.Error())
 		return diag.FromErr(err)

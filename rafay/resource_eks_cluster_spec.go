@@ -237,14 +237,14 @@ func resourceEKSClusterSpecCreate(ctx context.Context, d *schema.ResourceData, m
 	for clusterName, configBytes := range configMap {
 		/* support only one cluster per spec */
 		log.Println("create cluster:", clusterName, "config:", string(configBytes), "projectID :", c.ProjectID)
-		response, err = clusterctl.Apply(logger, c, clusterName, configBytes, false, false, false)
+		response, err = clusterctl.Apply(logger, c, clusterName, configBytes, false, false, false, uaDef)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error performing apply on cluster %s: %s", clusterName, err))
 		}
 		break
 	}
 
-	s, err := cluster.GetCluster(d.Get("name").(string), project.ID)
+	s, err := cluster.GetCluster(d.Get("name").(string), project.ID, uaDef)
 	if err != nil {
 		log.Printf("error while getCluster %s", err.Error())
 		return diag.FromErr(err)
@@ -265,7 +265,7 @@ func resourceEKSClusterSpecCreate(ctx context.Context, d *schema.ResourceData, m
 
 		for { //wait for cluster to provision correctly
 			time.Sleep(60 * time.Second)
-			check, errGet := cluster.GetCluster(d.Get("name").(string), project.ID)
+			check, errGet := cluster.GetCluster(d.Get("name").(string), project.ID, uaDef)
 			if errGet != nil {
 				log.Printf("error while getCluster %s", errGet.Error())
 				return diag.FromErr(errGet)
@@ -313,7 +313,7 @@ func resourceEKSClusterSpecRead(ctx context.Context, d *schema.ResourceData, m i
 		fmt.Printf("project does not exist")
 		return diags
 	}
-	c, err := cluster.GetCluster(d.Get("name").(string), project.ID)
+	c, err := cluster.GetCluster(d.Get("name").(string), project.ID, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
@@ -328,7 +328,7 @@ func resourceEKSClusterSpecRead(ctx context.Context, d *schema.ResourceData, m i
 	if check {
 		logger := glogger.GetLogger()
 		rctlCfg := config.GetConfig()
-		clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID)
+		clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, project.ID, uaDef)
 		if err != nil {
 			log.Printf("error in get clusterspec %s", err.Error())
 			return diag.FromErr(err)
@@ -378,7 +378,7 @@ func resourceEKSClusterSpecDelete(ctx context.Context, d *schema.ResourceData, m
 		return diags
 	}
 
-	errDel := cluster.DeleteCluster(d.Get("name").(string), project.ID, false)
+	errDel := cluster.DeleteCluster(d.Get("name").(string), project.ID, false, uaDef)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
@@ -387,7 +387,7 @@ func resourceEKSClusterSpecDelete(ctx context.Context, d *schema.ResourceData, m
 	if d.Get("waitflag").(string) == "1" {
 		for {
 			time.Sleep(60 * time.Second)
-			check, errGet := cluster.GetCluster(d.Get("name").(string), project.ID)
+			check, errGet := cluster.GetCluster(d.Get("name").(string), project.ID, uaDef)
 			if errGet != nil {
 				log.Printf("error while getCluster %s, delete success", errGet.Error())
 				break

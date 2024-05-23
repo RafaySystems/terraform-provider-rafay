@@ -203,6 +203,28 @@ func resourceCloudCredentialRead(ctx context.Context, d *schema.ResourceData, m 
 		}
 	}
 
+	if typeStr == "cluster-provisioning" || typeStr == "data-backup" {
+		switch providerString {
+		case "AWS":
+			if credType == "accesskey" {
+				if err := setCredentialAttrState(d, "accesskey", c.AccessKey); err != nil {
+					return diag.FromErr(err)
+				}
+			} else if credType == "rolearn" {
+				if err := setCredentialAttrState(d, "rolearn", c.RoleName); err != nil {
+					return diag.FromErr(err)
+				}
+				if err := setCredentialAttrState(d, "externalid", c.ExternalID); err != nil {
+					return diag.FromErr(err)
+				}
+			}
+		case "AZURE":
+			if err := setCredentialAttrState(d, "clientid", c.ClientID); err != nil {
+				return diag.FromErr(err)
+			}
+		}
+	}
+
 	return diags
 }
 
@@ -443,4 +465,12 @@ func resourceCloudCredentialImport(d *schema.ResourceData, m interface{}) ([]*sc
 
 	d.SetId(c.ID)
 	return []*schema.ResourceData{d}, nil
+}
+
+func setCredentialAttrState(d *schema.ResourceData, key string, value string) error {
+	if err := d.Set(key, value); err != nil {
+		log.Printf("get cloud credential set %s error. Error: %s", key, err.Error())
+		return fmt.Errorf("get cloud credential set %s error. Error: %s", key, err.Error())
+	}
+	return nil
 }

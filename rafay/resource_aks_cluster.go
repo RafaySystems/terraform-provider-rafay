@@ -14,6 +14,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/RafaySystems/rctl/pkg/project"
+	"github.com/RafaySystems/terraform-provider-rafay/rafay/migrate/aks/fromV1"
 	"github.com/davecgh/go-spew/spew"
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
@@ -56,12 +57,12 @@ func resourceAKSCluster() *schema.Resource {
 		DeleteContext: resourceAKSClusterDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(100 * time.Minute),
+			Update: schema.DefaultTimeout(130 * time.Minute),
+			Delete: schema.DefaultTimeout(70 * time.Minute),
 		},
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		Schema: map[string]*schema.Schema{
 			"apiversion": {
 				Type:        schema.TypeString,
@@ -89,6 +90,13 @@ func resourceAKSCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: clusterAKSClusterSpec(),
 				},
+			},
+		},
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    fromV1.Resource().CoreConfigSchema().ImpliedType(),
+				Upgrade: fromV1.Migrate,
+				Version: fromV1.Version,
 			},
 		},
 	}
@@ -925,8 +933,8 @@ func clusterAKSManagedClusterHTTPProxyConfig() map[string]*schema.Schema {
 func clusterAKSManagedClusterIdentityProfile() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"kubelet_identity": {
-			Type:	schema.TypeList,
-			Required: true,
+			Type:        schema.TypeList,
+			Required:    true,
 			Description: "Kubelet Identity for managed cluster identity profile",
 			Elem: &schema.Resource{
 				Schema: clusterAKSManagedClusterKubeletIdentity(),
@@ -939,8 +947,8 @@ func clusterAKSManagedClusterIdentityProfile() map[string]*schema.Schema {
 func clusterAKSManagedClusterKubeletIdentity() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"resource_id": {
-			Type:	schema.TypeString,
-			Required: true,
+			Type:        schema.TypeString,
+			Required:    true,
 			Description: "value must be ARM resource ID in the form: /subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>",
 		},
 	}
@@ -1062,6 +1070,11 @@ func clusterAKSManagedClusterNetworkProfile() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "A CIDR notation IP range from which to assign service cluster IPs.",
+		},
+		"network_plugin_mode": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Network plugin mode used for building the Azure CNI. Valid values are 'overlay'",
 		},
 	}
 	return s
@@ -1428,8 +1441,8 @@ func clusterAKSManagedClusterAdditionalMetadataACRProfile() map[string]*schema.S
 			Description: "The name of the Azure Container Registry resource.",
 		},
 		"registries": {
-			Type:		schema.TypeList,
-			Optional: 	true,
+			Type:        schema.TypeList,
+			Optional:    true,
 			Description: "The list of Azure Container Registry Profiles",
 			Elem: &schema.Resource{
 				Schema: clusterAKSManagedClusterAdditionalMetadataACRProfiles(),
@@ -1992,7 +2005,7 @@ func expandAKSClusterSpec(p []interface{}, rawConfig cty.Value) *AKSClusterSpec 
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandSharingSpec(v)
+		obj.Sharing = expandV1ClusterSharing(v)
 	}
 
 	if v, ok := in["system_components_placement"].([]interface{}); ok && len(v) > 0 {
@@ -2703,8 +2716,16 @@ func expandAKSManagedClusterNetworkProfile(p []interface{}) *AKSManagedClusterNe
 		obj.NetworkPlugin = v
 	}
 
+	if v, ok := in["network_plugin_mode"].(string); ok && len(v) > 0 {
+		obj.NetworkPluginMode = v
+	}
+
 	if v, ok := in["network_policy"].(string); ok && len(v) > 0 {
 		obj.NetworkPolicy = v
+	}
+
+	if v, ok := in["network_dataplane"].(string); ok && len(v) > 0 {
+		obj.NetworkDataplane = v
 	}
 
 	if v, ok := in["outbound_type"].(string); ok && len(v) > 0 {
@@ -3265,12 +3286,12 @@ func expandAKSNodePoolProperties(p []interface{}, rawConfig cty.Value) *AKSNodeP
 	if v, ok := in["proximity_placement_group_id"].(string); ok && len(v) > 0 {
 		obj.ProximityPlacementGroupID = v
 	}
-
-	if v, ok := in["scale_set_eviction_policy"].(string); ok && len(v) > 0 {
+	rawScaleSetEvictionPolicy := rawConfig.GetAttr("scale_set_eviction_policy")
+	if v, ok := in["scale_set_eviction_policy"].(string); ok && len(v) > 0 && !rawScaleSetEvictionPolicy.IsNull() {
 		obj.ScaleSetEvictionPolicy = v
 	}
-
-	if v, ok := in["scale_set_priority"].(string); ok && len(v) > 0 {
+	rawScaleSetPriority := rawConfig.GetAttr("scale_set_priority")
+	if v, ok := in["scale_set_priority"].(string); ok && len(v) > 0 && !rawScaleSetPriority.IsNull() {
 		obj.ScaleSetPriority = v
 	}
 
@@ -3522,6 +3543,7 @@ func flattenAKSCluster(d *schema.ResourceData, in *AKSCluster) error {
 		return nil
 	}
 	obj := map[string]interface{}{}
+	rawState := d.GetRawState()
 
 	if len(in.APIVersion) > 0 {
 		obj["apiversion"] = in.APIVersion
@@ -3552,7 +3574,7 @@ func flattenAKSCluster(d *schema.ResourceData, in *AKSCluster) error {
 			v = []interface{}{}
 		}
 
-		ret2 = flattenAKSClusterSpec(in.Spec, v)
+		ret2 = flattenAKSClusterSpec(in.Spec, v, rawState.GetAttr("spec"))
 	}
 
 	err = d.Set("spec", ret2)
@@ -3585,11 +3607,12 @@ func flattenAKSClusterMetadata(in *AKSClusterMetadata, p []interface{}) []interf
 	return []interface{}{obj}
 }
 
-func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}) []interface{} {
+func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}, rawState cty.Value) []interface{} {
 	if in == nil {
 		return nil
 	}
 	obj := map[string]interface{}{}
+	rawState = rawState.AsValueSlice()[0]
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -3614,11 +3637,11 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}) []interface{} {
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["cluster_config"] = flattenAKSClusterConfig(in.AKSClusterConfig, v)
+		obj["cluster_config"] = flattenAKSClusterConfig(in.AKSClusterConfig, v, rawState.GetAttr("cluster_config"))
 	}
 
 	if in.Sharing != nil {
-		obj["sharing"] = flattenSharingSpec(in.Sharing)
+		obj["sharing"] = flattenV1ClusterSharing(in.Sharing)
 	}
 
 	if in.SystemComponentsPlacement != nil {
@@ -3632,11 +3655,12 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}) []interface{} {
 	return []interface{}{obj}
 }
 
-func flattenAKSClusterConfig(in *AKSClusterConfig, p []interface{}) []interface{} {
+func flattenAKSClusterConfig(in *AKSClusterConfig, p []interface{}, rawState cty.Value) []interface{} {
 	if in == nil {
 		return nil
 	}
 	obj := map[string]interface{}{}
+	rawState = rawState.AsValueSlice()[0]
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -3662,7 +3686,7 @@ func flattenAKSClusterConfig(in *AKSClusterConfig, p []interface{}) []interface{
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["spec"] = flattenAKSClusterConfigSpec(in.Spec, v)
+		obj["spec"] = flattenAKSClusterConfigSpec(in.Spec, v, rawState.GetAttr("spec"))
 	}
 
 	return []interface{}{obj}
@@ -3685,10 +3709,11 @@ func flattenAKSClusterConfigMetadata(in *AKSClusterConfigMetadata, p []interface
 
 }
 
-func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}) []interface{} {
+func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}, rawState cty.Value) []interface{} {
 	if in == nil {
 		return nil
 	}
+	rawState = rawState.AsValueSlice()[0]
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -3716,7 +3741,7 @@ func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}) []in
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["node_pools"] = flattenAKSNodePool(in.NodePools, v)
+		obj["node_pools"] = flattenAKSNodePool(in.NodePools, v, rawState.GetAttr("node_pools"))
 	}
 
 	return []interface{}{obj}
@@ -4539,8 +4564,16 @@ func flattenAKSMCPropertiesNetworkProfile(in *AKSManagedClusterNetworkProfile, p
 		obj["network_plugin"] = in.NetworkPlugin
 	}
 
+	if len(in.NetworkPluginMode) > 0 {
+		obj["network_plugin_mode"] = in.NetworkPluginMode
+	}
+
 	if len(in.NetworkPolicy) > 0 {
 		obj["network_policy"] = in.NetworkPolicy
+	}
+
+	if len(in.NetworkDataplane) > 0 {
+		obj["network_dataplane"] = in.NetworkDataplane
 	}
 
 	if len(in.OutboundType) > 0 {
@@ -5014,7 +5047,7 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfile(in *AKSManagedClusterA
 	if len(in.ACRName) > 0 {
 		obj["acr_name"] = in.ACRName
 	}
-	
+
 	if in.Registries != nil && len(in.Registries) > 0 {
 		v, ok := obj["registries"].([]interface{})
 		if !ok {
@@ -5037,7 +5070,7 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfiles(in []*AksRegistry, p 
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
-		
+
 		if len(in.ACRName) > 0 {
 			obj["acr_name"] = in.ACRName
 		}
@@ -5053,7 +5086,7 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfiles(in []*AksRegistry, p 
 
 }
 
-func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
+func flattenAKSNodePool(in []*AKSNodePool, p []interface{}, rawState cty.Value) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -5072,7 +5105,10 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 	//log.Println("sorted node pools:", in)
 	out := make([]interface{}, len(in))
 	for i, in := range in {
-
+		var nRawState cty.Value
+		if len(rawState.AsValueSlice()) > i {
+			nRawState = rawState.AsValueSlice()[0]
+		}
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -5091,7 +5127,11 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 			if !ok {
 				v = []interface{}{}
 			}
-			obj["properties"] = flattenAKSNodePoolProperties(in.Properties, v)
+			if nRawState.IsNull() {
+				obj["properties"] = flattenAKSNodePoolProperties(in.Properties, v, nRawState)
+			} else {
+				obj["properties"] = flattenAKSNodePoolProperties(in.Properties, v, nRawState.GetAttr("properties"))
+			}
 		}
 
 		if len(in.Type) > 0 {
@@ -5107,11 +5147,13 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}) []interface{} {
 	return out
 }
 
-func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}) []interface{} {
+func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}, rawState cty.Value) []interface{} {
 	if in == nil {
 		return nil
 	}
-
+	if !rawState.IsNull() {
+		rawState = rawState.AsValueSlice()[0]
+	}
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -5217,10 +5259,16 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}) []
 
 	if len(in.ScaleSetEvictionPolicy) > 0 {
 		obj["scale_set_eviction_policy"] = in.ScaleSetEvictionPolicy
+	} else if !rawState.IsNull() {
+		rawStateScaleSetEvictionPolicy := rawState.GetAttr("scale_set_eviction_policy")
+		obj["scale_set_eviction_policy"] = rawStateScaleSetEvictionPolicy.AsString()
 	}
 
 	if len(in.ScaleSetPriority) > 0 {
 		obj["scale_set_priority"] = in.ScaleSetPriority
+	} else if !rawState.IsNull() {
+		rawStateScaleSetPriority := rawState.GetAttr("scale_set_priority")
+		obj["scale_set_priority"] = rawStateScaleSetPriority.AsString()
 	}
 
 	obj["spot_max_price"] = in.SpotMaxPrice
@@ -5423,7 +5471,7 @@ func aksClusterCTL(config *config.Config, clusterName string, configBytes []byte
 	log.Printf("aks cluster ctl start")
 	glogger.SetLevel(zap.DebugLevel)
 	logger := glogger.GetLogger()
-	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false)
+	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false, false)
 }
 
 func aksClusterCTLStatus(taskid, projectID string) (string, error) {
@@ -5503,12 +5551,12 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	resp, err := project.GetProjectByName(obj.Metadata.Project)
 	if err != nil {
 		fmt.Printf("project does not exist")
-		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
+		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s", err.Error()))
 	}
 	project, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
 		fmt.Printf("project does not exist")
-		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s",err.Error()))
+		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s", err.Error()))
 	}
 
 	// cluster
@@ -5538,42 +5586,65 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 
 	log.Printf("Cluster Provision may take upto 15-20 Minutes")
 	d.SetId(s.ID)
-	for {
-		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
-		if errGet != nil {
-			log.Printf("error while getCluster for %s %s", obj.Metadata.Name, errGet.Error())
-			return diag.FromErr(errGet)
-		}
 
-		statusResp, err := aksClusterCTLStatus(res.TaskSetID, project.ID)
-		if err != nil {
-			log.Println("status response parse error", err)
-			return diag.FromErr(err)
-		}
-		log.Println("statusResp ", statusResp)
-		sres := clusterCTLResponse{}
-		err = json.Unmarshal([]byte(statusResp), &sres)
-		if err != nil {
-			log.Println("status response unmarshal error", err)
-			return diag.FromErr(err)
-		}
-		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-			if check.Status == "READY" {
-				break
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
+	defer ticker.Stop()
+
+LOOP:
+	for {
+		//Check for cluster operation timeout
+		select {
+		case <-ctx.Done():
+			log.Println("Cluster operation stopped due to operation timeout.")
+			return diag.Errorf("cluster operation stopped for cluster: `%s` due to operation timeout", clusterName)
+		case <-ticker.C:
+			check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
+			if errGet != nil {
+				log.Printf("error while getCluster for %s %s", obj.Metadata.Name, errGet.Error())
+				return diag.FromErr(errGet)
 			}
-			log.Println("task completed but cluster is not ready")
-		}
-		if strings.Contains(sres.Status, "STATUS_FAILED") {
-			failureReasons, err := collectAKSUpsertErrors(sres.Operations)
+			edgeId := check.ID
+			statusResp, err := aksClusterCTLStatus(res.TaskSetID, project.ID)
 			if err != nil {
+				log.Println("status response parse error", err)
 				return diag.FromErr(err)
 			}
-			return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s with failure reasons: %s", obj.Metadata.Name, obj.Metadata.Project, failureReasons)
+
+			log.Println("statusResp ", statusResp)
+			sres := clusterCTLResponse{}
+			err = json.Unmarshal([]byte(statusResp), &sres)
+			if err != nil {
+				log.Println("status response unmarshal error", err)
+				return diag.FromErr(err)
+			}
+			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+				log.Println("Checking in cluster conditions for blueprint sync success..")
+				conditionsFailure, clusterReadiness, err := getClusterConditions(edgeId, project.ID)
+				if err != nil {
+					log.Printf("error while getCluster %s", err.Error())
+					return diag.FromErr(err)
+				}
+				if conditionsFailure {
+					log.Printf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, project.Name)
+					return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, project.Name))
+				} else if clusterReadiness {
+					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", clusterName, project.Name)
+					break LOOP
+				} else {
+					log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
+				}
+			} else if strings.Contains(sres.Status, "STATUS_FAILED") {
+				failureReasons, err := collectAKSUpsertErrors(sres.Operations)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s with failure reasons: %s", clusterName, project.Name, failureReasons)
+			} else {
+				log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, project.Name)
+			}
+
 		}
 	}
-	log.Printf("resource aks cluster created/updated %s", s.ID)
-
 	return diags
 }
 
@@ -5606,15 +5677,15 @@ type ResponseGetClusterSpec struct {
 func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("resourceAKSClusterRead")
-	
+
 	projectName, ok := d.Get("metadata.0.project").(string)
 	if !ok || projectName == "" {
-		return diag.FromErr(errors.New("project name unable to be found."))
+		return diag.FromErr(errors.New("project name unable to be found"))
 	}
 
 	clusterName, ok := d.Get("metadata.0.name").(string)
 	if !ok || clusterName == "" {
-		return diag.FromErr(errors.New("cluster name unable to be found."))
+		return diag.FromErr(errors.New("cluster name unable to be found"))
 	}
 
 	fmt.Printf("Found project_name: %s, cluster_name: %s", projectName, clusterName)
@@ -5623,7 +5694,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
 		fmt.Print("Cluster project name is invalid")
-		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s",err.Error()))
+		return diag.FromErr(fmt.Errorf("cluster project name is invalid. Error: %s", err.Error()))
 	}
 
 	c, err := cluster.GetCluster(clusterName, projectId)
@@ -5632,7 +5703,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		if strings.Contains(err.Error(), "not found") {
 			log.Println("Resource Read ", "error", err)
 			d.SetId("")
-			return diag.FromErr(fmt.Errorf("Resource read failed, cluster not found. Error: %s",err.Error()))
+			return diag.FromErr(fmt.Errorf("resource read failed, cluster not found. Error: %s", err.Error()))
 		}
 		return diag.FromErr(err)
 	}
@@ -5678,9 +5749,9 @@ func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
 		fmt.Print("Cluster project name is invalid")
-		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s",err.Error()))
+		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s", err.Error()))
 	}
-	
+
 	_, err = cluster.GetCluster(clusterName, projectId)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
@@ -5708,7 +5779,7 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
 		fmt.Print("Cluster project name is invalid")
-		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s",err.Error()))
+		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s", err.Error()))
 	}
 
 	errDel := cluster.DeleteCluster(clusterName, projectId, false)
@@ -5717,18 +5788,27 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(errDel)
 	}
 
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
+	defer ticker.Stop()
+LOOP:
 	for {
-		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(clusterName, projectId)
-		if errGet != nil {
-			log.Printf("error while getCluster %s, delete success", errGet.Error())
-			break
-		}
-		if check == nil || (check != nil && check.Status != "READY") {
-			break
+		select {
+		case <-ctx.Done():
+			log.Printf("Cluster Deletion for edgename: %s and projectname: %s got timeout out.", clusterName, projectName)
+			return diag.FromErr(fmt.Errorf("cluster deletion for edgename: %s and projectname: %s got timeout out", clusterName, projectName))
+		case <-ticker.C:
+			check, errGet := cluster.GetCluster(clusterName, projectId)
+			if errGet != nil {
+				log.Printf("error while getCluster %s, delete success", errGet.Error())
+				break LOOP
+			}
+			if check == nil {
+				log.Printf("Cluster Deletion completes for edgename: %s and projectname: %s", clusterName, projectName)
+				break LOOP
+			}
+			log.Printf("Cluster Deletion is in progress for edgename: %s and projectname: %s. Waiting 60 seconds more for operation to complete.", clusterName, projectName)
 		}
 	}
-
 	return diags
 }
 

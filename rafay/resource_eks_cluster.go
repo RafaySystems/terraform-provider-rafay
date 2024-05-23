@@ -15,7 +15,6 @@ import (
 	"github.com/RafaySystems/rctl/pkg/clusterctl"
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
-	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-cty/cty"
 	jsoniter "github.com/json-iterator/go"
@@ -38,9 +37,9 @@ func resourceEKSCluster() *schema.Resource {
 		DeleteContext: resourceEKSClusterDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(100 * time.Minute),
+			Update: schema.DefaultTimeout(130 * time.Minute),
+			Delete: schema.DefaultTimeout(70 * time.Minute),
 		},
 
 		Importer: &schema.ResourceImporter{
@@ -612,6 +611,11 @@ func attachPolicyFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Attach policy version",
 		},
+		"id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Attach policy id",
+		},
 		"statement": {
 			Type:        schema.TypeList,
 			Optional:    true,
@@ -643,6 +647,42 @@ func statementFields() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "Attach policy resource",
+		},
+		"condition": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Attach policy Statement",
+		},
+		"sid": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Sid of policy",
+		},
+		"not_action": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Attach policy NotAction",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"not_resource": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Attach policy NotResource",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"principal": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Attach policy principal",
+		},
+		"not_principal": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Attach policy NotPrincipal",
 		},
 	}
 	return s
@@ -918,6 +958,11 @@ func addonConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: attachPolicyFields(),
 			},
+		},
+		"attach_policy_v2": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "holds a policy document to attach to this addon in json string format",
 		},
 		"permissions_boundary": {
 			Type:        schema.TypeString,
@@ -1487,6 +1532,11 @@ func iamNodeGroupConfigFields() map[string]*schema.Schema { //@@@TODO: need to c
 			Elem: &schema.Resource{
 				Schema: attachPolicyFields(),
 			},
+		},
+		"attach_policy_v2": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "attach policy in json string format ",
 		},
 		"attach_policy_arns": {
 			Type:        schema.TypeList,
@@ -2261,7 +2311,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	rctlConfig := config.GetConfig()
 
 	log.Printf("calling cluster ctl:\n%s", b.String())
-	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false)
+	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		return diag.FromErr(err)
@@ -2286,39 +2336,65 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
 	d.SetId(s.ID)
-	for { //wait for cluster to provision correctly
-		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, projectID)
-		if errGet != nil {
-			log.Printf("error while getCluster %s", errGet.Error())
-			return diag.FromErr(errGet)
-		}
-		rctlConfig.ProjectID = projectID
-		statusResp, err := clusterctl.Status(logger, rctlConfig, res.TaskSetID)
-		if err != nil {
-			log.Println("status response parse error", err)
-			return diag.FromErr(err)
-		}
-		log.Println("statusResp:\n ", statusResp)
-		sres := clusterCTLResponse{}
-		err = json.Unmarshal([]byte(statusResp), &sres)
-		if err != nil {
-			log.Println("status response unmarshal error", err)
-			return diag.FromErr(err)
-		}
-		if strings.Contains(sres.Status, "STATUS_COMPLETE") {
-			if check.Status == "READY" {
-				break
+
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
+	defer ticker.Stop()
+LOOP:
+	for {
+		//Check for cluster operation timeout
+		select {
+		case <-ctx.Done():
+			log.Println("Cluster operation stopped due to operation timeout.")
+			return diag.Errorf("cluster operation stopped for cluster: `%s` due to operation timeout", clusterName)
+		case <-ticker.C:
+			log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, projectName)
+			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, projectID)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				return diag.FromErr(errGet)
 			}
-			log.Println("task completed but cluster is not ready")
-		}
-		if strings.Contains(sres.Status, "STATUS_FAILED") {
-			return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", yamlClusterMetadata.Metadata.Name, statusResp))
+			edgeId := check.ID
+			check, errGet = cluster.GetClusterWithEdgeID(edgeId, projectID)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				return diag.FromErr(errGet)
+			}
+			rctlConfig.ProjectID = projectID
+			statusResp, err := clusterctl.Status(logger, rctlConfig, res.TaskSetID)
+			if err != nil {
+				log.Println("status response parse error", err)
+				return diag.FromErr(err)
+			}
+			log.Println("statusResp:\n ", statusResp)
+			sres := clusterCTLResponse{}
+			err = json.Unmarshal([]byte(statusResp), &sres)
+			if err != nil {
+				log.Println("status response unmarshal error", err)
+				return diag.FromErr(err)
+			}
+			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+				log.Println("Checking in cluster conditions for blueprint sync success..")
+				conditionsFailure, clusterReadiness, err := getClusterConditions(edgeId, projectID)
+				if err != nil {
+					log.Printf("error while getCluster %s", err.Error())
+					return diag.FromErr(err)
+				}
+				if conditionsFailure {
+					log.Printf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, projectName)
+					return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, projectName))
+				} else if clusterReadiness {
+					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", clusterName, projectName)
+					break LOOP
+				} else {
+					log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
+				}
+			} else if strings.Contains(sres.Status, "STATUS_FAILED") {
+				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s", clusterName, statusResp))
+			} else {
+				log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, projectName)
+			}
 		}
 	}
-
-	log.Printf("resource eks cluster created/updated %s", s.ID)
-
 	return diags
 }
 func eksClusterCTLStatus(taskid, projectID string) (string, error) {
@@ -3107,6 +3183,14 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 		obj.AttachPolicy = expandAttachPolicy(v)
 	}
 
+	if v, ok := in["attach_policy_v2"].(string); ok && len(v) > 0 {
+		var policyDoc *InlineDocument
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		json2.Unmarshal([]byte(v), &policyDoc)
+		obj.AttachPolicy = policyDoc
+		//log.Println("attach policy expanded correct")
+	}
+
 	if v, ok := in["attach_policy_arns"].([]interface{}); ok && len(v) > 0 {
 		obj.AttachPolicyARNs = toArrayString(v)
 	}
@@ -3129,23 +3213,62 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 }
 
 // expand attach policy (completed)@@@
-func expandStatement(p []interface{}) InlineStatement {
-	obj := InlineStatement{}
+func expandStatement(p []interface{}) []InlineStatement {
+	out := make([]InlineStatement, len(p))
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return out
 	}
-	in := p[0].(map[string]interface{})
-	if v, ok := in["effect"].(string); ok && len(v) > 0 {
-		obj.Effect = v
+
+	for i := range p {
+		obj := &InlineStatement{}
+		in := p[0].(map[string]interface{})
+		if v, ok := in["effect"].(string); ok && len(v) > 0 {
+			obj.Effect = v
+		}
+		if v, ok := in["action"].([]interface{}); ok && len(v) > 0 {
+			obj.Action = toArrayStringSorted(v)
+		}
+		if v, ok := in["not_action"].([]interface{}); ok && len(v) > 0 {
+			obj.NotAction = toArrayStringSorted(v)
+		}
+		if v, ok := in["resource"].(string); ok && len(v) > 0 {
+			obj.Resource = v
+		}
+		if v, ok := in["not_resource"].([]interface{}); ok && len(v) > 0 {
+			obj.NotResource = toArrayStringSorted(v)
+		}
+		if v, ok := in["sid"].(string); ok && len(v) > 0 {
+			obj.Sid = v
+		}
+		if v, ok := in["condition"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
+			obj.Condition = policyDoc
+		}
+
+		if v, ok := in["principal"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
+			obj.Principal = policyDoc
+		}
+
+		if v, ok := in["not_principal"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
+			obj.NotPrincipal = policyDoc
+		}
+
+		out[i] = *obj
 	}
-	if v, ok := in["action"].([]interface{}); ok && len(v) > 0 {
-		obj.Action = toArrayStringSorted(v)
-	}
-	if v, ok := in["resource"].(string); ok && len(v) > 0 {
-		obj.Resource = v
-	}
-	return obj
+
+	return out
 }
 
 // expand attach policy (completed)
@@ -3158,6 +3281,9 @@ func expandAttachPolicy(p []interface{}) *InlineDocument {
 	in := p[0].(map[string]interface{})
 	if v, ok := in["version"].(string); ok && len(v) > 0 {
 		obj.Version = v
+	}
+	if v, ok := in["id"].(string); ok && len(v) > 0 {
+		obj.Id = v
 	}
 	if v, ok := in["statement"].([]interface{}); ok && len(v) > 0 {
 		obj.Statement = expandStatement(v)
@@ -3296,6 +3422,16 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 		if v, ok := in["attach_policy"].([]interface{}); ok && len(v) > 0 {
 			obj.AttachPolicy = expandAttachPolicy(v)
 		}
+
+		if v, ok := in["attach_policy_v2"].(string); ok && len(v) > 0 {
+			var policyDoc *InlineDocument
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
+			obj.AttachPolicy = policyDoc
+			//log.Println("attach policy expanded correct")
+		}
+
 		if v, ok := in["permissions_boundary"].(string); ok && len(v) > 0 {
 			obj.PermissionsBoundary = v
 		}
@@ -3677,43 +3813,11 @@ func expandEKSClusterSpecConfig(p []interface{}) *EKSSpec {
 		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
 	}
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
-		obj.Sharing = expandEKSClusterSharing(v)
+		obj.Sharing = expandV1ClusterSharing(v)
 	}
 	log.Println("cluster spec cloud_provider: ", obj.CloudProvider)
 
 	return obj
-}
-
-func expandEKSClusterSharing(p []interface{}) *EKSClusterSharing {
-	obj := &EKSClusterSharing{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-
-	in := p[0].(map[string]interface{})
-	if v, ok := in["enabled"].(bool); ok {
-		obj.Enabled = &v
-	}
-	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
-		obj.Projects = expandEKSClusterSharingProjects(v)
-	}
-	return obj
-}
-
-func expandEKSClusterSharingProjects(p []interface{}) []*EKSClusterSharingProject {
-	if len(p) == 0 {
-		return nil
-	}
-	var res []*EKSClusterSharingProject
-	for i := range p {
-		in := p[i].(map[string]interface{})
-		obj := &EKSClusterSharingProject{}
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			obj.Name = v
-		}
-		res = append(res, obj)
-	}
-	return res
 }
 
 func expandCNIParams(p []interface{}) *CustomCni {
@@ -3935,39 +4039,10 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}, rawState cty.Value) ([]
 		obj["system_components_placement"] = flattenSystemComponentsPlacement(in.SystemComponentsPlacement, v)
 	}
 	if in.Sharing != nil {
-		obj["sharing"] = flattenEKSSharing(in.Sharing)
+		obj["sharing"] = flattenV1ClusterSharing(in.Sharing)
 	}
 
 	return []interface{}{obj}, nil
-}
-
-func flattenEKSSharing(in *EKSClusterSharing) []interface{} {
-	if in == nil {
-		return nil
-	}
-	obj := make(map[string]interface{})
-	if in.Enabled != nil {
-		obj["enabled"] = *in.Enabled
-	}
-	if len(in.Projects) > 0 {
-		obj["projects"] = flattenEKSSharingProjects(in.Projects)
-	}
-	return []interface{}{obj}
-}
-
-func flattenEKSSharingProjects(in []*EKSClusterSharingProject) []interface{} {
-	if len(in) == 0 {
-		return nil
-	}
-	var out []interface{}
-	for _, x := range in {
-		obj := make(map[string]interface{})
-		if len(x.Name) > 0 {
-			obj["name"] = x.Name
-		}
-		out = append(out, obj)
-	}
-	return out
 }
 
 func flattenCNIParams(in *CustomCni, p []interface{}, rawState cty.Value) []interface{} {
@@ -3994,7 +4069,7 @@ func flattenCNIParams(in *CustomCni, p []interface{}, rawState cty.Value) []inte
 func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}, rawState cty.Value) []interface{} {
 	log.Println("got to flatten custom CNI mapping", len(p))
 
-	findLocalOrder := func (rawState cty.Value) []string {
+	findLocalOrder := func(rawState cty.Value) []string {
 		var order []string
 		for _, crdSpec := range rawState.AsValueSlice() {
 			if subnetValue, ok := crdSpec.AsValueMap()["name"]; ok {
@@ -4004,7 +4079,7 @@ func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}, rawSta
 		return order
 	}
 
-	indexOf := func(item string, list []string) int  {
+	indexOf := func(item string, list []string) int {
 		for i, v := range list {
 			if v == item {
 				return i
@@ -4023,7 +4098,7 @@ func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}, rawSta
 			continue
 		}
 		obj := map[string]interface{}{
-			"name": key,
+			"name":     key,
 			"cni_spec": flattenCNISpec(elem, []interface{}{}),
 		}
 		out = append(out, obj)
@@ -4032,7 +4107,7 @@ func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}, rawSta
 		if i := indexOf(key, azOrderInState); i < 0 {
 			// not found in local copy. this subnet was removed by the user
 			obj := map[string]interface{}{
-				"name": key,
+				"name":     key,
 				"cni_spec": flattenCNISpec(elem, []interface{}{}),
 			}
 			out = append(out, obj)
@@ -4118,11 +4193,12 @@ func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]
 
 	return []interface{}{obj}, nil
 }
-func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	if in == nil {
 		return nil, fmt.Errorf("empty cluster config input")
 	}
 	obj := map[string]interface{}{}
+	rawState = rawState.AsValueSlice()[0]
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -4169,7 +4245,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		if !ok {
 			v = []interface{}{}
 		}
-		ret3, err = flattenEKSClusterIAM(in.IAM, v)
+		ret3, err = flattenEKSClusterIAM(in.IAM, rawState.GetAttr("iam"), v)
 		if err != nil {
 			log.Println("flattenEKSClusterIAM err")
 			return nil, err
@@ -4211,7 +4287,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		if !ok {
 			v = []interface{}{}
 		}
-		ret6, err = flattenEKSClusterAddons(in.Addons, v)
+		ret6, err = flattenEKSClusterAddons(in.Addons, rawState.GetAttr("addons"), v)
 		if err != nil {
 			log.Println("flattenEKSClusterAddons err")
 			return nil, err
@@ -4240,7 +4316,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		if !ok {
 			v = []interface{}{}
 		}
-		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, v)
+		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, rawState.GetAttr("node_groups"), v)
 		/*
 			if err != nil {
 				log.Println("flattenEKSClusterNodeGroups err")
@@ -4256,7 +4332,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		if !ok {
 			v = []interface{}{}
 		}
-		ret9, err = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, v)
+		ret9, err = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, rawState.GetAttr("managed_nodegroups"), v)
 		if err != nil {
 			log.Println("flattenEKSClusterManagedNodeGroups err")
 			return nil, err
@@ -4347,8 +4423,9 @@ func flattenEKSClusterKubernetesNetworkConfig(in *KubernetesNetworkConfig, p []i
 	}
 	return []interface{}{obj}, nil
 }
-func flattenEKSClusterIAM(in *EKSClusterIAM, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterIAM(in *EKSClusterIAM, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	obj := map[string]interface{}{}
+	rawState = rawState.AsValueSlice()[0]
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -4376,7 +4453,7 @@ func flattenEKSClusterIAM(in *EKSClusterIAM, p []interface{}) ([]interface{}, er
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["service_accounts"] = flattenIAMServiceAccounts(in.ServiceAccounts, v)
+		obj["service_accounts"] = flattenIAMServiceAccounts(in.ServiceAccounts, rawState.GetAttr("service_accounts"), v)
 	}
 
 	obj["vpc_resource_controller_policy"] = in.VPCResourceControllerPolicy
@@ -4407,77 +4484,115 @@ func flattenIAMServiceAccountMetadata(in *EKSClusterIAMMeta, p []interface{}) []
 	return []interface{}{obj}
 }
 
-func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface{}) []interface{} {
+func flattenSingleIAMServiceAccount(in *EKSClusterIAMServiceAccount) map[string]interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{
+		"metadata":            flattenIAMServiceAccountMetadata(in.Metadata, []interface{}{}),
+		"well_known_policies": flattenIAMWellKnownPolicies(in.WellKnownPolicies, []interface{}{}),
+		"role_only":           in.RoleOnly,
+	}
+	if in.AttachPolicyARNs != nil && len(in.AttachPolicyARNs) > 0 {
+		obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
+	}
+	if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
+		//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		jsonStr, err := json2.Marshal(in.AttachPolicy)
+		if err != nil {
+			log.Println("attach policy marshal err:", err)
+		}
+		obj["attach_policy"] = string(jsonStr)
+	}
+	if len(in.AttachRoleARN) > 0 {
+		obj["attach_role_arn"] = in.AttachRoleARN
+	}
+	if len(in.PermissionsBoundary) > 0 {
+		obj["permissions_boundary"] = in.PermissionsBoundary
+	}
+	if in.Status != nil {
+		obj["status"] = flattenIAMStatus(in.Status, []interface{}{})
+	}
+	if len(in.RoleName) > 0 {
+		obj["role_name"] = in.RoleName
+	}
+
+	if in.Tags != nil && len(in.Tags) > 0 {
+		obj["tags"] = toMapInterface(in.Tags)
+	}
+	return obj
+}
+
+func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, rawState cty.Value, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
 	}
-	out := make([]interface{}, len(inp))
-	for i, in := range inp {
+	var out []interface{}
 
-		obj := map[string]interface{}{}
-		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
-		}
-
-		v, ok := obj["metadata"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["metadata"] = flattenIAMServiceAccountMetadata(in.Metadata, v)
-
-		if in.AttachPolicyARNs != nil && len(in.AttachPolicyARNs) > 0 {
-			obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
-		}
-
-		v, ok = obj["well_known_policies"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
-
-		//@@@TODO Store inline document object as terraform input correctly
-		/*v1, ok := obj["attach_policy"].([]interface{})
-		if !ok {
-			v1 = []interface{}{}
-		}
-		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
-		*/
-		log.Println("input attach policy:", in.AttachPolicy)
-		if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
-			//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
-			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-			jsonStr, err := json2.Marshal(in.AttachPolicy)
-			if err != nil {
-				log.Println("attach policy marshal err:", err)
+	indexOf := func(item string, list []string) int {
+		for i, v := range list {
+			if v == item {
+				return i
 			}
-			//log.Println("jsonSTR:", jsonStr)
-			obj["attach_policy"] = string(jsonStr)
-			//log.Println("attach policy flattened correct:", obj["attach_policy"])
 		}
-		if len(in.AttachRoleARN) > 0 {
-			obj["attach_role_arn"] = in.AttachRoleARN
-		}
-		if len(in.PermissionsBoundary) > 0 {
-			obj["permissions_boundary"] = in.PermissionsBoundary
-		}
-		if in.Status != nil {
-			v, ok := obj["status"].([]interface{})
-			if !ok {
-				v = []interface{}{}
+		return -1
+	}
+	findLocalOrder := func(rawState cty.Value) []string {
+		var order []string
+		for _, crdSpec := range rawState.AsValueSlice() {
+			item := ""
+			if saName, ok := crdSpec.AsValueMap()["name"]; ok {
+				item += fmt.Sprintf("%s/", saName.AsString())
 			}
-			obj["status"] = flattenIAMStatus(in.Status, v)
+			if saNamespace, ok := crdSpec.AsValueMap()["namespace"]; ok {
+				item += saNamespace.AsString()
+			}
+			order = append(order, item)
 		}
-		if len(in.RoleName) > 0 {
-			obj["role_name"] = in.RoleName
+		return order
+	}
+	findRemoteOrder := func(inp []*EKSClusterIAMServiceAccount) []string {
+		var order []string
+		for _, in := range inp {
+			item := ""
+			if in.Metadata != nil {
+				item += fmt.Sprintf("%s/", in.Metadata.Name)
+				item += in.Metadata.Namespace
+			}
+			order = append(order, item)
 		}
-
-		obj["role_only"] = in.RoleOnly
-
-		if in.Tags != nil && len(in.Tags) > 0 {
-			obj["tags"] = toMapInterface(in.Tags)
+		return order
+	}
+	findInRemoteOnly := func(local []string, remote []string, inp []*EKSClusterIAMServiceAccount) []*EKSClusterIAMServiceAccount {
+		res := make([]*EKSClusterIAMServiceAccount, 0)
+		for i, item := range remote {
+			if indexOf(item, local) < 0 {
+				res = append(res, inp[i])
+			}
 		}
+		return res
+	}
 
-		out[i] = &obj
+	saOrderInState := findLocalOrder(rawState)
+	saOrderInRemote := findRemoteOrder(inp)
+	saInRemoteOnly := findInRemoteOnly(saOrderInState, saOrderInRemote, inp)
+
+	for _, key := range saOrderInState {
+		if i := indexOf(key, saOrderInRemote); i >= 0 {
+			in := inp[i]
+			obj := flattenSingleIAMServiceAccount(in)
+			out = append(out, obj)
+		} else if len(saInRemoteOnly) > 0 {
+			removedEntry := saInRemoteOnly[0]
+			saInRemoteOnly = saInRemoteOnly[1:]
+			obj := flattenSingleIAMServiceAccount(removedEntry)
+			out = append(out, obj)
+		}
+	}
+	for _, in := range saInRemoteOnly {
+		obj := flattenSingleIAMServiceAccount(in)
+		out = append(out, obj)
 	}
 
 	return out
@@ -4498,6 +4613,10 @@ func flattenAttachPolicy(in *InlineDocument, p []interface{}) []interface{} {
 		obj["version"] = in.Version
 	}
 
+	if len(in.Id) > 0 {
+		obj["id"] = in.Id
+	}
+
 	v, ok := obj["statement"].([]interface{})
 	if !ok {
 		v = []interface{}{}
@@ -4507,23 +4626,69 @@ func flattenAttachPolicy(in *InlineDocument, p []interface{}) []interface{} {
 	return []interface{}{obj}
 }
 
-func flattenStatement(in InlineStatement, p []interface{}) []interface{} {
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+func flattenStatement(in []InlineStatement, p []interface{}) []interface{} {
+
+	if in == nil {
+		return nil
 	}
 
-	if len(in.Effect) > 0 {
-		obj["effect"] = in.Effect
-	}
-	if len(in.Action) > 0 {
-		obj["action"] = toArrayInterface(in.Action)
-	}
-	if len(in.Resource) > 0 {
-		obj["resource"] = in.Resource
-	}
+	out := make([]interface{}, len(in))
 
-	return []interface{}{obj}
+	for i, in := range in {
+		obj := map[string]interface{}{}
+
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Effect) > 0 {
+			obj["effect"] = in.Effect
+		}
+		if len(in.Sid) > 0 {
+			obj["sid"] = in.Sid
+		}
+		if in.Action != nil && len(in.Action.([]interface{})) > 0 {
+			obj["action"] = in.Action
+		}
+		if in.NotAction != nil && len(in.NotAction.([]interface{})) > 0 {
+			obj["not_action"] = in.NotAction
+		}
+		if len(in.Resource.(string)) > 0 {
+			obj["resource"] = in.Resource.(string)
+		}
+		if in.NotResource != nil && len(in.NotResource.([]interface{})) > 0 {
+			obj["not_resource"] = in.NotResource
+		}
+
+		if len(in.Condition) > 0 {
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.Condition)
+			if err != nil {
+				log.Println("attach policy marshal err:", err)
+			}
+			obj["condition"] = string(jsonStr)
+
+		}
+		if len(in.Principal) > 0 {
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.Principal)
+			if err != nil {
+				log.Println("attach policy marshal err:", err)
+			}
+			obj["principal"] = string(jsonStr)
+
+		}
+		if len(in.NotPrincipal) > 0 {
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.NotPrincipal)
+			if err != nil {
+				log.Println("attach policy marshal err:", err)
+			}
+			obj["not_principal"] = string(jsonStr)
+
+		}
+		out[i] = obj
+	}
+	return out
 }
 func flattenIAMStatus(in *ClusterIAMServiceAccountStatus, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
@@ -4764,13 +4929,48 @@ func flattenVPCClusterEndpoints(in *ClusterEndpoints, p []interface{}) []interfa
 	return []interface{}{obj}
 }
 
-func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	if inp == nil {
 		return nil, fmt.Errorf("emptyinput flatten addons")
 	}
-	out := make([]interface{}, len(inp))
-	for i, in := range inp {
+
+	isPolicyV2 := func(rawState cty.Value, name string) bool {
+		for _, addon := range rawState.AsValueSlice() {
+			if addonName, ok := addon.AsValueMap()["name"]; ok {
+				if attachPolicyVersion, ok := addon.AsValueMap()["attach_policy_v2"]; ok {
+					//log.Println("isPolicyV2 check:", addonName.AsString(), name, attachPolicyVersion.AsString())
+					if addonName.AsString() == name && attachPolicyVersion.AsString() != "" {
+						return true
+					}
+				}
+			}
+		}
+		return false
+	}
+
+	isSetInState := func(rawState cty.Value, name string) bool {
+		for _, addon := range rawState.AsValueSlice() {
+			if addonName, ok := addon.AsValueMap()["name"]; ok {
+				if addonName.AsString() == name {
+					return true
+				}
+			}
+		}
+		return false
+	}
+
+	filterAddon := make([]*Addon, 0)
+	for _, addon := range inp {
+		if isSetInState(rawState, addon.Name) {
+			filterAddon = append(filterAddon, addon)
+		}
+	}
+
+	out := make([]interface{}, len(filterAddon))
+	for i, in := range filterAddon {
+
 		obj := map[string]interface{}{}
+
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
@@ -4790,15 +4990,28 @@ func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, erro
 		}
 		//@@@TODO Store inline document object as terraform input correctly
 		if in.AttachPolicy != nil {
-			v1, ok := obj["attach_policy"].([]interface{})
-			if !ok {
-				v1 = []interface{}{}
-			}
-			obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
-			if len(in.PermissionsBoundary) > 0 {
-				obj["permissions_boundary"] = in.PermissionsBoundary
+			if !isPolicyV2(rawState, in.Name) {
+				v1, ok := obj["attach_policy"].([]interface{})
+				if !ok {
+					v1 = []interface{}{}
+				}
+				obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
+			} else {
+				var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+				jsonStr, err := json2.Marshal(in.AttachPolicy)
+				if err != nil {
+					log.Println("attach policy marshal err:", err)
+				}
+				//log.Println("jsonSTR:", jsonStr)
+				obj["attach_policy_v2"] = string(jsonStr)
+
 			}
 		}
+
+		if len(in.PermissionsBoundary) > 0 {
+			obj["permissions_boundary"] = in.PermissionsBoundary
+		}
+
 		v, ok := obj["well_known_policies"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -4813,6 +5026,8 @@ func flattenEKSClusterAddons(inp []*Addon, p []interface{}) ([]interface{}, erro
 
 		out[i] = &obj
 	}
+
+	log.Println("Flatten eks addons", out)
 	return out, nil
 }
 func flattenEKSClusterPrivateCluster(in *PrivateCluster, p []interface{}) []interface{} {
@@ -4832,14 +5047,53 @@ func flattenEKSClusterPrivateCluster(in *PrivateCluster, p []interface{}) []inte
 	}
 	return []interface{}{obj}
 }
-func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{} {
+func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
+	}
+	indexOf := func(item string, list []string) int {
+		for i, v := range list {
+			if v == item {
+				return i
+			}
+		}
+		return -1
+	}
+	findLocalOrder := func(rawState cty.Value) []string {
+		var order []string
+		for _, val := range rawState.AsValueSlice() {
+			order = append(order, val.AsString())
+		}
+		return order
+	}
+	flattenListOfString := func(inp []string, rawState cty.Value) []interface{} {
+		out := make([]interface{}, 0)
+		localStateOrder := findLocalOrder(rawState)
+		remoteStateOrder := inp
+		remoteOnlyOrder := make([]string, 0)
+		for _, elem := range remoteStateOrder {
+			if indexOf(elem, localStateOrder) < 0 {
+				remoteOnlyOrder = append(remoteOnlyOrder, elem)
+			}
+		}
+		for _, elem := range localStateOrder {
+			if i := indexOf(elem, remoteStateOrder); i >= 0 {
+				out = append(out, elem)
+			} else if len(remoteOnlyOrder) > 0 {
+				out = append(out, remoteOnlyOrder[0])
+				remoteOnlyOrder = remoteOnlyOrder[1:]
+			}
+		}
+		for _, elem := range remoteOnlyOrder {
+			out = append(out, elem)
+		}
+		return out
 	}
 
 	out := make([]interface{}, len(inp))
 	for i, in := range inp {
 		obj := map[string]interface{}{}
+		nRawState := rawState.AsValueSlice()[i]
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
@@ -4857,10 +5111,10 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{
 			obj["instance_type"] = in.InstanceType
 		}
 		if len(in.AvailabilityZones) > 0 {
-			obj["availability_zones"] = toArrayInterfaceSorted(in.AvailabilityZones)
+			obj["availability_zones"] = flattenListOfString(in.AvailabilityZones, nRawState.GetAttr("availability_zones"))
 		}
 		if len(in.Subnets) > 0 {
-			obj["subnets"] = toArrayInterface(in.Subnets)
+			obj["subnets"] = flattenListOfString(in.Subnets, nRawState.GetAttr("subnets"))
 		}
 		if len(in.InstancePrefix) > 0 {
 			obj["instance_prefix"] = in.InstancePrefix
@@ -4893,7 +5147,7 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{
 			if !ok {
 				v = []interface{}{}
 			}
-			obj["iam"] = flattenNodeGroupIAM(in.IAM, v)
+			obj["iam"] = flattenNodeGroupIAM(in.IAM, nRawState.GetAttr("iam"), v)
 		}
 		if len(in.AMI) > 0 {
 			obj["ami"] = in.AMI
@@ -5060,7 +5314,7 @@ func flattenNodeGroupSSH(in *NodeGroupSSH, p []interface{}) []interface{} {
 	obj["enable_ssm"] = in.EnableSSM
 	return []interface{}{obj}
 }
-func flattenNodeGroupIAM(in *NodeGroupIAM, p []interface{}) []interface{} {
+func flattenNodeGroupIAM(in *NodeGroupIAM, rawState cty.Value, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -5068,13 +5322,34 @@ func flattenNodeGroupIAM(in *NodeGroupIAM, p []interface{}) []interface{} {
 	if in == nil {
 		return []interface{}{obj}
 	}
+
+	isPolicyV2 := func(rawState cty.Value) bool {
+		iamSpec := rawState.AsValueSlice()[0]
+		if attachPolicyV2, ok := iamSpec.AsValueMap()["attach_policy_v2"]; ok {
+			return attachPolicyV2.AsString() != ""
+		}
+		return false
+	}
+
 	//@@@TODO Store inline document object as terraform input correctly
 	if in.AttachPolicy != nil {
-		v1, ok := obj["attach_policy"].([]interface{})
-		if !ok {
-			v1 = []interface{}{}
+		if !isPolicyV2(rawState) {
+			v1, ok := obj["attach_policy"].([]interface{})
+			if !ok {
+				v1 = []interface{}{}
+			}
+			obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
+		} else {
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.AttachPolicy)
+			if err != nil {
+				log.Println("attach policy marshal err:", err)
+			}
+			//log.Println("jsonSTR:", jsonStr)
+			obj["attach_policy_v2"] = string(jsonStr)
+			//log.Println("jsonSTR: for v2 nodegroup", obj)
 		}
-		obj["attach_policy"] = flattenAttachPolicy(in.AttachPolicy, v1)
+
 	}
 
 	if len(in.AttachPolicyARNs) > 0 {
@@ -5252,13 +5527,53 @@ func flattenNodeGroupUpdateConfig(in *NodeGroupUpdateConfig, p []interface{}) []
 }
 
 // Flatten mnanaged Node Groups
-func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	if inp == nil {
 		return nil, fmt.Errorf("empty input for managedNodeGroup")
 	}
 
+	indexOf := func(item string, list []string) int {
+		for i, v := range list {
+			if v == item {
+				return i
+			}
+		}
+		return -1
+	}
+	findLocalOrder := func(rawState cty.Value) []string {
+		var order []string
+		for _, val := range rawState.AsValueSlice() {
+			order = append(order, val.AsString())
+		}
+		return order
+	}
+	flattenListOfString := func(inp []string, rawState cty.Value) []interface{} {
+		out := make([]interface{}, 0)
+		localStateOrder := findLocalOrder(rawState)
+		remoteStateOrder := inp
+		remoteOnlyOrder := make([]string, 0)
+		for _, elem := range remoteStateOrder {
+			if indexOf(elem, localStateOrder) < 0 {
+				remoteOnlyOrder = append(remoteOnlyOrder, elem)
+			}
+		}
+		for _, elem := range localStateOrder {
+			if i := indexOf(elem, remoteStateOrder); i >= 0 {
+				out = append(out, elem)
+			} else if len(remoteOnlyOrder) > 0 {
+				out = append(out, remoteOnlyOrder[0])
+				remoteOnlyOrder = remoteOnlyOrder[1:]
+			}
+		}
+		for _, elem := range remoteOnlyOrder {
+			out = append(out, elem)
+		}
+		return out
+	}
+
 	out := make([]interface{}, len(inp))
 	for i, in := range inp {
+		nRawState := rawState.AsValueSlice()[i]
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -5277,10 +5592,10 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 			obj["instance_type"] = in.InstanceType
 		}
 		if len(in.AvailabilityZones) > 0 {
-			obj["availability_zones"] = toArrayInterfaceSorted(in.AvailabilityZones)
+			obj["availability_zones"] = flattenListOfString(in.AvailabilityZones, nRawState.GetAttr("availability_zones"))
 		}
 		if len(in.Subnets) > 0 {
-			obj["subnets"] = toArrayInterfaceSorted(in.Subnets)
+			obj["subnets"] = flattenListOfString(in.Subnets, nRawState.GetAttr("subnets"))
 		}
 		if len(in.InstancePrefix) > 0 {
 			obj["instance_prefix"] = in.InstancePrefix
@@ -5313,7 +5628,7 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}
 			if !ok {
 				v = []interface{}{}
 			}
-			obj["iam"] = flattenNodeGroupIAM(in.IAM, v)
+			obj["iam"] = flattenNodeGroupIAM(in.IAM, nRawState.GetAttr("iam"), v)
 		}
 		if len(in.AMI) > 0 {
 			obj["ami"] = in.AMI
@@ -5602,22 +5917,6 @@ func flattenArnFields(inp []*IdentityMappingARN, p []interface{}) []interface{} 
 	return out
 }
 
-func getProjectIDFromName(projectName string) (string, error) {
-	// derive project id from project name
-	resp, err := project.GetProjectByName(projectName)
-	if err != nil {
-		log.Print("project name missing in the resource")
-		return "", err
-	}
-
-	project, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		log.Printf("project does not exist")
-		return "", err
-	}
-	return project.ID, nil
-}
-
 func resourceEKSClusterCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("create EKS cluster resource")
 	return resourceEKSClusterUpsert(ctx, d, m)
@@ -5649,7 +5948,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		if strings.Contains(err.Error(), "not found") {
 			log.Println("Resource Read ", "error", err)
 			d.SetId("")
-			return diag.FromErr(fmt.Errorf("Resource read failed, cluster not found. Error: %s",err.Error()))
+			return diag.FromErr(fmt.Errorf("resource read failed, cluster not found. Error: %s", err.Error()))
 		}
 		return diag.FromErr(err)
 	}
@@ -5697,7 +5996,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	if !ok {
 		v2 = []interface{}{}
 	}
-	c2, err := flattenEKSClusterConfig(&clusterConfigSpec, v2)
+	c2, err := flattenEKSClusterConfig(&clusterConfigSpec, rawState.GetAttr("cluster_config"), v2)
 	if err != nil {
 		log.Printf("flatten eks cluster config error %s", err.Error())
 		return diag.FromErr(err)
@@ -5765,19 +6064,29 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
 	}
+
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
+	defer ticker.Stop()
+
+LOOP:
 	for {
-		time.Sleep(60 * time.Second)
-		check, errGet := cluster.GetCluster(clusterName, projectID)
-		if errGet != nil {
-			log.Printf("error while getCluster %s, delete success", errGet.Error())
-			break
-		}
-		if check == nil || (check != nil && check.Status != "READY") {
-			break
+		select {
+		case <-ctx.Done():
+			log.Printf("Cluster Deletion for edgename: %s and projectname: %s got timeout out.", clusterName, projectName)
+			return diag.FromErr(fmt.Errorf("cluster deletion for edgename: %s and projectname: %s got timeout out", clusterName, projectName))
+		case <-ticker.C:
+			check, errGet := cluster.GetCluster(clusterName, projectID)
+			if errGet != nil {
+				log.Printf("error while getCluster %s, delete success", errGet.Error())
+				break LOOP
+			}
+			if check == nil {
+				break LOOP
+			}
+			log.Printf("Cluster Deletion is in progress for edgename: %s and projectname: %s. Waiting 60 seconds more for operation to complete.", clusterName, projectName)
 		}
 	}
-	log.Println("finished delete")
-
+	log.Printf("Cluster Deletion completes for edgename: %s and projectname: %s", clusterName, projectName)
 	return diag.Diagnostics{}
 }
 

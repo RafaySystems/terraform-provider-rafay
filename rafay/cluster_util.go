@@ -3,7 +3,11 @@ package rafay
 import (
 	"log"
 	"reflect"
+	"slices"
 
+	"github.com/RafaySystems/rctl/pkg/cluster"
+	"github.com/RafaySystems/rctl/pkg/models"
+	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -242,4 +246,109 @@ func flattenDaemonsetOverride(in *DaemonsetOverride, p []interface{}) []interfac
 	}
 
 	return []interface{}{obj}
+}
+
+func flattenV1ClusterSharing(in *V1ClusterSharing) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := make(map[string]interface{})
+	if in.Enabled != nil {
+		obj["enabled"] = *in.Enabled
+	}
+	if len(in.Projects) > 0 {
+		obj["projects"] = flattenV1SharingProjects(in.Projects)
+	}
+	return []interface{}{obj}
+}
+
+func flattenV1SharingProjects(in []*V1ClusterSharingProject) []interface{} {
+	if len(in) == 0 {
+		return nil
+	}
+	var out []interface{}
+	for _, x := range in {
+		obj := make(map[string]interface{})
+		if len(x.Name) > 0 {
+			obj["name"] = x.Name
+		}
+		out = append(out, obj)
+	}
+	return out
+}
+
+func expandV1ClusterSharing(p []interface{}) *V1ClusterSharing {
+	obj := &V1ClusterSharing{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
+	}
+	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
+		obj.Projects = expandV1ClusterSharingProjects(v)
+	}
+	return obj
+}
+
+func expandV1ClusterSharingProjects(p []interface{}) []*V1ClusterSharingProject {
+	if len(p) == 0 {
+		return nil
+	}
+	var res []*V1ClusterSharingProject
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := &V1ClusterSharingProject{}
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+		res = append(res, obj)
+	}
+	return res
+}
+
+var BlueprintSyncConditions = []models.ClusterConditionType{
+	models.ClusterRegister,
+	models.ClusterCheckIn,
+	models.ClusterNamespaceSync,
+	models.ClusterBlueprintSync,
+}
+
+func getProjectIDFromName(projectName string) (string, error) {
+	// derive project id from project name
+	resp, err := project.GetProjectByName(projectName)
+	if err != nil {
+		log.Print("project name missing in the resource")
+		return "", err
+	}
+
+	project, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		log.Printf("project does not exist")
+		return "", err
+	}
+	return project.ID, nil
+}
+
+func getClusterConditions(edgeId, projectId string) (bool, bool, error) {
+	cluster, err := cluster.GetClusterWithEdgeID(edgeId, projectId)
+	if err != nil {
+		log.Printf("error while getCluster %s", err.Error())
+		return false, false, err
+	}
+
+	clusterConditions := cluster.Cluster.Conditions
+	failureFlag := false
+	readyFlag := false
+	for _, condition := range clusterConditions {
+		if slices.Contains(BlueprintSyncConditions, condition.Type) && condition.Status == models.Failed {
+			failureFlag = true
+		}
+		if condition.Type == models.ClusterReady && condition.Status == models.Success {
+			readyFlag = true
+		}
+	}
+	return failureFlag, readyFlag, nil
 }

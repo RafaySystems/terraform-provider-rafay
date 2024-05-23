@@ -437,6 +437,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `docker_bridge_cidr` - (String) A CIDR notation IP range assigned to the Docker bridge network.
 - `load_balancer_sku` - (String) Supported values are: `standard` and `basic`.
 - `network_mode` - (String) This cannot be specified if `networkPlugin` is anything other than `azure`. The supported values are `transparent` and `bridge`.
+- `network_plugin_mode` - (String) This cannot be specified if `networkPlugin` is anything other than `azure`. The supported values are `overlay`.
 - `network_plugin` - (String) The network plugin used for building the Kubernetes network. Supported values are: `azure` and `kubenet`.
 - `network_policy` - (String) The network policy used for building the Kubernetes network. Supported values are: `calico` and `azure`.
 - `outbound_type` - (String) The outbound/egress routing method.

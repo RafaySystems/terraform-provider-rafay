@@ -693,6 +693,114 @@ func flattenGKEV3NodeMachineConfig(in *infrapb.GkeNodeMachineConfig, p []interfa
 		obj["reservation_affinity"] = flattenGKEV3NodeReservationAffinity(in.GetReservationAffinity(), v)
 	}
 
+	if in.Accelerators != nil && len(in.Accelerators) > 0 {
+		v, ok := obj["accelerators"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["accelerators"] = flattenGKEV3NodeAccelerators(in.Accelerators, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeAccelerators(in []*infrapb.GkeNodeAccelerator, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, j := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		obj["type"] = j.Type
+		obj["count"] = j.Count
+		obj["gpu_partition_size"] = j.GpuPartitionSize
+
+		if j.AcceleratorSharing != nil {
+			v, ok := obj["accelerator_sharing"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["accelerator_sharing"] = flattenGKEV3NodeAcceleratorSharing(j.AcceleratorSharing, v)
+		}
+
+		if j.GpuDriverInstallation != nil {
+			v, ok := obj["gpu_driver_installation"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["gpu_driver_installation"] = flattenGKEV3NodeGpuDriverInstallation(j.GpuDriverInstallation, v)
+		}
+	}
+
+	return out
+}
+
+func flattenGKEV3NodeGpuDriverInstallation(in *infrapb.GPUDriverInstallation, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	obj["type"] = in.Type
+
+	if in.GetGoogleManaged() != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenGKEV3NodeGpuDriverGoogleInstallationConfig(in.GetGoogleManaged(), v)
+	} else if in.GetUserManaged() != nil {
+		v, ok := obj["config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["config"] = flattenGKEV3NodeGpuDriverUserInstallationConfig(in.GetUserManaged(), v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeGpuDriverGoogleInstallationConfig(in *infrapb.GPUGoogleManagedDriverInstallation, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	obj["version"] = in.Version
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3NodeGpuDriverUserInstallationConfig(in *infrapb.GPUUserManagedDriverInstallation, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	// obj := map[string]interface{}{}
+	// if len(p) != 0 && p[0] != nil {
+	// 	obj = p[0].(map[string]interface{})
+	// }
+	return nil
+}
+
+func flattenGKEV3NodeAcceleratorSharing(in *infrapb.GkeAcceleratorSharing, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	obj["max_shared_clients"] = in.MaxSharedClients
+	obj["strategy"] = in.Strategy
+
 	return []interface{}{obj}
 }
 

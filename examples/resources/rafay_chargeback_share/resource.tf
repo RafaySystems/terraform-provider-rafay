@@ -5,6 +5,8 @@ resource "rafay_chargeback_share" "tfdemochargebackshare" {
   }
   spec {
     share_unallocated_cost = true
+    share_common_services_cost = true
+    share_control_plane_cost = true
     share_type = "tenancy"
   }
 }

@@ -71,6 +71,10 @@ resource "rafay_gke_cluster" "tf-example" {
       }
       features {
         enable_compute_engine_persistent_disk_csi_driver = "true"
+        enable_cloud_logging                             = "true"
+        cloud_logging_components                         = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+        enable_cloud_monitoring                          = "true"
+        cloud_monitoring_components                      = ["SYSTEM_COMPONENTS"]
       }
       node_pools {
         name         = "np"
@@ -83,6 +87,21 @@ resource "rafay_gke_cluster" "tf-example" {
           boot_disk_size = 100
           reservation_affinity {
              consume_reservation_type = "any"
+          }
+          accelerators {
+            accelerator_sharing {
+              max_shared_clients = 2
+              strategy           = "TIME_SHARING"
+            }
+            count = 1
+            gpu_driver_installation {
+              config {
+                version = "LATEST"
+              }
+              type = "google-managed"
+            }
+            gpu_partition_size = "1g.5gb"
+            type = "nvidia-tesla-t4"
           }
         }
       }
@@ -320,8 +339,8 @@ Optional:
 
 ***Optional***
 
-- `cloud_logging_components` (List of String) List of components for cloud logging
-- `cloud_monitoring_components` (List of String) List of components for cloud monitoring
+- `cloud_logging_components` (List of String) List of components for cloud logging. Values: "SYSTEM_COMPONENTS", "WORKLOADS".
+- `cloud_monitoring_components` (List of String) List of components for cloud monitoring. Values: "SYSTEM_COMPONENTS"
 - `enable_application_manager_beta` (Boolean) Application Manager is a GKE controller for managing the lifecycle of applications. It enables application delivery and updates following Kubernetes and GitOps best practices
 - `enable_backup_for_gke` (Boolean) Backup for GKE allows you to back up and restore workloads. There is no cost for enabling this feature, but you are charged for backups based on the size of the data and the number of pods you protect
 - `enable_cloud_logging` (Boolean) Logging collects logs emitted by your applications and by GKE infrastructure
@@ -363,6 +382,48 @@ Optional:
 - `image_type` (String) Choose which operating system image you want to run on each node of this cluster
 - `machine_type` (String) Choose the machine type that will best fit the resource needs of your cluster
 - `reservation_affinity` (Block List, Max: 1) Zonal compute reservation to this node pool (see [below for nested schema](#nestedblock--spec--config--node_pools--machine_config--reservation_affinity))
+- `accelerators` (Block List, Max: 1) Configure GPU config to this node pool (see [below for nested schema](#nestedblock--spec--config--node_pools--machine_config--accelerators))
+
+<a id="nestedblock--spec--config--node_pools--machine_config--accelerators"></a>
+### Nested Schema for `spec.config.node_pools.machine_config.accelerators`
+
+***Required***
+
+- `type` (String) Type of accelerator. Example: nvidia-tesla-k80
+- `count` (Number) Number of accelerator. Example: 1
+- `gpu_driver_installation` (Block List, Max: 1) GPU driver installation settings (see [below for nested schema](#nestedblock--spec--config--node_pools--machine_config--gpu_driver_installation))
+
+***Optional***
+
+- `gpu_partition_size` (String) GPU partition size. Example: 1g.5gb
+- `accelerator_sharing` (Block List, Max: 1) Accelerator sharing settings (see [below for nested schema](#nestedblock--spec--config--node_pools--machine_config--accelerator_sharing))
+
+<a id="nestedblock--spec--config--node_pools--machine_config--accelerator_sharing"></a>
+### Nested Schema for `spec.config.node_pools.machine_config.accelerator_sharing`
+
+***Required***
+
+- `strategy` (String) Accelerator sharing strategy. Example: TIME_SHARING
+- `max_shared_clients` (Number) Maximum number of shared clients. Example: 2
+
+<a id="nestedblock--spec--config--node_pools--machine_config--gpu_driver_installation"></a>
+### Nested Schema for `spec.config.node_pools.machine_config.gpu_driver_installation`
+
+***Required***
+
+- `type` (String) Type of GPU driver. Example: google-managed, user-managed
+
+***Optional***
+
+- `config` (Block List, Max: 1) GPU driver installation settings (see [below for nested schema](#nestedblock--spec--config--node_pools--machine_config--gpu_driver_installation--config))
+
+<a id="nestedblock--spec--config--node_pools--machine_config--gpu_driver_installation--config"></a>
+### Nested Schema for `spec.config.node_pools.machine_config.gpu_driver_installation.config`
+
+***Required***
+
+- `version` (String) GPU driver version. Example: DEFAULT/LATEST. Only supported for installation type `google-managed`.
+
 
 <a id="nestedblock--spec--config--node_pools--machine_config--reservation_affinity"></a>
 ### Nested Schema for `spec.config.node_pools.machine_config.reservation_affinity`

@@ -454,6 +454,44 @@ func expandDriverHttpConfig(p []interface{}) *eaaspb.HTTPDriverConfig {
 	return &hc
 }
 
+func expandDriverCompoundRef(p []interface{}) *eaaspb.DriverCompoundRef {
+	driver := &eaaspb.DriverCompoundRef{}
+	if len(p) == 0 || p[0] == nil {
+		return driver
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		driver.Name = v
+	}
+
+	if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
+		driver.Data = expandDriverInline(v)
+	}
+
+	return driver
+}
+
+func expandDriverInline(p []interface{}) *eaaspb.DriverInline {
+	driver := &eaaspb.DriverInline{}
+	if len(p) == 0 || p[0] == nil {
+		return driver
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+		driver.Config = expandDriverConfig(v)
+	}
+
+	if v, ok := in["inputs"].([]interface{}); ok && len(v) > 0 {
+		driver.Inputs = expandConfigContextCompoundRefs(v)
+	}
+
+	return driver
+}
+
 // Flatteners
 
 func flattenDriver(d *schema.ResourceData, in *eaaspb.Driver) error {
@@ -794,6 +832,10 @@ func expandContainerDriverVolumeOptions(p []interface{}) []*eaaspb.ContainerDriv
 			volume.UsePVC = expandBoolValue(usepvc)
 		}
 
+		if enableBackupAndRestore, ok := in["enable_backup_and_restore"].(bool); ok {
+			volume.EnableBackupAndRestore = enableBackupAndRestore
+		}
+
 		volumes = append(volumes, volume)
 
 	}
@@ -827,6 +869,8 @@ func flattenContainerDriverVolumeOptions(input []*eaaspb.ContainerDriverVolumeOp
 			obj["pvc_storage_class"] = in.PvcStorageClass
 		}
 
+		obj["enable_backup_and_restore"] = in.EnableBackupAndRestore
+
 		out[i] = &obj
 	}
 
@@ -834,7 +878,6 @@ func flattenContainerDriverVolumeOptions(input []*eaaspb.ContainerDriverVolumeOp
 }
 
 func resourceDriverImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
-
 	log.Printf("Driver Import Starts")
 
 	idParts := strings.SplitN(d.Id(), "/", 2)
@@ -858,5 +901,34 @@ func resourceDriverImport(d *schema.ResourceData, m interface{}) ([]*schema.Reso
 	}
 	d.SetId(cc.Metadata.Name)
 	return []*schema.ResourceData{d}, nil
+}
 
+func flattenDriverCompoundRef(input *eaaspb.DriverCompoundRef) []interface{} {
+	log.Println("flatten driver compound ref start")
+	if input == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(input.Name) > 0 {
+		obj["name"] = input.Name
+	}
+	if input.Data != nil {
+		obj["data"] = flattenDriverInline(input.Data)
+	}
+	return []interface{}{obj}
+}
+
+func flattenDriverInline(input *eaaspb.DriverInline) []interface{} {
+	log.Println("flatten driver inline start")
+	if input == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if input.Config != nil {
+		obj["config"] = flattenDriverConfig(input.Config, []interface{}{})
+	}
+	if len(input.Inputs) > 0 {
+		obj["inputs"] = flattenConfigContextCompoundRefs(input.Inputs)
+	}
+	return []interface{}{obj}
 }

@@ -1559,7 +1559,7 @@ func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
 		}
 
 		if n, ok := in["driver"].([]interface{}); ok && len(n) > 0 {
-			hook.Driver = expandDriverResourceRef(n)
+			hook.Driver = expandWorkflowHandlerCompoundRef(n)
 		}
 
 		hooks = append(hooks, hook)
@@ -1822,7 +1822,7 @@ func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		obj["agents"] = flattenEaasAgents(in.Agents)
 		obj["timeout_seconds"] = in.TimeoutSeconds
 		obj["on_failure"] = in.OnFailure
-		obj["driver"] = flattenDriverResourceRef(in.Driver)
+		obj["driver"] = flattenWorkflowHandlerCompoundRef(in.Driver)
 
 		out[i] = &obj
 		log.Println("flatten hook setting object ", out[i])
@@ -2106,4 +2106,195 @@ func validateResourceName(name string) error {
 func checkStandardInputTextError(input string) bool {
 	dns1123ValidationErrMsg := "a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters"
 	return strings.Contains(input, dns1123ValidationErrMsg)
+}
+
+func expandWorkflowHandlerCompoundRef(p []interface{}) *eaaspb.WorkflowHandlerCompoundRef {
+	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
+	if len(p) == 0 || p[0] == nil {
+		return wfHandler
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		wfHandler.Name = v
+	}
+
+	if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
+		wfHandler.Data = expandWorkflowHandlerInline(v)
+	}
+
+	return wfHandler
+}
+
+func expandWorkflowHandlerInline(p []interface{}) *eaaspb.WorkflowHandlerInline {
+	wfHandlerInline := &eaaspb.WorkflowHandlerInline{}
+	if len(p) == 0 || p[0] == nil {
+		return wfHandlerInline
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+		wfHandlerInline.Config = expandWorkflowHandlerConfig(v)
+	}
+
+	if v, ok := in["inputs"].([]interface{}); ok && len(v) > 0 {
+		wfHandlerInline.Inputs = expandConfigContextCompoundRefs(v)
+	}
+
+	return wfHandlerInline
+}
+
+func expandWorkflowHandlerConfig(p []interface{}) *eaaspb.WorkflowHandlerConfig {
+	config := eaaspb.WorkflowHandlerConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return &config
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if typ, ok := in["type"].(string); ok && len(typ) > 0 {
+		config.Type = typ
+	}
+
+	if ts, ok := in["timeout_seconds"].(int); ok {
+		config.TimeoutSeconds = int64(ts)
+	}
+
+	if sc, ok := in["success_condition"].(string); ok && len(sc) > 0 {
+		config.SuccessCondition = sc
+	}
+
+	if ts, ok := in["max_retry_count"].(int); ok {
+		config.MaxRetryCount = int32(ts)
+	}
+
+	if v, ok := in["container"].([]interface{}); ok && len(v) > 0 {
+		config.Container = expandDriverContainerConfig(v)
+	}
+
+	if v, ok := in["http"].([]interface{}); ok && len(v) > 0 {
+		config.Http = expandDriverHttpConfig(v)
+	}
+
+	if v, ok := in["polling_config"].([]interface{}); ok && len(v) > 0 {
+		config.PollingConfig = expandPollingConfig(v)
+	}
+
+	return &config
+}
+
+func expandPollingConfig(p []interface{}) *eaaspb.PollingConfig {
+	pc := &eaaspb.PollingConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return pc
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["repeat"].(string); ok {
+		pc.Repeat = h
+	}
+
+	if h, ok := in["until"].(string); ok {
+		pc.Until = h
+	}
+
+	return pc
+}
+
+func flattenWorkflowHandlerCompoundRef(input *eaaspb.WorkflowHandlerCompoundRef) []interface{} {
+	log.Println("flatten workflow handler compound ref start")
+	if input == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(input.Name) > 0 {
+		obj["name"] = input.Name
+	}
+	if input.Data != nil {
+		obj["data"] = flattenWorkflowHandlerInline(input.Data)
+	}
+	return []interface{}{obj}
+}
+
+func flattenWorkflowHandlerInline(input *eaaspb.WorkflowHandlerInline) []interface{} {
+	log.Println("flatten workflow handler inline start")
+	if input == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if input.Config != nil {
+		obj["config"] = flattenWorkflowHandlerConfig(input.Config, []interface{}{})
+	}
+	if len(input.Inputs) > 0 {
+		obj["inputs"] = flattenConfigContextCompoundRefs(input.Inputs)
+	}
+	return []interface{}{obj}
+}
+
+func flattenWorkflowHandlerConfig(input *eaaspb.WorkflowHandlerConfig, p []interface{}) []interface{} {
+	log.Println("flatten workflow handler config start", input)
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) > 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(input.Type) > 0 {
+		obj["type"] = input.Type
+	}
+
+	obj["timeout_seconds"] = input.TimeoutSeconds
+
+	if len(input.SuccessCondition) > 0 {
+		obj["success_condition"] = input.SuccessCondition
+	}
+
+	obj["max_retry_count"] = input.MaxRetryCount
+
+	if input.Container != nil {
+		v, ok := obj["container"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["container"] = flattenDriverContainerConfig(input.Container, v)
+	}
+
+	if input.Http != nil {
+		v, ok := obj["http"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["http"] = flattenDriverHttpConfig(input.Http, v)
+	}
+
+	if input.PollingConfig != nil {
+		v, ok := obj["polling_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["polling_config"] = flattenPollingConfig(input.PollingConfig, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenPollingConfig(in *eaaspb.PollingConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["repeat"] = in.Repeat
+	obj["until"] = in.Until
+
+	return []interface{}{obj}
 }

@@ -22,6 +22,9 @@ const (
 
 	GKE_NODEPOOL_UPGRADE_STRATEGY_SURGE      = "SURGE"
 	GKE_NODEPOOL_UPGRADE_STRATEGY_BLUE_GREEN = "BLUE_GREEN"
+
+	GKE_ACCELERATOR_GOOGLE_DRIVER_INSTALATION = "google-managed"
+	GKE_ACCELERATOR_USER_DRIVER_INSTALATION   = "user-managed"
 )
 
 type AksNodepoolsErrorFormatter struct {
@@ -76,7 +79,6 @@ func expandV3SystemComponentsPlacement(p []interface{}) *infrapb.SystemComponent
 		obj.DaemonSetOverride = expandV3DaemonsetOverride(v)
 	}
 
-	log.Println("expandClusterV3Blueprint obj", obj)
 	return &obj
 }
 

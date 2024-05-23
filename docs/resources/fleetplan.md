@@ -60,6 +60,20 @@ resource "rafay_fleetplan" "demo-fleetplan" {
                         memory_limit_mb = "100"
                         working_dir_path = "/var/"
                     }
+                    succes_condition = "if #status.container.exitCode == 0 { success: true }"
+                    continue_on_failure = true
+                }
+            }
+            operations {
+                name = "op4"
+                action {
+                    name = "action4"
+                    type = "blueprintUpdate"
+                    description = "updating blueprint with named action"
+                    blueprint_update_config {
+                        name = "default"
+                        version = "latest"
+                    }
                 }
             }
         }
@@ -216,7 +230,7 @@ Optional:
 ***Required*** 
 
 - `name` (String) The name of the action.
-- `type` (String) The type of action. The supported values are `controlPlaneUpgrade`, `nodeGroupsUpgrade`, `nodeGroupsAndControlPlaneUpgrade` and `patch`
+- `type` (String) The type of action. The supported values are `controlPlaneUpgrade`, `nodeGroupsUpgrade`, `nodeGroupsAndControlPlaneUpgrade`, `blueprintUpdate` and `patch`
 
 **Note**:
 - One of the following configuration is required based on value of of the `type`
@@ -224,11 +238,25 @@ Optional:
 - `control_plane_upgrade_config` (Block List, Max: 1) Configuration for control plane upgrade action, used for upgrading the control plane only. (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks--control_plane_upgrade_config))
 - `node_groups_upgrade_config` (Block List, Max: 1)  Configuration for node group upgrade action, used for upgrading the node group only (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks--node_groups_upgrade_config))
 - `node_groups_and_control_plane_upgrade_config` (Block List, Max: 1)  Configuration for control plane and node group upgrade action, used for upgrading the both    (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks--node_groups_and_control_plane_upgrade_config))
+- `blueprint_update_config` (Block List, Max: 1)  Configuration for blueprint update action    (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--prehooks--blueprint_update_config))
 - `patch_config` (Block List, Max: 1) A cluster configuration file can be partially modified using a patch operation. YAML patch is used to update & modify specific fields in the configuration file. (see [below for nested schema](#nestedblock--spec--operation_workflow--operations--action--patch_config))
 
 ***Optional***
 
 - `description` (String) Description of action
+- `continue_on_failure` (Bool) Decides whether to proceed forward if the hook fails
+
+<a id="nestedblock--spec--operation_workflow--operations--prehooks--blueprint_update_config"></a>
+### Nested Schema for `spec.operation_workflow.operations.action.blueprint_update_config`
+
+***Required***
+
+- `name` (String) blueprint name required to be updated.
+
+***Optional***
+
+- `version` (String) blueprint version to be updated.
+
 
 <a id="nestedblock--spec--operation_workflow--operations--action--control_plane_upgrade_config"></a>
 ### Nested Schema for `spec.operation_workflow.operations.action.control_plane_upgrade_config`
@@ -277,6 +305,9 @@ Optional:
 
 - `description` (String) A description of the pre-hook.
 - `inject` (List of String): Specifies environment variables to inject into the container. By default, only `KUBECONFIG` is available, which can be used to set up the connection to the target clusters.
+- `success_condition` (String) A cue lang syntax to decide the success of the hook
+    -  Example: `"if #status.container.exitCode == 0 { success: true }"`
+- `continue_on_failure` (Bool) Decides whether to proceed forward if the hook fails
 
 <a id="nestedblock--spec--operation_workflow--operations--posthooks"></a>
 ### Nested Schema for `spec.operation_workflow.operations.posthooks`
@@ -290,6 +321,9 @@ Optional:
 
 - `description` (String) Description of the post-hook.
 - `inject` (List of String) Specifies environment variables to inject into the container. By default, only `KUBECONFIG` is available, which can be used to set up the connection to the target clusters.
+- `success_condition` (String) A cue lang syntax to decide the success of the hook
+    -  Example: `"if #status.container.exitCode == 0 { success: true }"`
+- `continue_on_failure` (Bool) Decides whether to proceed forward if the hook fails
 
 <a id="nestedblock--spec--operation_workflow--operations--hooks--container_config"></a>
 ### Nested Schema for `spec.operation_workflow.operations.prehooks.container_config` and `spec.operation_workflow.operations.posthooks.container_config`

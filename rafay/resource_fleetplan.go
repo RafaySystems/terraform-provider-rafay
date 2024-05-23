@@ -249,7 +249,19 @@ func flattenAction(action *infrapb.ActionSpec) []interface{} {
 	obj["node_groups_and_control_plane_upgrade_config"] = flattenNodeGroupsAndControlPlaneUpgradeConfig(action.NodeGroupsAndControlPlaneUpgradeConfig)
 	obj["node_groups_upgrade_config"] = flattenNodeGroupsUpgradeConfig(action.NodeGroupsUpgradeConfig)
 	obj["patch_config"] = flattenPatchConfig(action.PatchConfig)
+	obj["blueprint_update_config"] = flattenBlueprintUpdateConfig(action.BlueprintUpdateConfig)
+	obj["continue_on_failure"] = action.ContinueOnFailure
 
+	return []interface{}{obj}
+}
+
+func flattenBlueprintUpdateConfig(config *infrapb.BlueprintUpdateConfigSpec) []interface{} {
+	if config == nil {
+		return []interface{}{}
+	}
+	obj := make(map[string]interface{})
+	obj["name"] = config.Name
+	obj["version"] = config.Version
 	return []interface{}{obj}
 }
 
@@ -345,6 +357,8 @@ func flattenHook(hook *infrapb.HookSpec) map[string]interface{} {
 	obj["container_config"] = flattenContainerConfig(hook.ContainerConfig)
 	obj["http_config"] = flattenHTTPConfig(hook.HttpConfig)
 	obj["timeout_seconds"] = hook.TimeoutSeconds
+	obj["continue_on_failure"] = hook.ContinueOnFailure
+	obj["success_condition"] = hook.SuccessCondition
 	return obj
 }
 
@@ -564,8 +578,33 @@ func expandAction(in []interface{}) *infrapb.ActionSpec {
 		obj.PatchConfig = expandPatchConfig(v)
 	}
 
+	if v, ok := v["blueprint_update_config"].([]interface{}); ok {
+		obj.BlueprintUpdateConfig = expandBlueprintConfig(v)
+	}
+
+	if v, ok := v["continue_on_failure"].(bool); ok {
+		obj.ContinueOnFailure = v
+	}
+
 	return obj
 
+}
+
+func expandBlueprintConfig(in []interface{}) *infrapb.BlueprintUpdateConfigSpec {
+	obj := &infrapb.BlueprintUpdateConfigSpec{}
+	if len(in) == 0 || in[0] == nil {
+		return nil
+	}
+
+	v := in[0].(map[string]interface{})
+	if v, ok := v["name"].(string); ok {
+		obj.Name = v
+	}
+
+	if v, ok := v["version"].(string); ok {
+		obj.Version = v
+	}
+	return obj
 }
 
 func expandControlPlaneUpgradeConfig(in []interface{}) *infrapb.ControlPlaneUpgradeConfigSpec {
@@ -670,6 +709,12 @@ func expandHooks(in []interface{}) []*infrapb.HookSpec {
 		}
 		if val, ok := inH["timeout_seconds"]; ok {
 			outHook.TimeoutSeconds = int64(val.(int))
+		}
+		if val, ok := inH["success_condition"].(string); ok {
+			outHook.SuccessCondition = val
+		}
+		if val, ok := inH["continue_on_failure"].(bool); ok {
+			outHook.ContinueOnFailure = val
 		}
 
 		outHooks = append(outHooks, outHook)

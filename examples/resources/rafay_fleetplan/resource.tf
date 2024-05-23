@@ -1,7 +1,7 @@
 resource "rafay_fleetplan" "fp1" {
   metadata {
     name    = "fleetplan1"
-    project = "terraform"
+    project = "defaultproject"
   }
   spec {
     fleet {
@@ -11,7 +11,7 @@ resource "rafay_fleetplan" "fp1" {
       }
 
       projects {
-        name = "terraform"
+        name = "defaultproject"
       }
     }
 
@@ -70,6 +70,7 @@ resource "rafay_fleetplan" "fp1" {
             path  = ".spec.blueprintConfig.name"
             value = jsonencode("minimal")
           }
+          continue_on_failure = true
           name = "action2"
         }
         posthooks {
@@ -83,6 +84,7 @@ resource "rafay_fleetplan" "fp1" {
             image     = "bitnami/kubectl"
             arguments = ["get", "po", "-A"]
           }
+          success_condition = "if #status.container.exitCode == 0 { success: true }"
         }
       }
       operations {
@@ -94,6 +96,18 @@ resource "rafay_fleetplan" "fp1" {
           node_groups_upgrade_config {
             version = "1.25"
             names   = ["ng1", "ng2"]
+          }
+        }
+      }
+      operations {
+        name = "op4"
+        action {
+          name = "action4"
+          type = "blueprintUpdate"
+          description = "updating blueprint with named action"
+          blueprint_update_config {
+            name = "default"
+            version = "latest"
           }
         }
       }

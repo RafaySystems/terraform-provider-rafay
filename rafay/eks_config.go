@@ -17,7 +17,7 @@ type EKSSpec struct {
 	ProxyConfig               *ProxyConfig               `yaml:"proxyconfig,omitempty"`
 	CniParams                 *CustomCni                 `yaml:"cniparams,omitempty"`
 	SystemComponentsPlacement *SystemComponentsPlacement `yaml:"systemComponentsPlacement,omitempty"`
-	Sharing                   *EKSClusterSharing         `yaml:"sharing,omitempty"`
+	Sharing                   *V1ClusterSharing          `yaml:"sharing,omitempty"`
 }
 
 type ProxyConfig struct {
@@ -44,15 +44,6 @@ type EKSClusterMetadata struct {
 	Name    string            `yaml:"name,omitempty"`
 	Project string            `yaml:"project,omitempty"`
 	Labels  map[string]string `yaml:"labels,omitempty"`
-}
-
-type EKSClusterSharing struct {
-	Enabled  *bool                       `yaml:"enabled,omitempty"`
-	Projects []*EKSClusterSharingProject `yaml:"projects,omitempty"`
-}
-
-type EKSClusterSharingProject struct {
-	Name string `yaml:"name,omitempty"`
 }
 
 // KubernetesNetworkConfig struct for eks cluster config sped (second part of the yaml file kind:clusterConfig)
@@ -260,13 +251,20 @@ type WellKnownPolicies struct {
 
 // InlineDocument map[string]interface{}
 type InlineDocument struct {
-	Version   string          `yaml:"Version,omitempty"`
-	Statement InlineStatement `yaml:"Statement,omitempty"`
+	Id        string            `yaml:"Id,omitempty" json:"Id,omitempty"`
+	Statement []InlineStatement `yaml:"Statement,omitempty" json:"Statement,omitempty"`
+	Version   string            `yaml:"Version,omitempty" json:"Version,omitempty"`
 }
 type InlineStatement struct {
-	Effect   string   `yaml:"Effect,omitempty"`
-	Action   []string `yaml:"Action,omitempty"`
-	Resource string   `yaml:"Resource,omitempty"`
+	Action       interface{}            `yaml:"Action,omitempty" json:"Action,omitempty"`
+	Condition    map[string]interface{} `yaml:"Condition,omitempty" json:"Condition,omitempty"`
+	Effect       string                 `yaml:"Effect,omitempty" json:"Effect,omitempty"`
+	NotAction    interface{}            `yaml:"NotAction,omitempty" json:"NotAction,omitempty"`
+	NotPrincipal map[string]interface{} `yaml:"NotPrincipal,omitempty" json:"NotPrincipal,omitempty"`
+	NotResource  interface{}            `yaml:"NotResource,omitempty" json:"NotResource,omitempty"`
+	Principal    map[string]interface{} `yaml:"Principal,omitempty" json:"Principal,omitempty"`
+	Resource     interface{}            `yaml:"Resource,omitempty" json:"Resource,omitempty"`
+	Sid          string                 `yaml:"Sid,omitempty" json:"Sid,omitempty"`
 }
 
 type ClusterIAMServiceAccountStatus struct {

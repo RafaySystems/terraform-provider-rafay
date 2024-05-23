@@ -1695,7 +1695,7 @@ func flattenComponenetCriticality(input []*infrapb.SnapshotRef, p []interface{})
 			obj["version"] = in.Version
 		}
 		if len(in.ComponentType) > 0 {
-			obj["componentType"] = in.Version
+			obj["componentType"] = in.ComponentType
 		}
 		if len(in.DependsOn) > 0 {
 			obj["dependsOn"] = in.DependsOn

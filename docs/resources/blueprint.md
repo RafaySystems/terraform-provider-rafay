@@ -411,6 +411,7 @@ resource "rafay_blueprint" "cost-blueprint" {
 ***Optional***
 
 - `custom_addons` - (Block List) A list of custom add-ons for the resource. (See [below for nested schema](#nestedblock--spec--custom_addons))
+- `components_criticality` - (Block list) A list of add-ons which are most critical.(See [below for nested schema](#nestedblock--spec--components_criticality))
 - `default_addons` - (Block List) A list of default add-ons for the resource. (See [below for nested schema](#nestedblock--spec--default_addons)) 
 - `drift` - (Block List, Max: 1) Prevents configuration drift. Drift is a change to your live cluster that is different from the source of truth. (See [below for nested schema](#nestedblock--spec--drift))
 - `placement` - (Block List, Max: 1) Defines the cluster(s) where blueprint will be published. (See [below for nested schema](#nestedblock--spec--placement))
@@ -444,6 +445,12 @@ resource "rafay_blueprint" "cost-blueprint" {
 
 - `depends_on` - (List of String) A list of add-ons the current add-on depends on. 
 
+<a id="nestedblock--spec--components_criticality"></a>
+### Nested Schema for `spec.components_criticality`
+
+***Required***
+
+- `name` - (String) The name of the blueprint add-on which one it critical. 
 
 <a id="nestedblock--spec--default_addons"></a>
 ### Nested Schema for `spec.default_addons`

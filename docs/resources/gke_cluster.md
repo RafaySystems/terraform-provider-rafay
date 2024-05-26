@@ -41,6 +41,8 @@ resource "rafay_gke_cluster" "tf-example" {
         subnet_name = "default"
         enable_vpc_nativetraffic = "true"
         max_pods_per_node        = 110
+        # data_plane_v_2            = "ADVANCED_DATAPATH"
+        network_policy    = "CALICO"
         access {
           type = "public"
         }
@@ -263,6 +265,8 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `service_address_range` (String) Cluster services will be assigned an IP address from this IP address range. Enter a range (in CIDR notation) within a network range, a mask, or leave this field blank to use a default range.
 - `pod_secondary_range_name` (String) Cluster pods are assigned an IP from the selected node subnet's secondary CIDR address range.
 - `service_secondary_range_name` (String) Cluster services are assigned an IP from the selected node subnetes secondary CIDR address range.
+- `data_plane_v_2` (String) Dataplane V2 is optimized for Kubernetes networking which is implemented using eBPF. Supported value is `ADVANCED_DATAPATH`. 
+- `network_policy` (String) The Kubernetes Network Policy API allows the cluster administrator to specify what pods are allowed to communicate with each other. Cannot use with `data_plane_v_2` config. Supported value is `CALICO`.
 
 <a id="nestedblock--spec--config--network--access"></a>
 ### Nested Schema for `spec.config.network.access`

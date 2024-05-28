@@ -5245,9 +5245,11 @@ func flattenNodeGroupIAM(in *NodeGroupIAM, rawState cty.Value, p []interface{}) 
 	}
 
 	isPolicyV2 := func(rawState cty.Value) bool {
-		iamSpec := rawState.AsValueSlice()[0]
-		if attachPolicyV2, ok := iamSpec.AsValueMap()["attach_policy_v2"]; ok {
-			return attachPolicyV2.AsString() != ""
+		if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+			iamSpec := rawState.AsValueSlice()[0]
+			if attachPolicyV2, ok := iamSpec.AsValueMap()["attach_policy_v2"]; ok {
+				return attachPolicyV2.AsString() != ""
+			}
 		}
 		return false
 	}

@@ -2209,7 +2209,9 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-	rawConfig = rawConfig.AsValueSlice()[0]
+	if !rawConfig.IsNull() && len(rawConfig.AsValueSlice()) > 0 {
+		rawConfig = rawConfig.AsValueSlice()[0]
+	}
 	if v, ok := in["kind"].(string); ok && len(v) > 0 {
 		obj.Kind = v
 	}
@@ -2239,10 +2241,18 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 		obj.NodeGroups = expandNodeGroups(v)
 	}
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
-		obj.VPC = expandVPC(v, rawConfig.GetAttr("vpc"))
+		var nRawConfig cty.Value
+		if !rawConfig.IsNull() {
+			nRawConfig = rawConfig.GetAttr("vpc")
+		}
+		obj.VPC = expandVPC(v, nRawConfig)
 	}
 	if v, ok := in["managed_nodegroups"].([]interface{}); ok && len(v) > 0 {
-		obj.ManagedNodeGroups = expandManagedNodeGroups(v, rawConfig.GetAttr("managed_nodegroups"))
+		var nRawConfig cty.Value
+		if !rawConfig.IsNull() {
+			nRawConfig = rawConfig.GetAttr("managed_nodegroups")
+		}
+		obj.ManagedNodeGroups = expandManagedNodeGroups(v, nRawConfig)
 	}
 	if v, ok := in["fargate_profiles"].([]interface{}); ok && len(v) > 0 {
 		obj.FargateProfiles = expandFargateProfiles(v)
@@ -2604,7 +2614,7 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 	for i := range p {
 		obj := &ManagedNodeGroup{}
 		in := p[i].(map[string]interface{})
-		nRawConfig := rawConfig.AsValueSlice()[i]
+		// nRawConfig := rawConfig.AsValueSlice()[i]
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
 		}
@@ -2657,7 +2667,11 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 			obj.AMI = v
 		}
 		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
-			obj.SecurityGroups = expandManagedNodeGroupSecurityGroups(v, nRawConfig.GetAttr("security_groups"))
+			var nRawConfig cty.Value
+			if !rawConfig.IsNull() && i < len(rawConfig.AsValueSlice()) {
+				nRawConfig = rawConfig.AsValueSlice()[i].GetAttr("security_groups")
+			}
+			obj.SecurityGroups = expandManagedNodeGroupSecurityGroups(v, nRawConfig)
 		}
 		if v, ok := in["max_pods_per_node"].(int); ok {
 			obj.MaxPodsPerNode = &v
@@ -3149,19 +3163,27 @@ func expandManagedNodeGroupSecurityGroups(p []interface{}, rawConfig cty.Value) 
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-	rawConfig = rawConfig.AsValueSlice()[0]
+	if !rawConfig.IsNull() && len(rawConfig.AsValueSlice()) > 0 {
+		rawConfig = rawConfig.AsValueSlice()[0]
+	}
 
 	if v, ok := in["attach_ids"].([]interface{}); ok && len(v) > 0 {
 		obj.AttachIDs = toArrayString(v)
 	}
 
-	rawWithShared := rawConfig.GetAttr("with_shared")
+	var rawWithShared cty.Value
+	if !rawConfig.IsNull() {
+		rawWithShared = rawConfig.GetAttr("with_shared")
+	}
 	if !rawWithShared.IsNull() {
 		boolVal := rawWithShared.True()
 		obj.WithShared = &boolVal
 	}
 
-	rawWithLocal := rawConfig.GetAttr("with_local")
+	var rawWithLocal cty.Value
+	if !rawConfig.IsNull() {
+		rawWithLocal = rawConfig.GetAttr("with_shared")
+	}
 	if !rawWithLocal.IsNull() {
 		boolVal := rawWithLocal.True()
 		obj.WithLocal = &boolVal
@@ -3458,7 +3480,9 @@ func expandVPC(p []interface{}, rawConfig cty.Value) *EKSClusterVPC {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-	rawConfig = rawConfig.AsValueSlice()[0]
+	if !rawConfig.IsNull() && len(rawConfig.AsValueSlice()) > 0 {
+		rawConfig = rawConfig.AsValueSlice()[0]
+	}
 
 	if v, ok := in["id"].(string); ok && len(v) > 0 {
 		obj.ID = v
@@ -3487,7 +3511,10 @@ func expandVPC(p []interface{}, rawConfig cty.Value) *EKSClusterVPC {
 	if v, ok := in["shared_node_security_group"].(string); ok && len(v) > 0 {
 		obj.SharedNodeSecurityGroup = v
 	}
-	rawManageSharedNodeSecurityGroupRules := rawConfig.GetAttr("manage_shared_node_security_group_rules")
+	var rawManageSharedNodeSecurityGroupRules cty.Value
+	if !rawConfig.IsNull() {
+		rawManageSharedNodeSecurityGroupRules = rawConfig.GetAttr("manage_shared_node_security_group_rules")
+	}
 	if !rawManageSharedNodeSecurityGroupRules.IsNull() {
 		boolVal := rawManageSharedNodeSecurityGroupRules.True()
 		obj.ManageSharedNodeSecurityGroupRules = &boolVal
@@ -3933,7 +3960,9 @@ func flattenEKSCluster(in *EKSCluster, p []interface{}, rawState cty.Value) ([]i
 	if in == nil {
 		return nil, fmt.Errorf("empty cluster input")
 	}
-	rawState = rawState.AsValueSlice()[0]
+	if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+		rawState = rawState.AsValueSlice()[0]
+	}
 
 	if len(in.Kind) > 0 {
 		obj["kind"] = in.Kind
@@ -3962,7 +3991,11 @@ func flattenEKSCluster(in *EKSCluster, p []interface{}, rawState cty.Value) ([]i
 		if !ok {
 			v = []interface{}{}
 		}
-		ret2, err = flattenEKSClusterSpec(in.Spec, v, rawState.GetAttr("spec"))
+		var nRawState cty.Value
+		if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+			nRawState = rawState.GetAttr("spec")
+		}
+		ret2, err = flattenEKSClusterSpec(in.Spec, v, nRawState)
 		if err != nil {
 			log.Println("flattenEKSClusterSpec err")
 			return nil, err
@@ -4000,7 +4033,13 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}, rawState cty.Value) ([]
 		return nil, fmt.Errorf("%s", "flattenEKSClusterMetaData empty input")
 	}
 	obj := map[string]interface{}{}
-	rawState = rawState.AsValueSlice()[0]
+
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+		rawState = rawState.AsValueSlice()[0]
+	}
 
 	if len(in.Type) > 0 {
 		obj["type"] = in.Type
@@ -4025,7 +4064,11 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}, rawState cty.Value) ([]
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["cni_params"] = flattenCNIParams(in.CniParams, v, rawState.GetAttr("cni_params"))
+		var nRawState cty.Value
+		if !rawState.IsNull() {
+			nRawState = rawState.GetAttr("cni_params")
+		}
+		obj["cni_params"] = flattenCNIParams(in.CniParams, v, nRawState)
 	}
 	if in.ProxyConfig != nil {
 		obj["proxy_config"] = flattenProxyConfig(in.ProxyConfig)
@@ -4050,7 +4093,9 @@ func flattenCNIParams(in *CustomCni, p []interface{}, rawState cty.Value) []inte
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
-	rawState = rawState.AsValueSlice()[0]
+	if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+		rawState = rawState.AsValueSlice()[0]
+	}
 
 	if len(in.CustomCniCidr) > 0 {
 		obj["custom_cni_cidr"] = in.CustomCniCidr
@@ -4060,7 +4105,11 @@ func flattenCNIParams(in *CustomCni, p []interface{}, rawState cty.Value) []inte
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["custom_cni_crd_spec"] = flattenCustomCNISpec(in.CustomCniCrdSpec, v, rawState.GetAttr("custom_cni_crd_spec"))
+		var nRawState cty.Value
+		if !rawState.IsNull() {
+			nRawState = rawState.GetAttr("custom_cni_crd_spec")
+		}
+		obj["custom_cni_crd_spec"] = flattenCustomCNISpec(in.CustomCniCrdSpec, v, nRawState)
 	}
 
 	return []interface{}{obj}
@@ -4198,7 +4247,9 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		return nil, fmt.Errorf("empty cluster config input")
 	}
 	obj := map[string]interface{}{}
-	rawState = rawState.AsValueSlice()[0]
+	if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+		rawState = rawState.AsValueSlice()[0]
+	}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -4245,7 +4296,11 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		if !ok {
 			v = []interface{}{}
 		}
-		ret3, err = flattenEKSClusterIAM(in.IAM, rawState.GetAttr("iam"), v)
+		var nRawState cty.Value
+		if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+			nRawState = rawState.GetAttr("iam")
+		}
+		ret3, err = flattenEKSClusterIAM(in.IAM, nRawState, v)
 		if err != nil {
 			log.Println("flattenEKSClusterIAM err")
 			return nil, err
@@ -4287,7 +4342,11 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		if !ok {
 			v = []interface{}{}
 		}
-		ret6, err = flattenEKSClusterAddons(in.Addons, rawState.GetAttr("addons"), v)
+		var nRawState cty.Value
+		if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+			nRawState = rawState.GetAttr("addons")
+		}
+		ret6, err = flattenEKSClusterAddons(in.Addons, nRawState, v)
 		if err != nil {
 			log.Println("flattenEKSClusterAddons err")
 			return nil, err
@@ -4316,7 +4375,11 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		if !ok {
 			v = []interface{}{}
 		}
-		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, rawState.GetAttr("node_groups"), v)
+		var nRawState cty.Value
+		if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+			nRawState = rawState.GetAttr("node_groups")
+		}
+		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, nRawState, v)
 		/*
 			if err != nil {
 				log.Println("flattenEKSClusterNodeGroups err")
@@ -4332,7 +4395,11 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		if !ok {
 			v = []interface{}{}
 		}
-		ret9, err = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, rawState.GetAttr("managed_nodegroups"), v)
+		var nRawState cty.Value
+		if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+			nRawState = rawState.GetAttr("managed_nodegroups")
+		}
+		ret9, err = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, nRawState, v)
 		if err != nil {
 			log.Println("flattenEKSClusterManagedNodeGroups err")
 			return nil, err
@@ -4425,7 +4492,9 @@ func flattenEKSClusterKubernetesNetworkConfig(in *KubernetesNetworkConfig, p []i
 }
 func flattenEKSClusterIAM(in *EKSClusterIAM, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	obj := map[string]interface{}{}
-	rawState = rawState.AsValueSlice()[0]
+	if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+		rawState = rawState.AsValueSlice()[0]
+	}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -4453,7 +4522,11 @@ func flattenEKSClusterIAM(in *EKSClusterIAM, rawState cty.Value, p []interface{}
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["service_accounts"] = flattenIAMServiceAccounts(in.ServiceAccounts, rawState.GetAttr("service_accounts"), v)
+		var nRawState cty.Value
+		if !rawState.IsNull() {
+			nRawState = rawState.GetAttr("service_accounts")
+		}
+		obj["service_accounts"] = flattenIAMServiceAccounts(in.ServiceAccounts, nRawState, v)
 	}
 
 	obj["vpc_resource_controller_policy"] = in.VPCResourceControllerPolicy
@@ -4462,6 +4535,9 @@ func flattenEKSClusterIAM(in *EKSClusterIAM, rawState cty.Value, p []interface{}
 }
 
 func flattenIAMServiceAccountMetadata(in *EKSClusterIAMMeta, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -4938,7 +5014,7 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 		for _, addon := range rawState.AsValueSlice() {
 			if addonName, ok := addon.AsValueMap()["name"]; ok {
 				if attachPolicyVersion, ok := addon.AsValueMap()["attach_policy_v2"]; ok {
-					//log.Println("isPolicyV2 check:", addonName.AsString(), name, attachPolicyVersion.AsString())
+					// log.Println("isPolicyV2 check:", addonName.AsString(), name, attachPolicyVersion.AsString())
 					if addonName.AsString() == name && attachPolicyVersion.AsString() != "" {
 						return true
 					}
@@ -4949,10 +5025,12 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 	}
 
 	isSetInState := func(rawState cty.Value, name string) bool {
-		for _, addon := range rawState.AsValueSlice() {
-			if addonName, ok := addon.AsValueMap()["name"]; ok {
-				if addonName.AsString() == name {
-					return true
+		if !rawState.IsNull() {
+			for _, addon := range rawState.AsValueSlice() {
+				if addonName, ok := addon.AsValueMap()["name"]; ok {
+					if addonName.AsString() == name {
+						return true
+					}
 				}
 			}
 		}
@@ -5093,7 +5171,6 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 	out := make([]interface{}, len(inp))
 	for i, in := range inp {
 		obj := map[string]interface{}{}
-		nRawState := rawState.AsValueSlice()[i]
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
@@ -5111,10 +5188,18 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 			obj["instance_type"] = in.InstanceType
 		}
 		if len(in.AvailabilityZones) > 0 {
-			obj["availability_zones"] = flattenListOfString(in.AvailabilityZones, nRawState.GetAttr("availability_zones"))
+			var nRawState cty.Value
+			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
+				nRawState = rawState.AsValueSlice()[i].GetAttr("availability_zones")
+			}
+			obj["availability_zones"] = flattenListOfString(in.AvailabilityZones, nRawState)
 		}
 		if len(in.Subnets) > 0 {
-			obj["subnets"] = flattenListOfString(in.Subnets, nRawState.GetAttr("subnets"))
+			var nRawState cty.Value
+			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
+				nRawState = rawState.AsValueSlice()[i].GetAttr("subnets")
+			}
+			obj["subnets"] = flattenListOfString(in.Subnets, nRawState)
 		}
 		if len(in.InstancePrefix) > 0 {
 			obj["instance_prefix"] = in.InstancePrefix
@@ -5147,7 +5232,11 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 			if !ok {
 				v = []interface{}{}
 			}
-			obj["iam"] = flattenNodeGroupIAM(in.IAM, nRawState.GetAttr("iam"), v)
+			var nRawState cty.Value
+			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
+				nRawState = rawState.AsValueSlice()[i].GetAttr("iam")
+			}
+			obj["iam"] = flattenNodeGroupIAM(in.IAM, nRawState, v)
 		}
 		if len(in.AMI) > 0 {
 			obj["ami"] = in.AMI
@@ -5575,7 +5664,6 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 
 	out := make([]interface{}, len(inp))
 	for i, in := range inp {
-		nRawState := rawState.AsValueSlice()[i]
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -5594,10 +5682,18 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 			obj["instance_type"] = in.InstanceType
 		}
 		if len(in.AvailabilityZones) > 0 {
-			obj["availability_zones"] = flattenListOfString(in.AvailabilityZones, nRawState.GetAttr("availability_zones"))
+			var nRawState cty.Value
+			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
+				nRawState = rawState.AsValueSlice()[i].GetAttr("availability_zones")
+			}
+			obj["availability_zones"] = flattenListOfString(in.AvailabilityZones, nRawState)
 		}
 		if len(in.Subnets) > 0 {
-			obj["subnets"] = flattenListOfString(in.Subnets, nRawState.GetAttr("subnets"))
+			var nRawState cty.Value
+			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
+				nRawState = rawState.AsValueSlice()[i].GetAttr("subnets")
+			}
+			obj["subnets"] = flattenListOfString(in.Subnets, nRawState)
 		}
 		if len(in.InstancePrefix) > 0 {
 			obj["instance_prefix"] = in.InstancePrefix
@@ -5630,7 +5726,11 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 			if !ok {
 				v = []interface{}{}
 			}
-			obj["iam"] = flattenNodeGroupIAM(in.IAM, nRawState.GetAttr("iam"), v)
+			var nRawState cty.Value
+			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
+				nRawState = rawState.AsValueSlice()[i].GetAttr("iam")
+			}
+			obj["iam"] = flattenNodeGroupIAM(in.IAM, nRawState, v)
 		}
 		if len(in.AMI) > 0 {
 			obj["ami"] = in.AMI

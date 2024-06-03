@@ -263,7 +263,33 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 		spec.Contexts = expandContexts(v)
 	}
 
+	if v, ok := in["agent_override"].([]interface{}); ok && len(v) > 0 {
+		spec.AgentOverride = expandEaasAgentOverrideOptions(v)
+	}
+
 	return spec, nil
+}
+
+func expandEaasAgentOverrideOptions(p []interface{}) *eaaspb.AgentOverrideOptions {
+	agentOverrideOptions := &eaaspb.AgentOverrideOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return agentOverrideOptions
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["required"].(bool); ok {
+		agentOverrideOptions.Required = v
+	}
+
+	if aot, ok := in["type"].(string); ok {
+		agentOverrideOptions.Type = aot
+	}
+
+	if agnts, ok := in["restricted_agents"].([]interface{}); ok && len(agnts) > 0 {
+		agentOverrideOptions.RestrictedAgents = toArrayString(agnts)
+	}
+
+	return agentOverrideOptions
 }
 
 func expandEnvironmentResources(p []interface{}) ([]*eaaspb.EnvironmentResource, error) {
@@ -467,7 +493,22 @@ func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []inte
 		obj["contexts"] = flattenContexts(in.Contexts, v)
 	}
 
+	obj["agent_override"] = flattenEaasAgentOverrideOptions(in.AgentOverride)
+
 	return []interface{}{obj}, nil
+}
+
+func flattenEaasAgentOverrideOptions(in *eaaspb.AgentOverrideOptions) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["required"] = in.Required
+	obj["type"] = in.Type
+	obj["restricted_agents"] = toArrayInterface(in.RestrictedAgents)
+
+	return []interface{}{obj}
 }
 
 func flattenEnvironmentHooks(in *eaaspb.EnvironmentHooks, p []interface{}) []interface{} {

@@ -125,6 +125,18 @@ resource "rafay_environment_template" "aws-et-example" {
 - `sharing` (Block List, Max: 1) Sharing options with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Environment variables, file data and other variables (see [below for nested schema](#nestedblock--spec--variables))
 - `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`. This is a readonly field, latest active versions can be synced or new version with accepted values can be created. Modifying state for an existing version is not supported.
+- `agent_override` (Block List, Max: 1) Agent override (see [below for nested schema](#nestedblock--spec--agent_override))
+- `icon_url` (String) Icon URL for the template
+- `readme` (String) Readme for the template
+
+<a id="nestedblock--spec--agent_override"></a>
+### Nested Schema for `spec.agent_override`
+
+***Optional***
+
+- `required` (Boolean) Determines whether the agent override is required / mandatory
+- `restricted_agents` (List of String) If the override type is restricted, values it is restricted to
+- `type` (String) agent override type, Available options are `Allowed`, `Restricted`.
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`

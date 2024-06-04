@@ -298,6 +298,7 @@ func expandBluePrint(in *schema.ResourceData) (*infrapb.Blueprint, error) {
 }
 
 func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
+	var err error
 	obj := &infrapb.BlueprintSpec{}
 	if len(p) == 0 || p[0] == nil {
 		return obj, fmt.Errorf("%s", "expandAddonSpec empty input")
@@ -324,7 +325,10 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 		obj.CustomAddons = expandCustomAddons(v)
 	}
 	if v, ok := in["components_criticality"].([]interface{}); ok && len(v) > 0 {
-		obj.ComponentsCriticality = expandComponentCriticality(v)
+		obj.ComponentsCriticality, err = expandComponentCriticality(v)
+		if err != nil {
+			return obj, err
+		}
 	}
 	ca := spew.Sprintf("%+v", obj.CustomAddons)
 	log.Println("expandBluePrintSpec CustomAddons ", ca)
@@ -618,21 +622,20 @@ func expandResources(p []interface{}) *commonpb.ResourceRequirements {
 	return obj
 }
 
-func expandComponentCriticality(p []interface{}) []*infrapb.SnapshotRef {
+func expandComponentCriticality(p []interface{}) ([]*infrapb.SnapshotRef, error) {
 	if len(p) == 0 || p[0] == nil {
-		return []*infrapb.SnapshotRef{}
+		return []*infrapb.SnapshotRef{}, nil
 	}
 
 	out := make([]*infrapb.SnapshotRef, len(p))
 	for i := range p {
 		obj := infrapb.SnapshotRef{}
 		in := p[i].(map[string]interface{})
-
+		if v, ok := in["version"].(string); ok && len(v) > 0 {
+			return nil, fmt.Errorf("%s", "version field not allowed for addon's criticality")
+		}
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
-		}
-		if v, ok := in["version"].(string); ok && len(v) > 0 {
-			obj.Version = v
 		}
 		if v, ok := in["componentType"].(string); ok && len(v) > 0 {
 			obj.ComponentType = v
@@ -657,7 +660,7 @@ func expandComponentCriticality(p []interface{}) []*infrapb.SnapshotRef {
 		}
 		out[i] = &obj
 	}
-	return out
+	return out, nil
 }
 
 func expandCustomAddons(p []interface{}) []*infrapb.BlueprintAddon {

@@ -142,7 +142,6 @@ resource "rafay_blueprint" "blueprint" {
     }
     components_criticality {
         name = "addon1"
-        version = "v0"
     }
     default_addons {
       enable_ingress    = true

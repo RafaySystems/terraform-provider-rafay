@@ -29,9 +29,9 @@ func resourceEnvironment() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(8 * time.Hour),
+			Update: schema.DefaultTimeout(8 * time.Hour),
+			Delete: schema.DefaultTimeout(8 * time.Hour),
 		},
 
 		SchemaVersion: 1,

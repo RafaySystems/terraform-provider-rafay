@@ -4908,6 +4908,19 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 		}
 		return false
 	}
+	isPolicyV1 := func(rawState cty.Value, name string) bool {
+		for _, addon := range rawState.AsValueSlice() {
+			if addonName, ok := addon.AsValueMap()["name"]; ok {
+				if attachPolicyVersion, ok := addon.AsValueMap()["attach_policy"]; ok {
+					//log.Println("isPolicyV2 check:", addonName.AsString(), name, attachPolicyVersion.AsString())
+					if addonName.AsString() == name && len(attachPolicyVersion.AsValueSlice()) != 0 {
+						return true
+					}
+				}
+			}
+		}
+		return false
+	}
 
 	isSetInState := func(rawState cty.Value, name string) bool {
 		for _, addon := range rawState.AsValueSlice() {
@@ -4951,7 +4964,7 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 		}
 		//@@@TODO Store inline document object as terraform input correctly
 		if in.AttachPolicy != nil {
-			if !isPolicyV2(rawState, in.Name) {
+			if !isPolicyV2(rawState, in.Name) && isPolicyV1(rawState, in.Name) {
 				v1, ok := obj["attach_policy"].([]interface{})
 				if !ok {
 					v1 = []interface{}{}

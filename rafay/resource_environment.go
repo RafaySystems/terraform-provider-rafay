@@ -29,9 +29,9 @@ func resourceEnvironment() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(8 * time.Hour),
+			Update: schema.DefaultTimeout(8 * time.Hour),
+			Delete: schema.DefaultTimeout(8 * time.Hour),
 		},
 
 		SchemaVersion: 1,
@@ -110,6 +110,11 @@ func environmentUpsert(ctx context.Context, d *schema.ResourceData, m interface{
 			}
 			if envs.GetStatus().GetDigestedStatus().GetConditionStatus() == commonpb.ConditionStatus_StatusFailed {
 				return diag.FromErr(fmt.Errorf("%s %s", "failed to publish environment", envs.GetStatus().GetDigestedStatus().GetReason()))
+			}
+			if envs.GetStatus().GetDigestedStatus().GetConditionStatus() == commonpb.ConditionStatus_StatusSubmitted {
+				if strings.Contains(envs.GetStatus().GetDigestedStatus().GetReason(), "trigger not processed") {
+					return diag.FromErr(fmt.Errorf("%s %s", "failed to publish environment", envs.GetStatus().GetLatestEvents()[0].GetTriggerDetails().GetReason()))
+				}
 			}
 		} else {
 			break
@@ -296,6 +301,14 @@ func expandEnvironmentSpec(p []interface{}) (*eaaspb.EnvironmentSpec, error) {
 		spec.Agents = expandEaasAgents(ag)
 	}
 
+	if ev, ok := in["env_vars"].([]interface{}); ok && len(ev) > 0 {
+		spec.EnvVars = expandEnvVariables(ev)
+	}
+
+	if f, ok := in["files"].([]interface{}); ok && len(f) > 0 {
+		spec.Files = expandCommonpbFiles(f)
+	}
+
 	return spec, nil
 }
 
@@ -383,6 +396,16 @@ func flattenEnvironmentSpec(in *eaaspb.EnvironmentSpec, p []interface{}) ([]inte
 
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 	obj["agents"] = flattenEaasAgents(in.Agents)
+
+	if len(in.EnvVars) > 0 {
+		v, ok := obj["env_vars"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["env_vars"] = flattenEnvVariables(in.EnvVars, v)
+	}
+	obj["files"] = flattenCommonpbFiles(in.Files)
 
 	return []interface{}{obj}, nil
 }

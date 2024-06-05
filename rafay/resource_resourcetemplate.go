@@ -259,6 +259,10 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 		spec.Sharing = expandSharingSpec(v)
 	}
 
+	if ad, ok := in["artifact_driver"].([]interface{}); ok && len(ad) > 0 {
+		spec.ArtifactDriver = expandWorkflowHandlerCompoundRef(ad)
+	}
+
 	return spec, nil
 }
 
@@ -291,6 +295,10 @@ func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOpti
 
 	if p, ok := in["open_tofu"].([]interface{}); ok && len(p) > 0 {
 		po.OpenTofu = expandOpenTofuProviderOptions(p)
+	}
+
+	if w, ok := in["workflow"].([]interface{}); ok && len(p) > 0 {
+		po.Workflow = expandWorkflowProviderOptions(w)
 	}
 
 	return po
@@ -370,6 +378,22 @@ func expandResourceHooks(p []interface{}) *eaaspb.ResourceHooks {
 	}
 
 	return hooks
+
+}
+
+func expandWorkflowProviderOptions(p []interface{}) *eaaspb.WorkflowProviderOptions {
+	wfProviderOptions := &eaaspb.WorkflowProviderOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return wfProviderOptions
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["tasks"].([]interface{}); ok && len(h) > 0 {
+		wfProviderOptions.Tasks = expandEaasHooks(h)
+	}
+
+	return wfProviderOptions
 
 }
 
@@ -791,6 +815,7 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{
 
 	obj["agents"] = flattenEaasAgents(in.Agents)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	obj["artifact_driver"] = flattenWorkflowHandlerCompoundRef(in.ArtifactDriver)
 
 	return []interface{}{obj}, nil
 }
@@ -807,6 +832,7 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions) []interf
 	obj["pulumi"] = flattenPulumiProviderOptions(in.Pulumi)
 	obj["driver"] = flattenWorkflowHandlerCompoundRef(in.Driver)
 	obj["open_tofu"] = flattenOpenTofuProviderOptions(in.OpenTofu)
+	obj["workflow"] = flattenWorkflowProviderOptions(in.Workflow)
 
 	return []interface{}{obj}
 }
@@ -835,6 +861,23 @@ func flattenOpenTofuProviderOptions(in *eaaspb.OpenTofuProviderOptions) []interf
 		}
 
 		obj["volumes"] = flattenProviderVolumeOptions(in.Volumes, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenWorkflowProviderOptions(in *eaaspb.WorkflowProviderOptions) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := make(map[string]interface{})
+	if len(in.Tasks) > 0 {
+		v, ok := obj["tasks"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["tasks"] = flattenEaasHooks(in.Tasks, v)
 	}
 
 	return []interface{}{obj}

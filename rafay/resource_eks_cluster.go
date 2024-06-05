@@ -4193,11 +4193,12 @@ func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]
 
 	return []interface{}{obj}, nil
 }
-func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	if in == nil {
 		return nil, fmt.Errorf("empty cluster config input")
 	}
 	obj := map[string]interface{}{}
+	rawState = rawState.AsValueSlice()[0]
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -4315,7 +4316,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		if !ok {
 			v = []interface{}{}
 		}
-		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, v)
+		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, rawState.GetAttr("nodegroups"), v)
 		/*
 			if err != nil {
 				log.Println("flattenEKSClusterNodeGroups err")
@@ -4331,7 +4332,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, p []interface{}) ([]interface
 		if !ok {
 			v = []interface{}{}
 		}
-		ret9, err = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, v)
+		ret9, err = flattenEKSClusterManagedNodeGroups(in.ManagedNodeGroups, rawState.GetAttr("managed_nodegroups"), v)
 		if err != nil {
 			log.Println("flattenEKSClusterManagedNodeGroups err")
 			return nil, err
@@ -5007,7 +5008,7 @@ func flattenEKSClusterPrivateCluster(in *PrivateCluster, p []interface{}) []inte
 	}
 	return []interface{}{obj}
 }
-func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{} {
+func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
 	}
@@ -5015,6 +5016,7 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, p []interface{}) []interface{
 	out := make([]interface{}, len(inp))
 	for i, in := range inp {
 		obj := map[string]interface{}{}
+		nRawState := rawState.AsValueSlice()[i]
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
@@ -5450,13 +5452,14 @@ func flattenNodeGroupUpdateConfig(in *NodeGroupUpdateConfig, p []interface{}) []
 }
 
 // Flatten mnanaged Node Groups
-func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	if inp == nil {
 		return nil, fmt.Errorf("empty input for managedNodeGroup")
 	}
 
 	out := make([]interface{}, len(inp))
 	for i, in := range inp {
+		nRawState := rawState.AsValueSlice()[i]
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -5879,7 +5882,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	if !ok {
 		v2 = []interface{}{}
 	}
-	c2, err := flattenEKSClusterConfig(&clusterConfigSpec, v2)
+	c2, err := flattenEKSClusterConfig(&clusterConfigSpec, rawState.GetAttr("cluster_config"), v2)
 	if err != nil {
 		log.Printf("flatten eks cluster config error %s", err.Error())
 		return diag.FromErr(err)

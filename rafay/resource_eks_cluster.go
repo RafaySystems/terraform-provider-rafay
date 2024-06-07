@@ -4120,9 +4120,11 @@ func flattenCustomCNISpec(in map[string][]CustomCniSpec, p []interface{}, rawSta
 
 	findLocalOrder := func(rawState cty.Value) []string {
 		var order []string
-		for _, crdSpec := range rawState.AsValueSlice() {
-			if subnetValue, ok := crdSpec.AsValueMap()["name"]; ok {
-				order = append(order, subnetValue.AsString())
+		if !rawState.IsNull() {
+			for _, crdSpec := range rawState.AsValueSlice() {
+				if subnetValue, ok := crdSpec.AsValueMap()["name"]; ok {
+					order = append(order, subnetValue.AsString())
+				}
 			}
 		}
 		return order
@@ -4616,15 +4618,17 @@ func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, rawState cty.
 	}
 	findLocalOrder := func(rawState cty.Value) []string {
 		var order []string
-		for _, crdSpec := range rawState.AsValueSlice() {
-			item := ""
-			if saName, ok := crdSpec.AsValueMap()["name"]; ok {
-				item += fmt.Sprintf("%s/", saName.AsString())
+		if !rawState.IsNull() {
+			for _, crdSpec := range rawState.AsValueSlice() {
+				item := ""
+				if saName, ok := crdSpec.AsValueMap()["name"]; ok {
+					item += fmt.Sprintf("%s/", saName.AsString())
+				}
+				if saNamespace, ok := crdSpec.AsValueMap()["namespace"]; ok {
+					item += saNamespace.AsString()
+				}
+				order = append(order, item)
 			}
-			if saNamespace, ok := crdSpec.AsValueMap()["namespace"]; ok {
-				item += saNamespace.AsString()
-			}
-			order = append(order, item)
 		}
 		return order
 	}
@@ -5011,12 +5015,14 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 	}
 
 	isPolicyV2 := func(rawState cty.Value, name string) bool {
-		for _, addon := range rawState.AsValueSlice() {
-			if addonName, ok := addon.AsValueMap()["name"]; ok {
-				if attachPolicyVersion, ok := addon.AsValueMap()["attach_policy_v2"]; ok {
-					// log.Println("isPolicyV2 check:", addonName.AsString(), name, attachPolicyVersion.AsString())
-					if addonName.AsString() == name && attachPolicyVersion.AsString() != "" {
-						return true
+		if !rawState.IsNull() {
+			for _, addon := range rawState.AsValueSlice() {
+				if addonName, ok := addon.AsValueMap()["name"]; ok {
+					if attachPolicyVersion, ok := addon.AsValueMap()["attach_policy_v2"]; ok {
+						// log.Println("isPolicyV2 check:", addonName.AsString(), name, attachPolicyVersion.AsString())
+						if addonName.AsString() == name && attachPolicyVersion.AsString() != "" {
+							return true
+						}
 					}
 				}
 			}
@@ -5024,12 +5030,14 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 		return false
 	}
 	isPolicyV1 := func(rawState cty.Value, name string) bool {
-		for _, addon := range rawState.AsValueSlice() {
-			if addonName, ok := addon.AsValueMap()["name"]; ok {
-				if attachPolicyVersion, ok := addon.AsValueMap()["attach_policy"]; ok {
-					//log.Println("isPolicyV2 check:", addonName.AsString(), name, attachPolicyVersion.AsString())
-					if addonName.AsString() == name && len(attachPolicyVersion.AsValueSlice()) != 0 {
-						return true
+		if !rawState.IsNull() {
+			for _, addon := range rawState.AsValueSlice() {
+				if addonName, ok := addon.AsValueMap()["name"]; ok {
+					if attachPolicyVersion, ok := addon.AsValueMap()["attach_policy"]; ok {
+						//log.Println("isPolicyV2 check:", addonName.AsString(), name, attachPolicyVersion.AsString())
+						if addonName.AsString() == name && len(attachPolicyVersion.AsValueSlice()) != 0 {
+							return true
+						}
 					}
 				}
 			}
@@ -5152,8 +5160,10 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 	}
 	findLocalOrder := func(rawState cty.Value) []string {
 		var order []string
-		for _, val := range rawState.AsValueSlice() {
-			order = append(order, val.AsString())
+		if !rawState.IsNull() {
+			for _, val := range rawState.AsValueSlice() {
+				order = append(order, val.AsString())
+			}
 		}
 		return order
 	}
@@ -5646,8 +5656,10 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 	}
 	findLocalOrder := func(rawState cty.Value) []string {
 		var order []string
-		for _, val := range rawState.AsValueSlice() {
-			order = append(order, val.AsString())
+		if !rawState.IsNull() {
+			for _, val := range rawState.AsValueSlice() {
+				order = append(order, val.AsString())
+			}
 		}
 		return order
 	}

@@ -145,3 +145,21 @@ resource "rafay_cloud_credential" "tfcredential5" {
 - `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes. 
 - `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes. 
 - `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes. 
+
+## Troubleshooting Steps
+
+- [Follow below steps in case `terraform apply` fails during secret rotation for `AWS` provider credentials](#nestedblock--TS1)
+- [Follow below steps in case `terraform apply` fails during secret rotation for `Azure` provider credentials](#nestedblock--TS2)
+
+<a id="nestedblock--TS1"></a>
+### Follow below steps in case `terraform apply` fails during secret rotation for `AWS` provider credentials:
+  1. Secret rotation will involve changing `accesskey` and `secretkey` together.
+  2. Diff for `secretkey` will not be visible for `rafay_cloud_credential` resource and value defined in terraform configuration file will be treated as source of truth for applied config.
+
+<a id="nestedblock--TS2"></a>
+### Follow below steps in case `terraform apply` fails during secret rotation for `Azure` provider credentials:
+  1. If `terraform plan` diff is empty, update `description` field in provider configuration for `terraform plan` to generate a diff for resource update action.
+  2. Diff for `secretkey` will not be visible for `rafay_cloud_credential` resource and value defined in terraform configuration file will be treated as source of truth for applied config.
+  3. Perform `terraform apply` to update the new secret value for provider in RAFAY upstream.
+  4. If still `terraform apply` fails, reach out to Rafay customer support.
+

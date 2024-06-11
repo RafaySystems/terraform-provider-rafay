@@ -1524,10 +1524,10 @@ func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
 	}
 
 	for indx := range p {
-		hook := &eaaspb.Hook{}
 		if p[indx] == nil {
-			return hooks
+			return nil
 		}
+		hook := &eaaspb.Hook{}
 		in := p[indx].(map[string]interface{})
 
 		if n, ok := in["name"].(string); ok && len(n) > 0 {
@@ -1632,11 +1632,10 @@ func expandApprovalOptions(p []interface{}) *eaaspb.ApprovalOptions {
 }
 
 func expandInternalApprovalOptions(p []interface{}) *eaaspb.InternalApprovalOptions {
-	iao := &eaaspb.InternalApprovalOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return iao
+		return nil
 	}
-
+	iao := &eaaspb.InternalApprovalOptions{}
 	in := p[0].(map[string]interface{})
 
 	if emails, ok := in["emails"].([]interface{}); ok && len(emails) > 0 {
@@ -1907,6 +1906,10 @@ func flattenInternalApprovalOptions(input *eaaspb.InternalApprovalOptions) []int
 		return nil
 	}
 
+	if len(input.Emails) == 0 {
+		return nil
+	}
+
 	obj := map[string]interface{}{}
 	obj["emails"] = toArrayInterface(input.Emails)
 
@@ -2109,11 +2112,11 @@ func checkStandardInputTextError(input string) bool {
 }
 
 func expandWorkflowHandlerCompoundRef(p []interface{}) *eaaspb.WorkflowHandlerCompoundRef {
-	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
 	if len(p) == 0 || p[0] == nil {
-		return wfHandler
+		return nil
 	}
 
+	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["name"].(string); ok && len(v) > 0 {

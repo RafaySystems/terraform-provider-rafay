@@ -406,7 +406,7 @@ func flattenGKEV3PrivateCluster(in *infrapb.GkePrivateCluster, p []interface{}) 
 		obj["firewall_rules"] = flattenGKEV3Firewalls(in.FirewallRules, v)
 	}
 
-	return []interface{}{}
+	return []interface{}{obj}
 }
 
 func flattenGKEV3FirewallRules(in []*infrapb.Rule, p []interface{}) []interface{} {

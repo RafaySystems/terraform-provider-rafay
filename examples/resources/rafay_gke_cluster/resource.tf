@@ -25,7 +25,10 @@ resource "rafay_gke_cluster" "tf-example" {
         enable_vpc_nativetraffic = "true"
         max_pods_per_node        = 110
         # data_plane_v_2           = "ADVANCED_DATAPATH"
-        network_policy = "CALICO"
+        # enable_data_plane_v_2_metrics = "true"
+        # enable_data_plane_v_2_observability = "true"
+        network_policy_config = "true"
+        network_policy        = "CALICO"
         access {
           type = "public"
         }

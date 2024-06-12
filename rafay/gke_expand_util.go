@@ -496,6 +496,26 @@ func expandToV3GkeNetwork(p []interface{}) (*infrapb.GkeNetwork, error) {
 		obj.ServiceSecondaryRangeName = v
 	}
 
+	if v, ok := in["data_plane_v_2"].(string); ok && len(v) > 0 {
+		obj.DataPlaneV2 = v
+	}
+
+	if v, ok := in["enable_data_plane_v_2_metrics"].(bool); ok {
+		obj.EnableDataPlaneV2Metrics = v
+	}
+
+	if v, ok := in["enable_data_plane_v_2_observability"].(bool); ok {
+		obj.EnableDataPlaneV2Observability = v
+	}
+
+	if v, ok := in["network_policy_config"].(bool); ok {
+		obj.NetworkPolicyConfig = v
+	}
+
+	if v, ok := in["network_policy"].(string); ok && len(v) > 0 {
+		obj.NetworkPolicy = v
+	}
+
 	if v, ok := in["control_plane_authorized_network"].([]interface{}); ok && len(v) > 0 {
 		obj.ControlPlaneAuthorizedNetwork, err = expandToV3GkeControlPlaneAuthorizedNetwork(v)
 		if err != nil {

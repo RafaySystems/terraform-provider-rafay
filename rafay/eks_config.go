@@ -251,13 +251,20 @@ type WellKnownPolicies struct {
 
 // InlineDocument map[string]interface{}
 type InlineDocument struct {
-	Version   string          `yaml:"Version,omitempty"`
-	Statement InlineStatement `yaml:"Statement,omitempty"`
+	Id        string            `yaml:"Id,omitempty" json:"Id,omitempty"`
+	Statement []InlineStatement `yaml:"Statement,omitempty" json:"Statement,omitempty"`
+	Version   string            `yaml:"Version,omitempty" json:"Version,omitempty"`
 }
 type InlineStatement struct {
-	Effect   string   `yaml:"Effect,omitempty"`
-	Action   []string `yaml:"Action,omitempty"`
-	Resource string   `yaml:"Resource,omitempty"`
+	Action       interface{}            `yaml:"Action,omitempty" json:"Action,omitempty"`
+	Condition    map[string]interface{} `yaml:"Condition,omitempty" json:"Condition,omitempty"`
+	Effect       string                 `yaml:"Effect,omitempty" json:"Effect,omitempty"`
+	NotAction    interface{}            `yaml:"NotAction,omitempty" json:"NotAction,omitempty"`
+	NotPrincipal map[string]interface{} `yaml:"NotPrincipal,omitempty" json:"NotPrincipal,omitempty"`
+	NotResource  interface{}            `yaml:"NotResource,omitempty" json:"NotResource,omitempty"`
+	Principal    map[string]interface{} `yaml:"Principal,omitempty" json:"Principal,omitempty"`
+	Resource     interface{}            `yaml:"Resource,omitempty" json:"Resource,omitempty"`
+	Sid          string                 `yaml:"Sid,omitempty" json:"Sid,omitempty"`
 }
 
 type ClusterIAMServiceAccountStatus struct {

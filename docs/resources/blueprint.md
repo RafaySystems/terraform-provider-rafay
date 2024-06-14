@@ -575,7 +575,7 @@ resource "rafay_blueprint" "cost-blueprint" {
 
 - `name` - (String) The names of the project to share the resource. 
 
- Note: The resource is shared with all the projects in the organization then sharing spec should be
+ Note: To share a resource across all projects in an organisation, below spec can be used
  ```
      sharing {
       enabled = true

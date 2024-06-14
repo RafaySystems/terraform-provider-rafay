@@ -41,6 +41,11 @@ resource "rafay_gke_cluster" "tf-example" {
         subnet_name = "default"
         enable_vpc_nativetraffic = "true"
         max_pods_per_node        = 110
+        # data_plane_v_2            = "ADVANCED_DATAPATH"
+        # enable_data_plane_v_2_metrics = "true"
+        # enable_data_plane_v_2_observability = "true"
+        network_policy_config = "true"
+        network_policy    = "CALICO"
         access {
           type = "public"
         }
@@ -263,6 +268,11 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `service_address_range` (String) Cluster services will be assigned an IP address from this IP address range. Enter a range (in CIDR notation) within a network range, a mask, or leave this field blank to use a default range.
 - `pod_secondary_range_name` (String) Cluster pods are assigned an IP from the selected node subnet's secondary CIDR address range.
 - `service_secondary_range_name` (String) Cluster services are assigned an IP from the selected node subnetes secondary CIDR address range.
+- `data_plane_v_2` (String) Dataplane V2 is optimized for Kubernetes networking which is implemented using eBPF. Supported value is `ADVANCED_DATAPATH`. 
+- `enable_data_plane_v_2_metrics` (Boolean) Dataplane V2 metrics brings better insight into the traffic between your Kubernetes workloads. Understand how your services communicate, identify issues with the network health, verify Kubernetes policies and more.
+- `enable_data_plane_v_2_observability` (Boolean) Dataplane V2 observability provides Managed Hubble CLI solution that lets you observe network flows between your Kubernetes workloads in real time. Check out here for more https://cloud.google.com/kubernetes-engine/docs/concepts/about-dpv2-observability
+- `network_policy_config` (Boolean) Configuration for NetworkPolicy. This only tracks whether the addon is enabled or not on the Master, it does not track whether network policy is enabled for the nodes.
+- `network_policy` (String) The Kubernetes Network Policy API allows the cluster administrator to specify what pods are allowed to communicate with each other. Cannot use with `data_plane_v_2` config. Supported value is `CALICO`.
 
 <a id="nestedblock--spec--config--network--access"></a>
 ### Nested Schema for `spec.config.network.access`

@@ -223,10 +223,6 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 		spec.Version = v
 	}
 
-	if vs, ok := in["version_state"].(string); ok && len(vs) > 0 {
-		spec.VersionState = vs
-	}
-
 	if p, ok := in["provider"].(string); ok && len(p) > 0 {
 		spec.Provider = p
 	}
@@ -382,11 +378,10 @@ func expandResourceHooks(p []interface{}) *eaaspb.ResourceHooks {
 }
 
 func expandWorkflowProviderOptions(p []interface{}) *eaaspb.WorkflowProviderOptions {
-	wfProviderOptions := &eaaspb.WorkflowProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return wfProviderOptions
+		return nil
 	}
-
+	wfProviderOptions := &eaaspb.WorkflowProviderOptions{}
 	in := p[0].(map[string]interface{})
 
 	if h, ok := in["tasks"].([]interface{}); ok && len(h) > 0 {
@@ -482,10 +477,10 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 }
 
 func expandOpenTofuProviderOptions(p []interface{}) *eaaspb.OpenTofuProviderOptions {
-	tpo := &eaaspb.OpenTofuProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return tpo
+		return nil
 	}
+	tpo := &eaaspb.OpenTofuProviderOptions{}
 
 	in := p[0].(map[string]interface{})
 
@@ -533,30 +528,27 @@ func expandOpenTofuProviderOptions(p []interface{}) *eaaspb.OpenTofuProviderOpti
 }
 
 func expandSystemProviderOptions(p []interface{}) *eaaspb.SystemProviderOptions {
-	spo := &eaaspb.SystemProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return spo
+		return nil
 	}
-
+	spo := &eaaspb.SystemProviderOptions{}
 	return spo
 
 }
 
 func expandTerragruntProviderOptions(p []interface{}) *eaaspb.TerragruntProviderOptions {
-	tpo := &eaaspb.TerragruntProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return tpo
+		return nil
 	}
-
+	tpo := &eaaspb.TerragruntProviderOptions{}
 	return tpo
 }
 
 func expandPulumiProviderOptions(p []interface{}) *eaaspb.PulumiProviderOptions {
-	ppo := &eaaspb.PulumiProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return ppo
+		return nil
 	}
-
+	ppo := &eaaspb.PulumiProviderOptions{}
 	return ppo
 }
 
@@ -781,7 +773,6 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{
 	}
 
 	obj["version"] = in.Version
-	obj["version_state"] = in.VersionState
 	obj["provider"] = in.Provider
 	obj["provider_options"] = flattenProviderOptions(in.ProviderOptions)
 	obj["repository_options"] = flattenRepositoryOptions(in.RepositoryOptions)

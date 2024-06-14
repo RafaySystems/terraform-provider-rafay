@@ -575,6 +575,15 @@ resource "rafay_blueprint" "cost-blueprint" {
 
 - `name` - (String) The names of the project to share the resource. 
 
+ Note: The resource is shared with all the projects in the organization then sharing spec should be
+ ```
+     sharing {
+      enabled = true
+      projects {
+        name = "*"
+      }
+    }```
+
 
 <a id="nestedblock--spec--namespace_config"></a>
 ### Nested Schema for `spec.namespace_config`

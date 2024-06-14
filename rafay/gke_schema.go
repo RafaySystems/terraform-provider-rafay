@@ -33,7 +33,6 @@ func GKEClusterV3Schema() map[string]*schema.Schema {
 		"kind": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Default:     "Cluster",
 			Description: "kind of the resource",
 		},
 		"metadata": resource.ClusterSchema.Schema["metadata"],

@@ -582,7 +582,8 @@ resource "rafay_blueprint" "cost-blueprint" {
       projects {
         name = "*"
       }
-    }```
+    }
+```
 
 
 <a id="nestedblock--spec--namespace_config"></a>

@@ -13,7 +13,6 @@ import (
 	dynamic "github.com/RafaySystems/rafay-common/pkg/hub/client/dynamic"
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
-	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/common"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
@@ -41,7 +40,7 @@ func resourceGKEClusterV3() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.ClusterSchema.Schema,
+		Schema:        GKEClusterV3Schema(),
 	}
 }
 

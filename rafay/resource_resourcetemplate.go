@@ -323,14 +323,14 @@ func expandResourceTemplateRepositoryOptions(p []interface{}) *eaaspb.ResourceTe
 	return ro
 }
 
-func expandContexts(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
-	ctxs := make([]*commonpb.ResourceNameAndVersionRef, 0)
+func expandContexts(p []interface{}) []*eaaspb.ConfigContextCompoundRef {
+	ctxs := make([]*eaaspb.ConfigContextCompoundRef, 0)
 	if len(p) == 0 {
 		return ctxs
 	}
 
 	for indx := range p {
-		obj := &commonpb.ResourceNameAndVersionRef{}
+		obj := &eaaspb.ConfigContextCompoundRef{}
 
 		in := p[indx].(map[string]interface{})
 
@@ -955,7 +955,7 @@ func flattenRepositoryOptions(in *eaaspb.ResourceTemplateRepositoryOptions) []in
 	return []interface{}{obj}
 }
 
-func flattenContexts(input []*commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+func flattenContexts(input []*eaaspb.ConfigContextCompoundRef, p []interface{}) []interface{} {
 	log.Println("flatten contexts start")
 	if input == nil {
 		return nil

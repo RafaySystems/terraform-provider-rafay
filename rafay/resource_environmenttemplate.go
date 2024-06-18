@@ -288,16 +288,16 @@ func expandEaasAgentOverrideOptions(p []interface{}) *eaaspb.AgentOverrideOption
 	return agentOverrideOptions
 }
 
-func expandEnvironmentResources(p []interface{}) ([]*eaaspb.EnvironmentResource, error) {
+func expandEnvironmentResources(p []interface{}) ([]*eaaspb.EnvironmentResourceCompoundRef, error) {
 	log.Println("expand environment resources")
 	if len(p) == 0 || p[0] == nil {
 		return nil, fmt.Errorf("%s", "expand environment resources empty input")
 	}
 
-	envresources := make([]*eaaspb.EnvironmentResource, len(p))
+	envresources := make([]*eaaspb.EnvironmentResourceCompoundRef, len(p))
 
 	for i := range p {
-		obj := eaaspb.EnvironmentResource{}
+		obj := eaaspb.EnvironmentResourceCompoundRef{}
 		in := p[i].(map[string]interface{})
 
 		if v, ok := in["type"].(string); ok && len(v) > 0 {
@@ -556,7 +556,7 @@ func flattenEnvironmentHooks(in *eaaspb.EnvironmentHooks, p []interface{}) []int
 	return []interface{}{obj}
 }
 
-func flattenEnvironmentResources(input []*eaaspb.EnvironmentResource, p []interface{}) []interface{} {
+func flattenEnvironmentResources(input []*eaaspb.EnvironmentResourceCompoundRef, p []interface{}) []interface{} {
 	log.Println("flatten environment resources start")
 	if len(input) == 0 {
 		return nil

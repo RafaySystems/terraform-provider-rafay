@@ -312,13 +312,13 @@ func expandEnvironmentSpec(p []interface{}) (*eaaspb.EnvironmentSpec, error) {
 	return spec, nil
 }
 
-func expandTemplate(p []interface{}) (*commonpb.ResourceNameAndVersionRef, error) {
+func expandTemplate(p []interface{}) (*eaaspb.EnvironmentTemplateCompoundRef, error) {
 	log.Println("expand template")
 	if len(p) == 0 || p[0] == nil {
 		return nil, fmt.Errorf("%s", "expand template empty input")
 	}
 
-	obj := &commonpb.ResourceNameAndVersionRef{}
+	obj := &eaaspb.EnvironmentTemplateCompoundRef{}
 
 	in := p[0].(map[string]interface{})
 
@@ -410,7 +410,7 @@ func flattenEnvironmentSpec(in *eaaspb.EnvironmentSpec, p []interface{}) ([]inte
 	return []interface{}{obj}, nil
 }
 
-func flattenTemplate(input *commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+func flattenTemplate(input *eaaspb.EnvironmentTemplateCompoundRef, p []interface{}) []interface{} {
 	log.Println("flatten template start", input)
 	if input == nil {
 		return nil

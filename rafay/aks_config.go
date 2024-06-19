@@ -123,6 +123,7 @@ type AKSManagedClusterProperties struct {
 	DiskEncryptionSetID     string                                   `yaml:"diskEncryptionSetID,omitempty"`
 	AddonProfiles           *AddonProfiles                           `yaml:"addonProfiles,omitempty"`
 	//AddonProfiles           map[string]string                         `yaml:"addonProfiles,omitempty"`
+	SecurityProfile         *AKSManagedClusterSecurityProfile         `yaml:"securityProfile,omitempty"`
 	ServicePrincipalProfile *AKSManagedClusterServicePrincipalProfile `yaml:"servicePrincipalProfile,omitempty"`
 	LinuxProfile            *AKSManagedClusterLinuxProfile            `yaml:"linuxProfile,omitempty"`
 	WindowsProfile          *AKSManagedClusterWindowsProfile          `yaml:"windowsProfile,omitempty"`
@@ -130,6 +131,7 @@ type AKSManagedClusterProperties struct {
 	IdentityProfile         *AKSManagedClusterIdentityProfile         `yaml:"identityProfile,omitempty"`
 	AutoScalerProfile       *AKSManagedClusterAutoScalerProfile       `yaml:"autoScalerProfile,omitempty"`
 	AutoUpgradeProfile      *AKSManagedClusterAutoUpgradeProfile      `yaml:"autoUpgradeProfile,omitempty"`
+	OidcIssuerProfile       *AKSManagedClusterOidcIssuerProfile       `yaml:"oidcIssuerProfile,omitempty"`
 	PodIdentityProfile      *AKSManagedClusterPodIdentityProfile      `yaml:"podIdentityProfile,omitempty"`
 	PrivateLinkResources    *AKSManagedClusterPrivateLinkResources    `yaml:"privateLinkResources,omitempty"`
 	PowerState              *AKSManagedClusterPowerState              `yaml:"powerState,omitempty"`
@@ -178,6 +180,18 @@ type IngressApplicationGatewayAddonConfig struct {
 	SubnetCIDR             string `yaml:"subnetCIDR,omitempty"`
 	SubnetID               string `yaml:"subnetId,omitempty"`
 	WatchNamespace         string `yaml:"watchNamespace,omitempty"`
+}
+
+type AKSManagedClusterSecurityProfile struct {
+	WorkloadIdentity *AKSManagedClusterWorkloadIdentity `yaml:"workloadIdentity,omitempty"`
+}
+
+type AKSManagedClusterWorkloadIdentity struct {
+	Enabled *bool `yaml:"enabled,omitempty"`
+}
+
+type AKSManagedClusterOidcIssuerProfile struct {
+	Enabled *bool `yaml:"enabled,omitempty"`
 }
 
 type AKSManagedClusterNetworkProfile struct {

@@ -2,12 +2,10 @@ module github.com/RafaySystems/terraform-provider-rafay
 
 go 1.22.5
 
-toolchain go1.22.6
-
 require (
-	github.com/RafaySystems/edge-common v1.24.1-0.20240813083948-ba69bed0bc1b
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240902072728-3d5c49e47c29
-	github.com/RafaySystems/rctl v1.29.1-0.20240813175545-9dc352b7affb
+	github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240905045148-09ec0ead4c29
+	github.com/RafaySystems/rctl v1.29.1-0.20240905060134-f02f6236ed3f
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5

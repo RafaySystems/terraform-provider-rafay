@@ -31,6 +31,8 @@ github.com/RafaySystems/rafay-common v1.29.0-rc6.0.20240723130833-348605bfea40 h
 github.com/RafaySystems/rafay-common v1.29.0-rc6.0.20240723130833-348605bfea40/go.mod h1:a8luQzJFJreXa8QuDSSYQfI5v/3bfwC2N7hF/cd+8oc=
 github.com/RafaySystems/rctl v1.29.1-0.20240724085408-313d789ab602 h1:XrjxdFKJciHVw2blRWis5Vfb043WPsK+uJUTt+8C7Rs=
 github.com/RafaySystems/rctl v1.29.1-0.20240724085408-313d789ab602/go.mod h1:RbcULWgbkgNM3eezNUTe0y6z/zuFs0tnNqKDuAdMDjw=
+github.com/RafaySystems/rctl v1.29.1-0.20240731115124-7cf6ded9d565 h1:YjcNdFckZ4R9cmF7/oh8xxwFVciSZXjzKzfCvKwwdV0=
+github.com/RafaySystems/rctl v1.29.1-0.20240731115124-7cf6ded9d565/go.mod h1:RbcULWgbkgNM3eezNUTe0y6z/zuFs0tnNqKDuAdMDjw=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=
 github.com/RoaringBitmap/roaring v1.9.4/go.mod h1:6AXUsoIEzDTFFQCe1RbGA6uFONMhvejWj5rqITANK90=
 github.com/abhay-krishna/cluster-api v1.4.2-eksa.1 h1:mO+idOdh9Bpumgo41WJcrASPtJGSgmRxHNiwtUdUa+E=

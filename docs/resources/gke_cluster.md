@@ -216,7 +216,7 @@ resource "rafay_gke_cluster" "tf-example" {
 Optional:
 
 - `features` (Block List, Max: 1) Cluster additional features configuration. (see [below for nested schema](#nestedblock--spec--config--features))
-- `pre_bootstrap_commands` (List of String) PreBootCommands is a list of (one of more) commands that the user wants run on their target cluster.These commands will be run every time a node comes up, both during cluster creation and cluster/nodepool scale. Example: Node restart and node creation. 
+- `pre_bootstrap_commands` (List of String) Pre-bootstrap commands is a list of (one of more) commands that the user wants run on their target cluster. These commands will be run every time a node comes up, both during cluster creation and cluster/nodepool scale. Example: Node restart and node creation. Refer [preBootstrapCommands Guidelines on Rafay doc](https://docs.rafay.co/clusters/gke/preboot_commands/#prebootstrapcommands-guidelines) for usage. Special case: `${ROOT_DIR}` is used to refer root directory of nodes. However `${ROOT_DIR}` conflicts with Terraform's template syntax so you'd need to escape it by writting `$${ROOT_DIR}` instead.
 - `security` (Block List, Max: 1) Cluster security configuration. (see [below for nested schema](#nestedblock--spec--config--security))
 
 

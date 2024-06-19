@@ -437,3 +437,83 @@ resource "rafay_aks_cluster_v3" "demo-terraform-tf" {
     }
   }
 }
+
+resource "rafay_aks_cluster_v3" "demo-terraform" {
+  metadata {
+    name    = "gautham-aks-v3-tf-1"
+    project = "defaultproject"
+  }
+  spec {
+    type = "aks"
+    blueprint_config {
+      name = "default-aks"
+    }
+    cloud_credentials = "gautham-azure-creds"
+    config {
+      kind = "aksClusterConfig"
+      metadata {
+        name = "gautham-aks-v3-tf-1"
+      }
+      spec {
+        resource_group_name = "gautham-rg-ci"
+        managed_cluster {
+          api_version = "2023-11-01"
+          sku {
+            name = "Base"
+            tier = "Free"
+          }
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          tags = {
+            "email" = "mvgautham@rafay.co"
+            "env"   = "dev"
+          }
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "gautham-aks-v3-tf-2401202303-dns"
+            kubernetes_version = "1.28.9"
+            network_profile {
+              network_plugin    = "kubenet"
+              load_balancer_sku = "standard"
+            }
+            power_state {
+              code = "Running"
+            }
+
+            oidc_issuer_profile {
+              enabled = true
+            }
+            security_profile {
+              workload_identity {
+                enabled = false
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          api_version = "2023-11-01"
+          name        = "primary"
+          location    = "centralindia"
+          properties {
+            count                = 1
+            enable_auto_scaling  = true
+            max_count            = 1
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.28.9"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+  }
+}

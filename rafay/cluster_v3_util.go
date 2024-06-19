@@ -30,9 +30,16 @@ type AksNodepoolsErrorFormatter struct {
 	FailureReason string `json:"failureReason,omitempty"`
 }
 
+type AksWorkloadIdentityErrorFormatter struct {
+	Name          string `json:"name,omitempty"`
+	ResourceType  string `json:"resourceType,omitempty"`
+	FailureReason string `json:"failureReason,omitempty"`
+}
+
 type AksUpsertErrorFormatter struct {
-	FailureReason string                       `json:"failureReason,omitempty"`
-	Nodepools     []AksNodepoolsErrorFormatter `json:"nodepools,omitempty"`
+	FailureReason      string                              `json:"failureReason,omitempty"`
+	Nodepools          []AksNodepoolsErrorFormatter        `json:"nodepools,omitempty"`
+	WorkloadIdentities []AksWorkloadIdentityErrorFormatter `json:"edgeResources,omitempty"`
 }
 
 func flattenMetadataV3(in *commonpb.Metadata, p []interface{}) []interface{} {

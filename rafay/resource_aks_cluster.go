@@ -496,6 +496,14 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "The name of the resource group containing agent pool nodes.",
 		},
+		"oidc_issuer_profile": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Profile of OpenID Connect configuration.",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterOidcIssuerProfile(),
+			},
+		},
 		"pod_identity_profile": {
 			Type:        schema.TypeList,
 			Optional:    true,
@@ -518,6 +526,14 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 			Description: "Private link resources associated with the cluster.",
 			Elem: &schema.Resource{
 				Schema: clusterAKSManagedClusterPrivateLinkResources(),
+			},
+		},
+		"security_profile": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Profile of security configuration.",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterSecurityProfile(),
 			},
 		},
 		"service_principal_profile": {
@@ -1217,6 +1233,18 @@ func clusterAKSManagedClusterNPOutboundIPsPublicIps() map[string]*schema.Schema 
 	return s
 }
 
+func clusterAKSManagedClusterOidcIssuerProfile() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Whether to enable OIDC Issuer",
+			Default:     false,
+		},
+	}
+	return s
+}
+
 func clusterAKSManagedClusterPodIdentityProfile() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"allow_network_plugin_kubenet": {
@@ -1364,6 +1392,32 @@ func clusterAKSManagedClusterPrivateLinkResources() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "The resource type.",
+		},
+	}
+	return s
+}
+
+func clusterAKSManagedClusterSecurityProfile() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"workload_identity": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Profile of the managed cluster workload identity.",
+			Elem: &schema.Resource{
+				Schema: clusterAKSManagedClusterWorkloadIdentity(),
+			},
+		},
+	}
+	return s
+}
+
+func clusterAKSManagedClusterWorkloadIdentity() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Whether to enable workload identity",
+			Default:     false,
 		},
 	}
 	return s
@@ -2492,6 +2546,10 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 		obj.NodeResourceGroup = v
 	}
 
+	if v, ok := in["oidc_issuer_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.OidcIssuerProfile = expandAKSManagedClusterOidcIssuerProfile(v)
+	}
+
 	if v, ok := in["pod_identity_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.PodIdentityProfile = expandAKSManagedClusterPodIdentityProfile(v)
 	}
@@ -2502,6 +2560,10 @@ func expandAKSManagedClusterProperties(p []interface{}) *AKSManagedClusterProper
 
 	if v, ok := in["power_state"].([]interface{}); ok && len(v) > 0 {
 		obj.PowerState = expandAKSManagedClusterPowerState(v)
+	}
+
+	if v, ok := in["security_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.SecurityProfile = expandAKSManagedClusterSecurityProfile(v)
 	}
 
 	if v, ok := in["service_principal_profile"].([]interface{}); ok && len(v) > 0 {
@@ -3123,6 +3185,20 @@ func expandAKSManagedClusterNPOutboundIPsPublicIps(p []interface{}) []*AKSManage
 	return out
 }
 
+func expandAKSManagedClusterOidcIssuerProfile(p []interface{}) *AKSManagedClusterOidcIssuerProfile {
+	obj := &AKSManagedClusterOidcIssuerProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
+	}
+
+	return obj
+}
+
 func expandAKSManagedClusterPodIdentityProfile(p []interface{}) *AKSManagedClusterPodIdentityProfile {
 	obj := &AKSManagedClusterPodIdentityProfile{}
 	if len(p) == 0 || p[0] == nil {
@@ -3263,6 +3339,34 @@ func expandAKSManagedClusterPowerState(p []interface{}) *AKSManagedClusterPowerS
 
 	if v, ok := in["code"].(string); ok && len(v) > 0 {
 		obj.Code = v
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterSecurityProfile(p []interface{}) *AKSManagedClusterSecurityProfile {
+	obj := &AKSManagedClusterSecurityProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["workload_identity"].([]interface{}); ok && len(v) > 0 {
+		obj.WorkloadIdentity = expandAKSManagedClusterWorkloadIdentity(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterWorkloadIdentity(p []interface{}) *AKSManagedClusterWorkloadIdentity {
+	obj := &AKSManagedClusterWorkloadIdentity{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
 	}
 
 	return obj
@@ -4450,6 +4554,14 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 		obj["node_resource_group"] = in.NodeResourceGroup
 	}
 
+	if in.OidcIssuerProfile != nil {
+		v, ok := obj["oidc_issuer_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["oidc_issuer_profile"] = flattenAKSMCPropertiesOidcIssuerProfile(in.OidcIssuerProfile, v)
+	}
+
 	if in.PodIdentityProfile != nil {
 		v, ok := obj["pod_identity_profile"].([]interface{})
 		if !ok {
@@ -4472,6 +4584,14 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 			v = []interface{}{}
 		}
 		obj["private_link_resources"] = flattenAKSManagedClusterPrivateLinkResources(in.PrivateLinkResources, v)
+	}
+
+	if in.SecurityProfile != nil {
+		v, ok := obj["security_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["security_profile"] = flattenAKSMCPropertiesSecurityProfile(in.SecurityProfile, v)
 	}
 
 	if in.ServicePrincipalProfile != nil {
@@ -5255,6 +5375,21 @@ func flattenAKSManagedClusterNPOutboundIPsPublicIPs(in []*AKSManagedClusterNPOut
 
 }
 
+func flattenAKSMCPropertiesOidcIssuerProfile(in *AKSManagedClusterOidcIssuerProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+
+	return []interface{}{obj}
+
+}
+
 func flattenAKSManagedClusterPodIdentityProfile(in *AKSManagedClusterPodIdentityProfile, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
@@ -5387,6 +5522,42 @@ func flattenAKSManagedClusterPIPUserAssignedIdentityExceptions(inp []*AKSManaged
 		out[i] = &obj
 	}
 	return out
+
+}
+
+func flattenAKSMCPropertiesSecurityProfile(in *AKSManagedClusterSecurityProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.WorkloadIdentity != nil {
+		v, ok := obj["workload_identity"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["workload_identity"] = flattenAKSManagedClusterWorkloadIdentity(in.WorkloadIdentity, v)
+	}
+
+	return []interface{}{obj}
+
+}
+
+func flattenAKSManagedClusterWorkloadIdentity(in *AKSManagedClusterWorkloadIdentity, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+
+	return []interface{}{obj}
 
 }
 

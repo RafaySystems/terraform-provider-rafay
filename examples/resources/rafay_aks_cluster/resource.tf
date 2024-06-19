@@ -825,3 +825,75 @@ resource "rafay_aks_cluster" "aks_cluster_azure_cni_overlay" {
     }
   }
 }
+
+resource "rafay_aks_cluster" "demo-terraform-wi" {
+  apiversion = "rafay.io/v1alpha1"
+  kind       = "Cluster"
+  metadata {
+    name    = "gautham-aks-wi-4"
+    project = "defaultproject"
+  }
+  spec {
+    type          = "aks"
+    blueprint     = "minimal"
+    cloudprovider = "gautham-azure-creds"
+    cluster_config {
+      apiversion = "rafay.io/v1alpha1"
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "gautham-aks-wi-4"
+      }
+      spec {
+        resource_group_name = "gautham-rg-ci"
+        managed_cluster {
+          apiversion = "2024-01-01"
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "gautham-test-dns"
+            enable_rbac        = true
+            kubernetes_version = "1.28.9"
+            network_profile {
+              network_plugin = "kubenet"
+            }
+            power_state {
+              code = "Running"
+            }
+            oidc_issuer_profile {
+              enabled = true
+            }
+            security_profile {
+              workload_identity {
+                enabled = true
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          apiversion = "2023-11-01"
+          name       = "primary"
+          properties {
+            count                = 2
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.28.9"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+          }
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
+          location = "centralindia"
+        }
+      }
+    }
+  }
+}

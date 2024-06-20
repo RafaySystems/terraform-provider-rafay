@@ -157,7 +157,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `provider_options` (Block List, Max: 1) Provider specific options to be provided (see [below for nested schema](#nestedblock--spec--provider_options))
 - `sharing` (Block List, Max: 1) Sharing resource template across projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Variables associated with resource template (see [below for nested schema](#nestedblock--spec--variables))
-- `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`. This is a readonly field, latest active versions can be synced or new version with accepted values can be created. Modifying state for an existing version is not supported.
+- `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`. This is a readonly field, by default only new active versions are created, and latest active versions will be synced. Creating a `draft`, `disabled` state or modifying state for an existing version is not supported.
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`

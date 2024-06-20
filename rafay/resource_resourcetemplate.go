@@ -223,10 +223,6 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 		spec.Version = v
 	}
 
-	if vs, ok := in["version_state"].(string); ok && len(vs) > 0 {
-		spec.VersionState = vs
-	}
-
 	if p, ok := in["provider"].(string); ok && len(p) > 0 {
 		spec.Provider = p
 	}
@@ -327,14 +323,14 @@ func expandResourceTemplateRepositoryOptions(p []interface{}) *eaaspb.ResourceTe
 	return ro
 }
 
-func expandContexts(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
-	ctxs := make([]*commonpb.ResourceNameAndVersionRef, 0)
+func expandContexts(p []interface{}) []*eaaspb.ConfigContextCompoundRef {
+	ctxs := make([]*eaaspb.ConfigContextCompoundRef, 0)
 	if len(p) == 0 {
 		return ctxs
 	}
 
 	for indx := range p {
-		obj := &commonpb.ResourceNameAndVersionRef{}
+		obj := &eaaspb.ConfigContextCompoundRef{}
 
 		in := p[indx].(map[string]interface{})
 
@@ -382,11 +378,10 @@ func expandResourceHooks(p []interface{}) *eaaspb.ResourceHooks {
 }
 
 func expandWorkflowProviderOptions(p []interface{}) *eaaspb.WorkflowProviderOptions {
-	wfProviderOptions := &eaaspb.WorkflowProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return wfProviderOptions
+		return nil
 	}
-
+	wfProviderOptions := &eaaspb.WorkflowProviderOptions{}
 	in := p[0].(map[string]interface{})
 
 	if h, ok := in["tasks"].([]interface{}); ok && len(h) > 0 {
@@ -482,10 +477,10 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 }
 
 func expandOpenTofuProviderOptions(p []interface{}) *eaaspb.OpenTofuProviderOptions {
-	tpo := &eaaspb.OpenTofuProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return tpo
+		return nil
 	}
+	tpo := &eaaspb.OpenTofuProviderOptions{}
 
 	in := p[0].(map[string]interface{})
 
@@ -533,30 +528,27 @@ func expandOpenTofuProviderOptions(p []interface{}) *eaaspb.OpenTofuProviderOpti
 }
 
 func expandSystemProviderOptions(p []interface{}) *eaaspb.SystemProviderOptions {
-	spo := &eaaspb.SystemProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return spo
+		return nil
 	}
-
+	spo := &eaaspb.SystemProviderOptions{}
 	return spo
 
 }
 
 func expandTerragruntProviderOptions(p []interface{}) *eaaspb.TerragruntProviderOptions {
-	tpo := &eaaspb.TerragruntProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return tpo
+		return nil
 	}
-
+	tpo := &eaaspb.TerragruntProviderOptions{}
 	return tpo
 }
 
 func expandPulumiProviderOptions(p []interface{}) *eaaspb.PulumiProviderOptions {
-	ppo := &eaaspb.PulumiProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return ppo
+		return nil
 	}
-
+	ppo := &eaaspb.PulumiProviderOptions{}
 	return ppo
 }
 
@@ -781,7 +773,6 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{
 	}
 
 	obj["version"] = in.Version
-	obj["version_state"] = in.VersionState
 	obj["provider"] = in.Provider
 	obj["provider_options"] = flattenProviderOptions(in.ProviderOptions)
 	obj["repository_options"] = flattenRepositoryOptions(in.RepositoryOptions)
@@ -964,7 +955,7 @@ func flattenRepositoryOptions(in *eaaspb.ResourceTemplateRepositoryOptions) []in
 	return []interface{}{obj}
 }
 
-func flattenContexts(input []*commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+func flattenContexts(input []*eaaspb.ConfigContextCompoundRef, p []interface{}) []interface{} {
 	log.Println("flatten contexts start")
 	if input == nil {
 		return nil

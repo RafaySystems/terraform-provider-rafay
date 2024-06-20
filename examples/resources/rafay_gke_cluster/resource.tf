@@ -24,6 +24,11 @@ resource "rafay_gke_cluster" "tf-example" {
         subnet_name              = "default"
         enable_vpc_nativetraffic = "true"
         max_pods_per_node        = 110
+        # data_plane_v_2           = "ADVANCED_DATAPATH"
+        # enable_data_plane_v_2_metrics = "true"
+        # enable_data_plane_v_2_observability = "true"
+        network_policy_config = "true"
+        network_policy        = "CALICO"
         access {
           type = "public"
         }
@@ -58,14 +63,14 @@ resource "rafay_gke_cluster" "tf-example" {
       node_pools {
         name         = "np"
         node_version = "1.26"
-        size         = 3
+        size         = 1
         machine_config {
           machine_type   = "e2-standard-4"
           image_type     = "COS_CONTAINERD"
           boot_disk_type = "pd-standard"
           boot_disk_size = 100
           reservation_affinity {
-             consume_reservation_type = "any"
+            consume_reservation_type = "any"
           }
 
         }

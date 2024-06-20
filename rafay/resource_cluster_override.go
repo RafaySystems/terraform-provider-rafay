@@ -37,6 +37,9 @@ func resourceClusterOverride() *schema.Resource {
 		ReadContext:   resourceClusterOverrideRead,
 		UpdateContext: resourceClusterOverrideUpdate,
 		DeleteContext: resourceClusterOverrideDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceCluseroverrideImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -235,6 +238,34 @@ func resourceClusterOverride() *schema.Resource {
 	}
 }
 
+func resourceCluseroverrideImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceCluseroverrideImport idParts:", idParts)
+	d_debug := spew.Sprintf("%+v", d)
+	log.Println("resourceCluseroverrideImport d.Id:", d.Id())
+	log.Println("resourceCluseroverrideImport d_debug", d_debug)
+
+	override, err := expandOverride(d)
+	if err != nil {
+		log.Printf("override expandOverride error")
+		return nil, err
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	override.Metadata = &metaD
+
+	err = d.Set("metadata", flattenMetaData(override.Metadata))
+	if err != nil {
+		return nil, err
+	}
+
+	d.SetId(override.Metadata.Name)
+
+	return []*schema.ResourceData{d}, nil
+}
+
 func resourceClusterOverrideCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	diags := resourceOverrideUpsert(ctx, d, m)
 	if diags.HasError() {
@@ -339,7 +370,7 @@ func resourceClusterOverrideDelete(ctx context.Context, d *schema.ResourceData, 
 func resourceClusterOverrideRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	log.Println("resourceBlueprintRead ")
+	log.Println("resourceClusterOverrideRead ")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -390,7 +421,7 @@ func expandOverride(in *schema.ResourceData) (*clusterOverrideYamlConfig, error)
 		obj.Metadata = expandMetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok {
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandOverrideSpec(v)
 		if err != nil {
 			return nil, err
@@ -657,6 +688,12 @@ func flattenOverrideSpec(in models.ClusterOverrideSpec, p []interface{}) ([]inte
 		obj["type"] = in.Type
 	}
 
+	vc, ok := obj["cluster_placement"].([]interface{})
+	if !ok {
+		vc = []interface{}{}
+	}
+	obj["cluster_placement"] = flattenClusterPlacement(in.ClusterPlacement, vc)
+
 	if len(in.RepositoryRef) > 0 {
 		obj["value_repo_ref"] = in.RepositoryRef
 	}
@@ -674,15 +711,57 @@ func flattenOverrideSpec(in models.ClusterOverrideSpec, p []interface{}) ([]inte
 			obj["override_values"] = in.OverrideValues
 		}
 	}
-	va, ok := obj["artifact_type"].([]interface{})
-	if ok {
-		obj["artifact_type"] = va
-	} else {
-		obj["artifact_type"] = nil
 
+	if len(in.ArtifactType) > 0 {
+		obj["artifact_type"] = in.ArtifactType
 	}
 
 	return []interface{}{obj}, nil
+}
+
+func flattenClusterPlacement(in models.PlacementSpec, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	log.Println("flattenClusterPlacement ")
+	if in.PlacementType != "" {
+		obj["placement_type"] = in.PlacementType
+	}
+
+	if in.ClusterSelector != "" {
+		obj["cluster_selector"] = in.ClusterSelector
+	}
+
+	if in.ClusterLabels != nil {
+		obj["cluster_labels"] = flattenClusterLabels(in.ClusterLabels)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenClusterLabels(input []*models.PlacementLabel) []interface{} {
+
+	if input == nil {
+		return nil
+	}
+	out := make([]interface{}, len(input))
+
+	for i, in := range input {
+		obj := map[string]interface{}{}
+
+		if len(in.Key) > 0 {
+			obj["key"] = in.Key
+		}
+
+		if len(in.Value) > 0 {
+			obj["value"] = in.Value
+		}
+		out[i] = obj
+	}
+
+	return out
 }
 
 func flattenArtifactMeta(in models.RepoArtifactMeta, p []interface{}) []interface{} {

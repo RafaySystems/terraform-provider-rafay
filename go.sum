@@ -29,8 +29,8 @@ github.com/RafaySystems/edge-common v1.24.1-0.20240313173939-2a7f4af9a0b1 h1:wP2
 github.com/RafaySystems/edge-common v1.24.1-0.20240313173939-2a7f4af9a0b1/go.mod h1:bIn92SQa3X+1/vSBF/b5cyw7/t7r66GBvIOqSl3eMEc=
 github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240619110749-3610c76b6042 h1:6CvWL6bVknn5gAePQOLjUgt/igrboYCPfrkZ7oz/xmA=
 github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240619110749-3610c76b6042/go.mod h1:mtCPPKltpuzlfP2Lb9GsoboGYEKLIq5C2D6cBflA6VQ=
-github.com/RafaySystems/rctl v1.29.1-0.20240318065512-edb415b3a5b6 h1:QCujh1F/y30YfdNDr4bcuHTwGs6Mp4XpnZQysxdcx+c=
-github.com/RafaySystems/rctl v1.29.1-0.20240318065512-edb415b3a5b6/go.mod h1:Mc6/O4z5Yej9k6EZNdgIkz41HLhOCEEZDtt/WMg6kXI=
+github.com/RafaySystems/rctl v1.29.1-0.20240620091555-2554c07f1905 h1:DCTb3E48S6mXSo43WWANWjhxvVA3xBnkRmVsd2mE7OE=
+github.com/RafaySystems/rctl v1.29.1-0.20240620091555-2554c07f1905/go.mod h1:pptEYrmz8khOwz9KDCpPJPNR6PEst6MsQY/RKZtvYno=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=
 github.com/RoaringBitmap/roaring v1.9.4/go.mod h1:6AXUsoIEzDTFFQCe1RbGA6uFONMhvejWj5rqITANK90=
 github.com/abhay-krishna/cluster-api v1.4.2-eksa.1 h1:mO+idOdh9Bpumgo41WJcrASPtJGSgmRxHNiwtUdUa+E=

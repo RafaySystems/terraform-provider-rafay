@@ -740,6 +740,8 @@ func flattenGKEV3NodeAccelerators(in []*infrapb.GkeNodeAccelerator, p []interfac
 			}
 			obj["gpu_driver_installation"] = flattenGKEV3NodeGpuDriverInstallation(j.GpuDriverInstallation, v)
 		}
+
+		out[i] = &obj
 	}
 
 	return out

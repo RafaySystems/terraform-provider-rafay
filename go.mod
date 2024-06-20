@@ -6,7 +6,7 @@ toolchain go1.22.4
 
 require (
 	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240614074800-a0cbfb1c0b19
-	github.com/RafaySystems/rctl v1.29.1-0.20240318065512-edb415b3a5b6
+	github.com/RafaySystems/rctl v1.29.1-0.20240620091555-2554c07f1905
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5
@@ -221,7 +221,7 @@ replace (
 	//github.com/RafaySystems/rafay-common => ../rafay-common
 	//github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
-	github.com/RafaySystems/rctl => ../rctl
+	// github.com/RafaySystems/rctl => ../rctl
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
 	github.com/go-pg/pg => github.com/go-pg/pg v6.15.1+incompatible
 	k8s.io/api => k8s.io/api v0.26.2

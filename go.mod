@@ -5,7 +5,7 @@ go 1.22.3
 toolchain go1.22.4
 
 require (
-	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240619110749-3610c76b6042
+	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240621115302-afdaffa23f8e
 	github.com/RafaySystems/rctl v1.29.1-0.20240318065512-edb415b3a5b6
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -68,7 +68,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/ProtonMail/go-crypto v1.1.0-alpha.2 // indirect
-	github.com/RafaySystems/eaas-playground v0.0.0-20240619071755-7df5cf4c0048 // indirect
+	github.com/RafaySystems/eaas-playground v0.0.0-20240621113209-3a4368836b68 // indirect
 	github.com/RoaringBitmap/roaring v1.9.4 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
@@ -218,7 +218,7 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
-	//github.com/RafaySystems/rafay-common => ../rafay-common
+	// github.com/RafaySystems/rafay-common => ../rafay-common
 	//github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	// github.com/RafaySystems/rctl => ../rctl

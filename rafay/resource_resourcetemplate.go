@@ -612,6 +612,10 @@ func expandProviderHooks(p []interface{}) *eaaspb.ResourceTemplateProviderHooks 
 		rtph.Pulumi = expandPulumiProviderHooks(h)
 	}
 
+	if h, ok := in["open_tofu"].([]interface{}); ok && len(h) > 0 {
+		rtph.OpenTofu = expandOpenTofuProviderHooks(h)
+	}
+
 	if h, oj := in["hcp_terraform"].([]interface{}); oj && len(h) > 0 {
 		rtph.HcpTerraform = expandHcpTerraformProviderHooks(h)
 	}
@@ -656,6 +660,25 @@ func expandPulumiProviderHooks(p []interface{}) *eaaspb.PulumiProviderHooks {
 	}
 
 	return pph
+}
+
+func expandOpenTofuProviderHooks(p []interface{}) *eaaspb.OpenTofuProviderHooks {
+	tph := &eaaspb.OpenTofuProviderHooks{}
+	if len(p) == 0 || p[0] == nil {
+		return tph
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["deploy"].([]interface{}); ok && len(h) > 0 {
+		tph.Deploy = expandOpenTofuDeployHooks(h)
+	}
+
+	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
+		tph.Destroy = expandOpenTofuDestroyHooks(h)
+	}
+
+	return tph
 }
 
 func expandHcpTerraformProviderHooks(p []interface{}) *eaaspb.HCPTerraformProviderHooks {
@@ -706,6 +729,56 @@ func expandTerraformDeployHooks(p []interface{}) *eaaspb.TerraformDeployHooks {
 
 func expandTerraformDestroyHooks(p []interface{}) *eaaspb.TerraformDestroyHooks {
 	tdh := &eaaspb.TerraformDestroyHooks{}
+	if len(p) == 0 || p[0] == nil {
+		return tdh
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
+		tdh.Init = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
+		tdh.Plan = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
+		tdh.Destroy = expandLifecycleEventHooks(h)
+	}
+
+	return tdh
+}
+
+func expandOpenTofuDeployHooks(p []interface{}) *eaaspb.OpenTofuDeployHooks {
+	tdh := &eaaspb.OpenTofuDeployHooks{}
+	if len(p) == 0 || p[0] == nil {
+		return tdh
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
+		tdh.Init = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
+		tdh.Plan = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["apply"].([]interface{}); ok && len(h) > 0 {
+		tdh.Apply = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["output"].([]interface{}); ok && len(h) > 0 {
+		tdh.Output = expandLifecycleEventHooks(h)
+	}
+
+	return tdh
+}
+
+func expandOpenTofuDestroyHooks(p []interface{}) *eaaspb.OpenTofuDestroyHooks {
+	tdh := &eaaspb.OpenTofuDestroyHooks{}
 	if len(p) == 0 || p[0] == nil {
 		return tdh
 	}
@@ -1199,6 +1272,15 @@ func flattenProviderHooks(input *eaaspb.ResourceTemplateProviderHooks, p []inter
 		obj["terraform"] = flattenTerraformProviderHooks(input.Terraform, v)
 	}
 
+	if input.OpenTofu != nil {
+		v, ok := obj["open_tofu"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["open_tofu"] = flattenOpenTofuProviderHooks(input.OpenTofu, v)
+	}
+
 	if input.Pulumi != nil {
 		v, ok := obj["pulumi"].([]interface{})
 		if !ok {
@@ -1247,6 +1329,38 @@ func flattenTerraformProviderHooks(input *eaaspb.TerraformProviderHooks, p []int
 		}
 
 		obj["destroy"] = flattenTerraformDestroyHooks(input.Destroy, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenOpenTofuProviderHooks(input *eaaspb.OpenTofuProviderHooks, p []interface{}) []interface{} {
+	log.Println("flatten opentofu provider hooks start")
+	if input == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if input.Deploy != nil {
+		v, ok := obj["deploy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["deploy"] = flattenOpenTofuDeployHooks(input.Deploy, v)
+	}
+
+	if input.Destroy != nil {
+		v, ok := obj["destroy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["destroy"] = flattenOpenTofuDestroyHooks(input.Destroy, v)
 	}
 
 	return []interface{}{obj}
@@ -1368,6 +1482,97 @@ func flattenTerraformDeployHooks(input *eaaspb.TerraformDeployHooks, p []interfa
 
 func flattenTerraformDestroyHooks(input *eaaspb.TerraformDestroyHooks, p []interface{}) []interface{} {
 	log.Println("flatten terraform destroy hooks start")
+	if input == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if input.Init != nil {
+		v, ok := obj["init"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["init"] = flattenLifecycleEventHooks(input.Init, v)
+	}
+
+	if input.Plan != nil {
+		v, ok := obj["plan"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+	}
+
+	if input.Destroy != nil {
+		v, ok := obj["destroy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenOpenTofuDeployHooks(input *eaaspb.OpenTofuDeployHooks, p []interface{}) []interface{} {
+	log.Println("flatten opentofu deploy hooks start")
+	if input == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if input.Init != nil {
+		v, ok := obj["init"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["init"] = flattenLifecycleEventHooks(input.Init, v)
+	}
+
+	if input.Plan != nil {
+		v, ok := obj["plan"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+	}
+
+	if input.Apply != nil {
+		v, ok := obj["apply"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["apply"] = flattenLifecycleEventHooks(input.Apply, v)
+	}
+
+	if input.Output != nil {
+		v, ok := obj["output"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["output"] = flattenLifecycleEventHooks(input.Output, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenOpenTofuDestroyHooks(input *eaaspb.OpenTofuDestroyHooks, p []interface{}) []interface{} {
+	log.Println("flatten opentofu destroy hooks start")
 	if input == nil {
 		return nil
 	}

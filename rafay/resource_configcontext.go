@@ -261,6 +261,10 @@ func expandEnvVariables(p []interface{}) []*eaaspb.EnvData {
 			obj.Sensitive = v
 		}
 
+		if v, ok := in["options"].([]interface{}); ok && len(v) > 0 {
+			obj.Options = expandEnvvarOptions(v)
+		}
+
 		envvars[i] = &obj
 
 	}
@@ -411,6 +415,7 @@ func flattenEnvVariables(input []*eaaspb.EnvData, p []interface{}) []interface{}
 			obj["value"] = in.Value
 		}
 		obj["sensitive"] = in.Sensitive
+		obj["options"] = flattenEnvvarOptions(in.Options)
 
 		out[i] = &obj
 	}

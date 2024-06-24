@@ -477,6 +477,10 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 		tpo.Volumes = expandProviderVolumeOptions(v)
 	}
 
+	if h, ok := in["timeout_seconds"].(int); ok {
+		tpo.TimeoutSeconds = int64(h)
+	}
+
 	return tpo
 }
 
@@ -528,6 +532,10 @@ func expandOpenTofuProviderOptions(p []interface{}) *eaaspb.OpenTofuProviderOpti
 		tpo.Volumes = expandProviderVolumeOptions(v)
 	}
 
+	if h, ok := in["timeout_seconds"].(int); ok {
+		tpo.TimeoutSeconds = int64(h)
+	}
+
 	return tpo
 }
 
@@ -565,6 +573,10 @@ func expandHcpTerraformProviderOptions(p []interface{}) *eaaspb.HCPTerraformProv
 
 	if v, ok := in["volumes"].([]interface{}); ok && len(v) > 0 {
 		hcpTFOpts.Volumes = expandProviderVolumeOptions(v)
+	}
+
+	if h, ok := in["timeout_seconds"].(int); ok {
+		hcpTFOpts.TimeoutSeconds = int64(h)
 	}
 
 	return hcpTFOpts
@@ -971,6 +983,7 @@ func flattenOpenTofuProviderOptions(in *eaaspb.OpenTofuProviderOptions) []interf
 
 		obj["volumes"] = flattenProviderVolumeOptions(in.Volumes, v)
 	}
+	obj["timeout_seconds"] = in.TimeoutSeconds
 
 	return []interface{}{obj}
 }
@@ -1017,6 +1030,7 @@ func flattenTerraformProviderOptions(in *eaaspb.TerraformProviderOptions) []inte
 
 		obj["volumes"] = flattenProviderVolumeOptions(in.Volumes, v)
 	}
+	obj["timeout_seconds"] = in.TimeoutSeconds
 
 	return []interface{}{obj}
 }
@@ -1041,6 +1055,7 @@ func flattenHcpTerraformProviderOptions(in *eaaspb.HCPTerraformProviderOptions) 
 
 		obj["volumes"] = flattenProviderVolumeOptions(in.Volumes, v)
 	}
+	obj["timeout_seconds"] = in.TimeoutSeconds
 
 	return []interface{}{obj}
 }

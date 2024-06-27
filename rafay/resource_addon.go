@@ -50,7 +50,7 @@ func resourceAddonImport(d *schema.ResourceData, meta interface{}) ([]*schema.Re
 	log.Println("resourceAddonImport d.Id:", d.Id())
 	log.Println("resourceAddonImport d_debug", d_debug)
 
-	if len(idParts) > 2 && idParts[2] != "" && idParts[2] == "show_artifact" {
+	if len(idParts) > 2 && idParts[2] == "show_artifact" {
 		showArtifactFlag = true
 	}
 

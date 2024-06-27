@@ -230,8 +230,13 @@ below command will help to import existing addon resource from controller to sta
 
 ---
 ```
+terraform import rafay_addon.tfdemoaddon1 addOnName/projectName
+```
+above command will import resource without `artifact` object (i.e `artifact` will be ignored) , so to proper `artifact` object refer below command
+OR
+```
 terraform import rafay_addon.tfdemoaddon1 addOnName/projectName/show_artifact
 ```
-`show_artifact` string in the end will to update state file with artifact object, otherwise artifact will be ignored
+`show_artifact` string in the end will update state file with artifact object
 
 ---

@@ -226,17 +226,18 @@ output "addon_spec" {
 
 # rafay_addon (import )
 ## Example Usage
-below command will help to import existing addon resource from controller to state file
+The below command will help to import existing addon resources from the controller to the state file.
 
 ---
 ```
 terraform import rafay_addon.tfdemoaddon1 addOnName/projectName
 ```
-above command will import resource without `artifact` object (i.e `artifact` will be ignored) , to import proper `artifact` object refer below command
-OR
+The above command will import the addon resources without the `artifact` object (i.e. `artifact` will be ignored), to import the `artifact` object refer below command.
+
+
 ```
 terraform import rafay_addon.tfdemoaddon1 addOnName/projectName/show_artifact
 ```
-`show_artifact` string in the end will update state file with artifact object
+The `show_artifact`, in the end, will update the state file with the artifact object.
 
 ---

@@ -3053,7 +3053,7 @@ func expandNodeGroupInstanceDistribution(p []interface{}) *NodeGroupInstancesDis
 	if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
 		obj.InstanceTypes = toArrayString(v)
 	}
-	if v, ok := in["max_price"].(float64); ok {
+	if v, ok := in["max_price"].(float64); ok && v > 0.0 {
 		obj.MaxPrice = &v
 	}
 	if v, ok := in["on_demand_base_capacity"].(int); ok {
@@ -3062,10 +3062,10 @@ func expandNodeGroupInstanceDistribution(p []interface{}) *NodeGroupInstancesDis
 	if v, ok := in["on_demand_percentage_above_base_capacity"].(int); ok {
 		obj.OnDemandPercentageAboveBaseCapacity = &v
 	}
-	if v, ok := in["spot_instance_pools"].(int); ok {
+	if v, ok := in["spot_instance_pools"].(int); ok && v > 0 {
 		obj.SpotInstancePools = &v
 	}
-	if v, ok := in["spot_allocation_strategy"].(string); ok {
+	if v, ok := in["spot_allocation_strategy"].(string); ok && (v == "capacity-optimized" || v == "lowest-price") {
 		obj.SpotAllocationStrategy = v
 	}
 	if v, ok := in["capacity_rebalance"].(bool); ok {

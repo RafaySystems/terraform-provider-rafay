@@ -11,6 +11,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/addon"
 	"github.com/RafaySystems/rctl/pkg/config"
@@ -19,12 +20,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+var showArtifactFlag bool = false
+
 func resourceAddon() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceAddonCreate,
 		ReadContext:   resourceAddonRead,
 		UpdateContext: resourceAddonUpdate,
 		DeleteContext: resourceAddonDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceAddonImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -35,6 +41,38 @@ func resourceAddon() *schema.Resource {
 		SchemaVersion: 1,
 		Schema:        resource.AddonSchema.Schema,
 	}
+}
+
+func resourceAddonImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	idParts := strings.SplitN(d.Id(), "/", 3)
+	log.Println("resourceAddonImport idParts:", idParts)
+	d_debug := spew.Sprintf("%+v", d)
+	log.Println("resourceAddonImport d.Id:", d.Id())
+	log.Println("resourceAddonImport d_debug", d_debug)
+
+	if len(idParts) > 2 && idParts[2] == "show_artifact" {
+		showArtifactFlag = true
+	}
+
+	addOn, err := expandAddon(d)
+	if err != nil {
+		log.Printf("Addon expandAddon error")
+		return nil, err
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
+	addOn.Metadata = &metaD
+
+	err = d.Set("metadata", flattenMetaData(addOn.Metadata))
+	if err != nil {
+		return nil, err
+	}
+
+	d.SetId(addOn.Metadata.Name)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -199,7 +237,7 @@ func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{
 	addst := spew.Sprintf("%+v", addon)
 	log.Println("resourceAddonRead addst", addst)
 
-	err = flattenAddon(d, addon, false)
+	err = flattenAddon(d, addon, showArtifactFlag)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -217,7 +255,7 @@ func expandAddon(in *schema.ResourceData) (*infrapb.Addon, error) {
 		obj.Metadata = expandMetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok {
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandAddonSpec(v)
 		if err != nil {
 			return nil, err

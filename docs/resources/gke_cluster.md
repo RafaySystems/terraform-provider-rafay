@@ -748,9 +748,8 @@ Optional:
 
 ***Required***
 - `strategy` (String) Update strategy of the node pool. Possible values are `SURGE` or `BLUE_GREEN`
+- `config` (Block List, Max: 1) If `strategy` is `SURGE`, configure surge configuration (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--surge_settings)). If `strategy` is `BLUE_GREEN`, configure blue-gree configuration (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--blue_green_settings)). 
 
-- `blue_green_settings` (Block List, Max: 1) If `strategy` is `BLUE_GREEN`, configure this setting for upgrade strategy (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--blue_green_settings))
-- `surge_settings` (Block List, Max: 1) If `strategy` is `SURGE`, configure this setting for upgrade strategy (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--surge_settings))
 
 <a id="nestedblock--spec--config--node_pools--upgrade_settings--blue_green_settings"></a>
 ### Nested Schema for `spec.config.node_pools.upgrade_settings.blue_green_settings`

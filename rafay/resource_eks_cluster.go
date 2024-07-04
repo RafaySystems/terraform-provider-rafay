@@ -4316,7 +4316,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		if !ok {
 			v = []interface{}{}
 		}
-		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, rawState.GetAttr("nodegroups"), v)
+		ret8 = flattenEKSClusterNodeGroups(in.NodeGroups, rawState.GetAttr("node_groups"), v)
 		/*
 			if err != nil {
 				log.Println("flattenEKSClusterNodeGroups err")

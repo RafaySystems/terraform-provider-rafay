@@ -172,7 +172,7 @@ func resourceEKSClusterSpecCreate(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	// split the file and update individual resources
-	y, _, uerr := utils.SplitYamlAndGetListByKind(fileBytes)
+	y, _, uerr := utils.SplitYamlAndGetListByKind(fileBytes, true)
 	if uerr != nil {
 		return diag.FromErr(err)
 	}

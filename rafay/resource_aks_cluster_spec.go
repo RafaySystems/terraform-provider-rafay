@@ -120,7 +120,7 @@ func resourceAKSClusterSpecUpsert(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	// split the file and update individual resources
-	cfgList, _, err := utils.SplitYamlAndGetListByKind(fileBytes)
+	cfgList, _, err := utils.SplitYamlAndGetListByKind(fileBytes, true)
 	if err != nil {
 		return diag.FromErr(err)
 	}

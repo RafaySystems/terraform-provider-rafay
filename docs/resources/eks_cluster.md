@@ -1144,3 +1144,17 @@ output "eks_cluster" {
 
 ---
   
+## Troubleshoot Steps
+
+- [Follow below steps in case `terraform apply` fails after importing cluster](#nestedblock--TS1)
+
+<a id="nestedblock--TS1"></a>
+### Follow below steps in case `terraform apply` fails after importing cluster
+1. **Import the Cluster:**
+Use the `import` keyword to import your cluster into Terraform. Eg: `terraform import rafay_eks_cluster.cluster cluster-name/project-name`
+2. **Create Resource File:**
+   After a successful import, generate a resource file using the `terraform show` command. Ensure you only add the configured fields to the Terraform configuration. Avoid including fields that were not explicitly defined by the user.
+3. **Verify Configuration:**
+   Use the `terraform plan` command to verify the configuration. The output should show no differences.
+4. **Manage Your Resource:**
+   If above steps followed correctly, `terraform apply ` should work as expected.

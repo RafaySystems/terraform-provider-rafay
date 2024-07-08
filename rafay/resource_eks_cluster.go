@@ -1169,15 +1169,15 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"volume_iops": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     3000,
+			Type:     schema.TypeInt,
+			Optional: true,
+			// Default:     3000,
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"volume_throughput": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     125,
+			Type:     schema.TypeInt,
+			Optional: true,
+			// Default:     125,
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"pre_bootstrap_commands": {
@@ -1369,21 +1369,21 @@ func instanceDistributionFields() map[string]*schema.Schema {
 			Description: "Maximum bid price in USD",
 		},
 		"on_demand_base_capacity": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     0,
+			Type:     schema.TypeInt,
+			Optional: true,
+			// Default:     0,
 			Description: "base number of on-demand instances (non-negative)",
 		},
 		"on_demand_percentage_above_base_capacity": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     100,
+			Type:     schema.TypeInt,
+			Optional: true,
+			// Default:     100,
 			Description: "Range [0-100]",
 		},
 		"spot_instance_pools": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     2,
+			Type:     schema.TypeInt,
+			Optional: true,
+			// Default:     2,
 			Description: "Range [0-20]",
 		},
 		"spot_allocation_strategy": {
@@ -1581,9 +1581,9 @@ func iamNodeGroupConfigFields() map[string]*schema.Schema { //@@@TODO: need to c
 func iamNodeGroupWithAddonPoliciesFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"image_builder": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     true,
+			Type:     schema.TypeBool,
+			Optional: true,
+			// Default:     true,
 			Description: "allows for full ECR (Elastic Container Registry) access. This is useful for building, for example, a CI server that needs to push images to ECR",
 		},
 		"auto_scaler": {
@@ -1855,15 +1855,15 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"volume_iops": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     3000,
+			Type:     schema.TypeInt,
+			Optional: true,
+			// Default:     3000,
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"volume_throughput": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     125,
+			Type:     schema.TypeInt,
+			Optional: true,
+			// Default:     125,
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"pre_bootstrap_commands": {
@@ -2238,7 +2238,11 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 		obj.PrivateCluster = expandPrivateCluster(v)
 	}
 	if v, ok := in["node_groups"].([]interface{}); ok && len(v) > 0 {
-		obj.NodeGroups = expandNodeGroups(v)
+		var nRawConfig cty.Value
+		if !rawConfig.IsNull() {
+			nRawConfig = rawConfig.GetAttr("node_groups")
+		}
+		obj.NodeGroups = expandNodeGroups(v, nRawConfig)
 	}
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
 		var nRawConfig cty.Value
@@ -2805,7 +2809,7 @@ func expandManagedNodeGroupLaunchTempelate(p []interface{}) *LaunchTemplate {
 	return obj
 }
 
-func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have questions in comments
+func expandNodeGroups(p []interface{}, rawConfig cty.Value) []*NodeGroup { //not completed have questions in comments
 	out := make([]*NodeGroup, len(p))
 
 	if len(p) == 0 || p[0] == nil {
@@ -2933,7 +2937,11 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 			obj.EnableDetailedMonitoring = &v
 		}
 		if v, ok := in["instances_distribution"].([]interface{}); ok && len(v) > 0 {
-			obj.InstancesDistribution = expandNodeGroupInstanceDistribution(v)
+			var nRawConfig cty.Value
+			if !rawConfig.IsNull() && i < len(rawConfig.AsValueSlice()) {
+				nRawConfig = rawConfig.AsValueSlice()[i].GetAttr("instances_distribution")
+			}
+			obj.InstancesDistribution = expandNodeGroupInstanceDistribution(v, nRawConfig)
 		}
 		if v, ok := in["asg_metrics_collection"].([]interface{}); ok && len(v) > 0 {
 			obj.ASGMetricsCollection = expandNodeGroupASGMetricCollection(v)
@@ -3043,31 +3051,91 @@ func expandNodeGroupASGMetricCollection(p []interface{}) []MetricsCollection {
 }
 
 // expand node group Instance Distribution function (completed)
-func expandNodeGroupInstanceDistribution(p []interface{}) *NodeGroupInstancesDistribution {
+func expandNodeGroupInstanceDistribution(p []interface{}, rawConfig cty.Value) *NodeGroupInstancesDistribution {
 	obj := &NodeGroupInstancesDistribution{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	if !rawConfig.IsNull() && len(rawConfig.AsValueSlice()) > 0 {
+		rawConfig = rawConfig.AsValueSlice()[0]
+	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
 		obj.InstanceTypes = toArrayString(v)
 	}
-	if v, ok := in["max_price"].(float64); ok {
-		obj.MaxPrice = &v
+	var rawMaxPrice cty.Value
+	if !rawConfig.IsNull() {
+		rawMaxPrice = rawConfig.GetAttr("max_price")
 	}
-	if v, ok := in["on_demand_base_capacity"].(int); ok {
-		obj.OnDemandBaseCapacity = &v
+	if !rawMaxPrice.IsNull() {
+		floatVal, _ := rawMaxPrice.AsBigFloat().Float64()
+		obj.MaxPrice = &floatVal
 	}
-	if v, ok := in["on_demand_percentage_above_base_capacity"].(int); ok {
-		obj.OnDemandPercentageAboveBaseCapacity = &v
+
+	var rawOnDemandBaseCapacity cty.Value
+	if !rawConfig.IsNull() {
+		rawOnDemandBaseCapacity = rawConfig.GetAttr("on_demand_base_capacity")
 	}
-	if v, ok := in["spot_instance_pools"].(int); ok {
-		obj.SpotInstancePools = &v
+	if !rawOnDemandBaseCapacity.IsNull() && rawOnDemandBaseCapacity.AsBigFloat().IsInt() {
+		bigInt, _ := rawOnDemandBaseCapacity.AsBigFloat().Int(nil)
+		intVal := int(bigInt.Int64())
+		obj.OnDemandBaseCapacity = &intVal
 	}
-	if v, ok := in["spot_allocation_strategy"].(string); ok {
-		obj.SpotAllocationStrategy = v
+
+	var rawOnDemandPercentageAboveBaseCapacity cty.Value
+	if !rawConfig.IsNull() {
+		rawOnDemandPercentageAboveBaseCapacity = rawConfig.GetAttr("on_demand_percentage_above_base_capacity")
 	}
+	if !rawOnDemandPercentageAboveBaseCapacity.IsNull() && rawOnDemandPercentageAboveBaseCapacity.AsBigFloat().IsInt() {
+		bigInt, _ := rawOnDemandPercentageAboveBaseCapacity.AsBigFloat().Int(nil)
+		intVal := int(bigInt.Int64())
+		obj.OnDemandPercentageAboveBaseCapacity = &intVal
+	}
+
+	var rawSpotInstancePools cty.Value
+	if !rawConfig.IsNull() {
+		rawSpotInstancePools = rawConfig.GetAttr("spot_instance_pools")
+	}
+	if !rawSpotInstancePools.IsNull() && rawSpotInstancePools.AsBigFloat().IsInt() {
+		bigInt, _ := rawSpotInstancePools.AsBigFloat().Int(nil)
+		intVal := int(bigInt.Int64())
+		obj.SpotInstancePools = &intVal
+	}
+
+	var rawSpotAllocationStrategy cty.Value
+	if !rawConfig.IsNull() {
+		rawSpotAllocationStrategy = rawConfig.GetAttr("spot_allocation_strategy")
+	}
+	if !rawSpotAllocationStrategy.IsNull() && len(rawSpotAllocationStrategy.AsString()) > 0 {
+		obj.SpotAllocationStrategy = rawSpotAllocationStrategy.AsString()
+	}
+
+	// var rawCapacityRebalance cty.Value
+	// if !rawConfig.IsNull() {
+	// 	rawCapacityRebalance = rawConfig.GetAttr("capacity_rebalance")
+	// }
+	// if !rawCapacityRebalance.IsNull() {
+	// 	fmt.Println("asdf")
+	// 	boolVal := rawCapacityRebalance.True()
+	// 	fmt.Printf("boolVal: %v\n", boolVal)
+	// 	obj.CapacityRebalance = &boolVal
+	// }
+	// if v, ok := in["max_price"].(float64); ok {
+	// 	obj.MaxPrice = &v
+	// }
+	// if v, ok := in["on_demand_base_capacity"].(int); ok {
+	// 	obj.OnDemandBaseCapacity = &v
+	// }
+	// if v, ok := in["on_demand_percentage_above_base_capacity"].(int); ok {
+	// 	obj.OnDemandPercentageAboveBaseCapacity = &v
+	// }
+	// if v, ok := in["spot_instance_pools"].(int); ok {
+	// 	obj.SpotInstancePools = &v
+	// }
+	// if v, ok := in["spot_allocation_strategy"].(string); ok {
+	// 	obj.SpotAllocationStrategy = v
+	// }
 	if v, ok := in["capacity_rebalance"].(bool); ok {
 		obj.CapacityRebalance = &v
 	}

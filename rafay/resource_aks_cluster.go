@@ -5590,6 +5590,12 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
 
+	// TF timeout "update" key is used here. Ideally we should use
+	// "create" or "update" key based on CRUD operation this
+	// function is invoked from.
+	ctx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+	defer cancel()
+
 LOOP:
 	for {
 		//Check for cluster operation timeout

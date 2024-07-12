@@ -856,6 +856,10 @@ addons {
 
 - `key_arn` - (String) KMS key ARN. 
 
+***Optional***
+
+- `encrypt_existing_secrets` - (Boolean) Set to false to disable encrypting existing secrets. Default is true.
+
 
 <a id="nestedblock--cluster_config--managed_nodegroups"></a>
 ### Nested Schema for `cluster_config.managed_nodegroups`

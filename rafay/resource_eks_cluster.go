@@ -2479,11 +2479,7 @@ func expandSecretEncryption(p []interface{}) *SecretsEncryption {
 	}
 
 	if v, ok := in["encrypt_existing_secrets"].(bool); ok {
-		if v {
-			obj.EncryptExistingSecrets = &v
-		} else {
-			obj.EncryptExistingSecrets = &v
-		}
+		obj.EncryptExistingSecrets = &v
 	}
 
 	return obj

@@ -88,7 +88,7 @@ func getUserDetails(username string) (accountId string, err error) {
 
 	if len(usr.Accounts) <= 0 {
 		log.Println("failed to get user details got empty user", username, "resp", resp)
-		return "", fmt.Errorf("error /auth/v1/users/ resp: %s", resp)
+		return "", fmt.Errorf("error /auth/v2/users/ resp: %s", resp)
 	}
 	accountId = usr.Accounts[0].ID
 	return accountId, nil

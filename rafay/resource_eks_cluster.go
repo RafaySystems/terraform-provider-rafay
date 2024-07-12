@@ -2124,6 +2124,11 @@ func secretsEncryptionConfigFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "KMS key ARN",
 		},
+		"encrypt_existing_secrets": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Flag to encrypt existing secrets. Default is true",
+		},
 	}
 	return s
 }
@@ -2462,6 +2467,15 @@ func expandSecretEncryption(p []interface{}) *SecretsEncryption {
 	if v, ok := in["key_arn"].(string); ok && len(v) > 0 {
 		obj.KeyARN = v
 	}
+
+	if v, ok := in["encrypt_existing_secrets"].(bool); ok {
+		if v {
+			obj.EncryptExistingSecrets = &v
+		} else {
+			obj.EncryptExistingSecrets = &v
+		}
+	}
+
 	return obj
 }
 
@@ -5759,6 +5773,15 @@ func flattenEKSClusterSecretsEncryption(in *SecretsEncryption, p []interface{}) 
 	if len(in.KeyARN) > 0 {
 		obj["key_arn"] = in.KeyARN
 	}
+
+	if in.EncryptExistingSecrets != nil && *in.EncryptExistingSecrets {
+		obj["encrypt_existing_secrets"] = true
+	}
+
+	if in.EncryptExistingSecrets != nil && !*in.EncryptExistingSecrets {
+		obj["encrypt_existing_secrets"] = false
+	}
+
 	return []interface{}{obj}
 }
 

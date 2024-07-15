@@ -459,6 +459,217 @@ func expandAKSClusterV3ConfigSpec(p []interface{}) *infrapb.AksV3Spec {
 		obj.NodePools = expandAKSV3NodePool(v)
 	}
 
+	if v, ok := in["maintenance_configurations"].([]interface{}); ok && len(v) > 0 {
+		obj.MaintenanceConfigurations = expandAKSV3MaintenanceConfigs(v)
+	}
+
+	return obj
+}
+
+func expandAKSV3MaintenanceConfigs(p []interface{}) []*infrapb.AKSMaintenanceConfig {
+	if len(p) == 0 || p[0] == nil {
+		return []*infrapb.AKSMaintenanceConfig{}
+	}
+
+	out := make([]*infrapb.AKSMaintenanceConfig, len(p))
+	for i := range p {
+		obj := infrapb.AKSMaintenanceConfig{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["api_version"].(string); ok && len(v) > 0 {
+			obj.ApiVersion = v
+		}
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+
+		if v, ok := in["properties"].([]interface{}); ok && len(v) > 0 {
+			obj.Properties = expandAKSV3MaintenanceConfigProperties(v)
+		}
+		out[i] = &obj
+	}
+	return out
+}
+
+func expandAKSV3MaintenanceConfigProperties(p []interface{}) *infrapb.AKSMaintenanceConfigProperties {
+	obj := &infrapb.AKSMaintenanceConfigProperties{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["maintenance_window"].([]interface{}); ok && len(v) > 0 {
+		obj.MaintenanceWindow = expandAKSV3MCMaintenanceWindow(v)
+	}
+	if v, ok := in["not_allowed_time"].([]interface{}); ok && len(v) > 0 {
+		obj.NotAllowedTime = expandAKSV3MCTimeSpan(v)
+	}
+	if v, ok := in["time_in_week"].([]interface{}); ok && len(v) > 0 {
+		obj.TimeInWeek = expandAKSV3MCTimeInWeek(v)
+	}
+	return obj
+}
+
+func expandAKSV3MCTimeSpan(p []interface{}) *infrapb.AKSMaintenanceTimeSpan {
+	obj := &infrapb.AKSMaintenanceTimeSpan{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["end"].(string); ok && len(v) > 0 {
+		obj.End = v
+	}
+	if v, ok := in["start"].(string); ok && len(v) > 0 {
+		obj.Start = v
+	}
+	return obj
+}
+
+func expandAKSV3MCTimeInWeek(p []interface{}) *infrapb.AKSMaintenanceTimeInWeek {
+	obj := &infrapb.AKSMaintenanceTimeInWeek{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["day"].(string); ok && len(v) > 0 {
+		obj.Day = v
+	}
+
+	if v, ok := in["hour_slots"].([]interface{}); ok && len(v) > 0 {
+		obj.HourSlots = toArrayInt32(v)
+	}
+	return obj
+}
+func expandAKSV3MCMaintenanceWindow(p []interface{}) *infrapb.AKSMaintenanceWindow {
+	obj := &infrapb.AKSMaintenanceWindow{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["duration_hours"].(int); ok && v > 0 {
+		obj.DurationHours = int32(v)
+	}
+
+	if v, ok := in["not_allowed_dates"].([]interface{}); ok && len(v) > 0 {
+		obj.NotAllowedDates = expandAKSV3MCTimeSpan(v)
+	}
+
+	if v, ok := in["start_date"].(string); ok && len(v) > 0 {
+		obj.StartDate = v
+	}
+
+	if v, ok := in["start_time"].(string); ok && len(v) > 0 {
+		obj.StartTime = v
+	}
+
+	if v, ok := in["utc_offset"].(string); ok && len(v) > 0 {
+		obj.UtcOffset = v
+	}
+
+	if v, ok := in["schedule"].([]interface{}); ok && len(v) > 0 {
+		obj.Schedule = expandAKSV3MCSchedule(v)
+	}
+	return obj
+}
+
+func expandAKSV3MCSchedule(p []interface{}) *infrapb.AKSMaintenanceSchedule {
+	obj := &infrapb.AKSMaintenanceSchedule{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["absolute_monthly"].([]interface{}); ok && len(v) > 0 {
+		obj.AbsoluteMonthly = expandAKSV3MCAbsoluteMonthlySchedule(v)
+	}
+
+	if v, ok := in["daily"].([]interface{}); ok && len(v) > 0 {
+		obj.Daily = expandAKSV3MCDailySchedule(v)
+	}
+
+	if v, ok := in["relative_monthly"].([]interface{}); ok && len(v) > 0 {
+		obj.RelativeMonthly = expandAKSV3MCRelativeMonthlySchedule(v)
+	}
+
+	if v, ok := in["weekly"].([]interface{}); ok && len(v) > 0 {
+		obj.Weekly = expandAKSV3MCWeeklySchedule(v)
+	}
+	return obj
+}
+
+func expandAKSV3MCWeeklySchedule(p []interface{}) *infrapb.AKSMaintenanceWeeklySchedule {
+	obj := &infrapb.AKSMaintenanceWeeklySchedule{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["day_of_week"].(string); ok && len(v) > 0 {
+		obj.DayOfWeek = v
+	}
+
+	if v, ok := in["interval_weeks"].(int); ok && v > 0 {
+		obj.IntervalWeeks = int32(v)
+	}
+	return obj
+}
+
+func expandAKSV3MCRelativeMonthlySchedule(p []interface{}) *infrapb.AKSMaintenanceRelativeMonthlySchedule {
+	obj := &infrapb.AKSMaintenanceRelativeMonthlySchedule{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["day_of_week"].(string); ok && len(v) > 0 {
+		obj.DayOfWeek = v
+	}
+
+	if v, ok := in["interval_months"].(int); ok && v > 0 {
+		obj.IntervalMonths = int32(v)
+	}
+
+	if v, ok := in["week_index"].(string); ok && len(v) > 0 {
+		obj.WeekIndex = v
+	}
+	return obj
+}
+
+func expandAKSV3MCDailySchedule(p []interface{}) *infrapb.AKSMaintenanceDailySchedule {
+	obj := &infrapb.AKSMaintenanceDailySchedule{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["interval_days"].(int); ok && v > 0 {
+		obj.IntervalDays = int32(v)
+	}
+	return obj
+}
+
+func expandAKSV3MCAbsoluteMonthlySchedule(p []interface{}) *infrapb.AKSMaintenanceAbsoluteMonthlySchedule {
+	obj := &infrapb.AKSMaintenanceAbsoluteMonthlySchedule{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["day_of_month"].(int); ok && v > 0 {
+		obj.DayOfMonth = int32(v)
+	}
+
+	if v, ok := in["interval_months"].(int); ok && v > 0 {
+		obj.IntervalMonths = int32(v)
+	}
 	return obj
 }
 
@@ -1054,6 +1265,11 @@ func expandAKSManagedClusterV3AutoUpgradeProfile(p []interface{}) *infrapb.Autou
 	if v, ok := in["upgrade_channel"].(string); ok && len(v) > 0 {
 		obj.UpgradeChannel = v
 	}
+
+	if v, ok := in["node_os_upgrade_channel"].(string); ok && len(v) > 0 {
+		obj.NodeOsUpgradeChannel = v
+	}
+
 	return obj
 }
 
@@ -2087,8 +2303,289 @@ func flattenAKSV3ClusterConfigSpec(in *infrapb.AksV3Spec, p []interface{}) []int
 		obj["node_pools"] = flattenAKSV3NodePool(in.NodePools, v)
 	}
 
+	if in.MaintenanceConfigurations != nil && len(in.MaintenanceConfigurations) > 0 {
+		v, ok := obj["maintenance_configurations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["maintenance_configurations"] = flattenAKSV3MaintenanceConfigs(in.MaintenanceConfigurations, v)
+	}
+
 	return []interface{}{obj}
 
+}
+
+func flattenAKSV3MaintenanceConfigs(in []*infrapb.AKSMaintenanceConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.ApiVersion) > 0 {
+			obj["api_version"] = in.ApiVersion
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		if in.Properties != nil {
+			v, ok := obj["properties"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["properties"] = flattenAKSV3MaintenanceConfigProperties(in.Properties, v)
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+func flattenAKSV3MaintenanceConfigProperties(in *infrapb.AKSMaintenanceConfigProperties, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.MaintenanceWindow != nil {
+		v, ok := obj["maintenance_window"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["maintenance_window"] = flattenAKSV3MaintenanceWindow(in.MaintenanceWindow, v)
+	}
+	if in.NotAllowedTime != nil {
+		v, ok := obj["not_allowed_time"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["not_allowed_time"] = flattenAKSV3MCTimeSpan(in.NotAllowedTime, v)
+	}
+	if in.TimeInWeek != nil {
+		v, ok := obj["time_in_week"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["time_in_week"] = flattenAKSV3MCTimeInWeek(in.TimeInWeek, v)
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSV3MCTimeInWeek(in *infrapb.AKSMaintenanceTimeInWeek, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Day) > 0 {
+		obj["day"] = in.Day
+	}
+
+	if in.HourSlots != nil && len(in.HourSlots) > 0 {
+		arr := make([]int, len(in.HourSlots))
+		for i, v := range in.HourSlots {
+			arr[i] = int(v)
+		}
+		obj["hour_slots"] = intArraytoInterfaceArray(arr)
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSV3MCTimeSpan(in *infrapb.AKSMaintenanceTimeSpan, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.End) > 0 {
+		obj["end"] = in.End
+	}
+
+	if len(in.Start) > 0 {
+		obj["start"] = in.Start
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSV3MaintenanceWindow(in *infrapb.AKSMaintenanceWindow, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.DurationHours > 0 {
+		obj["duration_hours"] = in.DurationHours
+	}
+
+	if in.NotAllowedDates != nil {
+		v, ok := obj["not_allowed_dates"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["not_allowed_dates"] = flattenAKSV3MCTimeSpan(in.NotAllowedDates, v)
+	}
+
+	if in.Schedule != nil {
+		v, ok := obj["schedule"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["schedule"] = flattenAKSV3MCSchedule(in.Schedule, v)
+	}
+
+	if len(in.StartDate) > 0 {
+		obj["start_date"] = in.StartDate
+	}
+
+	if len(in.StartTime) > 0 {
+		obj["start_time"] = in.StartTime
+	}
+
+	if len(in.UtcOffset) > 0 {
+		obj["utc_offset"] = in.UtcOffset
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSV3MCSchedule(in *infrapb.AKSMaintenanceSchedule, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.AbsoluteMonthly != nil {
+		v, ok := obj["absolute_monthly"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["absolute_monthly"] = flattenAKSV3MCAbsoluteMonthlySchedule(in.AbsoluteMonthly, v)
+	}
+
+	if in.Daily != nil {
+		v, ok := obj["daily"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["daily"] = flattenAKSV3MCDailySchedule(in.Daily, v)
+	}
+
+	if in.RelativeMonthly != nil {
+		v, ok := obj["relative_monthly"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["relative_monthly"] = flattenAKSV3MCRelativeMonthlySchedule(in.RelativeMonthly, v)
+	}
+
+	if in.Weekly != nil {
+		v, ok := obj["weekly"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["weekly"] = flattenAKSV3MCWeeklySchedule(in.Weekly, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3MCAbsoluteMonthlySchedule(in *infrapb.AKSMaintenanceAbsoluteMonthlySchedule, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.DayOfMonth > 0 {
+		obj["day_of_month"] = in.DayOfMonth
+	}
+
+	if in.IntervalMonths > 0 {
+		obj["interval_months"] = in.IntervalMonths
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSV3MCDailySchedule(in *infrapb.AKSMaintenanceDailySchedule, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.IntervalDays > 0 {
+		obj["interval_days"] = in.IntervalDays
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSV3MCRelativeMonthlySchedule(in *infrapb.AKSMaintenanceRelativeMonthlySchedule, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.DayOfWeek) > 0 {
+		obj["day_of_week"] = in.DayOfWeek
+	}
+
+	if len(in.WeekIndex) > 0 {
+		obj["week_index"] = in.WeekIndex
+	}
+
+	if in.IntervalMonths > 0 {
+		obj["interval_months"] = in.IntervalMonths
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSV3MCWeeklySchedule(in *infrapb.AKSMaintenanceWeeklySchedule, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.IntervalWeeks > 0 {
+		obj["interval_weeks"] = in.IntervalWeeks
+	}
+
+	if len(in.DayOfWeek) > 0 {
+		obj["day_of_week"] = in.DayOfWeek
+	}
+	return []interface{}{obj}
 }
 
 func flattenAKSV3ManagedCluster(in *infrapb.Managedcluster, p []interface{}) []interface{} {
@@ -2722,6 +3219,10 @@ func flattenAKSV3ManagedClusterAutoUpgradeProfile(in *infrapb.Autoupgradeprofile
 
 	if len(in.UpgradeChannel) > 0 {
 		obj["upgrade_channel"] = in.UpgradeChannel
+	}
+
+	if len(in.NodeOsUpgradeChannel) > 0 {
+		obj["node_os_upgrade_channel"] = in.NodeOsUpgradeChannel
 	}
 
 	return []interface{}{obj}

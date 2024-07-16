@@ -12,6 +12,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/systempb"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 
@@ -26,6 +27,9 @@ func resourceCustomRole() *schema.Resource {
 		ReadContext:   resourceCustomRoleRead,
 		UpdateContext: resourceCustomRoleUpdate,
 		DeleteContext: resourceCustomRoleDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceCustomRoleImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -36,6 +40,35 @@ func resourceCustomRole() *schema.Resource {
 		SchemaVersion: 1,
 		Schema:        resource.CustomRoleSchema.Schema,
 	}
+}
+
+func resourceCustomRoleImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if d.Id() == "" {
+		return nil, fmt.Errorf("customRole name not provided, usage e.g terraform import rafay_customrole.resource <customRole-name>")
+	}
+
+	role_name := d.Id()
+
+	log.Println("Importing custom_role: ", role_name)
+
+	customRole, err := expandCustomRole(d)
+	if err != nil {
+		log.Printf("CustomRole expandCustomRole error")
+		return nil, err
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = role_name
+	customRole.Metadata = &metaD
+
+	err = d.Set("metadata", flattenMetaData(customRole.Metadata))
+	if err != nil {
+		return nil, err
+	}
+
+	d.SetId(role_name)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceCustomRoleCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -184,7 +217,7 @@ func expandCustomRole(in *schema.ResourceData) (*systempb.CustomRole, error) {
 		obj.Metadata = expandMetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok {
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandCustomRoleSpec(v)
 		if err != nil {
 			return nil, err

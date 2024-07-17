@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/config"
@@ -12,6 +13,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/systempb"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 
@@ -20,12 +22,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+var showZTKAArtifactFlag bool = false
+
 func resourceZTKARule() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceZTKARuleCreate,
 		ReadContext:   resourceZTKARuleRead,
 		UpdateContext: resourceZTKARuleUpdate,
 		DeleteContext: resourceZTKARuleDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceZTKARuleImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -36,6 +43,37 @@ func resourceZTKARule() *schema.Resource {
 		SchemaVersion: 1,
 		Schema:        resource.ZTKARuleSchema.Schema,
 	}
+}
+
+func resourceZTKARuleImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if d.Id() == "" {
+		return nil, fmt.Errorf("ztkarule name not provided, usage e.g terraform import rafay_ztkarule.resource <ztkarule-name>")
+	}
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourceZTKARuleImport idParts:", idParts)
+
+	if len(idParts) > 1 && idParts[1] == "show_artifact" {
+		showZTKAArtifactFlag = true
+	}
+
+	ztkaRule, err := expandZTKARule(d)
+	if err != nil {
+		log.Printf("ZTKARule expandZTKARule error")
+		return nil, err
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	ztkaRule.Metadata = &metaD
+
+	err = d.Set("metadata", flattenMetaData(ztkaRule.Metadata))
+	if err != nil {
+		return nil, err
+	}
+
+	d.SetId(ztkaRule.Metadata.Name)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceZTKARuleCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -184,7 +222,7 @@ func expandZTKARule(in *schema.ResourceData) (*systempb.ZTKARule, error) {
 		obj.Metadata = expandMetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok {
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandZTKARuleSpec(v)
 		if err != nil {
 			return nil, err
@@ -322,7 +360,7 @@ func flattenZTKARuleSpec(in *systempb.ZTKARuleSpec, p []interface{}) ([]interfac
 	}
 	var flattenArtifact []interface{}
 	var err error
-	flattenArtifact, err = FlattenArtifactSpec(false, in.Artifact, v)
+	flattenArtifact, err = FlattenArtifactSpec(showZTKAArtifactFlag, in.Artifact, v)
 	if err != nil {
 		log.Println("FlattenArtifactSpec error ", err)
 		return nil, err

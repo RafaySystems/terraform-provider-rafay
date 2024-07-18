@@ -1310,5 +1310,6 @@ type EKSClusterCloudWatchLogging struct {
 // SecretsEncryption defines the configuration for KMS encryption provider
 type SecretsEncryption struct {
 	// +required
-	KeyARN string `yaml:"keyARN,omitempty"`
+	KeyARN                 string `yaml:"keyARN,omitempty"`
+	EncryptExistingSecrets *bool  `yaml:"encryptExistingSecrets,omitempty"`
 }

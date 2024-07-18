@@ -2124,6 +2124,11 @@ func secretsEncryptionConfigFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "KMS key ARN",
 		},
+		"encrypt_existing_secrets": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Flag to encrypt existing secrets. Default is true",
+		},
 	}
 	return s
 }
@@ -2321,7 +2326,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	rctlConfig := config.GetConfig()
 
 	log.Printf("calling cluster ctl:\n%s", b.String())
-	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false)
+	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false, uaDef)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		return diag.FromErr(err)
@@ -2338,7 +2343,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 		return nil
 	}
 	time.Sleep(10 * time.Second)
-	s, errGet := cluster.GetCluster(clusterName, projectID)
+	s, errGet := cluster.GetCluster(clusterName, projectID, uaDef)
 	if errGet != nil {
 		log.Printf("error while getCluster %s", errGet.Error())
 		return diag.FromErr(errGet)
@@ -2358,13 +2363,13 @@ LOOP:
 			return diag.Errorf("cluster operation stopped for cluster: `%s` due to operation timeout", clusterName)
 		case <-ticker.C:
 			log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, projectName)
-			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, projectID)
+			check, errGet := cluster.GetCluster(yamlClusterMetadata.Metadata.Name, projectID, uaDef)
 			if errGet != nil {
 				log.Printf("error while getCluster %s", errGet.Error())
 				return diag.FromErr(errGet)
 			}
 			edgeId := check.ID
-			check, errGet = cluster.GetClusterWithEdgeID(edgeId, projectID)
+			check, errGet = cluster.GetClusterWithEdgeID(edgeId, projectID, uaDef)
 			if errGet != nil {
 				log.Printf("error while getCluster %s", errGet.Error())
 				return diag.FromErr(errGet)
@@ -2472,6 +2477,11 @@ func expandSecretEncryption(p []interface{}) *SecretsEncryption {
 	if v, ok := in["key_arn"].(string); ok && len(v) > 0 {
 		obj.KeyARN = v
 	}
+
+	if v, ok := in["encrypt_existing_secrets"].(bool); ok {
+		obj.EncryptExistingSecrets = &v
+	}
+
 	return obj
 }
 
@@ -5987,6 +5997,15 @@ func flattenEKSClusterSecretsEncryption(in *SecretsEncryption, p []interface{}) 
 	if len(in.KeyARN) > 0 {
 		obj["key_arn"] = in.KeyARN
 	}
+
+	if in.EncryptExistingSecrets != nil && *in.EncryptExistingSecrets {
+		obj["encrypt_existing_secrets"] = true
+	}
+
+	if in.EncryptExistingSecrets != nil && !*in.EncryptExistingSecrets {
+		obj["encrypt_existing_secrets"] = false
+	}
+
 	return []interface{}{obj}
 }
 
@@ -6069,7 +6088,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		log.Print("Cluster project name is invalid")
 		return diag.Errorf("Cluster project name is invalid")
 	}
-	c, err := cluster.GetCluster(clusterName, projectID)
+	c, err := cluster.GetCluster(clusterName, projectID, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
@@ -6082,7 +6101,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	log.Println("got cluster from backend")
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
-	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID)
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID, uaDef)
 	if err != nil {
 		log.Printf("error in get clusterspec %s", err.Error())
 		return diag.FromErr(err)
@@ -6155,7 +6174,7 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 		log.Print("error converting project name to id")
 		return diag.Errorf("error converting project name to project ID")
 	}
-	c, err := cluster.GetCluster(clusterName, projectID)
+	c, err := cluster.GetCluster(clusterName, projectID, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
@@ -6186,7 +6205,7 @@ func resourceEKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		return diag.Errorf("error converting project name to project ID")
 	}
 
-	errDel := cluster.DeleteCluster(clusterName, projectID, false)
+	errDel := cluster.DeleteCluster(clusterName, projectID, false, uaDef)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
@@ -6202,7 +6221,7 @@ LOOP:
 			log.Printf("Cluster Deletion for edgename: %s and projectname: %s got timeout out.", clusterName, projectName)
 			return diag.FromErr(fmt.Errorf("cluster deletion for edgename: %s and projectname: %s got timeout out", clusterName, projectName))
 		case <-ticker.C:
-			check, errGet := cluster.GetCluster(clusterName, projectID)
+			check, errGet := cluster.GetCluster(clusterName, projectID, uaDef)
 			if errGet != nil {
 				log.Printf("error while getCluster %s, delete success", errGet.Error())
 				break LOOP
@@ -6261,7 +6280,7 @@ func resourceEKSClusterImport(ctx context.Context, d *schema.ResourceData, meta 
 		return nil, fmt.Errorf("error converting project name to project ID")
 	}
 
-	s, errGet := cluster.GetCluster(clusterName, projectID)
+	s, errGet := cluster.GetCluster(clusterName, projectID, uaDef)
 	if errGet != nil {
 		log.Printf("error while getCluster %s", errGet.Error())
 		return nil, errGet

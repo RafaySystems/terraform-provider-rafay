@@ -279,7 +279,7 @@ resource "rafay_eks_cluster" "eks-cluster-2" {
 
 ---
 
-EKS config with custom CNI.
+EKS config with custom CNI and identity mappings.
 
 ```terraform
 resource "rafay_eks_cluster" "eks-cluster-3" {
@@ -339,6 +339,14 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
       nat {
         gateway = "Single"
       }
+    }
+    identity_mappings{
+      arns {
+        arn = "arn:aws:iam::xxxxxxxxxxxx:user1/user1-access-role"
+        group = ["system:masters"]
+        username = "test1"
+      }
+      accounts = ["xxxxxxxxxxxx","yyyyyyyyyyyyy"]
     }
     node_groups {
       name       = "ng-1"
@@ -684,6 +692,7 @@ addons {
 - `iam` - (Block List) The AWS identity and access management (IAM) attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--iam))
 - `secrets_encryption` - (Block List) The Amazon EKS secrets encryption feature. (See [below for nested schema](#nestedblock--cluster_config--secrets_encryption))
 - `addons` - (Block List) The list of EKS managed addons to include in the cluster.(See [below for nested schema](#nestedblock--cluster_config--addons))
+- `identity_mappings` - (Block List) Identity Mapping feature helps the users to create a static mapping between IAM Users and Roles, and Kubernetes RBAC groups.(See [below for nested schema](#nestedblock--cluster_config--identity_mappings))
 
 <a id="nestedblock--cluster_config--kubernetes_network_config"></a>
 ### Nested Schema for `cluster_config.kubernetes_network_config`
@@ -820,6 +829,24 @@ addons {
 - `tags` - (Map of String) The AWS tags for the service account.
 - `configuration_values` - (String) custom configuration values for addons with single JSON string. 
 
+<a id="nestedblock--cluster_config--identity_mappings"></a>
+### Nested Schema for `cluster_config.identity_mappings`
+
+***Optional***
+
+- `arns` - (Block List) List of user/role identity mappings.(See [below for nested schema](#nestedblock--cluster_config--identity_mappings--arns)) 
+
+- `accounts` - (List of String) List of AWS accounts to access
+
+
+<a id="nestedblock--cluster_config--identity_mappings--arns"></a>
+### Nested Schema for `cluster_config.identity_mappings.arns`
+
+***Required***
+
+- `arn` - (String) The role/user ARN that needs access
+- `group` - (List of String) The Kubernetes groups to be associated with user/role
+- `username`- (String) Unique name of the mapping
 
 
 <a id="nestedblock--cluster_config--secrets_encryption"></a>
@@ -828,6 +855,10 @@ addons {
 ***Required***
 
 - `key_arn` - (String) KMS key ARN. 
+
+***Optional***
+
+- `encrypt_existing_secrets` - (Boolean) Set to false to disable encrypting existing secrets. Default is true.
 
 
 <a id="nestedblock--cluster_config--managed_nodegroups"></a>

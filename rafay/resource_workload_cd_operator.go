@@ -2069,7 +2069,7 @@ func checkProject(ctx context.Context, project string) (string, []string, error)
 		return "", nil, err
 	}
 
-	clusterList, err := rctl_cluster.ListAllClusters(pr.ID, "")
+	clusterList, err := rctl_cluster.ListAllClusters(pr.ID, "", "")
 	if err != nil {
 		log.Println("failed to list clusters in project ", "error", err)
 	}

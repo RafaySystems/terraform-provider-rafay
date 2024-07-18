@@ -30,7 +30,7 @@ jobs:
         name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.21
+          go-version-file: 'go.mod'
       - name: Granting private modules access
         env:
           TOKEN: ${{ secrets.RCTL_GO_MODULES_TOKEN }}
@@ -48,7 +48,7 @@ jobs:
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2.5.0
         with:
-          version: latest
+          version: v1.26.1
           args: release --rm-dist
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}

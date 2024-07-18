@@ -14,6 +14,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/go-yaml/yaml"
@@ -108,7 +109,7 @@ func dataEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface
 		log.Print("error converting project name to id")
 		return diag.Errorf("error converting project name to project ID")
 	}
-	c, err := cluster.GetCluster(clusterName, projectID)
+	c, err := cluster.GetCluster(clusterName, projectID, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
@@ -121,7 +122,7 @@ func dataEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface
 	log.Println("got cluster from backend")
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
-	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID)
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID, uaDef)
 	if err != nil {
 		log.Printf("error in get clusterspec %s", err.Error())
 		return diag.FromErr(err)
@@ -146,7 +147,11 @@ func dataEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface
 	if !ok {
 		v = []interface{}{}
 	}
-	c1, err := flattenEKSCluster(&clusterSpec, v, rawState.GetAttr("cluster"))
+	var clusterState cty.Value
+	if !rawState.IsNull() {
+		clusterState = rawState.GetAttr("cluster")
+	}
+	c1, err := flattenEKSCluster(&clusterSpec, v, clusterState)
 	log.Println("finished flatten eks cluster", c1)
 	if err != nil {
 		log.Printf("flatten eks cluster error %s", err.Error())
@@ -162,7 +167,11 @@ func dataEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface
 	if !ok {
 		v2 = []interface{}{}
 	}
-	c2, err := flattenEKSClusterConfig(&clusterConfigSpec, rawState.GetAttr("cluster_config"), v2)
+	var clusterConfigState cty.Value
+	if !rawState.IsNull() {
+		clusterConfigState = rawState.GetAttr("cluster")
+	}
+	c2, err := flattenEKSClusterConfig(&clusterConfigSpec, clusterConfigState, v2)
 	if err != nil {
 		log.Printf("flatten eks cluster config error %s", err.Error())
 		return diag.FromErr(err)

@@ -124,7 +124,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `hooks` (Block List, Max: 1) Specify lifecycle hook actions (see [below for nested schema](#nestedblock--spec--hooks))
 - `sharing` (Block List, Max: 1) Sharing options with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Environment variables, file data and other variables (see [below for nested schema](#nestedblock--spec--variables))
-- `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`. This is a readonly field, latest active versions can be synced or new version with accepted values can be created. Modifying state for an existing version is not supported.
+- `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`. This is a readonly field, by default only new active versions are created, and latest active versions will be synced. Creating a `draft`, `disabled` state or modifying state for an existing version is not supported.
 - `agent_override` (Block List, Max: 1) Agent override (see [below for nested schema](#nestedblock--spec--agent_override))
 - `icon_url` (String) Icon URL for the template
 - `readme` (String) Readme for the template

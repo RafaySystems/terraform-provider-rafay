@@ -262,7 +262,116 @@ func expandDriverConfig(p []interface{}) *eaaspb.DriverConfig {
 		config.Http = expandDriverHttpConfig(v)
 	}
 
+	if v, ok := in["function"].([]interface{}); ok && len(v) > 0 {
+		config.Function = expandDriverFunctionConfig(v)
+	}
+
+	if v, ok := in["polling_config"].([]interface{}); ok && len(v) > 0 {
+		config.PollingConfig = expandPollingConfig(v)
+	}
+
 	return &config
+}
+
+func expandDriverFunctionConfig(p []interface{}) *eaaspb.FunctionDriverConfig {
+	fc := eaaspb.FunctionDriverConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return &fc
+	}
+
+	in := p[0].(map[string]interface{})
+
+	// name
+	if v, ok := in["name"].([]interface{}); ok && len(v) > 0 {
+		fc.Name = v[0].(string)
+	}
+
+	// language
+	if v, ok := in["language"].([]interface{}); ok && len(v) > 0 {
+		fc.Language = v[0].(string)
+	}
+
+	// source
+	if v, ok := in["source"].([]interface{}); ok && len(v) > 0 {
+		fc.Source = v[0].(string)
+	}
+
+	// functionDependencies
+	if v, ok := in["function_dependencies"].([]interface{}); ok && len(v) > 0 {
+		fc.FunctionDependencies = toArrayString(v)
+	}
+
+	// systemPackages
+	if v, ok := in["system_packages"].([]interface{}); ok && len(v) > 0 {
+		fc.SystemPackages = toArrayString(v)
+	}
+
+	// targetPlatforms
+	if v, ok := in["target_platforms"].([]interface{}); ok && len(v) > 0 {
+		fc.TargetPlatforms = toArrayString(v)
+	}
+
+	// languageVersion
+	if v, ok := in["language_version"].([]interface{}); ok && len(v) > 0 {
+		fc.LanguageVersion = v[0].(string)
+	}
+
+	// buildArgs
+	if v, ok := in["build_args"].([]interface{}); ok && len(v) > 0 {
+		fc.BuildArgs = toArrayString(v)
+	}
+
+	// buildSecrets
+	if v, ok := in["build_secrets"].([]interface{}); ok && len(v) > 0 {
+		fc.BuildSecrets = toArrayString(v)
+	}
+
+	// cpuLimitMilli
+	if v, ok := in["cpu_limit_milli"].([]interface{}); ok && len(v) > 0 {
+		fc.CpuLimitMilli = v[0].(string)
+	}
+
+	// memoryLimitMb
+	if v, ok := in["memory_limit_mb"].([]interface{}); ok && len(v) > 0 {
+		fc.MemoryLimitMb = v[0].(string)
+	}
+
+	// skipBuild
+	if v, ok := in["skip_build"].([]interface{}); ok && len(v) > 0 {
+		fc.SkipBuild = expandBoolValue(v)
+	}
+
+	// image
+	if v, ok := in["image"].([]interface{}); ok && len(v) > 0 {
+		fc.Image = v[0].(string)
+	}
+
+	// functionProcess
+	if v, ok := in["function_process"].([]interface{}); ok && len(v) > 0 {
+		fc.FunctionProcess = v[0].(string)
+	}
+
+	// maxConcurrency
+	if v, ok := in["max_concurrency"].(int64); ok {
+		fc.MaxConcurrency = int64(v)
+	}
+
+	// numReplicas
+	if v, ok := in["num_replicas"].(uint32); ok {
+		fc.NumReplicas = uint32(v)
+	}
+
+	// kubeOptions
+	if v, ok := in["kube_options"].([]interface{}); ok && len(v) > 0 {
+		fc.KubeOptions = expandContainerKubeOptions(v)
+	}
+
+	// imagePullCredentials
+	if v, ok := in["image_pull_credentials"].([]interface{}); ok && len(v) > 0 {
+		fc.ImagePullCredentials = expandImagePullCredentials(v)
+	}
+
+	return &fc
 }
 
 func expandDriverContainerConfig(p []interface{}) *eaaspb.ContainerDriverConfig {
@@ -588,6 +697,121 @@ func flattenDriverConfig(input *eaaspb.DriverConfig, p []interface{}) []interfac
 		}
 
 		obj["http"] = flattenDriverHttpConfig(input.Http, v)
+	}
+
+	if input.Function != nil {
+		v, ok := obj["function"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["function"] = flattenDriverFunctionConfig(input.Function, v)
+	}
+
+	if input.PollingConfig != nil {
+		v, ok := obj["polling_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["polling_config"] = flattenPollingConfig(input.PollingConfig, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenDriverFunctionConfig(in *eaaspb.FunctionDriverConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	// name
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	// language
+	if len(in.Language) > 0 {
+		obj["language"] = in.Language
+	}
+
+	// source
+	if len(in.Source) > 0 {
+		obj["source"] = in.Source
+	}
+
+	// functionDependencies
+	obj["function_dependencies"] = toArrayInterface(in.FunctionDependencies)
+
+	// systemPackages
+	obj["system_packages"] = toArrayInterface(in.SystemPackages)
+
+	// targetPlatforms
+	obj["target_platforms"] = toArrayInterface(in.TargetPlatforms)
+
+	// languageVersion
+	if len(in.LanguageVersion) > 0 {
+		obj["language_version"] = in.LanguageVersion
+	}
+
+	// buildArgs
+	obj["build_args"] = toArrayInterface(in.BuildArgs)
+
+	// buildSecrets
+	obj["build_secrets"] = toArrayInterface(in.BuildSecrets)
+
+	// cpuLimitMilli
+	if len(in.CpuLimitMilli) > 0 {
+		obj["cpu_limit_milli"] = in.CpuLimitMilli
+	}
+
+	// memoryLimitMb
+	if len(in.MemoryLimitMb) > 0 {
+		obj["memory_limit_mb"] = in.MemoryLimitMb
+	}
+
+	// skipBuild
+	obj["skip_build"] = in.SkipBuild
+
+	// image
+	if len(in.Image) > 0 {
+		obj["image"] = in.Image
+	}
+
+	// functionProcess
+	if len(in.FunctionProcess) > 0 {
+		obj["function_process"] = in.FunctionProcess
+	}
+
+	// maxConcurrency
+	obj["max_concurrency"] = in.MaxConcurrency
+
+	// numReplicas
+	obj["num_replicas"] = in.NumReplicas
+
+	// kubeOptions
+	if in.KubeOptions != nil {
+		v, ok := obj["kube_options"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["kube_options"] = flattenContainerKubeOptions(in.KubeOptions, v)
+	}
+
+	// imagePullCredentials
+	if in.ImagePullCredentials != nil {
+		v, ok := obj["image_pull_credentials"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["image_pull_credentials"] = flattenImagePullCredentials(in.ImagePullCredentials, v)
 	}
 
 	return []interface{}{obj}

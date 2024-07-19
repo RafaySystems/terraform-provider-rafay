@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/RafaySystems/edge-common/pkg/models/edge"
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/clusterctl"
 	"github.com/RafaySystems/rctl/pkg/config"
@@ -6332,6 +6333,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
 
+	var warnings []string
 LOOP:
 	for {
 		//Check for cluster operation timeout
@@ -6371,6 +6373,14 @@ LOOP:
 					return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, project.Name))
 				} else if clusterReadiness {
 					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", clusterName, project.Name)
+					for _, op := range sres.Operations {
+						if op == nil {
+							continue
+						}
+						if strings.Compare(op.Operation, edge.ClusterUpgrade.String()) == 0 && op.Error != nil {
+							warnings = append(warnings, op.Error.Title)
+						}
+					}
 					break LOOP
 				} else {
 					log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
@@ -6385,6 +6395,13 @@ LOOP:
 				log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, project.Name)
 			}
 
+		}
+	}
+	if len(warnings) > 0 {
+		diags = make([]diag.Diagnostic, len(warnings))
+		for i, message := range warnings {
+			diags[i].Severity = diag.Warning
+			diags[i].Summary = message
 		}
 	}
 	return diags

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/RafaySystems/edge-common/pkg/models/edge"
 	dynamic "github.com/RafaySystems/rafay-common/pkg/hub/client/dynamic"
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
@@ -226,6 +227,7 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 	projectName := cluster.Metadata.Project
 	d.SetId(cluster.Metadata.Name)
 
+	var warnings []string
 LOOP:
 	for {
 		select {
@@ -265,6 +267,15 @@ LOOP:
 						log.Printf("blueprint sync failed for edgename: %s and projectname: %s", edgeName, projectName)
 						return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", edgeName, projectName))
 					} else if clusterReadiness {
+						tasksets := uCluster.Status.LastTasksets
+						if len(tasksets) > 0 {
+							lastTaskset := tasksets[0]
+							for _, taskOp := range lastTaskset.TasksetOperations {
+								if strings.Compare(taskOp.OperationName, edge.ClusterUpgrade.String()) == 0 {
+									warnings = append(warnings, taskOp.ErrorSummary)
+								}
+							}
+						}
 						log.Printf("Cluster operation completed for edgename: %s and projectname: %s", edgeName, projectName)
 						break LOOP
 					} else {
@@ -279,6 +290,13 @@ LOOP:
 					return diag.Errorf("Cluster operation failed for edgename: %s and projectname: %s with failure reasons: %s", edgeName, projectName, failureReasons)
 				}
 			}
+		}
+	}
+	if len(warnings) > 0 {
+		diags = make([]diag.Diagnostic, len(warnings))
+		for i, message := range warnings {
+			diags[i].Severity = diag.Warning
+			diags[i].Summary = message
 		}
 	}
 	return diags

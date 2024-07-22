@@ -5,7 +5,7 @@ go 1.22.3
 toolchain go1.22.4
 
 require (
-	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240703090604-9de6d5f1db93
+	github.com/RafaySystems/rafay-common v1.29.0-rc5.0.20240710100808-e283a0f3d61b
 	github.com/RafaySystems/rctl v1.29.1-0.20240702125715-f6560e6851ac
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -37,36 +37,24 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gomatic/clock v1.0.0 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
-	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/invopop/yaml v0.3.1 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gokrb5/v8 v8.4.4 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.4.6 // indirect
-	github.com/magiconair/properties v1.8.7 // indirect
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.54.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/sagikazarmark/locafero v0.6.0 // indirect
-	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
-	github.com/sourcegraph/conc v0.3.0 // indirect
-	github.com/spf13/afero v1.11.0 // indirect
-	github.com/spf13/viper v1.19.0 // indirect
-	github.com/subosito/gotenv v1.6.0 // indirect
-	golang.org/x/exp v0.0.0-20240604190554-fc45aab8b7f8 // indirect
 	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
-	gopkg.in/ini.v1 v1.67.0 // indirect
 	k8s.io/apiextensions-apiserver v0.30.1 // indirect
 	k8s.io/cluster-bootstrap v0.30.1 // indirect
 	k8s.io/component-base v0.30.1 // indirect
@@ -80,7 +68,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/ProtonMail/go-crypto v1.1.0-alpha.2 // indirect
-	github.com/RafaySystems/eaas-playground v0.0.0-20240621113209-3a4368836b68 // indirect
+	github.com/RafaySystems/eaas-playground v0.0.0-20240712110742-e7aac2a3c3a1 // indirect
 	github.com/RoaringBitmap/roaring v1.9.4 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
@@ -91,7 +79,7 @@ require (
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/fatih/color v1.17.0 // indirect
-	github.com/getkin/kin-openapi v0.120.0 // indirect
+	github.com/getkin/kin-openapi v0.123.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.4.2
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -230,11 +218,12 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
-	// github.com/RafaySystems/rafay-common => ../rafay-common
+	github.com/RafaySystems/rafay-common => ../rafay-common
 	//github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
-	// github.com/RafaySystems/rctl => ../rctl
+	github.com/RafaySystems/rctl => ../rctl
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
+	github.com/getkin/kin-openapi => github.com/getkin/kin-openapi v0.120.0
 	github.com/go-pg/pg => github.com/go-pg/pg v6.15.1+incompatible
 	k8s.io/api => k8s.io/api v0.26.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.2

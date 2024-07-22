@@ -104,9 +104,35 @@ func resourceClusterOverride() *schema.Resource {
 						Type:        schema.TypeString,
 					},
 					"type": &schema.Schema{
-						Description: "override type, accepted values are *ClusterOverrideTypeoverride*, *ClusterOverrideTypeAddon*, *ClusterOverrideTypeNamespace*, *ClusterOverrideTypeBlueprint*",
+						Description: "override type, accepted values are *ClusterOverrideTypeWorkload*, *ClusterOverrideTypeAddon*",
 						Optional:    true,
 						Type:        schema.TypeString,
+					},
+					"sharing": &schema.Schema{
+						Description: "cluster override sharing configuration",
+						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+							"enabled": &schema.Schema{
+								Description: "flag to specify if sharing is enabled for resource",
+								Optional:    true,
+								Type:        schema.TypeBool,
+							},
+							"projects": &schema.Schema{
+								Description: "list of projects this resource is shared to",
+								Elem: &schema.Resource{Schema: map[string]*schema.Schema{"name": &schema.Schema{
+									Description: "name of the project",
+									Optional:    true,
+									Type:        schema.TypeString,
+								}}},
+								MaxItems: 0,
+								MinItems: 0,
+								Optional: true,
+								Type:     schema.TypeList,
+							},
+						}},
+						MaxItems: 1,
+						MinItems: 1,
+						Optional: true,
+						Type:     schema.TypeList,
 					},
 					"override_values": &schema.Schema{
 						Description: "override value",
@@ -476,6 +502,21 @@ func expandOverrideSpec(p []interface{}) (models.ClusterOverrideSpec, error) {
 		obj.ArtifactType = models.ArtifactType(v)
 	}
 
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		sharingSpec := expandSharingSpec(v)
+		projs := []*models.ProjectMeta{}
+		for _, project := range sharingSpec.Projects {
+			projs = append(projs, &models.ProjectMeta{
+				Name: project.Name,
+				Id:   project.Id,
+			})
+		}
+		obj.Sharing = models.SharingSpec{
+			Enabled:  sharingSpec.Enabled,
+			Projects: projs,
+		}
+	}
+
 	return obj, nil
 }
 
@@ -653,7 +694,7 @@ func flattenClusterOverride(d *schema.ResourceData, in *models.ClusterOverride, 
 	// w1 := spew.Sprintf("%+v", v)
 	// log.Println("flattenBlueprint before ", w1)
 	var ret []interface{}
-	ret, err := flattenOverrideSpec(in.ClusterOverrideSpec, v)
+	ret, err := flattenOverrideSpecAndStatus(in.ClusterOverrideSpec, in.ClusterOverrideStatus, v)
 	if err != nil {
 		return err
 	}
@@ -668,9 +709,9 @@ func flattenClusterOverride(d *schema.ResourceData, in *models.ClusterOverride, 
 	return nil
 }
 
-func flattenOverrideSpec(in models.ClusterOverrideSpec, p []interface{}) ([]interface{}, error) {
+func flattenOverrideSpecAndStatus(in models.ClusterOverrideSpec, inStatus models.ClusterOverrideStatus, p []interface{}) ([]interface{}, error) {
 
-	log.Println("flattenOverrideSpec ")
+	log.Println("flattenOverrideSpecAndStatus ")
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -705,7 +746,7 @@ func flattenOverrideSpec(in models.ClusterOverrideSpec, p []interface{}) ([]inte
 	obj["values_repo_artifact_meta"] = flattenArtifactMeta(in.RepoArtifactMeta, v)
 
 	if in.RepoArtifactMeta.Git == nil {
-		log.Println("flattenOverrideSpec ")
+		log.Println("flattenOverrideSpecAndStatus ")
 
 		if len(in.OverrideValues) > 0 {
 			obj["override_values"] = in.OverrideValues
@@ -716,7 +757,30 @@ func flattenOverrideSpec(in models.ClusterOverrideSpec, p []interface{}) ([]inte
 		obj["artifact_type"] = in.ArtifactType
 	}
 
+	obj["sharing"] = flattenOverrideSharingSpec(inStatus, in.ShareMode)
+
 	return []interface{}{obj}, nil
+}
+
+func flattenOverrideSharingSpec(in models.ClusterOverrideStatus, shareMode string) []interface{} {
+	obj := make(map[string]interface{})
+	proj := make([]*commonpb.ProjectMeta, 0)
+	for _, p := range in.Projects {
+		projectName, err := config.GetProjectNameById(string(p.ProjectID))
+		if err != nil {
+			return nil
+		}
+		proj = append(proj, &commonpb.ProjectMeta{
+			Name: projectName,
+		})
+	}
+	if len(in.Projects) > 0 {
+		obj["enabled"] = true
+		obj["projects"] = flattenProjectMeta(proj, false)
+	} else {
+		return nil
+	}
+	return []interface{}{obj}
 }
 
 func flattenClusterPlacement(in models.PlacementSpec, p []interface{}) []interface{} {

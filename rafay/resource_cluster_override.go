@@ -14,6 +14,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/commands"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/models"
+	configv2 "github.com/RafaySystems/rafay-common/proto/types/config"
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
@@ -356,7 +357,42 @@ func resourceOverrideUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	w1 := spew.Sprintf("%+v", or.Spec)
 	log.Println("name ", or.Metadata.Name, " project ", projectId)
 	log.Println("resourceOverrideUpsert spec: ", w1)
-	err = clusteroverride.UpdateClusterOverride(or.Metadata.Name, projectId, or.Spec, true)
+
+	status := models.ClusterOverrideStatus{}
+
+	if or.Spec.Sharing.Enabled {
+		all := false
+		for _, project := range or.Spec.Sharing.Projects {
+			if project.Name == "*" {
+				all = true
+				break
+			}
+		}
+		if all {
+			or.Spec.ShareMode = configv2.ALL.String()
+		} else {
+			or.Spec.ShareMode = configv2.CUSTOM.String()
+			for _, project := range or.Spec.Sharing.Projects {
+				shareprojectId, err := config.GetProjectIdByName(project.Name)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+
+				status.Projects = append(status.Projects, models.ProjectOverrides{
+					ProjectID: shareprojectId,
+				})
+			}
+			status.Projects = append(status.Projects, models.ProjectOverrides{
+				ProjectID: projectId,
+			})
+		}
+	} else {
+		or.Spec.ShareMode = configv2.CUSTOM.String()
+		status.Projects = append(status.Projects, models.ProjectOverrides{
+			ProjectID: or.Metadata.ProjectID,
+		})
+	}
+	err = clusteroverride.UpdateClusterOverride(or.Metadata.Name, projectId, or.Spec, status, true)
 	if err != nil {
 		log.Println("failed to create/update cluster override ", or.Metadata.Name, " error ", err)
 		return diag.FromErr(err)
@@ -1087,7 +1123,7 @@ func resourceClusterOverrideUpdate1(ctx context.Context, d *schema.ResourceData,
 			return diags
 		}
 		//update cluster
-		err = clusteroverride.UpdateClusterOverride(co.Metadata.Name, project_id, *spec, createIfNotPresent)
+		err = clusteroverride.UpdateClusterOverride(co.Metadata.Name, project_id, *spec,models.ClusterOverrideStatus{} , createIfNotPresent)
 		if err != nil {
 			log.Printf("Failed to update cluster override: %s\n", co.Metadata.Name)
 			return diags

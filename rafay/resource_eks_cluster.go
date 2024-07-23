@@ -405,6 +405,118 @@ func configField() map[string]*schema.Schema {
 				Schema: identityMappingsConfigFields(),
 			},
 		},
+		"access_config": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "controls how IAM principals can access this cluster",
+			Elem: &schema.Resource{
+				Schema: accessConfigFields(),
+			},
+		},
+	}
+	return s
+}
+
+func accessConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"bootstrap_cluster_creator_admin_permissions": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "choose whether the IAM principal creating the cluster has Kubernetes cluster administrator access",
+		},
+		"authentication_mode": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "configure which source the cluster will use for authenticated IAM principals. EKS_API or EKS_API_AND_CONFIG_MAP (default) or CONFIG_MAP",
+		},
+		"access_entries": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "specifies a list of access entries for the cluster",
+			Elem: &schema.Resource{
+				Schema: accessEntryFields(),
+			},
+		},
+	}
+	return s
+}
+
+func accessEntryFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"principal_arn": {
+			Type:        schema.TypeString,
+			Optional:    false,
+			Description: "the IAM principal that you want to grant access to Kubernetes objects on your cluster",
+		},
+		"type": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "EC2_LINUX, EC2_WINDOWS, FARGATE_LINUX or STANDARD",
+		},
+		"kubernetes_username": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "username to map to the principal ARN",
+		},
+		"kubernetes_groups":   {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "set of Kubernetes groups to map to the principal ARN",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"tags":                {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "applied to the access entries",
+		},
+		"access_policies":     {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "set of policies to associate with an access entry",
+			Elem: &schema.Resource{
+				Schema: accessPolicyFields(),
+			},
+		},
+	}
+	return s
+}
+
+func accessPolicyFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"policy_arn": {
+			Type:        schema.TypeString,
+			Optional:    false,
+			Description: "the ARN of the policy to attach to the access entry",
+		},
+		"access_scope": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "defines the scope of an access policy",
+			Elem: &schema.Resource{
+				Schema: accessScopeFields(),
+			},
+		},
+	}
+	return s
+} 
+
+func accessScopeFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"type": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "namespace or cluster",
+		},
+		"namespaces": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Scope access to namespace(s)",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
 	}
 	return s
 }
@@ -2274,6 +2386,9 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 	if v, ok := in["identity_mappings"].([]interface{}); ok && len(v) > 0 {
 		obj.IdentityMappings = expandIdentityMappings(v)
 	}
+	if v, ok := in["access_config"].([]interface{}); ok && len(v) > 0 {
+		obj.AccessConfig = expandAccessConfig(v)
+	}
 	return obj
 }
 
@@ -2463,6 +2578,13 @@ func expandEKSSpecMetadata(p []interface{}) *EKSClusterConfigMetadata {
 	if v, ok := in["annotations"].(map[string]interface{}); ok && len(v) > 0 {
 		obj.Annotations = toMapString(v)
 	}
+	return obj
+}
+
+func expandAccessConfig(p []interface{}) *EKSClusterAccessConfig {
+	obj := &EKSClusterAccessConfig{}
+// TODO
+	
 	return obj
 }
 
@@ -4478,6 +4600,19 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 			return nil, err
 		}
 		obj["identity_mappings"] = ret13
+	}
+
+	if in.AccessConfig != nil {
+		// v, ok := obj["access_config"].([]interface{})
+		// if !ok {
+		// 	v = []interface{}{}
+		// }
+		// ret14, err := flattenEKSClusterAccessConfig(in.AccessConfig, v)
+		// if err != nil {
+		// 	log.Println("flattenEKSClusterAccessConfig err")
+		// 	return nil, err
+		// }
+		// obj["access_config"] = ret14
 	}
 
 	log.Println("end of flatten config")

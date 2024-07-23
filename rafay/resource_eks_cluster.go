@@ -458,7 +458,7 @@ func accessEntryFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "username to map to the principal ARN",
 		},
-		"kubernetes_groups":   {
+		"kubernetes_groups": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "set of Kubernetes groups to map to the principal ARN",
@@ -466,12 +466,12 @@ func accessEntryFields() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
-		"tags":                {
+		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
 			Description: "applied to the access entries",
 		},
-		"access_policies":     {
+		"access_policies": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "set of policies to associate with an access entry",
@@ -500,7 +500,7 @@ func accessPolicyFields() map[string]*schema.Schema {
 		},
 	}
 	return s
-} 
+}
 
 func accessScopeFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
@@ -2581,11 +2581,101 @@ func expandEKSSpecMetadata(p []interface{}) *EKSClusterConfigMetadata {
 	return obj
 }
 
-func expandAccessConfig(p []interface{}) *EKSClusterAccessConfig {
-	obj := &EKSClusterAccessConfig{}
-// TODO
-	
+func expandAccessConfig(p []interface{}) *EKSClusterAccess {
+	obj := &EKSClusterAccess{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["bootstrap_cluster_creator_admin_permissions"].(bool); ok {
+		obj.BootstrapClusterCreatorAdminPermissions = v
+	}
+
+	if v, ok := in["authentication_mode"].(string); ok && len(v) > 0 {
+		obj.AuthenticationMode = v
+	}
+
+	if v, ok := in["access_entries"].([]interface{}); ok && len(v) > 0 {
+		obj.AccessEntries = expandAccessEntries(v)
+	}
+
 	return obj
+}
+
+func expandAccessEntries(p []interface{}) []*EKSAccessEntry {
+	out := make([]*EKSAccessEntry, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := &EKSAccessEntry{}
+		if v, ok := in["principal_arn"].(string); ok && len(v) > 0 {
+			obj.PrincipalARN = v
+		}
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+		if v, ok := in["kubernetes_username"].(string); ok && len(v) > 0 {
+			obj.KubernetesUsername = v
+		}
+		if v, ok := in["kubernetes_groups"].([]interface{}); ok && len(v) > 0 {
+			obj.KubernetesGroups = toArrayString(v)
+		}
+		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Tags = toMapString(v)
+		}
+		if v, ok := in["access_policies"].([]interface{}); ok && len(v) > 0 {
+			obj.AccessPolicies = expandAccessPolicies(v)
+		}
+
+		out[i] = obj
+	}
+
+	return out
+}
+
+func expandAccessPolicies(p []interface{}) []*EKSAccessPolicy {
+
+	out := make([]*EKSAccessPolicy, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := &EKSAccessPolicy{}
+		if v, ok := in["policy_arn"].(string); ok && len(v) > 0 {
+			obj.PolicyARN = v
+		}
+		if v, ok := in["access_scope"].([]interface{}); ok && len(v) > 0 {
+			obj.AccessScope = expandAccessScope(v)
+		}
+		out[i] = obj
+	}
+
+	return out
+}
+
+func expandAccessScope(p []interface{}) *EKSAccessScope {
+	obj := &EKSAccessScope{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		obj.Type = v
+	}
+	if v, ok := in["namespaces"].([]interface{}); ok && len(v) > 0 {
+		obj.Namespaces = toArrayString(v)
+	}
+	return obj
+
 }
 
 // expand secret encryption (completed)

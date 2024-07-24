@@ -87,6 +87,30 @@ func toArrayString(in []interface{}) []string {
 	return out
 }
 
+func toArrayInt(in []interface{}) []int {
+	out := make([]int, len(in))
+	for i, v := range in {
+		if v == nil {
+			out[i] = 0
+			continue
+		}
+		out[i] = v.(int)
+	}
+	return out
+}
+
+func toArrayInt32(in []interface{}) []int32 {
+	out := make([]int32, len(in))
+	for i, v := range in {
+		if v == nil {
+			out[i] = 0
+			continue
+		}
+		out[i] = v.(int32)
+	}
+	return out
+}
+
 func toArrayStringSorted(in []interface{}) []string {
 	if in == nil {
 		return nil
@@ -97,6 +121,14 @@ func toArrayStringSorted(in []interface{}) []string {
 }
 
 func toArrayInterface(in []string) []interface{} {
+	out := make([]interface{}, len(in))
+	for i, v := range in {
+		out[i] = v
+	}
+	return out
+}
+
+func intArraytoInterfaceArray(in []int) []interface{} {
 	out := make([]interface{}, len(in))
 	for i, v := range in {
 		out[i] = v

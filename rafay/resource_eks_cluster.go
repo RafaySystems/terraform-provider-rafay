@@ -427,7 +427,7 @@ func accessConfigFields() map[string]*schema.Schema {
 		"authentication_mode": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "configure which source the cluster will use for authenticated IAM principals. EKS_API or EKS_API_AND_CONFIG_MAP (default) or CONFIG_MAP",
+			Description: "configure which source the cluster will use for authenticated IAM principals. API or API_AND_CONFIG_MAP (default) or CONFIG_MAP",
 		},
 		"access_entries": {
 			Type:        schema.TypeList,
@@ -445,7 +445,7 @@ func accessEntryFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"principal_arn": {
 			Type:        schema.TypeString,
-			Optional:    false,
+			Optional:    true,
 			Description: "the IAM principal that you want to grant access to Kubernetes objects on your cluster",
 		},
 		"type": {
@@ -487,7 +487,7 @@ func accessPolicyFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"policy_arn": {
 			Type:        schema.TypeString,
-			Optional:    false,
+			Optional:    true,
 			Description: "the ARN of the policy to attach to the access entry",
 		},
 		"access_scope": {

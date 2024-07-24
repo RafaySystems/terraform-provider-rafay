@@ -513,6 +513,14 @@ func expandSystemProviderOptions(p []interface{}) *eaaspb.SystemProviderOptions 
 	if len(p) == 0 || p[0] == nil {
 		return spo
 	}
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["kind"].(string); ok {
+		spo.Kind = h
+	}
+	if h, ok := in["version"].(string); ok {
+		spo.Version = h
+	}
 
 	return spo
 
@@ -875,6 +883,8 @@ func flattenSystemProviderOptions(in *eaaspb.SystemProviderOptions) []interface{
 	}
 
 	obj := make(map[string]interface{})
+	obj["kind"] = in.Kind
+	obj["version"] = in.Version
 	return []interface{}{obj}
 }
 

@@ -76,7 +76,6 @@ func New(_ string) func() *schema.Provider {
 				"rafay_namespace_mesh_rule":               resourceNamespaceMeshRule(),
 				"rafay_namespace_mesh_policy":             resourceNamespaceMeshPolicy(),
 				"rafay_cluster_sharing":                   resourceClusterSharing(),
-				"rafay_cluster_override_sharing":          resourceClusterOverrideSharing(),
 				"rafay_container_registry":                resourceContainerRegistry(),
 				"rafay_cost_profile":                      resourceCostProfile(),
 				"rafay_chargeback_group":                  resourceChargebackGroup(),

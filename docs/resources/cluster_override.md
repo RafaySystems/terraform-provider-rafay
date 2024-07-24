@@ -80,7 +80,7 @@ resource "rafay_cluster_override" "tfdemocluster-override2" {
     sharing {
       enabled = true
       projects {
-        -name = "*" 
+        name = "*" 
       }
     }
     value_repo_ref    = "git-repo-name"
@@ -121,10 +121,10 @@ resource "rafay_cluster_override" "tfdemocluster-yamloverride1" {
     sharing {
       enabled = true
       projects {
-        -name = "defaultproject"
+        name = "defaultproject"
       }
       projects {
-        -name = "project1"
+        name = "project1"
       }
     }
     override_values   = <<-EOS

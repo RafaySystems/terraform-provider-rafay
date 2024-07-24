@@ -23,8 +23,8 @@ github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2 h1:bkyFVUP+ROOARdgCiJzNQo2V2kiB97LyUpzH9P6Hrlg=
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2/go.mod h1:rA3QumHc/FZ8pAHreoekgiAbzpNsfQAosU5td4SnOrE=
-github.com/RafaySystems/eaas-playground v0.0.0-20240712110742-e7aac2a3c3a1 h1:waGPpZYRLXKIA+R9HC2LqMSx3YRG76X92h/0UxNb+fI=
-github.com/RafaySystems/eaas-playground v0.0.0-20240712110742-e7aac2a3c3a1/go.mod h1:nwtRApMyQyH1dBys1rBa2HwDrA44OlNienOEuxZ7vZk=
+github.com/RafaySystems/eaas-playground v0.0.0-20240716125721-da2a4d18dec6 h1:WUmxIgIxFtdnYizGFEDFNgvN/T0DQvqv6M9cSCn/QB4=
+github.com/RafaySystems/eaas-playground v0.0.0-20240716125721-da2a4d18dec6/go.mod h1:nwtRApMyQyH1dBys1rBa2HwDrA44OlNienOEuxZ7vZk=
 github.com/RafaySystems/edge-common v1.24.1-0.20240313173939-2a7f4af9a0b1 h1:wP27Eemjf9ng0vZzU/nrVm/MhS2vucqNav8BYWL1dj4=
 github.com/RafaySystems/edge-common v1.24.1-0.20240313173939-2a7f4af9a0b1/go.mod h1:bIn92SQa3X+1/vSBF/b5cyw7/t7r66GBvIOqSl3eMEc=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=

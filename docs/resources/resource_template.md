@@ -145,7 +145,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `provider` (String) Specify the resource template provider, Accepted values are `terraform`, `opentofu`, `workflow`
+- `provider` (String) Specify the resource template provider, Accepted values are `terraform`, `opentofu`, `custom`
 - `repository_options` (Block List, Max: 1) Repository options to be provided (see [below for nested schema](#nestedblock--spec--repository_options))
 - `version` (String) Version of the resource template
 
@@ -1679,7 +1679,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
 - `terraform` (Block List, Max: 1) Specify the terraform specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--terraform))
 - `open_tofu` (Block List, Max: 1) Specify the opentofu specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--opentofu))
-- `workflow` (Block List, Max: 1) Specify the workflow specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--workflow))
+- `custom` (Block List, Max: 1) Specify the custom options if any (see [below for nested schema](#nestedblock--spec--provider_options--custom))
 
 <a id="nestedblock--spec--provider_options--driver"></a>
 ### Nested Schema for `spec.provider_options.driver`
@@ -2448,15 +2448,15 @@ Optional:
 - `version` (String) Terraform version
 - `volumes` (Block List) volumes to be mounted into the terraform driver (see [below for nested schema](#nestedblock--spec--provider_options--terraform--volumes))
 
-<a id="nestedblock--spec--provider_options--workflow"></a>
-### Nested Schema for `spec.provider_options.workflow`
+<a id="nestedblock--spec--provider_options--custom"></a>
+### Nested Schema for `spec.provider_options.custom`
 
 ***Required***
 
-- `tasks` (Block List) Configure the workflow tasks (see [below for nested schema](#nestedblock--spec--provider_options--workflow--tasks))
+- `tasks` (Block List) Configure the custom tasks (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks))
 
-<a id="nestedblock--spec--provider_options--workflow--tasks"></a>
-### Nested Schema for `spec.provider_options.workflow.tasks`
+<a id="nestedblock--spec--provider_options--custom--tasks"></a>
+### Nested Schema for `spec.provider_options.custom.tasks`
 
 **Required**
 

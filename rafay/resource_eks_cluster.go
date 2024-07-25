@@ -587,6 +587,79 @@ func iamFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "attaches the IAM policy necessary to run the VPC controller in the control plane",
 		},
+		"pod_identity_associations": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "pod identity associations",
+			Elem: &schema.Resource{
+				Schema: podIdentityAssociationsFields(),
+			},
+		},
+	}
+	return s
+}
+
+func podIdentityAssociationsFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"namespace": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "namespace of service account",
+		},
+		"service_account_name": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "name of service account",
+		},
+		"role_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "role ARN of AWS role to associate with service account",
+		},
+		"create_service_account": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enable flag to create service account",
+		},
+		"role_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "aws role name to associate",
+		},
+		"permission_boundary_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "permission boundary ARN",
+		},
+		"permission_policy_arns": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "permission policy ARNs",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"permission_policy": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "permission policy document",
+		},
+		"well_known_policies": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "for attaching common IAM policies",
+			Elem: &schema.Resource{
+				Schema: serviceAccountsWellKnownPolicyFields(),
+			},
+		},
+		"tags": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "AWS tags for the service account",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
 	}
 	return s
 }
@@ -3580,6 +3653,10 @@ func expandIAMFields(p []interface{}) *EKSClusterIAM {
 		obj.VPCResourceControllerPolicy = &v
 	}
 
+	if v, ok := in["pod_identity_associations"].([]interface{}); ok && len(v) > 0 {
+		obj.PodIdentityAssociations = expandIAMPodIdentityAssociationsConfig(v)
+	}
+
 	return obj
 }
 
@@ -3605,6 +3682,49 @@ func expandServiceAccountsMetadata(p []interface{}) *EKSClusterIAMMeta {
 		obj.Annotations = toMapString(v)
 	}
 	return obj
+}
+
+func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAssociation {
+	out := make([]*IAMPodIdentityAssociation, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		obj := &IAMPodIdentityAssociation{}
+		in := p[i].(map[string]interface{})
+		if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+			obj.Namespace = v
+		}
+		if v, ok := in["service_account_name"].(string); ok && len(v) > 0 {
+			obj.ServiceAccountName = v
+		}
+		if v, ok := in["role_arn"].(string); ok && len(v) > 0 {
+			obj.RoleARN = v
+		}
+		if v, ok := in["create_service_account"].(bool); ok {
+			obj.CreateServiceAccount = &v
+		}
+		if v, ok := in["role_name"].(string); ok && len(v) > 0 {
+			obj.RoleName = v
+		}
+		if v, ok := in["permission_boundary_arn"].(string); ok && len(v) > 0 {
+			obj.PermissionsBoundaryARN = v
+		}
+		if v, ok := in["permission_policy"].(string); ok && len(v) > 0 {
+			obj.PermissionPolicy = v
+		}
+		if v, ok := in["permission_policy_arns"].([]interface{}); ok && len(v) > 0 {
+			obj.PermissionPolicyARNs = toArrayString(v)
+		}
+		if v, ok := in["well_known_policies"].([]interface{}); ok && len(v) > 0 {
+			obj.WellKnownPolicies = expandIAMWellKnownPolicies(v)
+		}
+		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Tags = toMapString(v)
+		}
+		out[i] = obj
+	}
+	return out
 }
 
 func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAccount {
@@ -4512,6 +4632,14 @@ func flattenEKSClusterIAM(in *EKSClusterIAM, p []interface{}) ([]interface{}, er
 		obj["service_accounts"] = flattenIAMServiceAccounts(in.ServiceAccounts, v)
 	}
 
+	if in.PodIdentityAssociations != nil {
+		v, ok := obj["pod_identity_associations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["pod_identity_associations"] = flattenIAMPodIdentityAssociations(in.PodIdentityAssociations, v)
+	}
+
 	obj["vpc_resource_controller_policy"] = in.VPCResourceControllerPolicy
 
 	return []interface{}{obj}, nil
@@ -4538,6 +4666,56 @@ func flattenIAMServiceAccountMetadata(in *EKSClusterIAMMeta, p []interface{}) []
 	}
 
 	return []interface{}{obj}
+}
+
+func flattenIAMPodIdentityAssociations(inp []*IAMPodIdentityAssociation, p []interface{}) []interface{} {
+	if inp == nil {
+		return nil
+	}
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.ServiceAccountName) > 0 {
+			obj["service_account_name"] = in.ServiceAccountName
+		}
+		if len(in.Namespace) > 0 {
+			obj["namespace"] = in.Namespace
+		}
+		if len(in.RoleARN) > 0 {
+			obj["role_arn"] = in.RoleARN
+		}
+		if len(in.RoleName) > 0 {
+			obj["role_name"] = in.RoleName
+		}
+		if len(in.PermissionPolicy) > 0 {
+			obj["permission_policy"] = in.PermissionPolicy
+		}
+		if in.WellKnownPolicies != nil {
+			v, ok := obj["well_known_policies"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
+		}
+		if in.PermissionPolicyARNs != nil && len(in.PermissionPolicyARNs) > 0 {
+			obj["permission_policy_arns"] = toArrayInterface(in.PermissionPolicyARNs)
+		}
+		if len(in.PermissionsBoundaryARN) > 0 {
+			obj["permissions_boundary_arn"] = in.PermissionsBoundaryARN
+		}
+		if in.Tags != nil && len(in.Tags) > 0 {
+			obj["tags"] = toMapInterface(in.Tags)
+		}
+		if *in.CreateServiceAccount {
+			obj["create_service_account"] = *in.CreateServiceAccount
+		}
+
+		out[i] = obj
+	}
+	return out
 }
 
 func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface{}) []interface{} {

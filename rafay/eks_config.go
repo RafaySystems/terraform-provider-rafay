@@ -177,6 +177,28 @@ type EKSClusterIAM struct {
 	// necessary to run the VPC controller in the control plane
 	// Defaults to `true`
 	VPCResourceControllerPolicy *bool `yaml:"vpcResourceControllerPolicy,omitempty"`
+
+	PodIdentityAssociations []*IAMPodIdentityAssociation `yaml:"podIdentityAssociations,omitempty"`
+}
+
+type IAMPodIdentityAssociation struct {
+	Namespace          string `yaml:"namespace"`
+	ServiceAccountName string `yaml:"serviceAccountName"`
+	RoleARN            string `yaml:"roleARN,omitempty"`
+	// +optional
+	CreateServiceAccount *bool `yaml:"createServiceAccount,omitempty"`
+	// +optional
+	RoleName string `yaml:"roleName,omitempty"`
+	// +optional
+	PermissionsBoundaryARN string `yaml:"permissionsBoundaryARN,omitempty"`
+	// +optional
+	PermissionPolicyARNs []string `yaml:"permissionPolicyARNs,omitempty"`
+	// +optional
+	PermissionPolicy string `yaml:"permissionPolicy,omitempty"`
+	// +optional
+	WellKnownPolicies *WellKnownPolicies `yaml:"wellKnownPolicies,omitempty"`
+	// +optional
+	Tags map[string]string `yaml:"tags,omitempty"`
 }
 
 // EKSClusterIAMServiceAccount holds an IAM service account metadata and configuration

@@ -101,3 +101,45 @@ resource "rafay_cluster_override" "tfdemocluster-yamloverride1" {
     EOS
   }
 }
+
+resource "rafay_cluster_override" "tfdemocluster-override-share1" {
+  metadata {
+    name    = "tfdemocluster-override-share-1"
+    project = "terraform"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "valuesFile"
+    }
+  }
+  spec {
+    cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key = "rafay.dev/clusterName"
+        value = "cluster-1"
+      }
+    }
+    resource_selector = "rafay.dev/name=override-addon"
+    type              = "ClusterOverrideTypeAddon"
+    sharing {
+      enabled = true  // set false to unshare from all projects
+      projects {
+        name = "project1"
+      }
+      projects {
+        name = "project2"
+      }
+    }
+    override_values   = <<-EOS
+    replicaCount: 1
+    image:
+      repository: nginx
+      pullPolicy: Always
+      tag: "1.19.8"
+    service:
+      type: ClusterIP
+      port: 8080
+    EOS
+  }
+}

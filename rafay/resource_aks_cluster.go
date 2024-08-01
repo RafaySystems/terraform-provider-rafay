@@ -3435,37 +3435,45 @@ func expandAKSMaintenanceConfigProperties(p []interface{}) *AKSMaintenanceConfig
 	return obj
 }
 
-func expandAKSMCTimeSpan(p []interface{}) *AKSMaintenanceTimeSpan {
-	obj := &AKSMaintenanceTimeSpan{}
+func expandAKSMCTimeSpan(p []interface{}) []*AKSMaintenanceTimeSpan {
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return []*AKSMaintenanceTimeSpan{}
 	}
-	in := p[0].(map[string]interface{})
 
-	if v, ok := in["end"].(string); ok && len(v) > 0 {
-		obj.End = v
+	out := make([]*AKSMaintenanceTimeSpan, len(p))
+	for i := range p {
+		obj := AKSMaintenanceTimeSpan{}
+		in := p[i].(map[string]interface{})
+		if v, ok := in["end"].(string); ok && len(v) > 0 {
+			obj.End = v
+		}
+		if v, ok := in["start"].(string); ok && len(v) > 0 {
+			obj.Start = v
+		}
+		out[i] = &obj
 	}
-	if v, ok := in["start"].(string); ok && len(v) > 0 {
-		obj.Start = v
-	}
-	return obj
+	return out
 }
 
-func expandAKSMCTimeInWeek(p []interface{}) *AKSMaintenanceTimeInWeek {
-	obj := &AKSMaintenanceTimeInWeek{}
+func expandAKSMCTimeInWeek(p []interface{}) []*AKSMaintenanceTimeInWeek {
 	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["day"].(string); ok && len(v) > 0 {
-		obj.Day = v
+		return []*AKSMaintenanceTimeInWeek{}
 	}
 
-	if v, ok := in["hour_slots"].([]interface{}); ok && len(v) > 0 {
-		obj.HourSlots = toArrayInt(v)
+	out := make([]*AKSMaintenanceTimeInWeek, len(p))
+	for i := range p {
+		obj := AKSMaintenanceTimeInWeek{}
+		in := p[i].(map[string]interface{})
+		if v, ok := in["day"].(string); ok && len(v) > 0 {
+			obj.Day = v
+		}
+
+		if v, ok := in["hour_slots"].([]interface{}); ok && len(v) > 0 {
+			obj.HourSlots = toArrayInt(v)
+		}
+		out[i] = &obj
 	}
-	return obj
+	return out
 }
 
 func expandAKSMCMaintenanceWindow(p []interface{}) *AKSMaintenanceWindow {
@@ -5611,7 +5619,7 @@ func flattenAKSMaintenanceConfigProperties(in *AKSMaintenanceConfigProperties, p
 		}
 		obj["maintenance_window"] = flattenAKSMaintenanceWindow(in.MaintenanceWindow, v)
 	}
-	if in.NotAllowedTime != nil {
+	if in.NotAllowedTime != nil && len(in.NotAllowedTime) > 0 {
 		v, ok := obj["not_allowed_time"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -5628,42 +5636,51 @@ func flattenAKSMaintenanceConfigProperties(in *AKSMaintenanceConfigProperties, p
 	return []interface{}{obj}
 }
 
-func flattenAKSMCTimeSpan(in *AKSMaintenanceTimeSpan, p []interface{}) []interface{} {
+func flattenAKSMCTimeSpan(in []*AKSMaintenanceTimeSpan, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
 
-	if len(in.End) > 0 {
-		obj["end"] = in.End
-	}
+	out := make([]interface{}, len(in))
+	for i, elem := range in {
+		obj := map[string]interface{}{}
+		if len(p) != 0 && p[0] != nil {
+			obj = p[0].(map[string]interface{})
+		}
 
-	if len(in.Start) > 0 {
-		obj["start"] = in.Start
+		if len(elem.End) > 0 {
+			obj["end"] = elem.End
+		}
+
+		if len(elem.Start) > 0 {
+			obj["start"] = elem.Start
+		}
+		out[i] = obj
 	}
-	return []interface{}{obj}
+	return out
 }
 
-func flattenAKSMCTimeInWeek(in *AKSMaintenanceTimeInWeek, p []interface{}) []interface{} {
+func flattenAKSMCTimeInWeek(in []*AKSMaintenanceTimeInWeek, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
+	out := make([]interface{}, len(in))
+	for i, elem := range in {
+		obj := map[string]interface{}{}
+		if len(p) != 0 && p[0] != nil {
+			obj = p[0].(map[string]interface{})
+		}
 
-	if len(in.Day) > 0 {
-		obj["day"] = in.Day
-	}
+		if len(elem.Day) > 0 {
+			obj["day"] = elem.Day
+		}
 
-	if in.HourSlots != nil && len(in.HourSlots) > 0 {
-		obj["hour_slots"] = intArraytoInterfaceArray(in.HourSlots)
+		if elem.HourSlots != nil && len(elem.HourSlots) > 0 {
+			obj["hour_slots"] = intArraytoInterfaceArray(elem.HourSlots)
+		}
+		out[i] = obj
 	}
-	return []interface{}{obj}
+	return out
 }
 
 func flattenAKSMaintenanceWindow(in *AKSMaintenanceWindow, p []interface{}) []interface{} {
@@ -5679,7 +5696,7 @@ func flattenAKSMaintenanceWindow(in *AKSMaintenanceWindow, p []interface{}) []in
 		obj["duration_hours"] = in.DurationHours
 	}
 
-	if in.NotAllowedDates != nil {
+	if in.NotAllowedDates != nil && len(in.NotAllowedDates) > 0 {
 		v, ok := obj["not_allowed_dates"].([]interface{})
 		if !ok {
 			v = []interface{}{}

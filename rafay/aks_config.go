@@ -83,18 +83,18 @@ type AKSMaintenanceConfig struct {
 }
 
 type AKSMaintenanceConfigProperties struct {
-	MaintenanceWindow *AKSMaintenanceWindow     `yaml:"maintenanceWindow,omitempty"`
-	NotAllowedTime    *AKSMaintenanceTimeSpan   `yaml:"notAllowedTime,omitempty"`
-	TimeInWeek        *AKSMaintenanceTimeInWeek `yaml:"timeInWeek,omitempty"`
+	MaintenanceWindow *AKSMaintenanceWindow       `yaml:"maintenanceWindow,omitempty"`
+	NotAllowedTime    []*AKSMaintenanceTimeSpan   `yaml:"notAllowedTime,omitempty"`
+	TimeInWeek        []*AKSMaintenanceTimeInWeek `yaml:"timeInWeek,omitempty"`
 }
 
 type AKSMaintenanceWindow struct {
-	DurationHours   int                     `yaml:"durationHours,omitempty"`
-	NotAllowedDates *AKSMaintenanceTimeSpan `yaml:"notAllowedDates,omitempty"`
-	Schedule        *AKSMaintenanceSchedule `yaml:"schedule,omitempty"`
-	StartDate       string                  `yaml:"startDate,omitempty"`
-	StartTime       string                  `yaml:"startTime,omitempty"`
-	UtcOffset       string                  `yaml:"utcOffset,omitempty"`
+	DurationHours   int                       `yaml:"durationHours,omitempty"`
+	NotAllowedDates []*AKSMaintenanceTimeSpan `yaml:"notAllowedDates,omitempty"`
+	Schedule        *AKSMaintenanceSchedule   `yaml:"schedule,omitempty"`
+	StartDate       string                    `yaml:"startDate,omitempty"`
+	StartTime       string                    `yaml:"startTime,omitempty"`
+	UtcOffset       string                    `yaml:"utcOffset,omitempty"`
 }
 
 type AKSMaintenanceTimeSpan struct {

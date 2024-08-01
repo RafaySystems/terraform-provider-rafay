@@ -106,7 +106,8 @@ func toArrayInt32(in []interface{}) []int32 {
 			out[i] = 0
 			continue
 		}
-		out[i] = v.(int32)
+		nv := v.(int)
+		out[i] = int32(nv)
 	}
 	return out
 }

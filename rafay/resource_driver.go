@@ -405,6 +405,10 @@ func expandContainerKubeOptions(p []interface{}) *eaaspb.ContainerKubeOptions {
 		hc.ServiceAccountName = san
 	}
 
+	if tolerations, ok := in["tolerations"].([]interface{}); ok {
+		hc.Tolerations = expandV3Tolerations(tolerations)
+	}
+
 	return &hc
 }
 
@@ -753,6 +757,14 @@ func flattenContainerKubeOptions(in *eaaspb.ContainerKubeOptions, p []interface{
 
 	if len(in.ServiceAccountName) > 0 {
 		obj["service_account_name"] = in.ServiceAccountName
+	}
+
+	if in.Tolerations != nil {
+		v, ok := obj["tolerations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, v)
 	}
 
 	return []interface{}{obj}

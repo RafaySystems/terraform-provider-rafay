@@ -16,7 +16,9 @@ jobs:
 
     steps:
     - name: Checkout PR Branch
-      uses: actions/checkout@v4 # This action checks out the branch associated with the PR
+      uses: actions/checkout@v4  # This action checks out the branch associated with the PR
+      with:
+        token: ${{ secrets.JENKINS_PAT }}
 
     - name: Set Git config
       run: |

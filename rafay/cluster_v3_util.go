@@ -1,8 +1,6 @@
 package rafay
 
 import (
-	"log"
-
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	v1 "k8s.io/api/core/v1"
@@ -108,7 +106,6 @@ func expandV3Tolerations(p []interface{}) []*v1.Toleration {
 				obj.TolerationSeconds = nil
 			} else {
 				ts := int64(v)
-				log.Println("setting toleration seconds")
 				obj.TolerationSeconds = &ts
 			}
 		}

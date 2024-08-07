@@ -67,11 +67,71 @@ type AKSClusterConfigMetadata struct {
 }
 
 type AKSClusterConfigSpec struct {
-	SubscriptionID    string             `yaml:"subscriptionId,omitempty"`
-	ResourceGroupName string             `yaml:"resourceGroupName,omitempty"`
-	ManagedCluster    *AKSManagedCluster `yaml:"managedCluster,omitempty"`
-	NodePools         []*AKSNodePool     `yaml:"nodePools,omitempty"`
+	SubscriptionID     string                  `yaml:"subscriptionId,omitempty"`
+	ResourceGroupName  string                  `yaml:"resourceGroupName,omitempty"`
+	ManagedCluster     *AKSManagedCluster      `yaml:"managedCluster,omitempty"`
+	NodePools          []*AKSNodePool          `yaml:"nodePools,omitempty"`
+	MaintenanceConfigs []*AKSMaintenanceConfig `yaml:"maintenanceConfigurations,omitempty"`
 	//Internal          *AKSRafayInternal  `yaml:"internal,omitempty"`
+}
+
+type AKSMaintenanceConfig struct {
+	ApiVersion string                          `yaml:"apiVersion,omitempty"`
+	Name       string                          `yaml:"name,omitempty"`
+	Properties *AKSMaintenanceConfigProperties `yaml:"properties,omitempty"`
+	Type       string                          `yaml:"type,omitempty"`
+}
+
+type AKSMaintenanceConfigProperties struct {
+	MaintenanceWindow *AKSMaintenanceWindow       `yaml:"maintenanceWindow,omitempty"`
+	NotAllowedTime    []*AKSMaintenanceTimeSpan   `yaml:"notAllowedTime,omitempty"`
+	TimeInWeek        []*AKSMaintenanceTimeInWeek `yaml:"timeInWeek,omitempty"`
+}
+
+type AKSMaintenanceWindow struct {
+	DurationHours   int                       `yaml:"durationHours,omitempty"`
+	NotAllowedDates []*AKSMaintenanceTimeSpan `yaml:"notAllowedDates,omitempty"`
+	Schedule        *AKSMaintenanceSchedule   `yaml:"schedule,omitempty"`
+	StartDate       string                    `yaml:"startDate,omitempty"`
+	StartTime       string                    `yaml:"startTime,omitempty"`
+	UtcOffset       string                    `yaml:"utcOffset,omitempty"`
+}
+
+type AKSMaintenanceTimeSpan struct {
+	End   string `yaml:"end,omitempty"`
+	Start string `yaml:"start,omitempty"`
+}
+
+type AKSMaintenanceTimeInWeek struct {
+	Day       string `yaml:"day,omitempty"`
+	HourSlots []int  `yaml:"hourSlots,omitempty"`
+}
+
+type AKSMaintenanceSchedule struct {
+	AbsoluteMonthlySchedule *AKSMaintenanceAbsoluteMonthlySchedule `yaml:"absoluteMonthly,omitempty"`
+	DailySchedule           *AKSMaintenanceDailySchedule           `yaml:"daily,omitempty"`
+	RelativeMonthlySchedule *AKSMaintenanceRelativeMonthlySchedule `yaml:"relativeMonthly,omitempty"`
+	WeeklySchedule          *AKSMaintenanceWeeklySchedule          `yaml:"weekly,omitempty"`
+}
+
+type AKSMaintenanceAbsoluteMonthlySchedule struct {
+	DayOfMonth     int `yaml:"dayOfMonth,omitempty"`
+	IntervalMonths int `yaml:"intervalMonths,omitempty"`
+}
+
+type AKSMaintenanceDailySchedule struct {
+	IntervalDays int `yaml:"intervalDays,omitempty"`
+}
+
+type AKSMaintenanceRelativeMonthlySchedule struct {
+	DayOfWeek      string `yaml:"dayOfWeek,omitempty"`
+	IntervalMonths int    `yaml:"intervalMonths,omitempty"`
+	WeekIndex      string `yaml:"weekIndex,omitempty"`
+}
+
+type AKSMaintenanceWeeklySchedule struct {
+	DayOfWeek     string `yaml:"dayOfWeek,omitempty"`
+	IntervalWeeks int    `yaml:"intervalWeeks,omitempty"`
 }
 
 // type AzureContainerRegistryProfile struct {
@@ -265,7 +325,8 @@ type AKSManagedClusterAutoScalerProfile struct {
 }
 
 type AKSManagedClusterAutoUpgradeProfile struct {
-	UpgradeChannel string `yaml:"upgradeChannel,omitempty"`
+	UpgradeChannel       string `yaml:"upgradeChannel,omitempty"`
+	NodeOsUpgradeChannel string `yaml:"nodeOsUpgradeChannel,omitempty"`
 }
 
 type AKSManagedClusterServicePrincipalProfile struct {

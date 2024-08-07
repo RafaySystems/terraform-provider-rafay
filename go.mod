@@ -5,7 +5,7 @@ go 1.22.3
 toolchain go1.22.4
 
 require (
-	github.com/RafaySystems/rafay-common v1.29.0-rc6.0.20240723130833-348605bfea40
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240807081101-2ee95e8f4524
 	github.com/RafaySystems/rctl v1.29.1-0.20240731115124-7cf6ded9d565
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible

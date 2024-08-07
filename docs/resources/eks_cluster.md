@@ -39,7 +39,12 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
       version = "1.21"
     }
     iam {
+      with_oidc = true
       service_accounts {
+        metadata {
+          name = "test-irsa"
+          namespace = "default"
+        }
         attach_policy = <<EOF
         {
 	  "Version": "2012-10-17",
@@ -103,7 +108,6 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
       volume_type      = "gp3"
       private_networking = true
     }
-  }
     addons {
       name = "vpc-cni"
       version = "latest"
@@ -117,6 +121,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
       name = "coredns"
       version = "latest"
     }
+  }
 }
 ```
 

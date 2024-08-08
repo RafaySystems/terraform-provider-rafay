@@ -25,12 +25,12 @@ github.com/ProtonMail/go-crypto v1.1.0-alpha.2 h1:bkyFVUP+ROOARdgCiJzNQo2V2kiB97
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2/go.mod h1:rA3QumHc/FZ8pAHreoekgiAbzpNsfQAosU5td4SnOrE=
 github.com/RafaySystems/eaas-playground v0.0.0-20240725104726-6472e5c291bb h1:YfBdiQgm+b8EOY3oy3WlPex8JG+RVt/2O0mjLVTEBIY=
 github.com/RafaySystems/eaas-playground v0.0.0-20240725104726-6472e5c291bb/go.mod h1:nwtRApMyQyH1dBys1rBa2HwDrA44OlNienOEuxZ7vZk=
-github.com/RafaySystems/edge-common v1.24.1-0.20240805071835-09921b7cd970 h1:2eFVeqQPePj1BAnZ6q8glBgMwwTvzvW0DGJ8O0bccaY=
-github.com/RafaySystems/edge-common v1.24.1-0.20240805071835-09921b7cd970/go.mod h1:Lp/hUW/sjTyEgvhmRsnpDQ0c5ccRHHd3DQC/nbJ/jb4=
+github.com/RafaySystems/edge-common v1.24.1-0.20240807104953-6041ef319f67 h1:TSh++PzavXqlOrwdX/mTHXhxHWAHv0f+MVX72x9CwWU=
+github.com/RafaySystems/edge-common v1.24.1-0.20240807104953-6041ef319f67/go.mod h1:Lp/hUW/sjTyEgvhmRsnpDQ0c5ccRHHd3DQC/nbJ/jb4=
 github.com/RafaySystems/rafay-common v1.29.0-rc6.0.20240801092949-381c68066592 h1:fhYgLYKIFlcAANyZPFyEAY6+9P7qrNENQsj11o79Et0=
 github.com/RafaySystems/rafay-common v1.29.0-rc6.0.20240801092949-381c68066592/go.mod h1:8StKG6w/b27sf72oU0piJe0qiRBVRc/VdFvpM3mZVtY=
-github.com/RafaySystems/rctl v1.29.1-0.20240805073105-0c3db11d1ae8 h1:/e38bVfC5kZI1koKf7WFOJ4USOfI3bwqhmz46yt5h3I=
-github.com/RafaySystems/rctl v1.29.1-0.20240805073105-0c3db11d1ae8/go.mod h1:T6HC2h41fkb9l4W1Lbq/+NquAkA7r/EaFOJN83xkjjM=
+github.com/RafaySystems/rctl v1.29.1-0.20240808105827-28025dfcf54d h1:jmBJdkygtqJKObqEdcTIwXkJViKqLjLvZsh35NdCsoU=
+github.com/RafaySystems/rctl v1.29.1-0.20240808105827-28025dfcf54d/go.mod h1:IXCUgkK6iM2wMBJwxX5t53YU+niuGbPzTo69tWORs2M=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=
 github.com/RoaringBitmap/roaring v1.9.4/go.mod h1:6AXUsoIEzDTFFQCe1RbGA6uFONMhvejWj5rqITANK90=
 github.com/abhay-krishna/cluster-api v1.4.2-eksa.1 h1:mO+idOdh9Bpumgo41WJcrASPtJGSgmRxHNiwtUdUa+E=

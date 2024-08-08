@@ -23,16 +23,28 @@ resource "rafay_config_context" "config-context-example" {
     envs {
       key       = "name-modified"
       value     = "modified-value"
-      sensitive = false
+      options = {
+        description = "contains the input variables with default values"
+        sensitive = false
+        override = {
+          type = "allowed"
+        }
+      }
     }
     envs {
       key       = "name-new"
       value     = "new-value"
-      sensitive = false
     }
     files {
       name      = "file://variables.tf"
-      sensitive = true
+      mount_path = "/mnt/eaas/files"
+      options = {
+        description = "contains the input variables with default values"
+        sensitive = true
+        override = {
+          type = "allowed"
+        }
+      }
     }
     variables {
       name       = "new-variable"
@@ -113,6 +125,10 @@ resource "rafay_config_context" "config-context-example" {
 
 ***Optional***
 
+- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
+
+***Deprecated***
+
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
 
 
@@ -127,6 +143,10 @@ resource "rafay_config_context" "config-context-example" {
 ***Optional***
 
 - `data` (String) Data of the file content ( required if name if not a relative path )
+- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
+
+***Deprecated***
+
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
 
 <a id="nestedblock--spec--variables"></a>

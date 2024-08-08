@@ -526,9 +526,9 @@ func expandCommonpbFiles(p []interface{}) []*commonpb.File {
 
 		if name, ok := in["name"].(string); ok && len(name) > 0 {
 
-			if strings.HasPrefix(obj.Name, "file://") {
+			if strings.HasPrefix(name, "file://") {
 				//get full path of artifact
-				artifactFullPath := filepath.Join(filepath.Dir("."), obj.Name[7:])
+				artifactFullPath := filepath.Join(filepath.Dir("."), name[7:])
 				//retrieve artifact data
 				artifactData, err := ioutil.ReadFile(artifactFullPath)
 				if err != nil {

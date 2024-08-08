@@ -42,6 +42,9 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
       branch         = var.branch
       directory_path = var.path
     }
+    artifact_driver {
+      name = var.driver_name
+    }
     contexts {
       name = var.configcontext_name
     }

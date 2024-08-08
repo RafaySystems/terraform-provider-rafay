@@ -23,9 +23,9 @@ resource "rafay_driver" "driver" {
       timeout_seconds = 100
       max_retry_count = 3
       container {
-        image     = var.image
+        image = var.image
         arguments = ["--log-level=3"]
-        commands  = ["run main.go"]
+        commands = ["run main.go"]
         image_pull_credentials {
           password = "gibberesh"
           registry = "hub.docker.io"
@@ -40,6 +40,14 @@ resource "rafay_driver" "driver" {
             "name" : "terraform"
           }
           resources = ["pods", "deployments"]
+          tolerations = [
+            {
+              key : "key",
+              operator : "Equal",
+              value : "value"
+              effect : "NoSchedule"
+            }
+          ]
         }
       }
     }

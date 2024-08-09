@@ -759,12 +759,14 @@ func flattenContainerKubeOptions(in *eaaspb.ContainerKubeOptions, p []interface{
 		obj["service_account_name"] = in.ServiceAccountName
 	}
 
-	if in.Tolerations != nil {
+	if len(in.Tolerations) > 0 {
 		v, ok := obj["tolerations"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
 		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, v)
+	} else {
+		delete(obj, "tolerations")
 	}
 
 	return []interface{}{obj}

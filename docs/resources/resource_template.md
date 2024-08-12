@@ -1679,7 +1679,6 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
 - `terraform` (Block List, Max: 1) Specify the terraform specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--terraform))
 - `open_tofu` (Block List, Max: 1) Specify the opentofu specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--opentofu))
-- `workflow` (Block List, Max: 1) Specify the workflow specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--workflow))
 
 <a id="nestedblock--spec--provider_options--driver"></a>
 ### Nested Schema for `spec.provider_options.driver`
@@ -2447,28 +2446,3 @@ Optional:
 - `var_files` (List of String) Load variable values from the given file, in addition to the default files terraform.tfvars and *.auto.tfvars. Use this option more than once to include more than one variables files
 - `version` (String) Terraform version
 - `volumes` (Block List) volumes to be mounted into the terraform driver (see [below for nested schema](#nestedblock--spec--provider_options--terraform--volumes))
-
-<a id="nestedblock--spec--provider_options--workflow"></a>
-### Nested Schema for `spec.provider_options.workflow`
-
-***Required***
-
-- `tasks` (Block List) Configure the workflow tasks (see [below for nested schema](#nestedblock--spec--provider_options--workflow--tasks))
-
-<a id="nestedblock--spec--provider_options--workflow--tasks"></a>
-### Nested Schema for `spec.provider_options.workflow.tasks`
-
-**Required**
-
-- `name` (String) name of the hook
-- `type` (String) Specify the type of hook, Available options are `container`, `http`, `driver`.
-
-***Optional***
-
-- `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--on_completion--agents))
-- `depends_on` (List of String) specify hook dependencies
-- `description` (String) description of hook
-- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
-- `on_failure` (String) Specify the on failure action
-- `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
-- `timeout_seconds` (Number) Specify the timeout in seconds

@@ -293,10 +293,6 @@ func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOpti
 		po.OpenTofu = expandOpenTofuProviderOptions(p)
 	}
 
-	if w, ok := in["workflow"].([]interface{}); ok && len(p) > 0 {
-		po.Workflow = expandWorkflowProviderOptions(w)
-	}
-
 	if p, ok := in["hcp_terraform"].([]interface{}); ok && len(p) > 0 {
 		po.HcpTerraform = expandHcpTerraformProviderOptions(p)
 	}
@@ -378,21 +374,6 @@ func expandResourceHooks(p []interface{}) *eaaspb.ResourceHooks {
 	}
 
 	return hooks
-
-}
-
-func expandWorkflowProviderOptions(p []interface{}) *eaaspb.WorkflowProviderOptions {
-	if len(p) == 0 || p[0] == nil {
-		return nil
-	}
-	wfProviderOptions := &eaaspb.WorkflowProviderOptions{}
-	in := p[0].(map[string]interface{})
-
-	if h, ok := in["tasks"].([]interface{}); ok && len(h) > 0 {
-		wfProviderOptions.Tasks = expandEaasHooks(h)
-	}
-
-	return wfProviderOptions
 
 }
 
@@ -1025,7 +1006,6 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions) []interf
 	obj["pulumi"] = flattenPulumiProviderOptions(in.Pulumi)
 	obj["driver"] = flattenWorkflowHandlerCompoundRef(in.Driver)
 	obj["open_tofu"] = flattenOpenTofuProviderOptions(in.OpenTofu)
-	obj["workflow"] = flattenWorkflowProviderOptions(in.Workflow)
 	obj["hcp_terraform"] = flattenHcpTerraformProviderOptions(in.HcpTerraform)
 
 	return []interface{}{obj}
@@ -1057,23 +1037,6 @@ func flattenOpenTofuProviderOptions(in *eaaspb.OpenTofuProviderOptions) []interf
 		obj["volumes"] = flattenProviderVolumeOptions(in.Volumes, v)
 	}
 	obj["timeout_seconds"] = in.TimeoutSeconds
-
-	return []interface{}{obj}
-}
-
-func flattenWorkflowProviderOptions(in *eaaspb.WorkflowProviderOptions) []interface{} {
-	if in == nil {
-		return nil
-	}
-	obj := make(map[string]interface{})
-	if len(in.Tasks) > 0 {
-		v, ok := obj["tasks"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["tasks"] = flattenEaasHooks(in.Tasks, v)
-	}
 
 	return []interface{}{obj}
 }

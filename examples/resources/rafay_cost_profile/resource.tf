@@ -56,6 +56,24 @@ resource "rafay_cost_profile" "tfdemocostprofile-azure" {
     }
   }
 }
+#Example cost profile for Gcp
+resource "rafay_cost_profile" "tfdemocostprofile-gcp" {
+  metadata {
+    name    = "tfdemocostprofile-gcp"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    provider_type = "gcp"
+    installation_params {
+      gcp {
+        gcp_credentials {
+          cloud_credentials_name = "sample"
+        }
+      }
+    }
+  }
+}
 #Example cost profile for Other providers
 resource "rafay_cost_profile" "tfdemocostprofile-other" {
   metadata {

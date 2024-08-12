@@ -27,10 +27,10 @@ github.com/RafaySystems/eaas-playground v0.0.0-20240725104726-6472e5c291bb h1:Yf
 github.com/RafaySystems/eaas-playground v0.0.0-20240725104726-6472e5c291bb/go.mod h1:nwtRApMyQyH1dBys1rBa2HwDrA44OlNienOEuxZ7vZk=
 github.com/RafaySystems/edge-common v1.24.1-0.20240313173939-2a7f4af9a0b1 h1:wP27Eemjf9ng0vZzU/nrVm/MhS2vucqNav8BYWL1dj4=
 github.com/RafaySystems/edge-common v1.24.1-0.20240313173939-2a7f4af9a0b1/go.mod h1:bIn92SQa3X+1/vSBF/b5cyw7/t7r66GBvIOqSl3eMEc=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240807081101-2ee95e8f4524 h1:L6H54E1HlPS8K8jwRO8xpe9bkITk4jmK7Oyi9aVcapw=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240807081101-2ee95e8f4524/go.mod h1:8StKG6w/b27sf72oU0piJe0qiRBVRc/VdFvpM3mZVtY=
-github.com/RafaySystems/rctl v1.29.1-0.20240731115124-7cf6ded9d565 h1:YjcNdFckZ4R9cmF7/oh8xxwFVciSZXjzKzfCvKwwdV0=
-github.com/RafaySystems/rctl v1.29.1-0.20240731115124-7cf6ded9d565/go.mod h1:RbcULWgbkgNM3eezNUTe0y6z/zuFs0tnNqKDuAdMDjw=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240812085800-de0d883ade4c h1:u+D4QNWONGu9gOSPs3s6zsxAU42lx5VaJNpEfPJGV6Y=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240812085800-de0d883ade4c/go.mod h1:8StKG6w/b27sf72oU0piJe0qiRBVRc/VdFvpM3mZVtY=
+github.com/RafaySystems/rctl v1.29.1-0.20240812110604-536089c4dbae h1:QmtKHbZbpIt0WjRNwjUBlXvON2PBgJaQlAgg47P+kvQ=
+github.com/RafaySystems/rctl v1.29.1-0.20240812110604-536089c4dbae/go.mod h1:EjiqTx6zfsX599UzJaLp83p6zfwEEPT6lJBVaVHsmb4=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=
 github.com/RoaringBitmap/roaring v1.9.4/go.mod h1:6AXUsoIEzDTFFQCe1RbGA6uFONMhvejWj5rqITANK90=
 github.com/abhay-krishna/cluster-api v1.4.2-eksa.1 h1:mO+idOdh9Bpumgo41WJcrASPtJGSgmRxHNiwtUdUa+E=

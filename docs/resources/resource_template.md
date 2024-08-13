@@ -145,7 +145,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `provider` (String) Specify the resource template provider, Accepted values are `terraform`, `hcpterraform`, `opentofu`, `workflow`
+- `provider` (String) Specify the resource template provider, Accepted values are `terraform`, `hcpterraform`, `opentofu`
 - `repository_options` (Block List, Max: 1) Repository options to be provided (see [below for nested schema](#nestedblock--spec--repository_options))
 - `version` (String) Version of the resource template
 

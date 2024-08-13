@@ -42,10 +42,11 @@ resource "rafay_driver" "driver" {
           resources = ["pods", "deployments"]
           tolerations = [
             {
-              key : "key",
-              operator : "Equal",
+              key : "key"
+              operator : "Equal"
               value : "value"
               effect : "NoSchedule"
+              toleration_seconds = 300
             }
           ]
         }

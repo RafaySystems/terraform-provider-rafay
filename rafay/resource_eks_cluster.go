@@ -3798,7 +3798,7 @@ func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAs
 		if v, ok := in["permission_boundary_arn"].(string); ok && len(v) > 0 {
 			obj.PermissionsBoundaryARN = v
 		}
-		if v, ok := in["permission_policy"].(string); ok && len(v) > 0 {
+		if v, ok := in["permission_policy"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.PermissionPolicy = v
 		}
 		if v, ok := in["permission_policy_arns"].([]interface{}); ok && len(v) > 0 {
@@ -4781,16 +4781,17 @@ func flattenIAMPodIdentityAssociations(inp []*IAMPodIdentityAssociation, p []int
 		if in.Tags != nil && len(in.Tags) > 0 {
 			obj["tags"] = toMapInterface(in.Tags)
 		}
-		if *in.CreateServiceAccount {
-			obj["create_service_account"] = *in.CreateServiceAccount
-		}
+		// if *in.CreateServiceAccount {
+		// 	obj["create_service_account"] = *in.CreateServiceAccount
+		// }
+		obj["create_service_account"] = true
 
 		out[i] = obj
 	}
 	return out
 }
 
-func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, p []interface{}) []interface{} {
+func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, rawState cty.Value, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil
 	}

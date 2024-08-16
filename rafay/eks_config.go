@@ -182,6 +182,26 @@ type EKSClusterIAM struct {
 }
 
 type IAMPodIdentityAssociation struct {
+	Namespace          string `yaml:"namespace" json:"namespace"`
+	ServiceAccountName string `yaml:"serviceAccountName" json:"serviceAccountName"`
+	RoleARN            string `yaml:"roleARN,omitempty" json:"roleARN,omitempty"`
+	// +optional
+	CreateServiceAccount *bool `yaml:"createServiceAccount,omitempty" json:"createServiceAccount,omitempty"`
+	// +optional
+	RoleName string `yaml:"roleName,omitempty" json:"roleName,omitempty"`
+	// +optional
+	PermissionsBoundaryARN string `yaml:"permissionsBoundaryARN,omitempty" json:"permissionsBoundaryARN,omitempty"`
+	// +optional
+	PermissionPolicyARNs []string `yaml:"permissionPolicyARNs,omitempty" json:"permissionPolicyARNs,omitempty"`
+	// +optional
+	PermissionPolicy map[string]interface{} `yaml:"permissionPolicy,omitempty" json:"permissionPolicy,omitempty"`
+	// +optional
+	WellKnownPolicies *WellKnownPolicies `yaml:"wellKnownPolicies,omitempty" json:"wellKnownPolicies,omitempty"`
+	// +optional
+	Tags map[string]string `yaml:"tags,omitempty" json:"tags,omitempty"`
+}
+
+type IAMPodIdentityAssociationOutput struct {
 	Namespace          string `yaml:"namespace"`
 	ServiceAccountName string `yaml:"serviceAccountName"`
 	RoleARN            string `yaml:"roleARN,omitempty"`
@@ -194,11 +214,24 @@ type IAMPodIdentityAssociation struct {
 	// +optional
 	PermissionPolicyARNs []string `yaml:"permissionPolicyARNs,omitempty"`
 	// +optional
-	PermissionPolicy string `yaml:"permissionPolicy,omitempty"`
+	PermissionPolicy map[string]interface{} `yaml:"permissionPolicy,omitempty"`
 	// +optional
 	WellKnownPolicies *WellKnownPolicies `yaml:"wellKnownPolicies,omitempty"`
 	// +optional
 	Tags map[string]string `yaml:"tags,omitempty"`
+
+	Status   string `yaml:"status,omitempty"`
+	Comments string `yaml:"comments,omitempty"`
+}
+
+type PodIdentityExtension struct {
+	HostMetadata *Metadata                  `yaml:"metadata,omitempty"`
+	Spec         *IAMPodIdentityAssociation `yaml:"spec,omitempty"`
+}
+
+type Metadata struct {
+	clusterName string `yaml:"clusterName,omitempty"`
+	projectName string `yaml:"projectName,omitempty"`
 }
 
 // EKSClusterIAMServiceAccount holds an IAM service account metadata and configuration

@@ -212,11 +212,21 @@ type IAMPodIdentityAssociation struct {
 	// +optional
 	PermissionPolicyARNs []string `yaml:"permissionPolicyARNs,omitempty"`
 	// +optional
-	PermissionPolicy string `yaml:"permissionPolicy,omitempty"`
+	PermissionPolicy map[string]interface{} `yaml:"permissionPolicy,omitempty"`
 	// +optional
 	WellKnownPolicies *WellKnownPolicies `yaml:"wellKnownPolicies,omitempty"`
 	// +optional
 	Tags map[string]string `yaml:"tags,omitempty"`
+}
+
+type PodIdentityExtension struct {
+	HostMetadata *HostMetadata              `yaml:"hostMetadata,omitempty"`
+	Spec         *IAMPodIdentityAssociation `yaml:"spec,omitempty"`
+}
+
+type HostMetadata struct {
+	clusterName string `yaml:"clusterName,omitempty"`
+	projectName string `yaml:"projectName,omitempty"`
 }
 
 // EKSClusterIAMServiceAccount holds an IAM service account metadata and configuration

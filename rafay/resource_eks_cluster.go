@@ -3710,7 +3710,7 @@ func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAs
 		if v, ok := in["permission_boundary_arn"].(string); ok && len(v) > 0 {
 			obj.PermissionsBoundaryARN = v
 		}
-		if v, ok := in["permission_policy"].(string); ok && len(v) > 0 {
+		if v, ok := in["permission_policy"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.PermissionPolicy = v
 		}
 		if v, ok := in["permission_policy_arns"].([]interface{}); ok && len(v) > 0 {

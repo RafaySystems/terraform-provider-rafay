@@ -148,7 +148,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `provider` (String) Specify the resource template provider, Accepted values are `terraform`, `hcpterraform`, `opentofu`, `custom`
+- `provider` (String) Specify the resource template provider, Accepted values are `terraform`, `hcpterraform`, `opentofu`, `custom`, `system`
 - `repository_options` (Block List, Max: 1) Repository options to be provided (see [below for nested schema](#nestedblock--spec--repository_options))
 - `version` (String) Version of the resource template
 
@@ -1684,6 +1684,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `hcp_terraform` (Block List, Max: 1) Specify the HCP terraform specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--hcpterraform))
 - `open_tofu` (Block List, Max: 1) Specify the opentofu specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--opentofu))
 - `custom` (Block List, Max: 1) Specify the custom options if any (see [below for nested schema](#nestedblock--spec--provider_options--custom))
+- `system` (Block List, Max: 1) Specify the system options if any (see [below for nested schema](#nestedblock--spec--provider_options--system))
 
 <a id="nestedblock--spec--provider_options--driver"></a>
 ### Nested Schema for `spec.provider_options.driver`
@@ -2490,3 +2491,11 @@ Optional:
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
+
+
+<a id="nestedblock--spec--provider_options--system"></a>
+### Nested Schema for `spec.provider_options.system`
+
+***Required***
+
+- `kind` (String) Specify the type of rafay resource, Available options are `credential`, `cluster`.

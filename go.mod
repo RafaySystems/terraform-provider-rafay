@@ -218,12 +218,13 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
-	// github.com/RafaySystems/rafay-common => ../rafay-common
+	github.com/RafaySystems/eaas-playground => ../eaas-playground
+	github.com/RafaySystems/rafay-common => ../rafay-common
+	github.com/getkin/kin-openapi => github.com/getkin/kin-openapi v0.120.0
 	// github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	// github.com/RafaySystems/rctl => ../rctl
-	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
-	github.com/getkin/kin-openapi => github.com/getkin/kin-openapi v0.120.0
+	// github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
 	github.com/go-pg/pg => github.com/go-pg/pg v6.15.1+incompatible
 	k8s.io/api => k8s.io/api v0.26.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.2

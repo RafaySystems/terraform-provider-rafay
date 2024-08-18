@@ -1,3 +1,3 @@
-output "resource_name" {
-  value = rafay_environment.eks-rds-env.id
-}
+# output "resource_name" {
+#   value = rafay_environment.mvsphani-tf-clust.id
+# }

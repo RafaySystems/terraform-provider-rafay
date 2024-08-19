@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 
-	framework "github.com/RafaySystems/terraform-provider-rafay/internal/provider"
+	framework "github.com/RafaySystems/terraform-provider-rafay/fwprovider/provider"
 	legacySDK "github.com/RafaySystems/terraform-provider-rafay/rafay"
 )
 

@@ -24,6 +24,8 @@ import (
 // Ensure RafayFwProvider satisfies terraform framework provider interfaces.
 var _ provider.Provider = &RafayFwProvider{}
 
+const TF_USER_AGENT = "terraform"
+
 // RafayFwProvider defines the provider implementation using framework.
 type RafayFwProvider struct {
 	version string
@@ -49,6 +51,11 @@ func (p *RafayFwProvider) Schema(ctx context.Context, req provider.SchemaRequest
 		},
 	}
 
+}
+
+func (p *RafayFwProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "rafay"
+	resp.Version = p.version
 }
 
 func (p *RafayFwProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
@@ -119,19 +126,14 @@ func (p *RafayFwProvider) Configure(ctx context.Context, req provider.ConfigureR
 
 }
 
-func (p *RafayFwProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "rafay"
-}
-
 func (p *RafayFwProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{}
 }
 
 func (p *RafayFwProvider) Resources(ctx context.Context) []func() resource.Resource {
-	// return []func() resource.Resource{
-	// 	NewPetResource,
-	// }
-	return []func() resource.Resource{}
+	return []func() resource.Resource{
+		NewMksClusterResource,
+	}
 }
 
 func expandHomeDir(path string) (string, error) {

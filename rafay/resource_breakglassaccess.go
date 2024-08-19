@@ -50,7 +50,7 @@ func resourceBreakGlassAccessImport(d *schema.ResourceData, meta interface{}) ([
 
 	username := d.Id()
 
-	log.Println("Importing temporaryaccess for user: ", username)
+	log.Println("Importing break glass access for user: ", username)
 
 	breakGlassAccess, err := expandBreakGlassAccess(d)
 	if err != nil {
@@ -73,7 +73,7 @@ func resourceBreakGlassAccessImport(d *schema.ResourceData, meta interface{}) ([
 }
 
 func resourceBreakGlassAccessCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	log.Println("temporary user access create")
+	log.Println("break glass access create")
 	diags := resourceBreakGlassAccessUpsert(ctx, d, m)
 	if diags.HasError() {
 		tflog := os.Getenv("TF_LOG")
@@ -102,7 +102,7 @@ func resourceBreakGlassAccessCreate(ctx context.Context, d *schema.ResourceData,
 
 func resourceBreakGlassAccessUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("temporary user access upsert starts")
+	log.Printf("break glass access upsert starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -140,7 +140,7 @@ func resourceBreakGlassAccessUpsert(ctx context.Context, d *schema.ResourceData,
 func resourceBreakGlassAccessRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	log.Println("resource temporary user access ")
+	log.Println("resource break glass access ")
 
 	meta := GetMetaData(d)
 	if meta == nil {
@@ -200,7 +200,7 @@ func resourceBreakGlassAccessDelete(ctx context.Context, d *schema.ResourceData,
 	})
 
 	if err != nil {
-		log.Println("temporary user access delete error")
+		log.Println("break glass access delete error")
 		return diag.FromErr(err)
 	}
 
@@ -208,7 +208,7 @@ func resourceBreakGlassAccessDelete(ctx context.Context, d *schema.ResourceData,
 }
 
 func expandBreakGlassAccess(in *schema.ResourceData) (*systempb.BreakGlassAccess, error) {
-	log.Println("expand temporary user access")
+	log.Println("expand break glass access")
 	if in == nil {
 		return nil, fmt.Errorf("%s", "expand BreakGlassAccess empty input")
 	}
@@ -313,7 +313,7 @@ func flattenBreakGlassAccess(d *schema.ResourceData, in *systempb.BreakGlassAcce
 	var ret []interface{}
 	ret, err = flattenBreakGlassAccessSpec(in.Spec, v)
 	if err != nil {
-		log.Println("flatten temporary user access spec err")
+		log.Println("flatten break glass access spec err")
 		return err
 	}
 

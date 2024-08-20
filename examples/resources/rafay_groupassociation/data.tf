@@ -1,6 +1,6 @@
 data "rafay_groupassociation" "association" {
-    group    = "rctl-grp"
-    project = "sample-shetty"
+    group    = "group-name"
+    project = "demo"
 }
 
 output "groupassociation" {

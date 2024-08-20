@@ -1,6 +1,6 @@
 resource "rafay_breakglassaccess" "test_user" {
   metadata {
-    name = "ankit+terraform@rafay.co"
+    name = "test@rafay.co"
   }
   spec {
     groups {

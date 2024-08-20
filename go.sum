@@ -23,12 +23,12 @@ github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2 h1:bkyFVUP+ROOARdgCiJzNQo2V2kiB97LyUpzH9P6Hrlg=
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2/go.mod h1:rA3QumHc/FZ8pAHreoekgiAbzpNsfQAosU5td4SnOrE=
-github.com/RafaySystems/eaas-playground v0.0.0-20240725104726-6472e5c291bb h1:YfBdiQgm+b8EOY3oy3WlPex8JG+RVt/2O0mjLVTEBIY=
-github.com/RafaySystems/eaas-playground v0.0.0-20240725104726-6472e5c291bb/go.mod h1:nwtRApMyQyH1dBys1rBa2HwDrA44OlNienOEuxZ7vZk=
+github.com/RafaySystems/eaas-playground v0.0.0-20240819062521-b1b317f32232 h1:OyvJD5nwBHjM7UUS9nX9DNLKeq2BZfWb/Tcsz3K3DHY=
+github.com/RafaySystems/eaas-playground v0.0.0-20240819062521-b1b317f32232/go.mod h1:YN2q7XActj/AHM4F+6Czsip5++l7asf/hxK8YZjrmhU=
 github.com/RafaySystems/edge-common v1.24.1-0.20240813083948-ba69bed0bc1b h1:byYrgKmgq+JNPm9u/6/DJQSu8AW/TdgPhgrnzpmHBBs=
 github.com/RafaySystems/edge-common v1.24.1-0.20240813083948-ba69bed0bc1b/go.mod h1:Lp/hUW/sjTyEgvhmRsnpDQ0c5ccRHHd3DQC/nbJ/jb4=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240813084031-834d0909294a h1:Z10XQ6dZlb9+Rp3Zdyh6TJB8200rQ6Y63h2xwG8A/mI=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240813084031-834d0909294a/go.mod h1:8StKG6w/b27sf72oU0piJe0qiRBVRc/VdFvpM3mZVtY=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240819105128-51987ba404a9 h1:r5kpECouDiIcNvKqBPOe5Ly1v4oF6vcnhtDU6anlYZA=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240819105128-51987ba404a9/go.mod h1:s28/gkN7ii/bWnsfbnS5uxxYH1aaA/rm4JZu61rLdkM=
 github.com/RafaySystems/rctl v1.29.1-0.20240813175545-9dc352b7affb h1:bozmqi6NqEYngix6hO1TnO6bMTn4dRRyJPaiOubIwO8=
 github.com/RafaySystems/rctl v1.29.1-0.20240813175545-9dc352b7affb/go.mod h1:lsuKgPhI39u2kWzSOUoFI5jyWnldUif7HTrs4sVzXSc=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=
@@ -59,8 +59,8 @@ github.com/blang/semver v3.5.1+incompatible h1:cQNTCjp13qL8KC3Nbxr/y2Bqb63oX6wdn
 github.com/blang/semver v3.5.1+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
 github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM=
 github.com/blang/semver/v4 v4.0.0/go.mod h1:IbckMUScFkM3pff0VJDNKRiT6TG/YpiHIM2yvyW5YoQ=
-github.com/bufbuild/protocompile v0.14.0 h1:z3DW4IvXE5G/uTOnSQn+qwQQxvhckkTWLS/0No/o7KU=
-github.com/bufbuild/protocompile v0.14.0/go.mod h1:N6J1NYzkspJo3ZwyL4Xjvli86XOj1xq4qAasUFxGups=
+github.com/bufbuild/protocompile v0.10.0 h1:+jW/wnLMLxaCEG8AX9lD0bQ5v9h1RUiMKOBOT5ll9dM=
+github.com/bufbuild/protocompile v0.10.0/go.mod h1:G9qQIQo0xZ6Uyj6CMNz0saGmx2so+KONo8/KrELABiY=
 github.com/buger/jsonparser v1.1.1/go.mod h1:6RYKKt7H4d4+iWqouImQ9R2FZql3VbhNgx27UK13J/0=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=

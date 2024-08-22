@@ -5,7 +5,7 @@ NAME=rafay
 BINARY=terraform-provider-${NAME}
 VERSION=1.1.28
 GIT_BRANCH ?= main
-OS_ARCH=darwin_amd64
+OS_ARCH := $(shell uname | grep -q 'Linux' && echo "linux_amd64" || echo "darwin_amd64")
 BUCKET_NAME ?= terraform-provider-rafay
 BUILD_NUMBER ?= $(shell date "+%Y%m%d-%H%M")
 TAG := $(or $(shell git describe --tags --exact-match  2>/dev/null), $(shell echo "origin/${GIT_BRANCH}"))
@@ -14,24 +14,24 @@ default: install
 
 build:
 	export GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ${BINARY}
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ${BINARY}
 	#go generate
 
 release:
-	GOOS=darwin GOARCH=amd64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_darwin_amd64 -buildvcs=false
-	GOOS=darwin GOARCH=arm64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_darwin_arm64 -buildvcs=false
-	GOOS=freebsd GOARCH=386 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_freebsd_386 -buildvcs=false
-	GOOS=freebsd GOARCH=amd64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_freebsd_amd64 -buildvcs=false
-	GOOS=freebsd GOARCH=arm GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_freebsd_arm -buildvcs=false
-	GOOS=linux GOARCH=386 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_linux_386 -buildvcs=false
-	GOOS=linux GOARCH=amd64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_linux_amd64 -buildvcs=false
-	GOOS=linux GOARCH=arm GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_linux_arm -buildvcs=false
-	GOOS=linux GOARCH=arm64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_linux_arm64 -buildvcs=false
-	GOOS=openbsd GOARCH=386 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_openbsd_386 -buildvcs=false
-	GOOS=openbsd GOARCH=amd64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_openbsd_amd64 -buildvcs=false
-	GOOS=solaris GOARCH=amd64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_solaris_amd64 -buildvcs=false
-	GOOS=windows GOARCH=386 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_windows_386 -buildvcs=false
-	GOOS=windows GOARCH=amd64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_windows_amd64 -buildvcs=false
+	GOOS=darwin GOARCH=amd64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_darwin_amd64 -buildvcs=false
+	GOOS=darwin GOARCH=arm64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_darwin_arm64 -buildvcs=false
+	GOOS=freebsd GOARCH=386 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_freebsd_386 -buildvcs=false
+	GOOS=freebsd GOARCH=amd64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_freebsd_amd64 -buildvcs=false
+	GOOS=freebsd GOARCH=arm GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_freebsd_arm -buildvcs=false
+	GOOS=linux GOARCH=386 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_linux_386 -buildvcs=false
+	GOOS=linux GOARCH=amd64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_linux_amd64 -buildvcs=false
+	GOOS=linux GOARCH=arm GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_linux_arm -buildvcs=false
+	GOOS=linux GOARCH=arm64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_linux_arm64 -buildvcs=false
+	GOOS=openbsd GOARCH=386 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_openbsd_386 -buildvcs=false
+	GOOS=openbsd GOARCH=amd64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_openbsd_amd64 -buildvcs=false
+	GOOS=solaris GOARCH=amd64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_solaris_amd64 -buildvcs=false
+	GOOS=windows GOARCH=386 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_windows_386 -buildvcs=false
+	GOOS=windows GOARCH=amd64 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ./bin/${BINARY}_${VERSION}_windows_amd64 -buildvcs=false
 
 zip:
 	$(shell cd bin;	zip ${BINARY}_${VERSION}_linux_arm64.zip ${BINARY}_${VERSION}_linux_arm64)

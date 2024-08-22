@@ -73,6 +73,8 @@ resource "rafay_environment" "eks-rds-env-example" {
 - `agents` (Block List) Agents that are eligible to process the environment (see [below for nested schema](#nestedblock--spec--agents))
 - `sharing` (Block List, Max: 1) Defines if this is shared with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Variables data for environment to be created (see [below for nested schema](#nestedblock--spec--variables))
+- `env_vars` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--envs))
+- `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--files))
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
@@ -148,3 +150,28 @@ resource "rafay_environment" "eks-rds-env-example" {
 - `update` (String)
 
 
+<a id="nestedblock--spec--envs"></a>
+### Nested Schema for `spec.envs`
+
+***Required***
+
+- `key` (String) Key of the environment variable to be set
+- `value` (String) Value of the environment variable to be set
+
+***Optional***
+
+- `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
+
+
+<a id="nestedblock--spec--files"></a>
+### Nested Schema for `spec.files`
+
+***Required***
+
+- `name` (String) relative path of a artifact
+- `mount_path` (String) Mount path of a artifact
+
+***Optional***
+
+- `data` (String) Data of the file content ( required if name if not a relative path )
+- `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it

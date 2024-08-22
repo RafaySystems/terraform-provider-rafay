@@ -334,6 +334,10 @@ func FlattenArtifact(at *artifactTranspose, p []interface{}) ([]interface{}, err
 		obj["values_paths"] = flattenFiles(at.Artifact.ValuesPaths)
 	}
 
+	if len(at.Artifact.Catalog) > 0 {
+		obj["catalog"] = at.Artifact.Catalog
+	}
+
 	if len(at.Artifact.ChartName) > 0 {
 		obj["chart_name"] = at.Artifact.ChartName
 	}

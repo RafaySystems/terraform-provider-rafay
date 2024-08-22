@@ -223,10 +223,6 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 		spec.Version = v
 	}
 
-	if vs, ok := in["version_state"].(string); ok && len(vs) > 0 {
-		spec.VersionState = vs
-	}
-
 	if p, ok := in["provider"].(string); ok && len(p) > 0 {
 		spec.Provider = p
 	}
@@ -257,6 +253,10 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
+	}
+
+	if ad, ok := in["artifact_driver"].([]interface{}); ok && len(ad) > 0 {
+		spec.ArtifactDriver = expandWorkflowHandlerCompoundRef(ad)
 	}
 
 	return spec, nil
@@ -293,6 +293,14 @@ func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOpti
 		po.OpenTofu = expandOpenTofuProviderOptions(p)
 	}
 
+	if w, ok := in["custom"].([]interface{}); ok && len(p) > 0 {
+		po.Custom = expandCustomProviderOptions(w)
+	}
+
+	if p, ok := in["hcp_terraform"].([]interface{}); ok && len(p) > 0 {
+		po.HcpTerraform = expandHcpTerraformProviderOptions(p)
+	}
+
 	return po
 
 }
@@ -319,14 +327,14 @@ func expandResourceTemplateRepositoryOptions(p []interface{}) *eaaspb.ResourceTe
 	return ro
 }
 
-func expandContexts(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
-	ctxs := make([]*commonpb.ResourceNameAndVersionRef, 0)
+func expandContexts(p []interface{}) []*eaaspb.ConfigContextCompoundRef {
+	ctxs := make([]*eaaspb.ConfigContextCompoundRef, 0)
 	if len(p) == 0 {
 		return ctxs
 	}
 
 	for indx := range p {
-		obj := &commonpb.ResourceNameAndVersionRef{}
+		obj := &eaaspb.ConfigContextCompoundRef{}
 
 		in := p[indx].(map[string]interface{})
 
@@ -370,6 +378,21 @@ func expandResourceHooks(p []interface{}) *eaaspb.ResourceHooks {
 	}
 
 	return hooks
+
+}
+
+func expandCustomProviderOptions(p []interface{}) *eaaspb.CustomProviderOptions {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	wfProviderOptions := &eaaspb.CustomProviderOptions{}
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["tasks"].([]interface{}); ok && len(h) > 0 {
+		wfProviderOptions.Tasks = expandEaasHooks(h)
+	}
+
+	return wfProviderOptions
 
 }
 
@@ -454,14 +477,18 @@ func expandTerraformProviderOptions(p []interface{}) *eaaspb.TerraformProviderOp
 		tpo.Volumes = expandProviderVolumeOptions(v)
 	}
 
+	if h, ok := in["timeout_seconds"].(int); ok {
+		tpo.TimeoutSeconds = int64(h)
+	}
+
 	return tpo
 }
 
 func expandOpenTofuProviderOptions(p []interface{}) *eaaspb.OpenTofuProviderOptions {
-	tpo := &eaaspb.OpenTofuProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return tpo
+		return nil
 	}
+	tpo := &eaaspb.OpenTofuProviderOptions{}
 
 	in := p[0].(map[string]interface{})
 
@@ -505,7 +532,54 @@ func expandOpenTofuProviderOptions(p []interface{}) *eaaspb.OpenTofuProviderOpti
 		tpo.Volumes = expandProviderVolumeOptions(v)
 	}
 
+	if h, ok := in["timeout_seconds"].(int); ok {
+		tpo.TimeoutSeconds = int64(h)
+	}
+
 	return tpo
+}
+
+func expandHcpTerraformProviderOptions(p []interface{}) *eaaspb.HCPTerraformProviderOptions {
+	hcpTFOpts := &eaaspb.HCPTerraformProviderOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return hcpTFOpts
+	}
+	in := p[0].(map[string]interface{})
+
+	if vfiles, ok := in["var_files"].([]interface{}); ok && len(vfiles) > 0 {
+		hcpTFOpts.VarFiles = toArrayString(vfiles)
+	}
+
+	if h, ok := in["refresh"].([]interface{}); ok && len(h) > 0 {
+		hcpTFOpts.Refresh = expandBoolValue(h)
+	}
+
+	if h, ok := in["lock"].([]interface{}); ok && len(h) > 0 {
+		hcpTFOpts.Lock = expandBoolValue(h)
+	}
+
+	if h, ok := in["lock_timeout_seconds"].(int); ok {
+		hcpTFOpts.LockTimeoutSeconds = uint64(h)
+	}
+
+	if pdirs, ok := in["plugin_dirs"].([]interface{}); ok && len(pdirs) > 0 {
+		hcpTFOpts.PluginDirs = toArrayString(pdirs)
+	}
+
+	if tgtrs, ok := in["target_resources"].([]interface{}); ok && len(tgtrs) > 0 {
+		hcpTFOpts.TargetResources = toArrayString(tgtrs)
+	}
+
+	if v, ok := in["volumes"].([]interface{}); ok && len(v) > 0 {
+		hcpTFOpts.Volumes = expandProviderVolumeOptions(v)
+	}
+
+	if h, ok := in["timeout_seconds"].(int); ok {
+		hcpTFOpts.TimeoutSeconds = int64(h)
+	}
+
+	return hcpTFOpts
+
 }
 
 func expandSystemProviderOptions(p []interface{}) *eaaspb.SystemProviderOptions {
@@ -513,26 +587,28 @@ func expandSystemProviderOptions(p []interface{}) *eaaspb.SystemProviderOptions 
 	if len(p) == 0 || p[0] == nil {
 		return spo
 	}
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["kind"].(string); ok {
+		spo.Kind = h
+	}
 
 	return spo
-
 }
 
 func expandTerragruntProviderOptions(p []interface{}) *eaaspb.TerragruntProviderOptions {
-	tpo := &eaaspb.TerragruntProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return tpo
+		return nil
 	}
-
+	tpo := &eaaspb.TerragruntProviderOptions{}
 	return tpo
 }
 
 func expandPulumiProviderOptions(p []interface{}) *eaaspb.PulumiProviderOptions {
-	ppo := &eaaspb.PulumiProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return ppo
+		return nil
 	}
-
+	ppo := &eaaspb.PulumiProviderOptions{}
 	return ppo
 }
 
@@ -550,6 +626,18 @@ func expandProviderHooks(p []interface{}) *eaaspb.ResourceTemplateProviderHooks 
 
 	if h, ok := in["pulumi"].([]interface{}); ok && len(h) > 0 {
 		rtph.Pulumi = expandPulumiProviderHooks(h)
+	}
+
+	if h, ok := in["open_tofu"].([]interface{}); ok && len(h) > 0 {
+		rtph.OpenTofu = expandOpenTofuProviderHooks(h)
+	}
+
+	if h, oj := in["hcp_terraform"].([]interface{}); oj && len(h) > 0 {
+		rtph.HcpTerraform = expandHcpTerraformProviderHooks(h)
+	}
+
+	if h, oj := in["system"].([]interface{}); oj && len(h) > 0 {
+		rtph.System = expandSystemProviderHooks(h)
 	}
 
 	return rtph
@@ -592,6 +680,62 @@ func expandPulumiProviderHooks(p []interface{}) *eaaspb.PulumiProviderHooks {
 	}
 
 	return pph
+}
+
+func expandOpenTofuProviderHooks(p []interface{}) *eaaspb.OpenTofuProviderHooks {
+	tph := &eaaspb.OpenTofuProviderHooks{}
+	if len(p) == 0 || p[0] == nil {
+		return tph
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["deploy"].([]interface{}); ok && len(h) > 0 {
+		tph.Deploy = expandOpenTofuDeployHooks(h)
+	}
+
+	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
+		tph.Destroy = expandOpenTofuDestroyHooks(h)
+	}
+
+	return tph
+}
+
+func expandHcpTerraformProviderHooks(p []interface{}) *eaaspb.HCPTerraformProviderHooks {
+	tph := &eaaspb.HCPTerraformProviderHooks{}
+	if len(p) == 0 || p[0] == nil {
+		return tph
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["deploy"].([]interface{}); ok && len(h) > 0 {
+		tph.Deploy = expandHcpTerraformDeployHooks(h)
+	}
+
+	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
+		tph.Destroy = expandHcpTerraformDestroyHooks(h)
+	}
+
+	return tph
+}
+func expandSystemProviderHooks(p []interface{}) *eaaspb.SystemProviderHooks {
+	sph := &eaaspb.SystemProviderHooks{}
+	if len(p) == 0 || p[0] == nil {
+		return sph
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["deploy"].([]interface{}); ok && len(h) > 0 {
+		sph.Deploy = expandSystemDeployHooks(h)
+	}
+
+	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
+		sph.Destroy = expandSystemDestroyHooks(h)
+	}
+
+	return sph
 }
 
 func expandTerraformDeployHooks(p []interface{}) *eaaspb.TerraformDeployHooks {
@@ -642,6 +786,136 @@ func expandTerraformDestroyHooks(p []interface{}) *eaaspb.TerraformDestroyHooks 
 	}
 
 	return tdh
+}
+
+func expandOpenTofuDeployHooks(p []interface{}) *eaaspb.OpenTofuDeployHooks {
+	tdh := &eaaspb.OpenTofuDeployHooks{}
+	if len(p) == 0 || p[0] == nil {
+		return tdh
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
+		tdh.Init = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
+		tdh.Plan = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["apply"].([]interface{}); ok && len(h) > 0 {
+		tdh.Apply = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["output"].([]interface{}); ok && len(h) > 0 {
+		tdh.Output = expandLifecycleEventHooks(h)
+	}
+
+	return tdh
+}
+
+func expandOpenTofuDestroyHooks(p []interface{}) *eaaspb.OpenTofuDestroyHooks {
+	tdh := &eaaspb.OpenTofuDestroyHooks{}
+	if len(p) == 0 || p[0] == nil {
+		return tdh
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
+		tdh.Init = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
+		tdh.Plan = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
+		tdh.Destroy = expandLifecycleEventHooks(h)
+	}
+
+	return tdh
+}
+
+func expandHcpTerraformDeployHooks(p []interface{}) *eaaspb.HCPTerraformDeployHooks {
+	tdh := &eaaspb.HCPTerraformDeployHooks{}
+	if len(p) == 0 || p[0] == nil {
+		return tdh
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
+		tdh.Init = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
+		tdh.Plan = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["apply"].([]interface{}); ok && len(h) > 0 {
+		tdh.Apply = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["output"].([]interface{}); ok && len(h) > 0 {
+		tdh.Output = expandLifecycleEventHooks(h)
+	}
+
+	return tdh
+}
+
+func expandHcpTerraformDestroyHooks(p []interface{}) *eaaspb.HCPTerraformDestroyHooks {
+	tdh := &eaaspb.HCPTerraformDestroyHooks{}
+	if len(p) == 0 || p[0] == nil {
+		return tdh
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
+		tdh.Init = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
+		tdh.Plan = expandLifecycleEventHooks(h)
+	}
+
+	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
+		tdh.Destroy = expandLifecycleEventHooks(h)
+	}
+
+	return tdh
+}
+
+func expandSystemDeployHooks(p []interface{}) *eaaspb.SystemDeployHooks {
+	sdh := &eaaspb.SystemDeployHooks{}
+	if len(p) == 0 || p[0] == nil {
+		return sdh
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["apply"].([]interface{}); ok && len(h) > 0 {
+		sdh.Apply = expandLifecycleEventHooks(h)
+	}
+
+	return sdh
+}
+
+func expandSystemDestroyHooks(p []interface{}) *eaaspb.SystemDestroyHooks {
+	sdh := &eaaspb.SystemDestroyHooks{}
+	if len(p) == 0 || p[0] == nil {
+		return sdh
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
+		sdh.Destroy = expandLifecycleEventHooks(h)
+	}
+
+	return sdh
 }
 
 func expandPulumiDeployHooks(p []interface{}) *eaaspb.PulumiDeployHooks {
@@ -757,7 +1031,6 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{
 	}
 
 	obj["version"] = in.Version
-	obj["version_state"] = in.VersionState
 	obj["provider"] = in.Provider
 	obj["provider_options"] = flattenProviderOptions(in.ProviderOptions)
 	obj["repository_options"] = flattenRepositoryOptions(in.RepositoryOptions)
@@ -791,6 +1064,7 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{
 
 	obj["agents"] = flattenEaasAgents(in.Agents)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	obj["artifact_driver"] = flattenWorkflowHandlerCompoundRef(in.ArtifactDriver)
 
 	return []interface{}{obj}, nil
 }
@@ -807,6 +1081,8 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions) []interf
 	obj["pulumi"] = flattenPulumiProviderOptions(in.Pulumi)
 	obj["driver"] = flattenWorkflowHandlerCompoundRef(in.Driver)
 	obj["open_tofu"] = flattenOpenTofuProviderOptions(in.OpenTofu)
+	obj["custom"] = flattenCustomProviderOptions(in.Custom)
+	obj["hcp_terraform"] = flattenHcpTerraformProviderOptions(in.HcpTerraform)
 
 	return []interface{}{obj}
 }
@@ -835,6 +1111,24 @@ func flattenOpenTofuProviderOptions(in *eaaspb.OpenTofuProviderOptions) []interf
 		}
 
 		obj["volumes"] = flattenProviderVolumeOptions(in.Volumes, v)
+	}
+	obj["timeout_seconds"] = in.TimeoutSeconds
+
+	return []interface{}{obj}
+}
+
+func flattenCustomProviderOptions(in *eaaspb.CustomProviderOptions) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := make(map[string]interface{})
+	if len(in.Tasks) > 0 {
+		v, ok := obj["tasks"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["tasks"] = flattenEaasHooks(in.Tasks, v)
 	}
 
 	return []interface{}{obj}
@@ -865,6 +1159,32 @@ func flattenTerraformProviderOptions(in *eaaspb.TerraformProviderOptions) []inte
 
 		obj["volumes"] = flattenProviderVolumeOptions(in.Volumes, v)
 	}
+	obj["timeout_seconds"] = in.TimeoutSeconds
+
+	return []interface{}{obj}
+}
+
+func flattenHcpTerraformProviderOptions(in *eaaspb.HCPTerraformProviderOptions) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["var_files"] = toArrayInterface(in.VarFiles)
+	obj["refresh"] = flattenBoolValue(in.Refresh)
+	obj["lock"] = flattenBoolValue(in.Lock)
+	obj["lock_timeout_seconds"] = in.LockTimeoutSeconds
+	obj["plugin_dirs"] = toArrayInterface(in.PluginDirs)
+	obj["target_resources"] = toArrayInterface(in.TargetResources)
+	if len(in.Volumes) > 0 {
+		v, ok := obj["volumes"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["volumes"] = flattenProviderVolumeOptions(in.Volumes, v)
+	}
+	obj["timeout_seconds"] = in.TimeoutSeconds
 
 	return []interface{}{obj}
 }
@@ -875,6 +1195,7 @@ func flattenSystemProviderOptions(in *eaaspb.SystemProviderOptions) []interface{
 	}
 
 	obj := make(map[string]interface{})
+	obj["kind"] = in.Kind
 	return []interface{}{obj}
 }
 
@@ -921,7 +1242,7 @@ func flattenRepositoryOptions(in *eaaspb.ResourceTemplateRepositoryOptions) []in
 	return []interface{}{obj}
 }
 
-func flattenContexts(input []*commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+func flattenContexts(input []*eaaspb.ConfigContextCompoundRef, p []interface{}) []interface{} {
 	log.Println("flatten contexts start")
 	if input == nil {
 		return nil
@@ -1023,6 +1344,15 @@ func flattenProviderHooks(input *eaaspb.ResourceTemplateProviderHooks, p []inter
 		obj["terraform"] = flattenTerraformProviderHooks(input.Terraform, v)
 	}
 
+	if input.OpenTofu != nil {
+		v, ok := obj["open_tofu"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["open_tofu"] = flattenOpenTofuProviderHooks(input.OpenTofu, v)
+	}
+
 	if input.Pulumi != nil {
 		v, ok := obj["pulumi"].([]interface{})
 		if !ok {
@@ -1032,6 +1362,23 @@ func flattenProviderHooks(input *eaaspb.ResourceTemplateProviderHooks, p []inter
 		obj["pulumi"] = flattenPulumiProviderHooks(input.Pulumi, v)
 	}
 
+	if input.HcpTerraform != nil {
+		v, ok := obj["hcp_terraform"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["hcp_terraform"] = flattenHcpTerraformProviderHooks(input.HcpTerraform, v)
+	}
+
+	if input.System != nil {
+		v, ok := obj["system"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["system"] = flattenSystemProviderHooks(input.System, v)
+	}
 	return []interface{}{obj}
 }
 
@@ -1062,6 +1409,102 @@ func flattenTerraformProviderHooks(input *eaaspb.TerraformProviderHooks, p []int
 		}
 
 		obj["destroy"] = flattenTerraformDestroyHooks(input.Destroy, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenOpenTofuProviderHooks(input *eaaspb.OpenTofuProviderHooks, p []interface{}) []interface{} {
+	log.Println("flatten opentofu provider hooks start")
+	if input == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if input.Deploy != nil {
+		v, ok := obj["deploy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["deploy"] = flattenOpenTofuDeployHooks(input.Deploy, v)
+	}
+
+	if input.Destroy != nil {
+		v, ok := obj["destroy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["destroy"] = flattenOpenTofuDestroyHooks(input.Destroy, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenHcpTerraformProviderHooks(input *eaaspb.HCPTerraformProviderHooks, p []interface{}) []interface{} {
+	log.Println("flatten hcp terraform provider hooks start")
+	if input == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if input.Deploy != nil {
+		v, ok := obj["deploy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["deploy"] = flattenHcpTerraformDeployHooks(input.Deploy, v)
+	}
+
+	if input.Destroy != nil {
+		v, ok := obj["destroy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["destroy"] = flattenHcpTerraformDestroyHooks(input.Destroy, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenSystemProviderHooks(input *eaaspb.SystemProviderHooks, p []interface{}) []interface{} {
+	log.Println("flatten system provider hooks start")
+	if input == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if input.Deploy != nil {
+		v, ok := obj["deploy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["deploy"] = flattenSystemDeployHooks(input.Deploy, v)
+	}
+
+	if input.Destroy != nil {
+		v, ok := obj["destroy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["destroy"] = flattenSystemDestroyHooks(input.Destroy, v)
 	}
 
 	return []interface{}{obj}
@@ -1176,6 +1619,234 @@ func flattenTerraformDestroyHooks(input *eaaspb.TerraformDestroyHooks, p []inter
 		}
 
 		obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+	}
+
+	if input.Destroy != nil {
+		v, ok := obj["destroy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenOpenTofuDeployHooks(input *eaaspb.OpenTofuDeployHooks, p []interface{}) []interface{} {
+	log.Println("flatten opentofu deploy hooks start")
+	if input == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if input.Init != nil {
+		v, ok := obj["init"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["init"] = flattenLifecycleEventHooks(input.Init, v)
+	}
+
+	if input.Plan != nil {
+		v, ok := obj["plan"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+	}
+
+	if input.Apply != nil {
+		v, ok := obj["apply"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["apply"] = flattenLifecycleEventHooks(input.Apply, v)
+	}
+
+	if input.Output != nil {
+		v, ok := obj["output"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["output"] = flattenLifecycleEventHooks(input.Output, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenOpenTofuDestroyHooks(input *eaaspb.OpenTofuDestroyHooks, p []interface{}) []interface{} {
+	log.Println("flatten opentofu destroy hooks start")
+	if input == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if input.Init != nil {
+		v, ok := obj["init"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["init"] = flattenLifecycleEventHooks(input.Init, v)
+	}
+
+	if input.Plan != nil {
+		v, ok := obj["plan"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+	}
+
+	if input.Destroy != nil {
+		v, ok := obj["destroy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenHcpTerraformDeployHooks(input *eaaspb.HCPTerraformDeployHooks, p []interface{}) []interface{} {
+	log.Println("flatten hcp terraform deploy hooks start")
+	if input == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if input.Init != nil {
+		v, ok := obj["init"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["init"] = flattenLifecycleEventHooks(input.Init, v)
+	}
+
+	if input.Plan != nil {
+		v, ok := obj["plan"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+	}
+
+	if input.Apply != nil {
+		v, ok := obj["apply"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["apply"] = flattenLifecycleEventHooks(input.Apply, v)
+	}
+
+	if input.Output != nil {
+		v, ok := obj["output"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["output"] = flattenLifecycleEventHooks(input.Output, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenHcpTerraformDestroyHooks(input *eaaspb.HCPTerraformDestroyHooks, p []interface{}) []interface{} {
+	log.Println("flatten hcp terraform destroy hooks start")
+	if input == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if input.Init != nil {
+		v, ok := obj["init"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["init"] = flattenLifecycleEventHooks(input.Init, v)
+	}
+
+	if input.Plan != nil {
+		v, ok := obj["plan"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+	}
+
+	if input.Destroy != nil {
+		v, ok := obj["destroy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenSystemDeployHooks(input *eaaspb.SystemDeployHooks, p []interface{}) []interface{} {
+	log.Println("flatten system deploy hooks start")
+	if input == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if input.Apply != nil {
+		v, ok := obj["apply"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["apply"] = flattenLifecycleEventHooks(input.Apply, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenSystemDestroyHooks(input *eaaspb.SystemDestroyHooks, p []interface{}) []interface{} {
+	log.Println("flatten system destroy hooks start")
+	if input == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
 	}
 
 	if input.Destroy != nil {
@@ -1362,6 +2033,10 @@ func expandProviderVolumeOptions(p []interface{}) []*eaaspb.ProviderVolumeOption
 			volume.UsePVC = expandBoolValue(usepvc)
 		}
 
+		if enableBackupAndRestore, ok := in["enable_backup_and_restore"].(bool); ok {
+			volume.EnableBackupAndRestore = enableBackupAndRestore
+		}
+
 		volumes = append(volumes, volume)
 
 	}
@@ -1394,6 +2069,8 @@ func flattenProviderVolumeOptions(input []*eaaspb.ProviderVolumeOptions, p []int
 		if len(in.PvcStorageClass) > 0 {
 			obj["pvc_storage_class"] = in.PvcStorageClass
 		}
+
+		obj["enable_backup_and_restore"] = in.EnableBackupAndRestore
 
 		out[i] = &obj
 	}

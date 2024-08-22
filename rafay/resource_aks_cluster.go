@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/RafaySystems/edge-common/pkg/models/edge"
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/clusterctl"
 	"github.com/RafaySystems/rctl/pkg/config"
@@ -263,6 +264,14 @@ func clusterAKSClusterConfigSpec() map[string]*schema.Schema {
 			Description: "The Aks Node Pool",
 			Elem: &schema.Resource{
 				Schema: clusterAKSNodePool(),
+			},
+		},
+		"maintenance_configurations": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "The Aks Auto-Upgrade Channels maintenance configurations",
+			Elem: &schema.Resource{
+				Schema: clusterAKSMaintenanceConfig(),
 			},
 		},
 	}
@@ -897,6 +906,11 @@ func clusterAKSManagedClusterAutoUpgradeProfile() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Valid values are rapid, stable, patch, node-image, none",
 		},
+		"node_os_upgrade_channel": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Valid values are None, Unmanaged, NodeImage",
+		},
 	}
 	return s
 }
@@ -1496,7 +1510,7 @@ func clusterAKSNodePool() map[string]*schema.Schema {
 		},
 		"location": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Description: "AKS cluster location",
 		},
 	}
@@ -1954,6 +1968,239 @@ func clusterAKSNodePoolUpgradeSettings() map[string]*schema.Schema {
 	return s
 }
 
+func clusterAKSMaintenanceConfig() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"api_version": {
+			Description: "",
+			Required:    true,
+			Type:        schema.TypeString,
+		},
+		"name": {
+			Description: "",
+			Required:    true,
+			Type:        schema.TypeString,
+		},
+		"type": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeString,
+		},
+		"properties": {
+			Description: "",
+			Required:    true,
+			Type:        schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: clusterAKSMaintenanceConfigProperties(),
+			},
+		},
+	}
+	return s
+}
+
+func clusterAKSMaintenanceConfigProperties() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"maintenance_window": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: clusterAKSMaintenanceWindow(),
+			},
+		},
+		"not_allowed_time": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: clusterAKSMaintenanceNotAllowedTime(),
+			},
+		},
+		"time_in_week": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: clusterAKSMaintenanceTimeInWeek(),
+			},
+		},
+	}
+	return s
+}
+
+func clusterAKSMaintenanceWindow() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"duration_hours": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeInt,
+		},
+		"not_allowed_dates": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: clusterAKSMaintenanceNotAllowedTime(),
+			},
+		},
+		"start_date": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeString,
+		},
+		"start_time": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeString,
+		},
+		"utc_offset": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeString,
+		},
+		"schedule": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: clusterAKSMaintenanceConfigSchedule(),
+			},
+		},
+	}
+	return s
+}
+
+func clusterAKSMaintenanceConfigSchedule() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"absolute_monthly": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: clusterAKSMaintenanceScheduleAbsoluteMonthly(),
+			},
+		},
+		"daily": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: clusterAKSMaintenanceScheduleDaily(),
+			},
+		},
+		"relative_monthly": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: clusterAKSMaintenanceScheduleRelativeMonthly(),
+			},
+		},
+		"weekly": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: clusterAKSMaintenanceScheduleWeekly(),
+			},
+		},
+	}
+	return s
+}
+
+func clusterAKSMaintenanceScheduleAbsoluteMonthly() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"day_of_month": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeInt,
+		},
+		"interval_months": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeInt,
+		},
+	}
+	return s
+}
+func clusterAKSMaintenanceScheduleDaily() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"interval_days": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeInt,
+		},
+	}
+	return s
+}
+func clusterAKSMaintenanceScheduleRelativeMonthly() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"day_of_week": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeString,
+		},
+		"interval_months": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeInt,
+		},
+		"week_index": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeString,
+		},
+	}
+	return s
+}
+func clusterAKSMaintenanceScheduleWeekly() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"day_of_week": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeString,
+		},
+		"interval_weeks": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeInt,
+		},
+	}
+	return s
+}
+
+func clusterAKSMaintenanceNotAllowedTime() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"end": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeString,
+		},
+		"start": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeString,
+		},
+	}
+	return s
+}
+
+func clusterAKSMaintenanceTimeInWeek() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"day": {
+			Description: "",
+			Optional:    true,
+			Type:        schema.TypeString,
+		},
+		"hour_slots": {
+			Description: "",
+			Elem:        &schema.Schema{Type: schema.TypeInt},
+			Optional:    true,
+			Type:        schema.TypeList,
+		},
+	}
+	return s
+}
+
 func expandAKSClusterMetadata(p []interface{}) *AKSClusterMetadata {
 	obj := &AKSClusterMetadata{}
 	if len(p) == 0 || p[0] == nil {
@@ -2075,6 +2322,10 @@ func expandAKSClusterConfigSpec(p []interface{}, rawConfig cty.Value) *AKSCluste
 
 	if v, ok := in["node_pools"].([]interface{}); ok && len(v) > 0 {
 		obj.NodePools = expandAKSNodePool(v, rawConfig.GetAttr("node_pools"))
+	}
+
+	if v, ok := in["maintenance_configurations"].([]interface{}); ok && len(v) > 0 {
+		obj.MaintenanceConfigs = expandAKSMaintenanceConfigs(v)
 	}
 
 	return obj
@@ -2569,6 +2820,9 @@ func expandAKSManagedClusterAutoUpgradeProfile(p []interface{}) *AKSManagedClust
 
 	if v, ok := in["upgrade_channel"].(string); ok && len(v) > 0 {
 		obj.UpgradeChannel = v
+	}
+	if v, ok := in["node_os_upgrade_channel"].(string); ok && len(v) > 0 {
+		obj.NodeOsUpgradeChannel = v
 	}
 	return obj
 }
@@ -3130,6 +3384,222 @@ func expandAKSManagedClusterAdditionalMetadataACRProfiles(p []interface{}) []*Ak
 		out[i] = &obj
 	}
 	return out
+}
+
+func expandAKSMaintenanceConfigs(p []interface{}) []*AKSMaintenanceConfig {
+	if len(p) == 0 || p[0] == nil {
+		return []*AKSMaintenanceConfig{}
+	}
+
+	out := make([]*AKSMaintenanceConfig, len(p))
+	for i := range p {
+		obj := AKSMaintenanceConfig{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["api_version"].(string); ok && len(v) > 0 {
+			obj.ApiVersion = v
+		}
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+
+		if v, ok := in["properties"].([]interface{}); ok && len(v) > 0 {
+			obj.Properties = expandAKSMaintenanceConfigProperties(v)
+		}
+		out[i] = &obj
+	}
+	return out
+}
+
+func expandAKSMaintenanceConfigProperties(p []interface{}) *AKSMaintenanceConfigProperties {
+	obj := &AKSMaintenanceConfigProperties{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["maintenance_window"].([]interface{}); ok && len(v) > 0 {
+		obj.MaintenanceWindow = expandAKSMCMaintenanceWindow(v)
+	}
+	if v, ok := in["not_allowed_time"].([]interface{}); ok && len(v) > 0 {
+		obj.NotAllowedTime = expandAKSMCTimeSpan(v)
+	}
+	if v, ok := in["time_in_week"].([]interface{}); ok && len(v) > 0 {
+		obj.TimeInWeek = expandAKSMCTimeInWeek(v)
+	}
+	return obj
+}
+
+func expandAKSMCTimeSpan(p []interface{}) []*AKSMaintenanceTimeSpan {
+	if len(p) == 0 || p[0] == nil {
+		return []*AKSMaintenanceTimeSpan{}
+	}
+
+	out := make([]*AKSMaintenanceTimeSpan, len(p))
+	for i := range p {
+		obj := AKSMaintenanceTimeSpan{}
+		in := p[i].(map[string]interface{})
+		if v, ok := in["end"].(string); ok && len(v) > 0 {
+			obj.End = v
+		}
+		if v, ok := in["start"].(string); ok && len(v) > 0 {
+			obj.Start = v
+		}
+		out[i] = &obj
+	}
+	return out
+}
+
+func expandAKSMCTimeInWeek(p []interface{}) []*AKSMaintenanceTimeInWeek {
+	if len(p) == 0 || p[0] == nil {
+		return []*AKSMaintenanceTimeInWeek{}
+	}
+
+	out := make([]*AKSMaintenanceTimeInWeek, len(p))
+	for i := range p {
+		obj := AKSMaintenanceTimeInWeek{}
+		in := p[i].(map[string]interface{})
+		if v, ok := in["day"].(string); ok && len(v) > 0 {
+			obj.Day = v
+		}
+
+		if v, ok := in["hour_slots"].([]interface{}); ok && len(v) > 0 {
+			obj.HourSlots = toArrayInt(v)
+		}
+		out[i] = &obj
+	}
+	return out
+}
+
+func expandAKSMCMaintenanceWindow(p []interface{}) *AKSMaintenanceWindow {
+	obj := &AKSMaintenanceWindow{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["duration_hours"].(int); ok && v > 0 {
+		obj.DurationHours = v
+	}
+
+	if v, ok := in["not_allowed_dates"].([]interface{}); ok && len(v) > 0 {
+		obj.NotAllowedDates = expandAKSMCTimeSpan(v)
+	}
+
+	if v, ok := in["start_date"].(string); ok && len(v) > 0 {
+		obj.StartDate = v
+	}
+
+	if v, ok := in["start_time"].(string); ok && len(v) > 0 {
+		obj.StartTime = v
+	}
+
+	if v, ok := in["utc_offset"].(string); ok && len(v) > 0 {
+		obj.UtcOffset = v
+	}
+
+	if v, ok := in["schedule"].([]interface{}); ok && len(v) > 0 {
+		obj.Schedule = expandAKSMCSchedule(v)
+	}
+	return obj
+}
+
+func expandAKSMCSchedule(p []interface{}) *AKSMaintenanceSchedule {
+	obj := &AKSMaintenanceSchedule{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["absolute_monthly"].([]interface{}); ok && len(v) > 0 {
+		obj.AbsoluteMonthlySchedule = expandAKSMCAbsoluteMonthlySchedule(v)
+	}
+
+	if v, ok := in["daily"].([]interface{}); ok && len(v) > 0 {
+		obj.DailySchedule = expandAKSMCDailySchedule(v)
+	}
+
+	if v, ok := in["relative_monthly"].([]interface{}); ok && len(v) > 0 {
+		obj.RelativeMonthlySchedule = expandAKSMCRelativeMonthlySchedule(v)
+	}
+
+	if v, ok := in["weekly"].([]interface{}); ok && len(v) > 0 {
+		obj.WeeklySchedule = expandAKSMCWeeklySchedule(v)
+	}
+	return obj
+}
+
+func expandAKSMCWeeklySchedule(p []interface{}) *AKSMaintenanceWeeklySchedule {
+	obj := &AKSMaintenanceWeeklySchedule{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["day_of_week"].(string); ok && len(v) > 0 {
+		obj.DayOfWeek = v
+	}
+
+	if v, ok := in["interval_weeks"].(int); ok && v > 0 {
+		obj.IntervalWeeks = v
+	}
+	return obj
+}
+
+func expandAKSMCRelativeMonthlySchedule(p []interface{}) *AKSMaintenanceRelativeMonthlySchedule {
+	obj := &AKSMaintenanceRelativeMonthlySchedule{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["day_of_week"].(string); ok && len(v) > 0 {
+		obj.DayOfWeek = v
+	}
+
+	if v, ok := in["interval_months"].(int); ok && v > 0 {
+		obj.IntervalMonths = v
+	}
+
+	if v, ok := in["week_index"].(string); ok && len(v) > 0 {
+		obj.WeekIndex = v
+	}
+	return obj
+}
+
+func expandAKSMCDailySchedule(p []interface{}) *AKSMaintenanceDailySchedule {
+	obj := &AKSMaintenanceDailySchedule{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["interval_days"].(int); ok && v > 0 {
+		obj.IntervalDays = v
+	}
+	return obj
+}
+
+func expandAKSMCAbsoluteMonthlySchedule(p []interface{}) *AKSMaintenanceAbsoluteMonthlySchedule {
+	obj := &AKSMaintenanceAbsoluteMonthlySchedule{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["day_of_month"].(int); ok && v > 0 {
+		obj.DayOfMonth = v
+	}
+
+	if v, ok := in["interval_months"].(int); ok && v > 0 {
+		obj.IntervalMonths = v
+	}
+	return obj
 }
 
 func expandAKSNodePool(p []interface{}, rawConfig cty.Value) []*AKSNodePool {
@@ -3742,6 +4212,14 @@ func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}, rawS
 			v = []interface{}{}
 		}
 		obj["node_pools"] = flattenAKSNodePool(in.NodePools, v, rawState.GetAttr("node_pools"))
+	}
+
+	if in.MaintenanceConfigs != nil && len(in.MaintenanceConfigs) > 0 {
+		v, ok := obj["maintenance_configurations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["maintenance_configurations"] = flattenAKSMaintenanceConfigs(in.MaintenanceConfigs, v)
 	}
 
 	return []interface{}{obj}
@@ -4380,6 +4858,10 @@ func flattenAKSManagedClusterAutoUpgradeProfile(in *AKSManagedClusterAutoUpgrade
 
 	if len(in.UpgradeChannel) > 0 {
 		obj["upgrade_channel"] = in.UpgradeChannel
+	}
+
+	if len(in.NodeOsUpgradeChannel) > 0 {
+		obj["node_os_upgrade_channel"] = in.NodeOsUpgradeChannel
 	}
 
 	return []interface{}{obj}
@@ -5086,6 +5568,284 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfiles(in []*AksRegistry, p 
 
 }
 
+func flattenAKSMaintenanceConfigs(in []*AKSMaintenanceConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, in := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.ApiVersion) > 0 {
+			obj["api_version"] = in.ApiVersion
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		if in.Properties != nil {
+			v, ok := obj["properties"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["properties"] = flattenAKSMaintenanceConfigProperties(in.Properties, v)
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+func flattenAKSMaintenanceConfigProperties(in *AKSMaintenanceConfigProperties, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.MaintenanceWindow != nil {
+		v, ok := obj["maintenance_window"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["maintenance_window"] = flattenAKSMaintenanceWindow(in.MaintenanceWindow, v)
+	}
+	if in.NotAllowedTime != nil && len(in.NotAllowedTime) > 0 {
+		v, ok := obj["not_allowed_time"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["not_allowed_time"] = flattenAKSMCTimeSpan(in.NotAllowedTime, v)
+	}
+	if in.TimeInWeek != nil {
+		v, ok := obj["time_in_week"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["time_in_week"] = flattenAKSMCTimeInWeek(in.TimeInWeek, v)
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSMCTimeSpan(in []*AKSMaintenanceTimeSpan, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(in))
+	for i, elem := range in {
+		obj := map[string]interface{}{}
+		if len(p) != 0 && p[0] != nil {
+			obj = p[0].(map[string]interface{})
+		}
+
+		if len(elem.End) > 0 {
+			obj["end"] = elem.End
+		}
+
+		if len(elem.Start) > 0 {
+			obj["start"] = elem.Start
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+func flattenAKSMCTimeInWeek(in []*AKSMaintenanceTimeInWeek, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, elem := range in {
+		obj := map[string]interface{}{}
+		if len(p) != 0 && p[0] != nil {
+			obj = p[0].(map[string]interface{})
+		}
+
+		if len(elem.Day) > 0 {
+			obj["day"] = elem.Day
+		}
+
+		if elem.HourSlots != nil && len(elem.HourSlots) > 0 {
+			obj["hour_slots"] = intArraytoInterfaceArray(elem.HourSlots)
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+func flattenAKSMaintenanceWindow(in *AKSMaintenanceWindow, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.DurationHours > 0 {
+		obj["duration_hours"] = in.DurationHours
+	}
+
+	if in.NotAllowedDates != nil && len(in.NotAllowedDates) > 0 {
+		v, ok := obj["not_allowed_dates"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["not_allowed_dates"] = flattenAKSMCTimeSpan(in.NotAllowedDates, v)
+	}
+
+	if in.Schedule != nil {
+		v, ok := obj["schedule"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["schedule"] = flattenAKSMCSchedule(in.Schedule, v)
+	}
+
+	if len(in.StartDate) > 0 {
+		obj["start_date"] = in.StartDate
+	}
+
+	if len(in.StartTime) > 0 {
+		obj["start_time"] = in.StartTime
+	}
+
+	if len(in.UtcOffset) > 0 {
+		obj["utc_offset"] = in.UtcOffset
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSMCSchedule(in *AKSMaintenanceSchedule, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.AbsoluteMonthlySchedule != nil {
+		v, ok := obj["absolute_monthly"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["absolute_monthly"] = flattenAKSMCAbsoluteMonthlySchedule(in.AbsoluteMonthlySchedule, v)
+	}
+
+	if in.DailySchedule != nil {
+		v, ok := obj["daily"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["daily"] = flattenAKSMCDailySchedule(in.DailySchedule, v)
+	}
+
+	if in.RelativeMonthlySchedule != nil {
+		v, ok := obj["relative_monthly"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["relative_monthly"] = flattenAKSMCRelativeMonthlySchedule(in.RelativeMonthlySchedule, v)
+	}
+
+	if in.WeeklySchedule != nil {
+		v, ok := obj["weekly"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["weekly"] = flattenAKSMCWeeklySchedule(in.WeeklySchedule, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSMCAbsoluteMonthlySchedule(in *AKSMaintenanceAbsoluteMonthlySchedule, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.DayOfMonth > 0 {
+		obj["day_of_month"] = in.DayOfMonth
+	}
+
+	if in.IntervalMonths > 0 {
+		obj["interval_months"] = in.IntervalMonths
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSMCDailySchedule(in *AKSMaintenanceDailySchedule, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.IntervalDays > 0 {
+		obj["interval_days"] = in.IntervalDays
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSMCRelativeMonthlySchedule(in *AKSMaintenanceRelativeMonthlySchedule, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.DayOfWeek) > 0 {
+		obj["day_of_week"] = in.DayOfWeek
+	}
+
+	if len(in.WeekIndex) > 0 {
+		obj["week_index"] = in.WeekIndex
+	}
+
+	if in.IntervalMonths > 0 {
+		obj["interval_months"] = in.IntervalMonths
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSMCWeeklySchedule(in *AKSMaintenanceWeeklySchedule, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.IntervalWeeks > 0 {
+		obj["interval_weeks"] = in.IntervalWeeks
+	}
+
+	if len(in.DayOfWeek) > 0 {
+		obj["day_of_week"] = in.DayOfWeek
+	}
+	return []interface{}{obj}
+}
+
 func flattenAKSNodePool(in []*AKSNodePool, p []interface{}, rawState cty.Value) []interface{} {
 	if in == nil {
 		return nil
@@ -5471,7 +6231,7 @@ func aksClusterCTL(config *config.Config, clusterName string, configBytes []byte
 	log.Printf("aks cluster ctl start")
 	glogger.SetLevel(zap.DebugLevel)
 	logger := glogger.GetLogger()
-	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false, false)
+	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false, false, uaDef)
 }
 
 func aksClusterCTLStatus(taskid, projectID string) (string, error) {
@@ -5578,7 +6338,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 		return nil
 	}
 	time.Sleep(20 * time.Second)
-	s, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
+	s, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID, uaDef)
 	if errGet != nil {
 		log.Printf("error while getCluster for %s %s", obj.Metadata.Name, errGet.Error())
 		return diag.FromErr(errGet)
@@ -5590,6 +6350,7 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
 
+	var warnings []string
 LOOP:
 	for {
 		//Check for cluster operation timeout
@@ -5598,7 +6359,7 @@ LOOP:
 			log.Println("Cluster operation stopped due to operation timeout.")
 			return diag.Errorf("cluster operation stopped for cluster: `%s` due to operation timeout", clusterName)
 		case <-ticker.C:
-			check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID)
+			check, errGet := cluster.GetCluster(obj.Metadata.Name, project.ID, uaDef)
 			if errGet != nil {
 				log.Printf("error while getCluster for %s %s", obj.Metadata.Name, errGet.Error())
 				return diag.FromErr(errGet)
@@ -5629,6 +6390,14 @@ LOOP:
 					return diag.FromErr(fmt.Errorf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, project.Name))
 				} else if clusterReadiness {
 					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", clusterName, project.Name)
+					for _, op := range sres.Operations {
+						if op == nil {
+							continue
+						}
+						if strings.Compare(op.Operation, edge.ClusterUpgrade.String()) == 0 && op.Error != nil {
+							warnings = append(warnings, op.Error.Title)
+						}
+					}
 					break LOOP
 				} else {
 					log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
@@ -5643,6 +6412,13 @@ LOOP:
 				log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, project.Name)
 			}
 
+		}
+	}
+	if len(warnings) > 0 {
+		diags = make([]diag.Diagnostic, len(warnings))
+		for i, message := range warnings {
+			diags[i].Severity = diag.Warning
+			diags[i].Summary = message
 		}
 	}
 	return diags
@@ -5697,7 +6473,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(fmt.Errorf("cluster project name is invalid. Error: %s", err.Error()))
 	}
 
-	c, err := cluster.GetCluster(clusterName, projectId)
+	c, err := cluster.GetCluster(clusterName, projectId, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
@@ -5711,7 +6487,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	// another
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
-	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectId)
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectId, uaDef)
 	if err != nil {
 		log.Printf("error in get clusterspec %s", err.Error())
 		return diag.FromErr(err)
@@ -5752,7 +6528,7 @@ func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s", err.Error()))
 	}
 
-	_, err = cluster.GetCluster(clusterName, projectId)
+	_, err = cluster.GetCluster(clusterName, projectId, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
@@ -5782,7 +6558,7 @@ func resourceAKSClusterDelete(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s", err.Error()))
 	}
 
-	errDel := cluster.DeleteCluster(clusterName, projectId, false)
+	errDel := cluster.DeleteCluster(clusterName, projectId, false, uaDef)
 	if errDel != nil {
 		log.Printf("delete cluster error %s", errDel.Error())
 		return diag.FromErr(errDel)
@@ -5797,7 +6573,7 @@ LOOP:
 			log.Printf("Cluster Deletion for edgename: %s and projectname: %s got timeout out.", clusterName, projectName)
 			return diag.FromErr(fmt.Errorf("cluster deletion for edgename: %s and projectname: %s got timeout out", clusterName, projectName))
 		case <-ticker.C:
-			check, errGet := cluster.GetCluster(clusterName, projectId)
+			check, errGet := cluster.GetCluster(clusterName, projectId, uaDef)
 			if errGet != nil {
 				log.Printf("error while getCluster %s, delete success", errGet.Error())
 				break LOOP

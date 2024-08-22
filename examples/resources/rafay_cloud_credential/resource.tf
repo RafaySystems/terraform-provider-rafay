@@ -1,6 +1,6 @@
 resource "rafay_cloud_credential" "tfcredential1" {
   name         = "tfcredential1"
-  projectname  = "terraform"
+  project      = "terraform"
   description  = "description"
   type         = "cluster-provisioning"
   providertype = "AWS"
@@ -12,7 +12,7 @@ resource "rafay_cloud_credential" "tfcredential1" {
 
 resource "rafay_cloud_credential" "tfcredential2" {
   name         = "tfcredential2"
-  projectname  = "terraform"
+  project      = "terraform"
   description  = "description"
   type         = "cluster-provisioning"
   providertype = "AWS"
@@ -23,7 +23,7 @@ resource "rafay_cloud_credential" "tfcredential2" {
 
 resource "rafay_cloud_credential" "tfcredential3" {
   name         = "tfcredential3"
-  projectname  = "terraform"
+  project      = "terraform"
   description  = "descriptions"
   type         = "cluster-provisioning"
   providertype = "GCP"
@@ -32,7 +32,7 @@ resource "rafay_cloud_credential" "tfcredential3" {
 
 resource "rafay_cloud_credential" "tfcredential4" {
   name           = "tfcredential4"
-  projectname    = "terraform"
+  project        = "terraform"
   description    = "description"
   type           = "cluster-provisioning"
   providertype   = "AZURE"
@@ -43,11 +43,11 @@ resource "rafay_cloud_credential" "tfcredential4" {
 }
 
 resource "rafay_cloud_credential" "tfcredential5" {
-    name           = "tfcredential5"
-    project        = "terraform"
-    type           = "data-backup"
-    providertype   = "AWS"
-    awscredtype    = "accesskey"
-    accesskey      = "aws-accesskey"
-    secretkey      = "aws-secretkey"
+  name           = "tfcredential5"
+  project        = "terraform"
+  type           = "data-backup"
+  providertype   = "AWS"
+  awscredtype    = "accesskey"
+  accesskey      = "aws-accesskey"
+  secretkey      = "aws-secretkey"
 }

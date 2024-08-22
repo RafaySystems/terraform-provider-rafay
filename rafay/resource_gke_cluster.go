@@ -13,7 +13,6 @@ import (
 	dynamic "github.com/RafaySystems/rafay-common/pkg/hub/client/dynamic"
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
-	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/common"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
@@ -41,7 +40,7 @@ func resourceGKEClusterV3() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.ClusterSchema.Schema,
+		Schema:        GKEClusterV3Schema(),
 	}
 }
 
@@ -49,25 +48,22 @@ func resourceGKEClusterV3Import(d *schema.ResourceData, meta interface{}) ([]*sc
 	log.Printf("GKE Cluster Import starts")
 
 	idParts := strings.SplitN(d.Id(), "/", 2)
+	if len(idParts) != 2 {
+		return nil, fmt.Errorf("invalid id %s, expected name/project", d.Id())
+	}
 	log.Println("resourceGKEClusterV3Import idParts:", idParts)
 
-	log.Println("resourceGKEClusterV3Import Invoking expandGKEClusterToV3")
-	cluster, err := expandGKEClusterToV3(d)
-	if err != nil {
-		log.Printf("GKE resourceCluster expand error")
+	metadata := commonpb.Metadata{
+		Name:    idParts[0],
+		Project: idParts[1],
 	}
 
-	var metaD commonpb.Metadata
-	metaD.Name = idParts[0]
-	metaD.Project = idParts[1]
-	cluster.Metadata = &metaD
-
-	err = d.Set("metadata", flattenMetaData(cluster.Metadata))
+	err := d.Set("metadata", flattenMetaData(&metadata))
 	if err != nil {
 		log.Println("import set metadata err ", err)
 		return nil, err
 	}
-	d.SetId(cluster.Metadata.Name)
+	d.SetId(metadata.Name)
 	return []*schema.ResourceData{d}, nil
 
 }

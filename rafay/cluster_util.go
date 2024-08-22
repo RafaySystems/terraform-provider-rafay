@@ -333,7 +333,7 @@ func getProjectIDFromName(projectName string) (string, error) {
 }
 
 func getClusterConditions(edgeId, projectId string) (bool, bool, error) {
-	cluster, err := cluster.GetClusterWithEdgeID(edgeId, projectId)
+	cluster, err := cluster.GetClusterWithEdgeID(edgeId, projectId, uaDef)
 	if err != nil {
 		log.Printf("error while getCluster %s", err.Error())
 		return false, false, err

@@ -405,6 +405,10 @@ func expandContainerKubeOptions(p []interface{}) *eaaspb.ContainerKubeOptions {
 		hc.ServiceAccountName = san
 	}
 
+	if tolerations, ok := in["tolerations"].([]interface{}); ok {
+		hc.Tolerations = expandV3Tolerations(tolerations)
+	}
+
 	return &hc
 }
 
@@ -755,6 +759,16 @@ func flattenContainerKubeOptions(in *eaaspb.ContainerKubeOptions, p []interface{
 		obj["service_account_name"] = in.ServiceAccountName
 	}
 
+	if len(in.Tolerations) > 0 {
+		v, ok := obj["tolerations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, v)
+	} else {
+		delete(obj, "tolerations")
+	}
+
 	return []interface{}{obj}
 }
 
@@ -832,6 +846,10 @@ func expandContainerDriverVolumeOptions(p []interface{}) []*eaaspb.ContainerDriv
 			volume.UsePVC = expandBoolValue(usepvc)
 		}
 
+		if enableBackupAndRestore, ok := in["enable_backup_and_restore"].(bool); ok {
+			volume.EnableBackupAndRestore = enableBackupAndRestore
+		}
+
 		volumes = append(volumes, volume)
 
 	}
@@ -864,6 +882,8 @@ func flattenContainerDriverVolumeOptions(input []*eaaspb.ContainerDriverVolumeOp
 		if len(in.PvcStorageClass) > 0 {
 			obj["pvc_storage_class"] = in.PvcStorageClass
 		}
+
+		obj["enable_backup_and_restore"] = in.EnableBackupAndRestore
 
 		out[i] = &obj
 	}

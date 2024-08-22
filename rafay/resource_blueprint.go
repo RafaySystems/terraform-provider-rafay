@@ -298,6 +298,7 @@ func expandBluePrint(in *schema.ResourceData) (*infrapb.Blueprint, error) {
 }
 
 func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
+	var err error
 	obj := &infrapb.BlueprintSpec{}
 	if len(p) == 0 || p[0] == nil {
 		return obj, fmt.Errorf("%s", "expandAddonSpec empty input")
@@ -322,6 +323,12 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 
 	if v, ok := in["custom_addons"].([]interface{}); ok && len(v) > 0 {
 		obj.CustomAddons = expandCustomAddons(v)
+	}
+	if v, ok := in["components_criticality"].([]interface{}); ok && len(v) > 0 {
+		obj.ComponentsCriticality, err = expandComponentCriticality(v)
+		if err != nil {
+			return obj, err
+		}
 	}
 	ca := spew.Sprintf("%+v", obj.CustomAddons)
 	log.Println("expandBluePrintSpec CustomAddons ", ca)
@@ -613,6 +620,47 @@ func expandResources(p []interface{}) *commonpb.ResourceRequirements {
 	}
 
 	return obj
+}
+
+func expandComponentCriticality(p []interface{}) ([]*infrapb.SnapshotRef, error) {
+	if len(p) == 0 || p[0] == nil {
+		return []*infrapb.SnapshotRef{}, nil
+	}
+
+	out := make([]*infrapb.SnapshotRef, len(p))
+	for i := range p {
+		obj := infrapb.SnapshotRef{}
+		in := p[i].(map[string]interface{})
+		if v, ok := in["version"].(string); ok && len(v) > 0 {
+			return nil, fmt.Errorf("%s", "version field not allowed for addon's criticality")
+		}
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+		if v, ok := in["componentType"].(string); ok && len(v) > 0 {
+			obj.ComponentType = v
+		}
+		if v, ok := in["dependsOn"].([]interface{}); ok && len(v) > 0 {
+			obj.DependsOn = toArrayString(v)
+		}
+		if v, ok := in["isGlobal"].(bool); ok {
+			obj.IsGlobal = v
+		}
+		if v, ok := in["publishedGeneration"].(string); ok && len(v) > 0 {
+			obj.PublishedGeneration = v
+		}
+		if v, ok := in["selector"].(string); ok && len(v) > 0 {
+			obj.Selector = v
+		}
+		if v, ok := in["workloadID"].(string); ok && len(v) > 0 {
+			obj.WorkloadID = v
+		}
+		if v, ok := in["refType"].(infrapb.SnapshotRefType); ok {
+			obj.RefType = v
+		}
+		out[i] = &obj
+	}
+	return out, nil
 }
 
 func expandCustomAddons(p []interface{}) []*infrapb.BlueprintAddon {
@@ -988,6 +1036,14 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 			v = []interface{}{}
 		}
 		obj["custom_addons"] = flatteCustomAddons(in.CustomAddons, v)
+	}
+
+	if in.ComponentsCriticality != nil && len(in.ComponentsCriticality) > 0 {
+		v, ok := obj["components_criticality"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["components_criticality"] = flattenComponenetCriticality(in.ComponentsCriticality, v)
 	}
 
 	if in.Base != nil {
@@ -1623,6 +1679,46 @@ func flattenResources(in *commonpb.ResourceRequirements, p []interface{}) []inte
 	}
 
 	return []interface{}{obj}
+}
+
+func flattenComponenetCriticality(input []*infrapb.SnapshotRef, p []interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+		if len(in.Version) > 0 {
+			obj["version"] = in.Version
+		}
+		if len(in.ComponentType) > 0 {
+			obj["componentType"] = in.ComponentType
+		}
+		if len(in.DependsOn) > 0 {
+			obj["dependsOn"] = in.DependsOn
+		}
+		if in.IsGlobal {
+			obj["isGlobal"] = in.IsGlobal
+		}
+		if len(in.PublishedGeneration) > 0 {
+			obj["publishedGeneration"] = in.PublishedGeneration
+		}
+
+		if len(in.Selector) > 0 {
+			obj["selector"] = in.Selector
+		}
+		if len(in.WorkloadID) > 0 {
+			obj["workloadID"] = in.WorkloadID
+		}
+		out[i] = &obj
+	}
+	return out
 }
 
 func flatteCustomAddons(input []*infrapb.BlueprintAddon, p []interface{}) []interface{} {

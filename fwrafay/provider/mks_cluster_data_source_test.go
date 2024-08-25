@@ -1,6 +1,3 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package provider
 
 import (
@@ -9,24 +6,39 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccExampleDataSource(t *testing.T) {
+func TestMksClusterDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testFwProviderFactories,
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: testAccExampleDataSourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.scaffolding_example.test", "id", "example-id"),
+				Config: testProviderConfig + testMksClusterDataSource(),
+				Check:  resource.ComposeAggregateTestCheckFunc(
+				// Verify number of coffees returned
 				),
 			},
 		},
 	})
 }
 
-const testAccExampleDataSourceConfig = `
-data "scaffolding_example" "test" {
-  configurable_attribute = "example"
+
+
+// Helper function to return the initial configuration
+func testMksClusterDataSource() string {
+	return `
+datasource "rafay_mks_cluster" "example" {
+  metadata {
+    name    = "test-cluster"
+    project = "test-project"
+  }
+
+  proxy {
+    enabled = true
+  }
+
+  system_component_placement {
+    region = "us-west-1"
+  }
 }
 `
+}

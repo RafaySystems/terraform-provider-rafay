@@ -6,15 +6,16 @@ package provider
 import (
 	"context"
 	"fmt"
-	"net/http"
 
-	"github.com/RafaySystems/terraform-provider-rafay/fwrafay/fwmodels/mks_cluster"
+	"github.com/RafaySystems/terraform-provider-rafay/fwrafay/types/mks_cluster"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
+	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -24,9 +25,9 @@ func NewMksClusterDataSource() datasource.DataSource {
 	return &MksClusterDataSource{}
 }
 
-// ExampleDataSource defines the data source implementation.
+// MksClusterDataSource defines the data source implementation of MksClusterResource.
 type MksClusterDataSource struct {
-	client *http.Client
+	client typed.Client
 }
 
 func (d *MksClusterDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -498,7 +499,7 @@ func (d *MksClusterDataSource) Configure(ctx context.Context, req datasource.Con
 		return
 	}
 
-	client, ok := req.ProviderData.(*http.Client)
+	client, ok := req.ProviderData.(typed.Client)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -522,20 +523,20 @@ func (d *MksClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := d.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
-	//     return
-	// }
-
-	// For the purposes of this example code, hardcoding a response value to
-	// save into the Terraform state.
-
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "read a data source")
+	// Fetch the cluster from the Hub
+	hub, err := d.client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+		Name:    data.Metadata.Name.ValueString(),
+		Project: data.Metadata.Project.ValueString(),
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("Failed to fetch data", err.Error())
+		return
+	}
+	// convert the hub respo into the TF model
+	resp.Diagnostics.Append(mks_cluster.ConvertMksClusterFromHub(ctx, hub, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

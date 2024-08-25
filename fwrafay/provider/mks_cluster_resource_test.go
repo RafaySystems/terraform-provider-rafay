@@ -1,56 +1,141 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package provider
 
 import (
-	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccExampleResource(t *testing.T) {
+func TestMksClusterResourceCreate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testFwProviderFactories,
 		Steps: []resource.TestStep{
-			// Create and Read testing
 			{
-				Config: testAccExampleResourceConfig("one"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("scaffolding_example.test", "configurable_attribute", "one"),
-					resource.TestCheckResourceAttr("scaffolding_example.test", "defaulted", "example value when not configured"),
-					resource.TestCheckResourceAttr("scaffolding_example.test", "id", "example-id"),
+				Config: testMksClusterResourceConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("rafay_mks_cluster.example", "metadata.0.name", "test-cluster"),
+					resource.TestCheckResourceAttr("rafay_mks_cluster.example", "metadata.0.project", "test-project"),
+					resource.TestCheckResourceAttr("rafay_mks_cluster.example", "proxy.0.enabled", "true"),
+					resource.TestCheckResourceAttr("rafay_mks_cluster.example", "system_component_placement.0.region", "us-west-1"),
 				),
 			},
-			// ImportState testing
-			{
-				ResourceName:      "scaffolding_example.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-				// This is not normally necessary, but is here because this
-				// example code does not have an actual upstream service.
-				// Once the Read method is able to refresh information from
-				// the upstream service, this can be removed.
-				ImportStateVerifyIgnore: []string{"configurable_attribute", "defaulted"},
-			},
-			// Update and Read testing
-			{
-				Config: testAccExampleResourceConfig("two"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("scaffolding_example.test", "configurable_attribute", "two"),
-				),
-			},
-			// Delete testing automatically occurs in TestCase
 		},
 	})
 }
 
-func testAccExampleResourceConfig(configurableAttribute string) string {
-	return fmt.Sprintf(`
-resource "scaffolding_example" "test" {
-  configurable_attribute = %[1]q
+func TestMksClusterResourceRead(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testFwProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testMksClusterResourceConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("rafay_mks_cluster.example", "metadata.0.name", "test-cluster"),
+					resource.TestCheckResourceAttr("rafay_mks_cluster.example", "proxy.0.enabled", "true"),
+				),
+			},
+		},
+	})
 }
-`, configurableAttribute)
+
+func TestMksClusterResourceUpdate(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testFwProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testMksClusterResourceConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("rafay_mks_cluster.example", "metadata.0.name", "test-cluster"),
+				),
+			},
+			{
+				Config: testMksClusterResourceConfigUpdated(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("rafay_mks_cluster.example", "metadata.0.name", "updated-cluster"),
+				),
+			},
+		},
+	})
+}
+
+func TestMksClusterResourceImport(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testFwProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				ResourceName:      "rafay_mks_cluster.example",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestMksClusterResourceInvalidConfig(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testFwProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testMksClusterResourceConfigInvalid(),
+				ExpectError: regexp.MustCompile("expected error message or pattern"),
+			},
+		},
+	})
+}
+
+// Helper function to return the initial configuration
+func testMksClusterResourceConfig() string {
+	return `
+resource "rafay_mks_cluster" "example" {
+  metadata {
+    name    = "test-cluster"
+    project = "test-project"
+  }
+
+  proxy {
+    enabled = true
+  }
+
+  system_component_placement {
+    region = "us-west-1"
+  }
+}
+`
+}
+
+// Helper function to return the updated configuration
+func testMksClusterResourceConfigUpdated() string {
+	return `
+resource "rafay_mks_cluster" "example" {
+  metadata {
+    name    = "updated-cluster"
+    project = "test-project"
+  }
+
+  proxy {
+    enabled = true
+  }
+
+  system_component_placement {
+    region = "us-east-1"
+  }
+}
+`
+}
+
+// Helper function to return an invalid configuration
+func testMksClusterResourceConfigInvalid() string {
+	return `
+resource "rafay_mks_cluster" "example" {
+  metadata {
+    name    = ""
+    project = "test-project"
+  }
+
+  proxy {
+    enabled = true
+  }
+}
+`
 }

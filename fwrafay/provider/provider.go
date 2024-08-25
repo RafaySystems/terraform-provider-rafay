@@ -15,8 +15,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
-	rctlconfig "github.com/RafaySystems/rctl/pkg/config"
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	config "github.com/RafaySystems/rctl/pkg/config"
 	rctlcontext "github.com/RafaySystems/rctl/pkg/context"
+
+	"github.com/RafaySystems/rctl/pkg/versioninfo"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -39,14 +43,21 @@ func New(version string) func() provider.Provider {
 	}
 }
 
+type RafayFwProviderModel struct {
+	ProviderConfigFile     types.String        `tfsdk:"provider_config_file"`
+	IgnoreInsecureTlsError basetypes.BoolValue `tfsdk:"ignore_insecure_tls_error"`
+}
+
 func (p *RafayFwProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"provider_config_file": schema.StringAttribute{
-				Optional: true,
+				Description: "Path to the rafay provider config file",
+				Optional:    true,
 			},
 			"ignore_insecure_tls_error": schema.BoolAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Ignore insecure tls error",
 			},
 		},
 	}
@@ -59,19 +70,17 @@ func (p *RafayFwProvider) Metadata(ctx context.Context, req provider.MetadataReq
 }
 
 func (p *RafayFwProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var config struct {
-		ProviderConfigFile     string              `tfsdk:"provider_config_file"`
-		IgnoreInsecureTlsError basetypes.BoolValue `tfsdk:"ignore_insecure_tls_error"`
-	}
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	var data RafayFwProviderModel
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	configFile := config.ProviderConfigFile
-	ignoreTlsError := config.IgnoreInsecureTlsError
+	configFile := data.ProviderConfigFile.ValueString()
+	ignoreTlsError := data.IgnoreInsecureTlsError
 
 	tflog.Info(ctx, "rafay provider config file", map[string]interface{}{
 		"config_file": configFile,
@@ -107,7 +116,7 @@ func (p *RafayFwProvider) Configure(ctx context.Context, req provider.ConfigureR
 		tflog.Info(ctx, "provider will use default config file ~/.rafay/cli/config.json")
 	}
 
-	err := rctlconfig.InitConfig(cliCtx)
+	err := config.InitConfig(cliCtx)
 
 	if err != nil {
 		tflog.Error(ctx, "rafay provider config init error", map[string]interface{}{
@@ -123,6 +132,17 @@ func (p *RafayFwProvider) Configure(ctx context.Context, req provider.ConfigureR
 	if ignoreTlsError.ValueBool() {
 		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to initialise the Client, Error", err.Error())
+		return
+	}
+	// Save the client in the provider data
+	resp.ResourceData = client
+	resp.DataSourceData = client
 
 }
 

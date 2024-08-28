@@ -18,7 +18,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
-	timestamppb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb/timestamppb"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -281,12 +280,7 @@ func expandGroupExpiry(p []interface{}) []*systempb.GroupExpiryDetails {
 		}
 
 		if v, ok := expiryMap["start_time"].(string); ok && len(v) > 0 {
-			startTime, err := time.Parse(time.RFC3339, v)
-			if err != nil {
-				fmt.Printf("error parsing startTime: %v\n", err)
-			} else {
-				ge.StartTime = timestamppb.New(startTime)
-			}
+			ge.StartTime = v
 		}
 		groupExpiries[i] = ge
 	}
@@ -371,9 +365,7 @@ func flattenGroupExpiry(groupExpiries []*systempb.GroupExpiryDetails) []interfac
 			expiryMap["name"] = expiry.Name
 		}
 
-		if expiry.StartTime != nil {
-			expiryMap["start_time"] = expiry.StartTime.AsTime().Format(time.RFC3339)
-		}
+		expiryMap["start_time"] = expiry.StartTime
 
 		flattenedGroupExpiries[i] = expiryMap
 	}

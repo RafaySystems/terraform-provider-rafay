@@ -2295,22 +2295,28 @@ func flattenTriggerConfigRepos(tSpec *triggerSpec, p []interface{}) ([]interface
 }
 
 func resourcePipelineImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
-	//d_debug := spew.Sprintf("%+v", d)
-	log.Println("resourceProjectImport d.Id:", d.Id())
-	//log.Println("resourceProjectImport d_debug", d_debug)
+	log.Printf("Pipeline Import Starts")
 
-	project := &gitopspb.Pipeline{}
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourcePipelineImport idParts:", idParts)
 
-	var metaD commonpb.Metadata
-	metaD.Name = d.Id()
-	project.Metadata = &metaD
-
-	err := d.Set("metadata", flattenMetaData(project.Metadata))
+	log.Println("resourcePipelineImport Invoking expandPipeline")
+	pipeline, err := expandPipeline(d)
 	if err != nil {
-		return nil, err
+		log.Printf("resourcePipelineImport  expand error %s", err.Error())
 	}
 
-	d.SetId(project.Metadata.Name)
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
 
+	pipeline.Metadata = &metaD
+
+	err = d.Set("metadata", flattenV3MetaData(&metaD))
+	if err != nil {
+		log.Println("import set metadata err ", err)
+		return nil, err
+	}
+	d.SetId(pipeline.Metadata.Name)
 	return []*schema.ResourceData{d}, nil
 }

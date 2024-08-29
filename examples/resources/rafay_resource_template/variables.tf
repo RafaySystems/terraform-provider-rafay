@@ -44,3 +44,8 @@ variable "agent_name" {
   description = "agent to process resource template"
   default     = "newagentd"
 }
+
+variable "driver_name" {
+    description = "driver name for the resource template"
+    default     = "my-driver"
+}

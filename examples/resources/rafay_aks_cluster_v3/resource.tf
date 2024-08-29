@@ -9,27 +9,6 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
       name = "default-aks"
     }
     cloud_credentials = "aks-cred"
-    system_components_placement {
-      node_selector = {
-        app       = "infra"
-        dedicated = "true"
-      }
-      tolerations {
-        effect   = "PreferNoSchedule"
-        key      = "app"
-        operator = "Equal"
-        value    = "infra"
-      }
-      daemon_set_override {
-        node_selection_enabled = false
-        tolerations {
-          key      = "app1dedicated"
-          value    = true
-          effect   = "NoSchedule"
-          operator = "Equal"
-        }
-      }
-    }
     config {
       kind = "aksClusterConfig"
       metadata {
@@ -38,25 +17,21 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
       spec {
         resource_group_name = "rafay-resource"
         managed_cluster {
-          api_version = "2022-07-01"
+          api_version = "2024-01-01"
           sku {
-            name = "Basic"
+            name = "Base"
             tier = "Free"
           }
           identity {
             type = "SystemAssigned"
           }
           location = "centralindia"
-          tags = {
-            "email" = "mayank@rafay.co"
-            "env"   = "dev"
-          }
           properties {
             api_server_access_profile {
               enable_private_cluster = true
             }
             dns_prefix         = "aks-v3-tf-2401202303-dns"
-            kubernetes_version = "1.25.15"
+            kubernetes_version = "1.29.0"
             network_profile {
               network_plugin    = "kubenet"
               load_balancer_sku = "standard"
@@ -79,13 +54,16 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
                 }
               }
             }
+            auto_upgrade_profile {
+              upgrade_channel = "rapid"
+              node_os_upgrade_channel = "NodeImage"
+            }
           }
           type = "Microsoft.ContainerService/managedClusters"
         }
         node_pools {
-          api_version = "2022-07-01"
+          api_version = "2024-01-01"
           name        = "primary"
-          location    = "centralindia"
           properties {
             count                = 1
             enable_auto_scaling  = true
@@ -93,12 +71,50 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.25.15"
+            orchestrator_version = "1.29.0"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_DS2_v2"
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+        maintenance_configurations {
+          name = "aksManagedAutoUpgradeSchedule"
+          api_version = "2024-01-01"
+          properties {
+            maintenance_window {
+              duration_hours = 4
+              schedule {
+                weekly {
+                  interval_weeks = 1
+                  day_of_week = "Friday"
+                }
+              }
+              start_date = "2024-07-19"
+              start_time = "11:35"
+              utc_offset = "+05:30"
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters/maintenanceConfigurations"
+        }
+        maintenance_configurations {
+          name = "aksManagedNodeOSUpgradeSchedule"
+          api_version = "2024-01-01"
+          properties {
+            maintenance_window {
+              duration_hours = 4
+              schedule {
+                weekly {
+                  interval_weeks = 1
+                  day_of_week = "Friday"
+                }
+              }
+              start_date = "2024-07-19"
+              start_time = "11:35"
+              utc_offset = "+05:30"
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters/maintenanceConfigurations"
         }
       }
     }
@@ -124,7 +140,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
       spec {
         resource_group_name = "rafay-resource"
         managed_cluster {
-          api_version = "2022-07-01"
+          api_version = "2024-01-01"
 
           additional_metadata {
             acr_profile {
@@ -135,7 +151,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
             }
           }
           sku {
-            name = "Basic"
+            name = "Base"
             tier = "Free"
           }
           identity {
@@ -150,7 +166,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
               enable_private_cluster = false
             }
             dns_prefix         = "aks-v3-tf-2-2401202303-dns"
-            kubernetes_version = "1.25.15"
+            kubernetes_version = "1.29.0"
             network_profile {
               network_plugin    = "kubenet"
               load_balancer_sku = "standard"
@@ -165,9 +181,8 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
           type = "Microsoft.ContainerService/managedClusters"
         }
         node_pools {
-          api_version = "2022-07-01"
+          api_version = "2024-01-01"
           name        = "primary"
-          location    = "centralindia"
           properties {
             count                = 1
             enable_auto_scaling  = true
@@ -175,7 +190,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.25.15"
+            orchestrator_version = "1.29.0"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_B4ms"
@@ -206,9 +221,9 @@ resource "rafay_aks_cluster_v3" "demo-terraform3" {
       spec {
         resource_group_name = "rafay-resource"
         managed_cluster {
-          api_version = "2022-07-01"
+          api_version = "2024-01-01"
           sku {
-            name = "Basic"
+            name = "Base"
             tier = "Free"
           }
           identity {
@@ -220,7 +235,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform3" {
               enable_private_cluster = false
             }
             dns_prefix         = "aks-v3-tf-3-2401202303-dns"
-            kubernetes_version = "1.25.15"
+            kubernetes_version = "1.29.0"
             network_profile {
               network_plugin    = "kubenet"
               load_balancer_sku = "standard"
@@ -235,9 +250,8 @@ resource "rafay_aks_cluster_v3" "demo-terraform3" {
           type = "Microsoft.ContainerService/managedClusters"
         }
         node_pools {
-          api_version = "2022-07-01"
+          api_version = "2024-01-01"
           name        = "primary"
-          location    = "centralindia"
           properties {
             count                = 1
             enable_auto_scaling  = true
@@ -245,7 +259,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform3" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.25.15"
+            orchestrator_version = "1.29.0"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_B4ms"
@@ -276,9 +290,9 @@ resource "rafay_aks_cluster_v3" "demo-terraform4" {
       spec {
         resource_group_name = "rafay-resource"
         managed_cluster {
-          api_version = "2022-07-01"
+          api_version = "2024-01-01"
           sku {
-            name = "Basic"
+            name = "Base"
             tier = "Free"
           }
           identity {
@@ -290,7 +304,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform4" {
               enable_private_cluster = false
             }
             dns_prefix         = "aks-v3-tf-4-2401202303-dns"
-            kubernetes_version = "1.25.15"
+            kubernetes_version = "1.29.0"
             network_profile {
               network_plugin    = "kubenet"
               load_balancer_sku = "standard"
@@ -305,9 +319,8 @@ resource "rafay_aks_cluster_v3" "demo-terraform4" {
           type = "Microsoft.ContainerService/managedClusters"
         }
         node_pools {
-          api_version = "2022-07-01"
+          api_version = "2024-01-01"
           name        = "primary"
-          location    = "centralindia"
           properties {
             count                = 1
             enable_auto_scaling  = true
@@ -315,7 +328,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform4" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.25.15"
+            orchestrator_version = "1.29.0"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_B4ms"
@@ -367,7 +380,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform-tf" {
       spec {
         resource_group_name = "demo-terraform-rg"
         managed_cluster {
-          api_version = "2023-11-01"
+          api_version = "2024-01-01"
           sku {
             name = "Base"
             tier = "Free"
@@ -376,16 +389,12 @@ resource "rafay_aks_cluster_v3" "demo-terraform-tf" {
             type = "SystemAssigned"
           }
           location = "centralindia"
-          tags = {
-            "email" = "gautham@rafay.co"
-            "env"   = "dev"
-          }
           properties {
             api_server_access_profile {
               enable_private_cluster = true
             }
             dns_prefix         = "aks-v3-tf-2401202303-dns"
-            kubernetes_version = "1.28.3"
+            kubernetes_version = "1.29.0"
             network_profile {
               network_plugin      = "azure"
               load_balancer_sku   = "standard"
@@ -416,9 +425,8 @@ resource "rafay_aks_cluster_v3" "demo-terraform-tf" {
           type = "Microsoft.ContainerService/managedClusters"
         }
         node_pools {
-          api_version = "2023-11-01"
+          api_version = "2024-01-01"
           name        = "primary"
-          location    = "centralindia"
           properties {
             count                = 1
             enable_auto_scaling  = true
@@ -426,7 +434,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform-tf" {
             max_pods             = 40
             min_count            = 1
             mode                 = "System"
-            orchestrator_version = "1.28.3"
+            orchestrator_version = "1.29.0"
             os_type              = "Linux"
             type                 = "VirtualMachineScaleSets"
             vm_size              = "Standard_DS2_v2"

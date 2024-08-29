@@ -42,6 +42,9 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
       branch         = var.branch
       directory_path = var.path
     }
+    artifact_driver {
+      name = var.driver_name
+    }
     contexts {
       name = var.configcontext_name
     }
@@ -145,7 +148,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `provider` (String) Specify the resource template provider, Accepted values are `terraform`, `opentofu`, `custom`
+- `provider` (String) Specify the resource template provider, Accepted values are `terraform`, `hcpterraform`, `opentofu`, `custom`, `system`
 - `repository_options` (Block List, Max: 1) Repository options to be provided (see [below for nested schema](#nestedblock--spec--repository_options))
 - `version` (String) Version of the resource template
 
@@ -1678,8 +1681,10 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 - `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
 - `terraform` (Block List, Max: 1) Specify the terraform specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--terraform))
+- `hcp_terraform` (Block List, Max: 1) Specify the HCP terraform specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--hcpterraform))
 - `open_tofu` (Block List, Max: 1) Specify the opentofu specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--opentofu))
 - `custom` (Block List, Max: 1) Specify the custom options if any (see [below for nested schema](#nestedblock--spec--provider_options--custom))
+- `system` (Block List, Max: 1) Specify the system options if any (see [below for nested schema](#nestedblock--spec--provider_options--system))
 
 <a id="nestedblock--spec--provider_options--driver"></a>
 ### Nested Schema for `spec.provider_options.driver`
@@ -2431,6 +2436,20 @@ Optional:
 - `update` (String)
 
 
+<a id="nestedblock--spec--provider_options--hcpterraform"></a>
+### Nested Schema for `spec.provider_options.hcp_terraform`
+
+***Optional***
+
+- `lock` (Block List, Max: 1) Don't hold a state lock during the operation. This is dangerous if others might concurrently run commands against the same workspace. (see [below for nested schema](#nestedblock--spec--provider_options--terraform--lock))
+- `lock_timeout_seconds` (Number) Duration to retry a state lock.
+- `plugin_dirs` (List of String) Directory containing plugin binaries. This overrides all default search paths for plugins, and prevents the automatic installation of plugins. This flag can be used multiple times
+- `refresh` (Block List, Max: 1) Skip checking for external changes to remote objects while creating the plan. This can potentially make planning faster, but at the expense of possibly planning against a stale record of the remote system state. (see [below for nested schema](#nestedblock--spec--provider_options--terraform--refresh))
+- `target_resources` (List of String) Limit the planning operation to only the given module, resource, or resource instance and all of its dependencies
+- `timeout_seconds` (Number) Timeout in seconds
+- `var_files` (List of String) Load variable values from the given file, in addition to the default files terraform.tfvars and *.auto.tfvars. Use this option more than once to include more than one variables files
+- `volumes` (Block List) volumes to be mounted into the terraform driver (see [below for nested schema](#nestedblock--spec--provider_options--terraform--volumes))
+
 <a id="nestedblock--spec--provider_options--opentofu"></a>
 ### Nested Schema for `spec.provider_options.opentofu`
 
@@ -2472,3 +2491,11 @@ Optional:
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
+
+
+<a id="nestedblock--spec--provider_options--system"></a>
+### Nested Schema for `spec.provider_options.system`
+
+***Required***
+
+- `kind` (String) Specify the type of rafay resource, Available options are `credential`, `cluster`.

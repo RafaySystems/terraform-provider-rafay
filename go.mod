@@ -5,8 +5,9 @@ go 1.22.3
 toolchain go1.22.4
 
 require (
-	github.com/RafaySystems/rafay-common v1.29.0-rc6.0.20240723130833-348605bfea40
-	github.com/RafaySystems/rctl v1.29.1-0.20240731115124-7cf6ded9d565
+	github.com/RafaySystems/edge-common v1.24.1-0.20240813083948-ba69bed0bc1b
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240829081554-af06034237bd
+	github.com/RafaySystems/rctl v1.29.1-0.20240813175545-9dc352b7affb
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5
@@ -24,7 +25,6 @@ require (
 require (
 	github.com/IBM/sarama v1.43.2 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/RafaySystems/edge-common v1.24.1-0.20240313173939-2a7f4af9a0b1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/ProtonMail/go-crypto v1.1.0-alpha.2 // indirect
-	github.com/RafaySystems/eaas-playground v0.0.0-20240725104726-6472e5c291bb // indirect
+	github.com/RafaySystems/eaas-playground v0.0.0-20240819062521-b1b317f32232 // indirect
 	github.com/RoaringBitmap/roaring v1.9.4 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
@@ -183,10 +183,10 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/zclconf/go-cty v1.14.4 // indirect
 	go.mongodb.org/mongo-driver v1.15.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.52.0 // indirect
-	go.opentelemetry.io/otel v1.27.0 // indirect
-	go.opentelemetry.io/otel/metric v1.27.0 // indirect
-	go.opentelemetry.io/otel/trace v1.27.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.53.0 // indirect
+	go.opentelemetry.io/otel v1.28.0 // indirect
+	go.opentelemetry.io/otel/metric v1.28.0 // indirect
+	go.opentelemetry.io/otel/trace v1.28.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/net v0.26.0 // indirect
@@ -200,8 +200,8 @@ require (
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240610135401-a8a62080eff3 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240610135401-a8a62080eff3 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240610135401-a8a62080eff3 // indirect
-	google.golang.org/grpc v1.64.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240701130421-f6361c86f094 // indirect
+	google.golang.org/grpc v1.65.0 // indirect
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -218,10 +218,11 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
-	 github.com/RafaySystems/rafay-common => ../rafay-common
+	// github.com/RafaySystems/eaas-playground => ../eaas-playground
+	// github.com/RafaySystems/rafay-common => ../rafay-common
 	// github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
-	 github.com/RafaySystems/rctl => ../rctl
+	// github.com/RafaySystems/rctl => ../rctl
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
 	github.com/getkin/kin-openapi => github.com/getkin/kin-openapi v0.120.0
 	github.com/go-pg/pg => github.com/go-pg/pg v6.15.1+incompatible

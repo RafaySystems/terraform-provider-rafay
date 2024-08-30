@@ -214,7 +214,7 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 			}
 			if v, ok := in["set_string"].([]interface{}); ok && len(v) > 0 {
 				for _, value := range v {
-					if value.(string) != "" {
+					if value != nil && value.(string) != "" {
 						at.Options.SetString = append(at.Options.SetString, value.(string))
 					}
 				}

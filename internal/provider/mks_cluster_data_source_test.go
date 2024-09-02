@@ -6,22 +6,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestMksClusterDataSource(t *testing.T) {
+func TestAccMksClusterDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testFwProviderFactories,
 		Steps: []resource.TestStep{
 			// Read testing
 			{
 				Config: testProviderConfig + testMksClusterDataSource(),
-				Check:  resource.ComposeAggregateTestCheckFunc(
-				// Verify number of coffees returned
-				),
 			},
 		},
 	})
 }
-
-
 
 // Helper function to return the initial configuration
 func testMksClusterDataSource() string {

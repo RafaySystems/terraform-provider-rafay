@@ -3,7 +3,7 @@ HOSTNAME=registry.terraform.io
 NAMESPACE=RafaySystems
 NAME=rafay
 BINARY=terraform-provider-${NAME}
-VERSION=1.1.34
+VERSION=1.1.35
 GIT_BRANCH ?= main
 OS_ARCH=darwin_arm64
 BUCKET_NAME ?= terraform-provider-rafay
@@ -83,3 +83,5 @@ update-deps:
 .PHONY: test-migrate
 test-migrate:
 	go test -v ./rafay/migrate/...
+
+

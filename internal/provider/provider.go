@@ -52,12 +52,10 @@ func (p *RafayFwProvider) Schema(ctx context.Context, req provider.SchemaRequest
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"provider_config_file": schema.StringAttribute{
-				Description: "Path to the rafay provider config file",
-				Optional:    true,
+				Optional: true,
 			},
 			"ignore_insecure_tls_error": schema.BoolAttribute{
-				Optional:    true,
-				Description: "Ignore insecure tls error",
+				Optional: true,
 			},
 		},
 	}
@@ -147,11 +145,14 @@ func (p *RafayFwProvider) Configure(ctx context.Context, req provider.ConfigureR
 }
 
 func (p *RafayFwProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{}
+	return []func() datasource.DataSource{
+		NewMksClusterDataSource,
+	}
 }
 
 func (p *RafayFwProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		// Register new resource here
 		NewMksClusterResource,
 	}
 }

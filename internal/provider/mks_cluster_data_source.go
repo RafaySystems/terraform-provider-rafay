@@ -7,7 +7,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/RafaySystems/terraform-provider-rafay/fwrafay/types/mks_cluster"
+	convertor "github.com/RafaySystems/terraform-provider-rafay/internal/convertor"
+	fw "github.com/RafaySystems/terraform-provider-rafay/internal/gen/resource_mks_cluster"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -55,61 +56,16 @@ func (d *MksClusterDataSource) Schema(ctx context.Context, req datasource.Schema
 						Description:         "annotations of the resource",
 						MarkdownDescription: "annotations of the resource",
 					},
-					"created_by": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"id": schema.StringAttribute{
-								Computed:            true,
-								Description:         "Id of the Person",
-								MarkdownDescription: "Id of the Person",
-							},
-							"is_ssouser": schema.BoolAttribute{
-								Computed:            true,
-								Description:         "Whether person is logged in using sso",
-								MarkdownDescription: "Whether person is logged in using sso",
-							},
-							"username": schema.StringAttribute{
-								Computed:            true,
-								Description:         "Username fo the Person",
-								MarkdownDescription: "Username fo the Person",
-							},
-						},
-						Computed: true,
-					},
 					"description": schema.StringAttribute{
 						Computed:            true,
 						Description:         "description of the resource",
 						MarkdownDescription: "description of the resource",
-					},
-					"display_name": schema.StringAttribute{
-						Computed:            true,
-						Description:         "Display Name of the resource",
-						MarkdownDescription: "Display Name of the resource",
 					},
 					"labels": schema.MapAttribute{
 						ElementType:         types.StringType,
 						Computed:            true,
 						Description:         "labels of the resource",
 						MarkdownDescription: "labels of the resource",
-					},
-					"modified_by": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"id": schema.StringAttribute{
-								Computed:            true,
-								Description:         "Id of the Person",
-								MarkdownDescription: "Id of the Person",
-							},
-							"is_ssouser": schema.BoolAttribute{
-								Computed:            true,
-								Description:         "Whether person is logged in using sso",
-								MarkdownDescription: "Whether person is logged in using sso",
-							},
-							"username": schema.StringAttribute{
-								Computed:            true,
-								Description:         "Username fo the Person",
-								MarkdownDescription: "Username fo the Person",
-							},
-						},
-						Computed: true,
 					},
 					"name": schema.StringAttribute{
 						Computed:            true,
@@ -182,12 +138,6 @@ func (d *MksClusterDataSource) Schema(ctx context.Context, req datasource.Schema
 								Computed:            true,
 								Description:         "Select this option for preventing scheduling of user workloads on Control Plane nodes",
 								MarkdownDescription: "Select this option for preventing scheduling of user workloads on Control Plane nodes",
-							},
-							"dedicated_masters_enabled": schema.BoolAttribute{
-								Computed:            true,
-								Description:         "This is deprecated in favour of dedicatedControlPlane",
-								MarkdownDescription: "This is deprecated in favour of dedicatedControlPlane",
-								DeprecationMessage:  "This attribute is deprecated.",
 							},
 							"high_availability": schema.BoolAttribute{
 								Computed:            true,
@@ -273,7 +223,7 @@ func (d *MksClusterDataSource) Schema(ctx context.Context, req datasource.Schema
 								Description:         "MKS Cluster Network Specification",
 								MarkdownDescription: "MKS Cluster Network Specification",
 							},
-							"nodes": schema.ListNestedAttribute{
+							"nodes": schema.MapNestedAttribute{
 								NestedObject: schema.NestedAttributeObject{
 									Attributes: map[string]schema.Attribute{
 										"arch": schema.StringAttribute{
@@ -307,7 +257,7 @@ func (d *MksClusterDataSource) Schema(ctx context.Context, req datasource.Schema
 											Description:         "Private ip address of the node",
 											MarkdownDescription: "Private ip address of the node",
 										},
-										"roles": schema.ListAttribute{
+										"roles": schema.SetAttribute{
 											ElementType:         types.StringType,
 											Computed:            true,
 											Description:         "Valid roles are: 'Master/ControlPlane', 'Worker', 'Storage'",
@@ -345,7 +295,7 @@ func (d *MksClusterDataSource) Schema(ctx context.Context, req datasource.Schema
 											Description:         "MKS Node SSH definition",
 											MarkdownDescription: "MKS Node SSH definition",
 										},
-										"taints": schema.ListNestedAttribute{
+										"taints": schema.SetNestedAttribute{
 											NestedObject: schema.NestedAttributeObject{
 												Attributes: map[string]schema.Attribute{
 													"effect": schema.StringAttribute{
@@ -405,7 +355,7 @@ func (d *MksClusterDataSource) Schema(ctx context.Context, req datasource.Schema
 							"enabled": schema.BoolAttribute{
 								Computed: true,
 							},
-							"projects": schema.ListNestedAttribute{
+							"projects": schema.SetNestedAttribute{
 								NestedObject: schema.NestedAttributeObject{
 									Attributes: map[string]schema.Attribute{
 										"name": schema.StringAttribute{
@@ -422,7 +372,7 @@ func (d *MksClusterDataSource) Schema(ctx context.Context, req datasource.Schema
 						Attributes: map[string]schema.Attribute{
 							"daemon_set_override": schema.SingleNestedAttribute{
 								Attributes: map[string]schema.Attribute{
-									"daemon_set_tolerations": schema.ListNestedAttribute{
+									"daemon_set_tolerations": schema.SetNestedAttribute{
 										NestedObject: schema.NestedAttributeObject{
 											Attributes: map[string]schema.Attribute{
 												"effect": schema.StringAttribute{
@@ -454,7 +404,7 @@ func (d *MksClusterDataSource) Schema(ctx context.Context, req datasource.Schema
 								ElementType: types.StringType,
 								Computed:    true,
 							},
-							"tolerations": schema.ListNestedAttribute{
+							"tolerations": schema.SetNestedAttribute{
 								NestedObject: schema.NestedAttributeObject{
 									Attributes: map[string]schema.Attribute{
 										"effect": schema.StringAttribute{
@@ -514,7 +464,7 @@ func (d *MksClusterDataSource) Configure(ctx context.Context, req datasource.Con
 }
 
 func (d *MksClusterDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data mks_cluster.MksClusterModel
+	var data fw.MksClusterModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -533,7 +483,7 @@ func (d *MksClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 	// convert the hub respo into the TF model
-	resp.Diagnostics.Append(mks_cluster.ConvertMksClusterFromHub(ctx, hub, &data)...)
+	resp.Diagnostics.Append(convertor.ConvertMksClusterFromHub(ctx, hub, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

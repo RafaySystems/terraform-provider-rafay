@@ -445,3 +445,198 @@ resource "rafay_aks_cluster_v3" "demo-terraform-tf" {
     }
   }
 }
+
+resource "rafay_aks_cluster_v3" "demo-terraform" {
+  metadata {
+    name    = "gautham-aks-v3-tf-1"
+    project = "defaultproject"
+  }
+  spec {
+    type = "aks"
+    blueprint_config {
+      name = "default-aks"
+    }
+    cloud_credentials = "gautham-azure-creds"
+    config {
+      kind = "aksClusterConfig"
+      metadata {
+        name = "gautham-aks-v3-tf-1"
+      }
+      spec {
+        resource_group_name = "gautham-rg-ci"
+        managed_cluster {
+          api_version = "2023-11-01"
+          sku {
+            name = "Base"
+            tier = "Free"
+          }
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          tags = {
+            "email" = "mvgautham@rafay.co"
+            "env"   = "dev"
+          }
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "gautham-aks-v3-tf-2401202303-dns"
+            kubernetes_version = "1.28.9"
+            network_profile {
+              network_plugin    = "kubenet"
+              load_balancer_sku = "standard"
+            }
+            power_state {
+              code = "Running"
+            }
+
+            oidc_issuer_profile {
+              enabled = true
+            }
+            security_profile {
+              workload_identity {
+                enabled = false
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          api_version = "2023-11-01"
+          name        = "primary"
+          location    = "centralindia"
+          properties {
+            count                = 1
+            enable_auto_scaling  = true
+            max_count            = 1
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.28.9"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+  }
+}
+
+resource "rafay_aks_cluster_v3" "demo-terraform" {
+  metadata {
+    name    = "gautham-tf-wi-1"
+    project = "defaultproject"
+  }
+  spec {
+    type = "aks"
+    blueprint_config {
+      name = "minimal"
+    }
+    cloud_credentials = "gautham-azure-creds"
+    system_components_placement {
+      node_selector = {
+        app       = "infra"
+        dedicated = "true"
+      }
+      tolerations {
+        effect   = "PreferNoSchedule"
+        key      = "app"
+        operator = "Equal"
+        value    = "infra"
+      }
+      daemon_set_override {
+        node_selection_enabled = false
+        tolerations {
+          key      = "app1dedicated"
+          value    = true
+          effect   = "NoSchedule"
+          operator = "Equal"
+        }
+      }
+    }
+    config {
+      kind = "aksClusterConfig"
+      metadata {
+        name = "gautham-tf-wi-1"
+      }
+      spec {
+        resource_group_name = "gautham-rg-ci"
+        managed_cluster {
+          api_version = "2023-11-01"
+          sku {
+            name = "Base"
+            tier = "Free"
+          }
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          tags = {
+            "email" = "gautham@rafay.co"
+            "env"   = "dev"
+          }
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "aks-v3-tf-2401202303-dns"
+            kubernetes_version = "1.28.9"
+            network_profile {
+              network_plugin    = "kubenet"
+              load_balancer_sku = "standard"
+            }
+            power_state {
+              code = "Running"
+            }
+            addon_profiles {
+              http_application_routing {
+                enabled = true
+              }
+              azure_policy {
+                enabled = true
+              }
+              azure_keyvault_secrets_provider {
+                enabled = true
+                config {
+                  enable_secret_rotation = false
+                  rotation_poll_interval = "2m"
+                }
+              }
+            }
+            oidc_issuer_profile {
+              enabled = true
+            }
+            security_profile {
+              workload_identity {
+                enabled = true
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          api_version = "2023-11-01"
+          name        = "primary"
+          location    = "centralindia"
+          properties {
+            count                = 1
+            enable_auto_scaling  = true
+            max_count            = 1
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.28.9"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+  }
+}

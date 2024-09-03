@@ -2479,19 +2479,24 @@ Optional:
 
 **Required**
 
-- `name` (String) name of the hook
-- `type` (String) Specify the type of hook, Available options are `container`, `http`, `driver`.
+- `name` (String) name of the task
+- `type` (String) Specify the type of task, Available options are `driver`.
 
 ***Optional***
 
-- `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--on_completion--agents))
-- `depends_on` (List of String) specify hook dependencies
-- `description` (String) description of hook
+- `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks--agents))
+- `depends_on` (List of String) specify task dependencies
+- `description` (String) description of task
 - `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
 - `on_failure` (String) Specify the on failure action
-- `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
 
+<a id="nestedblock--spec--provider_options--custom--tasks--agents"></a>
+### Nested Schema for `spec.provider_options.custom.tasks.agents`
+
+***Required***
+
+- `name` (String) name of the agent resource
 
 <a id="nestedblock--spec--provider_options--system"></a>
 ### Nested Schema for `spec.provider_options.system`

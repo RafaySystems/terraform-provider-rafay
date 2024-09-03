@@ -482,14 +482,6 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "The name of the resource group containing agent pool nodes.",
 		},
-		"oidc_issuer_profile": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "Profile of OIDC Issuer configuration.",
-			Elem: &schema.Resource{
-				Schema: clusterAKSManagedClusterOidcIssuerProfile(),
-			},
-		},
 		"pod_identity_profile": {
 			Type:        schema.TypeList,
 			Optional:    true,
@@ -504,14 +496,6 @@ func clusterAKSManagedClusterProperties() map[string]*schema.Schema {
 			Description: "Private link resources associated with the cluster.",
 			Elem: &schema.Resource{
 				Schema: clusterAKSManagedClusterPrivateLinkResources(),
-			},
-		},
-		"security_profile": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "Profile of security configuration.",
-			Elem: &schema.Resource{
-				Schema: clusterAKSManagedClusterSecurityProfile(),
 			},
 		},
 		"service_principal_profile": {
@@ -1176,17 +1160,6 @@ func clusterAKSManagedClusterNPOutboundIPsPublicIps() map[string]*schema.Schema 
 	return s
 }
 
-func clusterAKSManagedClusterOidcIssuerProfile() map[string]*schema.Schema {
-	s := map[string]*schema.Schema{
-		"enabled": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "Whether to enable the OIDC issuer for the cluster.",
-		},
-	}
-	return s
-}
-
 func clusterAKSManagedClusterPodIdentityProfile() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"allow_network_plugin_kubenet": {
@@ -1320,32 +1293,6 @@ func clusterAKSManagedClusterPrivateLinkResources() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "The resource type.",
-		},
-	}
-	return s
-}
-
-func clusterAKSManagedClusterSecurityProfile() map[string]*schema.Schema {
-	s := map[string]*schema.Schema{
-		"workload_identity": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "Profile of the managed cluster workload identity.",
-			Elem: &schema.Resource{
-				Schema: clusterAKSManagedClusterWorkloadIdentityProfile(),
-			},
-		},
-	}
-	return s
-}
-
-func clusterAKSManagedClusterWorkloadIdentityProfile() map[string]*schema.Schema {
-	s := map[string]*schema.Schema{
-		"enabled": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "Whether to enable the Workload Identity for the cluster.",
 		},
 	}
 	return s

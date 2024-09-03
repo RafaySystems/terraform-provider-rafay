@@ -940,10 +940,6 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.NodeResourceGroup = v
 	}
 
-	if v, ok := in["oidc_issuer_profile"].([]interface{}); ok && len(v) > 0 {
-		obj.OidcIssuerProfile = expandAKSManagedClusterV3OidcIssuerProfile(v)
-	}
-
 	if v, ok := in["pod_identity_profile"].([]interface{}); ok && len(v) > 0 {
 		obj.PodIdentityProfile = expandAKSManagedClusterV3PodIdentityProfile(v)
 	}
@@ -954,10 +950,6 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 
 	if v, ok := in["power_state"].([]interface{}); ok && len(v) > 0 {
 		obj.PowerState = expandAKSV3ManagedClusterPowerState(v)
-	}
-
-	if v, ok := in["security_profile"].([]interface{}); ok && len(v) > 0 {
-		obj.SecurityProfile = expandAKSManagedClusterV3SecurityProfile(v)
 	}
 
 	if v, ok := in["service_principal_profile"].([]interface{}); ok && len(v) > 0 {
@@ -1570,20 +1562,6 @@ func expandAKSManagedClusterV3NPOutboundIPsPublicIps(p []interface{}) []*infrapb
 	return out
 }
 
-func expandAKSManagedClusterV3OidcIssuerProfile(p []interface{}) *infrapb.OIDCIssuerProfile {
-	obj := &infrapb.OIDCIssuerProfile{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["enabled"].(bool); ok {
-		obj.Enabled = v
-	}
-
-	return obj
-}
-
 func expandAKSManagedClusterV3PodIdentityProfile(p []interface{}) *infrapb.Podidentityprofile {
 	obj := &infrapb.Podidentityprofile{}
 	if len(p) == 0 || p[0] == nil {
@@ -1729,34 +1707,6 @@ func expandAKSV3ManagedClusterPowerState(p []interface{}) *infrapb.PowerState {
 
 	if v, ok := in["code"].(string); ok && len(v) > 0 {
 		obj.Code = v
-	}
-
-	return obj
-}
-
-func expandAKSManagedClusterV3SecurityProfile(p []interface{}) *infrapb.Securityprofile {
-	obj := &infrapb.Securityprofile{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["workload_identity"].([]interface{}); ok && len(v) > 0 {
-		obj.WorkloadIdentity = expandAKSManagedClusterV3NPWorkloadIdentity(v)
-	}
-
-	return obj
-}
-
-func expandAKSManagedClusterV3NPWorkloadIdentity(p []interface{}) *infrapb.Securityprofile_WorkloadIdentity {
-	obj := &infrapb.Securityprofile_WorkloadIdentity{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["enabled"].(bool); ok {
-		obj.Enabled = v
 	}
 
 	return obj
@@ -2887,14 +2837,6 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 		obj["linux_profile"] = flattenAKSV3ManagedClusterLinuxProfile(in.LinuxProfile, v)
 	}
 
-	if in.OidcIssuerProfile != nil {
-		v, ok := obj["oidc_issuer_profile"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["oidc_issuer_profile"] = flattenAKSV3MCPropertiesOidcIssuerProfile(in.OidcIssuerProfile, v)
-	}
-
 	if in.NetworkProfile != nil {
 		v, ok := obj["network_profile"].([]interface{})
 		if !ok {
@@ -2929,14 +2871,6 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 			v = []interface{}{}
 		}
 		obj["private_link_resources"] = flattenAKSV3ManagedClusterPrivateLinkResources(in.PrivateLinkResources, v)
-	}
-
-	if in.SecurityProfile != nil {
-		v, ok := obj["security_profile"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["security_profile"] = flattenAKSV3MCPropertiesSecurityProfile(in.SecurityProfile, v)
 	}
 
 	if in.ServicePrincipalProfile != nil {
@@ -3676,20 +3610,6 @@ func flattenAKSV3ManagedClusterNPOutboundIPsPublicIPs(in []*infrapb.Publicips, p
 
 }
 
-func flattenAKSV3MCPropertiesOidcIssuerProfile(in *infrapb.OIDCIssuerProfile, p []interface{}) []interface{} {
-	if in == nil {
-		return nil
-	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-
-	obj["enabled"] = in.Enabled
-
-	return []interface{}{obj}
-}
-
 func flattenAKSV3ManagedClusterPodIdentityProfile(in *infrapb.Podidentityprofile, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
@@ -4372,40 +4292,4 @@ func flattenClusterV3Blueprint(in *infrapb.BlueprintConfig) []interface{} {
 	}
 
 	return []interface{}{obj}
-}
-
-func flattenAKSV3MCPropertiesSecurityProfile(in *infrapb.Securityprofile, p []interface{}) []interface{} {
-	if in == nil {
-		return nil
-	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-
-	if in.WorkloadIdentity != nil {
-		v, ok := obj["workload_identity"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["workload_identity"] = flattenAKSV3MCPropertiesWorkloadIdentity(in.WorkloadIdentity, v)
-	}
-
-	return []interface{}{obj}
-
-}
-
-func flattenAKSV3MCPropertiesWorkloadIdentity(in *infrapb.Securityprofile_WorkloadIdentity, p []interface{}) []interface{} {
-	if in == nil {
-		return nil
-	}
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-
-	obj["enabled"] = in.Enabled
-
-	return []interface{}{obj}
-
 }

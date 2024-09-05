@@ -33,6 +33,20 @@
 							"computed_optional_required": "required",
 							"attributes": [
 								{
+									"name": "name",
+									"string": {
+										"computed_optional_required": "required",
+										"description": "name of the resource"
+									}
+								},
+								{
+									"name": "project",
+									"string": {
+										"computed_optional_required": "required",
+										"description": "Project of the resource"
+									}
+								},
+								{
 									"name": "annotations",
 									"map": {
 										"computed_optional_required": "computed_optional",
@@ -57,20 +71,6 @@
 											"string": {}
 										},
 										"description": "labels of the resource"
-									}
-								},
-								{
-									"name": "name",
-									"string": {
-										"computed_optional_required": "required",
-										"description": "name of the resource"
-									}
-								},
-								{
-									"name": "project",
-									"string": {
-										"computed_optional_required": "required",
-										"description": "Project of the resource"
 									}
 								}
 							],

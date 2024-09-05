@@ -21,7 +21,7 @@ var testFwProviderFactories = map[string]func() (tfprotov6.ProviderServer, error
 	"rafay": providerserver.NewProtocol6WithError(New("test")()),
 }
 
-func TestRafayProviderSchema(t *testing.T) {
+func TestAccRafayProviderSchema(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"rafay": providerserver.NewProtocol6WithError(New("test")()),
@@ -40,7 +40,7 @@ func TestRafayProviderSchema(t *testing.T) {
 }
 
 // This function can be used to check for initialization of the provider
-func TestRafayProvider_Configure(t *testing.T) {
+func TestAccRafayProvider_Configure(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
 			"rafay": providerserver.NewProtocol6WithError(New("test")()),

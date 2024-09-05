@@ -3,23 +3,24 @@ package provider
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
-	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/cluster"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	convertor "github.com/RafaySystems/terraform-provider-rafay/internal/convertor"
-	fw "github.com/RafaySystems/terraform-provider-rafay/internal/gen/resource_mks_cluster"
+	fw "github.com/RafaySystems/terraform-provider-rafay/internal/resource_mks_cluster"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var (
 	_ resource.Resource                = &MksClusterResource{}
+	_ resource.ResourceWithConfigure   = &MksClusterResource{}
 	_ resource.ResourceWithImportState = &MksClusterResource{}
 )
 
@@ -56,6 +57,7 @@ func (r *MksClusterResource) Configure(ctx context.Context, req resource.Configu
 		return
 	}
 
+	// Save the client for use in CRUD operations
 	r.client = client
 }
 
@@ -68,8 +70,7 @@ func (r *MksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	// Convert the Terraform model to a Hub model
-	hub := &infrapb.Cluster{}
-	daig := convertor.ConvertMksClusterToHub(ctx, &data, hub)
+	hub, daig := fw.ConvertMksClusterToHub(ctx, data)
 	if daig.HasError() {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create cluster, got error: %s", daig))
 		return
@@ -86,7 +87,7 @@ func (r *MksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
 	timeout := time.After(time.Duration(90) * time.Minute)
-	daig = convertor.WaitForClusterOperation(ctx, r.client, hub, timeout, ticker)
+	daig = fw.WaitForClusterOperation(ctx, r.client, hub, timeout, ticker)
 
 	if daig.HasError() {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create cluster, got error: %s", daig))
@@ -99,9 +100,9 @@ func (r *MksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 
 func (r *MksClusterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Read Terraform prior state data into the model
-	var plan fw.MksClusterModel
+	var state fw.MksClusterModel
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -109,8 +110,8 @@ func (r *MksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	// Read the cluster from the Hub
 	c, err := r.client.InfraV3().Cluster().Get(ctx, options.GetOptions{
-		Name:    plan.Metadata.Name.ValueString(),
-		Project: plan.Metadata.Project.ValueString(),
+		Name:    state.Metadata.Name.ValueString(),
+		Project: state.Metadata.Project.ValueString(),
 	})
 
 	if err != nil {
@@ -118,14 +119,17 @@ func (r *MksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	// Convert the Hub model to a Terraform model and save it into the state
-	daigs := convertor.ConvertMksClusterFromHub(ctx, c, &plan)
+	// Convert the Hub model to a Terraform model
+	daigs := fw.ConvertMksClusterFromHub(ctx, c, &state)
 	if daigs.HasError() {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to convert the cluster, got error: %s", daigs))
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	log.Println("Read the cluster: ", state.Spec.Blueprint.Attributes())
+
+	// Save the refreshed state into Terraform
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 
 }
 
@@ -138,8 +142,7 @@ func (r *MksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	// Convert the Terraform model to a Hub model
-	hub := &infrapb.Cluster{}
-	daigs := convertor.ConvertMksClusterToHub(ctx, &plan, hub)
+	hub, daigs := fw.ConvertMksClusterToHub(ctx, plan)
 	if daigs.HasError() {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update the cluster, got error: %s", daigs))
 		return
@@ -156,7 +159,7 @@ func (r *MksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
 	timeout := time.After(time.Duration(90) * time.Minute)
-	daigs = convertor.WaitForClusterOperation(ctx, r.client, hub, timeout, ticker)
+	daigs = fw.WaitForClusterOperation(ctx, r.client, hub, timeout, ticker)
 
 	if daigs.HasError() {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update cluster, got error: %s", daigs))
@@ -184,6 +187,19 @@ func (r *MksClusterResource) Delete(ctx context.Context, req resource.DeleteRequ
 }
 
 func (r *MksClusterResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Todo
-	resource.ImportStatePassthroughID(ctx, path.Root("metadata").AtName("name"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: name,project. Got: %q", req.ID),
+		)
+		return
+	}
+
+	name := idParts[0]
+	project := idParts[1]
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("metadata").AtName("name"), name)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("metadata").AtName("project"), project)...)
 }

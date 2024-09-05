@@ -7,8 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	convertor "github.com/RafaySystems/terraform-provider-rafay/internal/convertor"
-	fw "github.com/RafaySystems/terraform-provider-rafay/internal/gen/resource_mks_cluster"
+	fw "github.com/RafaySystems/terraform-provider-rafay/internal/resource_mks_cluster"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -483,7 +482,7 @@ func (d *MksClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 	// convert the hub respo into the TF model
-	resp.Diagnostics.Append(convertor.ConvertMksClusterFromHub(ctx, hub, &data)...)
+	resp.Diagnostics.Append(fw.ConvertMksClusterFromHub(ctx, hub, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

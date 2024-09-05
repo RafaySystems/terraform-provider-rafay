@@ -334,21 +334,21 @@
 																		{
 																			"name": "port",
 																			"string": {
-																				"computed_optional_required": "required",
+																				"computed_optional_required": "optional",
 																				"description": "SSH Port"
 																			}
 																		},
 																		{
 																			"name": "private_key_path",
 																			"string": {
-																				"computed_optional_required": "required",
+																				"computed_optional_required": "optional",
 																				"description": "Specify Path to SSH private key"
 																			}
 																		},
 																		{
 																			"name": "username",
 																			"string": {
-																				"computed_optional_required": "required",
+																				"computed_optional_required": "optional",
 																				"description": "SSH Username"
 																			}
 																		}
@@ -405,21 +405,21 @@
 														{
 															"name": "port",
 															"string": {
-																"computed_optional_required": "required",
+																"computed_optional_required": "optional",
 																"description": "Provide ssh port"
 															}
 														},
 														{
 															"name": "private_key_path",
 															"string": {
-																"computed_optional_required": "required",
+																"computed_optional_required": "optional",
 																"description": "Provide local path to the private key"
 															}
 														},
 														{
 															"name": "username",
 															"string": {
-																"computed_optional_required": "required",
+																"computed_optional_required": "optional",
 																"description": "Provide the ssh username"
 															}
 														}

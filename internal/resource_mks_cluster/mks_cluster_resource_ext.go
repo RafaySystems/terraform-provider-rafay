@@ -1,12 +1,12 @@
-// Contains the conversion functions to convert the Terraform types to the Hub types and vice versa
+// Contains the conversion methods to convert the Terraform types to the Hub types and vice versa
 // For each Tf type, we're extending it with ToHub and FromHub signature
+// The state of each type is set to known after the conversion
 
 package resource_mks_cluster
 
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
@@ -25,7 +25,6 @@ import (
 )
 
 // Utility functions to handle conversion of Terraform types to native types
-
 func getStringValue(tfString types.String) string {
 	if tfString.IsNull() || tfString.IsUnknown() {
 		return ""
@@ -203,6 +202,9 @@ func (v NetworkValue) FromHub(ctx context.Context, hub *infrapb.MksClusterNetwor
 		}
 		v.Ipv6, diags = tfIpv6.FromHub(ctx, hub.Ipv6)
 		diags = append(diags, d...)
+	} else {
+		v.Ipv6, d = NewIpv6ValueNull().ToObjectValue(ctx)
+		diags = append(diags, d...)
 	}
 
 	v.state = attr.ValueStateKnown
@@ -330,9 +332,16 @@ func (v DaemonSetOverrideValue) FromHub(ctx context.Context, hub *infrapb.Daemon
 		v.NodeSelectionEnabled = types.BoolValue(hub.NodeSelectionEnabled)
 	}
 
+	var tfDaemonSetTolerations []attr.Value
+
+	tfDaemonSetTolerationsType := DaemonSetTolerationsType{
+		ObjectType: types.ObjectType{
+			AttrTypes: DaemonSetTolerationsValue{}.AttributeTypes(ctx),
+		},
+	}
+
 	if hub.Tolerations != nil {
 		// loop through the hub tolerations and convert them to terraform tolerations
-		var tfDaemonSetTolerations []attr.Value
 		for _, hub := range hub.Tolerations {
 			tfDsTol := &DaemonSetTolerationsValue{}
 			h, d := tfDsTol.FromHub(ctx, hub)
@@ -340,14 +349,10 @@ func (v DaemonSetOverrideValue) FromHub(ctx context.Context, hub *infrapb.Daemon
 			tfDaemonSetTolerations = append(tfDaemonSetTolerations, h)
 		}
 
-		tfDaemonSetTolerationsType := DaemonSetTolerationsType{
-			ObjectType: types.ObjectType{
-				AttrTypes: DaemonSetTolerationsValue{}.AttributeTypes(ctx),
-			},
-		}
-
 		v.DaemonSetTolerations, d = types.SetValue(tfDaemonSetTolerationsType, tfDaemonSetTolerations)
 		diags = append(diags, d...)
+	} else {
+		v.DaemonSetTolerations = types.SetNull(tfDaemonSetTolerationsType)
 	}
 
 	v.state = attr.ValueStateKnown
@@ -416,6 +421,7 @@ func (v SharingValue) ToHub(ctx context.Context) (*infrapb.Sharing, diag.Diagnos
 
 func (v SharingValue) FromHub(ctx context.Context, hub *infrapb.Sharing) (basetypes.ObjectValue, diag.Diagnostics) {
 	// Convert the hub object to terraform object
+
 	v.Enabled = types.BoolValue(hub.Enabled)
 
 	var tfProjects []attr.Value
@@ -460,10 +466,16 @@ func (v SystemComponentsPlacementValue) FromHub(ctx context.Context, hub *infrap
 	if hub.NodeSelector != nil {
 		v.NodeSelector = convertToTfMap(hub.NodeSelector)
 	}
+	var tfTolerations []attr.Value
+
+	tfTolerationsType := TolerationsType{
+		ObjectType: types.ObjectType{
+			AttrTypes: TolerationsValue{}.AttributeTypes(ctx),
+		},
+	}
 
 	if hub.Tolerations != nil {
 		// loop through the hub tolerations and convert them to terraform tolerations
-		var tfTolerations []attr.Value
 		for _, hub := range hub.Tolerations {
 			tfTol := &TolerationsValue{}
 			h, d := tfTol.FromHub(ctx, hub)
@@ -471,14 +483,10 @@ func (v SystemComponentsPlacementValue) FromHub(ctx context.Context, hub *infrap
 			tfTolerations = append(tfTolerations, h)
 		}
 
-		tfTolerationsType := TolerationsType{
-			ObjectType: types.ObjectType{
-				AttrTypes: TolerationsValue{}.AttributeTypes(ctx),
-			},
-		}
-
 		v.Tolerations, d = types.SetValue(tfTolerationsType, tfTolerations)
 		diags = append(diags, d...)
+	} else {
+		v.Tolerations = types.SetNull(tfTolerationsType)
 	}
 
 	if hub.DaemonSetOverride != nil {
@@ -487,6 +495,9 @@ func (v SystemComponentsPlacementValue) FromHub(ctx context.Context, hub *infrap
 			tfDaemonSetOverride = NewDaemonSetOverrideValueNull()
 		}
 		v.DaemonSetOverride, d = tfDaemonSetOverride.FromHub(ctx, hub.DaemonSetOverride)
+		diags = append(diags, d...)
+	} else {
+		v.DaemonSetOverride, d = NewDaemonSetOverrideValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
 
@@ -620,13 +631,18 @@ func (v NodesValue) FromHub(ctx context.Context, hub *infrapb.MksNode) (NodesVal
 	v.Roles, d = types.SetValue(types.StringType, tfRoles)
 	diags = append(diags, d...)
 
-	if hub.Labels != nil {
-		v.Labels = convertToTfMap(hub.Labels)
+	v.Labels = convertToTfMap(hub.Labels)
+
+	var tfTaints []attr.Value
+
+	tfTaintsType := TaintsType{
+		ObjectType: types.ObjectType{
+			AttrTypes: TaintsValue{}.AttributeTypes(ctx),
+		},
 	}
 
 	if hub.Taints != nil {
 		// loop through the hub taints and convert them to terraform taints
-		var tfTaints []attr.Value
 		for _, hub := range hub.Taints {
 			tfTaint := &TaintsValue{}
 			h, d := tfTaint.FromHub(ctx, hub)
@@ -634,14 +650,10 @@ func (v NodesValue) FromHub(ctx context.Context, hub *infrapb.MksNode) (NodesVal
 			tfTaints = append(tfTaints, h)
 		}
 
-		tfTaintsType := TaintsType{
-			ObjectType: types.ObjectType{
-				AttrTypes: TaintsValue{}.AttributeTypes(ctx),
-			},
-		}
-
 		v.Taints, d = types.SetValue(tfTaintsType, tfTaints)
 		diags = append(diags, d...)
+	} else {
+		v.Taints = types.SetNull(tfTaintsType)
 	}
 
 	if hub.Ssh != nil {
@@ -650,6 +662,9 @@ func (v NodesValue) FromHub(ctx context.Context, hub *infrapb.MksNode) (NodesVal
 			tfSsh = NewSshValueNull()
 		}
 		v.Ssh, d = tfSsh.FromHub(ctx, hub.Ssh)
+		diags = append(diags, d...)
+	} else {
+		v.Ssh, d = NewSshValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
 
@@ -765,6 +780,9 @@ func (v ConfigValue) FromHub(ctx context.Context, hub *infrapb.MksV3ConfigObject
 		}
 		v.ClusterSsh, d = tfSsh.FromHub(ctx, hub.Ssh)
 		diags = append(diags, d...)
+	} else {
+		v.ClusterSsh, d = NewClusterSshValueNull().ToObjectValue(ctx)
+		diags = append(diags, d...)
 	}
 
 	v.state = attr.ValueStateKnown
@@ -807,6 +825,7 @@ func ConvertMksClusterToHub(ctx context.Context, v MksClusterModel) (*infrapb.Cl
 	hub.Spec.Type = getStringValue(v.Spec.SpecType)
 
 	var blueprintType BlueprintType
+
 	tfBlueprintValue, d := blueprintType.ValueFromObject(ctx, v.Spec.Blueprint)
 	if d.HasError() {
 		diags = append(diags, d...)
@@ -903,6 +922,9 @@ func ConvertMksClusterFromHub(ctx context.Context, hub *infrapb.Cluster, tf *Mks
 		}
 		tf.Spec.Sharing, d = tfSharing.FromHub(ctx, hub.Spec.Sharing)
 		diags = append(diags, d...)
+	} else {
+		tf.Spec.Sharing, d = NewSharingValueNull().ToObjectValue(ctx)
+		diags = append(diags, d...)
 	}
 
 	if hub.Spec.SystemComponentsPlacement != nil {
@@ -914,8 +936,10 @@ func ConvertMksClusterFromHub(ctx context.Context, hub *infrapb.Cluster, tf *Mks
 			tfSystemComponentsPlacement = NewSystemComponentsPlacementValueNull()
 		}
 		tf.Spec.SystemComponentsPlacement, d = tfSystemComponentsPlacement.FromHub(ctx, hub.Spec.SystemComponentsPlacement)
-		log.Println("tf.Spec.SystemComponentsPlacement", tf.Spec.SystemComponentsPlacement.Attributes())
 
+		diags = append(diags, d...)
+	} else {
+		tf.Spec.SystemComponentsPlacement, d = NewSystemComponentsPlacementValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
 
@@ -925,6 +949,9 @@ func ConvertMksClusterFromHub(ctx context.Context, hub *infrapb.Cluster, tf *Mks
 			tfProxy = NewProxyValueNull()
 		}
 		tf.Spec.Proxy, d = tfProxy.FromHub(ctx, hub.Spec.Proxy)
+		diags = append(diags, d...)
+	} else {
+		tf.Spec.Proxy, d = NewProxyValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
 
@@ -937,6 +964,8 @@ func ConvertMksClusterFromHub(ctx context.Context, hub *infrapb.Cluster, tf *Mks
 		tf.Spec.Config, d = tfConfig.FromHub(ctx, hubConfig)
 		diags = append(diags, d...)
 	}
+
+	tf.Spec.state = attr.ValueStateKnown
 
 	return diags
 }

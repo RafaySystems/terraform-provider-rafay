@@ -116,17 +116,17 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 										MarkdownDescription: "Provide ssh passphrase",
 									},
 									"port": schema.StringAttribute{
-										Required:            true,
+										Optional:            true,
 										Description:         "Provide ssh port",
 										MarkdownDescription: "Provide ssh port",
 									},
 									"private_key_path": schema.StringAttribute{
-										Required:            true,
+										Optional:            true,
 										Description:         "Provide local path to the private key",
 										MarkdownDescription: "Provide local path to the private key",
 									},
 									"username": schema.StringAttribute{
-										Required:            true,
+										Optional:            true,
 										Description:         "Provide the ssh username",
 										MarkdownDescription: "Provide the ssh username",
 									},
@@ -307,17 +307,17 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 													MarkdownDescription: "SSH Passphrase",
 												},
 												"port": schema.StringAttribute{
-													Required:            true,
+													Optional:            true,
 													Description:         "SSH Port",
 													MarkdownDescription: "SSH Port",
 												},
 												"private_key_path": schema.StringAttribute{
-													Required:            true,
+													Optional:            true,
 													Description:         "Specify Path to SSH private key",
 													MarkdownDescription: "Specify Path to SSH private key",
 												},
 												"username": schema.StringAttribute{
-													Required:            true,
+													Optional:            true,
 													Description:         "SSH Username",
 													MarkdownDescription: "SSH Username",
 												},

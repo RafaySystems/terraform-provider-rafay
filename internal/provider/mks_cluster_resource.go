@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -101,7 +100,7 @@ func (r *MksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 func (r *MksClusterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Read Terraform prior state data into the model
 	var state fw.MksClusterModel
-
+	
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
@@ -125,9 +124,6 @@ func (r *MksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to convert the cluster, got error: %s", daigs))
 		return
 	}
-
-	log.Println("Read the cluster: ", state.Spec.Blueprint.Attributes())
-
 	// Save the refreshed state into Terraform
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 
@@ -187,12 +183,12 @@ func (r *MksClusterResource) Delete(ctx context.Context, req resource.DeleteRequ
 }
 
 func (r *MksClusterResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	idParts := strings.Split(req.ID, ",")
+	idParts := strings.Split(req.ID, "/")
 
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: name,project. Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: name/project. Got: %q", req.ID),
 		)
 		return
 	}

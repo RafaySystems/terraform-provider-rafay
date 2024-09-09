@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+// TestAccMksClusterDataSource tests the data source for the Rafay MKS cluster
+
 func TestAccMksClusterDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testFwProviderFactories,
@@ -13,6 +15,10 @@ func TestAccMksClusterDataSource(t *testing.T) {
 			// Read testing
 			{
 				Config: testProviderConfig + testMksClusterDataSource(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.rafay_mks_cluster.mks-example-cluster", "metadata.name", "vasu-mks-gitsync-july-29"),
+					resource.TestCheckResourceAttr("data.rafay_mks_cluster.mks-example-cluster", "metadata.project", "defaultproject"),
+				),
 			},
 		},
 	})
@@ -21,18 +27,10 @@ func TestAccMksClusterDataSource(t *testing.T) {
 // Helper function to return the initial configuration
 func testMksClusterDataSource() string {
 	return `
-datasource "rafay_mks_cluster" "example" {
-  metadata {
-    name    = "test-cluster"
-    project = "test-project"
-  }
-
-  proxy {
-    enabled = true
-  }
-
-  system_component_placement {
-    region = "us-west-1"
+data "rafay_mks_cluster" "mks-example-cluster" {
+  metadata = {
+    name    = "vasu-mks-gitsync-july-29"
+    project = "defaultproject"
   }
 }
 `

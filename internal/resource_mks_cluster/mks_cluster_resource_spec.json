@@ -281,7 +281,7 @@
 															{
 																"name": "labels",
 																"map": {
-																	"computed_optional_required": "optional",
+																	"computed_optional_required": "computed_optional",
 																	"element_type": {
 																		"string": {}
 																	},
@@ -573,7 +573,7 @@
 											{
 												"name": "node_selector",
 												"map": {
-													"computed_optional_required": "optional",
+													"computed_optional_required": "computed_optional",
 													"element_type": {
 														"string": {}
 													}

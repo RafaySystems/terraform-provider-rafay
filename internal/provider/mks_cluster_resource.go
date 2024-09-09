@@ -86,7 +86,7 @@ func (r *MksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
 	timeout := time.After(time.Duration(90) * time.Minute)
-	daig = fw.WaitForClusterOperation(ctx, r.client, hub, timeout, ticker)
+	daig = fw.WaitForClusterApplyOperation(ctx, r.client, hub, timeout, ticker)
 
 	if daig.HasError() {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create cluster, got error: %s", daig))
@@ -100,7 +100,7 @@ func (r *MksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 func (r *MksClusterResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Read Terraform prior state data into the model
 	var state fw.MksClusterModel
-	
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
@@ -155,7 +155,7 @@ func (r *MksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
 	timeout := time.After(time.Duration(90) * time.Minute)
-	daigs = fw.WaitForClusterOperation(ctx, r.client, hub, timeout, ticker)
+	daigs = fw.WaitForClusterApplyOperation(ctx, r.client, hub, timeout, ticker)
 
 	if daigs.HasError() {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update cluster, got error: %s", daigs))
@@ -178,6 +178,18 @@ func (r *MksClusterResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete cluster, got error: %s", err))
+		return
+	}
+
+	// Wait for the cluster deletion to be completed
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
+	defer ticker.Stop()
+
+	timeout := time.After(time.Duration(30) * time.Minute)
+	daigs := fw.WaitForClusterDeleteOperation(ctx, r.client, data.Metadata.Name.ValueString(), data.Metadata.Project.ValueString(), timeout, ticker)
+
+	if daigs.HasError() {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete the cluster, got error: %s", daigs))
 		return
 	}
 }

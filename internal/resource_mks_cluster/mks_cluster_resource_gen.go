@@ -275,6 +275,7 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 										"labels": schema.MapAttribute{
 											ElementType:         types.StringType,
 											Optional:            true,
+											Computed:            true,
 											Description:         "labels to be added to the node",
 											MarkdownDescription: "labels to be added to the node",
 										},
@@ -479,6 +480,7 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 							"node_selector": schema.MapAttribute{
 								ElementType: types.StringType,
 								Optional:    true,
+								Computed:    true,
 							},
 							"tolerations": schema.SetNestedAttribute{
 								NestedObject: schema.NestedAttributeObject{

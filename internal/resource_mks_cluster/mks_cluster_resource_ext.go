@@ -7,6 +7,7 @@ package resource_mks_cluster
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
@@ -19,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
+	dynamic "github.com/RafaySystems/rafay-common/pkg/hub/client/dynamic"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
@@ -970,7 +972,7 @@ func ConvertMksClusterFromHub(ctx context.Context, hub *infrapb.Cluster, tf *Mks
 	return diags
 }
 
-func WaitForClusterOperation(ctx context.Context, client typed.Client, cluster *infrapb.Cluster, timeout <-chan time.Time, ticker *time.Ticker) diag.Diagnostics {
+func WaitForClusterApplyOperation(ctx context.Context, client typed.Client, cluster *infrapb.Cluster, timeout <-chan time.Time, ticker *time.Ticker) diag.Diagnostics {
 	var diags diag.Diagnostics
 	for {
 		select {
@@ -1007,6 +1009,33 @@ func WaitForClusterOperation(ctx context.Context, client typed.Client, cluster *
 					failureReason := uClusterCommonStatus.Reason
 					diags.AddError("Cluster operation failed", failureReason)
 				}
+			}
+		}
+	}
+}
+
+func WaitForClusterDeleteOperation(ctx context.Context, client typed.Client, name string, project string, timeout <-chan time.Time, ticker *time.Ticker) diag.Diagnostics {
+	var diags diag.Diagnostics
+	for {
+		select {
+		case <-timeout:
+			// Timeout reached
+			diags.AddError("Timeout reached while deleting the cluster resource", "")
+			return diags
+
+		case <-ticker.C:
+			_, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+				Name:    name,
+				Project: project,
+			})
+			if err, ok := err.(*dynamic.DynamicClientGetError); ok && err != nil {
+				switch err.StatusCode {
+				case http.StatusNotFound:
+					return diags
+				default:
+					diags.AddError("Cluster Deletion failed", err.Error())
+				}
+
 			}
 		}
 	}

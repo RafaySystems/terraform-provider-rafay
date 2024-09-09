@@ -1,11 +1,11 @@
 TEST?=$$(go list ./... | grep -v 'vendor')
 HOSTNAME=registry.terraform.io
-NAMESPACE=RafaySystems
+NAMESPACE=rafay
 NAME=rafay
 BINARY=terraform-provider-${NAME}
-VERSION=1.1.35
+VERSION=1.1.28
 GIT_BRANCH ?= main
-OS_ARCH=darwin_arm64
+OS_ARCH := $(shell uname | grep -q 'Linux' && echo "linux_amd64" || echo "darwin_amd64")
 BUCKET_NAME ?= terraform-provider-rafay
 BUILD_NUMBER ?= $(shell date "+%Y%m%d-%H%M")
 TAG := $(or $(shell git describe --tags --exact-match  2>/dev/null), $(shell echo "origin/${GIT_BRANCH}"))
@@ -87,6 +87,3 @@ update-deps:
 .PHONY: test-migrate
 test-migrate:
 	go test -v ./rafay/migrate/...
-
-
-

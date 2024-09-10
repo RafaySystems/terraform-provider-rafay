@@ -45,7 +45,7 @@ resource "rafay_driver" "driver" {
               key : "key"
               operator : "Equal"
               value : "value"
-              effect : "NoSchedule"
+              effect : "NoExecute"
               toleration_seconds = 300
             }
           ]
@@ -155,27 +155,39 @@ resource "rafay_driver" "driver" {
 - `labels` (Map of String) Specify the labels
 - `namespace` (String) Specify the namespace
 - `node_selector` (Map of String) Specify the node selectors
-- `security_context` (Block List, Max: 1) Specify the security context (see [below for nested schema](#nestedblock--spec--config--container--working_dir_path--security_context))
+- `security_context` (Block List, Max: 1) Specify the security context (see [below for nested schema](#nestedblock--spec--config--container--kube_options--security_context))
 - `service_account_name` (String) Specify the service account name
+- `tolerations` (Block List) Specify the tolerations (see [below for nested schema](#nestedblock--spec--config--container--kube_options--tolerations))
 
-<a id="nestedblock--spec--config--container--working_dir_path--security_context"></a>
-### Nested Schema for `spec.config.container.working_dir_path.security_context`
+<a id="nestedblock--spec--config--container--kube_options--tolerations"></a>
+### Nested Schema for `spec.config.container.kube_options.tolerations`
 
 ***Optional***
 
-- `privileged` (Block List, Max: 1) Specify if privileged permissions (see [below for nested schema](#nestedblock--spec--config--container--working_dir_path--security_context--privileged))
-- `read_only_root_file_system` (Block List, Max: 1) Specify if permission is read only root file system (see [below for nested schema](#nestedblock--spec--config--container--working_dir_path--security_context--read_only_root_file_system))
+- `key` (String) Specify the key
+- `operator` (String) Specify the operator, Accepted values are `Exists`, `Equal`.
+- `value` (String) Specify the value
+- `effect` (String) Specify the effect, Accepted values are `NoSchedule`, `PreferNoSchedule`, `NoExecute`.
+- `toleration_seconds` (Number) Specify the toleration seconds when `NoExecute` effect is given.
 
-<a id="nestedblock--spec--config--container--working_dir_path--security_context--privileged"></a>
-### Nested Schema for `spec.config.container.working_dir_path.security_context.read_only_root_file_system`
+<a id="nestedblock--spec--config--container--kube_options--security_context"></a>
+### Nested Schema for `spec.config.container.kube_options.security_context`
+
+***Optional***
+
+- `privileged` (Block List, Max: 1) Specify if privileged permissions (see [below for nested schema](#nestedblock--spec--config--container--kube_options--security_context--privileged))
+- `read_only_root_file_system` (Block List, Max: 1) Specify if permission is read only root file system (see [below for nested schema](#nestedblock--spec--config--container--kube_options--security_context--read_only_root_file_system))
+
+<a id="nestedblock--spec--config--container--kube_options--security_context--privileged"></a>
+### Nested Schema for `spec.config.container.kube_options.security_context.read_only_root_file_system`
 
 ***Optional***
 
 - `value` (Boolean)
 
 
-<a id="nestedblock--spec--config--container--working_dir_path--security_context--read_only_root_file_system"></a>
-### Nested Schema for `spec.config.container.working_dir_path.security_context.read_only_root_file_system`
+<a id="nestedblock--spec--config--container--kube_options--security_context--read_only_root_file_system"></a>
+### Nested Schema for `spec.config.container.kube_options.security_context.read_only_root_file_system`
 
 ***Optional***
 

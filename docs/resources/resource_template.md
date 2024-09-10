@@ -1674,6 +1674,13 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `success_condition` (String) Specify the success condition of the request
 
 
+<a id="nestedblock--spec--artifact_driver"></a>
+### Nested Schema for `spec.artifact_driver`
+
+***Optional***
+- `name` (String) name of the driver resource
+- `data` (Block List, Max: 1) Inline workflow handler definition (see [below for nested schema](#nestedblock--spec--provider_options--driver--data))
+
 <a id="nestedblock--spec--provider_options"></a>
 ### Nested Schema for `spec.provider_options`
 

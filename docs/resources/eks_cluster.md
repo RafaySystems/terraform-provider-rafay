@@ -693,6 +693,7 @@ addons {
 - `secrets_encryption` - (Block List) The Amazon EKS secrets encryption feature. (See [below for nested schema](#nestedblock--cluster_config--secrets_encryption))
 - `addons` - (Block List) The list of EKS managed addons to include in the cluster.(See [below for nested schema](#nestedblock--cluster_config--addons))
 - `identity_mappings` - (Block List) Identity Mapping feature helps the users to create a static mapping between IAM Users and Roles, and Kubernetes RBAC groups.(See [below for nested schema](#nestedblock--cluster_config--identity_mappings))
+- `access_config` - (Block List) Access Config controls how IAM principals can access this cluster. (See [below for nested schema](#nestedblock--cluster_config--access_config))
 
 <a id="nestedblock--cluster_config--kubernetes_network_config"></a>
 ### Nested Schema for `cluster_config.kubernetes_network_config`
@@ -828,6 +829,47 @@ addons {
 - `well_known_policies` - (Block List) Use to attach common IAM policies.
 - `tags` - (Map of String) The AWS tags for the service account.
 - `configuration_values` - (String) custom configuration values for addons with single JSON string. 
+
+<a id="nestedblock--cluster_config--access_config"></a>
+### Nested Schema for `cluster_config.access_config`
+
+***Optional***
+
+- `authentication_mode` - (String) Configure which source the cluster will use for authenticated IAM principals. API or API_AND_CONFIG_MAP (default) or CONFIG_MAP
+
+- `bootstrap_cluster_creator_admin_permissions` - (Boolean) Choose whether the IAM principal creating the cluster has Kubernetes cluster administrator access
+
+- `access_entries` - (Block List) The list of access entries for the cluster. (See [below for nested schema](#nestedblock--cluster_config--access_config--access_entries)) 
+
+<a id="nestedblock--cluster_config--access_config--access_entries"></a>
+### Nested Schema for `cluster_config.access_config.access_entries`
+
+- `principal_arn` - (String) The IAM principal that you want to grant access to Kubernetes objects on your cluster.
+
+- `type` - (String) Valid values EC2_LINUX, EC2_WINDOWS, FARGATE_LINUX or STANDARD.
+
+- `kubernetes_username` - (String) Username to map to the principal ARN. Valid only when type is STANDARD.
+
+- `kubernetes_groups` - (List of String) Set of Kubernetes groups to map to the principal ARN. Valid only when type is STANDARD.
+
+- `access_policies` - (Block List) The set of policies to associate with an access entry. (See [below for nested schema](#nestedblock--cluster_config--access_config--access_entries--access_policies)) 
+
+<a id="nestedblock--cluster_config--access_config--access_entries--access_policies"></a>
+
+### Nested Schema for `cluster_config.access_config.access_entries.access_policies`
+
+- `policy_arn` - (String) The ARN of the policy to attach to the access entry
+
+- `access_scope` - (Block List) It defines the scope of an access policy. (See [below for nested schema](#nestedblock--cluster_config--access_config--access_entries--access_policies--access_scope))
+
+<a id="nestedblock--cluster_config--access_config--access_entries--access_policies--access_scope"></a>
+
+### Nested Schema for `cluster_config.access_config.access_entries.access_policies.access_scope`
+
+- `type` - (String) Valid values are namespace or cluster
+
+- `namespaces` - (List of String) Scope access to namespace(s)
+
 
 <a id="nestedblock--cluster_config--identity_mappings"></a>
 ### Nested Schema for `cluster_config.identity_mappings`

@@ -52,59 +52,56 @@ resource "rafay_driver" "driver" {
         }
       }
     }
-    inputs = [
-      {
-        name = "cc-1"
-      },
-      {
-        name = "inline-cc-1"
-        data = {
-          envs = {
-            key   = "name-modified"
-            value = "modified-value"
-            options = {
-              description = "contains the input variables with default values"
-              sensitive   = false
-              override = {
-                type = "allowed"
-              }
-            }
-          }
-          envs = {
-            key   = "name-new"
-            value = "new-value"
-          }
-          files = {
-            name       = "file://variables.tf"
-            mount_path = "/mnt/eaas/files"
-            options = {
-              description = "contains the input variables with default values"
-              sensitive   = true
-              override = {
-                type = "allowed"
-              }
-            }
-          }
-          variables = {
-            name       = "new-variable"
-            value_type = "text"
-            value      = "new-value"
-            options = {
-              override = {
-                type = "restricted"
-                restricted_values = ["new-value", "modified-value"]
-              }
-              description = "this is a dummy variable"
-              sensitive   = false
-              required    = true
+    inputs {
+      name = "cc-1"
+    }
+    inputs {
+      name = "inline-cc-1"
+      data {
+        envs {
+          key   = "name-modified"
+          value = "modified-value"
+          options {
+            description = "contains the input variables with default values"
+            sensitive   = false
+            override {
+              type = "allowed"
             }
           }
         }
+        envs {
+          key   = "name-new"
+          value = "new-value"
+        }
+        files {
+          name = "some/variables.tf"
+          options {
+            description = "contains the input variables with default values"
+            sensitive   = true
+            override {
+              type = "allowed"
+            }
+          }
+        }
+        variables {
+          name       = "new-variable"
+          value_type = "text"
+          value      = "new-value"
+          options {
+            override {
+              type              = "restricted"
+              restricted_values = ["new-value", "modified-value"]
+            }
+            description = "this is a dummy variable"
+            sensitive   = false
+            required    = true
+          }
+        }
       }
-    ]
-    outputs {
-      key1 : "value1"
-      key2 : "value2"
+    }
+    outputs = {
+      key1 = "value1"
+      key2 = "value2"
     }
   }
 }
@@ -140,6 +137,8 @@ resource "rafay_driver" "driver" {
 ***Required***
 
 - `config` (Block List, Max: 1) Driver configuration (see [below for nested schema](#nestedblock--spec--config))
+- `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
+- `outputs` (Map of String) Outputs for the driver
 
 ***Optional***
 
@@ -322,4 +321,9 @@ resource "rafay_driver" "driver" {
 - `delete` (String)
 - `update` (String)
 
+<a id="nestedblock--spec--inputs"></a>
+### Nested Schema for `spec.inputs`
 
+***Required***
+
+- `name` (String) name of the config context

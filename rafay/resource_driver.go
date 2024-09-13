@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
-	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
@@ -232,7 +232,7 @@ func expandDriverSpec(p []interface{}) (*eaaspb.DriverSpec, error) {
 		spec.Inputs = expandConfigContextCompoundRefs(v)
 	}
 
-	if v, ok := in["outputs"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["outputs"].(map[string]any); ok && len(v) > 0 {
 		spec.Outputs = expandDriverOutputs(v)
 	}
 
@@ -467,12 +467,12 @@ func expandDriverHttpConfig(p []interface{}) *eaaspb.HTTPDriverConfig {
 	return &hc
 }
 
-func expandDriverOutputs(p []interface{}) *structpb.Struct {
-	if len(p) == 0 || p[0] == nil {
+func expandDriverOutputs(p map[string]any) *structpb.Struct {
+	if len(p) == 0 {
 		return nil
 	}
 
-	s, _ := structpb.NewStruct(p[0].(map[string]any))
+	s, _ := structpb.NewStruct(p)
 	return s
 }
 
@@ -875,12 +875,12 @@ func flattenContainerDriverVolumeOptions(input []*eaaspb.ContainerDriverVolumeOp
 	return out
 }
 
-func flattenDriverOutputs(in *structpb.Struct) []any {
+func flattenDriverOutputs(in *structpb.Struct) map[string]any {
 	if in == nil {
 		return nil
 	}
 
-	return []any{in.AsMap()}
+	return in.AsMap()
 }
 
 func resourceDriverImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {

@@ -23,12 +23,12 @@ github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2 h1:bkyFVUP+ROOARdgCiJzNQo2V2kiB97LyUpzH9P6Hrlg=
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2/go.mod h1:rA3QumHc/FZ8pAHreoekgiAbzpNsfQAosU5td4SnOrE=
-github.com/RafaySystems/eaas-playground v0.0.0-20240819062521-b1b317f32232 h1:OyvJD5nwBHjM7UUS9nX9DNLKeq2BZfWb/Tcsz3K3DHY=
-github.com/RafaySystems/eaas-playground v0.0.0-20240819062521-b1b317f32232/go.mod h1:YN2q7XActj/AHM4F+6Czsip5++l7asf/hxK8YZjrmhU=
+github.com/RafaySystems/eaas-playground/proto v0.0.0-20240912101512-548a52c34b17 h1:tZY3FzDyl/OorIIXi12fBcnrSi0kQw4xM4Mjck9gFg4=
+github.com/RafaySystems/eaas-playground/proto v0.0.0-20240912101512-548a52c34b17/go.mod h1:lAle7/tiVlakfiXdJKnsf6qNdLkoWS712T4pAXytSOQ=
 github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8 h1:Pce1iLS0oXLGmNh0VSXBfiH/u8hHd6xRJkibmL3Aan4=
 github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8/go.mod h1:5mRn2xN25Y8mpObHyOwDB3OLudeuglzHTQX9IiNHxhM=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240905045148-09ec0ead4c29 h1:7tj0EqqZMtVjm2drPEqlIADaNA/93wye50B9zeRdDOw=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240905045148-09ec0ead4c29/go.mod h1:WHnZ0MkUpAQAG3w2Phi2hz55PkE+OowKSPO4FR0FZUE=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240913125912-667cf51fccf2 h1:BtDIcbQFTVcZmkyHvIXP+bm5mbCrZ2KEdQVdF01UCbE=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240913125912-667cf51fccf2/go.mod h1:A+0oFsNViRyMppm4T7T3Ws8iSwTwmHjYhGa2fAa9KdA=
 github.com/RafaySystems/rctl v1.29.1-0.20240905060134-f02f6236ed3f h1:ZNVZRJXz+eMjyPCRGWLVLO8bLiReu7G3FtPaxgVce70=
 github.com/RafaySystems/rctl v1.29.1-0.20240905060134-f02f6236ed3f/go.mod h1:jBBt09pRECyjjBI1ZetdcjLaXg7rJF5SuTSrePBgoeI=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=

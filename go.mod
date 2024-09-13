@@ -158,7 +158,7 @@ require (
 	github.com/processout/grpc-go-pool v1.2.2-0.20200228131710-c0fcf3af0014 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rivo/uniseg v0.4.2 // indirect
-	github.com/rs/xid v1.5.0 // indirect
+	github.com/rs/xid v1.6.0 // indirect
 	github.com/russross/blackfriday v1.6.0 // indirect
 	github.com/segmentio/encoding v0.4.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
@@ -218,7 +218,7 @@ replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
 	// github.com/RafaySystems/eaas-playground => ../eaas-playground
 	// github.com/RafaySystems/rafay-common => ../rafay-common
-	// github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
+	// github.com/RafaySystems/rctl => ../rctl
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	// github.com/RafaySystems/rctl => ../rctl
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet

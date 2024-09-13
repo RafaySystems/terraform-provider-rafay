@@ -6414,6 +6414,44 @@ func aksClusterCTLStatus(taskid, projectID string) (string, error) {
 
 func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("AKS process inputs")
+
+	desiredObj, err := expandAksCluster(d)
+	if err != nil {
+		log.Println("error while expanding aks cluster", err)
+		return diag.FromErr(err)
+	}
+
+	// Only proceed with stitching if the cluster resource already exists
+	if d.Id() != "" {
+		// ============== Stitching Start ==============
+
+		log.Println("Including first class edge resources in desired spec")
+
+		deployedObj, err := getDeployedClusterSpec(d)
+		if err != nil {
+			log.Println("error while reading aks cluster", err)
+			return diag.FromErr(err)
+		}
+
+		if len(deployedObj.Spec.AKSClusterConfig.Spec.WorkloadIdentities) > 0 {
+			// Copy over the WorkloadIdentities from the deployed cluster spec
+
+			desiredObj.Spec.AKSClusterConfig.Spec.WorkloadIdentities = deployedObj.Spec.AKSClusterConfig.Spec.WorkloadIdentities
+		}
+
+		// ============== Stitching End ==============
+	}
+
+	out, err := yamlf.Marshal(desiredObj)
+	if err != nil {
+		log.Println("err marshall:", err)
+		return diag.FromErr(err)
+	}
+	log.Printf("AKS Cluster YAML SPEC \n---\n%s\n----\n", out)
+	return process_filebytes(ctx, d, m, out, desiredObj)
+}
+
+func expandAksCluster(d *schema.ResourceData) (*AKSCluster, error) {
 	obj := &AKSCluster{}
 	rawConfig := d.GetRawConfig()
 
@@ -6421,14 +6459,14 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		obj.APIVersion = v
 	} else {
 		log.Println("apiversion unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Apiversion is missing"))
+		return obj, fmt.Errorf("%s", "Apiversion is missing")
 	}
 
 	if v, ok := d.Get("kind").(string); ok {
 		obj.Kind = v
 	} else {
 		log.Println("kind unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Kind is missing"))
+		return obj, fmt.Errorf("%s", "Kind is missing")
 	}
 
 	if v, ok := d.Get("metadata").([]interface{}); ok {
@@ -6436,34 +6474,28 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		log.Println("md:", obj.Metadata)
 	} else {
 		log.Println("metadata unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Metadata is missing"))
+		return obj, fmt.Errorf("%s", "Metadata is missing")
 	}
 
 	if v, ok := d.Get("spec").([]interface{}); ok {
 		obj.Spec = expandAKSClusterSpec(v, rawConfig.GetAttr("spec"))
 	} else {
 		log.Println("Cluster spec unable to be found")
-		return diag.FromErr(fmt.Errorf("%s", "Spec is missing"))
+		return obj, fmt.Errorf("%s", "Spec is missing")
 	}
 
 	projectName := obj.Metadata.Project
 	_, err := project.GetProjectByName(projectName)
 	if err != nil {
 		log.Println("Cluster project name is invalid", err)
-		return diag.FromErr(fmt.Errorf("%s", "Cluster project name is invalid"))
+		return obj, fmt.Errorf("%s", "Cluster project name is invalid")
 	}
 
 	if obj.Metadata.Name != obj.Spec.AKSClusterConfig.Metadata.Name {
-		return diag.FromErr(fmt.Errorf("%s", "ClusterConfig name does not match config file"))
+		return obj, fmt.Errorf("%s", "ClusterConfig name does not match config file")
 	}
 
-	out, err := yamlf.Marshal(obj)
-	if err != nil {
-		log.Println("err marshall:", err)
-		return diag.FromErr(err)
-	}
-	log.Printf("AKS Cluster YAML SPEC \n---\n%s\n----\n", out)
-	return process_filebytes(ctx, d, m, out, obj)
+	return obj, nil
 }
 
 func resourceAKSClusterUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -6625,14 +6657,46 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	var diags diag.Diagnostics
 	log.Println("resourceAKSClusterRead")
 
+	clusterSpec, err := getDeployedClusterSpec(d)
+	if err != nil {
+		log.Printf("error in get cluster spec %s", err.Error())
+		return diag.FromErr(err)
+	}
+
+	// ============== Unfurl Start ==============
+
+	log.Println("Excluding first class edge resources in deployed spec")
+
+	// Remove the cluster associated but externalized edge resources from the deployed cluster
+	if len(clusterSpec.Spec.AKSClusterConfig.Spec.WorkloadIdentities) > 0 {
+		// WorkloadIdentities is not part of the terraform cluster resource schema
+
+		log.Println("Removing deployed workload identities from deployed cluster spec")
+		clusterSpec.Spec.AKSClusterConfig.Spec.WorkloadIdentities = nil
+	}
+
+	// ============== Unfurl End =================
+
+	err = flattenAKSCluster(d, clusterSpec)
+	if err != nil {
+		log.Printf("get aks cluster set error %s", err.Error())
+		return diag.FromErr(err)
+	}
+
+	return diags
+}
+
+func getDeployedClusterSpec(d *schema.ResourceData) (*AKSCluster, error) {
+	clusterSpec := &AKSCluster{}
+
 	projectName, ok := d.Get("metadata.0.project").(string)
 	if !ok || projectName == "" {
-		return diag.FromErr(errors.New("project name unable to be found"))
+		return clusterSpec, errors.New("project name unable to be found")
 	}
 
 	clusterName, ok := d.Get("metadata.0.name").(string)
 	if !ok || clusterName == "" {
-		return diag.FromErr(errors.New("cluster name unable to be found"))
+		return clusterSpec, errors.New("cluster name unable to be found")
 	}
 
 	fmt.Printf("Found project_name: %s, cluster_name: %s", projectName, clusterName)
@@ -6641,7 +6705,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	projectId, err := getProjectIDFromName(projectName)
 	if err != nil {
 		fmt.Print("Cluster project name is invalid")
-		return diag.FromErr(fmt.Errorf("cluster project name is invalid. Error: %s", err.Error()))
+		return clusterSpec, fmt.Errorf("cluster project name is invalid. Error: %s", err.Error())
 	}
 
 	c, err := cluster.GetCluster(clusterName, projectId, uaDef)
@@ -6650,9 +6714,9 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		if strings.Contains(err.Error(), "not found") {
 			log.Println("Resource Read ", "error", err)
 			d.SetId("")
-			return diag.FromErr(fmt.Errorf("resource read failed, cluster not found. Error: %s", err.Error()))
+			return clusterSpec, fmt.Errorf("resource read failed, cluster not found. Error: %s", err.Error())
 		}
-		return diag.FromErr(err)
+		return clusterSpec, err
 	}
 
 	// another
@@ -6661,21 +6725,17 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectId, uaDef)
 	if err != nil {
 		log.Printf("error in get clusterspec %s", err.Error())
-		return diag.FromErr(err)
+		return clusterSpec, err
 	}
+	log.Println("clusterSpecYaml from getClusterSpec:", clusterSpecYaml)
 
-	clusterSpec := AKSCluster{}
 	err = yaml.Unmarshal([]byte(clusterSpecYaml), &clusterSpec)
 	if err != nil {
-		return diag.FromErr(err)
+		return clusterSpec, err
 	}
-	err = flattenAKSCluster(d, &clusterSpec)
-	if err != nil {
-		log.Printf("get aks cluster set error %s", err.Error())
-		return diag.FromErr(err)
-	}
+	log.Println("unmarshalled clusterSpec from getClusterSpec:", clusterSpec)
 
-	return diags
+	return clusterSpec, nil
 }
 
 func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

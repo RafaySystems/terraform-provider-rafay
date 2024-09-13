@@ -9,10 +9,16 @@ description: |-
 
 This example is for the AKS Workload Identity.
 
+## Important
+
+The `depends_on` constraint is **mandatory** for the `rafay_aks_workload_identity` resource. Ensure that the workload identity resource explicitly depends on the associated cluster resource. This ensures proper resource creation and dependency handling between the workload identity and the cluster it is associated with.
+
 ## Example Usage
 
 ```terraform
 resource "rafay_aks_workload_identity" "demo-terraform" {
+  depends_on = [rafay_aks_cluster.my_cluster]
+
   metadata {
     cluster_name = "aks-tf-wi-1"
     project      = "defaultproject"
@@ -110,6 +116,8 @@ resource "rafay_aks_workload_identity" "demo-terraform" {
 ## Argument Reference
 
 The following arguments are supported:
+
+- depends_on: (Required) The `depends_on` attribute ensures that the `rafay_aks_workload_identity` resource is created after the associated `rafay_aks_cluster` resource. It is mandatory for the workload identity resource to depend on the corresponding cluster resource.
 
 - `metadata`: (Required) The metadata for the AKS workload identity. It includes the `cluster_name` and `project` attributes.
 

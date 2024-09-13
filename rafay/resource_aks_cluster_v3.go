@@ -58,35 +58,65 @@ func resourceAKSClusterV3Read(ctx context.Context, d *schema.ResourceData, m int
 	var diags diag.Diagnostics
 
 	log.Println("resourceClusterRead ")
-	tflog := os.Getenv("TF_LOG")
-	if tflog == "TRACE" || tflog == "DEBUG" {
-		ctx = context.WithValue(ctx, "debug", "true")
-	}
-	tfClusterState, err := expandClusterV3(d)
+
+	deployedCluster, err := getDeployedClusterSpecV3(ctx, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
-	if err != nil {
-		return diag.FromErr(err)
+	// ============== Unfurl Start ==============
+
+	log.Println("Excluding first class edge resources in deployed spec")
+
+	// Remove the cluster associated but externalized edge resources from the deployed cluster
+	if deployedCluster != nil && deployedCluster.Spec != nil && deployedCluster.Spec.GetAks() != nil {
+		if len(deployedCluster.Spec.GetAks().Spec.WorkloadIdentities) > 0 {
+			// WorkloadIdentities is not part of the terraform cluster resource schema
+
+			log.Println("Removing deployed workload identities from deployed cluster spec")
+			deployedCluster.Spec.GetAks().Spec.WorkloadIdentities = nil
+		}
 	}
 
-	ag, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
-		Name:    tfClusterState.Metadata.Name,
-		Project: tfClusterState.Metadata.Project,
-	})
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	// ============== Unfurl End =================
 
-	err = flattenAKSClusterV3(d, ag)
+	err = flattenAKSClusterV3(d, deployedCluster)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	return diags
+}
+
+func getDeployedClusterSpecV3(ctx context.Context, d *schema.ResourceData) (*infrapb.Cluster, error) {
+	var deployedCluster *infrapb.Cluster
+
+	log.Println("getDeployedClusterSpecV3")
+	tflog := os.Getenv("TF_LOG")
+	if tflog == "TRACE" || tflog == "DEBUG" {
+		ctx = context.WithValue(ctx, "debug", "true")
+	}
+	desiredTfClusterState, err := expandClusterV3(d)
+	if err != nil {
+		return deployedCluster, err
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		return deployedCluster, err
+	}
+
+	deployedCluster, err = client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+		Name:    desiredTfClusterState.Metadata.Name,
+		Project: desiredTfClusterState.Metadata.Project,
+	})
+	if err != nil {
+		return deployedCluster, err
+	}
+
+	return deployedCluster, nil
+
 }
 
 func resourceAKSClusterV3Update(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -197,13 +227,38 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 		}
 	}
 
-	cluster, err := expandClusterV3(d)
+	desiredCluster, err := expandClusterV3(d)
 	if err != nil {
 		log.Printf("Cluster expandCluster error")
 		return diag.FromErr(err)
 	}
 
-	log.Println(">>>>>> CLUSTER: ", cluster)
+	// Only proceed with stitching if the cluster resource already exists
+	if d.Id() != "" {
+		// ============== Stitching Start ==============
+
+		log.Println("Including first class edge resources in desired spec")
+
+		deployedCluster, err := getDeployedClusterSpecV3(ctx, d)
+		if err != nil {
+			log.Println("error getting deployed cluster", err)
+			return diag.FromErr(err)
+		}
+
+		if deployedCluster != nil && deployedCluster.Spec != nil && deployedCluster.Spec.GetAks() != nil {
+			if len(deployedCluster.Spec.GetAks().Spec.WorkloadIdentities) > 0 {
+				// Copy over the WorkloadIdentities from the deployed cluster spec
+
+				log.Println("Adding deployed workload identities from deployed cluster spec")
+				desiredCluster.Spec.GetAks().Spec.WorkloadIdentities = deployedCluster.Spec.GetAks().Spec.WorkloadIdentities
+			}
+
+		}
+
+		// ============== Stitching End ==============
+	}
+
+	log.Println(">>>>>> CLUSTER: ", desiredCluster)
 
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
@@ -211,10 +266,10 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
-	err = client.InfraV3().Cluster().Apply(ctx, cluster, options.ApplyOptions{})
+	err = client.InfraV3().Cluster().Apply(ctx, desiredCluster, options.ApplyOptions{})
 	if err != nil {
 		// XXX Debug
-		n1 := spew.Sprintf("%+v", cluster)
+		n1 := spew.Sprintf("%+v", desiredCluster)
 		log.Println("Cluster apply cluster:", n1)
 		log.Printf("Cluster apply error")
 		return diag.FromErr(err)
@@ -223,9 +278,9 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
 
-	edgeName := cluster.Metadata.Name
-	projectName := cluster.Metadata.Project
-	d.SetId(cluster.Metadata.Name)
+	edgeName := desiredCluster.Metadata.Name
+	projectName := desiredCluster.Metadata.Project
+	d.SetId(desiredCluster.Metadata.Name)
 
 	var warnings []string
 LOOP:

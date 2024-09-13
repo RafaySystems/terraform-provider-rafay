@@ -938,3 +938,138 @@ resource "rafay_aks_cluster" "demo-terraform-wi" {
     }
   }
 }
+
+resource "rafay_aks_cluster" "demo_terraform_wi_cluster" {
+  apiversion = "rafay.io/v1alpha1"
+  kind       = "Cluster"
+  metadata {
+    name    = "gautham-aks-wi-tf"
+    project = "defaultproject"
+  }
+  spec {
+    type          = "aks"
+    blueprint     = "minimal"
+    cloudprovider = "gautham-azure-creds"
+    cluster_config {
+      apiversion = "rafay.io/v1alpha1"
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "gautham-aks-wi-tf"
+      }
+      spec {
+        resource_group_name = "gautham-rg-ci"
+        managed_cluster {
+          apiversion = "2024-01-01"
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "gautham-test-dns"
+            enable_rbac        = true
+            kubernetes_version = "1.29.2"
+            network_profile {
+              network_plugin = "kubenet"
+            }
+            power_state {
+              code = "Running"
+            }
+            oidc_issuer_profile {
+              enabled = true
+            }
+            security_profile {
+              workload_identity {
+                enabled = true
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          apiversion = "2023-11-01"
+          name       = "primary"
+          properties {
+            count                = 2
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.29.2"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+          }
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
+          location = "centralindia"
+        }
+        node_pools {
+          apiversion = "2023-11-01"
+          name       = "secondary"
+          properties {
+            count                = 2
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.29.2"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+          }
+          type     = "Microsoft.ContainerService/managedClusters/agentPools"
+          location = "centralindia"
+        }
+      }
+    }
+  }
+}
+
+resource "rafay_aks_workload_identity" "demo-terraform-wi" {
+  metadata {
+    cluster_name = "gautham-aks-wi-tf"
+    project      = "defaultproject"
+  }
+
+  spec {
+    create_identity = true
+
+    metadata {
+      name           = "gautham-aks-wi-tf-uai-1"
+      location       = "centralindia"
+      resource_group = "gautham-rg-ci"
+      tags = {
+        "owner"      = "gautham"
+        "department" = "gautham"
+      }
+    }
+
+    role_assignments {
+      name  = "Key Vault Secrets User"
+      scope = "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourceGroups/qa-automation/providers/Microsoft.KeyVault/vaults/gautham-rauto-kv-1"
+    }
+
+    service_accounts {
+      create_account = true
+
+      metadata {
+        name      = "gautham-tf-wi-1-sa-11"
+        namespace = "aks-wi-ns"
+        annotations = {
+          "role" = "dev"
+        }
+        labels = {
+          "owner"      = "gautham"
+          "department" = "gautham"
+        }
+      }
+    }
+  }
+
+  depends_on = [rafay_aks_cluster.demo_terraform_wi_cluster]
+}
+

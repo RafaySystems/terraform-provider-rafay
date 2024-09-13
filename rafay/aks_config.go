@@ -67,12 +67,47 @@ type AKSClusterConfigMetadata struct {
 }
 
 type AKSClusterConfigSpec struct {
-	SubscriptionID     string                  `yaml:"subscriptionId,omitempty"`
-	ResourceGroupName  string                  `yaml:"resourceGroupName,omitempty"`
-	ManagedCluster     *AKSManagedCluster      `yaml:"managedCluster,omitempty"`
-	NodePools          []*AKSNodePool          `yaml:"nodePools,omitempty"`
-	MaintenanceConfigs []*AKSMaintenanceConfig `yaml:"maintenanceConfigurations,omitempty"`
+	SubscriptionID     string                   `yaml:"subscriptionId,omitempty"`
+	ResourceGroupName  string                   `yaml:"resourceGroupName,omitempty"`
+	ManagedCluster     *AKSManagedCluster       `yaml:"managedCluster,omitempty"`
+	NodePools          []*AKSNodePool           `yaml:"nodePools,omitempty"`
+	MaintenanceConfigs []*AKSMaintenanceConfig  `yaml:"maintenanceConfigurations,omitempty"`
+	WorkloadIdentities []*AzureWorkloadIdentity `yaml:"workloadIdentities,omitempty"`
 	//Internal          *AKSRafayInternal  `yaml:"internal,omitempty"`
+}
+
+type AzureWorkloadIdentity struct {
+	CreateIdentity     bool                                      `yaml:"createIdentity,omitempty"`
+	Metadata           *AzureWorkloadIdentityMetadata            `yaml:"metadata,omitempty"`
+	RoleAssignments    []*AzureWorkloadIdentityRoleAssignment    `yaml:"roleAssignments,omitempty"`
+	K8sServiceAccounts []*AzureWorkloadIdentityK8sServiceAccount `yaml:"serviceAccounts,omitempty"`
+}
+
+type AzureWorkloadIdentityMetadata struct {
+	ClientId      string            `yaml:"clientId,omitempty"`
+	PrincipalId   string            `yaml:"principalId,omitempty"`
+	Name          string            `yaml:"name,omitempty"`
+	Location      string            `yaml:"location,omitempty"`
+	ResourceGroup string            `yaml:"resourceGroup,omitempty"`
+	Tags          map[string]string `yaml:"tags,omitempty"`
+}
+
+type AzureWorkloadIdentityRoleAssignment struct {
+	Name             string `yaml:"name,omitempty"`
+	RoleDefinitionId string `yaml:"roleDefinitionId,omitempty"`
+	Scope            string `yaml:"scope,omitempty"`
+}
+
+type AzureWorkloadIdentityK8sServiceAccount struct {
+	CreateAccount bool                       `yaml:"createAccount,omitempty"`
+	Metadata      *K8sServiceAccountMetadata `yaml:"metadata,omitempty"`
+}
+
+type K8sServiceAccountMetadata struct {
+	Name        string            `yaml:"name"`
+	Namespace   string            `yaml:"namespace"`
+	Annotations map[string]string `yaml:"annotations,omitempty"`
+	Labels      map[string]string `yaml:"labels,omitempty"`
 }
 
 type AKSMaintenanceConfig struct {

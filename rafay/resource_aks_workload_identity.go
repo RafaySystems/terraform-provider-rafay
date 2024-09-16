@@ -153,7 +153,7 @@ func resourceAKSWorkloadIdentityDelete(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	wiName := desiredInfraAksWorkloadIdentity.Metadata.Name
+	wiName := desiredInfraAksWorkloadIdentity.Spec.Metadata.Name
 	wiClusterName := desiredInfraAksWorkloadIdentity.Metadata.Clustername
 	wiProjectName := desiredInfraAksWorkloadIdentity.Metadata.Project
 
@@ -193,7 +193,7 @@ LOOP:
 			}
 
 			for _, aksWorkloadIdentity := range aksWorkloadIdentityList.Items {
-				if aksWorkloadIdentity.Metadata.Name == wiName {
+				if aksWorkloadIdentity.Spec.Metadata.Name == wiName {
 					log.Printf("workload identity %s deletion in progress", wiName)
 					continue LOOP
 				}
@@ -348,7 +348,7 @@ func collectAKSV3UpsertEdgeResourceErrors(desiredInfraAksWorkloadIdentity *infra
 
 	collectedErrors.WorkloadIdentities = []AksWorkloadIdentityErrorFormatter{}
 	for _, er := range edgeResources {
-		if er.EdgeResourceType != "AksWorkloadIdentity" && er.Name != desiredInfraAksWorkloadIdentity.Metadata.Name {
+		if er.EdgeResourceType != "AksWorkloadIdentity" && er.Name != desiredInfraAksWorkloadIdentity.Spec.Metadata.Name {
 			continue
 		}
 		found = true
@@ -387,7 +387,7 @@ func collectAKSV3UpsertEdgeResourceErrors(desiredInfraAksWorkloadIdentity *infra
 
 	if !found {
 		collectedErrors.WorkloadIdentities = append(collectedErrors.WorkloadIdentities, AksWorkloadIdentityErrorFormatter{
-			Name:          desiredInfraAksWorkloadIdentity.Metadata.Name,
+			Name:          desiredInfraAksWorkloadIdentity.Spec.Metadata.Name,
 			FailureReason: "workload identity not found in the cluster",
 		})
 	}

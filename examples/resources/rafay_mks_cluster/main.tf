@@ -12,7 +12,7 @@ provider "rafay" {
 }
 
 
-resource "rafay_mks_cluster" "mks-sample-cluster-with-ssh-credentials" {
+resource "rafay_mks_cluster" "mks-sample-cluster-with-cloud-credentials" {
   api_version = "infra.k8smgmt.io/v3"
   kind        = "Cluster"
   metadata = {
@@ -23,7 +23,7 @@ resource "rafay_mks_cluster" "mks-sample-cluster-with-ssh-credentials" {
     blueprint = {
         name = "minimal"
     }
-    cloud_credentials = ""
+    cloud_credentials = "mks-ssh-creds"
     config = {
         auto_approve_nodes     = true
         dedicated_control_plane = false
@@ -106,5 +106,5 @@ resource "rafay_mks_cluster" "mks-sample-cluster-with-ssh-credentials" {
       ]
     }
     type = "mks"
-    }
+  }
 }

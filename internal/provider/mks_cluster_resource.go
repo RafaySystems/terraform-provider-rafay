@@ -10,6 +10,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/cluster"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
@@ -18,16 +19,17 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var (
-	_ resource.Resource                = &MksClusterResource{}
-	_ resource.ResourceWithConfigure   = &MksClusterResource{}
-	_ resource.ResourceWithImportState = &MksClusterResource{}
+	_ resource.Resource                     = &MksClusterResource{}
+	_ resource.ResourceWithConfigure        = &MksClusterResource{}
+	_ resource.ResourceWithImportState      = &MksClusterResource{}
+	_ resource.ResourceWithConfigValidators = &MksClusterResource{}
 )
 
 func NewMksClusterResource() resource.Resource {
 	return &MksClusterResource{}
 }
 
-// MksClusterResource defines the resource implementation.
+// MksClusterResource defines the resource implemSharentation.
 type MksClusterResource struct {
 	client typed.Client
 }
@@ -58,6 +60,15 @@ func (r *MksClusterResource) Configure(ctx context.Context, req resource.Configu
 
 	// Save the client for use in CRUD operations
 	r.client = client
+}
+
+func (r *MksClusterResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		resourcevalidator.AtLeastOneOf(
+			path.MatchRoot("spec").AtName("config").AtName("cluster_ssh"),
+			path.MatchRoot("spec").AtName("cloud_credentials"),
+		),
+	}
 }
 
 func (r *MksClusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

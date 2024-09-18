@@ -109,6 +109,7 @@ func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 		if checkStandardInputTextError(diags[0].Summary) {
 			return diags
 		}
+		namespaceCreateError := diag.FromErr(fmt.Errorf("%s", diags[0].Summary))
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
@@ -117,7 +118,7 @@ func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 		ns, err := expandNamespace(d)
 		if err != nil {
 			log.Printf("namespace expandNamespace error")
-			return diag.FromErr(err)
+			return namespaceCreateError
 		}
 		if v, ok := d.Get("impersonate").(string); ok && len(v) > 0 {
 			defer ResetImpersonateUser()
@@ -126,14 +127,14 @@ func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 			// with ORG Admin role
 			isOrgAdmin, err := user.IsOrgAdmin(asUser)
 			if err != nil {
-				return diag.FromErr(err)
+				return namespaceCreateError
 			}
 			if isOrgAdmin {
 				return diag.FromErr(fmt.Errorf("%s", "--as-user cannot have ORGADMIN role"))
 			}
 			config.ApiKey, config.ApiSecret, err = user.GetUserAPIKey(asUser)
 			if err != nil {
-				return diag.FromErr(err)
+				return namespaceCreateError
 			}
 		}
 		auth := config.GetConfig().GetAppAuthProfile()
@@ -147,7 +148,8 @@ func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 			Project: ns.Metadata.Project,
 		})
 		if err != nil {
-			return diag.FromErr(err)
+			log.Println("Error while namespace cleanup :", err.Error())
+			return namespaceCreateError
 		}
 	}
 	return diags

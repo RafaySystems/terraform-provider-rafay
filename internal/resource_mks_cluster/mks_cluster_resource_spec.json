@@ -365,13 +365,13 @@
 																			{
 																				"name": "effect",
 																				"string": {
-																					"computed_optional_required": "optional"
+																					"computed_optional_required": "required"
 																				}
 																			},
 																			{
 																				"name": "key",
 																				"string": {
-																					"computed_optional_required": "optional"
+																					"computed_optional_required": "required"
 																				}
 																			},
 																			{
@@ -463,7 +463,7 @@
 											{
 												"name": "https_proxy",
 												"string": {
-													"computed_optional_required": "required"
+													"computed_optional_required": "optional"
 												}
 											},
 											{

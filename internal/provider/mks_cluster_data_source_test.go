@@ -16,7 +16,7 @@ func TestAccMksClusterDataSource(t *testing.T) {
 			{
 				Config: testProviderConfig + testMksClusterDataSource(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.rafay_mks_cluster.mks-example-cluster", "metadata.name", "vasu-mks-gitsync-july-29"),
+					resource.TestCheckResourceAttr("data.rafay_mks_cluster.mks-example-cluster", "metadata.name", "mks-example-cluster"),
 					resource.TestCheckResourceAttr("data.rafay_mks_cluster.mks-example-cluster", "metadata.project", "defaultproject"),
 				),
 			},
@@ -29,7 +29,7 @@ func testMksClusterDataSource() string {
 	return `
 data "rafay_mks_cluster" "mks-example-cluster" {
   metadata = {
-    name    = "vasu-mks-gitsync-july-29"
+    name    = "mks-example-cluster"
     project = "defaultproject"
   }
 }

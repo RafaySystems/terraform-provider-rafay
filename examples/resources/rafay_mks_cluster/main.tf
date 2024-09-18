@@ -12,7 +12,7 @@ provider "rafay" {
 }
 
 
-resource "rafay_mks_cluster" "mks-sample-cluster-with-cloud-credentials" {
+resource "rafay_mks_cluster" "mks-sample-cluster" {
   api_version = "infra.k8smgmt.io/v3"
   kind        = "Cluster"
   metadata = {
@@ -105,6 +105,5 @@ resource "rafay_mks_cluster" "mks-sample-cluster-with-cloud-credentials" {
         },
       ]
     }
-    type = "mks"
   }
 }

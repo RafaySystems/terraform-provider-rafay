@@ -336,10 +336,10 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 											NestedObject: schema.NestedAttributeObject{
 												Attributes: map[string]schema.Attribute{
 													"effect": schema.StringAttribute{
-														Optional: true,
+														Required: true,
 													},
 													"key": schema.StringAttribute{
-														Optional: true,
+														Required: true,
 													},
 													"value": schema.StringAttribute{
 														Optional: true,
@@ -391,7 +391,7 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Required: true,
 							},
 							"https_proxy": schema.StringAttribute{
-								Required: true,
+								Optional: true,
 							},
 							"no_proxy": schema.StringAttribute{
 								Optional: true,

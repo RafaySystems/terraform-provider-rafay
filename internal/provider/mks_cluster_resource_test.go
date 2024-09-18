@@ -68,7 +68,7 @@ resource "rafay_mks_cluster" "mks-example-cluster" {
     blueprint = {
       name    = "minimal"
     }
-    cloud_credentials = "vasu-mks-ssh-010"
+    cloud_credentials = "mks-ssh-creds"
     config = {
       auto_approve_nodes      = true
       dedicated_control_plane = true

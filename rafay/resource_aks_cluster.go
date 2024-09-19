@@ -4147,8 +4147,11 @@ func flattenAKSCluster(d *schema.ResourceData, in *AKSCluster) error {
 		if !ok {
 			v = []interface{}{}
 		}
-
-		ret2 = flattenAKSClusterSpec(in.Spec, v, rawState.GetAttr("spec"))
+		var nRawState cty.Value
+		if !rawState.IsNull() {
+			nRawState = rawState.GetAttr("spec")
+		}
+		ret2 = flattenAKSClusterSpec(in.Spec, v, nRawState)
 	}
 
 	err = d.Set("spec", ret2)
@@ -4186,7 +4189,9 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}, rawState cty.Val
 		return nil
 	}
 	obj := map[string]interface{}{}
-	rawState = rawState.AsValueSlice()[0]
+	if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+		rawState = rawState.AsValueSlice()[0]
+	}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -4211,7 +4216,11 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}, rawState cty.Val
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["cluster_config"] = flattenAKSClusterConfig(in.AKSClusterConfig, v, rawState.GetAttr("cluster_config"))
+		var nRawState cty.Value
+		if !rawState.IsNull() {
+			nRawState = rawState.GetAttr("cluster_config")
+		}
+		obj["cluster_config"] = flattenAKSClusterConfig(in.AKSClusterConfig, v, nRawState)
 	}
 
 	if in.Sharing != nil {
@@ -4234,7 +4243,9 @@ func flattenAKSClusterConfig(in *AKSClusterConfig, p []interface{}, rawState cty
 		return nil
 	}
 	obj := map[string]interface{}{}
-	rawState = rawState.AsValueSlice()[0]
+	if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+		rawState = rawState.AsValueSlice()[0]
+	}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
@@ -4260,7 +4271,11 @@ func flattenAKSClusterConfig(in *AKSClusterConfig, p []interface{}, rawState cty
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["spec"] = flattenAKSClusterConfigSpec(in.Spec, v, rawState.GetAttr("spec"))
+		var nRawState cty.Value
+		if !rawState.IsNull() {
+			nRawState = rawState.GetAttr("spec")
+		}
+		obj["spec"] = flattenAKSClusterConfigSpec(in.Spec, v, nRawState)
 	}
 
 	return []interface{}{obj}
@@ -4287,7 +4302,10 @@ func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}, rawS
 	if in == nil {
 		return nil
 	}
-	rawState = rawState.AsValueSlice()[0]
+	if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
+		rawState = rawState.AsValueSlice()[0]
+	}
+
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
@@ -4315,7 +4333,11 @@ func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}, rawS
 		if !ok {
 			v = []interface{}{}
 		}
-		obj["node_pools"] = flattenAKSNodePool(in.NodePools, v, rawState.GetAttr("node_pools"))
+		var nRawState cty.Value
+		if !rawState.IsNull() {
+			nRawState = rawState.GetAttr("node_pools")
+		}
+		obj["node_pools"] = flattenAKSNodePool(in.NodePools, v, nRawState)
 	}
 
 	if in.MaintenanceConfigs != nil && len(in.MaintenanceConfigs) > 0 {
@@ -6037,7 +6059,7 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}, rawState cty.Value) 
 	out := make([]interface{}, len(in))
 	for i, in := range in {
 		var nRawState cty.Value
-		if len(rawState.AsValueSlice()) > i {
+		if !rawState.IsNull() && len(rawState.AsValueSlice()) > i {
 			nRawState = rawState.AsValueSlice()[0]
 		}
 		obj := map[string]interface{}{}
@@ -6058,11 +6080,11 @@ func flattenAKSNodePool(in []*AKSNodePool, p []interface{}, rawState cty.Value) 
 			if !ok {
 				v = []interface{}{}
 			}
-			if nRawState.IsNull() {
-				obj["properties"] = flattenAKSNodePoolProperties(in.Properties, v, nRawState)
-			} else {
-				obj["properties"] = flattenAKSNodePoolProperties(in.Properties, v, nRawState.GetAttr("properties"))
+			var propRawState cty.Value
+			if !nRawState.IsNull() {
+				propRawState = nRawState.GetAttr("properties")
 			}
+			obj["properties"] = flattenAKSNodePoolProperties(in.Properties, v, propRawState)
 		}
 
 		if len(in.Type) > 0 {
@@ -6082,7 +6104,7 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}, ra
 	if in == nil {
 		return nil
 	}
-	if !rawState.IsNull() {
+	if !rawState.IsNull() && len(rawState.AsValueSlice()) > 0 {
 		rawState = rawState.AsValueSlice()[0]
 	}
 	obj := map[string]interface{}{}

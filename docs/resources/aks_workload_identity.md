@@ -119,7 +119,7 @@ The following arguments are supported:
 
 - `spec`: (Required) The specification for the AKS workload identity. It includes the `create_identity`, `metadata`, `role_assignments`, and `service_accounts` attributes.
 
-  - `create_identity`: (Optional) Specifies whether to create the identity or not.
+  - `create_identity`: (Required) Specifies whether to create the identity or not.
 
   - `metadata`: (Required) The metadata for the AKS workload identity. It includes the `name`, `location`, `resource_group`, and `tags` attributes.
 
@@ -131,15 +131,19 @@ The following arguments are supported:
 
     - `tags`: (Optional) The tags for the AKS workload identity.
 
+    - `client_id`: (Optional) The client ID of the  existing AKS workload identity,required when reusing the identity.
+
+    - `principal_id`: (Optional) The principal ID of the existing  AKS workload identity,required when reusing the identity.
+
   - `role_assignments`: (Optional) The role assignments for the AKS workload identity. It includes the `name` and `scope` attributes.
 
     - `name`: (Required) The name of the role assignment.
 
     - `scope`: (Required) The scope of the role assignment.
 
-  - `service_accounts`: (Optional) The service accounts for the AKS workload identity. It includes the `create_account`, `metadata`, and `annotations` attributes.
+  - `service_accounts`: (Optional) The service accounts for the AKS workload identity. It includes the `create_account`, `metadata`, `labels` and `annotations` attributes.
 
-    - `create_account`: (Optional) Specifies whether to create the service account or not.
+    - `create_account`: (Required) Specifies whether to create the service account or not.
 
     - `metadata`: (Required) The metadata for the service account. It includes the `name`, `namespace`, and `labels` attributes.
 

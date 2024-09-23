@@ -232,7 +232,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `managed_cluster` - (Block List) The AKS managed cluster. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster))
 - `node_pools` - (Block List, Min: 1) The AKS node pool. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--node_pools))
 - `maintenance_configurations` - (Block List, Min: 0) The AKS Maintenance Configurations used to configure Auto-Upgrade Profile Schedule. (See [below for nested schema]
-(#nestedblock--spec--cluster_config--spec--maintenance_configurations)) 
+  (#nestedblock--spec--cluster_config--spec--maintenance_configurations))
 - `resource_group_name` - (String) The AKS resource group for the cluster.
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster"></a>
@@ -275,11 +275,13 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `linux_profile` - (Block List) The configurations for linux profile. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--linux_profile))
 - `network_profile` - (Block List) Profile of the network configuration. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--network_profile))
 - `node_resource_group` - (String) The name of the resource group containing agent pool nodes.
+- `oidc_issuer_profile` (Block List) Profile of OpenID Connect configuration. (see [below for nested schema](#nestedblock--spec--cluster_config--spec--subscription_id--properties--oidc_issuer_profile))
 - `pod_identity_profile` - (Block List) Azure Active Directory (Azure AD) pod-managed identities use Kubernetes primitives to associate managed identities for Azure resources and identities in Azure AD with pods. See [Use Azure AD Pod-Managed Identities](https://learn.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity) for more information. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--pod_identity_profile))
 - `power_state` - (Block List) Cluster Power State to Stop/Start the AKS cluster. See [Stop and start an Azure Kubernetes Service (AKS) cluster](https://learn.microsoft.com/en-us/azure/aks/start-stop-cluster?tabs=azure-cli) for more information.
+- `security_profile` (Block List) Profile of security configuration. (see [below for nested schema](#nestedblock--spec--cluster_config--spec--subscription_id--properties--security_profile))
 - `service_principal_profile` - (Block List) Information about a service principal identity for the cluster to use for manipulating Azure APIs. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--service_principal_profile))
 - `auto_upgrade_profile` - (Block List) Configure Auto-Upgrade Profile to handle automatic k8s version upgrade and node os image upgrade. See [below for nested schema]
-(#nestedblock--spec--cluster_config--spec--managed_cluster--properties--auto_upgrade_profile)
+  (#nestedblock--spec--cluster_config--spec--managed_cluster--properties--auto_upgrade_profile)
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--identity_profile"></a>
 
@@ -533,6 +535,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.auto_upgrade_profile`
 
 **_Required_**
+
 - `upgrade_channel` - (String) Configure channel with one of the following values [none, rapid, stable, patch, node-image]
 - `node_os_upgrade_channel` - (String) Configure channel with one of the following values [None, NodeImage, SecurityPatch]
 
@@ -639,6 +642,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations`
 
 **_Required_**
+
 - `api_version` - (String) The AKS maintenance configuration API version. The recommended value is `2024-01-01`.
 - `name` - (String) The AKS maintenance configuration name. It should be one of the following values [default, aksManagedNodeOSUpgradeSchedule, aksManagedAutoUpgradeSchedule].
 - `type` - (String) The AKS maintenance configuration type. The supported value is `Microsoft.ContainerService/managedClusters/maintenanceConfigurations`.
@@ -649,9 +653,11 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties`
 
 **_Required_**
+
 - `maintenance_window` - (Block List, Min: 1) Configure maintenance window in a maintenance configuration. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window))
 
 **_Optional_**
+
 - `not_allowed_time` - (Block List) Configure start and end time for maintenance configuration to not run. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--not_allowed_time))
 - `time_in_week` - (Block List) Configure day and hour_slots for maintenance configuration to run. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--time_in_week))
 
@@ -660,6 +666,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.not_allowed_time`
 
 **_Optional_**
+
 - `end` - (String) The end of a time span.
 - `start` - (String) The start of a time span.
 
@@ -668,19 +675,22 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.time_in_week`
 
 **_Optional_**
+
 - `day` - (String) Specify day of the week. Value should be one of the following [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
-- `hourSlot` - (Block List) Each integer hour represents a time range beginning at 0m after the hour ending at the next hour (non-inclusive). 0 corresponds to 00:00 UTC, 23 corresponds to 23:00 UTC. Specifying [0, 1] means the 00:00 - 02:00 UTC time range. Value should be between 0 to 23 
+- `hourSlot` - (Block List) Each integer hour represents a time range beginning at 0m after the hour ending at the next hour (non-inclusive). 0 corresponds to 00:00 UTC, 23 corresponds to 23:00 UTC. Specifying [0, 1] means the 00:00 - 02:00 UTC time range. Value should be between 0 to 23
 
 <a id="nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window"></a>
 
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window`
 
 **_Required_**
+
 - `duration_hours` - (Number) Configure the value between 4 to 24 hours.
 - `start_time` - (String) Configure the start time of maintenance window. Accepted values should be in format of 'HH:MM'.
 - `schedule` - (Block List) Recurrence schedule for the maintenance window. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--schedule))
 
 **_Optional_**
+
 - `not_allowed_dates` - (Block List) Date ranges on which upgrade is not allowed. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--not_allowed_dates))
 - `start_date` - (String) The date the maintenance window activates. If the current date is before this date, the maintenance window is inactive and will not be used for upgrades. If not specified, the maintenance window will be active right away.
 - `utc_offset` - (String) The UTC offset in format +/-HH:mm. If not specified, the default is '+00:00'.
@@ -690,6 +700,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window.schedule`
 
 **_Optional_**
+
 - `absolute_monthly` - (Block List) For schedules like: 'recur every month on the 10th' or 'recur every 4 months on the 15th'. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--schedule--absolute_monthly))
 - `relative_monthly` - (Block List) For schedules like: 'recur every month on the first Wednesday' or 'recur every 4 months on last Friday'. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--schedule--relative_monthly))
 - `daily` - (Block List) For schedules like: 'recur every 2 days'. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--schedule--daily))
@@ -700,6 +711,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window.schedule.absolute_monthly`
 
 **_Required_**
+
 - `day_of_month` - (Number) The date of the Month. Value should be between 1 to 31.
 - `interval_months` - (Number) Specifies the number of months between each set of occurrences. Value should be between 1 to 6.
 
@@ -708,6 +720,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window.schedule.relative_monthly`
 
 **_Required_**
+
 - `day_of_week` - (String) The day of the week. Value should be one of the following [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
 - `interval_months` - (Number) Specifies the number of months between each set of occurrences. Value should be between 1 to 6.
 - `week_index` - (String) Specifies on which week of the month the dayOfWeek applies. Value should be one of the following [First, Second, Third, Fourth, Last]
@@ -717,6 +730,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window.schedule.daily`
 
 **_Required_**
+
 - `intervalDays` - (Number) Specifies the number of days between each set of occurrences. Value should be between 1 to 7.
 
 <a id="nestedblock--spec--cluster_config--spec--maintenance_configurations--properties--maintenance_window--schedule--weekly"></a>
@@ -724,6 +738,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window.schedule.weekly`
 
 **_Required_**
+
 - `day_of_week` - (Number) Specifies on which day of the week the maintenance occurs. Value should be one of the following [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
 - `interval_weeks` - (Number) Specifies the number of weeks between each set of occurrences. Value should be between 1 to 4.
 
@@ -732,9 +747,9 @@ resource "rafay_aks_cluster" "demo-terraform" {
 ### Nested Schema for `spec.cluster_config.spec.maintenance_configurations.properties.maintenance_window.not_allowed_dates`
 
 **_Required_**
+
 - `end` - (String) End date for the date span.
 - `start` - (String) Start date for the date span.
-
 
 <a id="nestedblock--spec--sharing"></a>
 
@@ -762,6 +777,30 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes.
 - `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes.
 - `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes.
+
+### Nested Schema for `spec.cluster_config.spec.subscription_id.properties.oidc_issuer_profile`
+
+<a id="nestedblock--spec--cluster_config--spec--subscription_id--properties--oidc_issuer_profile"></a>
+
+**_Required_**
+
+- `enabled` - (Boolean) Enable/Disable OIDC issuer profile.
+
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.security_profile`
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--security_profile"></a>
+
+**_Required_**
+
+- `workload_identity` - (Block List) Enable/Disable workload identity. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--security_profile--workload_identity))
+
+<a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--security_profile--workload_identity"></a>
+
+### Nested Schema for `spec.cluster_config.spec.managed_cluster.properties.security_profile.workload_identity`
+
+**_Required_**
+
+- `enabled` - (Boolean) Enable/Disable workload identity.
 
 ## Attribute Reference
 
@@ -841,6 +880,14 @@ resource "rafay_aks_cluster" "demo-terraform" {
             }
             power_state {
               code = "Running"
+            }
+            oidc_issuer_profile {
+              enabled = true
+            }
+            security_profile {
+              workload_identity {
+                enabled = true
+              }
             }
           }
           type = "Microsoft.ContainerService/managedClusters"

@@ -115,7 +115,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 		return diags
 	}
 
-	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID)
+	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
 	if errGet != nil {
 		log.Printf("failed to get cluster info %s", errGet.Error())
 		return diag.FromErr(errGet)
@@ -318,7 +318,7 @@ func resourceClusterSharingRead(ctx context.Context, d *schema.ResourceData, m i
 		return diags
 	}
 
-	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID)
+	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
 	if errGet != nil {
 		log.Printf("failed to get cluster info %s", errGet.Error())
 		return diag.FromErr(errGet)
@@ -463,7 +463,7 @@ func resourceClusterSharingDelete(ctx context.Context, d *schema.ResourceData, m
 		return diags
 	}
 
-	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID)
+	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
 	if errGet != nil {
 		log.Printf("failed to get cluster info %s", errGet.Error())
 		return diag.FromErr(errGet)

@@ -89,6 +89,16 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
 
 - `name` (String) name of the project
 
+Note: To share a resource across all projects in an organisation, below spec can be used
+ ```
+     sharing {
+      enabled = true
+      projects {
+        name = "*"
+      }
+    }
+```
+
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
 

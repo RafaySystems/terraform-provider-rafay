@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
-	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func resourceDriver() *schema.Resource {
@@ -227,6 +228,14 @@ func expandDriverSpec(p []interface{}) (*eaaspb.DriverSpec, error) {
 		spec.Sharing = expandSharingSpec(v)
 	}
 
+	if v, ok := in["inputs"].([]interface{}); ok && len(v) > 0 {
+		spec.Inputs = expandConfigContextCompoundRefs(v)
+	}
+
+	if v, ok := in["outputs"].(map[string]any); ok && len(v) > 0 {
+		spec.Outputs = expandDriverOutputs(v)
+	}
+
 	return spec, nil
 }
 
@@ -405,6 +414,10 @@ func expandContainerKubeOptions(p []interface{}) *eaaspb.ContainerKubeOptions {
 		hc.ServiceAccountName = san
 	}
 
+	if tolerations, ok := in["tolerations"].([]interface{}); ok {
+		hc.Tolerations = expandV3Tolerations(tolerations)
+	}
+
 	return &hc
 }
 
@@ -454,42 +467,13 @@ func expandDriverHttpConfig(p []interface{}) *eaaspb.HTTPDriverConfig {
 	return &hc
 }
 
-func expandDriverCompoundRef(p []interface{}) *eaaspb.DriverCompoundRef {
-	driver := &eaaspb.DriverCompoundRef{}
-	if len(p) == 0 || p[0] == nil {
-		return driver
+func expandDriverOutputs(p map[string]any) *structpb.Struct {
+	if len(p) == 0 {
+		return nil
 	}
 
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["name"].(string); ok && len(v) > 0 {
-		driver.Name = v
-	}
-
-	if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
-		driver.Data = expandDriverInline(v)
-	}
-
-	return driver
-}
-
-func expandDriverInline(p []interface{}) *eaaspb.DriverInline {
-	driver := &eaaspb.DriverInline{}
-	if len(p) == 0 || p[0] == nil {
-		return driver
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
-		driver.Config = expandDriverConfig(v)
-	}
-
-	if v, ok := in["inputs"].([]interface{}); ok && len(v) > 0 {
-		driver.Inputs = expandConfigContextCompoundRefs(v)
-	}
-
-	return driver
+	s, _ := structpb.NewStruct(p)
+	return s
 }
 
 // Flatteners
@@ -545,6 +529,10 @@ func flattenDriverSpec(in *eaaspb.DriverSpec, p []interface{}) ([]interface{}, e
 	}
 
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
+
+	obj["inputs"] = flattenConfigContextCompoundRefs(in.Inputs)
+
+	obj["outputs"] = flattenDriverOutputs(in.Outputs)
 
 	return []interface{}{obj}, nil
 }
@@ -755,6 +743,16 @@ func flattenContainerKubeOptions(in *eaaspb.ContainerKubeOptions, p []interface{
 		obj["service_account_name"] = in.ServiceAccountName
 	}
 
+	if len(in.Tolerations) > 0 {
+		v, ok := obj["tolerations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, v)
+	} else {
+		delete(obj, "tolerations")
+	}
+
 	return []interface{}{obj}
 }
 
@@ -832,6 +830,10 @@ func expandContainerDriverVolumeOptions(p []interface{}) []*eaaspb.ContainerDriv
 			volume.UsePVC = expandBoolValue(usepvc)
 		}
 
+		if enableBackupAndRestore, ok := in["enable_backup_and_restore"].(bool); ok {
+			volume.EnableBackupAndRestore = enableBackupAndRestore
+		}
+
 		volumes = append(volumes, volume)
 
 	}
@@ -865,10 +867,20 @@ func flattenContainerDriverVolumeOptions(input []*eaaspb.ContainerDriverVolumeOp
 			obj["pvc_storage_class"] = in.PvcStorageClass
 		}
 
+		obj["enable_backup_and_restore"] = in.EnableBackupAndRestore
+
 		out[i] = &obj
 	}
 
 	return out
+}
+
+func flattenDriverOutputs(in *structpb.Struct) map[string]any {
+	if in == nil {
+		return nil
+	}
+
+	return in.AsMap()
 }
 
 func resourceDriverImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
@@ -895,34 +907,4 @@ func resourceDriverImport(d *schema.ResourceData, m interface{}) ([]*schema.Reso
 	}
 	d.SetId(cc.Metadata.Name)
 	return []*schema.ResourceData{d}, nil
-}
-
-func flattenDriverCompoundRef(input *eaaspb.DriverCompoundRef) []interface{} {
-	log.Println("flatten driver compound ref start")
-	if input == nil {
-		return nil
-	}
-	obj := map[string]interface{}{}
-	if len(input.Name) > 0 {
-		obj["name"] = input.Name
-	}
-	if input.Data != nil {
-		obj["data"] = flattenDriverInline(input.Data)
-	}
-	return []interface{}{obj}
-}
-
-func flattenDriverInline(input *eaaspb.DriverInline) []interface{} {
-	log.Println("flatten driver inline start")
-	if input == nil {
-		return nil
-	}
-	obj := map[string]interface{}{}
-	if input.Config != nil {
-		obj["config"] = flattenDriverConfig(input.Config, []interface{}{})
-	}
-	if len(input.Inputs) > 0 {
-		obj["inputs"] = flattenConfigContextCompoundRefs(input.Inputs)
-	}
-	return []interface{}{obj}
 }

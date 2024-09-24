@@ -29,9 +29,9 @@ func resourceEnvironment() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(8 * time.Hour),
+			Update: schema.DefaultTimeout(8 * time.Hour),
+			Delete: schema.DefaultTimeout(8 * time.Hour),
 		},
 
 		SchemaVersion: 1,
@@ -110,6 +110,11 @@ func environmentUpsert(ctx context.Context, d *schema.ResourceData, m interface{
 			}
 			if envs.GetStatus().GetDigestedStatus().GetConditionStatus() == commonpb.ConditionStatus_StatusFailed {
 				return diag.FromErr(fmt.Errorf("%s %s", "failed to publish environment", envs.GetStatus().GetDigestedStatus().GetReason()))
+			}
+			if envs.GetStatus().GetDigestedStatus().GetConditionStatus() == commonpb.ConditionStatus_StatusSubmitted {
+				if strings.Contains(envs.GetStatus().GetDigestedStatus().GetReason(), "trigger not processed") {
+					return diag.FromErr(fmt.Errorf("%s %s", "failed to publish environment", envs.GetStatus().GetLatestEvents()[0].GetTriggerDetails().GetReason()))
+				}
 			}
 		} else {
 			break
@@ -296,12 +301,12 @@ func expandEnvironmentSpec(p []interface{}) (*eaaspb.EnvironmentSpec, error) {
 		spec.Agents = expandEaasAgents(ag)
 	}
 
-	if ag, ok := in["env_vars"].([]interface{}); ok && len(ag) > 0 {
-		spec.EnvVars = expandEnvVariables(ag)
+	if ev, ok := in["env_vars"].([]interface{}); ok && len(ev) > 0 {
+		spec.EnvVars = expandEnvVariables(ev)
 	}
 
-	if ag, ok := in["files"].([]interface{}); ok && len(ag) > 0 {
-		spec.Files = expandCommonpbFiles(ag)
+	if f, ok := in["files"].([]interface{}); ok && len(f) > 0 {
+		spec.Files = expandCommonpbFiles(f)
 	}
 
 	if ag, ok := in["schedule_optouts"].([]interface{}); ok && len(ag) > 0 {
@@ -336,13 +341,13 @@ func expandScheduleOptOuts(p []interface{}) []*eaaspb.ScheduleOptOut {
 	return soo
 }
 
-func expandTemplate(p []interface{}) (*commonpb.ResourceNameAndVersionRef, error) {
+func expandTemplate(p []interface{}) (*eaaspb.EnvironmentTemplateCompoundRef, error) {
 	log.Println("expand template")
 	if len(p) == 0 || p[0] == nil {
 		return nil, fmt.Errorf("%s", "expand template empty input")
 	}
 
-	obj := &commonpb.ResourceNameAndVersionRef{}
+	obj := &eaaspb.EnvironmentTemplateCompoundRef{}
 
 	in := p[0].(map[string]interface{})
 
@@ -429,10 +434,7 @@ func flattenEnvironmentSpec(in *eaaspb.EnvironmentSpec, p []interface{}) ([]inte
 
 		obj["env_vars"] = flattenEnvVariables(in.EnvVars, v)
 	}
-
-	if len(in.Files) > 0 {
-		obj["files"] = flattenCommonpbFiles(in.Files)
-	}
+	obj["files"] = flattenCommonpbFiles(in.Files)
 
 	if len(in.ScheduleOptouts) > 0 {
 		v, ok := obj["schedule_optouts"].([]interface{})
@@ -474,7 +476,7 @@ func flattenScheduleOptOuts(input []*eaaspb.ScheduleOptOut, p []interface{}) []i
 	return out
 }
 
-func flattenTemplate(input *commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+func flattenTemplate(input *eaaspb.EnvironmentTemplateCompoundRef, p []interface{}) []interface{} {
 	log.Println("flatten template start", input)
 	if input == nil {
 		return nil

@@ -177,6 +177,15 @@ resource "rafay_addon" "tfdemoaddon2" {
 
 - `name` - (String) The names of the projects the resource belongs to. 
 
+Note: To share a resource across all projects in an organisation, below spec can be used
+ ```
+     sharing {
+      enabled = true
+      projects {
+        name = "*"
+      }
+    }
+```
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
@@ -213,4 +222,22 @@ output "addon_spec" {
   value       = data.rafay_addon.tfdemoaddon1.spec
 }
 ```
+---
+
+# rafay_addon (import )
+## Example Usage
+The below command will help to import existing addon resources from the controller to the state file.
+
+---
+```
+terraform import rafay_addon.tfdemoaddon1 addOnName/projectName
+```
+The above command will import the addon resources without the `artifact` object (i.e. `artifact` will be ignored), to import the `artifact` object refer below command.
+
+
+```
+terraform import rafay_addon.tfdemoaddon1 addOnName/projectName/show_artifact
+```
+The `show_artifact`, in the end, will update the state file with the artifact object.
+
 ---

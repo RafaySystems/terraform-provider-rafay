@@ -87,6 +87,31 @@ func toArrayString(in []interface{}) []string {
 	return out
 }
 
+func toArrayInt(in []interface{}) []int {
+	out := make([]int, len(in))
+	for i, v := range in {
+		if v == nil {
+			out[i] = 0
+			continue
+		}
+		out[i] = v.(int)
+	}
+	return out
+}
+
+func toArrayInt32(in []interface{}) []int32 {
+	out := make([]int32, len(in))
+	for i, v := range in {
+		if v == nil {
+			out[i] = 0
+			continue
+		}
+		nv := v.(int)
+		out[i] = int32(nv)
+	}
+	return out
+}
+
 func toArrayStringSorted(in []interface{}) []string {
 	if in == nil {
 		return nil
@@ -97,6 +122,14 @@ func toArrayStringSorted(in []interface{}) []string {
 }
 
 func toArrayInterface(in []string) []interface{} {
+	out := make([]interface{}, len(in))
+	for i, v := range in {
+		out[i] = v
+	}
+	return out
+}
+
+func intArraytoInterfaceArray(in []int) []interface{} {
 	out := make([]interface{}, len(in))
 	for i, v := range in {
 		out[i] = v
@@ -526,9 +559,9 @@ func expandCommonpbFiles(p []interface{}) []*commonpb.File {
 
 		if name, ok := in["name"].(string); ok && len(name) > 0 {
 
-			if strings.HasPrefix(obj.Name, "file://") {
+			if strings.HasPrefix(name, "file://") {
 				//get full path of artifact
-				artifactFullPath := filepath.Join(filepath.Dir("."), obj.Name[7:])
+				artifactFullPath := filepath.Join(filepath.Dir("."), name[7:])
 				//retrieve artifact data
 				artifactData, err := ioutil.ReadFile(artifactFullPath)
 				if err != nil {
@@ -551,6 +584,10 @@ func expandCommonpbFiles(p []interface{}) []*commonpb.File {
 
 		if v, ok := in["sensitive"].(bool); ok {
 			obj.Sensitive = v
+		}
+
+		if v, ok := in["options"].([]interface{}); ok && len(v) > 0 {
+			obj.Options = expandFileOptions(v)
 		}
 
 		out[i] = &obj
@@ -950,6 +987,8 @@ func flattenCommonpbFiles(input []*commonpb.File) []interface{} {
 		if len(in.MountPath) > 0 {
 			obj["mount_path"] = in.MountPath
 		}
+		obj["options"] = flattenFileOptions(in.Options)
+
 		out[i] = obj
 	}
 
@@ -1524,10 +1563,10 @@ func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
 	}
 
 	for indx := range p {
-		hook := &eaaspb.Hook{}
 		if p[indx] == nil {
-			return hooks
+			return nil
 		}
+		hook := &eaaspb.Hook{}
 		in := p[indx].(map[string]interface{})
 
 		if n, ok := in["name"].(string); ok && len(n) > 0 {
@@ -1560,6 +1599,10 @@ func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
 
 		if n, ok := in["driver"].([]interface{}); ok && len(n) > 0 {
 			hook.Driver = expandWorkflowHandlerCompoundRef(n)
+		}
+
+		if n, ok := in["depends_on"].([]interface{}); ok && len(n) > 0 {
+			hook.DependsOn = toArrayString(n)
 		}
 
 		hooks = append(hooks, hook)
@@ -1632,11 +1675,10 @@ func expandApprovalOptions(p []interface{}) *eaaspb.ApprovalOptions {
 }
 
 func expandInternalApprovalOptions(p []interface{}) *eaaspb.InternalApprovalOptions {
-	iao := &eaaspb.InternalApprovalOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return iao
+		return nil
 	}
-
+	iao := &eaaspb.InternalApprovalOptions{}
 	in := p[0].(map[string]interface{})
 
 	if emails, ok := in["emails"].([]interface{}); ok && len(emails) > 0 {
@@ -1823,6 +1865,7 @@ func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		obj["timeout_seconds"] = in.TimeoutSeconds
 		obj["on_failure"] = in.OnFailure
 		obj["driver"] = flattenWorkflowHandlerCompoundRef(in.Driver)
+		obj["depends_on"] = toArrayInterface(in.DependsOn)
 
 		out[i] = &obj
 		log.Println("flatten hook setting object ", out[i])
@@ -1904,6 +1947,10 @@ func flattenApprovalOptions(input *eaaspb.ApprovalOptions, p []interface{}) []in
 
 func flattenInternalApprovalOptions(input *eaaspb.InternalApprovalOptions) []interface{} {
 	if input == nil {
+		return nil
+	}
+
+	if len(input.Emails) == 0 {
 		return nil
 	}
 
@@ -2109,11 +2156,11 @@ func checkStandardInputTextError(input string) bool {
 }
 
 func expandWorkflowHandlerCompoundRef(p []interface{}) *eaaspb.WorkflowHandlerCompoundRef {
-	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
 	if len(p) == 0 || p[0] == nil {
-		return wfHandler
+		return nil
 	}
 
+	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["name"].(string); ok && len(v) > 0 {
@@ -2147,42 +2194,46 @@ func expandWorkflowHandlerInline(p []interface{}) *eaaspb.WorkflowHandlerInline 
 }
 
 func expandWorkflowHandlerConfig(p []interface{}) *eaaspb.WorkflowHandlerConfig {
-	config := eaaspb.WorkflowHandlerConfig{}
+	workflowHandlerConfig := eaaspb.WorkflowHandlerConfig{}
 	if len(p) == 0 || p[0] == nil {
-		return &config
+		return &workflowHandlerConfig
 	}
 
 	in := p[0].(map[string]interface{})
 
 	if typ, ok := in["type"].(string); ok && len(typ) > 0 {
-		config.Type = typ
+		workflowHandlerConfig.Type = typ
 	}
 
 	if ts, ok := in["timeout_seconds"].(int); ok {
-		config.TimeoutSeconds = int64(ts)
+		workflowHandlerConfig.TimeoutSeconds = int64(ts)
 	}
 
 	if sc, ok := in["success_condition"].(string); ok && len(sc) > 0 {
-		config.SuccessCondition = sc
+		workflowHandlerConfig.SuccessCondition = sc
 	}
 
 	if ts, ok := in["max_retry_count"].(int); ok {
-		config.MaxRetryCount = int32(ts)
+		workflowHandlerConfig.MaxRetryCount = int32(ts)
 	}
 
 	if v, ok := in["container"].([]interface{}); ok && len(v) > 0 {
-		config.Container = expandDriverContainerConfig(v)
+		workflowHandlerConfig.Container = expandDriverContainerConfig(v)
 	}
 
 	if v, ok := in["http"].([]interface{}); ok && len(v) > 0 {
-		config.Http = expandDriverHttpConfig(v)
+		workflowHandlerConfig.Http = expandDriverHttpConfig(v)
 	}
 
 	if v, ok := in["polling_config"].([]interface{}); ok && len(v) > 0 {
-		config.PollingConfig = expandPollingConfig(v)
+		workflowHandlerConfig.PollingConfig = expandPollingConfig(v)
 	}
 
-	return &config
+	if h, ok := in["timeout_seconds"].(int); ok {
+		workflowHandlerConfig.TimeoutSeconds = int64(h)
+	}
+
+	return &workflowHandlerConfig
 }
 
 func expandPollingConfig(p []interface{}) *eaaspb.PollingConfig {
@@ -2299,212 +2350,162 @@ func flattenPollingConfig(in *eaaspb.PollingConfig, p []interface{}) []interface
 	return []interface{}{obj}
 }
 
-func expandContextDataCompoundRef(p []interface{}) *eaaspb.ContextDataCompoundRef {
-	data := eaaspb.ContextDataCompoundRef{}
+func expandEnvvarOptions(p []interface{}) *eaaspb.EnvVarOptions {
 	if len(p) == 0 || p[0] == nil {
-		return &data
+		return &eaaspb.EnvVarOptions{}
 	}
 
-	in := p[0].(map[string]interface{})
-	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
-		data.Variables = expandVariableCompoundRef(v)
+	options := &eaaspb.EnvVarOptions{}
+	opts := p[0].(map[string]interface{})
+
+	if v, ok := opts["description"].(string); ok && len(v) > 0 {
+		options.Description = v
 	}
 
-	if v, ok := in["envs"].([]interface{}); ok && len(v) > 0 {
-		data.Envs = expandEnvDataCompoundRef(v)
+	if v, ok := opts["sensitive"].(bool); ok {
+		options.Sensitive = v
 	}
 
-	if v, ok := in["files"].([]interface{}); ok && len(v) > 0 {
-		data.Files = expandFileCompoundRef(v)
+	if v, ok := opts["required"].(bool); ok {
+		options.Required = v
 	}
 
-	return &data
+	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
+		options.Override = expandEnvvarOverrideOptions(v)
+	}
+
+	return options
+
 }
 
-func expandVariableCompoundRef(p []interface{}) []*eaaspb.VariableCompoundRef {
-	vars := make([]*eaaspb.VariableCompoundRef, 0)
+func expandEnvvarOverrideOptions(p []interface{}) *eaaspb.EnvVarOverrideOptions {
 	if len(p) == 0 || p[0] == nil {
-		return vars
-	}
-
-	for i := range p {
-		vcr := eaaspb.VariableCompoundRef{}
-		in := p[i].(map[string]interface{})
-
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			vcr.Name = v
-		}
-
-		if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
-			vcr.Data = expandVariables(v)[0]
-		}
-
-		vars = append(vars, &vcr)
-	}
-
-	return vars
-}
-
-func expandEnvDataCompoundRef(p []interface{}) []*eaaspb.EnvDataCompoundRef {
-	envs := make([]*eaaspb.EnvDataCompoundRef, 0)
-	if len(p) == 0 || p[0] == nil {
-		return envs
-	}
-
-	for i := range p {
-		ecr := eaaspb.EnvDataCompoundRef{}
-		in := p[i].(map[string]interface{})
-
-		if v, ok := in["key"].(string); ok && len(v) > 0 {
-			ecr.Key = v
-		}
-
-		if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
-			ecr.Data = expandEnvVariables(v)[0]
-		}
-
-		envs = append(envs, &ecr)
-	}
-
-	return envs
-}
-
-func expandFileCompoundRef(p []interface{}) []*eaaspb.FileCompoundRef {
-	files := make([]*eaaspb.FileCompoundRef, 0)
-	if len(p) == 0 || p[0] == nil {
-		return files
-	}
-
-	for i := range p {
-		fcr := eaaspb.FileCompoundRef{}
-		in := p[i].(map[string]interface{})
-
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			fcr.Name = v
-		}
-
-		if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
-			fcr.Data = expandCommonpbFiles(v)[0]
-		}
-
-		files = append(files, &fcr)
-	}
-
-	return files
-}
-
-func flattenContextDataCompoundRef(in *eaaspb.ContextDataCompoundRef, p []interface{}) []interface{} {
-	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+	override := &eaaspb.EnvVarOverrideOptions{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		override.Type = v
 	}
 
-	if len(in.Variables) > 0 {
-		v, ok := obj["variables"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["variables"] = flattenVariableCompoundRef(in.Variables, v)
+	if vals, ok := in["restricted_values"].([]interface{}); ok && len(vals) > 0 {
+		override.RestrictedValues = toArrayString(vals)
 	}
 
-	if len(in.Envs) > 0 {
-		v, ok := obj["envs"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["envs"] = flattenEnvDataCompoundRef(in.Envs, v)
-	}
+	return override
+}
 
-	if len(in.Files) > 0 {
-		v, ok := obj["files"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["files"] = flattenFileCompoundRef(in.Files, v)
+func flattenEnvvarOptions(input *eaaspb.EnvVarOptions) []interface{} {
+	log.Println("flatten envvar options")
+	if input == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(input.Description) > 0 {
+		obj["description"] = input.Description
+	}
+	obj["sensitive"] = input.Sensitive
+	obj["required"] = input.Required
+
+	if input.Override != nil {
+		obj["override"] = flattenEnvvarOverrideOptions(input.GetOverride())
 	}
 
 	return []interface{}{obj}
 }
 
-func flattenVariableCompoundRef(input []*eaaspb.VariableCompoundRef, p []interface{}) []interface{} {
-	if len(input) == 0 {
+func flattenEnvvarOverrideOptions(input *eaaspb.EnvVarOverrideOptions) []interface{} {
+	log.Println("flatten envvar override options")
+	if input == nil {
 		return nil
 	}
+	obj := map[string]interface{}{}
 
-	out := make([]interface{}, len(input))
-	for i, in := range input {
-		obj := map[string]interface{}{}
-		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
-		}
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
-		}
-
-		if in.Data != nil {
-			v, ok := obj["data"].([]interface{})
-			if !ok {
-				v = []interface{}{}
-			}
-			obj["data"] = flattenVariables([]*eaaspb.Variable{in.Data}, v)
-		}
-
-		out[i] = &obj
+	if len(input.Type) > 0 {
+		obj["type"] = input.Type
 	}
 
-	return out
+	if len(input.RestrictedValues) > 0 {
+		obj["restricted_values"] = toArrayInterface(input.RestrictedValues)
+	}
+
+	return []interface{}{obj}
 }
 
-func flattenEnvDataCompoundRef(input []*eaaspb.EnvDataCompoundRef, p []interface{}) []interface{} {
-	if len(input) == 0 {
-		return nil
+func expandFileOptions(p []interface{}) *commonpb.FileOptions {
+	if len(p) == 0 || p[0] == nil {
+		return &commonpb.FileOptions{}
 	}
 
-	out := make([]interface{}, len(input))
-	for i, in := range input {
-		obj := map[string]interface{}{}
-		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
-		}
-		if len(in.Key) > 0 {
-			obj["key"] = in.Key
-		}
+	options := &commonpb.FileOptions{}
+	opts := p[0].(map[string]interface{})
 
-		if in.Data != nil {
-			v, ok := obj["data"].([]interface{})
-			if !ok {
-				v = []interface{}{}
-			}
-			obj["data"] = flattenEnvVariables([]*eaaspb.EnvData{in.Data}, v)
-		}
-
-		out[i] = &obj
+	if v, ok := opts["description"].(string); ok && len(v) > 0 {
+		options.Description = v
 	}
 
-	return out
+	if v, ok := opts["sensitive"].(bool); ok {
+		options.Sensitive = v
+	}
+
+	if v, ok := opts["required"].(bool); ok {
+		options.Required = v
+	}
+
+	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
+		options.Override = expandFileOverrideOptions(v)
+	}
+
+	return options
+
 }
 
-func flattenFileCompoundRef(input []*eaaspb.FileCompoundRef, p []interface{}) []interface{} {
-	if len(input) == 0 {
+func expandFileOverrideOptions(p []interface{}) *commonpb.FileOverrideOptions {
+	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
 
-	out := make([]interface{}, len(input))
-	for i, in := range input {
-		obj := map[string]interface{}{}
-		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
-		}
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
-		}
-		obj["data"] = flattenCommonpbFile(in.Data)
-		out[i] = &obj
+	override := &commonpb.FileOverrideOptions{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		override.Type = v
 	}
 
-	return out
+	return override
+}
+
+func flattenFileOptions(input *commonpb.FileOptions) []interface{} {
+	log.Println("flatten file options")
+	if input == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(input.Description) > 0 {
+		obj["description"] = input.Description
+	}
+	obj["sensitive"] = input.Sensitive
+	obj["required"] = input.Required
+
+	if input.Override != nil {
+		obj["override"] = flattenFileOverrideOptions(input.GetOverride())
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenFileOverrideOptions(input *commonpb.FileOverrideOptions) []interface{} {
+	log.Println("flatten file override options")
+	if input == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+
+	if len(input.Type) > 0 {
+		obj["type"] = input.Type
+	}
+
+	return []interface{}{obj}
 }

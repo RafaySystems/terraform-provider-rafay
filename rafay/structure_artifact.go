@@ -214,7 +214,7 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 			}
 			if v, ok := in["set_string"].([]interface{}); ok && len(v) > 0 {
 				for _, value := range v {
-					if value.(string) != "" {
+					if value != nil && value.(string) != "" {
 						at.Options.SetString = append(at.Options.SetString, value.(string))
 					}
 				}
@@ -332,6 +332,10 @@ func FlattenArtifact(at *artifactTranspose, p []interface{}) ([]interface{}, err
 
 	if at.Artifact.ValuesPaths != nil {
 		obj["values_paths"] = flattenFiles(at.Artifact.ValuesPaths)
+	}
+
+	if len(at.Artifact.Catalog) > 0 {
+		obj["catalog"] = at.Artifact.Catalog
 	}
 
 	if len(at.Artifact.ChartName) > 0 {

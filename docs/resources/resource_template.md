@@ -42,6 +42,9 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
       branch         = var.branch
       directory_path = var.path
     }
+    artifact_driver {
+      name = var.driver_name
+    }
     contexts {
       name = var.configcontext_name
     }
@@ -145,7 +148,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 ***Required***
 
-- `provider` (String) Specify the resource template provider, Accepted values are `terraform`
+- `provider` (String) Specify the resource template provider, Accepted values are `terraform`, `hcpterraform`, `opentofu`, `custom`, `system`
 - `repository_options` (Block List, Max: 1) Repository options to be provided (see [below for nested schema](#nestedblock--spec--repository_options))
 - `version` (String) Version of the resource template
 
@@ -157,7 +160,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `provider_options` (Block List, Max: 1) Provider specific options to be provided (see [below for nested schema](#nestedblock--spec--provider_options))
 - `sharing` (Block List, Max: 1) Sharing resource template across projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Variables associated with resource template (see [below for nested schema](#nestedblock--spec--variables))
-- `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`. This is a readonly field, latest active versions can be synced or new version with accepted values can be created. Modifying state for an existing version is not supported.
+- `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`. This is a readonly field, by default only new active versions are created, and latest active versions will be synced. Creating a `draft`, `disabled` state or modifying state for an existing version is not supported.
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
@@ -189,9 +192,10 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--on_completion"></a>
 ### Nested Schema for `spec.hooks.on_completion`
 
-***Required***
+**Required**
 
 - `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`.
 
 ***Optional***
 
@@ -199,7 +203,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`.
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
 
 <a id="nestedblock--spec--hooks--on_completion--agents"></a>
 ### Nested Schema for `spec.hooks.on_completion.agents`
@@ -264,9 +268,10 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--on_failure"></a>
 ### Nested Schema for `spec.hooks.on_failure`
 
-***Required***
+**Required**
 
 - `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`
 
 ***Optional***
 
@@ -274,7 +279,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
 
 <a id="nestedblock--spec--hooks--on_failure--agents"></a>
 ### Nested Schema for `spec.hooks.on_failure.agents`
@@ -339,9 +344,10 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--on_init"></a>
 ### Nested Schema for `spec.hooks.on_init`
 
-***Required***
+**Required**
 
 - `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`
 
 ***Optional***
 
@@ -349,7 +355,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--on_init--agents"></a>
 ### Nested Schema for `spec.hooks.on_init.agents`
@@ -414,9 +420,10 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--on_success"></a>
 ### Nested Schema for `spec.hooks.on_success`
 
-***Required***
+**Required**
 
 - `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`
 
 ***Optional***
 
@@ -424,7 +431,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--on_success--agents"></a>
 ### Nested Schema for `spec.hooks.on_success.agents`
@@ -522,14 +529,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--after"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -595,14 +606,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -677,14 +692,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--after"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -752,14 +771,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -833,14 +856,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--after"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -907,14 +934,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -989,14 +1020,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--after"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -1061,14 +1096,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`.
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.agents`
@@ -1150,14 +1189,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--after"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.agents`
@@ -1223,14 +1266,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.agents`
@@ -1306,14 +1353,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--after"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`.
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.agents`
@@ -1380,14 +1431,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`.
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.agents`
@@ -1461,14 +1516,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--after"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`.
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.agents`
@@ -1541,14 +1600,18 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before`
 
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`.
+
 ***Optional***
 
 - `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents))
-- `name` (String) name of the hook
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http` 
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver)) 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--agents"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.agents`
@@ -1611,6 +1674,13 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `success_condition` (String) Specify the success condition of the request
 
 
+<a id="nestedblock--spec--artifact_driver"></a>
+### Nested Schema for `spec.artifact_driver`
+
+***Optional***
+- `name` (String) name of the driver resource
+- `data` (Block List, Max: 1) Inline workflow handler definition (see [below for nested schema](#nestedblock--spec--provider_options--driver--data))
+
 <a id="nestedblock--spec--provider_options"></a>
 ### Nested Schema for `spec.provider_options`
 
@@ -1618,6 +1688,10 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 
 - `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
 - `terraform` (Block List, Max: 1) Specify the terraform specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--terraform))
+- `hcp_terraform` (Block List, Max: 1) Specify the HCP terraform specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--hcpterraform))
+- `open_tofu` (Block List, Max: 1) Specify the opentofu specific options if any (see [below for nested schema](#nestedblock--spec--provider_options--opentofu))
+- `custom` (Block List, Max: 1) Specify the custom options if any (see [below for nested schema](#nestedblock--spec--provider_options--custom))
+- `system` (Block List, Max: 1) Specify the system options if any (see [below for nested schema](#nestedblock--spec--provider_options--system))
 
 <a id="nestedblock--spec--provider_options--driver"></a>
 ### Nested Schema for `spec.provider_options.driver`
@@ -1625,6 +1699,621 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `name` (String) name of the driver resource
+
+***Optional***
+
+- `data` (Block List, Max: 1) Inline workflow handler definition (see [below for nested schema](#nestedblock--spec--provider_options--driver--data))
+
+<a id="nestedblock--spec--provider_options--driver--data"></a>
+### Nested Schema for `spec.provider_options.driver.data`
+
+***Optional***
+
+- `config` (Block List, Max: 1) WorkflowHandler configuration (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config))
+- `inputs` (Block List) Specify the input data (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--inputs))
+
+<a id="nestedblock--spec--provider_options--driver--data--config"></a>
+### Nested Schema for `spec.provider_options.driver.data.config`
+
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`.
+
+***Optional***
+
+- `container` (Block List, Max: 1) Specify the container workflow handler config (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--container))
+- `http` (Block List, Max: 1) Specify the http workflow handler config (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--http))
+- `max_retry_count` (Number) Specify the max retry count
+- `polling_config` (Block List, Max: 1) Specify the polling config (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--polling_config))
+- `success_condition` (String) Specify the success condition
+- `timeout_seconds` (Number) Specify the timeout in seconds
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--container"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type`
+
+***Optional***
+
+- `arguments` (List of String) Specify the set of arguments to be passed
+- `commands` (List of String) Specify the set of commands to be executed
+- `cpu_limit_milli` (String) Specify the cpu limit in milli
+- `env_vars` (Map of String) Specify the environment variables to be set in key,value pair
+- `files` (Map of String) Specify the file data
+- `image` (String) Specify the container image for the driver
+- `image_pull_credentials` (Block List, Max: 1) Specify the credentials for the registry to pull image from (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--image_pull_credentials))
+- `kube_config_options` (Block List, Max: 1) Specify the kube config options (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--kube_config_options))
+- `kube_options` (Block List, Max: 1) Specify the kube options (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--kube_options))
+- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
+- `volume_options` (Block List, Max: 1) Specify the container driver volume options (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--volume_options))
+- `volumes` (Block List) Configure the container volumes (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--volumes))
+- `working_dir_path` (String) Specify the working directory path
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--image_pull_credentials"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path`
+
+***Optional***
+
+- `password` (String) Specify the registry password
+- `registry` (String) Specify the container image registry
+- `username` (String) Specify the registry username
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--kube_config_options"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path`
+
+***Optional***
+
+- `kube_config` (String) Specify the kube config
+- `out_of_cluster` (Boolean) Specify if out of cluster
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--kube_options"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path`
+
+***Optional***
+
+- `affinity` (Block List, Max: 1) Specify the affinity (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--affinity))
+- `labels` (Map of String) Specify the labels
+- `namespace` (String) Specify the namespace
+- `node_selector` (Map of String) Specify the node selectors
+- `resources` (List of String) Specify the resources
+- `security_context` (Block List, Max: 1) Specify the security context (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--security_context))
+- `service_account_name` (String) Specify the service account name
+- `tolerations` (Block List) Specify the tolerations (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--affinity"></a>
+### Nested Schema for `spec.provider_options.driver.name.config.type.working_dir_path.tolerations`
+
+***Optional***
+
+- `node_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity))
+- `pod_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity))
+- `pod_anti_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.node_affinity`
+
+***Optional***
+
+- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--preferred_during_scheduling_ignored_during_execution))
+- `required_during_scheduling_ignored_during_execution` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--preferred_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `preference` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--preference))
+- `weight` (Number)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--preference"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution.weight`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--weight--match_expressions))
+- `match_fields` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--weight--match_fields))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--weight--match_expressions"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution.weight.match_fields`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--weight--match_fields"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution.weight.match_fields`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `node_selector_terms` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_expressions))
+- `match_fields` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_fields))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_expressions"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_fields`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_fields"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_fields`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_affinity`
+
+***Optional***
+
+- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--preferred_during_scheduling_ignored_during_execution))
+- `required_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--preferred_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `pod_affinity_term` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term))
+- `weight` (Number)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.weight`
+
+***Optional***
+
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector))
+- `namespaces` (List of String)
+- `topology_key` (String)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+
+Optional:
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector))
+- `namespaces` (List of String)
+- `topology_key` (String)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity`
+
+***Optional***
+
+- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution))
+- `required_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `pod_affinity_term` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term))
+- `weight` (Number)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight`
+
+***Optional***
+
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector))
+- `namespaces` (List of String)
+- `topology_key` (String)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector))
+- `namespaces` (List of String)
+- `topology_key` (String)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--security_context"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations`
+
+***Optional***
+
+- `privileged` (Block List, Max: 1) Specify if privileged permissions (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--privileged))
+- `read_only_root_file_system` (Block List, Max: 1) Specify if permission is read only root file system (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--read_only_root_file_system))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--privileged"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.privileged`
+
+***Optional***
+
+- `value` (Boolean)
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations--read_only_root_file_system"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations.read_only_root_file_system`
+
+***Optional***
+
+- `value` (Boolean)
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--tolerations"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.tolerations`
+
+***Optional***
+
+- `effect` (String)
+- `key` (String)
+- `operator` (String)
+- `toleration_seconds` (Number)
+- `value` (String)
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--volume_options"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path`
+
+***Optional***
+
+- `enable_backup_and_restore` (Boolean) If enabled, contents of the volume will be backed up after the job completes and restored before the next job starts across multiple runs of the environment. Scope of backup and restore is limited to the environment and resource template where this driver is used.
+- `mount_path` (String) Specify the container mount path
+- `pvc_size_gb` (String) Specify the persistent volume claim size in GB
+- `pvc_storage_class` (String) Specify the persistent volume claim storage class
+- `use_pvc` (Block List, Max: 1) Specify if the container needs to use persistent volume claims (see [below for nested schema](#nestedblock--spec--provider_options--driver--name--config--type--working_dir_path--use_pvc))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--use_pvc"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.use_pvc`
+
+***Optional***
+
+- `value` (Boolean)
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--volumes"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path`
+
+***Optional***
+
+- `enable_backup_and_restore` (Boolean) If enabled, contents of the volume will be backed up after the job completes and restored before the next job starts across multiple runs of the environment. Scope of backup and restore is limited to the environment and resource template where this driver is used.
+- `mount_path` (String) Specify the container mount path
+- `pvc_size_gb` (String) Specify the persistent volume claim size in GB
+- `pvc_storage_class` (String) Specify the persistent volume claim storage class
+- `use_pvc` (Block List, Max: 1) Specify if the container needs to use persistent volume claims (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--use_pvc))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--type--working_dir_path--use_pvc"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type.working_dir_path.use_pvc`
+
+***Optional***
+
+- `value` (Boolean)
+
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--http"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.type`
+
+***Optional***
+
+- `body` (String) Specify the request body
+- `ca_cert` (String) Provide ca cert for the http request
+- `endpoint` (String) Specify the http endpoint
+- `headers` (Map of String) Specify the http headers
+- `insecure` (Boolean) Provide skip TLS verify for the http request
+- `method` (String) Specify the http method
+
+
+<a id="nestedblock--spec--provider_options--driver--data--config--polling_config"></a>
+### Nested Schema for `spec.provider_options.driver.name.config.type`
+
+***Optional***
+
+- `repeat` (String) Specify the repeat
+- `until` (String) Specify the until
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--inputs"></a>
+### Nested Schema for `spec.provider_options.driver.name.inputs`
+
+***Optional***
+
+- `data` (Block List, Max: 1) Context data of the config context (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--inputs--data))
+- `name` (String) Name of the config context
+
+<a id="nestedblock--spec--provider_options--driver--data--inputs--data"></a>
+### Nested Schema for `spec.provider_options.driver.data.inputs.name`
+
+***Optional***
+
+- `envs` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--inputs--name--envs))
+- `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--inputs--name--files))
+- `variables` (Block List) Variables data for config context (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--inputs--name--variables))
+
+<a id="nestedblock--spec--provider_options--driver--data--inputs--name--envs"></a>
+### Nested Schema for `spec.provider_options.driver.data.inputs.name.variables`
+
+***Optional***
+
+- `key` (String) Key of the environment variable to be set
+- `options` (Block List, Max: 1) Provide the environment variable options (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--inputs--name--variables--options))
+- `sensitive` (Boolean) Deprecated: use options.sensitive. Determines whether the value is sensitive or not, accordingly applies encryption on it
+- `value` (String) Value of the environment variable to be set
+
+<a id="nestedblock--spec--provider_options--driver--data--inputs--name--variables--options"></a>
+### Nested Schema for `spec.provider_options.driver.data.inputs.name.variables.value`
+
+***Optional***
+
+- `description` (String)
+- `override` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--inputs--name--variables--value--override))
+- `required` (Boolean) Determines whether the variable is required / mandatory
+- `sensitive` (Boolean)
+
+<a id="nestedblock--spec--provider_options--driver--data--inputs--name--variables--value--override"></a>
+### Nested Schema for `spec.provider_options.driver.data.inputs.name.variables.value.override`
+
+***Optional***
+
+- `restricted_values` (List of String) If the override type is restricted, values it is restricted to
+- `type` (String) Specify the type of ovverride this variable supports
+
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--inputs--name--files"></a>
+### Nested Schema for `spec.provider_options.driver.data.inputs.name.variables`
+
+***Optional***
+
+- `data` (String) data is the base64 encoded contents of the file
+- `mount_path` (String) specify mount path of the file
+- `name` (String) Name or relative path of a artifact
+- `options` (Block List, Max: 1) specify options for the file (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--inputs--name--variables--options))
+- `sensitive` (Boolean) Deprected: use options.sensitive. data is encrypted  if sensitive is set to true
+
+<a id="nestedblock--spec--provider_options--driver--data--inputs--name--variables--options"></a>
+### Nested Schema for `spec.provider_options.driver.name.inputs.name.variables.sensitive`
+
+***Optional***
+
+- `description` (String) Description of the file
+- `override` (Block List, Max: 1) Override options for file (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--inputs--name--variables--sensitive--override))
+- `required` (Boolean) Determines whether the file is required / mandatory
+- `sensitive` (Boolean) data is encrypted  if sensitive is set to true
+
+<a id="nestedblock--spec--provider_options--driver--data--inputs--name--variables--sensitive--override"></a>
+### Nested Schema for `spec.provider_options.driver.data.inputs.name.variables.sensitive.override`
+
+***Optional***
+
+- `type` (String) Specify the type of override this file supports
+
+
+
+
+<a id="nestedblock--spec--provider_options--driver--data--inputs--name--variables"></a>
+### Nested Schema for `spec.provider_options.driver.data.inputs.name.variables`
+
+***Optional***
+
+- `name` (String) Name of the variable
+- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--inputs--name--variables--options))
+- `value` (String) Value of the variable in the specified format
+- `value_type` (String) Specify the variable value type
+
+<a id="nestedblock--spec--provider_options--driver--data--inputs--name--variables--options"></a>
+### Nested Schema for `spec.provider_options.driver.data.inputs.name.variables.value_type`
+
+***Optional***
+
+- `description` (String) Description of the variable
+- `override` (Block List, Max: 1) Determines whether the variable can be overridden (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--inputs--name--variables--value_type--override))
+- `required` (Boolean) Specify whether this variable is required or optional, by default it is optional
+- `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
+
+<a id="nestedblock--spec--provider_options--driver--data--inputs--name--variables--value_type--override"></a>
+### Nested Schema for `spec.provider_options.driver.data.inputs.name.variables.value_type.override`
+
+***Optional***
+
+- `restricted_values` (List of String) If the override type is restricted, values it is restricted to
+- `type` (String) Specify the type of ovverride this variable supports
 
 <a id="nestedblock--spec--provider_options--terraform"></a>
 ### Nested Schema for `spec.provider_options.terraform`
@@ -1754,3 +2443,71 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `update` (String)
 
 
+<a id="nestedblock--spec--provider_options--hcpterraform"></a>
+### Nested Schema for `spec.provider_options.hcp_terraform`
+
+***Optional***
+
+- `lock` (Block List, Max: 1) Don't hold a state lock during the operation. This is dangerous if others might concurrently run commands against the same workspace. (see [below for nested schema](#nestedblock--spec--provider_options--terraform--lock))
+- `lock_timeout_seconds` (Number) Duration to retry a state lock.
+- `plugin_dirs` (List of String) Directory containing plugin binaries. This overrides all default search paths for plugins, and prevents the automatic installation of plugins. This flag can be used multiple times
+- `refresh` (Block List, Max: 1) Skip checking for external changes to remote objects while creating the plan. This can potentially make planning faster, but at the expense of possibly planning against a stale record of the remote system state. (see [below for nested schema](#nestedblock--spec--provider_options--terraform--refresh))
+- `target_resources` (List of String) Limit the planning operation to only the given module, resource, or resource instance and all of its dependencies
+- `timeout_seconds` (Number) Timeout in seconds
+- `var_files` (List of String) Load variable values from the given file, in addition to the default files terraform.tfvars and *.auto.tfvars. Use this option more than once to include more than one variables files
+- `volumes` (Block List) volumes to be mounted into the terraform driver (see [below for nested schema](#nestedblock--spec--provider_options--terraform--volumes))
+
+<a id="nestedblock--spec--provider_options--opentofu"></a>
+### Nested Schema for `spec.provider_options.opentofu`
+
+***Optional***
+
+- `backend_configs` (List of String) This can be either a path to an HCL file with key/value assignments (same format as terraform.tfvars) or a 'key=value' format. This is merged with what is in the configuration file
+- `lock` (Block List, Max: 1) Don't hold a state lock during the operation. This is dangerous if others might concurrently run commands against the same workspace. (see [below for nested schema](#nestedblock--spec--provider_options--terraform--lock))
+- `lock_timeout_seconds` (Number) Duration to retry a state lock.
+- `plugin_dirs` (List of String) Directory containing plugin binaries. This overrides all default search paths for plugins, and prevents the automatic installation of plugins. This flag can be used multiple times
+- `refresh` (Block List, Max: 1) Skip checking for external changes to remote objects while creating the plan. This can potentially make planning faster, but at the expense of possibly planning against a stale record of the remote system state. (see [below for nested schema](#nestedblock--spec--provider_options--terraform--refresh))
+- `target_resources` (List of String) Limit the planning operation to only the given module, resource, or resource instance and all of its dependencies
+- `timeout_seconds` (Number) Timeout in seconds
+- `backend_type` (String) Specify the backend type, Supported types are `custom`, `system`
+- `var_files` (List of String) Load variable values from the given file, in addition to the default files terraform.tfvars and *.auto.tfvars. Use this option more than once to include more than one variables files
+- `version` (String) Terraform version
+- `volumes` (Block List) volumes to be mounted into the terraform driver (see [below for nested schema](#nestedblock--spec--provider_options--terraform--volumes))
+
+<a id="nestedblock--spec--provider_options--custom"></a>
+### Nested Schema for `spec.provider_options.custom`
+
+***Required***
+
+- `tasks` (Block List) Configure the custom tasks (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks))
+
+<a id="nestedblock--spec--provider_options--custom--tasks"></a>
+### Nested Schema for `spec.provider_options.custom.tasks`
+
+**Required**
+
+- `name` (String) name of the task
+- `type` (String) Specify the type of task, Available options are `driver`.
+
+***Optional***
+
+- `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks--agents))
+- `depends_on` (List of String) specify task dependencies
+- `description` (String) description of task
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
+- `on_failure` (String) Specify the on failure action
+- `timeout_seconds` (Number) Specify the timeout in seconds
+
+<a id="nestedblock--spec--provider_options--custom--tasks--agents"></a>
+### Nested Schema for `spec.provider_options.custom.tasks.agents`
+
+***Required***
+
+- `name` (String) name of the agent resource
+
+<a id="nestedblock--spec--provider_options--system"></a>
+### Nested Schema for `spec.provider_options.system`
+
+***Required***
+
+- `kind` (String) Specify the type of rafay resource, Available options are `credential`, `cluster`.

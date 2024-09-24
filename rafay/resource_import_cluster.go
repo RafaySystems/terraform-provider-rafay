@@ -226,7 +226,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	time.Sleep(10 * time.Second)
 	//if error with get cluster add a sleep to wait for cluster creation
 	//make sure new imported cluster was created by calling get cluster and checking for no errors
-	cluster_resp, err := cluster.GetCluster(d.Get("clustername").(string), project_id)
+	cluster_resp, err := cluster.GetCluster(d.Get("clustername").(string), project_id, "")
 	if err != nil {
 		log.Printf("imported cluster was not created, error %s", err.Error())
 		return diag.FromErr(err)
@@ -353,7 +353,7 @@ func resourceImportClusterRead(ctx context.Context, d *schema.ResourceData, m in
 		fmt.Printf("project does not exist")
 		return diags
 	}
-	c, err := cluster.GetCluster(d.Get("clustername").(string), project.ID)
+	c, err := cluster.GetCluster(d.Get("clustername").(string), project.ID, "")
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		if strings.Contains(err.Error(), "not found") {
@@ -400,7 +400,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	project_id := p.ID
 	//retrieve cluster_details from get cluster to pass into update cluster
-	cluster_resp, err := cluster.GetCluster(d.Get("clustername").(string), project_id)
+	cluster_resp, err := cluster.GetCluster(d.Get("clustername").(string), project_id, "")
 	if err != nil {
 		log.Printf("imported cluster was not created, error %s", err.Error())
 		return diag.FromErr(err)
@@ -466,7 +466,7 @@ func resourceImportClusterDelete(ctx context.Context, d *schema.ResourceData, m 
 
 	project_id := p.ID
 	//delete cluster once project id is retrieved correctly
-	err = cluster.DeleteCluster(d.Get("clustername").(string), project_id, false)
+	err = cluster.DeleteCluster(d.Get("clustername").(string), project_id, false, "")
 	if err != nil {
 		fmt.Print("cluster was not deleted")
 		log.Printf("cluster was not deleted, error %s", err.Error())

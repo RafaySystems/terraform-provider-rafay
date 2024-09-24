@@ -6,7 +6,7 @@ on:
       source_branch:
         description: 'Source branch name from which branch cut need to be done.'
         required: true
-        default: main|master
+        default: master
       release_branch:
         description: 'New branch release branch name'
         required: true
@@ -25,7 +25,7 @@ jobs:
       run: |
         git fetch --all
         if [ "${{ github.event.inputs.source_branch }}" == 'main|master' ] || [ "${{ github.event.inputs.source_branch }}" == 'master|main' ]; then
-            SOURCE_BRANCH=$(git remote set-head origin -a | egrep -oE 'master|main$')
+            SOURCE_BRANCH='master'
             echo source_branch=$SOURCE_BRANCH
         else 
             SOURCE_BRANCH="${{ github.event.inputs.source_branch }}"

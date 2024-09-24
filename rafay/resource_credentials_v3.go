@@ -105,7 +105,7 @@ func resourceCredentialsImport(d *schema.ResourceData, meta interface{}) ([]*sch
 
 func resourceCredentialsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("resourceCredentialsCreate create starts")
-	diags := resourceCredentialsUpsert(ctx, d, m)
+	diags := resourceV3CredentialsUpsert(ctx, d, m)
 	if diags.HasError() {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
@@ -136,10 +136,10 @@ func resourceCredentialsCreate(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceCredentialsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("Credentials update starts")
-	return resourceCredentialsUpsert(ctx, d, m)
+	return resourceV3CredentialsUpsert(ctx, d, m)
 }
 
-func resourceCredentialsUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceV3CredentialsUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("Credentials upsert starts")
 	tflog := os.Getenv("TF_LOG")

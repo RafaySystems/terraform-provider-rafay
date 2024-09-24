@@ -261,6 +261,10 @@ func expandEnvVariables(p []interface{}) []*eaaspb.EnvData {
 			obj.Sensitive = v
 		}
 
+		if v, ok := in["options"].([]interface{}); ok && len(v) > 0 {
+			obj.Options = expandEnvvarOptions(v)
+		}
+
 		envvars[i] = &obj
 
 	}
@@ -270,7 +274,7 @@ func expandEnvVariables(p []interface{}) []*eaaspb.EnvData {
 
 func expandConfigContextCompoundRefs(p []interface{}) []*eaaspb.ConfigContextCompoundRef {
 	var ccs []*eaaspb.ConfigContextCompoundRef
-	if len(p) == 0 || p[0] == nil {
+	if len(p) == 0 {
 		return ccs
 	}
 
@@ -411,6 +415,7 @@ func flattenEnvVariables(input []*eaaspb.EnvData, p []interface{}) []interface{}
 			obj["value"] = in.Value
 		}
 		obj["sensitive"] = in.Sensitive
+		obj["options"] = flattenEnvvarOptions(in.Options)
 
 		out[i] = &obj
 	}

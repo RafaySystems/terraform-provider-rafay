@@ -8,17 +8,15 @@ description: |-
 
 # rafay_gke_cluster (Resource)
 
-
-
 ## Example Usage
 
-Basic Zonal Cluster
+### Basic Public Cluster
 
 ```terraform
-resource "rafay_gke_cluster" "tf-example" {
+resource "rafay_gke_cluster" "gke-public-example" {
   metadata {
-    name    = var.name
-    project = "defaultproject"
+    name    = var.cluster_name
+    project = var.rafay_project_name
   }
   spec {
     type = "gke"
@@ -26,10 +24,10 @@ resource "rafay_gke_cluster" "tf-example" {
       name    = "minimal"
       version = "latest"
     }
-    cloud_credentials = "my-gcp-credential"
+    cloud_credentials = var.rafay_cloud_credential_name
     config {
-      gcp_project           = "my-gcp-project-id"
-      control_plane_version = "1.26"
+      gcp_project           = var.gcp_project
+      control_plane_version = "1.29"
       location {
         type = "zonal"
         config {
@@ -37,37 +35,13 @@ resource "rafay_gke_cluster" "tf-example" {
         }
       }
       network {
-        name        = "default"
-        subnet_name = "default"
+        name                     = "default"
+        subnet_name              = "default"
         enable_vpc_nativetraffic = "true"
         max_pods_per_node        = 110
         access {
           type = "public"
         }
-        # firewall config for private cluster
-        # access {
-        #   type = "private"
-        #   config {
-        #     control_plane_ip_range                  = "172.16.3.0/28"
-        #     enable_access_control_plane_external_ip = "true"
-        #     enable_access_control_plane_global      = "true"
-        #     disable_snat                            = "true"
-        #     firewall_rules {
-        #       action      = "allow"
-        #       description = "allow traffic"
-        #       direction   = "INGRESS"
-        #       name        = "allow-ingress"
-        #       priority    = 1000
-        #       source_ranges = [
-        #         "172.16.3.0/28"
-        #       ]
-        #       rules {
-        #         ports    = ["22383", "9447"]
-        #         protocol = "udp"
-        #       }
-        #     }
-        #   }
-        # }
       }
       features {
         enable_compute_engine_persistent_disk_csi_driver = "true"
@@ -77,8 +51,198 @@ resource "rafay_gke_cluster" "tf-example" {
         cloud_monitoring_components                      = ["SYSTEM_COMPONENTS"]
       }
       node_pools {
-        name         = "np"
-        node_version = "1.26"
+        name         = "default-nodepool"
+        node_version = "1.29"
+        size         = 3
+        machine_config {
+          machine_type   = "e2-standard-4"
+          image_type     = "COS_CONTAINERD"
+          boot_disk_type = "pd-standard"
+          boot_disk_size = 100
+        }
+      }
+    }
+  }
+}
+```
+
+### Private Cluster and firewall rules
+
+```terraform
+resource "rafay_gke_cluster" "gke-private-example" {
+  metadata {
+    name    = var.cluster_name
+    project = var.rafay_project_name
+  }
+  spec {
+    type = "gke"
+    blueprint {
+      name    = "minimal"
+      version = "latest"
+    }
+    cloud_credentials = var.rafay_cloud_credential_name
+    config {
+      gcp_project           = var.gcp_project
+      control_plane_version = "1.29"
+      location {
+        type = "zonal"
+        config {
+          zone = "us-central1-c"
+        }
+      }
+      network {
+        name                     = "default"
+        subnet_name              = "default"
+        enable_vpc_nativetraffic = "true"
+        max_pods_per_node        = 110
+        access {
+          type = "private"
+          config {
+            control_plane_ip_range                  = "172.16.3.0/28"
+            enable_access_control_plane_external_ip = "true"
+            enable_access_control_plane_global      = "true"
+            disable_snat                            = "true"
+            firewall_rules {
+              name        = "allow-internal"
+              description = "allow traffic"
+              action      = "allow"
+              direction   = "INGRESS"
+              priority    = 1000
+              source_ranges = [
+                "10.128.0.0/9"
+              ]
+              rules {
+                ports    = ["443", "80"]
+                protocol = "tcp"
+              }
+            }
+          }
+        }
+      }
+      features {
+        enable_compute_engine_persistent_disk_csi_driver = "true"
+        enable_cloud_logging                             = "true"
+        cloud_logging_components                         = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+        enable_cloud_monitoring                          = "true"
+        cloud_monitoring_components                      = ["SYSTEM_COMPONENTS"]
+      }
+      node_pools {
+        name         = "default-nodepool"
+        node_version = "1.29"
+        size         = 3
+        machine_config {
+          machine_type   = "e2-standard-4"
+          image_type     = "COS_CONTAINERD"
+          boot_disk_type = "pd-standard"
+          boot_disk_size = 100
+        }
+      }
+    }
+  }
+}
+```
+
+### Shared VPC Cluster
+
+```terraform
+resource "rafay_gke_cluster" "gke-shared-vpc-example" {
+  metadata {
+    name    = var.cluster_name
+    project = var.rafay_project_name
+  }
+  spec {
+    type = "gke"
+    blueprint {
+      name    = "minimal"
+      version = "latest"
+    }
+    cloud_credentials = var.rafay_cloud_credential_name
+    config {
+      gcp_project           = var.gcp_project
+      control_plane_version = "1.29"
+      location {
+        type = "zonal"
+        config {
+          zone = "us-central1-c"
+        }
+      }
+      network {
+        name                         = "projects/${var.gcp_project}/global/networks/shared-net"
+        subnet_name                  = "projects/${var.gcp_project}/regions/us-central1/subnetworks/shared-subnet"
+        pod_secondary_range_name     = "pods-range"
+        service_secondary_range_name = "services-range"
+        enable_vpc_nativetraffic     = "true"
+        max_pods_per_node            = 110
+        access {
+          type = "public"
+        }
+      }
+      features {
+        enable_compute_engine_persistent_disk_csi_driver = "true"
+        enable_cloud_logging                             = "true"
+        cloud_logging_components                         = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+        enable_cloud_monitoring                          = "true"
+        cloud_monitoring_components                      = ["SYSTEM_COMPONENTS"]
+      }
+      node_pools {
+        name         = "default-nodepool"
+        node_version = "1.29"
+        size         = 3
+        machine_config {
+          machine_type   = "e2-standard-4"
+          image_type     = "COS_CONTAINERD"
+          boot_disk_type = "pd-standard"
+          boot_disk_size = 100
+        }
+      }
+    }
+  }
+}
+```
+
+### Cluster having node pool using reservation affinity
+
+```terraform
+resource "rafay_gke_cluster" "gke-reservation-affinity-example" {
+  metadata {
+    name    = var.cluster_name
+    project = var.rafay_project_name
+  }
+  spec {
+    type = "gke"
+    blueprint {
+      name    = "minimal"
+      version = "latest"
+    }
+    cloud_credentials = var.rafay_cloud_credential_name
+    config {
+      gcp_project           = var.gcp_project
+      control_plane_version = "1.29"
+      location {
+        type = "zonal"
+        config {
+          zone = "us-central1-c"
+        }
+      }
+      network {
+        name                     = "default"
+        subnet_name              = "default"
+        enable_vpc_nativetraffic = "true"
+        max_pods_per_node        = 110
+        access {
+          type = "public"
+        }
+      }
+      features {
+        enable_compute_engine_persistent_disk_csi_driver = "true"
+        enable_cloud_logging                             = "true"
+        cloud_logging_components                         = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+        enable_cloud_monitoring                          = "true"
+        cloud_monitoring_components                      = ["SYSTEM_COMPONENTS"]
+      }
+      node_pools {
+        name         = "default-nodepool"
+        node_version = "1.29"
         size         = 3
         machine_config {
           machine_type   = "e2-standard-4"
@@ -86,22 +250,8 @@ resource "rafay_gke_cluster" "tf-example" {
           boot_disk_type = "pd-standard"
           boot_disk_size = 100
           reservation_affinity {
-             consume_reservation_type = "any"
-          }
-          accelerators {
-            accelerator_sharing {
-              max_shared_clients = 2
-              strategy           = "TIME_SHARING"
-            }
-            count = 1
-            gpu_driver_installation {
-              config {
-                version = "LATEST"
-              }
-              type = "google-managed"
-            }
-            gpu_partition_size = "1g.5gb"
-            type = "nvidia-tesla-t4"
+            consume_reservation_type = "specific"
+            reservation_name         = "my-reservation"
           }
         }
       }
@@ -109,6 +259,73 @@ resource "rafay_gke_cluster" "tf-example" {
   }
 }
 ```
+
+### Cluster having GPU nodes
+
+```terraform
+resource "rafay_gke_cluster" "gke-gpu-example" {
+  metadata {
+    name    = var.cluster_name
+    project = var.rafay_project_name
+  }
+  spec {
+    type = "gke"
+    blueprint {
+      name    = "minimal"
+      version = "latest"
+    }
+    cloud_credentials = var.rafay_cloud_credential_name
+    config {
+      gcp_project           = var.gcp_project
+      control_plane_version = "1.29"
+      location {
+        type = "zonal"
+        config {
+          zone = "us-central1-c"
+        }
+      }
+      network {
+        name                     = "default"
+        subnet_name              = "default"
+        enable_vpc_nativetraffic = "true"
+        max_pods_per_node        = 110
+        access {
+          type = "public"
+        }
+      }
+      features {
+        enable_compute_engine_persistent_disk_csi_driver = "true"
+        enable_cloud_logging                             = "true"
+        cloud_logging_components                         = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+        enable_cloud_monitoring                          = "true"
+        cloud_monitoring_components                      = ["SYSTEM_COMPONENTS"]
+      }
+      node_pools {
+        name         = "default-nodepool"
+        node_version = "1.29"
+        size         = 3
+        machine_config {
+          machine_type   = "n1-standard-4"
+          image_type     = "COS_CONTAINERD"
+          boot_disk_type = "pd-standard"
+          boot_disk_size = 100
+          accelerators {
+            type  = "nvidia-tesla-t4"
+            count = 1
+            gpu_driver_installation {
+              config {
+                version = "LATEST"
+              }
+              type = "google-managed"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 
 <!-- schema generated by tfplugindocs -->
 ## Argument Reference
@@ -211,7 +428,7 @@ resource "rafay_gke_cluster" "tf-example" {
 Optional:
 
 - `features` (Block List, Max: 1) Cluster additional features configuration. (see [below for nested schema](#nestedblock--spec--config--features))
-- `pre_bootstrap_commands` (List of String) PreBootCommands is a list of (one of more) commands that the user wants run on their target cluster.These commands will be run every time a node comes up, both during cluster creation and cluster/nodepool scale. Example: Node restart and node creation. 
+- `pre_bootstrap_commands` (List of String) Pre-bootstrap commands is a list of (one of more) commands that the user wants run on their target cluster. These commands will be run every time a node comes up, both during cluster creation and cluster/nodepool scale. Example: Node restart and node creation. Refer [preBootstrapCommands Guidelines on Rafay doc](https://docs.rafay.co/clusters/gke/preboot_commands/#prebootstrapcommands-guidelines) for usage. Special case: `${ROOT_DIR}` is used to refer root directory of nodes. However `${ROOT_DIR}` conflicts with Terraform's template syntax so you'd need to escape it by writting `$${ROOT_DIR}` instead.
 - `security` (Block List, Max: 1) Cluster security configuration. (see [below for nested schema](#nestedblock--spec--config--security))
 
 
@@ -263,6 +480,11 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 - `service_address_range` (String) Cluster services will be assigned an IP address from this IP address range. Enter a range (in CIDR notation) within a network range, a mask, or leave this field blank to use a default range.
 - `pod_secondary_range_name` (String) Cluster pods are assigned an IP from the selected node subnet's secondary CIDR address range.
 - `service_secondary_range_name` (String) Cluster services are assigned an IP from the selected node subnetes secondary CIDR address range.
+- `data_plane_v_2` (String) Dataplane V2 is optimized for Kubernetes networking which is implemented using eBPF. Supported value is `ADVANCED_DATAPATH`. 
+- `enable_data_plane_v_2_metrics` (Boolean) Dataplane V2 metrics brings better insight into the traffic between your Kubernetes workloads. Understand how your services communicate, identify issues with the network health, verify Kubernetes policies and more.
+- `enable_data_plane_v_2_observability` (Boolean) Dataplane V2 observability provides Managed Hubble CLI solution that lets you observe network flows between your Kubernetes workloads in real time. Check out here for more https://cloud.google.com/kubernetes-engine/docs/concepts/about-dpv2-observability
+- `network_policy_config` (Boolean) Configuration for NetworkPolicy. This only tracks whether the addon is enabled or not on the Master, it does not track whether network policy is enabled for the nodes.
+- `network_policy` (String) The Kubernetes Network Policy API allows the cluster administrator to specify what pods are allowed to communicate with each other. Cannot use with `data_plane_v_2` config. Supported value is `CALICO`.
 
 <a id="nestedblock--spec--config--network--access"></a>
 ### Nested Schema for `spec.config.network.access`
@@ -526,9 +748,8 @@ Optional:
 
 ***Required***
 - `strategy` (String) Update strategy of the node pool. Possible values are `SURGE` or `BLUE_GREEN`
+- `config` (Block List, Max: 1) If `strategy` is `SURGE`, configure surge configuration (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--surge_settings)). If `strategy` is `BLUE_GREEN`, configure blue-gree configuration (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--blue_green_settings)). 
 
-- `blue_green_settings` (Block List, Max: 1) If `strategy` is `BLUE_GREEN`, configure this setting for upgrade strategy (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--blue_green_settings))
-- `surge_settings` (Block List, Max: 1) If `strategy` is `SURGE`, configure this setting for upgrade strategy (see [below for nested schema](#nestedblock--spec--config--node_pools--upgrade_settings--surge_settings))
 
 <a id="nestedblock--spec--config--node_pools--upgrade_settings--blue_green_settings"></a>
 ### Nested Schema for `spec.config.node_pools.upgrade_settings.blue_green_settings`

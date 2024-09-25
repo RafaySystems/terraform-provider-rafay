@@ -1008,6 +1008,7 @@ func WaitForClusterApplyOperation(ctx context.Context, client typed.Client, clus
 				case commonpb.ConditionStatus_StatusFailed:
 					failureReason := uClusterCommonStatus.Reason
 					diags.AddError("Cluster operation failed", failureReason)
+					return diags
 				}
 			}
 		}
@@ -1034,8 +1035,8 @@ func WaitForClusterDeleteOperation(ctx context.Context, client typed.Client, nam
 					return diags
 				default:
 					diags.AddError("Cluster Deletion failed", err.Error())
+					return diags
 				}
-
 			}
 		}
 	}

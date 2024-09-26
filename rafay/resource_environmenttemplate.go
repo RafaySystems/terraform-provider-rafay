@@ -297,7 +297,7 @@ func expandSchedules(p []interface{}) []*eaaspb.Schedules {
 		}
 
 		if v, ok := in["context"].([]interface{}); ok && len(v) > 0 {
-			schd.Context = expandConfigContextCompoundRef(v)
+			schd.Context = expandConfigContextCompoundRef(v[len(v)].(map[string]any))
 		}
 
 		if v, ok := in["opt_out_options"].([]interface{}); ok && len(v) > 0 {

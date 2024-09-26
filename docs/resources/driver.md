@@ -45,12 +45,63 @@ resource "rafay_driver" "driver" {
               key : "key"
               operator : "Equal"
               value : "value"
-              effect : "NoSchedule"
+              effect : "NoExecute"
               toleration_seconds = 300
             }
           ]
         }
       }
+    }
+    inputs {
+      name = "cc-1"
+    }
+    inputs {
+      name = "inline-cc-1"
+      data {
+        envs {
+          key   = "name-modified"
+          value = "modified-value"
+          options {
+            description = "contains the input variables with default values"
+            sensitive   = false
+            override {
+              type = "allowed"
+            }
+          }
+        }
+        envs {
+          key   = "name-new"
+          value = "new-value"
+        }
+        files {
+          name = "some/variables.tf"
+          options {
+            description = "contains the input variables with default values"
+            sensitive   = true
+            override {
+              type = "allowed"
+            }
+          }
+        }
+        variables {
+          name       = "new-variable"
+          value_type = "text"
+          value      = "new-value"
+          options {
+            override {
+              type              = "restricted"
+              restricted_values = ["new-value", "modified-value"]
+            }
+            description = "this is a dummy variable"
+            sensitive   = false
+            required    = true
+          }
+        }
+      }
+    }
+    outputs = {
+      key1 = "value1"
+      key2 = "value2"
     }
   }
 }
@@ -86,6 +137,8 @@ resource "rafay_driver" "driver" {
 ***Required***
 
 - `config` (Block List, Max: 1) Driver configuration (see [below for nested schema](#nestedblock--spec--config))
+- `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
+- `outputs` (Map of String) Outputs for the driver
 
 ***Optional***
 
@@ -155,27 +208,39 @@ resource "rafay_driver" "driver" {
 - `labels` (Map of String) Specify the labels
 - `namespace` (String) Specify the namespace
 - `node_selector` (Map of String) Specify the node selectors
-- `security_context` (Block List, Max: 1) Specify the security context (see [below for nested schema](#nestedblock--spec--config--container--working_dir_path--security_context))
+- `security_context` (Block List, Max: 1) Specify the security context (see [below for nested schema](#nestedblock--spec--config--container--kube_options--security_context))
 - `service_account_name` (String) Specify the service account name
+- `tolerations` (Block List) Specify the tolerations (see [below for nested schema](#nestedblock--spec--config--container--kube_options--tolerations))
 
-<a id="nestedblock--spec--config--container--working_dir_path--security_context"></a>
-### Nested Schema for `spec.config.container.working_dir_path.security_context`
+<a id="nestedblock--spec--config--container--kube_options--tolerations"></a>
+### Nested Schema for `spec.config.container.kube_options.tolerations`
 
 ***Optional***
 
-- `privileged` (Block List, Max: 1) Specify if privileged permissions (see [below for nested schema](#nestedblock--spec--config--container--working_dir_path--security_context--privileged))
-- `read_only_root_file_system` (Block List, Max: 1) Specify if permission is read only root file system (see [below for nested schema](#nestedblock--spec--config--container--working_dir_path--security_context--read_only_root_file_system))
+- `key` (String) Specify the key
+- `operator` (String) Specify the operator, Accepted values are `Exists`, `Equal`.
+- `value` (String) Specify the value
+- `effect` (String) Specify the effect, Accepted values are `NoSchedule`, `PreferNoSchedule`, `NoExecute`.
+- `toleration_seconds` (Number) Specify the toleration seconds when `NoExecute` effect is given.
 
-<a id="nestedblock--spec--config--container--working_dir_path--security_context--privileged"></a>
-### Nested Schema for `spec.config.container.working_dir_path.security_context.read_only_root_file_system`
+<a id="nestedblock--spec--config--container--kube_options--security_context"></a>
+### Nested Schema for `spec.config.container.kube_options.security_context`
+
+***Optional***
+
+- `privileged` (Block List, Max: 1) Specify if privileged permissions (see [below for nested schema](#nestedblock--spec--config--container--kube_options--security_context--privileged))
+- `read_only_root_file_system` (Block List, Max: 1) Specify if permission is read only root file system (see [below for nested schema](#nestedblock--spec--config--container--kube_options--security_context--read_only_root_file_system))
+
+<a id="nestedblock--spec--config--container--kube_options--security_context--privileged"></a>
+### Nested Schema for `spec.config.container.kube_options.security_context.read_only_root_file_system`
 
 ***Optional***
 
 - `value` (Boolean)
 
 
-<a id="nestedblock--spec--config--container--working_dir_path--security_context--read_only_root_file_system"></a>
-### Nested Schema for `spec.config.container.working_dir_path.security_context.read_only_root_file_system`
+<a id="nestedblock--spec--config--container--kube_options--security_context--read_only_root_file_system"></a>
+### Nested Schema for `spec.config.container.kube_options.security_context.read_only_root_file_system`
 
 ***Optional***
 
@@ -256,4 +321,9 @@ resource "rafay_driver" "driver" {
 - `delete` (String)
 - `update` (String)
 
+<a id="nestedblock--spec--inputs"></a>
+### Nested Schema for `spec.inputs`
 
+***Required***
+
+- `name` (String) name of the config context

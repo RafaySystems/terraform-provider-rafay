@@ -2194,46 +2194,46 @@ func expandWorkflowHandlerInline(p []interface{}) *eaaspb.WorkflowHandlerInline 
 }
 
 func expandWorkflowHandlerConfig(p []interface{}) *eaaspb.WorkflowHandlerConfig {
-	config := eaaspb.WorkflowHandlerConfig{}
+	workflowHandlerConfig := eaaspb.WorkflowHandlerConfig{}
 	if len(p) == 0 || p[0] == nil {
-		return &config
+		return &workflowHandlerConfig
 	}
 
 	in := p[0].(map[string]interface{})
 
 	if typ, ok := in["type"].(string); ok && len(typ) > 0 {
-		config.Type = typ
+		workflowHandlerConfig.Type = typ
 	}
 
 	if ts, ok := in["timeout_seconds"].(int); ok {
-		config.TimeoutSeconds = int64(ts)
+		workflowHandlerConfig.TimeoutSeconds = int64(ts)
 	}
 
 	if sc, ok := in["success_condition"].(string); ok && len(sc) > 0 {
-		config.SuccessCondition = sc
+		workflowHandlerConfig.SuccessCondition = sc
 	}
 
 	if ts, ok := in["max_retry_count"].(int); ok {
-		config.MaxRetryCount = int32(ts)
+		workflowHandlerConfig.MaxRetryCount = int32(ts)
 	}
 
 	if v, ok := in["container"].([]interface{}); ok && len(v) > 0 {
-		config.Container = expandDriverContainerConfig(v)
+		workflowHandlerConfig.Container = expandDriverContainerConfig(v)
 	}
 
 	if v, ok := in["http"].([]interface{}); ok && len(v) > 0 {
-		config.Http = expandDriverHttpConfig(v)
+		workflowHandlerConfig.Http = expandDriverHttpConfig(v)
 	}
 
 	if v, ok := in["polling_config"].([]interface{}); ok && len(v) > 0 {
-		config.PollingConfig = expandPollingConfig(v)
+		workflowHandlerConfig.PollingConfig = expandPollingConfig(v)
 	}
 
 	if h, ok := in["timeout_seconds"].(int); ok {
-		config.TimeoutSeconds = int64(h)
+		workflowHandlerConfig.TimeoutSeconds = int64(h)
 	}
 
-	return &config
+	return &workflowHandlerConfig
 }
 
 func expandPollingConfig(p []interface{}) *eaaspb.PollingConfig {

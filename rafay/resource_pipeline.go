@@ -148,7 +148,7 @@ type stageSpecConfig struct {
 	SourceRepo          *gitopspb.SystemSyncRepo       `protobuf:"bytes,5,opt,name=sourceRepo,proto3" json:"sourceRepo,omitempty"`
 	DestinationRepo     *gitopspb.SystemSyncRepo       `protobuf:"bytes,6,opt,name=destinationRepo,proto3" json:"destinationRepo,omitempty"`
 	SourceAsDestination bool                           `protobuf:"varint,7,opt,name=sourceAsDestination,proto3" json:"sourceAsDestination,omitempty"`
-	CommitterEmail      string                         `protobuf:"bytes,8,opt,name=committorEmail,proto3" json:"committorEmail,omitempty"`
+	CommitterEmail      string                         `protobuf:"bytes,8,opt,name=committerEmail,proto3" json:"committerEmail,omitempty"`
 }
 
 type stageSpecConfigWorkloadTemplateOverrides struct {

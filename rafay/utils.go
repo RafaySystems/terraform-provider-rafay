@@ -2280,7 +2280,7 @@ func flattenWorkflowHandlerInline(input *eaaspb.WorkflowHandlerInline) []interfa
 		obj["config"] = flattenWorkflowHandlerConfig(input.Config, []interface{}{})
 	}
 	if len(input.Inputs) > 0 {
-		obj["contexts"] = flattenConfigContextCompoundRefs(input.Inputs)
+		obj["inputs"] = flattenConfigContextCompoundRefs(input.Inputs)
 	}
 	return []interface{}{obj}
 }

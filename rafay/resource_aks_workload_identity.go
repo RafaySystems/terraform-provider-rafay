@@ -275,8 +275,6 @@ func resourceAKSWorkloadIdentityUpsert(ctx context.Context, d *schema.ResourceDa
 	ticker := time.NewTicker(time.Duration(5) * time.Second)
 	defer ticker.Stop()
 
-	d.SetId(wiName)
-
 LOOP:
 	for {
 		select {
@@ -329,6 +327,8 @@ LOOP:
 			}
 		}
 	}
+
+	d.SetId(wiName)
 	return diags
 }
 

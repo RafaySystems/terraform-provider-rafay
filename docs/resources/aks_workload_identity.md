@@ -56,6 +56,57 @@ resource "rafay_aks_workload_identity" "demo-terraform" {
 }
 ```
 
+## Example Usage (Soft Creation of AKS Workload Identity and Soft Creation of Service Account)
+
+```terraform
+resource "rafay_aks_workload_identity" "demo-terraform" {
+  depends_on = [rafay_aks_cluster.my_cluster]
+
+  metadata {
+    cluster_name = "aks-tf-wi-1"
+    project      = "defaultproject"
+  }
+
+  spec {
+    create_identity = false
+
+    metadata {
+      name           = "aks-tf-wi-1-uai-1"
+      location       = "centralindia"
+      resource_group = "aks-rg-ci"
+      client_id      = "00000000-0000-0000-0000-000000000000"
+      principal_id   = "00000000-0000-0000-0000-000000000000"
+      tags = {
+        "owner"      = "aks"
+        "department" = "engg"
+      }
+    }
+
+    role_assignments {
+      name  = "Key Vault Secrets User"
+      scope = "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourceGroups/aks-rg-ci/providers/Microsoft.KeyVault/vaults/aks-keyvault"
+    }
+
+    service_accounts {
+      create_account = false
+
+      metadata {
+        name      = "aks-tf-wi-1-sa-10"
+        namespace = "default"
+        annotations = {
+          "role" = "dev"
+        }
+        labels = {
+          "owner"      = "aks"
+          "department" = "engg"
+        }
+      }
+    }
+
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:

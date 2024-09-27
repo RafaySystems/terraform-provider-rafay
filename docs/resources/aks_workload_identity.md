@@ -113,6 +113,10 @@ resource "rafay_aks_workload_identity" "demo-terraform" {
 }
 ```
 
+## Important
+
+- The depends_on attribute is mandatory for the workload identity resource to depend on the corresponding cluster resource.
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -139,9 +143,9 @@ The following arguments are supported:
 
     - `tags`: (Optional) The tags for the AKS workload identity.
 
-    - `client_id`: (Optional) The client ID of the  existing AKS workload identity,required when reusing the identity.
+    - `client_id`: (Optional) The client ID of the existing AKS workload identity,required when reusing the identity.
 
-    - `principal_id`: (Optional) The principal ID of the existing  AKS workload identity,required when reusing the identity.
+    - `principal_id`: (Optional) The principal ID of the existing AKS workload identity,required when reusing the identity.
 
   - `role_assignments`: (Optional) The role assignments for the AKS workload identity. It includes the `name` and `scope` attributes.
 

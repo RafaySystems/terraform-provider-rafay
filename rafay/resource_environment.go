@@ -309,6 +309,10 @@ func expandEnvironmentSpec(p []interface{}) (*eaaspb.EnvironmentSpec, error) {
 		spec.Files = expandCommonpbFiles(f)
 	}
 
+	if so, ok := in["schedule_optouts"].([]interface{}); ok && len(so) > 0 {
+		spec.ScheduleOptouts = expandScheduleOptOuts(so)
+	}
+
 	return spec, nil
 }
 
@@ -331,6 +335,31 @@ func expandTemplate(p []interface{}) (*eaaspb.EnvironmentTemplateCompoundRef, er
 	}
 
 	return obj, nil
+}
+
+func expandScheduleOptOuts(p []interface{}) []*eaaspb.ScheduleOptOut {
+	soo := make([]*eaaspb.ScheduleOptOut, 0)
+	if len(p) == 0 || p[0] == nil {
+		return soo
+	}
+
+	for i := range p {
+		obj := eaaspb.ScheduleOptOut{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["duration"].(string); ok && len(v) > 0 {
+			obj.Duration = v
+		}
+
+		soo[i] = &obj
+
+	}
+
+	return soo
 }
 
 // Flatteners
@@ -407,6 +436,15 @@ func flattenEnvironmentSpec(in *eaaspb.EnvironmentSpec, p []interface{}) ([]inte
 	}
 	obj["files"] = flattenCommonpbFiles(in.Files)
 
+	if len(in.ScheduleOptouts) > 0 {
+		v, ok := obj["schedule_optouts"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["schedule_optouts"] = flattenScheduleOptOuts(in.ScheduleOptouts, v)
+	}
+
 	return []interface{}{obj}, nil
 }
 
@@ -430,6 +468,34 @@ func flattenTemplate(input *eaaspb.EnvironmentTemplateCompoundRef, p []interface
 	}
 
 	return []interface{}{obj}
+}
+
+func flattenScheduleOptOuts(input []*eaaspb.ScheduleOptOut, p []interface{}) []interface{} {
+	log.Println("flatten schedule optout start")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flatten schedule optout ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Duration) > 0 {
+			obj["duration"] = in.Duration
+		}
+
+		out[i] = &obj
+	}
+
+	return out
 }
 
 func resourceEnvironmentImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {

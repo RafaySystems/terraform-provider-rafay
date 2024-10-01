@@ -100,6 +100,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_customrole":                        resourceCustomRole(),
 				"rafay_workload_cd_operator":              resourceWorkloadCDOperator(),
 				"rafay_breakglassaccess":                  resourceBreakGlassAccess(),
+				"rafay_eks_pod_identity":                  resourceEKSPodIdentity(),
 			},
 			DataSourcesMap: map[string]*schema.Resource{
 				"rafay_project":                  dataProject(),

@@ -55,7 +55,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
               }
             }
             auto_upgrade_profile {
-              upgrade_channel = "rapid"
+              upgrade_channel         = "rapid"
               node_os_upgrade_channel = "NodeImage"
             }
           }
@@ -79,7 +79,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
           type = "Microsoft.ContainerService/managedClusters/agentPools"
         }
         maintenance_configurations {
-          name = "aksManagedAutoUpgradeSchedule"
+          name        = "aksManagedAutoUpgradeSchedule"
           api_version = "2024-01-01"
           properties {
             maintenance_window {
@@ -87,7 +87,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
               schedule {
                 weekly {
                   interval_weeks = 1
-                  day_of_week = "Friday"
+                  day_of_week    = "Friday"
                 }
               }
               start_date = "2024-07-19"
@@ -98,7 +98,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
           type = "Microsoft.ContainerService/managedClusters/maintenanceConfigurations"
         }
         maintenance_configurations {
-          name = "aksManagedNodeOSUpgradeSchedule"
+          name        = "aksManagedNodeOSUpgradeSchedule"
           api_version = "2024-01-01"
           properties {
             maintenance_window {
@@ -106,7 +106,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
               schedule {
                 weekly {
                   interval_weeks = 1
-                  day_of_week = "Friday"
+                  day_of_week    = "Friday"
                 }
               }
               start_date = "2024-07-19"
@@ -639,4 +639,161 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
       }
     }
   }
+}
+
+resource "rafay_aks_cluster_v3" "demo-terraform-wi-cluster" {
+  metadata {
+    name    = "gautham-tf-wi-v3"
+    project = "defaultproject"
+  }
+  spec {
+    type = "aks"
+    blueprint_config {
+      name = "minimal"
+    }
+    cloud_credentials = "gautham-azure-creds"
+
+    config {
+      kind = "aksClusterConfig"
+      metadata {
+        name = "gautham-tf-wi-v3"
+      }
+      spec {
+        resource_group_name = "gautham-rg-ci"
+        managed_cluster {
+          api_version = "2023-11-01"
+          sku {
+            name = "Base"
+            tier = "Free"
+          }
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          tags = {
+            "email" = "gautham@rafay.co"
+            "env"   = "dev"
+          }
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "aks-v3-tf-2401202303-dns"
+            kubernetes_version = "1.29.2"
+            network_profile {
+              network_plugin    = "kubenet"
+              load_balancer_sku = "standard"
+            }
+            power_state {
+              code = "Running"
+            }
+            addon_profiles {
+              http_application_routing {
+                enabled = true
+              }
+              azure_policy {
+                enabled = true
+              }
+              azure_keyvault_secrets_provider {
+                enabled = true
+                config {
+                  enable_secret_rotation = false
+                  rotation_poll_interval = "2m"
+                }
+              }
+            }
+            oidc_issuer_profile {
+              enabled = true
+            }
+            security_profile {
+              workload_identity {
+                enabled = true
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          api_version = "2023-11-01"
+          name        = "primary"
+          location    = "centralindia"
+          properties {
+            count                = 2
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 2
+            mode                 = "System"
+            orchestrator_version = "1.29.2"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+        node_pools {
+          api_version = "2023-11-01"
+          name        = "secondary"
+          location    = "centralindia"
+          properties {
+            count                = 2
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 2
+            mode                 = "System"
+            orchestrator_version = "1.29.2"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+  }
+}
+resource "rafay_aks_workload_identity" "demo-terraform-wi" {
+  metadata {
+    cluster_name = "gautham-tf-wi-v3"
+    project      = "defaultproject"
+  }
+
+  spec {
+    create_identity = true
+
+    metadata {
+      name           = "gautham-tf-wi-v3-uai-1"
+      location       = "centralindia"
+      resource_group = "shobhit-rg"
+      tags = {
+        "owner"      = "gautham"
+        "department" = "gautham"
+        "app"        = "gautham"
+      }
+    }
+
+    role_assignments {
+      name  = "Key Vault Secrets User"
+      scope = "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourceGroups/qa-automation/providers/Microsoft.KeyVault/vaults/gautham-rauto-kv-1"
+    }
+
+    service_accounts {
+      create_account = true
+
+      metadata {
+        name      = "gautham-tf-wi-v3-sa-11"
+        namespace = "aks-wi-ns"
+        annotations = {
+          "role" = "dev"
+        }
+        labels = {
+          "owner"      = "gautham"
+          "department" = "gautham"
+        }
+      }
+    }
+  }
+
+  depends_on = [rafay_aks_cluster_v3.demo-terraform-wi-cluster]
 }

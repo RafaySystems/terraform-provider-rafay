@@ -9,10 +9,16 @@ description: |-
 
 This example is for the AKS Workload Identity.
 
+## Important
+
+The `depends_on` constraint is **mandatory** for the `rafay_aks_workload_identity` resource. Ensure that the workload identity resource explicitly depends on the associated cluster resource. This ensures proper resource creation and dependency handling between the workload identity and the cluster it is associated with.
+
 ## Example Usage
 
 ```terraform
 resource "rafay_aks_workload_identity" "demo-terraform" {
+  depends_on = [rafay_aks_cluster.my_cluster]
+
   metadata {
     cluster_name = "aks-tf-wi-1"
     project      = "defaultproject"
@@ -111,6 +117,8 @@ resource "rafay_aks_workload_identity" "demo-terraform" {
 
 The following arguments are supported:
 
+- depends_on: (Required) The `depends_on` attribute ensures that the `rafay_aks_workload_identity` resource is created after the associated `rafay_aks_cluster` resource. It is mandatory for the workload identity resource to depend on the corresponding cluster resource.
+
 - `metadata`: (Required) The metadata for the AKS workload identity. It includes the `cluster_name` and `project` attributes.
 
   - `cluster_name`: (Required) The name of the cluster.
@@ -119,7 +127,7 @@ The following arguments are supported:
 
 - `spec`: (Required) The specification for the AKS workload identity. It includes the `create_identity`, `metadata`, `role_assignments`, and `service_accounts` attributes.
 
-  - `create_identity`: (Optional) Specifies whether to create the identity or not.
+  - `create_identity`: (Required) Specifies whether to create the identity or not.
 
   - `metadata`: (Required) The metadata for the AKS workload identity. It includes the `name`, `location`, `resource_group`, and `tags` attributes.
 
@@ -131,15 +139,19 @@ The following arguments are supported:
 
     - `tags`: (Optional) The tags for the AKS workload identity.
 
+    - `client_id`: (Optional) The client ID of the  existing AKS workload identity,required when reusing the identity.
+
+    - `principal_id`: (Optional) The principal ID of the existing  AKS workload identity,required when reusing the identity.
+
   - `role_assignments`: (Optional) The role assignments for the AKS workload identity. It includes the `name` and `scope` attributes.
 
     - `name`: (Required) The name of the role assignment.
 
     - `scope`: (Required) The scope of the role assignment.
 
-  - `service_accounts`: (Optional) The service accounts for the AKS workload identity. It includes the `create_account`, `metadata`, and `annotations` attributes.
+  - `service_accounts`: (Optional) The service accounts for the AKS workload identity. It includes the `create_account`, `metadata`, `labels` and `annotations` attributes.
 
-    - `create_account`: (Optional) Specifies whether to create the service account or not.
+    - `create_account`: (Required) Specifies whether to create the service account or not.
 
     - `metadata`: (Required) The metadata for the service account. It includes the `name`, `namespace`, and `labels` attributes.
 

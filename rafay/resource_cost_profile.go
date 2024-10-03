@@ -267,6 +267,11 @@ func expandCostProfileIP(p []interface{}) *costpb.InstallationParams {
 			obj.Azure = expandCostProfileAzureCostProfile(v)
 		}
 	}
+	if _, ok := in["gcp"]; ok {
+		if v, ok := in["gcp"].([]interface{}); ok && len(v) > 0 {
+			obj.Gcp = expandCostProfileGcpCostProfile(v)
+		}
+	}
 
 	if v, ok := in["other"].([]interface{}); ok && len(v) > 0 {
 		obj.Other = expandCostProfileOtherCostProfile(v)
@@ -275,7 +280,20 @@ func expandCostProfileIP(p []interface{}) *costpb.InstallationParams {
 	return obj
 
 }
+func expandCostProfileGcpCostProfile(p []interface{}) *costpb.GcpCostProfile {
+	obj := &costpb.GcpCostProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
 
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["gcp_credentials"].([]interface{}); ok && len(v) > 0 {
+		obj.GcpCredentials = expandCostProfileGcpCredentials(v)
+	}
+	return obj
+
+}
 func expandCostProfileAwsCostProfile(p []interface{}) *costpb.AwsCostProfile {
 	obj := &costpb.AwsCostProfile{}
 	if len(p) == 0 || p[0] == nil {
@@ -323,6 +341,20 @@ func expandCostProfileAwsCredentials(p []interface{}) *costpb.AwsCredsCostProfil
 
 	return obj
 
+}
+
+func expandCostProfileGcpCredentials(p []interface{}) *costpb.GcpCredsCostProfile{
+	obj := &costpb.GcpCredsCostProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["cloud_credentials_name"].(string); ok && len(v) > 0 {
+		obj.CloudCredentialsName = v
+	}
+
+	return obj
 }
 
 func expandCostProfileAwsCurIntegration(p []interface{}) *costpb.AwsCurIntegration {
@@ -601,6 +633,14 @@ func flattenCostProfileSpecIP(in *costpb.InstallationParams, p []interface{}) []
 		obj["other"] = flattenCostProfileOtherIP(in.Other, v)
 	}
 
+	if in.Gcp != nil {
+		v, ok := obj["gcp"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["gcp"] = flattenCostProfileGcpIP(in.Gcp, v)
+	}
+
 	return []interface{}{obj}
 }
 
@@ -640,7 +680,41 @@ func flattenCostProfileAwsIP(in *costpb.AwsCostProfile, p []interface{}) []inter
 
 	return []interface{}{obj}
 }
+func flattenCostProfileGcpIP(in *costpb.GcpCostProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
 
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.GcpCredentials != nil {
+		v, ok := obj["gcp_credentials"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["gcp_credentials"] = flattenCostProfileGcpCredentials(in.GcpCredentials, v)
+	}
+	return []interface{}{obj}
+}
+
+func flattenCostProfileGcpCredentials(in *costpb.GcpCredsCostProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if len(in.CloudCredentialsName) > 0 {
+		obj["cloud_credentials_name"] = in.CloudCredentialsName
+	}
+	return []interface{}{obj}
+
+}
 func flattenCostProfileAwsCredentials(in *costpb.AwsCredsCostProfile, p []interface{}) []interface{} {
 	if in == nil {
 		return nil

@@ -3,9 +3,9 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.22.5
 
 require (
-	github.com/RafaySystems/edge-common v1.24.1-0.20240813083948-ba69bed0bc1b
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20240927131836-2140735b8068
-	github.com/RafaySystems/rctl v1.29.1-0.20240813175545-9dc352b7affb
+	github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20241001060236-33010cce4db2
+	github.com/RafaySystems/rctl v1.29.1-0.20240930095428-b93a8a4cfea9
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5
@@ -229,7 +229,7 @@ replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
 	// github.com/RafaySystems/eaas-playground => ../eaas-playground
 	// github.com/RafaySystems/rafay-common => ../rafay-common
-	// github.com/RafaySystems/rctl => github.com/RafaySystems/rctl v1.5.14
+	// github.com/RafaySystems/rctl => ../rctl
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	// github.com/RafaySystems/rctl => ../rctl
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet

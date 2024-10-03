@@ -73,6 +73,27 @@ resource "rafay_cost_profile" "tfdemocostprofile-azure" {
   }
 }
 ```
+Example cost profile for GCP
+
+```terraform
+resource "rafay_cost_profile" "tfdemocostprofile-gcp" {
+  metadata {
+    name    = "tfdemocostprofile-gcp"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    provider_type = "gcp"
+    installation_params {
+      gcp {
+        gcp_credentials {
+          cloud_credentials_name = "newcred"
+        }
+      }
+    }
+  }
+}
+```
 
 Example cost profile for Other providers
 
@@ -123,7 +144,7 @@ resource "rafay_cost_profile" "tfdemocostprofile-other" {
 
 - `installation_params` (Block List, Max: 1) The parameters for the profile installation. (See [below for nested schema](#nestedblock--spec--installation_params))
 - `version` (String) The version of the profile.
-- `provider_type` (String) The cloud provider type. The supported values are: `aws`, `azure`, and `other`.
+- `provider_type` (String) The cloud provider type. The supported values are: `aws`, `azure`, `gcp` , and `other`.
 
 ***Optional***
 
@@ -136,6 +157,7 @@ resource "rafay_cost_profile" "tfdemocostprofile-other" {
 
 - `aws` (Block List, Max: 1) The AWS cost profile parameters. Use with AWS specific parameters. (See [below for nested schema](#nestedblock--spec--installation_params--aws))
 - `azure` (Block List, Max: 1) The Azure cost profile parameters. Use with Azure specific parameters. (See [below for nested schema](#nestedblock--spec--installation_params--azure))
+- `gcp` (Block List, Max: 1) The GCP cost profile parameters. Use with GCP specific parameters. (See [below for nested schema](#nestedblock--spec--installation_params--gcp))
 - `other` (Block List, Max: 1) The cost profile parameters for other providers. Use custom parameters for other providers. (See [below for nested schema](#nestedblock--spec--installation_params--other))
 
 <a id="nestedblock--spec--sharing"></a>
@@ -157,6 +179,11 @@ resource "rafay_cost_profile" "tfdemocostprofile-other" {
 ### Nested Schema for `spec.installation_params.azure`
 
 - `custom_pricing` (Block List, Max: 1) The Azure cost profile parameters. Use Azure specific parameters. (See [below for nested schema](#nestedblock--spec--installation_params--azure--custom_pricing))
+
+<a id="nestedblock--spec--installation_params--gcp"></a>
+### Nested Schema for `spec.installation_params.gcp`
+
+- `gcp_credentials` (Block List, Max: 1) The GCP credentials to fetch for cost data. (See [below for nested schema](#nestedblock--spec--installation_params--gcp--gcp_credentials))
 
 <a id="nestedblock--spec--installation_params--other"></a>
 ### Nested Schema for `spec.installation_params.other`
@@ -197,6 +224,11 @@ resource "rafay_cost_profile" "tfdemocostprofile-other" {
 - `cloud_credentials_name` (String) The Azure cloud credentials name.
 - `billing_account_id` (String) The Azure Billing Account ID.
 - `offer_id` (String) The Azure Offer ID.
+
+<a id="nestedblock--spec--installation_params--gcp--gcp_credentials"></a>
+### Nested Schema for `spec.installation_params.gcp.gcp_credentials`
+
+- `cloud_credentials_name` (String) The cloud credentials name.
 
 <a id="nestedblock--spec--sharing--projects"></a>
 ### Nested Schema for `spec.sharing.projects`

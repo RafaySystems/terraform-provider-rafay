@@ -296,8 +296,8 @@ func expandSchedules(p []interface{}) []*eaaspb.Schedules {
 			schd.Cadence = expandCadence(v)
 		}
 
-		if v, ok := in["context"].([]interface{}); ok && len(v) > 0 {
-			schd.Context = expandConfigContextCompoundRef(v[len(v)].(map[string]any))
+		if v, ok := in["context"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			schd.Context = expandConfigContextCompoundRef(v[0].(map[string]any))
 		}
 
 		if v, ok := in["opt_out_options"].([]interface{}); ok && len(v) > 0 {
@@ -638,7 +638,10 @@ func flattenSchedules(input []*eaaspb.Schedules, p []interface{}) []interface{} 
 			}
 			obj["cadence"] = flattenCadence(in.Cadence, v)
 		}
-		obj["context"] = flattenConfigContextCompoundRef(in.Context)
+		if in.Context != nil {
+			cc := flattenConfigContextCompoundRef(in.Context)
+			obj["context"] = []interface{}{cc}
+		}
 
 		if in.OptOutOptions != nil {
 			v, ok := obj["opt_out_options"].([]interface{})

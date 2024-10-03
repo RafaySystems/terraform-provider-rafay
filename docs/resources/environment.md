@@ -75,6 +75,7 @@ resource "rafay_environment" "eks-rds-env-example" {
 - `variables` (Block List) Variables data for environment to be created (see [below for nested schema](#nestedblock--spec--variables))
 - `env_vars` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--envs))
 - `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--files))
+- `schedule_optouts` (Block List) Request to opt of of schedules, this may be honoured or not depending on the template configurations and approvals (see [below for nested schema](#nestedblock--spec--schedule-optouts))
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
@@ -175,3 +176,14 @@ resource "rafay_environment" "eks-rds-env-example" {
 
 - `data` (String) Data of the file content ( required if name if not a relative path )
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
+
+<a id="nestedblock--spec--schedule-optouts"></a>
+### Nested Schema for `spec.schedule_optouts`
+
+***Required***
+
+- `name` (String) Name of the schedule to be opted out from
+
+***Optional***
+
+- `duration` (String) Requested opt out duration

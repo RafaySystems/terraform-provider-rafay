@@ -74,6 +74,21 @@ resource "rafay_environment_template" "aws-et-example" {
         timeout_seconds = 1000
       }
     }
+    schedules {
+      description = "Destroy tf ec2 instance"
+      name        = "destroy-tf-ec2-instance"
+      type        = "destroy"
+      cadence {
+          time_to_live = "5h"
+      }
+      opt_out_options {
+        max_allowed_duration = "24h"
+        max_allowed_times    = 2
+        allow_opt_out {
+            value = true
+        }
+      }
+    }
     agents {
       name = var.agent_name
     }
@@ -128,6 +143,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `agent_override` (Block List, Max: 1) Agent override (see [below for nested schema](#nestedblock--spec--agent_override))
 - `icon_url` (String) Icon URL for the template
 - `readme` (String) Readme for the template
+- `schedules` (Block List) Reference to schedules associated with environment templates (see [below for nested schema](#nestedblock--spec--schedules))
 
 <a id="nestedblock--spec--agent_override"></a>
 ### Nested Schema for `spec.agent_override`
@@ -1175,3 +1191,79 @@ Optional:
 
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
 - `type` (String) Specify the type of ovverride this variable supports
+
+<a id="nestedblock--spec--provider_options--custom"></a>
+### Nested Schema for `spec.provider_options.custom`
+
+***Required***
+
+- `tasks` (Block List) Configure the custom tasks (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks))
+
+<a id="nestedblock--spec--provider_options--custom--tasks"></a>
+### Nested Schema for `spec.provider_options.custom.tasks`
+
+**Required**
+
+- `name` (String) name of the task
+- `type` (String) Specify the type of task, Available options are `driver`.
+
+***Optional***
+
+- `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks--agents))
+- `depends_on` (List of String) specify task dependencies
+- `description` (String) description of task
+- `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--hooks--driver))
+- `on_failure` (String) Specify the on failure action
+- `timeout_seconds` (Number) Specify the timeout in seconds
+
+<a id="nestedblock--spec--provider_options--custom--tasks--agents"></a>
+### Nested Schema for `spec.provider_options.custom.tasks.agents`
+
+***Required***
+
+- `name` (String) name of the agent resource
+
+<a id="nestedblock--spec--provider_options--system"></a>
+### Nested Schema for `spec.provider_options.system`
+
+***Required***
+
+- `kind` (String) Specify the type of rafay resource, Available options are `credential`, `cluster`.
+
+<a id="nestedblock--spec--schedules"></a>
+### Nested Schema for `spec.schedules`
+
+***Required***
+
+- `name` (String) name of the schedule
+- `type` (String) schedule type, Available options are `deploy`, `destroy`, `workflows`.
+- `cadence` (Block List, Max: 1) Configure a schedule cadence at which a job would automatically trigger (see [below for nested schema](#nestedblock--spec--schedules--cadence))
+
+***Optional***
+
+- `description` (String) Description of the schedule
+- `context` (Block List, Max: 1) Input data configuration that are needed as part of this schedule run (see [below for nested schema](#nestedblock--spec--contexts))
+- `workflows` (Block List, Max: 1) Name of the custom workflow provider that needs to be executed with this job (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks))
+- `opt_out_options` (Block List, Max: 1) Opt Out Options configured with this schedule (see [below for nested schema](#nestedblock--spec--schedules--optout))
+
+<a id="nestedblock--spec--schedules--cadence"></a>
+### Nested Schema for `spec.schedules.cadence`
+
+### https://en.wikipedia.org/wiki/Cron
+- `cron_expression` (String) Cron expression used to configure scheduling jobs
+
+***Optional***
+
+- `cron_timezone` (String) Specify the timezone of cron expression
+- `time_to_live` (String) Specify the maximum time to live duration of an environment, time units are 'h', 'd' e.g. 8h, 2d
+
+<a id="nestedblock--spec--schedules--optout"></a>
+### Nested Schema for `spec.schedules.optout`
+
+- `allow_opt_out` (Bool) Specify whether users can opt out from this schedule
+
+***Optional***
+
+- `max_allowed_duration` (String) Specify the maximum allowed opt out duration, time units are 'm', 'h', 'd' e.g. 8h, 2d
+- `max_allowed_times` (Number) Specify the maximum number of times users can opt out without approval e.g. users can max opt out of this schedule thrice
+- `approval` (Block List, Max: 1) Details of approval workflow that needs to be execution in case of user opt-out (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks))

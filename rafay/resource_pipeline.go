@@ -2272,9 +2272,7 @@ func flattenTriggerConfigRepos(tSpec *triggerSpec, p []interface{}) ([]interface
 		retNil = false
 	}
 
-	if tSpec.Config.Repo.Paths != nil {
-		obj["paths"] = flattenCommonpbFiles(tSpec.Config.Repo.Paths)
-	}
+	obj["paths"] = flattenCommonpbFiles(tSpec.Config.Repo.Paths)
 
 	if len(tSpec.Config.Repo.ChartName) > 0 {
 		obj["chart_name"] = tSpec.Config.Repo.ChartName

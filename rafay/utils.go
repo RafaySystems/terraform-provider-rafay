@@ -378,6 +378,22 @@ func expandPlacement(p []interface{}) *commonpb.PlacementSpec {
 		obj.Labels = expandPlacementLabels(v)
 	}
 
+	if v, ok := in["environment"].([]any); ok {
+		obj.Environment = expandEnvironmentPlacement(v)
+	}
+
+	return obj
+}
+
+func expandEnvironmentPlacement(p []any) *commonpb.Environment {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	obj := &commonpb.Environment{}
+	in := p[0].(map[string]any)
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
 	return obj
 }
 

@@ -107,7 +107,7 @@ resource "rafay_workload" "tftestworkload3" {
 
 ---
 
-Create a workload of K8s type by uploading from local system.
+Create a workload of K8s type by uploading from local system with environment placement.
 
 ```terraform
 resource "rafay_workload" "tftestworkload4" {
@@ -119,6 +119,9 @@ resource "rafay_workload" "tftestworkload4" {
     namespace = "test-workload4"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
+      environment {
+          name = "test-env"
+      }
     }
     version = "v0"
     artifact {
@@ -339,13 +342,25 @@ Optional:
 
 - `labels` - (Block List; Max: 1) A list of labels for the placement. (See [below for nested schema](#nestedblock--spec--placement--labels))
 
+***Optional***
+
+- `environment` - (String) The environment placement for workload. (See [below for nested schema](#nestedblock--spec--placement--environment))
+
 <a id="nestedblock--spec--placement--labels"></a>
 ### Nested Schema for `spec.placement.labels`
 
 ***Required****
 
 - `key` - (String) The key of the placement label. 
-- `value` - (String) The value of the placement label. 
+- `value` - (String) The value of the placement label.
+
+
+<a id="nestedblock--spec--placement--environment"></a>
+### Nested Schema for `spec.placement.environment`
+
+***Required****
+
+- `name` - (String) The name of the environment.
 
 
 <a id="nestedblock--timeouts"></a>

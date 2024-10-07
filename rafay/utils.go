@@ -378,6 +378,22 @@ func expandPlacement(p []interface{}) *commonpb.PlacementSpec {
 		obj.Labels = expandPlacementLabels(v)
 	}
 
+	if v, ok := in["environment"].([]any); ok {
+		obj.Environment = expandEnvironmentPlacement(v)
+	}
+
+	return obj
+}
+
+func expandEnvironmentPlacement(p []any) *commonpb.Environment {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	obj := &commonpb.Environment{}
+	in := p[0].(map[string]any)
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
 	return obj
 }
 
@@ -923,7 +939,24 @@ func flattenPlacement(in *commonpb.PlacementSpec) []interface{} {
 		obj["selector"] = in.Selector
 	}
 
+	if in.Environment != nil {
+		obj["environment"] = flattenEnvironmentPlacement(in.Environment)
+	}
+
 	return []interface{}{obj}
+}
+
+func flattenEnvironmentPlacement(in *commonpb.Environment) []any {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]any)
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	return []any{obj}
 }
 
 func flattenFile(in *File) []interface{} {

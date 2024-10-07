@@ -939,7 +939,24 @@ func flattenPlacement(in *commonpb.PlacementSpec) []interface{} {
 		obj["selector"] = in.Selector
 	}
 
+	if in.Environment != nil {
+		obj["environment"] = flattenEnvironmentPlacement(in.Environment)
+	}
+
 	return []interface{}{obj}
+}
+
+func flattenEnvironmentPlacement(in *commonpb.Environment) []any {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]any)
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	return []any{obj}
 }
 
 func flattenFile(in *File) []interface{} {

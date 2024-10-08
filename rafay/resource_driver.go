@@ -232,8 +232,12 @@ func expandDriverSpec(p []interface{}) (*eaaspb.DriverSpec, error) {
 		spec.Inputs = expandConfigContextCompoundRefs(v)
 	}
 
-	if v, ok := in["outputs"].(map[string]any); ok && len(v) > 0 {
-		spec.Outputs = expandDriverOutputs(v)
+	var err error
+	if v, ok := in["outputs"].(string); ok && len(v) > 0 {
+		spec.Outputs, err = expandDriverOutputs(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return spec, nil
@@ -467,13 +471,16 @@ func expandDriverHttpConfig(p []interface{}) *eaaspb.HTTPDriverConfig {
 	return &hc
 }
 
-func expandDriverOutputs(p map[string]any) *structpb.Struct {
+func expandDriverOutputs(p string) (*structpb.Struct, error) {
 	if len(p) == 0 {
-		return nil
+		return nil, nil
 	}
 
-	s, _ := structpb.NewStruct(p)
-	return s
+	var s structpb.Struct
+	if err := s.UnmarshalJSON([]byte(p)); err != nil {
+		return nil, err
+	}
+	return &s, nil
 }
 
 // Flatteners
@@ -528,11 +535,17 @@ func flattenDriverSpec(in *eaaspb.DriverSpec, p []interface{}) ([]interface{}, e
 		obj["config"] = flattenDriverConfig(in.Config, v)
 	}
 
-	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	if in.Sharing != nil {
+		obj["sharing"] = flattenSharingSpec(in.Sharing)
+	}
 
-	obj["inputs"] = flattenConfigContextCompoundRefs(in.Inputs)
+	if len(in.Inputs) > 0 {
+		obj["inputs"] = flattenConfigContextCompoundRefs(in.Inputs)
+	}
 
-	obj["outputs"] = flattenDriverOutputs(in.Outputs)
+	if in.Outputs != nil {
+		obj["outputs"] = flattenDriverOutputs(in.Outputs)
+	}
 
 	return []interface{}{obj}, nil
 }
@@ -875,12 +888,12 @@ func flattenContainerDriverVolumeOptions(input []*eaaspb.ContainerDriverVolumeOp
 	return out
 }
 
-func flattenDriverOutputs(in *structpb.Struct) map[string]any {
+func flattenDriverOutputs(in *structpb.Struct) string {
 	if in == nil {
-		return nil
+		return ""
 	}
-
-	return in.AsMap()
+	b, _ := in.MarshalJSON()
+	return string(b)
 }
 
 func resourceDriverImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {

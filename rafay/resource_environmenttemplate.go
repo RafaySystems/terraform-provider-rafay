@@ -244,7 +244,10 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 	}
 
 	if h, ok := in["hooks"].([]interface{}); ok && len(h) > 0 {
-		spec.Hooks = expandEnvironmentHooks(h)
+		spec.Hooks, err = expandEnvironmentHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if ag, ok := in["agents"].([]interface{}); ok && len(ag) > 0 {
@@ -264,17 +267,21 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 	}
 
 	if s, ok := in["schedules"].([]interface{}); ok && len(s) > 0 {
-		spec.Schedules = expandSchedules(s)
+		spec.Schedules, err = expandSchedules(s)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return spec, nil
 }
 
-func expandSchedules(p []interface{}) []*eaaspb.Schedules {
+func expandSchedules(p []interface{}) ([]*eaaspb.Schedules, error) {
 	schds := make([]*eaaspb.Schedules, 0)
 	if len(p) == 0 || p[0] == nil {
-		return schds
+		return schds, nil
 	}
+	var err error
 
 	for i := range p {
 		schd := eaaspb.Schedules{}
@@ -301,25 +308,32 @@ func expandSchedules(p []interface{}) []*eaaspb.Schedules {
 		}
 
 		if v, ok := in["opt_out_options"].([]interface{}); ok && len(v) > 0 {
-			schd.OptOutOptions = expandOptOutOptions(v)
+			schd.OptOutOptions, err = expandOptOutOptions(v)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		if h, ok := in["workflows"].([]interface{}); ok && len(h) > 0 {
-			schd.Workflows = expandCustomProviderOptions(h)
+			schd.Workflows, err = expandCustomProviderOptions(h)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		schds = append(schds, &schd)
 	}
 
-	return schds
+	return schds, nil
 }
 
-func expandOptOutOptions(p []interface{}) *eaaspb.OptOutOptions {
+func expandOptOutOptions(p []interface{}) (*eaaspb.OptOutOptions, error) {
 	ooo := eaaspb.OptOutOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return &ooo
+		return &ooo, nil
 	}
 
+	var err error
 	in := p[0].(map[string]interface{})
 	if h, ok := in["allow_opt_out"].([]interface{}); ok && len(h) > 0 {
 		ooo.AllowOptOut = expandBoolValue(h)
@@ -328,10 +342,13 @@ func expandOptOutOptions(p []interface{}) *eaaspb.OptOutOptions {
 		ooo.MaxAllowedDuration = v
 	}
 	if h, ok := in["approval"].([]interface{}); ok && len(h) > 0 {
-		ooo.Approval = expandCustomProviderOptions(h)
+		ooo.Approval, err = expandCustomProviderOptions(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return &ooo
+	return &ooo, nil
 }
 
 func expandCadence(p []interface{}) *eaaspb.ScheduleOptions {
@@ -463,32 +480,45 @@ func expandDependsOn(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
 	return dependson
 }
 
-func expandEnvironmentHooks(p []interface{}) *eaaspb.EnvironmentHooks {
+func expandEnvironmentHooks(p []interface{}) (*eaaspb.EnvironmentHooks, error) {
 	hooks := &eaaspb.EnvironmentHooks{}
 
 	if len(p) == 0 || p[0] == nil {
-		return hooks
+		return hooks, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["on_completion"].([]interface{}); ok && len(h) > 0 {
-		hooks.OnCompletion = expandEaasHooks(h)
+		hooks.OnCompletion, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["on_success"].([]interface{}); ok && len(h) > 0 {
-		hooks.OnSuccess = expandEaasHooks(h)
+		hooks.OnSuccess, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["on_failure"].([]interface{}); ok && len(h) > 0 {
-		hooks.OnFailure = expandEaasHooks(h)
+		hooks.OnFailure, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["on_init"].([]interface{}); ok && len(h) > 0 {
-		hooks.OnInit = expandEaasHooks(h)
+		hooks.OnInit, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return hooks
+	return hooks, nil
 
 }
 

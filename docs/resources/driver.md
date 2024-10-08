@@ -138,7 +138,7 @@ resource "rafay_driver" "driver" {
 
 - `config` (Block List, Max: 1) Driver configuration (see [below for nested schema](#nestedblock--spec--config))
 - `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
-- `outputs` (Map of String) Outputs for the driver
+- `outputs` (String) Outputs for the driver in JSON string format
 
 ***Optional***
 
@@ -327,3 +327,20 @@ resource "rafay_driver" "driver" {
 ***Required***
 
 - `name` (String) name of the config context
+
+<a id="nestedblock--compound_ref"></a>
+### Nested Schema for `compound ref`
+
+***Required***
+
+- `name` (string) name of the driver ref
+- `data` (Block List, Max: 1) Inline definition for driver (see [below for nested schema](#nestedblock--inline))
+
+<a id="nestedblock--inline"></a>
+### Nested Schema for `inline`
+
+***Required***
+
+- `config` (Block List, Max: 1) Driver configuration (see [below for nested schema](#nestedblock--spec--config))
+- `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
+- `outputs` (String) Outputs for the driver in JSON string format

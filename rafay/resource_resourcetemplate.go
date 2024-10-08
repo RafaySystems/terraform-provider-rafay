@@ -227,8 +227,12 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 		spec.Provider = p
 	}
 
+	var err error
 	if po, ok := in["provider_options"].([]interface{}); ok && len(po) > 0 {
-		spec.ProviderOptions = expandProviderOptions(po)
+		spec.ProviderOptions, err = expandProviderOptions(po)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if ro, ok := in["repository_options"].([]interface{}); ok && len(ro) > 0 {
@@ -244,7 +248,10 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 	}
 
 	if h, ok := in["hooks"].([]interface{}); ok && len(h) > 0 {
-		spec.Hooks = expandResourceHooks(h)
+		spec.Hooks, err = expandResourceHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if ag, ok := in["agents"].([]interface{}); ok && len(ag) > 0 {
@@ -256,19 +263,23 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 	}
 
 	if ad, ok := in["artifact_driver"].([]interface{}); ok && len(ad) > 0 {
-		spec.ArtifactDriver = expandWorkflowHandlerCompoundRef(ad)
+		spec.ArtifactDriver, err = expandWorkflowHandlerCompoundRef(ad)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return spec, nil
 }
 
-func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOptions {
+func expandProviderOptions(p []interface{}) (*eaaspb.ResourceTemplateProviderOptions, error) {
 	po := &eaaspb.ResourceTemplateProviderOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return po
+		return po, nil
 	}
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if tp, ok := in["terraform"].([]interface{}); ok && len(tp) > 0 {
 		po.Terraform = expandTerraformProviderOptions(tp)
 	}
@@ -286,7 +297,10 @@ func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOpti
 	}
 
 	if p, ok := in["driver"].([]interface{}); ok && len(p) > 0 {
-		po.Driver = expandWorkflowHandlerCompoundRef(p)
+		po.Driver, err = expandWorkflowHandlerCompoundRef(p)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if p, ok := in["open_tofu"].([]interface{}); ok && len(p) > 0 {
@@ -294,14 +308,17 @@ func expandProviderOptions(p []interface{}) *eaaspb.ResourceTemplateProviderOpti
 	}
 
 	if w, ok := in["custom"].([]interface{}); ok && len(p) > 0 {
-		po.Custom = expandCustomProviderOptions(w)
+		po.Custom, err = expandCustomProviderOptions(w)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if p, ok := in["hcp_terraform"].([]interface{}); ok && len(p) > 0 {
 		po.HcpTerraform = expandHcpTerraformProviderOptions(p)
 	}
 
-	return po
+	return po, nil
 
 }
 
@@ -348,51 +365,71 @@ func expandContexts(p []interface{}) []*eaaspb.ConfigContextCompoundRef {
 	return ctxs
 }
 
-func expandResourceHooks(p []interface{}) *eaaspb.ResourceHooks {
+func expandResourceHooks(p []interface{}) (*eaaspb.ResourceHooks, error) {
 	hooks := &eaaspb.ResourceHooks{}
 
 	if len(p) == 0 || p[0] == nil {
-		return hooks
+		return hooks, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["on_completion"].([]interface{}); ok && len(h) > 0 {
-		hooks.OnCompletion = expandEaasHooks(h)
+		hooks.OnCompletion, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["on_success"].([]interface{}); ok && len(h) > 0 {
-		hooks.OnSuccess = expandEaasHooks(h)
+		hooks.OnSuccess, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["on_failure"].([]interface{}); ok && len(h) > 0 {
-		hooks.OnFailure = expandEaasHooks(h)
+		hooks.OnFailure, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["on_init"].([]interface{}); ok && len(h) > 0 {
-		hooks.OnInit = expandEaasHooks(h)
+		hooks.OnInit, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["provider"].([]interface{}); ok && len(h) > 0 {
-		hooks.Provider = expandProviderHooks(h)
+		hooks.Provider, err = expandProviderHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return hooks
+	return hooks, nil
 
 }
 
-func expandCustomProviderOptions(p []interface{}) *eaaspb.CustomProviderOptions {
+func expandCustomProviderOptions(p []interface{}) (*eaaspb.CustomProviderOptions, error) {
 	if len(p) == 0 || p[0] == nil {
-		return nil
+		return nil, nil
 	}
 	wfProviderOptions := &eaaspb.CustomProviderOptions{}
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["tasks"].([]interface{}); ok && len(h) > 0 {
-		wfProviderOptions.Tasks = expandEaasHooks(h)
+		wfProviderOptions.Tasks, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return wfProviderOptions
+	return wfProviderOptions, nil
 
 }
 
@@ -612,379 +649,537 @@ func expandPulumiProviderOptions(p []interface{}) *eaaspb.PulumiProviderOptions 
 	return ppo
 }
 
-func expandProviderHooks(p []interface{}) *eaaspb.ResourceTemplateProviderHooks {
+func expandProviderHooks(p []interface{}) (*eaaspb.ResourceTemplateProviderHooks, error) {
 	rtph := &eaaspb.ResourceTemplateProviderHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return rtph
+		return rtph, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["terraform"].([]interface{}); ok && len(h) > 0 {
-		rtph.Terraform = expandTerraformProviderHooks(h)
+		rtph.Terraform, err = expandTerraformProviderHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["pulumi"].([]interface{}); ok && len(h) > 0 {
-		rtph.Pulumi = expandPulumiProviderHooks(h)
+		rtph.Pulumi, err = expandPulumiProviderHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["open_tofu"].([]interface{}); ok && len(h) > 0 {
-		rtph.OpenTofu = expandOpenTofuProviderHooks(h)
+		rtph.OpenTofu, err = expandOpenTofuProviderHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, oj := in["hcp_terraform"].([]interface{}); oj && len(h) > 0 {
-		rtph.HcpTerraform = expandHcpTerraformProviderHooks(h)
+		rtph.HcpTerraform, err = expandHcpTerraformProviderHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, oj := in["system"].([]interface{}); oj && len(h) > 0 {
-		rtph.System = expandSystemProviderHooks(h)
+		rtph.System, err = expandSystemProviderHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return rtph
+	return rtph, nil
 
 }
 
-func expandTerraformProviderHooks(p []interface{}) *eaaspb.TerraformProviderHooks {
+func expandTerraformProviderHooks(p []interface{}) (*eaaspb.TerraformProviderHooks, error) {
 	tph := &eaaspb.TerraformProviderHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return tph
+		return tph, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["deploy"].([]interface{}); ok && len(h) > 0 {
-		tph.Deploy = expandTerraformDeployHooks(h)
+		tph.Deploy, err = expandTerraformDeployHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
-		tph.Destroy = expandTerraformDestroyHooks(h)
+		tph.Destroy, err = expandTerraformDestroyHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return tph
+	return tph, nil
 }
 
-func expandPulumiProviderHooks(p []interface{}) *eaaspb.PulumiProviderHooks {
+func expandPulumiProviderHooks(p []interface{}) (*eaaspb.PulumiProviderHooks, error) {
 	pph := &eaaspb.PulumiProviderHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return pph
+		return pph, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["deploy"].([]interface{}); ok {
-		pph.Deploy = expandPulumiDeployHooks(h)
+		pph.Deploy, err = expandPulumiDeployHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["destroy"].([]interface{}); ok {
-		pph.Destroy = expandPulumiDestroyHooks(h)
+		pph.Destroy, err = expandPulumiDestroyHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return pph
+	return pph, nil
 }
 
-func expandOpenTofuProviderHooks(p []interface{}) *eaaspb.OpenTofuProviderHooks {
+func expandOpenTofuProviderHooks(p []interface{}) (*eaaspb.OpenTofuProviderHooks, error) {
 	tph := &eaaspb.OpenTofuProviderHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return tph
+		return tph, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["deploy"].([]interface{}); ok && len(h) > 0 {
-		tph.Deploy = expandOpenTofuDeployHooks(h)
+		tph.Deploy, err = expandOpenTofuDeployHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
-		tph.Destroy = expandOpenTofuDestroyHooks(h)
+		tph.Destroy, err = expandOpenTofuDestroyHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return tph
+	return tph, nil
 }
 
-func expandHcpTerraformProviderHooks(p []interface{}) *eaaspb.HCPTerraformProviderHooks {
+func expandHcpTerraformProviderHooks(p []interface{}) (*eaaspb.HCPTerraformProviderHooks, error) {
 	tph := &eaaspb.HCPTerraformProviderHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return tph
+		return tph, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["deploy"].([]interface{}); ok && len(h) > 0 {
-		tph.Deploy = expandHcpTerraformDeployHooks(h)
+		tph.Deploy, err = expandHcpTerraformDeployHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
-		tph.Destroy = expandHcpTerraformDestroyHooks(h)
+		tph.Destroy, err = expandHcpTerraformDestroyHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return tph
+	return tph, nil
 }
-func expandSystemProviderHooks(p []interface{}) *eaaspb.SystemProviderHooks {
+func expandSystemProviderHooks(p []interface{}) (*eaaspb.SystemProviderHooks, error) {
 	sph := &eaaspb.SystemProviderHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return sph
+		return sph, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["deploy"].([]interface{}); ok && len(h) > 0 {
-		sph.Deploy = expandSystemDeployHooks(h)
+		sph.Deploy, err = expandSystemDeployHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
-		sph.Destroy = expandSystemDestroyHooks(h)
+		sph.Destroy, err = expandSystemDestroyHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return sph
+	return sph, nil
 }
 
-func expandTerraformDeployHooks(p []interface{}) *eaaspb.TerraformDeployHooks {
+func expandTerraformDeployHooks(p []interface{}) (*eaaspb.TerraformDeployHooks, error) {
 	tdh := &eaaspb.TerraformDeployHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return tdh
+		return tdh, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
-		tdh.Init = expandLifecycleEventHooks(h)
+		tdh.Init, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
-		tdh.Plan = expandLifecycleEventHooks(h)
+		tdh.Plan, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["apply"].([]interface{}); ok && len(h) > 0 {
-		tdh.Apply = expandLifecycleEventHooks(h)
+		tdh.Apply, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["output"].([]interface{}); ok && len(h) > 0 {
-		tdh.Output = expandLifecycleEventHooks(h)
+		tdh.Output, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return tdh
+	return tdh, nil
 }
 
-func expandTerraformDestroyHooks(p []interface{}) *eaaspb.TerraformDestroyHooks {
+func expandTerraformDestroyHooks(p []interface{}) (*eaaspb.TerraformDestroyHooks, error) {
 	tdh := &eaaspb.TerraformDestroyHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return tdh
+		return tdh, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
-		tdh.Init = expandLifecycleEventHooks(h)
+		tdh.Init, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
-		tdh.Plan = expandLifecycleEventHooks(h)
+		tdh.Plan, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
-		tdh.Destroy = expandLifecycleEventHooks(h)
+		tdh.Destroy, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return tdh
+	return tdh, nil
 }
 
-func expandOpenTofuDeployHooks(p []interface{}) *eaaspb.OpenTofuDeployHooks {
+func expandOpenTofuDeployHooks(p []interface{}) (*eaaspb.OpenTofuDeployHooks, error) {
 	tdh := &eaaspb.OpenTofuDeployHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return tdh
+		return tdh, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
-		tdh.Init = expandLifecycleEventHooks(h)
+		tdh.Init, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
-		tdh.Plan = expandLifecycleEventHooks(h)
+		tdh.Plan, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["apply"].([]interface{}); ok && len(h) > 0 {
-		tdh.Apply = expandLifecycleEventHooks(h)
+		tdh.Apply, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["output"].([]interface{}); ok && len(h) > 0 {
-		tdh.Output = expandLifecycleEventHooks(h)
+		tdh.Output, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return tdh
+	return tdh, nil
 }
 
-func expandOpenTofuDestroyHooks(p []interface{}) *eaaspb.OpenTofuDestroyHooks {
+func expandOpenTofuDestroyHooks(p []interface{}) (*eaaspb.OpenTofuDestroyHooks, error) {
 	tdh := &eaaspb.OpenTofuDestroyHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return tdh
+		return tdh, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
-		tdh.Init = expandLifecycleEventHooks(h)
+		tdh.Init, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
-		tdh.Plan = expandLifecycleEventHooks(h)
+		tdh.Plan, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
-		tdh.Destroy = expandLifecycleEventHooks(h)
+		tdh.Destroy, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return tdh
+	return tdh, nil
 }
 
-func expandHcpTerraformDeployHooks(p []interface{}) *eaaspb.HCPTerraformDeployHooks {
+func expandHcpTerraformDeployHooks(p []interface{}) (*eaaspb.HCPTerraformDeployHooks, error) {
 	tdh := &eaaspb.HCPTerraformDeployHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return tdh
+		return tdh, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
-		tdh.Init = expandLifecycleEventHooks(h)
+		tdh.Init, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
-		tdh.Plan = expandLifecycleEventHooks(h)
+		tdh.Plan, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["apply"].([]interface{}); ok && len(h) > 0 {
-		tdh.Apply = expandLifecycleEventHooks(h)
+		tdh.Apply, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["output"].([]interface{}); ok && len(h) > 0 {
-		tdh.Output = expandLifecycleEventHooks(h)
+		tdh.Output, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return tdh
+	return tdh, nil
 }
 
-func expandHcpTerraformDestroyHooks(p []interface{}) *eaaspb.HCPTerraformDestroyHooks {
+func expandHcpTerraformDestroyHooks(p []interface{}) (*eaaspb.HCPTerraformDestroyHooks, error) {
 	tdh := &eaaspb.HCPTerraformDestroyHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return tdh
+		return tdh, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["init"].([]interface{}); ok && len(h) > 0 {
-		tdh.Init = expandLifecycleEventHooks(h)
+		tdh.Init, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["plan"].([]interface{}); ok && len(h) > 0 {
-		tdh.Plan = expandLifecycleEventHooks(h)
+		tdh.Plan, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
-		tdh.Destroy = expandLifecycleEventHooks(h)
+		tdh.Destroy, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return tdh
+	return tdh, nil
 }
 
-func expandSystemDeployHooks(p []interface{}) *eaaspb.SystemDeployHooks {
+func expandSystemDeployHooks(p []interface{}) (*eaaspb.SystemDeployHooks, error) {
 	sdh := &eaaspb.SystemDeployHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return sdh
+		return sdh, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["apply"].([]interface{}); ok && len(h) > 0 {
-		sdh.Apply = expandLifecycleEventHooks(h)
+		sdh.Apply, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return sdh
+	return sdh, nil
 }
 
-func expandSystemDestroyHooks(p []interface{}) *eaaspb.SystemDestroyHooks {
+func expandSystemDestroyHooks(p []interface{}) (*eaaspb.SystemDestroyHooks, error) {
 	sdh := &eaaspb.SystemDestroyHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return sdh
+		return sdh, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
-		sdh.Destroy = expandLifecycleEventHooks(h)
+		sdh.Destroy, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return sdh
+	return sdh, nil
 }
 
-func expandPulumiDeployHooks(p []interface{}) *eaaspb.PulumiDeployHooks {
+func expandPulumiDeployHooks(p []interface{}) (*eaaspb.PulumiDeployHooks, error) {
 	pdh := &eaaspb.PulumiDeployHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return pdh
+		return pdh, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["login"].([]interface{}); ok && len(h) > 0 {
-		pdh.Login = expandLifecycleEventHooks(h)
+		pdh.Login, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["preview"].([]interface{}); ok && len(h) > 0 {
-		pdh.Preview = expandLifecycleEventHooks(h)
+		pdh.Preview, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["up"].([]interface{}); ok && len(h) > 0 {
-		pdh.Up = expandLifecycleEventHooks(h)
+		pdh.Up, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["output"].([]interface{}); ok && len(h) > 0 {
-		pdh.Output = expandLifecycleEventHooks(h)
+		pdh.Output, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return pdh
+	return pdh, nil
 }
 
-func expandPulumiDestroyHooks(p []interface{}) *eaaspb.PulumiDestroyHooks {
+func expandPulumiDestroyHooks(p []interface{}) (*eaaspb.PulumiDestroyHooks, error) {
 	pdh := &eaaspb.PulumiDestroyHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return pdh
+		return pdh, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["login"].([]interface{}); ok && len(h) > 0 {
-		pdh.Login = expandLifecycleEventHooks(h)
+		pdh.Login, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["preview"].([]interface{}); ok && len(h) > 0 {
-		pdh.Preview = expandLifecycleEventHooks(h)
+		pdh.Preview, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["destroy"].([]interface{}); ok && len(h) > 0 {
-		pdh.Destroy = expandLifecycleEventHooks(h)
+		pdh.Destroy, err = expandLifecycleEventHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return pdh
+	return pdh, nil
 }
 
-func expandLifecycleEventHooks(p []interface{}) *eaaspb.LifecycleEventHooks {
+func expandLifecycleEventHooks(p []interface{}) (*eaaspb.LifecycleEventHooks, error) {
 	lh := &eaaspb.LifecycleEventHooks{}
 	if len(p) == 0 || p[0] == nil {
-		return lh
+		return lh, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["before"].([]interface{}); ok && len(h) > 0 {
-		lh.Before = expandEaasHooks(h)
+		lh.Before, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["after"].([]interface{}); ok && len(h) > 0 {
-		lh.After = expandEaasHooks(h)
+		lh.After, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return lh
+	return lh, nil
 }
 
 // Flatteners

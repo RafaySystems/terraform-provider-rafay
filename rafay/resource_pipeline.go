@@ -1228,7 +1228,7 @@ func expandWebhookTriggerGit(p []interface{}) *gitopspb.WebhookTriggerConfig_Git
 		obj.Git.Revision = v
 	}
 
-	if v, ok := in["path"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["paths"].([]interface{}); ok && len(v) > 0 {
 		obj.Git.Paths = expandCommonpbFiles(v)
 	}
 
@@ -2272,9 +2272,7 @@ func flattenTriggerConfigRepos(tSpec *triggerSpec, p []interface{}) ([]interface
 		retNil = false
 	}
 
-	if tSpec.Config.Repo.Paths != nil {
-		obj["paths"] = flattenCommonpbFiles(tSpec.Config.Repo.Paths)
-	}
+	obj["paths"] = flattenCommonpbFiles(tSpec.Config.Repo.Paths)
 
 	if len(tSpec.Config.Repo.ChartName) > 0 {
 		obj["chart_name"] = tSpec.Config.Repo.ChartName

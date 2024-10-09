@@ -99,10 +99,10 @@ resource "rafay_driver" "driver" {
         }
       }
     }
-    outputs = {
+    outputs = jsonencode({
       key1 = "value1"
       key2 = "value2"
-    }
+    })
   }
 }
 ```

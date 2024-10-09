@@ -341,6 +341,9 @@ func expandOptOutOptions(p []interface{}) (*eaaspb.OptOutOptions, error) {
 	if v, ok := in["max_allowed_duration"].(string); ok && len(v) > 0 {
 		ooo.MaxAllowedDuration = v
 	}
+	if v, ok := in["max_allowed_times"].(int); ok {
+		ooo.MaxAllowedTimes = int32(v)
+	}
 	if h, ok := in["approval"].([]interface{}); ok && len(h) > 0 {
 		ooo.Approval, err = expandCustomProviderOptions(h)
 		if err != nil {
@@ -700,6 +703,7 @@ func flattenOptOutOptions(in *eaaspb.OptOutOptions, p []interface{}) []interface
 
 	obj["allow_opt_out"] = flattenBoolValue(in.AllowOptOut)
 	obj["max_allowed_duration"] = in.MaxAllowedDuration
+	obj["max_allowed_times"] = in.MaxAllowedTimes
 	obj["approval"] = flattenCustomProviderOptions(in.Approval)
 
 	return []interface{}{obj}

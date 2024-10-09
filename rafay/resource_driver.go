@@ -534,19 +534,9 @@ func flattenDriverSpec(in *eaaspb.DriverSpec, p []interface{}) ([]interface{}, e
 
 		obj["config"] = flattenDriverConfig(in.Config, v)
 	}
-
-	if in.Sharing != nil {
-		obj["sharing"] = flattenSharingSpec(in.Sharing)
-	}
-
-	if len(in.Inputs) > 0 {
-		obj["inputs"] = flattenConfigContextCompoundRefs(in.Inputs)
-	}
-
-	if in.Outputs != nil {
-		obj["outputs"] = flattenDriverOutputs(in.Outputs)
-	}
-
+	obj["sharing"] = flattenSharingSpec(in.Sharing)
+	obj["inputs"] = flattenConfigContextCompoundRefs(in.Inputs)
+	obj["outputs"] = flattenDriverOutputs(in.Outputs)
 	return []interface{}{obj}, nil
 }
 

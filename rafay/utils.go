@@ -1589,15 +1589,15 @@ func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) []int
 	return []interface{}{obj}
 }
 
-func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
+func expandEaasHooks(p []interface{}) ([]*eaaspb.Hook, error) {
 	hooks := make([]*eaaspb.Hook, 0)
 	if len(p) == 0 {
-		return hooks
+		return hooks, nil
 	}
 
 	for indx := range p {
 		if p[indx] == nil {
-			return nil
+			return nil, nil
 		}
 		hook := &eaaspb.Hook{}
 		in := p[indx].(map[string]interface{})
@@ -1630,8 +1630,12 @@ func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
 			hook.OnFailure = n
 		}
 
+		var err error
 		if n, ok := in["driver"].([]interface{}); ok && len(n) > 0 {
-			hook.Driver = expandWorkflowHandlerCompoundRef(n)
+			hook.Driver, err = expandWorkflowHandlerCompoundRef(n)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		if n, ok := in["depends_on"].([]interface{}); ok && len(n) > 0 {
@@ -1642,7 +1646,7 @@ func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
 
 	}
 
-	return hooks
+	return hooks, nil
 }
 
 func expandHookOptions(p []interface{}) *eaaspb.HookOptions {
@@ -2188,9 +2192,9 @@ func checkStandardInputTextError(input string) bool {
 	return strings.Contains(input, dns1123ValidationErrMsg)
 }
 
-func expandWorkflowHandlerCompoundRef(p []interface{}) *eaaspb.WorkflowHandlerCompoundRef {
+func expandWorkflowHandlerCompoundRef(p []interface{}) (*eaaspb.WorkflowHandlerCompoundRef, error) {
 	if len(p) == 0 || p[0] == nil {
-		return nil
+		return nil, nil
 	}
 
 	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
@@ -2200,17 +2204,21 @@ func expandWorkflowHandlerCompoundRef(p []interface{}) *eaaspb.WorkflowHandlerCo
 		wfHandler.Name = v
 	}
 
+	var err error
 	if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
-		wfHandler.Data = expandWorkflowHandlerInline(v)
+		wfHandler.Data, err = expandWorkflowHandlerInline(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return wfHandler
+	return wfHandler, nil
 }
 
-func expandWorkflowHandlerInline(p []interface{}) *eaaspb.WorkflowHandlerInline {
+func expandWorkflowHandlerInline(p []interface{}) (*eaaspb.WorkflowHandlerInline, error) {
 	wfHandlerInline := &eaaspb.WorkflowHandlerInline{}
 	if len(p) == 0 || p[0] == nil {
-		return wfHandlerInline
+		return wfHandlerInline, nil
 	}
 
 	in := p[0].(map[string]interface{})
@@ -2223,7 +2231,15 @@ func expandWorkflowHandlerInline(p []interface{}) *eaaspb.WorkflowHandlerInline 
 		wfHandlerInline.Inputs = expandConfigContextCompoundRefs(v)
 	}
 
-	return wfHandlerInline
+	if v, ok := in["outputs"].(string); ok && len(v) > 0 {
+		outputs, err := expandDriverOutputs(v)
+		if err != nil {
+			return nil, err
+		}
+		wfHandlerInline.Outputs = outputs
+	}
+
+	return wfHandlerInline, nil
 }
 
 func expandWorkflowHandlerConfig(p []interface{}) *eaaspb.WorkflowHandlerConfig {
@@ -2304,7 +2320,6 @@ func flattenWorkflowHandlerCompoundRef(input *eaaspb.WorkflowHandlerCompoundRef)
 }
 
 func flattenWorkflowHandlerInline(input *eaaspb.WorkflowHandlerInline) []interface{} {
-	log.Println("flatten workflow handler inline start")
 	if input == nil {
 		return nil
 	}
@@ -2314,6 +2329,9 @@ func flattenWorkflowHandlerInline(input *eaaspb.WorkflowHandlerInline) []interfa
 	}
 	if len(input.Inputs) > 0 {
 		obj["inputs"] = flattenConfigContextCompoundRefs(input.Inputs)
+	}
+	if input.Outputs != nil {
+		obj["outputs"] = flattenDriverOutputs(input.Outputs)
 	}
 	return []interface{}{obj}
 }

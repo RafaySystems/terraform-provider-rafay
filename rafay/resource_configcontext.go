@@ -444,7 +444,9 @@ func flattenConfigContextCompoundRef(input *eaaspb.ConfigContextCompoundRef) map
 		cc["name"] = input.Name
 	}
 
-	cc["data"] = flattenConfigContextInline(input.Data)
+	if input.Data != nil {
+		cc["data"] = flattenConfigContextInline(input.Data)
+	}
 
 	return cc
 }

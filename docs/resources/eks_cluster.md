@@ -770,6 +770,7 @@ addons {
 - `service_role_permission_boundary` - (String) - The service role permission bounadary policy ARN of the cluster.
 - `service_role_arn` - (String) The service role ARN of the cluster. 
 - `with_oidc` - (Boolean) Enables the IAM OpenID connect (OIDC) provider as well as the IAM roles for service accounts (IRSA) for the Amazon CNI plugin. 
+- `pod_identity_associations` - (Block List) The pod identity associations to create in the cluster.  (See [below for nested schema](#nestedblock--cluster_config--iam--pod_identity_associations))
 
 
 
@@ -814,6 +815,25 @@ addons {
 - `efs_csi_controller` - (Boolean) Adds policies for using the efs-csi-controller.
 - `external_dns` - (Boolean) Adds external-dns policies for Amazon Route 53.
 - `image_builder` - (Boolean) Allow full Elastic Container Registry (ECR) access.
+
+<a id="nestedblock--cluster_config--iam--pod_idenity_associations"></a>
+### Nested Schema for `cluster_config.iam.pod_identity_associations`
+
+***Required***
+
+- `permission_policy` - (String) Holds a policy document to attach to the service account in json string format.
+- `permission_policy_arns` - (List of String) The list of ARNs of the IAM policies to attach to the service account. 
+- `role_arn` - (String) The ARN of the role to attach to the service account.
+- `permission_boundary_arn` - (String) ARN of the permissions boundary to associate
+- `namespace` - (String) The namespace of the service account. 
+- `service_account_name` - (String) The name of the service account
+    **Note**: At least `permission_policy`, `permission_policy_arns`, or `role_arn` is required. 
+
+***Optional*** 
+- `tags` - (Map of String) The AWS tags for the service account.
+- `create_service_account` - (Bool) Enable flag to create service account
+- `role_name` - (String) User defined name for role
+- `well_known_policies` - (Block List) Use to attach common IAM policies. (See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts--well_known_policies))
 
 <a id="nestedblock--cluster_config--addons"></a>
 ### Nested Schema for `cluster_config.addons`
@@ -863,7 +883,7 @@ addons {
 
 ***Optional***
 
-- `encrypt_existing_secrets` - (Boolean) Set to false to disable encrypting existing secrets. Default is true.
+- `encrypt_existing_secrets` - (Boolean) Set to false to disable encrypting existing secrets. Default is False.
 
 
 <a id="nestedblock--cluster_config--managed_nodegroups"></a>

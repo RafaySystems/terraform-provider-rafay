@@ -124,3 +124,4 @@ resource "rafay_namespace" "tfdemonamespacewithmesh" {
     }
   }
 }
+

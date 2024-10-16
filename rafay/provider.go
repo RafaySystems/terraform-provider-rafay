@@ -114,6 +114,8 @@ func New(_ string) func() *schema.Provider {
 				"rafay_groupassociation":         dataGroupAssociation(),
 				"rafay_workload":                 dataWorkload(),
 				"rafay_cluster_blueprint_status": dataClusterBlueprintStatus(),
+				"rafay_namespace":                dataNamespace(),
+				"rafay_namespaces":               dataNamespaces(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}

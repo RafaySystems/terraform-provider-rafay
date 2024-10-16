@@ -20,7 +20,6 @@ The following is a simple example that demonstrates how to get all namespaces.
 #Basic example for namespace
 data "rafay_namespaces" "all" {
   metadata {
-    name    = "tfdemonamespace"
     project = "terraform"
   }
 }

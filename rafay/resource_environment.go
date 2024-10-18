@@ -355,7 +355,7 @@ func expandScheduleOptOuts(p []interface{}) []*eaaspb.ScheduleOptOut {
 			obj.Duration = v
 		}
 
-		soo[i] = &obj
+		soo = append(soo, &obj)
 
 	}
 

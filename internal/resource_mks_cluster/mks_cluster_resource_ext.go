@@ -41,6 +41,13 @@ func getBoolValue(tfBool types.Bool) bool {
 	return tfBool.ValueBool()
 }
 
+func getInt64Value(tfInt types.Int64) int64 {
+	if tfInt.IsNull() || tfInt.IsUnknown() {
+		return 0
+	}
+	return tfInt.ValueInt64()
+}
+
 func convertFromTfMap(tfMap types.Map) map[string]string {
 	result := make(map[string]string)
 
@@ -685,6 +692,7 @@ func (v ConfigValue) ToHub(ctx context.Context) (*infrapb.MksV3ConfigObject, dia
 	hub.DedicatedControlPlane = getBoolValue(v.DedicatedControlPlane)
 	hub.HighAvailability = getBoolValue(v.HighAvailability)
 	hub.KubernetesVersion = getStringValue(v.KubernetesVersion)
+	hub.InstallerTtl = getInt64Value(v.InstallerTtl)
 
 	var networkType NetworkType
 
@@ -739,6 +747,7 @@ func (v ConfigValue) FromHub(ctx context.Context, hub *infrapb.MksV3ConfigObject
 		v.HighAvailability = types.BoolValue(hub.HighAvailability)
 	}
 
+	v.InstallerTtl = types.Int64Value(hub.InstallerTtl)
 	v.KubernetesVersion = types.StringValue(hub.KubernetesVersion)
 
 	network, d := NewNetworkValue(v.Network.AttributeTypes(ctx), v.Network.Attributes())

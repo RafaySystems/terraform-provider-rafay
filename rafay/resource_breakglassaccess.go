@@ -272,7 +272,7 @@ func expandGroupExpiry(p []interface{}) []*systempb.GroupExpiryDetails {
 		ge := &systempb.GroupExpiryDetails{}
 
 		if v, ok := expiryMap["expiry"].(int); ok {
-			ge.Expiry = float32(v)
+			ge.Expiry = float64(v)
 		}
 
 		if v, ok := expiryMap["name"].(string); ok && len(v) > 0 {

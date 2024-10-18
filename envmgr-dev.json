@@ -1,0 +1,8 @@
+{
+    "profile": "dev",
+    "api_key": "ra2.dcdac86d0554f0535d11e78ca7df62d4d75be3f9.a0f42bf7245d5864286d618b57a953bb71c17fc70362b1fc8c3d84b258294089",
+    "api_secret": "a0f42bf7245d5864286d618b57a953bb71c17fc70362b1fc8c3d84b258294089",
+    "project_id": "rx28oml",
+    "rest_endpoint": "console-envmgr.dev.rafay-edge.net",
+    "ops_endpoint": "ops-console-envmgr.dev.rafay-edge.net"
+}

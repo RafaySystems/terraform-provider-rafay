@@ -1,0 +1,8 @@
+{
+    "profile": "staging",
+    "api_key": "ra2.cda9f2126d0ad1e3f6120f28fcd76dc926f07aed.4d46c417a9881074a06145d1f623acd3aa3ef340489462622c61d0e603d85c84",
+    "api_secret": "4d46c417a9881074a06145d1f623acd3aa3ef340489462622c61d0e603d85c84",
+    "project_id": "rx28oml",
+    "rest_endpoint": "qc-console.stage.rafay.dev",
+    "ops_endpoint": "qc-ops.stage.rafay.dev"
+}

@@ -72,6 +72,41 @@ resource "rafay_environment_template" "aws-et-example" {
           }
         }
         timeout_seconds = 1000
+        execute_once = true
+      }
+      on_init {
+        name = "infracost"
+        type = "driver"
+        driver {
+          data {
+            config {
+              type = "http"
+              http {
+                method = "GET"
+                endpoint = "https://jsonplaceholder.typicode.com/todos/1"
+              }
+            }
+            inputs {
+              name = "some-cc"
+              data {
+                variables {
+                  name       = "name"
+                  value_type = "text"
+                  value      = "aws-elasticache"
+                  options {
+                    description = "this is the resource name to be applied"
+                    sensitive   = false
+                    required    = true
+                  }
+                }
+              }
+            }
+            outputs = jsonencode({
+              key1 = "value1"
+              key2 = "value2"
+            })
+          }
+        }
       }
     }
     schedules {
@@ -194,6 +229,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
+- `execute_once` (Boolean) Specify if the hook should be executed only once
 
 <a id="nestedblock--spec--hooks--on_completion--agents"></a>
 ### Nested Schema for `spec.hooks.on_completion.agents`
@@ -269,6 +305,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
+- `execute_once` (Boolean) Specify if the hook should be executed only once
 
 <a id="nestedblock--spec--hooks--on_failure--agents"></a>
 ### Nested Schema for `spec.hooks.on_failure.agents`
@@ -345,6 +382,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
+- `execute_once` (Boolean) Specify if the hook should be executed only once
 
 <a id="nestedblock--spec--hooks--on_init--agents"></a>
 ### Nested Schema for `spec.hooks.on_init.agents`
@@ -421,6 +459,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `on_failure` (String) Specify the on failure action
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
+- `execute_once` (Boolean) Specify if the hook should be executed only once
 
 <a id="nestedblock--spec--hooks--on_success--agents"></a>
 ### Nested Schema for `spec.hooks.on_success.agents`
@@ -588,6 +627,7 @@ resource "rafay_environment_template" "aws-et-example" {
 
 - `config` (Block List, Max: 1) WorkflowHandler configuration (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config))
 - `inputs` (Block List) Specify the input data (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs))
+- `outputs` (String) Specify the output data
 
 <a id="nestedblock--spec--hooks--driver--data--config"></a>
 ### Nested Schema for `spec.hooks.driver.data.config`

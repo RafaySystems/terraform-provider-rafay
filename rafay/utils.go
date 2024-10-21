@@ -1644,6 +1644,9 @@ func expandEaasHooks(p []interface{}) ([]*eaaspb.Hook, error) {
 
 		hooks = append(hooks, hook)
 
+		if d, ok := in["execute_once"].(bool); ok {
+			hook.ExecuteOnce = d
+		}
 	}
 
 	return hooks, nil
@@ -1903,6 +1906,7 @@ func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		obj["on_failure"] = in.OnFailure
 		obj["driver"] = flattenWorkflowHandlerCompoundRef(in.Driver)
 		obj["depends_on"] = toArrayInterface(in.DependsOn)
+		obj["execute_once"] = in.ExecuteOnce
 
 		out[i] = &obj
 		log.Println("flatten hook setting object ", out[i])

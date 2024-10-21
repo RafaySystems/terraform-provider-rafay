@@ -78,6 +78,7 @@ Read-Only:
 - `high_availability` (Boolean) Select this option for highly available control plane. Minimum three control plane nodes are required
 - `kubernetes_upgrade` (Attributes) (see [below for nested schema](#nestedatt--spec--config--kubernetes_upgrade))
 - `kubernetes_version` (String) Kubernetes version of the Control Plane
+- `installer_ttl` (Integer) By default, this setting allows ttl configuration for installer config. If not provided by default will set ttl to 365 days.
 - `location` (String) The data center location where the cluster nodes will be launched
 - `network` (Attributes) MKS Cluster Network Specification (see [below for nested schema](#nestedatt--spec--config--network))
 - `nodes` (Attributes Map) holds node configuration for the cluster (see [below for nested schema](#nestedatt--spec--config--nodes))

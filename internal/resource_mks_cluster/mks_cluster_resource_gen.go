@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -149,6 +150,12 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Optional:            true,
 								Description:         "Select this option for highly available control plane. Minimum three control plane nodes are required",
 								MarkdownDescription: "Select this option for highly available control plane. Minimum three control plane nodes are required",
+							},
+							"installer_ttl": schema.Int64Attribute{
+								Optional:            true,
+								Description:         "Installer TTL Configuration",
+								MarkdownDescription: "Installer TTL Configuration",
+								Default:             int64default.StaticInt64(365),
 							},
 							"kubernetes_upgrade": schema.SingleNestedAttribute{
 								Attributes: map[string]schema.Attribute{
@@ -1008,11 +1015,19 @@ func (v MetadataValue) String() string {
 func (v MetadataValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	annotationsVal, d := types.MapValue(types.StringType, v.Annotations.Elements())
+	var annotationsVal basetypes.MapValue
+	switch {
+	case v.Annotations.IsUnknown():
+		annotationsVal = types.MapUnknown(types.StringType)
+	case v.Annotations.IsNull():
+		annotationsVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		annotationsVal, d = types.MapValue(types.StringType, v.Annotations.Elements())
+		diags.Append(d...)
+	}
 
-	diags.Append(d...)
-
-	if d.HasError() {
+	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
 			"annotations": basetypes.MapType{
 				ElemType: types.StringType,
@@ -1026,11 +1041,19 @@ func (v MetadataValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue
 		}), diags
 	}
 
-	labelsVal, d := types.MapValue(types.StringType, v.Labels.Elements())
+	var labelsVal basetypes.MapValue
+	switch {
+	case v.Labels.IsUnknown():
+		labelsVal = types.MapUnknown(types.StringType)
+	case v.Labels.IsNull():
+		labelsVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		labelsVal, d = types.MapValue(types.StringType, v.Labels.Elements())
+		diags.Append(d...)
+	}
 
-	diags.Append(d...)
-
-	if d.HasError() {
+	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
 			"annotations": basetypes.MapType{
 				ElemType: types.StringType,
@@ -2402,6 +2425,24 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 			fmt.Sprintf(`high_availability expected to be basetypes.BoolValue, was: %T`, highAvailabilityAttribute))
 	}
 
+	installerTtlAttribute, ok := attributes["installer_ttl"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`installer_ttl is missing from object`)
+
+		return nil, diags
+	}
+
+	installerTtlVal, ok := installerTtlAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`installer_ttl expected to be basetypes.Int64Value, was: %T`, installerTtlAttribute))
+	}
+
 	kubernetesUpgradeAttribute, ok := attributes["kubernetes_upgrade"]
 
 	if !ok {
@@ -2501,6 +2542,7 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 		ClusterSsh:            clusterSshVal,
 		DedicatedControlPlane: dedicatedControlPlaneVal,
 		HighAvailability:      highAvailabilityVal,
+		InstallerTtl:          installerTtlVal,
 		KubernetesUpgrade:     kubernetesUpgradeVal,
 		KubernetesVersion:     kubernetesVersionVal,
 		Location:              locationVal,
@@ -2645,6 +2687,24 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 			fmt.Sprintf(`high_availability expected to be basetypes.BoolValue, was: %T`, highAvailabilityAttribute))
 	}
 
+	installerTtlAttribute, ok := attributes["installer_ttl"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`installer_ttl is missing from object`)
+
+		return NewConfigValueUnknown(), diags
+	}
+
+	installerTtlVal, ok := installerTtlAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`installer_ttl expected to be basetypes.Int64Value, was: %T`, installerTtlAttribute))
+	}
+
 	kubernetesUpgradeAttribute, ok := attributes["kubernetes_upgrade"]
 
 	if !ok {
@@ -2744,6 +2804,7 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 		ClusterSsh:            clusterSshVal,
 		DedicatedControlPlane: dedicatedControlPlaneVal,
 		HighAvailability:      highAvailabilityVal,
+		InstallerTtl:          installerTtlVal,
 		KubernetesUpgrade:     kubernetesUpgradeVal,
 		KubernetesVersion:     kubernetesVersionVal,
 		Location:              locationVal,
@@ -2825,6 +2886,7 @@ type ConfigValue struct {
 	ClusterSsh            basetypes.ObjectValue `tfsdk:"cluster_ssh"`
 	DedicatedControlPlane basetypes.BoolValue   `tfsdk:"dedicated_control_plane"`
 	HighAvailability      basetypes.BoolValue   `tfsdk:"high_availability"`
+	InstallerTtl          basetypes.Int64Value  `tfsdk:"installer_ttl"`
 	KubernetesUpgrade     basetypes.ObjectValue `tfsdk:"kubernetes_upgrade"`
 	KubernetesVersion     basetypes.StringValue `tfsdk:"kubernetes_version"`
 	Location              basetypes.StringValue `tfsdk:"location"`
@@ -2834,7 +2896,7 @@ type ConfigValue struct {
 }
 
 func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 9)
+	attrTypes := make(map[string]tftypes.Type, 10)
 
 	var val tftypes.Value
 	var err error
@@ -2845,6 +2907,7 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 	}.TerraformType(ctx)
 	attrTypes["dedicated_control_plane"] = basetypes.BoolType{}.TerraformType(ctx)
 	attrTypes["high_availability"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["installer_ttl"] = basetypes.Int64Type{}.TerraformType(ctx)
 	attrTypes["kubernetes_upgrade"] = basetypes.ObjectType{
 		AttrTypes: KubernetesUpgradeValue{}.AttributeTypes(ctx),
 	}.TerraformType(ctx)
@@ -2861,7 +2924,7 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 9)
+		vals := make(map[string]tftypes.Value, 10)
 
 		val, err = v.AutoApproveNodes.ToTerraformValue(ctx)
 
@@ -2894,6 +2957,14 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 		}
 
 		vals["high_availability"] = val
+
+		val, err = v.InstallerTtl.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["installer_ttl"] = val
 
 		val, err = v.KubernetesUpgrade.ToTerraformValue(ctx)
 
@@ -3063,6 +3134,7 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		},
 		"dedicated_control_plane": basetypes.BoolType{},
 		"high_availability":       basetypes.BoolType{},
+		"installer_ttl":           basetypes.Int64Type{},
 		"kubernetes_upgrade": basetypes.ObjectType{
 			AttrTypes: KubernetesUpgradeValue{}.AttributeTypes(ctx),
 		},
@@ -3091,6 +3163,7 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"cluster_ssh":             clusterSsh,
 			"dedicated_control_plane": v.DedicatedControlPlane,
 			"high_availability":       v.HighAvailability,
+			"installer_ttl":           v.InstallerTtl,
 			"kubernetes_upgrade":      kubernetesUpgrade,
 			"kubernetes_version":      v.KubernetesVersion,
 			"location":                v.Location,
@@ -3129,6 +3202,10 @@ func (v ConfigValue) Equal(o attr.Value) bool {
 	}
 
 	if !v.HighAvailability.Equal(other.HighAvailability) {
+		return false
+	}
+
+	if !v.InstallerTtl.Equal(other.InstallerTtl) {
 		return false
 	}
 
@@ -3171,6 +3248,7 @@ func (v ConfigValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		},
 		"dedicated_control_plane": basetypes.BoolType{},
 		"high_availability":       basetypes.BoolType{},
+		"installer_ttl":           basetypes.Int64Type{},
 		"kubernetes_upgrade": basetypes.ObjectType{
 			AttrTypes: KubernetesUpgradeValue{}.AttributeTypes(ctx),
 		},
@@ -6414,11 +6492,19 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 		)
 	}
 
-	labelsVal, d := types.MapValue(types.StringType, v.Labels.Elements())
+	var labelsVal basetypes.MapValue
+	switch {
+	case v.Labels.IsUnknown():
+		labelsVal = types.MapUnknown(types.StringType)
+	case v.Labels.IsNull():
+		labelsVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		labelsVal, d = types.MapValue(types.StringType, v.Labels.Elements())
+		diags.Append(d...)
+	}
 
-	diags.Append(d...)
-
-	if d.HasError() {
+	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
 			"arch":      basetypes.StringType{},
 			"hostname":  basetypes.StringType{},
@@ -6440,11 +6526,19 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 		}), diags
 	}
 
-	rolesVal, d := types.SetValue(types.StringType, v.Roles.Elements())
+	var rolesVal basetypes.SetValue
+	switch {
+	case v.Roles.IsUnknown():
+		rolesVal = types.SetUnknown(types.StringType)
+	case v.Roles.IsNull():
+		rolesVal = types.SetNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		rolesVal, d = types.SetValue(types.StringType, v.Roles.Elements())
+		diags.Append(d...)
+	}
 
-	diags.Append(d...)
-
-	if d.HasError() {
+	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
 			"arch":      basetypes.StringType{},
 			"hostname":  basetypes.StringType{},
@@ -9384,11 +9478,19 @@ func (v SystemComponentsPlacementValue) ToObjectValue(ctx context.Context) (base
 		)
 	}
 
-	nodeSelectorVal, d := types.MapValue(types.StringType, v.NodeSelector.Elements())
+	var nodeSelectorVal basetypes.MapValue
+	switch {
+	case v.NodeSelector.IsUnknown():
+		nodeSelectorVal = types.MapUnknown(types.StringType)
+	case v.NodeSelector.IsNull():
+		nodeSelectorVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		nodeSelectorVal, d = types.MapValue(types.StringType, v.NodeSelector.Elements())
+		diags.Append(d...)
+	}
 
-	diags.Append(d...)
-
-	if d.HasError() {
+	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
 			"daemon_set_override": basetypes.ObjectType{
 				AttrTypes: DaemonSetOverrideValue{}.AttributeTypes(ctx),

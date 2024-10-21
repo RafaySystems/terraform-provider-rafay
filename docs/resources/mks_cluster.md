@@ -26,6 +26,7 @@ resource "rafay_mks_cluster" "mks-noha-converged-cluster" {
     config = {
       auto_approve_nodes      = true
       kubernetes_version      = "v1.28.9"
+      installer_ttl            = 365
       network = {
         cni = {
           name    = "Calico"
@@ -78,6 +79,7 @@ resource "rafay_mks_cluster" "mks-ha-cluster" {
       auto_approve_nodes      = true
       high_availability       = true
       kubernetes_version      = "v1.28.9"
+      installer_ttl           = 365
       kubernetes_upgrade = {
         strategy = "sequential"
         params = {
@@ -154,6 +156,7 @@ resource "rafay_mks_cluster" "mks-ha-cluster-with-dedicated-cp" {
       high_availability       = true
       dedicated_control_plane = true
       kubernetes_version      = "v1.28.9"
+      installer_ttl           = 365
       kubernetes_upgrade = {
         strategy = "sequential"
         params = {
@@ -324,6 +327,7 @@ You can change the current Kubernetes version under `spec.config.kubernetes_vers
 
 **Optional**
 
+- `installer_ttl` (Integer) By default, this setting allows ttl configuration for installer config. If not provided by default will set ttl to 365 days.
 - `auto_approve_nodes` (Boolean) By default, this setting allows incoming nodes to be automatically approved. It is recommended to set this option to true to avoid the need for manual approval for each node.
 - `cluster_ssh` (Attributes). The default SSH Local configuration to run bootstrap commands for node discovery. It's required if `spec.cloud_credentials` are not provided(see [below for nested schema](#nestedatt--spec--config--cluster_ssh))
 - `dedicated_control_plane` (Boolean) Select this option for preventing scheduling of user workloads on Control Plane nodes

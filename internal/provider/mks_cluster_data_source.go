@@ -160,6 +160,10 @@ func MksClusterDataSourceSchema(ctx context.Context) schema.Schema {
 								Computed:    true,
 								Description: "Kubernetes version of the Control Plane",
 							},
+							"installer_ttl": schema.Int64Attribute{
+								Computed:    true,
+								Description: "Installer TTL Configuration",
+							},
 							"location": schema.StringAttribute{
 								Computed:    true,
 								Description: "The data center location where the cluster nodes will be launched",

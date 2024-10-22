@@ -613,7 +613,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
     }
     access_config {
       authentication_mode = "API"
-      bootstrap_cluster_creator_admin_permissions = "false"
+      bootstrap_cluster_creator_admin_permissions = "true"
       access_entries {
         principal_arn = "arn:aws:iam::xxxxxxxxxxxx:user1/user1-access-role"
         type         = "STANDARD"

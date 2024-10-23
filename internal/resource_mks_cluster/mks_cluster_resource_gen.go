@@ -39,7 +39,6 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 					"annotations": schema.MapAttribute{
 						ElementType:         types.StringType,
 						Optional:            true,
-						Computed:            true,
 						Description:         "annotations of the resource",
 						MarkdownDescription: "annotations of the resource",
 					},
@@ -51,7 +50,6 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 					"labels": schema.MapAttribute{
 						ElementType:         types.StringType,
 						Optional:            true,
-						Computed:            true,
 						Description:         "labels of the resource",
 						MarkdownDescription: "labels of the resource",
 					},
@@ -153,6 +151,7 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 							},
 							"installer_ttl": schema.Int64Attribute{
 								Optional:            true,
+								Computed:            true,
 								Description:         "Installer TTL Configuration",
 								MarkdownDescription: "Installer TTL Configuration",
 								Default:             int64default.StaticInt64(365),
@@ -282,7 +281,6 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 										"labels": schema.MapAttribute{
 											ElementType:         types.StringType,
 											Optional:            true,
-											Computed:            true,
 											Description:         "labels to be added to the node",
 											MarkdownDescription: "labels to be added to the node",
 										},
@@ -487,7 +485,6 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 							"node_selector": schema.MapAttribute{
 								ElementType: types.StringType,
 								Optional:    true,
-								Computed:    true,
 							},
 							"tolerations": schema.SetNestedAttribute{
 								NestedObject: schema.NestedAttributeObject{

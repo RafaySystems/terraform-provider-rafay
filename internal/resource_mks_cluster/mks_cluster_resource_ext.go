@@ -105,10 +105,11 @@ func (v MetadataValue) FromHub(ctx context.Context, hub *commonpb.Metadata) (Met
 		v.Description = types.StringValue(hub.Description)
 	}
 
-	if hub.Annotations != nil {
+	if len(hub.Annotations) > 0 {
 		v.Annotations = convertToTfMap(hub.Annotations)
 	}
-	if hub.Labels != nil {
+
+	if len(hub.Labels) > 0 {
 		v.Labels = convertToTfMap(hub.Labels)
 	}
 
@@ -472,7 +473,7 @@ func (v SystemComponentsPlacementValue) ToHub(ctx context.Context) (*infrapb.Sys
 func (v SystemComponentsPlacementValue) FromHub(ctx context.Context, hub *infrapb.SystemComponentsPlacement) (basetypes.ObjectValue, diag.Diagnostics) {
 
 	var diags, d diag.Diagnostics
-	if hub.NodeSelector != nil {
+	if len(hub.NodeSelector) > 0 {
 		v.NodeSelector = convertToTfMap(hub.NodeSelector)
 	}
 	var tfTolerations []attr.Value

@@ -641,7 +641,9 @@ func (v NodesValue) FromHub(ctx context.Context, hub *infrapb.MksNode) (NodesVal
 	v.Roles, d = types.SetValue(types.StringType, tfRoles)
 	diags = append(diags, d...)
 
-	v.Labels = convertToTfMap(hub.Labels)
+	if len(hub.Labels) > 0 {
+		v.Labels = convertToTfMap(hub.Labels)
+	}
 
 	var tfTaints []attr.Value
 

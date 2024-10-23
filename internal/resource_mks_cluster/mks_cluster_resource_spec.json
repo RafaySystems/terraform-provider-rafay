@@ -49,7 +49,7 @@
 								{
 									"name": "annotations",
 									"map": {
-										"computed_optional_required": "computed_optional",
+										"computed_optional_required": "optional",
 										"element_type": {
 											"string": {}
 										},
@@ -66,7 +66,7 @@
 								{
 									"name": "labels",
 									"map": {
-										"computed_optional_required": "computed_optional",
+										"computed_optional_required": "optional",
 										"element_type": {
 											"string": {}
 										},
@@ -179,7 +179,7 @@
 											{
 												"name": "installer_ttl",
 												"int64": {
-													"computed_optional_required": "optional",
+													"computed_optional_required": "computed_optional",
 													"default": {
 														"static": 365
 													},
@@ -291,7 +291,7 @@
 															{
 																"name": "labels",
 																"map": {
-																	"computed_optional_required": "computed_optional",
+																	"computed_optional_required": "optional",
 																	"element_type": {
 																		"string": {}
 																	},
@@ -583,7 +583,7 @@
 											{
 												"name": "node_selector",
 												"map": {
-													"computed_optional_required": "computed_optional",
+													"computed_optional_required": "optional",
 													"element_type": {
 														"string": {}
 													}

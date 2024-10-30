@@ -69,8 +69,34 @@ type EKSClusterConfig struct {
 	CloudWatch              *EKSClusterCloudWatch       `yaml:"cloudWatch,omitempty"`
 	SecretsEncryption       *SecretsEncryption          `yaml:"secretsEncryption,omitempty"`
 	IdentityMappings        *EKSClusterIdentityMappings `yaml:"identityMappings,omitempty"`
+	AccessConfig            *EKSClusterAccess           `yaml:"accessConfig,omitempty"`
 	//do i need this? not in docs
 	//Karpenter *Karpenter `yaml:"karpenter,omitempty"`
+}
+
+type EKSClusterAccess struct {
+	BootstrapClusterCreatorAdminPermissions bool              `yaml:"bootstrapClusterCreatorAdminPermissions,omitempty"`
+	AuthenticationMode                      string            `yaml:"authenticationMode,omitempty"`
+	AccessEntries                           []*EKSAccessEntry `yaml:"accessEntries,omitempty"`
+}
+
+type EKSAccessEntry struct {
+	PrincipalARN       string             `yaml:"principalARN,omitempty"`
+	Type               string             `yaml:"type,omitempty"`
+	KubernetesUsername string             `yaml:"kubernetesUsername,omitempty"`
+	KubernetesGroups   []string           `yaml:"kubernetesGroups,omitempty"`
+//	Tags               map[string]string  `yaml:"tags,omitempty"`
+	AccessPolicies     []*EKSAccessPolicy `yaml:"accessPolicies,omitempty"`
+}
+
+type EKSAccessPolicy struct {
+	PolicyARN   string          `yaml:"policyARN,omitempty"`
+	AccessScope *EKSAccessScope `yaml:"accessScope,omitempty"`
+}
+
+type EKSAccessScope struct {
+	Type       string   `yaml:"type,omitempty"`
+	Namespaces []string `yaml:"namespaces,omitempty"`
 }
 
 type EKSClusterIdentityMappings struct {

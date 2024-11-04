@@ -300,6 +300,7 @@ LOOP:
 				if taskset.TasksetId != applyAksWorkloadIdentityResponse.TasksetId {
 					continue
 				}
+				log.Printf("taskset is %s\n", spew.Sprintf("%+v", taskset))
 
 				tasksetStatus := taskset.TasksetStatus
 
@@ -310,16 +311,28 @@ LOOP:
 
 				case "PROVISION_TASKSET_STATUS_FAILED":
 					log.Printf("workload identity %s operation failed", wiName)
+					combinedErrors := ""
 
-					if statusCluster.Status.Aks == nil {
-						return diag.FromErr(fmt.Errorf("workload identity %s operation failed", wiName))
+					var errorSummaries []string
+					for _, task := range taskset.TasksetOperations {
+						if task.ErrorSummary != "" {
+							errorSummaries = append(errorSummaries, task.ErrorSummary)
+						}
+					}
+					if len(errorSummaries) > 0 {
+						combinedErrors += "\nTaskset Errors:\n" + strings.Join(errorSummaries, "\n") + "\n"
 					}
 
-					msg, err := collectAKSV3UpsertEdgeResourceErrors(desiredInfraAksWorkloadIdentity, statusCluster.Status.Aks.EdgeResources)
-					if err != nil {
-						return diag.FromErr(err)
+					if statusCluster.Status.Aks != nil {
+						edgeResourceErrors, err := collectAKSV3UpsertEdgeResourceErrors(desiredInfraAksWorkloadIdentity, statusCluster.Status.Aks.EdgeResources)
+						if err != nil {
+							return diag.FromErr(err)
+						}
+						if edgeResourceErrors != "" {
+							combinedErrors += "\nEdge Resource Errors:" + edgeResourceErrors + "\n"
+						}
 					}
-					return diag.Errorf("workload identity %s operation failed with errors: %s", wiName, msg)
+					return diag.Errorf("workload identity %s operation failed with errors: %s", wiName, combinedErrors)
 
 				case "PROVISION_TASKSET_STATUS_IN_PROGRESS", "PROVISION_TASKSET_STATUS_PENDING":
 					log.Printf("workload identity %s operation", wiName)
@@ -390,6 +403,10 @@ func collectAKSV3UpsertEdgeResourceErrors(desiredInfraAksWorkloadIdentity *infra
 			Name:          desiredInfraAksWorkloadIdentity.Spec.Metadata.Name,
 			FailureReason: "workload identity not found in the cluster",
 		})
+	}
+
+	if len(collectedErrors.WorkloadIdentities) == 0 {
+		return "", nil
 	}
 
 	collectedErrsFormattedBytes, err := json.MarshalIndent(collectedErrors, "", "    ")

@@ -93,7 +93,7 @@ data "rafay_import_cluster" "import-sample-cluster" {
   }
 }
 
-output "eks_cluster" {
+output "import_cluster" {
   description = "import_cluster"
   value       = data.rafay_import_cluster.import-sample-cluster
 }

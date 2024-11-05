@@ -4,10 +4,6 @@ page_title: "rafay_import_cluster Resource - terraform-provider-rafay"
 subcategory: ""
 description: |-
 
-page_title: "rafay_import_cluster Data Source - terraform-provider-rafay"
-subcategory: ""
-description: |-
-  
 ---
 
 # rafay_import_cluster (Resource)

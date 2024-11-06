@@ -2424,11 +2424,11 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 }
 
 // expand eks cluster function (completed)
-func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterConfig {
+func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) (*EKSClusterConfig, error) {
 	obj := &EKSClusterConfig{}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return obj, nil
 	}
 	in := p[0].(map[string]interface{})
 	if !rawConfig.IsNull() && len(rawConfig.AsValueSlice()) > 0 {
@@ -2467,7 +2467,11 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 		if !rawConfig.IsNull() {
 			nRawConfig = rawConfig.GetAttr("vpc")
 		}
-		obj.VPC = expandVPC(v, nRawConfig)
+		vpc, err := expandVPC(v, nRawConfig)
+		if err != nil {
+			return nil, err
+		}
+		obj.VPC = vpc
 	}
 	if v, ok := in["managed_nodegroups"].([]interface{}); ok && len(v) > 0 {
 		var nRawConfig cty.Value
@@ -2504,6 +2508,7 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	//building cluster and cluster config yaml file
 	var yamlCluster *EKSCluster
 	var yamlClusterConfig *EKSClusterConfig
+	var err error
 	rawConfig := d.GetRawConfig()
 	//expand cluster yaml file
 	if v, ok := d.Get("cluster").([]interface{}); ok {
@@ -2514,7 +2519,11 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	}
 	//expand cluster config yaml file
 	if v, ok := d.Get("cluster_config").([]interface{}); ok {
-		yamlClusterConfig = expandEKSClusterConfig(v, rawConfig.GetAttr("cluster_config"))
+		yamlClusterConfig, err = expandEKSClusterConfig(v, rawConfig.GetAttr("cluster_config"))
+		if err != nil {
+			log.Print("Invalid cluster config found")
+			return diag.FromErr(err)
+		}
 	} else {
 		log.Print("Cluster Config unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster Config is missing"))
@@ -3817,11 +3826,11 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 }
 
 // expand vpc function
-func expandVPC(p []interface{}, rawConfig cty.Value) *EKSClusterVPC {
+func expandVPC(p []interface{}, rawConfig cty.Value) (*EKSClusterVPC, error) {
 	obj := &EKSClusterVPC{}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return obj, nil
 	}
 	in := p[0].(map[string]interface{})
 	if !rawConfig.IsNull() && len(rawConfig.AsValueSlice()) > 0 {
@@ -3844,7 +3853,11 @@ func expandVPC(p []interface{}, rawConfig cty.Value) *EKSClusterVPC {
 		obj.SecurityGroup = v
 	}
 	if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
-		obj.Subnets = expandSubnets(v)
+		clusterSubnets, err := expandSubnets(v)
+		if err != nil {
+			return nil, err
+		}
+		obj.Subnets = clusterSubnets
 	}
 	if v, ok := in["extra_ipv6_cidrs"].([]interface{}); ok && len(v) > 0 {
 		obj.ExtraIPv6CIDRs = toArrayString(v)
@@ -3875,7 +3888,7 @@ func expandVPC(p []interface{}, rawConfig cty.Value) *EKSClusterVPC {
 	if v, ok := in["public_access_cidrs"].([]interface{}); ok && len(v) > 0 {
 		obj.PublicAccessCIDRs = toArrayString(v)
 	}
-	return obj
+	return obj, nil
 }
 
 func expandClusterEndpoints(p []interface{}) *ClusterEndpoints {
@@ -3907,26 +3920,36 @@ func expandNat(p []interface{}) *ClusterNAT {
 	return obj
 }
 
-func expandSubnets(p []interface{}) *ClusterSubnets {
+func expandSubnets(p []interface{}) (*ClusterSubnets, error) {
 	obj := &ClusterSubnets{}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return obj, nil
 	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["private"].([]interface{}); ok && len(v) > 0 {
-		obj.Private = expandSubnetSpec(v)
+		subnets, err := expandSubnetSpec(v)
+		if err != nil {
+			return nil, err
+		}
+		obj.Private = subnets
 	}
 	if v, ok := in["public"].([]interface{}); ok && len(v) > 0 {
-		obj.Public = expandSubnetSpec(v)
+		subnets, err := expandSubnetSpec(v)
+		if err != nil {
+			return nil, err
+		}
+		obj.Public = subnets
 	}
-	return obj
+	return obj, nil
 }
-func expandSubnetSpec(p []interface{}) AZSubnetMapping {
+func expandSubnetSpec(p []interface{}) (AZSubnetMapping, error) {
 	obj := make(AZSubnetMapping)
+	namesFrequency := make(map[string]int)
+	duplicateNames := make([]string, 0)
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return obj, nil
 	}
 
 	for i := range p {
@@ -3943,9 +3966,18 @@ func expandSubnetSpec(p []interface{}) AZSubnetMapping {
 		}
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj[v] = elem2
+			namesFrequency[v]++
+			if namesFrequency[v] == 2 {
+				duplicateNames = append(duplicateNames, v)
+			}
 		}
 	}
-	return obj
+
+	if len(duplicateNames) > 0 {
+		return nil, fmt.Errorf("duplicate subnet names found: %v. Kindly use unique name for every subnet configured for better experience", duplicateNames)
+	}
+
+	return obj, nil
 }
 
 // struct IdentityProviders has one extra field not in documentation or the schema
@@ -5525,8 +5557,7 @@ func flattenVPCSubnets(in *ClusterSubnets, p []interface{}) []interface{} {
 }
 func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 	log.Println("got to flatten subnet mapping", len(p))
-	out := make([]interface{}, len(in))
-	i := 0
+	out := make([]interface{}, 0)
 	orderedSubnetNames := getSubnetNamesOrderFromState(p)
 
 	for idx := 0; idx < len(orderedSubnetNames); idx++ {
@@ -5548,8 +5579,7 @@ func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 			if len(elem.CIDR) > 0 {
 				obj["cidr"] = elem.CIDR
 			}
-			out[i] = obj
-			i += 1
+			out = append(out, obj)
 		}
 	}
 	for key, elem := range in {
@@ -5567,8 +5597,7 @@ func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 			if len(elem.CIDR) > 0 {
 				obj["cidr"] = elem.CIDR
 			}
-			out[i] = obj
-			i += 1
+			out = append(out, obj)
 		}
 	}
 	log.Println("finished subnet mapping")
@@ -5584,12 +5613,14 @@ func getSubnetNamesOrderFromState(p []interface{}) []string {
 		}
 		return ""
 	}
+	uniqueKeys := make(map[string]bool)
 	res := make([]string, len(p))
 	for i := 0; i < len(p); i++ {
 		if p[i] != nil {
 			if obj, ok := p[i].(map[string]interface{}); ok {
-				if x := extractValue(obj, "name"); x != "" {
-					res = append(res, obj["name"].(string))
+				if x := extractValue(obj, "name"); x != "" && !uniqueKeys[x] {
+					uniqueKeys[x] = true
+					res = append(res, x)
 				}
 			}
 		}

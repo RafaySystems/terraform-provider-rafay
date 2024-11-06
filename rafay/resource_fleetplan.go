@@ -313,7 +313,7 @@ func flattenControlPlaneUpgradeConfig(config *infrapb.ControlPlaneUpgradeConfigS
 	return []interface{}{obj}
 }
 
-func flattenFleetPlanAgents(agents []*infrapb.Agent) []interface{} {
+func flattenFleetPlanAgents(agents []*infrapb.FleetAgentRef) []interface{} {
 	if agents == nil {
 		return []interface{}{}
 	}
@@ -324,7 +324,7 @@ func flattenFleetPlanAgents(agents []*infrapb.Agent) []interface{} {
 	return obj
 }
 
-func flattenFleetPlanAgent(agent *infrapb.Agent) map[string]interface{} {
+func flattenFleetPlanAgent(agent *infrapb.FleetAgentRef) map[string]interface{} {
 	if agent == nil {
 		return make(map[string]interface{})
 	}
@@ -811,17 +811,17 @@ func expandHttpConfig(in []interface{}) *infrapb.HttpConfigSpec {
 	return obj
 }
 
-func expandFleetPlanAgent(in []interface{}) []*infrapb.Agent {
+func expandFleetPlanAgent(in []interface{}) []*infrapb.FleetAgentRef {
 
 	if len(in) == 0 || in[0] == nil {
 		return nil
 	}
 
-	var outAgents []*infrapb.Agent
+	var outAgents []*infrapb.FleetAgentRef
 
 	for _, inAgent := range in {
 
-		outAgent := &infrapb.Agent{}
+		outAgent := &infrapb.FleetAgentRef{}
 		inA := inAgent.(map[string]interface{})
 		if val, ok := inA["name"]; ok {
 			outAgent.Name = val.(string)

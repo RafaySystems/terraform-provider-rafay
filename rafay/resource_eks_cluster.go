@@ -4922,8 +4922,7 @@ func flattenVPCSubnets(in *ClusterSubnets, p []interface{}) []interface{} {
 }
 func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 	log.Println("got to flatten subnet mapping", len(p))
-	out := make([]interface{}, len(in))
-	i := 0
+	out := make([]interface{}, 0)
 	orderedSubnetNames := getSubnetNamesOrderFromState(p)
 
 	for idx := 0; idx < len(orderedSubnetNames); idx++ {
@@ -4945,8 +4944,7 @@ func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 			if len(elem.CIDR) > 0 {
 				obj["cidr"] = elem.CIDR
 			}
-			out[i] = obj
-			i += 1
+			out = append(out, obj)
 		}
 	}
 	for key, elem := range in {
@@ -4964,8 +4962,7 @@ func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 			if len(elem.CIDR) > 0 {
 				obj["cidr"] = elem.CIDR
 			}
-			out[i] = obj
-			i += 1
+			out = append(out, obj)
 		}
 	}
 	log.Println("finished subnet mapping")
@@ -4981,12 +4978,14 @@ func getSubnetNamesOrderFromState(p []interface{}) []string {
 		}
 		return ""
 	}
+	uniqueKeys := make(map[string]bool)
 	res := make([]string, len(p))
 	for i := 0; i < len(p); i++ {
 		if p[i] != nil {
 			if obj, ok := p[i].(map[string]interface{}); ok {
-				if x := extractValue(obj, "name"); x != "" {
-					res = append(res, obj["name"].(string))
+				if x := extractValue(obj, "name"); x != "" && !uniqueKeys[x] {
+					uniqueKeys[x] = true
+					res = append(res, x)
 				}
 			}
 		}

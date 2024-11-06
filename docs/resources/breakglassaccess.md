@@ -89,7 +89,11 @@ resource "rafay_breakglassaccess" "test_user" {
 - `name` (String) Group Name which access will be added
 
 ***Optional***
-- `start_time` (String) Time from when user access will be active
+- `start_time` (String) Time from when user access will be active, if not provided it will be initialised with current time. If skipped then use lifecycle,ignore_changes to avoid changes in this field
+
+***Optional***
+- `timezone` (String) Timezone for the start_time
+
 
 
 <a id="nestedblock--timeouts"></a>

@@ -271,8 +271,12 @@ func expandGroupExpiry(p []interface{}) []*systempb.GroupExpiryDetails {
 		expiryMap := expiry.(map[string]interface{})
 		ge := &systempb.GroupExpiryDetails{}
 
-		if v, ok := expiryMap["expiry"].(int); ok {
-			ge.Expiry = float32(v)
+		if v, ok := expiryMap["expiry"].(float64); ok {
+			ge.Expiry = v
+		}
+
+		if v, ok := expiryMap["timezone"].(string); ok && len(v) > 0 {
+			ge.Timezone = v
 		}
 
 		if v, ok := expiryMap["name"].(string); ok && len(v) > 0 {
@@ -359,10 +363,13 @@ func flattenGroupExpiry(groupExpiries []*systempb.GroupExpiryDetails) []interfac
 	for i, expiry := range groupExpiries {
 		expiryMap := map[string]interface{}{}
 
-		expiryMap["expiry"] = int(expiry.Expiry)
+		expiryMap["expiry"] = expiry.Expiry
 
 		if len(expiry.Name) > 0 {
 			expiryMap["name"] = expiry.Name
+		}
+		if len(expiry.Timezone) > 0 {
+			expiryMap["timezone"] = expiry.Timezone
 		}
 
 		expiryMap["start_time"] = expiry.StartTime

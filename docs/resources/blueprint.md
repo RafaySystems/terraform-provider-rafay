@@ -492,7 +492,7 @@ resource "rafay_blueprint" "cost-blueprint" {
 Optional:
 
 - `customization_enabled` (Boolean) flag to specify if monitoring component customization is enabled
-- `discovery` (Block List, Max: 1) discovery configuration for monitoring component (see [below for nested schema](#nestedblock--spec--default_addons--monitoring--gpu_operator--discovery))
+- `discovery` (Block List) discovery configuration for monitoring component (see [below for nested schema](#nestedblock--spec--default_addons--monitoring--gpu_operator--discovery))
 
 <a id="nestedblock--spec--default_addons--monitoring--gpu_operator--discovery"></a>
 ### Nested Schema for `spec.default_addons.monitoring.gpu_operator.discovery`

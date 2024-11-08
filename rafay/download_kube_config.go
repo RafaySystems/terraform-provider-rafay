@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -16,6 +15,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+type userOutput struct {
+	Accounts []models.UserAccount `json:"accounts"`
+}
 
 func downloadKubeConfig() *schema.Resource {
 	return &schema.Resource{
@@ -66,8 +69,8 @@ func downloadKubeConfigUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 func getUserDetails(username string) (accountId string, err error) {
 	params := url.Values{}
-	params.Add("q", username)
-	uri := fmt.Sprintf("/auth/v1/users/?%s", params.Encode())
+	params.Add("options.name", username)
+	uri := fmt.Sprintf("/auth/v2/users?%s", params.Encode())
 	auth := config.GetConfig().GetAppAuthProfile()
 
 	log.Println("getUserDetails uri ", uri)
@@ -76,18 +79,18 @@ func getUserDetails(username string) (accountId string, err error) {
 		log.Println("failed to get user details ", username, "resp", resp)
 		return "", err
 	}
-	var usr models.UsersFullResponse
+	var usr userOutput
 	if err := json.Unmarshal(resp.Bytes(), &usr); err != nil {
 		log.Println("failed to get user details ", username, "resp", resp)
 		return "", err
 	}
 	log.Println("download kubeconfig user getUserDetails:", usr, "resp", resp)
 
-	if len(usr.Users) <= 0 {
+	if len(usr.Accounts) <= 0 {
 		log.Println("failed to get user details got empty user", username, "resp", resp)
-		return "", fmt.Errorf("error /auth/v1/users/ resp: %s", resp)
+		return "", fmt.Errorf("error /auth/v2/users/ resp: %s", resp)
 	}
-	accountId = usr.Users[0].Account.ID
+	accountId = usr.Accounts[0].ID
 	return accountId, nil
 }
 
@@ -171,7 +174,7 @@ func downloadKubeConfigUtil(ctx context.Context, d *schema.ResourceData, m inter
 	yaml := string(decoded)
 
 	fileLocation := filepath + "/" + filename
-	err = ioutil.WriteFile(fileLocation, []byte(yaml), 0644)
+	err = os.WriteFile(fileLocation, []byte(yaml), 0644)
 	if err != nil {
 		log.Printf("Failed to store the downloaded kubeconfig file ")
 	}

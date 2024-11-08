@@ -12,17 +12,26 @@ resource "rafay_config_context" "aws-rds-config" {
     envs {
       key       = "name-modified"
       value     = "modified-value"
-      sensitive = false
+      options {
+        sensitive = true
+      }
     }
     envs {
       key       = "name-new"
       value     = "new-value"
-      sensitive = false
+      options {
+        required = true
+      }
     }
     files {
       name      = "file://variables.tf"
       mount_path = "/local/tmp"
-      sensitive = true
+      options {
+        description = "file with default input variables"
+        override {
+          type = "allowed"
+        }
+      }
     }
     variables {
       name       = "new-variable"

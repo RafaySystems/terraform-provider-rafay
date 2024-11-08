@@ -39,6 +39,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_eks_cluster_spec":                  resourceEKSClusterSpec(),
 				"rafay_aks_cluster":                       resourceAKSCluster(),
 				"rafay_aks_cluster_v3":                    resourceAKSClusterV3(),
+				"rafay_aks_workload_identity":             resourceAKSWorkloadIdentity(),
 				"rafay_aks_cluster_spec":                  resourceAKSClusterSpec(),
 				"rafay_gke_cluster":                       resourceGKEClusterV3(),
 				"rafay_addon":                             resourceAddon(),
@@ -98,6 +99,8 @@ func New(_ string) func() *schema.Provider {
 				"rafay_ztkapolicy":                        resourceZTKAPolicy(),
 				"rafay_customrole":                        resourceCustomRole(),
 				"rafay_workload_cd_operator":              resourceWorkloadCDOperator(),
+				"rafay_breakglassaccess":                  resourceBreakGlassAccess(),
+				"rafay_eks_pod_identity":                  resourceEKSPodIdentity(),
 			},
 			DataSourcesMap: map[string]*schema.Resource{
 				"rafay_project":                  dataProject(),
@@ -113,6 +116,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_groupassociation":         dataGroupAssociation(),
 				"rafay_workload":                 dataWorkload(),
 				"rafay_cluster_blueprint_status": dataClusterBlueprintStatus(),
+				"rafay_import_cluster":           dataImportCluster(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}

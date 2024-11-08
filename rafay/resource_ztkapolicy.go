@@ -12,6 +12,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/systempb"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 
@@ -26,6 +27,9 @@ func resourceZTKAPolicy() *schema.Resource {
 		ReadContext:   resourceZTKAPolicyRead,
 		UpdateContext: resourceZTKAPolicyUpdate,
 		DeleteContext: resourceZTKAPolicyDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceZTKAPolicyImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -36,6 +40,35 @@ func resourceZTKAPolicy() *schema.Resource {
 		SchemaVersion: 1,
 		Schema:        resource.ZTKAPolicySchema.Schema,
 	}
+}
+
+func resourceZTKAPolicyImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if d.Id() == "" {
+		return nil, fmt.Errorf("ztkapolicy name not provided, usage e.g terraform import rafay_ztkapolicy.resource <ztkapolicy-name>")
+	}
+
+	policy_name := d.Id()
+
+	log.Println("Importing ztka-policy: ", policy_name)
+
+	ztkaPolicy, err := expandZTKAPolicy(d)
+	if err != nil {
+		log.Printf("ztkaPolicy expandZTKAPolicy error")
+		return nil, err
+	}
+
+	var metaD commonpb.Metadata
+	metaD.Name = policy_name
+	ztkaPolicy.Metadata = &metaD
+
+	err = d.Set("metadata", flattenMetaData(ztkaPolicy.Metadata))
+	if err != nil {
+		return nil, err
+	}
+
+	d.SetId(policy_name)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceZTKAPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -184,7 +217,7 @@ func expandZTKAPolicy(in *schema.ResourceData) (*systempb.ZTKAPolicy, error) {
 		obj.Metadata = expandMetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok {
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandZTKAPolicySpec(v)
 		if err != nil {
 			return nil, err

@@ -67,11 +67,106 @@ type AKSClusterConfigMetadata struct {
 }
 
 type AKSClusterConfigSpec struct {
-	SubscriptionID    string             `yaml:"subscriptionId,omitempty"`
-	ResourceGroupName string             `yaml:"resourceGroupName,omitempty"`
-	ManagedCluster    *AKSManagedCluster `yaml:"managedCluster,omitempty"`
-	NodePools         []*AKSNodePool     `yaml:"nodePools,omitempty"`
+	SubscriptionID     string                   `yaml:"subscriptionId,omitempty"`
+	ResourceGroupName  string                   `yaml:"resourceGroupName,omitempty"`
+	ManagedCluster     *AKSManagedCluster       `yaml:"managedCluster,omitempty"`
+	NodePools          []*AKSNodePool           `yaml:"nodePools,omitempty"`
+	MaintenanceConfigs []*AKSMaintenanceConfig  `yaml:"maintenanceConfigurations,omitempty"`
+	WorkloadIdentities []*AzureWorkloadIdentity `yaml:"workloadIdentities,omitempty"`
 	//Internal          *AKSRafayInternal  `yaml:"internal,omitempty"`
+}
+
+type AzureWorkloadIdentity struct {
+	CreateIdentity     bool                                      `yaml:"createIdentity,omitempty"`
+	Metadata           *AzureWorkloadIdentityMetadata            `yaml:"metadata,omitempty"`
+	RoleAssignments    []*AzureWorkloadIdentityRoleAssignment    `yaml:"roleAssignments,omitempty"`
+	K8sServiceAccounts []*AzureWorkloadIdentityK8sServiceAccount `yaml:"serviceAccounts,omitempty"`
+}
+
+type AzureWorkloadIdentityMetadata struct {
+	ClientId      string            `yaml:"clientId,omitempty"`
+	PrincipalId   string            `yaml:"principalId,omitempty"`
+	Name          string            `yaml:"name,omitempty"`
+	Location      string            `yaml:"location,omitempty"`
+	ResourceGroup string            `yaml:"resourceGroup,omitempty"`
+	Tags          map[string]string `yaml:"tags,omitempty"`
+}
+
+type AzureWorkloadIdentityRoleAssignment struct {
+	Name             string `yaml:"name,omitempty"`
+	RoleDefinitionId string `yaml:"roleDefinitionId,omitempty"`
+	Scope            string `yaml:"scope,omitempty"`
+}
+
+type AzureWorkloadIdentityK8sServiceAccount struct {
+	CreateAccount bool                       `yaml:"createAccount,omitempty"`
+	Metadata      *K8sServiceAccountMetadata `yaml:"metadata,omitempty"`
+}
+
+type K8sServiceAccountMetadata struct {
+	Name        string            `yaml:"name"`
+	Namespace   string            `yaml:"namespace"`
+	Annotations map[string]string `yaml:"annotations,omitempty"`
+	Labels      map[string]string `yaml:"labels,omitempty"`
+}
+
+type AKSMaintenanceConfig struct {
+	ApiVersion string                          `yaml:"apiVersion,omitempty"`
+	Name       string                          `yaml:"name,omitempty"`
+	Properties *AKSMaintenanceConfigProperties `yaml:"properties,omitempty"`
+	Type       string                          `yaml:"type,omitempty"`
+}
+
+type AKSMaintenanceConfigProperties struct {
+	MaintenanceWindow *AKSMaintenanceWindow       `yaml:"maintenanceWindow,omitempty"`
+	NotAllowedTime    []*AKSMaintenanceTimeSpan   `yaml:"notAllowedTime,omitempty"`
+	TimeInWeek        []*AKSMaintenanceTimeInWeek `yaml:"timeInWeek,omitempty"`
+}
+
+type AKSMaintenanceWindow struct {
+	DurationHours   int                       `yaml:"durationHours,omitempty"`
+	NotAllowedDates []*AKSMaintenanceTimeSpan `yaml:"notAllowedDates,omitempty"`
+	Schedule        *AKSMaintenanceSchedule   `yaml:"schedule,omitempty"`
+	StartDate       string                    `yaml:"startDate,omitempty"`
+	StartTime       string                    `yaml:"startTime,omitempty"`
+	UtcOffset       string                    `yaml:"utcOffset,omitempty"`
+}
+
+type AKSMaintenanceTimeSpan struct {
+	End   string `yaml:"end,omitempty"`
+	Start string `yaml:"start,omitempty"`
+}
+
+type AKSMaintenanceTimeInWeek struct {
+	Day       string `yaml:"day,omitempty"`
+	HourSlots []int  `yaml:"hourSlots,omitempty"`
+}
+
+type AKSMaintenanceSchedule struct {
+	AbsoluteMonthlySchedule *AKSMaintenanceAbsoluteMonthlySchedule `yaml:"absoluteMonthly,omitempty"`
+	DailySchedule           *AKSMaintenanceDailySchedule           `yaml:"daily,omitempty"`
+	RelativeMonthlySchedule *AKSMaintenanceRelativeMonthlySchedule `yaml:"relativeMonthly,omitempty"`
+	WeeklySchedule          *AKSMaintenanceWeeklySchedule          `yaml:"weekly,omitempty"`
+}
+
+type AKSMaintenanceAbsoluteMonthlySchedule struct {
+	DayOfMonth     int `yaml:"dayOfMonth,omitempty"`
+	IntervalMonths int `yaml:"intervalMonths,omitempty"`
+}
+
+type AKSMaintenanceDailySchedule struct {
+	IntervalDays int `yaml:"intervalDays,omitempty"`
+}
+
+type AKSMaintenanceRelativeMonthlySchedule struct {
+	DayOfWeek      string `yaml:"dayOfWeek,omitempty"`
+	IntervalMonths int    `yaml:"intervalMonths,omitempty"`
+	WeekIndex      string `yaml:"weekIndex,omitempty"`
+}
+
+type AKSMaintenanceWeeklySchedule struct {
+	DayOfWeek     string `yaml:"dayOfWeek,omitempty"`
+	IntervalWeeks int    `yaml:"intervalWeeks,omitempty"`
 }
 
 // type AzureContainerRegistryProfile struct {
@@ -123,6 +218,7 @@ type AKSManagedClusterProperties struct {
 	DiskEncryptionSetID     string                                   `yaml:"diskEncryptionSetID,omitempty"`
 	AddonProfiles           *AddonProfiles                           `yaml:"addonProfiles,omitempty"`
 	//AddonProfiles           map[string]string                         `yaml:"addonProfiles,omitempty"`
+	SecurityProfile         *AKSManagedClusterSecurityProfile         `yaml:"securityProfile,omitempty"`
 	ServicePrincipalProfile *AKSManagedClusterServicePrincipalProfile `yaml:"servicePrincipalProfile,omitempty"`
 	LinuxProfile            *AKSManagedClusterLinuxProfile            `yaml:"linuxProfile,omitempty"`
 	WindowsProfile          *AKSManagedClusterWindowsProfile          `yaml:"windowsProfile,omitempty"`
@@ -130,6 +226,7 @@ type AKSManagedClusterProperties struct {
 	IdentityProfile         *AKSManagedClusterIdentityProfile         `yaml:"identityProfile,omitempty"`
 	AutoScalerProfile       *AKSManagedClusterAutoScalerProfile       `yaml:"autoScalerProfile,omitempty"`
 	AutoUpgradeProfile      *AKSManagedClusterAutoUpgradeProfile      `yaml:"autoUpgradeProfile,omitempty"`
+	OidcIssuerProfile       *AKSManagedClusterOidcIssuerProfile       `yaml:"oidcIssuerProfile,omitempty"`
 	PodIdentityProfile      *AKSManagedClusterPodIdentityProfile      `yaml:"podIdentityProfile,omitempty"`
 	PrivateLinkResources    *AKSManagedClusterPrivateLinkResources    `yaml:"privateLinkResources,omitempty"`
 	PowerState              *AKSManagedClusterPowerState              `yaml:"powerState,omitempty"`
@@ -178,6 +275,18 @@ type IngressApplicationGatewayAddonConfig struct {
 	SubnetCIDR             string `yaml:"subnetCIDR,omitempty"`
 	SubnetID               string `yaml:"subnetId,omitempty"`
 	WatchNamespace         string `yaml:"watchNamespace,omitempty"`
+}
+
+type AKSManagedClusterSecurityProfile struct {
+	WorkloadIdentity *AKSManagedClusterWorkloadIdentity `yaml:"workloadIdentity,omitempty"`
+}
+
+type AKSManagedClusterWorkloadIdentity struct {
+	Enabled *bool `yaml:"enabled,omitempty"`
+}
+
+type AKSManagedClusterOidcIssuerProfile struct {
+	Enabled *bool `yaml:"enabled,omitempty"`
 }
 
 type AKSManagedClusterNetworkProfile struct {
@@ -265,7 +374,8 @@ type AKSManagedClusterAutoScalerProfile struct {
 }
 
 type AKSManagedClusterAutoUpgradeProfile struct {
-	UpgradeChannel string `yaml:"upgradeChannel,omitempty"`
+	UpgradeChannel       string `yaml:"upgradeChannel,omitempty"`
+	NodeOsUpgradeChannel string `yaml:"nodeOsUpgradeChannel,omitempty"`
 }
 
 type AKSManagedClusterServicePrincipalProfile struct {

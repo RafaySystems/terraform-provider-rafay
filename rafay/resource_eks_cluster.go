@@ -405,6 +405,118 @@ func configField() map[string]*schema.Schema {
 				Schema: identityMappingsConfigFields(),
 			},
 		},
+		"access_config": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "controls how IAM principals can access this cluster",
+			Elem: &schema.Resource{
+				Schema: accessConfigFields(),
+			},
+		},
+	}
+	return s
+}
+
+func accessConfigFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"bootstrap_cluster_creator_admin_permissions": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "choose whether the IAM principal creating the cluster has Kubernetes cluster administrator access",
+		},
+		"authentication_mode": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "configure which source the cluster will use for authenticated IAM principals. API or API_AND_CONFIG_MAP (default) or CONFIG_MAP",
+		},
+		"access_entries": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "specifies a list of access entries for the cluster",
+			Elem: &schema.Resource{
+				Schema: accessEntryFields(),
+			},
+		},
+	}
+	return s
+}
+
+func accessEntryFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"principal_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "the IAM principal that you want to grant access to Kubernetes objects on your cluster",
+		},
+		"type": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "EC2_LINUX, EC2_WINDOWS, FARGATE_LINUX or STANDARD",
+		},
+		"kubernetes_username": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "username to map to the principal ARN",
+		},
+		"kubernetes_groups": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "set of Kubernetes groups to map to the principal ARN",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"tags": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "applied to the access entries",
+		},
+		"access_policies": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "set of policies to associate with an access entry",
+			Elem: &schema.Resource{
+				Schema: accessPolicyFields(),
+			},
+		},
+	}
+	return s
+}
+
+func accessPolicyFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"policy_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "the ARN of the policy to attach to the access entry",
+		},
+		"access_scope": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "defines the scope of an access policy",
+			Elem: &schema.Resource{
+				Schema: accessScopeFields(),
+			},
+		},
+	}
+	return s
+}
+
+func accessScopeFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"type": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "namespace or cluster",
+		},
+		"namespaces": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Scope access to namespace(s)",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
 	}
 	return s
 }
@@ -497,6 +609,79 @@ func iamFields() map[string]*schema.Schema {
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Description: "attaches the IAM policy necessary to run the VPC controller in the control plane",
+		},
+		"pod_identity_associations": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "pod identity associations",
+			Elem: &schema.Resource{
+				Schema: podIdentityAssociationsFields(),
+			},
+		},
+	}
+	return s
+}
+
+func podIdentityAssociationsFields() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"namespace": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "namespace of service account",
+		},
+		"service_account_name": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "name of service account",
+		},
+		"role_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "role ARN of AWS role to associate with service account",
+		},
+		"create_service_account": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "enable flag to create service account",
+		},
+		"role_name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "aws role name to associate",
+		},
+		"permission_boundary_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "permission boundary ARN",
+		},
+		"permission_policy_arns": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "permission policy ARNs",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"permission_policy": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "permission policy document",
+		},
+		"well_known_policies": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "for attaching common IAM policies",
+			Elem: &schema.Resource{
+				Schema: serviceAccountsWellKnownPolicyFields(),
+			},
+		},
+		"tags": {
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Description: "AWS tags for the service account",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
 		},
 	}
 	return s
@@ -2124,6 +2309,11 @@ func secretsEncryptionConfigFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "KMS key ARN",
 		},
+		"encrypt_existing_secrets": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Flag to encrypt existing secrets. Default is true",
+		},
 	}
 	return s
 }
@@ -2268,6 +2458,9 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 	}
 	if v, ok := in["identity_mappings"].([]interface{}); ok && len(v) > 0 {
 		obj.IdentityMappings = expandIdentityMappings(v)
+	}
+	if v, ok := in["access_config"].([]interface{}); ok && len(v) > 0 {
+		obj.AccessConfig = expandAccessConfig(v)
 	}
 	return obj
 }
@@ -2461,6 +2654,103 @@ func expandEKSSpecMetadata(p []interface{}) *EKSClusterConfigMetadata {
 	return obj
 }
 
+func expandAccessConfig(p []interface{}) *EKSClusterAccess {
+	obj := &EKSClusterAccess{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["bootstrap_cluster_creator_admin_permissions"].(bool); ok {
+		obj.BootstrapClusterCreatorAdminPermissions = v
+	}
+
+	if v, ok := in["authentication_mode"].(string); ok && len(v) > 0 {
+		obj.AuthenticationMode = v
+	}
+
+	if v, ok := in["access_entries"].([]interface{}); ok && len(v) > 0 {
+		obj.AccessEntries = expandAccessEntries(v)
+	}
+
+	return obj
+}
+
+func expandAccessEntries(p []interface{}) []*EKSAccessEntry {
+	out := make([]*EKSAccessEntry, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := &EKSAccessEntry{}
+		if v, ok := in["principal_arn"].(string); ok && len(v) > 0 {
+			obj.PrincipalARN = v
+		}
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			obj.Type = v
+		}
+		if v, ok := in["kubernetes_username"].(string); ok && len(v) > 0 {
+			obj.KubernetesUsername = v
+		}
+		if v, ok := in["kubernetes_groups"].([]interface{}); ok && len(v) > 0 {
+			obj.KubernetesGroups = toArrayString(v)
+		}
+		// if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
+		// 	obj.Tags = toMapString(v)
+		// }
+		if v, ok := in["access_policies"].([]interface{}); ok && len(v) > 0 {
+			obj.AccessPolicies = expandAccessPolicies(v)
+		}
+
+		out[i] = obj
+	}
+
+	return out
+}
+
+func expandAccessPolicies(p []interface{}) []*EKSAccessPolicy {
+
+	out := make([]*EKSAccessPolicy, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+
+	for i := range p {
+		in := p[i].(map[string]interface{})
+		obj := &EKSAccessPolicy{}
+		if v, ok := in["policy_arn"].(string); ok && len(v) > 0 {
+			obj.PolicyARN = v
+		}
+		if v, ok := in["access_scope"].([]interface{}); ok && len(v) > 0 {
+			obj.AccessScope = expandAccessScope(v)
+		}
+		out[i] = obj
+	}
+
+	return out
+}
+
+func expandAccessScope(p []interface{}) *EKSAccessScope {
+	obj := &EKSAccessScope{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["type"].(string); ok && len(v) > 0 {
+		obj.Type = v
+	}
+	if v, ok := in["namespaces"].([]interface{}); ok && len(v) > 0 {
+		obj.Namespaces = toArrayString(v)
+	}
+	return obj
+
+}
+
 // expand secret encryption (completed)
 func expandSecretEncryption(p []interface{}) *SecretsEncryption {
 	obj := &SecretsEncryption{}
@@ -2472,6 +2762,11 @@ func expandSecretEncryption(p []interface{}) *SecretsEncryption {
 	if v, ok := in["key_arn"].(string); ok && len(v) > 0 {
 		obj.KeyARN = v
 	}
+
+	if v, ok := in["encrypt_existing_secrets"].(bool); ok {
+		obj.EncryptExistingSecrets = &v
+	}
+
 	return obj
 }
 
@@ -3658,6 +3953,10 @@ func expandIAMFields(p []interface{}) *EKSClusterIAM {
 		obj.VPCResourceControllerPolicy = &v
 	}
 
+	if v, ok := in["pod_identity_associations"].([]interface{}); ok && len(v) > 0 {
+		obj.PodIdentityAssociations = expandIAMPodIdentityAssociationsConfig(v)
+	}
+
 	return obj
 }
 
@@ -3683,6 +3982,49 @@ func expandServiceAccountsMetadata(p []interface{}) *EKSClusterIAMMeta {
 		obj.Annotations = toMapString(v)
 	}
 	return obj
+}
+
+func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAssociation {
+	out := make([]*IAMPodIdentityAssociation, len(p))
+	if len(p) == 0 || p[0] == nil {
+		return out
+	}
+	for i := range p {
+		obj := &IAMPodIdentityAssociation{}
+		in := p[i].(map[string]interface{})
+		if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+			obj.Namespace = v
+		}
+		if v, ok := in["service_account_name"].(string); ok && len(v) > 0 {
+			obj.ServiceAccountName = v
+		}
+		if v, ok := in["role_arn"].(string); ok && len(v) > 0 {
+			obj.RoleARN = v
+		}
+		if v, ok := in["create_service_account"].(bool); ok {
+			obj.CreateServiceAccount = &v
+		}
+		if v, ok := in["role_name"].(string); ok && len(v) > 0 {
+			obj.RoleName = v
+		}
+		if v, ok := in["permission_boundary_arn"].(string); ok && len(v) > 0 {
+			obj.PermissionsBoundaryARN = v
+		}
+		if v, ok := in["permission_policy"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.PermissionPolicy = v
+		}
+		if v, ok := in["permission_policy_arns"].([]interface{}); ok && len(v) > 0 {
+			obj.PermissionPolicyARNs = toArrayString(v)
+		}
+		if v, ok := in["well_known_policies"].([]interface{}); ok && len(v) > 0 {
+			obj.WellKnownPolicies = expandIAMWellKnownPolicies(v)
+		}
+		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Tags = toMapString(v)
+		}
+		out[i] = obj
+	}
+	return out
 }
 
 func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAccount {
@@ -4470,7 +4812,147 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		obj["identity_mappings"] = ret13
 	}
 
+	if in.AccessConfig != nil {
+		v, ok := obj["access_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret14, err := flattenEKSClusterAccess(in.AccessConfig, v)
+		if err != nil {
+			log.Println("flattenEKSClusterAccess err")
+			return nil, err
+		}
+		obj["access_config"] = ret14
+	}
+
 	log.Println("end of flatten config")
+
+	return []interface{}{obj}, nil
+}
+
+func flattenEKSClusterAccess(in *EKSClusterAccess, p []interface{}) ([]interface{}, error) {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}, nil
+	}
+
+	obj["bootstrap_cluster_creator_admin_permissions"] = in.BootstrapClusterCreatorAdminPermissions
+
+	if in.AuthenticationMode != "" {
+		obj["authentication_mode"] = in.AuthenticationMode
+	}
+
+	if in.AccessEntries != nil {
+		v, ok := obj["access_entries"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret, err := flattenEKSAccessEntry(in.AccessEntries, v)
+		if err != nil {
+			log.Println("flattenEKSAccessEntry err")
+			return nil, err
+		}
+		obj["access_entries"] = ret
+	}
+
+	return []interface{}{obj}, nil
+}
+
+func flattenEKSAccessEntry(inp []*EKSAccessEntry, p []interface{}) ([]interface{}, error) {
+
+	out := make([]interface{}, len(inp))
+	if inp == nil {
+		return []interface{}{out}, nil
+	}
+
+	for i, in := range inp {
+		obj := map[string]interface{}{}
+
+		if len(in.PrincipalARN) > 0 {
+			obj["principal_arn"] = in.PrincipalARN
+		}
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+		if len(in.KubernetesUsername) > 0 {
+			obj["kubernetes_username"] = in.KubernetesUsername
+		}
+
+		if in.KubernetesGroups != nil && len(in.KubernetesGroups) > 0 {
+			obj["kubernetes_groups"] = toArrayInterfaceSorted(in.KubernetesGroups)
+		}
+		// if in.Tags != nil && len(in.Tags) > 0 {
+		// 	obj["tags"] = toMapInterface(in.Tags)
+		// }
+		if in.AccessPolicies != nil {
+			v, ok := obj["access_policies"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			ret, err := flattenEKSAccessPolicy(in.AccessPolicies, v)
+			if err != nil {
+				log.Println("flattenEKSAccessPolicy err")
+				return nil, err
+			}
+			obj["access_policies"] = ret
+
+		}
+
+		out[i] = obj
+	}
+
+	return out, nil
+}
+
+func flattenEKSAccessPolicy(inp []*EKSAccessPolicy, p []interface{}) ([]interface{}, error) {
+	out := make([]interface{}, len(inp))
+	if inp == nil {
+		return []interface{}{out}, nil
+	}
+
+	for i, in := range inp {
+		obj := map[string]interface{}{}
+		if in.PolicyARN != "" {
+			obj["policy_arn"] = in.PolicyARN
+		}
+
+		if in.AccessScope != nil {
+			v, ok := obj["access_scope"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			ret, err := flattenEKSAccessScope(in.AccessScope, v)
+			if err != nil {
+				log.Println("flattenEKSAccessScope err")
+				return nil, err
+			}
+			obj["access_scope"] = ret
+		}
+
+		out[i] = obj
+	}
+	return out, nil
+}
+
+func flattenEKSAccessScope(in *EKSAccessScope, p []interface{}) ([]interface{}, error) {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}, nil
+	}
+
+	if in.Type != "" {
+		obj["type"] = in.Type
+	}
+
+	if in.Namespaces != nil && len(in.Namespaces) > 0 {
+		obj["namespaces"] = toArrayInterfaceSorted(in.Namespaces)
+	}
 
 	return []interface{}{obj}, nil
 }
@@ -4529,6 +5011,14 @@ func flattenEKSClusterIAM(in *EKSClusterIAM, rawState cty.Value, p []interface{}
 			nRawState = rawState.GetAttr("service_accounts")
 		}
 		obj["service_accounts"] = flattenIAMServiceAccounts(in.ServiceAccounts, nRawState, v)
+	}
+
+	if in.PodIdentityAssociations != nil {
+		v, ok := obj["pod_identity_associations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["pod_identity_associations"] = flattenIAMPodIdentityAssociations(in.PodIdentityAssociations, v)
 	}
 
 	obj["vpc_resource_controller_policy"] = in.VPCResourceControllerPolicy
@@ -4600,6 +5090,57 @@ func flattenSingleIAMServiceAccount(in *EKSClusterIAMServiceAccount) map[string]
 		obj["tags"] = toMapInterface(in.Tags)
 	}
 	return obj
+}
+
+func flattenIAMPodIdentityAssociations(inp []*IAMPodIdentityAssociation, p []interface{}) []interface{} {
+	if inp == nil {
+		return nil
+	}
+	out := make([]interface{}, len(inp))
+	for i, in := range inp {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		if len(in.ServiceAccountName) > 0 {
+			obj["service_account_name"] = in.ServiceAccountName
+		}
+		if len(in.Namespace) > 0 {
+			obj["namespace"] = in.Namespace
+		}
+		if len(in.RoleARN) > 0 {
+			obj["role_arn"] = in.RoleARN
+		}
+		if len(in.RoleName) > 0 {
+			obj["role_name"] = in.RoleName
+		}
+		if len(in.PermissionPolicy) > 0 {
+			obj["permission_policy"] = in.PermissionPolicy
+		}
+		if in.WellKnownPolicies != nil {
+			v, ok := obj["well_known_policies"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
+		}
+		if in.PermissionPolicyARNs != nil && len(in.PermissionPolicyARNs) > 0 {
+			obj["permission_policy_arns"] = toArrayInterface(in.PermissionPolicyARNs)
+		}
+		if len(in.PermissionsBoundaryARN) > 0 {
+			obj["permissions_boundary_arn"] = in.PermissionsBoundaryARN
+		}
+		if in.Tags != nil && len(in.Tags) > 0 {
+			obj["tags"] = toMapInterface(in.Tags)
+		}
+		// if *in.CreateServiceAccount {
+		// 	obj["create_service_account"] = *in.CreateServiceAccount
+		// }
+		obj["create_service_account"] = true
+
+		out[i] = obj
+	}
+	return out
 }
 
 func flattenIAMServiceAccounts(inp []*EKSClusterIAMServiceAccount, rawState cty.Value, p []interface{}) []interface{} {
@@ -5987,6 +6528,15 @@ func flattenEKSClusterSecretsEncryption(in *SecretsEncryption, p []interface{}) 
 	if len(in.KeyARN) > 0 {
 		obj["key_arn"] = in.KeyARN
 	}
+
+	if in.EncryptExistingSecrets != nil && *in.EncryptExistingSecrets {
+		obj["encrypt_existing_secrets"] = true
+	}
+
+	if in.EncryptExistingSecrets != nil && !*in.EncryptExistingSecrets {
+		obj["encrypt_existing_secrets"] = false
+	}
+
 	return []interface{}{obj}
 }
 

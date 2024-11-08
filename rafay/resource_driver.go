@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
-	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func resourceDriver() *schema.Resource {
@@ -225,6 +226,18 @@ func expandDriverSpec(p []interface{}) (*eaaspb.DriverSpec, error) {
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
+	}
+
+	if v, ok := in["inputs"].([]interface{}); ok && len(v) > 0 {
+		spec.Inputs = expandConfigContextCompoundRefs(v)
+	}
+
+	var err error
+	if v, ok := in["outputs"].(string); ok && len(v) > 0 {
+		spec.Outputs, err = expandDriverOutputs(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return spec, nil
@@ -514,6 +527,10 @@ func expandContainerKubeOptions(p []interface{}) *eaaspb.ContainerKubeOptions {
 		hc.ServiceAccountName = san
 	}
 
+	if tolerations, ok := in["tolerations"].([]interface{}); ok {
+		hc.Tolerations = expandV3Tolerations(tolerations)
+	}
+
 	return &hc
 }
 
@@ -563,42 +580,16 @@ func expandDriverHttpConfig(p []interface{}) *eaaspb.HTTPDriverConfig {
 	return &hc
 }
 
-func expandDriverCompoundRef(p []interface{}) *eaaspb.DriverCompoundRef {
-	driver := &eaaspb.DriverCompoundRef{}
-	if len(p) == 0 || p[0] == nil {
-		return driver
+func expandDriverOutputs(p string) (*structpb.Struct, error) {
+	if len(p) == 0 {
+		return nil, nil
 	}
 
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["name"].(string); ok && len(v) > 0 {
-		driver.Name = v
+	var s structpb.Struct
+	if err := s.UnmarshalJSON([]byte(p)); err != nil {
+		return nil, err
 	}
-
-	if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
-		driver.Data = expandDriverInline(v)
-	}
-
-	return driver
-}
-
-func expandDriverInline(p []interface{}) *eaaspb.DriverInline {
-	driver := &eaaspb.DriverInline{}
-	if len(p) == 0 || p[0] == nil {
-		return driver
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
-		driver.Config = expandDriverConfig(v)
-	}
-
-	if v, ok := in["inputs"].([]interface{}); ok && len(v) > 0 {
-		driver.Inputs = expandConfigContextCompoundRefs(v)
-	}
-
-	return driver
+	return &s, nil
 }
 
 // Flatteners
@@ -652,9 +643,9 @@ func flattenDriverSpec(in *eaaspb.DriverSpec, p []interface{}) ([]interface{}, e
 
 		obj["config"] = flattenDriverConfig(in.Config, v)
 	}
-
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
-
+	obj["inputs"] = flattenConfigContextCompoundRefs(in.Inputs)
+	obj["outputs"] = flattenDriverOutputs(in.Outputs)
 	return []interface{}{obj}, nil
 }
 
@@ -979,6 +970,16 @@ func flattenContainerKubeOptions(in *eaaspb.ContainerKubeOptions, p []interface{
 		obj["service_account_name"] = in.ServiceAccountName
 	}
 
+	if len(in.Tolerations) > 0 {
+		v, ok := obj["tolerations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, v)
+	} else {
+		delete(obj, "tolerations")
+	}
+
 	return []interface{}{obj}
 }
 
@@ -1101,6 +1102,14 @@ func flattenContainerDriverVolumeOptions(input []*eaaspb.ContainerDriverVolumeOp
 	return out
 }
 
+func flattenDriverOutputs(in *structpb.Struct) string {
+	if in == nil {
+		return ""
+	}
+	b, _ := in.MarshalJSON()
+	return string(b)
+}
+
 func resourceDriverImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	log.Printf("Driver Import Starts")
 
@@ -1125,34 +1134,4 @@ func resourceDriverImport(d *schema.ResourceData, m interface{}) ([]*schema.Reso
 	}
 	d.SetId(cc.Metadata.Name)
 	return []*schema.ResourceData{d}, nil
-}
-
-func flattenDriverCompoundRef(input *eaaspb.DriverCompoundRef) []interface{} {
-	log.Println("flatten driver compound ref start")
-	if input == nil {
-		return nil
-	}
-	obj := map[string]interface{}{}
-	if len(input.Name) > 0 {
-		obj["name"] = input.Name
-	}
-	if input.Data != nil {
-		obj["data"] = flattenDriverInline(input.Data)
-	}
-	return []interface{}{obj}
-}
-
-func flattenDriverInline(input *eaaspb.DriverInline) []interface{} {
-	log.Println("flatten driver inline start")
-	if input == nil {
-		return nil
-	}
-	obj := map[string]interface{}{}
-	if input.Config != nil {
-		obj["config"] = flattenDriverConfig(input.Config, []interface{}{})
-	}
-	if len(input.Inputs) > 0 {
-		obj["inputs"] = flattenConfigContextCompoundRefs(input.Inputs)
-	}
-	return []interface{}{obj}
 }

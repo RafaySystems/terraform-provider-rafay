@@ -35,6 +35,9 @@ resource "rafay_cluster_override" "tfdemocluster-override1" {
     }
     resource_selector = "rafay.dev/name=override-addon"
     type              = "ClusterOverrideTypeAddon"
+    sharing {
+      enabled = false
+    }
     override_values   = <<-EOS
     replicaCount: 1
     image:
@@ -74,6 +77,12 @@ resource "rafay_cluster_override" "tfdemocluster-override2" {
     }
     resource_selector = "rafay.dev/name=aws-lb-controller"
     type              = "ClusterOverrideTypeAddon"
+    sharing {
+      enabled = true
+      projects {
+        name = "*" 
+      }
+    }
     value_repo_ref    = "git-repo-name"
     values_repo_artifact_meta {
       git_options {
@@ -109,6 +118,15 @@ resource "rafay_cluster_override" "tfdemocluster-yamloverride1" {
     }
     resource_selector = "rafay.dev/name=override-addon"
     type              = "ClusterOverrideTypeAddon"
+    sharing {
+      enabled = true
+      projects {
+        name = "defaultproject"
+      }
+      projects {
+        name = "project1"
+      }
+    }
     override_values   = <<-EOS
       apiVersion: apps/v1
       kind: Deployment
@@ -157,11 +175,16 @@ resource "rafay_cluster_override" "tfdemocluster-yamloverride1" {
 - `cluster_selector` - (String) The Kubernetes style label selector.
 - `override_values` - (String) Specify override values inline.
 - `resource_selector` - (String) Set the resource for the override.
-- `type` - (String) The override type. Supported value is: `ClusterOverrideTypeAddon`.
+- `type` - (String) The override type. Supported value is: `ClusterOverrideTypeAddon` and `ClusterOverrideTypeWorkload`.
 - `value_repo_ref` - (String) The repository name from where to fetch the override values.
     Note: `override_values` or `value_repo_ref` is required.
 - `values_repo_artifact_meta` - (Block List, Max: 1) Repository information. (See [below for nested schema](#nestedblock--spec--values_repo_artifact_meta))
     Note: This is required if `value_repo_ref` is used.
+
+***Optional***
+
+- `sharing` (Block List, Max: 1) cluster override sharing configuration (see [below for nested schema](#nestedblock--spec--sharing))
+
 
 <a id="nestedblock--spec--cluster_placement"></a>
 ### Nested Schema for `spec.cluster_placement`
@@ -202,6 +225,31 @@ resource "rafay_cluster_override" "tfdemocluster-yamloverride1" {
 - `file_type` - (String) The file type. Supported value is: `FileTypeNotSet`.
 - `name` - (String) The file name.
 - `relative_path` - (String) The relative path, including the filename in the repository.
+
+<a id="nestedblock--spec--sharing"></a>
+### Nested Schema for `spec.sharing`
+
+***Required***
+
+- `enabled` (Boolean) flag to specify if sharing is enabled for resource
+- `projects` (Block List) list of projects this resource is shared to (see [below for nested schema](#nestedblock--spec--sharing--projects))
+
+<a id="nestedblock--spec--sharing--projects"></a>
+### Nested Schema for `spec.sharing.projects`
+
+***Required***
+
+- `name` (String) name of the project
+
+Note: To share a resource across all projects in an organisation, below spec can be used
+ ```
+     sharing {
+      enabled = true
+      projects {
+        name = "*"
+      }
+    }
+```
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

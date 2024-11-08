@@ -204,3 +204,21 @@ resource "rafay_ztkarule" "test_rafay_ztkarule_local_file" {
 - `update` (String)
 
 
+
+# rafay_ztkarule ( import )
+## Example Usage
+The below command will help to import existing ZTKA rule resources from the controller to the state file.
+
+---
+```
+terraform import rafay_ztkarule.demo_rafay_ztkarule_local_file  ztkaRuleName
+```
+The above command will import the ZTKA rule resources without the `artifact` object (i.e. `artifact` will be ignored), to import the `artifact` object refer below command.
+
+
+```
+terraform import rafay_ztkarule.demo_rafay_ztkarule_local_file ztkaRuleName/show_artifact
+```
+The `show_artifact`, in the end, will update the state file with the artifact object.
+
+---

@@ -4,19 +4,19 @@ resource "rafay_customrole" "demo_rafay_customrole" {
   }
   spec {
     abac_policy_list {
-      name    = "ztka-rule1"
+      name    = "abac-policy1"
       version = "v1"
     }
     abac_policy_list {
-      name    = "ztka-rule2"
+      name    = "abac-policy2"
       version = "v2"
     }
     ztka_policy_list {
-      name    = "ztka-rule1"
+      name    = "ztka-policy1"
       version = "v1"
     }
     ztka_policy_list {
-      name    = "ztka-rule2"
+      name    = "ztka-policy2"
       version = "v2"
     }
     base_role = "NAMESPACE_ADMIN"

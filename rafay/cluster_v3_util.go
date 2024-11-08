@@ -1,8 +1,6 @@
 package rafay
 
 import (
-	"log"
-
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	v1 "k8s.io/api/core/v1"
@@ -32,9 +30,16 @@ type AksNodepoolsErrorFormatter struct {
 	FailureReason string `json:"failureReason,omitempty"`
 }
 
+type AksWorkloadIdentityErrorFormatter struct {
+	Name          string `json:"name,omitempty"`
+	ResourceType  string `json:"resourceType,omitempty"`
+	FailureReason string `json:"failureReason,omitempty"`
+}
+
 type AksUpsertErrorFormatter struct {
-	FailureReason string                       `json:"failureReason,omitempty"`
-	Nodepools     []AksNodepoolsErrorFormatter `json:"nodepools,omitempty"`
+	FailureReason      string                              `json:"failureReason,omitempty"`
+	Nodepools          []AksNodepoolsErrorFormatter        `json:"nodepools,omitempty"`
+	WorkloadIdentities []AksWorkloadIdentityErrorFormatter `json:"edgeResources,omitempty"`
 }
 
 func flattenMetadataV3(in *commonpb.Metadata, p []interface{}) []interface{} {
@@ -108,7 +113,6 @@ func expandV3Tolerations(p []interface{}) []*v1.Toleration {
 				obj.TolerationSeconds = nil
 			} else {
 				ts := int64(v)
-				log.Println("setting toleration seconds")
 				obj.TolerationSeconds = &ts
 			}
 		}

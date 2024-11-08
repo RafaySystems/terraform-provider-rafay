@@ -244,7 +244,10 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 	}
 
 	if h, ok := in["hooks"].([]interface{}); ok && len(h) > 0 {
-		spec.Hooks = expandEnvironmentHooks(h)
+		spec.Hooks, err = expandEnvironmentHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if ag, ok := in["agents"].([]interface{}); ok && len(ag) > 0 {
@@ -263,7 +266,114 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 		spec.AgentOverride = expandEaasAgentOverrideOptions(v)
 	}
 
+	if s, ok := in["schedules"].([]interface{}); ok && len(s) > 0 {
+		spec.Schedules, err = expandSchedules(s)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return spec, nil
+}
+
+func expandSchedules(p []interface{}) ([]*eaaspb.Schedules, error) {
+	schds := make([]*eaaspb.Schedules, 0)
+	if len(p) == 0 || p[0] == nil {
+		return schds, nil
+	}
+	var err error
+
+	for i := range p {
+		schd := eaaspb.Schedules{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			schd.Name = v
+		}
+
+		if v, ok := in["description"].(string); ok && len(v) > 0 {
+			schd.Description = v
+		}
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			schd.Type = v
+		}
+
+		if v, ok := in["cadence"].([]interface{}); ok && len(v) > 0 {
+			schd.Cadence = expandCadence(v)
+		}
+
+		if v, ok := in["context"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			schd.Context = expandConfigContextCompoundRef(v[0].(map[string]any))
+		}
+
+		if v, ok := in["opt_out_options"].([]interface{}); ok && len(v) > 0 {
+			schd.OptOutOptions, err = expandOptOutOptions(v)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if h, ok := in["workflows"].([]interface{}); ok && len(h) > 0 {
+			schd.Workflows, err = expandCustomProviderOptions(h)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		schds = append(schds, &schd)
+	}
+
+	return schds, nil
+}
+
+func expandOptOutOptions(p []interface{}) (*eaaspb.OptOutOptions, error) {
+	ooo := eaaspb.OptOutOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return &ooo, nil
+	}
+
+	var err error
+	in := p[0].(map[string]interface{})
+	if h, ok := in["allow_opt_out"].([]interface{}); ok && len(h) > 0 {
+		ooo.AllowOptOut = expandBoolValue(h)
+	}
+	if v, ok := in["max_allowed_duration"].(string); ok && len(v) > 0 {
+		ooo.MaxAllowedDuration = v
+	}
+	if v, ok := in["max_allowed_times"].(int); ok {
+		ooo.MaxAllowedTimes = int32(v)
+	}
+	if h, ok := in["approval"].([]interface{}); ok && len(h) > 0 {
+		ooo.Approval, err = expandCustomProviderOptions(h)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &ooo, nil
+}
+
+func expandCadence(p []interface{}) *eaaspb.ScheduleOptions {
+	cadence := eaaspb.ScheduleOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return &cadence
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["cron_expression"].(string); ok && len(v) > 0 {
+		cadence.CronExpression = v
+	}
+
+	if v, ok := in["cron_timezone"].(string); ok && len(v) > 0 {
+		cadence.CronTimezone = v
+	}
+
+	if v, ok := in["time_to_live"].(string); ok && len(v) > 0 {
+		cadence.TimeToLive = v
+	}
+
+	return &cadence
 }
 
 func expandEaasAgentOverrideOptions(p []interface{}) *eaaspb.AgentOverrideOptions {
@@ -373,32 +483,45 @@ func expandDependsOn(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
 	return dependson
 }
 
-func expandEnvironmentHooks(p []interface{}) *eaaspb.EnvironmentHooks {
+func expandEnvironmentHooks(p []interface{}) (*eaaspb.EnvironmentHooks, error) {
 	hooks := &eaaspb.EnvironmentHooks{}
 
 	if len(p) == 0 || p[0] == nil {
-		return hooks
+		return hooks, nil
 	}
 
 	in := p[0].(map[string]interface{})
 
+	var err error
 	if h, ok := in["on_completion"].([]interface{}); ok && len(h) > 0 {
-		hooks.OnCompletion = expandEaasHooks(h)
+		hooks.OnCompletion, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["on_success"].([]interface{}); ok && len(h) > 0 {
-		hooks.OnSuccess = expandEaasHooks(h)
+		hooks.OnSuccess, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["on_failure"].([]interface{}); ok && len(h) > 0 {
-		hooks.OnFailure = expandEaasHooks(h)
+		hooks.OnFailure, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if h, ok := in["on_init"].([]interface{}); ok && len(h) > 0 {
-		hooks.OnInit = expandEaasHooks(h)
+		hooks.OnInit, err = expandEaasHooks(h)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return hooks
+	return hooks, nil
 
 }
 
@@ -490,6 +613,15 @@ func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []inte
 
 	obj["agent_override"] = flattenEaasAgentOverrideOptions(in.AgentOverride)
 
+	if len(in.Schedules) > 0 {
+		v, ok := obj["schedules"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["schedules"] = flattenSchedules(in.Schedules, v)
+	}
+
 	return []interface{}{obj}, nil
 }
 
@@ -502,6 +634,102 @@ func flattenEaasAgentOverrideOptions(in *eaaspb.AgentOverrideOptions) []interfac
 	obj["required"] = in.Required
 	obj["type"] = in.Type
 	obj["restricted_agents"] = toArrayInterface(in.RestrictedAgents)
+
+	return []interface{}{obj}
+}
+
+func flattenSchedules(input []*eaaspb.Schedules, p []interface{}) []interface{} {
+	log.Println("flatten schedules start")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flatten schedule ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Description) > 0 {
+			obj["description"] = in.Description
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		if in.Cadence != nil {
+			v, ok := obj["cadence"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["cadence"] = flattenCadence(in.Cadence, v)
+		}
+		if in.Context != nil {
+			cc := flattenConfigContextCompoundRef(in.Context)
+			obj["context"] = []interface{}{cc}
+		}
+
+		if in.OptOutOptions != nil {
+			v, ok := obj["opt_out_options"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["opt_out_options"] = flattenOptOutOptions(in.OptOutOptions, v)
+		}
+		obj["workflows"] = flattenCustomProviderOptions(in.Workflows)
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func flattenOptOutOptions(in *eaaspb.OptOutOptions, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["allow_opt_out"] = flattenBoolValue(in.AllowOptOut)
+	obj["max_allowed_duration"] = in.MaxAllowedDuration
+	obj["max_allowed_times"] = in.MaxAllowedTimes
+	obj["approval"] = flattenCustomProviderOptions(in.Approval)
+
+	return []interface{}{obj}
+}
+
+func flattenCadence(in *eaaspb.ScheduleOptions, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.CronExpression) > 0 {
+		obj["cron_expression"] = in.CronExpression
+	}
+
+	if len(in.CronTimezone) > 0 {
+		obj["cron_timezone"] = in.CronTimezone
+	}
+
+	if len(in.TimeToLive) > 0 {
+		obj["time_to_live"] = in.TimeToLive
+	}
 
 	return []interface{}{obj}
 }

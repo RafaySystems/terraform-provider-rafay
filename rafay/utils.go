@@ -87,6 +87,31 @@ func toArrayString(in []interface{}) []string {
 	return out
 }
 
+func toArrayInt(in []interface{}) []int {
+	out := make([]int, len(in))
+	for i, v := range in {
+		if v == nil {
+			out[i] = 0
+			continue
+		}
+		out[i] = v.(int)
+	}
+	return out
+}
+
+func toArrayInt32(in []interface{}) []int32 {
+	out := make([]int32, len(in))
+	for i, v := range in {
+		if v == nil {
+			out[i] = 0
+			continue
+		}
+		nv := v.(int)
+		out[i] = int32(nv)
+	}
+	return out
+}
+
 func toArrayStringSorted(in []interface{}) []string {
 	if in == nil {
 		return nil
@@ -97,6 +122,14 @@ func toArrayStringSorted(in []interface{}) []string {
 }
 
 func toArrayInterface(in []string) []interface{} {
+	out := make([]interface{}, len(in))
+	for i, v := range in {
+		out[i] = v
+	}
+	return out
+}
+
+func intArraytoInterfaceArray(in []int) []interface{} {
 	out := make([]interface{}, len(in))
 	for i, v := range in {
 		out[i] = v
@@ -345,6 +378,22 @@ func expandPlacement(p []interface{}) *commonpb.PlacementSpec {
 		obj.Labels = expandPlacementLabels(v)
 	}
 
+	if v, ok := in["environment"].([]any); ok {
+		obj.Environment = expandEnvironmentPlacement(v)
+	}
+
+	return obj
+}
+
+func expandEnvironmentPlacement(p []any) *commonpb.Environment {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	obj := &commonpb.Environment{}
+	in := p[0].(map[string]any)
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		obj.Name = v
+	}
 	return obj
 }
 
@@ -526,9 +575,9 @@ func expandCommonpbFiles(p []interface{}) []*commonpb.File {
 
 		if name, ok := in["name"].(string); ok && len(name) > 0 {
 
-			if strings.HasPrefix(obj.Name, "file://") {
+			if strings.HasPrefix(name, "file://") {
 				//get full path of artifact
-				artifactFullPath := filepath.Join(filepath.Dir("."), obj.Name[7:])
+				artifactFullPath := filepath.Join(filepath.Dir("."), name[7:])
 				//retrieve artifact data
 				artifactData, err := ioutil.ReadFile(artifactFullPath)
 				if err != nil {
@@ -890,7 +939,24 @@ func flattenPlacement(in *commonpb.PlacementSpec) []interface{} {
 		obj["selector"] = in.Selector
 	}
 
+	if in.Environment != nil {
+		obj["environment"] = flattenEnvironmentPlacement(in.Environment)
+	}
+
 	return []interface{}{obj}
+}
+
+func flattenEnvironmentPlacement(in *commonpb.Environment) []any {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]any)
+	if len(in.Name) > 0 {
+		obj["name"] = in.Name
+	}
+
+	return []any{obj}
 }
 
 func flattenFile(in *File) []interface{} {
@@ -1523,15 +1589,15 @@ func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) []int
 	return []interface{}{obj}
 }
 
-func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
+func expandEaasHooks(p []interface{}) ([]*eaaspb.Hook, error) {
 	hooks := make([]*eaaspb.Hook, 0)
 	if len(p) == 0 {
-		return hooks
+		return hooks, nil
 	}
 
 	for indx := range p {
 		if p[indx] == nil {
-			return nil
+			return nil, nil
 		}
 		hook := &eaaspb.Hook{}
 		in := p[indx].(map[string]interface{})
@@ -1564,8 +1630,12 @@ func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
 			hook.OnFailure = n
 		}
 
+		var err error
 		if n, ok := in["driver"].([]interface{}); ok && len(n) > 0 {
-			hook.Driver = expandWorkflowHandlerCompoundRef(n)
+			hook.Driver, err = expandWorkflowHandlerCompoundRef(n)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		if n, ok := in["depends_on"].([]interface{}); ok && len(n) > 0 {
@@ -1574,9 +1644,12 @@ func expandEaasHooks(p []interface{}) []*eaaspb.Hook {
 
 		hooks = append(hooks, hook)
 
+		if d, ok := in["execute_once"].(bool); ok {
+			hook.ExecuteOnce = d
+		}
 	}
 
-	return hooks
+	return hooks, nil
 }
 
 func expandHookOptions(p []interface{}) *eaaspb.HookOptions {
@@ -1833,6 +1906,7 @@ func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		obj["on_failure"] = in.OnFailure
 		obj["driver"] = flattenWorkflowHandlerCompoundRef(in.Driver)
 		obj["depends_on"] = toArrayInterface(in.DependsOn)
+		obj["execute_once"] = in.ExecuteOnce
 
 		out[i] = &obj
 		log.Println("flatten hook setting object ", out[i])
@@ -2046,7 +2120,7 @@ func flattenBoolValue(in *datatypes.BoolValue) []interface{} {
 
 func expandV3MetaData(p []interface{}) *commonpb.Metadata {
 	obj := &commonpb.Metadata{}
-	if p == nil || len(p) == 0 || p[0] == nil {
+	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
 
@@ -2122,9 +2196,9 @@ func checkStandardInputTextError(input string) bool {
 	return strings.Contains(input, dns1123ValidationErrMsg)
 }
 
-func expandWorkflowHandlerCompoundRef(p []interface{}) *eaaspb.WorkflowHandlerCompoundRef {
+func expandWorkflowHandlerCompoundRef(p []interface{}) (*eaaspb.WorkflowHandlerCompoundRef, error) {
 	if len(p) == 0 || p[0] == nil {
-		return nil
+		return nil, nil
 	}
 
 	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
@@ -2134,17 +2208,21 @@ func expandWorkflowHandlerCompoundRef(p []interface{}) *eaaspb.WorkflowHandlerCo
 		wfHandler.Name = v
 	}
 
+	var err error
 	if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
-		wfHandler.Data = expandWorkflowHandlerInline(v)
+		wfHandler.Data, err = expandWorkflowHandlerInline(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return wfHandler
+	return wfHandler, nil
 }
 
-func expandWorkflowHandlerInline(p []interface{}) *eaaspb.WorkflowHandlerInline {
+func expandWorkflowHandlerInline(p []interface{}) (*eaaspb.WorkflowHandlerInline, error) {
 	wfHandlerInline := &eaaspb.WorkflowHandlerInline{}
 	if len(p) == 0 || p[0] == nil {
-		return wfHandlerInline
+		return wfHandlerInline, nil
 	}
 
 	in := p[0].(map[string]interface{})
@@ -2157,54 +2235,62 @@ func expandWorkflowHandlerInline(p []interface{}) *eaaspb.WorkflowHandlerInline 
 		wfHandlerInline.Inputs = expandConfigContextCompoundRefs(v)
 	}
 
-	return wfHandlerInline
+	if v, ok := in["outputs"].(string); ok && len(v) > 0 {
+		outputs, err := expandDriverOutputs(v)
+		if err != nil {
+			return nil, err
+		}
+		wfHandlerInline.Outputs = outputs
+	}
+
+	return wfHandlerInline, nil
 }
 
 func expandWorkflowHandlerConfig(p []interface{}) *eaaspb.WorkflowHandlerConfig {
-	config := eaaspb.WorkflowHandlerConfig{}
+	workflowHandlerConfig := eaaspb.WorkflowHandlerConfig{}
 	if len(p) == 0 || p[0] == nil {
-		return &config
+		return &workflowHandlerConfig
 	}
 
 	in := p[0].(map[string]interface{})
 
 	if typ, ok := in["type"].(string); ok && len(typ) > 0 {
-		config.Type = typ
+		workflowHandlerConfig.Type = typ
 	}
 
 	if ts, ok := in["timeout_seconds"].(int); ok {
-		config.TimeoutSeconds = int64(ts)
+		workflowHandlerConfig.TimeoutSeconds = int64(ts)
 	}
 
 	if sc, ok := in["success_condition"].(string); ok && len(sc) > 0 {
-		config.SuccessCondition = sc
+		workflowHandlerConfig.SuccessCondition = sc
 	}
 
 	if ts, ok := in["max_retry_count"].(int); ok {
-		config.MaxRetryCount = int32(ts)
+		workflowHandlerConfig.MaxRetryCount = int32(ts)
 	}
 
 	if v, ok := in["container"].([]interface{}); ok && len(v) > 0 {
-		config.Container = expandDriverContainerConfig(v)
+		workflowHandlerConfig.Container = expandDriverContainerConfig(v)
 	}
 
 	if v, ok := in["http"].([]interface{}); ok && len(v) > 0 {
-		config.Http = expandDriverHttpConfig(v)
+		workflowHandlerConfig.Http = expandDriverHttpConfig(v)
 	}
 
 	if v, ok := in["function"].([]interface{}); ok && len(v) > 0 {
-		config.Function = expandDriverFunctionConfig(v)
+		workflowHandlerConfig.Function = expandDriverFunctionConfig(v)
 	}
 
 	if v, ok := in["polling_config"].([]interface{}); ok && len(v) > 0 {
-		config.PollingConfig = expandPollingConfig(v)
+		workflowHandlerConfig.PollingConfig = expandPollingConfig(v)
 	}
 
 	if h, ok := in["timeout_seconds"].(int); ok {
-		config.TimeoutSeconds = int64(h)
+		workflowHandlerConfig.TimeoutSeconds = int64(h)
 	}
 
-	return &config
+	return &workflowHandlerConfig
 }
 
 func expandPollingConfig(p []interface{}) *eaaspb.PollingConfig {
@@ -2242,7 +2328,6 @@ func flattenWorkflowHandlerCompoundRef(input *eaaspb.WorkflowHandlerCompoundRef)
 }
 
 func flattenWorkflowHandlerInline(input *eaaspb.WorkflowHandlerInline) []interface{} {
-	log.Println("flatten workflow handler inline start")
 	if input == nil {
 		return nil
 	}
@@ -2252,6 +2337,9 @@ func flattenWorkflowHandlerInline(input *eaaspb.WorkflowHandlerInline) []interfa
 	}
 	if len(input.Inputs) > 0 {
 		obj["inputs"] = flattenConfigContextCompoundRefs(input.Inputs)
+	}
+	if input.Outputs != nil {
+		obj["outputs"] = flattenDriverOutputs(input.Outputs)
 	}
 	return []interface{}{obj}
 }

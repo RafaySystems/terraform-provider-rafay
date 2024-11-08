@@ -1,0 +1,654 @@
+{
+	"provider": {
+		"name": "rafay"
+	},
+	"resources": [
+		{
+			"name": "mks_cluster",
+			"schema": {
+				"attributes": [
+					{
+						"name": "api_version",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"default": {
+								"static": "infra.k8smgmt.io/v3"
+							},
+							"description": "api version"
+						}
+					},
+					{
+						"name": "kind",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"default": {
+								"static": "Cluster"
+							},
+							"description": "kind"
+						}
+					},
+					{
+						"name": "metadata",
+						"single_nested": {
+							"computed_optional_required": "required",
+							"attributes": [
+								{
+									"name": "name",
+									"string": {
+										"computed_optional_required": "required",
+										"description": "name of the resource"
+									}
+								},
+								{
+									"name": "project",
+									"string": {
+										"computed_optional_required": "required",
+										"description": "Project of the resource"
+									}
+								},
+								{
+									"name": "annotations",
+									"map": {
+										"computed_optional_required": "optional",
+										"element_type": {
+											"string": {}
+										},
+										"description": "annotations of the resource"
+									}
+								},
+								{
+									"name": "description",
+									"string": {
+										"computed_optional_required": "optional",
+										"description": "description of the resource"
+									}
+								},
+								{
+									"name": "labels",
+									"map": {
+										"computed_optional_required": "optional",
+										"element_type": {
+											"string": {}
+										},
+										"description": "labels of the resource"
+									}
+								}
+							],
+							"description": "metadata of the resource"
+						}
+					},
+					{
+						"name": "spec",
+						"single_nested": {
+							"computed_optional_required": "required",
+							"attributes": [
+								{
+									"name": "blueprint",
+									"single_nested": {
+										"computed_optional_required": "required",
+										"attributes": [
+											{
+												"name": "name",
+												"string": {
+													"computed_optional_required": "required"
+												}
+											},
+											{
+												"name": "version",
+												"string": {
+													"computed_optional_required": "computed_optional",
+													"default": {
+														"static": "latest"
+													},
+													"description": "Version of the blueprint"
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "cloud_credentials",
+									"string": {
+										"computed_optional_required": "optional",
+										"description": "The credentials to be used to ssh into the  Clusster Nodes"
+									}
+								},
+								{
+									"name": "config",
+									"single_nested": {
+										"computed_optional_required": "required",
+										"attributes": [
+											{
+												"name": "auto_approve_nodes",
+												"bool": {
+													"computed_optional_required": "optional",
+													"description": "Auto approves incoming nodes by default"
+												}
+											},
+											{
+												"name": "dedicated_control_plane",
+												"bool": {
+													"computed_optional_required": "optional",
+													"description": "Select this option for preventing scheduling of user workloads on Control Plane nodes"
+												}
+											},
+											{
+												"name": "high_availability",
+												"bool": {
+													"computed_optional_required": "optional",
+													"description": "Select this option for highly available control plane. Minimum three control plane nodes are required"
+												}
+											},
+											{
+												"name": "kubernetes_upgrade",
+												"single_nested": {
+													"computed_optional_required": "optional",
+													"attributes": [
+														{
+															"name": "params",
+															"single_nested": {
+																"computed_optional_required": "required",
+																"attributes": [
+																	{
+																		"name": "worker_concurrency",
+																		"string": {
+																			"computed_optional_required": "required",
+																			"description": "It can be number or percentage"
+																		}
+																	}
+																]
+															}
+														},
+														{
+															"name": "strategy",
+															"string": {
+																"computed_optional_required": "required",
+																"description": "Kubernetes upgrade strategy for worker nodes and Valid options are: concurrent/sequential"
+															}
+														}
+													]
+												}
+											},
+											{
+												"name": "kubernetes_version",
+												"string": {
+													"computed_optional_required": "required",
+													"description": "Kubernetes version of the Control Plane"
+												}
+											},
+											{
+												"name": "installer_ttl",
+												"int64": {
+													"computed_optional_required": "computed_optional",
+													"default": {
+														"static": 365
+													},
+													"description": "Installer TTL Configuration"
+												}
+											},
+											{
+												"name": "location",
+												"string": {
+													"computed_optional_required": "optional",
+													"description": "The data center location where the cluster nodes will be launched"
+												}
+											},
+											{
+												"name": "network",
+												"single_nested": {
+													"computed_optional_required": "required",
+													"attributes": [
+														{
+															"name": "cni",
+															"single_nested": {
+																"computed_optional_required": "required",
+																"attributes": [
+																	{
+																		"name": "name",
+																		"string": {
+																			"computed_optional_required": "required",
+																			"description": "Provide the CNI name, e.g., Calico or Cilium"
+																		}
+																	},
+																	{
+																		"name": "version",
+																		"string": {
+																			"computed_optional_required": "required",
+																			"description": "Provide the CNI version, e.g., 3.26.1"
+																		}
+																	}
+																],
+																"description": "MKS Cluster CNI Specification"
+															}
+														},
+														{
+															"name": "ipv6",
+															"single_nested": {
+																"computed_optional_required": "optional",
+																"attributes": [
+																	{
+																		"name": "pod_subnet",
+																		"string": {
+																			"computed_optional_required": "optional",
+																			"description": "Kubernetes pod subnet"
+																		}
+																	},
+																	{
+																		"name": "service_subnet",
+																		"string": {
+																			"computed_optional_required": "optional",
+																			"description": "Kubernetes service subnet"
+																		}
+																	}
+																]
+															}
+														},
+														{
+															"name": "pod_subnet",
+															"string": {
+																"computed_optional_required": "required",
+																"description": "Kubernetes pod subnet"
+															}
+														},
+														{
+															"name": "service_subnet",
+															"string": {
+																"computed_optional_required": "required",
+																"description": "Kubernetes service subnet"
+															}
+														}
+													],
+													"description": "MKS Cluster Network Specification"
+												}
+											},
+											{
+												"name": "nodes",
+												"map_nested": {
+													"computed_optional_required": "required",
+													"nested_object": {
+														"attributes": [
+															{
+																"name": "arch",
+																"string": {
+																	"computed_optional_required": "required",
+																	"description": "System Architecture of the node"
+																}
+															},
+															{
+																"name": "hostname",
+																"string": {
+																	"computed_optional_required": "required",
+																	"description": "Hostname of the node"
+																}
+															},
+															{
+																"name": "interface",
+																"string": {
+																	"computed_optional_required": "optional",
+																	"description": "Interface to be used on the node"
+																}
+															},
+															{
+																"name": "labels",
+																"map": {
+																	"computed_optional_required": "optional",
+																	"element_type": {
+																		"string": {}
+																	},
+																	"description": "labels to be added to the node"
+																}
+															},
+															{
+																"name": "operating_system",
+																"string": {
+																	"computed_optional_required": "required",
+																	"description": "OS of the node"
+																}
+															},
+															{
+																"name": "private_ip",
+																"string": {
+																	"computed_optional_required": "required",
+																	"description": "Private ip address of the node"
+																}
+															},
+															{
+																"name": "roles",
+																"set": {
+																	"computed_optional_required": "required",
+																	"element_type": {
+																		"string": {}
+																	},
+																	"description": "Valid roles are: 'ControlPlane', 'Worker', 'Storage'"
+																}
+															},
+															{
+																"name": "ssh",
+																"single_nested": {
+																	"computed_optional_required": "optional",
+																	"attributes": [
+																		{
+																			"name": "ip_address",
+																			"string": {
+																				"computed_optional_required": "optional",
+																				"description": "Use this to override node level ssh details"
+																			}
+																		},
+																		{
+																			"name": "passphrase",
+																			"string": {
+																				"computed_optional_required": "optional",
+																				"description": "SSH Passphrase"
+																			}
+																		},
+																		{
+																			"name": "port",
+																			"string": {
+																				"computed_optional_required": "optional",
+																				"description": "SSH Port"
+																			}
+																		},
+																		{
+																			"name": "private_key_path",
+																			"string": {
+																				"computed_optional_required": "optional",
+																				"description": "Specify Path to SSH private key"
+																			}
+																		},
+																		{
+																			"name": "username",
+																			"string": {
+																				"computed_optional_required": "optional",
+																				"description": "SSH Username"
+																			}
+																		}
+																	],
+																	"description": "MKS Node SSH definition"
+																}
+															},
+															{
+																"name": "taints",
+																"set_nested": {
+																	"computed_optional_required": "optional",
+																	"nested_object": {
+																		"attributes": [
+																			{
+																				"name": "effect",
+																				"string": {
+																					"computed_optional_required": "required"
+																				}
+																			},
+																			{
+																				"name": "key",
+																				"string": {
+																					"computed_optional_required": "required"
+																				}
+																			},
+																			{
+																				"name": "value",
+																				"string": {
+																					"computed_optional_required": "optional"
+																				}
+																			}
+																		]
+																	},
+																	"description": "taints to be added to the node"
+																}
+															}
+														]
+													},
+													"description": "holds node configuration for the cluster"
+												}
+											},
+											{
+												"name": "cluster_ssh",
+												"single_nested": {
+													"computed_optional_required": "optional",
+													"attributes": [
+														{
+															"name": "passphrase",
+															"string": {
+																"computed_optional_required": "optional",
+																"description": "Provide ssh passphrase"
+															}
+														},
+														{
+															"name": "port",
+															"string": {
+																"computed_optional_required": "optional",
+																"description": "Provide ssh port"
+															}
+														},
+														{
+															"name": "private_key_path",
+															"string": {
+																"computed_optional_required": "optional",
+																"description": "Provide local path to the private key"
+															}
+														},
+														{
+															"name": "username",
+															"string": {
+																"computed_optional_required": "optional",
+																"description": "Provide the ssh username"
+															}
+														}
+													],
+													"description": "SSH config for all the nodes within the cluster"
+												}
+											}
+										],
+										"description": "MKS V3 cluster specification"
+									}
+								},
+								{
+									"name": "proxy",
+									"single_nested": {
+										"computed_optional_required": "optional",
+										"attributes": [
+											{
+												"name": "allow_insecure_bootstrap",
+												"bool": {
+													"computed_optional_required": "optional"
+												}
+											},
+											{
+												"name": "bootstrap_ca",
+												"string": {
+													"computed_optional_required": "optional"
+												}
+											},
+											{
+												"name": "enabled",
+												"bool": {
+													"computed_optional_required": "required"
+												}
+											},
+											{
+												"name": "http_proxy",
+												"string": {
+													"computed_optional_required": "required"
+												}
+											},
+											{
+												"name": "https_proxy",
+												"string": {
+													"computed_optional_required": "optional"
+												}
+											},
+											{
+												"name": "no_proxy",
+												"string": {
+													"computed_optional_required": "optional"
+												}
+											},
+											{
+												"name": "proxy_auth",
+												"string": {
+													"computed_optional_required": "optional"
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "sharing",
+									"single_nested": {
+										"computed_optional_required": "optional",
+										"attributes": [
+											{
+												"name": "enabled",
+												"bool": {
+													"computed_optional_required": "required"
+												}
+											},
+											{
+												"name": "projects",
+												"set_nested": {
+													"computed_optional_required": "required",
+													"nested_object": {
+														"attributes": [
+															{
+																"name": "name",
+																"string": {
+																	"computed_optional_required": "required"
+																}
+															}
+														]
+													}
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "system_components_placement",
+									"single_nested": {
+										"computed_optional_required": "optional",
+										"attributes": [
+											{
+												"name": "daemon_set_override",
+												"single_nested": {
+													"computed_optional_required": "optional",
+													"attributes": [
+														{
+															"name": "node_selection_enabled",
+															"bool": {
+																"computed_optional_required": "optional"
+															}
+														},
+														{
+															"name": "daemon_set_tolerations",
+															"set_nested": {
+																"computed_optional_required": "optional",
+																"nested_object": {
+																	"attributes": [
+																		{
+																			"name": "effect",
+																			"string": {
+																				"computed_optional_required": "optional"
+																			}
+																		},
+																		{
+																			"name": "key",
+																			"string": {
+																				"computed_optional_required": "optional"
+																			}
+																		},
+																		{
+																			"name": "operator",
+																			"string": {
+																				"computed_optional_required": "optional"
+																			}
+																		},
+																		{
+																			"name": "toleration_seconds",
+																			"int64": {
+																				"computed_optional_required": "optional"
+																			}
+																		},
+																		{
+																			"name": "value",
+																			"string": {
+																				"computed_optional_required": "optional"
+																			}
+																		}
+																	]
+																}
+															}
+														}
+													]
+												}
+											},
+											{
+												"name": "node_selector",
+												"map": {
+													"computed_optional_required": "optional",
+													"element_type": {
+														"string": {}
+													}
+												}
+											},
+											{
+												"name": "tolerations",
+												"set_nested": {
+													"computed_optional_required": "optional",
+													"nested_object": {
+														"attributes": [
+															{
+																"name": "effect",
+																"string": {
+																	"computed_optional_required": "optional"
+																}
+															},
+															{
+																"name": "key",
+																"string": {
+																	"computed_optional_required": "optional"
+																}
+															},
+															{
+																"name": "operator",
+																"string": {
+																	"computed_optional_required": "optional"
+																}
+															},
+															{
+																"name": "toleration_seconds",
+																"int64": {
+																	"computed_optional_required": "optional"
+																}
+															},
+															{
+																"name": "value",
+																"string": {
+																	"computed_optional_required": "optional"
+																}
+															}
+														]
+													}
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "type",
+									"string": {
+										"computed_optional_required": "computed_optional",
+										"default": {
+											"static": "mks"
+										},
+										"description": "The type of the cluster this spec corresponds to"
+									}
+								}
+							],
+							"description": "cluster specification"
+						}
+					}
+				]
+			}
+		}
+	],
+	"version": "0.1"
+}

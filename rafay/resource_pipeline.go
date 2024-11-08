@@ -148,7 +148,7 @@ type stageSpecConfig struct {
 	SourceRepo          *gitopspb.SystemSyncRepo       `protobuf:"bytes,5,opt,name=sourceRepo,proto3" json:"sourceRepo,omitempty"`
 	DestinationRepo     *gitopspb.SystemSyncRepo       `protobuf:"bytes,6,opt,name=destinationRepo,proto3" json:"destinationRepo,omitempty"`
 	SourceAsDestination bool                           `protobuf:"varint,7,opt,name=sourceAsDestination,proto3" json:"sourceAsDestination,omitempty"`
-	CommitterEmail      string                         `protobuf:"bytes,8,opt,name=committorEmail,proto3" json:"committorEmail,omitempty"`
+	CommitterEmail      string                         `protobuf:"bytes,8,opt,name=committerEmail,proto3" json:"committerEmail,omitempty"`
 }
 
 type stageSpecConfigWorkloadTemplateOverrides struct {
@@ -1228,7 +1228,7 @@ func expandWebhookTriggerGit(p []interface{}) *gitopspb.WebhookTriggerConfig_Git
 		obj.Git.Revision = v
 	}
 
-	if v, ok := in["path"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["paths"].([]interface{}); ok && len(v) > 0 {
 		obj.Git.Paths = expandCommonpbFiles(v)
 	}
 
@@ -2272,9 +2272,7 @@ func flattenTriggerConfigRepos(tSpec *triggerSpec, p []interface{}) ([]interface
 		retNil = false
 	}
 
-	if tSpec.Config.Repo.Paths != nil {
-		obj["paths"] = flattenCommonpbFiles(tSpec.Config.Repo.Paths)
-	}
+	obj["paths"] = flattenCommonpbFiles(tSpec.Config.Repo.Paths)
 
 	if len(tSpec.Config.Repo.ChartName) > 0 {
 		obj["chart_name"] = tSpec.Config.Repo.ChartName
@@ -2295,22 +2293,28 @@ func flattenTriggerConfigRepos(tSpec *triggerSpec, p []interface{}) ([]interface
 }
 
 func resourcePipelineImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
-	//d_debug := spew.Sprintf("%+v", d)
-	log.Println("resourceProjectImport d.Id:", d.Id())
-	//log.Println("resourceProjectImport d_debug", d_debug)
+	log.Printf("Pipeline Import Starts")
 
-	project := &gitopspb.Pipeline{}
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	log.Println("resourcePipelineImport idParts:", idParts)
 
-	var metaD commonpb.Metadata
-	metaD.Name = d.Id()
-	project.Metadata = &metaD
-
-	err := d.Set("metadata", flattenMetaData(project.Metadata))
+	log.Println("resourcePipelineImport Invoking expandPipeline")
+	pipeline, err := expandPipeline(d)
 	if err != nil {
-		return nil, err
+		log.Printf("resourcePipelineImport  expand error %s", err.Error())
 	}
 
-	d.SetId(project.Metadata.Name)
+	var metaD commonpb.Metadata
+	metaD.Name = idParts[0]
+	metaD.Project = idParts[1]
 
+	pipeline.Metadata = &metaD
+
+	err = d.Set("metadata", flattenV3MetaData(&metaD))
+	if err != nil {
+		log.Println("import set metadata err ", err)
+		return nil, err
+	}
+	d.SetId(pipeline.Metadata.Name)
 	return []*schema.ResourceData{d}, nil
 }

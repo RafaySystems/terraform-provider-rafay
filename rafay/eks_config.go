@@ -69,8 +69,34 @@ type EKSClusterConfig struct {
 	CloudWatch              *EKSClusterCloudWatch       `yaml:"cloudWatch,omitempty"`
 	SecretsEncryption       *SecretsEncryption          `yaml:"secretsEncryption,omitempty"`
 	IdentityMappings        *EKSClusterIdentityMappings `yaml:"identityMappings,omitempty"`
+	AccessConfig            *EKSClusterAccess           `yaml:"accessConfig,omitempty"`
 	//do i need this? not in docs
 	//Karpenter *Karpenter `yaml:"karpenter,omitempty"`
+}
+
+type EKSClusterAccess struct {
+	BootstrapClusterCreatorAdminPermissions bool              `yaml:"bootstrapClusterCreatorAdminPermissions,omitempty"`
+	AuthenticationMode                      string            `yaml:"authenticationMode,omitempty"`
+	AccessEntries                           []*EKSAccessEntry `yaml:"accessEntries,omitempty"`
+}
+
+type EKSAccessEntry struct {
+	PrincipalARN       string             `yaml:"principalARN,omitempty"`
+	Type               string             `yaml:"type,omitempty"`
+	KubernetesUsername string             `yaml:"kubernetesUsername,omitempty"`
+	KubernetesGroups   []string           `yaml:"kubernetesGroups,omitempty"`
+//	Tags               map[string]string  `yaml:"tags,omitempty"`
+	AccessPolicies     []*EKSAccessPolicy `yaml:"accessPolicies,omitempty"`
+}
+
+type EKSAccessPolicy struct {
+	PolicyARN   string          `yaml:"policyARN,omitempty"`
+	AccessScope *EKSAccessScope `yaml:"accessScope,omitempty"`
+}
+
+type EKSAccessScope struct {
+	Type       string   `yaml:"type,omitempty"`
+	Namespaces []string `yaml:"namespaces,omitempty"`
 }
 
 type EKSClusterIdentityMappings struct {
@@ -177,6 +203,61 @@ type EKSClusterIAM struct {
 	// necessary to run the VPC controller in the control plane
 	// Defaults to `true`
 	VPCResourceControllerPolicy *bool `yaml:"vpcResourceControllerPolicy,omitempty"`
+
+	PodIdentityAssociations []*IAMPodIdentityAssociation `yaml:"podIdentityAssociations,omitempty"`
+}
+
+type IAMPodIdentityAssociation struct {
+	Namespace          string `yaml:"namespace" json:"namespace"`
+	ServiceAccountName string `yaml:"serviceAccountName" json:"serviceAccountName"`
+	RoleARN            string `yaml:"roleARN,omitempty" json:"roleARN,omitempty"`
+	// +optional
+	CreateServiceAccount *bool `yaml:"createServiceAccount,omitempty" json:"createServiceAccount,omitempty"`
+	// +optional
+	RoleName string `yaml:"roleName,omitempty" json:"roleName,omitempty"`
+	// +optional
+	PermissionsBoundaryARN string `yaml:"permissionsBoundaryARN,omitempty" json:"permissionsBoundaryARN,omitempty"`
+	// +optional
+	PermissionPolicyARNs []string `yaml:"permissionPolicyARNs,omitempty" json:"permissionPolicyARNs,omitempty"`
+	// +optional
+	PermissionPolicy map[string]interface{} `yaml:"permissionPolicy,omitempty" json:"permissionPolicy,omitempty"`
+	// +optional
+	WellKnownPolicies *WellKnownPolicies `yaml:"wellKnownPolicies,omitempty" json:"wellKnownPolicies,omitempty"`
+	// +optional
+	Tags map[string]string `yaml:"tags,omitempty" json:"tags,omitempty"`
+}
+
+type IAMPodIdentityAssociationOutput struct {
+	Namespace          string `yaml:"namespace"`
+	ServiceAccountName string `yaml:"serviceAccountName"`
+	RoleARN            string `yaml:"roleARN,omitempty"`
+	// +optional
+	CreateServiceAccount *bool `yaml:"createServiceAccount,omitempty"`
+	// +optional
+	RoleName string `yaml:"roleName,omitempty"`
+	// +optional
+	PermissionsBoundaryARN string `yaml:"permissionsBoundaryARN,omitempty"`
+	// +optional
+	PermissionPolicyARNs []string `yaml:"permissionPolicyARNs,omitempty"`
+	// +optional
+	PermissionPolicy map[string]interface{} `yaml:"permissionPolicy,omitempty"`
+	// +optional
+	WellKnownPolicies *WellKnownPolicies `yaml:"wellKnownPolicies,omitempty"`
+	// +optional
+	Tags map[string]string `yaml:"tags,omitempty"`
+
+	Status   string `yaml:"status,omitempty"`
+	Comments string `yaml:"comments,omitempty"`
+}
+
+type PodIdentityExtension struct {
+	HostMetadata *Metadata                  `yaml:"metadata,omitempty"`
+	Spec         *IAMPodIdentityAssociation `yaml:"spec,omitempty"`
+}
+
+type Metadata struct {
+	clusterName string `yaml:"clusterName,omitempty"`
+	projectName string `yaml:"projectName,omitempty"`
 }
 
 // EKSClusterIAMServiceAccount holds an IAM service account metadata and configuration
@@ -1310,5 +1391,6 @@ type EKSClusterCloudWatchLogging struct {
 // SecretsEncryption defines the configuration for KMS encryption provider
 type SecretsEncryption struct {
 	// +required
-	KeyARN string `yaml:"keyARN,omitempty"`
+	KeyARN                 string `yaml:"keyARN,omitempty"`
+	EncryptExistingSecrets *bool  `yaml:"encryptExistingSecrets,omitempty"`
 }

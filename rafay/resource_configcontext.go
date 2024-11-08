@@ -274,31 +274,29 @@ func expandEnvVariables(p []interface{}) []*eaaspb.EnvData {
 
 func expandConfigContextCompoundRefs(p []interface{}) []*eaaspb.ConfigContextCompoundRef {
 	var ccs []*eaaspb.ConfigContextCompoundRef
-	if len(p) == 0 || p[0] == nil {
+	if len(p) == 0 {
 		return ccs
 	}
 
 	for i := range p {
-		cc := expandConfigContextCompoundRef(p[i].([]interface{}))
+		cc := expandConfigContextCompoundRef(p[i].(map[string]any))
 		ccs = append(ccs, cc)
 	}
 
 	return ccs
 }
 
-func expandConfigContextCompoundRef(p []interface{}) *eaaspb.ConfigContextCompoundRef {
+func expandConfigContextCompoundRef(p map[string]any) *eaaspb.ConfigContextCompoundRef {
 	cc := &eaaspb.ConfigContextCompoundRef{}
-	if len(p) == 0 || p[0] == nil {
+	if len(p) == 0 {
 		return cc
 	}
 
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["name"].(string); ok && len(v) > 0 {
+	if v, ok := p["name"].(string); ok && len(v) > 0 {
 		cc.Name = v
 	}
 
-	if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := p["data"].([]interface{}); ok && len(v) > 0 {
 		cc.Data = expandConfigContextInline(v)
 	}
 
@@ -436,38 +434,32 @@ func flattenConfigContextCompoundRefs(input []*eaaspb.ConfigContextCompoundRef) 
 	return ccs
 }
 
-func flattenConfigContextCompoundRef(input *eaaspb.ConfigContextCompoundRef) []interface{} {
-	cc := make(map[string]interface{})
+func flattenConfigContextCompoundRef(input *eaaspb.ConfigContextCompoundRef) map[string]any {
 	if input == nil {
-		return []interface{}{cc}
+		return nil
 	}
 
+	cc := make(map[string]any)
 	if len(input.Name) > 0 {
 		cc["name"] = input.Name
 	}
 
 	cc["data"] = flattenConfigContextInline(input.Data)
 
-	return []interface{}{cc}
+	return cc
 }
 
 func flattenConfigContextInline(input *eaaspb.ConfigContextInline) []interface{} {
-	cc := make(map[string]interface{})
 	if input == nil {
-		return []interface{}{cc}
+		return nil
 	}
-
-	if len(input.Envs) > 0 {
-		cc["envs"] = flattenEnvVariables(input.Envs, nil)
+	return []any{
+		map[string]any{
+			"envs":      flattenEnvVariables(input.Envs, nil),
+			"files":     flattenCommonpbFiles(input.Files),
+			"variables": flattenVariables(input.Variables, nil),
+		},
 	}
-	if len(input.Files) > 0 {
-		cc["files"] = flattenCommonpbFiles(input.Files)
-	}
-	if len(input.Variables) > 0 {
-		cc["variables"] = flattenVariables(input.Variables, nil)
-	}
-
-	return []interface{}{cc}
 }
 
 func resourceConfigContextImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {

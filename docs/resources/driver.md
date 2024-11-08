@@ -149,7 +149,7 @@ resource "rafay_driver" "driver" {
 
 ***Required***
 
-- `type` (String) Specify the type of driver, Accepted values are `container`, `http`.
+- `type` (String) Specify the type of driver, Accepted values are `container`, `http`, `function`.
 
 ***Optional***
 
@@ -158,6 +158,8 @@ resource "rafay_driver" "driver" {
 - `max_retry_count` (Number) Specify the max retry count
 - `success_condition` (String) Specify the success condition
 - `timeout_seconds` (Number) Specify the timeout in seconds
+- `polling_config` (Block List, Max: 1) Specify the polling config (see [below for nested schema](#nestedblock--spec--config--polling_config))
+- `function` (Block List, Max: 1) Configure the function driver configuration (see [below for nested schema](#nestedblock--spec--config--function))
 
 <a id="nestedblock--spec--config--container"></a>
 ### Nested Schema for `spec.config.container`
@@ -344,3 +346,38 @@ resource "rafay_driver" "driver" {
 - `config` (Block List, Max: 1) Driver configuration (see [below for nested schema](#nestedblock--spec--config))
 - `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
 - `outputs` (String) Outputs for the driver in JSON string format
+
+<a id="nestedblock--spec--config--polling_config"></a>
+### Nested Schema for `spec.config.polling_config`
+
+***Optional***
+
+- `repeat` (String) Specify the repeat
+- `until` (String) Specify the until
+
+<a id="nestedblock--spec--config--function"></a>
+### Nested Schema for `spec.config.function`
+
+***Required***
+
+- `name` (String) name of the function. 
+- `language` (String) Specify the language, Available options are `go`, `python`.
+- `source` (String) Specify the source of the function.
+- `function_dependencies` (List of String) Specify the function dependencies
+- `system_packages` (List of String) Specify the system packages for the function
+- `target_platforms` (List of String) Specify the target platforms for the function. Possible values are `linux/amd64`
+- `language_version` (String) Specify the language version for the function.
+- `build_args` (List of String) Specify the build args for the function
+- `build_secrets` (List of String) Specify the build secrets for the function
+- `image` (String) Image of the function.
+- `function_process` (String) Specify the process for the function.
+
+***Optional***
+
+- `cpu_limit_milli` (String) Configure the CPU Limits as the maximum amount of a resource to be used by a function.
+- `memory_limit_mb` (String) Configure the Memory Limits as the maximum amount of a resource to be used by a function.
+- `skip_build` (Boolean) Skip the build process for the function
+- `max_concurrency` (Number) Specify the maximum number of concurrent requests that can be handled by the function.
+- `num_replicas` (Number) Specify the number of replicas for the function.
+- `kube_options` (Block List, Max: 1) Specify the kube options (see [below for nested schema](#nestedblock--spec--config--container--kube_options))
+- `image_pull_credentials` (Block List, Max: 1) Specify the credentials for the registry to pull image from (see [below for nested schema](#nestedblock--spec--config--container--image_pull_credentials))

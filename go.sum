@@ -25,8 +25,8 @@ github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2 h1:bkyFVUP+ROOARdgCiJzNQo2V2kiB97LyUpzH9P6Hrlg=
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2/go.mod h1:rA3QumHc/FZ8pAHreoekgiAbzpNsfQAosU5td4SnOrE=
-github.com/RafaySystems/eaas-playground/proto v0.0.0-20240927124737-3b8ed415ca8a h1:1QRFP1L8Is7nM/FTu+hKfWyJglts92rAv9mY3k0EZIU=
-github.com/RafaySystems/eaas-playground/proto v0.0.0-20240927124737-3b8ed415ca8a/go.mod h1:lAle7/tiVlakfiXdJKnsf6qNdLkoWS712T4pAXytSOQ=
+github.com/RafaySystems/eaas-playground/proto v0.0.0-20241018154059-39f70fef1e26 h1:Un+ZcgkC1W2VyTdb1srPc2A0HiWp7HVcE+7Sanzzhak=
+github.com/RafaySystems/eaas-playground/proto v0.0.0-20241018154059-39f70fef1e26/go.mod h1:lAle7/tiVlakfiXdJKnsf6qNdLkoWS712T4pAXytSOQ=
 github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8 h1:Pce1iLS0oXLGmNh0VSXBfiH/u8hHd6xRJkibmL3Aan4=
 github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8/go.mod h1:5mRn2xN25Y8mpObHyOwDB3OLudeuglzHTQX9IiNHxhM=
 github.com/RafaySystems/paas-common v0.0.0-20241025204737-6d57f7ed0900 h1:rvzBxWxXwYOTe9d6KgzrwWnilSw5L43l7/kfNJGHJtE=

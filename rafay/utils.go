@@ -21,6 +21,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-yaml/yaml"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"google.golang.org/protobuf/types/known/structpb"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
@@ -1492,8 +1493,46 @@ func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
 		options.Override = expandVariableOverrideOptions(v)
 	}
 
+	options.DisplayMetadata = getExpandDisplayMetadata(opts)
+
 	return options
 
+}
+
+func getExpandDisplayMetadata(in map[string]interface{}) *structpb.Struct {
+	if v, ok := in["display_metadata"].(map[string]interface{}); ok && len(v) > 0 {
+		newMap := map[string]interface{}{}
+		for key, value := range v {
+
+			valueStr, ok := value.(string)
+			if !ok {
+				continue
+			}
+
+			if valueStr == "true" || valueStr == "false" {
+				if newValue, err := strconv.ParseBool(valueStr); err == nil {
+					newMap[key] = newValue
+					continue
+				}
+			}
+
+			if newValue, err := strconv.Atoi(value.(string)); err == nil {
+				newMap[key] = newValue
+				continue
+			}
+
+			newMap[key] = valueStr
+		}
+
+		s, err := structpb.NewStruct(newMap)
+		if err == nil {
+			return s
+		}
+
+		return nil
+	}
+
+	return nil
 }
 
 func expandVariableOverrideOptions(p []interface{}) *eaaspb.VariableOverrideOptions {
@@ -1563,6 +1602,13 @@ func flattenVariableOptions(input *eaaspb.VariableOptions) []interface{} {
 	}
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
+
+	displayMetadata := map[string]string{}
+	for k, v := range input.DisplayMetadata.AsMap() {
+		displayMetadata[k] = fmt.Sprintf("%v", v)
+	}
+
+	obj["display_metadata"] = displayMetadata
 
 	if input.Override != nil {
 		obj["override"] = flattenVariableOverrideOptions(input.GetOverride())
@@ -2425,6 +2471,8 @@ func expandEnvvarOptions(p []interface{}) *eaaspb.EnvVarOptions {
 		options.Required = v
 	}
 
+	options.DisplayMetadata = getExpandDisplayMetadata(opts)
+
 	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
 		options.Override = expandEnvvarOverrideOptions(v)
 	}
@@ -2463,6 +2511,13 @@ func flattenEnvvarOptions(input *eaaspb.EnvVarOptions) []interface{} {
 	}
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
+
+	displayMetadata := map[string]string{}
+	for k, v := range input.DisplayMetadata.AsMap() {
+		displayMetadata[k] = fmt.Sprintf("%v", v)
+	}
+
+	obj["display_metadata"] = displayMetadata
 
 	if input.Override != nil {
 		obj["override"] = flattenEnvvarOverrideOptions(input.GetOverride())
@@ -2513,6 +2568,8 @@ func expandFileOptions(p []interface{}) *commonpb.FileOptions {
 		options.Override = expandFileOverrideOptions(v)
 	}
 
+	options.DisplayMetadata = getExpandDisplayMetadata(opts)
+
 	return options
 
 }
@@ -2543,6 +2600,13 @@ func flattenFileOptions(input *commonpb.FileOptions) []interface{} {
 	}
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
+
+	displayMetadata := map[string]string{}
+	for k, v := range input.DisplayMetadata.AsMap() {
+		displayMetadata[k] = fmt.Sprintf("%v", v)
+	}
+
+	obj["display_metadata"] = displayMetadata
 
 	if input.Override != nil {
 		obj["override"] = flattenFileOverrideOptions(input.GetOverride())

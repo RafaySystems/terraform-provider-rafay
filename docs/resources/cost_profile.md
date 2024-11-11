@@ -36,7 +36,7 @@ resource "rafay_cost_profile" "tfdemocostprofile1" {
           athena_bucket_name = "sample"
           athena_database = "sample"
           athena_table = "sample"
-          aws_account_id = "sample"
+          aws_account_id = "sample" [DEPRECATED]
           master_payer_arn = "sample"
         }
         aws_credentials {
@@ -65,8 +65,8 @@ resource "rafay_cost_profile" "tfdemocostprofile-azure" {
       azure {
         custom_pricing {
           cloud_credentials_name = "sample"
-          billing_account_id = "sample"
-          offer_id = "sample"
+          billing_account_id = "sample" [DEPRECATED]
+          offer_id = "sample" [DEPRECATED]
         }
       }
     }

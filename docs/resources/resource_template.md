@@ -192,6 +192,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `sharing` (Block List, Max: 1) Sharing resource template across projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Variables associated with resource template (see [below for nested schema](#nestedblock--spec--variables))
 - `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`. This is a readonly field, by default only new active versions are created, and latest active versions will be synced. Creating a `draft`, `disabled` state or modifying state for an existing version is not supported.
+- `actions` (Block List) List of actions associated with resource templates (see [below for nested schema](#nestedblock--spec--actions))
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
@@ -1768,7 +1769,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 **Required**
 
 - `name` (String) name of the hook
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`.
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`, `function`.
 
 ***Optional***
 
@@ -1780,6 +1781,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `timeout_seconds` (Number) Specify the timeout in seconds
 - `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
 - `execute_once` (Boolean) Specify if the hook should be executed only once
+- `function` (Block List, Max: 1) Configure the function driver configuration (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--function))
 
 <a id="nestedblock--spec--provider_options--driver--data--config--container"></a>
 ### Nested Schema for `spec.provider_options.driver.data.config.type`
@@ -2562,3 +2564,44 @@ Optional:
 ***Required***
 
 - `kind` (String) Specify the type of rafay resource, Available options are `credential`, `cluster`.
+
+<a id="nestedblock--spec--actions"></a>
+### Nested Schema for `spec.actions`
+
+***Required***
+
+- `name` (String) name of the action, this is to uniquely identify all actions. Make it meaningful like 'upgrade-k8s-version', 'scale-node-pool' etc
+
+***Optional***
+
+- `description` (String) Describe what the action does
+- `type` (String) Specify the type of action, Available options are `deploy`, `workflows`.
+- `workflows` (Block List, Optional) Custom workflows that needs to be executed with this action (see [below for nested schema](#nestedblock--spec--provider_options--custom))
+- `context` (Block, Optional) Reference to config context data associated with action (see [below for nested schema](#nestedblock--spec--contexts))
+
+<a id="nestedblock--spec--provider_options--driver--data--config--function"></a>
+### Nested Schema for `spec.provider_options.driver.data.config.function`
+
+***Required***
+
+- `name` (String) name of the function. 
+- `language` (String) Specify the language, Available options are `go`, `python`.
+- `source` (String) Specify the source of the function.
+- `function_dependencies` (List of String) Specify the function dependencies
+- `system_packages` (List of String) Specify the system packages for the function
+- `target_platforms` (List of String) Specify the target platforms for the function. Possible values are `linux/amd64`
+- `language_version` (String) Specify the language version for the function.
+- `build_args` (List of String) Specify the build args for the function
+- `build_secrets` (List of String) Specify the build secrets for the function
+- `image` (String) Image of the function.
+- `function_process` (String) Specify the process for the function.
+
+***Optional***
+
+- `cpu_limit_milli` (String) Configure the CPU Limits as the maximum amount of a resource to be used by a function.
+- `memory_limit_mb` (String) Configure the Memory Limits as the maximum amount of a resource to be used by a function.
+- `skip_build` (Boolean) Skip the build process for the function
+- `max_concurrency` (Number) Specify the maximum number of concurrent requests that can be handled by the function.
+- `num_replicas` (Number) Specify the number of replicas for the function.
+- `kube_options` (Block List, Max: 1) Specify the kube options (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--kube_options))
+- `image_pull_credentials` (Block List, Max: 1) Specify the credentials for the registry to pull image from (see [below for nested schema](#nestedblock--spec--provider_options--driver--data--config--type--image_pull_credentials))

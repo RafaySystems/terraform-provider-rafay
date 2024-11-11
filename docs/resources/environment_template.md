@@ -179,6 +179,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `icon_url` (String) Icon URL for the template
 - `readme` (String) Readme for the template
 - `schedules` (Block List) Reference to schedules associated with environment templates (see [below for nested schema](#nestedblock--spec--schedules))
+- `actions` (Block List) List of actions associated with resource templates (see [below for nested schema](#nestedblock--spec--actions))
 
 <a id="nestedblock--spec--agent_override"></a>
 ### Nested Schema for `spec.agent_override`
@@ -1307,3 +1308,17 @@ Optional:
 - `max_allowed_duration` (String) Specify the maximum allowed opt out duration, time units are 'm', 'h', 'd' e.g. 8h, 2d
 - `max_allowed_times` (Number) Specify the maximum number of times users can opt out without approval e.g. users can max opt out of this schedule thrice
 - `approval` (Block List, Max: 1) Details of approval workflow that needs to be execution in case of user opt-out (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks))
+
+<a id="nestedblock--spec--actions"></a>
+### Nested Schema for `spec.actions`
+
+***Required***
+
+- `name` (String) name of the action, this is to uniquely identify all actions. Make it meaningful like 'upgrade-k8s-version', 'scale-node-pool' etc
+
+***Optional***
+
+- `description` (String) Describe what the action does
+- `type` (String) Specify the type of action, Available options are `deploy`, `workflows`.
+- `workflows` (Block List, Optional) Custom workflows that needs to be executed with this action (see [below for nested schema](#nestedblock--spec--provider_options--custom))
+- `context` (Block, Optional) Reference to config context data associated with action (see [below for nested schema](#nestedblock--spec--contexts))

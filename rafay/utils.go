@@ -2278,6 +2278,10 @@ func expandWorkflowHandlerConfig(p []interface{}) *eaaspb.WorkflowHandlerConfig 
 		workflowHandlerConfig.Http = expandDriverHttpConfig(v)
 	}
 
+	if v, ok := in["function"].([]interface{}); ok && len(v) > 0 {
+		workflowHandlerConfig.Function = expandDriverFunctionConfig(v)
+	}
+
 	if v, ok := in["polling_config"].([]interface{}); ok && len(v) > 0 {
 		workflowHandlerConfig.PollingConfig = expandPollingConfig(v)
 	}
@@ -2379,6 +2383,15 @@ func flattenWorkflowHandlerConfig(input *eaaspb.WorkflowHandlerConfig, p []inter
 		}
 
 		obj["http"] = flattenDriverHttpConfig(input.Http, v)
+	}
+
+	if input.Function != nil {
+		v, ok := obj["function"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["function"] = flattenDriverFunctionConfig(input.Function, v)
 	}
 
 	if input.PollingConfig != nil {

@@ -559,6 +559,9 @@ func expandMonitoring(p []interface{}) *infrapb.MonitoringConfig {
 		rs := spew.Sprintf("%+v", obj.Resources.Limits)
 		log.Println("expandMonitoring Resources", rs)
 	}
+	if v, ok := in["gpu_operator"].([]interface{}); ok && len(v) > 0 {
+		obj.GpuOperator = expandMonitoringComponent(v)
+	}
 
 	return obj
 }
@@ -1604,7 +1607,14 @@ func flattenMonitoring(in *infrapb.MonitoringConfig, p []interface{}) []interfac
 		obj["resources"] = flattenResources(in.Resources, v)
 		log.Println("flattenMonitoring in.Resources ", in.Resources)
 	}
-
+	if in.GpuOperator != nil {
+		v, ok := obj["gpu_operator"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["gpu_operator"] = flattenMonitoringComponent(in.GpuOperator, v)
+		log.Println("flattenMonitoring in.GpuOperator ", in.GpuOperator)
+	}
 	return []interface{}{obj}
 }
 

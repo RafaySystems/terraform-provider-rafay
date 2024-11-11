@@ -111,6 +111,9 @@ resource "rafay_blueprint" "custom-blueprint" {
         prometheus_adapter {
 	  customization_enabled = true
         }
+        gpu_operator {
+	  customization_enabled = true
+        }
         resources {
           limits = "200Mi"
           cpu = "100m"
@@ -479,9 +482,26 @@ resource "rafay_blueprint" "cost-blueprint" {
 - `helm_exporter` - (Boolean) Exports helm release, chart, and version statistics in the Prometheus format. 
 - `node_exporter` - (Boolean) Monitors the host system. 
 - `prometheus_adapter` - (Boolean) Provides Kubernetes metrics APIs for Prometheus. 
-- `metrics_server` - (Boolean) A scalable, efficient source of container resource metrics for Kubernetes built-in autoscaling pipelines. 
+- `metrics_server` - (Boolean) A scalable, efficient source of container resource metrics for Kubernetes built-in autoscaling pipelines.
+- `gpu_operator` (Block List) GPU Operator Configuration (see [below for nested schema](#nestedblock--spec--default_addons--monitoring--gpu_operator))
 - `resources` - (Block List) CPU and memory limits for the monitoring component (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources))
 
+<a id="nestedblock--spec--default_addons--monitoring--gpu_operator"></a>
+### Nested Schema for `spec.default_addons.monitoring.gpu_operator`
+
+Optional:
+
+- `customization_enabled` (Boolean) flag to specify if monitoring component customization is enabled
+- `discovery` (Block List) discovery configuration for monitoring component (see [below for nested schema](#nestedblock--spec--default_addons--monitoring--gpu_operator--discovery))
+
+<a id="nestedblock--spec--default_addons--monitoring--gpu_operator--discovery"></a>
+### Nested Schema for `spec.default_addons.monitoring.gpu_operator.discovery`
+
+Optional:
+
+- `labels` (Map of String) labels of the monitoring component
+- `namespace` (String) namespace of the monitoring component
+- `resource` (String) resource name of the monitoring component
 
 <a id="nestedblock--spec--default_addons--monitoring--metrics"></a>
 ### Nested Schema for `spec.default_addons.monitoring.metrics`

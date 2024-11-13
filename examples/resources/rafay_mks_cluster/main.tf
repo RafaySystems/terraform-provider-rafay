@@ -1,14 +1,14 @@
 terraform {
   required_providers {
     rafay = {
-      version = ">= 1.1.35"
-      source  = "registry.terraform.io/RafaySystems/rafay"
+      version = "1.1.28"
+      source  = "rafay/rafay"
     }
   }
 }
 
 provider "rafay" {
-  provider_config_file = "/Users/user/.rafay/cli/config.json"
+  provider_config_file = "/Users/vihari/Downloads/rafay-org-vihari@rafay.co.json"
 }
 
 
@@ -16,19 +16,21 @@ resource "rafay_mks_cluster" "mks-sample-cluster" {
   api_version = "infra.k8smgmt.io/v3"
   kind        = "Cluster"
   metadata = {
-    name    = "mks-sample-cluster"
-    project = "terraform"
+    name    = "vihari-mks-tf-cluster"
+    project = "defaultproject"
   }
   spec = {
     blueprint = {
       name = "minimal"
     }
-    cloud_credentials = "mks-ssh-creds"
     config = {
       auto_approve_nodes      = true
       dedicated_control_plane = false
-      kubernetes_version      = "v1.28.9"
+      kubernetes_version      = "v1.30.4"
       installer_ttl           = 365
+      kubelet_extra_args      = {
+        "max-pods" = "900"
+      }
       kubernetes_upgrade = {
         strategy = "sequential"
         params = {
@@ -44,67 +46,91 @@ resource "rafay_mks_cluster" "mks-sample-cluster" {
         service_subnet = "10.96.0.0/12"
       }
       nodes = {
-        "hostname1" = {
+        "vih-a4" = {
           arch             = "amd64"
-          hostname         = "hostname1"
+          hostname         = "vih-a4"
           operating_system = "Ubuntu22.04"
-          private_ip       = "10.12.25.234"
-          roles            = ["ControlPlane", "Worker"]
-          labels = {
-            "app"   = "infra"
-            "infra" = "true"
+          private_ip       = "10.0.0.136"
+          roles            = ["ControlPlane", "Worker", "Storage"]
+          ssh = {
+            ip_address = "129.146.58.186"
+            port = "22"
+            private_key_path = "/Users/vihari/.ssh/vihari_oci_ssh"
+            username = "ubuntu"
           }
         },
-        "hostname2" = {
+        "vih-a5" = {
           arch             = "amd64"
-          hostname         = "hostname2"
+          hostname         = "vih-a5"
           operating_system = "Ubuntu22.04"
-          private_ip       = "10.12.114.59"
-          roles            = ["Worker"]
-          labels = {
-            "app"   = "infra"
-            "infra" = "true"
+          kubelet_extra_args = {
+            "max-pods" = "600"
           }
-          taints = [
-            {
-              effect = "NoSchedule"
-              key    = "infra"
-              value  = "true"
-            },
-            {
-              effect = "NoSchedule"
-              key    = "app"
-              value  = "infra"
-            },
-          ]
+          private_ip       = "10.0.0.183"
+          roles            = ["Worker", "Storage"]
+          ssh = {
+            ip_address = "129.146.6.223"
+            port = "22"
+            private_key_path = "/Users/vihari/.ssh/vihari_oci_ssh"
+            username = "ubuntu"
+          }
         }
       }
-    }
-    system_components_placement = {
-      node_selector = {
-        "app"   = "infra"
-        "infra" = "true"
+      cluster_ssh = {
+        port = "22"
+        private_key_path = "/Users/vihari/.ssh/vihari_oci_ssh"
+        username = "ubuntu"
       }
-      tolerations = [
-        {
-          effect   = "NoSchedule"
-          key      = "infra"
-          operator = "Equal"
-          value    = "true"
-        },
-        {
-          effect   = "NoSchedule"
-          key      = "app"
-          operator = "Equal"
-          value    = "infra"
-        },
-        {
-          effect   = "NoSchedule"
-          key      = "app"
-          operator = "Equal"
-          value    = "platform"
-        },
-      ]
+        # "hostname2" = {
+        #   arch             = "amd64"
+        #   hostname         = "hostname2"
+        #   operating_system = "Ubuntu22.04"
+        #   private_ip       = "10.12.114.59"
+        #   roles            = ["Worker"]
+        #   labels = {
+        #     "app"   = "infra"
+        #     "infra" = "true"
+        #   }
+        #   taints = [
+        #     {
+        #       effect = "NoSchedule"
+        #       key    = "infra"
+        #       value  = "true"
+        #     },
+        #     {
+        #       effect = "NoSchedule"
+        #       key    = "app"
+        #       value  = "infra"
+        #     },
+        #   ]
+        # }
+      
+    # system_components_placement = {
+    #   node_selector = {
+    #     "app"   = "infra"
+    #     "infra" = "true"
+    #   }
+    #   tolerations = [
+    #     {
+    #       effect   = "NoSchedule"
+    #       key      = "infra"
+    #       operator = "Equal"
+    #       value    = "true"
+    #     },
+    #     {
+    #       effect   = "NoSchedule"
+    #       key      = "app"
+    #       operator = "Equal"
+    #       value    = "infra"
+    #     },
+    #     {
+    #       effect   = "NoSchedule"
+    #       key      = "app"
+    #       operator = "Equal"
+    #       value    = "platform"
+    #     },
+    #   ]
+    # }
     }
   }
 }

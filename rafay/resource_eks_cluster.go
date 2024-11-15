@@ -413,6 +413,14 @@ func configField() map[string]*schema.Schema {
 				Schema: accessConfigFields(),
 			},
 		},
+		"addons_config": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "addon config fields",
+			Elem: &schema.Resource{
+				Schema: addonsConfigurationsField(),
+			},
+		},
 	}
 	return s
 }
@@ -1111,6 +1119,17 @@ func clusterEndpointsConfigFields() map[string]*schema.Schema {
 	return s
 }
 
+func addonsConfigurationsField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"auto_apply_pod_identity_associations": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Flag to create pod identity by default for managed addons",
+		},
+	}
+	return s
+}
+
 func addonConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"name": {
@@ -1174,6 +1193,19 @@ func addonConfigFields() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "configuration values for the addon",
+		},
+		"pod_identity_associations": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "pod identity associations",
+			Elem: &schema.Resource{
+				Schema: podIdentityAssociationsFields(),
+			},
+		},
+		"use_default_pod_identity_associations": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Flag to create pod identity association by default",
 		},
 	}
 	return s
@@ -2462,6 +2494,9 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 	if v, ok := in["access_config"].([]interface{}); ok && len(v) > 0 {
 		obj.AccessConfig = expandAccessConfig(v)
 	}
+	if v, ok := in["addons_config"].([]interface{}); ok && len(v) > 0 {
+		obj.AddonsConfig = expandAddonsConfig(v)
+	}
 	return obj
 }
 
@@ -2493,9 +2528,10 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 
 	clusterName := yamlClusterMetadata.Metadata.Name
 	projectName := yamlClusterMetadata.Metadata.Project
+	log.Printf("process_filebytes %s", projectName)
 	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		log.Print("error converting project name to id")
+		log.Printf("error converting project name to id %s", err.Error())
 		return diag.Errorf("error converting project name to project ID")
 	}
 
@@ -3713,6 +3749,19 @@ func expandPrivateCluster(p []interface{}) *PrivateCluster {
 	return obj
 }
 
+func expandAddonsConfig(p []interface{}) *EKSAddonsConfig {
+	obj := &EKSAddonsConfig{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["auto_apply_pod_identity_associations"].(bool); ok {
+		obj.AutoApplyPodIdentityAssociations = v
+	}
+	return obj
+}
+
 // expand addon(completed/kind of)
 func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 	out := make([]*Addon, len(p))
@@ -4010,8 +4059,12 @@ func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAs
 		if v, ok := in["permission_boundary_arn"].(string); ok && len(v) > 0 {
 			obj.PermissionsBoundaryARN = v
 		}
-		if v, ok := in["permission_policy"].(map[string]interface{}); ok && len(v) > 0 {
-			obj.PermissionPolicy = v
+		if v, ok := in["permission_policy"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
+			obj.PermissionPolicy = policyDoc
 		}
 		if v, ok := in["permission_policy_arns"].([]interface{}); ok && len(v) > 0 {
 			obj.PermissionPolicyARNs = toArrayString(v)
@@ -4825,6 +4878,20 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		obj["access_config"] = ret14
 	}
 
+	var ret14 []interface{}
+	if in.AddonsConfig != nil {
+		v, ok := obj["addons_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret14 = flattenEKSClusterAddonsConfig(in.AddonsConfig, v)
+		/*if err != nil {
+			log.Println("flattenEKSClusterSecretsEncryption err")
+			return nil, err
+		}*/
+		obj["addons_config"] = ret14
+	}
+
 	log.Println("end of flatten config")
 
 	return []interface{}{obj}, nil
@@ -5115,7 +5182,13 @@ func flattenIAMPodIdentityAssociations(inp []*IAMPodIdentityAssociation, p []int
 			obj["role_name"] = in.RoleName
 		}
 		if len(in.PermissionPolicy) > 0 {
-			obj["permission_policy"] = in.PermissionPolicy
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.PermissionPolicy)
+			if err != nil {
+				log.Println("permission policy marshal err:", err)
+			}
+			//log.Println("jsonSTR:", jsonStr)
+			obj["permission_policy"] = string(jsonStr)
 		}
 		if in.WellKnownPolicies != nil {
 			v, ok := obj["well_known_policies"].([]interface{})
@@ -5124,19 +5197,18 @@ func flattenIAMPodIdentityAssociations(inp []*IAMPodIdentityAssociation, p []int
 			}
 			obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
 		}
-		if in.PermissionPolicyARNs != nil && len(in.PermissionPolicyARNs) > 0 {
+		if len(in.PermissionPolicyARNs) > 0 {
 			obj["permission_policy_arns"] = toArrayInterface(in.PermissionPolicyARNs)
 		}
 		if len(in.PermissionsBoundaryARN) > 0 {
 			obj["permissions_boundary_arn"] = in.PermissionsBoundaryARN
 		}
-		if in.Tags != nil && len(in.Tags) > 0 {
+		if len(in.Tags) > 0 {
 			obj["tags"] = toMapInterface(in.Tags)
 		}
-		// if *in.CreateServiceAccount {
-		// 	obj["create_service_account"] = *in.CreateServiceAccount
-		// }
-		obj["create_service_account"] = true
+		if *in.CreateServiceAccount {
+			obj["create_service_account"] = *in.CreateServiceAccount
+		}
 
 		out[i] = obj
 	}
@@ -6514,6 +6586,20 @@ func flattenClusterCloudWatchLogging(in *EKSClusterCloudWatchLogging, p []interf
 		}
 	}
 	return []interface{}{obj}
+}
+
+func flattenEKSClusterAddonsConfig(in *EKSAddonsConfig, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	obj["auto_apply_pod_identity_associations"] = in.AutoApplyPodIdentityAssociations
+
+	return []interface{}{obj}
+
 }
 
 // flatten secret encryption

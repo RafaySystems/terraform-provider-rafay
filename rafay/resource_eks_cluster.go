@@ -5922,20 +5922,20 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 		log.Print("Cluster project name unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "project name is missing"))
 	}
-	projectID, err := getProjectIDFromName(projectName)
-	if err != nil {
-		log.Print("error converting project name to id")
-		return diag.Errorf("error converting project name to project ID")
-	}
-	c, err := cluster.GetCluster(clusterName, projectID)
-	if err != nil {
-		log.Printf("error in get cluster %s", err.Error())
-		return diag.FromErr(err)
-	}
-	if c.ID != d.Id() {
-		log.Printf("edge id has changed, state: %s, current: %s", d.Id(), c.ID)
-		return diag.Errorf("remote and state id mismatch")
-	}
+	// projectID, err := getProjectIDFromName(projectName)
+	// if err != nil {
+	// 	log.Print("error converting project name to id")
+	// 	return diag.Errorf("error converting project name to project ID")
+	// }
+	// c, err := cluster.GetCluster(clusterName, projectID)
+	// if err != nil {
+	// 	log.Printf("error in get cluster %s", err.Error())
+	// 	return diag.FromErr(err)
+	// }
+	// if c.ID != d.Id() {
+	// 	log.Printf("edge id has changed, state: %s, current: %s", d.Id(), c.ID)
+	// 	return diag.Errorf("remote and state id mismatch")
+	// }
 	log.Println("finished update")
 	return resourceEKSClusterUpsert(ctx, d, m)
 }

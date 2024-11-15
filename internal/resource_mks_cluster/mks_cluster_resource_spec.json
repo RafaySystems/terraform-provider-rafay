@@ -187,6 +187,16 @@
 												}
 											},
 											{
+												"name": "kubelet_extra_args",
+												"map": {
+													"computed_optional_required": "optional",
+													"element_type": {
+														"string": {}
+													},
+													"description": "cluster kubelet extra args"
+												}
+											},
+											{
 												"name": "location",
 												"string": {
 													"computed_optional_required": "optional",
@@ -296,6 +306,16 @@
 																		"string": {}
 																	},
 																	"description": "labels to be added to the node"
+																}
+															},
+															{
+																"name": "kubelet_extra_args",
+																"map": {
+																	"computed_optional_required": "optional",
+																	"element_type": {
+																		"string": {}
+																	},
+																	"description": "node kubelet extra args"
 																}
 															},
 															{

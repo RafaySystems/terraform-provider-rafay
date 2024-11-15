@@ -830,6 +830,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `addons` - (Block List) The list of EKS managed addons to include in the cluster.(See [below for nested schema](#nestedblock--cluster_config--addons))
 - `identity_mappings` - (Block List) Identity Mapping feature helps the users to create a static mapping between IAM Users and Roles, and Kubernetes RBAC groups.(See [below for nested schema](#nestedblock--cluster_config--identity_mappings))
 - `access_config` - (Block List) Access Config controls how IAM principals can access this cluster. (See [below for nested schema](#nestedblock--cluster_config--access_config))
+- `addons_config` - (Block List)  support for managed addon related configurations. (See [below for nested schema](#nestedblock--cluster_config--addons_config))
 
 <a id="nestedblock--cluster_config--kubernetes_network_config"></a>
 ### Nested Schema for `cluster_config.kubernetes_network_config`
@@ -984,7 +985,16 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `permissions_boundary` - (String) ARN of the permissions boundary to associate
 - `well_known_policies` - (Block List) Use to attach common IAM policies.
 - `tags` - (Map of String) The AWS tags for the service account.
-- `configuration_values` - (String) custom configuration values for addons with single JSON string. 
+- `configuration_values` - (String) custom configuration values for addons with single JSON string.
+- `use_default_pod_identity_associations` - (Bool) Flag to enable pod identity association by default
+- `pod_identity_associations` - (Block List) Configure pod identity association for the addon (See [below for nested schema](#nestedblock--cluster_config--iam--pod_identity_associations))
+
+<a id="nestedblock--cluster_config--addons_config"></a>
+### Nested Schema for `cluster_config.addons_config`
+
+***Optional***
+
+- `auto_apply_pod_identity_associations` - (Bool) Flag to auto apply pod identity associations to all managed addons
 
 <a id="nestedblock--cluster_config--access_config"></a>
 ### Nested Schema for `cluster_config.access_config`

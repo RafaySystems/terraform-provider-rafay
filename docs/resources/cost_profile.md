@@ -36,7 +36,6 @@ resource "rafay_cost_profile" "tfdemocostprofile1" {
           athena_bucket_name = "sample"
           athena_database = "sample"
           athena_table = "sample"
-          aws_account_id = "sample"
           master_payer_arn = "sample"
         }
         aws_credentials {
@@ -65,8 +64,6 @@ resource "rafay_cost_profile" "tfdemocostprofile-azure" {
       azure {
         custom_pricing {
           cloud_credentials_name = "sample"
-          billing_account_id = "sample"
-          offer_id = "sample"
         }
       }
     }
@@ -207,7 +204,7 @@ resource "rafay_cost_profile" "tfdemocostprofile-other" {
 - `athena_database` (String) The AWS Athena database.
 - `athena_region` (String) The AWS Athena region.
 - `athena_table` (String) The AWS Athena table name.
-- `aws_account_id` (String) The AWS account ID.
+- `aws_account_id` (String) The AWS account ID. DEPRECATED.
 - `master_payer_arn` (String) The master payer ARN.
 
 <a id="nestedblock--spec--installation_params--aws--spot_integration"></a>
@@ -222,8 +219,8 @@ resource "rafay_cost_profile" "tfdemocostprofile-other" {
 ### Nested Schema for `spec.installation_params.azure.custom_pricing`
 
 - `cloud_credentials_name` (String) The Azure cloud credentials name.
-- `billing_account_id` (String) The Azure Billing Account ID.
-- `offer_id` (String) The Azure Offer ID.
+- `billing_account_id` (String) The Azure Billing Account ID. DEPRECATED.
+- `offer_id` (String) The Azure Offer ID. DEPRECATED.
 
 <a id="nestedblock--spec--installation_params--gcp--gcp_credentials"></a>
 ### Nested Schema for `spec.installation_params.gcp.gcp_credentials`

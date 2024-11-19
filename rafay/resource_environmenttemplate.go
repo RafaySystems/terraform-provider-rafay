@@ -273,6 +273,10 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 		}
 	}
 
+	if v, ok := in["allow_new_inputs_during_publish"].([]interface{}); ok && len(v) > 0 {
+		spec.AllowNewInputsDuringPublish = expandBoolValue(v)
+	}
+
 	return spec, nil
 }
 
@@ -621,6 +625,8 @@ func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []inte
 
 		obj["schedules"] = flattenSchedules(in.Schedules, v)
 	}
+
+	obj["allow_new_inputs_during_publish"] = flattenBoolValue(in.AllowNewInputsDuringPublish)
 
 	return []interface{}{obj}, nil
 }

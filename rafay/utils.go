@@ -1512,6 +1512,10 @@ func expandVariableOverrideOptions(p []interface{}) *eaaspb.VariableOverrideOpti
 		override.RestrictedValues = toArrayString(vals)
 	}
 
+	if vals, ok := in["selectors"].([]interface{}); ok && len(vals) > 0 {
+		override.Selectors = toArrayString(vals)
+	}
+
 	return override
 }
 
@@ -1584,6 +1588,10 @@ func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) []int
 
 	if len(input.RestrictedValues) > 0 {
 		obj["restricted_values"] = toArrayInterface(input.RestrictedValues)
+	}
+
+	if len(input.Selectors) > 0 {
+		obj["selectors"] = toArrayInterface(input.Selectors)
 	}
 
 	return []interface{}{obj}
@@ -2449,6 +2457,10 @@ func expandEnvvarOverrideOptions(p []interface{}) *eaaspb.EnvVarOverrideOptions 
 		override.RestrictedValues = toArrayString(vals)
 	}
 
+	if vals, ok := in["selectors"].([]interface{}); ok && len(vals) > 0 {
+		override.Selectors = toArrayString(vals)
+	}
+
 	return override
 }
 
@@ -2484,6 +2496,10 @@ func flattenEnvvarOverrideOptions(input *eaaspb.EnvVarOverrideOptions) []interfa
 
 	if len(input.RestrictedValues) > 0 {
 		obj["restricted_values"] = toArrayInterface(input.RestrictedValues)
+	}
+
+	if len(input.Selectors) > 0 {
+		obj["selectors"] = toArrayInterface(input.Selectors)
 	}
 
 	return []interface{}{obj}

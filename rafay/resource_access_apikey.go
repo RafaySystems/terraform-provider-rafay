@@ -179,11 +179,11 @@ func resourceAccessApiRead(ctx context.Context, d *schema.ResourceData, m interf
 		userAccount.Account.ID = usrProf.Account.ID
 	} else {
 		ua, err := user.GetUser(userName)
-		userAccount = *ua
 		if err != nil {
 			log.Printf("get user account, error %s", err.Error())
 			return diag.FromErr(err)
 		}
+		userAccount = *ua
 		userName = userAccount.Account.Username
 	}
 

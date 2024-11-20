@@ -3790,7 +3790,7 @@ func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAs
 			obj.RoleARN = v
 		}
 		if v, ok := in["create_service_account"].(bool); ok {
-			obj.CreateServiceAccount = &v
+			obj.CreateServiceAccount = v
 		}
 		if v, ok := in["role_name"].(string); ok && len(v) > 0 {
 			obj.RoleName = v
@@ -4792,8 +4792,8 @@ func flattenIAMPodIdentityAssociations(inp []*IAMPodIdentityAssociation, p []int
 		if len(in.Tags) > 0 {
 			obj["tags"] = toMapInterface(in.Tags)
 		}
-		if *in.CreateServiceAccount {
-			obj["create_service_account"] = *in.CreateServiceAccount
+		if in.CreateServiceAccount {
+			obj["create_service_account"] = in.CreateServiceAccount
 		}
 
 		out[i] = obj

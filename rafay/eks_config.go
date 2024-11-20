@@ -186,7 +186,7 @@ type IAMPodIdentityAssociation struct {
 	ServiceAccountName string `yaml:"serviceAccountName" json:"serviceAccountName"`
 	RoleARN            string `yaml:"roleARN,omitempty" json:"roleARN,omitempty"`
 	// +optional
-	CreateServiceAccount *bool `yaml:"createServiceAccount,omitempty" json:"createServiceAccount,omitempty"`
+	CreateServiceAccount bool `yaml:"createServiceAccount,omitempty" json:"createServiceAccount,omitempty"`
 	// +optional
 	RoleName string `yaml:"roleName,omitempty" json:"roleName,omitempty"`
 	// +optional

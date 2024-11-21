@@ -3790,7 +3790,7 @@ func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAs
 			obj.RoleARN = v
 		}
 		if v, ok := in["create_service_account"].(bool); ok {
-			obj.CreateServiceAccount = &v
+			obj.CreateServiceAccount = v
 		}
 		if v, ok := in["role_name"].(string); ok && len(v) > 0 {
 			obj.RoleName = v
@@ -3798,8 +3798,12 @@ func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAs
 		if v, ok := in["permission_boundary_arn"].(string); ok && len(v) > 0 {
 			obj.PermissionsBoundaryARN = v
 		}
-		if v, ok := in["permission_policy"].(map[string]interface{}); ok && len(v) > 0 {
-			obj.PermissionPolicy = v
+		if v, ok := in["permission_policy"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
+			obj.PermissionPolicy = policyDoc
 		}
 		if v, ok := in["permission_policy_arns"].([]interface{}); ok && len(v) > 0 {
 			obj.PermissionPolicyARNs = toArrayString(v)
@@ -4764,6 +4768,13 @@ func flattenIAMPodIdentityAssociations(inp []*IAMPodIdentityAssociation, p []int
 		}
 		if len(in.PermissionPolicy) > 0 {
 			obj["permission_policy"] = in.PermissionPolicy
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.PermissionPolicy)
+			if err != nil {
+				log.Println("permission policy marshal err:", err)
+			}
+			//log.Println("jsonSTR:", jsonStr)
+			obj["permission_policy"] = string(jsonStr)
 		}
 		if in.WellKnownPolicies != nil {
 			v, ok := obj["well_known_policies"].([]interface{})
@@ -4772,19 +4783,18 @@ func flattenIAMPodIdentityAssociations(inp []*IAMPodIdentityAssociation, p []int
 			}
 			obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
 		}
-		if in.PermissionPolicyARNs != nil && len(in.PermissionPolicyARNs) > 0 {
+		if len(in.PermissionPolicyARNs) > 0 {
 			obj["permission_policy_arns"] = toArrayInterface(in.PermissionPolicyARNs)
 		}
 		if len(in.PermissionsBoundaryARN) > 0 {
 			obj["permissions_boundary_arn"] = in.PermissionsBoundaryARN
 		}
-		if in.Tags != nil && len(in.Tags) > 0 {
+		if len(in.Tags) > 0 {
 			obj["tags"] = toMapInterface(in.Tags)
 		}
-		// if *in.CreateServiceAccount {
-		// 	obj["create_service_account"] = *in.CreateServiceAccount
-		// }
-		obj["create_service_account"] = true
+		if in.CreateServiceAccount {
+			obj["create_service_account"] = in.CreateServiceAccount
+		}
 
 		out[i] = obj
 	}

@@ -2501,7 +2501,7 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) (*EKSClusterCo
 	if v, ok := in["addons_config"].([]interface{}); ok && len(v) > 0 {
 		obj.AddonsConfig = expandAddonsConfig(v)
 	}
-	return obj
+	return obj, nil
 }
 
 func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

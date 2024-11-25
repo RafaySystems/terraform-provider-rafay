@@ -70,6 +70,7 @@ type EKSClusterConfig struct {
 	SecretsEncryption       *SecretsEncryption          `yaml:"secretsEncryption,omitempty"`
 	IdentityMappings        *EKSClusterIdentityMappings `yaml:"identityMappings,omitempty"`
 	AccessConfig            *EKSClusterAccess           `yaml:"accessConfig,omitempty"`
+	AddonsConfig            *EKSAddonsConfig            `yaml:"addonsConfig,omitempty"`
 	//do i need this? not in docs
 	//Karpenter *Karpenter `yaml:"karpenter,omitempty"`
 }
@@ -81,12 +82,12 @@ type EKSClusterAccess struct {
 }
 
 type EKSAccessEntry struct {
-	PrincipalARN       string             `yaml:"principalARN,omitempty"`
-	Type               string             `yaml:"type,omitempty"`
-	KubernetesUsername string             `yaml:"kubernetesUsername,omitempty"`
-	KubernetesGroups   []string           `yaml:"kubernetesGroups,omitempty"`
-//	Tags               map[string]string  `yaml:"tags,omitempty"`
-	AccessPolicies     []*EKSAccessPolicy `yaml:"accessPolicies,omitempty"`
+	PrincipalARN       string   `yaml:"principalARN,omitempty"`
+	Type               string   `yaml:"type,omitempty"`
+	KubernetesUsername string   `yaml:"kubernetesUsername,omitempty"`
+	KubernetesGroups   []string `yaml:"kubernetesGroups,omitempty"`
+	//	Tags               map[string]string  `yaml:"tags,omitempty"`
+	AccessPolicies []*EKSAccessPolicy `yaml:"accessPolicies,omitempty"`
 }
 
 type EKSAccessPolicy struct {
@@ -212,7 +213,7 @@ type IAMPodIdentityAssociation struct {
 	ServiceAccountName string `yaml:"serviceAccountName" json:"serviceAccountName"`
 	RoleARN            string `yaml:"roleARN,omitempty" json:"roleARN,omitempty"`
 	// +optional
-	CreateServiceAccount *bool `yaml:"createServiceAccount,omitempty" json:"createServiceAccount,omitempty"`
+	CreateServiceAccount bool `yaml:"createServiceAccount,omitempty" json:"createServiceAccount,omitempty"`
 	// +optional
 	RoleName string `yaml:"roleName,omitempty" json:"roleName,omitempty"`
 	// +optional
@@ -470,6 +471,10 @@ type (
 		PublicAccess  *bool `yaml:"publicAccess,omitempty"`
 	}
 )
+
+type EKSAddonsConfig struct {
+	AutoApplyPodIdentityAssociations bool `yaml:"autoApplyPodIdentityAssociations,omitempty"`
+}
 type Addon struct {
 	// +required
 	Name string `yaml:"name,omitempty"`
@@ -497,6 +502,10 @@ type Addon struct {
 	Force *bool `yaml:"-"`
 	// Configuration values for addons
 	ConfigurationValues string `yaml:"configurationValues,omitempty"`
+	// pod identity config
+	PodIdentityAssociations []*IAMPodIdentityAssociation `yaml:"podIdentityAssociations,omitempty"`
+	// default pod identity flag
+	UseDefaultPodIdentityAssociations bool `yaml:"useDefaultPodIdentityAssociations,omitempty"`
 }
 
 // PrivateCluster defines the configuration for a fully-private cluster

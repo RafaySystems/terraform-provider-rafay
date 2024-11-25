@@ -2548,6 +2548,7 @@ Optional:
 - `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--provider_options--driver))
 - `on_failure` (String) Specify the on failure action
 - `timeout_seconds` (Number) Specify the timeout in seconds
+- `execute_once` (Boolean) Specify if the task should be executed only once
 
 <a id="nestedblock--spec--provider_options--custom--tasks--agents"></a>
 ### Nested Schema for `spec.provider_options.custom.tasks.agents`

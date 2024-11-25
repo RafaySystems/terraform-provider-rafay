@@ -413,6 +413,14 @@ func configField() map[string]*schema.Schema {
 				Schema: accessConfigFields(),
 			},
 		},
+		"addons_config": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "addon config fields",
+			Elem: &schema.Resource{
+				Schema: addonsConfigurationsField(),
+			},
+		},
 	}
 	return s
 }
@@ -1111,6 +1119,17 @@ func clusterEndpointsConfigFields() map[string]*schema.Schema {
 	return s
 }
 
+func addonsConfigurationsField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"auto_apply_pod_identity_associations": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Flag to create pod identity by default for managed addons",
+		},
+	}
+	return s
+}
+
 func addonConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"name": {
@@ -1174,6 +1193,19 @@ func addonConfigFields() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "configuration values for the addon",
+		},
+		"pod_identity_associations": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "pod identity associations",
+			Elem: &schema.Resource{
+				Schema: podIdentityAssociationsFields(),
+			},
+		},
+		"use_default_pod_identity_associations": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Flag to create pod identity association by default",
 		},
 	}
 	return s
@@ -2392,11 +2424,11 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 }
 
 // expand eks cluster function (completed)
-func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterConfig {
+func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) (*EKSClusterConfig, error) {
 	obj := &EKSClusterConfig{}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return obj, nil
 	}
 	in := p[0].(map[string]interface{})
 	if !rawConfig.IsNull() && len(rawConfig.AsValueSlice()) > 0 {
@@ -2435,7 +2467,11 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 		if !rawConfig.IsNull() {
 			nRawConfig = rawConfig.GetAttr("vpc")
 		}
-		obj.VPC = expandVPC(v, nRawConfig)
+		vpc, err := expandVPC(v, nRawConfig)
+		if err != nil {
+			return nil, err
+		}
+		obj.VPC = vpc
 	}
 	if v, ok := in["managed_nodegroups"].([]interface{}); ok && len(v) > 0 {
 		var nRawConfig cty.Value
@@ -2462,13 +2498,17 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) *EKSClusterCon
 	if v, ok := in["access_config"].([]interface{}); ok && len(v) > 0 {
 		obj.AccessConfig = expandAccessConfig(v)
 	}
-	return obj
+	if v, ok := in["addons_config"].([]interface{}); ok && len(v) > 0 {
+		obj.AddonsConfig = expandAddonsConfig(v)
+	}
+	return obj, nil
 }
 
 func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	//building cluster and cluster config yaml file
 	var yamlCluster *EKSCluster
 	var yamlClusterConfig *EKSClusterConfig
+	var err error
 	rawConfig := d.GetRawConfig()
 	//expand cluster yaml file
 	if v, ok := d.Get("cluster").([]interface{}); ok {
@@ -2479,7 +2519,11 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	}
 	//expand cluster config yaml file
 	if v, ok := d.Get("cluster_config").([]interface{}); ok {
-		yamlClusterConfig = expandEKSClusterConfig(v, rawConfig.GetAttr("cluster_config"))
+		yamlClusterConfig, err = expandEKSClusterConfig(v, rawConfig.GetAttr("cluster_config"))
+		if err != nil {
+			log.Print("Invalid cluster config found")
+			return diag.FromErr(err)
+		}
 	} else {
 		log.Print("Cluster Config unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster Config is missing"))
@@ -2493,9 +2537,10 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 
 	clusterName := yamlClusterMetadata.Metadata.Name
 	projectName := yamlClusterMetadata.Metadata.Project
+	log.Printf("process_filebytes %s", projectName)
 	projectID, err := getProjectIDFromName(projectName)
 	if err != nil {
-		log.Print("error converting project name to id")
+		log.Printf("error converting project name to id %s", err.Error())
 		return diag.Errorf("error converting project name to project ID")
 	}
 
@@ -3713,6 +3758,19 @@ func expandPrivateCluster(p []interface{}) *PrivateCluster {
 	return obj
 }
 
+func expandAddonsConfig(p []interface{}) *EKSAddonsConfig {
+	obj := &EKSAddonsConfig{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["auto_apply_pod_identity_associations"].(bool); ok {
+		obj.AutoApplyPodIdentityAssociations = v
+	}
+	return obj
+}
+
 // expand addon(completed/kind of)
 func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 	out := make([]*Addon, len(p))
@@ -3761,6 +3819,12 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 		if v, ok := in["configuration_values"].(string); ok && len(v) > 0 {
 			obj.ConfigurationValues = v
 		}
+		if v, ok := in["pod_identity_associations"].([]interface{}); ok && len(v) > 0 {
+			obj.PodIdentityAssociations = expandIAMPodIdentityAssociationsConfig(v)
+		}
+		if v, ok := in["use_default_pod_identity_associations"].(bool); ok {
+			obj.UseDefaultPodIdentityAssociations = v
+		}
 		//docs dont have force variable but struct does
 		out[i] = obj
 	}
@@ -3768,11 +3832,11 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 }
 
 // expand vpc function
-func expandVPC(p []interface{}, rawConfig cty.Value) *EKSClusterVPC {
+func expandVPC(p []interface{}, rawConfig cty.Value) (*EKSClusterVPC, error) {
 	obj := &EKSClusterVPC{}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return obj, nil
 	}
 	in := p[0].(map[string]interface{})
 	if !rawConfig.IsNull() && len(rawConfig.AsValueSlice()) > 0 {
@@ -3795,7 +3859,11 @@ func expandVPC(p []interface{}, rawConfig cty.Value) *EKSClusterVPC {
 		obj.SecurityGroup = v
 	}
 	if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
-		obj.Subnets = expandSubnets(v)
+		clusterSubnets, err := expandSubnets(v)
+		if err != nil {
+			return nil, err
+		}
+		obj.Subnets = clusterSubnets
 	}
 	if v, ok := in["extra_ipv6_cidrs"].([]interface{}); ok && len(v) > 0 {
 		obj.ExtraIPv6CIDRs = toArrayString(v)
@@ -3826,7 +3894,7 @@ func expandVPC(p []interface{}, rawConfig cty.Value) *EKSClusterVPC {
 	if v, ok := in["public_access_cidrs"].([]interface{}); ok && len(v) > 0 {
 		obj.PublicAccessCIDRs = toArrayString(v)
 	}
-	return obj
+	return obj, nil
 }
 
 func expandClusterEndpoints(p []interface{}) *ClusterEndpoints {
@@ -3858,26 +3926,36 @@ func expandNat(p []interface{}) *ClusterNAT {
 	return obj
 }
 
-func expandSubnets(p []interface{}) *ClusterSubnets {
+func expandSubnets(p []interface{}) (*ClusterSubnets, error) {
 	obj := &ClusterSubnets{}
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return obj, nil
 	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["private"].([]interface{}); ok && len(v) > 0 {
-		obj.Private = expandSubnetSpec(v)
+		subnets, err := expandSubnetSpec(v)
+		if err != nil {
+			return nil, err
+		}
+		obj.Private = subnets
 	}
 	if v, ok := in["public"].([]interface{}); ok && len(v) > 0 {
-		obj.Public = expandSubnetSpec(v)
+		subnets, err := expandSubnetSpec(v)
+		if err != nil {
+			return nil, err
+		}
+		obj.Public = subnets
 	}
-	return obj
+	return obj, nil
 }
-func expandSubnetSpec(p []interface{}) AZSubnetMapping {
+func expandSubnetSpec(p []interface{}) (AZSubnetMapping, error) {
 	obj := make(AZSubnetMapping)
+	namesFrequency := make(map[string]int)
+	duplicateNames := make([]string, 0)
 
 	if len(p) == 0 || p[0] == nil {
-		return obj
+		return obj, nil
 	}
 
 	for i := range p {
@@ -3894,9 +3972,18 @@ func expandSubnetSpec(p []interface{}) AZSubnetMapping {
 		}
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj[v] = elem2
+			namesFrequency[v]++
+			if namesFrequency[v] == 2 {
+				duplicateNames = append(duplicateNames, v)
+			}
 		}
 	}
-	return obj
+
+	if len(duplicateNames) > 0 {
+		return nil, fmt.Errorf("duplicate subnet names found: %v. Kindly use unique name for every subnet configured for better experience", duplicateNames)
+	}
+
+	return obj, nil
 }
 
 // struct IdentityProviders has one extra field not in documentation or the schema
@@ -4002,7 +4089,7 @@ func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAs
 			obj.RoleARN = v
 		}
 		if v, ok := in["create_service_account"].(bool); ok {
-			obj.CreateServiceAccount = &v
+			obj.CreateServiceAccount = v
 		}
 		if v, ok := in["role_name"].(string); ok && len(v) > 0 {
 			obj.RoleName = v
@@ -4010,8 +4097,12 @@ func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAs
 		if v, ok := in["permission_boundary_arn"].(string); ok && len(v) > 0 {
 			obj.PermissionsBoundaryARN = v
 		}
-		if v, ok := in["permission_policy"].(map[string]interface{}); ok && len(v) > 0 {
-			obj.PermissionPolicy = v
+		if v, ok := in["permission_policy"].(string); ok && len(v) > 0 {
+			var policyDoc map[string]interface{}
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			//json.Unmarshal(input, &data)
+			json2.Unmarshal([]byte(v), &policyDoc)
+			obj.PermissionPolicy = policyDoc
 		}
 		if v, ok := in["permission_policy_arns"].([]interface{}); ok && len(v) > 0 {
 			obj.PermissionPolicyARNs = toArrayString(v)
@@ -4825,6 +4916,20 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		obj["access_config"] = ret14
 	}
 
+	var ret14 []interface{}
+	if in.AddonsConfig != nil {
+		v, ok := obj["addons_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret14 = flattenEKSClusterAddonsConfig(in.AddonsConfig, v)
+		/*if err != nil {
+			log.Println("flattenEKSClusterSecretsEncryption err")
+			return nil, err
+		}*/
+		obj["addons_config"] = ret14
+	}
+
 	log.Println("end of flatten config")
 
 	return []interface{}{obj}, nil
@@ -5115,7 +5220,13 @@ func flattenIAMPodIdentityAssociations(inp []*IAMPodIdentityAssociation, p []int
 			obj["role_name"] = in.RoleName
 		}
 		if len(in.PermissionPolicy) > 0 {
-			obj["permission_policy"] = in.PermissionPolicy
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonStr, err := json2.Marshal(in.PermissionPolicy)
+			if err != nil {
+				log.Println("permission policy marshal err:", err)
+			}
+			//log.Println("jsonSTR:", jsonStr)
+			obj["permission_policy"] = string(jsonStr)
 		}
 		if in.WellKnownPolicies != nil {
 			v, ok := obj["well_known_policies"].([]interface{})
@@ -5124,19 +5235,18 @@ func flattenIAMPodIdentityAssociations(inp []*IAMPodIdentityAssociation, p []int
 			}
 			obj["well_known_policies"] = flattenIAMWellKnownPolicies(in.WellKnownPolicies, v)
 		}
-		if in.PermissionPolicyARNs != nil && len(in.PermissionPolicyARNs) > 0 {
+		if len(in.PermissionPolicyARNs) > 0 {
 			obj["permission_policy_arns"] = toArrayInterface(in.PermissionPolicyARNs)
 		}
 		if len(in.PermissionsBoundaryARN) > 0 {
 			obj["permissions_boundary_arn"] = in.PermissionsBoundaryARN
 		}
-		if in.Tags != nil && len(in.Tags) > 0 {
+		if len(in.Tags) > 0 {
 			obj["tags"] = toMapInterface(in.Tags)
 		}
-		// if *in.CreateServiceAccount {
-		// 	obj["create_service_account"] = *in.CreateServiceAccount
-		// }
-		obj["create_service_account"] = true
+		if in.CreateServiceAccount {
+			obj["create_service_account"] = in.CreateServiceAccount
+		}
 
 		out[i] = obj
 	}
@@ -5453,8 +5563,7 @@ func flattenVPCSubnets(in *ClusterSubnets, p []interface{}) []interface{} {
 }
 func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 	log.Println("got to flatten subnet mapping", len(p))
-	out := make([]interface{}, len(in))
-	i := 0
+	out := make([]interface{}, 0)
 	orderedSubnetNames := getSubnetNamesOrderFromState(p)
 
 	for idx := 0; idx < len(orderedSubnetNames); idx++ {
@@ -5476,8 +5585,7 @@ func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 			if len(elem.CIDR) > 0 {
 				obj["cidr"] = elem.CIDR
 			}
-			out[i] = obj
-			i += 1
+			out = append(out, obj)
 		}
 	}
 	for key, elem := range in {
@@ -5495,8 +5603,7 @@ func flattenSubnetMapping(in AZSubnetMapping, p []interface{}) []interface{} {
 			if len(elem.CIDR) > 0 {
 				obj["cidr"] = elem.CIDR
 			}
-			out[i] = obj
-			i += 1
+			out = append(out, obj)
 		}
 	}
 	log.Println("finished subnet mapping")
@@ -5512,12 +5619,14 @@ func getSubnetNamesOrderFromState(p []interface{}) []string {
 		}
 		return ""
 	}
+	uniqueKeys := make(map[string]bool)
 	res := make([]string, len(p))
 	for i := 0; i < len(p); i++ {
 		if p[i] != nil {
 			if obj, ok := p[i].(map[string]interface{}); ok {
-				if x := extractValue(obj, "name"); x != "" {
-					res = append(res, obj["name"].(string))
+				if x := extractValue(obj, "name"); x != "" && !uniqueKeys[x] {
+					uniqueKeys[x] = true
+					res = append(res, x)
 				}
 			}
 		}
@@ -5662,6 +5771,18 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 		//Force field for existing addon (not in doc)
 		if len(in.ConfigurationValues) > 0 {
 			obj["configuration_values"] = in.ConfigurationValues
+		}
+
+		if in.PodIdentityAssociations != nil {
+			v, ok := obj["pod_identity_associations"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["pod_identity_associations"] = flattenIAMPodIdentityAssociations(in.PodIdentityAssociations, v)
+		}
+
+		if in.UseDefaultPodIdentityAssociations {
+			obj["use_default_pod_identity_associations"] = in.UseDefaultPodIdentityAssociations
 		}
 
 		out[i] = &obj
@@ -6514,6 +6635,20 @@ func flattenClusterCloudWatchLogging(in *EKSClusterCloudWatchLogging, p []interf
 		}
 	}
 	return []interface{}{obj}
+}
+
+func flattenEKSClusterAddonsConfig(in *EKSAddonsConfig, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	obj["auto_apply_pod_identity_associations"] = in.AutoApplyPodIdentityAssociations
+
+	return []interface{}{obj}
+
 }
 
 // flatten secret encryption

@@ -328,6 +328,7 @@ You can change the current Kubernetes version under `spec.config.kubernetes_vers
 **Optional**
 
 - `installer_ttl` (Integer) By default, this setting allows ttl configuration for installer config. If not provided by default will set ttl to 365 days.
+- `kubelet_extra_args` (Map of String) Cluster kubelet extra args.
 - `auto_approve_nodes` (Boolean) By default, this setting allows incoming nodes to be automatically approved. It is recommended to set this option to true to avoid the need for manual approval for each node.
 - `cluster_ssh` (Attributes). The default SSH Local configuration to run bootstrap commands for node discovery. It's required if `spec.cloud_credentials` are not provided(see [below for nested schema](#nestedatt--spec--config--cluster_ssh))
 - `dedicated_control_plane` (Boolean) Select this option for preventing scheduling of user workloads on Control Plane nodes
@@ -382,6 +383,7 @@ You can change the current Kubernetes version under `spec.config.kubernetes_vers
 
 - `interface` (String) Interface to be used on the node
 - `labels` (Map of String) Use Kubernetes labels to control how workloads are scheduled to your nodes.
+- `kubelet_extra_args` (Map of String) Node kubelet extra args.
 - `ssh` (Attributes) Override SSH Config at the node level. This is usefull when nodes within cluster come up with different SSH configuration.(see [below for nested schema](#nestedatt--spec--config--nodes--ssh))
 - `taints` (Attributes Set) A node taint lets you mark a node so that the scheduler avoids or prevents using it for certain Pods. Node taints can be used with tolerations to ensure that Pods aren't scheduled onto inappropriate nodes  (see [below for nested schema](#nestedatt--spec--config--nodes--taints))
 

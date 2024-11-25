@@ -3819,6 +3819,12 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 		if v, ok := in["configuration_values"].(string); ok && len(v) > 0 {
 			obj.ConfigurationValues = v
 		}
+		if v, ok := in["pod_identity_associations"].([]interface{}); ok && len(v) > 0 {
+			obj.PodIdentityAssociations = expandIAMPodIdentityAssociationsConfig(v)
+		}
+		if v, ok := in["use_default_pod_identity_associations"].(bool); ok {
+			obj.UseDefaultPodIdentityAssociations = v
+		}
 		//docs dont have force variable but struct does
 		out[i] = obj
 	}
@@ -5765,6 +5771,18 @@ func flattenEKSClusterAddons(inp []*Addon, rawState cty.Value, p []interface{}) 
 		//Force field for existing addon (not in doc)
 		if len(in.ConfigurationValues) > 0 {
 			obj["configuration_values"] = in.ConfigurationValues
+		}
+
+		if in.PodIdentityAssociations != nil {
+			v, ok := obj["pod_identity_associations"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["pod_identity_associations"] = flattenIAMPodIdentityAssociations(in.PodIdentityAssociations, v)
+		}
+
+		if in.UseDefaultPodIdentityAssociations {
+			obj["use_default_pod_identity_associations"] = in.UseDefaultPodIdentityAssociations
 		}
 
 		out[i] = &obj

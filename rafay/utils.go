@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -1500,32 +1501,14 @@ func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
 }
 
 func getExpandDisplayMetadata(in map[string]interface{}) *structpb.Struct {
-	if v, ok := in["display_metadata"].(map[string]interface{}); ok && len(v) > 0 {
+	if v, ok := in["display_metadata"].(string); ok && len(v) > 0 {
 		newMap := map[string]interface{}{}
-		for key, value := range v {
-
-			valueStr, ok := value.(string)
-			if !ok {
-				continue
+		if err := json.Unmarshal([]byte(v), &newMap); err == nil {
+			s, err := structpb.NewStruct(newMap)
+			if err != nil {
+				return nil
 			}
 
-			if valueStr == "true" || valueStr == "false" {
-				if newValue, err := strconv.ParseBool(valueStr); err == nil {
-					newMap[key] = newValue
-					continue
-				}
-			}
-
-			if newValue, err := strconv.Atoi(value.(string)); err == nil {
-				newMap[key] = newValue
-				continue
-			}
-
-			newMap[key] = valueStr
-		}
-
-		s, err := structpb.NewStruct(newMap)
-		if err == nil {
 			return s
 		}
 
@@ -1608,7 +1591,9 @@ func flattenVariableOptions(input *eaaspb.VariableOptions) []interface{} {
 		displayMetadata[k] = fmt.Sprintf("%v", v)
 	}
 
-	obj["display_metadata"] = displayMetadata
+	if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
+		obj["display_metadata"] = string(b)
+	}
 
 	if input.Override != nil {
 		obj["override"] = flattenVariableOverrideOptions(input.GetOverride())
@@ -2512,12 +2497,9 @@ func flattenEnvvarOptions(input *eaaspb.EnvVarOptions) []interface{} {
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
 
-	displayMetadata := map[string]string{}
-	for k, v := range input.DisplayMetadata.AsMap() {
-		displayMetadata[k] = fmt.Sprintf("%v", v)
+	if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
+		obj["display_metadata"] = string(b)
 	}
-
-	obj["display_metadata"] = displayMetadata
 
 	if input.Override != nil {
 		obj["override"] = flattenEnvvarOverrideOptions(input.GetOverride())
@@ -2606,7 +2588,9 @@ func flattenFileOptions(input *commonpb.FileOptions) []interface{} {
 		displayMetadata[k] = fmt.Sprintf("%v", v)
 	}
 
-	obj["display_metadata"] = displayMetadata
+	if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
+		obj["display_metadata"] = string(b)
+	}
 
 	if input.Override != nil {
 		obj["override"] = flattenFileOverrideOptions(input.GetOverride())

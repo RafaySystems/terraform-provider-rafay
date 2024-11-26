@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -21,6 +22,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-yaml/yaml"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
@@ -1492,6 +1494,10 @@ func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
 		options.Override = expandVariableOverrideOptions(v)
 	}
 
+	if v, ok := opts["schema"].([]interface{}); ok && len(v) > 0 {
+		options.Schema = expandCustomSchema(v)
+	}
+
 	return options
 
 }
@@ -1570,6 +1576,10 @@ func flattenVariableOptions(input *eaaspb.VariableOptions) []interface{} {
 
 	if input.Override != nil {
 		obj["override"] = flattenVariableOverrideOptions(input.GetOverride())
+	}
+
+	if input.Schema != nil {
+		obj["schema"] = flattenCustomSchema(input.GetSchema())
 	}
 
 	return []interface{}{obj}
@@ -2437,6 +2447,10 @@ func expandEnvvarOptions(p []interface{}) *eaaspb.EnvVarOptions {
 		options.Override = expandEnvvarOverrideOptions(v)
 	}
 
+	if v, ok := opts["schema"].([]interface{}); ok && len(v) > 0 {
+		options.Schema = expandCustomSchema(v)
+	}
+
 	return options
 
 }
@@ -2478,6 +2492,10 @@ func flattenEnvvarOptions(input *eaaspb.EnvVarOptions) []interface{} {
 
 	if input.Override != nil {
 		obj["override"] = flattenEnvvarOverrideOptions(input.GetOverride())
+	}
+
+	if input.Schema != nil {
+		obj["schema"] = flattenCustomSchema(input.GetSchema())
 	}
 
 	return []interface{}{obj}
@@ -2529,6 +2547,10 @@ func expandFileOptions(p []interface{}) *commonpb.FileOptions {
 		options.Override = expandFileOverrideOptions(v)
 	}
 
+	if v, ok := opts["schema"].([]interface{}); ok && len(v) > 0 {
+		options.Schema = expandCustomSchema(v)
+	}
+
 	return options
 
 }
@@ -2564,6 +2586,10 @@ func flattenFileOptions(input *commonpb.FileOptions) []interface{} {
 		obj["override"] = flattenFileOverrideOptions(input.GetOverride())
 	}
 
+	if input.Schema != nil {
+		obj["schema"] = flattenCustomSchema(input.GetSchema())
+	}
+
 	return []interface{}{obj}
 }
 
@@ -2579,4 +2605,138 @@ func flattenFileOverrideOptions(input *commonpb.FileOverrideOptions) []interface
 	}
 
 	return []interface{}{obj}
+}
+
+func expandCustomSchema(p []interface{}) *commonpb.Schema {
+	log.Println("expand custom schema")
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	schema := &commonpb.Schema{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["jsonschema"].(string); ok && len(v) > 0 {
+		schema.Jsonschema = expandJsonUISchema(v)
+	}
+
+	if v, ok := in["uischema"].(string); ok && len(v) > 0 {
+		schema.Uischema = expandJsonUISchema(v)
+	}
+
+	return schema
+}
+
+func flattenCustomSchema(input *commonpb.Schema) []interface{} {
+	log.Println("flatten custom schema")
+	if input == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	obj["jsonschema"] = flattenJsonUISchema(input.Jsonschema)
+	obj["uischema"] = flattenJsonUISchema(input.Uischema)
+
+	return []interface{}{obj}
+}
+
+func expandJsonUISchema(p string) *structpb.Struct {
+	if len(p) == 0 {
+		return nil
+	}
+
+	jsonSchemaMap := map[string]interface{}{}
+	if err := json.Unmarshal([]byte(p), &jsonSchemaMap); err == nil {
+		s, err := structpb.NewStruct(jsonSchemaMap)
+		if err != nil {
+			return nil
+		}
+
+		return s
+	}
+	return nil
+}
+
+func flattenJsonUISchema(in *structpb.Struct) string {
+	if in == nil {
+		return ""
+	}
+	b, _ := in.MarshalJSON()
+	return string(b)
+}
+
+func expandActions(p []interface{}) ([]*eaaspb.Action, error) {
+	actions := make([]*eaaspb.Action, 0)
+	if len(p) == 0 || p[0] == nil {
+		return actions, nil
+	}
+	var err error
+
+	for i := range p {
+		action := eaaspb.Action{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			action.Name = v
+		}
+
+		if v, ok := in["description"].(string); ok && len(v) > 0 {
+			action.Description = v
+		}
+
+		if v, ok := in["type"].(string); ok && len(v) > 0 {
+			action.Type = v
+		}
+
+		if v, ok := in["context"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			action.Context = expandConfigContextCompoundRef(v[0].(map[string]any))
+		}
+
+		if h, ok := in["workflows"].([]interface{}); ok && len(h) > 0 {
+			action.Workflows, err = expandCustomProviderOptions(h)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		actions = append(actions, &action)
+	}
+
+	return actions, nil
+}
+
+func flattenActions(input []*eaaspb.Action, p []interface{}) []interface{} {
+	log.Println("flatten actions start")
+	if input == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		log.Println("flatten action ", in)
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
+
+		if len(in.Description) > 0 {
+			obj["description"] = in.Description
+		}
+
+		if len(in.Type) > 0 {
+			obj["type"] = in.Type
+		}
+
+		if in.Context != nil {
+			cc := flattenConfigContextCompoundRef(in.Context)
+			obj["context"] = []interface{}{cc}
+		}
+		obj["workflows"] = flattenCustomProviderOptions(in.Workflows)
+
+		out[i] = &obj
+	}
+
+	return out
 }

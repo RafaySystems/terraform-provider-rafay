@@ -269,6 +269,13 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 		}
 	}
 
+	if s, ok := in["actions"].([]interface{}); ok && len(s) > 0 {
+		spec.Actions, err = expandActions(s)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return spec, nil
 }
 
@@ -1260,6 +1267,15 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{
 	obj["agents"] = flattenEaasAgents(in.Agents)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 	obj["artifact_driver"] = flattenWorkflowHandlerCompoundRef(in.ArtifactDriver)
+
+	if len(in.Actions) > 0 {
+		v, ok := obj["actions"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["actions"] = flattenActions(in.Actions, v)
+	}
 
 	return []interface{}{obj}, nil
 }

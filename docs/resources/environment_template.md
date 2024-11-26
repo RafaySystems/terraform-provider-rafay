@@ -179,6 +179,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `icon_url` (String) Icon URL for the template
 - `readme` (String) Readme for the template
 - `schedules` (Block List) Reference to schedules associated with environment templates (see [below for nested schema](#nestedblock--spec--schedules))
+- `actions` (Block List) Actions that are defined as part of current environment template and may be applicable to one or more underlying resources (see [below for nested schema](#nestedblock--spec--actions))
 
 <a id="nestedblock--spec--agent_override"></a>
 ### Nested Schema for `spec.agent_override`
@@ -1123,8 +1124,6 @@ Optional:
 - `repeat` (String) Specify the repeat
 - `until` (String) Specify the until
 
-
-
 <a id="nestedblock--spec--hooks--driver--data--inputs"></a>
 ### Nested Schema for `spec.hooks.driver.name.inputs`
 
@@ -1161,6 +1160,7 @@ Optional:
 - `override` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--variables--value--override))
 - `required` (Boolean) Determines whether the variable is required / mandatory
 - `sensitive` (Boolean)
+- `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--variables--options--schema))
 
 <a id="nestedblock--spec--hooks--driver--data--inputs--name--variables--value--override"></a>
 ### Nested Schema for `spec.hooks.driver.data.inputs.name.variables.value.override`
@@ -1193,6 +1193,7 @@ Optional:
 - `override` (Block List, Max: 1) Override options for file (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--variables--sensitive--override))
 - `required` (Boolean) Determines whether the file is required / mandatory
 - `sensitive` (Boolean) data is encrypted  if sensitive is set to true
+- `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--variables--options--schema))
 
 <a id="nestedblock--spec--hooks--driver--data--inputs--name--variables--sensitive--override"></a>
 ### Nested Schema for `spec.hooks.driver.data.inputs.name.variables.sensitive.override`
@@ -1223,6 +1224,7 @@ Optional:
 - `override` (Block List, Max: 1) Determines whether the variable can be overridden (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--variables--value_type--override))
 - `required` (Boolean) Specify whether this variable is required or optional, by default it is optional
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
+- `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--variables--options--schema))
 
 <a id="nestedblock--spec--hooks--driver--data--inputs--name--variables--value_type--override"></a>
 ### Nested Schema for `spec.hooks.driver.data.inputs.name.variables.value_type.override`
@@ -1307,3 +1309,42 @@ Optional:
 - `max_allowed_duration` (String) Specify the maximum allowed opt out duration, time units are 'm', 'h', 'd' e.g. 8h, 2d
 - `max_allowed_times` (Number) Specify the maximum number of times users can opt out without approval e.g. users can max opt out of this schedule thrice
 - `approval` (Block List, Max: 1) Details of approval workflow that needs to be execution in case of user opt-out (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks))
+
+<a id="nestedblock--spec--actions"></a>
+### Nested Schema for `spec.actions`
+
+***Required***
+
+- `name` (String) Name of the action, recommended to use unique names so that they don't collide with any other actions
+- `type` (String) Specify the type of action should perform, Available options are `deploy`, `workflows`.
+
+***Optional***
+
+- `description` (String) Description of the schedule
+- `context` (Block List, Max: 1) Input data configuration that are needed as part of this schedule run (see [below for nested schema](#nestedblock--spec--configcontext--compound--ref))
+- `workflows` (Block List, Max: 1) Name of the custom workflow provider that needs to be executed with this job (see [below for nested schema](#nestedblock--spec--provider_options--custom))
+
+<a id="nestedblock--spec--configcontext--compound--ref"></a>
+### Nested Schema for `spec.contexts`
+
+***Optional***
+
+- `data` (Block List, Max: 1) Context data of the config context (see [below for nested schema](#nestedblock--spec--configcontext--compound--ref--data))
+- `name` (String) Name of the config context
+
+<a id="nestedblock--spec--configcontext--compound--ref--data"></a>
+### Nested Schema for `spec.contexts.data`
+
+***Optional***
+
+- `envs` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--envs))
+- `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--files))
+- `variables` (Block List) Variables data for config context (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--variables))
+
+<a id="nestedblock--spec--variables--options--schema"></a>
+### Nested Schema for `spec.variables.options.schema`
+
+***Required***
+
+- `jsonschema` (String) JSONSchema definition of given variable that conforms to react-jsonschema-form library norms
+- `uischema` (String) UISchema definition of given variable that conforms to react-jsonschema-form library norms

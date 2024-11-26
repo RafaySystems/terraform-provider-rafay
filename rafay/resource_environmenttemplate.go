@@ -277,6 +277,13 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 		spec.AllowNewInputsDuringPublish = expandBoolValue(v)
 	}
 
+	if s, ok := in["actions"].([]interface{}); ok && len(s) > 0 {
+		spec.Actions, err = expandActions(s)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return spec, nil
 }
 
@@ -627,6 +634,15 @@ func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []inte
 	}
 
 	obj["allow_new_inputs_during_publish"] = flattenBoolValue(in.AllowNewInputsDuringPublish)
+
+	if len(in.Actions) > 0 {
+		v, ok := obj["actions"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["actions"] = flattenActions(in.Actions, v)
+	}
 
 	return []interface{}{obj}, nil
 }

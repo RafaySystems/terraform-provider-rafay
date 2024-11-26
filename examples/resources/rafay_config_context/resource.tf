@@ -45,6 +45,28 @@ resource "rafay_config_context" "aws-rds-config" {
         description = "this is a dummy variable"
         sensitive   = false
         required    = true
+        schema {
+          jsonschema = jsonencode(
+            {
+              "type": "object",
+              "properties": {
+                "new-variable": {
+                  "title": "New Variable",
+                  "type": "string"
+                }
+              },
+              "dependencies": {},
+              "required": []
+            }
+          )
+          uischema = jsonencode(
+            {
+              "ui:order": [
+                "new-variable"
+              ]
+            }
+          )
+        }
       }
     }
   }

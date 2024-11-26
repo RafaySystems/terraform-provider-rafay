@@ -1590,11 +1590,6 @@ func flattenVariableOptions(input *eaaspb.VariableOptions) []interface{} {
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
 
-	displayMetadata := map[string]string{}
-	for k, v := range input.DisplayMetadata.AsMap() {
-		displayMetadata[k] = fmt.Sprintf("%v", v)
-	}
-
 	if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
 		obj["display_metadata"] = string(b)
 	}
@@ -2598,11 +2593,6 @@ func flattenFileOptions(input *commonpb.FileOptions) []interface{} {
 	}
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
-
-	displayMetadata := map[string]string{}
-	for k, v := range input.DisplayMetadata.AsMap() {
-		displayMetadata[k] = fmt.Sprintf("%v", v)
-	}
 
 	if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
 		obj["display_metadata"] = string(b)

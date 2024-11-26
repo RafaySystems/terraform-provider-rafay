@@ -170,6 +170,7 @@ resource "rafay_config_context" "config-context-example" {
 - `override` (Block List, Max: 1) Determines whether the variable can be overridden (see [below for nested schema](#nestedblock--spec--variables--options--override))
 - `required` (Boolean) Specify whether this variable is required or optional, by default it is optional
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
+- `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--variables--options--schema))
 
 <a id="nestedblock--spec--variables--options--override"></a>
 ### Nested Schema for `spec.variables.options.override`
@@ -179,6 +180,13 @@ resource "rafay_config_context" "config-context-example" {
 - `restricted_values` (List of String) If the override type is restricted, specify the values it is restricted to
 - `type` (String) Specify the type of override this variable supports, Available types are `allowed`, `notallowed`, `restricted`
 
+<a id="nestedblock--spec--variables--options--schema"></a>
+### Nested Schema for `spec.variables.options.schema`
+
+***Required***
+
+- `jsonschema` (String) JSONSchema definition of given variable that conforms to react-jsonschema-form library norms
+- `uischema` (String) UISchema definition of given variable that conforms to react-jsonschema-form library norms
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

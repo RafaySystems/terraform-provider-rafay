@@ -1488,6 +1488,10 @@ func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
 		options.Required = v
 	}
 
+	if v, ok := opts["immutable"].(bool); ok {
+		options.Immutable = v
+	}
+
 	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
 		options.Override = expandVariableOverrideOptions(v)
 	}
@@ -1567,6 +1571,7 @@ func flattenVariableOptions(input *eaaspb.VariableOptions) []interface{} {
 	}
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
+	obj["immutable"] = input.Immutable
 
 	if input.Override != nil {
 		obj["override"] = flattenVariableOverrideOptions(input.GetOverride())
@@ -2433,6 +2438,10 @@ func expandEnvvarOptions(p []interface{}) *eaaspb.EnvVarOptions {
 		options.Required = v
 	}
 
+	if v, ok := opts["immutable"].(bool); ok {
+		options.Immutable = v
+	}
+
 	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
 		options.Override = expandEnvvarOverrideOptions(v)
 	}
@@ -2475,6 +2484,7 @@ func flattenEnvvarOptions(input *eaaspb.EnvVarOptions) []interface{} {
 	}
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
+	obj["immutable"] = input.Immutable
 
 	if input.Override != nil {
 		obj["override"] = flattenEnvvarOverrideOptions(input.GetOverride())

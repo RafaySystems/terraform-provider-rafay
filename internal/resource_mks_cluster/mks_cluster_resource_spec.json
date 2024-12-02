@@ -223,7 +223,7 @@
 																	{
 																		"name": "version",
 																		"string": {
-																			"computed_optional_required": "required",
+																			"computed_optional_required": "optional",
 																			"description": "Provide the CNI version, e.g., 3.26.1"
 																		}
 																	}

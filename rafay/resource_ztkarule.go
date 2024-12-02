@@ -242,9 +242,6 @@ func expandClusterSelectors(p []interface{}) *systempb.ZTKAClusters {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
 	if v, ok := in["select_all"].(bool); ok {
 		obj.SelectAll = v
 	}
@@ -266,9 +263,6 @@ func expandProjectSelector(p []interface{}) *systempb.ZTKAProjects {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
 	if v, ok := in["select_all"].(bool); ok {
 		obj.SelectAll = v
 	}

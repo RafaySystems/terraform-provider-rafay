@@ -212,7 +212,7 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 												MarkdownDescription: "Provide the CNI name, e.g., Calico or Cilium",
 											},
 											"version": schema.StringAttribute{
-												Required:            true,
+												Optional:            true,
 												Description:         "Provide the CNI version, e.g., 3.26.1",
 												MarkdownDescription: "Provide the CNI version, e.g., 3.26.1",
 											},

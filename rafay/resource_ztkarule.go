@@ -238,10 +238,10 @@ func expandZTKARule(in *schema.ResourceData) (*systempb.ZTKARule, error) {
 
 func expandClusterSelectors(p []interface{}) *systempb.ZTKAClusters {
 	obj := &systempb.ZTKAClusters{}
-	in := p[0].(map[string]interface{})
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	in := p[0].(map[string]interface{})
 	if v, ok := in["select_all"].(bool); ok {
 		obj.SelectAll = v
 	}
@@ -259,10 +259,10 @@ func expandClusterSelectors(p []interface{}) *systempb.ZTKAClusters {
 
 func expandProjectSelector(p []interface{}) *systempb.ZTKAProjects {
 	obj := &systempb.ZTKAProjects{}
-	in := p[0].(map[string]interface{})
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+	in := p[0].(map[string]interface{})
 	if v, ok := in["select_all"].(bool); ok {
 		obj.SelectAll = v
 	}

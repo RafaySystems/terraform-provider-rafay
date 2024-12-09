@@ -352,7 +352,6 @@ func flattenZTKARuleSpec(in *systempb.ZTKARuleSpec, p []interface{}) ([]interfac
 	if len(in.Version) > 0 {
 		obj["version"] = in.Version
 	}
-	obj["published"] = in.Published
 
 	v, ok := obj["artifact"].([]interface{})
 	if !ok {

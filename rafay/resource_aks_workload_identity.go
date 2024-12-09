@@ -66,6 +66,11 @@ func resourceAKSWorkloadIdentityRead(ctx context.Context, d *schema.ResourceData
 
 	deployedAksInfraWorkloadIdentity, err := getAksWorkloadIdentity(ctx, wiName, wiClusterName, wiProjectName)
 	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			log.Printf("workload identity %s not found, removing from state", wiName)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

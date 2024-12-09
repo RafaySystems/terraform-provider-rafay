@@ -254,6 +254,14 @@ func expandProjectTagsAssociationSpecAssociations(p []interface{}) []*tagspb.Tag
 			obj.TagType = v
 		}
 
+		if v, ok := in["tag_value"].(string); ok {
+			obj.TagValue = v
+		}
+
+		if v, ok := in["resource"].(string); ok {
+			obj.Resource = v
+		}
+
 		out[i] = &obj
 	}
 
@@ -331,6 +339,14 @@ func flattenProjectTagsAssociationSpecAssociations(in []*tagspb.TagAssociation, 
 
 		if len(in.TagType) > 0 {
 			obj["tag_type"] = in.TagType
+		}
+
+		if len(in.TagType) > 0 {
+			obj["resource"] = in.Resource
+		}
+
+		if len(in.TagType) > 0 {
+			obj["tag_value"] = in.TagValue
 		}
 
 		out[i] = &obj

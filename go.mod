@@ -6,7 +6,7 @@ toolchain go1.23.4
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20241126132858-3cf7601c2c13
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20241209121557-17d571cd72e5
 	github.com/RafaySystems/rctl v1.29.1-0.20241105154525-b249c10a9f01
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -231,7 +231,7 @@ require (
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
 	// github.com/RafaySystems/eaas-playground => ../eaas-playground
-	github.com/RafaySystems/rafay-common => ../rafay-common
+	// github.com/RafaySystems/rafay-common => ../rafay-common
 	// github.com/RafaySystems/rctl => ../rctl
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	// github.com/RafaySystems/rctl => ../rctl

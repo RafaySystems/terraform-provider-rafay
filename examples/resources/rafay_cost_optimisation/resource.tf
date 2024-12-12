@@ -3,7 +3,6 @@ resource "rafay_cost_optimisation" "tfdemocostoptimisation" {
     name        = "tfdemocostoptimisation"
   }
   spec {
-    selection_type = "clusternames"
     config_project = "defaultproject"
     clusters = [
       "c1",

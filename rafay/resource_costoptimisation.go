@@ -216,7 +216,6 @@ func expandCostOptimisationSpec(p []interface{}) (*costpb.CostOptimisationSpec, 
 
 	in := p[0].(map[string]interface{})
 
-	spec.SelectionType = in["selection_type"].(string)
 	spec.ConfigProject = in["config_project"].(string)
 
 	if v, ok := in["clusters"].([]interface{}); ok && len(v) > 0 {
@@ -419,10 +418,6 @@ func flattenCostOptimisationSpec(in *costpb.CostOptimisationSpec, p []interface{
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
-	}
-
-	if len(in.SelectionType) > 0 {
-		obj["selection_type"] = in.SelectionType
 	}
 
 	if len(in.ConfigProject) > 0 {

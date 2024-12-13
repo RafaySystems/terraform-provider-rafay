@@ -179,6 +179,7 @@ resource "rafay_config_context" "config-context-example" {
 
 - `restricted_values` (List of String) If the override type is restricted, specify the values it is restricted to
 - `type` (String) Specify the type of override this variable supports, Available types are `allowed`, `notallowed`, `restricted`
+- `selectors` (List of String) Used to alias a variable and restrict the override scope
 
 <a id="nestedblock--spec--variables--options--schema"></a>
 ### Nested Schema for `spec.variables.options.schema`

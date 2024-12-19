@@ -412,6 +412,9 @@ func flattenGKEV3PrivateCluster(in *infrapb.GkePrivateCluster, p []interface{}) 
 		obj["firewall_rules"] = flattenGKEV3Firewalls(in.FirewallRules, v)
 	}
 
+	obj["private_endpoint_subnetwork_name"] = in.PrivateEndpointSubnetworkName
+	obj["enable_private_nodes"] = in.EnablePrivateNodes
+
 	return []interface{}{obj}
 }
 

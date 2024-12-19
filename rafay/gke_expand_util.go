@@ -589,6 +589,14 @@ func expandToV3GkePrivateCluster(p []interface{}) (*infrapb.GkeAccess_Private, e
 		}
 	}
 
+	if v, ok := in["private_endpoint_subnetwork_name"].(string); ok && len(v) > 0 {
+		obj.Private.PrivateEndpointSubnetworkName = v
+	}
+
+	if v, ok := in["enable_private_nodes"].(bool); ok {
+		obj.Private.EnablePrivateNodes = v
+	}
+
 	return obj, nil
 }
 

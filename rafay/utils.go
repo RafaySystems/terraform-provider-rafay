@@ -1498,8 +1498,28 @@ func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
 		options.Schema = expandCustomSchema(v)
 	}
 
+	options.DisplayMetadata = getExpandDisplayMetadata(opts)
+
 	return options
 
+}
+
+func getExpandDisplayMetadata(in map[string]interface{}) *structpb.Struct {
+	if v, ok := in["display_metadata"].(string); ok && len(v) > 0 {
+		newMap := map[string]interface{}{}
+		if err := json.Unmarshal([]byte(v), &newMap); err == nil {
+			s, err := structpb.NewStruct(newMap)
+			if err != nil {
+				return nil
+			}
+
+			return s
+		}
+
+		return nil
+	}
+
+	return nil
 }
 
 func expandVariableOverrideOptions(p []interface{}) *eaaspb.VariableOverrideOptions {
@@ -1573,6 +1593,10 @@ func flattenVariableOptions(input *eaaspb.VariableOptions) []interface{} {
 	}
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
+
+	if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
+		obj["display_metadata"] = string(b)
+	}
 
 	if input.Override != nil {
 		obj["override"] = flattenVariableOverrideOptions(input.GetOverride())
@@ -2443,6 +2467,8 @@ func expandEnvvarOptions(p []interface{}) *eaaspb.EnvVarOptions {
 		options.Required = v
 	}
 
+	options.DisplayMetadata = getExpandDisplayMetadata(opts)
+
 	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
 		options.Override = expandEnvvarOverrideOptions(v)
 	}
@@ -2489,6 +2515,10 @@ func flattenEnvvarOptions(input *eaaspb.EnvVarOptions) []interface{} {
 	}
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
+
+	if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
+		obj["display_metadata"] = string(b)
+	}
 
 	if input.Override != nil {
 		obj["override"] = flattenEnvvarOverrideOptions(input.GetOverride())
@@ -2551,6 +2581,8 @@ func expandFileOptions(p []interface{}) *commonpb.FileOptions {
 		options.Schema = expandCustomSchema(v)
 	}
 
+	options.DisplayMetadata = getExpandDisplayMetadata(opts)
+
 	return options
 
 }
@@ -2581,6 +2613,10 @@ func flattenFileOptions(input *commonpb.FileOptions) []interface{} {
 	}
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
+
+	if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
+		obj["display_metadata"] = string(b)
+	}
 
 	if input.Override != nil {
 		obj["override"] = flattenFileOverrideOptions(input.GetOverride())

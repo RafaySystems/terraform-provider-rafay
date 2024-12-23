@@ -12,20 +12,20 @@ import (
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
-	"github.com/RafaySystems/rafay-common/proto/types/hub/costpb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/costoptimisationpb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCostOptimisation() *schema.Resource {
+func resourceCostOptimisationConfig() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceCostOptimisationCreate,
-		ReadContext:   resourceCostOptimisationRead,
-		UpdateContext: resourceCostOptimisationUpdate,
-		DeleteContext: resourceCostOptimisationDelete,
+		CreateContext: resourceCostOptimisationConfigCreate,
+		ReadContext:   resourceCostOptimisationConfigRead,
+		UpdateContext: resourceCostOptimisationConfigUpdate,
+		DeleteContext: resourceCostOptimisationConfigDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceCostOptimisationImport,
+			State: resourceCostOptimisationConfigImport,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -39,15 +39,15 @@ func resourceCostOptimisation() *schema.Resource {
 	}
 }
 
-func resourceCostOptimisationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	log.Println("cost optimisation create")
-	diags := resourceCostOptimisationUpsert(ctx, d, m)
+func resourceCostOptimisationConfigCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Println("cost optimisation config create")
+	diags := resourceCostOptimisationConfigUpsert(ctx, d, m)
 	if diags.HasError() {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
 		}
-		cc, err := expandCostOptimisation(d)
+		cc, err := expandCostOptimisationConfig(d)
 		if err != nil {
 			return diags
 		}
@@ -57,7 +57,7 @@ func resourceCostOptimisationCreate(ctx context.Context, d *schema.ResourceData,
 			return diags
 		}
 
-		err = client.CostV1().CostOptimisation().Delete(ctx, options.DeleteOptions{
+		err = client.CostoptimisationV1().Configuration().Delete(ctx, options.DeleteOptions{
 			Name: cc.Metadata.Name,
 		})
 		if err != nil {
@@ -67,15 +67,15 @@ func resourceCostOptimisationCreate(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-func resourceCostOptimisationUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceCostOptimisationConfigUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("cost optimisation upsert starts")
+	log.Printf("cost optimisation config upsert starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
-	cc, err := expandCostOptimisation(d)
+	cc, err := expandCostOptimisationConfig(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -86,7 +86,7 @@ func resourceCostOptimisationUpsert(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	err = client.CostV1().CostOptimisation().Apply(ctx, cc, options.ApplyOptions{})
+	err = client.CostoptimisationV1().Configuration().Apply(ctx, cc, options.ApplyOptions{})
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -95,9 +95,9 @@ func resourceCostOptimisationUpsert(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-func resourceCostOptimisationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceCostOptimisationConfigRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Println("cost optimisation read starts ")
+	log.Println("cost optimisation config read starts ")
 	meta := GetMetaData(d)
 	if meta == nil {
 		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
@@ -106,7 +106,7 @@ func resourceCostOptimisationRead(ctx context.Context, d *schema.ResourceData, m
 		meta.Name = d.State().ID
 	}
 
-	_, err := expandCostOptimisation(d)
+	_, err := expandCostOptimisationConfig(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -118,7 +118,7 @@ func resourceCostOptimisationRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	costoptimisation, err := client.CostV1().CostOptimisation().Get(ctx, options.GetOptions{
+	costoptimisationConfig, err := client.CostoptimisationV1().Configuration().Get(ctx, options.GetOptions{
 		Name: meta.Name,
 	})
 	if err != nil {
@@ -131,7 +131,7 @@ func resourceCostOptimisationRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	err = flattenCostOptimisation(d, costoptimisation)
+	err = flattenCostOptimisationConfig(d, costoptimisationConfig)
 	if err != nil {
 		log.Println("read flatten err")
 		return diag.FromErr(err)
@@ -140,13 +140,13 @@ func resourceCostOptimisationRead(ctx context.Context, d *schema.ResourceData, m
 
 }
 
-func resourceCostOptimisationUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return resourceCostOptimisationUpsert(ctx, d, m)
+func resourceCostOptimisationConfigUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	return resourceCostOptimisationConfigUpsert(ctx, d, m)
 }
 
-func resourceCostOptimisationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceCostOptimisationConfigDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Println("cost optimisation delete starts")
+	log.Println("cost optimisation config delete starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -161,9 +161,9 @@ func resourceCostOptimisationDelete(ctx context.Context, d *schema.ResourceData,
 		}
 	}
 
-	cc, err := expandCostOptimisation(d)
+	cc, err := expandCostOptimisationConfig(d)
 	if err != nil {
-		log.Println("error while expanding cost optimisation during delete")
+		log.Println("error while expanding cost optimisation config during delete")
 		return diag.FromErr(err)
 	}
 
@@ -172,7 +172,7 @@ func resourceCostOptimisationDelete(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	err = client.CostV1().CostOptimisation().Delete(ctx, options.DeleteOptions{
+	err = client.CostoptimisationV1().Configuration().Delete(ctx, options.DeleteOptions{
 		Name: cc.Metadata.Name,
 	})
 
@@ -183,35 +183,35 @@ func resourceCostOptimisationDelete(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-func expandCostOptimisation(in *schema.ResourceData) (*costpb.CostOptimisation, error) {
-	log.Println("expand cost optimisation resource")
+func expandCostOptimisationConfig(in *schema.ResourceData) (*costoptimisationpb.Configuration, error) {
+	log.Println("expand cost optimisation config resource")
 	if in == nil {
-		return nil, fmt.Errorf("%s", "expand cost optimisation empty input")
+		return nil, fmt.Errorf("%s", "expand cost optimisation config empty input")
 	}
-	obj := &costpb.CostOptimisation{}
+	obj := &costoptimisationpb.Configuration{}
 
 	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandV3MetaData(v)
 	}
 
 	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
-		objSpec, err := expandCostOptimisationSpec(v)
+		objSpec, err := expandCostOptimisationConfigSpec(v)
 		if err != nil {
 			return nil, err
 		}
 		obj.Spec = objSpec
 	}
 
-	obj.ApiVersion = "cost.optimisation.io/v1"
-	obj.Kind = "CostOptimisation"
+	obj.ApiVersion = "costoptimisation.k8smgmt.io/v1"
+	obj.Kind = "Configuration"
 	return obj, nil
 }
 
-func expandCostOptimisationSpec(p []interface{}) (*costpb.CostOptimisationSpec, error) {
-	log.Println("expand cost optimisation spec")
-	spec := &costpb.CostOptimisationSpec{}
+func expandCostOptimisationConfigSpec(p []interface{}) (*costoptimisationpb.ConfigurationSpec, error) {
+	log.Println("expand cost optimisation config spec")
+	spec := &costoptimisationpb.ConfigurationSpec{}
 	if len(p) == 0 || p[0] == nil {
-		return spec, fmt.Errorf("expand cost optimisation spec empty input")
+		return spec, fmt.Errorf("expand cost optimisation config spec empty input")
 	}
 
 	in := p[0].(map[string]interface{})
@@ -253,15 +253,15 @@ func expandCostOptimisationSpec(p []interface{}) (*costpb.CostOptimisationSpec, 
 	return spec, nil
 }
 
-func expandCostOptClusterLabels(p []interface{}) []*costpb.CostOptimisationLabels {
+func expandCostOptClusterLabels(p []interface{}) []*costoptimisationpb.ConfigurationLabels {
 	if len(p) == 0 || p[0] == nil {
-		return []*costpb.CostOptimisationLabels{}
+		return []*costoptimisationpb.ConfigurationLabels{}
 	}
 
-	clusterLables := make([]*costpb.CostOptimisationLabels, len(p))
+	clusterLables := make([]*costoptimisationpb.ConfigurationLabels, len(p))
 
 	for i := range p {
-		obj := costpb.CostOptimisationLabels{}
+		obj := costoptimisationpb.ConfigurationLabels{}
 		in := p[i].(map[string]interface{})
 
 		if v, ok := in["key"].(string); ok && len(v) > 0 {
@@ -279,15 +279,15 @@ func expandCostOptClusterLabels(p []interface{}) []*costpb.CostOptimisationLabel
 	return clusterLables
 }
 
-func expandCostOptFilter(p []interface{}) []*costpb.CostOptimisationFilter {
+func expandCostOptFilter(p []interface{}) []*costoptimisationpb.ConfigurationFilter {
 	if len(p) == 0 || p[0] == nil {
-		return []*costpb.CostOptimisationFilter{}
+		return []*costoptimisationpb.ConfigurationFilter{}
 	}
 
-	filter := make([]*costpb.CostOptimisationFilter, len(p))
+	filter := make([]*costoptimisationpb.ConfigurationFilter, len(p))
 
 	for i := range p {
-		obj := costpb.CostOptimisationFilter{}
+		obj := costoptimisationpb.ConfigurationFilter{}
 		in := p[i].(map[string]interface{})
 
 		if v, ok := in["namespace"].(string); ok && len(v) > 0 {
@@ -309,10 +309,10 @@ func expandCostOptFilter(p []interface{}) []*costpb.CostOptimisationFilter {
 	return filter
 }
 
-func expandCostOptBound(p []interface{}) *costpb.CostOptimisationBound {
-	bound := &costpb.CostOptimisationBound{
-		Cpu:    &costpb.CostOptimisationCPUBound{},
-		Memory: &costpb.CostOptimisationMemoryBound{},
+func expandCostOptBound(p []interface{}) *costoptimisationpb.ConfigurationBound {
+	bound := &costoptimisationpb.ConfigurationBound{
+		Cpu:    &costoptimisationpb.ConfigurationCPUBound{},
+		Memory: &costoptimisationpb.ConfigurationMemoryBound{},
 	}
 	if len(p) == 0 || p[0] == nil {
 		return bound
@@ -343,10 +343,10 @@ func expandCostOptBound(p []interface{}) *costpb.CostOptimisationBound {
 	return bound
 }
 
-func expandCostOptMinimumThreshold(p []interface{}) *costpb.CostOptimisationMinimumThreshold {
-	minThreshold := &costpb.CostOptimisationMinimumThreshold{
-		Cpu:    &costpb.CostOptimisationCPUThreshold{},
-		Memory: &costpb.CostOptimisationMemoryThreshold{},
+func expandCostOptMinimumThreshold(p []interface{}) *costoptimisationpb.ConfigurationMinimumThreshold {
+	minThreshold := &costoptimisationpb.ConfigurationMinimumThreshold{
+		Cpu:    &costoptimisationpb.ConfigurationCPUThreshold{},
+		Memory: &costoptimisationpb.ConfigurationMemoryThreshold{},
 	}
 	if len(p) == 0 || p[0] == nil {
 		return minThreshold
@@ -379,7 +379,7 @@ func expandCostOptMinimumThreshold(p []interface{}) *costpb.CostOptimisationMini
 
 // Flatteners
 
-func flattenCostOptimisation(d *schema.ResourceData, in *costpb.CostOptimisation) error {
+func flattenCostOptimisationConfig(d *schema.ResourceData, in *costoptimisationpb.Configuration) error {
 	if in == nil {
 		return nil
 	}
@@ -396,9 +396,9 @@ func flattenCostOptimisation(d *schema.ResourceData, in *costpb.CostOptimisation
 	}
 
 	var ret []interface{}
-	ret, err = flattenCostOptimisationSpec(in.Spec, v)
+	ret, err = flattenCostOptimisationConfigSpec(in.Spec, v)
 	if err != nil {
-		log.Println("flatten cost optimisation spec err")
+		log.Println("flatten cost optimisation config spec err")
 		return err
 	}
 
@@ -410,9 +410,9 @@ func flattenCostOptimisation(d *schema.ResourceData, in *costpb.CostOptimisation
 	return nil
 }
 
-func flattenCostOptimisationSpec(in *costpb.CostOptimisationSpec, p []interface{}) ([]interface{}, error) {
+func flattenCostOptimisationConfigSpec(in *costoptimisationpb.ConfigurationSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
-		return nil, fmt.Errorf("%s", "flatten cost optimisation spec empty input")
+		return nil, fmt.Errorf("%s", "flatten cost optimisation config spec empty input")
 	}
 
 	obj := map[string]interface{}{}
@@ -486,7 +486,7 @@ func flattenCostOptimisationSpec(in *costpb.CostOptimisationSpec, p []interface{
 	return []interface{}{obj}, nil
 }
 
-func flattenCostOptClusterLabels(input []*costpb.CostOptimisationLabels, p []interface{}) []interface{} {
+func flattenCostOptClusterLabels(input []*costoptimisationpb.ConfigurationLabels, p []interface{}) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -513,7 +513,7 @@ func flattenCostOptClusterLabels(input []*costpb.CostOptimisationLabels, p []int
 	return out
 }
 
-func flattenCostOptFilter(input []*costpb.CostOptimisationFilter, p []interface{}) []interface{} {
+func flattenCostOptFilter(input []*costoptimisationpb.ConfigurationFilter, p []interface{}) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -540,7 +540,7 @@ func flattenCostOptFilter(input []*costpb.CostOptimisationFilter, p []interface{
 	return out
 }
 
-func flattenCostOptBound(in *costpb.CostOptimisationBound, p []interface{}) []interface{} {
+func flattenCostOptBound(in *costoptimisationpb.ConfigurationBound, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -569,7 +569,7 @@ func flattenCostOptBound(in *costpb.CostOptimisationBound, p []interface{}) []in
 	return []interface{}{obj}
 }
 
-func flattenCostOptCPUBound(in *costpb.CostOptimisationCPUBound, p []interface{}) []interface{} {
+func flattenCostOptCPUBound(in *costoptimisationpb.ConfigurationCPUBound, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -590,7 +590,7 @@ func flattenCostOptCPUBound(in *costpb.CostOptimisationCPUBound, p []interface{}
 	return []interface{}{obj}
 }
 
-func flattenCostOptMemoryBound(in *costpb.CostOptimisationMemoryBound, p []interface{}) []interface{} {
+func flattenCostOptMemoryBound(in *costoptimisationpb.ConfigurationMemoryBound, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -611,7 +611,7 @@ func flattenCostOptMemoryBound(in *costpb.CostOptimisationMemoryBound, p []inter
 	return []interface{}{obj}
 }
 
-func flattenCostOptMinimumThreshold(in *costpb.CostOptimisationMinimumThreshold, p []interface{}) []interface{} {
+func flattenCostOptMinimumThreshold(in *costoptimisationpb.ConfigurationMinimumThreshold, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -640,7 +640,7 @@ func flattenCostOptMinimumThreshold(in *costpb.CostOptimisationMinimumThreshold,
 	return []interface{}{obj}
 }
 
-func flattenCostOptCPUThreshold(in *costpb.CostOptimisationCPUThreshold, p []interface{}) []interface{} {
+func flattenCostOptCPUThreshold(in *costoptimisationpb.ConfigurationCPUThreshold, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -661,7 +661,7 @@ func flattenCostOptCPUThreshold(in *costpb.CostOptimisationCPUThreshold, p []int
 	return []interface{}{obj}
 }
 
-func flattenCostOptMemoryThreshold(in *costpb.CostOptimisationMemoryThreshold, p []interface{}) []interface{} {
+func flattenCostOptMemoryThreshold(in *costoptimisationpb.ConfigurationMemoryThreshold, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -682,17 +682,17 @@ func flattenCostOptMemoryThreshold(in *costpb.CostOptimisationMemoryThreshold, p
 	return []interface{}{obj}
 }
 
-func resourceCostOptimisationImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceCostOptimisationConfigImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 
 	log.Printf("Cost Optimisation Import Starts")
 
 	idParts := strings.SplitN(d.Id(), "/", 2)
-	log.Println("resourceCostOptimisationImport idParts:", idParts)
+	log.Println("resourceCostOptimisationConfigImport idParts:", idParts)
 
-	log.Println("resourceCostOptimisationImport Invoking expandCostOptimisation")
-	cc, err := expandCostOptimisation(d)
+	log.Println("resourceCostOptimisationConfigImport Invoking expandCostOptimisationConfig")
+	cc, err := expandCostOptimisationConfig(d)
 	if err != nil {
-		log.Printf("resourceCostOptimisationImport  expand error %s", err.Error())
+		log.Printf("resourceCostOptimisationConfigImport  expand error %s", err.Error())
 	}
 
 	var metaD commonpb.Metadata

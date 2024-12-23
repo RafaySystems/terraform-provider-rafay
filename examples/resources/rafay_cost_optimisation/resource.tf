@@ -1,6 +1,6 @@
-resource "rafay_cost_optimisation" "tfdemocostoptimisation" {
+resource "rafay_cost_optimisation_config" "tfdemocostoptimisationconfig" {
   metadata {
-    name        = "tfdemocostoptimisation"
+    name        = "tfdemocostoptimisationconfig"
   }
   spec {
     config_project = "defaultproject"

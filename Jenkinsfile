@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker { 
-                image 'public.ecr.aws/bitnami/golang:1.22.5'
+                image 'public.ecr.aws/bitnami/golang:1.23.0'
                 args '-u root:sudo'
                 reuseNode false
             }

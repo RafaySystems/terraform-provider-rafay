@@ -2,14 +2,14 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
   cluster {
     kind = "Cluster"
     metadata {
-      name    = "bharath-eks-clustertest1"
-      project = "bharath"
+      name    = "bharath-eks-clustertest2"
+      project = "defaultproject"
     }
     spec {
       type              = "eks"
       blueprint         = "default"
       blueprint_version = "Latest"
-      cloud_provider    = "bharath"
+      cloud_provider    = "bharat-eks"
       cni_provider      = "aws-cni"
       proxy_config      = {}
     }
@@ -18,7 +18,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
     apiversion = "rafay.io/v1alpha5"
     kind       = "ClusterConfig"
     metadata {
-      name    = "bharath-eks-clustertest1"
+      name    = "bharath-eks-clustertest2"
       region  = "us-west-2"
       version = "1.30"
       tags = {
@@ -26,9 +26,9 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
         email = "bharath.reddy@rafay.co"
       }
     }
-    # addons_config {
-    #   disable_ebs_csi_driver = true
-    # }
+    addons_config {
+      disable_ebs_csi_driver = false
+    }
     # secrets_encryption {
     #   encrypt_existing_secrets = true
     #   key_arn = "arn:aws:kms:us-west-2:679196758854:key/11f8e3ba-55f7-4688-82be-96e1ec8d55fb"

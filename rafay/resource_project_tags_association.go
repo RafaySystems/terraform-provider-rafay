@@ -341,11 +341,11 @@ func flattenProjectTagsAssociationSpecAssociations(in []*tagspb.TagAssociation, 
 			obj["tag_type"] = in.TagType
 		}
 
-		if len(in.TagType) > 0 {
+		if len(in.Resource) > 0 {
 			obj["resource"] = in.Resource
 		}
 
-		if len(in.TagType) > 0 {
+		if len(in.TagValue) > 0 {
 			obj["tag_value"] = in.TagValue
 		}
 

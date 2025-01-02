@@ -597,7 +597,7 @@ resource "rafay_environment_template" "aws-et-example" {
 
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
 - `type` (String) Specify the type of override this variable supports, Available types are `allowed`, `notallowed`, `restricted`
-
+- `selectors` (List of String) Used to alias a variable and restrict the override scope
 
 
 <a id="nestedblock--timeouts"></a>

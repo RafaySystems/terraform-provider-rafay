@@ -500,7 +500,9 @@ For ZonalCluster only zone information is sufficient. For Regional Cluster, both
 
 ***Required For Private Cluster***
 
-- `control_plane_ip_range` (String) This is required for private cluster type. Control plane IP range is for the control plane VPC. The control plane range must not overlap with any subnet in your cluster's VPC. The control plane and your cluster use VPC peering to communicate privately
+- `control_plane_ip_range` (String) Control plane IP range is for the control plane VPC. The control plane range must not overlap with any subnet in your cluster's VPC. The control plane and your cluster use VPC peering to communicate privately. Either Control Plane IP range and Private Endpoint Subnetwork Name must be set, but not both.
+- `enable_private_nodes` (Boolean) Whether nodes have internal IP addresses only. If enabled, all nodes are given only RFC 1918 private addresses and communicate with the master via private networking. Enable Private Nodes must be enabled when Control Plane IP Range is used.
+- `private_endpoint_subnetwork_name` (String) Subnet to provision the master's private endpoint during cluster creation. Either Control Plane IP range and Private Endpoint Subnetwork Name must be set, but not both.
 - `enable_access_control_plane_external_ip` (Boolean) Disabling this option locks down external access to the cluster control plane. There is still an external IP address used by Google for cluster management purposes, but the IP address is not accessible to anyone. If this is disabled, `control_plane_authorized_network` must be configured for Private Cluster.
 
 ***Optional***

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/config"
@@ -130,7 +131,10 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, m interface{
 	resp, err := getGroupById(d.Id())
 	if err != nil {
 		log.Printf("getGroupById, error %s", err.Error())
-		d.SetId("")
+		if strings.Contains(err.Error(), "code 404") || strings.Contains(err.Error(), "not found"){
+			log.Println("Resource Read ", "error", err)
+			d.SetId("")
+		}
 		return diags
 	}
 

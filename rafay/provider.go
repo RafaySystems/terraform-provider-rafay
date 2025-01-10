@@ -117,6 +117,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_workload":                 dataWorkload(),
 				"rafay_cluster_blueprint_status": dataClusterBlueprintStatus(),
 				"rafay_import_cluster":           dataImportCluster(),
+				"rafay_clusters":                 dataRafayClusters(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}

@@ -221,6 +221,7 @@ resource "rafay_blueprint" "custom-blueprint-advanced2" {
       enable_monitoring = true
       enable_vm         = false
       enable_rook_ceph = true
+      enable_cni = false
       monitoring {
         metrics_server {
           enabled = true
@@ -466,7 +467,8 @@ resource "rafay_blueprint" "cost-blueprint" {
 - `enable_ingress` - (Boolean) If enabled, ingress is installed on the cluster.  
 - `enable_logging` - (Boolean) If enabled, logging is installed on the cluster.  
 - `enable_monitoring` - (Boolean) If enabled, monitoring is installed on the cluster. 
-- `enable_rook_ceph` - (Boolean) If enabled, run ceph inside a cluster. 
+- `enable_rook_ceph` - (Boolean) If enabled, run ceph inside a cluster.
+- `enable_cni` - (Boolean) If enabled, custom cni add-ons on the clusters. 
 - `enable_vm` - (Boolean) If enabled, VM operator (kubevirt) is installed on the cluster. 
 - `enable_csi_secret_store` - (Boolean) If enabled, Secrets Store CSI Driver Add-on is installed on the cluster. 
 - `csi_secret_store_config` - (Block List) The configuration for Secrets Store CSI Driver Add-on is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--csistore-config))

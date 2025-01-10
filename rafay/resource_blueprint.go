@@ -458,6 +458,10 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 		obj.EnableRookCeph = v
 	}
 
+	if v, ok := in["enable_cni"].(bool); ok {
+		obj.EnableCni = v
+	}
+
 	if v, ok := in["enable_vm"].(bool); ok {
 		obj.EnableVM = v
 	}
@@ -1477,6 +1481,11 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 
 	if in.EnableRookCeph {
 		obj["enable_rook_ceph"] = in.EnableRookCeph
+		retNil = false
+	}
+
+	if in.EnableCni {
+		obj["enable_cni"] = in.EnableCni
 		retNil = false
 	}
 

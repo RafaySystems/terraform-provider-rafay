@@ -118,6 +118,8 @@ func New(_ string) func() *schema.Provider {
 				"rafay_cluster_blueprint_status": dataClusterBlueprintStatus(),
 				"rafay_import_cluster":           dataImportCluster(),
 				"rafay_clusters":                 dataRafayClusters(),
+				"rafay_namespaces":               dataRafayNamespaces(),
+				"rafay_blueprints":               dataRafayBlueprints(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}

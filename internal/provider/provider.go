@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
@@ -132,8 +132,7 @@ func (p *RafayFwProvider) Configure(ctx context.Context, req provider.ConfigureR
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
-
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to initialise the Client, Error", err.Error())
 		return

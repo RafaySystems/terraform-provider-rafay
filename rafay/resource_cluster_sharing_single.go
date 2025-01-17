@@ -72,7 +72,7 @@ func resourceClusterSharingSingle() *schema.Resource {
 						},
 					},
 				},
-				Optional: true,
+				Required: true,
 				Type:     schema.TypeList,
 				MaxItems: 1,
 			},

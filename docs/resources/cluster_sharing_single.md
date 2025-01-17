@@ -30,7 +30,7 @@ resource "rafay_cluster_sharing_single" "demo-terraform-one" {
 
 - `clustername` (String) Name of the cluster to be shared
 - `project` (String) Name of the project where cluster is created
-- `sharing` (Block List, Max: 1) cluster sharing configuration. Note: Only one project name can be specified at a time. (see [below for nested schema](#nestedblock--sharing))
+- `sharing` (Block List, Min: 1, Max: 1) cluster sharing configuration (see [below for nested schema](#nestedblock--sharing))
 
 ### Optional
 

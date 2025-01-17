@@ -183,14 +183,44 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 		log.Println("cluster cannot be shared to same project")
 		return diags
 	}
-
-	if !isProjectShared {
-		_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id})
-		if err != nil {
-			log.Printf("failed to share cluster to new project")
-			return diag.FromErr(err)
+	if create {
+		if !isProjectShared {
+			_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id})
+			if err != nil {
+				log.Printf("failed to share cluster to new project")
+				return diag.FromErr(err)
+			}
+			projs = append(projs, &addProject)
 		}
-		projs = append(projs, &addProject)
+	} else {
+		if d.HasChange("sharing") {
+			old, new := d.GetChange("sharing")
+			oldProjectName := old.([]interface{})[0].(map[string]interface{})["projectname"].(string)
+			newProjectName := new.([]interface{})[0].(map[string]interface{})["projectname"].(string)
+
+			if oldProjectName != newProjectName {
+				// Remove the cluster from the old project
+				oldProjectID, err := config.GetProjectIdByName(oldProjectName)
+				if err == nil {
+					_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{oldProjectID})
+					if err != nil {
+						log.Printf("failed to remove cluster from old project: %v", oldProjectName)
+						return diag.FromErr(err)
+					}
+					projs = removeProjects(oldProjectName, projs)
+				}
+
+				// Add the cluster to the new project
+				if !isProjectShared {
+					_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id})
+					if err != nil {
+						log.Printf("failed to share cluster to new project")
+						return diag.FromErr(err)
+					}
+					projs = append(projs, &addProject)
+				}
+			}
+		}
 	}
 
 	d.Set("sharing", []interface{}{
@@ -390,4 +420,19 @@ func getProjectList(projs []*commonpb.ProjectMeta) []map[string]interface{} {
 		})
 	}
 	return projectsList
+}
+
+func removeProjects(projectNameToRemove string, projs []*commonpb.ProjectMeta) []*commonpb.ProjectMeta {
+	var updatedProjs []*commonpb.ProjectMeta
+
+	for _, p := range projs {
+		// Exclude the project to be removed
+		if p.Name != projectNameToRemove {
+			updatedProjs = append(updatedProjs, p)
+		} else {
+			log.Printf("Removing project: %s (ID: %s)", p.Name, p.Id)
+		}
+	}
+
+	return updatedProjs
 }

@@ -318,7 +318,64 @@ func resourceClusterSharingSingleUpdate(ctx context.Context, d *schema.ResourceD
 }
 
 func resourceClusterSharingSingleDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return diag.Diagnostics{}
+	var diags diag.Diagnostics
+	var addProject commonpb.ProjectMeta
+	clusterName := d.Get("clustername").(string)
+	projectName := d.Get("project").(string)
+
+	// get project details
+	resp, err := project.GetProjectByName(projectName)
+	if err != nil {
+		fmt.Printf("project does not exist")
+		return diags
+	}
+	projectObj, err := project.NewProjectFromResponse([]byte(resp))
+	if err != nil {
+		fmt.Printf("project does not exist")
+		return diags
+	}
+
+	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
+	if errGet != nil {
+		log.Printf("failed to get cluster info %s", errGet.Error())
+		return diag.FromErr(errGet)
+	}
+	if clusterObj == nil {
+		log.Printf("failed to get cluster info")
+		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
+	}
+
+	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
+		if n, ok1 := v[0].(map[string]interface{})["projectname"].(string); ok1 {
+			addProject.Name = n
+		} else {
+			return diag.Errorf("projectname should not be empty")
+		}
+		respShared, err := project.GetProjectByName(addProject.Name)
+		if err != nil {
+			fmt.Printf("project does not exist")
+			return diags
+		}
+		projectObjShared, err := project.NewProjectFromResponse([]byte(respShared))
+		if err != nil {
+			fmt.Printf("project does not exist")
+			return diags
+		} else {
+			addProject.Id = projectObjShared.ID
+		}
+
+	} else {
+		return diag.Errorf("sharing spec should not be empty")
+	}
+
+	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id})
+	if err != nil {
+		log.Printf("cluster share setting had all, but failed to unshare form all projects")
+		return diag.FromErr(err)
+	}
+
+	return diags
+
 }
 
 func getProjectList(projs []*commonpb.ProjectMeta) []map[string]interface{} {

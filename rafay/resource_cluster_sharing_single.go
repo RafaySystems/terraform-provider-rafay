@@ -33,31 +33,53 @@ func resourceClusterSharingSingle() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"clustername": {
-				Type:     schema.TypeString,
-				Required: true,
+				Description: "Name of the cluster to be shared",
+				Type:        schema.TypeString,
+				Required:    true,
 			},
 			"project": {
-				Type:     schema.TypeString,
-				Required: true,
+				Description: "Name of the project where cluster is created",
+				Type:        schema.TypeString,
+				Required:    true,
 			},
 			"sharing": &schema.Schema{
 				Description: "cluster sharing configuration",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"projectname": {
-							Type:     schema.TypeString,
-							Required: true,
+							Description: "Name of the project the cluster is shared to",
+							Type:        schema.TypeString,
+							Required:    true,
 						},
 						"id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Description: "Id of the project the cluster is shared to",
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						"projects_list": {
+							Description: "List of projects cluster shared with",
+							Type:        schema.TypeList,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Description: "Name of the project the cluster is shared to",
+										Type:        schema.TypeString,
+										Computed:    true,
+									},
+									"id": {
+										Description: "Id of the project the cluster is shared to",
+										Type:        schema.TypeString,
+										Computed:    true,
+									},
+								},
+							},
 							Computed: true,
 						},
 					},
 				},
-				Required: true,
-				Type:     schema.TypeList, // Use TypeList or TypeSet for nested structures
-				MaxItems: 1,               // Optional: Limit to one item if only one sharing config is allowed
+				Optional: true,
+				Type:     schema.TypeList,
+				MaxItems: 1,
 			},
 		},
 	}
@@ -172,11 +194,13 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 		log.Printf("failed to share cluster to new project")
 		return diag.FromErr(err)
 	}
+	projs = append(projs, &addProject)
 
 	d.Set("sharing", []interface{}{
 		map[string]interface{}{
-			"projectname": addProject.Name,
-			"id":          addProject.Id,
+			"projectname":   addProject.Name,
+			"id":            addProject.Id,
+			"projects_list": getProjectList(projs),
 		},
 	})
 	d.SetId(clusterName)
@@ -267,8 +291,9 @@ func resourceClusterSharingSingleRead(ctx context.Context, d *schema.ResourceDat
 			if p.Name == addProject.Name {
 				d.Set("sharing", []interface{}{
 					map[string]interface{}{
-						"projectname": addProject.Name,
-						"id":          addProject.Id,
+						"projectname":   addProject.Name,
+						"id":            addProject.Id,
+						"projects_list": getProjectList(projs),
 					},
 				})
 			}
@@ -293,39 +318,19 @@ func resourceClusterSharingSingleUpdate(ctx context.Context, d *schema.ResourceD
 }
 
 func resourceClusterSharingSingleDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	clusterName := d.Get("clustername").(string)
-	projectName := d.Get("project").(string)
+	return diag.Diagnostics{}
+}
 
-	// get project details
-	resp, err := project.GetProjectByName(projectName)
-	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
+func getProjectList(projs []*commonpb.ProjectMeta) []map[string]interface{} {
+	var projectsList []map[string]interface{}
+	if len(projs) == 0 {
+		return projectsList
 	}
-	projectObj, err := project.NewProjectFromResponse([]byte(resp))
-	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
+	for _, p := range projs {
+		projectsList = append(projectsList, map[string]interface{}{
+			"name": p.Name,
+			"id":   p.Id,
+		})
 	}
-
-	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
-	if errGet != nil {
-		log.Printf("failed to get cluster info %s", errGet.Error())
-		return diag.FromErr(errGet)
-	}
-	if clusterObj == nil {
-		log.Printf("failed to get cluster info")
-		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
-	}
-
-	err = d.Set("clustername", clusterName)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	err = d.Set("project", projectName)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	return diags
+	return projectsList
 }

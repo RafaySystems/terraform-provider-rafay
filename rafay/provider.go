@@ -101,6 +101,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_workload_cd_operator":              resourceWorkloadCDOperator(),
 				"rafay_breakglassaccess":                  resourceBreakGlassAccess(),
 				"rafay_eks_pod_identity":                  resourceEKSPodIdentity(),
+				"rafay_cluster_sharing_single":            resourceClusterSharingSingle(),
 			},
 			DataSourcesMap: map[string]*schema.Resource{
 				"rafay_project":                  dataProject(),

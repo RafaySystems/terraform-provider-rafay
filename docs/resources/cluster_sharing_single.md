@@ -49,8 +49,7 @@ Required:
 
 Read-Only:
 
-- `id` (String) Id of the project the cluster is shared to
-- `projects_list` (List of Object) List of projects cluster shared with (see [below for nested schema](#nestedatt--sharing--projects_list))
+- `projects_list` (List of Object,Sensitive) List of projects cluster shared with (see [below for nested schema](#nestedatt--sharing--projects_list))
 
 <a id="nestedatt--sharing--projects_list"></a>
 ### Nested Schema for `sharing.projects_list`

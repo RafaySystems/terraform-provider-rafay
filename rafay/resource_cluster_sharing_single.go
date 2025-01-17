@@ -51,11 +51,6 @@ func resourceClusterSharingSingle() *schema.Resource {
 							Type:        schema.TypeString,
 							Required:    true,
 						},
-						"id": {
-							Description: "Id of the project the cluster is shared to",
-							Type:        schema.TypeString,
-							Computed:    true,
-						},
 						"projects_list": {
 							Description: "List of projects cluster shared with",
 							Type:        schema.TypeList,
@@ -169,11 +164,11 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 			projs = append(projs, &prj)
 		}
 	}
-
+	isProjectShared := false
 	if len(projs) > 0 {
 		for _, p := range projs {
 			if p.Name == addProject.Name {
-				return diag.Errorf("cluster %s already shared to project %s", clusterName, addProject.Name)
+				isProjectShared = true
 			}
 		}
 	}
@@ -189,17 +184,18 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 		return diags
 	}
 
-	_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id})
-	if err != nil {
-		log.Printf("failed to share cluster to new project")
-		return diag.FromErr(err)
+	if !isProjectShared {
+		_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id})
+		if err != nil {
+			log.Printf("failed to share cluster to new project")
+			return diag.FromErr(err)
+		}
+		projs = append(projs, &addProject)
 	}
-	projs = append(projs, &addProject)
 
 	d.Set("sharing", []interface{}{
 		map[string]interface{}{
 			"projectname":   addProject.Name,
-			"id":            addProject.Id,
 			"projects_list": getProjectList(projs),
 		},
 	})
@@ -285,20 +281,24 @@ func resourceClusterSharingSingleRead(ctx context.Context, d *schema.ResourceDat
 			projs = append(projs, &prj)
 		}
 	}
-
+	isProjectShared := false
 	if len(projs) > 0 {
 		for _, p := range projs {
 			if p.Name == addProject.Name {
-				d.Set("sharing", []interface{}{
-					map[string]interface{}{
-						"projectname":   addProject.Name,
-						"id":            addProject.Id,
-						"projects_list": getProjectList(projs),
-					},
-				})
+				isProjectShared = true
 			}
 		}
 	}
+	if !isProjectShared {
+		addProject.Name = ""
+		addProject.Id = ""
+	}
+	d.Set("sharing", []interface{}{
+		map[string]interface{}{
+			"projectname":   addProject.Name,
+			"projects_list": getProjectList(projs),
+		},
+	})
 	err = d.Set("clustername", clusterName)
 	if err != nil {
 		return diag.FromErr(err)

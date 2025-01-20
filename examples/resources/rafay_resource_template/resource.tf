@@ -62,6 +62,10 @@ resource "rafay_resource_template" "aws-elasticache" {
                 }
                 on_failure = "continue"
                 execute_once = true
+                skip_config {
+                  condition = "skip: true"
+                  skip_on_destroy = true
+                }
               }
               after {
                 name = "internal-approval"

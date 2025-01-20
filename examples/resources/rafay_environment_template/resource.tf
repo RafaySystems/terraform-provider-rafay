@@ -58,6 +58,10 @@ resource "rafay_environment_template" "aws-et" {
         }
         timeout_seconds = 1000
         execute_once = true
+        skip_config {
+          condition = "skip: true"
+          skip_on_destroy = true
+        }
       }
     }
     agents {

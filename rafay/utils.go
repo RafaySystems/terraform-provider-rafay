@@ -1688,14 +1688,37 @@ func expandEaasHooks(p []interface{}) ([]*eaaspb.Hook, error) {
 			hook.DependsOn = toArrayString(n)
 		}
 
-		hooks = append(hooks, hook)
-
 		if d, ok := in["execute_once"].(bool); ok {
 			hook.ExecuteOnce = d
 		}
+
+		if skip, ok := in["skip_config"].([]any); ok && len(skip) > 0 {
+			hook.SkipConfig = expandSkipConfig(skip)
+		}
+
+		hooks = append(hooks, hook)
 	}
 
 	return hooks, nil
+}
+
+func expandSkipConfig(p []any) *eaaspb.SkipConfig {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	obj := &eaaspb.SkipConfig{}
+	in := p[0].(map[string]any)
+
+	if v, ok := in["condition"].(string); ok {
+		obj.Condition = v
+	}
+
+	if v, ok := in["skip_on_destroy"].(bool); ok {
+		obj.SkipOnDestroy = v
+	}
+
+	return obj
 }
 
 func expandHookOptions(p []interface{}) *eaaspb.HookOptions {
@@ -1953,12 +1976,28 @@ func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		obj["driver"] = flattenWorkflowHandlerCompoundRef(in.Driver)
 		obj["depends_on"] = toArrayInterface(in.DependsOn)
 		obj["execute_once"] = in.ExecuteOnce
+		obj["skip_config"] = flattenSkipConfig(in.SkipConfig)
 
 		out[i] = &obj
 		log.Println("flatten hook setting object ", out[i])
 	}
 
 	return out
+}
+
+func flattenSkipConfig(in *eaaspb.SkipConfig) []any {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]any{}
+	if len(in.Condition) > 0 {
+		obj["condition"] = in.Condition
+	}
+
+	obj["skip_on_destroy"] = in.SkipOnDestroy
+
+	return []any{obj}
 }
 
 func flattenHookOptions(input *eaaspb.HookOptions, p []interface{}) []interface{} {

@@ -73,6 +73,10 @@ resource "rafay_environment_template" "aws-et-example" {
         }
         timeout_seconds = 1000
         execute_once = true
+        skip_config {
+          condition = "skip: true"
+          skip_on_destroy = true
+        }
       }
       on_init {
         name = "infracost"
@@ -231,6 +235,15 @@ resource "rafay_environment_template" "aws-et-example" {
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
 - `execute_once` (Boolean) Specify if the hook should be executed only once
+- `skip_config` (Block List, Max: 1) Specify the skip config (see [below for nested schema](#nestedblock--skip_config))
+
+<a id="nestedblock--skip_config"></a>
+### Nested Schema for `spec.hooks.skip_config`
+
+***Optional***
+
+- `condition` (String) Specify the condition to skip
+- `skip_on_destroy` (Boolean) Specify if the hook should be skipped on destroy
 
 <a id="nestedblock--spec--hooks--on_completion--agents"></a>
 ### Nested Schema for `spec.hooks.on_completion.agents`
@@ -307,6 +320,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
 - `execute_once` (Boolean) Specify if the hook should be executed only once
+- `skip_config` (Block List, Max: 1) Specify the skip config (see [below for nested schema](#nestedblock--skip_config))
 
 <a id="nestedblock--spec--hooks--on_failure--agents"></a>
 ### Nested Schema for `spec.hooks.on_failure.agents`
@@ -384,6 +398,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
 - `execute_once` (Boolean) Specify if the hook should be executed only once
+- `skip_config` (Block List, Max: 1) Specify the skip config (see [below for nested schema](#nestedblock--skip_config))
 
 <a id="nestedblock--spec--hooks--on_init--agents"></a>
 ### Nested Schema for `spec.hooks.on_init.agents`
@@ -461,6 +476,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options))
 - `timeout_seconds` (Number) Specify the timeout in seconds
 - `execute_once` (Boolean) Specify if the hook should be executed only once
+- `skip_config` (Block List, Max: 1) Specify the skip config (see [below for nested schema](#nestedblock--skip_config))
 
 <a id="nestedblock--spec--hooks--on_success--agents"></a>
 ### Nested Schema for `spec.hooks.on_success.agents`

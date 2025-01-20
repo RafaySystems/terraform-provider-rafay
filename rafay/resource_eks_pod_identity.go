@@ -119,7 +119,7 @@ func resourceEksPodIdentityUpdate(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	uri := fmt.Sprintf("/edge/v1/projects/%s/edges/%s/podidentity", project_id, cluster_resp.ID)
+	uri := fmt.Sprintf("/edge/v1/projects/%s/edges/%s/podidentity?user_agent=%s", project_id, cluster_resp.ID, "terraform")
 
 	log.Printf("payload response : %s", podIdentity[0].Namespace)
 
@@ -215,7 +215,7 @@ func resourceEksPodIdentityUpsert(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	uri := fmt.Sprintf("/edge/v1/projects/%s/edges/%s/podidentity", project_id, cluster_resp.ID)
+	uri := fmt.Sprintf("/edge/v1/projects/%s/edges/%s/podidentity?user_agent=%s", project_id, cluster_resp.ID, "terraform")
 
 	log.Printf("payload response : %s", podIdentity[0].Namespace)
 
@@ -407,7 +407,7 @@ func resourceEksPodIdentityDelete(ctx context.Context, d *schema.ResourceData, m
 	// }
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	uri := fmt.Sprintf("/edge/v1/projects/%s/edges/%s/podidentity", project_id, edge_id)
+	uri := fmt.Sprintf("/edge/v1/projects/%s/edges/%s/podidentity?user_agent=%s", project_id, edge_id, "terraform")
 
 	//log.Println("Delete started, pod identity to delete ", string(payload))
 

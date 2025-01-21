@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb/datatypes"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/gitopspb"
@@ -22,7 +22,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-yaml/yaml"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	structpb "google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/structpb"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
@@ -2464,7 +2464,9 @@ func expandEnvvarOptions(p []interface{}) *eaaspb.EnvVarOptions {
 		options.Required = v
 	}
 
-	options.DisplayMetadata = getExpandDisplayMetadata(opts)
+	if v, ok := opts["display_metadata"].(string); ok && len(v) > 0 {
+		options.DisplayMetadata = getExpandDisplayMetadata(v)
+	}
 
 	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
 		options.Override = expandEnvvarOverrideOptions(v)
@@ -2574,11 +2576,13 @@ func expandFileOptions(p []interface{}) *commonpb.FileOptions {
 		options.Override = expandFileOverrideOptions(v)
 	}
 
+	if v, ok := opts["display_metadata"].(string); ok && len(v) > 0 {
+		options.DisplayMetadata = getExpandDisplayMetadata(v)
+	}
+
 	if v, ok := opts["schema"].([]interface{}); ok && len(v) > 0 {
 		options.Schema = expandCustomSchema(v)
 	}
-
-	options.DisplayMetadata = getExpandDisplayMetadata(opts)
 
 	return options
 

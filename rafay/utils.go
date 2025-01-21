@@ -2473,7 +2473,9 @@ func expandEnvvarOptions(p []interface{}) *eaaspb.EnvVarOptions {
 		options.Immutable = v
 	}
 
-	options.DisplayMetadata = getExpandDisplayMetadata(opts)
+	if v, ok := opts["display_metadata"].(string); ok && len(v) > 0 {
+		options.DisplayMetadata = getExpandDisplayMetadata(v)
+	}
 
 	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
 		options.Override = expandEnvvarOverrideOptions(v)
@@ -2584,7 +2586,9 @@ func expandFileOptions(p []interface{}) *commonpb.FileOptions {
 		options.Override = expandFileOverrideOptions(v)
 	}
 
-	options.DisplayMetadata = getExpandDisplayMetadata(opts)
+	if v, ok := opts["display_metadata"].(string); ok && len(v) > 0 {
+		options.DisplayMetadata = getExpandDisplayMetadata(v)
+	}
 
 	if v, ok := opts["schema"].([]interface{}); ok && len(v) > 0 {
 		options.Schema = expandCustomSchema(v)

@@ -24,13 +24,14 @@ func dataRafayClusters() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"projectname": {
-				Type:     schema.TypeString,
-				Required: true,
+				Description: "Project name from where clusters to be listed",
+				Type:        schema.TypeString,
+				Required:    true,
 			},
 			"clusters": {
 				Type:        schema.TypeList,
 				Computed:    true,
-				Description: "A list of clusters with their names and creation times.",
+				Description: "A list of clusters with their names",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"clustername": {

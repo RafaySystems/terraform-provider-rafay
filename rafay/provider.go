@@ -120,6 +120,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_clusters":                 dataRafayClusters(),
 				"rafay_namespaces":               dataRafayNamespaces(),
 				"rafay_blueprints":               dataRafayBlueprints(),
+				"rafay_environments":             dataRafayEnvironments(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}

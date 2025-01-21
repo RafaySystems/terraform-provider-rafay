@@ -23,8 +23,9 @@ func dataRafayBlueprints() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"projectname": {
-				Type:     schema.TypeString,
-				Required: true,
+				Description: "Project name from where blueprints to be listed",
+				Type:        schema.TypeString,
+				Required:    true,
 			},
 			"blueprints": {
 				Type:        schema.TypeList,
@@ -35,12 +36,12 @@ func dataRafayBlueprints() *schema.Resource {
 						"name": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "The name of the blueprint.",
+							Description: "The name of the blueprint",
 						},
 						"versions": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "Versions count of the blueprint.",
+							Description: "Versions count of the blueprint",
 						},
 						"deployed_clusters": {
 							Type:        schema.TypeString,
@@ -50,7 +51,7 @@ func dataRafayBlueprints() *schema.Resource {
 						"ownership": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "ownership of the blueprint.",
+							Description: "ownership of the blueprint",
 						},
 					},
 				},

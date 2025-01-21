@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func dataRafayNamespaces() *schema.Resource {
+func dataRafayEnvironments() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataRafayNamespaceRead,
+		ReadContext: dataRafayEnvironmentRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute),
 		},
@@ -27,30 +27,35 @@ func dataRafayNamespaces() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"projectname": {
-				Description: "Project name from where namespaces to be listed",
+				Description: "Project name from where environments to be listed",
 				Type:        schema.TypeString,
 				Required:    true,
 			},
-			"namespaces": {
+			"environments": {
 				Type:        schema.TypeList,
 				Computed:    true,
-				Description: "A list of namespaces",
+				Description: "A list of environments",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": {
+						"environment_name": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "The name of the namespace",
+							Description: "name of the environment",
 						},
-						"type": {
+						"environment_template_name": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "Type of the namespace",
+							Description: "name of the environment template",
 						},
-						"deployed_clusters": {
+						"template_version": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "status of the namespace",
+							Description: "version name of the template",
+						},
+						"status": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "status of the environment",
 						},
 					},
 				},
@@ -59,7 +64,7 @@ func dataRafayNamespaces() *schema.Resource {
 	}
 }
 
-func dataRafayNamespaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func dataRafayEnvironmentRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resp, err := project.GetProjectByName(d.Get("projectname").(string))
 	if err != nil {
@@ -79,8 +84,7 @@ func dataRafayNamespaceRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	ns, err := client.InfraV3().Namespace().List(ctx, options.ListOptions{
-		//Name:    nsTFState.Metadata.Name,
+	environments, err := client.EaasV1().Environment().List(ctx, options.ListOptions{
 		Project: project.Name,
 	})
 	if err != nil {
@@ -92,35 +96,21 @@ func dataRafayNamespaceRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	namespaces := make([]map[string]interface{}, len(ns.Items))
+	envList := make([]map[string]interface{}, len(environments.Items))
 
-	for i, n := range ns.Items {
-		tempType := ""
-		var managedClusterList strings.Builder
-		if n.Spec.Artifact != nil {
-			switch {
-			case n.Spec.GetRepo() != nil:
-				tempType = "Repo"
-			case n.Spec.GetUploaded() != nil:
-				tempType = "Uploaded"
-			}
-		} else {
-			tempType = "Wizard"
+	for i, e := range environments.Items {
+		envStatus := "unkown"
+		if (e.Status != nil) && (e.Status.DigestedStatus != nil) {
+			envStatus = e.Status.DigestedStatus.ConditionStatus.Enum().String()
 		}
-		for i, ClusterName := range n.Status.DeployedClusters {
-			managedClusterList.WriteString(ClusterName)
-			if i != len(n.Status.DeployedClusters)-1 {
-				managedClusterList.WriteString(", ")
-			}
+		envList[i] = map[string]interface{}{
+			"environment_name":          e.Metadata.Name,
+			"environment_template_name": e.Spec.Template.Name,
+			"template_version":          e.Spec.Template.Version,
+			"status":                    envStatus,
 		}
-		namespaces[i] = map[string]interface{}{
-			"name":              n.Metadata.Name,
-			"type":              tempType,
-			"deployed_clusters": managedClusterList.String(),
-		}
-
 	}
-	if err := d.Set("namespaces", namespaces); err != nil {
+	if err := d.Set("environments", envList); err != nil {
 		return diag.FromErr(err)
 	}
 

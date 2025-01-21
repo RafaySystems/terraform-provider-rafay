@@ -1126,6 +1126,11 @@ func addonsConfigurationsField() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Flag to create pod identity by default for managed addons",
 		},
+		"disable_ebs_csi_driver": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "flag to enable or disable ebs csi driver",
+		},
 	}
 	return s
 }
@@ -2456,6 +2461,7 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) (*EKSClusterCo
 	if v, ok := in["addons"].([]interface{}); ok && len(v) > 0 {
 		obj.Addons = expandAddons(v)
 	}
+
 	if v, ok := in["private_cluster"].([]interface{}); ok && len(v) > 0 {
 		obj.PrivateCluster = expandPrivateCluster(v)
 	}
@@ -3768,6 +3774,10 @@ func expandAddonsConfig(p []interface{}) *EKSAddonsConfig {
 	if v, ok := in["auto_apply_pod_identity_associations"].(bool); ok {
 		obj.AutoApplyPodIdentityAssociations = v
 	}
+	if v, ok := in["disable_ebs_csi_driver"].(bool); ok {
+		obj.DisableEBSCSIDriver = v
+	}
+
 	return obj
 }
 
@@ -6646,6 +6656,7 @@ func flattenEKSClusterAddonsConfig(in *EKSAddonsConfig, p []interface{}) []inter
 		return []interface{}{obj}
 	}
 	obj["auto_apply_pod_identity_associations"] = in.AutoApplyPodIdentityAssociations
+	obj["disable_ebs_csi_driver"] = in.DisableEBSCSIDriver
 
 	return []interface{}{obj}
 

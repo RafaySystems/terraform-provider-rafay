@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb/datatypes"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/gitopspb"
@@ -22,7 +22,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-yaml/yaml"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	structpb "google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/structpb"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
@@ -1472,7 +1472,7 @@ func expandVariables(p []interface{}) []*eaaspb.Variable {
 
 func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
 	if len(p) == 0 || p[0] == nil {
-		return &eaaspb.VariableOptions{}
+		return nil
 	}
 
 	options := &eaaspb.VariableOptions{}
@@ -1493,32 +1493,27 @@ func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
 	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
 		options.Override = expandVariableOverrideOptions(v)
 	}
+	if v, ok := opts["display_metadata"].(string); ok && len(v) > 0 {
+		options.DisplayMetadata = getExpandDisplayMetadata(v)
+	}
 
 	if v, ok := opts["schema"].([]interface{}); ok && len(v) > 0 {
 		options.Schema = expandCustomSchema(v)
 	}
 
-	options.DisplayMetadata = getExpandDisplayMetadata(opts)
-
 	return options
 
 }
 
-func getExpandDisplayMetadata(in map[string]interface{}) *structpb.Struct {
-	if v, ok := in["display_metadata"].(string); ok && len(v) > 0 {
-		newMap := map[string]interface{}{}
-		if err := json.Unmarshal([]byte(v), &newMap); err == nil {
-			s, err := structpb.NewStruct(newMap)
-			if err != nil {
-				return nil
-			}
-
-			return s
+func getExpandDisplayMetadata(v string) *structpb.Struct {
+	newMap := map[string]interface{}{}
+	if err := json.Unmarshal([]byte(v), &newMap); err == nil {
+		s, err := structpb.NewStruct(newMap)
+		if err != nil {
+			return nil
 		}
-
-		return nil
+		return s
 	}
-
 	return nil
 }
 
@@ -1594,8 +1589,10 @@ func flattenVariableOptions(input *eaaspb.VariableOptions) []interface{} {
 	obj["sensitive"] = input.Sensitive
 	obj["required"] = input.Required
 
-	if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
-		obj["display_metadata"] = string(b)
+	if input.DisplayMetadata != nil {
+		if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
+			obj["display_metadata"] = string(b)
+		}
 	}
 
 	if input.Override != nil {
@@ -2467,7 +2464,9 @@ func expandEnvvarOptions(p []interface{}) *eaaspb.EnvVarOptions {
 		options.Required = v
 	}
 
-	options.DisplayMetadata = getExpandDisplayMetadata(opts)
+	if v, ok := opts["display_metadata"].(string); ok && len(v) > 0 {
+		options.DisplayMetadata = getExpandDisplayMetadata(v)
+	}
 
 	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
 		options.Override = expandEnvvarOverrideOptions(v)
@@ -2577,11 +2576,13 @@ func expandFileOptions(p []interface{}) *commonpb.FileOptions {
 		options.Override = expandFileOverrideOptions(v)
 	}
 
+	if v, ok := opts["display_metadata"].(string); ok && len(v) > 0 {
+		options.DisplayMetadata = getExpandDisplayMetadata(v)
+	}
+
 	if v, ok := opts["schema"].([]interface{}); ok && len(v) > 0 {
 		options.Schema = expandCustomSchema(v)
 	}
-
-	options.DisplayMetadata = getExpandDisplayMetadata(opts)
 
 	return options
 

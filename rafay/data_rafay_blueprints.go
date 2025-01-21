@@ -39,12 +39,12 @@ func dataRafayBlueprints() *schema.Resource {
 							Description: "The name of the blueprint",
 						},
 						"versions": {
-							Type:        schema.TypeString,
+							Type:        schema.TypeInt,
 							Computed:    true,
 							Description: "Versions count of the blueprint",
 						},
 						"deployed_clusters": {
-							Type:        schema.TypeString,
+							Type:        schema.TypeInt,
 							Computed:    true,
 							Description: "deployed clusters count",
 						},
@@ -92,8 +92,8 @@ func dataRafayBlueprintsRead(ctx context.Context, d *schema.ResourceData, m inte
 
 		blueprints[i] = map[string]interface{}{
 			"name":              bp.BlueprintName,
-			"versions":          string(rune(len(bp.Snapshots))),
-			"deployed_clusters": string(rune(clusters)),
+			"versions":          len(bp.Snapshots),
+			"deployed_clusters": clusters,
 			"ownership":         ownershipType,
 		}
 

@@ -995,7 +995,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 ***Optional***
 
 - `auto_apply_pod_identity_associations` - (Bool) Flag to auto apply pod identity associations to all managed addons
-
+- `disable_ebs_csi_driver` - (Bool) Flag to disable the deployment of aws-ebs-csi-driver addon
 <a id="nestedblock--cluster_config--access_config"></a>
 ### Nested Schema for `cluster_config.access_config`
 

@@ -474,6 +474,7 @@ type (
 
 type EKSAddonsConfig struct {
 	AutoApplyPodIdentityAssociations bool `yaml:"autoApplyPodIdentityAssociations,omitempty"`
+	DisableEBSCSIDriver              bool `yaml:"disableEBSCSIDriver,omitempty"`
 }
 type Addon struct {
 	// +required

@@ -255,6 +255,16 @@ func (v TaintsValue) FromHub(ctx context.Context, hub *v1.Taint) (TaintsValue, d
 	return v, nil
 }
 
+func (v ProjectsValue) FromHub(ctx context.Context, hub *infrapb.Projects) (ProjectsValue, diag.Diagnostics) {
+	// Convert the hub object to terraform object
+	if hub.Name != "" {
+		v.Name = types.StringValue(string(hub.Name))
+	}
+
+	v.state = attr.ValueStateKnown
+	return v, nil
+}
+
 func (v TolerationsValue) ToHub(ctx context.Context) (*v1.Toleration, diag.Diagnostics) {
 	var hub v1.Toleration
 
@@ -420,13 +430,22 @@ func (v ProxyValue) FromHub(ctx context.Context, hub *infrapb.ClusterProxy) (bas
 }
 
 func (v SharingValue) ToHub(ctx context.Context) (*infrapb.Sharing, diag.Diagnostics) {
-
 	hub := &infrapb.Sharing{}
 	hub.Enabled = getBoolValue(v.Enabled)
 
 	for _, project := range v.Projects.Elements() {
+		// Convert the project to the expected type
+		projectValue, ok := project.(ProjectsValue)
+		if !ok {
+			return nil, diag.Diagnostics{
+				diag.NewErrorDiagnostic("Type Conversion Error", "Expected resource_mks_cluster.ProjectsValue but got a different type"),
+			}
+		}
+
+		projectName := getStringValue(projectValue.Name)
+
 		hub.Projects = append(hub.Projects, &infrapb.Projects{
-			Name: getStringValue(project.(types.String)),
+			Name: projectName,
 		})
 	}
 
@@ -436,14 +455,28 @@ func (v SharingValue) ToHub(ctx context.Context) (*infrapb.Sharing, diag.Diagnos
 func (v SharingValue) FromHub(ctx context.Context, hub *infrapb.Sharing) (basetypes.ObjectValue, diag.Diagnostics) {
 	// Convert the hub object to terraform object
 
+	var diags, d diag.Diagnostics
+
 	v.Enabled = types.BoolValue(hub.Enabled)
 
 	var tfProjects []attr.Value
-	for _, project := range hub.Projects {
-		tfProjects = append(tfProjects, types.StringValue(project.Name))
-
+	tfProjecttype := ProjectsType{
+		ObjectType: types.ObjectType{
+			AttrTypes: ProjectsValue{}.AttributeTypes(ctx),
+		},
 	}
-	v.Projects, _ = types.SetValue(types.StringType, tfProjects)
+	if hub.Projects != nil {
+		for _, hub := range hub.Projects {
+			tfProject := &ProjectsValue{}
+			h, d := tfProject.FromHub(ctx, hub)
+			diags = append(diags, d...)
+			tfProjects = append(tfProjects, h)
+		}
+		v.Projects, d = types.SetValue(tfProjecttype, tfProjects)
+		diags = append(diags, d...)
+	} else {
+		v.Projects = types.SetNull(tfProjecttype)
+	}
 
 	v.state = attr.ValueStateKnown
 	return v.ToObjectValue(ctx)

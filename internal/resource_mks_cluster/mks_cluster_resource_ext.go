@@ -61,6 +61,10 @@ func convertFromTfMap(tfMap types.Map) map[string]string {
 }
 
 func convertToTfMap(goMap map[string]string) types.Map {
+	if goMap == nil || len(goMap) == 0 {
+		return types.MapNull(types.StringType)
+	}
+
 	elements := make(map[string]attr.Value)
 
 	for k, v := range goMap {
@@ -675,10 +679,7 @@ func (v NodesValue) FromHub(ctx context.Context, hub *infrapb.MksNode) (NodesVal
 	v.Roles, d = types.SetValue(types.StringType, tfRoles)
 	diags = append(diags, d...)
 
-	if len(hub.Labels) > 0 {
-		v.Labels = convertToTfMap(hub.Labels)
-	}
-
+	v.Labels = convertToTfMap(hub.Labels)
 	v.KubeletExtraArgs = convertToTfMap(hub.KubeletExtraArgs)
 
 	var tfTaints []attr.Value
@@ -788,7 +789,9 @@ func (v ConfigValue) FromHub(ctx context.Context, hub *infrapb.MksV3ConfigObject
 	}
 
 	v.InstallerTtl = types.Int64Value(hub.InstallerTtl)
+
 	v.KubeletExtraArgs = convertToTfMap(hub.KubeletExtraArgs)
+
 	v.KubernetesVersion = types.StringValue(hub.KubernetesVersion)
 
 	network, d := NewNetworkValue(v.Network.AttributeTypes(ctx), v.Network.Attributes())

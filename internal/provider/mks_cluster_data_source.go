@@ -539,7 +539,6 @@ func (d *MksClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	fmt.Println("mks cluster data", data)
 	// Fetch the cluster from the Hub
 	hub, err := d.client.InfraV3().Cluster().Get(ctx, options.GetOptions{
 		Name:    data.Metadata.Name.ValueString(),
@@ -549,7 +548,7 @@ func (d *MksClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		resp.Diagnostics.AddError("Failed to fetch data", err.Error())
 		return
 	}
-	fmt.Println("mks cluster data hub", hub)
+
 	// convert the hub respo into the TF model
 	resp.Diagnostics.Append(fw.ConvertMksClusterFromHub(ctx, hub, &data)...)
 	if resp.Diagnostics.HasError() {

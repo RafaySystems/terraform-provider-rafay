@@ -295,11 +295,9 @@ func flattenUser(d *schema.ResourceData, in *models.UserResponse) error {
 		return err
 	}
 	log.Println("grps", len(grps))
-	if len(grps) > 0 {
-		err := d.Set("groups", grps)
-		if err != nil {
-			return err
-		}
+	err = d.Set("groups", grps)
+	if err != nil {
+		return err
 	}
 
 	return nil

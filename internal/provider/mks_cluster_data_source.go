@@ -164,6 +164,11 @@ func MksClusterDataSourceSchema(ctx context.Context) schema.Schema {
 								Computed:    true,
 								Description: "Installer TTL Configuration",
 							},
+							"kubelet_extra_args": schema.MapAttribute{
+								ElementType: types.StringType,
+								Computed:    true,
+								Description: "Cluster kubelet extra args",
+							},
 							"location": schema.StringAttribute{
 								Computed:    true,
 								Description: "The data center location where the cluster nodes will be launched",
@@ -243,6 +248,11 @@ func MksClusterDataSourceSchema(ctx context.Context) schema.Schema {
 											ElementType: types.StringType,
 											Computed:    true,
 											Description: "labels to be added to the node",
+										},
+										"kubelet_extra_args": schema.MapAttribute{
+											ElementType: types.StringType,
+											Computed:    true,
+											Description: "Node kubelet extra args",
 										},
 										"operating_system": schema.StringAttribute{
 											Computed:    true,
@@ -538,6 +548,7 @@ func (d *MksClusterDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		resp.Diagnostics.AddError("Failed to fetch data", err.Error())
 		return
 	}
+
 	// convert the hub respo into the TF model
 	resp.Diagnostics.Append(fw.ConvertMksClusterFromHub(ctx, hub, &data)...)
 	if resp.Diagnostics.HasError() {

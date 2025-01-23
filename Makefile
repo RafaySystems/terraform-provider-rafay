@@ -40,6 +40,7 @@ zip:
 	$(shell cd bin; zip ${BINARY}_${VERSION}_darwin_amd64.zip ${BINARY}_${VERSION}_darwin_amd64)
 
 install: build
+	bash internal/scripts/fwgen.sh
 	mkdir -p ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 	mv ${BINARY} ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 

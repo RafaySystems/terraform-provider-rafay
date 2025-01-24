@@ -1676,7 +1676,15 @@ func expandEaasHooks(p []interface{}) ([]*eaaspb.Hook, error) {
 
 		var err error
 		if n, ok := in["driver"].([]interface{}); ok && len(n) > 0 {
+			log.Println("WARN: driver is deprecated, please use workflow_handler instead")
 			hook.Driver, err = expandWorkflowHandlerCompoundRef(n)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if n, ok := in["workflow_handler"].([]interface{}); ok && len(n) > 0 {
+			hook.WorkflowHandler, err = expandWorkflowHandlerCompoundRef(n)
 			if err != nil {
 				return nil, err
 			}
@@ -1971,7 +1979,7 @@ func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		obj["agents"] = flattenEaasAgents(in.Agents)
 		obj["timeout_seconds"] = in.TimeoutSeconds
 		obj["on_failure"] = in.OnFailure
-		obj["driver"] = flattenWorkflowHandlerCompoundRef(in.Driver)
+		obj["workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.WorkflowHandler)
 		obj["depends_on"] = toArrayInterface(in.DependsOn)
 		obj["execute_once"] = in.ExecuteOnce
 		obj["skip_config"] = flattenSkipConfig(in.SkipConfig)
@@ -2280,11 +2288,10 @@ func checkStandardInputTextError(input string) bool {
 }
 
 func expandWorkflowHandlerCompoundRef(p []interface{}) (*eaaspb.WorkflowHandlerCompoundRef, error) {
-	if len(p) == 0 || p[0] == nil {
-		return nil, nil
-	}
-
 	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
+	if len(p) == 0 || p[0] == nil {
+		return wfHandler, nil
+	}
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["name"].(string); ok && len(v) > 0 {
@@ -2327,49 +2334,6 @@ func expandWorkflowHandlerInline(p []interface{}) (*eaaspb.WorkflowHandlerInline
 	}
 
 	return wfHandlerInline, nil
-}
-
-func expandWorkflowHandlerConfig(p []interface{}) *eaaspb.WorkflowHandlerConfig {
-	workflowHandlerConfig := eaaspb.WorkflowHandlerConfig{}
-	if len(p) == 0 || p[0] == nil {
-		return &workflowHandlerConfig
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if typ, ok := in["type"].(string); ok && len(typ) > 0 {
-		workflowHandlerConfig.Type = typ
-	}
-
-	if ts, ok := in["timeout_seconds"].(int); ok {
-		workflowHandlerConfig.TimeoutSeconds = int64(ts)
-	}
-
-	if sc, ok := in["success_condition"].(string); ok && len(sc) > 0 {
-		workflowHandlerConfig.SuccessCondition = sc
-	}
-
-	if ts, ok := in["max_retry_count"].(int); ok {
-		workflowHandlerConfig.MaxRetryCount = int32(ts)
-	}
-
-	if v, ok := in["container"].([]interface{}); ok && len(v) > 0 {
-		workflowHandlerConfig.Container = expandDriverContainerConfig(v)
-	}
-
-	if v, ok := in["http"].([]interface{}); ok && len(v) > 0 {
-		workflowHandlerConfig.Http = expandDriverHttpConfig(v)
-	}
-
-	if v, ok := in["polling_config"].([]interface{}); ok && len(v) > 0 {
-		workflowHandlerConfig.PollingConfig = expandPollingConfig(v)
-	}
-
-	if h, ok := in["timeout_seconds"].(int); ok {
-		workflowHandlerConfig.TimeoutSeconds = int64(h)
-	}
-
-	return &workflowHandlerConfig
 }
 
 func expandPollingConfig(p []interface{}) *eaaspb.PollingConfig {
@@ -2420,59 +2384,6 @@ func flattenWorkflowHandlerInline(input *eaaspb.WorkflowHandlerInline) []interfa
 	if input.Outputs != nil {
 		obj["outputs"] = flattenDriverOutputs(input.Outputs)
 	}
-	return []interface{}{obj}
-}
-
-func flattenWorkflowHandlerConfig(input *eaaspb.WorkflowHandlerConfig, p []interface{}) []interface{} {
-	log.Println("flatten workflow handler config start", input)
-	if input == nil {
-		return nil
-	}
-
-	obj := map[string]interface{}{}
-	if len(p) > 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-
-	if len(input.Type) > 0 {
-		obj["type"] = input.Type
-	}
-
-	obj["timeout_seconds"] = input.TimeoutSeconds
-
-	if len(input.SuccessCondition) > 0 {
-		obj["success_condition"] = input.SuccessCondition
-	}
-
-	obj["max_retry_count"] = input.MaxRetryCount
-
-	if input.Container != nil {
-		v, ok := obj["container"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["container"] = flattenDriverContainerConfig(input.Container, v)
-	}
-
-	if input.Http != nil {
-		v, ok := obj["http"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["http"] = flattenDriverHttpConfig(input.Http, v)
-	}
-
-	if input.PollingConfig != nil {
-		v, ok := obj["polling_config"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["polling_config"] = flattenPollingConfig(input.PollingConfig, v)
-	}
-
 	return []interface{}{obj}
 }
 

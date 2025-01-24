@@ -19,14 +19,14 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func resourceDriver() *schema.Resource {
+func resourceWorkflowHandler() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceDriverCreate,
-		ReadContext:   resourceDriverRead,
-		UpdateContext: resourceDriverUpdate,
-		DeleteContext: resourceDriverDelete,
+		CreateContext: resourceWorkflowHandlerCreate,
+		ReadContext:   resourceWorkflowHandlerRead,
+		UpdateContext: resourceWorkflowHandlerUpdate,
+		DeleteContext: resourceWorkflowHandlerDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceDriverImport,
+			StateContext: resourceWorkflowHandlerImport,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -36,19 +36,19 @@ func resourceDriver() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.DriverSchema.Schema,
+		Schema:        resource.WorkflowHandlerSchema.Schema,
 	}
 }
 
-func resourceDriverCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	log.Println("driver create")
-	diags := resourceDriverUpsert(ctx, d, m)
+func resourceWorkflowHandlerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Println("workflow handler create")
+	diags := resourceWorkflowHandlerUpsert(ctx, d, m)
 	if diags.HasError() {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
 		}
-		cc, err := expandDriver(d)
+		cc, err := expandWorkflowHandler(d)
 		if err != nil {
 			return diags
 		}
@@ -58,7 +58,7 @@ func resourceDriverCreate(ctx context.Context, d *schema.ResourceData, m interfa
 			return diags
 		}
 
-		err = client.EaasV1().Driver().Delete(ctx, options.DeleteOptions{
+		err = client.EaasV1().WorkflowHandler().Delete(ctx, options.DeleteOptions{
 			Name:    cc.Metadata.Name,
 			Project: cc.Metadata.Project,
 		})
@@ -69,15 +69,15 @@ func resourceDriverCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	return diags
 }
 
-func resourceDriverUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceWorkflowHandlerUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("driver upsert starts")
+	log.Printf("workflow handler upsert starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
-	cc, err := expandDriver(d)
+	cc, err := expandWorkflowHandler(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -88,7 +88,7 @@ func resourceDriverUpsert(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	err = client.EaasV1().Driver().Apply(ctx, cc, options.ApplyOptions{})
+	err = client.EaasV1().WorkflowHandler().Apply(ctx, cc, options.ApplyOptions{})
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -97,9 +97,9 @@ func resourceDriverUpsert(ctx context.Context, d *schema.ResourceData, m interfa
 	return diags
 }
 
-func resourceDriverRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceWorkflowHandlerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Println("driver read starts ")
+	log.Println("workflow handler read starts ")
 	meta := GetMetaData(d)
 	if meta == nil {
 		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
@@ -108,7 +108,7 @@ func resourceDriverRead(ctx context.Context, d *schema.ResourceData, m interface
 		meta.Name = d.State().ID
 	}
 
-	cc, err := expandDriver(d)
+	cc, err := expandWorkflowHandler(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -120,7 +120,7 @@ func resourceDriverRead(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 
-	driver, err := client.EaasV1().Driver().Get(ctx, options.GetOptions{
+	wh, err := client.EaasV1().WorkflowHandler().Get(ctx, options.GetOptions{
 		Name:    meta.Name,
 		Project: cc.Metadata.Project,
 	})
@@ -134,7 +134,7 @@ func resourceDriverRead(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 
-	err = flattenDriver(d, driver)
+	err = flattenWorkflowHandler(d, wh)
 	if err != nil {
 		log.Println("read flatten err")
 		return diag.FromErr(err)
@@ -143,13 +143,13 @@ func resourceDriverRead(ctx context.Context, d *schema.ResourceData, m interface
 
 }
 
-func resourceDriverUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return resourceDriverUpsert(ctx, d, m)
+func resourceWorkflowHandlerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	return resourceWorkflowHandlerUpsert(ctx, d, m)
 }
 
-func resourceDriverDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceWorkflowHandlerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Println("driver delete starts")
+	log.Println("workflow handler delete starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -164,9 +164,9 @@ func resourceDriverDelete(ctx context.Context, d *schema.ResourceData, m interfa
 		}
 	}
 
-	cc, err := expandDriver(d)
+	cc, err := expandWorkflowHandler(d)
 	if err != nil {
-		log.Println("error while expanding driver during delete")
+		log.Println("error while expanding workflow handler during delete")
 		return diag.FromErr(err)
 	}
 
@@ -175,7 +175,7 @@ func resourceDriverDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	err = client.EaasV1().Driver().Delete(ctx, options.DeleteOptions{
+	err = client.EaasV1().WorkflowHandler().Delete(ctx, options.DeleteOptions{
 		Name:    cc.Metadata.Name,
 		Project: cc.Metadata.Project,
 	})
@@ -187,19 +187,19 @@ func resourceDriverDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	return diags
 }
 
-func expandDriver(in *schema.ResourceData) (*eaaspb.Driver, error) {
-	log.Println("expand driver resource")
+func expandWorkflowHandler(in *schema.ResourceData) (*eaaspb.WorkflowHandler, error) {
+	log.Println("expand workflow handler resource")
 	if in == nil {
-		return nil, fmt.Errorf("%s", "expand driver empty input")
+		return nil, fmt.Errorf("%s", "expand workflow handler empty input")
 	}
-	obj := &eaaspb.Driver{}
+	obj := &eaaspb.WorkflowHandler{}
 
 	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandV3MetaData(v)
 	}
 
 	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
-		objSpec, err := expandDriverSpec(v)
+		objSpec, err := expandWorkflowHandlerSpec(v)
 		if err != nil {
 			return nil, err
 		}
@@ -207,21 +207,21 @@ func expandDriver(in *schema.ResourceData) (*eaaspb.Driver, error) {
 	}
 
 	obj.ApiVersion = "eaas.envmgmt.io/v1"
-	obj.Kind = "Driver"
+	obj.Kind = "WorkflowHandler"
 	return obj, nil
 }
 
-func expandDriverSpec(p []interface{}) (*eaaspb.DriverSpec, error) {
-	log.Println("expand driver spec")
-	spec := &eaaspb.DriverSpec{}
+func expandWorkflowHandlerSpec(p []interface{}) (*eaaspb.WorkflowHandlerSpec, error) {
+	log.Println("expand workflow handler spec")
+	spec := &eaaspb.WorkflowHandlerSpec{}
 	if len(p) == 0 || p[0] == nil {
-		return spec, fmt.Errorf("%s", "expand driver spec empty input")
+		return spec, fmt.Errorf("%s", "expand workflow handler spec empty input")
 	}
 
 	in := p[0].(map[string]interface{})
 
 	if c, ok := in["config"].([]interface{}); ok && len(c) > 0 {
-		spec.Config = expandDriverConfig(c)
+		spec.Config = expandWorkflowHandlerConfig(c)
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
@@ -234,7 +234,7 @@ func expandDriverSpec(p []interface{}) (*eaaspb.DriverSpec, error) {
 
 	var err error
 	if v, ok := in["outputs"].(string); ok && len(v) > 0 {
-		spec.Outputs, err = expandDriverOutputs(v)
+		spec.Outputs, err = expandWorkflowHandlerOutputs(v)
 		if err != nil {
 			return nil, err
 		}
@@ -243,42 +243,50 @@ func expandDriverSpec(p []interface{}) (*eaaspb.DriverSpec, error) {
 	return spec, nil
 }
 
-func expandDriverConfig(p []interface{}) *eaaspb.DriverConfig {
-	config := eaaspb.DriverConfig{}
+func expandWorkflowHandlerConfig(p []interface{}) *eaaspb.WorkflowHandlerConfig {
 	if len(p) == 0 || p[0] == nil {
-		return &config
+		return nil
 	}
 
+	workflowHandlerConfig := eaaspb.WorkflowHandlerConfig{}
 	in := p[0].(map[string]interface{})
 
 	if typ, ok := in["type"].(string); ok && len(typ) > 0 {
-		config.Type = typ
+		workflowHandlerConfig.Type = typ
 	}
 
 	if ts, ok := in["timeout_seconds"].(int); ok {
-		config.TimeoutSeconds = int64(ts)
+		workflowHandlerConfig.TimeoutSeconds = int64(ts)
 	}
 
 	if sc, ok := in["success_condition"].(string); ok && len(sc) > 0 {
-		config.SuccessCondition = sc
+		workflowHandlerConfig.SuccessCondition = sc
 	}
 
 	if ts, ok := in["max_retry_count"].(int); ok {
-		config.MaxRetryCount = int32(ts)
+		workflowHandlerConfig.MaxRetryCount = int32(ts)
 	}
 
 	if v, ok := in["container"].([]interface{}); ok && len(v) > 0 {
-		config.Container = expandDriverContainerConfig(v)
+		workflowHandlerConfig.Container = expandWorkflowHandlerContainerConfig(v)
 	}
 
 	if v, ok := in["http"].([]interface{}); ok && len(v) > 0 {
-		config.Http = expandDriverHttpConfig(v)
+		workflowHandlerConfig.Http = expandWorkflowHandlerHttpConfig(v)
 	}
 
-	return &config
+	if v, ok := in["polling_config"].([]interface{}); ok && len(v) > 0 {
+		workflowHandlerConfig.PollingConfig = expandPollingConfig(v)
+	}
+
+	if h, ok := in["timeout_seconds"].(int); ok {
+		workflowHandlerConfig.TimeoutSeconds = int64(h)
+	}
+
+	return &workflowHandlerConfig
 }
 
-func expandDriverContainerConfig(p []interface{}) *eaaspb.ContainerDriverConfig {
+func expandWorkflowHandlerContainerConfig(p []interface{}) *eaaspb.ContainerDriverConfig {
 	cc := eaaspb.ContainerDriverConfig{}
 	if len(p) == 0 || p[0] == nil {
 		return &cc
@@ -327,14 +335,14 @@ func expandDriverContainerConfig(p []interface{}) *eaaspb.ContainerDriverConfig 
 	}
 
 	if v, ok := in["volume_options"].([]interface{}); ok && len(v) > 0 {
-		volumes := expandContainerDriverVolumeOptions(v)
+		volumes := expandContainerWorkflowHandlerVolumeOptions(v)
 		if len(volumes) > 0 {
 			cc.VolumeOptions = volumes[0]
 		}
 	}
 
 	if v, ok := in["volumes"].([]interface{}); ok && len(v) > 0 {
-		cc.Volumes = expandContainerDriverVolumeOptions(v)
+		cc.Volumes = expandContainerWorkflowHandlerVolumeOptions(v)
 	}
 
 	if wdp, ok := in["working_dir_path"].(string); ok && len(wdp) > 0 {
@@ -344,7 +352,107 @@ func expandDriverContainerConfig(p []interface{}) *eaaspb.ContainerDriverConfig 
 	return &cc
 }
 
-func expandDriverHttpConfig(p []interface{}) *eaaspb.HTTPDriverConfig {
+func expandImagePullCredentials(p []interface{}) *eaaspb.ContainerImagePullCredentials {
+	hc := eaaspb.ContainerImagePullCredentials{}
+	if len(p) == 0 || p[0] == nil {
+		return &hc
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if pass, ok := in["password"].(string); ok && len(pass) > 0 {
+		hc.Password = pass
+	}
+
+	if registry, ok := in["registry"].(string); ok && len(registry) > 0 {
+		hc.Registry = registry
+	}
+
+	if username, ok := in["username"].(string); ok && len(username) > 0 {
+		hc.Username = username
+	}
+
+	return &hc
+}
+
+func expandKubeConfigOptions(p []interface{}) *eaaspb.ContainerKubeConfigOptions {
+	hc := eaaspb.ContainerKubeConfigOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return &hc
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if kc, ok := in["kube_config"].(string); ok && len(kc) > 0 {
+		hc.KubeConfig = kc
+	}
+
+	if ofc, ok := in["out_of_cluster"].(bool); ok {
+		hc.OutOfCluster = ofc
+	}
+
+	return &hc
+}
+
+func expandContainerKubeOptions(p []interface{}) *eaaspb.ContainerKubeOptions {
+	hc := eaaspb.ContainerKubeOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return &hc
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if lbls, ok := in["labels"].(map[string]interface{}); ok && len(lbls) > 0 {
+		hc.Labels = toMapString(lbls)
+	}
+
+	if ns, ok := in["namespace"].(string); ok && len(ns) > 0 {
+		hc.Namespace = ns
+	}
+
+	if ns, ok := in["node_selector"].(map[string]interface{}); ok && len(ns) > 0 {
+		hc.NodeSelector = toMapString(ns)
+	}
+
+	if r, ok := in["resources"].([]interface{}); ok && len(r) > 0 {
+		hc.Resources = toArrayString(r)
+	}
+
+	if sc, ok := in["security_context"].([]interface{}); ok && len(sc) > 0 {
+		hc.SecurityContext = expandSecurityContext(sc)
+	}
+
+	if san, ok := in["service_account_name"].(string); ok && len(san) > 0 {
+		hc.ServiceAccountName = san
+	}
+
+	if tolerations, ok := in["tolerations"].([]interface{}); ok {
+		hc.Tolerations = expandV3Tolerations(tolerations)
+	}
+
+	return &hc
+}
+
+func expandSecurityContext(p []interface{}) *eaaspb.KubeSecurityContext {
+	ksc := eaaspb.KubeSecurityContext{}
+	if len(p) == 0 || p[0] == nil {
+		return &ksc
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if privileged, ok := in["privileged"].([]interface{}); ok && len(privileged) > 0 {
+		ksc.Privileged = expandBoolValue(privileged)
+	}
+
+	if ro, ok := in["read_only_root_file_system"].([]interface{}); ok && len(ro) > 0 {
+		ksc.ReadOnlyRootFileSystem = expandBoolValue(ro)
+	}
+
+	return &ksc
+}
+
+func expandWorkflowHandlerHttpConfig(p []interface{}) *eaaspb.HTTPDriverConfig {
 	hc := eaaspb.HTTPDriverConfig{}
 	if len(p) == 0 || p[0] == nil {
 		return &hc
@@ -371,7 +479,7 @@ func expandDriverHttpConfig(p []interface{}) *eaaspb.HTTPDriverConfig {
 	return &hc
 }
 
-func expandDriverOutputs(p string) (*structpb.Struct, error) {
+func expandWorkflowHandlerOutputs(p string) (*structpb.Struct, error) {
 	if len(p) == 0 {
 		return nil, nil
 	}
@@ -385,7 +493,7 @@ func expandDriverOutputs(p string) (*structpb.Struct, error) {
 
 // Flatteners
 
-func flattenDriver(d *schema.ResourceData, in *eaaspb.Driver) error {
+func flattenWorkflowHandler(d *schema.ResourceData, in *eaaspb.WorkflowHandler) error {
 	if in == nil {
 		return nil
 	}
@@ -402,9 +510,9 @@ func flattenDriver(d *schema.ResourceData, in *eaaspb.Driver) error {
 	}
 
 	var ret []interface{}
-	ret, err = flattenDriverSpec(in.Spec, v)
+	ret, err = flattenWorkflowHandlerSpec(in.Spec, v)
 	if err != nil {
-		log.Println("flatten driver spec err")
+		log.Println("flatten workflow handler spec err")
 		return err
 	}
 
@@ -416,9 +524,9 @@ func flattenDriver(d *schema.ResourceData, in *eaaspb.Driver) error {
 	return nil
 }
 
-func flattenDriverSpec(in *eaaspb.DriverSpec, p []interface{}) ([]interface{}, error) {
+func flattenWorkflowHandlerSpec(in *eaaspb.WorkflowHandlerSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
-		return nil, fmt.Errorf("%s", "flatten driver spec empty input")
+		return nil, fmt.Errorf("%s", "flatten workflow handler spec empty input")
 	}
 
 	obj := map[string]interface{}{}
@@ -432,16 +540,16 @@ func flattenDriverSpec(in *eaaspb.DriverSpec, p []interface{}) ([]interface{}, e
 			v = []interface{}{}
 		}
 
-		obj["config"] = flattenDriverConfig(in.Config, v)
+		obj["config"] = flattenWorkflowHandlerConfig(in.Config, v)
 	}
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 	obj["inputs"] = flattenConfigContextCompoundRefs(in.Inputs)
-	obj["outputs"] = flattenDriverOutputs(in.Outputs)
+	obj["outputs"] = flattenWorkflowHandlerOutputs(in.Outputs)
 	return []interface{}{obj}, nil
 }
 
-func flattenDriverConfig(input *eaaspb.DriverConfig, p []interface{}) []interface{} {
-	log.Println("flatten driver config start", input)
+func flattenWorkflowHandlerConfig(input *eaaspb.WorkflowHandlerConfig, p []interface{}) []interface{} {
+	log.Println("flatten workflow handler config start", input)
 	if input == nil {
 		return nil
 	}
@@ -469,7 +577,7 @@ func flattenDriverConfig(input *eaaspb.DriverConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 
-		obj["container"] = flattenDriverContainerConfig(input.Container, v)
+		obj["container"] = flattenWorkflowHandlerContainerConfig(input.Container, v)
 	}
 
 	if input.Http != nil {
@@ -478,14 +586,23 @@ func flattenDriverConfig(input *eaaspb.DriverConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 
-		obj["http"] = flattenDriverHttpConfig(input.Http, v)
+		obj["http"] = flattenWorkflowHandlerHttpConfig(input.Http, v)
+	}
+
+	if input.PollingConfig != nil {
+		v, ok := obj["polling_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["polling_config"] = flattenPollingConfig(input.PollingConfig, v)
 	}
 
 	return []interface{}{obj}
 }
 
-func flattenDriverContainerConfig(in *eaaspb.ContainerDriverConfig, p []interface{}) []interface{} {
-	log.Println("flatten container driver config start")
+func flattenWorkflowHandlerContainerConfig(in *eaaspb.ContainerDriverConfig, p []interface{}) []interface{} {
+	log.Println("flatten container workflow handler config start")
 	if in == nil {
 		return nil
 	}
@@ -546,7 +663,7 @@ func flattenDriverContainerConfig(in *eaaspb.ContainerDriverConfig, p []interfac
 			v = []interface{}{}
 		}
 
-		obj["volume_options"] = flattenContainerDriverVolumeOptions([]*eaaspb.ContainerDriverVolumeOptions{
+		obj["volume_options"] = flattenContainerWorkflowHandlerVolumeOptions([]*eaaspb.ContainerDriverVolumeOptions{
 			in.VolumeOptions,
 		}, v)
 	}
@@ -557,7 +674,7 @@ func flattenDriverContainerConfig(in *eaaspb.ContainerDriverConfig, p []interfac
 			v = []interface{}{}
 		}
 
-		obj["volumes"] = flattenContainerDriverVolumeOptions(in.Volumes, v)
+		obj["volumes"] = flattenContainerWorkflowHandlerVolumeOptions(in.Volumes, v)
 	}
 
 	if len(in.WorkingDirPath) > 0 {
@@ -567,7 +684,116 @@ func flattenDriverContainerConfig(in *eaaspb.ContainerDriverConfig, p []interfac
 	return []interface{}{obj}
 }
 
-func flattenDriverHttpConfig(in *eaaspb.HTTPDriverConfig, p []interface{}) []interface{} {
+func flattenImagePullCredentials(in *eaaspb.ContainerImagePullCredentials, p []interface{}) []interface{} {
+	log.Println("flatten container image pull credentials start")
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Registry) > 0 {
+		obj["registry"] = in.Registry
+	}
+
+	if len(in.Username) > 0 {
+		obj["username"] = in.Username
+	}
+
+	if len(in.Password) > 0 {
+		obj["password"] = in.Password
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenContainerKubeConfig(in *eaaspb.ContainerKubeConfigOptions, p []interface{}) []interface{} {
+	log.Println("flatten container kube config start")
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.KubeConfig) > 0 {
+		obj["kube_config"] = in.KubeConfig
+	}
+
+	obj["out_of_cluster"] = in.OutOfCluster
+
+	return []interface{}{obj}
+}
+
+func flattenContainerKubeOptions(in *eaaspb.ContainerKubeOptions, p []interface{}) []interface{} {
+	log.Println("flatten container kube options start")
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["labels"] = toMapInterface(in.Labels)
+
+	if len(in.Namespace) > 0 {
+		obj["namespace"] = in.Namespace
+	}
+
+	obj["node_selector"] = toMapInterface(in.NodeSelector)
+	obj["resources"] = toArrayInterface(in.Resources)
+
+	if in.SecurityContext != nil {
+		v, ok := obj["security_context"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+
+		obj["security_context"] = flattenSecurityContext(in.SecurityContext, v)
+	}
+
+	if len(in.ServiceAccountName) > 0 {
+		obj["service_account_name"] = in.ServiceAccountName
+	}
+
+	if len(in.Tolerations) > 0 {
+		v, ok := obj["tolerations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, v)
+	} else {
+		delete(obj, "tolerations")
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenSecurityContext(in *eaaspb.KubeSecurityContext, p []interface{}) []interface{} {
+	log.Println("flatten kube security context start")
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["privileged"] = flattenBoolValue(in.Privileged)
+	obj["read_only_root_file_system"] = flattenBoolValue(in.ReadOnlyRootFileSystem)
+
+	return []interface{}{obj}
+}
+
+func flattenWorkflowHandlerHttpConfig(in *eaaspb.HTTPDriverConfig, p []interface{}) []interface{} {
 	log.Println("flatten http config start")
 	if in == nil {
 		return nil
@@ -595,7 +821,7 @@ func flattenDriverHttpConfig(in *eaaspb.HTTPDriverConfig, p []interface{}) []int
 	return []interface{}{obj}
 }
 
-func expandContainerDriverVolumeOptions(p []interface{}) []*eaaspb.ContainerDriverVolumeOptions {
+func expandContainerWorkflowHandlerVolumeOptions(p []interface{}) []*eaaspb.ContainerDriverVolumeOptions {
 	volumes := make([]*eaaspb.ContainerDriverVolumeOptions, 0)
 	if len(p) == 0 {
 		return volumes
@@ -635,14 +861,14 @@ func expandContainerDriverVolumeOptions(p []interface{}) []*eaaspb.ContainerDriv
 	return volumes
 }
 
-func flattenContainerDriverVolumeOptions(input []*eaaspb.ContainerDriverVolumeOptions, p []interface{}) []interface{} {
+func flattenContainerWorkflowHandlerVolumeOptions(input []*eaaspb.ContainerDriverVolumeOptions, p []interface{}) []interface{} {
 	if len(input) == 0 {
 		return nil
 	}
 
 	out := make([]interface{}, len(input))
 	for i, in := range input {
-		log.Println("flatten container driver volume options", in)
+		log.Println("flatten container workflow handler volume options", in)
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
@@ -669,7 +895,7 @@ func flattenContainerDriverVolumeOptions(input []*eaaspb.ContainerDriverVolumeOp
 	return out
 }
 
-func flattenDriverOutputs(in *structpb.Struct) string {
+func flattenWorkflowHandlerOutputs(in *structpb.Struct) string {
 	if in == nil {
 		return ""
 	}
@@ -677,16 +903,16 @@ func flattenDriverOutputs(in *structpb.Struct) string {
 	return string(b)
 }
 
-func resourceDriverImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
-	log.Printf("Driver Import Starts")
+func resourceWorkflowHandlerImport(_ context.Context, d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
+	log.Printf("WorkflowHandler Import Starts")
 
 	idParts := strings.SplitN(d.Id(), "/", 2)
-	log.Println("resourceDriverImport idParts:", idParts)
+	log.Println("resourceWorkflowHandlerImport idParts:", idParts)
 
-	log.Println("resourceDriverImport Invoking expandDriver")
-	cc, err := expandDriver(d)
+	log.Println("resourceWorkflowHandlerImport Invoking expandWorkflowHandler")
+	cc, err := expandWorkflowHandler(d)
 	if err != nil {
-		log.Printf("resourceDriverImport  expand error %s", err.Error())
+		log.Printf("resourceWorkflowHandlerImport  expand error %s", err.Error())
 	}
 
 	var metaD commonpb.Metadata

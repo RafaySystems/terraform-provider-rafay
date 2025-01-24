@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
-	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
@@ -267,7 +267,15 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 	}
 
 	if ad, ok := in["artifact_driver"].([]interface{}); ok && len(ad) > 0 {
+		log.Println("WARN: artifact_driver is deprecated, use artifact_workflow_handler instead")
 		spec.ArtifactDriver, err = expandWorkflowHandlerCompoundRef(ad)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if ad, ok := in["artifact_workflow_handler"].([]interface{}); ok && len(ad) > 0 {
+		spec.ArtifactWorkflowHandler, err = expandWorkflowHandlerCompoundRef(ad)
 		if err != nil {
 			return nil, err
 		}
@@ -308,7 +316,15 @@ func expandProviderOptions(p []interface{}) (*eaaspb.ResourceTemplateProviderOpt
 	}
 
 	if p, ok := in["driver"].([]interface{}); ok && len(p) > 0 {
+		log.Println("WARN: spec.provider_options.driver is deprecated, use spec.provider_options.workflow_handler instead")
 		po.Driver, err = expandWorkflowHandlerCompoundRef(p)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if p, ok := in["workflow_handler"].([]interface{}); ok && len(p) > 0 {
+		po.WorkflowHandler, err = expandWorkflowHandlerCompoundRef(p)
 		if err != nil {
 			return nil, err
 		}
@@ -1271,7 +1287,7 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{
 
 	obj["agents"] = flattenEaasAgents(in.Agents)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
-	obj["artifact_driver"] = flattenWorkflowHandlerCompoundRef(in.ArtifactDriver)
+	obj["artifact_workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.ArtifactWorkflowHandler)
 
 	if len(in.Actions) > 0 {
 		v, ok := obj["actions"].([]interface{})
@@ -1295,7 +1311,7 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions) []interf
 	obj["system"] = flattenSystemProviderOptions(in.System)
 	obj["terragrunt"] = flattenTerragruntProviderOptions(in.Terragrunt)
 	obj["pulumi"] = flattenPulumiProviderOptions(in.Pulumi)
-	obj["driver"] = flattenWorkflowHandlerCompoundRef(in.Driver)
+	obj["workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.WorkflowHandler)
 	obj["open_tofu"] = flattenOpenTofuProviderOptions(in.OpenTofu)
 	obj["custom"] = flattenCustomProviderOptions(in.Custom)
 	obj["hcp_terraform"] = flattenHcpTerraformProviderOptions(in.HcpTerraform)

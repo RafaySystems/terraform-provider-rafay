@@ -2288,11 +2288,10 @@ func checkStandardInputTextError(input string) bool {
 }
 
 func expandWorkflowHandlerCompoundRef(p []interface{}) (*eaaspb.WorkflowHandlerCompoundRef, error) {
-	if len(p) == 0 || p[0] == nil {
-		return nil, nil
-	}
-
 	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
+	if len(p) == 0 || p[0] == nil {
+		return wfHandler, nil
+	}
 	in := p[0].(map[string]interface{})
 
 	if v, ok := in["name"].(string); ok && len(v) > 0 {

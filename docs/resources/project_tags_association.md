@@ -71,8 +71,9 @@ resource "rafay_project_tags_association" "tfptagassociation1" {
 ***Optional***
 
 - `tag_value` - (String) The tag value. If tag value is not provided it defaults to an empty string `""`. The combination of tag_key and tag_value must be unique for a project and can be associated with all the tag types. 
-- `resource` - (String) Name of the resource to which tag must be associated. 
-**resource field is required if the tag_type is namespacelabel**
+- `resource` - (String) Name of the resource to which tag must be associated.
+
+**Note**: The re.source field is required if the tag_type is namespacelabel
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

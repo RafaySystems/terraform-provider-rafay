@@ -18,7 +18,7 @@ env:
   GOPRIVATE: "github.com/RafaySystems"
 jobs:
   goreleaser:
-    runs-on: ubuntu-latest-m
+    runs-on: terraform-provider-runner
     steps:
       -
         name: Checkout

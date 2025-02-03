@@ -238,6 +238,7 @@ replace (
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
 	//github.com/getkin/kin-openapi => github.com/getkin/kin-openapi v0.120.0
 	github.com/go-pg/pg => github.com/go-pg/pg v6.15.1+incompatible
+	go.opencensus.io => github.com/census-instrumentation/opencensus-go v0.22.0
 	k8s.io/api => k8s.io/api v0.26.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.2
 	k8s.io/apimachinery => k8s.io/apimachinery v0.26.2

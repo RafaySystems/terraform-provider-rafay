@@ -24,6 +24,7 @@ pipeline {
                     echo machine github.com login ${userName} password ${passWord} > ~/.netrc
                     chmod 400 ~/.netrc
                     GOPROXY="https://proxy.golang.org,direct" GOPRIVATE="github.com/RafaySystems/*" go mod download
+                    make build
                     make release
                     make push
                     make bucket-name

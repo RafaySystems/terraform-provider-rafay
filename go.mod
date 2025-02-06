@@ -31,8 +31,8 @@ require (
 	github.com/IBM/sarama v1.43.2 // indirect
 	github.com/Kunde21/markdownfmt/v3 v3.1.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250117092029-e566bfffe88f // indirect
-	github.com/RafaySystems/paas-common v0.0.0-20241210130731-7d3645af3795 // indirect
+	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250206113453-f30598d5d28a // indirect
+	github.com/RafaySystems/paas-common v0.0.0-20250131101445-94e01a04c5b7 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
@@ -230,8 +230,8 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
-	// github.com/RafaySystems/eaas-playground => ../eaas-playground
-	// github.com/RafaySystems/rafay-common => ../rafay-common
+	//github.com/RafaySystems/eaas-playground => ../eaas-playground
+	//github.com/RafaySystems/rafay-common => ../rafay-common
 	// github.com/RafaySystems/rctl => ../rctl
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	// github.com/RafaySystems/rctl => ../rctl

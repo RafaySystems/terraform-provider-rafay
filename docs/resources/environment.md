@@ -76,6 +76,7 @@ resource "rafay_environment" "eks-rds-env-example" {
 - `env_vars` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--envs))
 - `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--files))
 - `schedule_optouts` (Block List) Request to opt of of schedules, this may be honoured or not depending on the template configurations and approvals (see [below for nested schema](#nestedblock--spec--schedule-optouts))
+- `reconcile_resources` (Block List) Specify resources to process while environment publish (see [below for nested schema](#nestedblock--spec--reconcileresources))
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
@@ -187,3 +188,10 @@ resource "rafay_environment" "eks-rds-env-example" {
 ***Optional***
 
 - `duration` (String) Requested opt out duration
+
+<a id="nestedblock--spec--reconcileresources"></a>
+### Nested Schema for `spec.reconcileresources`
+
+***Required***
+
+- `name` (String) name of the resource to be reconciled during environment publish

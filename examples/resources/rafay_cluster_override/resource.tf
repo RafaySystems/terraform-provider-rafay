@@ -143,3 +143,37 @@ resource "rafay_cluster_override" "tfdemocluster-override-share1" {
     EOS
   }
 }
+
+resource "rafay_cluster_override" "tfdemocluster-clusterquotaoverride1" {
+  metadata {
+    name    = "tfdemocluster-clusterquotaoverride1"
+    project = "terraform"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "manifestsFile"
+    }
+  }
+  spec {
+    artifact_type = "NativeYAML" // NativeYAML or GitRepoWithNativeYAML
+    cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key = "rafay.dev/clusterName"
+        value = "cluster-1"
+      }
+    }
+    resource_selector = "rafay.dev/system=true"
+    type              = "ClusterOverrideTypeClusterQuota"
+    override_values   = <<-EOS
+      apiVersion: system.k8smgmt.io/v3
+      kind: Project
+      metadata:
+        name: terraform
+      patch:
+      - op: replace
+        path: /spec/clusterResourceQuota/cpuLimits
+        value: 30m
+    EOS
+  }
+}

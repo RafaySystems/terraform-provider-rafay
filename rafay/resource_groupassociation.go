@@ -156,7 +156,7 @@ func resourceGroupAssociationImport(d *schema.ResourceData, meta interface{}) ([
 	}
 
 	//checking response of GetGroupByName
-	currGroup, err := group.NewGroupFromResponse([]byte(resp))
+	currGroup, err := group.NewGroupFromResponse([]byte(resp), group_name)
 	if err != nil {
 		log.Printf("Failed to get group by name, error %s", err.Error())
 		return nil, fmt.Errorf("failed to get group by name, error %s", err.Error())
@@ -265,7 +265,7 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 	//checking response of group id
-	currGroup, err := group.NewGroupFromResponse([]byte(groupResp))
+	currGroup, err := group.NewGroupFromResponse([]byte(groupResp), d.Get("group").(string))
 	if err != nil {
 		log.Printf("create group failed to get group, error %s", err.Error())
 		return diag.FromErr(err)

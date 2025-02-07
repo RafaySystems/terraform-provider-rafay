@@ -43,7 +43,7 @@ func dataGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		return diag.FromErr(err)
 	}
 
-	g, err := group.NewGroupFromResponse([]byte(resp))
+	g, err := group.NewGroupFromResponse([]byte(resp), d.Get("name").(string))
 	if err != nil {
 		log.Printf("create group failed to parse get response, error %s", err.Error())
 		return diag.FromErr(err)

@@ -6,8 +6,8 @@ toolchain go1.23.4
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250124121937-42e9b92012af
-	github.com/RafaySystems/rctl v1.29.1-0.20250116062054-57df2ddc753a
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250205044921-b917c3e4be67
+	github.com/RafaySystems/rctl v1.29.1-0.20250204171226-5366acd27b9d
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5
@@ -31,8 +31,8 @@ require (
 	github.com/IBM/sarama v1.43.2 // indirect
 	github.com/Kunde21/markdownfmt/v3 v3.1.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250117092029-e566bfffe88f // indirect
-	github.com/RafaySystems/paas-common v0.0.0-20241210130731-7d3645af3795 // indirect
+	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250203164236-b43d7d3c0c42 // indirect
+	github.com/RafaySystems/paas-common v0.0.0-20250131101445-94e01a04c5b7 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
@@ -234,7 +234,6 @@ replace (
 	// github.com/RafaySystems/rafay-common => ../rafay-common
 	// github.com/RafaySystems/rctl => ../rctl
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
-	// github.com/RafaySystems/rctl => ../rctl
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
 	//github.com/getkin/kin-openapi => github.com/getkin/kin-openapi v0.120.0
 	github.com/go-pg/pg => github.com/go-pg/pg v6.15.1+incompatible

@@ -421,6 +421,14 @@ func configField() map[string]*schema.Schema {
 				Schema: addonsConfigurationsField(),
 			},
 		},
+		"auto_mode_config": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "auto mode config fields",
+			Elem: &schema.Resource{
+				Schema: autoModeConfigurationsField(),
+			},
+		},
 	}
 	return s
 }
@@ -1130,6 +1138,30 @@ func addonsConfigurationsField() map[string]*schema.Schema {
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Description: "flag to enable or disable ebs csi driver",
+		},
+	}
+	return s
+}
+
+func autoModeConfigurationsField() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Enable auto mode in EKS",
+		},
+		"node_role_arn": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "RoleARN of the nodes",
+		},
+		"node_pools": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "List of default nodepools (general-purpose,system)",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
 		},
 	}
 	return s
@@ -2507,6 +2539,9 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) (*EKSClusterCo
 	if v, ok := in["addons_config"].([]interface{}); ok && len(v) > 0 {
 		obj.AddonsConfig = expandAddonsConfig(v)
 	}
+	if v, ok := in["auto_mode_config"].([]interface{}); ok && len(v) > 0 {
+		obj.AutoModeConfig = expandAutoModeConfig(v)
+	}
 	return obj, nil
 }
 
@@ -3781,6 +3816,26 @@ func expandAddonsConfig(p []interface{}) *EKSAddonsConfig {
 	return obj
 }
 
+func expandAutoModeConfig(p []interface{}) *EKSAutoModeConfig {
+	obj := &EKSAutoModeConfig{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+	if v, ok := in["node_role_arn"].(string); ok {
+		obj.NodeRoleARN = v
+	}
+	if v, ok := in["node_pools"].([]interface{}); ok && len(v) > 0 {
+		obj.NodePools = toArrayString(v)
+	}
+
+	return obj
+}
+
 // expand addon(completed/kind of)
 func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 	out := make([]*Addon, len(p))
@@ -4938,6 +4993,16 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 			return nil, err
 		}*/
 		obj["addons_config"] = ret14
+	}
+
+	var ret15 []interface{}
+	if in.AutoModeConfig != nil {
+		v, ok := obj["auto_mode_config"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		ret15 = flattenAutoModeConfig(in.AutoModeConfig, v)
+		obj["auto_mode_config"] = ret15
 	}
 
 	log.Println("end of flatten config")
@@ -6658,6 +6723,27 @@ func flattenEKSClusterAddonsConfig(in *EKSAddonsConfig, p []interface{}) []inter
 	obj["auto_apply_pod_identity_associations"] = in.AutoApplyPodIdentityAssociations
 	obj["disable_ebs_csi_driver"] = in.DisableEBSCSIDriver
 
+	return []interface{}{obj}
+
+}
+
+func flattenAutoModeConfig(in *EKSAutoModeConfig, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	obj["enabled"] = in.Enabled
+
+	if len(in.NodeRoleARN) > 0 {
+		obj["node_role_arn"] = in.NodeRoleARN
+	}
+
+	if len(in.NodePools) > 0 {
+		obj["node_pools"] = in.NodePools
+	}
 	return []interface{}{obj}
 
 }

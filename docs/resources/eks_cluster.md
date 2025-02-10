@@ -831,6 +831,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `identity_mappings` - (Block List) Identity Mapping feature helps the users to create a static mapping between IAM Users and Roles, and Kubernetes RBAC groups.(See [below for nested schema](#nestedblock--cluster_config--identity_mappings))
 - `access_config` - (Block List) Access Config controls how IAM principals can access this cluster. (See [below for nested schema](#nestedblock--cluster_config--access_config))
 - `addons_config` - (Block List)  support for managed addon related configurations. (See [below for nested schema](#nestedblock--cluster_config--addons_config))
+- `auto_mode_config` - (Block List) Configuration of EKS Auto Mode (See [below for nested schema](#nestedblock--cluster_config--auto_mode_config))
 
 <a id="nestedblock--cluster_config--kubernetes_network_config"></a>
 ### Nested Schema for `cluster_config.kubernetes_network_config`
@@ -996,6 +997,18 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
 - `auto_apply_pod_identity_associations` - (Bool) Flag to auto apply pod identity associations to all managed addons
 - `disable_ebs_csi_driver` - (Bool) Flag to disable the deployment of aws-ebs-csi-driver addon
+
+<a id="nestedblock--cluster_config--auto_mode_config"></a>
+### Nested Schema for `cluster_config.auto_mode_config`
+
+***Required***
+- `enabled` - (Bool) Set to true to enabled EKS Auto Mode
+
+***Optional***
+
+- `node_role_arn` - (String) Role arn to be inherited by the nodepools, pass if you created a role beforehand
+- `node_pools` - (List of Strings) Select any from general-purpose and system. By Default both will be created
+
 <a id="nestedblock--cluster_config--access_config"></a>
 ### Nested Schema for `cluster_config.access_config`
 

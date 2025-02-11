@@ -426,6 +426,9 @@ func expandAgentConfigLimits(p []interface{}) *gitopspb.AgentConfigLimits {
 	if v, ok := in["memory"].(string); ok && len(v) > 0 {
 		obj.Memory = v
 	}
+	if v, ok := in["concurrency"].(int); ok {
+		obj.Concurrency = int32(v)
+	}
 
 	return obj
 }
@@ -587,6 +590,9 @@ func flattenAgentConfigLimits(in *gitopspb.AgentConfigLimits, p []interface{}) [
 	}
 	if len(in.Memory) > 0 {
 		obj["memory"] = in.Memory
+	}
+	if in.Concurrency > 0 {
+		obj["concurrency"] = in.Concurrency
 	}
 
 	return []interface{}{obj}

@@ -71,6 +71,7 @@ type EKSClusterConfig struct {
 	IdentityMappings        *EKSClusterIdentityMappings `yaml:"identityMappings,omitempty"`
 	AccessConfig            *EKSClusterAccess           `yaml:"accessConfig,omitempty"`
 	AddonsConfig            *EKSAddonsConfig            `yaml:"addonsConfig,omitempty"`
+	AutoModeConfig          *EKSAutoModeConfig          `yaml:"autoModeConfig,omitempty"`
 	//do i need this? not in docs
 	//Karpenter *Karpenter `yaml:"karpenter,omitempty"`
 }
@@ -476,6 +477,13 @@ type EKSAddonsConfig struct {
 	AutoApplyPodIdentityAssociations bool `yaml:"autoApplyPodIdentityAssociations,omitempty"`
 	DisableEBSCSIDriver              bool `yaml:"disableEBSCSIDriver,omitempty"`
 }
+
+type EKSAutoModeConfig struct {
+	Enabled     bool     `yaml:"enabled,omitempty"`
+	NodeRoleARN string   `yaml:"nodeRoleARN,omitempty"`
+	NodePools   []string `yaml:"nodePools,omitempty"`
+}
+
 type Addon struct {
 	// +required
 	Name string `yaml:"name,omitempty"`

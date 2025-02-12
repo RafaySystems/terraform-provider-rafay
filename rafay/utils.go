@@ -2694,6 +2694,10 @@ func expandActions(p []interface{}) ([]*eaaspb.Action, error) {
 			}
 		}
 
+		if rr, ok := in["reconcile_resources"].([]interface{}); ok && len(rr) > 0 {
+			action.ReconcileResources = expandReconcileResources(rr)
+		}
+
 		actions = append(actions, &action)
 	}
 
@@ -2731,6 +2735,52 @@ func flattenActions(input []*eaaspb.Action, p []interface{}) []interface{} {
 			obj["context"] = []interface{}{cc}
 		}
 		obj["workflows"] = flattenCustomProviderOptions(in.Workflows)
+		obj["reconcile_resources"] = flattenReconcileResources(in.ReconcileResources)
+
+		out[i] = &obj
+	}
+
+	return out
+}
+
+func expandReconcileResources(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
+	reconcileResources := make([]*commonpb.ResourceNameAndVersionRef, 0)
+	if len(p) == 0 {
+		return reconcileResources
+	}
+
+	for indx := range p {
+		obj := &commonpb.ResourceNameAndVersionRef{}
+
+		in := p[indx].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["version"].(string); ok && len(v) > 0 {
+			obj.Version = v
+		}
+
+		reconcileResources = append(reconcileResources, obj)
+	}
+
+	return reconcileResources
+}
+
+func flattenReconcileResources(input []*commonpb.ResourceNameAndVersionRef) []interface{} {
+	log.Println("flatten reconcile resources start")
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]interface{}, len(input))
+	for i, in := range input {
+		obj := map[string]interface{}{}
+
+		if len(in.Name) > 0 {
+			obj["name"] = in.Name
+		}
 
 		out[i] = &obj
 	}

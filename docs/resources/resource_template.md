@@ -2614,6 +2614,7 @@ Optional:
 - `description` (String) Description of the schedule
 - `context` (Block List, Max: 1) Input data configuration that are needed as part of this schedule run (see [below for nested schema](#nestedblock--spec--configcontext--compound--ref))
 - `workflows` (Block List, Max: 1) Name of the custom workflow provider that needs to be executed with this job (see [below for nested schema](#nestedblock--spec--provider_options--custom))
+- `reconcile_resources` (Block List) Specify resources to process while environment publish (see [below for nested schema](#nestedblock--spec--reconcileresources))
 
 <a id="nestedblock--spec--configcontext--compound--ref"></a>
 ### Nested Schema for `spec.contexts`
@@ -2639,3 +2640,10 @@ Optional:
 
 - `jsonschema` (String) JSONSchema definition of given variable that conforms to react-jsonschema-form library norms
 - `uischema` (String) UISchema definition of given variable that conforms to react-jsonschema-form library norms
+
+<a id="nestedblock--spec--reconcileresources"></a>
+### Nested Schema for `spec.reconcileresources`
+
+***Required***
+
+- `name` (String) name of the resource to be reconciled during environment publish

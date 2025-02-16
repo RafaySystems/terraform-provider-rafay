@@ -287,6 +287,10 @@ func expandAddonSpec(p []interface{}) (*infrapb.AddonSpec, error) {
 		obj.Version = v
 	}
 
+	if v, ok := in["version_state"].(string); ok && len(v) > 0 {
+		obj.VersionState = v
+	}
+
 	if v, ok := in["artifact"].([]interface{}); ok && len(v) > 0 {
 		// XXX Debug
 		artfct := spew.Sprintf("%+v", v)
@@ -363,6 +367,10 @@ func flattenAddonSpec(dataResource bool, in *infrapb.AddonSpec, p []interface{})
 
 	if len(in.Version) > 0 {
 		obj["version"] = in.Version
+	}
+
+	if len(in.VersionState) > 0 {
+		obj["version_state"] = in.VersionState
 	}
 
 	v, ok := obj["artifact"].([]interface{})

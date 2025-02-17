@@ -34,26 +34,36 @@ type credentialsSpecTranspose struct {
 	//	*CredentialsSpec_Azure
 	//	*CredentialsSpec_Vsphere
 	//	*CredentialsSpec_Minio
+	//	*CredentialsSpec_SshRemote
 	Credentials CredentialsDetailsTranspose `protobuf:"bytes,1,opt,name=credentials,proto3" json:"credentials,omitempty"`
 }
 
 type CredentialsDetailsTranspose struct {
-	Type           string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	Arn            string `protobuf:"bytes,1,opt,name=arn,proto3" json:"arn,omitempty"`
-	AccessId       string `protobuf:"bytes,1,opt,name=accessId,proto3" json:"accessId,omitempty"`
-	SecretKey      string `protobuf:"bytes,1,opt,name=secretKey,proto3" json:"secretKey,omitempty"`
-	SessionToken   string `protobuf:"bytes,1,opt,name=sessionToken,proto3" json:"sessionToken,omitempty"`
-	File           string `protobuf:"bytes,1,opt,name=file,proto3" json:"file,omitempty"`
-	TenantId       string `protobuf:"bytes,1,opt,name=tenantId,proto3" json:"tenantId,omitempty"`
-	SubscriptionId string `protobuf:"bytes,1,opt,name=subscriptionId,proto3" json:"subscriptionId,omitempty"`
-	ClientId       string `protobuf:"bytes,1,opt,name=clientId,proto3" json:"clientId,omitempty"`
-	ClientSecret   string `protobuf:"bytes,1,opt,name=clientSecret,proto3" json:"clientSecret,omitempty"`
-	GatewayId      string `protobuf:"bytes,1,opt,name=gatewayId,proto3" json:"gatewayId,omitempty"`
-	VsphereServer  string `protobuf:"bytes,1,opt,name=vsphereServer,proto3" json:"vsphereServer,omitempty"`
-	Username       string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
-	Password       string `protobuf:"bytes,1,opt,name=password,proto3" json:"password,omitempty"`
-	ExternalId     string `protobuf:"bytes,1,opt,name=externalId,proto3" json:"externalId,omitempty"`
-	AccountId      string `protobuf:"bytes,1,opt,name=accountId,proto3" json:"accountId,omitempty"`
+	Type           string       `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Arn            string       `protobuf:"bytes,1,opt,name=arn,proto3" json:"arn,omitempty"`
+	AccessId       string       `protobuf:"bytes,1,opt,name=accessId,proto3" json:"accessId,omitempty"`
+	SecretKey      string       `protobuf:"bytes,1,opt,name=secretKey,proto3" json:"secretKey,omitempty"`
+	SessionToken   string       `protobuf:"bytes,1,opt,name=sessionToken,proto3" json:"sessionToken,omitempty"`
+	File           string       `protobuf:"bytes,1,opt,name=file,proto3" json:"file,omitempty"`
+	TenantId       string       `protobuf:"bytes,1,opt,name=tenantId,proto3" json:"tenantId,omitempty"`
+	SubscriptionId string       `protobuf:"bytes,1,opt,name=subscriptionId,proto3" json:"subscriptionId,omitempty"`
+	ClientId       string       `protobuf:"bytes,1,opt,name=clientId,proto3" json:"clientId,omitempty"`
+	ClientSecret   string       `protobuf:"bytes,1,opt,name=clientSecret,proto3" json:"clientSecret,omitempty"`
+	GatewayId      string       `protobuf:"bytes,1,opt,name=gatewayId,proto3" json:"gatewayId,omitempty"`
+	VsphereServer  string       `protobuf:"bytes,1,opt,name=vsphereServer,proto3" json:"vsphereServer,omitempty"`
+	Username       string       `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Password       string       `protobuf:"bytes,1,opt,name=password,proto3" json:"password,omitempty"`
+	ExternalId     string       `protobuf:"bytes,1,opt,name=externalId,proto3" json:"externalId,omitempty"`
+	AccountId      string       `protobuf:"bytes,1,opt,name=accountId,proto3" json:"accountId,omitempty"`
+	Agents         []*AgentMeta `protobuf:"bytes,1,rep,name=agents,proto3" json:"agents,omitempty"`
+	PrivateKey     string       `protobuf:"bytes,2,opt,name=privateKey,proto3" json:"privateKey,omitempty"`
+	Port           string       `protobuf:"bytes,4,opt,name=port,proto3" json:"port,omitempty"`
+	Passphrase     string       `protobuf:"bytes,5,opt,name=passphrase,proto3" json:"passphrase,omitempty"`
+}
+
+type AgentMeta struct {
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Id   string `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
 }
 
 func resourceCredentials() *schema.Resource {
@@ -365,6 +375,32 @@ func expandCredentialsSpec(p []interface{}) (*infrapb.CredentialsSpec, error) {
 				cst.Credentials.Password = v
 			}
 
+			if v, ok := ina["private_key"].(string); ok && len(v) > 0 {
+				cst.Credentials.PrivateKey = v
+			}
+
+			if v, ok := ina["port"].(string); ok && len(v) > 0 {
+				cst.Credentials.Port = v
+			}
+
+			if v, ok := ina["passphrase"].(string); ok && len(v) > 0 {
+				cst.Credentials.Passphrase = v
+			}
+
+			if v, ok := ina["agents"].([]interface{}); ok && len(v) > 0 {
+				for _, a := range v {
+					am := a.(map[string]interface{})
+					agentMeta := AgentMeta{}
+					if v, ok := am["name"].(string); ok && len(v) > 0 {
+						agentMeta.Name = v
+					}
+					if v, ok := am["id"].(string); ok && len(v) > 0 {
+						agentMeta.Id = v
+					}
+					cst.Credentials.Agents = append(cst.Credentials.Agents, &agentMeta)
+				}
+			}
+
 			if v, ok := ina["account_id"].(string); ok && len(v) > 0 {
 				cst.Credentials.AccountId = v
 			}
@@ -552,6 +588,37 @@ func flattenCredentialsConfig(cst *credentialsSpecTranspose, p []interface{}) ([
 
 	if len(cst.Credentials.Username) > 0 {
 		obj["username"] = cst.Credentials.Username
+		retNil = false
+	}
+
+	if len(cst.Credentials.PrivateKey) > 0 {
+		obj["private_key"] = cst.Credentials.PrivateKey
+		retNil = false
+	}
+
+	if len(cst.Credentials.Port) > 0 {
+		obj["port"] = cst.Credentials.Port
+		retNil = false
+	}
+
+	if len(cst.Credentials.Passphrase) > 0 {
+		obj["passphrase"] = cst.Credentials.Passphrase
+		retNil = false
+	}
+
+	if AgentMetaLen := len(cst.Credentials.Agents); AgentMetaLen > 0 {
+		agents := make([]interface{}, AgentMetaLen)
+		for i, v := range cst.Credentials.Agents {
+			agent := map[string]interface{}{}
+			if len(v.Name) > 0 {
+				agent["name"] = v.Name
+			}
+			if len(v.Id) > 0 {
+				agent["id"] = v.Id
+			}
+			agents[i] = agent
+		}
+		obj["agents"] = agents
 		retNil = false
 	}
 

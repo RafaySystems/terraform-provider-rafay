@@ -2737,3 +2737,17 @@ func flattenActions(input []*eaaspb.Action, p []interface{}) []interface{} {
 
 	return out
 }
+
+func IsResourceNotFoundErr(err error) bool {
+	errStr := err.Error()
+	switch true {
+	case strings.Contains(errStr, "code 404"):
+		return true
+	case strings.Contains(errStr, "not found"):
+		return true
+	case strings.Contains(errStr, "does not exist"):
+		return true
+	default:
+		return false
+	}
+}

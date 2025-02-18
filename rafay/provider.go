@@ -123,6 +123,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_namespaces":               dataRafayNamespaces(),
 				"rafay_blueprints":               dataRafayBlueprints(),
 				"rafay_environments":             dataRafayEnvironments(),
+				"rafay_credentials_v3":           dataCloudCredentialV3(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}

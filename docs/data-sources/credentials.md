@@ -11,13 +11,13 @@ description: |-
 ## Example Usage
 
 ```terraform
-data "rafay_credentials_v3" "list" {
+data "rafay_credentials" "list" {
   projectname = "defaultproject"
 }
 
 output "credential_list" {
   description = "credentials list"
-  value       = data.rafay_credentials_v3.list.credentials_list
+  value       = data.rafay_credentials.list.credentials
 }
 
 ```
@@ -27,7 +27,7 @@ output "credential_list" {
 
 ### Required
 
-- `projectname` (String) Project name from where blueprints to be listed
+- `projectname` (String) Project name from where credentails are to be listed
 
 ### Optional
 
@@ -35,7 +35,8 @@ output "credential_list" {
 
 ### Read-Only
 
-- `credentials_list` (List of Object) A list of cloud credentials (see [below for nested schema](#nestedatt--credentials))
+- `credentials` (List of Object) A list of credentials (see [below for nested schema](#nestedatt--credentials))
+- `id` (String) The ID of this resource.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
@@ -50,6 +51,7 @@ Optional:
 
 Read-Only:
 
-- `metdata` (map) Provides credential meta details like name, project
-- `spec` (map) Detail about the credential which provider (e.g provider = "aws") it belongs to and type tells purpose of the credentials created. (e.g type = "ClusterProvisioning")
-- `credentials` (map) Details about creds used for creating cloud credentials.
+
+- `name` (String) Name of the credential
+- `ownership` (String) Ownership of the credentials
+- `cloud` (String) Cloud provider type of the credential

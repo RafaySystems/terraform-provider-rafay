@@ -108,7 +108,7 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 ***Required***
 
 - `credentials` - (Block List, Max: 1) Contains data for the credentials. (See [below for nested schema](#nestedblock--spec--credentials))
-- `provider` - (String) - The cloud provider. The supported value is: `aws`, `azure`, `gcp`, and `vsphere`.
+- `provider` - (String) - The cloud provider. The supported value is: `aws`, `azure`, `gcp`, and `mks`.
 - `type` - (String) The type of credentials. The supported values is: `ClusterProvisioning` and `DataBackup`.
 
 ***Optional***
@@ -148,13 +148,6 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 ***Required for GCP***
 
 - `file` - (String) The relative path to the GCP credential file (JSON).
-
-***Required for VmWare***
-
-- `gateway_id` - (String) The gateway name.
-- `password` - (String) The vsphere password.
-- `username` - (String) The vsphere username to access the resource.
-- `vsphere_server` - (String) The VMware vSphere server.
 
 ***Required for MKS***
 

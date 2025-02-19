@@ -193,7 +193,7 @@ resource "rafay_cluster_override" "tfdemocluster-addon-setting-override" {
       placement_type = "ClusterSpecific"
       cluster_labels {
         key = "rafay.dev/clusterName"
-        value = "dev5"
+        value = "dev"
       }
     }
     resource_selector = "rafay.dev/name=nginx"

@@ -177,3 +177,55 @@ resource "rafay_cluster_override" "tfdemocluster-clusterquotaoverride1" {
     EOS
   }
 }
+
+resource "rafay_cluster_override" "tfdemocluster-addon-setting-override" {
+  metadata {
+    name    = "tfdemocluster-addon-setting-override"
+    project = "work"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "valuesFile"
+    }
+  }
+  spec {
+    cluster_selector  = "rafay.dev/clusterName in (dev)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key = "rafay.dev/clusterName"
+        value = "dev5"
+      }
+    }
+    resource_selector = "rafay.dev/name=nginx"
+    type              = "ClusterOverrideTypeAddonSetting"
+    override_values   = <<-EOS
+    maxRetries: 4
+    EOS
+  }
+}
+
+resource "rafay_cluster_override" "tfdemocluster-workload-setting-override" {
+  metadata {
+    name    = "tfdemocluster-workload-setting-override"
+    project = "work"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "valuesFile"
+    }
+  }
+  spec {
+    cluster_selector  = "rafay.dev/clusterName in (dev)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key = "rafay.dev/clusterName"
+        value = "dev"
+      }
+    }
+    resource_selector = "rafay.dev/name=nginx-yaml-workload"
+    type              = "ClusterOverrideTypeWorkloadSetting"
+    override_values   = <<-EOS
+    maxRetries: 4
+    EOS
+  }
+}

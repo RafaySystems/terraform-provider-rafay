@@ -28,9 +28,6 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
         access_id = "dummy-id"
         secret_key = "dummy-key"
         session_token = "fake-token"
-    } 
-    sharing {
-      enabled = false
     }
   }
 }
@@ -60,7 +57,13 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
         }
     } 
     sharing {
-      enabled = false
+      enabled = true
+      projects {
+        name = "project1"
+      }
+      projects {
+        name = "project1"
+      }
     }
   }
 }
@@ -113,7 +116,7 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 
 ***Optional***
 
-- `sharing` - (Boolean) - Enables sharing the cloud credentials. (See [below for nested schema](#nestedblock--spec--sharing))
+- `sharing` - (Boolean) - Enables sharing the cloud credentials. By default, sharing is disabled (set to false), so there's no need to specify or provide this setting unless you want to enable sharing. (See [below for nested schema](#nestedblock--spec--sharing))
 
 
 <a id="nestedblock--spec--credentials"></a>

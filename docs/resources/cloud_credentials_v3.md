@@ -29,6 +29,15 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
         secret_key = "dummy-key"
         session_token = "fake-token"
     }
+    sharing {
+      enabled = true
+      projects {
+        name = "project1"
+      }
+      projects {
+        name = "project2"
+      }
+    }
   }
 }
 ```
@@ -62,7 +71,7 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
         name = "project1"
       }
       projects {
-        name = "project1"
+        name = "project2"
       }
     }
   }

@@ -28,9 +28,42 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
         access_id = "dummy-id"
         secret_key = "dummy-key"
         session_token = "fake-token"
+    }
+  }
+}
+```
+
+The following example uses MKS creds to access the nodes for running conjurer.
+
+```terraform
+resource "rafay_cloud_credentials_v3" "tftestcredentials" {
+  metadata {
+    name    = "terraform-demo-credentials-5"
+    project = "defaultproject"
+  }
+  spec {
+    type = "ClusterProvisioning"
+    provider = "mks"
+    credentials {
+        type     =  "SSH_REMOTE"
+        username = "node username"
+        port = "22"
+        private_key = "private_key to ssh to node"
+        agents {
+          name = "agent1"
+        }
+        agents {
+          name = "agent2"
+        }
     } 
     sharing {
-      enabled = false
+      enabled = true
+      projects {
+        name = "project1"
+      }
+      projects {
+        name = "project1"
+      }
     }
   }
 }
@@ -78,12 +111,12 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 ***Required***
 
 - `credentials` - (Block List, Max: 1) Contains data for the credentials. (See [below for nested schema](#nestedblock--spec--credentials))
-- `provider` - (String) - The cloud provider. The supported value is: `aws`, `azure`, `gcp`, and `vsphere`.
+- `provider` - (String) - The cloud provider. The supported value is: `aws`, `azure`, `gcp`, and `mks`.
 - `type` - (String) The type of credentials. The supported values is: `ClusterProvisioning` and `DataBackup`.
 
 ***Optional***
 
-- `sharing` - (Boolean) - Enables sharing the cloud credentials. (See [below for nested schema](#nestedblock--spec--sharing))
+- `sharing` - (Boolean) - Enables sharing the cloud credentials. By default, sharing is disabled (set to false), so there's no need to specify or provide this setting unless you want to enable sharing. (See [below for nested schema](#nestedblock--spec--sharing))
 
 
 <a id="nestedblock--spec--credentials"></a>
@@ -119,12 +152,13 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 
 - `file` - (String) The relative path to the GCP credential file (JSON).
 
-***Required for VmWare***
+***Required for MKS***
 
-- `gateway_id` - (String) The gateway name.
-- `password` - (String) The vsphere password.
-- `username` - (String) The vsphere username to access the resource.
-- `vsphere_server` - (String) The VMware vSphere server.
+- `port` - (String) The ssh port.
+- `passphrase` - (String) The ssh key passphrase.
+- `username` - (String) The ssh username to access the node.
+- `private_key` - (String) The ssh key to access the node.
+- `agents` - (Block List) List of agents which helps to run conjurer on the nodes doing ssh.
 
 <a id="nestedblock--spec--sharing"></a>
 ### Nested Schema for `spec.sharing`

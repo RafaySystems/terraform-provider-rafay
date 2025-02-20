@@ -105,7 +105,7 @@ func resourceClusterOverride() *schema.Resource {
 						Type:        schema.TypeString,
 					},
 					"type": &schema.Schema{
-						Description: "override type, accepted values are *ClusterOverrideTypeWorkload*, *ClusterOverrideTypeAddon* and *ClusterOverrideTypeClusterQuota*",
+						Description: "override type, accepted values are *ClusterOverrideTypeWorkload*, *ClusterOverrideTypeAddon* , *ClusterOverrideTypeWorkloadSetting*, *ClusterOverrideTypeAddonSetting* and *ClusterOverrideTypeClusterQuota*",
 						Optional:    true,
 						Type:        schema.TypeString,
 					},

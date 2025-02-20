@@ -29,6 +29,15 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
         secret_key = "dummy-key"
         session_token = "fake-token"
     }
+    sharing {
+      enabled = true
+      projects {
+        name = "project1"
+      }
+      projects {
+        name = "project2"
+      }
+    }
   }
 }
 ```
@@ -62,7 +71,7 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
         name = "project1"
       }
       projects {
-        name = "project1"
+        name = "project2"
       }
     }
   }
@@ -155,10 +164,13 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 ***Required for MKS***
 
 - `port` - (String) The ssh port.
-- `passphrase` - (String) The ssh key passphrase.
 - `username` - (String) The ssh username to access the node.
 - `private_key` - (String) The ssh key to access the node.
 - `agents` - (Block List) List of agents which helps to run conjurer on the nodes doing ssh.
+
+***optional for MKS***
+
+- `passphrase` - (String) The ssh key passphrase.
 
 <a id="nestedblock--spec--sharing"></a>
 ### Nested Schema for `spec.sharing`

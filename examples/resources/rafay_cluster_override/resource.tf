@@ -163,7 +163,7 @@ resource "rafay_cluster_override" "tfdemocluster-clusterquotaoverride1" {
         value = "cluster-1"
       }
     }
-    resource_selector = "rafay.dev/system=true"
+    resource_selector = "rafay.dev/system=true,rafay.dev/component=cluster-resource-quota"
     type              = "ClusterOverrideTypeClusterQuota"
     override_values   = <<-EOS
       apiVersion: system.k8smgmt.io/v3

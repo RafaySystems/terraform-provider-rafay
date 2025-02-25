@@ -115,6 +115,10 @@ resource "rafay_addon" "tfdemoaddon2" {
     Note: If the resource is not shared, set enabled = false. 
 - `version` - (String) The version of the add-on. 
 
+***Optional***
+
+- `version_state` - (String) Represents the current state of the add-on version (draft or active).
+
 <a id="nestedblock--spec--artifact"></a>
 ### Nested Schema for `spec.artifact`
 

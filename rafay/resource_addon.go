@@ -369,9 +369,7 @@ func flattenAddonSpec(dataResource bool, in *infrapb.AddonSpec, p []interface{})
 		obj["version"] = in.Version
 	}
 
-	if len(in.VersionState) > 0 {
-		obj["version_state"] = in.VersionState
-	}
+	obj["version_state"] = flattenAddonVersionState(in.VersionState, p[0].(map[string]interface{}))
 
 	v, ok := obj["artifact"].([]interface{})
 	if !ok {
@@ -424,4 +422,12 @@ func resourceAddonV2Delete(ctx context.Context, addonp *infrapb.Addon) diag.Diag
 		}
 	}
 	return diags
+}
+
+func flattenAddonVersionState(in string, p map[string]interface{}) string {
+
+	if v, ok := p["version_state"].(string); ok && len(v) > 0 {
+		return in
+	}
+	return ""
 }

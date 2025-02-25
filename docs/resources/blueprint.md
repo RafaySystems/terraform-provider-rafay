@@ -431,6 +431,7 @@ resource "rafay_blueprint" "cost-blueprint" {
 - `network_policy` (Block List, Max: 1) Network policy and version details (see [below for nested schema](#nestedblock--spec--network_policy))
 - `service_mesh` (Block List, Max: 1) Service Mesh Profile, Cluster Policies and version details (see [below for nested schema](#nestedblock--spec--service_mesh))
 - `cost_profile` (Block List, Max: 1) Cost Profile and version details (see [below for nested schema](#nestedblock--spec--cost_profile))
+- `version_state` - (String) Represents the current state of the blueprint version (draft, active or disable).
 <a id="nestedblock--spec--base"></a>
 ### Nested Schema for `spec.base`
 

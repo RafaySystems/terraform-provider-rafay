@@ -1241,6 +1241,19 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `external_dns` (Boolean) Adds the external-dns project policies for Route 53.
 - `image_builder` - (Boolean) Allows for full Elastic Container Registry (ECR) access. For example, this is useful for building a CI server that needs to push images to ECR.
 
+<a id="nestedblock--cluster_config--node_groups--instances_distribution"></a>
+### Nested Schema for `cluster_config.node_groups.instances_distribution`
+
+***Optional***
+
+- `capacity_rebalance` - (Boolean) Enable capacity rebalancing for spot instances.
+- `instance_types` - (List of String) Enable admin container
+- `max_price` - (Number) Maximum bid price in USD
+- `on_demand_base_capacity` - (Number) base number of on-demand instances (non-negative)
+- `on_demand_percentage_above_base_capacity` - (Number) Range [0-100]
+- `spot_allocation_strategy` - (String) allocation strategy for spot instances. Valid values are capacity-optimized and lowest-price
+- `spot_instance_pools` - (Number) Range [0-20]
+
 
 
 <a id="nestedblock--cluster_config--node_groups--security_groups"></a>

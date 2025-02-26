@@ -20,8 +20,10 @@ resource "rafay_project_tags_association" "tfptagassociation1" {
   }
   spec {
     associations {
-      tag_key  = "tfkey1"
-      tag_type = "cost"
+      tag_key = "tag_key"
+      tag_value = "tag_value"
+      tag_type = "namespacelabel"
+      resource = "demo-namespace"
     }
   }
 }
@@ -64,7 +66,14 @@ resource "rafay_project_tags_association" "tfptagassociation1" {
 ***Required***
 
 - `tag_key` - (String) The tag key.
-- `tag_type` - (String) The tag type. Supported values are: `cost` and `k8s`.
+- `tag_type` - (String) The tag type. Supported values are: `cost`, `k8s` and `namespacelabel`.
+
+***Optional***
+
+- `tag_value` - (String) The tag value. If tag value is not provided it defaults to an empty string `""`. The combination of tag_key and tag_value must be unique for a project and can be associated with all the tag types. 
+- `resource` - (String) Name of the resource to which tag must be associated.
+
+**Note**: The resource field is required if the tag_type is `namespacelabel`
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

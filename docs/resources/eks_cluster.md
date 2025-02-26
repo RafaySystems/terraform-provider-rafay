@@ -831,6 +831,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `identity_mappings` - (Block List) Identity Mapping feature helps the users to create a static mapping between IAM Users and Roles, and Kubernetes RBAC groups.(See [below for nested schema](#nestedblock--cluster_config--identity_mappings))
 - `access_config` - (Block List) Access Config controls how IAM principals can access this cluster. (See [below for nested schema](#nestedblock--cluster_config--access_config))
 - `addons_config` - (Block List)  support for managed addon related configurations. (See [below for nested schema](#nestedblock--cluster_config--addons_config))
+- `auto_mode_config` - (Block List) Configuration of EKS Auto Mode (See [below for nested schema](#nestedblock--cluster_config--auto_mode_config))
 
 <a id="nestedblock--cluster_config--kubernetes_network_config"></a>
 ### Nested Schema for `cluster_config.kubernetes_network_config`
@@ -996,6 +997,18 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
 - `auto_apply_pod_identity_associations` - (Bool) Flag to auto apply pod identity associations to all managed addons
 - `disable_ebs_csi_driver` - (Bool) Flag to disable the deployment of aws-ebs-csi-driver addon
+
+<a id="nestedblock--cluster_config--auto_mode_config"></a>
+### Nested Schema for `cluster_config.auto_mode_config`
+
+***Required***
+- `enabled` - (Bool) Set to true to enabled EKS Auto Mode
+
+***Optional***
+
+- `node_role_arn` - (String) Role arn to be inherited by the nodepools, pass if you created a role beforehand
+- `node_pools` - (List of Strings) Select any from general-purpose and system. By Default both will be created
+
 <a id="nestedblock--cluster_config--access_config"></a>
 ### Nested Schema for `cluster_config.access_config`
 
@@ -1227,6 +1240,19 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `efs` - (Boolean) Enables full access to the Amazon Elastic File System (EFS).
 - `external_dns` (Boolean) Adds the external-dns project policies for Route 53.
 - `image_builder` - (Boolean) Allows for full Elastic Container Registry (ECR) access. For example, this is useful for building a CI server that needs to push images to ECR.
+
+<a id="nestedblock--cluster_config--node_groups--instances_distribution"></a>
+### Nested Schema for `cluster_config.node_groups.instances_distribution`
+
+***Optional***
+
+- `capacity_rebalance` - (Boolean) Enable capacity rebalancing for spot instances.
+- `instance_types` - (List of String) Enable admin container
+- `max_price` - (Number) Maximum bid price in USD
+- `on_demand_base_capacity` - (Number) base number of on-demand instances (non-negative)
+- `on_demand_percentage_above_base_capacity` - (Number) Range [0-100]
+- `spot_allocation_strategy` - (String) allocation strategy for spot instances. Valid values are capacity-optimized and lowest-price
+- `spot_instance_pools` - (Number) Range [0-20]
 
 
 

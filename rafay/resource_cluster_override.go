@@ -51,7 +51,7 @@ func resourceClusterOverride() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"metadata": &schema.Schema{
-				Description: "Metadata of the addon resource",
+				Description: "Metadata of the override resource",
 				Elem: &schema.Resource{Schema: map[string]*schema.Schema{
 					"annotations": &schema.Schema{
 						Description: "annotations of the resource",
@@ -105,7 +105,7 @@ func resourceClusterOverride() *schema.Resource {
 						Type:        schema.TypeString,
 					},
 					"type": &schema.Schema{
-						Description: "override type, accepted values are *ClusterOverrideTypeWorkload*, *ClusterOverrideTypeAddon*",
+						Description: "override type, accepted values are *ClusterOverrideTypeWorkload*, *ClusterOverrideTypeAddon* , *ClusterOverrideTypeWorkloadSetting*, *ClusterOverrideTypeAddonSetting* and *ClusterOverrideTypeClusterQuota*",
 						Optional:    true,
 						Type:        schema.TypeString,
 					},

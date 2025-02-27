@@ -14,7 +14,6 @@ import (
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/blueprint"
-	bp "github.com/RafaySystems/rctl/pkg/blueprint"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -151,14 +150,6 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	d.SetId(blueprint.Metadata.Name)
-
-	//blueprint publish
-	projectId, err := config.GetProjectIdByName(blueprint.Metadata.Project)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	bp.PublishBlueprint(blueprint.Metadata.Name, blueprint.Spec.Version, blueprint.Metadata.Description, projectId)
-
 	return diags
 }
 
@@ -308,6 +299,10 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 
 	if v, ok := in["version"].(string); ok && len(v) > 0 {
 		obj.Version = v
+	}
+
+	if v, ok := in["version_state"].(string); ok && len(v) > 0 {
+		obj.VersionState = v
 	}
 
 	if v, ok := in["default_addons"].([]interface{}); ok && len(v) > 0 {
@@ -1029,6 +1024,8 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["version"] = in.Version
 	}
 
+	obj["version_state"] = flattenBlueprintVersionState(in.VersionState, p[0].(map[string]interface{}))
+
 	if in.DefaultAddons != nil {
 		v, ok := obj["default_addons"].([]interface{})
 		if !ok {
@@ -1135,6 +1132,14 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 	}
 
 	return []interface{}{obj}, nil
+}
+
+func flattenBlueprintVersionState(in string, p map[string]interface{}) string {
+
+	if v, ok := p["version_state"].(string); ok && len(v) > 0 {
+		return in
+	}
+	return ""
 }
 
 func flattenBlueprintOpaPolicy(in *infrapb.OPAPolicy, p []interface{}) []interface{} {

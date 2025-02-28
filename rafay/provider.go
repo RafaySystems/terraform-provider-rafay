@@ -125,8 +125,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_environments":             dataRafayEnvironments(),
 				"rafay_credentials":              dataCloudCredentials(),
 				"rafay_credential":               dataCloudCredential(),
-				"rafay_agent_docker_compose":     dataAgentDockerCompose(),
-				"rafay_agent_relay_config":       dataAgentDockerRelayConfig(),
+				"rafay_agent_docker_config":      dataAgentDockerConfig(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}

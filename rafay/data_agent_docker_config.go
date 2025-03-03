@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/config"
@@ -29,11 +30,39 @@ func dataAgentDockerConfig() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"download_config_files": {
+				Type:     schema.TypeBool,
+				Required: true,
+			},
+			"download_directory": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"docker_compose": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"relay_config": {
+			"config": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"agent_id_hash": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"start_command": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"stop_command": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"compose_file_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"config_file_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -78,11 +107,84 @@ func dataAgentDockerConfigRead(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
+	agentId, err := getAgentId(projectId, agentName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	downloadDirectory := "./"
+	if d.Get("download_directory").(string) != "" {
+		downloadDirectory = d.Get("download_directory").(string)
+	}
+
+	dockerComposeFileName := fmt.Sprintf("docker-compose-%s.yaml", agentId)
+	relayConfigFileName := fmt.Sprintf("relay-config-%s.json", agentId)
+
+	dockerComposeFilePath := path.Join(downloadDirectory, dockerComposeFileName)
+	relayConfigFilePath := path.Join(downloadDirectory, relayConfigFileName)
+
+	if d.Get("download_config_files").(bool) {
+		if _, err := os.Stat(downloadDirectory); os.IsNotExist(err) {
+			err = os.MkdirAll(downloadDirectory, 0755)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+		}
+
+		err = os.WriteFile(dockerComposeFilePath, []byte(dockerCompose), 0644)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		err = os.WriteFile(relayConfigFilePath, []byte(relayConfig), 0644)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	d.Set("docker_compose", dockerCompose)
-	d.Set("relay_config", relayConfig)
+	d.Set("config", relayConfig)
+	d.Set("agent_id_hash", agentId)
+	d.Set("start_command", fmt.Sprintf("docker compose -f %s up -d", dockerComposeFilePath))
+	d.Set("stop_command", fmt.Sprintf("docker compose -f %s down", dockerComposeFilePath))
+	d.Set("compose_file_name", dockerComposeFileName)
+	d.Set("config_file_name", relayConfigFileName)
 	d.SetId(fmt.Sprintf("%s-%s", projectName, agentName))
 
 	return diags
+}
+
+func getAgentId(projectId, agentName string) (string, error) {
+	auth := config.GetConfig().GetAppAuthProfile()
+
+	uri := fmt.Sprintf("/v2/config/project/%s/agent/%s", projectId, agentName)
+	resp, err := auth.AuthAndRequestFullResponse(uri, "GET", nil)
+	if err != nil {
+		log.Printf("failed to get agent id")
+		return "", err
+	}
+
+	defer resp.Close()
+
+	if resp.StatusCode != 200 {
+		log.Printf("failed to get agent id")
+		return "", err
+	}
+
+	var agent map[string]interface{}
+	err = resp.JSON(&agent)
+	if err != nil {
+		log.Printf("failed to serialize agent")
+		return "", err
+	}
+
+	id := agent["metadata"].(map[string]interface{})["id"].(string)
+	if id == "" {
+		log.Printf("failed to get agent id from agent object")
+		return "", err
+	}
+
+	return id, nil
 }
 
 func getDockerCompose(projectId, agentName string) (string, error) {

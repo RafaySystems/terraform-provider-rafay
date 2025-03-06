@@ -412,7 +412,6 @@ resource "rafay_blueprint" "cost-blueprint" {
 ### Nested Schema for `spec`
 
 ***Required***
-- `base` - (Block List, Max: 1) The base information for the resource. (See [below for nested schema](#nestedblock--spec--base))
 - `version` - (String) The blueprint version. 
 
 ***Optional***

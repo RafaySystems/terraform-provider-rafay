@@ -90,6 +90,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_static_resource":                   resourceStaticResource(),
 				"rafay_config_context":                    resourceConfigContext(),
 				"rafay_node_cost":                         resourceNodeCost(),
+				"rafay_cluster_cost_enabled":              resourceClusterCostEnabled(),
 				"rafay_resource_template":                 resourceResourceTemplate(),
 				"rafay_environment_template":              resourceEnvironmentTemplate(),
 				"rafay_environment":                       resourceEnvironment(),

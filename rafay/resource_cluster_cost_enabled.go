@@ -18,14 +18,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceNodeCost() *schema.Resource {
+func resourceClusterCostEnabled() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceNodeCostCreate,
-		ReadContext:   resourceNodeCostRead,
-		UpdateContext: resourceNodeCostUpdate,
-		DeleteContext: resourceNodeCostDelete,
+		CreateContext: resourceClusterCostEnabledCreate,
+		ReadContext:   resourceClusterCostEnabledRead,
+		UpdateContext: resourceClusterCostEnabledUpdate,
+		DeleteContext: resourceClusterCostEnabledDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceNodeCostImport,
+			State: resourceClusterCostEnabledImport,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -35,19 +35,19 @@ func resourceNodeCost() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.NodeCostSchema.Schema,
+		Schema:        resource.ClusterCostSchema.Schema,
 	}
 }
 
-func resourceNodeCostCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceClusterCostEnabledCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("node cost create")
-	diags := resourceNodeCostUpsert(ctx, d, m)
+	diags := resourceClusterCostEnabledUpsert(ctx, d, m)
 	if diags.HasError() {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
 		}
-		cc, err := expandNodeCost(d)
+		cc, err := expandClusterCostEnabled(d)
 		if err != nil {
 			return diags
 		}
@@ -57,7 +57,7 @@ func resourceNodeCostCreate(ctx context.Context, d *schema.ResourceData, m inter
 			return diags
 		}
 
-		err = client.CostV1().NodeCost().Delete(ctx, options.DeleteOptions{
+		err = client.CostV1().ClusterCost().Delete(ctx, options.DeleteOptions{
 			Name: cc.Metadata.Name,
 		})
 		if err != nil {
@@ -67,7 +67,7 @@ func resourceNodeCostCreate(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
-func resourceNodeCostUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceClusterCostEnabledUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("config context upsert starts")
 	tflog := os.Getenv("TF_LOG")
@@ -75,7 +75,7 @@ func resourceNodeCostUpsert(ctx context.Context, d *schema.ResourceData, m inter
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
-	cc, err := expandNodeCost(d)
+	cc, err := expandClusterCostEnabled(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -86,7 +86,7 @@ func resourceNodeCostUpsert(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	err = client.CostV1().NodeCost().Apply(ctx, cc, options.ApplyOptions{})
+	err = client.CostV1().ClusterCost().Apply(ctx, cc, options.ApplyOptions{})
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -95,7 +95,7 @@ func resourceNodeCostUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
-func resourceNodeCostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceClusterCostEnabledRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("config context read starts ")
 	meta := GetMetaData(d)
@@ -106,11 +106,6 @@ func resourceNodeCostRead(ctx context.Context, d *schema.ResourceData, m interfa
 		meta.Name = d.State().ID
 	}
 
-	// cc, err := expandNodeCost(d)
-	// if err != nil {
-	// 	return diag.FromErr(err)
-	// }
-
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
@@ -118,9 +113,8 @@ func resourceNodeCostRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	nodecost, err := client.CostV1().NodeCost().Get(ctx, options.GetOptions{
+	ClusterCostEnabled, err := client.CostV1().ClusterCost().Get(ctx, options.GetOptions{
 		Name: meta.Name,
-		// Project: cc.Metadata.Project,
 	})
 	if err != nil {
 		log.Println("read get err")
@@ -132,7 +126,7 @@ func resourceNodeCostRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	err = flattenNodeCost(d, nodecost)
+	err = flattenClusterCostEnabled(d, ClusterCostEnabled)
 	if err != nil {
 		log.Println("read flatten err")
 		return diag.FromErr(err)
@@ -141,11 +135,11 @@ func resourceNodeCostRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 }
 
-func resourceNodeCostUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return resourceNodeCostUpsert(ctx, d, m)
+func resourceClusterCostEnabledUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	return resourceClusterCostEnabledUpsert(ctx, d, m)
 }
 
-func resourceNodeCostDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceClusterCostEnabledDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("config context delete starts")
 	tflog := os.Getenv("TF_LOG")
@@ -162,7 +156,7 @@ func resourceNodeCostDelete(ctx context.Context, d *schema.ResourceData, m inter
 		}
 	}
 
-	cc, err := expandNodeCost(d)
+	cc, err := expandClusterCostEnabled(d)
 	if err != nil {
 		log.Println("error while expanding config context during delete")
 		return diag.FromErr(err)
@@ -173,9 +167,8 @@ func resourceNodeCostDelete(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	err = client.CostV1().NodeCost().Delete(ctx, options.DeleteOptions{
+	err = client.CostV1().ClusterCost().Delete(ctx, options.DeleteOptions{
 		Name: cc.Metadata.Name,
-		// Project: cc.Metadata.Project,
 	})
 
 	if err != nil {
@@ -185,19 +178,19 @@ func resourceNodeCostDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
-func expandNodeCost(in *schema.ResourceData) (*costpb.NodeCost, error) {
+func expandClusterCostEnabled(in *schema.ResourceData) (*costpb.ClusterCost, error) {
 	log.Println("expand config context resource")
 	if in == nil {
 		return nil, fmt.Errorf("%s", "expand config context empty input")
 	}
-	obj := &costpb.NodeCost{}
+	obj := &costpb.ClusterCost{}
 
 	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandV3MetaData(v)
 	}
 
 	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
-		objSpec, err := expandNodeCostSpec(v)
+		objSpec, err := expandClusterCostEnabledSpec(v)
 		if err != nil {
 			return nil, err
 		}
@@ -205,84 +198,54 @@ func expandNodeCost(in *schema.ResourceData) (*costpb.NodeCost, error) {
 	}
 
 	obj.ApiVersion = "cost.management.io/v1"
-	obj.Kind = "NodeCost"
+	obj.Kind = "ClusterCost"
 	return obj, nil
 }
 
-func expandNodeCostSpec(p []interface{}) (*costpb.NodeCostSpec, error) {
-	log.Println("expand config context spec")
-	spec := &costpb.NodeCostSpec{}
+func expandClusterCostEnabledSpec(p []interface{}) (*costpb.ClusterCostSpec, error) {
+	log.Println("expand cluster cost spec")
+	obj := &costpb.ClusterCostSpec{}
 	if len(p) == 0 || p[0] == nil {
-		return spec, fmt.Errorf("expand config context spec empty input")
+		return obj, fmt.Errorf("expand cluster cost spec empty input")
 	}
 
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["cost_values"].([]interface{}); ok && len(v) > 0 {
-		spec.CostValues = expandCostValue(v)
+	if v, ok := in["selection_type"].(string); ok && len(v) > 0 {
+		obj.SelectionType = v
 	}
 
-	if v, ok := in["node_labels"].([]interface{}); ok && len(v) > 0 {
-		spec.NodeLabels = expandNodeCostLabels(v)
+	if v, ok := in["policy_project"].(string); ok && len(v) > 0 {
+		obj.PolicyProject = v
 	}
 
-	if v, ok := in["currency"].([]interface{}); ok && len(v) > 0 {
-		spec.Currency = expandCurrencyType(v)
+	if v, ok := in["clusters"].([]interface{}); ok && len(v) > 0 {
+		obj.Clusters = make([]string, len(v))
+		for idx := range v {
+			obj.Clusters[idx] = v[idx].(string)
+		}
 	}
 
-	return spec, nil
+	if v, ok := in["cluster_labels"].([]interface{}); ok && len(v) > 0 {
+		obj.ClusterLabels = expandClusterCostLabels(v)
+	}
+
+	return obj, nil
 }
-func expandCostValue(p []interface{}) *costpb.NodeCostValue {
-	obj := &costpb.NodeCostValue{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
 
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["cpu"].(string); ok && len(v) > 0 {
-		obj.Cpu = v
-	}
-
-	if v, ok := in["gpu"].(string); ok && len(v) > 0 {
-		obj.Gpu = v
-	}
-
-	if v, ok := in["memory"].(string); ok && len(v) > 0 {
-		obj.Memory = v
-	}
-
-	return obj
-
-}
-func expandCurrencyType(p []interface{}) *costpb.NodeCostCurrency {
-	obj := &costpb.NodeCostCurrency{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["type"].(string); ok && len(v) > 0 {
-		obj.Type = v
-	}
-
-	return obj
-
-}
-func expandNodeCostLabels(p []interface{}) []*costpb.NodeCostLabels {
+func expandClusterCostLabels(p []interface{}) []*costpb.ClusterCostCostLabels {
 	if len(p) == 0 {
-		return []*costpb.NodeCostLabels{}
+		return []*costpb.ClusterCostCostLabels{}
 	}
 
-	out := make([]*costpb.NodeCostLabels, len(p))
+	out := make([]*costpb.ClusterCostCostLabels, len(p))
 
 	for i := range p {
 		if p[i] == nil {
 			continue
 		}
 
-		obj := costpb.NodeCostLabels{}
+		obj := costpb.ClusterCostCostLabels{}
 		in := p[i].(map[string]interface{})
 
 		if v, ok := in["key"].(string); ok && len(v) > 0 {
@@ -300,7 +263,7 @@ func expandNodeCostLabels(p []interface{}) []*costpb.NodeCostLabels {
 
 }
 
-func flattenNodeCost(d *schema.ResourceData, in *costpb.NodeCost) error {
+func flattenClusterCostEnabled(d *schema.ResourceData, in *costpb.ClusterCost) error {
 	if in == nil {
 		return nil
 	}
@@ -317,7 +280,7 @@ func flattenNodeCost(d *schema.ResourceData, in *costpb.NodeCost) error {
 	}
 
 	var ret []interface{}
-	ret, err = flattenNodeCostSpec(in.Spec, v)
+	ret, err = flattenClusterCostEnabledSpec(in.Spec, v)
 	if err != nil {
 		log.Println("flatten config context spec err")
 		return err
@@ -331,7 +294,7 @@ func flattenNodeCost(d *schema.ResourceData, in *costpb.NodeCost) error {
 	return nil
 }
 
-func flattenNodeCostSpec(in *costpb.NodeCostSpec, p []interface{}) ([]interface{}, error) {
+func flattenClusterCostEnabledSpec(in *costpb.ClusterCostSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
 		return nil, fmt.Errorf("%s", "flatten node cost spec empty input")
 	}
@@ -340,73 +303,28 @@ func flattenNodeCostSpec(in *costpb.NodeCostSpec, p []interface{}) ([]interface{
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
-	if in.Currency != nil {
-		v, ok := obj["currency"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["currency"] = flattenNodeCostCurreny(in.Currency, v)
+	if len(in.SelectionType) > 0 {
+		obj["selection_type"] = in.SelectionType
 	}
-	if in.CostValues != nil {
-		v, ok := obj["cost_values"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["cost_values"] = flattenNodeCostValue(in.CostValues, v)
-	}
-	if len(in.NodeLabels) > 0 {
-		v, ok := obj["node_labels"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
 
-		obj["node_labels"] = flattenNodeCostLabels(in.NodeLabels, v)
+	if len(in.PolicyProject) > 0 {
+		obj["policy_project"] = in.PolicyProject
 	}
+
+	if len(in.Clusters) > 0 {
+		obj["clusters"] = in.Clusters
+	}
+
+	v, ok := obj["cluster_labels"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	obj["cluster_labels"] = flattenClusterCostEnabledLabels(in.ClusterLabels, v)
 
 	return []interface{}{obj}, nil
 }
-func flattenNodeCostValue(in *costpb.NodeCostValue, p []interface{}) []interface{} {
-	if in == nil {
-		return nil
-	}
 
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-
-	if len(in.Cpu) > 0 {
-		obj["cpu"] = in.Cpu
-	}
-
-	if len(in.Gpu) > 0 {
-		obj["gpu"] = in.Gpu
-	}
-
-	if len(in.Memory) > 0 {
-		obj["memory"] = in.Memory
-	}
-
-	return []interface{}{obj}
-}
-func flattenNodeCostCurreny(in *costpb.NodeCostCurrency, p []interface{}) []interface{} {
-	if in == nil {
-		return nil
-	}
-
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-
-	if len(in.Type) > 0 {
-		obj["type"] = in.Type
-	}
-
-	return []interface{}{obj}
-}
-
-func flattenNodeCostLabels(in []*costpb.NodeCostLabels, p []interface{}) []interface{} {
+func flattenClusterCostEnabledLabels(in []*costpb.ClusterCostCostLabels, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -432,17 +350,17 @@ func flattenNodeCostLabels(in []*costpb.NodeCostLabels, p []interface{}) []inter
 	return out
 }
 
-func resourceNodeCostImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceClusterCostEnabledImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 
-	log.Printf("Node Cost Import Starts")
+	log.Printf("Cluster Cost Enabled Import Starts")
 
 	idParts := strings.SplitN(d.Id(), "/", 2)
-	log.Println("resourceNodeCostImport idParts:", idParts)
+	log.Println("resourceClusterCostEnabledImport idParts:", idParts)
 
-	log.Println("resourceNodeCostImport Invoking expandNodeCost")
-	cc, err := expandNodeCost(d)
+	log.Println("resourceClusterCostEnabledImport Invoking expandNodeCost")
+	cc, err := expandClusterCostEnabled(d)
 	if err != nil {
-		log.Printf("resourceNodeCostImport  expand error %s", err.Error())
+		log.Printf("resourceClusterCostEnabledImport  expand error %s", err.Error())
 	}
 
 	var metaD commonpb.Metadata

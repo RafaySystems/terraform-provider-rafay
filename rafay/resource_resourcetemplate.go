@@ -386,6 +386,10 @@ func expandContexts(p []interface{}) []*eaaspb.ConfigContextCompoundRef {
 			obj.Name = v
 		}
 
+		if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
+			obj.Data = expandConfigContextInline(v)
+		}
+
 		ctxs = append(ctxs, obj)
 	}
 
@@ -1491,6 +1495,7 @@ func flattenContexts(input []*eaaspb.ConfigContextCompoundRef, p []interface{}) 
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
 		}
+		obj["data"] = flattenConfigContextInline(in.Data)
 
 		out[i] = &obj
 	}

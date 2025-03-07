@@ -1495,6 +1495,7 @@ func flattenContexts(input []*eaaspb.ConfigContextCompoundRef, p []interface{}) 
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
 		}
+		obj["data"] = flattenConfigContextInline(in.Data)
 
 		if in.Data != nil {
 			obj["data"] = flattenConfigContextInline(in.Data)

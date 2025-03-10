@@ -22,6 +22,7 @@ resource "rafay_blueprint" "custom-blueprint" {
   }
   spec {
     version = "v0"
+    type    = "custom"
     base {
       name    = "default"
       version = "1.16.0"
@@ -68,6 +69,9 @@ resource "rafay_blueprint" "custom-blueprint" {
     }
     placement {
       auto_publish = false
+    }
+    drift_webhook {
+      enabled = false
     }
   }
 }
@@ -416,10 +420,12 @@ resource "rafay_blueprint" "cost-blueprint" {
 
 ***Optional***
 
+- `type` - (String) The type of blueprint. Valid values are `golden`, `custom`. Default is `custom`.
 - `custom_addons` - (Block List) A list of custom add-ons for the resource. (See [below for nested schema](#nestedblock--spec--custom_addons))
 - `components_criticality` - (Block list) A list of addons that are critical to determine the status of blueprint sync.(See [below for nested schema](#nestedblock--spec--components_criticality))
 - `default_addons` - (Block List) A list of default add-ons for the resource. (See [below for nested schema](#nestedblock--spec--default_addons)) 
 - `drift` - (Block List, Max: 1) Prevents configuration drift. Drift is a change to your live cluster that is different from the source of truth. (See [below for nested schema](#nestedblock--spec--drift))
+- `drift_webhook` - (Block List, Max: 1) Drift webhook configuration. (See [below for nested schema](#nestedblock--spec--drift_webhook))
 - `placement` - (Block List, Max: 1) Defines the cluster(s) where blueprint will be published. (See [below for nested schema](#nestedblock--spec--placement))
 - `private_kube_api_proxies` - (Block List) A private kubernetes API proxy network, used to provide kubectl access for your users. (See [below for nested schema](#nestedblock--spec--private_kube_api_proxies))
 - `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A blueprint can be shared with one or more projects.  (See [below for nested schema](#nestedblock--spec--sharing))
@@ -559,6 +565,11 @@ Optional:
 - `action` - (String) If enabled, drift is enabled for resource.  Supported values are: `Deny` or `Notify`. 
 - `enabled` - (Boolean) If enabled, drift reconciliation is enabled for resource. 
 
+<a id="nestedblock--spec--drift_webhook"></a>
+### Nested Schema for `spec.drift_webhook`
+
+***Required***
+- `enabled` - (Boolean) If enabled, drift webhook is enabled for blueprint.
 
 <a id="nestedblock--spec--placement"></a>
 ### Nested Schema for `spec.placement`

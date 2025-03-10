@@ -1730,7 +1730,7 @@ func expandSkipConfig(p []any) *eaaspb.SkipConfig {
 func expandHookOptions(p []interface{}) *eaaspb.HookOptions {
 	ho := &eaaspb.HookOptions{}
 	if len(p) == 0 || p[0] == nil {
-		return ho
+		return nil
 	}
 
 	in := p[0].(map[string]interface{})

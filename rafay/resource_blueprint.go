@@ -213,11 +213,6 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 		bp.Spec.Sharing.Enabled = false
 		bp.Spec.Sharing.Projects = tfBlueprintState.Spec.Sharing.Projects
 	}
-	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.NamespaceConfig != nil && bp.Spec != nil && bp.Spec.NamespaceConfig != nil {
-		if strings.EqualFold(tfBlueprintState.Spec.NamespaceConfig.SyncType, bp.Spec.NamespaceConfig.SyncType) {
-			bp.Spec.NamespaceConfig.SyncType = tfBlueprintState.Spec.NamespaceConfig.SyncType
-		}
-	}
 
 	// XXX Debug
 	// w1 = spew.Sprintf("%+v", wl)

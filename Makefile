@@ -5,7 +5,7 @@ NAME=rafay
 BINARY=terraform-provider-${NAME}
 VERSION=1.1.28
 GIT_BRANCH ?= main
-OS_ARCH := $(shell uname | grep -q 'Linux' && echo "linux_amd64" || echo "darwin_amd64")
+OS_ARCH := $(shell uname | grep -q 'Linux' && echo "linux_amd64" || echo "darwin_arm64")
 BUCKET_NAME ?= terraform-provider-rafay
 BUILD_NUMBER ?= $(shell date "+%Y%m%d-%H%M")
 TAG := $(or $(shell git describe --tags --exact-match  2>/dev/null), $(shell echo "origin/${GIT_BRANCH}"))
@@ -40,7 +40,6 @@ zip:
 	$(shell cd bin; zip ${BINARY}_${VERSION}_darwin_amd64.zip ${BINARY}_${VERSION}_darwin_amd64)
 
 install: build
-	bash internal/scripts/fwgen.sh
 	mkdir -p ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 	mv ${BINARY} ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 

@@ -118,7 +118,7 @@ func dataAgentDockerConfigRead(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	dockerComposeFileName := fmt.Sprintf("docker-compose-%s.yaml", agentId)
-	relayConfigFileName := fmt.Sprintf("relay-config-%s.json", agentId)
+	relayConfigFileName := fmt.Sprintf("relayConfigData-%s.json", agentId)
 
 	dockerComposeFilePath := path.Join(downloadDirectory, dockerComposeFileName)
 	relayConfigFilePath := path.Join(downloadDirectory, relayConfigFileName)

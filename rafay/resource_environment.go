@@ -220,8 +220,15 @@ func resourceEnvironmentDelete(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	// wait for destroy
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+	// wait for publish
 	for {
-		time.Sleep(60 * time.Second)
+		select {
+		case <-ticker.C:
+		case <-ctx.Done():
+			return diag.FromErr(fmt.Errorf("context cancelled"))
+		}
 		envs, err := client.EaasV1().Environment().Status(ctx, options.StatusOptions{
 			Name:    env.Metadata.Name,
 			Project: env.Metadata.Project,

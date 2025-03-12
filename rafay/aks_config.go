@@ -99,7 +99,7 @@ type AzureWorkloadIdentityRoleAssignment struct {
 }
 
 type AzureWorkloadIdentityK8sServiceAccount struct {
-	CreateAccount bool                       `yaml:"createAccount,omitempty"`
+	CreateAccount bool                       `yaml:"createAccount"`
 	Metadata      *K8sServiceAccountMetadata `yaml:"metadata,omitempty"`
 }
 

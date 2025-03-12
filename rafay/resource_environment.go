@@ -92,9 +92,15 @@ func environmentUpsert(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
 	// wait for publish
 	for {
-		time.Sleep(60 * time.Second)
+		select {
+		case <-ticker.C:
+		case <-ctx.Done():
+			return diag.FromErr(fmt.Errorf("context cancelled"))
+		}
 		envs, err := client.EaasV1().Environment().Status(ctx, options.StatusOptions{
 			Name:    environment.Metadata.Name,
 			Project: environment.Metadata.Project,

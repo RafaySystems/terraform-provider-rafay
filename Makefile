@@ -1,11 +1,12 @@
 TEST?=$$(go list ./... | grep -v 'vendor')
 HOSTNAME=registry.terraform.io
-NAMESPACE=rafay
+TOFU_HOSTNAME=registry.opentofu.org
+NAMESPACE=rafaysystems
 NAME=rafay
 BINARY=terraform-provider-${NAME}
 VERSION=1.1.28
 GIT_BRANCH ?= main
-OS_ARCH := $(shell uname | grep -q 'Linux' && echo "linux_amd64" || echo "darwin_amd64")
+OS_ARCH := $(shell uname | (grep -q 'Linux' && echo "linux_amd64" || (uname -m | grep -q 'arm64' && echo "darwin_arm64" || echo "darwin_amd64")))
 BUCKET_NAME ?= terraform-provider-rafay
 BUILD_NUMBER ?= $(shell date "+%Y%m%d-%H%M")
 TAG := $(or $(shell git describe --tags --exact-match  2>/dev/null), $(shell echo "origin/${GIT_BRANCH}"))
@@ -42,7 +43,13 @@ zip:
 install: build
 	bash internal/scripts/fwgen.sh
 	mkdir -p ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
-	mv ${BINARY} ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
+	cp ${BINARY} ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
+	mkdir -p ~/.terraform.d/plugins/${TOFU_HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
+	cp ${BINARY} ~/.terraform.d/plugins/${TOFU_HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
+
+uninstall:
+	rm -rf ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
+	rm -rf ~/.terraform.d/plugins/${TOFU_HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 
 test: 
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore

@@ -755,7 +755,6 @@ func expandProjectMeta(p []interface{}) []*commonpb.ProjectMeta {
 	}
 
 	var sortedOut []*commonpb.ProjectMeta
-	sort.Strings(sortByName)
 	for _, name := range sortByName {
 		for _, val := range out {
 			if name == val.Name {
@@ -787,7 +786,6 @@ func expandProjectMetaV3(p []interface{}) []*infrapb.Projects {
 	}
 
 	var sortedOut []*infrapb.Projects
-	sort.Strings(sortByName)
 	for _, name := range sortByName {
 		for _, val := range out {
 			if name == val.Name {
@@ -1103,13 +1101,11 @@ func flattenProjectMeta(input []*commonpb.ProjectMeta, includeProjectId bool) []
 		return nil
 	}
 
-	var sortByName []string
 	out := make([]interface{}, len(input))
 	for i, in := range input {
 		obj := map[string]interface{}{}
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
-			sortByName = append(sortByName, in.Name)
 		}
 		if includeProjectId && len(in.Id) > 0 {
 			obj["id"] = in.Id
@@ -1117,20 +1113,7 @@ func flattenProjectMeta(input []*commonpb.ProjectMeta, includeProjectId bool) []
 		out[i] = obj
 	}
 
-	var sortedout []interface{}
-	sort.Strings(sortByName)
-	for _, name := range sortByName {
-		for _, val := range out {
-			if val == nil {
-				continue
-			}
-			if outName, _ := val.(map[string]interface{})["name"]; outName == name {
-				sortedout = append(sortedout, val)
-			}
-		}
-	}
-	log.Println("flattenProjectMeta obj", sortedout)
-	return sortedout
+	return out
 }
 
 func flattenProjectMetaV3(input []*infrapb.Projects) []interface{} {
@@ -1138,28 +1121,16 @@ func flattenProjectMetaV3(input []*infrapb.Projects) []interface{} {
 		return nil
 	}
 
-	var sortByName []string
 	out := make([]interface{}, len(input))
 	for i, in := range input {
 		obj := map[string]interface{}{}
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
-			sortByName = append(sortByName, in.Name)
 		}
 		out[i] = obj
 	}
 
-	sortedout := make([]interface{}, len(input))
-	sort.Strings(sortByName)
-	for _, name := range sortByName {
-		for _, val := range out {
-			if outName, _ := val.(map[string]interface{})["name"]; outName == name {
-				sortedout = append(sortedout, val)
-			}
-		}
-	}
-	log.Println("flattenProjectMetaV3 obj", sortedout)
-	return sortedout
+	return out
 }
 
 func flattenSharingSpec(in *commonpb.SharingSpec) []interface{} {

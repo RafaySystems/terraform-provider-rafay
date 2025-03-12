@@ -42,29 +42,33 @@ func resourceEnvironmentTemplate() *schema.Resource {
 func resourceEnvironmentTemplateCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("environment template create")
 	diags := environmentTemplateUpsert(ctx, d, m)
-	if diags.HasError() {
-		tflog := os.Getenv("TF_LOG")
-		if tflog == "TRACE" || tflog == "DEBUG" {
-			ctx = context.WithValue(ctx, "debug", "true")
-		}
-		environmenttemplate, err := expandEnvironmentTemplate(d)
-		if err != nil {
-			return diags
-		}
-		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
-		if err != nil {
-			return diags
-		}
 
-		err = client.EaasV1().EnvironmentTemplate().Delete(ctx, options.DeleteOptions{
-			Name:    environmenttemplate.Metadata.Name,
-			Project: environmenttemplate.Metadata.Project,
-		})
-		if err != nil {
-			return diags
-		}
-	}
+	// Note: No need to delete the environment template object because upsert is atomic
+	// otherwise if version creation fails, entire object get deleted
+
+	// if diags.HasError() {
+	// 	tflog := os.Getenv("TF_LOG")
+	// 	if tflog == "TRACE" || tflog == "DEBUG" {
+	// 		ctx = context.WithValue(ctx, "debug", "true")
+	// 	}
+	// 	environmenttemplate, err := expandEnvironmentTemplate(d)
+	// 	if err != nil {
+	// 		return diags
+	// 	}
+	// 	auth := config.GetConfig().GetAppAuthProfile()
+	// 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	// 	if err != nil {
+	// 		return diags
+	// 	}
+
+	// 	err = client.EaasV1().EnvironmentTemplate().Delete(ctx, options.DeleteOptions{
+	// 		Name:    environmenttemplate.Metadata.Name,
+	// 		Project: environmenttemplate.Metadata.Project,
+	// 	})
+	// 	if err != nil {
+	// 		return diags
+	// 	}
+	// }
 	return diags
 }
 

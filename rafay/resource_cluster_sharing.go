@@ -495,13 +495,15 @@ func expandClusterSharingSpec(p []interface{}) *commonpb.SharingSpec {
 
 	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
 		obj.Projects = expandProjectMeta(v)
-		for _, inProj := range obj.Projects {
-			pID, err := config.GetProjectIdByName(inProj.Name)
-			if err != nil {
-				log.Println("failed to get project id by name ", inProj.Name)
-			} else {
-				inProj.Id = pID
-			}
+	} else if v, ok := in["projects"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+		obj.Projects = expandProjectMeta(v.List())
+	}
+	for _, inProj := range obj.Projects {
+		pID, err := config.GetProjectIdByName(inProj.Name)
+		if err != nil {
+			log.Println("failed to get project id by name ", inProj.Name)
+		} else {
+			inProj.Id = pID
 		}
 	}
 

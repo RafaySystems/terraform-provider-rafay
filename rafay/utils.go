@@ -811,6 +811,8 @@ func expandSharingSpec(p []interface{}) *commonpb.SharingSpec {
 
 	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
 		obj.Projects = expandProjectMeta(v)
+	} else if v, ok := in["projects"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+		obj.Projects = expandProjectMeta(v.List())
 	}
 
 	log.Println("expandSharingSpec obj", obj)

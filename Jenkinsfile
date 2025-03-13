@@ -4,7 +4,6 @@ pipeline {
                 image 'public.ecr.aws/bitnami/golang:1.23.4'
                 args '-u root:sudo'
                 reuseNode false
-                label 'ec2-fleet'
             }
     }
     stages {
@@ -23,7 +22,7 @@ pipeline {
                     export GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
                     echo machine github.com login ${userName} password ${passWord} > ~/.netrc
                     chmod 400 ~/.netrc
-                    GOPROXY="https://proxy.golang.org,direct" GOPRIVATE="github.com/RafaySystems/*" go mod download
+                    GOPROXY="direct" GOPRIVATE="github.com/RafaySystems/*" go mod download
                     make release
                     make push
                     make bucket-name

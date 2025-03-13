@@ -40,7 +40,7 @@ func resourceClusterCostEnabled() *schema.Resource {
 }
 
 func resourceClusterCostEnabledCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	log.Println("node cost create")
+	log.Println("cluster cost create")
 	diags := resourceClusterCostEnabledUpsert(ctx, d, m)
 	if diags.HasError() {
 		tflog := os.Getenv("TF_LOG")
@@ -69,7 +69,7 @@ func resourceClusterCostEnabledCreate(ctx context.Context, d *schema.ResourceDat
 
 func resourceClusterCostEnabledUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("config context upsert starts")
+	log.Printf("cluster cost upsert starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -97,7 +97,7 @@ func resourceClusterCostEnabledUpsert(ctx context.Context, d *schema.ResourceDat
 
 func resourceClusterCostEnabledRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Println("config context read starts ")
+	log.Println("cluster cost read starts ")
 	meta := GetMetaData(d)
 	if meta == nil {
 		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
@@ -141,7 +141,7 @@ func resourceClusterCostEnabledUpdate(ctx context.Context, d *schema.ResourceDat
 
 func resourceClusterCostEnabledDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Println("config context delete starts")
+	log.Println("cluster cost delete starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -158,7 +158,7 @@ func resourceClusterCostEnabledDelete(ctx context.Context, d *schema.ResourceDat
 
 	cc, err := expandClusterCostEnabled(d)
 	if err != nil {
-		log.Println("error while expanding config context during delete")
+		log.Println("error while expanding cluster cost during delete")
 		return diag.FromErr(err)
 	}
 
@@ -179,9 +179,9 @@ func resourceClusterCostEnabledDelete(ctx context.Context, d *schema.ResourceDat
 }
 
 func expandClusterCostEnabled(in *schema.ResourceData) (*costpb.ClusterCost, error) {
-	log.Println("expand config context resource")
+	log.Println("expand cluster cost resource")
 	if in == nil {
-		return nil, fmt.Errorf("%s", "expand config context empty input")
+		return nil, fmt.Errorf("%s", "expand cluster cost empty input")
 	}
 	obj := &costpb.ClusterCost{}
 
@@ -282,7 +282,7 @@ func flattenClusterCostEnabled(d *schema.ResourceData, in *costpb.ClusterCost) e
 	var ret []interface{}
 	ret, err = flattenClusterCostEnabledSpec(in.Spec, v)
 	if err != nil {
-		log.Println("flatten config context spec err")
+		log.Println("flatten cluster cost spec err")
 		return err
 	}
 
@@ -296,7 +296,7 @@ func flattenClusterCostEnabled(d *schema.ResourceData, in *costpb.ClusterCost) e
 
 func flattenClusterCostEnabledSpec(in *costpb.ClusterCostSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
-		return nil, fmt.Errorf("%s", "flatten node cost spec empty input")
+		return nil, fmt.Errorf("%s", "flatten cluster cost spec empty input")
 	}
 
 	obj := map[string]interface{}{}
@@ -357,7 +357,7 @@ func resourceClusterCostEnabledImport(d *schema.ResourceData, m interface{}) ([]
 	idParts := strings.SplitN(d.Id(), "/", 2)
 	log.Println("resourceClusterCostEnabledImport idParts:", idParts)
 
-	log.Println("resourceClusterCostEnabledImport Invoking expandNodeCost")
+	log.Println("resourceClusterCostEnabledImport Invoking expandClusterCostEnabled")
 	cc, err := expandClusterCostEnabled(d)
 	if err != nil {
 		log.Printf("resourceClusterCostEnabledImport  expand error %s", err.Error())

@@ -69,7 +69,7 @@ func resourceNodeCostCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceNodeCostUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Printf("config context upsert starts")
+	log.Printf("nodecost upsert starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -97,7 +97,7 @@ func resourceNodeCostUpsert(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceNodeCostRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Println("config context read starts ")
+	log.Println("nodecost read starts ")
 	meta := GetMetaData(d)
 	if meta == nil {
 		return diag.FromErr(fmt.Errorf("%s", "failed to read resource "))
@@ -105,11 +105,6 @@ func resourceNodeCostRead(ctx context.Context, d *schema.ResourceData, m interfa
 	if d.State() != nil && d.State().ID != "" {
 		meta.Name = d.State().ID
 	}
-
-	// cc, err := expandNodeCost(d)
-	// if err != nil {
-	// 	return diag.FromErr(err)
-	// }
 
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
@@ -120,7 +115,6 @@ func resourceNodeCostRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	nodecost, err := client.CostV1().NodeCost().Get(ctx, options.GetOptions{
 		Name: meta.Name,
-		// Project: cc.Metadata.Project,
 	})
 	if err != nil {
 		log.Println("read get err")
@@ -147,7 +141,7 @@ func resourceNodeCostUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceNodeCostDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	log.Println("config context delete starts")
+	log.Println("nodecost delete starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -164,7 +158,7 @@ func resourceNodeCostDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 	cc, err := expandNodeCost(d)
 	if err != nil {
-		log.Println("error while expanding config context during delete")
+		log.Println("error while expanding nodecost during delete")
 		return diag.FromErr(err)
 	}
 
@@ -186,9 +180,9 @@ func resourceNodeCostDelete(ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func expandNodeCost(in *schema.ResourceData) (*costpb.NodeCost, error) {
-	log.Println("expand config context resource")
+	log.Println("expand nodecost resource")
 	if in == nil {
-		return nil, fmt.Errorf("%s", "expand config context empty input")
+		return nil, fmt.Errorf("%s", "expand nodecost empty input")
 	}
 	obj := &costpb.NodeCost{}
 
@@ -210,10 +204,10 @@ func expandNodeCost(in *schema.ResourceData) (*costpb.NodeCost, error) {
 }
 
 func expandNodeCostSpec(p []interface{}) (*costpb.NodeCostSpec, error) {
-	log.Println("expand config context spec")
+	log.Println("expand nodecost spec")
 	spec := &costpb.NodeCostSpec{}
 	if len(p) == 0 || p[0] == nil {
-		return spec, fmt.Errorf("expand config context spec empty input")
+		return spec, fmt.Errorf("expand nodecost spec empty input")
 	}
 
 	in := p[0].(map[string]interface{})
@@ -319,7 +313,7 @@ func flattenNodeCost(d *schema.ResourceData, in *costpb.NodeCost) error {
 	var ret []interface{}
 	ret, err = flattenNodeCostSpec(in.Spec, v)
 	if err != nil {
-		log.Println("flatten config context spec err")
+		log.Println("flatten nodecost spec err")
 		return err
 	}
 

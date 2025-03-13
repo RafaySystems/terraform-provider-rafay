@@ -77,8 +77,11 @@ func resourceBluePrintImport(d *schema.ResourceData, meta interface{}) ([]*schem
 
 func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("blueprint create starts")
+	create := isBlueprintAlreadyExists(ctx, d)
+
 	diags := resourceBluePrintUpsert(ctx, d, m)
-	if diags.HasError() {
+
+	if diags.HasError() && !create {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
@@ -1841,4 +1844,27 @@ func flattenKubeAPIProxyNetwork(input []*infrapb.KubeAPIProxyNetwork, p []interf
 	}
 
 	return out
+}
+
+func isBlueprintAlreadyExists(ctx context.Context, d *schema.ResourceData) bool {
+
+	bp, err := expandBluePrint(d)
+	if err != nil {
+		log.Printf("blueprint expandBluePrint error")
+		return false
+	}
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		return false
+	}
+
+	_, err = client.InfraV3().Blueprint().Get(ctx, options.GetOptions{
+		Name:    bp.Metadata.Name,
+		Project: bp.Metadata.Project,
+	})
+	if err != nil {
+		return false
+	}
+	return true
 }

@@ -73,8 +73,9 @@ func resourceCustomRoleImport(d *schema.ResourceData, meta interface{}) ([]*sche
 
 func resourceCustomRoleCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("custom role create")
+	create := isCustomRoleAlreadyExists(ctx, d)
 	diags := resourceCustomRoleUpsert(ctx, d, m)
-	if diags.HasError() {
+	if diags.HasError() && !create {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
@@ -371,4 +372,25 @@ func flattenPolicyList(input []*systempb.PolicyRef, p []interface{}) []interface
 	}
 
 	return out
+}
+
+func isCustomRoleAlreadyExists(ctx context.Context, d *schema.ResourceData) bool {
+	meta := GetMetaData(d)
+	if meta == nil {
+		return false
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		return false
+	}
+
+	_, err = client.SystemV3().CustomRole().Get(ctx, options.GetOptions{
+		Name: meta.Name,
+	})
+	if err != nil {
+		return false
+	}
+	return true
 }

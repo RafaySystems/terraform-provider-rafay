@@ -42,29 +42,33 @@ func resourceResourceTemplate() *schema.Resource {
 func resourceTemplateCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("resource template create")
 	diags := resourceTemplateUpsert(ctx, d, m)
-	if diags.HasError() {
-		tflog := os.Getenv("TF_LOG")
-		if tflog == "TRACE" || tflog == "DEBUG" {
-			ctx = context.WithValue(ctx, "debug", "true")
-		}
-		resourcetemplate, err := expandResourceTemplate(d)
-		if err != nil {
-			return diags
-		}
-		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
-		if err != nil {
-			return diags
-		}
 
-		err = client.EaasV1().ResourceTemplate().Delete(ctx, options.DeleteOptions{
-			Name:    resourcetemplate.Metadata.Name,
-			Project: resourcetemplate.Metadata.Project,
-		})
-		if err != nil {
-			return diags
-		}
-	}
+	// Note: No need to delete the resource template object because upsert is atomic
+	// otherwise if version creation fails, entire object get deleted
+
+	// if diags.HasError() {
+	// 	tflog := os.Getenv("TF_LOG")
+	// 	if tflog == "TRACE" || tflog == "DEBUG" {
+	// 		ctx = context.WithValue(ctx, "debug", "true")
+	// 	}
+	// 	resourcetemplate, err := expandResourceTemplate(d)
+	// 	if err != nil {
+	// 		return diags
+	// 	}
+	// 	auth := config.GetConfig().GetAppAuthProfile()
+	// 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	// 	if err != nil {
+	// 		return diags
+	// 	}
+
+	// 	err = client.EaasV1().ResourceTemplate().Delete(ctx, options.DeleteOptions{
+	// 		Name:    resourcetemplate.Metadata.Name,
+	// 		Project: resourcetemplate.Metadata.Project,
+	// 	})
+	// 	if err != nil {
+	// 		return diags
+	// 	}
+	// }
 	return diags
 }
 
@@ -1495,6 +1499,7 @@ func flattenContexts(input []*eaaspb.ConfigContextCompoundRef, p []interface{}) 
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
 		}
+		obj["data"] = flattenConfigContextInline(in.Data)
 
 		if in.Data != nil {
 			obj["data"] = flattenConfigContextInline(in.Data)

@@ -31,7 +31,7 @@ require (
 	github.com/IBM/sarama v1.43.2 // indirect
 	github.com/Kunde21/markdownfmt/v3 v3.1.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250312104533-758516220bc3 // indirect
+	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250312122724-9dda48ca989b // indirect
 	github.com/RafaySystems/paas-common v0.0.0-20250303153722-590a0756acca // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect

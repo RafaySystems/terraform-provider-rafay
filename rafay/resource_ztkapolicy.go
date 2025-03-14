@@ -73,8 +73,9 @@ func resourceZTKAPolicyImport(d *schema.ResourceData, meta interface{}) ([]*sche
 
 func resourceZTKAPolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("ztka policy create")
+	create := isZTKAPolicyAlreadyExists(ctx, d)
 	diags := resourceZTKAPolicyUpsert(ctx, d, m)
-	if diags.HasError() {
+	if diags.HasError() && !create {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
@@ -359,4 +360,26 @@ func flattenZTKARuleList(input []*systempb.ZTKAPolicyRule, p []interface{}) []in
 	}
 
 	return out
+}
+
+func isZTKAPolicyAlreadyExists(ctx context.Context, d *schema.ResourceData) bool {
+	meta := GetMetaData(d)
+	if meta == nil {
+		return false
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		return false
+	}
+
+	_, err = client.SystemV3().ZTKAPolicy().Get(ctx, options.GetOptions{
+		Name: meta.Name,
+	})
+	if err != nil {
+		return false
+	}
+
+	return true
 }

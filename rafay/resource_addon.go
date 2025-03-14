@@ -77,8 +77,9 @@ func resourceAddonImport(d *schema.ResourceData, meta interface{}) ([]*schema.Re
 
 func resourceAddonCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("addon create starts")
+	create := isAddonAlreadyExists(ctx, d)
 	diags := resourceAddonUpsert(ctx, d, m)
-	if diags.HasError() && len(diags) > 0 {
+	if diags.HasError() && len(diags) > 0 && !create {
 		diagsError := diags[0]
 		if !strings.Contains(diagsError.Summary, "AlreadyExists") {
 			tflog := os.Getenv("TF_LOG")
@@ -430,4 +431,27 @@ func flattenAddonVersionState(in string, p map[string]interface{}) string {
 		return in
 	}
 	return ""
+}
+
+func isAddonAlreadyExists(ctx context.Context, d *schema.ResourceData) bool {
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return false
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		return false
+	}
+
+	_, err = client.InfraV3().Addon().Get(ctx, options.GetOptions{
+		Name:    meta.Name,
+		Project: meta.Project,
+	})
+	if err != nil {
+		return false
+	}
+	return true
 }

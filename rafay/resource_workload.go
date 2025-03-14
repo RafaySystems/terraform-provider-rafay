@@ -48,8 +48,9 @@ func resourceWorkload() *schema.Resource {
 }
 
 func resourceWorkloadCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	create := isWorkloadAlreadyCreated(ctx, d)
 	diags := resourceWorkloadUpsert(ctx, d, m)
-	if diags.HasError() {
+	if diags.HasError() && !create {
 		if checkStandardInputTextError(diags[0].Summary) {
 			return diags
 		}
@@ -457,4 +458,28 @@ func flattenWorkloadSpec(dataResource bool, in *appspb.WorkloadSpec, p []interfa
 	obj["artifact"] = ret
 
 	return []interface{}{obj}, nil
+}
+
+func isWorkloadAlreadyCreated(ctx context.Context, d *schema.ResourceData) bool {
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return false
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		return false
+	}
+
+	_, err = client.AppsV3().Workload().Get(ctx, options.GetOptions{
+		Name:    meta.Name,
+		Project: meta.Project,
+	})
+	if err != nil {
+		return false
+	}
+
+	return true
 }

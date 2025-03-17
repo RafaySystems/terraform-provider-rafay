@@ -149,6 +149,9 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
     agents {
       name = var.agent_name
     }
+    overrides {
+      allowed_paths = ["providerOptions.terraform.backendType"]
+    }
   }
 }
 ```
@@ -197,6 +200,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `variables` (Block List) Variables associated with resource template (see [below for nested schema](#nestedblock--spec--variables))
 - `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`. By default only new active versions are created if state not provided, and latest version will be synced.
 - `actions` (Block List) Actions that are defined as part of current environment template and may be applicable to one or more underlying resources (see [below for nested schema](#nestedblock--spec--actions))
+- `overrides` (Block List, Max: 1) These define the jsonpath strings representing fields that are to be overriden (see [below for nested schema](#nestedblock--spec--overrides))
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
@@ -2647,3 +2651,8 @@ Optional:
 ***Required***
 
 - `name` (String) name of the resource to be reconciled during environment publish
+
+<a id="nestedblock--spec--overrides"></a>
+### Nested Schema for `spec.overrides`
+
+- `allowed_paths` (List of String) the jsonpath strings representing fields that are to be overriden

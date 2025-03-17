@@ -292,6 +292,10 @@ func expandResourceTemplateSpec(p []interface{}) (*eaaspb.ResourceTemplateSpec, 
 		}
 	}
 
+	if o, ok := in["overrides"].([]interface{}); ok && len(o) > 0 {
+		spec.Overrides = expandFieldOverrides(o)
+	}
+
 	return spec, nil
 }
 
@@ -1305,6 +1309,7 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{
 
 		obj["actions"] = flattenActions(in.Actions, v)
 	}
+	obj["overrides"] = flattenFieldOverrides(in.Overrides)
 
 	return []interface{}{obj}, nil
 }
@@ -2349,4 +2354,29 @@ func resourceResourceTemplateImport(d *schema.ResourceData, m interface{}) ([]*s
 	d.SetId(rt.Metadata.Name)
 	return []*schema.ResourceData{d}, nil
 
+}
+
+func expandFieldOverrides(p []interface{}) *eaaspb.FieldOverrides {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	overrides := &eaaspb.FieldOverrides{}
+
+	in := p[0].(map[string]interface{})
+	if vfiles, ok := in["allowed_paths"].([]interface{}); ok && len(vfiles) > 0 {
+		overrides.AllowedPaths = toArrayString(vfiles)
+	}
+
+	return overrides
+}
+
+func flattenFieldOverrides(in *eaaspb.FieldOverrides) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["allowed_paths"] = in.AllowedPaths
+
+	return []interface{}{obj}
 }

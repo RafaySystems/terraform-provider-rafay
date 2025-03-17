@@ -236,7 +236,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	d.SetId(cluster_resp.ID)
 	if d.Get("blueprint_version").(string) != "" {
 		cluster_resp.ClusterBlueprintVersion = d.Get("blueprint_version").(string)
-		err = cluster.UpdateCluster(cluster_resp)
+		err = cluster.UpdateCluster(cluster_resp, uaDef)
 		if err != nil {
 			log.Printf("setting cluster blueprint version failed, error %s", err.Error())
 			return diag.FromErr(err)
@@ -416,7 +416,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 		cluster_resp.ClusterBlueprintVersion = d.Get("blueprint_version").(string)
 	}
 	//update cluster to send updated cluster details to core
-	err = cluster.UpdateCluster(cluster_resp)
+	err = cluster.UpdateCluster(cluster_resp, uaDef)
 	if err != nil {
 		log.Printf("cluster was not updated, error %s", err.Error())
 		return diag.FromErr(err)

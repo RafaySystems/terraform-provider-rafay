@@ -34,16 +34,16 @@ pipeline {
         }
     }
     post {
-        success {
-            slackSend channel: "#build",
-            color: 'good',
-            message: "Build ${currentBuild.fullDisplayName} completed successfully."
-        }
-        failure {
-            slackSend channel: "#build",
-            color: 'RED',
-            message: "Attention ${env.JOB_NAME} ${env.BUILD_NUMBER} has failed."
-        }
+        // success {
+        //     slackSend channel: "#build",
+        //     color: 'good',
+        //     message: "Build ${currentBuild.fullDisplayName} completed successfully."
+        // }
+        // failure {
+        //     slackSend channel: "#build",
+        //     color: 'RED',
+        //     message: "Attention ${env.JOB_NAME} ${env.BUILD_NUMBER} has failed."
+        // }
         always {
                 sh '''
                 chown -R 1000:1000 .

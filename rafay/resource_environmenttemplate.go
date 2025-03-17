@@ -16,6 +16,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func resourceEnvironmentTemplate() *schema.Resource {
@@ -449,6 +450,10 @@ func expandEnvironmentResources(p []interface{}) ([]*eaaspb.EnvironmentResourceC
 			obj.DependsOn = expandDependsOn(v)
 		}
 
+		if v, ok := in["overrides"].([]interface{}); ok && len(v) > 0 {
+			obj.Overrides = expandFieldOverrideValues(v)
+		}
+
 		envresources[i] = &obj
 
 	}
@@ -854,6 +859,10 @@ func flattenEnvironmentResources(input []*eaaspb.EnvironmentResourceCompoundRef,
 			obj["depends_on"] = flattenDependsOn(in.DependsOn, v)
 		}
 
+		if in.Overrides != nil {
+			obj["overrides"] = flattenFieldOverrideValues(in.Overrides)
+		}
+
 		out[i] = &obj
 	}
 
@@ -926,4 +935,32 @@ func resourceEnvironmentTemplateImport(d *schema.ResourceData, m interface{}) ([
 	d.SetId(et.Metadata.Name)
 	return []*schema.ResourceData{d}, nil
 
+}
+
+func expandFieldOverrideValues(p []interface{}) *eaaspb.Overrides {
+	if len(p) == 0 {
+		return nil
+	}
+
+	in := p[0].(map[string]interface{})
+	obj := &eaaspb.Overrides{}
+
+	values, err := structpb.NewStruct(in["values"].(map[string]interface{}))
+	if err != nil {
+		return nil
+	}
+	obj.Values = values
+
+	return obj
+}
+
+func flattenFieldOverrideValues(in *eaaspb.Overrides) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["values"] = in.Values.AsMap()
+
+	return []interface{}{obj}
 }

@@ -207,6 +207,9 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 		bp.Spec.Sharing.Enabled = false
 		bp.Spec.Sharing.Projects = tfBlueprintState.Spec.Sharing.Projects
 	}
+	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.DriftWebhook == nil {
+		bp.Spec.DriftWebhook = nil
+	}
 
 	// XXX Debug
 	// w1 = spew.Sprintf("%+v", wl)

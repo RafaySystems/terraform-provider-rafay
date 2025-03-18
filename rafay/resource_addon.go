@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"reflect"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
@@ -205,10 +206,10 @@ func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{
 		meta.Name = d.State().ID
 	}
 
-	//tfAddonState, err := expandAddon(d)
-	//if err != nil {
-	//	return diag.FromErr(err)
-	//}
+	tfAddonState, err := expandAddon(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// XXX Debug
 	// w1 := spew.Sprintf("%+v", tfAddonState)
@@ -232,6 +233,10 @@ func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{
 			return diags
 		}
 		return diag.FromErr(err)
+	}
+
+	if tfAddonState.Spec != nil && tfAddonState.Spec.Sharing == nil && ( addon.Spec.Sharing == nil || reflect.DeepEqual(addon.Spec.Sharing, &commonpb.SharingSpec{}) ){
+		addon.Spec.Sharing = nil
 	}
 
 	// XXX Debug

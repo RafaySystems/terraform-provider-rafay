@@ -4,7 +4,7 @@ pipeline {
                 image 'registry-proxy.dev.rafay-edge.net/golang:1.23.4'
                 args '-u root:sudo'
                 reuseNode false
-                label 'ec2-fleet-amd'
+                label 'ec2-fleet'
             }
     }
     stages {

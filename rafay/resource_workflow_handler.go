@@ -614,73 +614,19 @@ func flattenWorkflowHandlerContainerConfig(in *eaaspb.ContainerDriverConfig, p [
 
 	obj["arguments"] = toArrayInterface(in.Arguments)
 	obj["commands"] = toArrayInterface(in.Commands)
-
-	if len(in.CpuLimitMilli) > 0 {
-		obj["cpu_limit_milli"] = in.CpuLimitMilli
-	}
-
+	obj["cpu_limit_milli"] = in.CpuLimitMilli
 	obj["env_vars"] = toMapInterface(in.EnvVars)
 	obj["files"] = toMapByteInterface(in.Files)
-
-	if len(in.Image) > 0 {
-		obj["image"] = in.Image
-	}
-
-	if in.ImagePullCredentials != nil {
-		v, ok := obj["image_pull_credentials"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["image_pull_credentials"] = flattenImagePullCredentials(in.ImagePullCredentials, v)
-	}
-
-	if in.KubeConfigOptions != nil {
-		v, ok := obj["kube_config_options"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["kube_config_options"] = flattenContainerKubeConfig(in.KubeConfigOptions, v)
-	}
-
-	if in.KubeOptions != nil {
-		v, ok := obj["kube_options"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["kube_options"] = flattenContainerKubeOptions(in.KubeOptions, v)
-	}
-
-	if len(in.MemoryLimitMb) > 0 {
-		obj["memory_limit_mb"] = in.MemoryLimitMb
-	}
-
-	if in.VolumeOptions != nil {
-		v, ok := obj["volume_options"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["volume_options"] = flattenContainerWorkflowHandlerVolumeOptions([]*eaaspb.ContainerDriverVolumeOptions{
-			in.VolumeOptions,
-		}, v)
-	}
-
-	if len(in.Volumes) > 0 {
-		v, ok := obj["volumes"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["volumes"] = flattenContainerWorkflowHandlerVolumeOptions(in.Volumes, v)
-	}
-
-	if len(in.WorkingDirPath) > 0 {
-		obj["working_dir_path"] = in.WorkingDirPath
-	}
-
+	obj["image"] = in.Image
+	obj["image_pull_credentials"] = flattenImagePullCredentials(in.ImagePullCredentials, obj["image_pull_credentials"].([]any))
+	obj["kube_config_options"] = flattenContainerKubeConfig(in.KubeConfigOptions, obj["kube_config_options"].([]any))
+	obj["kube_options"] = flattenContainerKubeOptions(in.KubeOptions, obj["kube_options"].([]interface{}))
+	obj["memory_limit_mb"] = in.MemoryLimitMb
+	obj["volume_options"] = flattenContainerWorkflowHandlerVolumeOptions(
+		[]*eaaspb.ContainerDriverVolumeOptions{in.VolumeOptions}, obj["volume_options"].([]interface{}),
+	)
+	obj["volumes"] = flattenContainerWorkflowHandlerVolumeOptions(in.Volumes, obj["volumes"].([]interface{}))
+	obj["working_dir_path"] = in.WorkingDirPath
 	return []interface{}{obj}
 }
 
@@ -689,24 +635,13 @@ func flattenImagePullCredentials(in *eaaspb.ContainerImagePullCredentials, p []i
 	if in == nil {
 		return nil
 	}
-
 	obj := make(map[string]interface{})
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
-
-	if len(in.Registry) > 0 {
-		obj["registry"] = in.Registry
-	}
-
-	if len(in.Username) > 0 {
-		obj["username"] = in.Username
-	}
-
-	if len(in.Password) > 0 {
-		obj["password"] = in.Password
-	}
-
+	obj["registry"] = in.Registry
+	obj["username"] = in.Username
+	obj["password"] = in.Password
 	return []interface{}{obj}
 }
 
@@ -720,13 +655,8 @@ func flattenContainerKubeConfig(in *eaaspb.ContainerKubeConfigOptions, p []inter
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
-
-	if len(in.KubeConfig) > 0 {
-		obj["kube_config"] = in.KubeConfig
-	}
-
+	obj["kube_config"] = in.KubeConfig
 	obj["out_of_cluster"] = in.OutOfCluster
-
 	return []interface{}{obj}
 }
 
@@ -742,37 +672,16 @@ func flattenContainerKubeOptions(in *eaaspb.ContainerKubeOptions, p []interface{
 	}
 
 	obj["labels"] = toMapInterface(in.Labels)
-
-	if len(in.Namespace) > 0 {
-		obj["namespace"] = in.Namespace
-	}
-
+	obj["namespace"] = in.Namespace
 	obj["node_selector"] = toMapInterface(in.NodeSelector)
 	obj["resources"] = toArrayInterface(in.Resources)
-
-	if in.SecurityContext != nil {
-		v, ok := obj["security_context"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["security_context"] = flattenSecurityContext(in.SecurityContext, v)
-	}
-
-	if len(in.ServiceAccountName) > 0 {
-		obj["service_account_name"] = in.ServiceAccountName
-	}
-
+	obj["security_context"] = flattenSecurityContext(in.SecurityContext, obj["security_context"].([]interface{}))
+	obj["service_account_name"] = in.ServiceAccountName
 	if len(in.Tolerations) > 0 {
-		v, ok := obj["tolerations"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, v)
+		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, obj["tolerations"].([]interface{}))
 	} else {
 		delete(obj, "tolerations")
 	}
-
 	return []interface{}{obj}
 }
 
@@ -866,32 +775,27 @@ func flattenContainerWorkflowHandlerVolumeOptions(input []*eaaspb.ContainerDrive
 		return nil
 	}
 
-	out := make([]interface{}, len(input))
+	var out []interface{}
 	for i, in := range input {
+		if in == nil {
+			continue
+		}
 		log.Println("flatten container workflow handler volume options", in)
 		obj := map[string]interface{}{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
 		obj["use_pvc"] = flattenBoolValue(in.UsePVC)
-
-		if len(in.MountPath) > 0 {
-			obj["mount_path"] = in.MountPath
-		}
-
-		if len(in.PvcSizeGB) > 0 {
-			obj["pvc_size_gb"] = in.PvcSizeGB
-		}
-
-		if len(in.PvcStorageClass) > 0 {
-			obj["pvc_storage_class"] = in.PvcStorageClass
-		}
-
+		obj["mount_path"] = in.MountPath
+		obj["pvc_size_gb"] = in.PvcSizeGB
+		obj["pvc_storage_class"] = in.PvcStorageClass
 		obj["enable_backup_and_restore"] = in.EnableBackupAndRestore
-
-		out[i] = &obj
+		out = append(out, &obj)
 	}
 
+	if len(out) == 0 {
+		return nil
+	}
 	return out
 }
 

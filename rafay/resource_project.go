@@ -175,10 +175,10 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 		meta.Name = d.State().ID
 	}
 
-	// tfProjectState, err := expandProject(d)
-	// if err != nil {
-	// 	return diag.FromErr(err)
-	// }
+	tfProjectState, err := expandProject(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// XXX Debug
 	// w1 := spew.Sprintf("%+v", tfProjectState)
@@ -201,6 +201,9 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 			return diags
 		}
 		return diag.FromErr(err)
+	}
+	if tfProjectState.Spec != nil && tfProjectState.Spec.DriftWebhook == nil {
+		Project.Spec.DriftWebhook = nil
 	}
 
 	// XXX Debug

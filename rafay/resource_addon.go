@@ -206,7 +206,7 @@ func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{
 		meta.Name = d.State().ID
 	}
 
-	tfAddonState, err := expandAddon(d)
+	tfAddonState, err := expandAddonOnlyForSharing(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -321,6 +321,43 @@ func expandAddonSpec(p []interface{}) (*infrapb.AddonSpec, error) {
 	return obj, nil
 }
 
+func expandAddonOnlyForSharing(in *schema.ResourceData) (*infrapb.Addon, error) {
+	if in == nil {
+		return nil, fmt.Errorf("%s", "expand addon empty input")
+	}
+	obj := &infrapb.Addon{}
+
+	if v, ok := in.Get("metadata").([]interface{}); ok {
+		obj.Metadata = expandMetaData(v)
+	}
+
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
+		objSpec, err := expandAddonSpecOnlyForSharing(v)
+		if err != nil {
+			return nil, err
+		}
+		obj.Spec = objSpec
+	}
+	obj.ApiVersion = "infra.k8smgmt.io/v3"
+	obj.Kind = "Addon"
+	return obj, nil
+}
+
+func expandAddonSpecOnlyForSharing(p []interface{}) (*infrapb.AddonSpec, error) {
+	obj := &infrapb.AddonSpec{}
+	if len(p) == 0 || p[0] == nil {
+		return obj, fmt.Errorf("%s", "expandAddonSpec empty input")
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		obj.Sharing = expandSharingSpec(v)
+	}
+
+	return obj, nil
+}
+
 // Flatteners
 
 func flattenAddon(d *schema.ResourceData, in *infrapb.Addon, dataResource bool) error {
@@ -375,7 +412,7 @@ func flattenAddonSpec(dataResource bool, in *infrapb.AddonSpec, p []interface{})
 		obj["version"] = in.Version
 	}
 
-	obj["version_state"] = flattenAddonVersionState(in.VersionState, p[0].(map[string]interface{}))
+	obj["version_state"] = flattenAddonVersionState(in.VersionState, p )
 
 	v, ok := obj["artifact"].([]interface{})
 	if !ok {
@@ -430,9 +467,17 @@ func resourceAddonV2Delete(ctx context.Context, addonp *infrapb.Addon) diag.Diag
 	return diags
 }
 
-func flattenAddonVersionState(in string, p map[string]interface{}) string {
+func flattenAddonVersionState(in string, p []interface{}) string {
 
-	if v, ok := p["version_state"].(string); ok && len(v) > 0 {
+	if len(p) == 0 || p[0] == nil {
+		return ""
+	}
+
+	obj, ok := p[0].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	if v, ok := obj["version_state"].(string); ok && len(v) > 0 {
 		return in
 	}
 	return ""

@@ -105,7 +105,7 @@ func resourceBreakGlassAccessCreate(ctx context.Context, d *schema.ResourceData,
 func breakGlassAccessExists(ctx context.Context, d *schema.ResourceData) bool {
 	bga, err := expandBreakGlassAccess(d)
 	if err != nil {
-		log.Printf("breakGlassAccessExists: breakglassaccess expandBreakGlassAccess error")
+		log.Printf("breakGlassAccessExists: breakglassaccess expandBreakGlassAccess error - %s", err.Error())
 		return false
 	}
 	auth := config.GetConfig().GetAppAuthProfile()

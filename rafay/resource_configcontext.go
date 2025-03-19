@@ -422,15 +422,14 @@ func flattenEnvVariables(input []*eaaspb.EnvData, p []interface{}) []interface{}
 }
 
 func flattenConfigContextCompoundRefs(input []*eaaspb.ConfigContextCompoundRef) []interface{} {
-	var ccs []interface{}
 	if input == nil {
-		return ccs
+		return nil
 	}
 
+	var ccs []interface{}
 	for _, cc := range input {
 		ccs = append(ccs, flattenConfigContextCompoundRef(cc))
 	}
-
 	return ccs
 }
 

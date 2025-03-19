@@ -469,7 +469,7 @@ func flattenDriverConfig(input *eaaspb.DriverConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 
-		obj["container"] = flattenDriverContainerConfig(input.Container, v)
+		obj["container"] = flattenWorkflowHandlerContainerConfig(input.Container, v)
 	}
 
 	if input.Http != nil {
@@ -478,118 +478,7 @@ func flattenDriverConfig(input *eaaspb.DriverConfig, p []interface{}) []interfac
 			v = []interface{}{}
 		}
 
-		obj["http"] = flattenDriverHttpConfig(input.Http, v)
-	}
-
-	return []interface{}{obj}
-}
-
-func flattenDriverContainerConfig(in *eaaspb.ContainerDriverConfig, p []interface{}) []interface{} {
-	log.Println("flatten container driver config start")
-	if in == nil {
-		return nil
-	}
-
-	obj := make(map[string]interface{})
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-
-	obj["arguments"] = toArrayInterface(in.Arguments)
-	obj["commands"] = toArrayInterface(in.Commands)
-
-	if len(in.CpuLimitMilli) > 0 {
-		obj["cpu_limit_milli"] = in.CpuLimitMilli
-	}
-
-	obj["env_vars"] = toMapInterface(in.EnvVars)
-	obj["files"] = toMapByteInterface(in.Files)
-
-	if len(in.Image) > 0 {
-		obj["image"] = in.Image
-	}
-
-	if in.ImagePullCredentials != nil {
-		v, ok := obj["image_pull_credentials"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["image_pull_credentials"] = flattenImagePullCredentials(in.ImagePullCredentials, v)
-	}
-
-	if in.KubeConfigOptions != nil {
-		v, ok := obj["kube_config_options"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["kube_config_options"] = flattenContainerKubeConfig(in.KubeConfigOptions, v)
-	}
-
-	if in.KubeOptions != nil {
-		v, ok := obj["kube_options"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["kube_options"] = flattenContainerKubeOptions(in.KubeOptions, v)
-	}
-
-	if len(in.MemoryLimitMb) > 0 {
-		obj["memory_limit_mb"] = in.MemoryLimitMb
-	}
-
-	if in.VolumeOptions != nil {
-		v, ok := obj["volume_options"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["volume_options"] = flattenContainerDriverVolumeOptions([]*eaaspb.ContainerDriverVolumeOptions{
-			in.VolumeOptions,
-		}, v)
-	}
-
-	if len(in.Volumes) > 0 {
-		v, ok := obj["volumes"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["volumes"] = flattenContainerDriverVolumeOptions(in.Volumes, v)
-	}
-
-	if len(in.WorkingDirPath) > 0 {
-		obj["working_dir_path"] = in.WorkingDirPath
-	}
-
-	return []interface{}{obj}
-}
-
-func flattenDriverHttpConfig(in *eaaspb.HTTPDriverConfig, p []interface{}) []interface{} {
-	log.Println("flatten http config start")
-	if in == nil {
-		return nil
-	}
-
-	obj := make(map[string]interface{})
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-
-	if len(in.Body) > 0 {
-		obj["body"] = in.Body
-	}
-
-	if len(in.Endpoint) > 0 {
-		obj["endpoint"] = in.Endpoint
-	}
-
-	obj["headers"] = toMapInterface(in.Headers)
-
-	if len(in.Method) > 0 {
-		obj["method"] = in.Method
+		obj["http"] = flattenWorkflowHandlerHttpConfig(input.Http, v)
 	}
 
 	return []interface{}{obj}

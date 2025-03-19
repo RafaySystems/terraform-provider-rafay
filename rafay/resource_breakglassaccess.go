@@ -73,8 +73,11 @@ func resourceBreakGlassAccessImport(d *schema.ResourceData, meta interface{}) ([
 
 func resourceBreakGlassAccessCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("break glass access create")
+	var alreadyExists bool
+	alreadyExists = breakGlassAccessExists(ctx, d)
+
 	diags := resourceBreakGlassAccessUpsert(ctx, d, m)
-	if diags.HasError() {
+	if diags.HasError() && !alreadyExists {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
@@ -97,6 +100,28 @@ func resourceBreakGlassAccessCreate(ctx context.Context, d *schema.ResourceData,
 		}
 	}
 	return diags
+}
+
+func breakGlassAccessExists(ctx context.Context, d *schema.ResourceData) bool {
+	bga, err := expandBreakGlassAccess(d)
+	if err != nil {
+		log.Printf("breakGlassAccessExists: breakglassaccess expandBreakGlassAccess error - %s", err.Error())
+		return false
+	}
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		return false
+	}
+
+	bgaFromDb, err := client.SystemV3().BreakGlassAccess().Get(ctx, options.GetOptions{
+		Name: bga.Metadata.Name,
+	})
+	if err != nil {
+		return false
+	}
+	//Since we return empty object for each username/name, we need to check if username has group attached
+	return bgaFromDb != nil && bgaFromDb.Spec != nil && bgaFromDb.Spec.Groups != nil && len(bgaFromDb.Spec.Groups) > 0
 }
 
 func resourceBreakGlassAccessUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -258,6 +283,8 @@ func expandGroups(p []interface{}) []*systempb.GroupSpec {
 
 		if v, ok := groupMap["group_expiry"].([]interface{}); ok && len(v) > 0 {
 			g.GroupExpiry = expandGroupExpiry(v)
+		} else if v, ok := groupMap["group_expiry"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			g.GroupExpiry = expandGroupExpiry(v.List())
 		}
 
 		groups[i] = g

@@ -210,6 +210,13 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.DriftWebhook == nil {
 		bp.Spec.DriftWebhook = nil
 	}
+	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.DefaultAddons != nil && bp.Spec != nil && bp.Spec.DefaultAddons != nil {
+		if tfBlueprintState.Spec.DefaultAddons.EnableMonitoring {
+			if tfBlueprintState.Spec.DefaultAddons.Monitoring == nil && bp.Spec.DefaultAddons.Monitoring != nil {
+				bp.Spec.DefaultAddons.Monitoring = nil
+			}
+		}
+	}
 
 	// XXX Debug
 	// w1 = spew.Sprintf("%+v", wl)

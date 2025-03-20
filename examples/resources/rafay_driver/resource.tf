@@ -25,6 +25,7 @@ resource "rafay_driver" "driver" {
           labels = {
             "name" : "terraform"
           }
+          namespace = "default"
           resources = ["pods", "deployments"]
         }
         volumes {

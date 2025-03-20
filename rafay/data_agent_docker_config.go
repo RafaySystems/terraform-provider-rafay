@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/config"
@@ -99,6 +100,9 @@ func dataAgentDockerConfigRead(ctx context.Context, d *schema.ResourceData, m in
 
 	dockerCompose, err := getDockerCompose(projectId, agentName)
 	if err != nil {
+		if strings.Contains(err.Error(), "401") && strings.Contains(err.Error(), "agent is not in the scope of this project") {
+			return diag.FromErr(fmt.Errorf("agent %s does not exist", agentName))
+		}
 		return diag.FromErr(err)
 	}
 

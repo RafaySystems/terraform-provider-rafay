@@ -3,7 +3,7 @@
 page_title: "rafay_driver Resource - terraform-provider-rafay"
 subcategory: ""
 description: |-
-  
+  **Deprecated**: Use `rafay_workflow_handler` instead.
 ---
 
 # rafay_driver (Resource)

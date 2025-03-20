@@ -21,8 +21,9 @@ There are examples in the [GitHub repo](https://github.com/RafaySystems/terrafor
 
 | Resource                                  | Version Released |
 | ----------------------------------------- | ---------------- |
-| `rafay_mks_cluster`                       | 1.1.36 
-| `rafay_driver`                            | 1.1.22           |
+| `rafay_mks_cluster`                       | 1.1.36           |
+| `rafay_driver` (deprecated)               | 1.1.22           |
+| `rafay_workflow_handler`                  | 1.1.43           |
 | `rafay_environment`                       | 1.1.18           |
 | `rafay_environment_template`              | 1.1.18           |
 | `rafay_resource_template`                 | 1.1.18           |

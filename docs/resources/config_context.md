@@ -141,7 +141,7 @@ resource "rafay_config_context" "config-context-example" {
 
 ***Optional***
 
-- `data` (String) Data of the file content ( required if name if not a relative path )
+- `data` (String) Data of the file content ( required if name is not a relative path )
 - `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 
 ***Deprecated***

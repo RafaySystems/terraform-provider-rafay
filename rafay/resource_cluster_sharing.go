@@ -66,8 +66,8 @@ func resourceClusterSharing() *schema.Resource {
 								Computed:    true,
 							},
 						}},
-						MaxItems: 0,
-						MinItems: 0,
+// 						MaxItems: 0,
+// 						MinItems: 0,
 						Optional: true,
 						Type:     schema.TypeList,
 					},
@@ -387,58 +387,59 @@ func resourceClusterSharingRead(ctx context.Context, d *schema.ResourceData, m i
 }
 
 func flattenClusterSharingSpec(in *commonpb.SharingSpec, p []interface{}) ([]interface{}, error) {
-	if in == nil {
-		return nil, fmt.Errorf("%s", "flattenClusterSharingSpec empty input")
-	}
+    if in == nil {
+        return nil, fmt.Errorf("flattenClusterSharingSpec empty input")
+    }
 
-	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
-	obj["all"] = in.Enabled
-	if len(in.Projects) > 0 {
-		obj["projects"] = flattenProjectMeta(in.Projects, true)
-	}
+    // Always start with a new map to reflect the remote state exactly.
+    obj := map[string]interface{}{}
+    obj["all"] = in.Enabled
 
-	return []interface{}{obj}, nil
+    // If there are any projects (other than the parent), add them; if not, explicitly set an empty list.
+    if len(in.Projects) > 0 {
+        obj["projects"] = flattenProjectMeta(in.Projects, true)
+    } else {
+        obj["projects"] = []interface{}{}
+    }
+
+    return []interface{}{obj}, nil
 }
 
 func flattenClusterSharing(d *schema.ResourceData, clusterName string, projectName string, projectID string, in *models.ClusterDetails, projs []*commonpb.ProjectMeta) error {
-	var inSharing commonpb.SharingSpec
+    var inSharing commonpb.SharingSpec
 
-	if in.ShareMode == share.ShareModeAll {
-		inSharing.Enabled = true
-	} else {
-		inSharing.Enabled = false
-	}
+    if in.ShareMode == share.ShareModeAll {
+        inSharing.Enabled = true
+    } else {
+        inSharing.Enabled = false
+    }
 
-	if len(in.Projects) > 1 {
-		inSharing.Projects = projs
-	}
+    // Instead of only setting projects when > 1, do so when there’s at least one.
+    if len(in.Projects) > 0 {
+        inSharing.Projects = projs
+    }
 
-	v, ok := d.Get("sharing").([]interface{})
-	if !ok {
-		v = []interface{}{}
-	}
+    v, ok := d.Get("sharing").([]interface{})
+    if !ok {
+        v = []interface{}{}
+    }
 
-	var ret []interface{}
-	ret, err := flattenClusterSharingSpec(&inSharing, v)
-	if err != nil {
-		return err
-	}
+    var ret []interface{}
+    ret, err := flattenClusterSharingSpec(&inSharing, v)
+    if err != nil {
+        return err
+    }
 
-	// XXX Debug
-	w1 := spew.Sprintf("%+v", ret)
-	log.Println("flattenClusterSharing after ", w1)
+    log.Println("flattenClusterSharing after ", spew.Sprintf("%+v", ret))
 
-	err = d.Set("sharing", ret)
-	if err != nil {
-		log.Println("failed to set sharing")
-		return err
-	}
+    if err = d.Set("sharing", ret); err != nil {
+        log.Println("failed to set sharing")
+        return err
+    }
 
-	return nil
+    return nil
 }
+
 
 func resourceClusterSharingUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("resource user update id %s", d.Id())

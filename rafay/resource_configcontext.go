@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
-	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
@@ -262,7 +262,7 @@ func expandEnvVariables(p []interface{}) []*eaaspb.EnvData {
 		}
 
 		if v, ok := in["options"].([]interface{}); ok && len(v) > 0 {
-			obj.Options = expandEnvvarOptions(v)
+			obj.Options = expandEnvVarOptions(v)
 		}
 
 		envvars[i] = &obj
@@ -369,23 +369,9 @@ func flattenConfigContextSpec(in *eaaspb.ConfigContextSpec, p []interface{}) ([]
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.Envs) > 0 {
-		v, ok := obj["envs"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["envs"] = flattenEnvVariables(in.Envs, v)
-	}
+	obj["envs"] = flattenEnvVariables(in.Envs, obj["envs"].([]interface{}))
 	obj["files"] = flattenCommonpbFiles(in.Files)
-	if len(in.Variables) > 0 {
-		v, ok := obj["variables"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["variables"] = flattenVariables(in.Variables, v)
-	}
+	obj["variables"] = flattenVariables(in.Variables, obj["variables"].([]interface{}))
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	return []interface{}{obj}, nil
@@ -404,17 +390,10 @@ func flattenEnvVariables(input []*eaaspb.EnvData, p []interface{}) []interface{}
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
-
-		if len(in.Key) > 0 {
-			obj["key"] = in.Key
-		}
-
-		if len(in.Value) > 0 {
-			obj["value"] = in.Value
-		}
+		obj["key"] = in.Key
+		obj["value"] = in.Value
 		obj["sensitive"] = in.Sensitive
-		obj["options"] = flattenEnvvarOptions(in.Options)
-
+		obj["options"] = flattenEnvVarOptions(in.Options)
 		out[i] = &obj
 	}
 

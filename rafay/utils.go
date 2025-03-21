@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb/datatypes"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/gitopspb"
@@ -21,6 +21,8 @@ import (
 	"github.com/RafaySystems/rctl/utils"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-yaml/yaml"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"google.golang.org/protobuf/types/known/structpb"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -1014,16 +1016,12 @@ func flattenCommonpbFiles(input []*commonpb.File) []interface{} {
 	out := make([]interface{}, len(input))
 	for i, in := range input {
 		obj := map[string]interface{}{}
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
-		}
+		obj["name"] = in.Name
 		obj["sensitive"] = in.Sensitive
 		if !in.Sensitive {
 			obj["data"] = string(in.Data)
 		}
-		if len(in.MountPath) > 0 {
-			obj["mount_path"] = in.MountPath
-		}
+		obj["mount_path"] = in.MountPath
 		obj["options"] = flattenFileOptions(in.Options)
 
 		out[i] = obj
@@ -1500,7 +1498,7 @@ func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
 		options.Override = expandVariableOverrideOptions(v)
 	}
 	if v, ok := opts["display_metadata"].(string); ok && len(v) > 0 {
-		options.DisplayMetadata = getExpandDisplayMetadata(v)
+		options.DisplayMetadata = expandDisplayMetadata(v)
 	}
 
 	if v, ok := opts["schema"].([]interface{}); ok && len(v) > 0 {
@@ -1511,7 +1509,10 @@ func expandVariableOptions(p []interface{}) *eaaspb.VariableOptions {
 
 }
 
-func getExpandDisplayMetadata(v string) *structpb.Struct {
+func expandDisplayMetadata(v string) *structpb.Struct {
+	if v == "" {
+		return nil
+	}
 	newMap := map[string]interface{}{}
 	if err := json.Unmarshal([]byte(v), &newMap); err == nil {
 		s, err := structpb.NewStruct(newMap)
@@ -1559,24 +1560,10 @@ func flattenVariables(input []*eaaspb.Variable, p []interface{}) []interface{} {
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
-
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
-		}
-
-		if len(in.ValueType) > 0 {
-			fmt.Printf("flatten variables with value type: %s", in.ValueType)
-			obj["value_type"] = in.ValueType
-		}
-
-		if len(in.Value) > 0 {
-			obj["value"] = in.Value
-		}
-
-		if in.Options != nil {
-			obj["options"] = flattenVariableOptions(in.Options)
-		}
-
+		obj["name"] = in.Name
+		obj["value_type"] = in.ValueType
+		obj["value"] = in.Value
+		obj["options"] = flattenVariableOptions(in.Options)
 		out[i] = &obj
 	}
 
@@ -2401,9 +2388,9 @@ func flattenPollingConfig(in *eaaspb.PollingConfig, p []interface{}) []interface
 	return []interface{}{obj}
 }
 
-func expandEnvvarOptions(p []interface{}) *eaaspb.EnvVarOptions {
+func expandEnvVarOptions(p []interface{}) *eaaspb.EnvVarOptions {
 	if len(p) == 0 || p[0] == nil {
-		return &eaaspb.EnvVarOptions{}
+		return nil
 	}
 
 	options := &eaaspb.EnvVarOptions{}
@@ -2426,11 +2413,11 @@ func expandEnvvarOptions(p []interface{}) *eaaspb.EnvVarOptions {
 	}
 
 	if v, ok := opts["display_metadata"].(string); ok && len(v) > 0 {
-		options.DisplayMetadata = getExpandDisplayMetadata(v)
+		options.DisplayMetadata = expandDisplayMetadata(v)
 	}
 
 	if v, ok := opts["override"].([]interface{}); ok && len(v) > 0 {
-		options.Override = expandEnvvarOverrideOptions(v)
+		options.Override = expandEnvVarOverrideOptions(v)
 	}
 
 	if v, ok := opts["schema"].([]interface{}); ok && len(v) > 0 {
@@ -2441,7 +2428,7 @@ func expandEnvvarOptions(p []interface{}) *eaaspb.EnvVarOptions {
 
 }
 
-func expandEnvvarOverrideOptions(p []interface{}) *eaaspb.EnvVarOverrideOptions {
+func expandEnvVarOverrideOptions(p []interface{}) *eaaspb.EnvVarOverrideOptions {
 	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
@@ -2464,59 +2451,53 @@ func expandEnvvarOverrideOptions(p []interface{}) *eaaspb.EnvVarOverrideOptions 
 	return override
 }
 
-func flattenEnvvarOptions(input *eaaspb.EnvVarOptions) []interface{} {
+func flattenEnvVarOptions(input *eaaspb.EnvVarOptions) []interface{} {
 	log.Println("flatten envvar options")
-	if input == nil {
+	cmpOpt := cmpopts.IgnoreUnexported(eaaspb.EnvVarOptions{})
+	if input == nil || cmp.Equal(input, &eaaspb.EnvVarOptions{}, cmpOpt) ||
+		cmp.Equal(input, &eaaspb.EnvVarOptions{Mask: true}, cmpOpt) {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(input.Description) > 0 {
-		obj["description"] = input.Description
-	}
-	obj["sensitive"] = input.Sensitive
-	obj["required"] = input.Required
-	obj["immutable"] = input.Immutable
 
-	if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
-		obj["display_metadata"] = string(b)
+	obj := map[string]interface{}{
+		"description":      input.Description,
+		"sensitive":        input.Sensitive,
+		"required":         input.Required,
+		"immutable":        input.Immutable,
+		"override":         flattenEnvVarOverrideOptions(input.Override),
+		"schema":           flattenCustomSchema(input.Schema),
+		"display_metadata": flattenDisplayMetadata(input.DisplayMetadata),
 	}
-
-	if input.Override != nil {
-		obj["override"] = flattenEnvvarOverrideOptions(input.GetOverride())
-	}
-
-	if input.Schema != nil {
-		obj["schema"] = flattenCustomSchema(input.GetSchema())
-	}
-
 	return []interface{}{obj}
 }
 
-func flattenEnvvarOverrideOptions(input *eaaspb.EnvVarOverrideOptions) []interface{} {
+func flattenDisplayMetadata(in *structpb.Struct) string {
+	if in == nil || len(in.Fields) == 0 {
+		return ""
+	}
+	b, err := in.MarshalJSON()
+	if err != nil {
+		return ""
+	}
+	return string(b)
+}
+
+func flattenEnvVarOverrideOptions(input *eaaspb.EnvVarOverrideOptions) []interface{} {
 	log.Println("flatten envvar override options")
 	if input == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-
-	if len(input.Type) > 0 {
-		obj["type"] = input.Type
+	obj := map[string]interface{}{
+		"type":              input.Type,
+		"restricted_values": toArrayInterface(input.RestrictedValues),
+		"selectors":         toArrayInterface(input.Selectors),
 	}
-
-	if len(input.RestrictedValues) > 0 {
-		obj["restricted_values"] = toArrayInterface(input.RestrictedValues)
-	}
-
-	if len(input.Selectors) > 0 {
-		obj["selectors"] = toArrayInterface(input.Selectors)
-	}
-
 	return []interface{}{obj}
 }
 
 func expandFileOptions(p []interface{}) *commonpb.FileOptions {
 	if len(p) == 0 || p[0] == nil {
-		return &commonpb.FileOptions{}
+		return nil
 	}
 
 	options := &commonpb.FileOptions{}
@@ -2539,7 +2520,7 @@ func expandFileOptions(p []interface{}) *commonpb.FileOptions {
 	}
 
 	if v, ok := opts["display_metadata"].(string); ok && len(v) > 0 {
-		options.DisplayMetadata = getExpandDisplayMetadata(v)
+		options.DisplayMetadata = expandDisplayMetadata(v)
 	}
 
 	if v, ok := opts["schema"].([]interface{}); ok && len(v) > 0 {
@@ -2567,26 +2548,19 @@ func expandFileOverrideOptions(p []interface{}) *commonpb.FileOverrideOptions {
 
 func flattenFileOptions(input *commonpb.FileOptions) []interface{} {
 	log.Println("flatten file options")
-	if input == nil {
+	ignoreOpt := cmpopts.IgnoreUnexported(eaaspb.EnvVarOptions{})
+	if input == nil ||
+		cmp.Equal(input, &eaaspb.EnvVarOptions{}, ignoreOpt) ||
+		cmp.Equal(input, &eaaspb.EnvVarOptions{Mask: true}, ignoreOpt) {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(input.Description) > 0 {
-		obj["description"] = input.Description
-	}
-	obj["sensitive"] = input.Sensitive
-	obj["required"] = input.Required
-
-	if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
-		obj["display_metadata"] = string(b)
-	}
-
-	if input.Override != nil {
-		obj["override"] = flattenFileOverrideOptions(input.GetOverride())
-	}
-
-	if input.Schema != nil {
-		obj["schema"] = flattenCustomSchema(input.GetSchema())
+	obj := map[string]interface{}{
+		"description":      input.Description,
+		"sensitive":        input.Sensitive,
+		"required":         input.Required,
+		"override":         flattenFileOverrideOptions(input.Override),
+		"display_metadata": flattenDisplayMetadata(input.DisplayMetadata),
+		"schema":           flattenCustomSchema(input.Schema),
 	}
 
 	return []interface{}{obj}

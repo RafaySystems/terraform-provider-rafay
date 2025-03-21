@@ -137,11 +137,11 @@ resource "rafay_driver" "driver" {
 ***Required***
 
 - `config` (Block List, Max: 1) Driver configuration (see [below for nested schema](#nestedblock--spec--config))
-- `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
-- `outputs` (String) Outputs for the driver in JSON string format
 
 ***Optional***
 
+- `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
+- `outputs` (String) Outputs for the driver in JSON string format
 - `sharing` (Block List, Max: 1) Sharing with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 
 <a id="nestedblock--spec--config"></a>
@@ -344,6 +344,9 @@ resource "rafay_driver" "driver" {
 ***Required***
 
 - `config` (Block List, Max: 1) Driver configuration (see [below for nested schema](#nestedblock--spec--config))
+
+***Optional***
+
 - `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
 - `outputs` (String) Outputs for the driver in JSON string format
 

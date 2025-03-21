@@ -211,6 +211,8 @@ resource "rafay_driver" "driver" {
 - `security_context` (Block List, Max: 1) Specify the security context (see [below for nested schema](#nestedblock--spec--config--container--kube_options--security_context))
 - `service_account_name` (String) Specify the service account name
 - `tolerations` (Block List) Specify the tolerations (see [below for nested schema](#nestedblock--spec--config--container--kube_options--tolerations))
+- `affinity` (Block List, Max: 1) Specify the affinity (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity))
+- `resources` (List of String) Specify the resources
 
 <a id="nestedblock--spec--config--container--kube_options--tolerations"></a>
 ### Nested Schema for `spec.config.container.kube_options.tolerations`
@@ -344,3 +346,323 @@ resource "rafay_driver" "driver" {
 - `config` (Block List, Max: 1) Driver configuration (see [below for nested schema](#nestedblock--spec--config))
 - `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
 - `outputs` (String) Outputs for the driver in JSON string format
+
+
+<a id="nestedblock--spec--config--container--kube_options--affinity"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity`
+
+***Optional***
+
+- `node_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--node_affinity))
+- `pod_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_affinity))
+- `pod_anti_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity))
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--node_affinity"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.node_affinity`
+
+***Optional***
+
+- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution))
+- `required_during_scheduling_ignored_during_execution` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution))
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.node_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `preference` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--preference))
+- `weight` (Number)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--preference"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.node_affinity.required_during_scheduling_ignored_during_execution.weight`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--weight--match_expressions))
+- `match_fields` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--weight--match_fields))
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--weight--match_expressions"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.node_affinity.required_during_scheduling_ignored_during_execution.weight.match_fields`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--weight--match_fields"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.node_affinity.required_during_scheduling_ignored_during_execution.weight.match_fields`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.node_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `node_selector_terms` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms))
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_expressions))
+- `match_fields` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_fields))
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_expressions"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_fields`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_fields"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_fields`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_affinity"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_affinity`
+
+***Optional***
+
+- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution))
+- `required_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution))
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `pod_affinity_term` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term))
+- `weight` (Number)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.weight`
+
+***Optional***
+
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector))
+- `namespaces` (List of String)
+- `topology_key` (String)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+
+Optional:
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector))
+- `namespaces` (List of String)
+- `topology_key` (String)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_anti_affinity`
+
+***Optional***
+
+- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution))
+- `required_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution))
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `pod_affinity_term` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term))
+- `weight` (Number)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight`
+
+***Optional***
+
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector))
+- `namespaces` (List of String)
+- `topology_key` (String)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector))
+- `namespaces` (List of String)
+- `topology_key` (String)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.topology_key`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions"></a>
+### Nested Schema for `spec.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.topology_key.match_labels`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)

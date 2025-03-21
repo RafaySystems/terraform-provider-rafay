@@ -80,8 +80,8 @@ resource "rafay_environment_template" "aws-et-example" {
       }
       on_init {
         name = "infracost"
-        type = "driver"
-        driver {
+        type = "workflowHandler"
+        workflow_handler {
           data {
             config {
               type = "http"

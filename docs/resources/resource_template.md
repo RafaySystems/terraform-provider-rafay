@@ -36,7 +36,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
         }
         lock_timeout_seconds = 1
       }
-      driver {
+      workflow_handler {
         data {
           config {
             type = "http"

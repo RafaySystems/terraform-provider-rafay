@@ -11,6 +11,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/securitypb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
@@ -158,6 +159,11 @@ func resourceNamespaceNetworkPolicyRuleRead(ctx context.Context, d *schema.Resou
 			return diags
 		}
 		return diag.FromErr(err)
+	}
+
+	if tfNamespaceNetworkPolicyRuleState.Spec != nil && tfNamespaceNetworkPolicyRuleState.Spec.Sharing != nil && !tfNamespaceNetworkPolicyRuleState.Spec.Sharing.Enabled && nnpr.Spec.Sharing == nil {
+		nnpr.Spec.Sharing = &commonpb.SharingSpec{}
+		nnpr.Spec.Sharing.Enabled = false
 	}
 
 	err = flattenNamespaceNetworkPolicyRule(d, nnpr)

@@ -1275,14 +1275,7 @@ func flattenContainerKubeOptions(in *eaaspb.ContainerKubeOptions, p []interface{
 	} else {
 		delete(obj, "tolerations")
 	}
-	if in.Affinity != nil {
-		v, ok := obj["affinity"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["affinity"] = flattenKubeOptionsAffinity(in.Affinity, v)
-	}
+	obj["affinity"] = flattenKubeOptionsAffinity(in.Affinity, obj["affinity"].([]interface{}))
 	return []interface{}{obj}
 }
 
@@ -1379,21 +1372,10 @@ func flattenWorkflowHandlerHttpConfig(in *eaaspb.HTTPDriverConfig, p []interface
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
-
-	if len(in.Body) > 0 {
-		obj["body"] = in.Body
-	}
-
-	if len(in.Endpoint) > 0 {
-		obj["endpoint"] = in.Endpoint
-	}
-
+	obj["body"] = in.Body
+	obj["endpoint"] = in.Endpoint
 	obj["headers"] = toMapInterface(in.Headers)
-
-	if len(in.Method) > 0 {
-		obj["method"] = in.Method
-	}
-
+	obj["method"] = in.Method
 	return []interface{}{obj}
 }
 

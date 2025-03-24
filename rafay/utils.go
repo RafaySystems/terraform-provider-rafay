@@ -280,36 +280,6 @@ func expandMetaData(p []interface{}) *commonpb.Metadata {
 	return obj
 }
 
-func expandV1MetaData(p []interface{}) *commonpb.Metadata {
-	obj := &commonpb.Metadata{}
-	if p == nil || len(p) == 0 || p[0] == nil {
-		return obj
-	}
-
-	in := p[0].(map[string]interface{})
-	if v, ok := in["name"].(string); ok && len(v) > 0 {
-		obj.Name = v
-	}
-	if v, ok := in["description"].(string); ok && len(v) > 0 {
-		obj.Description = v
-	}
-	if v, ok := in["project"].(string); ok && len(v) > 0 {
-		obj.Project = v
-	}
-	if v, ok := in["projectID"].(string); ok && len(v) > 0 {
-		obj.ProjectID = v
-	}
-	if v, ok := in["id"].(string); ok && len(v) > 0 {
-		obj.Id = v
-	}
-
-	obj.Labels = nil
-
-	obj.Annotations = nil
-
-	return obj
-}
-
 func expandDrift(p []interface{}) *commonpb.DriftSpec {
 	obj := &commonpb.DriftSpec{}
 	if len(p) == 0 || p[0] == nil {
@@ -1717,12 +1687,12 @@ func expandSkipConfig(p []any) *eaaspb.SkipConfig {
 }
 
 func expandHookOptions(p []interface{}) *eaaspb.HookOptions {
-	ho := &eaaspb.HookOptions{}
 	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
 
 	in := p[0].(map[string]interface{})
+	ho := &eaaspb.HookOptions{}
 
 	if ao, ok := in["approval"].([]interface{}); ok && len(ao) > 0 {
 		ho.Approval = expandApprovalOptions(ao)
@@ -1996,7 +1966,7 @@ func flattenSkipConfig(in *eaaspb.SkipConfig) []any {
 }
 
 func flattenHookOptions(input *eaaspb.HookOptions, p []interface{}) []interface{} {
-	if input == nil {
+	if input == nil || cmp.Equal(input, &eaaspb.HookOptions{}, cmpopts.IgnoreUnexported(eaaspb.HookOptions{})) {
 		return nil
 	}
 
@@ -2005,43 +1975,11 @@ func flattenHookOptions(input *eaaspb.HookOptions, p []interface{}) []interface{
 		obj = p[0].(map[string]interface{})
 	}
 
-	if input.Approval != nil {
-		v, ok := obj["approval"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["approval"] = flattenApprovalOptions(input.Approval, v)
-	}
-
+	obj["approval"] = flattenApprovalOptions(input.Approval, obj["approval"].([]interface{}))
 	obj["notification"] = flattenNotificationOptions(input.Notification)
-
-	if input.Script != nil {
-		v, ok := obj["script"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["script"] = flattenScriptOptions(input.Script, v)
-	}
-
-	if input.Container != nil {
-		v, ok := obj["container"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["container"] = flattenContainerOptions(input.Container, v)
-	}
-
-	if input.Http != nil {
-		v, ok := obj["http"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["http"] = flattenHttpOptions(input.Http, v)
-	}
+	obj["script"] = flattenScriptOptions(input.Script, obj["script"].([]interface{}))
+	obj["container"] = flattenContainerOptions(input.Container, obj["container"].([]interface{}))
+	obj["http"] = flattenHttpOptions(input.Http, obj["http"].([]interface{}))
 
 	return []interface{}{obj}
 }

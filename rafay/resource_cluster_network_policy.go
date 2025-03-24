@@ -161,6 +161,11 @@ func resourceClusterNetworkPolicyRead(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
+	if tfClusterNetworkPolicyState.Spec != nil && tfClusterNetworkPolicyState.Spec.Sharing != nil && !tfClusterNetworkPolicyState.Spec.Sharing.Enabled && cnp.Spec.Sharing == nil {
+		cnp.Spec.Sharing = &commonpb.SharingSpec{}
+		cnp.Spec.Sharing.Enabled = false
+	}
+
 	err = flattenClusterNetworkPolicy(d, cnp)
 	if err != nil {
 		return diag.FromErr(err)

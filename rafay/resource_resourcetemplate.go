@@ -1270,7 +1270,7 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{
 	obj["hooks"] = flattenResourceHooks(in.Hooks, obj["hooks"].([]interface{}))
 	obj["agents"] = flattenEaasAgents(in.Agents)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
-	if _, ok := obj["artifact_driver"]; ok {
+	if v, ok := obj["artifact_driver"].([]interface{}); ok && len(v) > 0 {
 		obj["artifact_driver"] = flattenWorkflowHandlerCompoundRef(in.ArtifactWorkflowHandler)
 	} else {
 		obj["artifact_workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.ArtifactWorkflowHandler)
@@ -1291,7 +1291,7 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions, p []inte
 	obj["system"] = flattenSystemProviderOptions(in.System)
 	obj["terragrunt"] = flattenTerragruntProviderOptions(in.Terragrunt)
 	obj["pulumi"] = flattenPulumiProviderOptions(in.Pulumi)
-	if _, ok := obj["driver"]; ok {
+	if v, ok := obj["driver"].([]interface{}); ok && len(v) > 0 {
 		obj["driver"] = flattenWorkflowHandlerCompoundRef(in.WorkflowHandler)
 	} else {
 		obj["workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.WorkflowHandler)

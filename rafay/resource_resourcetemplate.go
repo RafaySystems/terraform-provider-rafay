@@ -1263,63 +1263,39 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []interface{
 	obj["version"] = in.Version
 	obj["version_state"] = in.VersionState
 	obj["provider"] = in.Provider
-	obj["provider_options"] = flattenProviderOptions(in.ProviderOptions)
+	obj["provider_options"] = flattenProviderOptions(in.ProviderOptions, obj["provider_options"].([]interface{}))
 	obj["repository_options"] = flattenRepositoryOptions(in.RepositoryOptions)
-
-	if len(in.Contexts) > 0 {
-		v, ok := obj["contexts"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["contexts"] = flattenContexts(in.Contexts, v)
-	}
-
-	if len(in.Variables) > 0 {
-		v, ok := obj["variables"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["variables"] = flattenVariables(in.Variables, v)
-	}
-
-	if in.Hooks != nil {
-		v, ok := obj["hooks"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["hooks"] = flattenResourceHooks(in.Hooks, v)
-	}
-
+	obj["contexts"] = flattenContexts(in.Contexts, obj["contexts"].([]interface{}))
+	obj["variables"] = flattenVariables(in.Variables, obj["variables"].([]interface{}))
+	obj["hooks"] = flattenResourceHooks(in.Hooks, obj["hooks"].([]interface{}))
 	obj["agents"] = flattenEaasAgents(in.Agents)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
-	obj["artifact_workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.ArtifactWorkflowHandler)
-
-	if len(in.Actions) > 0 {
-		v, ok := obj["actions"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["actions"] = flattenActions(in.Actions, v)
+	if v, ok := obj["artifact_driver"].([]interface{}); ok && len(v) > 0 {
+		obj["artifact_driver"] = flattenWorkflowHandlerCompoundRef(in.ArtifactWorkflowHandler)
+	} else {
+		obj["artifact_workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.ArtifactWorkflowHandler)
 	}
-
+	obj["actions"] = flattenActions(in.Actions, obj["actions"].([]interface{}))
 	return []interface{}{obj}, nil
 }
 
-func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions) []interface{} {
+func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
 	}
-
 	obj := make(map[string]interface{})
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
 	obj["terraform"] = flattenTerraformProviderOptions(in.Terraform)
 	obj["system"] = flattenSystemProviderOptions(in.System)
 	obj["terragrunt"] = flattenTerragruntProviderOptions(in.Terragrunt)
 	obj["pulumi"] = flattenPulumiProviderOptions(in.Pulumi)
-	obj["workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.WorkflowHandler)
+	if v, ok := obj["driver"].([]interface{}); ok && len(v) > 0 {
+		obj["driver"] = flattenWorkflowHandlerCompoundRef(in.WorkflowHandler)
+	} else {
+		obj["workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.WorkflowHandler)
+	}
 	obj["open_tofu"] = flattenOpenTofuProviderOptions(in.OpenTofu)
 	obj["custom"] = flattenCustomProviderOptions(in.Custom)
 	obj["hcp_terraform"] = flattenHcpTerraformProviderOptions(in.HcpTerraform)
@@ -1521,51 +1497,11 @@ func flattenResourceHooks(in *eaaspb.ResourceHooks, p []interface{}) []interface
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
-
-	if len(in.OnCompletion) > 0 {
-		v, ok := obj["on_completion"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["on_completion"] = flattenEaasHooks(in.OnCompletion, v)
-	}
-
-	if len(in.OnSuccess) > 0 {
-		v, ok := obj["on_success"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["on_success"] = flattenEaasHooks(in.OnSuccess, v)
-	}
-
-	if len(in.OnFailure) > 0 {
-		v, ok := obj["on_failure"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["on_failure"] = flattenEaasHooks(in.OnFailure, v)
-	}
-
-	if len(in.OnInit) > 0 {
-		v, ok := obj["on_init"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["on_init"] = flattenEaasHooks(in.OnInit, v)
-	}
-
-	if in.Provider != nil {
-		v, ok := obj["provider"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["provider"] = flattenProviderHooks(in.Provider, v)
-	}
+	obj["on_completion"] = flattenEaasHooks(in.OnCompletion, obj["on_completion"].([]interface{}))
+	obj["on_success"] = flattenEaasHooks(in.OnSuccess, obj["on_success"].([]interface{}))
+	obj["on_failure"] = flattenEaasHooks(in.OnFailure, obj["on_failure"].([]interface{}))
+	obj["on_init"] = flattenEaasHooks(in.OnInit, obj["on_init"].([]interface{}))
+	obj["provider"] = flattenProviderHooks(in.Provider, obj["provider"].([]interface{}))
 	return []interface{}{obj}
 }
 

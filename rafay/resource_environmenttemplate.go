@@ -586,73 +586,20 @@ func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []inte
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
-
 	obj["version"] = in.Version
 	obj["version_state"] = in.VersionState
 	obj["icon_url"] = in.IconURL
 	obj["readme"] = in.Readme
-
-	if len(in.Resources) > 0 {
-		v, ok := obj["resources"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["resources"] = flattenEnvironmentResources(in.Resources, v)
-	}
-
-	if len(in.Variables) > 0 {
-		v, ok := obj["variables"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["variables"] = flattenVariables(in.Variables, v)
-	}
-
-	if in.Hooks != nil {
-		v, ok := obj["hooks"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["hooks"] = flattenEnvironmentHooks(in.Hooks, v)
-	}
-
+	obj["resources"] = flattenEnvironmentResources(in.Resources, obj["resources"].([]interface{}))
+	obj["variables"] = flattenVariables(in.Variables, obj["variables"].([]interface{}))
+	obj["hooks"] = flattenEnvironmentHooks(in.Hooks, obj["hooks"].([]interface{}))
 	obj["agents"] = flattenEaasAgents(in.Agents)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
-
-	if len(in.Contexts) > 0 {
-		v, ok := obj["contexts"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["contexts"] = flattenContexts(in.Contexts, v)
-	}
-
+	obj["contexts"] = flattenContexts(in.Contexts, obj["contexts"].([]interface{}))
 	obj["agent_override"] = flattenEaasAgentOverrideOptions(in.AgentOverride)
-
-	if len(in.Schedules) > 0 {
-		v, ok := obj["schedules"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["schedules"] = flattenSchedules(in.Schedules, v)
-	}
-
+	obj["schedules"] = flattenSchedules(in.Schedules, obj["schedules"].([]interface{}))
 	obj["allow_new_inputs_during_publish"] = flattenBoolValue(in.AllowNewInputsDuringPublish)
-
-	if len(in.Actions) > 0 {
-		v, ok := obj["actions"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["actions"] = flattenActions(in.Actions, v)
-	}
-
+	obj["actions"] = flattenActions(in.Actions, obj["actions"].([]interface{}))
 	return []interface{}{obj}, nil
 }
 
@@ -775,43 +722,10 @@ func flattenEnvironmentHooks(in *eaaspb.EnvironmentHooks, p []interface{}) []int
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
-
-	if len(in.OnCompletion) > 0 {
-		v, ok := obj["on_completion"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["on_completion"] = flattenEaasHooks(in.OnCompletion, v)
-	}
-
-	if len(in.OnSuccess) > 0 {
-		v, ok := obj["on_success"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["on_success"] = flattenEaasHooks(in.OnSuccess, v)
-	}
-
-	if len(in.OnFailure) > 0 {
-		v, ok := obj["on_failure"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["on_failure"] = flattenEaasHooks(in.OnFailure, v)
-	}
-
-	if len(in.OnInit) > 0 {
-		v, ok := obj["on_init"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["on_init"] = flattenEaasHooks(in.OnInit, v)
-	}
-
+	obj["on_completion"] = flattenEaasHooks(in.OnCompletion, obj["on_completion"].([]interface{}))
+	obj["on_success"] = flattenEaasHooks(in.OnSuccess, obj["on_success"].([]interface{}))
+	obj["on_failure"] = flattenEaasHooks(in.OnFailure, obj["on_failure"].([]interface{}))
+	obj["on_init"] = flattenEaasHooks(in.OnInit, obj["on_init"].([]interface{}))
 	return []interface{}{obj}
 }
 

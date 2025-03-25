@@ -27,8 +27,9 @@ import (
 )
 
 var (
-	supportedK8sProviderList  []string = []string{"AKS", "EKS", "GKE", "OPENSHIFT", "OTHER", "RKE", "EKSANYWHERE"}
-	supportedProvisionEnvList []string = []string{"CLOUD", "ONPREM"}
+	supportedK8sProviderList    []string = []string{"AKS", "EKS", "GKE", "OPENSHIFT", "OTHER", "RKE", "EKSANYWHERE"}
+	supportedProvisionEnvList   []string = []string{"CLOUD", "ONPREM"}
+	environmentManagerLabelsKey []string = []string{"rafay.dev/envRun", "rafay.dev/k8sVersion"}
 )
 
 func resourceImportCluster() *schema.Resource {
@@ -150,7 +151,7 @@ func getClusterlabels(name, projectId string) (map[string]string, error) {
 
 	labels := map[string]string{}
 	for k, v := range resp.Metadata.Labels {
-		if !strings.HasPrefix(k, "rafay.dev/") {
+		if !strings.HasPrefix(k, "rafay.dev/") || slices.Contains(environmentManagerLabelsKey, k) {
 			labels[k] = v
 		}
 	}

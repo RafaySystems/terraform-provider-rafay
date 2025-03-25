@@ -112,8 +112,8 @@ resource "rafay_workflow_handler" "workflow_handler" {
 
 ### Required
 
-- `metadata` (Block List, Max: 1) Metadata of the driver resource (see [below for nested schema](#nestedblock--metadata))
-- `spec` (Block List, Max: 1) Specification of the driver resource (see [below for nested schema](#nestedblock--spec))
+- `metadata` (Block List, Max: 1) Metadata of the workflow handler resource (see [below for nested schema](#nestedblock--metadata))
+- `spec` (Block List, Max: 1) Specification of the workflow handler resource (see [below for nested schema](#nestedblock--spec))
 
 ### Optional
 
@@ -136,12 +136,12 @@ resource "rafay_workflow_handler" "workflow_handler" {
 
 ***Required***
 
-- `config` (Block List, Max: 1) Driver configuration (see [below for nested schema](#nestedblock--spec--config))
+- `config` (Block List, Max: 1) Workflow handler configuration (see [below for nested schema](#nestedblock--spec--config))
 
 ***Optional***
 
-- `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
-- `outputs` (String) Outputs for the driver in JSON string format
+- `inputs` (Block List) Inputs for the workflow handler (see [below for nested schema](#nestedblock--spec--inputs))
+- `outputs` (String) Outputs for the workflow handler in JSON string format
 - `sharing` (Block List, Max: 1) Sharing with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 
 <a id="nestedblock--spec--config"></a>
@@ -149,12 +149,12 @@ resource "rafay_workflow_handler" "workflow_handler" {
 
 ***Required***
 
-- `type` (String) Specify the type of driver, Accepted values are `container`, `http`.
+- `type` (String) Specify the type of workflow handler, Accepted values are `container`, `http`.
 
 ***Optional***
 
-- `container` (Block List, Max: 1) Specify the container driver config (see [below for nested schema](#nestedblock--spec--config--container))
-- `http` (Block List, Max: 1) Specify the http driver config (see [below for nested schema](#nestedblock--spec--config--http))
+- `container` (Block List, Max: 1) Specify the container workflow handler config (see [below for nested schema](#nestedblock--spec--config--container))
+- `http` (Block List, Max: 1) Specify the http workflow handler config (see [below for nested schema](#nestedblock--spec--config--http))
 - `max_retry_count` (Number) Specify the max retry count
 - `success_condition` (String) Specify the success condition
 - `timeout_seconds` (Number) Specify the timeout in seconds
@@ -164,7 +164,7 @@ resource "rafay_workflow_handler" "workflow_handler" {
 
 ***Required***
 
-- `image` (String) Specify the container image for the driver
+- `image` (String) Specify the container image for the workflow handler
 
 ***Optional***
 
@@ -177,7 +177,7 @@ resource "rafay_workflow_handler" "workflow_handler" {
 - `kube_config_options` (Block List, Max: 1) Specify the kube config options (see [below for nested schema](#nestedblock--spec--config--container--kube_config_options))
 - `kube_options` (Block List, Max: 1) Specify the kube options (see [below for nested schema](#nestedblock--spec--config--container--kube_options))
 - `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `volume_options` (Block List, Max: 1) [DEPRECATED] Specify the container driver volume options. Use volumes instead. (see [below for nested schema](#nestedblock--spec--config--container--volume_options))
+- `volume_options` (Block List, Max: 1) [DEPRECATED] Specify the container volume options. Use volumes instead. (see [below for nested schema](#nestedblock--spec--config--container--volume_options))
 - `volumes` (Block List) Configure the container volumes (see [below for nested schema](#nestedblock--spec--config--container--volumes))
 - `working_dir_path` (String) Specify the working directory path
 
@@ -335,20 +335,20 @@ resource "rafay_workflow_handler" "workflow_handler" {
 
 ***Required***
 
-- `name` (string) name of the driver ref
-- `data` (Block List, Max: 1) Inline definition for driver (see [below for nested schema](#nestedblock--inline))
+- `name` (string) name of the workflow handler ref
+- `data` (Block List, Max: 1) Inline definition for workflow handler (see [below for nested schema](#nestedblock--inline))
 
 <a id="nestedblock--inline"></a>
 ### Nested Schema for `inline`
 
 ***Required***
 
-- `config` (Block List, Max: 1) Driver configuration (see [below for nested schema](#nestedblock--spec--config))
+- `config` (Block List, Max: 1) Workflow handler configuration (see [below for nested schema](#nestedblock--spec--config))
 
 ***Optional***
 
-- `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
-- `outputs` (String) Outputs for the driver in JSON string format
+- `inputs` (Block List) Inputs for the workflow handler (see [below for nested schema](#nestedblock--spec--inputs))
+- `outputs` (String) Outputs for the workflow handler in JSON string format
 
 <a id="nestedblock--spec--config--container--kube_options--affinity"></a>
 ### Nested Schema for `spec.config.container.kube_options.affinity`

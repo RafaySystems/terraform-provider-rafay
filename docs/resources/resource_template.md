@@ -2720,12 +2720,12 @@ Optional:
 - `cpu_limit_milli` (String) Specify the cpu limit in milli
 - `env_vars` (Map of String) Specify the environment variables to be set in key,value pair
 - `files` (Map of String) Specify the file data
-- `image` (String) Specify the container image for the driver
+- `image` (String) Specify the container image for the workflow handler
 - `image_pull_credentials` (Block List, Max: 1) Specify the credentials for the registry to pull image from (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--image_pull_credentials))
 - `kube_config_options` (Block List, Max: 1) Specify the kube config options (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_config_options))
 - `kube_options` (Block List, Max: 1) Specify the kube options (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_options))
 - `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `volume_options` (Block List, Max: 1) Specify the container driver volume options (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--volume_options))
+- `volume_options` (Block List, Max: 1) Specify the container volume options (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--volume_options))
 - `volumes` (Block List) Configure the container volumes (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--volumes))
 - `working_dir_path` (String) Specify the working directory path
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -214,6 +215,26 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 		if tfBlueprintState.Spec.DefaultAddons.EnableMonitoring {
 			if tfBlueprintState.Spec.DefaultAddons.Monitoring == nil && bp.Spec.DefaultAddons.Monitoring != nil {
 				bp.Spec.DefaultAddons.Monitoring = nil
+			}
+			if tfBlueprintState.Spec.DefaultAddons.Monitoring != nil && bp.Spec.DefaultAddons.Monitoring != nil {
+				if tfBlueprintState.Spec.DefaultAddons.Monitoring.GpuOperator == nil &&
+					reflect.DeepEqual(bp.Spec.DefaultAddons.Monitoring.GpuOperator, &infrapb.MonitoringComponent{}) {
+					bp.Spec.DefaultAddons.Monitoring.GpuOperator = nil
+				}
+				if tfBlueprintState.Spec.DefaultAddons.Monitoring.MetricsServer == nil &&
+					reflect.DeepEqual(bp.Spec.DefaultAddons.Monitoring.MetricsServer, &infrapb.MonitoringComponent{
+						Enabled:              false,
+						CustomizationEnabled: true,
+					}) {
+					bp.Spec.DefaultAddons.Monitoring.MetricsServer = nil
+				}
+				if tfBlueprintState.Spec.DefaultAddons.Monitoring.PrometheusAdapter == nil &&
+					reflect.DeepEqual(bp.Spec.DefaultAddons.Monitoring.PrometheusAdapter, &infrapb.MonitoringComponent{
+						Enabled:              false,
+						CustomizationEnabled: true,
+					}) {
+					bp.Spec.DefaultAddons.Monitoring.PrometheusAdapter = nil
+				}
 			}
 		}
 	}

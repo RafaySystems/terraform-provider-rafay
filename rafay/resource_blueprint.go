@@ -213,7 +213,27 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 	}
 	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.DefaultAddons != nil && bp.Spec != nil && bp.Spec.DefaultAddons != nil {
 		if tfBlueprintState.Spec.DefaultAddons.EnableMonitoring {
-			if tfBlueprintState.Spec.DefaultAddons.Monitoring == nil && bp.Spec.DefaultAddons.Monitoring != nil {
+			if tfBlueprintState.Spec.DefaultAddons.Monitoring == nil &&
+				tfBlueprintState.Spec.Type == "default-aks" &&
+				reflect.DeepEqual(bp.Spec.DefaultAddons.Monitoring, &infrapb.MonitoringConfig{
+					GpuOperator: &infrapb.MonitoringComponent{},
+					MetricsServer: &infrapb.MonitoringComponent{
+						Enabled:              false,
+						CustomizationEnabled: true,
+					},
+					PrometheusAdapter: &infrapb.MonitoringComponent{
+						Enabled:              false,
+						CustomizationEnabled: true,
+					},
+				}) {
+
+				bp.Spec.DefaultAddons.Monitoring = nil
+			}
+			if tfBlueprintState.Spec.DefaultAddons.Monitoring == nil &&
+				tfBlueprintState.Spec.Type == "default" &&
+				reflect.DeepEqual(bp.Spec.DefaultAddons.Monitoring, &infrapb.MonitoringConfig{
+					GpuOperator: &infrapb.MonitoringComponent{},
+				}) {
 				bp.Spec.DefaultAddons.Monitoring = nil
 			}
 			if tfBlueprintState.Spec.DefaultAddons.Monitoring != nil && bp.Spec.DefaultAddons.Monitoring != nil {

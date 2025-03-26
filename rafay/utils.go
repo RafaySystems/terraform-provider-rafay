@@ -2395,7 +2395,7 @@ func flattenEnvVarOptions(input *eaaspb.EnvVarOptions) []interface{} {
 }
 
 func flattenDisplayMetadata(in *structpb.Struct) string {
-	if in == nil || len(in.Fields) == 0 {
+	if in == nil {
 		return ""
 	}
 	b, err := in.MarshalJSON()

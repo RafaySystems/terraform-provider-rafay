@@ -137,6 +137,12 @@ func resourceTemplateRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
+	if !rt.GetSpec().GetSharing().GetEnabled() && resourcetemplate.GetSpec().GetSharing() == nil {
+		resourcetemplate.Spec.Sharing = &commonpb.SharingSpec{}
+		resourcetemplate.Spec.Sharing.Enabled = false
+		resourcetemplate.Spec.Sharing.Projects = rt.Spec.Sharing.Projects
+	}
+
 	err = flattenResourceTemplate(d, resourcetemplate)
 	if err != nil {
 		log.Println("read flatten err")

@@ -2299,7 +2299,7 @@ func flattenWorkflowHandlerInline(input *eaaspb.WorkflowHandlerInline) []interfa
 	return []interface{}{obj}
 }
 
-func flattenPollingConfig(in *eaaspb.PollingConfig, p []interface{}) []interface{} {
+func flattenPollingConfig(in *eaaspb.PollingConfig) []interface{} {
 	if in == nil {
 		return nil
 	}

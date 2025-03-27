@@ -1163,33 +1163,9 @@ func flattenWorkflowHandlerConfig(input *eaaspb.WorkflowHandlerConfig, p []inter
 	}
 
 	obj["max_retry_count"] = input.MaxRetryCount
-
-	if input.Container != nil {
-		v, ok := obj["container"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["container"] = flattenWorkflowHandlerContainerConfig(input.Container, v)
-	}
-
-	if input.Http != nil {
-		v, ok := obj["http"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["http"] = flattenWorkflowHandlerHttpConfig(input.Http, v)
-	}
-
-	if input.PollingConfig != nil {
-		v, ok := obj["polling_config"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["polling_config"] = flattenPollingConfig(input.PollingConfig, v)
-	}
+	obj["container"] = flattenWorkflowHandlerContainerConfig(input.Container, obj["container"].([]interface{}))
+	obj["http"] = flattenWorkflowHandlerHttpConfig(input.Http, obj["http"].([]interface{}))
+	obj["polling_config"] = flattenPollingConfig(input.PollingConfig)
 
 	return []interface{}{obj}
 }

@@ -113,7 +113,7 @@ func resourceTemplateRead(ctx context.Context, d *schema.ResourceData, m any) di
 	if rt.Spec.Sharing != nil && !rt.Spec.Sharing.Enabled && resourcetemplate.GetSpec().GetSharing() == nil {
 		resourcetemplate.Spec.Sharing = &commonpb.SharingSpec{}
 		resourcetemplate.Spec.Sharing.Enabled = false
-		resourcetemplate.Spec.Sharing.Projects = rt.Spec.Sharing.Projects
+		resourcetemplate.Spec.Sharing.Projects = rt.GetSpec().GetSharing().GetProjects()
 	}
 
 	err = flattenResourceTemplate(d, resourcetemplate)

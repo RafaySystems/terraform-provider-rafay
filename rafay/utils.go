@@ -2015,9 +2015,9 @@ func flattenBoolValue(in *datatypes.BoolValue) []interface{} {
 		return nil
 	}
 
-	obj := map[string]any{
-		"value": in.GetValue(),
-	}
+	obj := make(map[string]interface{})
+	obj["value"] = in.Value
+
 	return []interface{}{obj}
 }
 

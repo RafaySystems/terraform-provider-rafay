@@ -136,7 +136,7 @@ func resourceStaticResourceRead(ctx context.Context, d *schema.ResourceData, m a
 	if r.Spec.Sharing != nil && !r.Spec.Sharing.Enabled && resource.GetSpec().GetSharing() == nil {
 		resource.Spec.Sharing = &commonpb.SharingSpec{}
 		resource.Spec.Sharing.Enabled = false
-		resource.Spec.Sharing.Projects = r.Spec.Sharing.Projects
+		resource.Spec.Sharing.Projects = r.GetSpec().GetSharing().GetProjects()
 	}
 
 	err = flattenResource(d, resource)

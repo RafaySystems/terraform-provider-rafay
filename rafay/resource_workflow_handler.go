@@ -42,7 +42,7 @@ func resourceWorkflowHandler() *schema.Resource {
 	}
 }
 
-func resourceWorkflowHandlerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceWorkflowHandlerCreate(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	log.Println("workflow handler create")
 	diags := resourceWorkflowHandlerUpsert(ctx, d, m)
 	if diags.HasError() {
@@ -71,7 +71,7 @@ func resourceWorkflowHandlerCreate(ctx context.Context, d *schema.ResourceData, 
 	return diags
 }
 
-func resourceWorkflowHandlerUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceWorkflowHandlerUpsert(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("workflow handler upsert starts")
 	tflog := os.Getenv("TF_LOG")
@@ -99,7 +99,7 @@ func resourceWorkflowHandlerUpsert(ctx context.Context, d *schema.ResourceData, 
 	return diags
 }
 
-func resourceWorkflowHandlerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceWorkflowHandlerRead(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("workflow handler read starts ")
 	meta := GetMetaData(d)
@@ -145,11 +145,11 @@ func resourceWorkflowHandlerRead(ctx context.Context, d *schema.ResourceData, m 
 
 }
 
-func resourceWorkflowHandlerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceWorkflowHandlerUpdate(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	return resourceWorkflowHandlerUpsert(ctx, d, m)
 }
 
-func resourceWorkflowHandlerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceWorkflowHandlerDelete(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("workflow handler delete starts")
 	tflog := os.Getenv("TF_LOG")
@@ -196,11 +196,11 @@ func expandWorkflowHandler(in *schema.ResourceData) (*eaaspb.WorkflowHandler, er
 	}
 	obj := &eaaspb.WorkflowHandler{}
 
-	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
+	if v, ok := in.Get("metadata").([]any); ok && len(v) > 0 {
 		obj.Metadata = expandV3MetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
+	if v, ok := in.Get("spec").([]any); ok && len(v) > 0 {
 		objSpec, err := expandWorkflowHandlerSpec(v)
 		if err != nil {
 			return nil, err
@@ -213,24 +213,24 @@ func expandWorkflowHandler(in *schema.ResourceData) (*eaaspb.WorkflowHandler, er
 	return obj, nil
 }
 
-func expandWorkflowHandlerSpec(p []interface{}) (*eaaspb.WorkflowHandlerSpec, error) {
+func expandWorkflowHandlerSpec(p []any) (*eaaspb.WorkflowHandlerSpec, error) {
 	log.Println("expand workflow handler spec")
 	spec := &eaaspb.WorkflowHandlerSpec{}
 	if len(p) == 0 || p[0] == nil {
 		return spec, fmt.Errorf("%s", "expand workflow handler spec empty input")
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
-	if c, ok := in["config"].([]interface{}); ok && len(c) > 0 {
+	if c, ok := in["config"].([]any); ok && len(c) > 0 {
 		spec.Config = expandWorkflowHandlerConfig(c)
 	}
 
-	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
 	}
 
-	if v, ok := in["inputs"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["inputs"].([]any); ok && len(v) > 0 {
 		spec.Inputs = expandConfigContextCompoundRefs(v)
 	}
 
@@ -245,13 +245,13 @@ func expandWorkflowHandlerSpec(p []interface{}) (*eaaspb.WorkflowHandlerSpec, er
 	return spec, nil
 }
 
-func expandWorkflowHandlerConfig(p []interface{}) *eaaspb.WorkflowHandlerConfig {
+func expandWorkflowHandlerConfig(p []any) *eaaspb.WorkflowHandlerConfig {
 	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
 
 	workflowHandlerConfig := eaaspb.WorkflowHandlerConfig{}
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
 	if typ, ok := in["type"].(string); ok && len(typ) > 0 {
 		workflowHandlerConfig.Type = typ
@@ -269,15 +269,15 @@ func expandWorkflowHandlerConfig(p []interface{}) *eaaspb.WorkflowHandlerConfig 
 		workflowHandlerConfig.MaxRetryCount = int32(ts)
 	}
 
-	if v, ok := in["container"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["container"].([]any); ok && len(v) > 0 {
 		workflowHandlerConfig.Container = expandWorkflowHandlerContainerConfig(v)
 	}
 
-	if v, ok := in["http"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["http"].([]any); ok && len(v) > 0 {
 		workflowHandlerConfig.Http = expandWorkflowHandlerHttpConfig(v)
 	}
 
-	if v, ok := in["polling_config"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["polling_config"].([]any); ok && len(v) > 0 {
 		workflowHandlerConfig.PollingConfig = expandPollingConfig(v)
 	}
 
@@ -288,23 +288,23 @@ func expandWorkflowHandlerConfig(p []interface{}) *eaaspb.WorkflowHandlerConfig 
 	return &workflowHandlerConfig
 }
 
-func expandWorkflowHandlerContainerConfig(p []interface{}) *eaaspb.ContainerDriverConfig {
+func expandWorkflowHandlerContainerConfig(p []any) *eaaspb.ContainerDriverConfig {
 	cc := eaaspb.ContainerDriverConfig{}
 	if len(p) == 0 || p[0] == nil {
 		return &cc
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
 	if img, ok := in["image"].(string); ok && len(img) > 0 {
 		cc.Image = img
 	}
 
-	if args, ok := in["arguments"].([]interface{}); ok && len(args) > 0 {
+	if args, ok := in["arguments"].([]any); ok && len(args) > 0 {
 		cc.Arguments = toArrayString(args)
 	}
 
-	if cmds, ok := in["commands"].([]interface{}); ok && len(cmds) > 0 {
+	if cmds, ok := in["commands"].([]any); ok && len(cmds) > 0 {
 		cc.Commands = toArrayString(cmds)
 	}
 
@@ -312,23 +312,23 @@ func expandWorkflowHandlerContainerConfig(p []interface{}) *eaaspb.ContainerDriv
 		cc.CpuLimitMilli = clm
 	}
 
-	if ev, ok := in["env_vars"].(map[string]interface{}); ok && len(ev) > 0 {
+	if ev, ok := in["env_vars"].(map[string]any); ok && len(ev) > 0 {
 		cc.EnvVars = toMapString(ev)
 	}
 
-	if f, ok := in["files"].(map[string]interface{}); ok && len(f) > 0 {
+	if f, ok := in["files"].(map[string]any); ok && len(f) > 0 {
 		cc.Files = toMapByte(f)
 	}
 
-	if v, ok := in["image_pull_credentials"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["image_pull_credentials"].([]any); ok && len(v) > 0 {
 		cc.ImagePullCredentials = expandImagePullCredentials(v)
 	}
 
-	if v, ok := in["kube_config_options"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["kube_config_options"].([]any); ok && len(v) > 0 {
 		cc.KubeConfigOptions = expandKubeConfigOptions(v)
 	}
 
-	if v, ok := in["kube_options"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["kube_options"].([]any); ok && len(v) > 0 {
 		cc.KubeOptions = expandContainerKubeOptions(v)
 	}
 
@@ -336,14 +336,14 @@ func expandWorkflowHandlerContainerConfig(p []interface{}) *eaaspb.ContainerDriv
 		cc.MemoryLimitMb = mlb
 	}
 
-	if v, ok := in["volume_options"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["volume_options"].([]any); ok && len(v) > 0 {
 		volumes := expandContainerWorkflowHandlerVolumeOptions(v)
 		if len(volumes) > 0 {
 			cc.VolumeOptions = volumes[0]
 		}
 	}
 
-	if v, ok := in["volumes"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["volumes"].([]any); ok && len(v) > 0 {
 		cc.Volumes = expandContainerWorkflowHandlerVolumeOptions(v)
 	}
 
@@ -354,13 +354,13 @@ func expandWorkflowHandlerContainerConfig(p []interface{}) *eaaspb.ContainerDriv
 	return &cc
 }
 
-func expandImagePullCredentials(p []interface{}) *eaaspb.ContainerImagePullCredentials {
+func expandImagePullCredentials(p []any) *eaaspb.ContainerImagePullCredentials {
 	hc := eaaspb.ContainerImagePullCredentials{}
 	if len(p) == 0 || p[0] == nil {
 		return &hc
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
 	if pass, ok := in["password"].(string); ok && len(pass) > 0 {
 		hc.Password = pass
@@ -377,13 +377,13 @@ func expandImagePullCredentials(p []interface{}) *eaaspb.ContainerImagePullCrede
 	return &hc
 }
 
-func expandKubeConfigOptions(p []interface{}) *eaaspb.ContainerKubeConfigOptions {
+func expandKubeConfigOptions(p []any) *eaaspb.ContainerKubeConfigOptions {
 	hc := eaaspb.ContainerKubeConfigOptions{}
 	if len(p) == 0 || p[0] == nil {
 		return &hc
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
 	if kc, ok := in["kube_config"].(string); ok && len(kc) > 0 {
 		hc.KubeConfig = kc
@@ -396,15 +396,15 @@ func expandKubeConfigOptions(p []interface{}) *eaaspb.ContainerKubeConfigOptions
 	return &hc
 }
 
-func expandContainerKubeOptions(p []interface{}) *eaaspb.ContainerKubeOptions {
+func expandContainerKubeOptions(p []any) *eaaspb.ContainerKubeOptions {
 	hc := eaaspb.ContainerKubeOptions{}
 	if len(p) == 0 || p[0] == nil {
 		return &hc
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
-	if lbls, ok := in["labels"].(map[string]interface{}); ok && len(lbls) > 0 {
+	if lbls, ok := in["labels"].(map[string]any); ok && len(lbls) > 0 {
 		hc.Labels = toMapString(lbls)
 	}
 
@@ -412,15 +412,15 @@ func expandContainerKubeOptions(p []interface{}) *eaaspb.ContainerKubeOptions {
 		hc.Namespace = ns
 	}
 
-	if ns, ok := in["node_selector"].(map[string]interface{}); ok && len(ns) > 0 {
+	if ns, ok := in["node_selector"].(map[string]any); ok && len(ns) > 0 {
 		hc.NodeSelector = toMapString(ns)
 	}
 
-	if r, ok := in["resources"].([]interface{}); ok && len(r) > 0 {
+	if r, ok := in["resources"].([]any); ok && len(r) > 0 {
 		hc.Resources = toArrayString(r)
 	}
 
-	if sc, ok := in["security_context"].([]interface{}); ok && len(sc) > 0 {
+	if sc, ok := in["security_context"].([]any); ok && len(sc) > 0 {
 		hc.SecurityContext = expandSecurityContext(sc)
 	}
 
@@ -428,89 +428,89 @@ func expandContainerKubeOptions(p []interface{}) *eaaspb.ContainerKubeOptions {
 		hc.ServiceAccountName = san
 	}
 
-	if tolerations, ok := in["tolerations"].([]interface{}); ok {
+	if tolerations, ok := in["tolerations"].([]any); ok {
 		hc.Tolerations = expandV3Tolerations(tolerations)
 	}
 
-	if a, ok := in["affinity"].([]interface{}); ok && len(a) > 0 {
+	if a, ok := in["affinity"].([]any); ok && len(a) > 0 {
 		hc.Affinity = expandKubeOptionsAffinity(a)
 	}
 
 	return &hc
 }
 
-func expandSecurityContext(p []interface{}) *eaaspb.KubeSecurityContext {
+func expandSecurityContext(p []any) *eaaspb.KubeSecurityContext {
 	ksc := eaaspb.KubeSecurityContext{}
 	if len(p) == 0 || p[0] == nil {
 		return &ksc
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
-	if privileged, ok := in["privileged"].([]interface{}); ok && len(privileged) > 0 {
+	if privileged, ok := in["privileged"].([]any); ok && len(privileged) > 0 {
 		ksc.Privileged = expandBoolValue(privileged)
 	}
 
-	if ro, ok := in["read_only_root_file_system"].([]interface{}); ok && len(ro) > 0 {
+	if ro, ok := in["read_only_root_file_system"].([]any); ok && len(ro) > 0 {
 		ksc.ReadOnlyRootFileSystem = expandBoolValue(ro)
 	}
 
 	return &ksc
 }
 
-func expandKubeOptionsAffinity(p []interface{}) *corev1.Affinity {
+func expandKubeOptionsAffinity(p []any) *corev1.Affinity {
 	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 	affinity := &corev1.Affinity{}
 
-	if nodeAffinity, ok := in["node_affinity"].([]interface{}); ok && len(nodeAffinity) > 0 {
+	if nodeAffinity, ok := in["node_affinity"].([]any); ok && len(nodeAffinity) > 0 {
 		affinity.NodeAffinity = expandNodeAffinity(nodeAffinity)
 	}
 
-	if podAffinity, ok := in["pod_affinity"].([]interface{}); ok && len(podAffinity) > 0 {
+	if podAffinity, ok := in["pod_affinity"].([]any); ok && len(podAffinity) > 0 {
 		affinity.PodAffinity = expandPodAffinity(podAffinity)
 	}
 
-	if podAntiAffinity, ok := in["pod_anti_affinity"].([]interface{}); ok && len(podAntiAffinity) > 0 {
+	if podAntiAffinity, ok := in["pod_anti_affinity"].([]any); ok && len(podAntiAffinity) > 0 {
 		affinity.PodAntiAffinity = expandPodAntiAffinity(podAntiAffinity)
 	}
 
 	return affinity
 }
 
-func expandNodeSelector(p []interface{}) *corev1.NodeSelector {
+func expandNodeSelector(p []any) *corev1.NodeSelector {
 	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 	nodeSelector := &corev1.NodeSelector{}
 
-	if nodeSelectorTerms, ok := in["node_selector_terms"].([]interface{}); ok && len(nodeSelectorTerms) > 0 {
+	if nodeSelectorTerms, ok := in["node_selector_terms"].([]any); ok && len(nodeSelectorTerms) > 0 {
 		nodeSelector.NodeSelectorTerms = expandNodeSelectorTermsList(nodeSelectorTerms)
 	}
 
 	return nodeSelector
 }
 
-func expandNodeSelectorTermsList(p []interface{}) []corev1.NodeSelectorTerm {
+func expandNodeSelectorTermsList(p []any) []corev1.NodeSelectorTerm {
 	if len(p) == 0 {
 		return nil
 	}
 
 	terms := make([]corev1.NodeSelectorTerm, len(p))
 	for i := range p {
-		in := p[i].(map[string]interface{})
+		in := p[i].(map[string]any)
 		term := corev1.NodeSelectorTerm{}
 
-		if matchExpressions, ok := in["match_expressions"].([]interface{}); ok && len(matchExpressions) > 0 {
+		if matchExpressions, ok := in["match_expressions"].([]any); ok && len(matchExpressions) > 0 {
 			term.MatchExpressions = expandNodeSelectorRequirements(matchExpressions)
 		}
 
-		if matchFields, ok := in["match_fields"].([]interface{}); ok && len(matchFields) > 0 {
+		if matchFields, ok := in["match_fields"].([]any); ok && len(matchFields) > 0 {
 			term.MatchFields = expandNodeSelectorRequirements(matchFields)
 		}
 
@@ -520,33 +520,33 @@ func expandNodeSelectorTermsList(p []interface{}) []corev1.NodeSelectorTerm {
 	return terms
 }
 
-func expandNodeSelectorTerm(p []interface{}) corev1.NodeSelectorTerm {
+func expandNodeSelectorTerm(p []any) corev1.NodeSelectorTerm {
 	term := corev1.NodeSelectorTerm{}
 	if len(p) == 0 {
 		return term
 	}
 
-	data := p[0].(map[string]interface{})
+	data := p[0].(map[string]any)
 
-	if matchExpressions, ok := data["match_expressions"].([]interface{}); ok && len(matchExpressions) > 0 {
+	if matchExpressions, ok := data["match_expressions"].([]any); ok && len(matchExpressions) > 0 {
 		term.MatchExpressions = expandNodeSelectorRequirements(matchExpressions)
 	}
 
-	if matchFields, ok := data["match_fields"].([]interface{}); ok && len(matchFields) > 0 {
+	if matchFields, ok := data["match_fields"].([]any); ok && len(matchFields) > 0 {
 		term.MatchFields = expandNodeSelectorRequirements(matchFields)
 	}
 
 	return term
 }
 
-func expandNodeSelectorRequirements(p []interface{}) []corev1.NodeSelectorRequirement {
+func expandNodeSelectorRequirements(p []any) []corev1.NodeSelectorRequirement {
 	if len(p) == 0 {
 		return nil
 	}
 
 	requirements := make([]corev1.NodeSelectorRequirement, len(p))
 	for i := range p {
-		in := p[i].(map[string]interface{})
+		in := p[i].(map[string]any)
 		requirement := corev1.NodeSelectorRequirement{}
 
 		if key, ok := in["key"].(string); ok && len(key) > 0 {
@@ -557,7 +557,7 @@ func expandNodeSelectorRequirements(p []interface{}) []corev1.NodeSelectorRequir
 			requirement.Operator = corev1.NodeSelectorOperator(operator)
 		}
 
-		if values, ok := in["values"].([]interface{}); ok && len(values) > 0 {
+		if values, ok := in["values"].([]any); ok && len(values) > 0 {
 			requirement.Values = toArrayString(values)
 		}
 
@@ -567,40 +567,40 @@ func expandNodeSelectorRequirements(p []interface{}) []corev1.NodeSelectorRequir
 	return requirements
 }
 
-func expandPodAntiAffinity(p []interface{}) *corev1.PodAntiAffinity {
+func expandPodAntiAffinity(p []any) *corev1.PodAntiAffinity {
 	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 	podAntiAffinity := &corev1.PodAntiAffinity{}
 
-	if required, ok := in["required_during_scheduling_ignored_during_execution"].([]interface{}); ok && len(required) > 0 {
+	if required, ok := in["required_during_scheduling_ignored_during_execution"].([]any); ok && len(required) > 0 {
 		podAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution = expandPodAffinityTerms(required)
 	}
 
-	if preferred, ok := in["preferred_during_scheduling_ignored_during_execution"].([]interface{}); ok && len(preferred) > 0 {
+	if preferred, ok := in["preferred_during_scheduling_ignored_during_execution"].([]any); ok && len(preferred) > 0 {
 		podAntiAffinity.PreferredDuringSchedulingIgnoredDuringExecution = expandWeightedPodAffinityTerm(preferred)
 	}
 
 	return podAntiAffinity
 }
 
-func expandPodAffinityTerms(p []interface{}) []corev1.PodAffinityTerm {
+func expandPodAffinityTerms(p []any) []corev1.PodAffinityTerm {
 	if len(p) == 0 {
 		return nil
 	}
 
 	terms := make([]corev1.PodAffinityTerm, len(p))
 	for i := range p {
-		in := p[i].(map[string]interface{})
+		in := p[i].(map[string]any)
 		term := corev1.PodAffinityTerm{}
 
-		if labelSelector, ok := in["label_selector"].([]interface{}); ok && len(labelSelector) > 0 {
+		if labelSelector, ok := in["label_selector"].([]any); ok && len(labelSelector) > 0 {
 			term.LabelSelector = expandLabelSelector(labelSelector)
 		}
 
-		if namespaces, ok := in["namespaces"].([]interface{}); ok && len(namespaces) > 0 {
+		if namespaces, ok := in["namespaces"].([]any); ok && len(namespaces) > 0 {
 			term.Namespaces = toArrayString(namespaces)
 		}
 
@@ -608,7 +608,7 @@ func expandPodAffinityTerms(p []interface{}) []corev1.PodAffinityTerm {
 			term.TopologyKey = topologyKey
 		}
 
-		if namespaceSelector, ok := in["namespace_selector"].([]interface{}); ok && len(namespaceSelector) > 0 {
+		if namespaceSelector, ok := in["namespace_selector"].([]any); ok && len(namespaceSelector) > 0 {
 			term.NamespaceSelector = expandLabelSelector(namespaceSelector)
 		}
 
@@ -618,40 +618,40 @@ func expandPodAffinityTerms(p []interface{}) []corev1.PodAffinityTerm {
 	return terms
 }
 
-func expandPodAffinity(p []interface{}) *corev1.PodAffinity {
+func expandPodAffinity(p []any) *corev1.PodAffinity {
 	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 	podAffinity := &corev1.PodAffinity{}
 
-	if required, ok := in["required_during_scheduling_ignored_during_execution"].([]interface{}); ok && len(required) > 0 {
+	if required, ok := in["required_during_scheduling_ignored_during_execution"].([]any); ok && len(required) > 0 {
 		podAffinity.RequiredDuringSchedulingIgnoredDuringExecution = expandPodAffinityTerms(required)
 	}
 
-	if preferred, ok := in["preferred_during_scheduling_ignored_during_execution"].([]interface{}); ok && len(preferred) > 0 {
+	if preferred, ok := in["preferred_during_scheduling_ignored_during_execution"].([]any); ok && len(preferred) > 0 {
 		podAffinity.PreferredDuringSchedulingIgnoredDuringExecution = expandWeightedPodAffinityTerm(preferred)
 	}
 
 	return podAffinity
 }
 
-func expandWeightedPodAffinityTerm(preferred []interface{}) []corev1.WeightedPodAffinityTerm {
+func expandWeightedPodAffinityTerm(preferred []any) []corev1.WeightedPodAffinityTerm {
 	if len(preferred) == 0 {
 		return nil
 	}
 
 	terms := make([]corev1.WeightedPodAffinityTerm, len(preferred))
 	for i := range preferred {
-		in := preferred[i].(map[string]interface{})
+		in := preferred[i].(map[string]any)
 		term := corev1.WeightedPodAffinityTerm{}
 
 		if weight, ok := in["weight"].(int); ok {
 			term.Weight = int32(weight)
 		}
 
-		if podAffinityTerm, ok := in["pod_affinity_term"].([]interface{}); ok && len(podAffinityTerm) > 0 {
+		if podAffinityTerm, ok := in["pod_affinity_term"].([]any); ok && len(podAffinityTerm) > 0 {
 			term.PodAffinityTerm = expandPodAffinityTerms(podAffinityTerm)[0]
 		}
 
@@ -661,40 +661,40 @@ func expandWeightedPodAffinityTerm(preferred []interface{}) []corev1.WeightedPod
 	return terms
 }
 
-func expandNodeAffinity(p []interface{}) *corev1.NodeAffinity {
+func expandNodeAffinity(p []any) *corev1.NodeAffinity {
 	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 	nodeAffinity := &corev1.NodeAffinity{}
 
-	if required, ok := in["required_during_scheduling_ignored_during_execution"].([]interface{}); ok && len(required) > 0 {
+	if required, ok := in["required_during_scheduling_ignored_during_execution"].([]any); ok && len(required) > 0 {
 		nodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = expandNodeSelector(required)
 	}
 
-	if preferred, ok := in["preferred_during_scheduling_ignored_during_execution"].([]interface{}); ok && len(preferred) > 0 {
+	if preferred, ok := in["preferred_during_scheduling_ignored_during_execution"].([]any); ok && len(preferred) > 0 {
 		nodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution = expandPreferredSchedulingTerms(preferred)
 	}
 
 	return nodeAffinity
 }
 
-func expandPreferredSchedulingTerms(preferred []interface{}) []corev1.PreferredSchedulingTerm {
+func expandPreferredSchedulingTerms(preferred []any) []corev1.PreferredSchedulingTerm {
 	if len(preferred) == 0 {
 		return nil
 	}
 
 	terms := make([]corev1.PreferredSchedulingTerm, len(preferred))
 	for i := range preferred {
-		in := preferred[i].(map[string]interface{})
+		in := preferred[i].(map[string]any)
 		term := corev1.PreferredSchedulingTerm{}
 
 		if weight, ok := in["weight"].(int); ok {
 			term.Weight = int32(weight)
 		}
 
-		if preference, ok := in["preference"].([]interface{}); ok && len(preference) > 0 {
+		if preference, ok := in["preference"].([]any); ok && len(preference) > 0 {
 			term.Preference = expandNodeSelectorTerm(preference)
 		}
 
@@ -704,13 +704,13 @@ func expandPreferredSchedulingTerms(preferred []interface{}) []corev1.PreferredS
 	return terms
 }
 
-func expandWorkflowHandlerHttpConfig(p []interface{}) *eaaspb.HTTPDriverConfig {
+func expandWorkflowHandlerHttpConfig(p []any) *eaaspb.HTTPDriverConfig {
 	hc := eaaspb.HTTPDriverConfig{}
 	if len(p) == 0 || p[0] == nil {
 		return &hc
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
 	if body, ok := in["body"].(string); ok && len(body) > 0 {
 		hc.Body = body
@@ -720,7 +720,7 @@ func expandWorkflowHandlerHttpConfig(p []interface{}) *eaaspb.HTTPDriverConfig {
 		hc.Endpoint = endpoint
 	}
 
-	if headers, ok := in["headers"].(map[string]interface{}); ok && len(headers) > 0 {
+	if headers, ok := in["headers"].(map[string]any); ok && len(headers) > 0 {
 		hc.Headers = toMapString(headers)
 	}
 
@@ -744,19 +744,19 @@ func expandWorkflowHandlerOutputs(p string) (*structpb.Struct, error) {
 }
 
 // expandLabelSelector expands a label selector from a list of interfaces.
-func expandLabelSelector(p []interface{}) *metav1.LabelSelector {
+func expandLabelSelector(p []any) *metav1.LabelSelector {
 	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 	labelSelector := &metav1.LabelSelector{}
 
-	if matchLabels, ok := in["match_labels"].(map[string]interface{}); ok && len(matchLabels) > 0 {
+	if matchLabels, ok := in["match_labels"].(map[string]any); ok && len(matchLabels) > 0 {
 		labelSelector.MatchLabels = toMapString(matchLabels)
 	}
 
-	if matchExpressions, ok := in["match_expressions"].([]interface{}); ok && len(matchExpressions) > 0 {
+	if matchExpressions, ok := in["match_expressions"].([]any); ok && len(matchExpressions) > 0 {
 		labelSelector.MatchExpressions = expandLabelSelectorRequirements(matchExpressions)
 	}
 
@@ -764,14 +764,14 @@ func expandLabelSelector(p []interface{}) *metav1.LabelSelector {
 }
 
 // expandLabelSelectorRequirements expands a list of label selector requirements.
-func expandLabelSelectorRequirements(p []interface{}) []metav1.LabelSelectorRequirement {
+func expandLabelSelectorRequirements(p []any) []metav1.LabelSelectorRequirement {
 	if len(p) == 0 {
 		return nil
 	}
 
 	requirements := make([]metav1.LabelSelectorRequirement, len(p))
 	for i := range p {
-		in := p[i].(map[string]interface{})
+		in := p[i].(map[string]any)
 		requirement := metav1.LabelSelectorRequirement{}
 
 		if key, ok := in["key"].(string); ok && len(key) > 0 {
@@ -782,7 +782,7 @@ func expandLabelSelectorRequirements(p []interface{}) []metav1.LabelSelectorRequ
 			requirement.Operator = metav1.LabelSelectorOperator(operator)
 		}
 
-		if values, ok := in["values"].([]interface{}); ok && len(values) > 0 {
+		if values, ok := in["values"].([]any); ok && len(values) > 0 {
 			requirement.Values = toArrayString(values)
 		}
 
@@ -793,16 +793,16 @@ func expandLabelSelectorRequirements(p []interface{}) []metav1.LabelSelectorRequ
 }
 
 // flattenLabelSelectorRequirements flattens a list of label selector requirements.
-func flattenLabelSelectorRequirements(in []metav1.LabelSelectorRequirement, p []interface{}) []interface{} {
+func flattenLabelSelectorRequirements(in []metav1.LabelSelectorRequirement, p []any) []any {
 	if len(in) == 0 {
 		return nil
 	}
 
-	requirements := make([]interface{}, len(in))
+	requirements := make([]any, len(in))
 	for i, req := range in {
-		obj := make(map[string]interface{})
+		obj := make(map[string]any)
 		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+			obj = p[i].(map[string]any)
 		}
 
 		obj["key"] = req.Key
@@ -815,104 +815,175 @@ func flattenLabelSelectorRequirements(in []metav1.LabelSelectorRequirement, p []
 	return requirements
 }
 
+func expandWorkflowHandlerCompoundRef(p []any) (*eaaspb.WorkflowHandlerCompoundRef, error) {
+	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
+	if len(p) == 0 || p[0] == nil {
+		return wfHandler, nil
+	}
+	in := p[0].(map[string]any)
+
+	if v, ok := in["name"].(string); ok && len(v) > 0 {
+		wfHandler.Name = v
+	}
+
+	var err error
+	if v, ok := in["data"].([]any); ok && len(v) > 0 {
+		wfHandler.Data, err = expandWorkflowHandlerInline(v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return wfHandler, nil
+}
+
+func expandWorkflowHandlerInline(p []any) (*eaaspb.WorkflowHandlerInline, error) {
+	wfHandlerInline := &eaaspb.WorkflowHandlerInline{}
+	if len(p) == 0 || p[0] == nil {
+		return wfHandlerInline, nil
+	}
+
+	in := p[0].(map[string]any)
+
+	if v, ok := in["config"].([]any); ok && len(v) > 0 {
+		wfHandlerInline.Config = expandWorkflowHandlerConfig(v)
+	}
+
+	if v, ok := in["inputs"].([]any); ok && len(v) > 0 {
+		wfHandlerInline.Inputs = expandConfigContextCompoundRefs(v)
+	}
+
+	if v, ok := in["outputs"].(string); ok && len(v) > 0 {
+		outputs, err := expandWorkflowHandlerOutputs(v)
+		if err != nil {
+			return nil, err
+		}
+		wfHandlerInline.Outputs = outputs
+	}
+
+	return wfHandlerInline, nil
+}
+
+func expandPollingConfig(p []any) *eaaspb.PollingConfig {
+	pc := &eaaspb.PollingConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return pc
+	}
+
+	in := p[0].(map[string]any)
+
+	if h, ok := in["repeat"].(string); ok {
+		pc.Repeat = h
+	}
+
+	if h, ok := in["until"].(string); ok {
+		pc.Until = h
+	}
+
+	return pc
+}
+
+func expandContainerWorkflowHandlerVolumeOptions(p []any) []*eaaspb.ContainerDriverVolumeOptions {
+	volumes := make([]*eaaspb.ContainerDriverVolumeOptions, 0)
+	if len(p) == 0 {
+		return volumes
+	}
+
+	for indx := range p {
+		volume := &eaaspb.ContainerDriverVolumeOptions{}
+		if p[indx] == nil {
+			return volumes
+		}
+		in := p[indx].(map[string]any)
+
+		if mp, ok := in["mount_path"].(string); ok && len(mp) > 0 {
+			volume.MountPath = mp
+		}
+
+		if pvcsz, ok := in["pvc_size_gb"].(string); ok && len(pvcsz) > 0 {
+			volume.PvcSizeGB = pvcsz
+		}
+
+		if pvcsc, ok := in["pvc_storage_class"].(string); ok && len(pvcsc) > 0 {
+			volume.PvcStorageClass = pvcsc
+		}
+
+		if usepvc, ok := in["use_pvc"].([]any); ok && len(usepvc) > 0 {
+			volume.UsePVC = expandBoolValue(usepvc)
+		}
+
+		if enableBackupAndRestore, ok := in["enable_backup_and_restore"].(bool); ok {
+			volume.EnableBackupAndRestore = enableBackupAndRestore
+		}
+
+		volumes = append(volumes, volume)
+
+	}
+
+	return volumes
+}
+
 // Flatteners
 
-func flattenLabelSelector(in *metav1.LabelSelector, p []interface{}) []interface{} {
+func flattenLabelSelector(in *metav1.LabelSelector, p []any) []any {
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
-
-	if len(in.MatchLabels) > 0 {
-		obj["match_labels"] = toMapInterface(in.MatchLabels)
-	}
-
-	if len(in.MatchExpressions) > 0 {
-		v, ok := obj["match_expressions"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["match_expressions"] = flattenLabelSelectorRequirements(in.MatchExpressions, v)
-	}
-
-	return []interface{}{obj}
+	obj["match_labels"] = toMapInterface(in.MatchLabels)
+	obj["match_expressions"] = flattenLabelSelectorRequirements(in.MatchExpressions, obj["match_expressions"].([]any))
+	return []any{obj}
 }
 
-func flattenNodeSelector(in *corev1.NodeSelector, p []interface{}) []interface{} {
+func flattenNodeSelector(in *corev1.NodeSelector, p []any) []any {
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
-
-	if len(in.NodeSelectorTerms) > 0 {
-		v, ok := obj["node_selector_terms"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["node_selector_terms"] = flattenNodeSelectorTermsList(in.NodeSelectorTerms, v)
-	}
-
-	return []interface{}{obj}
+	obj["node_selector_terms"] = flattenNodeSelectorTermsList(in.NodeSelectorTerms, obj["node_selector_terms"].([]any))
+	return []any{obj}
 }
 
-func flattenNodeSelectorTermsList(in []corev1.NodeSelectorTerm, p []interface{}) []interface{} {
+func flattenNodeSelectorTermsList(in []corev1.NodeSelectorTerm, p []any) []any {
 	if len(in) == 0 {
 		return nil
 	}
 
-	terms := make([]interface{}, len(in))
+	terms := make([]any, len(in))
 	for i, term := range in {
-		obj := make(map[string]interface{})
+		obj := make(map[string]any)
 		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+			obj = p[i].(map[string]any)
 		}
-
-		if len(term.MatchExpressions) > 0 {
-			v, ok := obj["match_expressions"].([]interface{})
-			if !ok {
-				v = []interface{}{}
-			}
-			obj["match_expressions"] = flattenNodeSelectorRequirements(term.MatchExpressions, v)
-		}
-
-		if len(term.MatchFields) > 0 {
-			v, ok := obj["match_fields"].([]interface{})
-			if !ok {
-				v = []interface{}{}
-			}
-			obj["match_fields"] = flattenNodeSelectorRequirements(term.MatchFields, v)
-		}
-
+		obj["match_expressions"] = flattenNodeSelectorRequirements(term.MatchExpressions, obj["match_expressions"].([]any))
+		obj["match_fields"] = flattenNodeSelectorRequirements(term.MatchFields, obj["match_fields"].([]any))
 		terms[i] = obj
 	}
-
 	return terms
 }
 
-func flattenNodeSelectorRequirements(in []corev1.NodeSelectorRequirement, p []interface{}) []interface{} {
+func flattenNodeSelectorRequirements(in []corev1.NodeSelectorRequirement, p []any) []any {
 	if len(in) == 0 {
 		return nil
 	}
 
-	requirements := make([]interface{}, len(in))
+	requirements := make([]any, len(in))
 	for i, req := range in {
-		obj := make(map[string]interface{})
+		obj := make(map[string]any)
 		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+			obj = p[i].(map[string]any)
 		}
-
 		obj["key"] = req.Key
 		obj["operator"] = string(req.Operator)
 		obj["values"] = toArrayInterface(req.Values)
-
 		requirements[i] = obj
 	}
 
@@ -930,12 +1001,12 @@ func flattenWorkflowHandler(d *schema.ResourceData, in *eaaspb.WorkflowHandler) 
 		return err
 	}
 
-	v, ok := d.Get("spec").([]interface{})
+	v, ok := d.Get("spec").([]any)
 	if !ok {
-		v = []interface{}{}
+		v = []any{}
 	}
 
-	var ret []interface{}
+	var ret []any
 	ret, err = flattenWorkflowHandlerSpec(in.Spec, v)
 	if err != nil {
 		log.Println("flatten workflow handler spec err")
@@ -950,120 +1021,88 @@ func flattenWorkflowHandler(d *schema.ResourceData, in *eaaspb.WorkflowHandler) 
 	return nil
 }
 
-func flattenPodAntiAffinity(in *corev1.PodAntiAffinity, p []interface{}) []interface{} {
+func flattenPodAntiAffinity(in *corev1.PodAntiAffinity, p []any) []any {
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
-
-	if in.RequiredDuringSchedulingIgnoredDuringExecution != nil {
-		v, ok := obj["required_during_scheduling_ignored_during_execution"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["required_during_scheduling_ignored_during_execution"] = flattenPodAffinityTerms(in.RequiredDuringSchedulingIgnoredDuringExecution, v)
-	}
-
-	if in.PreferredDuringSchedulingIgnoredDuringExecution != nil {
-		v, ok := obj["preferred_during_scheduling_ignored_during_execution"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["preferred_during_scheduling_ignored_during_execution"] = flattenWeightedPodAffinityTerms(in.PreferredDuringSchedulingIgnoredDuringExecution, v)
-	}
-
-	return []interface{}{obj}
+	obj["required_during_scheduling_ignored_during_execution"] = flattenPodAffinityTerms(in.RequiredDuringSchedulingIgnoredDuringExecution, obj["required_during_scheduling_ignored_during_execution"].([]any))
+	obj["preferred_during_scheduling_ignored_during_execution"] = flattenWeightedPodAffinityTerms(in.PreferredDuringSchedulingIgnoredDuringExecution, obj["preferred_during_scheduling_ignored_during_execution"].([]any))
+	return []any{obj}
 }
 
-func flattenPodAffinity(in *corev1.PodAffinity, p []interface{}) []interface{} {
+func flattenPodAffinity(in *corev1.PodAffinity, p []any) []any {
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
-
-	if in.RequiredDuringSchedulingIgnoredDuringExecution != nil {
-		v, ok := obj["required_during_scheduling_ignored_during_execution"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["required_during_scheduling_ignored_during_execution"] = flattenPodAffinityTerms(in.RequiredDuringSchedulingIgnoredDuringExecution, v)
-	}
-
-	if in.PreferredDuringSchedulingIgnoredDuringExecution != nil {
-		v, ok := obj["preferred_during_scheduling_ignored_during_execution"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["preferred_during_scheduling_ignored_during_execution"] = flattenWeightedPodAffinityTerms(in.PreferredDuringSchedulingIgnoredDuringExecution, v)
-	}
-
-	return []interface{}{obj}
+	obj["required_during_scheduling_ignored_during_execution"] = flattenPodAffinityTerms(in.RequiredDuringSchedulingIgnoredDuringExecution, obj["required_during_scheduling_ignored_during_execution"].([]any))
+	obj["preferred_during_scheduling_ignored_during_execution"] = flattenWeightedPodAffinityTerms(in.PreferredDuringSchedulingIgnoredDuringExecution, obj["preferred_during_scheduling_ignored_during_execution"].([]any))
+	return []any{obj}
 }
 
-func flattenPodAffinityTerms(in []corev1.PodAffinityTerm, p []interface{}) []interface{} {
+func flattenPodAffinityTerms(in []corev1.PodAffinityTerm, p []any) []any {
 	if len(in) == 0 {
 		return nil
 	}
 
-	terms := make([]interface{}, len(in))
+	terms := make([]any, len(in))
 	for i, term := range in {
-		obj := make(map[string]interface{})
+		obj := make(map[string]any)
 		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+			obj = p[i].(map[string]any)
 		}
-
-		if term.LabelSelector != nil {
-			v, ok := obj["label_selector"].([]interface{})
-			if !ok {
-				v = []interface{}{}
-			}
-			obj["label_selector"] = flattenLabelSelector(term.LabelSelector, v)
-		}
-
-		if len(term.Namespaces) > 0 {
-			obj["namespaces"] = toArrayInterface(term.Namespaces)
-		}
-
-		if len(term.TopologyKey) > 0 {
-			obj["topology_key"] = term.TopologyKey
-		}
-
-		if term.NamespaceSelector != nil {
-			v, ok := obj["namespace_selector"].([]interface{})
-			if !ok {
-				v = []interface{}{}
-			}
-			obj["namespace_selector"] = flattenLabelSelector(term.NamespaceSelector, v)
-		}
-
+		obj["label_selector"] = flattenLabelSelector(term.LabelSelector, obj["label_selector"].([]any))
+		obj["namespaces"] = toArrayInterface(term.Namespaces)
+		obj["topology_key"] = term.TopologyKey
+		obj["namespace_selector"] = flattenLabelSelector(term.NamespaceSelector, obj["namespace_selector"].([]any))
 		terms[i] = obj
 	}
 
 	return terms
 }
 
-func flattenWeightedPodAffinityTerms(in []corev1.WeightedPodAffinityTerm, p []interface{}) []interface{} {
+func flattenWeightedPodAffinityTerms(in []corev1.WeightedPodAffinityTerm, p []any) []any {
 	if len(in) == 0 {
 		return nil
 	}
 
-	terms := make([]interface{}, len(in))
+	terms := make([]any, len(in))
 	for i, term := range in {
-		obj := make(map[string]interface{})
+		obj := make(map[string]any)
 		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+			obj = p[i].(map[string]any)
+		}
+		obj["weight"] = term.Weight
+		obj["pod_affinity_term"] = flattenPodAffinityTerms([]corev1.PodAffinityTerm{term.PodAffinityTerm}, obj["pod_affinity_term"].([]any))
+		terms[i] = obj
+	}
+
+	return terms
+}
+
+func flattenPreferredSchedulingTerms(in []corev1.PreferredSchedulingTerm, p []any) []any {
+	if len(in) == 0 {
+		return nil
+	}
+
+	terms := make([]any, len(in))
+	for i, term := range in {
+		obj := make(map[string]any)
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]any)
 		}
 
 		obj["weight"] = term.Weight
-		obj["pod_affinity_term"] = flattenPodAffinityTerms([]corev1.PodAffinityTerm{term.PodAffinityTerm}, obj["pod_affinity_term"].([]interface{}))
+		obj["preference"] = flattenNodeSelectorTerm(term.Preference, obj["preference"].([]any))
 
 		terms[i] = obj
 	}
@@ -1071,138 +1110,62 @@ func flattenWeightedPodAffinityTerms(in []corev1.WeightedPodAffinityTerm, p []in
 	return terms
 }
 
-func flattenPreferredSchedulingTerms(in []corev1.PreferredSchedulingTerm, p []interface{}) []interface{} {
-	if len(in) == 0 {
-		return nil
-	}
-
-	terms := make([]interface{}, len(in))
-	for i, term := range in {
-		obj := make(map[string]interface{})
-		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
-		}
-
-		obj["weight"] = term.Weight
-		obj["preference"] = flattenNodeSelectorTerm(term.Preference, obj["preference"].([]interface{}))
-
-		terms[i] = obj
-	}
-
-	return terms
-}
-
-func flattenNodeSelectorTerm(in corev1.NodeSelectorTerm, p []interface{}) []interface{} {
-	obj := make(map[string]interface{})
+func flattenNodeSelectorTerm(in corev1.NodeSelectorTerm, p []any) []any {
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
-
-	if len(in.MatchExpressions) > 0 {
-		v, ok := obj["match_expressions"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["match_expressions"] = flattenNodeSelectorRequirements(in.MatchExpressions, v)
-	}
-
-	if len(in.MatchFields) > 0 {
-		v, ok := obj["match_fields"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["match_fields"] = flattenNodeSelectorRequirements(in.MatchFields, v)
-	}
-
-	return []interface{}{obj}
+	obj["match_expressions"] = flattenNodeSelectorRequirements(in.MatchExpressions, obj["match_expressions"].([]any))
+	obj["match_fields"] = flattenNodeSelectorRequirements(in.MatchFields, obj["match_fields"].([]any))
+	return []any{obj}
 }
 
-func flattenWorkflowHandlerSpec(in *eaaspb.WorkflowHandlerSpec, p []interface{}) ([]interface{}, error) {
+func flattenWorkflowHandlerSpec(in *eaaspb.WorkflowHandlerSpec, p []any) ([]any, error) {
 	if in == nil {
 		return nil, fmt.Errorf("%s", "flatten workflow handler spec empty input")
 	}
 
-	obj := map[string]interface{}{}
+	obj := map[string]any{}
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
-
-	if in.Config != nil {
-		v, ok := obj["config"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["config"] = flattenWorkflowHandlerConfig(in.Config, v)
-	}
+	obj["config"] = flattenWorkflowHandlerConfig(in.Config, obj["config"].([]any))
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 	obj["inputs"] = flattenConfigContextCompoundRefs(in.Inputs)
 	obj["outputs"] = flattenWorkflowHandlerOutputs(in.Outputs)
-	return []interface{}{obj}, nil
+	return []any{obj}, nil
 }
 
-func flattenWorkflowHandlerConfig(input *eaaspb.WorkflowHandlerConfig, p []interface{}) []interface{} {
+func flattenWorkflowHandlerConfig(input *eaaspb.WorkflowHandlerConfig, p []any) []any {
 	log.Println("flatten workflow handler config start", input)
 	if input == nil {
 		return nil
 	}
 
-	obj := map[string]interface{}{}
+	obj := map[string]any{}
 	if len(p) > 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
-
-	if len(input.Type) > 0 {
-		obj["type"] = input.Type
-	}
-
+	obj["type"] = input.Type
 	obj["timeout_seconds"] = input.TimeoutSeconds
-
-	if len(input.SuccessCondition) > 0 {
-		obj["success_condition"] = input.SuccessCondition
-	}
-
+	obj["success_condition"] = input.SuccessCondition
 	obj["max_retry_count"] = input.MaxRetryCount
+	obj["container"] = flattenWorkflowHandlerContainerConfig(input.Container, obj["container"].([]any))
+	obj["http"] = flattenWorkflowHandlerHttpConfig(input.Http, obj["http"].([]any))
+	obj["polling_config"] = flattenPollingConfig(input.PollingConfig)
 
-	if input.Container != nil {
-		v, ok := obj["container"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["container"] = flattenWorkflowHandlerContainerConfig(input.Container, v)
-	}
-
-	if input.Http != nil {
-		v, ok := obj["http"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["http"] = flattenWorkflowHandlerHttpConfig(input.Http, v)
-	}
-
-	if input.PollingConfig != nil {
-		v, ok := obj["polling_config"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["polling_config"] = flattenPollingConfig(input.PollingConfig, v)
-	}
-
-	return []interface{}{obj}
+	return []any{obj}
 }
 
-func flattenWorkflowHandlerContainerConfig(in *eaaspb.ContainerDriverConfig, p []interface{}) []interface{} {
+func flattenWorkflowHandlerContainerConfig(in *eaaspb.ContainerDriverConfig, p []any) []any {
 	log.Println("flatten container workflow handler config start")
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
 
 	obj["arguments"] = toArrayInterface(in.Arguments)
@@ -1213,226 +1176,149 @@ func flattenWorkflowHandlerContainerConfig(in *eaaspb.ContainerDriverConfig, p [
 	obj["image"] = in.Image
 	obj["image_pull_credentials"] = flattenImagePullCredentials(in.ImagePullCredentials, obj["image_pull_credentials"].([]any))
 	obj["kube_config_options"] = flattenContainerKubeConfig(in.KubeConfigOptions, obj["kube_config_options"].([]any))
-	obj["kube_options"] = flattenContainerKubeOptions(in.KubeOptions, obj["kube_options"].([]interface{}))
+	obj["kube_options"] = flattenContainerKubeOptions(in.KubeOptions, obj["kube_options"].([]any))
 	obj["memory_limit_mb"] = in.MemoryLimitMb
 	obj["volume_options"] = flattenContainerWorkflowHandlerVolumeOptions(
-		[]*eaaspb.ContainerDriverVolumeOptions{in.VolumeOptions}, obj["volume_options"].([]interface{}),
+		[]*eaaspb.ContainerDriverVolumeOptions{in.VolumeOptions}, obj["volume_options"].([]any),
 	)
-	obj["volumes"] = flattenContainerWorkflowHandlerVolumeOptions(in.Volumes, obj["volumes"].([]interface{}))
+	obj["volumes"] = flattenContainerWorkflowHandlerVolumeOptions(in.Volumes, obj["volumes"].([]any))
 	obj["working_dir_path"] = in.WorkingDirPath
-	return []interface{}{obj}
+	return []any{obj}
 }
 
-func flattenImagePullCredentials(in *eaaspb.ContainerImagePullCredentials, p []interface{}) []interface{} {
+func flattenImagePullCredentials(in *eaaspb.ContainerImagePullCredentials, p []any) []any {
 	log.Println("flatten container image pull credentials start")
 	if in == nil {
 		return nil
 	}
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
 	obj["registry"] = in.Registry
 	obj["username"] = in.Username
 	obj["password"] = in.Password
-	return []interface{}{obj}
+	return []any{obj}
 }
 
-func flattenContainerKubeConfig(in *eaaspb.ContainerKubeConfigOptions, p []interface{}) []interface{} {
+func flattenContainerKubeConfig(in *eaaspb.ContainerKubeConfigOptions, p []any) []any {
 	log.Println("flatten container kube config start")
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
 	obj["kube_config"] = in.KubeConfig
 	obj["out_of_cluster"] = in.OutOfCluster
-	return []interface{}{obj}
+	return []any{obj}
 }
 
-func flattenContainerKubeOptions(in *eaaspb.ContainerKubeOptions, p []interface{}) []interface{} {
+func flattenContainerKubeOptions(in *eaaspb.ContainerKubeOptions, p []any) []any {
 	log.Println("flatten container kube options start")
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
 
 	obj["labels"] = toMapInterface(in.Labels)
 	obj["namespace"] = in.Namespace
 	obj["node_selector"] = toMapInterface(in.NodeSelector)
 	obj["resources"] = toArrayInterface(in.Resources)
-	obj["security_context"] = flattenSecurityContext(in.SecurityContext, obj["security_context"].([]interface{}))
+	obj["security_context"] = flattenSecurityContext(in.SecurityContext, obj["security_context"].([]any))
 	obj["service_account_name"] = in.ServiceAccountName
 	if len(in.Tolerations) > 0 {
-		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, obj["tolerations"].([]interface{}))
+		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, obj["tolerations"].([]any))
 	} else {
 		delete(obj, "tolerations")
 	}
-	obj["affinity"] = flattenKubeOptionsAffinity(in.Affinity, obj["affinity"].([]interface{}))
-	return []interface{}{obj}
+	obj["affinity"] = flattenKubeOptionsAffinity(in.Affinity, obj["affinity"].([]any))
+	return []any{obj}
 }
 
-func flattenSecurityContext(in *eaaspb.KubeSecurityContext, p []interface{}) []interface{} {
+func flattenSecurityContext(in *eaaspb.KubeSecurityContext, p []any) []any {
 	log.Println("flatten kube security context start")
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
 
 	obj["privileged"] = flattenBoolValue(in.Privileged)
 	obj["read_only_root_file_system"] = flattenBoolValue(in.ReadOnlyRootFileSystem)
 
-	return []interface{}{obj}
+	return []any{obj}
 }
 
-func flattenKubeOptionsAffinity(in *corev1.Affinity, p []interface{}) []interface{} {
+func flattenKubeOptionsAffinity(in *corev1.Affinity, p []any) []any {
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
-
-	if in.NodeAffinity != nil {
-		v, ok := obj["node_affinity"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["node_affinity"] = flattenNodeAffinity(in.NodeAffinity, v)
-	}
-
-	if in.PodAffinity != nil {
-		v, ok := obj["pod_affinity"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["pod_affinity"] = flattenPodAffinity(in.PodAffinity, v)
-	}
-
-	if in.PodAntiAffinity != nil {
-		v, ok := obj["pod_anti_affinity"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["pod_anti_affinity"] = flattenPodAntiAffinity(in.PodAntiAffinity, v)
-	}
-
-	return []interface{}{obj}
+	obj["node_affinity"] = flattenNodeAffinity(in.NodeAffinity, obj["node_affinity"].([]any))
+	obj["pod_affinity"] = flattenPodAffinity(in.PodAffinity, obj["pod_affinity"].([]any))
+	obj["pod_anti_affinity"] = flattenPodAntiAffinity(in.PodAntiAffinity, obj["pod_anti_affinity"].([]any))
+	return []any{obj}
 }
 
-func flattenNodeAffinity(in *corev1.NodeAffinity, p []interface{}) []interface{} {
+func flattenNodeAffinity(in *corev1.NodeAffinity, p []any) []any {
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
-
-	if in.RequiredDuringSchedulingIgnoredDuringExecution != nil {
-		v, ok := obj["required_during_scheduling_ignored_during_execution"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["required_during_scheduling_ignored_during_execution"] = flattenNodeSelector(in.RequiredDuringSchedulingIgnoredDuringExecution, v)
-	}
-
-	if len(in.PreferredDuringSchedulingIgnoredDuringExecution) > 0 {
-		v, ok := obj["preferred_during_scheduling_ignored_during_execution"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["preferred_during_scheduling_ignored_during_execution"] = flattenPreferredSchedulingTerms(in.PreferredDuringSchedulingIgnoredDuringExecution, v)
-	}
-
-	return []interface{}{obj}
+	obj["required_during_scheduling_ignored_during_execution"] = flattenNodeSelector(in.RequiredDuringSchedulingIgnoredDuringExecution, obj["required_during_scheduling_ignored_during_execution"].([]any))
+	obj["preferred_during_scheduling_ignored_during_execution"] = flattenPreferredSchedulingTerms(in.PreferredDuringSchedulingIgnoredDuringExecution, obj["preferred_during_scheduling_ignored_during_execution"].([]any))
+	return []any{obj}
 }
 
-func flattenWorkflowHandlerHttpConfig(in *eaaspb.HTTPDriverConfig, p []interface{}) []interface{} {
+func flattenWorkflowHandlerHttpConfig(in *eaaspb.HTTPDriverConfig, p []any) []any {
 	log.Println("flatten http config start")
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
 	obj["body"] = in.Body
 	obj["endpoint"] = in.Endpoint
 	obj["headers"] = toMapInterface(in.Headers)
 	obj["method"] = in.Method
-	return []interface{}{obj}
+	return []any{obj}
 }
 
-func expandContainerWorkflowHandlerVolumeOptions(p []interface{}) []*eaaspb.ContainerDriverVolumeOptions {
-	volumes := make([]*eaaspb.ContainerDriverVolumeOptions, 0)
-	if len(p) == 0 {
-		return volumes
-	}
-
-	for indx := range p {
-		volume := &eaaspb.ContainerDriverVolumeOptions{}
-		if p[indx] == nil {
-			return volumes
-		}
-		in := p[indx].(map[string]interface{})
-
-		if mp, ok := in["mount_path"].(string); ok && len(mp) > 0 {
-			volume.MountPath = mp
-		}
-
-		if pvcsz, ok := in["pvc_size_gb"].(string); ok && len(pvcsz) > 0 {
-			volume.PvcSizeGB = pvcsz
-		}
-
-		if pvcsc, ok := in["pvc_storage_class"].(string); ok && len(pvcsc) > 0 {
-			volume.PvcStorageClass = pvcsc
-		}
-
-		if usepvc, ok := in["use_pvc"].([]interface{}); ok && len(usepvc) > 0 {
-			volume.UsePVC = expandBoolValue(usepvc)
-		}
-
-		if enableBackupAndRestore, ok := in["enable_backup_and_restore"].(bool); ok {
-			volume.EnableBackupAndRestore = enableBackupAndRestore
-		}
-
-		volumes = append(volumes, volume)
-
-	}
-
-	return volumes
-}
-
-func flattenContainerWorkflowHandlerVolumeOptions(input []*eaaspb.ContainerDriverVolumeOptions, p []interface{}) []interface{} {
+func flattenContainerWorkflowHandlerVolumeOptions(input []*eaaspb.ContainerDriverVolumeOptions, p []any) []any {
 	if len(input) == 0 {
 		return nil
 	}
 
-	var out []interface{}
+	var out []any
 	for i, in := range input {
 		if in == nil {
 			continue
 		}
 		log.Println("flatten container workflow handler volume options", in)
-		obj := map[string]interface{}{}
+		obj := map[string]any{}
 		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+			obj = p[i].(map[string]any)
 		}
 		obj["use_pvc"] = flattenBoolValue(in.UsePVC)
 		obj["mount_path"] = in.MountPath
@@ -1456,7 +1342,43 @@ func flattenWorkflowHandlerOutputs(in *structpb.Struct) string {
 	return string(b)
 }
 
-func resourceWorkflowHandlerImport(_ context.Context, d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
+func flattenWorkflowHandlerCompoundRef(input *eaaspb.WorkflowHandlerCompoundRef) []any {
+	log.Println("flatten workflow handler compound ref start")
+	if input == nil {
+		return nil
+	}
+	obj := map[string]any{
+		"name": input.Name,
+		"data": flattenWorkflowHandlerInline(input.Data),
+	}
+	return []any{obj}
+}
+
+func flattenWorkflowHandlerInline(input *eaaspb.WorkflowHandlerInline) []any {
+	if input == nil {
+		return nil
+	}
+	obj := map[string]any{
+		"config":  flattenWorkflowHandlerConfig(input.Config, []any{}),
+		"inputs":  flattenConfigContextCompoundRefs(input.Inputs),
+		"outputs": flattenWorkflowHandlerOutputs(input.Outputs),
+	}
+	return []any{obj}
+}
+
+func flattenPollingConfig(in *eaaspb.PollingConfig) []any {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]any{
+		"repeat": in.Repeat,
+		"until":  in.Until,
+	}
+	return []any{obj}
+}
+
+func resourceWorkflowHandlerImport(_ context.Context, d *schema.ResourceData, _ any) ([]*schema.ResourceData, error) {
 	log.Printf("WorkflowHandler Import Starts")
 
 	idParts := strings.SplitN(d.Id(), "/", 2)

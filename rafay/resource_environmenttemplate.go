@@ -568,16 +568,32 @@ func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []any)
 	obj["version_state"] = in.VersionState
 	obj["icon_url"] = in.IconURL
 	obj["readme"] = in.Readme
-	obj["resources"] = flattenEnvironmentResources(in.Resources, obj["resources"].([]any))
-	obj["variables"] = flattenVariables(in.Variables, obj["variables"].([]any))
-	obj["hooks"] = flattenEnvironmentHooks(in.Hooks, obj["hooks"].([]any))
+
+	v, _ := obj["resources"].([]any)
+	obj["resources"] = flattenEnvironmentResources(in.Resources, v)
+
+	v, _ = obj["variables"].([]any)
+	obj["variables"] = flattenVariables(in.Variables, v)
+
+	v, _ = obj["hooks"].([]any)
+	obj["hooks"] = flattenEnvironmentHooks(in.Hooks, v)
+
 	obj["agents"] = flattenEaasAgents(in.Agents)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
-	obj["contexts"] = flattenContexts(in.Contexts, obj["contexts"].([]any))
+
+	v, _ = obj["contexts"].([]any)
+	obj["contexts"] = flattenContexts(in.Contexts, v)
+
 	obj["agent_override"] = flattenEaasAgentOverrideOptions(in.AgentOverride)
-	obj["schedules"] = flattenSchedules(in.Schedules, obj["schedules"].([]any))
+
+	v, _ = obj["schedules"].([]any)
+	obj["schedules"] = flattenSchedules(in.Schedules, v)
+
 	obj["allow_new_inputs_during_publish"] = flattenBoolValue(in.AllowNewInputsDuringPublish)
-	obj["actions"] = flattenActions(in.Actions, obj["actions"].([]any))
+
+	v, _ = obj["actions"].([]any)
+	obj["actions"] = flattenActions(in.Actions, v)
+
 	return []any{obj}, nil
 }
 
@@ -610,10 +626,17 @@ func flattenSchedules(input []*eaaspb.Schedules, p []any) []any {
 		obj["name"] = in.Name
 		obj["description"] = in.Description
 		obj["type"] = in.Type
-		obj["cadence"] = flattenCadence(in.Cadence, obj["cadence"].([]any))
+
+		v, _ := obj["cadence"].([]any)
+		obj["cadence"] = flattenCadence(in.Cadence, v)
+
 		obj["context"] = []any{flattenConfigContextCompoundRef(in.Context)}
-		obj["opt_out_options"] = flattenOptOutOptions(in.OptOutOptions, obj["opt_out_options"].([]any))
-		obj["workflows"] = flattenCustomProviderOptions(in.Workflows)
+
+		v, _ = obj["opt_out_options"].([]any)
+		obj["opt_out_options"] = flattenOptOutOptions(in.OptOutOptions, v)
+
+		v, _ = obj["workflows"].([]any)
+		obj["workflows"] = flattenCustomProviderOptions(in.Workflows, v)
 		out[i] = &obj
 	}
 
@@ -632,7 +655,8 @@ func flattenOptOutOptions(in *eaaspb.OptOutOptions, p []any) []any {
 	obj["allow_opt_out"] = flattenBoolValue(in.AllowOptOut)
 	obj["max_allowed_duration"] = in.MaxAllowedDuration
 	obj["max_allowed_times"] = in.MaxAllowedTimes
-	obj["approval"] = flattenCustomProviderOptions(in.Approval)
+	v, _ := obj["approval"].([]any)
+	obj["approval"] = flattenCustomProviderOptions(in.Approval, v)
 	return []any{obj}
 }
 
@@ -661,10 +685,19 @@ func flattenEnvironmentHooks(in *eaaspb.EnvironmentHooks, p []any) []any {
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["on_completion"] = flattenEaasHooks(in.OnCompletion, obj["on_completion"].([]any))
-	obj["on_success"] = flattenEaasHooks(in.OnSuccess, obj["on_success"].([]any))
-	obj["on_failure"] = flattenEaasHooks(in.OnFailure, obj["on_failure"].([]any))
-	obj["on_init"] = flattenEaasHooks(in.OnInit, obj["on_init"].([]any))
+
+	v, _ := obj["on_completion"].([]any)
+	obj["on_completion"] = flattenEaasHooks(in.OnCompletion, v)
+
+	v, _ = obj["on_success"].([]any)
+	obj["on_success"] = flattenEaasHooks(in.OnSuccess, v)
+
+	v, _ = obj["on_failure"].([]any)
+	obj["on_failure"] = flattenEaasHooks(in.OnFailure, v)
+
+	v, _ = obj["on_init"].([]any)
+	obj["on_init"] = flattenEaasHooks(in.OnInit, v)
+
 	return []any{obj}
 }
 
@@ -685,7 +718,10 @@ func flattenEnvironmentResources(input []*eaaspb.EnvironmentResourceCompoundRef,
 		obj["kind"] = in.Kind
 		obj["name"] = in.Name
 		obj["resource_options"] = flattenResourceOptions(in.ResourceOptions)
-		obj["depends_on"] = flattenDependsOn(in.DependsOn, obj["depends_on"].([]any))
+
+		v, _ := obj["depends_on"].([]any)
+		obj["depends_on"] = flattenDependsOn(in.DependsOn, v)
+
 		out[i] = &obj
 	}
 

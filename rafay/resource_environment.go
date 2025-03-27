@@ -427,13 +427,24 @@ func flattenEnvironmentSpec(in *eaaspb.EnvironmentSpec, p []any) ([]any, error) 
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["template"] = flattenTemplate(in.Template, obj["template"].([]any))
-	obj["variables"] = flattenVariables(in.Variables, obj["variables"].([]any))
+
+	v, _ := obj["template"].([]any)
+	obj["template"] = flattenTemplate(in.Template, v)
+
+	v, _ = obj["variables"].([]any)
+	obj["variables"] = flattenVariables(in.Variables, v)
+
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 	obj["agents"] = flattenEaasAgents(in.Agents)
-	obj["env_vars"] = flattenEnvVariables(in.EnvVars, obj["env_vars"].([]any))
+
+	v, _ = obj["env_vars"].([]any)
+	obj["env_vars"] = flattenEnvVariables(in.EnvVars, v)
+
 	obj["files"] = flattenCommonpbFiles(in.Files)
-	obj["schedule_optouts"] = flattenScheduleOptOuts(in.ScheduleOptouts, obj["schedule_optouts"].([]any))
+
+	v, _ = obj["schedule_optouts"].([]any)
+	obj["schedule_optouts"] = flattenScheduleOptOuts(in.ScheduleOptouts, v)
+
 	obj["reconcile_resources"] = flattenReconcileResources(in.ReconcileResources)
 	return []any{obj}, nil
 }

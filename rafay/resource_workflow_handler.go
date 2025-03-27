@@ -935,7 +935,8 @@ func flattenLabelSelector(in *metav1.LabelSelector, p []any) []any {
 		obj = p[0].(map[string]any)
 	}
 	obj["match_labels"] = toMapInterface(in.MatchLabels)
-	obj["match_expressions"] = flattenLabelSelectorRequirements(in.MatchExpressions, obj["match_expressions"].([]any))
+	v, _ := obj["match_expressions"].([]any)
+	obj["match_expressions"] = flattenLabelSelectorRequirements(in.MatchExpressions, v)
 	return []any{obj}
 }
 
@@ -948,7 +949,8 @@ func flattenNodeSelector(in *corev1.NodeSelector, p []any) []any {
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["node_selector_terms"] = flattenNodeSelectorTermsList(in.NodeSelectorTerms, obj["node_selector_terms"].([]any))
+	v, _ := obj["node_selector_terms"].([]any)
+	obj["node_selector_terms"] = flattenNodeSelectorTermsList(in.NodeSelectorTerms, v)
 	return []any{obj}
 }
 
@@ -963,8 +965,10 @@ func flattenNodeSelectorTermsList(in []corev1.NodeSelectorTerm, p []any) []any {
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]any)
 		}
-		obj["match_expressions"] = flattenNodeSelectorRequirements(term.MatchExpressions, obj["match_expressions"].([]any))
-		obj["match_fields"] = flattenNodeSelectorRequirements(term.MatchFields, obj["match_fields"].([]any))
+		v, _ := obj["match_expressions"].([]any)
+		obj["match_expressions"] = flattenNodeSelectorRequirements(term.MatchExpressions, v)
+		v, _ = obj["match_fields"].([]any)
+		obj["match_fields"] = flattenNodeSelectorRequirements(term.MatchFields, v)
 		terms[i] = obj
 	}
 	return terms
@@ -1030,8 +1034,10 @@ func flattenPodAntiAffinity(in *corev1.PodAntiAffinity, p []any) []any {
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["required_during_scheduling_ignored_during_execution"] = flattenPodAffinityTerms(in.RequiredDuringSchedulingIgnoredDuringExecution, obj["required_during_scheduling_ignored_during_execution"].([]any))
-	obj["preferred_during_scheduling_ignored_during_execution"] = flattenWeightedPodAffinityTerms(in.PreferredDuringSchedulingIgnoredDuringExecution, obj["preferred_during_scheduling_ignored_during_execution"].([]any))
+	v, _ := obj["required_during_scheduling_ignored_during_execution"].([]any)
+	obj["required_during_scheduling_ignored_during_execution"] = flattenPodAffinityTerms(in.RequiredDuringSchedulingIgnoredDuringExecution, v)
+	v, _ = obj["preferred_during_scheduling_ignored_during_execution"].([]any)
+	obj["preferred_during_scheduling_ignored_during_execution"] = flattenWeightedPodAffinityTerms(in.PreferredDuringSchedulingIgnoredDuringExecution, v)
 	return []any{obj}
 }
 
@@ -1044,8 +1050,10 @@ func flattenPodAffinity(in *corev1.PodAffinity, p []any) []any {
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["required_during_scheduling_ignored_during_execution"] = flattenPodAffinityTerms(in.RequiredDuringSchedulingIgnoredDuringExecution, obj["required_during_scheduling_ignored_during_execution"].([]any))
-	obj["preferred_during_scheduling_ignored_during_execution"] = flattenWeightedPodAffinityTerms(in.PreferredDuringSchedulingIgnoredDuringExecution, obj["preferred_during_scheduling_ignored_during_execution"].([]any))
+	v, _ := obj["required_during_scheduling_ignored_during_execution"].([]any)
+	obj["required_during_scheduling_ignored_during_execution"] = flattenPodAffinityTerms(in.RequiredDuringSchedulingIgnoredDuringExecution, v)
+	v, _ = obj["preferred_during_scheduling_ignored_during_execution"].([]any)
+	obj["preferred_during_scheduling_ignored_during_execution"] = flattenWeightedPodAffinityTerms(in.PreferredDuringSchedulingIgnoredDuringExecution, v)
 	return []any{obj}
 }
 
@@ -1060,10 +1068,12 @@ func flattenPodAffinityTerms(in []corev1.PodAffinityTerm, p []any) []any {
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]any)
 		}
-		obj["label_selector"] = flattenLabelSelector(term.LabelSelector, obj["label_selector"].([]any))
+		v, _ := obj["label_selector"].([]any)
+		obj["label_selector"] = flattenLabelSelector(term.LabelSelector, v)
 		obj["namespaces"] = toArrayInterface(term.Namespaces)
 		obj["topology_key"] = term.TopologyKey
-		obj["namespace_selector"] = flattenLabelSelector(term.NamespaceSelector, obj["namespace_selector"].([]any))
+		v, _ = obj["namespace_selector"].([]any)
+		obj["namespace_selector"] = flattenLabelSelector(term.NamespaceSelector, v)
 		terms[i] = obj
 	}
 
@@ -1082,7 +1092,8 @@ func flattenWeightedPodAffinityTerms(in []corev1.WeightedPodAffinityTerm, p []an
 			obj = p[i].(map[string]any)
 		}
 		obj["weight"] = term.Weight
-		obj["pod_affinity_term"] = flattenPodAffinityTerms([]corev1.PodAffinityTerm{term.PodAffinityTerm}, obj["pod_affinity_term"].([]any))
+		v, _ := obj["pod_affinity_term"].([]any)
+		obj["pod_affinity_term"] = flattenPodAffinityTerms([]corev1.PodAffinityTerm{term.PodAffinityTerm}, v)
 		terms[i] = obj
 	}
 
@@ -1100,10 +1111,9 @@ func flattenPreferredSchedulingTerms(in []corev1.PreferredSchedulingTerm, p []an
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]any)
 		}
-
 		obj["weight"] = term.Weight
-		obj["preference"] = flattenNodeSelectorTerm(term.Preference, obj["preference"].([]any))
-
+		v, _ := obj["preference"].([]any)
+		obj["preference"] = flattenNodeSelectorTerm(term.Preference, v)
 		terms[i] = obj
 	}
 
@@ -1115,8 +1125,10 @@ func flattenNodeSelectorTerm(in corev1.NodeSelectorTerm, p []any) []any {
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["match_expressions"] = flattenNodeSelectorRequirements(in.MatchExpressions, obj["match_expressions"].([]any))
-	obj["match_fields"] = flattenNodeSelectorRequirements(in.MatchFields, obj["match_fields"].([]any))
+	v, _ := obj["match_expressions"].([]any)
+	obj["match_expressions"] = flattenNodeSelectorRequirements(in.MatchExpressions, v)
+	v, _ = obj["match_fields"].([]any)
+	obj["match_fields"] = flattenNodeSelectorRequirements(in.MatchFields, v)
 	return []any{obj}
 }
 
@@ -1129,7 +1141,8 @@ func flattenWorkflowHandlerSpec(in *eaaspb.WorkflowHandlerSpec, p []any) ([]any,
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["config"] = flattenWorkflowHandlerConfig(in.Config, obj["config"].([]any))
+	v, _ := obj["config"].([]any)
+	obj["config"] = flattenWorkflowHandlerConfig(in.Config, v)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 	obj["inputs"] = flattenConfigContextCompoundRefs(in.Inputs)
 	obj["outputs"] = flattenWorkflowHandlerOutputs(in.Outputs)
@@ -1150,8 +1163,13 @@ func flattenWorkflowHandlerConfig(input *eaaspb.WorkflowHandlerConfig, p []any) 
 	obj["timeout_seconds"] = input.TimeoutSeconds
 	obj["success_condition"] = input.SuccessCondition
 	obj["max_retry_count"] = input.MaxRetryCount
-	obj["container"] = flattenWorkflowHandlerContainerConfig(input.Container, obj["container"].([]any))
-	obj["http"] = flattenWorkflowHandlerHttpConfig(input.Http, obj["http"].([]any))
+
+	v, _ := obj["container"].([]any)
+	obj["container"] = flattenWorkflowHandlerContainerConfig(input.Container, v)
+
+	v, _ = obj["http"].([]any)
+	obj["http"] = flattenWorkflowHandlerHttpConfig(input.Http, v)
+
 	obj["polling_config"] = flattenPollingConfig(input.PollingConfig)
 
 	return []any{obj}
@@ -1174,14 +1192,25 @@ func flattenWorkflowHandlerContainerConfig(in *eaaspb.ContainerDriverConfig, p [
 	obj["env_vars"] = toMapInterface(in.EnvVars)
 	obj["files"] = toMapByteInterface(in.Files)
 	obj["image"] = in.Image
-	obj["image_pull_credentials"] = flattenImagePullCredentials(in.ImagePullCredentials, obj["image_pull_credentials"].([]any))
-	obj["kube_config_options"] = flattenContainerKubeConfig(in.KubeConfigOptions, obj["kube_config_options"].([]any))
-	obj["kube_options"] = flattenContainerKubeOptions(in.KubeOptions, obj["kube_options"].([]any))
+
+	v, _ := obj["image_pull_credentials"].([]any)
+	obj["image_pull_credentials"] = flattenImagePullCredentials(in.ImagePullCredentials, v)
+
+	v, _ = obj["kube_config_options"].([]any)
+	obj["kube_config_options"] = flattenContainerKubeConfig(in.KubeConfigOptions, v)
+
+	v, _ = obj["kube_options"].([]any)
+	obj["kube_options"] = flattenContainerKubeOptions(in.KubeOptions, v)
+
 	obj["memory_limit_mb"] = in.MemoryLimitMb
+
+	v, _ = obj["volume_options"].([]any)
 	obj["volume_options"] = flattenContainerWorkflowHandlerVolumeOptions(
-		[]*eaaspb.ContainerDriverVolumeOptions{in.VolumeOptions}, obj["volume_options"].([]any),
+		[]*eaaspb.ContainerDriverVolumeOptions{in.VolumeOptions}, v,
 	)
-	obj["volumes"] = flattenContainerWorkflowHandlerVolumeOptions(in.Volumes, obj["volumes"].([]any))
+
+	v, _ = obj["volumes"].([]any)
+	obj["volumes"] = flattenContainerWorkflowHandlerVolumeOptions(in.Volumes, v)
 	obj["working_dir_path"] = in.WorkingDirPath
 	return []any{obj}
 }
@@ -1231,14 +1260,20 @@ func flattenContainerKubeOptions(in *eaaspb.ContainerKubeOptions, p []any) []any
 	obj["namespace"] = in.Namespace
 	obj["node_selector"] = toMapInterface(in.NodeSelector)
 	obj["resources"] = toArrayInterface(in.Resources)
-	obj["security_context"] = flattenSecurityContext(in.SecurityContext, obj["security_context"].([]any))
+
+	v, _ := obj["security_context"].([]any)
+	obj["security_context"] = flattenSecurityContext(in.SecurityContext, v)
 	obj["service_account_name"] = in.ServiceAccountName
+
 	if len(in.Tolerations) > 0 {
-		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, obj["tolerations"].([]any))
+		v, _ = obj["tolerations"].([]any)
+		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, v)
 	} else {
 		delete(obj, "tolerations")
 	}
-	obj["affinity"] = flattenKubeOptionsAffinity(in.Affinity, obj["affinity"].([]any))
+
+	v, _ = obj["affinity"].([]any)
+	obj["affinity"] = flattenKubeOptionsAffinity(in.Affinity, v)
 	return []any{obj}
 }
 
@@ -1268,9 +1303,12 @@ func flattenKubeOptionsAffinity(in *corev1.Affinity, p []any) []any {
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["node_affinity"] = flattenNodeAffinity(in.NodeAffinity, obj["node_affinity"].([]any))
-	obj["pod_affinity"] = flattenPodAffinity(in.PodAffinity, obj["pod_affinity"].([]any))
-	obj["pod_anti_affinity"] = flattenPodAntiAffinity(in.PodAntiAffinity, obj["pod_anti_affinity"].([]any))
+	v, _ := obj["node_affinity"].([]any)
+	obj["node_affinity"] = flattenNodeAffinity(in.NodeAffinity, v)
+	v, _ = obj["pod_affinity"].([]any)
+	obj["pod_affinity"] = flattenPodAffinity(in.PodAffinity, v)
+	v, _ = obj["pod_anti_affinity"].([]any)
+	obj["pod_anti_affinity"] = flattenPodAntiAffinity(in.PodAntiAffinity, v)
 	return []any{obj}
 }
 
@@ -1283,8 +1321,10 @@ func flattenNodeAffinity(in *corev1.NodeAffinity, p []any) []any {
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["required_during_scheduling_ignored_during_execution"] = flattenNodeSelector(in.RequiredDuringSchedulingIgnoredDuringExecution, obj["required_during_scheduling_ignored_during_execution"].([]any))
-	obj["preferred_during_scheduling_ignored_during_execution"] = flattenPreferredSchedulingTerms(in.PreferredDuringSchedulingIgnoredDuringExecution, obj["preferred_during_scheduling_ignored_during_execution"].([]any))
+	v, _ := obj["required_during_scheduling_ignored_during_execution"].([]any)
+	obj["required_during_scheduling_ignored_during_execution"] = flattenNodeSelector(in.RequiredDuringSchedulingIgnoredDuringExecution, v)
+	v, _ = obj["preferred_during_scheduling_ignored_during_execution"].([]any)
+	obj["preferred_during_scheduling_ignored_during_execution"] = flattenPreferredSchedulingTerms(in.PreferredDuringSchedulingIgnoredDuringExecution, v)
 	return []any{obj}
 }
 

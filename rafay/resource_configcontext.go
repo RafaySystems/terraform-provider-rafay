@@ -285,7 +285,8 @@ func expandConfigContextCompoundRefs(p []any) []*eaaspb.ConfigContextCompoundRef
 	}
 
 	for i := range p {
-		cc := expandConfigContextCompoundRef(p[i].(map[string]any))
+		v, _ := p[i].(map[string]any)
+		cc := expandConfigContextCompoundRef(v)
 		ccs = append(ccs, cc)
 	}
 
@@ -375,9 +376,14 @@ func flattenConfigContextSpec(in *eaaspb.ConfigContextSpec, p []any) ([]any, err
 		obj = p[0].(map[string]any)
 	}
 
-	obj["envs"] = flattenEnvVariables(in.Envs, obj["envs"].([]any))
+	v, _ := obj["envs"].([]any)
+	obj["envs"] = flattenEnvVariables(in.Envs, v)
+
 	obj["files"] = flattenCommonpbFiles(in.Files)
-	obj["variables"] = flattenVariables(in.Variables, obj["variables"].([]any))
+
+	v, _ = obj["variables"].([]any)
+	obj["variables"] = flattenVariables(in.Variables, v)
+
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	return []any{obj}, nil
@@ -432,13 +438,12 @@ func flattenConfigContextInline(input *eaaspb.ConfigContextInline) []any {
 	if input == nil {
 		return nil
 	}
-	return []any{
-		map[string]any{
-			"envs":      flattenEnvVariables(input.Envs, nil),
-			"files":     flattenCommonpbFiles(input.Files),
-			"variables": flattenVariables(input.Variables, nil),
-		},
+	obj := map[string]any{
+		"envs":      flattenEnvVariables(input.Envs, nil),
+		"files":     flattenCommonpbFiles(input.Files),
+		"variables": flattenVariables(input.Variables, nil),
 	}
+	return []any{obj}
 }
 
 func resourceConfigContextImport(d *schema.ResourceData, m any) ([]*schema.ResourceData, error) {

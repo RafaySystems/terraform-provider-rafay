@@ -1812,7 +1812,8 @@ func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		obj["name"] = in.Name
 		obj["description"] = in.Description
 		obj["type"] = in.Type
-		obj["options"] = flattenHookOptions(in.Options, obj["options"].([]interface{}))
+		v, _ := obj["options"].([]interface{})
+		obj["options"] = flattenHookOptions(in.Options, v)
 		obj["agents"] = flattenEaasAgents(in.Agents)
 		obj["timeout_seconds"] = in.TimeoutSeconds
 		obj["on_failure"] = in.OnFailure
@@ -1853,11 +1854,19 @@ func flattenHookOptions(input *eaaspb.HookOptions, p []interface{}) []interface{
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["approval"] = flattenApprovalOptions(input.Approval, obj["approval"].([]interface{}))
+	v, _ := obj["approval"].([]interface{})
+	obj["approval"] = flattenApprovalOptions(input.Approval, v)
+
 	obj["notification"] = flattenNotificationOptions(input.Notification)
-	obj["script"] = flattenScriptOptions(input.Script, obj["script"].([]interface{}))
-	obj["container"] = flattenContainerOptions(input.Container, obj["container"].([]interface{}))
-	obj["http"] = flattenHttpOptions(input.Http, obj["http"].([]interface{}))
+
+	v, _ = obj["script"].([]interface{})
+	obj["script"] = flattenScriptOptions(input.Script, v)
+
+	v, _ = obj["container"].([]interface{})
+	obj["container"] = flattenContainerOptions(input.Container, v)
+
+	v, _ = obj["http"].([]interface{})
+	obj["http"] = flattenHttpOptions(input.Http, v)
 
 	return []interface{}{obj}
 }
@@ -1879,7 +1888,6 @@ func flattenApprovalOptions(input *eaaspb.ApprovalOptions, p []interface{}) []in
 	obj["github_pull_request"] = flattenGithubPRApprovalOptions(input.GithubPullRequest)
 
 	return []interface{}{obj}
-
 }
 
 func flattenInternalApprovalOptions(input *eaaspb.InternalApprovalOptions) []interface{} {
@@ -1991,7 +1999,6 @@ func flattenHttpOptions(input *eaaspb.HttpOptions, p []interface{}) []interface{
 	obj["success_condition"] = input.SuccessCondition
 
 	return []interface{}{obj}
-
 }
 
 func expandBoolValue(in []interface{}) *datatypes.BoolValue {
@@ -2380,7 +2387,8 @@ func flattenActions(input []*eaaspb.Action, p []interface{}) []interface{} {
 		obj["description"] = in.Description
 		obj["type"] = in.Type
 		obj["context"] = []interface{}{flattenConfigContextCompoundRef(in.Context)}
-		obj["workflows"] = flattenCustomProviderOptions(in.Workflows)
+		v, _ := obj["workflows"].([]interface{})
+		obj["workflows"] = flattenCustomProviderOptions(in.Workflows, v)
 		obj["reconcile_resources"] = flattenReconcileResources(in.ReconcileResources)
 		out[i] = &obj
 	}

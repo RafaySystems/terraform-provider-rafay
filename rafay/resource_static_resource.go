@@ -278,8 +278,13 @@ func flattenResourceSpec(in *eaaspb.ResourceSpec, p []any) ([]any, error) {
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["variables"] = flattenVariables(in.Variables, obj["variables"].([]any))
+
+	v, _ := obj["variables"].([]any)
+	obj["variables"] = flattenVariables(in.Variables, v)
+
+	v, _ = obj["sharing"].([]any)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
+
 	return []any{obj}, nil
 }
 

@@ -1242,19 +1242,33 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []any) ([]an
 	obj["version"] = in.Version
 	obj["version_state"] = in.VersionState
 	obj["provider"] = in.Provider
-	obj["provider_options"] = flattenProviderOptions(in.ProviderOptions, obj["provider_options"].([]any))
+
+	v, _ := obj["provider_options"].([]any)
+	obj["provider_options"] = flattenProviderOptions(in.ProviderOptions, v)
+
 	obj["repository_options"] = flattenRepositoryOptions(in.RepositoryOptions)
-	obj["contexts"] = flattenContexts(in.Contexts, obj["contexts"].([]any))
-	obj["variables"] = flattenVariables(in.Variables, obj["variables"].([]any))
-	obj["hooks"] = flattenResourceHooks(in.Hooks, obj["hooks"].([]any))
+
+	v, _ = obj["contexts"].([]any)
+	obj["contexts"] = flattenContexts(in.Contexts, v)
+
+	v, _ = obj["variables"].([]any)
+	obj["variables"] = flattenVariables(in.Variables, v)
+
+	v, _ = obj["hooks"].([]any)
+	obj["hooks"] = flattenResourceHooks(in.Hooks, v)
+
 	obj["agents"] = flattenEaasAgents(in.Agents)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
-	if v, ok := obj["artifact_driver"].([]any); ok && len(v) > 0 {
+
+	if w, ok := obj["artifact_driver"].([]any); ok && len(w) > 0 {
 		obj["artifact_driver"] = flattenWorkflowHandlerCompoundRef(in.ArtifactWorkflowHandler)
 	} else {
 		obj["artifact_workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.ArtifactWorkflowHandler)
 	}
-	obj["actions"] = flattenActions(in.Actions, obj["actions"].([]any))
+
+	v, _ = obj["actions"].([]any)
+	obj["actions"] = flattenActions(in.Actions, v)
+
 	return []any{obj}, nil
 }
 
@@ -1266,6 +1280,7 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions, p []any)
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
+
 	obj["terraform"] = flattenTerraformProviderOptions(in.Terraform)
 	obj["system"] = flattenSystemProviderOptions(in.System)
 	obj["terragrunt"] = flattenTerragruntProviderOptions(in.Terragrunt)
@@ -1276,7 +1291,8 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions, p []any)
 		obj["workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.WorkflowHandler)
 	}
 	obj["open_tofu"] = flattenOpenTofuProviderOptions(in.OpenTofu)
-	obj["custom"] = flattenCustomProviderOptions(in.Custom)
+	v, _ := obj["custom"].([]any)
+	obj["custom"] = flattenCustomProviderOptions(in.Custom, v)
 	obj["hcp_terraform"] = flattenHcpTerraformProviderOptions(in.HcpTerraform)
 
 	return []any{obj}
@@ -1297,18 +1313,22 @@ func flattenOpenTofuProviderOptions(in *eaaspb.OpenTofuProviderOptions) []any {
 	obj["lock_timeout_seconds"] = in.LockTimeoutSeconds
 	obj["plugin_dirs"] = toArrayInterface(in.PluginDirs)
 	obj["target_resources"] = toArrayInterface(in.TargetResources)
-	obj["volumes"] = flattenProviderVolumeOptions(in.Volumes, obj["volumes"].([]any))
+	v, _ := obj["volumes"].([]any)
+	obj["volumes"] = flattenProviderVolumeOptions(in.Volumes, v)
 	obj["timeout_seconds"] = in.TimeoutSeconds
 	return []any{obj}
 }
 
-func flattenCustomProviderOptions(in *eaaspb.CustomProviderOptions) []any {
+func flattenCustomProviderOptions(in *eaaspb.CustomProviderOptions, p []any) []any {
 	if in == nil {
 		return nil
 	}
-	obj := map[string]any{
-		"tasks": flattenEaasHooks(in.Tasks, nil),
+	obj := map[string]any{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]any)
 	}
+	v, _ := obj["tasks"].([]any)
+	obj["tasks"] = flattenEaasHooks(in.Tasks, v)
 
 	return []any{obj}
 }
@@ -1418,7 +1438,6 @@ func flattenContexts(input []*eaaspb.ConfigContextCompoundRef, p []any) []any {
 }
 
 func flattenResourceHooks(in *eaaspb.ResourceHooks, p []any) []any {
-	log.Println("flatten resource hooks start")
 	if in == nil {
 		return nil
 	}
@@ -1427,16 +1446,26 @@ func flattenResourceHooks(in *eaaspb.ResourceHooks, p []any) []any {
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["on_completion"] = flattenEaasHooks(in.OnCompletion, obj["on_completion"].([]any))
-	obj["on_success"] = flattenEaasHooks(in.OnSuccess, obj["on_success"].([]any))
-	obj["on_failure"] = flattenEaasHooks(in.OnFailure, obj["on_failure"].([]any))
-	obj["on_init"] = flattenEaasHooks(in.OnInit, obj["on_init"].([]any))
-	obj["provider"] = flattenProviderHooks(in.Provider, obj["provider"].([]any))
+
+	v, _ := obj["on_completion"].([]any)
+	obj["on_completion"] = flattenEaasHooks(in.OnCompletion, v)
+
+	v, _ = obj["on_success"].([]any)
+	obj["on_success"] = flattenEaasHooks(in.OnSuccess, v)
+
+	v, _ = obj["on_failure"].([]any)
+	obj["on_failure"] = flattenEaasHooks(in.OnFailure, v)
+
+	v, _ = obj["on_init"].([]any)
+	obj["on_init"] = flattenEaasHooks(in.OnInit, v)
+
+	v, _ = obj["provider"].([]any)
+	obj["provider"] = flattenProviderHooks(in.Provider, v)
+
 	return []any{obj}
 }
 
 func flattenProviderHooks(input *eaaspb.ResourceTemplateProviderHooks, p []any) []any {
-	log.Println("flatten provider hooks start")
 	if input == nil {
 		return nil
 	}
@@ -1445,16 +1474,26 @@ func flattenProviderHooks(input *eaaspb.ResourceTemplateProviderHooks, p []any) 
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["terraform"] = flattenTerraformProviderHooks(input.Terraform, obj["terraform"].([]any))
-	obj["open_tofu"] = flattenOpenTofuProviderHooks(input.OpenTofu, obj["open_tofu"].([]any))
-	obj["pulumi"] = flattenPulumiProviderHooks(input.Pulumi, obj["pulumi"].([]any))
-	obj["hcp_terraform"] = flattenHcpTerraformProviderHooks(input.HcpTerraform, obj["hcp_terraform"].([]any))
-	obj["system"] = flattenSystemProviderHooks(input.System, obj["system"].([]any))
+
+	v, _ := obj["terraform"].([]any)
+	obj["terraform"] = flattenTerraformProviderHooks(input.Terraform, v)
+
+	v, _ = obj["open_tofu"].([]any)
+	obj["open_tofu"] = flattenOpenTofuProviderHooks(input.OpenTofu, v)
+
+	v, _ = obj["pulumi"].([]any)
+	obj["pulumi"] = flattenPulumiProviderHooks(input.Pulumi, v)
+
+	v, _ = obj["hcp_terraform"].([]any)
+	obj["hcp_terraform"] = flattenHcpTerraformProviderHooks(input.HcpTerraform, v)
+
+	v, _ = obj["system"].([]any)
+	obj["system"] = flattenSystemProviderHooks(input.System, v)
+
 	return []any{obj}
 }
 
 func flattenTerraformProviderHooks(input *eaaspb.TerraformProviderHooks, p []any) []any {
-	log.Println("flatten terraform provider hooks start")
 	if input == nil {
 		return nil
 	}
@@ -1463,13 +1502,17 @@ func flattenTerraformProviderHooks(input *eaaspb.TerraformProviderHooks, p []any
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["deploy"] = flattenTerraformDeployHooks(input.Deploy, obj["deploy"].([]any))
-	obj["destroy"] = flattenTerraformDestroyHooks(input.Destroy, obj["destroy"].([]any))
+
+	v, _ := obj["deploy"].([]any)
+	obj["deploy"] = flattenTerraformDeployHooks(input.Deploy, v)
+
+	v, _ = obj["destroy"].([]any)
+	obj["destroy"] = flattenTerraformDestroyHooks(input.Destroy, v)
+
 	return []any{obj}
 }
 
 func flattenOpenTofuProviderHooks(input *eaaspb.OpenTofuProviderHooks, p []any) []any {
-	log.Println("flatten opentofu provider hooks start")
 	if input == nil {
 		return nil
 	}
@@ -1478,13 +1521,17 @@ func flattenOpenTofuProviderHooks(input *eaaspb.OpenTofuProviderHooks, p []any) 
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["deploy"] = flattenOpenTofuDeployHooks(input.Deploy, obj["deploy"].([]any))
-	obj["destroy"] = flattenOpenTofuDestroyHooks(input.Destroy, obj["destroy"].([]any))
+
+	v, _ := obj["deploy"].([]any)
+	obj["deploy"] = flattenOpenTofuDeployHooks(input.Deploy, v)
+
+	v, _ = obj["destroy"].([]any)
+	obj["destroy"] = flattenOpenTofuDestroyHooks(input.Destroy, v)
+
 	return []any{obj}
 }
 
 func flattenHcpTerraformProviderHooks(input *eaaspb.HCPTerraformProviderHooks, p []any) []any {
-	log.Println("flatten hcp terraform provider hooks start")
 	if input == nil {
 		return nil
 	}
@@ -1493,13 +1540,17 @@ func flattenHcpTerraformProviderHooks(input *eaaspb.HCPTerraformProviderHooks, p
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["deploy"] = flattenHcpTerraformDeployHooks(input.Deploy, obj["deploy"].([]any))
-	obj["destroy"] = flattenHcpTerraformDestroyHooks(input.Destroy, obj["destroy"].([]any))
+
+	v, _ := obj["deploy"].([]any)
+	obj["deploy"] = flattenHcpTerraformDeployHooks(input.Deploy, v)
+
+	v, _ = obj["destroy"].([]any)
+	obj["destroy"] = flattenHcpTerraformDestroyHooks(input.Destroy, v)
+
 	return []any{obj}
 }
 
 func flattenSystemProviderHooks(input *eaaspb.SystemProviderHooks, p []any) []any {
-	log.Println("flatten system provider hooks start")
 	if input == nil {
 		return nil
 	}
@@ -1508,13 +1559,17 @@ func flattenSystemProviderHooks(input *eaaspb.SystemProviderHooks, p []any) []an
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["deploy"] = flattenSystemDeployHooks(input.Deploy, obj["deploy"].([]any))
-	obj["destroy"] = flattenSystemDestroyHooks(input.Destroy, obj["destroy"].([]any))
+
+	v, _ := obj["deploy"].([]any)
+	obj["deploy"] = flattenSystemDeployHooks(input.Deploy, v)
+
+	v, _ = obj["destroy"].([]any)
+	obj["destroy"] = flattenSystemDestroyHooks(input.Destroy, v)
+
 	return []any{obj}
 }
 
 func flattenPulumiProviderHooks(input *eaaspb.PulumiProviderHooks, p []any) []any {
-	log.Println("flatten pulumi provider hooks start")
 	if input == nil {
 		return nil
 	}
@@ -1523,8 +1578,13 @@ func flattenPulumiProviderHooks(input *eaaspb.PulumiProviderHooks, p []any) []an
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["deploy"] = flattenPulumiDeployHooks(input.Deploy, obj["deploy"].([]any))
-	obj["destroy"] = flattenPulumiDestroyHooks(input.Destroy, obj["destroy"].([]any))
+
+	v, _ := obj["deploy"].([]any)
+	obj["deploy"] = flattenPulumiDeployHooks(input.Deploy, v)
+
+	v, _ = obj["destroy"].([]any)
+	obj["destroy"] = flattenPulumiDestroyHooks(input.Destroy, v)
+
 	return []any{obj}
 }
 
@@ -1538,10 +1598,18 @@ func flattenTerraformDeployHooks(input *eaaspb.TerraformDeployHooks, p []any) []
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["init"] = flattenLifecycleEventHooks(input.Init, obj["init"].([]any))
-	obj["plan"] = flattenLifecycleEventHooks(input.Plan, obj["plan"].([]any))
-	obj["apply"] = flattenLifecycleEventHooks(input.Apply, obj["apply"].([]any))
-	obj["output"] = flattenLifecycleEventHooks(input.Output, obj["output"].([]any))
+
+	v, _ := obj["init"].([]any)
+	obj["init"] = flattenLifecycleEventHooks(input.Init, v)
+
+	v, _ = obj["plan"].([]any)
+	obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+
+	v, _ = obj["apply"].([]any)
+	obj["apply"] = flattenLifecycleEventHooks(input.Apply, v)
+
+	v, _ = obj["output"].([]any)
+	obj["output"] = flattenLifecycleEventHooks(input.Output, v)
 	return []any{obj}
 }
 
@@ -1555,9 +1623,15 @@ func flattenTerraformDestroyHooks(input *eaaspb.TerraformDestroyHooks, p []any) 
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["init"] = flattenLifecycleEventHooks(input.Init, obj["init"].([]any))
-	obj["plan"] = flattenLifecycleEventHooks(input.Plan, obj["plan"].([]any))
-	obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, obj["destroy"].([]any))
+
+	v, _ := obj["init"].([]any)
+	obj["init"] = flattenLifecycleEventHooks(input.Init, v)
+
+	v, _ = obj["plan"].([]any)
+	obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+
+	v, _ = obj["destroy"].([]any)
+	obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, v)
 
 	return []any{obj}
 }
@@ -1572,10 +1646,18 @@ func flattenOpenTofuDeployHooks(input *eaaspb.OpenTofuDeployHooks, p []any) []an
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["init"] = flattenLifecycleEventHooks(input.Init, obj["init"].([]any))
-	obj["plan"] = flattenLifecycleEventHooks(input.Plan, obj["plan"].([]any))
-	obj["apply"] = flattenLifecycleEventHooks(input.Apply, obj["apply"].([]any))
-	obj["output"] = flattenLifecycleEventHooks(input.Output, obj["output"].([]any))
+
+	v, _ := obj["init"].([]any)
+	obj["init"] = flattenLifecycleEventHooks(input.Init, v)
+
+	v, _ = obj["plan"].([]any)
+	obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+
+	v, _ = obj["apply"].([]any)
+	obj["apply"] = flattenLifecycleEventHooks(input.Apply, v)
+
+	v, _ = obj["output"].([]any)
+	obj["output"] = flattenLifecycleEventHooks(input.Output, v)
 	return []any{obj}
 }
 
@@ -1589,9 +1671,16 @@ func flattenOpenTofuDestroyHooks(input *eaaspb.OpenTofuDestroyHooks, p []any) []
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["init"] = flattenLifecycleEventHooks(input.Init, obj["init"].([]any))
-	obj["plan"] = flattenLifecycleEventHooks(input.Plan, obj["plan"].([]any))
-	obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, obj["destroy"].([]any))
+
+	v, _ := obj["init"].([]any)
+	obj["init"] = flattenLifecycleEventHooks(input.Init, v)
+
+	v, _ = obj["plan"].([]any)
+	obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+
+	v, _ = obj["destroy"].([]any)
+	obj["apply"] = flattenLifecycleEventHooks(input.Destroy, v)
+
 	return []any{obj}
 }
 
@@ -1605,10 +1694,18 @@ func flattenHcpTerraformDeployHooks(input *eaaspb.HCPTerraformDeployHooks, p []a
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["init"] = flattenLifecycleEventHooks(input.Init, obj["init"].([]any))
-	obj["plan"] = flattenLifecycleEventHooks(input.Plan, obj["plan"].([]any))
-	obj["apply"] = flattenLifecycleEventHooks(input.Apply, obj["apply"].([]any))
-	obj["output"] = flattenLifecycleEventHooks(input.Output, obj["output"].([]any))
+
+	v, _ := obj["init"].([]any)
+	obj["init"] = flattenLifecycleEventHooks(input.Init, v)
+
+	v, _ = obj["plan"].([]any)
+	obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+
+	v, _ = obj["apply"].([]any)
+	obj["apply"] = flattenLifecycleEventHooks(input.Apply, v)
+
+	v, _ = obj["output"].([]any)
+	obj["output"] = flattenLifecycleEventHooks(input.Output, v)
 	return []any{obj}
 }
 
@@ -1622,9 +1719,15 @@ func flattenHcpTerraformDestroyHooks(input *eaaspb.HCPTerraformDestroyHooks, p [
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["init"] = flattenLifecycleEventHooks(input.Init, obj["init"].([]any))
-	obj["plan"] = flattenLifecycleEventHooks(input.Plan, obj["plan"].([]any))
-	obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, obj["destroy"].([]any))
+
+	v, _ := obj["init"].([]any)
+	obj["init"] = flattenLifecycleEventHooks(input.Init, v)
+
+	v, _ = obj["plan"].([]any)
+	obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
+
+	v, _ = obj["destroy"].([]any)
+	obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, v)
 	return []any{obj}
 }
 
@@ -1638,7 +1741,9 @@ func flattenSystemDeployHooks(input *eaaspb.SystemDeployHooks, p []any) []any {
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["apply"] = flattenLifecycleEventHooks(input.Apply, obj["apply"].([]any))
+
+	v, _ := obj["apply"].([]any)
+	obj["apply"] = flattenLifecycleEventHooks(input.Apply, v)
 	return []any{obj}
 }
 
@@ -1652,7 +1757,9 @@ func flattenSystemDestroyHooks(input *eaaspb.SystemDestroyHooks, p []any) []any 
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, obj["destroy"].([]any))
+
+	v, _ := obj["destroy"].([]any)
+	obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, v)
 	return []any{obj}
 }
 
@@ -1666,10 +1773,17 @@ func flattenPulumiDeployHooks(input *eaaspb.PulumiDeployHooks, p []any) []any {
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["login"] = flattenLifecycleEventHooks(input.Login, obj["login"].([]any))
-	obj["preview"] = flattenLifecycleEventHooks(input.Preview, obj["preview"].([]any))
-	obj["up"] = flattenLifecycleEventHooks(input.Up, obj["up"].([]any))
-	obj["output"] = flattenLifecycleEventHooks(input.Output, obj["output"].([]any))
+	v, _ := obj["login"].([]any)
+	obj["login"] = flattenLifecycleEventHooks(input.Login, v)
+
+	v, _ = obj["preview"].([]any)
+	obj["preview"] = flattenLifecycleEventHooks(input.Preview, v)
+
+	v, _ = obj["up"].([]any)
+	obj["up"] = flattenLifecycleEventHooks(input.Up, v)
+
+	v, _ = obj["output"].([]any)
+	obj["output"] = flattenLifecycleEventHooks(input.Output, v)
 
 	return []any{obj}
 }
@@ -1684,9 +1798,14 @@ func flattenPulumiDestroyHooks(input *eaaspb.PulumiDestroyHooks, p []any) []any 
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["login"] = flattenLifecycleEventHooks(input.Login, obj["login"].([]any))
-	obj["preview"] = flattenLifecycleEventHooks(input.Preview, obj["preview"].([]any))
-	obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, obj["destroy"].([]any))
+	v, _ := obj["login"].([]any)
+	obj["login"] = flattenLifecycleEventHooks(input.Login, v)
+
+	v, _ = obj["preview"].([]any)
+	obj["preview"] = flattenLifecycleEventHooks(input.Preview, v)
+
+	v, _ = obj["destroy"].([]any)
+	obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, v)
 	return []any{obj}
 }
 
@@ -1699,8 +1818,11 @@ func flattenLifecycleEventHooks(input *eaaspb.LifecycleEventHooks, p []any) []an
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]any)
 	}
-	obj["before"] = flattenEaasHooks(input.Before, obj["before"].([]any))
-	obj["after"] = flattenEaasHooks(input.After, obj["after"].([]any))
+	v, _ := obj["before"].([]any)
+	obj["before"] = flattenEaasHooks(input.Before, v)
+
+	v, _ = obj["after"].([]any)
+	obj["after"] = flattenEaasHooks(input.After, v)
 	return []any{obj}
 }
 

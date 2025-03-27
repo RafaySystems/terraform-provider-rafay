@@ -172,7 +172,7 @@ func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m inte
 	if !et.GetSpec().GetSharing().GetEnabled() && environment.GetSpec().GetSharing() == nil {
 		environment.Spec.Sharing = &commonpb.SharingSpec{}
 		environment.Spec.Sharing.Enabled = false
-		environment.Spec.Sharing.Projects = et.Spec.Sharing.Projects
+		environment.Spec.Sharing.Projects = et.GetSpec().GetSharing().GetProjects()
 	}
 
 	err = flattenEnvironment(d, environment)

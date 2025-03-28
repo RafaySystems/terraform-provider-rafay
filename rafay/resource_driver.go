@@ -133,6 +133,12 @@ func resourceDriverRead(ctx context.Context, d *schema.ResourceData, m any) diag
 		return diag.FromErr(err)
 	}
 
+	if cc.GetSpec().GetSharing() != nil && !cc.GetSpec().GetSharing().GetEnabled() && driver.GetSpec().GetSharing() == nil {
+		driver.Spec.Sharing = &commonpb.SharingSpec{}
+		driver.Spec.Sharing.Enabled = false
+		driver.Spec.Sharing.Projects = cc.GetSpec().GetSharing().GetProjects()
+	}
+
 	err = flattenDriver(d, driver)
 	if err != nil {
 		log.Println("read flatten err")

@@ -39,7 +39,7 @@ func resourceStaticResource() *schema.Resource {
 	}
 }
 
-func resourceStaticResourceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceStaticResourceCreate(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	log.Println("static resource create")
 	diags := resourceStaticResourceUpsert(ctx, d, m)
 	if diags.HasError() {
@@ -68,7 +68,7 @@ func resourceStaticResourceCreate(ctx context.Context, d *schema.ResourceData, m
 	return diags
 }
 
-func resourceStaticResourceUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceStaticResourceUpsert(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("static resource upsert starts")
 	tflog := os.Getenv("TF_LOG")
@@ -96,7 +96,7 @@ func resourceStaticResourceUpsert(ctx context.Context, d *schema.ResourceData, m
 	return diags
 }
 
-func resourceStaticResourceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceStaticResourceRead(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("static resource read starts ")
 	meta := GetMetaData(d)
@@ -133,10 +133,10 @@ func resourceStaticResourceRead(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
-	if !r.GetSpec().GetSharing().GetEnabled() && resource.GetSpec().GetSharing() == nil {
+	if r.Spec.Sharing != nil && !r.Spec.Sharing.Enabled && resource.GetSpec().GetSharing() == nil {
 		resource.Spec.Sharing = &commonpb.SharingSpec{}
 		resource.Spec.Sharing.Enabled = false
-		resource.Spec.Sharing.Projects = r.Spec.Sharing.Projects
+		resource.Spec.Sharing.Projects = r.GetSpec().GetSharing().GetProjects()
 	}
 
 	err = flattenResource(d, resource)
@@ -148,11 +148,11 @@ func resourceStaticResourceRead(ctx context.Context, d *schema.ResourceData, m i
 
 }
 
-func resourceStaticResourceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceStaticResourceUpdate(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	return resourceStaticResourceUpsert(ctx, d, m)
 }
 
-func resourceStaticResourceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceStaticResourceDelete(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("static resource delete starts")
 	tflog := os.Getenv("TF_LOG")
@@ -199,11 +199,11 @@ func expandResource(in *schema.ResourceData) (*eaaspb.Resource, error) {
 	}
 	obj := &eaaspb.Resource{}
 
-	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
+	if v, ok := in.Get("metadata").([]any); ok && len(v) > 0 {
 		obj.Metadata = expandV3MetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
+	if v, ok := in.Get("spec").([]any); ok && len(v) > 0 {
 		objSpec, err := expandResourceSpec(v)
 		if err != nil {
 			return nil, err
@@ -216,20 +216,20 @@ func expandResource(in *schema.ResourceData) (*eaaspb.Resource, error) {
 	return obj, nil
 }
 
-func expandResourceSpec(p []interface{}) (*eaaspb.ResourceSpec, error) {
+func expandResourceSpec(p []any) (*eaaspb.ResourceSpec, error) {
 	log.Println("expand resource spec")
 	spec := &eaaspb.ResourceSpec{}
 	if len(p) == 0 || p[0] == nil {
 		return spec, fmt.Errorf("%s", "expand resource spec empty input")
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
-	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["variables"].([]any); ok && len(v) > 0 {
 		spec.Variables = expandVariables(v)
 	}
 
-	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
 	}
 
@@ -249,12 +249,12 @@ func flattenResource(d *schema.ResourceData, in *eaaspb.Resource) error {
 		return err
 	}
 
-	v, ok := d.Get("spec").([]interface{})
+	v, ok := d.Get("spec").([]any)
 	if !ok {
-		v = []interface{}{}
+		v = []any{}
 	}
 
-	var ret []interface{}
+	var ret []any
 	ret, err = flattenResourceSpec(in.Spec, v)
 	if err != nil {
 		log.Println("flatten resource spec err")
@@ -269,31 +269,26 @@ func flattenResource(d *schema.ResourceData, in *eaaspb.Resource) error {
 	return nil
 }
 
-func flattenResourceSpec(in *eaaspb.ResourceSpec, p []interface{}) ([]interface{}, error) {
+func flattenResourceSpec(in *eaaspb.ResourceSpec, p []any) ([]any, error) {
 	if in == nil {
 		return nil, fmt.Errorf("%s", "flatten resource spec empty input")
 	}
 
-	obj := map[string]interface{}{}
+	obj := map[string]any{}
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
 
-	if len(in.Variables) > 0 {
-		v, ok := obj["variables"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
+	v, _ := obj["variables"].([]any)
+	obj["variables"] = flattenVariables(in.Variables, v)
 
-		obj["variables"] = flattenVariables(in.Variables, v)
-	}
-
+	v, _ = obj["sharing"].([]any)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
-	return []interface{}{obj}, nil
+	return []any{obj}, nil
 }
 
-func resourceStaticResourceImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceStaticResourceImport(d *schema.ResourceData, m any) ([]*schema.ResourceData, error) {
 	log.Printf("Static Resource Import Starts")
 
 	idParts := strings.SplitN(d.Id(), "/", 2)

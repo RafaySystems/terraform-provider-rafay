@@ -850,36 +850,6 @@ func flattenMetaData(in *commonpb.Metadata) []interface{} {
 	return []interface{}{obj}
 }
 
-func flattenV1MetaData(in *commonpb.Metadata) []interface{} {
-	if in == nil {
-		return nil
-	}
-
-	obj := make(map[string]interface{})
-
-	if len(in.Name) > 0 {
-		obj["name"] = in.Name
-	}
-
-	if len(in.Description) > 0 {
-		obj["description"] = in.Description
-	}
-
-	if len(in.Project) > 0 {
-		obj["project"] = in.Project
-	}
-
-	if len(in.ProjectID) > 0 {
-		obj["projectID"] = in.ProjectID
-	}
-
-	if len(in.Id) > 0 {
-		obj["id"] = in.Id
-	}
-
-	return []interface{}{obj}
-}
-
 func flattenPlacementLabels(input []*commonpb.PlacementLabel) []interface{} {
 	if input == nil {
 		return nil
@@ -999,60 +969,6 @@ func flattenCommonpbFiles(input []*commonpb.File) []interface{} {
 
 	return out
 }
-
-// func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
-// 	if in == nil {
-// 		return nil
-// 	}
-
-// 	obj := make(map[string]interface{})
-// 	if in.Memory != nil {
-// 		obj1 := make([]interface{}, 1)
-// 		obj2 := make(map[string]interface{})
-// 		obj2["string"] = in.GetMemory().String()
-// 		obj1[0] = obj2
-// 		obj["memory"] = obj1
-// 	}
-
-// 	if in.Cpu != nil {
-// 		obj1 := make([]interface{}, 1)
-// 		obj2 := make(map[string]interface{})
-// 		obj2["string"] = in.GetCpu().String()
-// 		obj1[0] = obj2
-// 		obj["cpu"] = obj1
-// 	}
-
-// 	log.Println("flattenResourceQuantity obj", obj)
-// 	return []interface{}{obj}
-// }
-
-// func flattenResourceQuantities(in *commonpb.ResourceQuantity) []interface{} {
-// 	if in == nil {
-// 		return nil
-// 	}
-// 	objRoot := make([]interface{}, 1)
-
-// 	obj := make(map[string]interface{})
-// 	if in.Memory != nil {
-// 		obj1 := make([]interface{}, 1)
-// 		obj2 := make(map[string]interface{})
-// 		obj2["string"] = in.GetMemory()
-// 		obj1[0] = obj2
-// 		obj["memory"] = obj1
-// 	}
-
-// 	if in.Cpu != nil {
-// 		obj1 := make([]interface{}, 1)
-// 		obj2 := make(map[string]interface{})
-// 		obj2["string"] = in.GetCpu()
-// 		obj1[0] = obj2
-// 		obj["cpu"] = obj1
-// 	}
-
-// 	objRoot[0] = obj
-// 	log.Println("flattenResourceQuantity obj", obj)
-// 	return []interface{}{objRoot}
-// }
 
 func flattenRatio(in *commonpb.ResourceRatio) []interface{} {
 	if in == nil {
@@ -1545,28 +1461,15 @@ func flattenVariableOptions(input *eaaspb.VariableOptions) []interface{} {
 	if input == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(input.Description) > 0 {
-		obj["description"] = input.Description
+	obj := map[string]any{
+		"description":      input.Description,
+		"sensitive":        input.Sensitive,
+		"required":         input.Required,
+		"immutable":        input.Immutable,
+		"display_metadata": flattenDisplayMetadata(input.DisplayMetadata),
+		"override":         flattenVariableOverrideOptions(input.Override),
+		"schema":           flattenCustomSchema(input.Schema),
 	}
-	obj["sensitive"] = input.Sensitive
-	obj["required"] = input.Required
-	obj["immutable"] = input.Immutable
-
-	if input.DisplayMetadata != nil {
-		if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
-			obj["display_metadata"] = string(b)
-		}
-	}
-
-	if input.Override != nil {
-		obj["override"] = flattenVariableOverrideOptions(input.GetOverride())
-	}
-
-	if input.Schema != nil {
-		obj["schema"] = flattenCustomSchema(input.GetSchema())
-	}
-
 	return []interface{}{obj}
 }
 
@@ -1575,20 +1478,11 @@ func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) []int
 	if input == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-
-	if len(input.Type) > 0 {
-		obj["type"] = input.Type
+	obj := map[string]any{
+		"type":              input.Type,
+		"restricted_values": toArrayInterface(input.RestrictedValues),
+		"selectors":         toArrayInterface(input.Selectors),
 	}
-
-	if len(input.RestrictedValues) > 0 {
-		obj["restricted_values"] = toArrayInterface(input.RestrictedValues)
-	}
-
-	if len(input.Selectors) > 0 {
-		obj["selectors"] = toArrayInterface(input.Selectors)
-	}
-
 	return []interface{}{obj}
 }
 
@@ -1915,11 +1809,11 @@ func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
-		log.Println("flatten hook before setting object ", obj)
 		obj["name"] = in.Name
 		obj["description"] = in.Description
 		obj["type"] = in.Type
-		obj["options"] = flattenHookOptions(in.Options, obj["options"].([]interface{}))
+		v, _ := obj["options"].([]interface{})
+		obj["options"] = flattenHookOptions(in.Options, v)
 		obj["agents"] = flattenEaasAgents(in.Agents)
 		obj["timeout_seconds"] = in.TimeoutSeconds
 		obj["on_failure"] = in.OnFailure
@@ -1960,11 +1854,19 @@ func flattenHookOptions(input *eaaspb.HookOptions, p []interface{}) []interface{
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["approval"] = flattenApprovalOptions(input.Approval, obj["approval"].([]interface{}))
+	v, _ := obj["approval"].([]interface{})
+	obj["approval"] = flattenApprovalOptions(input.Approval, v)
+
 	obj["notification"] = flattenNotificationOptions(input.Notification)
-	obj["script"] = flattenScriptOptions(input.Script, obj["script"].([]interface{}))
-	obj["container"] = flattenContainerOptions(input.Container, obj["container"].([]interface{}))
-	obj["http"] = flattenHttpOptions(input.Http, obj["http"].([]interface{}))
+
+	v, _ = obj["script"].([]interface{})
+	obj["script"] = flattenScriptOptions(input.Script, v)
+
+	v, _ = obj["container"].([]interface{})
+	obj["container"] = flattenContainerOptions(input.Container, v)
+
+	v, _ = obj["http"].([]interface{})
+	obj["http"] = flattenHttpOptions(input.Http, v)
 
 	return []interface{}{obj}
 }
@@ -1986,7 +1888,6 @@ func flattenApprovalOptions(input *eaaspb.ApprovalOptions, p []interface{}) []in
 	obj["github_pull_request"] = flattenGithubPRApprovalOptions(input.GithubPullRequest)
 
 	return []interface{}{obj}
-
 }
 
 func flattenInternalApprovalOptions(input *eaaspb.InternalApprovalOptions) []interface{} {
@@ -2098,7 +1999,6 @@ func flattenHttpOptions(input *eaaspb.HttpOptions, p []interface{}) []interface{
 	obj["success_condition"] = input.SuccessCondition
 
 	return []interface{}{obj}
-
 }
 
 func expandBoolValue(in []interface{}) *datatypes.BoolValue {
@@ -2106,7 +2006,7 @@ func expandBoolValue(in []interface{}) *datatypes.BoolValue {
 		return nil
 	}
 
-	bv := in[0].((map[string]interface{}))
+	bv := in[0].(map[string]interface{})
 	return datatypes.NewBool(bv["value"].(bool))
 }
 
@@ -2157,32 +2057,14 @@ func flattenV3MetaData(in *commonpb.Metadata) []interface{} {
 		return nil
 	}
 	log.Println("flatten metadata: ", in)
-	obj := make(map[string]interface{})
-
-	if len(in.Name) > 0 {
-		obj["name"] = in.Name
+	obj := map[string]any{
+		"name":         in.Name,
+		"description":  in.Description,
+		"project":      in.Project,
+		"labels":       toMapInterface(in.Labels),
+		"annotations":  toMapInterface(in.Annotations),
+		"display_name": in.DisplayName,
 	}
-
-	if len(in.Description) > 0 {
-		obj["description"] = in.Description
-	}
-
-	if len(in.Project) > 0 {
-		obj["project"] = in.Project
-	}
-
-	if len(in.Labels) > 0 {
-		obj["labels"] = toMapInterface(in.Labels)
-	}
-
-	if len(in.Annotations) > 0 {
-		obj["annotations"] = toMapInterface(in.Annotations)
-	}
-
-	if len(in.DisplayName) > 0 {
-		obj["display_name"] = in.DisplayName
-	}
-
 	return []interface{}{obj}
 }
 
@@ -2197,118 +2079,6 @@ func validateResourceName(name string) error {
 func checkStandardInputTextError(input string) bool {
 	dns1123ValidationErrMsg := "a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters"
 	return strings.Contains(input, dns1123ValidationErrMsg)
-}
-
-func expandWorkflowHandlerCompoundRef(p []interface{}) (*eaaspb.WorkflowHandlerCompoundRef, error) {
-	wfHandler := &eaaspb.WorkflowHandlerCompoundRef{}
-	if len(p) == 0 || p[0] == nil {
-		return wfHandler, nil
-	}
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["name"].(string); ok && len(v) > 0 {
-		wfHandler.Name = v
-	}
-
-	var err error
-	if v, ok := in["data"].([]interface{}); ok && len(v) > 0 {
-		wfHandler.Data, err = expandWorkflowHandlerInline(v)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return wfHandler, nil
-}
-
-func expandWorkflowHandlerInline(p []interface{}) (*eaaspb.WorkflowHandlerInline, error) {
-	wfHandlerInline := &eaaspb.WorkflowHandlerInline{}
-	if len(p) == 0 || p[0] == nil {
-		return wfHandlerInline, nil
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
-		wfHandlerInline.Config = expandWorkflowHandlerConfig(v)
-	}
-
-	if v, ok := in["inputs"].([]interface{}); ok && len(v) > 0 {
-		wfHandlerInline.Inputs = expandConfigContextCompoundRefs(v)
-	}
-
-	if v, ok := in["outputs"].(string); ok && len(v) > 0 {
-		outputs, err := expandDriverOutputs(v)
-		if err != nil {
-			return nil, err
-		}
-		wfHandlerInline.Outputs = outputs
-	}
-
-	return wfHandlerInline, nil
-}
-
-func expandPollingConfig(p []interface{}) *eaaspb.PollingConfig {
-	pc := &eaaspb.PollingConfig{}
-	if len(p) == 0 || p[0] == nil {
-		return pc
-	}
-
-	in := p[0].(map[string]interface{})
-
-	if h, ok := in["repeat"].(string); ok {
-		pc.Repeat = h
-	}
-
-	if h, ok := in["until"].(string); ok {
-		pc.Until = h
-	}
-
-	return pc
-}
-
-func flattenWorkflowHandlerCompoundRef(input *eaaspb.WorkflowHandlerCompoundRef) []interface{} {
-	log.Println("flatten workflow handler compound ref start")
-	if input == nil {
-		return nil
-	}
-	obj := map[string]interface{}{}
-	if len(input.Name) > 0 {
-		obj["name"] = input.Name
-	}
-	if input.Data != nil {
-		obj["data"] = flattenWorkflowHandlerInline(input.Data)
-	}
-	return []interface{}{obj}
-}
-
-func flattenWorkflowHandlerInline(input *eaaspb.WorkflowHandlerInline) []interface{} {
-	if input == nil {
-		return nil
-	}
-	obj := map[string]interface{}{}
-	if input.Config != nil {
-		obj["config"] = flattenWorkflowHandlerConfig(input.Config, []interface{}{})
-	}
-	if len(input.Inputs) > 0 {
-		obj["inputs"] = flattenConfigContextCompoundRefs(input.Inputs)
-	}
-	if input.Outputs != nil {
-		obj["outputs"] = flattenDriverOutputs(input.Outputs)
-	}
-	return []interface{}{obj}
-}
-
-func flattenPollingConfig(in *eaaspb.PollingConfig, p []interface{}) []interface{} {
-	if in == nil {
-		return nil
-	}
-
-	obj := make(map[string]interface{})
-	obj["repeat"] = in.Repeat
-	obj["until"] = in.Until
-
-	return []interface{}{obj}
 }
 
 func expandEnvVarOptions(p []interface{}) *eaaspb.EnvVarOptions {
@@ -2494,12 +2264,9 @@ func flattenFileOverrideOptions(input *commonpb.FileOverrideOptions) []interface
 	if input == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-
-	if len(input.Type) > 0 {
-		obj["type"] = input.Type
+	obj := map[string]any{
+		"type": input.Type,
 	}
-
 	return []interface{}{obj}
 }
 
@@ -2527,10 +2294,10 @@ func flattenCustomSchema(input *commonpb.Schema) []interface{} {
 	if input == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	obj["jsonschema"] = flattenJsonUISchema(input.Jsonschema)
-	obj["uischema"] = flattenJsonUISchema(input.Uischema)
-
+	obj := map[string]any{
+		"jsonschema": flattenJsonUISchema(input.Jsonschema),
+		"uischema":   flattenJsonUISchema(input.Uischema),
+	}
 	return []interface{}{obj}
 }
 
@@ -2616,26 +2383,13 @@ func flattenActions(input []*eaaspb.Action, p []interface{}) []interface{} {
 		if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
 		}
-
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
-		}
-
-		if len(in.Description) > 0 {
-			obj["description"] = in.Description
-		}
-
-		if len(in.Type) > 0 {
-			obj["type"] = in.Type
-		}
-
-		if in.Context != nil {
-			cc := flattenConfigContextCompoundRef(in.Context)
-			obj["context"] = []interface{}{cc}
-		}
-		obj["workflows"] = flattenCustomProviderOptions(in.Workflows)
+		obj["name"] = in.Name
+		obj["description"] = in.Description
+		obj["type"] = in.Type
+		obj["context"] = []interface{}{flattenConfigContextCompoundRef(in.Context)}
+		v, _ := obj["workflows"].([]interface{})
+		obj["workflows"] = flattenCustomProviderOptions(in.Workflows, v)
 		obj["reconcile_resources"] = flattenReconcileResources(in.ReconcileResources)
-
 		out[i] = &obj
 	}
 
@@ -2675,12 +2429,9 @@ func flattenReconcileResources(input []*commonpb.ResourceNameAndVersionRef) []in
 
 	out := make([]interface{}, len(input))
 	for i, in := range input {
-		obj := map[string]interface{}{}
-
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
+		obj := map[string]any{
+			"name": in.Name,
 		}
-
 		out[i] = &obj
 	}
 

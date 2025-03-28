@@ -2299,7 +2299,7 @@ func flattenWorkflowHandlerInline(input *eaaspb.WorkflowHandlerInline) []interfa
 	return []interface{}{obj}
 }
 
-func flattenPollingConfig(in *eaaspb.PollingConfig, p []interface{}) []interface{} {
+func flattenPollingConfig(in *eaaspb.PollingConfig) []interface{} {
 	if in == nil {
 		return nil
 	}
@@ -2395,7 +2395,7 @@ func flattenEnvVarOptions(input *eaaspb.EnvVarOptions) []interface{} {
 }
 
 func flattenDisplayMetadata(in *structpb.Struct) string {
-	if in == nil || len(in.Fields) == 0 {
+	if in == nil {
 		return ""
 	}
 	b, err := in.MarshalJSON()

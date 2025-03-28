@@ -137,6 +137,12 @@ func resourceEnvironmentTemplateRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
+	if !et.GetSpec().GetSharing().GetEnabled() && environmenttemplate.GetSpec().GetSharing() == nil {
+		environmenttemplate.Spec.Sharing = &commonpb.SharingSpec{}
+		environmenttemplate.Spec.Sharing.Enabled = false
+		environmenttemplate.Spec.Sharing.Projects = et.GetSpec().GetSharing().GetProjects()
+	}
+
 	err = flattenEnvironmentTemplate(d, environmenttemplate)
 	if err != nil {
 		log.Println("read flatten err")

@@ -112,8 +112,8 @@ resource "rafay_workflow_handler" "workflow_handler" {
 
 ### Required
 
-- `metadata` (Block List, Max: 1) Metadata of the driver resource (see [below for nested schema](#nestedblock--metadata))
-- `spec` (Block List, Max: 1) Specification of the driver resource (see [below for nested schema](#nestedblock--spec))
+- `metadata` (Block List, Max: 1) Metadata of the workflow handler resource (see [below for nested schema](#nestedblock--metadata))
+- `spec` (Block List, Max: 1) Specification of the workflow handler resource (see [below for nested schema](#nestedblock--spec))
 
 ### Optional
 
@@ -136,12 +136,12 @@ resource "rafay_workflow_handler" "workflow_handler" {
 
 ***Required***
 
-- `config` (Block List, Max: 1) Driver configuration (see [below for nested schema](#nestedblock--spec--config))
+- `config` (Block List, Max: 1) Workflow handler configuration (see [below for nested schema](#nestedblock--spec--config))
 
 ***Optional***
 
-- `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
-- `outputs` (String) Outputs for the driver in JSON string format
+- `inputs` (Block List) Inputs for the workflow handler (see [below for nested schema](#nestedblock--spec--inputs))
+- `outputs` (String) Outputs for the workflow handler in JSON string format
 - `sharing` (Block List, Max: 1) Sharing with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 
 <a id="nestedblock--spec--config"></a>
@@ -149,12 +149,12 @@ resource "rafay_workflow_handler" "workflow_handler" {
 
 ***Required***
 
-- `type` (String) Specify the type of driver, Accepted values are `container`, `http`.
+- `type` (String) Specify the type of workflow handler, Accepted values are `container`, `http`.
 
 ***Optional***
 
-- `container` (Block List, Max: 1) Specify the container driver config (see [below for nested schema](#nestedblock--spec--config--container))
-- `http` (Block List, Max: 1) Specify the http driver config (see [below for nested schema](#nestedblock--spec--config--http))
+- `container` (Block List, Max: 1) Specify the container workflow handler config (see [below for nested schema](#nestedblock--spec--config--container))
+- `http` (Block List, Max: 1) Specify the http workflow handler config (see [below for nested schema](#nestedblock--spec--config--http))
 - `max_retry_count` (Number) Specify the max retry count
 - `success_condition` (String) Specify the success condition
 - `timeout_seconds` (Number) Specify the timeout in seconds
@@ -164,7 +164,7 @@ resource "rafay_workflow_handler" "workflow_handler" {
 
 ***Required***
 
-- `image` (String) Specify the container image for the driver
+- `image` (String) Specify the container image for the workflow handler
 
 ***Optional***
 
@@ -177,7 +177,7 @@ resource "rafay_workflow_handler" "workflow_handler" {
 - `kube_config_options` (Block List, Max: 1) Specify the kube config options (see [below for nested schema](#nestedblock--spec--config--container--kube_config_options))
 - `kube_options` (Block List, Max: 1) Specify the kube options (see [below for nested schema](#nestedblock--spec--config--container--kube_options))
 - `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `volume_options` (Block List, Max: 1) [DEPRECATED] Specify the container driver volume options. Use volumes instead. (see [below for nested schema](#nestedblock--spec--config--container--volume_options))
+- `volume_options` (Block List, Max: 1) [DEPRECATED] Specify the container volume options. Use volumes instead. (see [below for nested schema](#nestedblock--spec--config--container--volume_options))
 - `volumes` (Block List) Configure the container volumes (see [below for nested schema](#nestedblock--spec--config--container--volumes))
 - `working_dir_path` (String) Specify the working directory path
 
@@ -322,33 +322,6 @@ resource "rafay_workflow_handler" "workflow_handler" {
 - `create` (String)
 - `delete` (String)
 - `update` (String)
-
-<a id="nestedblock--spec--inputs"></a>
-### Nested Schema for `spec.inputs`
-
-***Required***
-
-- `name` (String) name of the config context
-
-<a id="nestedblock--compound_ref"></a>
-### Nested Schema for `compound ref`
-
-***Required***
-
-- `name` (string) name of the driver ref
-- `data` (Block List, Max: 1) Inline definition for driver (see [below for nested schema](#nestedblock--inline))
-
-<a id="nestedblock--inline"></a>
-### Nested Schema for `inline`
-
-***Required***
-
-- `config` (Block List, Max: 1) Driver configuration (see [below for nested schema](#nestedblock--spec--config))
-
-***Optional***
-
-- `inputs` (Block List) Inputs for the driver (see [below for nested schema](#nestedblock--spec--inputs))
-- `outputs` (String) Outputs for the driver in JSON string format
 
 <a id="nestedblock--spec--config--container--kube_options--affinity"></a>
 ### Nested Schema for `spec.config.container.kube_options.affinity`
@@ -668,3 +641,133 @@ Optional:
 - `key` (String)
 - `operator` (String)
 - `values` (List of String)
+
+<a id="nestedblock--spec--inputs"></a>
+### Nested Schema for `spec.inputs`
+
+***Optional***
+
+- `data` (Block List, Max: 1) Context data of the config context (see [below for nested schema](#nestedblock--spec--inputs--data))
+- `name` (String) Name of the config context
+
+<a id="nestedblock--spec--inputs--data"></a>
+### Nested Schema for `spec.inputs.data`
+
+***Optional***
+
+- `envs` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--inputs--data--envs))
+- `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--inputs--data--files))
+- `variables` (Block List) Variables data for config context (see [below for nested schema](#nestedblock--spec--inputs--data--variables))
+
+<a id="nestedblock--spec--inputs--data--envs"></a>
+### Nested Schema for `spec.inputs.data.envs`
+
+***Optional***
+
+- `key` (String) Key of the environment variable to be set
+- `options` (Block List, Max: 1) Provide the environment variable options (see [below for nested schema](#nestedblock--spec--inputs--data--envs--options))
+- `sensitive` (Boolean) Deprecated: use options.sensitive. Determines whether the value is sensitive or not, accordingly applies encryption on it
+- `value` (String) Value of the environment variable to be set
+
+<a id="nestedblock--spec--inputs--data--envs--options"></a>
+### Nested Schema for `spec.inputs.data.envs.options`
+
+***Optional***
+
+- `description` (String)
+- `override` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--inputs--data--envs--options--override))
+- `required` (Boolean) Determines whether the variable is required / mandatory
+- `sensitive` (Boolean)
+- `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--inputs--data--envs--options--schema))
+
+<a id="nestedblock--spec--inputs--data--envs--options--override"></a>
+### Nested Schema for `spec.inputs.data.envs.options.override`
+
+***Optional***
+
+- `restricted_values` (List of String) If the override type is restricted, values it is restricted to
+- `type` (String) Specify the type of ovverride this variable supports
+
+<a id="nestedblock--spec--inputs--data--envs--options--schema"></a>
+### Nested Schema for `spec.inputs.data.envs.options.schema`
+
+***Required***
+
+- `jsonschema` (String) JSONSchema definition of given variable that conforms to react-jsonschema-form library norms
+- `uischema` (String) UISchema definition of given variable that conforms to react-jsonschema-form library norms
+
+
+<a id="nestedblock--spec--inputs--data--files"></a>
+### Nested Schema for `spec.inputs.data.files`
+
+***Optional***
+
+- `data` (String) data is the base64 encoded contents of the file
+- `mount_path` (String) specify mount path of the file
+- `name` (String) Name or relative path of a artifact
+- `options` (Block List, Max: 1) specify options for the file (see [below for nested schema](#nestedblock--spec--inputs--data--files--options))
+- `sensitive` (Boolean) Deprected: use options.sensitive. data is encrypted  if sensitive is set to true
+
+<a id="nestedblock--spec--inputs--data--files--options"></a>
+### Nested Schema for `spec.inputs.data.files.options`
+
+***Optional***
+
+- `description` (String) Description of the file
+- `override` (Block List, Max: 1) Override options for file (see [below for nested schema](#nestedblock--spec--inputs--data--files--options--override))
+- `required` (Boolean) Determines whether the file is required / mandatory
+- `sensitive` (Boolean) data is encrypted  if sensitive is set to true
+- `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--inputs--data--files--options--schema))
+
+<a id="nestedblock--spec--inputs--data--files--options--override"></a>
+### Nested Schema for `spec.inputs.data.files.options.override`
+
+***Optional***
+
+- `type` (String) Specify the type of override this file supports
+
+<a id="nestedblock--spec--inputs--data--files--options--schema"></a>
+### Nested Schema for `spec.inputs.data.files.options.schema`
+
+***Required***
+
+- `jsonschema` (String) JSONSchema definition of given variable that conforms to react-jsonschema-form library norms
+- `uischema` (String) UISchema definition of given variable that conforms to react-jsonschema-form library norms
+
+
+<a id="nestedblock--spec--inputs--data--variables"></a>
+### Nested Schema for `spec.inputs.data.variables`
+
+***Optional***
+
+- `name` (String) Name of the variable
+- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec-inputs--data--variables--options))
+- `value` (String) Value of the variable in the specified format
+- `value_type` (String) Specify the variable value type, Supported types are `text`, `expression`, `json`, `hcl`
+
+<a id="nestedblock--spec--inputs--data--variables--options"></a>
+### Nested Schema for `spec.inputs.data.variables.options`
+
+***Optional***
+
+- `description` (String) Description of the variable
+- `override` (Block List, Max: 1) Determines whether the variable can be overridden (see [below for nested schema](#nestedblock--spec--inputs--data--variables--options--override))
+- `required` (Boolean) Specify whether this variable is required or optional, by default it is optional
+- `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
+- `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--inputs--data--variables--options--schema))
+
+<a id="nestedblock--spec--inputs--data--variables--options--override"></a>
+### Nested Schema for `spec.workflowhandler.data.inputs.name.variables.value_type.override`
+
+***Optional***
+
+- `restricted_values` (List of String) If the override type is restricted, values it is restricted to
+- `type` (String) Specify the type of ovverride this variable supports
+
+<a id="nestedblock--spec--inputs--data--variables--options--schema"></a>
+### Nested Schema for `spec.inputs.data.variables.options.schema`
+
+***Required***
+
+- `jsonschema` (String) JSONSchema definition of given variable that conforms to react-jsonschema-form library norms
+- `uischema` (String) UISchema definition of given variable that conforms to react-jsonschema-form library norms

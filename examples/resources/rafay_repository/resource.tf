@@ -25,7 +25,7 @@ resource "rafay_repositories" "tfdemorepository2" {
 
   spec {
     type     = "Git"
-    endpoint = "git@github.com/test/apps.git"
+    endpoint = "git@github.com:test/apps.git"
     credentials {
       private_key = file("key_file")
     }

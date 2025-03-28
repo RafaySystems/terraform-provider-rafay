@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -212,8 +213,48 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 	}
 	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.DefaultAddons != nil && bp.Spec != nil && bp.Spec.DefaultAddons != nil {
 		if tfBlueprintState.Spec.DefaultAddons.EnableMonitoring {
-			if tfBlueprintState.Spec.DefaultAddons.Monitoring == nil && bp.Spec.DefaultAddons.Monitoring != nil {
+			if tfBlueprintState.Spec.DefaultAddons.Monitoring == nil &&
+				tfBlueprintState.Spec.Type == "default-aks" &&
+				reflect.DeepEqual(bp.Spec.DefaultAddons.Monitoring, &infrapb.MonitoringConfig{
+					GpuOperator: &infrapb.MonitoringComponent{},
+					MetricsServer: &infrapb.MonitoringComponent{
+						Enabled:              false,
+						CustomizationEnabled: true,
+					},
+					PrometheusAdapter: &infrapb.MonitoringComponent{
+						Enabled:              false,
+						CustomizationEnabled: true,
+					},
+				}) {
+
 				bp.Spec.DefaultAddons.Monitoring = nil
+			}
+			if tfBlueprintState.Spec.DefaultAddons.Monitoring == nil &&
+				tfBlueprintState.Spec.Type == "default" &&
+				reflect.DeepEqual(bp.Spec.DefaultAddons.Monitoring, &infrapb.MonitoringConfig{
+					GpuOperator: &infrapb.MonitoringComponent{},
+				}) {
+				bp.Spec.DefaultAddons.Monitoring = nil
+			}
+			if tfBlueprintState.Spec.DefaultAddons.Monitoring != nil && bp.Spec.DefaultAddons.Monitoring != nil {
+				if tfBlueprintState.Spec.DefaultAddons.Monitoring.GpuOperator == nil &&
+					reflect.DeepEqual(bp.Spec.DefaultAddons.Monitoring.GpuOperator, &infrapb.MonitoringComponent{}) {
+					bp.Spec.DefaultAddons.Monitoring.GpuOperator = nil
+				}
+				if tfBlueprintState.Spec.DefaultAddons.Monitoring.MetricsServer == nil &&
+					reflect.DeepEqual(bp.Spec.DefaultAddons.Monitoring.MetricsServer, &infrapb.MonitoringComponent{
+						Enabled:              false,
+						CustomizationEnabled: true,
+					}) {
+					bp.Spec.DefaultAddons.Monitoring.MetricsServer = nil
+				}
+				if tfBlueprintState.Spec.DefaultAddons.Monitoring.PrometheusAdapter == nil &&
+					reflect.DeepEqual(bp.Spec.DefaultAddons.Monitoring.PrometheusAdapter, &infrapb.MonitoringComponent{
+						Enabled:              false,
+						CustomizationEnabled: true,
+					}) {
+					bp.Spec.DefaultAddons.Monitoring.PrometheusAdapter = nil
+				}
 			}
 		}
 	}

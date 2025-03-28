@@ -133,7 +133,7 @@ func resourceConfigContextRead(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	if !cc.GetSpec().GetSharing().GetEnabled() && configcontext.GetSpec().GetSharing() == nil {
+	if cc.GetSpec().GetSharing() != nil && !cc.GetSpec().GetSharing().GetEnabled() && configcontext.GetSpec().GetSharing() == nil {
 		configcontext.Spec.Sharing = &commonpb.SharingSpec{}
 		configcontext.Spec.Sharing.Enabled = false
 		configcontext.Spec.Sharing.Projects = cc.GetSpec().GetSharing().GetProjects()

@@ -136,6 +136,12 @@ func resourceWorkflowHandlerRead(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 
+	if cc.GetSpec().GetSharing() != nil && !cc.GetSpec().GetSharing().GetEnabled() && wh.GetSpec().GetSharing() == nil {
+		wh.Spec.Sharing = &commonpb.SharingSpec{}
+		wh.Spec.Sharing.Enabled = false
+		wh.Spec.Sharing.Projects = cc.GetSpec().GetSharing().GetProjects()
+	}
+
 	err = flattenWorkflowHandler(d, wh)
 	if err != nil {
 		log.Println("read flatten err")

@@ -89,7 +89,7 @@ func (r *MksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 	// Create the cluster
 	err := cluster.ApplyMksV3Cluster(ctx, r.client, hub)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create cluster, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to apply the cluster, got error: %s", err))
 		return
 	}
 
@@ -100,7 +100,7 @@ func (r *MksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 	daig = fw.WaitForClusterApplyOperation(ctx, r.client, hub, timeout, ticker)
 
 	if daig.HasError() {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create cluster, got error: %s", daig))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Timeout while provisioning the cluster, got error: %s", daig))
 		return
 	}
 

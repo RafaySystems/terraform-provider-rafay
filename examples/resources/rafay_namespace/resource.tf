@@ -105,22 +105,3 @@ resource "rafay_namespace" "namespace" {
         }
     }
 }
-#Example namespace with service mesh
-resource "rafay_namespace" "tfdemonamespacewithmesh" {
-  metadata {
-    name    = "tfdemonamespacewithmesh"
-    project = "terraform"
-  }
-  spec {
-    drift {
-      enabled = false
-    }
-    namespace_mesh_policy_params {
-      mesh_enabled = true
-      policies {
-        name    = "tfdemonmp1"
-        version = "v0"
-      }
-    }
-  }
-}

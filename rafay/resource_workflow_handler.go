@@ -1069,7 +1069,8 @@ func flattenWeightedPodAffinityTerms(in []corev1.WeightedPodAffinityTerm, p []in
 		}
 
 		obj["weight"] = term.Weight
-		obj["pod_affinity_term"] = flattenPodAffinityTerms([]corev1.PodAffinityTerm{term.PodAffinityTerm}, obj["pod_affinity_term"].([]interface{}))
+		v, _ := obj["pod_affinity_term"].([]any)
+		obj["pod_affinity_term"] = flattenPodAffinityTerms([]corev1.PodAffinityTerm{term.PodAffinityTerm}, v)
 
 		terms[i] = obj
 	}
@@ -1090,7 +1091,8 @@ func flattenPreferredSchedulingTerms(in []corev1.PreferredSchedulingTerm, p []in
 		}
 
 		obj["weight"] = term.Weight
-		obj["preference"] = flattenNodeSelectorTerm(term.Preference, obj["preference"].([]interface{}))
+		v, _ := obj["preference"].([]any)
+		obj["preference"] = flattenNodeSelectorTerm(term.Preference, v)
 
 		terms[i] = obj
 	}
@@ -1169,8 +1171,10 @@ func flattenWorkflowHandlerConfig(input *eaaspb.WorkflowHandlerConfig, p []inter
 	}
 
 	obj["max_retry_count"] = input.MaxRetryCount
-	obj["container"] = flattenWorkflowHandlerContainerConfig(input.Container, obj["container"].([]interface{}))
-	obj["http"] = flattenWorkflowHandlerHttpConfig(input.Http, obj["http"].([]interface{}))
+	v, _ := obj["container"].([]any)
+	obj["container"] = flattenWorkflowHandlerContainerConfig(input.Container, v)
+	v, _ = obj["http"].([]any)
+	obj["http"] = flattenWorkflowHandlerHttpConfig(input.Http, v)
 	obj["polling_config"] = flattenPollingConfig(input.PollingConfig)
 
 	return []interface{}{obj}
@@ -1193,14 +1197,19 @@ func flattenWorkflowHandlerContainerConfig(in *eaaspb.ContainerDriverConfig, p [
 	obj["env_vars"] = toMapInterface(in.EnvVars)
 	obj["files"] = toMapByteInterface(in.Files)
 	obj["image"] = in.Image
-	obj["image_pull_credentials"] = flattenImagePullCredentials(in.ImagePullCredentials, obj["image_pull_credentials"].([]any))
-	obj["kube_config_options"] = flattenContainerKubeConfig(in.KubeConfigOptions, obj["kube_config_options"].([]any))
-	obj["kube_options"] = flattenContainerKubeOptions(in.KubeOptions, obj["kube_options"].([]interface{}))
+	v, _ := obj["image_pull_credentials"].([]any)
+	obj["image_pull_credentials"] = flattenImagePullCredentials(in.ImagePullCredentials, v)
+	v, _ = obj["kube_config_options"].([]any)
+	obj["kube_config_options"] = flattenContainerKubeConfig(in.KubeConfigOptions, v)
+	v, _ = obj["kube_options"].([]any)
+	obj["kube_options"] = flattenContainerKubeOptions(in.KubeOptions, v)
 	obj["memory_limit_mb"] = in.MemoryLimitMb
+	v, _ = obj["volume_options"].([]any)
 	obj["volume_options"] = flattenContainerWorkflowHandlerVolumeOptions(
-		[]*eaaspb.ContainerDriverVolumeOptions{in.VolumeOptions}, obj["volume_options"].([]interface{}),
+		[]*eaaspb.ContainerDriverVolumeOptions{in.VolumeOptions}, v,
 	)
-	obj["volumes"] = flattenContainerWorkflowHandlerVolumeOptions(in.Volumes, obj["volumes"].([]interface{}))
+	v, _ = obj["volumes"].([]any)
+	obj["volumes"] = flattenContainerWorkflowHandlerVolumeOptions(in.Volumes, v)
 	obj["working_dir_path"] = in.WorkingDirPath
 	return []interface{}{obj}
 }
@@ -1250,14 +1259,17 @@ func flattenContainerKubeOptions(in *eaaspb.ContainerKubeOptions, p []interface{
 	obj["namespace"] = in.Namespace
 	obj["node_selector"] = toMapInterface(in.NodeSelector)
 	obj["resources"] = toArrayInterface(in.Resources)
-	obj["security_context"] = flattenSecurityContext(in.SecurityContext, obj["security_context"].([]interface{}))
+	v, _ := obj["security_context"].([]any)
+	obj["security_context"] = flattenSecurityContext(in.SecurityContext, v)
 	obj["service_account_name"] = in.ServiceAccountName
 	if len(in.Tolerations) > 0 {
-		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, obj["tolerations"].([]interface{}))
+		v, _ = obj["tolerations"].([]any)
+		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, v)
 	} else {
 		delete(obj, "tolerations")
 	}
-	obj["affinity"] = flattenKubeOptionsAffinity(in.Affinity, obj["affinity"].([]interface{}))
+	v, _ = obj["affinity"].([]any)
+	obj["affinity"] = flattenKubeOptionsAffinity(in.Affinity, v)
 	return []interface{}{obj}
 }
 

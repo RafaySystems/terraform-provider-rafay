@@ -1919,7 +1919,8 @@ func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		obj["name"] = in.Name
 		obj["description"] = in.Description
 		obj["type"] = in.Type
-		obj["options"] = flattenHookOptions(in.Options, obj["options"].([]interface{}))
+		v, _ := obj["options"].([]interface{})
+		obj["options"] = flattenHookOptions(in.Options, v)
 		obj["agents"] = flattenEaasAgents(in.Agents)
 		obj["timeout_seconds"] = in.TimeoutSeconds
 		obj["on_failure"] = in.OnFailure
@@ -1960,11 +1961,15 @@ func flattenHookOptions(input *eaaspb.HookOptions, p []interface{}) []interface{
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["approval"] = flattenApprovalOptions(input.Approval, obj["approval"].([]interface{}))
+	v, _ := obj["approval"].([]any)
+	obj["approval"] = flattenApprovalOptions(input.Approval, v)
 	obj["notification"] = flattenNotificationOptions(input.Notification)
-	obj["script"] = flattenScriptOptions(input.Script, obj["script"].([]interface{}))
-	obj["container"] = flattenContainerOptions(input.Container, obj["container"].([]interface{}))
-	obj["http"] = flattenHttpOptions(input.Http, obj["http"].([]interface{}))
+	v, _ = obj["script"].([]any)
+	obj["script"] = flattenScriptOptions(input.Script, v)
+	v, _ = obj["container"].([]any)
+	obj["container"] = flattenContainerOptions(input.Container, v)
+	v, _ = obj["http"].([]any)
+	obj["http"] = flattenHttpOptions(input.Http, v)
 
 	return []interface{}{obj}
 }

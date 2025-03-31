@@ -596,16 +596,22 @@ func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []inte
 	obj["version_state"] = in.VersionState
 	obj["icon_url"] = in.IconURL
 	obj["readme"] = in.Readme
-	obj["resources"] = flattenEnvironmentResources(in.Resources, obj["resources"].([]interface{}))
-	obj["variables"] = flattenVariables(in.Variables, obj["variables"].([]interface{}))
-	obj["hooks"] = flattenEnvironmentHooks(in.Hooks, obj["hooks"].([]interface{}))
+	v, _ := obj["resources"].([]any)
+	obj["resources"] = flattenEnvironmentResources(in.Resources, v)
+	v, _ = obj["variables"].([]any)
+	obj["variables"] = flattenVariables(in.Variables, v)
+	v, _ = obj["hooks"].([]any)
+	obj["hooks"] = flattenEnvironmentHooks(in.Hooks, v)
 	obj["agents"] = flattenEaasAgents(in.Agents)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
-	obj["contexts"] = flattenContexts(in.Contexts, obj["contexts"].([]interface{}))
+	v, _ = obj["contexts"].([]any)
+	obj["contexts"] = flattenContexts(in.Contexts, v)
 	obj["agent_override"] = flattenEaasAgentOverrideOptions(in.AgentOverride)
-	obj["schedules"] = flattenSchedules(in.Schedules, obj["schedules"].([]interface{}))
+	v, _ = obj["schedules"].([]any)
+	obj["schedules"] = flattenSchedules(in.Schedules, v)
 	obj["allow_new_inputs_during_publish"] = flattenBoolValue(in.AllowNewInputsDuringPublish)
-	obj["actions"] = flattenActions(in.Actions, obj["actions"].([]interface{}))
+	v, _ = obj["actions"].([]any)
+	obj["actions"] = flattenActions(in.Actions, v)
 	return []interface{}{obj}, nil
 }
 
@@ -728,10 +734,14 @@ func flattenEnvironmentHooks(in *eaaspb.EnvironmentHooks, p []interface{}) []int
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
-	obj["on_completion"] = flattenEaasHooks(in.OnCompletion, obj["on_completion"].([]interface{}))
-	obj["on_success"] = flattenEaasHooks(in.OnSuccess, obj["on_success"].([]interface{}))
-	obj["on_failure"] = flattenEaasHooks(in.OnFailure, obj["on_failure"].([]interface{}))
-	obj["on_init"] = flattenEaasHooks(in.OnInit, obj["on_init"].([]interface{}))
+	v, _ := obj["on_completion"].([]any)
+	obj["on_completion"] = flattenEaasHooks(in.OnCompletion, v)
+	v, _ = obj["on_success"].([]any)
+	obj["on_success"] = flattenEaasHooks(in.OnSuccess, v)
+	v, _ = obj["on_failure"].([]any)
+	obj["on_failure"] = flattenEaasHooks(in.OnFailure, v)
+	v, _ = obj["on_init"].([]any)
+	obj["on_init"] = flattenEaasHooks(in.OnInit, v)
 	return []interface{}{obj}
 }
 

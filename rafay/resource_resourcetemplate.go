@@ -1308,7 +1308,8 @@ func flattenProviderOptions(in *eaaspb.ResourceTemplateProviderOptions, p []inte
 		obj["workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.WorkflowHandler)
 	}
 	obj["open_tofu"] = flattenOpenTofuProviderOptions(in.OpenTofu)
-	obj["custom"] = flattenCustomProviderOptions(in.Custom)
+	v, _ := obj["custom"].([]any)
+	obj["custom"] = flattenCustomProviderOptions(in.Custom, v)
 	obj["hcp_terraform"] = flattenHcpTerraformProviderOptions(in.HcpTerraform)
 
 	return []interface{}{obj}
@@ -1344,21 +1345,17 @@ func flattenOpenTofuProviderOptions(in *eaaspb.OpenTofuProviderOptions) []interf
 	return []interface{}{obj}
 }
 
-func flattenCustomProviderOptions(in *eaaspb.CustomProviderOptions) []interface{} {
+func flattenCustomProviderOptions(in *eaaspb.CustomProviderOptions, p []any) []any {
 	if in == nil {
 		return nil
 	}
-	obj := make(map[string]interface{})
-	if len(in.Tasks) > 0 {
-		v, ok := obj["tasks"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["tasks"] = flattenEaasHooks(in.Tasks, v)
+	obj := map[string]any{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]any)
 	}
-
-	return []interface{}{obj}
+	v, _ := obj["tasks"].([]any)
+	obj["tasks"] = flattenEaasHooks(in.Tasks, v)
+	return []any{obj}
 }
 
 func flattenTerraformProviderOptions(in *eaaspb.TerraformProviderOptions) []interface{} {

@@ -673,7 +673,8 @@ func flattenSchedules(input []*eaaspb.Schedules, p []interface{}) []interface{} 
 			}
 			obj["opt_out_options"] = flattenOptOutOptions(in.OptOutOptions, v)
 		}
-		obj["workflows"] = flattenCustomProviderOptions(in.Workflows)
+		v, _ := obj["workflows"].([]any)
+		obj["workflows"] = flattenCustomProviderOptions(in.Workflows, v)
 
 		out[i] = &obj
 	}
@@ -694,7 +695,8 @@ func flattenOptOutOptions(in *eaaspb.OptOutOptions, p []interface{}) []interface
 	obj["allow_opt_out"] = flattenBoolValue(in.AllowOptOut)
 	obj["max_allowed_duration"] = in.MaxAllowedDuration
 	obj["max_allowed_times"] = in.MaxAllowedTimes
-	obj["approval"] = flattenCustomProviderOptions(in.Approval)
+	v, _ := obj["approval"].([]any)
+	obj["approval"] = flattenCustomProviderOptions(in.Approval, v)
 
 	return []interface{}{obj}
 }

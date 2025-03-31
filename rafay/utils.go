@@ -2633,7 +2633,9 @@ func flattenActions(input []*eaaspb.Action, p []interface{}) []interface{} {
 			cc := flattenConfigContextCompoundRef(in.Context)
 			obj["context"] = []interface{}{cc}
 		}
-		obj["workflows"] = flattenCustomProviderOptions(in.Workflows)
+
+		v, _ := obj["workflows"].([]any)
+		obj["workflows"] = flattenCustomProviderOptions(in.Workflows, v)
 		obj["reconcile_resources"] = flattenReconcileResources(in.ReconcileResources)
 
 		out[i] = &obj

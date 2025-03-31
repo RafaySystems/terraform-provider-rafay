@@ -350,7 +350,7 @@ func configField() map[string]*schema.Schema {
 			},
 		},
 		"node_groups": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "holds all nodegroup attributes of a cluster.",
 			Elem: &schema.Resource{

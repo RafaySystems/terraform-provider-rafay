@@ -32,8 +32,8 @@ resource "rafay_driver" "driver" {
           use_pvc {
             value = true
           }
-          mount_path = "/tmp/var"
-          pvc_size_gb = "20"
+          mount_path        = "/tmp/var"
+          pvc_size_gb       = "20"
           pvc_storage_class = "hdb"
         }
       }

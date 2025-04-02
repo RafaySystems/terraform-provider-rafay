@@ -47,10 +47,10 @@ resource "rafay_fleetplan" "fp1" {
             runner {
               type = "cluster"
             }
-            image     = "bitnami/kubectl"
-            arguments = ["get", "po", "-A"]
-            cpu_limit_milli = "1000"
-            memory_limit_mb = "100"
+            image            = "bitnami/kubectl"
+            arguments        = ["get", "po", "-A"]
+            cpu_limit_milli  = "1000"
+            memory_limit_mb  = "100"
             working_dir_path = "/var/"
           }
         }
@@ -71,7 +71,7 @@ resource "rafay_fleetplan" "fp1" {
             value = jsonencode("minimal")
           }
           continue_on_failure = true
-          name = "action2"
+          name                = "action2"
         }
         posthooks {
           name        = "posthooks1"
@@ -102,11 +102,11 @@ resource "rafay_fleetplan" "fp1" {
       operations {
         name = "op4"
         action {
-          name = "action4"
-          type = "blueprintUpdate"
+          name        = "action4"
+          type        = "blueprintUpdate"
           description = "updating blueprint with named action"
           blueprint_update_config {
-            name = "default"
+            name    = "default"
             version = "latest"
           }
         }

@@ -11,18 +11,18 @@ resource "rafay_blueprint" "blueprint" {
       version = "1.16.0"
     }
     namespace_config {
-      sync_type = "managed"
+      sync_type   = "managed"
       enable_sync = true
     }
     default_addons {
-      enable_ingress    = true
+      enable_ingress          = true
       enable_csi_secret_store = true
-      enable_monitoring = true
-      enable_vm         = false
+      enable_monitoring       = true
+      enable_vm               = false
 
       csi_secret_store_config {
         enable_secret_rotation = true
-        sync_secrets = true
+        sync_secrets           = true
         rotation_poll_interval = "2m"
         providers {
           aws = true
@@ -48,7 +48,7 @@ resource "rafay_blueprint" "blueprint" {
         resources {
           limits {
             memory = "200Mi"
-            cpu  = "100m"
+            cpu    = "100m"
           }
         }
       }
@@ -101,8 +101,8 @@ resource "rafay_blueprint" "blueprint" {
         }
         resources {
           limits {
-            memory ="200Mi"
-            cpu = "100m"
+            memory = "200Mi"
+            cpu    = "100m"
           }
         }
       }
@@ -113,7 +113,7 @@ resource "rafay_blueprint" "blueprint" {
     }
     placement {
       auto_publish = true
-      fleet_values = ["value 1","value 2","value 3"]
+      fleet_values = ["value 1", "value 2", "value 3"]
     }
   }
 }
@@ -130,22 +130,22 @@ resource "rafay_blueprint" "blueprint" {
       version = "1.16.0"
     }
     custom_addons {
-      name = "addon1"
+      name    = "addon1"
       version = "v0"
     }
     custom_addons {
       depends_on = ["addon1"]
-      name = "addon2"
-      version = "v0"
+      name       = "addon2"
+      version    = "v0"
     }
     components_criticality {
-        name = "addon1"
+      name = "addon1"
     }
     default_addons {
       enable_ingress    = true
       enable_monitoring = true
       enable_vm         = false
-      enable_rook_ceph = true
+      enable_rook_ceph  = true
       monitoring {
         metrics_server {
           enabled = true
@@ -166,7 +166,7 @@ resource "rafay_blueprint" "blueprint" {
         resources {
           limits {
             memory = "200Mi"
-            cpu  = "100m"
+            cpu    = "100m"
           }
         }
       }
@@ -181,15 +181,15 @@ resource "rafay_blueprint" "blueprint" {
         name = "terraform"
       }
     }
-  
+
     opa_policy {
       opa_policy {
-	      name = "policy_name"
-	      version = "policy_version"
+        name    = "policy_name"
+        version = "policy_version"
       }
       profile {
-	      name = "default"
-          version = "latest"
+        name    = "default"
+        version = "latest"
       }
     }
   }
@@ -231,7 +231,7 @@ resource "rafay_blueprint" "golden_base_blueprint" {
         resources {
           limits {
             memory = "200Mi"
-            cpu  = "100m"
+            cpu    = "100m"
           }
         }
       }
@@ -269,8 +269,8 @@ resource "rafay_blueprint" "cost-blueprint" {
     }
 
     cost_profile {
-        name = "tfdemocostprofile1"
-        version = "v0"
+      name    = "tfdemocostprofile1"
+      version = "v0"
     }
 
   }

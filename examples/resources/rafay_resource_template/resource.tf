@@ -8,8 +8,8 @@ resource "rafay_resource_template" "aws-elasticache" {
     provider = "terraform"
     provider_options {
       terraform {
-        version = "v1.4.4"
-        backend_type = "custom"
+        version         = "v1.4.4"
+        backend_type    = "custom"
         backend_configs = ["path"]
         var_files       = ["path"]
         plugin_dirs     = ["path"]
@@ -60,10 +60,10 @@ resource "rafay_resource_template" "aws-elasticache" {
                     working_dir_path = "/workdir"
                   }
                 }
-                on_failure = "continue"
+                on_failure   = "continue"
                 execute_once = true
                 skip_config {
-                  condition = "skip: true"
+                  condition       = "skip: true"
                   skip_on_destroy = true
                 }
               }

@@ -686,7 +686,10 @@ Optional:
 
 ***Optional***
 
+- `display_overridden` (Boolean) Display overridden values on UI
+- `restricted_key_values` (Map of String) If the override type is restricted_key_values, values it is restricted to
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
+- `selectors` (List of String) Used to alias a variable and restrict the override scope
 - `type` (String) Specify the type of ovverride this variable supports
 
 <a id="nestedblock--spec--inputs--data--envs--options--schema"></a>
@@ -762,7 +765,10 @@ Optional:
 
 ***Optional***
 
+- `display_overridden` (Boolean) Display overridden values on UI
+- `restricted_key_values` (Map of String) If the override type is restricted_key_values, values it is restricted to
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
+- `selectors` (List of String) Used to alias a variable and restrict the override scope
 - `type` (String) Specify the type of ovverride this variable supports
 
 <a id="nestedblock--spec--inputs--data--variables--options--schema"></a>

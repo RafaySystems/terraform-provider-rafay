@@ -30,73 +30,73 @@ resource "rafay_workflow_handler" "workflow_handler" {
           affinity {
             node_affinity {
               required_during_scheduling_ignored_during_execution {
-              node_selector_terms {
-                match_expressions {
-                key      = "kubernetes.io/e2e-az-name"
-                operator = "In"
-                values   = ["e2e-az1", "e2e-az2"]
+                node_selector_terms {
+                  match_expressions {
+                    key      = "kubernetes.io/e2e-az-name"
+                    operator = "In"
+                    values   = ["e2e-az1", "e2e-az2"]
+                  }
                 }
-              }
               }
               preferred_during_scheduling_ignored_during_execution {
                 weight = 1
                 preference {
                   match_expressions {
-                  key      = "another-node-label-key"
-                  operator = "In"
-                  values   = ["another-node-label-value"]
+                    key      = "another-node-label-key"
+                    operator = "In"
+                    values   = ["another-node-label-value"]
                   }
                 }
               }
             }
             pod_affinity {
               required_during_scheduling_ignored_during_execution {
-              label_selector {
-                match_expressions {
-                key      = "security"
-                operator = "In"
-                values   = ["S1"]
-                }
-              }
-              topology_key = "kubernetes.io/hostname"
-              }
-              preferred_during_scheduling_ignored_during_execution {
-              weight = 1
-              pod_affinity_term {
                 label_selector {
-                match_expressions {
-                  key      = "security"
-                  operator = "In"
-                  values   = ["S2"]
-                }
+                  match_expressions {
+                    key      = "security"
+                    operator = "In"
+                    values   = ["S1"]
+                  }
                 }
                 topology_key = "kubernetes.io/hostname"
               }
+              preferred_during_scheduling_ignored_during_execution {
+                weight = 1
+                pod_affinity_term {
+                  label_selector {
+                    match_expressions {
+                      key      = "security"
+                      operator = "In"
+                      values   = ["S2"]
+                    }
+                  }
+                  topology_key = "kubernetes.io/hostname"
+                }
               }
             }
             pod_anti_affinity {
               required_during_scheduling_ignored_during_execution {
-              label_selector {
-                match_expressions {
-                key      = "security"
-                operator = "In"
-                values   = ["S1"]
-                }
-              }
-              topology_key = "kubernetes.io/hostname"
-              }
-              preferred_during_scheduling_ignored_during_execution {
-              weight = 1
-              pod_affinity_term {
                 label_selector {
-                match_expressions {
-                  key      = "security"
-                  operator = "In"
-                  values   = ["S1"]
-                }
+                  match_expressions {
+                    key      = "security"
+                    operator = "In"
+                    values   = ["S1"]
+                  }
                 }
                 topology_key = "kubernetes.io/hostname"
               }
+              preferred_during_scheduling_ignored_during_execution {
+                weight = 1
+                pod_affinity_term {
+                  label_selector {
+                    match_expressions {
+                      key      = "security"
+                      operator = "In"
+                      values   = ["S1"]
+                    }
+                  }
+                  topology_key = "kubernetes.io/hostname"
+                }
               }
             }
           }
@@ -105,8 +105,8 @@ resource "rafay_workflow_handler" "workflow_handler" {
           use_pvc {
             value = true
           }
-          mount_path = "/tmp/var"
-          pvc_size_gb = "20"
+          mount_path        = "/tmp/var"
+          pvc_size_gb       = "20"
           pvc_storage_class = "hdb"
         }
       }

@@ -1,7 +1,7 @@
 resource "rafay_groupassociation" "groupassociation" {
-  group      = "dev1"
-  project    = "terraform"
-  roles      = ["PROJECT_READ_ONLY"]
+  group   = "dev1"
+  project = "terraform"
+  roles   = ["PROJECT_READ_ONLY"]
 }
 
 resource "rafay_groupassociation" "groupassociation1" {
@@ -13,13 +13,13 @@ resource "rafay_groupassociation" "groupassociation1" {
 }
 
 resource "rafay_groupassociation" "groupassociation2" {
-  group      = "dev2"
-  project    = "defaultproject"
-  custom_roles      = ["infra.customrole"]
-  add_users  = ["ankit+3@rafay.co"]
+  group        = "dev2"
+  project      = "defaultproject"
+  custom_roles = ["infra.customrole"]
+  add_users    = ["ankit+3@rafay.co"]
 }
 
 resource "rafay_groupassociation" "groupassociation3" {
-  group      = "dev1"
-  roles      = ["ADMIN"]
+  group = "dev1"
+  roles = ["ADMIN"]
 }

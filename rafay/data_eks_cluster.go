@@ -171,7 +171,7 @@ func dataEKSClusterRead(ctx context.Context, d *schema.ResourceData, m interface
 	if !rawState.IsNull() {
 		clusterConfigState = rawState.GetAttr("cluster")
 	}
-	c2, err := flattenEKSClusterConfig(&clusterConfigSpec, clusterConfigState, v2)
+	c2, err := flattenEKSClusterConfig(ctx, &clusterConfigSpec, clusterConfigState, v2)
 	if err != nil {
 		log.Printf("flatten eks cluster config error %s", err.Error())
 		return diag.FromErr(err)

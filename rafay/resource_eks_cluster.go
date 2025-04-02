@@ -11,14 +11,16 @@ import (
 	"strings"
 	"time"
 
+	"slices"
+
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/clusterctl"
 	"github.com/RafaySystems/rctl/pkg/config"
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	jsoniter "github.com/json-iterator/go"
-	"k8s.io/utils/strings/slices"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -2501,7 +2503,15 @@ func expandEKSClusterConfig(ctx context.Context, p []interface{}, rawConfig cty.
 	}
 
 	if v, ok := in["node_groups"].(*schema.Set); ok && v.Len() > 0 {
-		obj.NodeGroups = expandNodeGroups(v.List())
+		nodeGroups := expandNodeGroups(v.List())
+
+		// sorting node groups to fix tf diff issue. (read
+		// customer case RC-40807)
+		slices.SortFunc(nodeGroups, func(a, b *NodeGroup) int {
+			return strings.Compare(a.Name, b.Name)
+		})
+		tflog.Error(ctx, "Sorted node groups", map[string]any{"sorted node groups": nodeGroups})
+		obj.NodeGroups = nodeGroups
 	}
 
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
@@ -4747,7 +4757,7 @@ func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]
 
 	return []interface{}{obj}, nil
 }
-func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []interface{}) ([]interface{}, error) {
+func flattenEKSClusterConfig(ctx context.Context, in *EKSClusterConfig, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	if in == nil {
 		return nil, fmt.Errorf("empty cluster config input")
 	}
@@ -4891,6 +4901,15 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 				return nil, err
 			}*/
 		log.Println("flattend node group")
+
+		// sort node groups to fix tf diff issue. (read
+		// customer case RC-40807)
+		slices.SortFunc(ret8, func(a, b interface{}) int {
+			mapA := a.(map[string]interface{})
+			mapB := b.(map[string]interface{})
+			return strings.Compare(mapA["name"].(string), mapB["name"].(string))
+		})
+		tflog.Error(ctx, "Sorted node groups", map[string]any{"sorted node groups": ret8})
 		obj["node_groups"] = ret8
 	}
 	//setting up flatten Managed Node Groups
@@ -6114,7 +6133,7 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 			obj["kubelet_extra_config"] = flattenKubeletExtraConfig(in.KubeletExtraConfig, v)
 		}
 		//Container Runtime not in doc from struct
-		out[i] = &obj
+		out[i] = obj
 	}
 	return out
 }
@@ -6910,7 +6929,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	if !ok {
 		v2 = []interface{}{}
 	}
-	c2, err := flattenEKSClusterConfig(&clusterConfigSpec, rawState.GetAttr("cluster_config"), v2)
+	c2, err := flattenEKSClusterConfig(ctx, &clusterConfigSpec, rawState.GetAttr("cluster_config"), v2)
 	if err != nil {
 		log.Printf("flatten eks cluster config error %s", err.Error())
 		return diag.FromErr(err)

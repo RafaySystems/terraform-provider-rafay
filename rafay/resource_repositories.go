@@ -398,6 +398,12 @@ func expandRepositoryOptions(p []interface{}) *integrationspb.RepositoryOptions 
 		obj.EnableLFS = false
 	}
 
+	if v, ok := in["provider"].(string); ok {
+		obj.Provider = v
+	} else {
+		obj.Provider = ""
+	}
+
 	if v, ok := in["ca_cert"].([]interface{}); ok {
 		obj.CaCert = expandCommonpbFile(v)
 	}
@@ -511,6 +517,11 @@ func flattenRepoOptions(in *integrationspb.RepositoryOptions, p []interface{}) [
 			obj["enable_lfs"] = false
 			retNel = false
 		}
+	}
+
+	obj["provider"] = in.Provider
+	if len(in.Provider) > 0 {
+		retNel = false
 	}
 
 	// if in.CaCert != nil {

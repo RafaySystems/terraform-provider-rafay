@@ -17,7 +17,6 @@ resource "rafay_blueprint" "blueprint" {
     default_addons {
       enable_ingress    = true
       enable_csi_secret_store = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
 
@@ -81,7 +80,6 @@ resource "rafay_blueprint" "blueprint" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       monitoring {
@@ -145,7 +143,6 @@ resource "rafay_blueprint" "blueprint" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       enable_rook_ceph = true
@@ -212,7 +209,6 @@ resource "rafay_blueprint" "golden_base_blueprint" {
     type = "golden"
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       monitoring {
@@ -264,7 +260,6 @@ resource "rafay_blueprint" "cost-blueprint" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
     }

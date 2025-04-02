@@ -1292,7 +1292,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "type of instances in the nodegroup",
 		},
 		"availability_zones": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "Limit nodes to specific AZs",
 			Elem: &schema.Schema{
@@ -1300,7 +1300,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"subnets": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "Limit nodes to specific subnets",
 			Elem: &schema.Schema{
@@ -1339,7 +1339,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "volume size in gigabytes",
 		},
 		"ssh": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "configures ssh access for this nodegroup",
 			Elem: &schema.Resource{
@@ -1363,7 +1363,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
 		},
 		"iam": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "holds all IAM attributes of a NodeGroup",
 			Elem: &schema.Resource{
@@ -1376,7 +1376,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "Specify custom AMIs, auto-ssm, auto, or static",
 		},
 		"security_groups": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "controls security groups for this nodegroup",
 			Elem: &schema.Resource{
@@ -1389,7 +1389,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "Maximum pods per node",
 		},
 		"asg_suspend_processes": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "See relevant AWS docs",
 			Elem: &schema.Schema{
@@ -1435,7 +1435,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "of volumes attached to instances in the nodegroup",
 		},
 		"pre_bootstrap_commands": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "executed before bootstrapping instances to the cluster",
 			Elem: &schema.Schema{
@@ -1460,7 +1460,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "blocks all IMDS requests from non host networking pods",
 		},
 		"placement": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "specifies the placement group in which nodes should be spawned",
 			Elem: &schema.Resource{
@@ -1474,7 +1474,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
 		},
 		"instance_selector": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "specifies options for EC2 instance selector",
 			Elem: &schema.Resource{
@@ -1482,7 +1482,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"bottle_rocket": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "specifies settings for Bottlerocket nodes",
 			Elem: &schema.Resource{
@@ -1495,7 +1495,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "Enable EC2 detailed monitoring",
 		},
 		"instances_distribution": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "holds the configuration for spot instances",
 			Elem: &schema.Resource{
@@ -1503,7 +1503,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"asg_metrics_collection": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "used by the scaling config, see cloudformation docs",
 			Elem: &schema.Resource{
@@ -1516,7 +1516,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "configures T3 Unlimited, valid only for T-type instances",
 		},
 		"classic_load_balancer_names": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "Associate load balancers with auto scaling group",
 			Elem: &schema.Schema{
@@ -1524,7 +1524,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"target_group_arns": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "Associate target group with auto scaling group",
 			Elem: &schema.Schema{
@@ -1532,7 +1532,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"taints": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "taints to apply to the nodegroup",
 			Elem: &schema.Resource{
@@ -1540,7 +1540,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"update_config": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "used by the scaling config, see cloudformation docs",
 			Elem: &schema.Resource{
@@ -1554,7 +1554,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 		},
 
 		"kubelet_extra_config": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "Custom address used for DNS lookups",
 			Elem: &schema.Resource{
@@ -1679,7 +1679,7 @@ func asgMetricsCollectionFields() map[string]*schema.Schema {
 			Description: "of metrics collected",
 		},
 		"metrics": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "specifies a list of metrics",
 			Elem: &schema.Schema{
@@ -1761,7 +1761,7 @@ func sshConfigFields() map[string]*schema.Schema {
 			Description: "Public key name in EC2 to be added to the nodes SSH keychain. If Allow is false this value is ignored.",
 		},
 		"source_security_group_ids": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "source securitgy group IDs",
 			Elem: &schema.Schema{
@@ -1913,7 +1913,7 @@ func iamNodeGroupWithAddonPoliciesFields() map[string]*schema.Schema {
 func securityGroupsConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"attach_ids": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "attaches additional security groups to the nodegroup",
 			Elem: &schema.Schema{
@@ -2461,13 +2461,15 @@ func expandEKSCluster(p []interface{}) *EKSCluster {
 }
 
 // expand eks cluster function (completed)
-func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) (*EKSClusterConfig, error) {
+func expandEKSClusterConfig(ctx context.Context, p []interface{}, rawConfig cty.Value) (*EKSClusterConfig, error) {
+	// ctx := context.Background()
 	obj := &EKSClusterConfig{}
 
 	if len(p) == 0 || p[0] == nil {
 		return obj, nil
 	}
 	in := p[0].(map[string]interface{})
+
 	if !rawConfig.IsNull() && len(rawConfig.AsValueSlice()) > 0 {
 		rawConfig = rawConfig.AsValueSlice()[0]
 	}
@@ -2497,9 +2499,11 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) (*EKSClusterCo
 	if v, ok := in["private_cluster"].([]interface{}); ok && len(v) > 0 {
 		obj.PrivateCluster = expandPrivateCluster(v)
 	}
-	if v, ok := in["node_groups"].([]interface{}); ok && len(v) > 0 {
-		obj.NodeGroups = expandNodeGroups(v)
+
+	if v, ok := in["node_groups"].(*schema.Set); ok && v.Len() > 0 {
+		obj.NodeGroups = expandNodeGroups(v.List())
 	}
+
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
 		var nRawConfig cty.Value
 		if !rawConfig.IsNull() {
@@ -2560,11 +2564,12 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 	}
 	//expand cluster config yaml file
 	if v, ok := d.Get("cluster_config").([]interface{}); ok {
-		yamlClusterConfig, err = expandEKSClusterConfig(v, rawConfig.GetAttr("cluster_config"))
+		yamlClusterConfig, err = expandEKSClusterConfig(ctx, v, rawConfig.GetAttr("cluster_config"))
 		if err != nil {
 			log.Print("Invalid cluster config found")
 			return diag.FromErr(err)
 		}
+		log.Println("rawConfig", rawConfig.GetAttr("cluster_config"))
 	} else {
 		log.Print("Cluster Config unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster Config is missing"))
@@ -3210,11 +3215,11 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		if v, ok := in["instance_type"].(string); ok && len(v) > 0 {
 			obj.InstanceType = v
 		}
-		if v, ok := in["availability_zones"].([]interface{}); ok && len(v) > 0 {
-			obj.AvailabilityZones = toArrayStringSorted(v)
+		if v, ok := in["availability_zones"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.AvailabilityZones = toArrayStringSorted(v.List())
 		}
-		if v, ok := in["subnets"].([]interface{}); ok && len(v) > 0 {
-			obj.Subnets = toArrayString(v)
+		if v, ok := in["subnets"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.Subnets = toArrayString(v.List())
 		}
 		if v, ok := in["instance_prefix"].(string); ok && len(v) > 0 {
 			obj.InstancePrefix = v
@@ -3234,8 +3239,8 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		if v, ok := in["volume_size"].(int); ok {
 			obj.VolumeSize = &v
 		}
-		if v, ok := in["ssh"].([]interface{}); ok && len(v) > 0 {
-			obj.SSH = expandNodeGroupSsh(v, false)
+		if v, ok := in["ssh"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.SSH = expandNodeGroupSsh(v.List(), false)
 		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Labels = toMapString(v)
@@ -3246,20 +3251,20 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
 			obj.Tags = toMapString(v)
 		}
-		if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
-			obj.IAM = expandNodeGroupIam(v)
+		if v, ok := in["iam"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.IAM = expandNodeGroupIam(v.List())
 		}
 		if v, ok := in["ami"].(string); ok && len(v) > 0 {
 			obj.AMI = v
 		}
-		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
-			obj.SecurityGroups = expandNodeGroupSecurityGroups(v)
+		if v, ok := in["security_groups"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.SecurityGroups = expandNodeGroupSecurityGroups(v.List())
 		}
 		if v, ok := in["max_pods_per_node"].(int); ok {
 			obj.MaxPodsPerNode = v
 		}
-		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
-			obj.ASGSuspendProcesses = toArrayString(v)
+		if v, ok := in["asg_suspend_process"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.ASGSuspendProcesses = toArrayString(v.List())
 		}
 		if v, ok := in["ebs_optimized"].(bool); ok {
 			obj.EBSOptimized = &v
@@ -3282,8 +3287,8 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		if v, ok := in["volume_throughput"].(int); ok && v != 0 {
 			obj.VolumeThroughput = &v
 		}
-		if v, ok := in["pre_bootstrap_commands"].([]interface{}); ok && len(v) > 0 {
-			obj.PreBootstrapCommands = toArrayString(v)
+		if v, ok := in["pre_bootstrap_commands"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.PreBootstrapCommands = toArrayString(v.List())
 		}
 		if v, ok := in["override_bootstrap_command"].(string); ok && len(v) > 0 {
 			obj.OverrideBootstrapCommand = v
@@ -3294,53 +3299,53 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		if v, ok := in["disable_pods_imds"].(bool); ok {
 			obj.DisablePodIMDS = &v
 		}
-		if v, ok := in["placement"].([]interface{}); ok && len(v) > 0 {
-			obj.Placement = expandNodeGroupPlacement(v)
+		if v, ok := in["placement"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.Placement = expandNodeGroupPlacement(v.List())
 		}
 		if v, ok := in["efa_enabled"].(bool); ok {
 			obj.EFAEnabled = &v
 		}
-		if v, ok := in["instance_selector"].([]interface{}); ok && len(v) > 0 {
-			obj.InstanceSelector = expandNodeGroupInstanceSelector(v)
+		if v, ok := in["instance_selector"].(*schema.Set); ok && v.Len() > 0 {
+			obj.InstanceSelector = expandNodeGroupInstanceSelector(v.List())
 		}
 		//additional encrypted volume field not in spec
 
-		if v, ok := in["bottle_rocket"].([]interface{}); ok && len(v) > 0 {
-			obj.Bottlerocket = expandNodeGroupBottleRocket(v)
+		if v, ok := in["bottle_rocket"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.Bottlerocket = expandNodeGroupBottleRocket(v.List())
 		}
 		//doc does not have fields custom ami, enable detailed monitoring, or is wavlength zone but NodeGroupbase struct does
 
 		if v, ok := in["enable_detailed_monitoring"].(bool); ok {
 			obj.EnableDetailedMonitoring = &v
 		}
-		if v, ok := in["instances_distribution"].([]interface{}); ok && len(v) > 0 {
-			obj.InstancesDistribution = expandNodeGroupInstanceDistribution(v)
+		if v, ok := in["instances_distribution"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.InstancesDistribution = expandNodeGroupInstanceDistribution(v.List())
 		}
-		if v, ok := in["asg_metrics_collection"].([]interface{}); ok && len(v) > 0 {
-			obj.ASGMetricsCollection = expandNodeGroupASGMetricCollection(v)
+		if v, ok := in["asg_metrics_collection"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.ASGMetricsCollection = expandNodeGroupASGMetricCollection(v.List())
 		}
 		if v, ok := in["cpu_credits"].(string); ok && len(v) > 0 {
 			obj.CPUCredits = v
 		}
-		if v, ok := in["classic_load_balancer_names"].([]interface{}); ok && len(v) > 0 {
-			obj.ClassicLoadBalancerNames = toArrayString(v)
+		if v, ok := in["classic_load_balancer_names"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.ClassicLoadBalancerNames = toArrayString(v.List())
 		}
-		if v, ok := in["target_group_arns"].([]interface{}); ok && len(v) > 0 {
-			obj.TargetGroupARNs = toArrayString(v)
+		if v, ok := in["target_group_arns"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.TargetGroupARNs = toArrayString(v.List())
 		}
-		if v, ok := in["taints"].([]interface{}); ok && len(v) > 0 {
-			obj.Taints = expandManagedNodeGroupTaints(v)
+		if v, ok := in["taints"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.Taints = expandManagedNodeGroupTaints(v.List())
 		}
 
-		if v, ok := in["update_config"].([]interface{}); ok && len(v) > 0 {
-			obj.UpdateConfig = expandNodeGroupUpdateConfig(v)
+		if v, ok := in["update_config"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.UpdateConfig = expandNodeGroupUpdateConfig(v.List())
 		}
 		if v, ok := in["cluster_dns"].(string); ok && len(v) > 0 {
 			obj.ClusterDNS = v
 		}
 		//@@@TODO Store terraform input as inline document object correctly
-		if v, ok := in["kubelet_extra_config"].([]interface{}); ok && len(v) > 0 {
-			obj.KubeletExtraConfig = expandKubeletExtraConfig(v)
+		if v, ok := in["kubelet_extra_config"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.KubeletExtraConfig = expandKubeletExtraConfig(v.List())
 		}
 		//@@@
 		if v, ok := in["version"].(string); ok && len(v) > 0 {
@@ -3414,8 +3419,8 @@ func expandNodeGroupASGMetricCollection(p []interface{}) []MetricsCollection {
 		if v, ok := in["granularity"].(string); ok && len(v) > 0 {
 			obj.Granularity = v
 		}
-		if v, ok := in["metrics"].([]interface{}); ok && len(v) > 0 {
-			obj.Metrics = toArrayString(v)
+		if v, ok := in["metrics"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+			obj.Metrics = toArrayString(v.List())
 		}
 		out[i] = *obj
 	}
@@ -3525,8 +3530,8 @@ func expandNodeGroupSecurityGroups(p []interface{}) *NodeGroupSGs {
 		return obj
 	}
 	in := p[0].(map[string]interface{})
-	if v, ok := in["attach_ids"].([]interface{}); ok && len(v) > 0 {
-		obj.AttachIDs = toArrayString(v)
+	if v, ok := in["attach_ids"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+		obj.AttachIDs = toArrayString(v.List())
 	}
 	if v, ok := in["with_shared"].(bool); ok {
 		obj.WithShared = &v
@@ -3766,8 +3771,8 @@ func expandNodeGroupSsh(p []interface{}, managed bool) *NodeGroupSSH {
 	if v, ok := in["public_key_name"].(string); ok && len(v) > 0 {
 		obj.PublicKeyName = v
 	}
-	if v, ok := in["source_security_group_ids"].([]interface{}); ok && len(v) > 0 {
-		obj.SourceSecurityGroupIDs = toArrayString(v)
+	if v, ok := in["source_security_group_ids"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+		obj.SourceSecurityGroupIDs = toArrayString(v.List())
 	}
 	// Deprecated but still valid to use this API till an alterative is found!
 

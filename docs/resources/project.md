@@ -143,7 +143,7 @@ resource "rafay_project" "terraform-quota" {
 ### Nested Schema for `specs.default_cluster_namespace_quota` 
 
 ***Optional***
-- `config_maps` - (String) The maximum number of configuration maps allowed in the cluster. 
+- `config_maps` - (String) The maximum number of configuration maps allowed in the namespace. 
 - `cpu_limits` - (String) The maximum CPU resource. 
 - `cpu_requests` - (String) The number of CPU threads.
 
@@ -152,11 +152,11 @@ resource "rafay_project" "terraform-quota" {
 - `memory_requests` - (String) The amount of memory, in Mebibytes. A Megabyte is a close equivalent to a Mebibytes.
 
 **Note**: For `memory_limits` and `memory_requests` specify units in Mebibyte
-- `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in the cluster. 
-- `pods` - (String) The maximum number of pods allowed in the cluster. 
-- `replication_controllers` - (String) The maximum number of replication controllers in the cluster. 
-- `secrets` - (String) The maximum number of secrets in the cluster. 
-- `services` - (String) The maximum number of services in the cluster. 
+- `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in the namespace. 
+- `pods` - (String) The maximum number of pods allowed in the namespace. 
+- `replication_controllers` - (String) The maximum number of replication controllers in the namespace. 
+- `secrets` - (String) The maximum number of secrets in the namespace. 
+- `services` - (String) The maximum number of services in the namespace. 
 - `services_load_balancers` - (String) The number of load balancers. 
 - `services_node_ports` - (String) The number of node ports. 
 - `storage_requests` - (String) The size of the storage request in Gibibytes.

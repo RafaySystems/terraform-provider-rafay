@@ -375,9 +375,11 @@ func flattenConfigContextSpec(in *eaaspb.ConfigContextSpec, p []interface{}) ([]
 		obj = p[0].(map[string]interface{})
 	}
 
-	obj["envs"] = flattenEnvVariables(in.Envs, obj["envs"].([]interface{}))
+	v, _ := obj["envs"].([]any)
+	obj["envs"] = flattenEnvVariables(in.Envs, v)
 	obj["files"] = flattenCommonpbFiles(in.Files)
-	obj["variables"] = flattenVariables(in.Variables, obj["variables"].([]interface{}))
+	v, _ = obj["variables"].([]any)
+	obj["variables"] = flattenVariables(in.Variables, v)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	return []interface{}{obj}, nil

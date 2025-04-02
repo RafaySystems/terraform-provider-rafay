@@ -20,9 +20,9 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
 }
 
 
-resource "rafay_cloud_credentials_v3" "tftestazurecredentials2" {
+resource "rafay_cloud_credentials_v3" "tf-example-azure-cred" {
    metadata {
-       name    = "sample-aws"
+       name    = "sample-azure"
        project = "sample-project"
    }
   spec {

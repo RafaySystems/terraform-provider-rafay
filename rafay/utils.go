@@ -1545,28 +1545,15 @@ func flattenVariableOptions(input *eaaspb.VariableOptions) []interface{} {
 	if input == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	if len(input.Description) > 0 {
-		obj["description"] = input.Description
+	obj := map[string]any{
+		"description":      input.Description,
+		"sensitive":        input.Sensitive,
+		"required":         input.Required,
+		"immutable":        input.Immutable,
+		"display_metadata": flattenStructPB(input.DisplayMetadata),
+		"override":         flattenVariableOverrideOptions(input.Override),
+		"schema":           flattenCustomSchema(input.Schema),
 	}
-	obj["sensitive"] = input.Sensitive
-	obj["required"] = input.Required
-	obj["immutable"] = input.Immutable
-
-	if input.DisplayMetadata != nil {
-		if b, err := input.DisplayMetadata.MarshalJSON(); err == nil {
-			obj["display_metadata"] = string(b)
-		}
-	}
-
-	if input.Override != nil {
-		obj["override"] = flattenVariableOverrideOptions(input.GetOverride())
-	}
-
-	if input.Schema != nil {
-		obj["schema"] = flattenCustomSchema(input.GetSchema())
-	}
-
 	return []interface{}{obj}
 }
 
@@ -1575,20 +1562,11 @@ func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) []int
 	if input == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-
-	if len(input.Type) > 0 {
-		obj["type"] = input.Type
+	obj := map[string]any{
+		"type":              input.Type,
+		"restricted_values": toArrayInterface(input.RestrictedValues),
+		"selectors":         toArrayInterface(input.Selectors),
 	}
-
-	if len(input.RestrictedValues) > 0 {
-		obj["restricted_values"] = toArrayInterface(input.RestrictedValues)
-	}
-
-	if len(input.Selectors) > 0 {
-		obj["selectors"] = toArrayInterface(input.Selectors)
-	}
-
 	return []interface{}{obj}
 }
 
@@ -2394,20 +2372,9 @@ func flattenEnvVarOptions(input *eaaspb.EnvVarOptions) []interface{} {
 		"immutable":        input.Immutable,
 		"override":         flattenEnvVarOverrideOptions(input.Override),
 		"schema":           flattenCustomSchema(input.Schema),
-		"display_metadata": flattenDisplayMetadata(input.DisplayMetadata),
+		"display_metadata": flattenStructPB(input.DisplayMetadata),
 	}
 	return []interface{}{obj}
-}
-
-func flattenDisplayMetadata(in *structpb.Struct) string {
-	if in == nil {
-		return ""
-	}
-	b, err := in.MarshalJSON()
-	if err != nil {
-		return ""
-	}
-	return string(b)
 }
 
 func flattenEnvVarOverrideOptions(input *eaaspb.EnvVarOverrideOptions) []interface{} {
@@ -2487,7 +2454,7 @@ func flattenFileOptions(input *commonpb.FileOptions) []interface{} {
 		"sensitive":        input.Sensitive,
 		"required":         input.Required,
 		"override":         flattenFileOverrideOptions(input.Override),
-		"display_metadata": flattenDisplayMetadata(input.DisplayMetadata),
+		"display_metadata": flattenStructPB(input.DisplayMetadata),
 		"schema":           flattenCustomSchema(input.Schema),
 	}
 
@@ -2532,10 +2499,10 @@ func flattenCustomSchema(input *commonpb.Schema) []interface{} {
 	if input == nil {
 		return nil
 	}
-	obj := map[string]interface{}{}
-	obj["jsonschema"] = flattenJsonUISchema(input.Jsonschema)
-	obj["uischema"] = flattenJsonUISchema(input.Uischema)
-
+	obj := map[string]interface{}{
+		"jsonschema": flattenStructPB(input.Jsonschema),
+		"uischema":   flattenStructPB(input.Uischema),
+	}
 	return []interface{}{obj}
 }
 
@@ -2556,7 +2523,7 @@ func expandJsonUISchema(p string) *structpb.Struct {
 	return nil
 }
 
-func flattenJsonUISchema(in *structpb.Struct) string {
+func flattenStructPB(in *structpb.Struct) string {
 	if in == nil {
 		return ""
 	}

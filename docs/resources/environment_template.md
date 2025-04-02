@@ -239,7 +239,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `workflow_handler` (Block List, Max: 1) Specify the workflow handler responsible for execution (see [below for nested schema](#nestedblock--spec--workflowhandler))
 
 <a id="nestedblock--skip_config"></a>
-### Nested Schema for `spec.hooks.skip_config`
+### Nested Schema for `spec.skip_config`
 
 ***Optional***
 
@@ -259,28 +259,28 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Optional***
 
-- `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval))
-- `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--container))
-- `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--http))
+- `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--approval))
+- `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--container))
+- `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--http))
 
-<a id="nestedblock--spec--hooks--on_completion--type--approval"></a>
-### Nested Schema for `spec.hooks.on_completion.type.approval`
+<a id="nestedblock--spec--hooks--on_completion--options--approval"></a>
+### Nested Schema for `spec.hooks.on_completion.options.approval`
 
 ***Optional***
 
-- `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--type--approval--internal))
+- `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--v--approval--internal))
 - `type` (String) Specify the approval options. Available options are `internal`
 
-<a id="nestedblock--spec--hooks--on_completion--type--approval--internal"></a>
-### Nested Schema for `spec.hooks.on_completion.type.approval.internal`
+<a id="nestedblock--spec--hooks--on_completion--options--approval--internal"></a>
+### Nested Schema for `spec.hooks.on_completion.options.approval.internal`
 
 ***Required***
 
 - `emails` (List of String)
 
 
-<a id="nestedblock--spec--hooks--on_completion--type--container"></a>
-### Nested Schema for `spec.hooks.on_completion.type.container`
+<a id="nestedblock--spec--hooks--on_completion--options--container"></a>
+### Nested Schema for `spec.hooks.on_completion.options.container`
 
 ***Optional***
 
@@ -294,8 +294,8 @@ resource "rafay_environment_template" "aws-et-example" {
 - `working_dir_path` (String) Specify the working directory path
 
 
-<a id="nestedblock--spec--hooks--on_completion--type--http"></a>
-### Nested Schema for `spec.hooks.on_completion.type.http`
+<a id="nestedblock--spec--hooks--on_completion--options--http"></a>
+### Nested Schema for `spec.hooks.on_completion.options.http`
 
 ***Optional***
 
@@ -333,33 +333,33 @@ resource "rafay_environment_template" "aws-et-example" {
 
 
 <a id="nestedblock--spec--hooks--on_failure--options"></a>
-### Nested Schema for `spec.hooks.on_failure.type`
+### Nested Schema for `spec.hooks.on_failure.options`
 
 ***Optional***
 
-- `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--approval))
-- `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--container))
-- `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--http))
+- `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--approval))
+- `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--container))
+- `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--http))
 
-<a id="nestedblock--spec--hooks--on_failure--type--approval"></a>
-### Nested Schema for `spec.hooks.on_failure.type.approval`
+<a id="nestedblock--spec--hooks--on_failure--options--approval"></a>
+### Nested Schema for `spec.hooks.on_failure.options.approval`
 
 ***Optional***
 
-- `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_failure--type--approval--internal))
+- `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--approval--internal))
 - `type` (String) Specify the approval options
 
 
-<a id="nestedblock--spec--hooks--on_failure--type--approval--internal"></a>
-### Nested Schema for `spec.hooks.on_failure.type.approval.internal`
+<a id="nestedblock--spec--hooks--on_failure--options--approval--internal"></a>
+### Nested Schema for `spec.hooks.on_failure.options.approval.internal`
 
 ***Required***
 
 - `emails` (List of String)
 
 
-<a id="nestedblock--spec--hooks--on_failure--type--container"></a>
-### Nested Schema for `spec.hooks.on_failure.type.container`
+<a id="nestedblock--spec--hooks--on_failure--options--container"></a>
+### Nested Schema for `spec.hooks.on_failure.options.container`
 
 ***Optional***
 
@@ -373,8 +373,8 @@ resource "rafay_environment_template" "aws-et-example" {
 - `working_dir_path` (String) Specify the working directory path
 
 
-<a id="nestedblock--spec--hooks--on_failure--type--http"></a>
-### Nested Schema for `spec.hooks.on_failure.type.http`
+<a id="nestedblock--spec--hooks--on_failure--options--http"></a>
+### Nested Schema for `spec.hooks.on_failure.options.http`
 
 ***Optional***
 
@@ -416,29 +416,29 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Optional***
 
-- `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--approval))
-- `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--container))
-- `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--http))
+- `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--approval))
+- `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--container))
+- `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--http))
 
-<a id="nestedblock--spec--hooks--on_init--type--approval"></a>
-### Nested Schema for `spec.hooks.on_init.type.approval`
+<a id="nestedblock--spec--hooks--on_init--options--approval"></a>
+### Nested Schema for `spec.hooks.on_init.options.approval`
 
 ***Optional***
 
-- `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_init--type--approval--internal))
+- `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--approval--internal))
 - `type` (String) Specify the approval options. Available options are `internal`
 
 
-<a id="nestedblock--spec--hooks--on_init--type--approval--internal"></a>
-### Nested Schema for `spec.hooks.on_init.type.approval.internal`
+<a id="nestedblock--spec--hooks--on_init--options--approval--internal"></a>
+### Nested Schema for `spec.hooks.on_init.options.approval.internal`
 
 ***Required***
 
 - `emails` (List of String)
 
 
-<a id="nestedblock--spec--hooks--on_init--type--container"></a>
-### Nested Schema for `spec.hooks.on_init.type.container`
+<a id="nestedblock--spec--hooks--on_init--options--container"></a>
+### Nested Schema for `spec.hooks.on_init.options.container`
 
 ***Optional***
 
@@ -452,8 +452,8 @@ resource "rafay_environment_template" "aws-et-example" {
 - `working_dir_path` (String) Specify the working directory path
 
 
-<a id="nestedblock--spec--hooks--on_init--type--http"></a>
-### Nested Schema for `spec.hooks.on_init.type.http`
+<a id="nestedblock--spec--hooks--on_init--options--http"></a>
+### Nested Schema for `spec.hooks.on_init.options.http`
 
 ***Optional***
 
@@ -495,28 +495,28 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Optional***
 
-- `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--approval))
-- `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--container))
-- `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--http))
+- `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--approval))
+- `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--container))
+- `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--http))
 
-<a id="nestedblock--spec--hooks--on_success--type--approval"></a>
-### Nested Schema for `spec.hooks.on_success.type.approval`
+<a id="nestedblock--spec--hooks--on_success--options--approval"></a>
+### Nested Schema for `spec.hooks.on_success.options.approval`
 
 ***Optional***
 
-- `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_success--type--approval--internal))
+- `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--approval--internal))
 - `type` (String) Specify the approval options. Available options are `internal`
 
-<a id="nestedblock--spec--hooks--on_success--type--approval--internal"></a>
-### Nested Schema for `spec.hooks.on_success.type.approval.internal`
+<a id="nestedblock--spec--hooks--on_success--options--approval--internal"></a>
+### Nested Schema for `spec.hooks.on_success.options.approval.internal`
 
 ***Required***
 
 - `emails` (List of String)
 
 
-<a id="nestedblock--spec--hooks--on_success--type--container"></a>
-### Nested Schema for `spec.hooks.on_success.type.container`
+<a id="nestedblock--spec--hooks--on_success--options--container"></a>
+### Nested Schema for `spec.hooks.on_success.options.container`
 
 ***Optional***
 
@@ -530,8 +530,8 @@ resource "rafay_environment_template" "aws-et-example" {
 - `working_dir_path` (String) Specify the working directory path
 
 
-<a id="nestedblock--spec--hooks--on_success--type--http"></a>
-### Nested Schema for `spec.hooks.on_success.type.http`
+<a id="nestedblock--spec--hooks--on_success--options--http"></a>
+### Nested Schema for `spec.hooks.on_success.options.http`
 
 ***Optional***
 
@@ -611,7 +611,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
 
 <a id="nestedblock--spec--variables--options--override"></a>
-### Nested Schema for `spec.variables.options.sensitive`
+### Nested Schema for `spec.variables.options.override`
 
 ***Optional***
 
@@ -670,7 +670,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `workflow_handler` (Block List, Max: 1) Specify the workflow handler responsible for execution (see [below for nested schema](#nestedblock--spec--workflowhandler))
 
 <a id="nestedblock--spec--hooks--driver--data--config--container"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type`
+### Nested Schema for `spec.hooks.driver.data.config.container`
 
 ***Optional***
 
@@ -680,16 +680,16 @@ resource "rafay_environment_template" "aws-et-example" {
 - `env_vars` (Map of String) Specify the environment variables to be set in key,value pair
 - `files` (Map of String) Specify the file data
 - `image` (String) Specify the container image for the driver
-- `image_pull_credentials` (Block List, Max: 1) Specify the credentials for the registry to pull image from (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--image_pull_credentials))
-- `kube_config_options` (Block List, Max: 1) Specify the kube config options (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--kube_config_options))
-- `kube_options` (Block List, Max: 1) Specify the kube options (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--kube_options))
+- `image_pull_credentials` (Block List, Max: 1) Specify the credentials for the registry to pull image from (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--image_pull_credentials))
+- `kube_config_options` (Block List, Max: 1) Specify the kube config options (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_config_options))
+- `kube_options` (Block List, Max: 1) Specify the kube options (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options))
 - `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `volume_options` (Block List, Max: 1) Specify the container driver volume options (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--volume_options))
-- `volumes` (Block List) Configure the container volumes (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--volumes))
+- `volume_options` (Block List, Max: 1) Specify the container driver volume options (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--volume_options))
+- `volumes` (Block List) Configure the container volumes (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--volumes))
 - `working_dir_path` (String) Specify the working directory path
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--image_pull_credentials"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path`
+<a id="nestedblock--spec--hooks--driver--data--config--container--image_pull_credentials"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.image_pull_credentials`
 
 ***Optional***
 
@@ -698,8 +698,8 @@ resource "rafay_environment_template" "aws-et-example" {
 - `username` (String) Specify the registry username
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--kube_config_options"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_config_options"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_config_options`
 
 ***Optional***
 
@@ -707,65 +707,55 @@ resource "rafay_environment_template" "aws-et-example" {
 - `out_of_cluster` (Boolean) Specify if out of cluster
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--kube_options"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options`
 
 ***Optional***
 
-- `affinity` (Block List, Max: 1) Specify the affinity (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--affinity))
+- `affinity` (Block List, Max: 1) Specify the affinity (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity))
 - `labels` (Map of String) Specify the labels
 - `namespace` (String) Specify the namespace
 - `node_selector` (Map of String) Specify the node selectors
 - `resources` (List of String) Specify the resources
-- `security_context` (Block List, Max: 1) Specify the security context (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--security_context))
+- `security_context` (Block List, Max: 1) Specify the security context (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--security_context))
 - `service_account_name` (String) Specify the service account name
-- `tolerations` (Block List) Specify the tolerations (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations))
+- `tolerations` (Block List) Specify the tolerations (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--tolerations))
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--affinity"></a>
-### Nested Schema for `spec.hooks.driver.name.config.type.working_dir_path.tolerations`
-
-***Optional***
-
-- `node_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity))
-- `pod_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity))
-- `pod_anti_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity))
-
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.node_affinity`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity"></a>
+### Nested Schema for `spec.hooks.driver.name.config.container.kube_options.affinity`
 
 ***Optional***
 
-- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--preferred_during_scheduling_ignored_during_execution))
-- `required_during_scheduling_ignored_during_execution` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution))
+- `node_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity))
+- `pod_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity))
+- `pod_anti_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity))
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--preferred_during_scheduling_ignored_during_execution"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.node_affinity`
 
 ***Optional***
 
-- `preference` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--preference))
+- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution))
+- `required_during_scheduling_ignored_during_execution` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution))
+
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.node_affinity.preferred_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `preference` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution--preference))
 - `weight` (Number)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--preference"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution.weight`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution--preference"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.node_affinity.preferred_during_scheduling_ignored_during_execution.preference`
 
 ***Optional***
 
-- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--weight--match_expressions))
-- `match_fields` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--weight--match_fields))
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution--preference--match_expressions))
+- `match_fields` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution--preference--match_fields))
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--weight--match_expressions"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution.weight.match_fields`
-
-***Optional***
-
-- `key` (String)
-- `operator` (String)
-- `values` (List of String)
-
-
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--weight--match_fields"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution.weight.match_fields`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution--preference--match_expressions"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.node_affinity.preferred_during_scheduling_ignored_during_execution.preference.match_expressions`
 
 ***Optional***
 
@@ -774,23 +764,8 @@ resource "rafay_environment_template" "aws-et-example" {
 - `values` (List of String)
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution`
-
-***Optional***
-
-- `node_selector_terms` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms))
-
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms`
-
-***Optional***
-
-- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_expressions))
-- `match_fields` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_fields))
-
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_expressions"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_fields`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution--preference--match_fields"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.node_affinity.preferred_during_scheduling_ignored_during_execution.preference.match_fields`
 
 ***Optional***
 
@@ -799,8 +774,33 @@ resource "rafay_environment_template" "aws-et-example" {
 - `values` (List of String)
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_fields"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_fields`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.node_affinity.required_during_scheduling_ignored_during_execution`
+
+***Optional***
+
+- `node_selector_terms` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms))
+
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms`
+
+***Optional***
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_expressions))
+- `match_fields` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_fields))
+
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_expressions"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_expressions`
+
+***Optional***
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_fields"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_fields`
 
 ***Optional***
 
@@ -812,42 +812,42 @@ resource "rafay_environment_template" "aws-et-example" {
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_affinity`
 
 ***Optional***
 
-- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--preferred_during_scheduling_ignored_during_execution))
-- `required_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution))
+- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution))
+- `required_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution))
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--preferred_during_scheduling_ignored_during_execution"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution`
 
 ***Optional***
 
-- `pod_affinity_term` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term))
+- `pod_affinity_term` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term))
 - `weight` (Number)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.weight`
+<a id="nestedblock--spec--hooks--driver--data--config-container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term"></a>
+### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term`
 
 ***Optional***
 
-- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector))
-- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector))
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector))
 - `namespaces` (List of String)
 - `topology_key` (String)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.label_selector`
 
 Optional:
 
-- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector--match_expressions))
 - `match_labels` (Map of String)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector--match_expressions"></a>
+### Nested Schema for `spec.hooks.driver.data.config.config.container.kube_options.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.label_selector.match_expressions`
 
 ***Optional***
 
@@ -857,16 +857,16 @@ Optional:
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.namespace_selector`
 
 ***Optional***
 
 - `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
 - `match_labels` (Map of String)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector--match_expressions"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.namespace_selector.match_expressions`
 
 ***Optional***
 
@@ -878,26 +878,26 @@ Optional:
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution`
 
 ***Optional***
 
-- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector))
-- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector))
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector))
 - `namespaces` (List of String)
 - `topology_key` (String)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.topology_key`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.label_selector`
 
 ***Optional***
 
-- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions))
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector--match_expressions))
 - `match_labels` (Map of String)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.topology_key.match_labels`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector--match_expressions"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.label_selector.match_expressions`
 
 ***Optional***
 
@@ -907,16 +907,16 @@ Optional:
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.topology_key`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.namespace_selector`
 
 ***Optional***
 
-- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions))
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config---container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector--match_expressions))
 - `match_labels` (Map of String)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_affinity.required_during_scheduling_ignored_during_execution.topology_key.match_labels`
+<a id="nestedblock--spec--hooks--driver--data--config---container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector--match_expressions"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.namespace_selector.match_expressions`
 
 ***Optional***
 
@@ -928,42 +928,42 @@ Optional:
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_anti_affinity`
 
 ***Optional***
 
-- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution))
-- `required_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution))
+- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution))
+- `required_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config-container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution))
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_anti_affinity.preferred_during_scheduling_ignored_during_execution`
 
 ***Optional***
 
-- `pod_affinity_term` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term))
+- `pod_affinity_term` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term))
 - `weight` (Number)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_anti_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term`
 
 ***Optional***
 
-- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector))
-- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector))
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector))
 - `namespaces` (List of String)
 - `topology_key` (String)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_anti_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.label_selector`
 
 ***Optional***
 
-- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector--match_expressions))
 - `match_labels` (Map of String)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--topology_key--match_expressions"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_anti_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.label_selector.match_expressions`
 
 ***Optional***
 
@@ -973,16 +973,16 @@ Optional:
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_anti_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.namespace_selector`
 
 ***Optional***
 
-- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector--match_expressions))
 - `match_labels` (Map of String)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector--match_expressions"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_anti_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.namespace_selector.match_expressions`
 
 ***Optional***
 
@@ -994,26 +994,26 @@ Optional:
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution`
 
 ***Optional***
 
-- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector))
-- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector))
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector))
 - `namespaces` (List of String)
 - `topology_key` (String)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.topology_key`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.label_selector`
 
 ***Optional***
 
-- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions))
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector--match_expressions))
 - `match_labels` (Map of String)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.topology_key.match_labels`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector--match_expressions"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.label_selector.match_expressions`
 
 ***Optional***
 
@@ -1023,16 +1023,16 @@ Optional:
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.topology_key`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.namespace_selector`
 
 ***Optional***
 
-- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions))
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector--match_expressions))
 - `match_labels` (Map of String)
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--pod_anti_affinity--required_during_scheduling_ignored_during_execution--topology_key--match_expressions"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.pod_anti_affinity.required_during_scheduling_ignored_during_execution.topology_key.match_labels`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector--match_expressions"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.namespace_selector.match_expressions`
 
 ***Optional***
 
@@ -1045,24 +1045,24 @@ Optional:
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--security_context"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--security_context"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.security_context`
 
 ***Optional***
 
-- `privileged` (Block List, Max: 1) Specify if privileged permissions (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--privileged))
-- `read_only_root_file_system` (Block List, Max: 1) Specify if permission is read only root file system (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--read_only_root_file_system))
+- `privileged` (Block List, Max: 1) Specify if privileged permissions (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--security_context--privileged))
+- `read_only_root_file_system` (Block List, Max: 1) Specify if permission is read only root file system (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--kube_options--security_context--read_only_root_file_system))
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--privileged"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.privileged`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--security_context--privileged"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.security_context.privileged`
 
 ***Optional***
 
 - `value` (Boolean)
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations--read_only_root_file_system"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations.read_only_root_file_system`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_options--security_context--read_only_root_file_system"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_options.security_context.read_only_root_file_system`
 
 ***Optional***
 
@@ -1070,8 +1070,8 @@ Optional:
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--tolerations"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.tolerations`
+<a id="nestedblock--spec--hooks--driver--data--config--container--kube_option--tolerations"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.kube_option.tolerations`
 
 ***Optional***
 
@@ -1083,8 +1083,8 @@ Optional:
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--volume_options"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path`
+<a id="nestedblock--spec--hooks--driver--data--config--container--volume_options"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.volume_options`
 
 ***Optional***
 
@@ -1092,10 +1092,10 @@ Optional:
 - `mount_path` (String) Specify the container mount path
 - `pvc_size_gb` (String) Specify the persistent volume claim size in GB
 - `pvc_storage_class` (String) Specify the persistent volume claim storage class
-- `use_pvc` (Block List, Max: 1) Specify if the container needs to use persistent volume claims (see [below for nested schema](#nestedblock--spec--hooks--driver--name--config--type--working_dir_path--use_pvc))
+- `use_pvc` (Block List, Max: 1) Specify if the container needs to use persistent volume claims (see [below for nested schema](#nestedblock--spec--hooks--driver--name--config--container--volume_options--use_pvc))
 
 <a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--use_pvc"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.use_pvc`
+### Nested Schema for `spec.hooks.driver.data.config.container.volume_options.use_pvc`
 
 ***Optional***
 
@@ -1104,7 +1104,7 @@ Optional:
 
 
 <a id="nestedblock--spec--hooks--driver--data--config--type--volumes"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path`
+### Nested Schema for `spec.hooks.driver.data.config.container.volumes`
 
 ***Optional***
 
@@ -1112,10 +1112,10 @@ Optional:
 - `mount_path` (String) Specify the container mount path
 - `pvc_size_gb` (String) Specify the persistent volume claim size in GB
 - `pvc_storage_class` (String) Specify the persistent volume claim storage class
-- `use_pvc` (Block List, Max: 1) Specify if the container needs to use persistent volume claims (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--type--working_dir_path--use_pvc))
+- `use_pvc` (Block List, Max: 1) Specify if the container needs to use persistent volume claims (see [below for nested schema](#nestedblock--spec--hooks--driver--data--config--container--volumes--use_pvc))
 
-<a id="nestedblock--spec--hooks--driver--data--config--type--working_dir_path--use_pvc"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type.working_dir_path.use_pvc`
+<a id="nestedblock--spec--hooks--driver--data--config--container--volumes--use_pvc"></a>
+### Nested Schema for `spec.hooks.driver.data.config.container.volumes.use_pvc`
 
 ***Optional***
 
@@ -1125,7 +1125,7 @@ Optional:
 
 
 <a id="nestedblock--spec--hooks--driver--data--config--http"></a>
-### Nested Schema for `spec.hooks.driver.data.config.type`
+### Nested Schema for `spec.hooks.driver.data.config.http`
 
 ***Optional***
 
@@ -1146,7 +1146,7 @@ Optional:
 - `until` (String) Specify the until
 
 <a id="nestedblock--spec--hooks--driver--data--inputs"></a>
-### Nested Schema for `spec.hooks.driver.name.inputs`
+### Nested Schema for `spec.hooks.driver.data.inputs`
 
 ***Optional***
 
@@ -1154,16 +1154,16 @@ Optional:
 - `name` (String) Name of the config context
 
 <a id="nestedblock--spec--hooks--driver--data--inputs--data"></a>
-### Nested Schema for `spec.hooks.driver.data.inputs.name`
+### Nested Schema for `spec.hooks.driver.data.inputs.data`
 
 ***Optional***
 
-- `envs` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--envs))
-- `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--files))
-- `variables` (Block List) Variables data for config context (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--variables))
+- `envs` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--data--envs))
+- `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--data--files))
+- `variables` (Block List) Variables data for config context (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--data--variables))
 
-<a id="nestedblock--spec--hooks--driver--data--inputs--name--envs"></a>
-### Nested Schema for `spec.hooks.driver.data.inputs.name.variables`
+<a id="nestedblock--spec--hooks--driver--data--inputs--data--envs"></a>
+### Nested Schema for `spec.hooks.driver.data.inputs.data.envs`
 
 ***Optional***
 
@@ -1172,19 +1172,19 @@ Optional:
 - `sensitive` (Boolean) Deprecated: use options.sensitive. Determines whether the value is sensitive or not, accordingly applies encryption on it
 - `value` (String) Value of the environment variable to be set
 
-<a id="nestedblock--spec--hooks--driver--data--inputs--name--variables--options"></a>
-### Nested Schema for `spec.hooks.driver.data.inputs.name.variables.value`
+<a id="nestedblock--spec--hooks--driver--data--inputs--data--envs--options"></a>
+### Nested Schema for `spec.hooks.driver.data.inputs.data.envs.options`
 
 ***Optional***
 
 - `description` (String)
-- `override` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--variables--value--override))
+- `override` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--data--envs--options--override))
 - `required` (Boolean) Determines whether the variable is required / mandatory
 - `sensitive` (Boolean)
 - `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--variables--options--schema))
 
-<a id="nestedblock--spec--hooks--driver--data--inputs--name--variables--value--override"></a>
-### Nested Schema for `spec.hooks.driver.data.inputs.name.variables.value.override`
+<a id="nestedblock--spec--hooks--driver--data--inputs--data--envs--options--override"></a>
+### Nested Schema for `spec.hooks.driver.data.inputs.data.envs.options.override`
 
 ***Optional***
 
@@ -1194,30 +1194,30 @@ Optional:
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--inputs--name--files"></a>
-### Nested Schema for `spec.hooks.driver.data.inputs.name.variables`
+<a id="nestedblock--spec--hooks--driver--data--inputs--data--files"></a>
+### Nested Schema for `spec.hooks.driver.data.inputs.data.files`
 
 ***Optional***
 
 - `data` (String) data is the base64 encoded contents of the file
 - `mount_path` (String) specify mount path of the file
 - `name` (String) Name or relative path of a artifact
-- `options` (Block List, Max: 1) specify options for the file (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--variables--options))
+- `options` (Block List, Max: 1) specify options for the file (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--data--files--options))
 - `sensitive` (Boolean) Deprected: use options.sensitive. data is encrypted  if sensitive is set to true
 
-<a id="nestedblock--spec--hooks--driver--data--inputs--name--variables--options"></a>
-### Nested Schema for `spec.hooks.driver.name.inputs.name.variables.sensitive`
+<a id="nestedblock--spec--hooks--driver--data--inputs--data--files--options"></a>
+### Nested Schema for `spec.hooks.driver.name.inputs.data.files.options`
 
 ***Optional***
 
 - `description` (String) Description of the file
-- `override` (Block List, Max: 1) Override options for file (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--variables--sensitive--override))
+- `override` (Block List, Max: 1) Override options for file (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--data--files--options--override))
 - `required` (Boolean) Determines whether the file is required / mandatory
 - `sensitive` (Boolean) data is encrypted  if sensitive is set to true
 - `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--variables--options--schema))
 
-<a id="nestedblock--spec--hooks--driver--data--inputs--name--variables--sensitive--override"></a>
-### Nested Schema for `spec.hooks.driver.data.inputs.name.variables.sensitive.override`
+<a id="nestedblock--spec--hooks--driver--data--inputs--data--files--options--override"></a>
+### Nested Schema for `spec.hooks.driver.data.inputs.data.files.options.override`
 
 ***Optional***
 
@@ -1226,61 +1226,62 @@ Optional:
 
 
 
-<a id="nestedblock--spec--hooks--driver--data--inputs--name--variables"></a>
-### Nested Schema for `spec.hooks.driver.data.inputs.name.variables`
+<a id="nestedblock--spec--hooks--driver--data--inputs--data--variables"></a>
+### Nested Schema for `spec.hooks.driver.data.inputs.data.variables`
 
 ***Optional***
 
 - `name` (String) Name of the variable
-- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--variables--options))
+- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--data--variables--options))
 - `value` (String) Value of the variable in the specified format
 - `value_type` (String) Specify the variable value type
 
-<a id="nestedblock--spec--hooks--driver--data--inputs--name--variables--options"></a>
-### Nested Schema for `spec.hooks.driver.data.inputs.name.variables.value_type`
+<a id="nestedblock--spec--hooks--driver--data--inputs--data--variables--options"></a>
+### Nested Schema for `spec.hooks.driver.data.inputs.data.variables.options`
 
 ***Optional***
 
 - `description` (String) Description of the variable
-- `override` (Block List, Max: 1) Determines whether the variable can be overridden (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--variables--value_type--override))
+- `override` (Block List, Max: 1) Determines whether the variable can be overridden (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--data--variables--options--override))
 - `required` (Boolean) Specify whether this variable is required or optional, by default it is optional
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
 - `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--variables--options--schema))
 
-<a id="nestedblock--spec--hooks--driver--data--inputs--name--variables--value_type--override"></a>
-### Nested Schema for `spec.hooks.driver.data.inputs.name.variables.value_type.override`
+<a id="nestedblock--spec--hooks--driver--data--inputs--data--variables--options--override"></a>
+### Nested Schema for `spec.hooks.driver.data.inputs.data.variables.options.override`
 
 ***Optional***
 
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
 - `type` (String) Specify the type of ovverride this variable supports
 
-<a id="nestedblock--spec--provider_options--custom"></a>
-### Nested Schema for `spec.provider_options.custom`
+<a id="nestedblock--spec--workflows"></a>
+### Nested Schema for `spec.workflows`
 
 ***Required***
 
-- `tasks` (Block List) Configure the custom tasks (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks))
+- `tasks` (Block List) Configure the custom tasks (see [below for nested schema](#nestedblock--spec--workflows--tasks))
 
-<a id="nestedblock--spec--provider_options--custom--tasks"></a>
-### Nested Schema for `spec.provider_options.custom.tasks`
+<a id="nestedblock--spec--workflows--tasks"></a>
+### Nested Schema for `spec.workflows.tasks`
 
 **Required**
 
 - `name` (String) name of the task
-- `type` (String) Specify the type of task, Available options are `driver`.
+- `type` (String) Specify the type of task, Available options are `driver`, `workflowHandler`. `driver` is deprecated, use `workflowHandler` instead.
 
 ***Optional***
 
-- `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks--agents))
+- `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--workflows--tasks--agents))
 - `depends_on` (List of String) specify task dependencies
 - `description` (String) description of task
 - `driver` (Block List, Max: 1) Specify the driver responsible for execution (see [below for nested schema](#nestedblock--spec--hooks--driver))
 - `on_failure` (String) Specify the on failure action
 - `timeout_seconds` (Number) Specify the timeout in seconds
+- `workflow_handler` (Block List, Max: 1) Specify the workflow handler responsible for execution (see [below for nested schema](#nestedblock--spec--workflowhandler))
 
-<a id="nestedblock--spec--provider_options--custom--tasks--agents"></a>
-### Nested Schema for `spec.provider_options.custom.tasks.agents`
+<a id="nestedblock--spec--workflows--tasks--agents"></a>
+### Nested Schema for `spec.workflows.tasks.agents`
 
 ***Required***
 
@@ -1306,7 +1307,7 @@ Optional:
 
 - `description` (String) Description of the schedule
 - `context` (Block List, Max: 1) Input data configuration that are needed as part of this schedule run (see [below for nested schema](#nestedblock--spec--contexts))
-- `workflows` (Block List, Max: 1) Name of the custom workflow provider that needs to be executed with this job (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks))
+- `workflows` (Block List, Max: 1) Name of the custom workflow provider that needs to be executed with this job (see [below for nested schema](#nestedblock--spec--workflows))
 - `opt_out_options` (Block List, Max: 1) Opt Out Options configured with this schedule (see [below for nested schema](#nestedblock--spec--schedules--optout))
 
 <a id="nestedblock--spec--schedules--cadence"></a>
@@ -1329,7 +1330,7 @@ Optional:
 
 - `max_allowed_duration` (String) Specify the maximum allowed opt out duration, time units are 'm', 'h', 'd' e.g. 8h, 2d
 - `max_allowed_times` (Number) Specify the maximum number of times users can opt out without approval e.g. users can max opt out of this schedule thrice
-- `approval` (Block List, Max: 1) Details of approval workflow that needs to be execution in case of user opt-out (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks))
+- `approval` (Block List, Max: 1) Details of approval workflow that needs to be execution in case of user opt-out (see [below for nested schema](#nestedblock--spec--workflows--tasks))
 
 <a id="nestedblock--spec--actions"></a>
 ### Nested Schema for `spec.actions`
@@ -1343,7 +1344,7 @@ Optional:
 
 - `description` (String) Description of the schedule
 - `context` (Block List, Max: 1) Input data configuration that are needed as part of this schedule run (see [below for nested schema](#nestedblock--spec--configcontext--compound--ref))
-- `workflows` (Block List, Max: 1) Name of the custom workflow provider that needs to be executed with this job (see [below for nested schema](#nestedblock--spec--provider_options--custom))
+- `workflows` (Block List, Max: 1) Name of the custom workflow provider that needs to be executed with this job (see [below for nested schema](#nestedblock--spec--workflows))
 - `reconcile_resources` (Block List) Specify resources to process while environment publish (see [below for nested schema](#nestedblock--spec--reconcileresources))
 
 <a id="nestedblock--spec--configcontext--compound--ref"></a>
@@ -1359,9 +1360,9 @@ Optional:
 
 ***Optional***
 
-- `envs` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--envs))
-- `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--files))
-- `variables` (Block List) Variables data for config context (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--name--variables))
+- `envs` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--data--envs))
+- `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--data--files))
+- `variables` (Block List) Variables data for config context (see [below for nested schema](#nestedblock--spec--hooks--driver--data--inputs--data--variables))
 
 <a id="nestedblock--spec--variables--options--schema"></a>
 ### Nested Schema for `spec.variables.options.schema`
@@ -1566,33 +1567,33 @@ Optional:
 - `required_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution))
 
 <a id="nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution"></a>
-### Nested Schema for `spec.workflowhandler.data.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution`
+### Nested Schema for `spec.workflowhandler.data.config.container.kube_options.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution`
 
 ***Optional***
 
-- `pod_affinity_term` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term))
+- `pod_affinity_term` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term))
 - `weight` (Number)
 
-<a id="nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--pod_affinity_term"></a>
-### Nested Schema for `spec.workflowhandler.data.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.weight`
+<a id="nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term"></a>
+### Nested Schema for `spec.workflowhandler.data.config.container.kube_options.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term`
 
 ***Optional***
 
-- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector))
-- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector))
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector))
 - `namespaces` (List of String)
 - `topology_key` (String)
 
-<a id="nestedblock--spec--wokflowhandler--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--label_selector"></a>
-### Nested Schema for `spec.workflowhandler.data.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+<a id="nestedblock--spec--wokflowhandler--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector"></a>
+### Nested Schema for `spec.workflowhandler.data.config.container.kube_options.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.label_selector`
 
 Optional:
 
-- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector--match_expressions))
 - `match_labels` (Map of String)
 
-<a id="nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
-### Nested Schema for `spec.workflowhandler.data.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+<a id="nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector--match_expressions"></a>
+### Nested Schema for `spec.workflowhandler.data.config.container.kube_options.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.label_selector.match_expressions`
 
 ***Optional***
 
@@ -1602,16 +1603,16 @@ Optional:
 
 
 
-<a id="nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--namespace_selector"></a>
-### Nested Schema for `spec.worklfowhandler.data.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key`
+<a id="nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector"></a>
+### Nested Schema for `spec.worklfowhandler.data.config.container.kube_options.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.namespace_selector`
 
 ***Optional***
 
-- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions))
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector--match_expressions))
 - `match_labels` (Map of String)
 
-<a id="nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--weight--topology_key--match_expressions"></a>
-### Nested Schema for `spec.workflowhandler.data.config.container.kube_options.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.weight.topology_key.match_labels`
+<a id="nestedblock--spec--workflowhandler--data--config--container--kube_options--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector--match_expressions"></a>
+### Nested Schema for `spec.workflowhandler.data.config.container.kube_options.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.namespace_selector.match_expressions`
 
 ***Optional***
 
@@ -1889,37 +1890,37 @@ Optional:
 - `name` (String) Name of the config context
 
 <a id="nestedblock--spec--workflowhandler--data--inputs--data"></a>
-### Nested Schema for `spec.workflowhandler.data.inputs.name`
+### Nested Schema for `spec.workflowhandler.data.inputs.data`
 
 ***Optional***
 
-- `envs` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--name--envs))
-- `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--name--files))
-- `variables` (Block List) Variables data for config context (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--name--variables))
+- `envs` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--data--envs))
+- `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--data--files))
+- `variables` (Block List) Variables data for config context (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--data--variables))
 
-<a id="nestedblock--spec--workflowhandler--data--inputs--name--envs"></a>
-### Nested Schema for `spec.workflowhandler.data.inputs.name.variables`
+<a id="nestedblock--spec--workflowhandler--data--inputs--data--envs"></a>
+### Nested Schema for `spec.workflowhandler.data.inputs.data.envs`
 
 ***Optional***
 
 - `key` (String) Key of the environment variable to be set
-- `options` (Block List, Max: 1) Provide the environment variable options (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--name--variables--options))
+- `options` (Block List, Max: 1) Provide the environment variable options (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--data--envs--options))
 - `sensitive` (Boolean) Deprecated: use options.sensitive. Determines whether the value is sensitive or not, accordingly applies encryption on it
 - `value` (String) Value of the environment variable to be set
 
-<a id="nestedblock--spec--workflowhandler--data--inputs--name--variables--options"></a>
-### Nested Schema for `spec.workflowhandler.data.inputs.name.variables.value`
+<a id="nestedblock--spec--workflowhandler--data--inputs--data--envs--options"></a>
+### Nested Schema for `spec.workflowhandler.data.inputs.data.envs.options`
 
 ***Optional***
 
 - `description` (String)
-- `override` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--name--variables--value--override))
+- `override` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--data--envs--options--override))
 - `required` (Boolean) Determines whether the variable is required / mandatory
 - `sensitive` (Boolean)
 - `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--variables--options--schema))
 
-<a id="nestedblock--spec--workflowhandler--data--inputs--name--variables--value--override"></a>
-### Nested Schema for `spec.workflowhandler.data.inputs.name.variables.value.override`
+<a id="nestedblock--spec--workflowhandler--data--inputs--data--envs--options--override"></a>
+### Nested Schema for `spec.workflowhandler.data.inputs.data.envs.options.override`
 
 ***Optional***
 
@@ -1929,30 +1930,30 @@ Optional:
 
 
 
-<a id="nestedblock--spec--workflowhandler--data--inputs--name--files"></a>
-### Nested Schema for `spec.workflowhandler.data.inputs.name.files`
+<a id="nestedblock--spec--workflowhandler--data--inputs--data--files"></a>
+### Nested Schema for `spec.workflowhandler.data.inputs.data.files`
 
 ***Optional***
 
 - `data` (String) data is the base64 encoded contents of the file
 - `mount_path` (String) specify mount path of the file
 - `name` (String) Name or relative path of a artifact
-- `options` (Block List, Max: 1) specify options for the file (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--name--files--options))
+- `options` (Block List, Max: 1) specify options for the file (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--data--files--options))
 - `sensitive` (Boolean) Deprected: use options.sensitive. data is encrypted  if sensitive is set to true
 
-<a id="nestedblock--spec--workflowhandler--data--inputs--name--files--options"></a>
-### Nested Schema for `spec.workflowhandler.name.inputs.name.variables.sensitive`
+<a id="nestedblock--spec--workflowhandler--data--inputs--data--files--options"></a>
+### Nested Schema for `spec.workflowhandler.name.inputs.data.files.options`
 
 ***Optional***
 
 - `description` (String) Description of the file
-- `override` (Block List, Max: 1) Override options for file (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--name--variables--sensitive--override))
+- `override` (Block List, Max: 1) Override options for file (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--data--files--options--override))
 - `required` (Boolean) Determines whether the file is required / mandatory
 - `sensitive` (Boolean) data is encrypted  if sensitive is set to true
 - `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--variables--options--schema))
 
-<a id="nestedblock--spec--workflowhandler--data--inputs--name--variables--sensitive--override"></a>
-### Nested Schema for `spec.workflowhandler.data.inputs.name.variables.sensitive.override`
+<a id="nestedblock--spec--workflowhandler--data--inputs--data--files--options--override"></a>
+### Nested Schema for `spec.workflowhandler.data.inputs.data.files.options.override`
 
 ***Optional***
 
@@ -1961,29 +1962,29 @@ Optional:
 
 
 
-<a id="nestedblock--spec--workflowhandler--data--inputs--name--variables"></a>
-### Nested Schema for `spec.workflowhandler.data.inputs.name.variables`
+<a id="nestedblock--spec--workflowhandler--data--inputs--data--variables"></a>
+### Nested Schema for `spec.workflowhandler.data.inputs.data.variables`
 
 ***Optional***
 
 - `name` (String) Name of the variable
-- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--name--variables--options))
+- `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--data--variables--options))
 - `value` (String) Value of the variable in the specified format
 - `value_type` (String) Specify the variable value type
 
-<a id="nestedblock--spec--workflowhandler--data--inputs--name--variables--options"></a>
-### Nested Schema for `spec.workflowhandler.data.inputs.name.variables.options`
+<a id="nestedblock--spec--workflowhandler--data--inputs--data--variables--options"></a>
+### Nested Schema for `spec.workflowhandler.data.inputs.data.variables.options`
 
 ***Optional***
 
 - `description` (String) Description of the variable
-- `override` (Block List, Max: 1) Determines whether the variable can be overridden (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--name--variables--value_type--override))
+- `override` (Block List, Max: 1) Determines whether the variable can be overridden (see [below for nested schema](#nestedblock--spec--workflowhandler--data--inputs--data--variables--options--override))
 - `required` (Boolean) Specify whether this variable is required or optional, by default it is optional
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
 - `schema` (Block List, Max: 1) Defines the jsonschema and uischema conforming to react-jsonschema-form library norms (see [below for nested schema](#nestedblock--spec--variables--options--schema))
 
-<a id="nestedblock--spec--workflowhandler--data--inputs--name--variables--value_type--override"></a>
-### Nested Schema for `spec.workflowhandler.data.inputs.name.variables.value_type.override`
+<a id="nestedblock--spec--workflowhandler--data--inputs--data--variables--options--override"></a>
+### Nested Schema for `spec.workflowhandler.data.inputs.data.variables.options.override`
 
 ***Optional***
 

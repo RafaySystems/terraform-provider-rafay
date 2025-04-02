@@ -134,7 +134,7 @@ resource "rafay_environment" "eks-rds-env-example" {
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
 
 <a id="nestedblock--spec--variables--options--override"></a>
-### Nested Schema for `spec.variables.options.sensitive`
+### Nested Schema for `spec.variables.options.override`
 
 ***Optional***
 

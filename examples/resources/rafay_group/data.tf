@@ -1,5 +1,5 @@
 data "rafay_group" "group" {
-    name    = "group_name"
+  name = "group_name"
 }
 
 output "group" {

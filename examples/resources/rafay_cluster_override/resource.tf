@@ -8,11 +8,11 @@ resource "rafay_cluster_override" "tfdemocluster-override1" {
     }
   }
   spec {
-    cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
+    cluster_selector = "rafay.dev/clusterName in (cluster-1)"
     cluster_placement {
       placement_type = "ClusterSpecific"
       cluster_labels {
-        key = "rafay.dev/clusterName"
+        key   = "rafay.dev/clusterName"
         value = "cluster-1"
       }
     }
@@ -42,11 +42,11 @@ resource "rafay_cluster_override" "tfdemocluster-override2" {
     }
   }
   spec {
-    cluster_selector  = "key in (value)"
+    cluster_selector = "key in (value)"
     cluster_placement {
       placement_type = "ClusterLabels"
       cluster_labels {
-        key = "key"
+        key   = "key"
         value = "value"
       }
     }
@@ -78,12 +78,12 @@ resource "rafay_cluster_override" "tfdemocluster-yamloverride1" {
     }
   }
   spec {
-    artifact_type = "NativeYAML"
-    cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
+    artifact_type    = "NativeYAML"
+    cluster_selector = "rafay.dev/clusterName in (cluster-1)"
     cluster_placement {
       placement_type = "ClusterSpecific"
       cluster_labels {
-        key = "rafay.dev/clusterName"
+        key   = "rafay.dev/clusterName"
         value = "cluster-1"
       }
     }
@@ -112,18 +112,18 @@ resource "rafay_cluster_override" "tfdemocluster-override-share1" {
     }
   }
   spec {
-    cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
+    cluster_selector = "rafay.dev/clusterName in (cluster-1)"
     cluster_placement {
       placement_type = "ClusterSpecific"
       cluster_labels {
-        key = "rafay.dev/clusterName"
+        key   = "rafay.dev/clusterName"
         value = "cluster-1"
       }
     }
     resource_selector = "rafay.dev/name=override-addon"
     type              = "ClusterOverrideTypeAddon"
     sharing {
-      enabled = true  // set false to unshare from all projects
+      enabled = true // set false to unshare from all projects
       projects {
         name = "project1"
       }
@@ -131,7 +131,7 @@ resource "rafay_cluster_override" "tfdemocluster-override-share1" {
         name = "project2"
       }
     }
-    override_values   = <<-EOS
+    override_values = <<-EOS
     replicaCount: 1
     image:
       repository: nginx
@@ -154,12 +154,12 @@ resource "rafay_cluster_override" "tfdemocluster-clusterquotaoverride1" {
     }
   }
   spec {
-    artifact_type = "NativeYAML" // NativeYAML or GitRepoWithNativeYAML
-    cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
+    artifact_type    = "NativeYAML" // NativeYAML or GitRepoWithNativeYAML
+    cluster_selector = "rafay.dev/clusterName in (cluster-1)"
     cluster_placement {
       placement_type = "ClusterSpecific"
       cluster_labels {
-        key = "rafay.dev/clusterName"
+        key   = "rafay.dev/clusterName"
         value = "cluster-1"
       }
     }
@@ -188,11 +188,11 @@ resource "rafay_cluster_override" "tfdemocluster-addon-setting-override" {
     }
   }
   spec {
-    cluster_selector  = "rafay.dev/clusterName in (dev)"
+    cluster_selector = "rafay.dev/clusterName in (dev)"
     cluster_placement {
       placement_type = "ClusterSpecific"
       cluster_labels {
-        key = "rafay.dev/clusterName"
+        key   = "rafay.dev/clusterName"
         value = "dev"
       }
     }
@@ -214,11 +214,11 @@ resource "rafay_cluster_override" "tfdemocluster-workload-setting-override" {
     }
   }
   spec {
-    cluster_selector  = "rafay.dev/clusterName in (dev)"
+    cluster_selector = "rafay.dev/clusterName in (dev)"
     cluster_placement {
       placement_type = "ClusterSpecific"
       cluster_labels {
-        key = "rafay.dev/clusterName"
+        key   = "rafay.dev/clusterName"
         value = "dev"
       }
     }

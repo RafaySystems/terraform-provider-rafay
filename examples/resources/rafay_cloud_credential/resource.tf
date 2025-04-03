@@ -43,11 +43,11 @@ resource "rafay_cloud_credential" "tfcredential4" {
 }
 
 resource "rafay_cloud_credential" "tfcredential5" {
-  name           = "tfcredential5"
-  project        = "terraform"
-  type           = "data-backup"
-  providertype   = "AWS"
-  awscredtype    = "accesskey"
-  accesskey      = "aws-accesskey"
-  secretkey      = "aws-secretkey"
+  name         = "tfcredential5"
+  project      = "terraform"
+  type         = "data-backup"
+  providertype = "AWS"
+  awscredtype  = "accesskey"
+  accesskey    = "aws-accesskey"
+  secretkey    = "aws-secretkey"
 }

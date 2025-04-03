@@ -6,10 +6,10 @@ resource "rafay_network_policy_profile" "tfdemonetworkpolicyprofile1" {
   spec {
     version = "example-version"
     sharing {
-        enabled = false
+      enabled = false
     }
     installation_params {
-        policy_enforcement_mode = "default"
+      policy_enforcement_mode = "default"
     }
   }
 }

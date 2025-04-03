@@ -10,21 +10,21 @@ resource "rafay_config_context" "aws-rds-config" {
   }
   spec {
     envs {
-      key       = "name-modified"
-      value     = "modified-value"
+      key   = "name-modified"
+      value = "modified-value"
       options {
         sensitive = true
       }
     }
     envs {
-      key       = "name-new"
-      value     = "new-value"
+      key   = "name-new"
+      value = "new-value"
       options {
         required = true
       }
     }
     files {
-      name      = "file://variables.tf"
+      name       = "file://variables.tf"
       mount_path = "/local/tmp"
       options {
         description = "file with default input variables"
@@ -48,20 +48,20 @@ resource "rafay_config_context" "aws-rds-config" {
         schema {
           jsonschema = jsonencode(
             {
-              "type": "object",
-              "properties": {
-                "new-variable": {
-                  "title": "New Variable",
-                  "type": "string"
+              "type" : "object",
+              "properties" : {
+                "new-variable" : {
+                  "title" : "New Variable",
+                  "type" : "string"
                 }
               },
-              "dependencies": {},
-              "required": []
+              "dependencies" : {},
+              "required" : []
             }
           )
           uischema = jsonencode(
             {
-              "ui:order": [
+              "ui:order" : [
                 "new-variable"
               ]
             }

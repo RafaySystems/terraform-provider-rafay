@@ -9,8 +9,8 @@ resource "rafay_chargeback_group" "tfdemosummarycbgroup1" {
       project = "project-1"
     }
     aggregate {
-      project = false
-      cluster = false
+      project   = false
+      cluster   = false
       namespace = false
       label = [
         "test-1"
@@ -29,7 +29,7 @@ resource "rafay_chargeback_group" "tfdemodetailedcbgroup1" {
     inclusions {
       project = "project-1"
       label = [
-         "test-1", "test-2"
+        "test-1", "test-2"
       ]
     }
     exclusions {

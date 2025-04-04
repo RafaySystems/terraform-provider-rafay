@@ -615,10 +615,11 @@ resource "rafay_environment_template" "aws-et-example" {
 
 ***Optional***
 
+- `display_overridden` (Boolean) Display overridden values on UI
+- `restricted_key_values` (Map of String) If the override type is restricted_key_values, values it is restricted to
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
-- `type` (String) Specify the type of override this variable supports, Available types are `allowed`, `notallowed`, `restricted`
 - `selectors` (List of String) Used to alias a variable and restrict the override scope
-
+- `type` (String) Specify the type of ovverride this variable supports
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
@@ -1188,11 +1189,11 @@ Optional:
 
 ***Optional***
 
+- `display_overridden` (Boolean) Display overridden values on UI
+- `restricted_key_values` (Map of String) If the override type is restricted_key_values, values it is restricted to
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
+- `selectors` (List of String) Used to alias a variable and restrict the override scope
 - `type` (String) Specify the type of ovverride this variable supports
-
-
-
 
 <a id="nestedblock--spec--hooks--driver--data--inputs--data--files"></a>
 ### Nested Schema for `spec.hooks.driver.data.inputs.data.files`
@@ -1252,7 +1253,10 @@ Optional:
 
 ***Optional***
 
+- `display_overridden` (Boolean) Display overridden values on UI
+- `restricted_key_values` (Map of String) If the override type is restricted_key_values, values it is restricted to
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
+- `selectors` (List of String) Used to alias a variable and restrict the override scope
 - `type` (String) Specify the type of ovverride this variable supports
 
 <a id="nestedblock--spec--workflows"></a>
@@ -1924,11 +1928,11 @@ Optional:
 
 ***Optional***
 
+- `display_overridden` (Boolean) Display overridden values on UI
+- `restricted_key_values` (Map of String) If the override type is restricted_key_values, values it is restricted to
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
+- `selectors` (List of String) Used to alias a variable and restrict the override scope
 - `type` (String) Specify the type of ovverride this variable supports
-
-
-
 
 <a id="nestedblock--spec--workflowhandler--data--inputs--data--files"></a>
 ### Nested Schema for `spec.workflowhandler.data.inputs.data.files`
@@ -1988,5 +1992,8 @@ Optional:
 
 ***Optional***
 
+- `display_overridden` (Boolean) Display overridden values on UI
+- `restricted_key_values` (Map of String) If the override type is restricted_key_values, values it is restricted to
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
+- `selectors` (List of String) Used to alias a variable and restrict the override scope
 - `type` (String) Specify the type of ovverride this variable supports

@@ -6,7 +6,9 @@ NAME=rafay
 BINARY=terraform-provider-${NAME}
 VERSION=1.1.28
 GIT_BRANCH ?= main
-OS_ARCH := $(shell uname | (grep -q 'Linux' && echo "linux_amd64" || (uname -m | grep -q 'arm64' && echo "darwin_arm64" || echo "darwin_amd64")))
+OS := $(shell uname | grep -q 'Linux' && echo "linux" || echo "darwin")
+ARCH := $(shell uname -m | grep -q 'x86_64' && echo "amd64" || echo "arm64")
+OS_ARCH := ${OS}_${ARCH}
 BUCKET_NAME ?= terraform-provider-rafay
 BUILD_NUMBER ?= $(shell date "+%Y%m%d-%H%M")
 TAG := $(or $(shell git describe --tags --exact-match  2>/dev/null), $(shell echo "origin/${GIT_BRANCH}"))
@@ -51,18 +53,18 @@ uninstall:
 	rm -rf ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 	rm -rf ~/.terraform.d/plugins/${TOFU_HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 
-test: 
+test:
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
-	go test -i $(TEST) || exit 1                                                   
-	echo $(TEST) | xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4                    
+	go test -i $(TEST) || exit 1
+	echo $(TEST) | xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
-testacc: 
+testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
 
 fwgen:
 	bash internal/scripts/fwgen.sh
-	
+
 push:
 	aws s3 cp ./bin/${BINARY}_${VERSION}_darwin_amd64  s3://$(BUCKET_NAME)/$(TAG)/$(BUILD_NUMBER)/${BINARY}_${VERSION}_darwin_amd64 --no-progress
 	aws s3 cp ./bin/${BINARY}_${VERSION}_freebsd_386  s3://$(BUCKET_NAME)/$(TAG)/$(BUILD_NUMBER)/${BINARY}_${VERSION}_freebsd_386 --no-progress
@@ -88,10 +90,18 @@ tidy:
 vendor:
 	go mod vendor
 
-.PHONY: update-deps 
+.PHONY: update-deps
 update-deps:
-	GOPRIVATE=github.com/RafaySystems/* go get -d github.com/RafaySystems/rafay-common@master
+	GOPRIVATE=github.com/RafaySystems/* go get github.com/RafaySystems/rafay-common@master
 
 .PHONY: test-migrate
 test-migrate:
 	go test -v ./rafay/migrate/...
+
+.PHONY: generate
+generate:
+	cd tools; go generate ./...
+
+.PHONY: clean
+clean:
+	rm -r ./bin

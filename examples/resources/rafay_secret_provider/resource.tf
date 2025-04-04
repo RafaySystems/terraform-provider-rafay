@@ -10,7 +10,7 @@ resource "rafay_secret_provider" "tfdemosecretprovider" {
           name = "projects/terraform/secretproviderclasses/artifacts/aws-sample.yaml"
         }
         repository = "github-test"
-        revision = "main"
+        revision   = "main"
       }
       options {}
       type = "Yaml"

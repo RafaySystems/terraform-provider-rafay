@@ -1,6 +1,6 @@
 data "rafay_groupassociation" "association" {
-    group    = "group-name"
-    project = "demo"
+  group   = "group-name"
+  project = "demo"
 }
 
 output "groupassociation" {

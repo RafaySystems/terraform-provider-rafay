@@ -12,6 +12,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb/datatypes"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -240,6 +241,14 @@ func expandWorkflowHandlerSpec(p []any) (*eaaspb.WorkflowHandlerSpec, error) {
 		spec.Inputs = expandConfigContextCompoundRefs(v)
 	}
 
+	if v, ok := in["icon_url"].(string); ok {
+		spec.IconURL = v
+	}
+
+	if v, ok := in["readme"].(string); ok {
+		spec.Readme = v
+	}
+
 	var err error
 	if v, ok := in["outputs"].(string); ok && len(v) > 0 {
 		spec.Outputs, err = expandWorkflowHandlerOutputs(v)
@@ -281,6 +290,10 @@ func expandWorkflowHandlerConfig(p []any) *eaaspb.WorkflowHandlerConfig {
 
 	if v, ok := in["http"].([]any); ok && len(v) > 0 {
 		workflowHandlerConfig.Http = expandWorkflowHandlerHttpConfig(v)
+	}
+
+	if v, ok := in["function"].([]any); ok && len(v) > 0 {
+		workflowHandlerConfig.Function = expandWorkflowHandlerFunctionConfig(v)
 	}
 
 	if v, ok := in["polling_config"].([]any); ok && len(v) > 0 {
@@ -737,6 +750,97 @@ func expandWorkflowHandlerHttpConfig(p []any) *eaaspb.HTTPDriverConfig {
 	return &hc
 }
 
+func expandWorkflowHandlerFunctionConfig(p []any) *eaaspb.FunctionDriverConfig {
+	fdc := eaaspb.FunctionDriverConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return &fdc
+	}
+	in := p[0].(map[string]any)
+
+	if name, ok := in["name"].(string); ok && len(name) > 0 {
+		fdc.Name = name
+	}
+
+	if language, ok := in["language"].(string); ok && len(language) > 0 {
+		fdc.Language = language
+	}
+
+	if source, ok := in["source"].(string); ok && len(source) > 0 {
+		fdc.Source = source
+	}
+
+	if fd, ok := in["function_dependencies"].([]any); ok && len(fd) > 0 {
+		fdc.FunctionDependencies = toArrayString(fd)
+	}
+
+	if systemPackages, ok := in["system_packages"].([]any); ok && len(systemPackages) > 0 {
+		fdc.SystemPackages = toArrayString(systemPackages)
+	}
+
+	if targetPlatforms, ok := in["target_platforms"].([]any); ok && len(targetPlatforms) > 0 {
+		fdc.TargetPlatforms = toArrayString(targetPlatforms)
+	}
+
+	if languageVersion, ok := in["language_version"].(string); ok && len(languageVersion) > 0 {
+		fdc.LanguageVersion = languageVersion
+	}
+
+	// FIXME: Below field not present in the latest swagger, but present in the
+	// FunctionDriverConfig model.
+	// Remove based on confirmation from Avinash
+	if buildArgs, ok := in["build_args"].([]any); ok && len(buildArgs) > 0 {
+		fdc.BuildArgs = toArrayString(buildArgs)
+	}
+
+	// FIXME: Below field not present in the latest swagger, but present in the
+	// FunctionDriverConfig model.
+	// Remove based on confirmation from Avinash
+	if buildSecrets, ok := in["build_secrets"].([]any); ok && len(buildSecrets) > 0 {
+		fdc.BuildSecrets = toArrayString(buildSecrets)
+	}
+
+	if cpuLimitMilli, ok := in["cpu_limit_milli"].(string); ok && len(cpuLimitMilli) > 0 {
+		fdc.CpuLimitMilli = cpuLimitMilli
+	}
+
+	if memoryLimitMb, ok := in["memory_limit_mb"].(string); ok && len(memoryLimitMb) > 0 {
+		fdc.MemoryLimitMb = memoryLimitMb
+	}
+
+	if skipBuild, ok := in["skip_build"].(bool); ok {
+		fdc.SkipBuild = datatypes.NewBool(skipBuild)
+	}
+
+	if image, ok := in["image"].(string); ok && len(image) > 0 {
+		fdc.Image = image
+	}
+
+	// FIXME: Below field not present in the latest swagger, but present in the
+	// FunctionDriverConfig model.
+	// Remove based on confirmation from Avinash
+	if functionProcess, ok := in["function_process"].(string); ok && len(functionProcess) > 0 {
+		fdc.FunctionProcess = functionProcess
+	}
+
+	if maxConcurrency, ok := in["max_concurrency"].(int); ok {
+		fdc.MaxConcurrency = int64(maxConcurrency)
+	}
+
+	if numReplicas, ok := in["num_replicas"].(int); ok {
+		fdc.NumReplicas = uint32(numReplicas)
+	}
+
+	if kubeOptions, ok := in["kube_options"].([]any); ok && len(kubeOptions) > 0 {
+		fdc.KubeOptions = expandContainerKubeOptions(kubeOptions)
+	}
+
+	if imagePullCredentials, ok := in["image_pull_credentials"].([]any); ok && len(imagePullCredentials) > 0 {
+		fdc.ImagePullCredentials = expandImagePullCredentials(imagePullCredentials)
+	}
+
+	return &fdc
+}
+
 func expandWorkflowHandlerOutputs(p string) (*structpb.Struct, error) {
 	if len(p) == 0 {
 		return nil, nil
@@ -1152,6 +1256,8 @@ func flattenWorkflowHandlerSpec(in *eaaspb.WorkflowHandlerSpec, p []any) ([]any,
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 	obj["inputs"] = flattenConfigContextCompoundRefs(in.Inputs)
 	obj["outputs"] = flattenWorkflowHandlerOutputs(in.Outputs)
+	obj["icon_url"] = in.IconURL
+	obj["readme"] = in.Readme
 	return []any{obj}, nil
 }
 
@@ -1175,6 +1281,9 @@ func flattenWorkflowHandlerConfig(input *eaaspb.WorkflowHandlerConfig, p []any) 
 
 	v, _ = obj["http"].([]any)
 	obj["http"] = flattenWorkflowHandlerHttpConfig(input.Http, v)
+
+	v, _ = obj["function"].([]any)
+	obj["function"] = flattenWorkflowHandlerFunctionConfig(input.Function, v)
 
 	obj["polling_config"] = flattenPollingConfig(input.PollingConfig)
 
@@ -1348,6 +1457,42 @@ func flattenWorkflowHandlerHttpConfig(in *eaaspb.HTTPDriverConfig, p []any) []an
 	obj["endpoint"] = in.Endpoint
 	obj["headers"] = toMapInterface(in.Headers)
 	obj["method"] = in.Method
+	return []any{obj}
+}
+
+func flattenWorkflowHandlerFunctionConfig(in *eaaspb.FunctionDriverConfig, p []any) []any {
+	log.Println("flatten function config start")
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]any)
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]any)
+	}
+	obj["name"] = in.Name
+	obj["language"] = in.Language
+	obj["source"] = in.Source
+	obj["function_dependencies"] = toArrayInterface(in.FunctionDependencies)
+	obj["system_packages"] = toArrayInterface(in.SystemPackages)
+	obj["target_platforms"] = toArrayInterface(in.TargetPlatforms)
+	obj["language_version"] = in.LanguageVersion
+	obj["build_args"] = toArrayInterface(in.BuildArgs)
+	obj["build_secrets"] = toArrayInterface(in.BuildSecrets)
+	obj["cpu_limit_milli"] = in.CpuLimitMilli
+	obj["memory_limit_mb"] = in.MemoryLimitMb
+	obj["skip_build"] = flattenBoolValue(in.SkipBuild)
+	obj["image"] = in.Image
+	obj["function_process"] = in.FunctionProcess
+	obj["max_concurrency"] = in.MaxConcurrency
+	obj["num_replicas"] = in.NumReplicas
+
+	v, _ := obj["kube_options"].([]any)
+	obj["kube_options"] = flattenContainerKubeOptions(in.KubeOptions, v)
+
+	v, _ = obj["image_pull_credentials"].([]any)
+	obj["image_pull_credentials"] = flattenImagePullCredentials(in.ImagePullCredentials, v)
+
 	return []any{obj}
 }
 

@@ -1,7 +1,7 @@
 data "rafay_cluster_blueprint_status" "bp-sync-status" {
   metadata {
-    name        = "cluster1"
-    project     = "defaultproject"
+    name    = "cluster1"
+    project = "defaultproject"
   }
 }
 

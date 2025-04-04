@@ -1,6 +1,6 @@
 data "rafay_project" "tfdemoproject" {
   metadata {
-    name        = "tfdemoproject"
+    name = "tfdemoproject"
   }
 }
 

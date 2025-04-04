@@ -417,19 +417,19 @@ func expandContainerRegistrySpec(p []interface{}, call string) (*integrationspb.
 			}
 		}
 	} else if crt.Provider == "ECR" {
-		if call != "read" || call != "delete" {
+		if call != "read" && call != "delete" {
 			if crt.Credentials.AccessKeyID == "" || crt.Credentials.AccessSecretKey == "" || crt.Credentials.Region == "" {
 				return nil, fmt.Errorf("AWS ECR Credentials are empty")
 			}
 		}
 	} else if crt.Provider == "GCR" {
-		if call != "read" || call != "delete" {
+		if call != "read" && call != "delete" {
 			if crt.Credentials.JsonKeyData == "" {
 				return nil, fmt.Errorf("GCP GCR credentials are empty")
 			}
 		}
 	} else if crt.Provider == "ACR" {
-		if call != "read" || call != "delete" {
+		if call != "read" && call != "delete" {
 			return nil, fmt.Errorf("Azure ACR credentials empty")
 		}
 	}

@@ -6,7 +6,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+
 	"log"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -356,6 +358,7 @@ func configField() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: nodeGroupsConfigFields(),
 			},
+			DiffSuppressFunc: nodeGroupDiffSuppress,
 		},
 		"managed_nodegroups": {
 			Type:        schema.TypeList,
@@ -1282,14 +1285,16 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Description: "name of the node group",
 		},
 		"ami_family": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Valid variants are: 'AmazonLinux2' (default), 'Ubuntu2004', 'Ubuntu1804', 'Bottlerocket', 'WindowsServer2019CoreContainer', 'WindowsServer2019FullContainer', 'WindowsServer2004CoreContainer'.",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "Valid variants are: 'AmazonLinux2' (default), 'Ubuntu2004', 'Ubuntu1804', 'Bottlerocket', 'WindowsServer2019CoreContainer', 'WindowsServer2019FullContainer', 'WindowsServer2004CoreContainer'.",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"instance_type": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "type of instances in the nodegroup",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "type of instances in the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"availability_zones": {
 			Type:        schema.TypeList,
@@ -1298,6 +1303,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"subnets": {
 			Type:        schema.TypeList,
@@ -1306,37 +1312,44 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"instance_prefix": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "for instances in the nodegroup",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "for instances in the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"instance_name": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "for instances in the nodegroup",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "for instances in the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"desired_capacity": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Description: "Desired capacity of instances in the nodegroup",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Description:      "Desired capacity of instances in the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"min_size": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Description: "Minimum size of instances in the nodegroup",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Description:      "Minimum size of instances in the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"max_size": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Description: "Maximum size of instances in the nodegroup",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Description:      "Maximum size of instances in the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"volume_size": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     80,
-			Description: "volume size in gigabytes",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Default:          80,
+			Description:      "volume size in gigabytes",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"ssh": {
 			Type:        schema.TypeList,
@@ -1345,22 +1358,26 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: sshConfigFields(),
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"labels": {
-			Type:        schema.TypeMap,
-			Optional:    true,
-			Description: "labels on nodes in the nodegroup",
+			Type:             schema.TypeMap,
+			Optional:         true,
+			Description:      "labels on nodes in the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"private_networking": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "Enable private networking for nodegroup",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "Enable private networking for nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"tags": {
-			Type:        schema.TypeMap,
-			Optional:    true,
-			Description: "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
+			Type:             schema.TypeMap,
+			Optional:         true,
+			Description:      "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"iam": {
 			Type:        schema.TypeList,
@@ -1369,11 +1386,13 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: iamNodeGroupConfigFields(),
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"ami": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Specify custom AMIs, auto-ssm, auto, or static",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "Specify custom AMIs, auto-ssm, auto, or static",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"security_groups": {
 			Type:        schema.TypeList,
@@ -1384,9 +1403,10 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"max_pods_per_node": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Description: "Maximum pods per node",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Description:      "Maximum pods per node",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"asg_suspend_processes": {
 			Type:        schema.TypeList,
@@ -1395,44 +1415,52 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"ebs_optimized": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "enables EBS optimization",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Description:      "enables EBS optimization",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"volume_type": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Default:     "gp3",
-			Description: "Valid variants are: 'gp2' is General Purpose SSD, 'gp3' is General Purpose SSD which can be optimised for high throughput (default), 'io1' is Provisioned IOPS SSD, 'sc1' is Cold HDD, 'st1' is Throughput Optimized HDD.",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Default:          "gp3",
+			Description:      "Valid variants are: 'gp2' is General Purpose SSD, 'gp3' is General Purpose SSD which can be optimised for high throughput (default), 'io1' is Provisioned IOPS SSD, 'sc1' is Cold HDD, 'st1' is Throughput Optimized HDD.",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"volume_name": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "of volumes attached to instances in the nodegroup",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "of volumes attached to instances in the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"volume_encrypted": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "of volumes attached to instances in the nodegroup",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Description:      "of volumes attached to instances in the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"volume_kms_key_id": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "of volumes attached to instances in the nodegroup",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "of volumes attached to instances in the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"volume_iops": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     3000,
-			Description: "of volumes attached to instances in the nodegroup",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Default:          3000,
+			Description:      "of volumes attached to instances in the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"volume_throughput": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     125,
-			Description: "of volumes attached to instances in the nodegroup",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Default:          125,
+			Description:      "of volumes attached to instances in the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"pre_bootstrap_commands": {
 			Type:        schema.TypeList,
@@ -1441,23 +1469,27 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"override_bootstrap_command": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Override the vendor's bootstrapping script",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "Override the vendor's bootstrapping script",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"disable_imdsv1": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "requires requests to the metadata service to use IMDSv2 tokens",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "requires requests to the metadata service to use IMDSv2 tokens",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"disable_pods_imds": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "blocks all IMDS requests from non host networking pods",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "blocks all IMDS requests from non host networking pods",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"placement": {
 			Type:        schema.TypeList,
@@ -1466,12 +1498,14 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: placementField(),
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"efa_enabled": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"instance_selector": {
 			Type:        schema.TypeList,
@@ -1480,6 +1514,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: instanceSelectorFields(),
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"bottle_rocket": {
 			Type:        schema.TypeList,
@@ -1488,11 +1523,13 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: bottleRocketFields(),
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"enable_detailed_monitoring": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "Enable EC2 detailed monitoring",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Description:      "Enable EC2 detailed monitoring",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"instances_distribution": {
 			Type:        schema.TypeList,
@@ -1501,6 +1538,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: instanceDistributionFields(),
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"asg_metrics_collection": {
 			Type:        schema.TypeList,
@@ -1509,11 +1547,13 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: asgMetricsCollectionFields(),
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"cpu_credits": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "configures T3 Unlimited, valid only for T-type instances",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "configures T3 Unlimited, valid only for T-type instances",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"classic_load_balancer_names": {
 			Type:        schema.TypeList,
@@ -1522,6 +1562,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"target_group_arns": {
 			Type:        schema.TypeList,
@@ -1530,6 +1571,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"taints": {
 			Type:        schema.TypeList,
@@ -1538,6 +1580,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: managedNodeGroupTaintConfigFields(),
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"update_config": {
 			Type:        schema.TypeList,
@@ -1546,11 +1589,13 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: updateConfigFields(),
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"cluster_dns": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Custom address used for DNS lookups",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "Custom address used for DNS lookups",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 
 		"kubelet_extra_config": {
@@ -1562,14 +1607,16 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			},
 		},
 		"version": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Kuberenetes version for the nodegroup",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "Kuberenetes version for the nodegroup",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"subnet_cidr": {
-			Type:        schema.TypeString, //supposed be of type object?
-			Optional:    true,
-			Description: "Create new subnet from the CIDR block and limit nodes to this subnet (Applicable only for the WavelenghZone nodes)",
+			Type:             schema.TypeString, //supposed be of type object?
+			Optional:         true,
+			Description:      "Create new subnet from the CIDR block and limit nodes to this subnet (Applicable only for the WavelenghZone nodes)",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -1579,29 +1626,34 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 func kubeLetExtraConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"kube_reserved": {
-			Type:        schema.TypeMap,
-			Optional:    true,
-			Description: "",
+			Type:             schema.TypeMap,
+			Optional:         true,
+			Description:      "",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"kube_reserved_cgroup": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"system_reserved": {
-			Type:        schema.TypeMap,
-			Optional:    true,
-			Description: "",
+			Type:             schema.TypeMap,
+			Optional:         true,
+			Description:      "",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"eviction_hard": {
-			Type:        schema.TypeMap,
-			Optional:    true,
-			Description: "",
+			Type:             schema.TypeMap,
+			Optional:         true,
+			Description:      "",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"feature_gates": {
-			Type:        schema.TypeMap,
-			Optional:    true,
-			Description: "",
+			Type:             schema.TypeMap,
+			Optional:         true,
+			Description:      "",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -1616,40 +1668,47 @@ func instanceDistributionFields() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"max_price": {
-			Type:        schema.TypeFloat,
-			Optional:    true,
-			Description: "Maximum bid price in USD",
+			Type:             schema.TypeFloat,
+			Optional:         true,
+			Description:      "Maximum bid price in USD",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"on_demand_base_capacity": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     0,
-			Description: "base number of on-demand instances (non-negative)",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Default:          0,
+			Description:      "base number of on-demand instances (non-negative)",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"on_demand_percentage_above_base_capacity": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     100,
-			Description: "Range [0-100]",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Default:          100,
+			Description:      "Range [0-100]",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"spot_instance_pools": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Default:     2,
-			Description: "Range [0-20]",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Default:          2,
+			Description:      "Range [0-20]",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"spot_allocation_strategy": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "allocation strategy for spot instances. Valid values are capacity-optimized and lowest-price",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "allocation strategy for spot instances. Valid values are capacity-optimized and lowest-price",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"capacity_rebalance": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "Enable capacity rebalancing for spot instances",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "Enable capacity rebalancing for spot instances",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -1658,14 +1717,16 @@ func instanceDistributionFields() map[string]*schema.Schema {
 func updateConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"max_unavaliable": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Description: "sets the max number of nodes that can become unavailable when updating a nodegroup (specified as number)",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Description:      "sets the max number of nodes that can become unavailable when updating a nodegroup (specified as number)",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"max_unavaliable_percetage": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Description: "sets the max number of nodes that can become unavailable when updating a nodegroup (specified as percentage)",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Description:      "sets the max number of nodes that can become unavailable when updating a nodegroup (specified as percentage)",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -1674,9 +1735,10 @@ func updateConfigFields() map[string]*schema.Schema {
 func asgMetricsCollectionFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"granularity": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "of metrics collected",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "of metrics collected",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"metrics": {
 			Type:        schema.TypeList,
@@ -1685,6 +1747,7 @@ func asgMetricsCollectionFields() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -1693,14 +1756,16 @@ func asgMetricsCollectionFields() map[string]*schema.Schema {
 func bottleRocketFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"enable_admin_container": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "Enable admin container",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Description:      "Enable admin container",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"settings": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "contains any bottlerocket settings",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "contains any bottlerocket settings",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -1709,25 +1774,29 @@ func bottleRocketFields() map[string]*schema.Schema {
 func instanceSelectorFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"vcpus": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Description: "specifies the number of vCPUs",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Description:      "specifies the number of vCPUs",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"memory": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "specifies the memory The unit defaults to GiB",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "specifies the memory The unit defaults to GiB",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"gpus": {
-			Type:        schema.TypeInt,
-			Optional:    true,
-			Description: "specifies the number of GPUs. It can be set to 0 to select non-GPU instance types.",
+			Type:             schema.TypeInt,
+			Optional:         true,
+			Description:      "specifies the number of GPUs. It can be set to 0 to select non-GPU instance types.",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"cpu_architecture": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Default:     "x86_64",
-			Description: "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Default:          "x86_64",
+			Description:      "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -1735,9 +1804,10 @@ func instanceSelectorFields() map[string]*schema.Schema {
 func placementField() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"group": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "placement group name ",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "placement group name ",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -1746,19 +1816,22 @@ func placementField() map[string]*schema.Schema {
 func sshConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"allow": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "If Allow is true the SSH configuration provided is used, otherwise it is ignored. Only one of PublicKeyPath, PublicKey and PublicKeyName can be configured",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Description:      "If Allow is true the SSH configuration provided is used, otherwise it is ignored. Only one of PublicKeyPath, PublicKey and PublicKeyName can be configured",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"public_key": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Public key to be added to the nodes SSH keychain. If Allow is false this value is ignored.",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "Public key to be added to the nodes SSH keychain. If Allow is false this value is ignored.",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"public_key_name": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Public key name in EC2 to be added to the nodes SSH keychain. If Allow is false this value is ignored.",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "Public key name in EC2 to be added to the nodes SSH keychain. If Allow is false this value is ignored.",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"source_security_group_ids": {
 			Type:        schema.TypeList,
@@ -1767,11 +1840,13 @@ func sshConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"enable_ssm": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "Enables the ability to SSH onto nodes using SSM",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Description:      "Enables the ability to SSH onto nodes using SSM",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -1786,11 +1861,13 @@ func iamNodeGroupConfigFields() map[string]*schema.Schema { //@@@TODO: need to c
 			Elem: &schema.Resource{
 				Schema: attachPolicyFields(),
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"attach_policy_v2": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "attach policy in json string format ",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "attach policy in json string format ",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"attach_policy_arns": {
 			Type:        schema.TypeList,
@@ -1799,26 +1876,31 @@ func iamNodeGroupConfigFields() map[string]*schema.Schema { //@@@TODO: need to c
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"instance_profile_arn": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "instance profile ARN",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "instance profile ARN",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"instance_role_arn": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "instance role ARN",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "instance role ARN",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"instance_role_name": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "instance role Name",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "instance role Name",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"instance_role_permission_boundary": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "instance role permissions boundary",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "instance role permissions boundary",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"iam_node_group_with_addon_policies": {
 			Type:        schema.TypeList,
@@ -1827,6 +1909,7 @@ func iamNodeGroupConfigFields() map[string]*schema.Schema { //@@@TODO: need to c
 			Elem: &schema.Resource{
 				Schema: iamNodeGroupWithAddonPoliciesFields(),
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -1835,76 +1918,88 @@ func iamNodeGroupConfigFields() map[string]*schema.Schema { //@@@TODO: need to c
 func iamNodeGroupWithAddonPoliciesFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"image_builder": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     true,
-			Description: "allows for full ECR (Elastic Container Registry) access. This is useful for building, for example, a CI server that needs to push images to ECR",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          true,
+			Description:      "allows for full ECR (Elastic Container Registry) access. This is useful for building, for example, a CI server that needs to push images to ECR",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"auto_scaler": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     true,
-			Description: "enables IAM policy for cluster-autoscaler",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          true,
+			Description:      "enables IAM policy for cluster-autoscaler",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"external_dns": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "adds the external-dns project policies for Amazon Route 53",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "adds the external-dns project policies for Amazon Route 53",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"cert_manager": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "enables the ability to add records to Route 53 in order to solve the DNS01 challenge.",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "enables the ability to add records to Route 53 in order to solve the DNS01 challenge.",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"app_mesh": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "enables full access to AppMesh",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "enables full access to AppMesh",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"app_mesh_review": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "enables full access to AppMesh Preview",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "enables full access to AppMesh Preview",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"ebs": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"fsx": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "enables full access to FSX",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "enables full access to FSX",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"efs": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "enables full access to EFS",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "enables full access to EFS",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"alb_ingress": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "enables access to ALB Ingress controller",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "enables access to ALB Ingress controller",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"xray": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "enables access to XRay",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "enables access to XRay",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"cloud_watch": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "enables access to cloud watch",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          false,
+			Description:      "enables access to cloud watch",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -1919,18 +2014,21 @@ func securityGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"with_shared": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     true,
-			Description: "attach the security group shared among all nodegroups in the cluster",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          true,
+			Description:      "attach the security group shared among all nodegroups in the cluster",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"with_local": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     true,
-			Description: "attach a security group local to this nodegroup Not supported for managed nodegroups",
+			Type:             schema.TypeBool,
+			Optional:         true,
+			Default:          true,
+			Description:      "attach a security group local to this nodegroup Not supported for managed nodegroups",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -2246,19 +2344,22 @@ func launchTempelateFields() map[string]*schema.Schema {
 func managedNodeGroupTaintConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"key": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "key of taint",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "key of taint",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"value": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "value of taint",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "value of taint",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"effect": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "effect of taint",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "effect of taint",
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 	}
 	return s
@@ -7070,4 +7171,110 @@ func resourceEKSClusterImport(ctx context.Context, d *schema.ResourceData, meta 
 	d.SetId(s.ID)
 
 	return []*schema.ResourceData{d}, nil
+}
+
+// nodeGroupDiffSuppress handles diffing for the entire node_groups list
+// We'll use name-based matching to determine if node groups are the same
+func nodeGroupDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
+	// We don't actually suppress the entire list diff here
+	// This is just for the top-level attribute and will delegate to the item-level diffing
+	log.Printf("[ERROR] inside nodeGroupDiffSuppress")
+	return false
+}
+
+// nodeGroupAttributeDiffSuppress handles diffing for individual attributes within node groups
+// This is where we implement the name-based matching
+func nodeGroupAttributeDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
+	// Extract the node group path from the key
+	// Format will be something like: cluster_config.0.node_groups.0.instance_type
+	log.Printf("[ERROR] inside nodeGroupAttributeDiffSuppress")
+
+	keyParts := strings.Split(k, ".")
+	if len(keyParts) < 5 {
+		return false // Not a node group attribute with expected path depth
+	}
+
+	// Verify this is a node_groups path
+	if keyParts[0] != "cluster_config" || keyParts[2] != "node_groups" {
+		return false
+	}
+
+	// Get the attribute name (last part)
+	attrName := keyParts[len(keyParts)-1]
+
+	// If this is the "name" attribute, don't suppress differences
+	if attrName == "name" {
+		return false
+	}
+
+	// Get node groups index
+	ngIndexStr := keyParts[3]
+	ngIndex, err := strconv.Atoi(ngIndexStr)
+	if err != nil {
+		return false
+	}
+
+	// Build the base path to the node_groups list
+	nodegroupsPath := fmt.Sprintf("cluster_config.0.node_groups")
+
+	// Get all node_groups
+	oldNodeGroupsRaw, newNodeGroupsRaw := d.GetChange(nodegroupsPath)
+
+	// Protect against nil values
+	if oldNodeGroupsRaw == nil || newNodeGroupsRaw == nil {
+		return false
+	}
+
+	oldNodeGroups := oldNodeGroupsRaw.([]interface{})
+	newNodeGroups := newNodeGroupsRaw.([]interface{})
+
+	// Map old node groups by name for lookup
+	oldNodeGroupsMap := make(map[string]interface{})
+	for _, ng := range oldNodeGroups {
+		if ng == nil {
+			continue
+		}
+		nodeGroup := ng.(map[string]interface{})
+		name, ok := nodeGroup["name"].(string)
+		if ok {
+			oldNodeGroupsMap[name] = nodeGroup
+		}
+	}
+
+	// Ensure the index is valid
+	if ngIndex < 0 || ngIndex >= len(newNodeGroups) {
+		return false
+	}
+
+	// Get the new node group
+	newNodeGroup := newNodeGroups[ngIndex]
+	if newNodeGroup == nil {
+		return false
+	}
+
+	newNodeGroupMap := newNodeGroup.(map[string]interface{})
+	newName, ok := newNodeGroupMap["name"].(string)
+	if !ok {
+		return false
+	}
+
+	// Look for a matching node group in the old state by name
+	oldNodeGroup, exists := oldNodeGroupsMap[newName]
+	if !exists {
+		return false // No matching node group, don't suppress diff
+	}
+
+	oldNodeGroupMap := oldNodeGroup.(map[string]interface{})
+
+	// Compare the specific attribute
+	oldAttrValue, oldOk := oldNodeGroupMap[attrName]
+	newAttrValue, newOk := newNodeGroupMap[attrName]
+
+	// If one has the attribute and the other doesn't, don't suppress
+	if oldOk != newOk {
+		return false
+	}
+
+	// Compare the values - if they're the same, suppress the diff
+	return reflect.DeepEqual(oldAttrValue, newAttrValue)
 }

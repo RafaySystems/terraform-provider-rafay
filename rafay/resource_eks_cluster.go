@@ -358,7 +358,8 @@ func configField() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: nodeGroupsConfigFields(),
 			},
-			DiffSuppressFunc: nodeGroupDiffSuppress,
+			DiffSuppressFunc:      nodeGroupDiffSuppress,
+			DiffSuppressOnRefresh: true,
 		},
 		"managed_nodegroups": {
 			Type:        schema.TypeList,
@@ -1280,9 +1281,10 @@ func privateClusterConfigFields() map[string]*schema.Schema {
 func nodeGroupsConfigFields() map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"name": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "name of the node group",
+			Type:             schema.TypeString,
+			Optional:         true,
+			Description:      "name of the node group",
+			DiffSuppressFunc: nodeGroupNameDiffSuppress,
 		},
 		"ami_family": {
 			Type:             schema.TypeString,
@@ -1401,6 +1403,7 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: securityGroupsConfigFields(),
 			},
+			DiffSuppressFunc: nodeGroupAttributeDiffSuppress,
 		},
 		"max_pods_per_node": {
 			Type:             schema.TypeInt,
@@ -7185,9 +7188,10 @@ func nodeGroupDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
 // nodeGroupAttributeDiffSuppress handles diffing for individual attributes within node groups
 // This is where we implement the name-based matching
 func nodeGroupAttributeDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
+	log.Printf("[ERROR] inside nodeGroupAttributeDiffSuppress")
+
 	// Extract the node group path from the key
 	// Format will be something like: cluster_config.0.node_groups.0.instance_type
-	log.Printf("[ERROR] inside nodeGroupAttributeDiffSuppress")
 
 	keyParts := strings.Split(k, ".")
 	if len(keyParts) < 5 {
@@ -7204,6 +7208,7 @@ func nodeGroupAttributeDiffSuppress(k, old, new string, d *schema.ResourceData) 
 
 	// If this is the "name" attribute, don't suppress differences
 	if attrName == "name" {
+		// TODO(Akshay): Add a separate logic for name
 		return false
 	}
 
@@ -7277,4 +7282,87 @@ func nodeGroupAttributeDiffSuppress(k, old, new string, d *schema.ResourceData) 
 
 	// Compare the values - if they're the same, suppress the diff
 	return reflect.DeepEqual(oldAttrValue, newAttrValue)
+}
+
+func nodeGroupNameDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
+	// Extract the node group path from the key
+	// Format will be something like: cluster_config.0.node_groups.0.instance_type
+	keyParts := strings.Split(k, ".")
+	if len(keyParts) < 5 {
+		return false // Not a node group attribute with expected path depth
+	}
+
+	// Verify this is a node_groups path
+	if keyParts[0] != "cluster_config" || keyParts[2] != "node_groups" {
+		return false
+	}
+
+	// Get the attribute name (last part)
+	attrName := keyParts[len(keyParts)-1]
+
+	// If not "name" attribute, don't suppress differences
+	if attrName != "name" {
+		return false
+	}
+
+	// Get node groups index
+	ngIndexStr := keyParts[3]
+	ngIndex, err := strconv.Atoi(ngIndexStr)
+	if err != nil {
+		return false
+	}
+
+	// Build the base path to the node_groups list
+	nodegroupsPath := fmt.Sprintf("cluster_config.0.node_groups")
+
+	// Get all node_groups
+	oldNodeGroupsRaw, newNodeGroupsRaw := d.GetChange(nodegroupsPath)
+
+	// Protect against nil values
+	if oldNodeGroupsRaw == nil || newNodeGroupsRaw == nil {
+		return false
+	}
+
+	oldNodeGroups := oldNodeGroupsRaw.([]interface{})
+	newNodeGroups := newNodeGroupsRaw.([]interface{})
+
+	// Map old node groups by name for lookup
+	oldNodeGroupsMap := make(map[string]interface{})
+	for _, ng := range oldNodeGroups {
+		if ng == nil {
+			continue
+		}
+		nodeGroup := ng.(map[string]interface{})
+		name, ok := nodeGroup["name"].(string)
+		if ok {
+			oldNodeGroupsMap[name] = nodeGroup
+		}
+	}
+
+	// Ensure the index is valid
+	if ngIndex < 0 || ngIndex >= len(newNodeGroups) {
+		return false
+	}
+
+	// Get the new node group
+	newNodeGroup := newNodeGroups[ngIndex]
+	if newNodeGroup == nil {
+		return false
+	}
+
+	newNodeGroupMap := newNodeGroup.(map[string]interface{})
+	newName, ok := newNodeGroupMap["name"].(string)
+	if !ok {
+		return false
+	}
+
+	// check new new name already present
+	present := false
+	for name, _ := range oldNodeGroupsMap {
+		if name == newName {
+			present = true
+		}
+	}
+
+	return present
 }

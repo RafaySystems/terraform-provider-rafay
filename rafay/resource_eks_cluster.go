@@ -358,6 +358,7 @@ func configField() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: nodeGroupsConfigFields(),
 			},
+			Set: hashNodeGroup,
 		},
 		"managed_nodegroups": {
 			Type:        schema.TypeList,
@@ -7094,4 +7095,13 @@ func resourceEKSClusterImport(ctx context.Context, d *schema.ResourceData, meta 
 	d.SetId(s.ID)
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func hashNodeGroup(v interface{}) int {
+	m, ok := v.(map[string]interface{})
+	if !ok {
+		return 0
+	}
+	name, _ := m["name"].(string)
+	return schema.HashString(name)
 }

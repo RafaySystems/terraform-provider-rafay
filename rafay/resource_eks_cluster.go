@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -23,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/go-yaml/yaml"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -69,7 +71,8 @@ func resourceEKSCluster() *schema.Resource {
 				MaxItems: 1,
 			},
 		},
-		Description: resourceEKSClusterDescription,
+		Description:   resourceEKSClusterDescription,
+		CustomizeDiff: customizeNodeGroupsDiff,
 	}
 }
 
@@ -7070,4 +7073,109 @@ func resourceEKSClusterImport(ctx context.Context, d *schema.ResourceData, meta 
 	d.SetId(s.ID)
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func customizeNodeGroupsDiff(ctx context.Context, d *schema.ResourceDiff, m interface{}) error {
+	tflog.Error(ctx, "inside customizeNodeGroupsDiff")
+
+	// Only process if cluster_config exists and has changed
+	if !d.HasChange("cluster_config") {
+		return nil
+	}
+
+	// Get old and new cluster_config
+	o, n := d.GetChange("cluster_config")
+	oldConfig := o.([]interface{})
+	newConfig := n.([]interface{})
+
+	// If either is empty, let Terraform handle it normally
+	if len(oldConfig) == 0 || len(newConfig) == 0 {
+		return nil
+	}
+
+	oldConfigMap := oldConfig[0].(map[string]interface{})
+	newConfigMap := newConfig[0].(map[string]interface{})
+
+	// Get old and new node_groups
+	oldNodeGroups, oldOk := oldConfigMap["node_groups"].([]interface{})
+	newNodeGroups, newOk := newConfigMap["node_groups"].([]interface{})
+
+	// If node_groups doesn't exist in either old or new, let Terraform handle it
+	if !oldOk || !newOk {
+		return nil
+	}
+
+	// Create maps of node groups by name
+	oldNodeGroupMap := make(map[string]map[string]interface{})
+	for _, ng := range oldNodeGroups {
+		if ng == nil {
+			continue
+		}
+		nodeGroup := ng.(map[string]interface{})
+		if name, ok := nodeGroup["name"].(string); ok {
+			oldNodeGroupMap[name] = nodeGroup
+		}
+	}
+
+	// Compare each new node group with its old counterpart
+	for i, ng := range newNodeGroups {
+		if ng == nil {
+			continue
+		}
+		nodeGroup := ng.(map[string]interface{})
+		name, ok := nodeGroup["name"].(string)
+		if !ok {
+			continue
+		}
+
+		// If we have a matching node group in the old state
+		if oldNodeGroup, exists := oldNodeGroupMap[name]; exists {
+			// Compare each attribute individually
+			for attr, newValue := range nodeGroup {
+				if attr == "name" {
+					continue // Skip name comparisons
+				}
+
+				oldValue, ok := oldNodeGroup[attr]
+				if !ok || !reflect.DeepEqual(oldValue, newValue) {
+					// Mark only this specific attribute as changed
+					d.SetNewComputed(fmt.Sprintf("cluster_config.0.node_groups.%d.%s", i, attr))
+				}
+			}
+
+			// Check for removed attributes
+			for attr := range oldNodeGroup {
+				if attr == "name" {
+					continue
+				}
+				if _, exists := nodeGroup[attr]; !exists {
+					d.SetNewComputed(fmt.Sprintf("cluster_config.0.node_groups.%d.%s", i, attr))
+				}
+			}
+		} else {
+			// This is a new node group, mark the whole node group as new
+			d.SetNewComputed(fmt.Sprintf("cluster_config.0.node_groups.%d", i))
+		}
+	}
+
+	// Check for removed node groups
+	for name := range oldNodeGroupMap {
+		found := false
+		for _, ng := range newNodeGroups {
+			if ng == nil {
+				continue
+			}
+			nodeGroup := ng.(map[string]interface{})
+			if nodeName, ok := nodeGroup["name"].(string); ok && nodeName == name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			// A node group was removed, let Terraform handle this normally
+			return nil
+		}
+	}
+
+	return nil
 }

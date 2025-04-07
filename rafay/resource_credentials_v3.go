@@ -219,6 +219,13 @@ func resourceCredentialsRead(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
+	if tfCredentialsState.Spec != nil && tfCredentialsState.Spec.Sharing != nil && !tfCredentialsState.Spec.Sharing.Enabled && ag.Spec.Sharing == nil {
+		ag.Spec.Sharing = &commonpb.SharingSpec{}
+		ag.Spec.Sharing.Enabled = false
+		ag.Spec.Sharing.Projects = tfCredentialsState.Spec.Sharing.Projects
+		log.Println("Vishal- tfCredentialsState check in if condition")
+	}
+
 	err = flattenCredentials(d, ag)
 	if err != nil {
 		return diag.FromErr(err)

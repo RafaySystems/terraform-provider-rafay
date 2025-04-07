@@ -223,7 +223,6 @@ func resourceCredentialsRead(ctx context.Context, d *schema.ResourceData, m inte
 		ag.Spec.Sharing = &commonpb.SharingSpec{}
 		ag.Spec.Sharing.Enabled = false
 		ag.Spec.Sharing.Projects = tfCredentialsState.Spec.Sharing.Projects
-		log.Println("Vishal- tfCredentialsState check in if condition")
 	}
 
 	err = flattenCredentials(d, ag)

@@ -1430,6 +1430,14 @@ func expandVariableOverrideOptions(p []interface{}) *eaaspb.VariableOverrideOpti
 		override.Selectors = toArrayString(vals)
 	}
 
+	if do, ok := in["display_overridden"].(bool); ok {
+		override.DisplayOverridden = do
+	}
+
+	if rkv, ok := in["restricted_key_values"].(map[string]any); ok && len(rkv) > 0 {
+		override.RestrictedKeyValues = toMapString(rkv)
+	}
+
 	return override
 }
 
@@ -1479,9 +1487,11 @@ func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) []int
 		return nil
 	}
 	obj := map[string]any{
-		"type":              input.Type,
-		"restricted_values": toArrayInterface(input.RestrictedValues),
-		"selectors":         toArrayInterface(input.Selectors),
+		"type":                  input.Type,
+		"restricted_values":     toArrayInterface(input.RestrictedValues),
+		"selectors":             toArrayInterface(input.Selectors),
+		"display_overridden":    input.DisplayOverridden,
+		"restricted_key_values": toMapInterface(input.RestrictedKeyValues),
 	}
 	return []interface{}{obj}
 }
@@ -2141,6 +2151,14 @@ func expandEnvVarOverrideOptions(p []interface{}) *eaaspb.EnvVarOverrideOptions 
 		override.Selectors = toArrayString(vals)
 	}
 
+	if v, ok := in["display_overridden"].(bool); ok {
+		override.DisplayOverridden = v
+	}
+
+	if vals, ok := in["restricted_key_values"].(map[string]any); ok && len(vals) > 0 {
+		override.RestrictedKeyValues = toMapString(vals)
+	}
+
 	return override
 }
 
@@ -2181,9 +2199,11 @@ func flattenEnvVarOverrideOptions(input *eaaspb.EnvVarOverrideOptions) []interfa
 		return nil
 	}
 	obj := map[string]interface{}{
-		"type":              input.Type,
-		"restricted_values": toArrayInterface(input.RestrictedValues),
-		"selectors":         toArrayInterface(input.Selectors),
+		"type":                  input.Type,
+		"restricted_values":     toArrayInterface(input.RestrictedValues),
+		"selectors":             toArrayInterface(input.Selectors),
+		"display_overridden":    input.DisplayOverridden,
+		"restricted_key_values": toMapInterface(input.RestrictedKeyValues),
 	}
 	return []interface{}{obj}
 }

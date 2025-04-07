@@ -41,7 +41,7 @@ resource "rafay_addon" "tfdemoaddon4" {
       }
       options {
         max_history = 10
-        timeout = "5m0s"
+        timeout     = "5m0s"
       }
     }
     sharing {
@@ -68,8 +68,8 @@ resource "rafay_addon" "tfdemoaddon2" {
     artifact {
       type = "Helm"
       artifact {
-        catalog = "catalogName"
-        chart_name = "chartName"
+        catalog       = "catalogName"
+        chart_name    = "chartName"
         chart_version = "chartVersion"
         values_paths {
           name = "file://relative/path/to/some/chart/values.yaml"
@@ -77,7 +77,7 @@ resource "rafay_addon" "tfdemoaddon2" {
       }
       options {
         max_history = 10
-        timeout = "5m0s"
+        timeout     = "5m0s"
       }
     }
   }

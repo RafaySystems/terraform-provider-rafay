@@ -5,7 +5,7 @@ resource "rafay_cost_profile" "tfdemocostprofile1" {
     project = "terraform"
   }
   spec {
-    version = "v0"
+    version       = "v0"
     provider_type = "aws"
     installation_params {
       aws {
@@ -13,14 +13,14 @@ resource "rafay_cost_profile" "tfdemocostprofile1" {
           aws_spot_data_region = "sample"
           aws_spot_data_bucket = "sample"
           aws_spot_data_prefix = "sample"
-          aws_account_id = "sample"
+          aws_account_id       = "sample"
         }
         cur_integration {
-          athena_region = "sample"
+          athena_region      = "sample"
           athena_bucket_name = "sample"
-          athena_database = "sample"
-          athena_table = "sample"
-          master_payer_arn = "sample"
+          athena_database    = "sample"
+          athena_table       = "sample"
+          master_payer_arn   = "sample"
         }
         aws_credentials {
           cloud_credentials_name = "sample"
@@ -42,7 +42,7 @@ resource "rafay_cost_profile" "tfdemocostprofile-azure" {
     project = "terraform"
   }
   spec {
-    version = "v0"
+    version       = "v0"
     provider_type = "azure"
     installation_params {
       azure {
@@ -60,7 +60,7 @@ resource "rafay_cost_profile" "tfdemocostprofile-gcp" {
     project = "terraform"
   }
   spec {
-    version = "v0"
+    version       = "v0"
     provider_type = "gcp"
     installation_params {
       gcp {
@@ -78,12 +78,12 @@ resource "rafay_cost_profile" "tfdemocostprofile-other" {
     project = "terraform"
   }
   spec {
-    version = "v0"
+    version       = "v0"
     provider_type = "other"
     installation_params {
       other {
-        cpu = "2.5"
-        gpu = "3.61"
+        cpu    = "2.5"
+        gpu    = "3.61"
         memory = "4.3"
       }
     }

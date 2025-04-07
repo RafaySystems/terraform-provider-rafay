@@ -1,6 +1,6 @@
 data "rafay_import_cluster" "cluster" {
-    clustername = "import"
-    projectname = "tf-project"
+  clustername = "import"
+  projectname = "tf-project"
 }
 
 output "eks_cluster" {

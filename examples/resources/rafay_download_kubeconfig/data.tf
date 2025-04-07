@@ -19,7 +19,7 @@ output "kubeconfig_cluster" {
 
 # get kubeconfig for a cluster and set namespace
 data "rafay_download_kubeconfig" "kubeconfig_cluster_namespace" {
-  cluster = "cluster-name"
+  cluster   = "cluster-name"
   namespace = "demo"
 }
 
@@ -31,7 +31,7 @@ output "kubeconfig_cluster_namespace" {
 
 # get kubeconfig for a user
 data "rafay_download_kubeconfig" "kubeconfig_user" {
-  username  = "user-name"
+  username = "user-name"
 }
 
 output "kubeconfig_user" {

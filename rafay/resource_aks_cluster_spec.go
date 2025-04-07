@@ -226,8 +226,7 @@ func resourceAKSClusterSpecUpsert(ctx context.Context, d *schema.ResourceData, m
 				log.Println("task completed but cluster is not ready")
 			}
 			if strings.Contains(sres.Status, "STATUS_FAILED") {
-				return diag.FromErr(fmt.Errorf("failed to create/update cluster while ",
-					"provisioning cluster %s %s",
+				return diag.FromErr(fmt.Errorf("failed to create/update cluster while provisioning cluster %s %s",
 					d.Get("projectname"), statusResp))
 			}
 		}

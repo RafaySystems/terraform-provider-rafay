@@ -6,11 +6,11 @@ resource "rafay_secret_group" "tfdemosg" {
   spec {
     secrets {
       file_path = "aws/credential"
-      secret = "aws-credential"
+      secret    = "aws-credential"
     }
     secrets {
       file_path = "gke/credential"
-      secret = "gke-credential"
+      secret    = "gke-credential"
     }
   }
 }

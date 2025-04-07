@@ -1,16 +1,16 @@
 resource "rafay_import_cluster" "import_cluster" {
-  clustername       = "terraform-importcluster"
-  projectname       = "terraform"
-  blueprint         = "default"
-  kubeconfig_path   = "<file-path/kubeconfig.yaml>"
-  location          = "losangeles-us"
-  values_path       = "<optional_path/values.yaml>"
-  bootstrap_path    = "<optional_path/bootstrap.yaml>"
-  labels            = {
+  clustername     = "terraform-importcluster"
+  projectname     = "terraform"
+  blueprint       = "default"
+  kubeconfig_path = "<file-path/kubeconfig.yaml>"
+  location        = "losangeles-us"
+  values_path     = "<optional_path/values.yaml>"
+  bootstrap_path  = "<optional_path/bootstrap.yaml>"
+  labels = {
     "key1" = "value1"
     "key2" = "value2"
   }
-  kubernetes_provider = "AKS"
+  kubernetes_provider   = "AKS"
   provision_environment = "CLOUD"
 }
 

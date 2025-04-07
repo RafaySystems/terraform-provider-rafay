@@ -267,7 +267,7 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 			break
 		}
 		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed {
-			return diag.FromErr(fmt.Errorf("%s", "failed to publish namespace"))
+			return diag.FromErr(fmt.Errorf("%s to %s", "failed to publish namespace", nsStatus.Status.Reason))
 		}
 		log.Println("nsStatus.Status.ConditionStatus ", nsStatus.Status.ConditionStatus)
 	}

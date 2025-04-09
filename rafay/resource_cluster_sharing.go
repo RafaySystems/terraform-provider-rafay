@@ -58,13 +58,7 @@ func resourceClusterSharing() *schema.Resource {
 								Optional:    true,
 								Type:        schema.TypeString,
 							},
-							"id": &schema.Schema{
-								Description: "id of the project",
-								Optional:    true,
-								Type:        schema.TypeString,
-								Sensitive:   true,
-								Computed:    true,
-							},
+
 						}},
 // 						MaxItems: 0,
 // 						MinItems: 0,
@@ -399,7 +393,7 @@ func flattenClusterSharingSpec(in *commonpb.SharingSpec, p []interface{}) ([]int
 
     // If there are any projects (other than the parent), add them; if not, explicitly set an empty list.
     if len(in.Projects) > 0 {
-        obj["projects"] = flattenProjectMeta(in.Projects, true)
+        obj["projects"] = flattenProjectMeta(in.Projects, false)
     } else {
         obj["projects"] = []interface{}{}
     }

@@ -17,6 +17,7 @@ import (
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	jsoniter "github.com/json-iterator/go"
 	"k8s.io/utils/strings/slices"
 
@@ -2600,7 +2601,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	rctlConfig := config.GetConfig()
 
 	log.Printf("calling cluster ctl:\n%s", b.String())
-	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false, uaDef)
+	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false, false, uaDef)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		return diag.FromErr(err)
@@ -6861,6 +6862,8 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		}
 		return diag.FromErr(err)
 	}
+
+	tflog.Error(ctx, "################# cluster received", map[string]any{"cluster_sharing_external": c.ClusterSharingExternal})
 	log.Println("got cluster from backend")
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()

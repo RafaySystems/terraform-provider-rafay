@@ -186,7 +186,7 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 	}
 	if create {
 		if !isProjectShared {
-			_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id})
+			_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id}, uaDef, clusterSharingExt)
 			if err != nil {
 				log.Printf("failed to share cluster to new project")
 				return diag.FromErr(err)
@@ -203,7 +203,7 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 				// Remove the cluster from the old project
 				oldProjectID, err := config.GetProjectIdByName(oldProjectName)
 				if err == nil {
-					_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{oldProjectID})
+					_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{oldProjectID}, uaDef, clusterSharingExt)
 					if err != nil {
 						log.Printf("failed to remove cluster from old project: %v", oldProjectName)
 						return diag.FromErr(err)
@@ -213,7 +213,7 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 
 				// Add the cluster to the new project
 				if !isProjectShared {
-					_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id})
+					_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id}, uaDef, clusterSharingExt)
 					if err != nil {
 						log.Printf("failed to share cluster to new project")
 						return diag.FromErr(err)
@@ -399,7 +399,7 @@ func resourceClusterSharingSingleDelete(ctx context.Context, d *schema.ResourceD
 		return diag.Errorf("sharing spec should not be empty")
 	}
 
-	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id})
+	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id}, "", false)
 	if err != nil {
 		log.Printf("cluster share setting had all, but failed to unshare form all projects")
 		return diag.FromErr(err)

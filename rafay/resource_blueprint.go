@@ -467,8 +467,20 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 		obj.EnableRookCeph = v
 	}
 
-	if v, ok := in["enable_cni"].(bool); ok {
-		obj.EnableCni = v
+	if v, ok := in["enable_cilium_cni"].(bool); ok {
+		obj.EnableCiliumCni = v
+	}
+
+	if v, ok := in["enable_calico_cni"].(bool); ok {
+		obj.EnableCalicoCni = v
+	}
+
+	if v, ok := in["enable_kubeovn_cni"].(bool); ok {
+		obj.EnableKubeovnCni = v
+	}
+
+	if v, ok := in["enable_kubeovn_chaning_cni"].(bool); ok {
+		obj.EnableKubeovnChaningCni = v
 	}
 
 	if v, ok := in["enable_vm"].(bool); ok {
@@ -1503,8 +1515,23 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 		retNil = false
 	}
 
-	if in.EnableCni {
-		obj["enable_cni"] = in.EnableCni
+	if in.EnableCalicoCni {
+		obj["enable_calico_cni"] = in.EnableCalicoCni
+		retNil = false
+	}
+
+	if in.EnableCiliumCni {
+		obj["enable_cilium_cni"] = in.EnableCiliumCni
+		retNil = false
+	}
+
+	if in.EnableKubeovnCni {
+		obj["enable_kubeovn_cni"] = in.EnableKubeovnCni
+		retNil = false
+	}
+
+	if in.EnableKubeovnChaningCni {
+		obj["enable_kubeovn_chaning_cni"] = in.EnableKubeovnChaningCni
 		retNil = false
 	}
 

@@ -238,9 +238,9 @@ func resourceCredentialsRead(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	if tfCredentialsState.Spec != nil && tfCredentialsState.Spec.Sharing != nil && !tfCredentialsState.Spec.Sharing.Enabled && ag.Spec.Sharing == nil {
-		    ag.Spec.Sharing = &commonpb.SharingSpec{}
-			Enabled:  false,
-			Projects: tfCredentialsState.Spec.Sharing.Projects,
+		  ag.Spec.Sharing = &commonpb.SharingSpec{}
+		  Enabled:  false,
+		  Projects: tfCredentialsState.Spec.Sharing.Projects,
 	}
 
 	err = flattenCredentials(d, ag)

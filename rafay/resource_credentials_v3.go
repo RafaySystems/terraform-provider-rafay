@@ -195,14 +195,27 @@ func resourceV3CredentialsUpsert(ctx context.Context, d *schema.ResourceData, m 
 func resourceCredentialsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	log.Println("resourceCredentialsRead ")
+	log.Println("resourceCredentialsRead")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
+
 	tfCredentialsState, err := expandCredentials(d)
 	if err != nil {
-		return diag.FromErr(err)
+		log.Println("expandCredentials failed in Read; clearing ID")
+		d.SetId("") // avoid hard failure
+		return nil
+	}
+
+	stateName := d.Id()
+	currentName := tfCredentialsState.Metadata.Name
+	log.Printf("Read(): state name = %s, current config name = %s", stateName, currentName)
+
+	// If name in config != ID from state, prefer ID for safe deletion
+	if stateName != "" && currentName != "" && stateName != currentName {
+		log.Printf("Mismatch between config and state during Read. Using state ID %s", stateName)
+		tfCredentialsState.Metadata.Name = stateName
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
@@ -216,22 +229,28 @@ func resourceCredentialsRead(ctx context.Context, d *schema.ResourceData, m inte
 		Project: tfCredentialsState.Metadata.Project,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "NotFound") {
+			log.Printf("resource not found in Read: %s", tfCredentialsState.Metadata.Name)
+			d.SetId("") // remove from state gracefully
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 
 	if tfCredentialsState.Spec != nil && tfCredentialsState.Spec.Sharing != nil && !tfCredentialsState.Spec.Sharing.Enabled && ag.Spec.Sharing == nil {
-		ag.Spec.Sharing = &commonpb.SharingSpec{}
-		ag.Spec.Sharing.Enabled = false
-		ag.Spec.Sharing.Projects = tfCredentialsState.Spec.Sharing.Projects
+		    ag.Spec.Sharing = &commonpb.SharingSpec{}
+			Enabled:  false,
+			Projects: tfCredentialsState.Spec.Sharing.Projects,
 	}
 
 	err = flattenCredentials(d, ag)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	return diags
 
+	return diags
 }
+
 
 func resourceCredentialsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -239,15 +258,6 @@ func resourceCredentialsDelete(ctx context.Context, d *schema.ResourceData, m in
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
-	}
-
-	if d.State() != nil && d.State().ID != "" {
-		n := GetMetaName(d)
-		if n != "" && n != d.State().ID {
-			log.Printf("metadata name change not supported")
-			d.State().Tainted = true
-			return diag.FromErr(fmt.Errorf("%s", "metadata name change not supported"))
-		}
 	}
 
 	cred, err := expandCredentials(d)

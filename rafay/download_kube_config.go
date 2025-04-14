@@ -124,16 +124,18 @@ func downloadKubeConfigUtil(ctx context.Context, d *schema.ResourceData, m inter
 		accountID, err = getUserDetails(username)
 		if err != nil {
 			log.Printf("failed to get kubeconfig for user %s", username)
-			return diags
+			return diag.FromErr(fmt.Errorf("failed to get kubeconfig for user: %s", username))
 		}
 	}
 
 	if accountID != "" && (defaultNamespace != "" || cluster != "") {
 		if cluster != "" {
-			log.Printf("cluser '%s' is not suppoerted when username %s is given", cluster, username)
+			log.Printf("cluster '%s' argument must not be provided when username %s is given in resource configuration", cluster, username)
+			return diag.FromErr(fmt.Errorf("cluster '%s' argument must not be provided when username %s is given in resource configuration", cluster, username))
 		}
 		if defaultNamespace != "" {
-			log.Printf("namespace '%s' is not suppoerted when username %s  is given", defaultNamespace, username)
+			log.Printf("namespace '%s' argument must not be provided when username %s is given in resource configuration", defaultNamespace, username)
+			return diag.FromErr(fmt.Errorf("namespace '%s' argument must not be provided when username %s is given in resource configuration", defaultNamespace, username))
 		}
 		return diags
 	}
@@ -156,6 +158,7 @@ func downloadKubeConfigUtil(ctx context.Context, d *schema.ResourceData, m inter
 	resp, err := auth.AuthAndRequestFullResponse(uri, "GET", nil)
 	if err != nil {
 		log.Printf("failed to get kubeconfig")
+		return diag.FromErr(fmt.Errorf("failed to get kubeconfig; err: %s", err))
 	}
 
 	jsonData := &struct {
@@ -165,11 +168,13 @@ func downloadKubeConfigUtil(ctx context.Context, d *schema.ResourceData, m inter
 	err = resp.JSON(jsonData)
 	if err != nil {
 		log.Println("failed to unmarshal kubeconfig jsonData error", err)
+		return diag.FromErr(fmt.Errorf("failed to unmarshal kubeconfig jsonData; err: %s", err))
 	}
 
 	decoded, err := base64.StdEncoding.DecodeString(jsonData.Data)
 	if err != nil {
 		log.Println("failed to decode kubeconfig error", err)
+		return diag.FromErr(fmt.Errorf("failed to decode kubeconfig; err: %s", err))
 	}
 	yaml := string(decoded)
 
@@ -177,6 +182,7 @@ func downloadKubeConfigUtil(ctx context.Context, d *schema.ResourceData, m inter
 	err = os.WriteFile(fileLocation, []byte(yaml), 0644)
 	if err != nil {
 		log.Printf("Failed to store the downloaded kubeconfig file ")
+		return diag.FromErr(fmt.Errorf("failed to store the downloaded kubeconfig file; err: %s", err))
 	}
 	fmt.Printf("kubeconfig downloaded to file location - %s", fileLocation)
 

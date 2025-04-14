@@ -123,7 +123,7 @@ func downloadKubeConfigUtil(ctx context.Context, d *schema.ResourceData, m inter
 		username = d.Get("username").(string)
 		accountID, err = getUserDetails(username)
 		if err != nil {
-			log.Printf("failed to get kubeconfig for user %s", username)
+			log.Printf("failed to get kubeconfig for user %s; err: %s", username, err)
 			return diag.FromErr(fmt.Errorf("failed to get kubeconfig for user: %s", username))
 		}
 	}
@@ -157,7 +157,7 @@ func downloadKubeConfigUtil(ctx context.Context, d *schema.ResourceData, m inter
 
 	resp, err := auth.AuthAndRequestFullResponse(uri, "GET", nil)
 	if err != nil {
-		log.Printf("failed to get kubeconfig")
+		log.Printf("failed to get kubeconfig; err: ", err)
 		return diag.FromErr(fmt.Errorf("failed to get kubeconfig; err: %s", err))
 	}
 
@@ -181,7 +181,7 @@ func downloadKubeConfigUtil(ctx context.Context, d *schema.ResourceData, m inter
 	fileLocation := filepath + "/" + filename
 	err = os.WriteFile(fileLocation, []byte(yaml), 0644)
 	if err != nil {
-		log.Printf("Failed to store the downloaded kubeconfig file ")
+		log.Printf("Failed to store the downloaded kubeconfig file; err: %s", err)
 		return diag.FromErr(fmt.Errorf("failed to store the downloaded kubeconfig file; err: %s", err))
 	}
 	fmt.Printf("kubeconfig downloaded to file location - %s", fileLocation)

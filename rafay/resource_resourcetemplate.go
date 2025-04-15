@@ -1679,7 +1679,7 @@ func flattenOpenTofuDestroyHooks(input *eaaspb.OpenTofuDestroyHooks, p []any) []
 	obj["plan"] = flattenLifecycleEventHooks(input.Plan, v)
 
 	v, _ = obj["destroy"].([]any)
-	obj["apply"] = flattenLifecycleEventHooks(input.Destroy, v)
+	obj["destroy"] = flattenLifecycleEventHooks(input.Destroy, v)
 
 	return []any{obj}
 }

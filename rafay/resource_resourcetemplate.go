@@ -1361,9 +1361,8 @@ func flattenCustomProviderOptions(in *eaaspb.CustomProviderOptions) []interface{
 		}
 
 		obj["tasks"] = flattenEaasHooks(in.Tasks, v)
-		obj["reverse_on_destroy"] = in.ReverseOnDestroy
 	}
-
+	obj["reverse_on_destroy"] = in.ReverseOnDestroy
 	return []interface{}{obj}
 }
 

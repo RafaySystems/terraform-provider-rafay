@@ -2582,6 +2582,10 @@ Optional:
 
 - `tasks` (Block List) Configure the custom tasks (see [below for nested schema](#nestedblock--spec--provider_options--custom--tasks))
 
+***Optional***
+
+- `reverse_on_destroy` (String) Execute the workflow in reverse order for destroy action
+
 <a id="nestedblock--spec--provider_options--custom--tasks"></a>
 ### Nested Schema for `spec.provider_options.custom.tasks`
 

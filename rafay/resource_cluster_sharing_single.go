@@ -196,7 +196,6 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 	}
 	if create {
 		if !isProjectShared {
-			tflog.Error(ctx, "########## calling assign cluster to projects 1")
 			_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id}, uaDef, clusterSharingExt)
 			if err != nil {
 				log.Printf("failed to share cluster to new project")
@@ -214,7 +213,6 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 				// Remove the cluster from the old project
 				oldProjectID, err := config.GetProjectIdByName(oldProjectName)
 				if err == nil {
-					tflog.Error(ctx, "########## calling unassign projects")
 					_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{oldProjectID}, uaDef, clusterSharingExt)
 					if err != nil {
 						log.Printf("failed to remove cluster from old project: %v", oldProjectName)
@@ -225,7 +223,6 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 
 				// Add the cluster to the new project
 				if !isProjectShared {
-					tflog.Error(ctx, "########## calling assign cluster to projects 2")
 					_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id}, uaDef, clusterSharingExt)
 					if err != nil {
 						log.Printf("failed to share cluster to new project")

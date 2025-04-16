@@ -14,6 +14,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/share"
 	"github.com/davecgh/go-spew/spew"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -125,6 +126,13 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
 	}
 
+	cse := clusterObj.Settings[clusterSharingExtKey]
+	tflog.Info(ctx, "Got cluster from backend", map[string]any{clusterSharingExtKey: cse})
+	if cse == "false" {
+		// Cluster is using `spec.sharing` for sharing management.
+		return diag.Errorf("cluster sharing is managed from rafay_eks_cluster itself.")
+	}
+
 	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
 		sharingSpec = expandClusterSharingSpec(v)
 	}
@@ -193,7 +201,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 		} else {
 			// share to all projects
 			log.Println("call AssignClusterToProjects", clusterObj.ID, projectObj.ID, clusterName)
-			_, err := cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, "", false)
+			_, err := cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, uaDef, clusterSharingExt)
 			if err != nil {
 				log.Printf("failed to share cluster to ALL projects")
 				return diag.FromErr(err)
@@ -206,7 +214,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 	if clusterObj.ShareMode == share.ShareModeAll {
 		log.Println("cluster share mode is 'all' so first unassign from 'all'")
 		// cluster share mode is 'all' so first unassign from 'all'
-		_, err := cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, "", false)
+		_, err := cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, uaDef, clusterSharingExt)
 		if err != nil {
 			log.Printf("cluster share setting had all, but failed to unshare form all projects")
 			return diag.FromErr(err)
@@ -244,7 +252,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 
 	if len(newIds) > 0 {
 		log.Println("cluster share to project ids ", newIds)
-		_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, newIds, "", false)
+		_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, newIds, uaDef, clusterSharingExt)
 		if err != nil {
 			log.Printf("failed to share cluster to new projects")
 			return diag.FromErr(err)
@@ -275,7 +283,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 
 	if len(oldIds) > 0 {
 		log.Println("cluster unshare from project ids ", oldIds)
-		_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, oldIds, "", false)
+		_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, oldIds, uaDef, clusterSharingExt)
 		if err != nil {
 			log.Printf("failed to un share cluster from old projects")
 			return diag.FromErr(err)

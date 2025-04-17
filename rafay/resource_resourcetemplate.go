@@ -469,7 +469,7 @@ func expandCustomProviderOptions(p []interface{}) (*eaaspb.CustomProviderOptions
 			return nil, err
 		}
 	}
-
+	wfProviderOptions.ReverseOnDestroy = in["reverse_on_destroy"].(bool)
 	return wfProviderOptions, nil
 
 }
@@ -1355,6 +1355,7 @@ func flattenCustomProviderOptions(in *eaaspb.CustomProviderOptions, p []any) []a
 	}
 	v, _ := obj["tasks"].([]any)
 	obj["tasks"] = flattenEaasHooks(in.Tasks, v)
+	obj["reverse_on_destroy"] = in.ReverseOnDestroy
 	return []any{obj}
 }
 

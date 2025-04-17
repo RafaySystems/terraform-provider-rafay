@@ -6424,7 +6424,7 @@ func aksClusterCTL(config *config.Config, clusterName string, configBytes []byte
 	log.Printf("aks cluster ctl start")
 	glogger.SetLevel(zap.DebugLevel)
 	logger := glogger.GetLogger()
-	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false, false, uaDef)
+	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false, false, false, uaDef, "")
 }
 
 func aksClusterCTLStatus(taskid, projectID string) (string, error) {

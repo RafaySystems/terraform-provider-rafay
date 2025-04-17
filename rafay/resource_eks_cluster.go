@@ -17,6 +17,7 @@ import (
 	glogger "github.com/RafaySystems/rctl/pkg/log"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	jsoniter "github.com/json-iterator/go"
 	"k8s.io/utils/strings/slices"
 
@@ -2558,6 +2559,7 @@ func processEKSInputs(ctx context.Context, d *schema.ResourceData, m interface{}
 		log.Print("Cluster data unable to be found")
 		return diag.FromErr(fmt.Errorf("%s", "Cluster data is missing"))
 	}
+
 	//expand cluster config yaml file
 	if v, ok := d.Get("cluster_config").([]interface{}); ok {
 		yamlClusterConfig, err = expandEKSClusterConfig(v, rawConfig.GetAttr("cluster_config"))
@@ -2585,6 +2587,13 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.Errorf("error converting project name to project ID")
 	}
 
+	// Specific to create flow: If `spec.sharing` specified then
+	// set "cluster_sharing_external" to false.
+	var cse string
+	if yamlClusterMetadata.Spec.Sharing != nil {
+		cse = "false"
+	}
+
 	var b bytes.Buffer
 	encoder := yaml.NewEncoder(&b)
 	if err := encoder.Encode(yamlClusterMetadata); err != nil {
@@ -2600,7 +2609,7 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	rctlConfig := config.GetConfig()
 
 	log.Printf("calling cluster ctl:\n%s", b.String())
-	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false, uaDef)
+	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false, uaDef, cse)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		return diag.FromErr(err)
@@ -6861,7 +6870,11 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 		}
 		return diag.FromErr(err)
 	}
-	log.Println("got cluster from backend")
+
+	cse := c.Settings[clusterSharingExtKey]
+	// TODO(Akshay): convert to Info later
+	tflog.Error(ctx, "Got cluster from backend", map[string]any{clusterSharingExtKey: cse})
+
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
 	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID, uaDef)
@@ -6877,6 +6890,13 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err := decoder.Decode(&clusterSpec); err != nil {
 		log.Println("error decoding cluster spec")
 		return diag.FromErr(err)
+	}
+
+	// If the cluster sharing is managed by separate resource then
+	// don't consider sharing from `rafay_eks_cluster`. Both
+	// should not be present simultaneously.
+	if cse == "true" {
+		clusterSpec.Spec.Sharing = nil
 	}
 
 	clusterConfigSpec := EKSClusterConfig{}
@@ -6946,7 +6966,23 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 		log.Printf("edge id has changed, state: %s, current: %s", d.Id(), c.ID)
 		return diag.Errorf("remote and state id mismatch")
 	}
+	cse := c.Settings[clusterSharingExtKey]
+	tflog.Error(ctx, "##### Fetched cluster", map[string]any{clusterSharingExtKey: cse})
+
+	// Check if cse == true and `spec.sharing` specified. then
+	// Error out here only before procedding. The next Upsert is
+	// called by "Create" flow as well which is explicitly setting
+	// cse to false if `spec.sharing` provided.
+	if cse == "true" {
+		if d.HasChange("cluster.0.spec.0.sharing") {
+			_, new := d.GetChange("cluster.0.spec.0.sharing")
+			if new != nil {
+				return diag.Errorf("cluster sharing is managed via external cluster sharing resource. Cannot update sharing from rafay_eks_cluster resource")
+			}
+		}
+	}
 	log.Println("finished update")
+
 	return resourceEKSClusterUpsert(ctx, d, m)
 }
 

@@ -237,7 +237,7 @@ func resourceEKSClusterSpecCreate(ctx context.Context, d *schema.ResourceData, m
 	for clusterName, configBytes := range configMap {
 		/* support only one cluster per spec */
 		log.Println("create cluster:", clusterName, "config:", string(configBytes), "projectID :", c.ProjectID)
-		response, err = clusterctl.Apply(logger, c, clusterName, configBytes, false, false, false, uaDef)
+		response, err = clusterctl.Apply(logger, c, clusterName, configBytes, false, false, false, false, uaDef, "")
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error performing apply on cluster %s: %s", clusterName, err))
 		}

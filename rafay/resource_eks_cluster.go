@@ -770,6 +770,7 @@ func serviceAccountsFields() map[string]*schema.Schema {
 		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
+			Computed:    true,
 			Description: "AWS tags for the service account",
 			Elem: &schema.Schema{
 				Type: schema.TypeString,

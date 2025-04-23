@@ -51,6 +51,7 @@ func resourceStaticResourceCreate(ctx context.Context, d *schema.ResourceData, m
 		if err != nil {
 			return diags
 		}
+
 		auth := config.GetConfig().GetAppAuthProfile()
 		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 		if err != nil {
@@ -208,6 +209,11 @@ func expandResource(in *schema.ResourceData) (*eaaspb.Resource, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		if v, ok := in.Get("sharing").([]any); ok && len(v) > 0 {
+			objSpec.Sharing = expandSharingSpec(v)
+		}
+
 		obj.Spec = objSpec
 	}
 
@@ -279,10 +285,15 @@ func flattenResourceSpec(in *eaaspb.ResourceSpec, p []any) ([]any, error) {
 		obj = p[0].(map[string]any)
 	}
 
-	v, _ := obj["variables"].([]any)
-	obj["variables"] = flattenVariables(in.Variables, v)
+	if len(in.Variables) > 0 {
+		v, ok := obj["variables"].([]any)
+		if !ok {
+			v = []any{}
+		}
 
-	v, _ = obj["sharing"].([]any)
+		obj["variables"] = flattenVariables(in.Variables, v)
+	}
+
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	return []any{obj}, nil

@@ -409,7 +409,7 @@ func resourceClusterSharingSingleDelete(ctx context.Context, d *schema.ResourceD
 		return diag.Errorf("sharing spec should not be empty")
 	}
 
-	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id}, "", false)
+	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id}, uaDef, "")
 	if err != nil {
 		log.Printf("cluster share setting had all, but failed to unshare form all projects")
 		return diag.FromErr(err)

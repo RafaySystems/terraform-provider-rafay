@@ -228,9 +228,9 @@ func (r *MksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read the edge object, got error: %s", err))
 		return
 	}
-
 	cse := existingEdge.Settings[clusterSharingExtKey]
-	if cse == "true" && hub.Spec.Sharing != nil {
+
+	if hub.Spec.Sharing != nil && cse == "true" {
 		resp.Diagnostics.AddError("Client Error", "cluster sharing is managed via external cluster sharing resource. Cannot update sharing from rafay_mks_cluster resource")
 	}
 
@@ -239,6 +239,40 @@ func (r *MksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update cluster, got error: %s", err))
 		return
+	}
+
+	existingEdge, err = cluster.GetCluster(clusterName, pid, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "failed to get v1 mks cluster", map[string]any{"clusterName": clusterName, "projectID": pid})
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read the edge object, got error: %s", err))
+		return
+	}
+	cse = existingEdge.Settings[clusterSharingExtKey]
+
+	// sharing is removed. Unset cse flag.
+	if hub.Spec.Sharing == nil && cse == "false" {
+		existingEdge.Settings[clusterSharingExtKey] = ""
+		err = cluster.UpdateCluster(existingEdge, uaDef)
+		if err != nil {
+			tflog.Error(ctx, "failed to update v1 mks cluster", map[string]any{"edgeObj": existingEdge})
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update the edge object, got error: %s", err))
+			return
+		}
+
+		tflog.Debug(ctx, "cse flag unset")
+	}
+
+	// sharing is present. Set cse flag to false.
+	if hub.Spec.Sharing != nil && cse != "false" {
+		existingEdge.Settings[clusterSharingExtKey] = "false"
+		err = cluster.UpdateCluster(existingEdge, uaDef)
+		if err != nil {
+			tflog.Error(ctx, "failed to update v1 mks cluster", map[string]any{"edgeObj": existingEdge})
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update the edge object, got error: %s", err))
+			return
+		}
+
+		tflog.Debug(ctx, "cse flag set to false")
 	}
 
 	// Wait for the cluster operation to complete

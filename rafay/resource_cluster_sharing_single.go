@@ -131,7 +131,7 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 
 	if cse == "false" {
 		// Cluster is using `spec.sharing` for sharing management.
-		return diag.Errorf("cluster sharing is managed from rafay_eks_cluster itself.")
+		return diag.Errorf("cluster sharing is managed from cluster config itself.")
 	}
 
 	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {

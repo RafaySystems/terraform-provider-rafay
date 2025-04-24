@@ -6974,8 +6974,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	cse := c.Settings[clusterSharingExtKey]
-	// TODO(Akshay): convert to Info later
-	tflog.Error(ctx, "Got cluster from backend", map[string]any{clusterSharingExtKey: cse})
+	tflog.Info(ctx, "Got cluster from backend", map[string]any{clusterSharingExtKey: cse})
 
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()

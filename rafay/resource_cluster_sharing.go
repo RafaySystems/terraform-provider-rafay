@@ -132,7 +132,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 
 	if sharingSpec == nil {
 		// no sharing info. so set to none
-		_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, uaDef, false)
+		_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, uaDef, "")
 		if err != nil {
 			log.Printf("cluster failed to unshare form all projects %s ", clusterName)
 			return diag.FromErr(err)
@@ -475,7 +475,7 @@ func resourceClusterSharingDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
 	}
 
-	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, uaDef, false)
+	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, uaDef, "")
 	if err != nil {
 		log.Printf("cluster share setting had all, but failed to unshare form all projects")
 		return diag.FromErr(err)

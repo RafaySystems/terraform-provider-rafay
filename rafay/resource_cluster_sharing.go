@@ -59,18 +59,12 @@ func resourceClusterSharing() *schema.Resource {
 								Optional:    true,
 								Type:        schema.TypeString,
 							},
-							"id": &schema.Schema{
-								Description: "id of the project",
-								Optional:    true,
-								Type:        schema.TypeString,
-								Sensitive:   true,
-								Computed:    true,
-							},
+
 						}},
 						// 						MaxItems: 0,
 						// 						MinItems: 0,
 						Optional: true,
-						Type:     schema.TypeList,
+						Type:     schema.TypeSet,
 					},
 				}},
 				MaxItems: 1,
@@ -157,6 +151,8 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 		pName, err := config.GetProjectNameById(p.ProjectID)
 		if err != nil {
 			log.Println("get project name from cluster project list failed ", p.ProjectID, err.Error())
+			fmt.Printf("project does not exist")
+			return diag.FromErr(err)
 		} else {
 			var prj commonpb.ProjectMeta
 			prj.Id = p.ProjectID
@@ -409,7 +405,6 @@ func flattenClusterSharingSpec(in *commonpb.SharingSpec, p []interface{}) ([]int
 	} else {
 		obj["projects"] = []interface{}{}
 	}
-
 	return []interface{}{obj}, nil
 }
 

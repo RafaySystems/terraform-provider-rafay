@@ -131,7 +131,7 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 
 	if cse == "false" {
 		// Cluster is using `spec.sharing` for sharing management.
-		return diag.Errorf("cluster sharing is managed from rafay_eks_cluster itself.")
+		return diag.Errorf("cluster sharing is managed from cluster config itself.")
 	}
 
 	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
@@ -409,7 +409,7 @@ func resourceClusterSharingSingleDelete(ctx context.Context, d *schema.ResourceD
 		return diag.Errorf("sharing spec should not be empty")
 	}
 
-	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id}, "", false)
+	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, []string{addProject.Id}, uaDef, "")
 	if err != nil {
 		log.Printf("cluster share setting had all, but failed to unshare form all projects")
 		return diag.FromErr(err)

@@ -7,7 +7,7 @@ const uaDef = "terraform"
 // clusterSharingExt is used to indicate sharing of cluster is managed
 // by dedicated resource either by `rafay_cluster_sharing_single` or
 // `rafay_cluster_sharing`.
-const clusterSharingExt = true
+const clusterSharingExt = "true"
 
 // clusterSharingExtKey is the key in edge.Settings to store cluster
 // sharing external value. Its value can be "true" or "false".

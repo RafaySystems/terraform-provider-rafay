@@ -160,6 +160,7 @@ func getClusterlabels(name, projectId string) (map[string]string, error) {
 
 func updateClusterLabels(name, edgeId, projectId string, labels map[string]string) error {
 	uri := fmt.Sprintf("/edge/v1/projects/%s/edges/%s/labels/", projectId, edgeId)
+	uri += fmt.Sprintf("?user_agent=%s", uaDef)
 	auth := config.GetConfig().GetAppAuthProfile()
 	_, err := auth.AuthAndRequest(uri, "PUT", labels)
 	if err != nil {

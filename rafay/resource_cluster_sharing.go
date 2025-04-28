@@ -123,7 +123,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 	tflog.Info(ctx, "Got cluster from backend", map[string]any{clusterSharingExtKey: cse})
 	if cse == "false" {
 		// Cluster is using `spec.sharing` for sharing management.
-		return diag.Errorf("cluster sharing is managed from cluster config itself.")
+		return diag.Errorf("Detected conflicting cluster sharing configurations in both 'rafay_*_cluster' and 'rafay_cluster_sharing' resources. Please consolidate the sharing settings into a single resource to ensure consistent cluster sharing behavior.")
 	}
 
 	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {

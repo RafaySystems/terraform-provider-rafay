@@ -231,7 +231,7 @@ func (r *MksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	cse := existingEdge.Settings[clusterSharingExtKey]
 
 	if hub.Spec.Sharing != nil && cse == "true" {
-		resp.Diagnostics.AddError("Client Error", "cluster sharing is managed via external cluster sharing resource. Cannot update sharing from rafay_mks_cluster resource")
+		resp.Diagnostics.AddError("Client Error", "Cluster sharing is currently managed through the external 'rafay_cluster_sharing' resource. To prevent configuration conflicts, please remove the sharing settings from the 'rafay_mks_cluster' resource and manage sharing exclusively via the external resource.")
 	}
 
 	// Call the Hub to Apply the cluster

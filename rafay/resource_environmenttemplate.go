@@ -39,36 +39,12 @@ func resourceEnvironmentTemplate() *schema.Resource {
 	}
 }
 
-func resourceEnvironmentTemplateCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEnvironmentTemplateCreate(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	log.Println("environment template create")
-	diags := environmentTemplateUpsert(ctx, d, m)
-	if diags.HasError() {
-		tflog := os.Getenv("TF_LOG")
-		if tflog == "TRACE" || tflog == "DEBUG" {
-			ctx = context.WithValue(ctx, "debug", "true")
-		}
-		environmenttemplate, err := expandEnvironmentTemplate(d)
-		if err != nil {
-			return diags
-		}
-		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
-		if err != nil {
-			return diags
-		}
-
-		err = client.EaasV1().EnvironmentTemplate().Delete(ctx, options.DeleteOptions{
-			Name:    environmenttemplate.Metadata.Name,
-			Project: environmenttemplate.Metadata.Project,
-		})
-		if err != nil {
-			return diags
-		}
-	}
-	return diags
+	return environmentTemplateUpsert(ctx, d, m)
 }
 
-func environmentTemplateUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func environmentTemplateUpsert(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("environment template upsert starts")
 	tflog := os.Getenv("TF_LOG")
@@ -96,7 +72,7 @@ func environmentTemplateUpsert(ctx context.Context, d *schema.ResourceData, m in
 	return diags
 }
 
-func resourceEnvironmentTemplateRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEnvironmentTemplateRead(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("environment template read starts ")
 	meta := GetMetaData(d)
@@ -133,6 +109,12 @@ func resourceEnvironmentTemplateRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
+	if et.GetSpec().GetSharing() != nil && !et.GetSpec().GetSharing().GetEnabled() && environmenttemplate.GetSpec().GetSharing() == nil {
+		environmenttemplate.Spec.Sharing = &commonpb.SharingSpec{}
+		environmenttemplate.Spec.Sharing.Enabled = false
+		environmenttemplate.Spec.Sharing.Projects = et.GetSpec().GetSharing().GetProjects()
+	}
+
 	err = flattenEnvironmentTemplate(d, environmenttemplate)
 	if err != nil {
 		log.Println("read flatten err")
@@ -142,11 +124,11 @@ func resourceEnvironmentTemplateRead(ctx context.Context, d *schema.ResourceData
 
 }
 
-func resourceEnvironmentTemplateUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEnvironmentTemplateUpdate(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	return environmentTemplateUpsert(ctx, d, m)
 }
 
-func resourceEnvironmentTemplateDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEnvironmentTemplateDelete(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("environment template delete starts")
 	tflog := os.Getenv("TF_LOG")
@@ -193,11 +175,11 @@ func expandEnvironmentTemplate(in *schema.ResourceData) (*eaaspb.EnvironmentTemp
 	}
 	obj := &eaaspb.EnvironmentTemplate{}
 
-	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
+	if v, ok := in.Get("metadata").([]any); ok && len(v) > 0 {
 		obj.Metadata = expandV3MetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
+	if v, ok := in.Get("spec").([]any); ok && len(v) > 0 {
 		objSpec, err := expandEnvironmentTemplateSpec(v)
 		if err != nil {
 			return nil, err
@@ -210,14 +192,14 @@ func expandEnvironmentTemplate(in *schema.ResourceData) (*eaaspb.EnvironmentTemp
 	return obj, nil
 }
 
-func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplateSpec, error) {
+func expandEnvironmentTemplateSpec(p []any) (*eaaspb.EnvironmentTemplateSpec, error) {
 	log.Println("expand environment template spec")
 	spec := &eaaspb.EnvironmentTemplateSpec{}
 	if len(p) == 0 || p[0] == nil {
 		return spec, fmt.Errorf("%s", "expand environment template spec empty input")
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
 	if v, ok := in["version"].(string); ok && len(v) > 0 {
 		spec.Version = v
@@ -236,52 +218,52 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 	}
 
 	var err error
-	if p, ok := in["resources"].([]interface{}); ok && len(p) > 0 {
+	if p, ok := in["resources"].([]any); ok && len(p) > 0 {
 		spec.Resources, err = expandEnvironmentResources(p)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["variables"].([]any); ok && len(v) > 0 {
 		spec.Variables = expandVariables(v)
 	}
 
-	if h, ok := in["hooks"].([]interface{}); ok && len(h) > 0 {
+	if h, ok := in["hooks"].([]any); ok && len(h) > 0 {
 		spec.Hooks, err = expandEnvironmentHooks(h)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if ag, ok := in["agents"].([]interface{}); ok && len(ag) > 0 {
+	if ag, ok := in["agents"].([]any); ok && len(ag) > 0 {
 		spec.Agents = expandEaasAgents(ag)
 	}
 
-	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
 	}
 
-	if v, ok := in["contexts"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["contexts"].([]any); ok && len(v) > 0 {
 		spec.Contexts = expandContexts(v)
 	}
 
-	if v, ok := in["agent_override"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["agent_override"].([]any); ok && len(v) > 0 {
 		spec.AgentOverride = expandEaasAgentOverrideOptions(v)
 	}
 
-	if s, ok := in["schedules"].([]interface{}); ok && len(s) > 0 {
+	if s, ok := in["schedules"].([]any); ok && len(s) > 0 {
 		spec.Schedules, err = expandSchedules(s)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if v, ok := in["allow_new_inputs_during_publish"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["allow_new_inputs_during_publish"].([]any); ok && len(v) > 0 {
 		spec.AllowNewInputsDuringPublish = expandBoolValue(v)
 	}
 
-	if s, ok := in["actions"].([]interface{}); ok && len(s) > 0 {
+	if s, ok := in["actions"].([]any); ok && len(s) > 0 {
 		spec.Actions, err = expandActions(s)
 		if err != nil {
 			return nil, err
@@ -291,7 +273,7 @@ func expandEnvironmentTemplateSpec(p []interface{}) (*eaaspb.EnvironmentTemplate
 	return spec, nil
 }
 
-func expandSchedules(p []interface{}) ([]*eaaspb.Schedules, error) {
+func expandSchedules(p []any) ([]*eaaspb.Schedules, error) {
 	schds := make([]*eaaspb.Schedules, 0)
 	if len(p) == 0 || p[0] == nil {
 		return schds, nil
@@ -300,7 +282,7 @@ func expandSchedules(p []interface{}) ([]*eaaspb.Schedules, error) {
 
 	for i := range p {
 		schd := eaaspb.Schedules{}
-		in := p[i].(map[string]interface{})
+		in := p[i].(map[string]any)
 
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			schd.Name = v
@@ -314,22 +296,22 @@ func expandSchedules(p []interface{}) ([]*eaaspb.Schedules, error) {
 			schd.Type = v
 		}
 
-		if v, ok := in["cadence"].([]interface{}); ok && len(v) > 0 {
+		if v, ok := in["cadence"].([]any); ok && len(v) > 0 {
 			schd.Cadence = expandCadence(v)
 		}
 
-		if v, ok := in["context"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		if v, ok := in["context"].([]any); ok && len(v) > 0 && v[0] != nil {
 			schd.Context = expandConfigContextCompoundRef(v[0].(map[string]any))
 		}
 
-		if v, ok := in["opt_out_options"].([]interface{}); ok && len(v) > 0 {
+		if v, ok := in["opt_out_options"].([]any); ok && len(v) > 0 {
 			schd.OptOutOptions, err = expandOptOutOptions(v)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		if h, ok := in["workflows"].([]interface{}); ok && len(h) > 0 {
+		if h, ok := in["workflows"].([]any); ok && len(h) > 0 {
 			schd.Workflows, err = expandCustomProviderOptions(h)
 			if err != nil {
 				return nil, err
@@ -342,15 +324,15 @@ func expandSchedules(p []interface{}) ([]*eaaspb.Schedules, error) {
 	return schds, nil
 }
 
-func expandOptOutOptions(p []interface{}) (*eaaspb.OptOutOptions, error) {
+func expandOptOutOptions(p []any) (*eaaspb.OptOutOptions, error) {
 	ooo := eaaspb.OptOutOptions{}
 	if len(p) == 0 || p[0] == nil {
 		return &ooo, nil
 	}
 
 	var err error
-	in := p[0].(map[string]interface{})
-	if h, ok := in["allow_opt_out"].([]interface{}); ok && len(h) > 0 {
+	in := p[0].(map[string]any)
+	if h, ok := in["allow_opt_out"].([]any); ok && len(h) > 0 {
 		ooo.AllowOptOut = expandBoolValue(h)
 	}
 	if v, ok := in["max_allowed_duration"].(string); ok && len(v) > 0 {
@@ -359,7 +341,7 @@ func expandOptOutOptions(p []interface{}) (*eaaspb.OptOutOptions, error) {
 	if v, ok := in["max_allowed_times"].(int); ok {
 		ooo.MaxAllowedTimes = int32(v)
 	}
-	if h, ok := in["approval"].([]interface{}); ok && len(h) > 0 {
+	if h, ok := in["approval"].([]any); ok && len(h) > 0 {
 		ooo.Approval, err = expandCustomProviderOptions(h)
 		if err != nil {
 			return nil, err
@@ -369,13 +351,13 @@ func expandOptOutOptions(p []interface{}) (*eaaspb.OptOutOptions, error) {
 	return &ooo, nil
 }
 
-func expandCadence(p []interface{}) *eaaspb.ScheduleOptions {
+func expandCadence(p []any) *eaaspb.ScheduleOptions {
 	cadence := eaaspb.ScheduleOptions{}
 	if len(p) == 0 || p[0] == nil {
 		return &cadence
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 	if v, ok := in["cron_expression"].(string); ok && len(v) > 0 {
 		cadence.CronExpression = v
 	}
@@ -391,13 +373,13 @@ func expandCadence(p []interface{}) *eaaspb.ScheduleOptions {
 	return &cadence
 }
 
-func expandEaasAgentOverrideOptions(p []interface{}) *eaaspb.AgentOverrideOptions {
+func expandEaasAgentOverrideOptions(p []any) *eaaspb.AgentOverrideOptions {
 	agentOverrideOptions := &eaaspb.AgentOverrideOptions{}
 	if len(p) == 0 || p[0] == nil {
 		return agentOverrideOptions
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 	if v, ok := in["required"].(bool); ok {
 		agentOverrideOptions.Required = v
 	}
@@ -406,14 +388,14 @@ func expandEaasAgentOverrideOptions(p []interface{}) *eaaspb.AgentOverrideOption
 		agentOverrideOptions.Type = aot
 	}
 
-	if agnts, ok := in["restricted_agents"].([]interface{}); ok && len(agnts) > 0 {
+	if agnts, ok := in["restricted_agents"].([]any); ok && len(agnts) > 0 {
 		agentOverrideOptions.RestrictedAgents = toArrayString(agnts)
 	}
 
 	return agentOverrideOptions
 }
 
-func expandEnvironmentResources(p []interface{}) ([]*eaaspb.EnvironmentResourceCompoundRef, error) {
+func expandEnvironmentResources(p []any) ([]*eaaspb.EnvironmentResourceCompoundRef, error) {
 	log.Println("expand environment resources")
 	if len(p) == 0 || p[0] == nil {
 		return nil, fmt.Errorf("%s", "expand environment resources empty input")
@@ -423,7 +405,7 @@ func expandEnvironmentResources(p []interface{}) ([]*eaaspb.EnvironmentResourceC
 
 	for i := range p {
 		obj := eaaspb.EnvironmentResourceCompoundRef{}
-		in := p[i].(map[string]interface{})
+		in := p[i].(map[string]any)
 
 		if v, ok := in["type"].(string); ok && len(v) > 0 {
 			obj.Type = v
@@ -437,11 +419,11 @@ func expandEnvironmentResources(p []interface{}) ([]*eaaspb.EnvironmentResourceC
 			obj.Name = v
 		}
 
-		if v, ok := in["resource_options"].([]interface{}); ok && len(v) > 0 {
+		if v, ok := in["resource_options"].([]any); ok && len(v) > 0 {
 			obj.ResourceOptions = expandResourceOptions(v)
 		}
 
-		if v, ok := in["depends_on"].([]interface{}); ok && len(v) > 0 {
+		if v, ok := in["depends_on"].([]any); ok && len(v) > 0 {
 			obj.DependsOn = expandDependsOn(v)
 		}
 
@@ -453,14 +435,14 @@ func expandEnvironmentResources(p []interface{}) ([]*eaaspb.EnvironmentResourceC
 
 }
 
-func expandResourceOptions(p []interface{}) *eaaspb.EnvironmentResourceOptions {
+func expandResourceOptions(p []any) *eaaspb.EnvironmentResourceOptions {
 	ro := &eaaspb.EnvironmentResourceOptions{}
 
 	if len(p) == 0 || p[0] == nil {
 		return ro
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
 	if dedicated, ok := in["dedicated"].(bool); ok {
 		ro.Dedicated = dedicated
@@ -473,7 +455,7 @@ func expandResourceOptions(p []interface{}) *eaaspb.EnvironmentResourceOptions {
 	return ro
 }
 
-func expandDependsOn(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
+func expandDependsOn(p []any) []*commonpb.ResourceNameAndVersionRef {
 	dependson := make([]*commonpb.ResourceNameAndVersionRef, 0)
 	if len(p) == 0 {
 		return dependson
@@ -482,7 +464,7 @@ func expandDependsOn(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
 	for indx := range p {
 		obj := &commonpb.ResourceNameAndVersionRef{}
 
-		in := p[indx].(map[string]interface{})
+		in := p[indx].(map[string]any)
 
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
@@ -498,38 +480,38 @@ func expandDependsOn(p []interface{}) []*commonpb.ResourceNameAndVersionRef {
 	return dependson
 }
 
-func expandEnvironmentHooks(p []interface{}) (*eaaspb.EnvironmentHooks, error) {
+func expandEnvironmentHooks(p []any) (*eaaspb.EnvironmentHooks, error) {
 	hooks := &eaaspb.EnvironmentHooks{}
 
 	if len(p) == 0 || p[0] == nil {
 		return hooks, nil
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
 	var err error
-	if h, ok := in["on_completion"].([]interface{}); ok && len(h) > 0 {
+	if h, ok := in["on_completion"].([]any); ok && len(h) > 0 {
 		hooks.OnCompletion, err = expandEaasHooks(h)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if h, ok := in["on_success"].([]interface{}); ok && len(h) > 0 {
+	if h, ok := in["on_success"].([]any); ok && len(h) > 0 {
 		hooks.OnSuccess, err = expandEaasHooks(h)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if h, ok := in["on_failure"].([]interface{}); ok && len(h) > 0 {
+	if h, ok := in["on_failure"].([]any); ok && len(h) > 0 {
 		hooks.OnFailure, err = expandEaasHooks(h)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if h, ok := in["on_init"].([]interface{}); ok && len(h) > 0 {
+	if h, ok := in["on_init"].([]any); ok && len(h) > 0 {
 		hooks.OnInit, err = expandEaasHooks(h)
 		if err != nil {
 			return nil, err
@@ -553,12 +535,12 @@ func flattenEnvironmentTemplate(d *schema.ResourceData, in *eaaspb.EnvironmentTe
 		return err
 	}
 
-	v, ok := d.Get("spec").([]interface{})
+	v, ok := d.Get("spec").([]any)
 	if !ok {
-		v = []interface{}{}
+		v = []any{}
 	}
 
-	var ret []interface{}
+	var ret []any
 	ret, err = flattenEnvironmentTemplateSpec(in.Spec, v)
 	if err != nil {
 		log.Println("flatten environment template spec err")
@@ -573,282 +555,172 @@ func flattenEnvironmentTemplate(d *schema.ResourceData, in *eaaspb.EnvironmentTe
 	return nil
 }
 
-func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []interface{}) ([]interface{}, error) {
+func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []any) ([]any, error) {
 	if in == nil {
 		return nil, nil
 	}
 
-	obj := map[string]interface{}{}
+	obj := map[string]any{}
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
-
 	obj["version"] = in.Version
 	obj["version_state"] = in.VersionState
 	obj["icon_url"] = in.IconURL
 	obj["readme"] = in.Readme
 
-	if len(in.Resources) > 0 {
-		v, ok := obj["resources"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
+	v, _ := obj["resources"].([]any)
+	obj["resources"] = flattenEnvironmentResources(in.Resources, v)
 
-		obj["resources"] = flattenEnvironmentResources(in.Resources, v)
-	}
+	v, _ = obj["variables"].([]any)
+	obj["variables"] = flattenVariables(in.Variables, v)
 
-	if len(in.Variables) > 0 {
-		v, ok := obj["variables"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["variables"] = flattenVariables(in.Variables, v)
-	}
-
-	if in.Hooks != nil {
-		v, ok := obj["hooks"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["hooks"] = flattenEnvironmentHooks(in.Hooks, v)
-	}
+	v, _ = obj["hooks"].([]any)
+	obj["hooks"] = flattenEnvironmentHooks(in.Hooks, v)
 
 	obj["agents"] = flattenEaasAgents(in.Agents)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
-	if len(in.Contexts) > 0 {
-		v, ok := obj["contexts"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["contexts"] = flattenContexts(in.Contexts, v)
-	}
+	v, _ = obj["contexts"].([]any)
+	obj["contexts"] = flattenContexts(in.Contexts, v)
 
 	obj["agent_override"] = flattenEaasAgentOverrideOptions(in.AgentOverride)
 
-	if len(in.Schedules) > 0 {
-		v, ok := obj["schedules"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["schedules"] = flattenSchedules(in.Schedules, v)
-	}
+	v, _ = obj["schedules"].([]any)
+	obj["schedules"] = flattenSchedules(in.Schedules, v)
 
 	obj["allow_new_inputs_during_publish"] = flattenBoolValue(in.AllowNewInputsDuringPublish)
 
-	if len(in.Actions) > 0 {
-		v, ok := obj["actions"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
+	v, _ = obj["actions"].([]any)
+	obj["actions"] = flattenActions(in.Actions, v)
 
-		obj["actions"] = flattenActions(in.Actions, v)
-	}
-
-	return []interface{}{obj}, nil
+	return []any{obj}, nil
 }
 
-func flattenEaasAgentOverrideOptions(in *eaaspb.AgentOverrideOptions) []interface{} {
+func flattenEaasAgentOverrideOptions(in *eaaspb.AgentOverrideOptions) []any {
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	obj["required"] = in.Required
 	obj["type"] = in.Type
 	obj["restricted_agents"] = toArrayInterface(in.RestrictedAgents)
 
-	return []interface{}{obj}
+	return []any{obj}
 }
 
-func flattenSchedules(input []*eaaspb.Schedules, p []interface{}) []interface{} {
+func flattenSchedules(input []*eaaspb.Schedules, p []any) []any {
 	log.Println("flatten schedules start")
 	if input == nil {
 		return nil
 	}
 
-	out := make([]interface{}, len(input))
+	out := make([]any, len(input))
 	for i, in := range input {
 		log.Println("flatten schedule ", in)
-		obj := map[string]interface{}{}
+		obj := map[string]any{}
 		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+			obj = p[i].(map[string]any)
 		}
+		obj["name"] = in.Name
+		obj["description"] = in.Description
+		obj["type"] = in.Type
 
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
-		}
+		v, _ := obj["cadence"].([]any)
+		obj["cadence"] = flattenCadence(in.Cadence, v)
 
-		if len(in.Description) > 0 {
-			obj["description"] = in.Description
-		}
+		obj["context"] = []any{flattenConfigContextCompoundRef(in.Context)}
 
-		if len(in.Type) > 0 {
-			obj["type"] = in.Type
-		}
+		v, _ = obj["opt_out_options"].([]any)
+		obj["opt_out_options"] = flattenOptOutOptions(in.OptOutOptions, v)
 
-		if in.Cadence != nil {
-			v, ok := obj["cadence"].([]interface{})
-			if !ok {
-				v = []interface{}{}
-			}
-			obj["cadence"] = flattenCadence(in.Cadence, v)
-		}
-		if in.Context != nil {
-			cc := flattenConfigContextCompoundRef(in.Context)
-			obj["context"] = []interface{}{cc}
-		}
-
-		if in.OptOutOptions != nil {
-			v, ok := obj["opt_out_options"].([]interface{})
-			if !ok {
-				v = []interface{}{}
-			}
-			obj["opt_out_options"] = flattenOptOutOptions(in.OptOutOptions, v)
-		}
-		obj["workflows"] = flattenCustomProviderOptions(in.Workflows)
-
+		v, _ = obj["workflows"].([]any)
+		obj["workflows"] = flattenCustomProviderOptions(in.Workflows, v)
 		out[i] = &obj
 	}
 
 	return out
 }
 
-func flattenOptOutOptions(in *eaaspb.OptOutOptions, p []interface{}) []interface{} {
+func flattenOptOutOptions(in *eaaspb.OptOutOptions, p []any) []any {
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
-
 	obj["allow_opt_out"] = flattenBoolValue(in.AllowOptOut)
 	obj["max_allowed_duration"] = in.MaxAllowedDuration
 	obj["max_allowed_times"] = in.MaxAllowedTimes
-	obj["approval"] = flattenCustomProviderOptions(in.Approval)
-
-	return []interface{}{obj}
+	v, _ := obj["approval"].([]any)
+	obj["approval"] = flattenCustomProviderOptions(in.Approval, v)
+	return []any{obj}
 }
 
-func flattenCadence(in *eaaspb.ScheduleOptions, p []interface{}) []interface{} {
+func flattenCadence(in *eaaspb.ScheduleOptions, p []any) []any {
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
-
-	if len(in.CronExpression) > 0 {
-		obj["cron_expression"] = in.CronExpression
-	}
-
-	if len(in.CronTimezone) > 0 {
-		obj["cron_timezone"] = in.CronTimezone
-	}
-
-	if len(in.TimeToLive) > 0 {
-		obj["time_to_live"] = in.TimeToLive
-	}
-
-	return []interface{}{obj}
+	obj["cron_expression"] = in.CronExpression
+	obj["cron_timezone"] = in.CronTimezone
+	obj["time_to_live"] = in.TimeToLive
+	return []any{obj}
 }
 
-func flattenEnvironmentHooks(in *eaaspb.EnvironmentHooks, p []interface{}) []interface{} {
+func flattenEnvironmentHooks(in *eaaspb.EnvironmentHooks, p []any) []any {
 	log.Println("flatten environment hooks start")
 	if in == nil {
 		return nil
 	}
 
-	obj := make(map[string]interface{})
+	obj := make(map[string]any)
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
 
-	if len(in.OnCompletion) > 0 {
-		v, ok := obj["on_completion"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
+	v, _ := obj["on_completion"].([]any)
+	obj["on_completion"] = flattenEaasHooks(in.OnCompletion, v)
 
-		obj["on_completion"] = flattenEaasHooks(in.OnCompletion, v)
-	}
+	v, _ = obj["on_success"].([]any)
+	obj["on_success"] = flattenEaasHooks(in.OnSuccess, v)
 
-	if len(in.OnSuccess) > 0 {
-		v, ok := obj["on_success"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
+	v, _ = obj["on_failure"].([]any)
+	obj["on_failure"] = flattenEaasHooks(in.OnFailure, v)
 
-		obj["on_success"] = flattenEaasHooks(in.OnSuccess, v)
-	}
+	v, _ = obj["on_init"].([]any)
+	obj["on_init"] = flattenEaasHooks(in.OnInit, v)
 
-	if len(in.OnFailure) > 0 {
-		v, ok := obj["on_failure"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["on_failure"] = flattenEaasHooks(in.OnFailure, v)
-	}
-
-	if len(in.OnInit) > 0 {
-		v, ok := obj["on_init"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["on_init"] = flattenEaasHooks(in.OnInit, v)
-	}
-
-	return []interface{}{obj}
+	return []any{obj}
 }
 
-func flattenEnvironmentResources(input []*eaaspb.EnvironmentResourceCompoundRef, p []interface{}) []interface{} {
+func flattenEnvironmentResources(input []*eaaspb.EnvironmentResourceCompoundRef, p []any) []any {
 	log.Println("flatten environment resources start")
 	if len(input) == 0 {
 		return nil
 	}
 
-	out := make([]interface{}, len(input))
+	out := make([]any, len(input))
 	for i, in := range input {
 		log.Println("flatten environment resource ", in)
-		obj := map[string]interface{}{}
+		obj := map[string]any{}
 		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+			obj = p[i].(map[string]any)
 		}
+		obj["type"] = in.Type
+		obj["kind"] = in.Kind
+		obj["name"] = in.Name
+		obj["resource_options"] = flattenResourceOptions(in.ResourceOptions)
 
-		if len(in.Type) > 0 {
-			obj["type"] = in.Type
-		}
-
-		if len(in.Kind) > 0 {
-			obj["kind"] = in.Kind
-		}
-
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
-		}
-
-		if in.ResourceOptions != nil {
-			obj["resource_options"] = flattenResourceOptions(in.ResourceOptions)
-		}
-
-		if len(in.DependsOn) > 0 {
-			v, ok := obj["depends_on"].([]interface{})
-			if !ok {
-				v = []interface{}{}
-			}
-
-			obj["depends_on"] = flattenDependsOn(in.DependsOn, v)
-		}
+		v, _ := obj["depends_on"].([]any)
+		obj["depends_on"] = flattenDependsOn(in.DependsOn, v)
 
 		out[i] = &obj
 	}
@@ -856,47 +728,39 @@ func flattenEnvironmentResources(input []*eaaspb.EnvironmentResourceCompoundRef,
 	return out
 }
 
-func flattenResourceOptions(input *eaaspb.EnvironmentResourceOptions) []interface{} {
+func flattenResourceOptions(input *eaaspb.EnvironmentResourceOptions) []any {
 	if input == nil {
 		return nil
 	}
-
-	obj := map[string]interface{}{}
-	obj["dedicated"] = input.Dedicated
-	obj["version"] = input.Version
-
-	return []interface{}{obj}
+	obj := map[string]any{
+		"dedicated": input.Dedicated,
+		"version":   input.Version,
+	}
+	return []any{obj}
 }
 
-func flattenDependsOn(input []*commonpb.ResourceNameAndVersionRef, p []interface{}) []interface{} {
+func flattenDependsOn(input []*commonpb.ResourceNameAndVersionRef, p []any) []any {
 	log.Println("flatten dependson start")
 	if input == nil {
 		return nil
 	}
 
-	out := make([]interface{}, len(input))
+	out := make([]any, len(input))
 	for i, in := range input {
 		log.Println("flatten depends on ", in)
-		obj := map[string]interface{}{}
+		obj := map[string]any{}
 		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+			obj = p[i].(map[string]any)
 		}
-
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
-		}
-
-		if len(in.Version) > 0 {
-			obj["version"] = in.Version
-		}
-
+		obj["name"] = in.Name
+		obj["version"] = in.Version
 		out[i] = &obj
 	}
 
 	return out
 }
 
-func resourceEnvironmentTemplateImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceEnvironmentTemplateImport(d *schema.ResourceData, m any) ([]*schema.ResourceData, error) {
 
 	log.Printf("Environment Template Import Starts")
 

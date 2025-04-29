@@ -6,11 +6,11 @@ resource "rafay_agent" "tfdemoagent1" {
     project = "terraform"
   }
   spec {
-        type = "ClusterAgent"
-        cluster {
-            name = "dev-test"
-        }
-        active = true
+    type = "ClusterAgent"
+    cluster {
+      name = "dev-test"
+    }
+    active = true
   }
 }
 
@@ -21,7 +21,7 @@ resource "rafay_agent" "tfdemoagent2" {
     project = "terraform"
   }
   spec {
-        type = "Docker"
-        active = true
+    type   = "Docker"
+    active = true
   }
 }

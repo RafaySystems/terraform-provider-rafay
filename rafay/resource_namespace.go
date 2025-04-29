@@ -104,8 +104,9 @@ func resourceNamespaceImport(d *schema.ResourceData, meta interface{}) ([]*schem
 
 func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("namespace create starts")
+	create := isNamespaceAlreadyExists(ctx, d)
 	diags := resourceNamespaceUpsert(ctx, d, m)
-	if diags.HasError() {
+	if diags.HasError() && !create {
 		if checkStandardInputTextError(diags[0].Summary) {
 			return diags
 		}
@@ -266,7 +267,7 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 			break
 		}
 		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed {
-			return diag.FromErr(fmt.Errorf("%s", "failed to publish namespace"))
+			return diag.FromErr(fmt.Errorf("%s to %s", "failed to publish namespace", nsStatus.Status.Reason))
 		}
 		log.Println("nsStatus.Status.ConditionStatus ", nsStatus.Status.ConditionStatus)
 	}
@@ -1191,4 +1192,27 @@ func flattenNamespaceArtifact(nsat *namespaceSpecTranspose, p []interface{}) ([]
 
 	return []interface{}{obj}, nil
 
+}
+
+func isNamespaceAlreadyExists(ctx context.Context, d *schema.ResourceData) bool {
+
+	meta := GetMetaData(d)
+	if meta == nil {
+		return false
+	}
+
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		return false
+	}
+
+	_, err = client.InfraV3().Namespace().Get(ctx, options.GetOptions{
+		Name:    meta.Name,
+		Project: meta.Project,
+	})
+	if err != nil {
+		return false
+	}
+	return true
 }

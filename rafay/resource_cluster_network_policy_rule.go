@@ -11,6 +11,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/securitypb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
@@ -158,6 +159,11 @@ func resourceClusterNetworkPolicyRuleRead(ctx context.Context, d *schema.Resourc
 			return diags
 		}
 		return diag.FromErr(err)
+	}
+
+	if tfClusterNetworkPolicyRuleState.Spec != nil && tfClusterNetworkPolicyRuleState.Spec.Sharing != nil && !tfClusterNetworkPolicyRuleState.Spec.Sharing.Enabled && cnp.Spec.Sharing == nil {
+		cnp.Spec.Sharing = &commonpb.SharingSpec{}
+		cnp.Spec.Sharing.Enabled = false
 	}
 
 	err = flattenClusterNetworkPolicyRule(d, cnp)

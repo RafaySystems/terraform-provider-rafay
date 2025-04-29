@@ -1,5 +1,5 @@
 data "rafay_user" "user" {
-    user_name    = "name"
+  user_name = "name"
 }
 
 output "user_groups" {

@@ -294,8 +294,9 @@ func resourceCluseroverrideImport(d *schema.ResourceData, meta interface{}) ([]*
 }
 
 func resourceClusterOverrideCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	create := isClusterOverrideAlreadyExists(d)
 	diags := resourceOverrideUpsert(ctx, d, m)
-	if diags.HasError() {
+	if diags.HasError() && !create {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
@@ -1247,4 +1248,22 @@ func getOverrideValues(co commands.ClusterOverrideYamlConfig, filePath string) (
 		return "", fmt.Errorf("error in reading the value file %s: %s\n", valueFileLocation, err)
 	}
 	return string(valueFileContent), nil
+}
+
+func isClusterOverrideAlreadyExists(d *schema.ResourceData) bool {
+
+	tfLocalState, err := expandOverride(d)
+	if err != nil {
+		return false
+	}
+
+	projectId, err := config.GetProjectIdByName(tfLocalState.Metadata.Project)
+	if err != nil {
+		return false
+	}
+	_, err = clusteroverride.GetClusterOverride(tfLocalState.Metadata.Name, projectId, tfLocalState.Spec.Type)
+	if err != nil {
+		return false
+	}
+	return true
 }

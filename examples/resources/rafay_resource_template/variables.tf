@@ -46,6 +46,6 @@ variable "agent_name" {
 }
 
 variable "driver_name" {
-    description = "driver name for the resource template"
-    default     = "my-driver"
+  description = "driver name for the resource template"
+  default     = "my-driver"
 }

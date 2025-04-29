@@ -22,13 +22,13 @@ resource "rafay_blueprint" "custom-blueprint" {
   }
   spec {
     version = "v0"
+    type    = "custom"
     base {
       name    = "default"
       version = "1.16.0"
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       enable_csi_secret_store = true
@@ -69,6 +69,9 @@ resource "rafay_blueprint" "custom-blueprint" {
     placement {
       auto_publish = false
     }
+    drift_webhook {
+      enabled = false
+    }
   }
 }
 ```
@@ -92,7 +95,6 @@ resource "rafay_blueprint" "custom-blueprint" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       monitoring {
@@ -149,7 +151,6 @@ resource "rafay_blueprint" "custom-blueprint-advanced" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       monitoring {
@@ -217,11 +218,9 @@ resource "rafay_blueprint" "custom-blueprint-advanced2" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       enable_rook_ceph = true
-      enable_cni = false
       monitoring {
         metrics_server {
           enabled = true
@@ -273,7 +272,6 @@ resource "rafay_blueprint" "custom-golden-blueprint" {
     type = "golden"
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       monitoring {
@@ -314,45 +312,6 @@ resource "rafay_blueprint" "custom-golden-blueprint" {
 
 ---
 
-Example of a custom blueprint resource with service mesh.
-
-```terraform
-resource "rafay_blueprint" "mesh-blueprint" {
-  metadata {
-    name    = "custom-mesh-blueprint"
-    project = "terraform"
-  }
-  spec {
-    version = "v0"
-    base {
-      name    = "default"
-      version = "1.19.0"
-    }
-    default_addons {
-      enable_ingress    = true
-      enable_logging    = false
-      enable_monitoring = true
-      enable_vm         = false
-    }
-    drift {
-      action  = "Deny"
-      enabled = true
-    }
-
-    service_mesh {
-      profile {
-        name = "tfdemomeshprofile1"
-        version = "v0"
-      }
-      policies {
-        name = "tfdemocmp1"
-        version = "v0"
-      }
-    }
-  }
-}
-```
-
 Example of a custom blueprint resource with cost profile.
 
 ```terraform
@@ -369,7 +328,6 @@ resource "rafay_blueprint" "cost-blueprint" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
     }
@@ -412,15 +370,16 @@ resource "rafay_blueprint" "cost-blueprint" {
 ### Nested Schema for `spec`
 
 ***Required***
-- `base` - (Block List, Max: 1) The base information for the resource. (See [below for nested schema](#nestedblock--spec--base))
 - `version` - (String) The blueprint version. 
 
 ***Optional***
 
+- `type` - (String) The type of blueprint. Valid values are `golden`, `custom`. Default is `custom`.
 - `custom_addons` - (Block List) A list of custom add-ons for the resource. (See [below for nested schema](#nestedblock--spec--custom_addons))
 - `components_criticality` - (Block list) A list of addons that are critical to determine the status of blueprint sync.(See [below for nested schema](#nestedblock--spec--components_criticality))
 - `default_addons` - (Block List) A list of default add-ons for the resource. (See [below for nested schema](#nestedblock--spec--default_addons)) 
 - `drift` - (Block List, Max: 1) Prevents configuration drift. Drift is a change to your live cluster that is different from the source of truth. (See [below for nested schema](#nestedblock--spec--drift))
+- `drift_webhook` - (Block List, Max: 1) Drift webhook configuration. (See [below for nested schema](#nestedblock--spec--drift_webhook))
 - `placement` - (Block List, Max: 1) Defines the cluster(s) where blueprint will be published. (See [below for nested schema](#nestedblock--spec--placement))
 - `private_kube_api_proxies` - (Block List) A private kubernetes API proxy network, used to provide kubectl access for your users. (See [below for nested schema](#nestedblock--spec--private_kube_api_proxies))
 - `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A blueprint can be shared with one or more projects.  (See [below for nested schema](#nestedblock--spec--sharing))
@@ -429,8 +388,8 @@ resource "rafay_blueprint" "cost-blueprint" {
 - `namespace_config` (Block List, Max: 1) namespace config (see [below for nested schema](#nestedblock--spec--namespace_config))
 - `opa_policy` (Block List, Max: 1) opa policy and version details (see [below for nested schema](#nestedblock--spec--opa_policy))
 - `network_policy` (Block List, Max: 1) Network policy and version details (see [below for nested schema](#nestedblock--spec--network_policy))
-- `service_mesh` (Block List, Max: 1) Service Mesh Profile, Cluster Policies and version details (see [below for nested schema](#nestedblock--spec--service_mesh))
 - `cost_profile` (Block List, Max: 1) Cost Profile and version details (see [below for nested schema](#nestedblock--spec--cost_profile))
+- `version_state` - (String) Represents the current state of the blueprint version (draft, active or disable).
 <a id="nestedblock--spec--base"></a>
 ### Nested Schema for `spec.base`
 
@@ -465,10 +424,13 @@ resource "rafay_blueprint" "cost-blueprint" {
 ***Optional***
 
 - `enable_ingress` - (Boolean) If enabled, ingress is installed on the cluster.  
-- `enable_logging` - (Boolean) If enabled, logging is installed on the cluster.  
 - `enable_monitoring` - (Boolean) If enabled, monitoring is installed on the cluster. 
 - `enable_rook_ceph` - (Boolean) If enabled, run ceph inside a cluster.
-- `enable_cni` - (Boolean) If enabled, custom cni add-ons on the clusters. 
+- `enable_cni` - (Boolean) If enabled, custom cni add-ons on the clusters. (deprecated)
+- `enable_cilium_cni` - (Boolean) If enabled, deploys custom cilium cni add-ons on the clusters. 
+- `enable_calico_cni` - (Boolean) If enabled, deploys custom calico cni add-ons on the clusters. 
+- `enable_kubeovn_cni` - (Boolean) If enabled, deploys custom kubeovn cni add-ons on the clusters. 
+- `enable_kubeovn_chaning_cni` - (Boolean) If enabled, deploys custom kubeovn Cilium Chaning mode cni add-ons on the clusters. 
 - `enable_vm` - (Boolean) If enabled, VM operator (kubevirt) is installed on the cluster. 
 - `enable_csi_secret_store` - (Boolean) If enabled, Secrets Store CSI Driver Add-on is installed on the cluster. 
 - `csi_secret_store_config` - (Block List) The configuration for Secrets Store CSI Driver Add-on is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--csistore-config))
@@ -559,6 +521,11 @@ Optional:
 - `action` - (String) If enabled, drift is enabled for resource.  Supported values are: `Deny` or `Notify`. 
 - `enabled` - (Boolean) If enabled, drift reconciliation is enabled for resource. 
 
+<a id="nestedblock--spec--drift_webhook"></a>
+### Nested Schema for `spec.drift_webhook`
+
+***Required***
+- `enabled` - (Boolean) If enabled, drift webhook is enabled for blueprint.
 
 <a id="nestedblock--spec--placement"></a>
 ### Nested Schema for `spec.placement`
@@ -666,30 +633,6 @@ Optional:
 - `name` (String) name of the network profile
 - `version` (String) version of the network profile
 
-
-<a id="nestedblock--spec--service_mesh"></a>
-### Nested Schema for `spec.service_mesh`
-
-***Required***
-
-- `policies` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--service_mesh--policies))
-- `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--service_mesh--profile))
-
-<a id="nestedblock--spec--service_mesh--policies"></a>
-### Nested Schema for `spec.service_mesh.policies`
-
-***Required***
-
-- `name` (String) name of the cluster mesh policy
-- `version` (String) version of the cluster mesh policy
-
-<a id="nestedblock--spec--service_mesh--profile"></a>
-### Nested Schema for `spec.service_mesh.profile`
-
-***Required***
-
-- `name` (String) name of the mesh profile
-- `version` (String) version of the mesh profile
 
 <a id="nestedblock--spec--cost_profile"></a>
 ### Nested Schema for `spec.cost_profile`

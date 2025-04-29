@@ -14,6 +14,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/share"
 	"github.com/davecgh/go-spew/spew"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -66,8 +67,8 @@ func resourceClusterSharing() *schema.Resource {
 								Computed:    true,
 							},
 						}},
-						MaxItems: 0,
-						MinItems: 0,
+						// 						MaxItems: 0,
+						// 						MinItems: 0,
 						Optional: true,
 						Type:     schema.TypeList,
 					},
@@ -125,13 +126,20 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
 	}
 
+	cse := clusterObj.Settings[clusterSharingExtKey]
+	tflog.Info(ctx, "Got cluster from backend", map[string]any{clusterSharingExtKey: cse})
+	if cse == "false" {
+		// Cluster is using `spec.sharing` for sharing management.
+		return diag.Errorf("cluster sharing is managed from rafay_eks_cluster itself.")
+	}
+
 	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
 		sharingSpec = expandClusterSharingSpec(v)
 	}
 
 	if sharingSpec == nil {
 		// no sharing info. so set to none
-		_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{})
+		_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, "", false)
 		if err != nil {
 			log.Printf("cluster failed to unshare form all projects %s ", clusterName)
 			return diag.FromErr(err)
@@ -193,7 +201,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 		} else {
 			// share to all projects
 			log.Println("call AssignClusterToProjects", clusterObj.ID, projectObj.ID, clusterName)
-			_, err := cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{})
+			_, err := cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, uaDef, clusterSharingExt)
 			if err != nil {
 				log.Printf("failed to share cluster to ALL projects")
 				return diag.FromErr(err)
@@ -206,7 +214,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 	if clusterObj.ShareMode == share.ShareModeAll {
 		log.Println("cluster share mode is 'all' so first unassign from 'all'")
 		// cluster share mode is 'all' so first unassign from 'all'
-		_, err := cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{})
+		_, err := cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, uaDef, clusterSharingExt)
 		if err != nil {
 			log.Printf("cluster share setting had all, but failed to unshare form all projects")
 			return diag.FromErr(err)
@@ -244,7 +252,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 
 	if len(newIds) > 0 {
 		log.Println("cluster share to project ids ", newIds)
-		_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, newIds)
+		_, err = cluster.AssignClusterToProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, newIds, uaDef, clusterSharingExt)
 		if err != nil {
 			log.Printf("failed to share cluster to new projects")
 			return diag.FromErr(err)
@@ -275,7 +283,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 
 	if len(oldIds) > 0 {
 		log.Println("cluster unshare from project ids ", oldIds)
-		_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, oldIds)
+		_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeCustom, oldIds, uaDef, clusterSharingExt)
 		if err != nil {
 			log.Printf("failed to un share cluster from old projects")
 			return diag.FromErr(err)
@@ -388,16 +396,18 @@ func resourceClusterSharingRead(ctx context.Context, d *schema.ResourceData, m i
 
 func flattenClusterSharingSpec(in *commonpb.SharingSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
-		return nil, fmt.Errorf("%s", "flattenClusterSharingSpec empty input")
+		return nil, fmt.Errorf("flattenClusterSharingSpec empty input")
 	}
 
+	// Always start with a new map to reflect the remote state exactly.
 	obj := map[string]interface{}{}
-	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
-	}
 	obj["all"] = in.Enabled
+
+	// If there are any projects (other than the parent), add them; if not, explicitly set an empty list.
 	if len(in.Projects) > 0 {
 		obj["projects"] = flattenProjectMeta(in.Projects, true)
+	} else {
+		obj["projects"] = []interface{}{}
 	}
 
 	return []interface{}{obj}, nil
@@ -412,7 +422,8 @@ func flattenClusterSharing(d *schema.ResourceData, clusterName string, projectNa
 		inSharing.Enabled = false
 	}
 
-	if len(in.Projects) > 1 {
+	// Instead of only setting projects when > 1, do so when there’s at least one.
+	if len(in.Projects) > 0 {
 		inSharing.Projects = projs
 	}
 
@@ -427,12 +438,9 @@ func flattenClusterSharing(d *schema.ResourceData, clusterName string, projectNa
 		return err
 	}
 
-	// XXX Debug
-	w1 := spew.Sprintf("%+v", ret)
-	log.Println("flattenClusterSharing after ", w1)
+	log.Println("flattenClusterSharing after ", spew.Sprintf("%+v", ret))
 
-	err = d.Set("sharing", ret)
-	if err != nil {
+	if err = d.Set("sharing", ret); err != nil {
 		log.Println("failed to set sharing")
 		return err
 	}
@@ -473,7 +481,7 @@ func resourceClusterSharingDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
 	}
 
-	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{})
+	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, "", false)
 	if err != nil {
 		log.Printf("cluster share setting had all, but failed to unshare form all projects")
 		return diag.FromErr(err)
@@ -495,13 +503,15 @@ func expandClusterSharingSpec(p []interface{}) *commonpb.SharingSpec {
 
 	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
 		obj.Projects = expandProjectMeta(v)
-		for _, inProj := range obj.Projects {
-			pID, err := config.GetProjectIdByName(inProj.Name)
-			if err != nil {
-				log.Println("failed to get project id by name ", inProj.Name)
-			} else {
-				inProj.Id = pID
-			}
+	} else if v, ok := in["projects"].(*schema.Set); ok && v != nil && v.Len() > 0 {
+		obj.Projects = expandProjectMeta(v.List())
+	}
+	for _, inProj := range obj.Projects {
+		pID, err := config.GetProjectIdByName(inProj.Name)
+		if err != nil {
+			log.Println("failed to get project id by name ", inProj.Name)
+		} else {
+			inProj.Id = pID
 		}
 	}
 

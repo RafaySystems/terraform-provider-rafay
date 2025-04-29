@@ -14,7 +14,6 @@ import (
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/blueprint"
-	bp "github.com/RafaySystems/rctl/pkg/blueprint"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -78,8 +77,11 @@ func resourceBluePrintImport(d *schema.ResourceData, meta interface{}) ([]*schem
 
 func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("blueprint create starts")
+	create := isBlueprintAlreadyExists(ctx, d)
+
 	diags := resourceBluePrintUpsert(ctx, d, m)
-	if diags.HasError() {
+
+	if diags.HasError() && !create {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
 			ctx = context.WithValue(ctx, "debug", "true")
@@ -151,14 +153,6 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	d.SetId(blueprint.Metadata.Name)
-
-	//blueprint publish
-	projectId, err := config.GetProjectIdByName(blueprint.Metadata.Project)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	bp.PublishBlueprint(blueprint.Metadata.Name, blueprint.Spec.Version, blueprint.Metadata.Description, projectId)
-
 	return diags
 }
 
@@ -211,6 +205,17 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.Sharing != nil && !tfBlueprintState.Spec.Sharing.Enabled && bp.Spec.Sharing == nil {
 		bp.Spec.Sharing = &commonpb.SharingSpec{}
 		bp.Spec.Sharing.Enabled = false
+		bp.Spec.Sharing.Projects = tfBlueprintState.Spec.Sharing.Projects
+	}
+	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.DriftWebhook == nil {
+		bp.Spec.DriftWebhook = nil
+	}
+	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.DefaultAddons != nil && bp.Spec != nil && bp.Spec.DefaultAddons != nil {
+		if tfBlueprintState.Spec.DefaultAddons.EnableMonitoring {
+			if tfBlueprintState.Spec.DefaultAddons.Monitoring == nil && bp.Spec.DefaultAddons.Monitoring != nil {
+				bp.Spec.DefaultAddons.Monitoring = nil
+			}
+		}
 	}
 
 	// XXX Debug
@@ -308,6 +313,10 @@ func expandBluePrintSpec(p []interface{}) (*infrapb.BlueprintSpec, error) {
 
 	if v, ok := in["version"].(string); ok && len(v) > 0 {
 		obj.Version = v
+	}
+
+	if v, ok := in["version_state"].(string); ok && len(v) > 0 {
+		obj.VersionState = v
 	}
 
 	if v, ok := in["default_addons"].([]interface{}); ok && len(v) > 0 {
@@ -460,6 +469,22 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 
 	if v, ok := in["enable_cni"].(bool); ok {
 		obj.EnableCni = v
+	}
+
+	if v, ok := in["enable_cilium_cni"].(bool); ok {
+		obj.EnableCiliumCni = v
+	}
+
+	if v, ok := in["enable_calico_cni"].(bool); ok {
+		obj.EnableCalicoCni = v
+	}
+
+	if v, ok := in["enable_kubeovn_cni"].(bool); ok {
+		obj.EnableKubeovnCni = v
+	}
+
+	if v, ok := in["enable_kubeovn_chaning_cni"].(bool); ok {
+		obj.EnableKubeovnChaningCni = v
 	}
 
 	if v, ok := in["enable_vm"].(bool); ok {
@@ -1029,6 +1054,8 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["version"] = in.Version
 	}
 
+	obj["version_state"] = flattenBlueprintVersionState(in.VersionState, p[0].(map[string]interface{}))
+
 	if in.DefaultAddons != nil {
 		v, ok := obj["default_addons"].([]interface{})
 		if !ok {
@@ -1135,6 +1162,14 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 	}
 
 	return []interface{}{obj}, nil
+}
+
+func flattenBlueprintVersionState(in string, p map[string]interface{}) string {
+
+	if v, ok := p["version_state"].(string); ok && len(v) > 0 {
+		return in
+	}
+	return ""
 }
 
 func flattenBlueprintOpaPolicy(in *infrapb.OPAPolicy, p []interface{}) []interface{} {
@@ -1489,6 +1524,26 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 		retNil = false
 	}
 
+	if in.EnableCalicoCni {
+		obj["enable_calico_cni"] = in.EnableCalicoCni
+		retNil = false
+	}
+
+	if in.EnableCiliumCni {
+		obj["enable_cilium_cni"] = in.EnableCiliumCni
+		retNil = false
+	}
+
+	if in.EnableKubeovnCni {
+		obj["enable_kubeovn_cni"] = in.EnableKubeovnCni
+		retNil = false
+	}
+
+	if in.EnableKubeovnChaningCni {
+		obj["enable_kubeovn_chaning_cni"] = in.EnableKubeovnChaningCni
+		retNil = false
+	}
+
 	if in.EnableVM {
 		obj["enable_vm"] = in.EnableVM
 		retNil = false
@@ -1836,4 +1891,27 @@ func flattenKubeAPIProxyNetwork(input []*infrapb.KubeAPIProxyNetwork, p []interf
 	}
 
 	return out
+}
+
+func isBlueprintAlreadyExists(ctx context.Context, d *schema.ResourceData) bool {
+
+	bp, err := expandBluePrint(d)
+	if err != nil {
+		log.Printf("blueprint expandBluePrint error")
+		return false
+	}
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		return false
+	}
+
+	_, err = client.InfraV3().Blueprint().Get(ctx, options.GetOptions{
+		Name:    bp.Metadata.Name,
+		Project: bp.Metadata.Project,
+	})
+	if err != nil {
+		return false
+	}
+	return true
 }

@@ -11,19 +11,18 @@ resource "rafay_blueprint" "blueprint" {
       version = "1.16.0"
     }
     namespace_config {
-      sync_type = "managed"
+      sync_type   = "managed"
       enable_sync = true
     }
     default_addons {
-      enable_ingress    = true
+      enable_ingress          = true
       enable_csi_secret_store = true
-      enable_logging    = false
-      enable_monitoring = true
-      enable_vm         = false
+      enable_monitoring       = true
+      enable_vm               = false
 
       csi_secret_store_config {
         enable_secret_rotation = true
-        sync_secrets = true
+        sync_secrets           = true
         rotation_poll_interval = "2m"
         providers {
           aws = true
@@ -49,7 +48,7 @@ resource "rafay_blueprint" "blueprint" {
         resources {
           limits {
             memory = "200Mi"
-            cpu  = "100m"
+            cpu    = "100m"
           }
         }
       }
@@ -81,74 +80,8 @@ resource "rafay_blueprint" "blueprint" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
-      monitoring {
-        metrics_server {
-          enabled = true
-          discovery {}
-        }
-        helm_exporter {
-          enabled = true
-        }
-        kube_state_metrics {
-          enabled = true
-        }
-        node_exporter {
-          enabled = true
-        }
-        prometheus_adapter {
-          enabled = true
-        }
-        resources {
-          limits {
-            memory ="200Mi"
-            cpu = "100m"
-          }
-        }
-      }
-    }
-    drift {
-      action  = "Deny"
-      enabled = true
-    }
-    placement {
-      auto_publish = true
-      fleet_values = ["value 1","value 2","value 3"]
-    }
-  }
-}
-# Blueprint with Rook-Ceph managed add-on and custom add-on
-resource "rafay_blueprint" "blueprint" {
-  metadata {
-    name    = "custom-blueprint-advanced2"
-    project = "terraform"
-  }
-  spec {
-    version = "v0"
-    base {
-      name    = "default"
-      version = "1.16.0"
-    }
-    custom_addons {
-      name = "addon1"
-      version = "v0"
-    }
-    custom_addons {
-      depends_on = ["addon1"]
-      name = "addon2"
-      version = "v0"
-    }
-    components_criticality {
-        name = "addon1"
-    }
-    default_addons {
-      enable_ingress    = true
-      enable_logging    = false
-      enable_monitoring = true
-      enable_vm         = false
-      enable_rook_ceph = true
       monitoring {
         metrics_server {
           enabled = true
@@ -169,7 +102,71 @@ resource "rafay_blueprint" "blueprint" {
         resources {
           limits {
             memory = "200Mi"
-            cpu  = "100m"
+            cpu    = "100m"
+          }
+        }
+      }
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    placement {
+      auto_publish = true
+      fleet_values = ["value 1", "value 2", "value 3"]
+    }
+  }
+}
+# Blueprint with Rook-Ceph managed add-on and custom add-on
+resource "rafay_blueprint" "blueprint" {
+  metadata {
+    name    = "custom-blueprint-advanced2"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "1.16.0"
+    }
+    custom_addons {
+      name    = "addon1"
+      version = "v0"
+    }
+    custom_addons {
+      depends_on = ["addon1"]
+      name       = "addon2"
+      version    = "v0"
+    }
+    components_criticality {
+      name = "addon1"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_monitoring = true
+      enable_vm         = false
+      enable_rook_ceph  = true
+      monitoring {
+        metrics_server {
+          enabled = true
+          discovery {}
+        }
+        helm_exporter {
+          enabled = true
+        }
+        kube_state_metrics {
+          enabled = true
+        }
+        node_exporter {
+          enabled = true
+        }
+        prometheus_adapter {
+          enabled = true
+        }
+        resources {
+          limits {
+            memory = "200Mi"
+            cpu    = "100m"
           }
         }
       }
@@ -184,15 +181,15 @@ resource "rafay_blueprint" "blueprint" {
         name = "terraform"
       }
     }
-  
+
     opa_policy {
       opa_policy {
-	      name = "policy_name"
-	      version = "policy_version"
+        name    = "policy_name"
+        version = "policy_version"
       }
       profile {
-	      name = "default"
-          version = "latest"
+        name    = "default"
+        version = "latest"
       }
     }
   }
@@ -212,7 +209,6 @@ resource "rafay_blueprint" "golden_base_blueprint" {
     type = "golden"
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       monitoring {
@@ -235,7 +231,7 @@ resource "rafay_blueprint" "golden_base_blueprint" {
         resources {
           limits {
             memory = "200Mi"
-            cpu  = "100m"
+            cpu    = "100m"
           }
         }
       }
@@ -249,42 +245,7 @@ resource "rafay_blueprint" "golden_base_blueprint" {
     }
   }
 }
-# Example of a custom blueprint resource with service mesh
-resource "rafay_blueprint" "mesh-blueprint" {
-  metadata {
-    name    = "custom-mesh-blueprint"
-    project = "terraform"
-  }
-  spec {
-    version = "v0"
-    base {
-      name    = "default"
-      version = "1.19.0"
-    }
-    default_addons {
-      enable_ingress    = true
-      enable_logging    = false
-      enable_monitoring = true
-      enable_vm         = false
-    }
-    drift {
-      action  = "Deny"
-      enabled = true
-    }
 
-    service_mesh {
-      profile {
-        name = "tfdemomeshprofile1"
-        version = "v0"
-      }
-      policies {
-        name = "tfdemocmp1"
-        version = "v0"
-      }
-    }
-
-  }
-}
 # Example of a custom blueprint resource with cost profile
 resource "rafay_blueprint" "cost-blueprint" {
   metadata {
@@ -299,7 +260,6 @@ resource "rafay_blueprint" "cost-blueprint" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
     }
@@ -309,8 +269,8 @@ resource "rafay_blueprint" "cost-blueprint" {
     }
 
     cost_profile {
-        name = "tfdemocostprofile1"
-        version = "v0"
+      name    = "tfdemocostprofile1"
+      version = "v0"
     }
 
   }

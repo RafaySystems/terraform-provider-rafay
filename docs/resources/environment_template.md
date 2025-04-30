@@ -1450,6 +1450,13 @@ Optional:
 
 - `cron_timezone` (String) Specify the timezone of cron expression
 - `time_to_live` (String) Specify the maximum time to live duration of an environment, time units are 'h', 'd' e.g. 8h, 2d
+- `staggered` (Block List, Max: 1) Introduces random delay on schedules with permissible max interval, applicable only if enabled is set to true (see [below for nested schema](#nestedblock--spec--schedules--cadence-staggered))
+
+<a id="nestedblock--spec--schedules--cadence-staggered"></a>
+### Nested Schema for `spec.schedules.optout`
+
+- `enabled` (Bool) Enable staggered schedule runs
+- `max_interval` (String) Specify the maximum permissible interval, time units are 's', 'm' e.g. 300s, 30m
 
 <a id="nestedblock--spec--schedules--optout"></a>
 ### Nested Schema for `spec.schedules.optout`

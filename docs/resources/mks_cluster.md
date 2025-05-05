@@ -26,7 +26,8 @@ resource "rafay_mks_cluster" "mks-noha-converged-cluster" {
     config = {
       auto_approve_nodes      = true
       kubernetes_version      = "v1.28.9"
-      installer_ttl            = 365
+      installer_ttl           = 365
+      platform_version        = "v1.0.0"
       network = {
         cni = {
           name    = "Calico"
@@ -80,6 +81,7 @@ resource "rafay_mks_cluster" "mks-ha-cluster" {
       high_availability       = true
       kubernetes_version      = "v1.28.9"
       installer_ttl           = 365
+      platform_version        = "v1.0.0"
       kubernetes_upgrade = {
         strategy = "sequential"
         params = {
@@ -157,6 +159,7 @@ resource "rafay_mks_cluster" "mks-ha-cluster-with-dedicated-cp" {
       dedicated_control_plane = true
       kubernetes_version      = "v1.28.9"
       installer_ttl           = 365
+      platform_version        = "v1.0.0"
       kubernetes_upgrade = {
         strategy = "sequential"
         params = {
@@ -335,6 +338,7 @@ You can change the current Kubernetes version under `spec.config.kubernetes_vers
 - `high_availability` (Boolean) Select this option for highly available control plane. Minimum three control plane nodes are required
 - `kubernetes_upgrade` (Attributes) Strategize the Kubernetes upgrade behaviour among the worker nodes (see [below for nested schema](#nestedatt--spec--config--kubernetes_upgrade))
 - `location` (String) The data center location where the cluster nodes will be launched
+- `platform_version` (String) Platform version that allows upgrading the cluster's internal components.
 
 <a id="nestedatt--spec--config--network"></a>
 ### Nested Schema for `spec.config.network`

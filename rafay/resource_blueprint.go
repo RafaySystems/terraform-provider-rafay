@@ -1038,7 +1038,7 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["version"] = in.Version
 	}
 
-	obj["version_state"] = flattenBlueprintVersionState(in.VersionState, p[0].(map[string]interface{}))
+	obj["version_state"] = flattenBlueprintVersionState(in.VersionState, p)
 
 	if in.DefaultAddons != nil {
 		v, ok := obj["default_addons"].([]interface{})
@@ -1148,10 +1148,19 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 	return []interface{}{obj}, nil
 }
 
-func flattenBlueprintVersionState(in string, p map[string]interface{}) string {
+func flattenBlueprintVersionState(versionStateInDB string, p []interface{}) string {
 
-	if v, ok := p["version_state"].(string); ok && len(v) > 0 {
-		return in
+	if len(p) == 0 || p[0] == nil {
+		return ""
+	}
+
+	obj, ok := p[0].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+
+	if v, ok := obj["version_state"].(string); ok && len(v) > 0 {
+		return versionStateInDB
 	}
 	return ""
 }

@@ -735,6 +735,7 @@ func (v ConfigValue) ToHub(ctx context.Context) (*infrapb.MksV3ConfigObject, dia
 	hub.KubernetesVersion = getStringValue(v.KubernetesVersion)
 	hub.InstallerTtl = getInt64Value(v.InstallerTtl)
 	hub.KubeletExtraArgs = convertFromTfMap(v.KubeletExtraArgs)
+	hub.PlatformVersion = getStringValue(v.PlatformVersion)
 
 	var networkType NetworkType
 
@@ -794,6 +795,8 @@ func (v ConfigValue) FromHub(ctx context.Context, hub *infrapb.MksV3ConfigObject
 	v.KubeletExtraArgs = convertToTfMap(hub.KubeletExtraArgs)
 
 	v.KubernetesVersion = types.StringValue(hub.KubernetesVersion)
+
+	v.PlatformVersion = types.StringValue(hub.PlatformVersion)
 
 	network, d := NewNetworkValue(v.Network.AttributeTypes(ctx), v.Network.Attributes())
 	if d.HasError() {

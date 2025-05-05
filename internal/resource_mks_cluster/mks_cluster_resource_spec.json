@@ -187,6 +187,13 @@
 												}
 											},
 											{
+												"name": "platform_version",
+												"string": {
+													"computed_optional_required": "required",
+													"description": "Platform version configuration"
+												}
+											},
+											{
 												"name": "kubelet_extra_args",
 												"map": {
 													"computed_optional_required": "optional",

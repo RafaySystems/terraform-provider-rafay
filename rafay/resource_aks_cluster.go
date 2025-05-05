@@ -6545,8 +6545,6 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s", err.Error()))
 	}
 
-	// Specific to create flow: If `spec.sharing` specified then
-	// set "cluster_sharing_external" to false.
 	var cse string
 	if obj.Spec.Sharing != nil {
 		cse = "false"
@@ -6647,6 +6645,38 @@ LOOP:
 
 		}
 	}
+
+	edgeDb, err := cluster.GetCluster(obj.Metadata.Name, project.ID, uaDef)
+	if err != nil {
+		log.Printf("error while getCluster for %s %s", obj.Metadata.Name, err.Error())
+		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": obj.Metadata.Name, "pid": project.ID})
+		return diag.Errorf("Failed to fetch cluster: %s", err)
+	}
+
+	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
+	if cseFromDb != "true" {
+		if obj.Spec.Sharing == nil && cseFromDb != "" {
+			// reset cse as sharing is removed
+			edgeDb.Settings[clusterSharingExtKey] = ""
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
+				return diag.Errorf("Unable to update the edge object, got error: %s", err)
+			}
+			tflog.Error(ctx, "cse removed successfully")
+		}
+		if obj.Spec.Sharing != nil && cseFromDb != "false" {
+			// explicitly set cse to false
+			edgeDb.Settings[clusterSharingExtKey] = "false"
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
+				return diag.Errorf("Unable to update the edge object, got error: %s", err)
+			}
+			tflog.Error(ctx, "cse set to false")
+		}
+	}
+
 	if len(warnings) > 0 {
 		diags = make([]diag.Diagnostic, len(warnings))
 		for i, message := range warnings {

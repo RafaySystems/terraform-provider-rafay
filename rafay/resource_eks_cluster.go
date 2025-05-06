@@ -486,7 +486,6 @@ func accessEntryFields() map[string]*schema.Schema {
 		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Computed:    true,
 			Description: "applied to the access entries",
 		},
 		"access_policies": {
@@ -560,7 +559,6 @@ func configMetadataField() map[string]*schema.Schema {
 		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Computed:    true,
 			Description: "used to tag AWS resources created by the vendor",
 		},
 		"annotations": {
@@ -697,7 +695,6 @@ func podIdentityAssociationsFields() map[string]*schema.Schema {
 		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Computed:    true,
 			Description: "AWS tags for the service account",
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
@@ -773,7 +770,6 @@ func serviceAccountsFields() map[string]*schema.Schema {
 		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Computed:    true,
 			Description: "AWS tags for the service account",
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
@@ -1226,7 +1222,6 @@ func addonConfigFields() map[string]*schema.Schema {
 		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Computed:    true,
 			Description: "The metadata to apply to the cluster to assist with categorization and organization. Each tag consists of a key and an optional value, both of which you define.",
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
@@ -1366,7 +1361,6 @@ func nodeGroupsConfigFields() map[string]*schema.Schema {
 		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Computed:    true,
 			Description: "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
 		},
 		"iam": {
@@ -2053,7 +2047,6 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Computed:    true,
 			Description: "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
 		},
 		"iam": {
@@ -2319,7 +2312,6 @@ func fargateProfilesConfigField() map[string]*schema.Schema {
 		"tags": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Computed:    true,
 			Description: "Used to tag the AWS resources",
 		},
 		"status": {

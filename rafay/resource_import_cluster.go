@@ -440,6 +440,21 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 			labels[k] = v.(string)
 		}
 	}
+	existingLabels, err := getClusterlabels(cluster_resp.Name, cluster_resp.ProjectID)
+	if err != nil {
+		log.Printf("error getting cluster v2 labels: %s", err.Error())
+		return diag.FromErr(err)
+	}
+
+	for k := range labels {
+		if strings.HasPrefix(k, "rafay.dev/") {
+			if _, ok := existingLabels[k]; !ok {
+				errMsg := "cannot edit system labels during update operation"
+				log.Printf("error setting labels: %s", errMsg)
+				return diag.Errorf("error setting labels: %s", errMsg)
+			}
+		}
+	}
 	if err := updateClusterLabels(cluster_resp.Name, cluster_resp.ID, cluster_resp.ProjectID, labels); err != nil {
 		log.Printf("error setting labels on the cluster: %s", err.Error())
 		return diag.FromErr(err)

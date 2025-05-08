@@ -27,8 +27,9 @@ import (
 )
 
 var (
-	supportedK8sProviderList  []string = []string{"AKS", "EKS", "GKE", "OPENSHIFT", "OTHER", "RKE", "EKSANYWHERE"}
-	supportedProvisionEnvList []string = []string{"CLOUD", "ONPREM"}
+	supportedK8sProviderList    []string = []string{"AKS", "EKS", "GKE", "OPENSHIFT", "OTHER", "RKE", "EKSANYWHERE"}
+	supportedProvisionEnvList   []string = []string{"CLOUD", "ONPREM"}
+	environmentManagerLabelsKey []string = []string{"rafay.dev/envRun", "rafay.dev/k8sVersion"}
 )
 
 func resourceImportCluster() *schema.Resource {
@@ -150,7 +151,7 @@ func getClusterlabels(name, projectId string) (map[string]string, error) {
 
 	labels := map[string]string{}
 	for k, v := range resp.Metadata.Labels {
-		if !strings.HasPrefix(k, "rafay.dev/") {
+		if !strings.HasPrefix(k, "rafay.dev/") || slices.Contains(environmentManagerLabelsKey, k) {
 			labels[k] = v
 		}
 	}
@@ -159,6 +160,7 @@ func getClusterlabels(name, projectId string) (map[string]string, error) {
 
 func updateClusterLabels(name, edgeId, projectId string, labels map[string]string) error {
 	uri := fmt.Sprintf("/edge/v1/projects/%s/edges/%s/labels/", projectId, edgeId)
+	uri += fmt.Sprintf("?user_agent=%s", uaDef)
 	auth := config.GetConfig().GetAppAuthProfile()
 	_, err := auth.AuthAndRequest(uri, "PUT", labels)
 	if err != nil {
@@ -236,7 +238,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	d.SetId(cluster_resp.ID)
 	if d.Get("blueprint_version").(string) != "" {
 		cluster_resp.ClusterBlueprintVersion = d.Get("blueprint_version").(string)
-		err = cluster.UpdateCluster(cluster_resp)
+		err = cluster.UpdateCluster(cluster_resp, uaDef)
 		if err != nil {
 			log.Printf("setting cluster blueprint version failed, error %s", err.Error())
 			return diag.FromErr(err)
@@ -416,7 +418,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 		cluster_resp.ClusterBlueprintVersion = d.Get("blueprint_version").(string)
 	}
 	//update cluster to send updated cluster details to core
-	err = cluster.UpdateCluster(cluster_resp)
+	err = cluster.UpdateCluster(cluster_resp, uaDef)
 	if err != nil {
 		log.Printf("cluster was not updated, error %s", err.Error())
 		return diag.FromErr(err)
@@ -436,6 +438,21 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	if labelsX, ok := d.Get("labels").(map[string]interface{}); ok && len(labelsX) > 0 {
 		for k, v := range labelsX {
 			labels[k] = v.(string)
+		}
+	}
+	existingLabels, err := getClusterlabels(cluster_resp.Name, cluster_resp.ProjectID)
+	if err != nil {
+		log.Printf("error getting cluster v2 labels: %s", err.Error())
+		return diag.FromErr(err)
+	}
+
+	for k := range labels {
+		if strings.HasPrefix(k, "rafay.dev/") {
+			if _, ok := existingLabels[k]; !ok {
+				errMsg := "cannot edit system labels during update operation"
+				log.Printf("error setting labels: %s", errMsg)
+				return diag.Errorf("error setting labels: %s", errMsg)
+			}
 		}
 	}
 	if err := updateClusterLabels(cluster_resp.Name, cluster_resp.ID, cluster_resp.ProjectID, labels); err != nil {

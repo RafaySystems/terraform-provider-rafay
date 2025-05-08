@@ -151,7 +151,7 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
     metadata {
       name    = "ekscluster-basic-with-ipv6"
       region  = "us-west-2"
-      version = "1.26"
+      version = "1.31"
     }
     kubernetes_network_config {
       ip_family = "IPv6"
@@ -174,7 +174,7 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
       max_size           = 4
       volume_size        = 80
       volume_type        = "gp3"
-      version            = "1.26"
+      version            = "1.31"
     }
     managed_nodegroups {
       name = "ng2"
@@ -184,7 +184,7 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
       max_size           = 3
       volume_size        = 80
       volume_type        = "gp3"
-      version            = "1.26"
+      version            = "1.31"
     }
 
     addons {
@@ -401,7 +401,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
     metadata {
       name    = "eks-cluster-bottlerocket-1"
       region  = "us-west-2"
-      version = "1.25"
+      version = "1.31"
     }
     vpc {
       cidr = "192.168.0.0/16"
@@ -421,7 +421,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
       desired_capacity = 1
       min_size = 1
       max_size = 2
-      version = "1.25"
+      version = "1.31"
       volume_size = 80
       volume_type = "gp3"
     }
@@ -434,7 +434,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
       max_size           = 2
       volume_size        = 80
       volume_type        = "gp3"
-      version            = "1.25"
+      version            = "1.31"
       ami_family = "bottlerocket"
       bottle_rocket {
         enable_admin_container = true
@@ -476,7 +476,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
     metadata {
       name    = "eks-cluster-1"
       region  = "us-west-2"
-      version = "1.28"
+      version = "1.31"
     }
     vpc {
       cidr = "192.168.0.0/16"
@@ -496,7 +496,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
       desired_capacity = 1
       min_size = 1
       max_size = 2
-      version = "1.25"
+      version = "1.31"
       volume_size = 80
       volume_type = "gp3"
     }

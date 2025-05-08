@@ -209,128 +209,6 @@ resource "rafay_environment_template" "aws-et-example" {
 
 - `name` (String) name of the config context resource
 
-
-<a id="nestedblock--spec--hooks"></a>
-### Nested Schema for `spec.hooks`
-
-***Optional***
-
-- `on_completion` (Block List) On completion environment hook (see [below for nested schema](#nestedblock--spec--hooks--on_completion))
-- `on_failure` (Block List) On failure environment hook (see [below for nested schema](#nestedblock--spec--hooks--on_failure))
-- `on_init` (Block List) On initialize environment hook (see [below for nested schema](#nestedblock--spec--hooks--on_init))
-- `on_success` (Block List) On success environment hook (see [below for nested schema](#nestedblock--spec--hooks--on_success))
-
-<a id="nestedblock--spec--hooks--on_completion"></a>
-### Nested Schema for `spec.hooks.on_completion`
-
-**Required**
-
-- `name` (String) name of the hook
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`, `workflowHandler`. `driver` is deprecated, use `workflowHandler` instead.
-
-***Optional***
-
-- `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--on_completion--agents))
-- `on_failure` (String) Specify the on failure action
-- `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
-- `timeout_seconds` (Number) Specify the timeout in seconds
-- `execute_once` (Boolean) Specify if the hook should be executed only once
-- `skip_config` (Block List, Max: 1) Specify the skip config (see [below for nested schema](#nestedblock--skip_config))
-- `workflow_handler` (Block List, Max: 1) Specify the workflow handler responsible for execution (see [below for nested schema](#nestedblock--spec--workflowhandler))
-
-<a id="nestedblock--skip_config"></a>
-### Nested Schema for `spec.skip_config`
-
-***Optional***
-
-- `condition` (String) Specify the condition to skip
-- `skip_on_destroy` (Boolean) Specify if the hook should be skipped on destroy
-
-<a id="nestedblock--spec--hooks--on_completion--agents"></a>
-### Nested Schema for `spec.hooks.on_completion.agents`
-
-***Required***
-
-- `name` (String) name of the agent resource
-
-
-<a id="nestedblock--spec--hooks--on_completion--options"></a>
-### Nested Schema for `spec.hooks.on_completion.options`
-
-***Optional***
-
-- `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--approval))
-- `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--container))
-- `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--http))
-
-<a id="nestedblock--spec--hooks--on_completion--options--approval"></a>
-### Nested Schema for `spec.hooks.on_completion.options.approval`
-
-***Optional***
-
-- `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--v--approval--internal))
-- `type` (String) Specify the approval options. Available options are `internal`
-
-<a id="nestedblock--spec--hooks--on_completion--options--approval--internal"></a>
-### Nested Schema for `spec.hooks.on_completion.options.approval.internal`
-
-***Required***
-
-- `emails` (List of String)
-
-
-<a id="nestedblock--spec--hooks--on_completion--options--container"></a>
-### Nested Schema for `spec.hooks.on_completion.options.container`
-
-***Optional***
-
-- `arguments` (List of String) Specify the set of arguments to be passed
-- `commands` (List of String) Specify the set of commands to be executed
-- `cpu_limit_milli` (String) Specify the cpu limit in milli
-- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
-- `image` (String) Specify the container image to be used
-- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
-- `success_condition` (String) Specify the success condition of the container
-- `working_dir_path` (String) Specify the working directory path
-
-
-<a id="nestedblock--spec--hooks--on_completion--options--http"></a>
-### Nested Schema for `spec.hooks.on_completion.options.http`
-
-***Optional***
-
-- `body` (String) Specify the body of http request
-- `endpoint` (String) Specify the endpoint to be invoked
-- `headers` (Map of String) Specify the http headers in key,value pair
-- `method` (String) Specify the http method to be used
-- `success_condition` (String) Specify the success condition of the request
-
-
-<a id="nestedblock--spec--hooks--on_failure"></a>
-### Nested Schema for `spec.hooks.on_failure`
-
-**Required**
-
-- `name` (String) name of the hook
-- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`, `workflowHandler`. `driver` is deprecated, use `workflowHandler` instead.
-
-***Optional***
-
-- `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--on_failure--agents))
-- `on_failure` (String) Specify the on failure action
-- `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options))
-- `timeout_seconds` (Number) Specify the timeout in seconds
-- `execute_once` (Boolean) Specify if the hook should be executed only once
-- `skip_config` (Block List, Max: 1) Specify the skip config (see [below for nested schema](#nestedblock--skip_config))
-- `workflow_handler` (Block List, Max: 1) Specify the workflow handler responsible for execution (see [below for nested schema](#nestedblock--spec--workflowhandler))
-
-<a id="nestedblock--spec--hooks--on_failure--agents"></a>
-### Nested Schema for `spec.hooks.on_failure.agents`
-
-***Required***
-
-- `name` (String) name of the agent resource
-
 ***Optional***
 
 - `data` (Block List, Max: 1) Context data of the config context (see [below for nested schema](#nestedblock--spec--contexts--data))
@@ -456,6 +334,127 @@ resource "rafay_environment_template" "aws-et-example" {
 
 - `jsonschema` (String) JSONSchema definition of given variable that conforms to react-jsonschema-form library norms
 - `uischema` (String) UISchema definition of given variable that conforms to react-jsonschema-form library norms
+
+<a id="nestedblock--spec--hooks"></a>
+### Nested Schema for `spec.hooks`
+
+***Optional***
+
+- `on_completion` (Block List) On completion environment hook (see [below for nested schema](#nestedblock--spec--hooks--on_completion))
+- `on_failure` (Block List) On failure environment hook (see [below for nested schema](#nestedblock--spec--hooks--on_failure))
+- `on_init` (Block List) On initialize environment hook (see [below for nested schema](#nestedblock--spec--hooks--on_init))
+- `on_success` (Block List) On success environment hook (see [below for nested schema](#nestedblock--spec--hooks--on_success))
+
+<a id="nestedblock--spec--hooks--on_completion"></a>
+### Nested Schema for `spec.hooks.on_completion`
+
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`, `workflowHandler`. `driver` is deprecated, use `workflowHandler` instead.
+
+***Optional***
+
+- `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--on_completion--agents))
+- `on_failure` (String) Specify the on failure action
+- `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options))
+- `timeout_seconds` (Number) Specify the timeout in seconds
+- `execute_once` (Boolean) Specify if the hook should be executed only once
+- `skip_config` (Block List, Max: 1) Specify the skip config (see [below for nested schema](#nestedblock--skip_config))
+- `workflow_handler` (Block List, Max: 1) Specify the workflow handler responsible for execution (see [below for nested schema](#nestedblock--spec--workflowhandler))
+
+<a id="nestedblock--skip_config"></a>
+### Nested Schema for `spec.skip_config`
+
+***Optional***
+
+- `condition` (String) Specify the condition to skip
+- `skip_on_destroy` (Boolean) Specify if the hook should be skipped on destroy
+
+<a id="nestedblock--spec--hooks--on_completion--agents"></a>
+### Nested Schema for `spec.hooks.on_completion.agents`
+
+***Required***
+
+- `name` (String) name of the agent resource
+
+
+<a id="nestedblock--spec--hooks--on_completion--options"></a>
+### Nested Schema for `spec.hooks.on_completion.options`
+
+***Optional***
+
+- `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--approval))
+- `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--container))
+- `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--http))
+
+<a id="nestedblock--spec--hooks--on_completion--options--approval"></a>
+### Nested Schema for `spec.hooks.on_completion.options.approval`
+
+***Optional***
+
+- `internal` (Block List, Max: 1) Specify the options for internal approval (see [below for nested schema](#nestedblock--spec--hooks--on_completion--v--approval--internal))
+- `type` (String) Specify the approval options. Available options are `internal`
+
+<a id="nestedblock--spec--hooks--on_completion--options--approval--internal"></a>
+### Nested Schema for `spec.hooks.on_completion.options.approval.internal`
+
+***Required***
+
+- `emails` (List of String)
+
+
+<a id="nestedblock--spec--hooks--on_completion--options--container"></a>
+### Nested Schema for `spec.hooks.on_completion.options.container`
+
+***Optional***
+
+- `arguments` (List of String) Specify the set of arguments to be passed
+- `commands` (List of String) Specify the set of commands to be executed
+- `cpu_limit_milli` (String) Specify the cpu limit in milli
+- `envvars` (Map of String) Specify the environment variables to be set in key,value pair
+- `image` (String) Specify the container image to be used
+- `memory_limit_mb` (String) Specify the memory limit to be allocated in MB
+- `success_condition` (String) Specify the success condition of the container
+- `working_dir_path` (String) Specify the working directory path
+
+
+<a id="nestedblock--spec--hooks--on_completion--options--http"></a>
+### Nested Schema for `spec.hooks.on_completion.options.http`
+
+***Optional***
+
+- `body` (String) Specify the body of http request
+- `endpoint` (String) Specify the endpoint to be invoked
+- `headers` (Map of String) Specify the http headers in key,value pair
+- `method` (String) Specify the http method to be used
+- `success_condition` (String) Specify the success condition of the request
+
+
+<a id="nestedblock--spec--hooks--on_failure"></a>
+### Nested Schema for `spec.hooks.on_failure`
+
+**Required**
+
+- `name` (String) name of the hook
+- `type` (String) Specify the type of hook, Available options are `approval`, `container`, `http`, `driver`, `workflowHandler`. `driver` is deprecated, use `workflowHandler` instead.
+
+***Optional***
+
+- `agents` (Block List) Specify the resource ref agents (see [below for nested schema](#nestedblock--spec--hooks--on_failure--agents))
+- `on_failure` (String) Specify the on failure action
+- `options` (Block List, Max: 1) Specify the hook options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options))
+- `timeout_seconds` (Number) Specify the timeout in seconds
+- `execute_once` (Boolean) Specify if the hook should be executed only once
+- `skip_config` (Block List, Max: 1) Specify the skip config (see [below for nested schema](#nestedblock--skip_config))
+- `workflow_handler` (Block List, Max: 1) Specify the workflow handler responsible for execution (see [below for nested schema](#nestedblock--spec--workflowhandler))
+
+<a id="nestedblock--spec--hooks--on_failure--agents"></a>
+### Nested Schema for `spec.hooks.on_failure.agents`
+
+***Required***
+
+- `name` (String) name of the agent resource
 
 
 <a id="nestedblock--spec--hooks--on_failure--options"></a>

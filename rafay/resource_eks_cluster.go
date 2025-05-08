@@ -2693,6 +2693,36 @@ LOOP:
 			}
 		}
 	}
+
+	edgeDb, err := cluster.GetCluster(clusterName, projectID, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": clusterName, "pid": projectID})
+		return diag.Errorf("Failed to fetch cluster: %s", err)
+	}
+	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
+	if cseFromDb != "true" {
+		if yamlClusterMetadata.Spec.Sharing == nil && cseFromDb != "" {
+			// reset cse as sharing is removed
+			edgeDb.Settings[clusterSharingExtKey] = ""
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
+				return diag.Errorf("Unable to update the edge object, got error: %s", err)
+			}
+			tflog.Error(ctx, "cse removed successfully")
+		}
+		if yamlClusterMetadata.Spec.Sharing != nil && cseFromDb != "false" {
+			// explicitly set cse to false
+			edgeDb.Settings[clusterSharingExtKey] = "false"
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
+				return diag.Errorf("Unable to update the edge object, got error: %s", err)
+			}
+			tflog.Error(ctx, "cse set to false")
+		}
+	}
+
 	return diags
 }
 func eksClusterCTLStatus(taskid, projectID string) (string, error) {

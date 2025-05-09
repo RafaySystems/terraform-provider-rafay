@@ -336,6 +336,13 @@ func expandEnvironmentSpec(p []any) (*eaaspb.EnvironmentSpec, error) {
 		spec.ReconcileResources = expandReconcileResources(rr)
 	}
 
+	if s, ok := in["schedules"].([]any); ok && len(s) > 0 {
+		spec.Schedules, err = expandSchedules(s)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return spec, nil
 }
 
@@ -446,6 +453,9 @@ func flattenEnvironmentSpec(in *eaaspb.EnvironmentSpec, p []any) ([]any, error) 
 	obj["schedule_optouts"] = flattenScheduleOptOuts(in.ScheduleOptouts, v)
 
 	obj["reconcile_resources"] = flattenReconcileResources(in.ReconcileResources)
+
+	v, _ = obj["schedules"].([]any)
+	obj["schedules"] = flattenSchedules(in.Schedules, v)
 	return []any{obj}, nil
 }
 

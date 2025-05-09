@@ -426,6 +426,10 @@ func expandKubernetesAgentConfig(p []interface{}) *gitopspb.KubernetesAgentConfi
 		obj.Tolerations = expandV3Tolerations(v)
 	}
 
+	if v, ok := in["affinity"].([]interface{}); ok && len(v) > 0 {
+		obj.Affinity = expandKubeOptionsAffinity(v)
+	}
+
 	return obj
 }
 
@@ -555,13 +559,11 @@ func flattenAgentSpec(in *gitopspb.AgentSpec, p []interface{}) ([]interface{}, e
 		obj["sharing"] = flattenSharingSpec(in.Sharing)
 	}
 
-	if in.Config != nil {
-		v, ok := obj["config"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["config"] = flattenAgentConfig(in.Config, v)
+	v, ok := obj["config"].([]interface{})
+	if !ok {
+		v = []interface{}{}
 	}
+	obj["config"] = flattenAgentConfig(in.Config, v)
 
 	return []interface{}{obj}, nil
 }
@@ -597,33 +599,25 @@ func flattenAgentConfig(in *gitopspb.AgentConfig, p []interface{}) []interface{}
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.Concurrency > 0 {
-		obj["concurrency"] = in.Concurrency
-	}
+	obj["concurrency"] = in.Concurrency
 
-	if in.Environment != nil {
-		v, ok := obj["environment"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["environment"] = flattenAgentConfigEnvironment(in.Environment, v)
+	v, ok := obj["environment"].([]interface{})
+	if !ok {
+		v = []interface{}{}
 	}
+	obj["environment"] = flattenAgentConfigEnvironment(in.Environment, v)
 
-	if in.Docker != nil {
-		v, ok := obj["docker"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["docker"] = flattenDockerAgentConfig(in.Docker, v)
+	v, ok = obj["docker"].([]interface{})
+	if !ok {
+		v = []interface{}{}
 	}
+	obj["docker"] = flattenDockerAgentConfig(in.Docker, v)
 
-	if in.Kubernetes != nil {
-		v, ok := obj["kubernetes"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-		obj["kubernetes"] = flattenKubernetesAgentConfig(in.Kubernetes, v)
+	v, ok = obj["kubernetes"].([]interface{})
+	if !ok {
+		v = []interface{}{}
 	}
+	obj["kubernetes"] = flattenKubernetesAgentConfig(in.Kubernetes, v)
 
 	return []interface{}{obj}
 }
@@ -638,16 +632,19 @@ func flattenKubernetesAgentConfig(in *gitopspb.KubernetesAgentConfig, p []interf
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.Limits != nil {
-		v, ok := obj["limits"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["limits"] = flattenKubernetesLimits(in.Limits, v)
+	v, ok := obj["limits"].([]interface{})
+	if !ok {
+		v = []interface{}{}
 	}
+	obj["limits"] = flattenKubernetesLimits(in.Limits, v)
 
 	obj["node_selector"] = toMapInterface(in.NodeSelector)
+
+	v, ok = obj["affinity"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	obj["affinity"] = flattenKubeOptionsAffinity(in.Affinity, v)
 
 	if len(in.Tolerations) > 0 {
 		v, ok := obj["tolerations"].([]interface{})
@@ -672,14 +669,12 @@ func flattenDockerAgentConfig(in *gitopspb.DockerAgentConfig, p []interface{}) [
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.Limits != nil {
-		v, ok := obj["limits"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
-
-		obj["limits"] = flattenDockerLimits(in.Limits, v)
+	v, ok := obj["limits"].([]interface{})
+	if !ok {
+		v = []interface{}{}
 	}
+
+	obj["limits"] = flattenDockerLimits(in.Limits, v)
 
 	return []interface{}{obj}
 }
@@ -694,12 +689,8 @@ func flattenDockerLimits(in *gitopspb.DockerLimits, p []interface{}) []interface
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.Cpu) > 0 {
-		obj["cpu"] = in.Cpu
-	}
-	if len(in.Memory) > 0 {
-		obj["memory"] = in.Memory
-	}
+	obj["cpu"] = in.Cpu
+	obj["memory"] = in.Memory
 
 	return []interface{}{obj}
 }
@@ -714,12 +705,8 @@ func flattenKubernetesLimits(in *gitopspb.KubernetesLimits, p []interface{}) []i
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.Cpu) > 0 {
-		obj["cpu"] = in.Cpu
-	}
-	if len(in.Memory) > 0 {
-		obj["memory"] = in.Memory
-	}
+	obj["cpu"] = in.Cpu
+	obj["memory"] = in.Memory
 
 	return []interface{}{obj}
 }
@@ -734,9 +721,7 @@ func flattenAgentConfigEnvironment(in *gitopspb.AgentConfigEnvironment, p []inte
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.NumWorkers > 0 {
-		obj["num_workers"] = in.NumWorkers
-	}
+	obj["num_workers"] = in.NumWorkers
 
 	return []interface{}{obj}
 }

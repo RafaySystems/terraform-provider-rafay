@@ -78,10 +78,22 @@ func resourceImportCluster() *schema.Resource {
 			"bootstrap_path": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					// Suppress the diff if the value is still the same (or is computed to be the same)
+					// We suppress the diff because the value is expected to be computed and shouldn't change unexpectedly.
+					return old == new
+				},
 			},
 			"values_path": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					// Suppress the diff if the value is still the same (or is computed to be the same)
+					// We suppress the diff because the value is expected to be computed and shouldn't change unexpectedly.
+					return old == new
+				},
 			},
 			"values_data": {
 				Type:     schema.TypeString,

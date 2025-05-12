@@ -103,7 +103,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
       min_size         = 1
       max_size         = 2
       max_pods_per_node = 50
-      version          = "1.21"
+      version          = "1.31"
       volume_size      = 80
       volume_type      = "gp3"
       private_networking = true
@@ -151,7 +151,7 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
     metadata {
       name    = "ekscluster-basic-with-ipv6"
       region  = "us-west-2"
-      version = "1.26"
+      version = "1.31"
     }
     kubernetes_network_config {
       ip_family = "IPv6"
@@ -174,7 +174,7 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
       max_size           = 4
       volume_size        = 80
       volume_type        = "gp3"
-      version            = "1.26"
+      version            = "1.31"
     }
     managed_nodegroups {
       name = "ng2"
@@ -184,7 +184,7 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
       max_size           = 3
       volume_size        = 80
       volume_type        = "gp3"
-      version            = "1.26"
+      version            = "1.31"
     }
 
     addons {
@@ -230,7 +230,7 @@ resource "rafay_eks_cluster" "eks-cluster-2" {
     metadata {
       name    = "eks-cluster-2"
       region  = "us-west-2"
-      version = "1.21"
+      version = "1.31"
     }
     vpc {
       subnets {

@@ -2499,7 +2499,13 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) (*EKSClusterCo
 		obj.PrivateCluster = expandPrivateCluster(v)
 	}
 	if v, ok := in["node_groups"].([]interface{}); ok && len(v) > 0 {
-		obj.NodeGroups = expandNodeGroups(v)
+		nodegroups, err := expandNodeGroups(v)
+		if err != nil {
+			log.Printf("Error expanding node groups: %s", err)
+			return nil, err // Propagate the error
+		}
+		obj.NodeGroups = nodegroups
+
 	}
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
 		var nRawConfig cty.Value
@@ -2698,7 +2704,6 @@ LOOP:
 		}
 	}
 	d.SetId(s.ID)
-
 
 	edgeDb, err := cluster.GetCluster(clusterName, projectID, uaDef)
 	if err != nil {
@@ -3253,7 +3258,7 @@ func expandNodeGroups(p []interface{}) ([]*NodeGroup, error) { //not completed h
 	out := make([]*NodeGroup, len(p))
 
 	if len(p) == 0 || p[0] == nil {
-		return out
+		return out, nil
 	}
 
 	for i := range p {

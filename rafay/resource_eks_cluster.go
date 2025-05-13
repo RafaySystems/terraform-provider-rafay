@@ -2697,9 +2697,8 @@ LOOP:
 			}
 		}
 	}
-<<<<<<< HEAD
 	d.SetId(s.ID)
-=======
+
 
 	edgeDb, err := cluster.GetCluster(clusterName, projectID, uaDef)
 	if err != nil {
@@ -2730,7 +2729,6 @@ LOOP:
 		}
 	}
 
->>>>>>> master
 	return diags
 }
 func eksClusterCTLStatus(taskid, projectID string) (string, error) {

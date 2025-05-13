@@ -374,6 +374,9 @@ func clusterAKSManagedClusterIdentity() map[string]*schema.Schema {
 			Optional:    true,
 			Computed:    true,
 			Description: "Arm Resource Ids",
+			DiffSuppressFunc: func(key, old, new string, d *schema.ResourceData) bool {
+				return (old == "" && new == "{}") || (old == "{}" && new == "")
+			},
 		},
 	}
 	return s

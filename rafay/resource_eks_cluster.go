@@ -2499,7 +2499,13 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) (*EKSClusterCo
 		obj.PrivateCluster = expandPrivateCluster(v)
 	}
 	if v, ok := in["node_groups"].([]interface{}); ok && len(v) > 0 {
-		obj.NodeGroups = expandNodeGroups(v)
+		nodegroups, err := expandNodeGroups(v)
+		if err != nil {
+			log.Printf("Error expanding node groups: %s", err)
+			return nil, err // Propagate the error
+		}
+		obj.NodeGroups = nodegroups
+
 	}
 	if v, ok := in["vpc"].([]interface{}); ok && len(v) > 0 {
 		var nRawConfig cty.Value
@@ -2517,7 +2523,12 @@ func expandEKSClusterConfig(p []interface{}, rawConfig cty.Value) (*EKSClusterCo
 		if !rawConfig.IsNull() {
 			nRawConfig = rawConfig.GetAttr("managed_nodegroups")
 		}
-		obj.ManagedNodeGroups = expandManagedNodeGroups(v, nRawConfig)
+		managed_ng, err := expandManagedNodeGroups(v, nRawConfig)
+		if err != nil {
+			log.Printf("Error expanding node groups: %s", err)
+			return nil, err // Propagate the error
+		}
+		obj.ManagedNodeGroups = managed_ng
 	}
 	if v, ok := in["fargate_profiles"].([]interface{}); ok && len(v) > 0 {
 		obj.FargateProfiles = expandFargateProfiles(v)
@@ -2633,7 +2644,6 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	log.Println("Cluster Provision may take upto 15-20 Minutes")
-	d.SetId(s.ID)
 
 	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()
@@ -2693,6 +2703,7 @@ LOOP:
 			}
 		}
 	}
+	d.SetId(s.ID)
 
 	edgeDb, err := cluster.GetCluster(clusterName, projectID, uaDef)
 	if err != nil {
@@ -3025,10 +3036,10 @@ func expandFargateProfilesSelectors(p []interface{}) []FargateProfileSelector {
 	return out
 }
 
-func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNodeGroup { //not completed have questions in comments
+func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) ([]*ManagedNodeGroup, error) { //not completed have questions in comments
 	out := make([]*ManagedNodeGroup, len(p))
 	if len(p) == 0 || p[0] == nil {
-		return out
+		return out, nil
 	}
 	log.Println("got to managed node group")
 	for i := range p {
@@ -3038,9 +3049,27 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
 		}
-		if v, ok := in["ami_family"].(string); ok && len(v) > 0 {
-			obj.AMIFamily = v
+		// if v, ok := in["ami_family"].(string); ok && len(v) > 0 {
+		// 	obj.AMIFamily = v
+		// }
+
+		ami, amiOk := in["ami"].(string)
+		amiFamily, amiFamilyOk := in["ami_family"].(string)
+
+		// Validation: Ensure `ami` and `ami_family` are mutually exclusive
+		if amiOk && len(ami) > 0 && amiFamilyOk && len(amiFamily) > 0 {
+			log.Printf("Error: node group cannot have both `ami` and `ami_family` defined. Please specify only one.")
+			return nil, fmt.Errorf("node group cannot have both `ami` and `ami_family` defined. Please specify only one")
 		}
+
+		// Assign values if valid
+		if amiOk && len(ami) > 0 {
+			obj.AMI = ami
+		}
+		if amiFamilyOk && len(amiFamily) > 0 {
+			obj.AMIFamily = amiFamily
+		}
+
 		if v, ok := in["instance_type"].(string); ok && len(v) > 0 {
 			obj.InstanceType = v
 		}
@@ -3083,9 +3112,9 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
 			obj.IAM = expandNodeGroupIam(v)
 		}
-		if v, ok := in["ami"].(string); ok && len(v) > 0 {
-			obj.AMI = v
-		}
+		// if v, ok := in["ami"].(string); ok && len(v) > 0 {
+		// 	obj.AMI = v
+		// }
 		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
 			var nRawConfig cty.Value
 			if !rawConfig.IsNull() && i < len(rawConfig.AsValueSlice()) {
@@ -3178,7 +3207,7 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		out[i] = obj
 	}
 
-	return out
+	return out, nil
 }
 
 // expand managed node group taints function (completed) (can i use this to expand taints in node group?)
@@ -3225,17 +3254,18 @@ func expandManagedNodeGroupLaunchTempelate(p []interface{}) *LaunchTemplate {
 	return obj
 }
 
-func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have questions in comments
+func expandNodeGroups(p []interface{}) ([]*NodeGroup, error) { //not completed have questions in comments
 	out := make([]*NodeGroup, len(p))
 
 	if len(p) == 0 || p[0] == nil {
-		return out
+		return out, nil
 	}
 
 	for i := range p {
 		in := p[i].(map[string]interface{})
 		obj := NodeGroup{}
 		log.Println("expand_nodegroups")
+
 		log.Println("ngs_yaml name: ", in["name"].(string))
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			log.Println("ngs_name: ", v)
@@ -3243,9 +3273,28 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 			//log.Println("obj name: ", obj.Name)
 			obj.Name = v
 		}
-		if v, ok := in["ami_family"].(string); ok && len(v) > 0 {
-			obj.AMIFamily = v
+		// if v, ok := in["ami_family"].(string); ok && len(v) > 0 {
+		// 	obj.AMIFamily = v
+		// }
+
+		ami, amiOk := in["ami"].(string)
+		amiFamily, amiFamilyOk := in["ami_family"].(string)
+
+		// Validation: Ensure `ami` and `ami_family` are mutually exclusive
+		if amiOk && len(ami) > 0 && amiFamilyOk && len(amiFamily) > 0 {
+			log.Printf("Error: node group cannot have both `ami` and `ami_family` defined. Please specify only one.")
+			return nil, fmt.Errorf("node group cannot have both `ami` and `ami_family` defined. Please specify only one")
+
 		}
+
+		// Assign values if valid
+		if amiOk && len(ami) > 0 {
+			obj.AMI = ami
+		}
+		if amiFamilyOk && len(amiFamily) > 0 {
+			obj.AMIFamily = amiFamily
+		}
+
 		if v, ok := in["instance_type"].(string); ok && len(v) > 0 {
 			obj.InstanceType = v
 		}
@@ -3288,9 +3337,9 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		if v, ok := in["iam"].([]interface{}); ok && len(v) > 0 {
 			obj.IAM = expandNodeGroupIam(v)
 		}
-		if v, ok := in["ami"].(string); ok && len(v) > 0 {
-			obj.AMI = v
-		}
+		// if v, ok := in["ami"].(string); ok && len(v) > 0 {
+		// 	obj.AMI = v
+		// }
 		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
 			obj.SecurityGroups = expandNodeGroupSecurityGroups(v)
 		}
@@ -3393,7 +3442,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		out[i] = &obj
 	}
 
-	return out
+	return out, nil
 }
 
 // @@expand KubeletExtraConfig function (completed)
@@ -5980,9 +6029,21 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
 		}
+
+		// Only set `ami` if it was explicitly defined
+		if len(in.AMI) > 0 {
+			if p != nil && len(p) > i {
+				existingConfig := p[i].(map[string]interface{})
+				if _, ok := existingConfig["ami"]; ok {
+					obj["ami"] = in.AMI
+				}
+			}
+		}
+
 		if len(in.AMIFamily) > 0 {
 			obj["ami_family"] = in.AMIFamily
 		}
+
 		if len(in.InstanceType) > 0 {
 			obj["instance_type"] = in.InstanceType
 		}
@@ -6476,6 +6537,17 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 		if len(in.Name) > 0 {
 			obj["name"] = in.Name
 		}
+
+		// Only set `ami` if it was explicitly defined
+		if len(in.AMI) > 0 {
+			if p != nil && len(p) > i {
+				existingConfig := p[i].(map[string]interface{})
+				if _, ok := existingConfig["ami"]; ok {
+					obj["ami"] = in.AMI
+				}
+			}
+		}
+
 		if len(in.AMIFamily) > 0 {
 			obj["ami_family"] = in.AMIFamily
 		}

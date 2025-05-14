@@ -6,8 +6,8 @@ toolchain go1.23.4
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250508091217-d0f4f230ec48
-	github.com/RafaySystems/rctl v1.29.1-0.20250508075832-ed9baa6a9cc4
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250514144706-a34f6ad6f35b
+	github.com/RafaySystems/rctl v1.29.1-0.20250514092525-c70731399b53
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5
@@ -43,6 +43,7 @@ require (
 	github.com/gomatic/clock v1.0.0 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
+	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/invopop/yaml v0.3.1 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
@@ -215,7 +216,7 @@ require (
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
 	// github.com/RafaySystems/rafay-common => ../rafay-common
-	// github.com/RafaySystems/rctl => ../rctl
+	github.com/RafaySystems/rctl => ../rctl
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
 	// github.com/getkin/kin-openapi => github.com/getkin/kin-openapi v0.120.0

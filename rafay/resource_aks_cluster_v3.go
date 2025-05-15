@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -825,18 +826,39 @@ func expandAKSManagedClusterV3Identity(p []interface{}) *infrapb.Identity {
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["type"].(string); ok && len(v) > 0 {
+	if v, ok := in["type"].(string); ok && v != "" {
 		obj.Type = v
 	}
-	if v, ok := in["user_assigned_identities"].(map[string]interface{}); ok {
-		obj.UserAssignedIdentities = make(map[string]*structpb.Struct)
-		for identity := range v {
-			x, _ := structpb.NewStruct(map[string]interface{}{})
-			obj.UserAssignedIdentities[identity] = x
-		}
+
+	raw, ok := in["user_assigned_identities"].(map[string]interface{})
+	if !ok {
+		return obj
 	}
+	log.Printf("VISHAL: expand identity – raw UAI map: %#v", raw)
+
+	obj.UserAssignedIdentities = make(map[string]*structpb.Struct, len(raw))
+
+	for id, v := range raw {
+		val := strings.TrimSpace(fmt.Sprintf("%v", v))
+
+		if val == "" || val == "{}" {
+			obj.UserAssignedIdentities[id] = &structpb.Struct{}
+			continue
+		}
+
+		var m map[string]interface{}
+		if err := json.Unmarshal([]byte(val), &m); err != nil || len(m) == 0 {
+			obj.UserAssignedIdentities[id] = &structpb.Struct{}
+			continue
+		}
+
+		st, _ := structpb.NewStruct(m)
+		obj.UserAssignedIdentities[id] = st
+	}
+
 	return obj
 }
 
@@ -2824,25 +2846,47 @@ func flattenAKSV3ManagedClusterIdentity(in *infrapb.Identity, p []interface{}) [
 	if in == nil {
 		return nil
 	}
+
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.Type) > 0 {
+	if in.Type != "" {
 		obj["type"] = in.Type
 	}
 
-	if in.UserAssignedIdentities != nil && len(in.UserAssignedIdentities) > 0 {
-		identity := map[string]string{}
-		for k := range in.UserAssignedIdentities {
-			identity[k] = ""
-		}
-		obj["user_assigned_identities"] = identity
+	if len(in.UserAssignedIdentities) == 0 {
+		return []interface{}{obj}
 	}
 
-	return []interface{}{obj}
+	keys := make([]string, 0, len(in.UserAssignedIdentities))
+	for k := range in.UserAssignedIdentities {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
 
+	out := make(map[string]string, len(keys))
+
+	for _, k := range keys {
+		st := in.UserAssignedIdentities[k]
+
+		if st == nil || len(st.Fields) == 0 {
+			out[k] = "{}"
+			continue
+		}
+
+		b, err := json.Marshal(st.AsMap())
+		if err != nil {
+			out[k] = "{}"
+			continue
+		}
+
+		out[k] = string(b)
+	}
+
+	obj["user_assigned_identities"] = out
+	return []interface{}{obj}
 }
 
 func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, p []interface{}) []interface{} {

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	fw "github.com/RafaySystems/terraform-provider-rafay/internal/resource_mks_cluster"
 )
@@ -104,6 +105,38 @@ func (r *MksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
+	// edge object is also created. Update cse.
+	if hub.GetSpec().Sharing != nil {
+		// explicitly set cse to false.
+
+		clusterName := hub.Metadata.Name
+		// get pid from name
+		projectName := hub.GetMetadata().Project
+		pid, err := getProjectIDFromName(projectName)
+		if err != nil {
+			tflog.Error(ctx, "failed to get project id", map[string]any{"clusterName": clusterName, "projectName": projectName})
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read the project id, got error: %s", err))
+			return
+		}
+		existingEdge, err := cluster.GetCluster(clusterName, pid, uaDef)
+		if err != nil {
+			tflog.Error(ctx, "failed to get v1 mks cluster", map[string]any{"clusterName": clusterName, "projectID": pid})
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read the edge object, got error: %s", err))
+			return
+		}
+
+		existingEdge.Settings[clusterSharingExtKey] = "false"
+		err = cluster.UpdateCluster(existingEdge, uaDef)
+		if err != nil {
+			tflog.Error(ctx, "failed to update v1 mks cluster", map[string]any{"edgeObj": existingEdge})
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update the edge object, got error: %s", err))
+			return
+		}
+
+		// TODO(Akshay): change to Info log
+		tflog.Error(ctx, "cluster is updated successfully")
+	}
+
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -127,6 +160,30 @@ func (r *MksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read the cluster, got error: %s", err))
 		return
+	}
+
+	// get v1 settings for sharing
+	clusterName := c.Metadata.Name
+	projectName := c.GetMetadata().Project
+	pid, err := getProjectIDFromName(projectName)
+	if err != nil {
+		tflog.Error(ctx, "failed to get project id", map[string]any{"clusterName": clusterName, "projectName": projectName})
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read the project id, got error: %s", err))
+		return
+	}
+	edge, err := cluster.GetCluster(clusterName, pid, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "failed to get v1 mks cluster", map[string]any{"clusterName": clusterName, "projectID": pid})
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read the edge object, got error: %s", err))
+		return
+	}
+
+	cse := edge.Settings[clusterSharingExtKey]
+	// TODO(Akshay): convert to Info later
+	tflog.Error(ctx, "Got edge obj from backend", map[string]any{clusterSharingExtKey: cse})
+
+	if cse == "true" {
+		c.Spec.Sharing = nil
 	}
 
 	// Convert the Hub model to a Terraform model
@@ -155,11 +212,68 @@ func (r *MksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
+	// Get the cluster if present
+	clusterName := hub.Metadata.Name
+	// get pid from name
+	projectName := hub.GetMetadata().Project
+	pid, err := getProjectIDFromName(projectName)
+	if err != nil {
+		tflog.Error(ctx, "failed to get project id", map[string]any{"clusterName": clusterName, "projectName": projectName})
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read the project id, got error: %s", err))
+		return
+	}
+	existingEdge, err := cluster.GetCluster(clusterName, pid, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "failed to get v1 mks cluster", map[string]any{"clusterName": clusterName, "projectID": pid})
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read the edge object, got error: %s", err))
+		return
+	}
+	cse := existingEdge.Settings[clusterSharingExtKey]
+
+	if hub.Spec.Sharing != nil && cse == "true" {
+		resp.Diagnostics.AddError("Client Error", "Cluster sharing is currently managed through the external 'rafay_cluster_sharing' resource. To prevent configuration conflicts, please remove the sharing settings from the 'rafay_mks_cluster' resource and manage sharing exclusively via the external resource.")
+		return
+	}
+
 	// Call the Hub to Apply the cluster
-	err := cluster.ApplyMksV3Cluster(ctx, r.client, hub)
+	err = cluster.ApplyMksV3Cluster(ctx, r.client, hub)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update cluster, got error: %s", err))
 		return
+	}
+
+	existingEdge, err = cluster.GetCluster(clusterName, pid, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "failed to get v1 mks cluster", map[string]any{"clusterName": clusterName, "projectID": pid})
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read the edge object, got error: %s", err))
+		return
+	}
+	cse = existingEdge.Settings[clusterSharingExtKey]
+
+	// sharing is removed. Unset cse flag.
+	if hub.Spec.Sharing == nil && cse == "false" {
+		existingEdge.Settings[clusterSharingExtKey] = ""
+		err = cluster.UpdateCluster(existingEdge, uaDef)
+		if err != nil {
+			tflog.Error(ctx, "failed to update v1 mks cluster", map[string]any{"edgeObj": existingEdge})
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update the edge object, got error: %s", err))
+			return
+		}
+
+		tflog.Debug(ctx, "cse flag unset")
+	}
+
+	// sharing is present. Set cse flag to false.
+	if hub.Spec.Sharing != nil && cse != "false" {
+		existingEdge.Settings[clusterSharingExtKey] = "false"
+		err = cluster.UpdateCluster(existingEdge, uaDef)
+		if err != nil {
+			tflog.Error(ctx, "failed to update v1 mks cluster", map[string]any{"edgeObj": existingEdge})
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update the edge object, got error: %s", err))
+			return
+		}
+
+		tflog.Debug(ctx, "cse flag set to false")
 	}
 
 	// Wait for the cluster operation to complete

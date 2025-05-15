@@ -6904,8 +6904,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	cse := c.Settings[clusterSharingExtKey]
-	// TODO(Akshay): convert to Info later
-	tflog.Error(ctx, "Got cluster from backend", map[string]any{clusterSharingExtKey: cse})
+	tflog.Info(ctx, "Got cluster from backend", map[string]any{clusterSharingExtKey: cse})
 
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
@@ -7009,7 +7008,7 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 		if d.HasChange("cluster.0.spec.0.sharing") {
 			_, new := d.GetChange("cluster.0.spec.0.sharing")
 			if new != nil {
-				return diag.Errorf("cluster sharing is managed via external cluster sharing resource. Cannot update sharing from rafay_eks_cluster resource")
+				return diag.Errorf("Cluster sharing is currently managed through the external 'rafay_cluster_sharing' resource. To prevent configuration conflicts, please remove the sharing settings from the 'rafay_eks_cluster' resource and manage sharing exclusively via the external resource.")
 			}
 		}
 	}

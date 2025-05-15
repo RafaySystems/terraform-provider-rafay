@@ -370,7 +370,28 @@ func expandCadence(p []any) *eaaspb.ScheduleOptions {
 		cadence.TimeToLive = v
 	}
 
+	if v, ok := in["staggered"].([]any); ok && len(v) > 0 {
+		cadence.Staggered = expandStaggered(v)
+	}
+
 	return &cadence
+}
+
+func expandStaggered(p []any) *eaaspb.Staggered {
+	staggered := eaaspb.Staggered{}
+	if len(p) == 0 || p[0] == nil {
+		return &staggered
+	}
+
+	in := p[0].(map[string]any)
+	if h, ok := in["enabled"].([]any); ok && len(h) > 0 {
+		staggered.Enabled = expandBoolValue(h)
+	}
+	if v, ok := in["max_interval"].(string); ok && len(v) > 0 {
+		staggered.MaxInterval = v
+	}
+
+	return &staggered
 }
 
 func expandEaasAgentOverrideOptions(p []any) *eaaspb.AgentOverrideOptions {
@@ -630,7 +651,10 @@ func flattenSchedules(input []*eaaspb.Schedules, p []any) []any {
 		v, _ := obj["cadence"].([]any)
 		obj["cadence"] = flattenCadence(in.Cadence, v)
 
-		obj["context"] = []any{flattenConfigContextCompoundRef(in.Context)}
+		context := flattenConfigContextCompoundRef(in.Context)
+		if context != nil {
+			obj["context"] = []any{context}
+		}
 
 		v, _ = obj["opt_out_options"].([]any)
 		obj["opt_out_options"] = flattenOptOutOptions(in.OptOutOptions, v)
@@ -672,6 +696,22 @@ func flattenCadence(in *eaaspb.ScheduleOptions, p []any) []any {
 	obj["cron_expression"] = in.CronExpression
 	obj["cron_timezone"] = in.CronTimezone
 	obj["time_to_live"] = in.TimeToLive
+	v, _ := obj["staggered"].([]any)
+	obj["staggered"] = flattenStaggered(in.Staggered, v)
+	return []any{obj}
+}
+
+func flattenStaggered(in *eaaspb.Staggered, p []any) []any {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]any)
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]any)
+	}
+	obj["enabled"] = flattenBoolValue(in.Enabled)
+	obj["max_interval"] = in.MaxInterval
 	return []any{obj}
 }
 

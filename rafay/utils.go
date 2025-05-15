@@ -802,8 +802,8 @@ func expandSharingSpecV3(p []interface{}) *infrapb.Sharing {
 		obj.Enabled = v
 	}
 
-	if v, ok := in["projects"].([]interface{}); ok && len(v) > 0 {
-		obj.Projects = expandProjectMetaV3(v)
+	if v, ok := in["projects"].(*schema.Set); ok && v.Len() > 0 {
+		obj.Projects = expandProjectMetaV3(v.List())
 	}
 
 	log.Println("expandSharingSpec obj", obj)

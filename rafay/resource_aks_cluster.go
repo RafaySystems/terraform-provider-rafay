@@ -1263,7 +1263,7 @@ func clusterAKSManagedClusterPodIdentityProfile() map[string]*schema.Schema {
 			Description: "The pod identities to use in the cluster.",
 			Elem: &schema.Resource{
 				Schema: clusterAKSManagedClusterPIPUserAssignedIdentities(),
-			}
+			},
 		},
 		"user_assigned_identity_exceptions": {
 			Type:        schema.TypeList,

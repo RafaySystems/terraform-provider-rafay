@@ -372,11 +372,7 @@ func clusterAKSManagedClusterIdentity() map[string]*schema.Schema {
 		"user_assigned_identities": {
 			Type:        schema.TypeMap,
 			Optional:    true,
-			Computed:    true,
 			Description: "Arm Resource Ids",
-			DiffSuppressFunc: func(key, old, new string, d *schema.ResourceData) bool {
-				return (old == "" && new == "{}") || (old == "{}" && new == "")
-			},
 		},
 	}
 	return s
@@ -1268,10 +1264,7 @@ func clusterAKSManagedClusterPodIdentityProfile() map[string]*schema.Schema {
 			Description: "The pod identities to use in the cluster.",
 			Elem: &schema.Resource{
 				Schema: clusterAKSManagedClusterPIPUserAssignedIdentities(),
-			},
-			DiffSuppressFunc: func(key, old, new string, d *schema.ResourceData) bool {
-				return (old == "" && new == "{}") || (old == "{}" && new == "")
-			},
+			}
 		},
 		"user_assigned_identity_exceptions": {
 			Type:        schema.TypeList,

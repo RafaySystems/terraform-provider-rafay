@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -271,16 +272,33 @@ func flattenUser(d *schema.ResourceData, in *models.UserResponse) error {
 		}
 
 	}
-	if len(in.Account.FirstName) > 0 {
-		err := d.Set("first_name", in.Account.FirstName)
-		if err != nil {
-			return err
+	if !d.Get("console_access").(bool) {
+		first := d.Get("first_name").(string)
+		last := d.Get("last_name").(string)
+		if first != "" {
+			err := d.Set("first_name", first)
+			if err != nil {
+				return err
+			}
 		}
-	}
-	if len(in.Account.LastName) > 0 {
-		err := d.Set("last_name", in.Account.LastName)
-		if err != nil {
-			return err
+		if last != "" {
+			err := d.Set("last_name", last)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		if len(in.Account.FirstName) > 0 {
+			err := d.Set("first_name", in.Account.FirstName)
+			if err != nil {
+				return err
+			}
+		}
+		if len(in.Account.LastName) > 0 {
+			err := d.Set("last_name", in.Account.LastName)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	if len(in.Account.Phone) > 0 {
@@ -294,13 +312,32 @@ func flattenUser(d *schema.ResourceData, in *models.UserResponse) error {
 	if err != nil {
 		return err
 	}
-	log.Println("grps", len(grps))
-	err = d.Set("groups", grps)
+	var groups []string
+	if len(grps) > 0 {
+		groups = arrangeByStateFileOrder(toArrayString(d.Get("groups").([]interface{})), grps)
+	}
+	log.Println("groups", len(groups))
+	err = d.Set("groups", groups)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func arrangeByStateFileOrder(stateOrder []string, input []string) []string {
+	// Create a lookup map for order
+	orderMap := make(map[string]int)
+	for i, v := range stateOrder {
+		orderMap[v] = i
+	}
+
+	// Sort input based on the order in stateOrder
+	sort.SliceStable(input, func(i, j int) bool {
+		return orderMap[input[i]] < orderMap[input[j]]
+	})
+
+	return input
 }
 
 func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

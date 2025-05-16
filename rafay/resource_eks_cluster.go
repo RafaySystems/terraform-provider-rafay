@@ -665,6 +665,7 @@ func podIdentityAssociationsFields() map[string]*schema.Schema {
 				// Afterwards, suppress any attempted change so TF doesn't even
 				// try to plan it; the Update code will throw a hard error.
 				return !d.IsNewResource()
+			},
 		},
 		"role_name": {
 			Type:        schema.TypeString,

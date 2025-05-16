@@ -5220,14 +5220,16 @@ func flattenEKSClusterIAM(in *EKSClusterIAM, rawState cty.Value, p []interface{}
 
 	obj["with_oidc"] = in.WithOIDC
 
-	if in.ServiceAccounts != nil {
+	if in.ServiceAccounts != nil && len(in.ServiceAccounts) > 0 {
 		v, ok := obj["service_accounts"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
 		var nRawState cty.Value
-		if !rawState.IsNull() {
-			nRawState = rawState.GetAttr("service_accounts")
+		if !rawState.IsNull() && rawState.Type().IsObjectType() {
+			if _, ok := rawState.Type().AttributeTypes()["service_accounts"]; ok {
+				nRawState = rawState.GetAttr("service_accounts")
+			}
 		}
 		obj["service_accounts"] = flattenIAMServiceAccounts(in.ServiceAccounts, nRawState, v)
 	}

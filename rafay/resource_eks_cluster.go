@@ -660,6 +660,11 @@ func podIdentityAssociationsFields() map[string]*schema.Schema {
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Description: "enable flag to create service account",
+			DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				// During CREATE the resource is still "new" → allow the diff.
+				// Afterwards, suppress any attempted change so TF doesn't even
+				// try to plan it; the Update code will throw a hard error.
+				return !d.IsNewResource()
 		},
 		"role_name": {
 			Type:        schema.TypeString,

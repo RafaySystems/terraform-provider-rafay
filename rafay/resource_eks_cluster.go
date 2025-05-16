@@ -660,6 +660,12 @@ func podIdentityAssociationsFields() map[string]*schema.Schema {
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Description: "enable flag to create service account",
+			DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				// During CREATE the resource is still "new" → allow the diff.
+				// Afterwards, suppress any attempted change so TF doesn't even
+				// try to plan it; the Update code will throw a hard error.
+				return !d.IsNewResource()
+			},
 		},
 		"role_name": {
 			Type:        schema.TypeString,
@@ -2693,6 +2699,36 @@ LOOP:
 			}
 		}
 	}
+
+	edgeDb, err := cluster.GetCluster(clusterName, projectID, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": clusterName, "pid": projectID})
+		return diag.Errorf("Failed to fetch cluster: %s", err)
+	}
+	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
+	if cseFromDb != "true" {
+		if yamlClusterMetadata.Spec.Sharing == nil && cseFromDb != "" {
+			// reset cse as sharing is removed
+			edgeDb.Settings[clusterSharingExtKey] = ""
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
+				return diag.Errorf("Unable to update the edge object, got error: %s", err)
+			}
+			tflog.Error(ctx, "cse removed successfully")
+		}
+		if yamlClusterMetadata.Spec.Sharing != nil && cseFromDb != "false" {
+			// explicitly set cse to false
+			edgeDb.Settings[clusterSharingExtKey] = "false"
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
+				return diag.Errorf("Unable to update the edge object, got error: %s", err)
+			}
+			tflog.Error(ctx, "cse set to false")
+		}
+	}
+
 	return diags
 }
 func eksClusterCTLStatus(taskid, projectID string) (string, error) {
@@ -5190,14 +5226,16 @@ func flattenEKSClusterIAM(in *EKSClusterIAM, rawState cty.Value, p []interface{}
 
 	obj["with_oidc"] = in.WithOIDC
 
-	if in.ServiceAccounts != nil {
+	if in.ServiceAccounts != nil && len(in.ServiceAccounts) > 0 {
 		v, ok := obj["service_accounts"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
 		var nRawState cty.Value
-		if !rawState.IsNull() {
-			nRawState = rawState.GetAttr("service_accounts")
+		if !rawState.IsNull() && rawState.Type().IsObjectType() {
+			if _, ok := rawState.Type().AttributeTypes()["service_accounts"]; ok {
+				nRawState = rawState.GetAttr("service_accounts")
+			}
 		}
 		obj["service_accounts"] = flattenIAMServiceAccounts(in.ServiceAccounts, nRawState, v)
 	}
@@ -6872,8 +6910,7 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	cse := c.Settings[clusterSharingExtKey]
-	// TODO(Akshay): convert to Info later
-	tflog.Error(ctx, "Got cluster from backend", map[string]any{clusterSharingExtKey: cse})
+	tflog.Info(ctx, "Got cluster from backend", map[string]any{clusterSharingExtKey: cse})
 
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
@@ -6977,7 +7014,7 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 		if d.HasChange("cluster.0.spec.0.sharing") {
 			_, new := d.GetChange("cluster.0.spec.0.sharing")
 			if new != nil {
-				return diag.Errorf("cluster sharing is managed via external cluster sharing resource. Cannot update sharing from rafay_eks_cluster resource")
+				return diag.Errorf("Cluster sharing is currently managed through the external 'rafay_cluster_sharing' resource. To prevent configuration conflicts, please remove the sharing settings from the 'rafay_eks_cluster' resource and manage sharing exclusively via the external resource.")
 			}
 		}
 	}

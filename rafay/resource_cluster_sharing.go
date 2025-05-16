@@ -130,7 +130,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 	tflog.Info(ctx, "Got cluster from backend", map[string]any{clusterSharingExtKey: cse})
 	if cse == "false" {
 		// Cluster is using `spec.sharing` for sharing management.
-		return diag.Errorf("cluster sharing is managed from rafay_eks_cluster itself.")
+		return diag.Errorf("Detected conflicting cluster sharing configurations in both 'rafay_*_cluster' and 'rafay_cluster_sharing' resources. Please consolidate the sharing settings into a single resource to ensure consistent cluster sharing behavior.")
 	}
 
 	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
@@ -139,7 +139,7 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 
 	if sharingSpec == nil {
 		// no sharing info. so set to none
-		_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, "", false)
+		_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, uaDef, "")
 		if err != nil {
 			log.Printf("cluster failed to unshare form all projects %s ", clusterName)
 			return diag.FromErr(err)
@@ -481,7 +481,7 @@ func resourceClusterSharingDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
 	}
 
-	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, "", false)
+	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, uaDef, "")
 	if err != nil {
 		log.Printf("cluster share setting had all, but failed to unshare form all projects")
 		return diag.FromErr(err)

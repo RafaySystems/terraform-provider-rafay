@@ -88,6 +88,18 @@ func resourceEksPodIdentityUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("spec not specified"))
 	}
 
+	if d.HasChange("spec") {
+		oldRaw, newRaw := d.GetChange("spec")
+
+		oldFlag := extractCreateServiceAccount(oldRaw)
+		newFlag := extractCreateServiceAccount(newRaw)
+
+		if oldFlag != newFlag {
+			return diag.Errorf(
+				"create_service_account is immutable. ")
+		}
+	}
+
 	if len(podIdentity) == 0 {
 		return diag.FromErr(errors.New("could not get pod identity associations"))
 	}
@@ -419,6 +431,17 @@ func resourceEksPodIdentityDelete(ctx context.Context, d *schema.ResourceData, m
 	log.Println("pod identity get response : ", response)
 
 	return diags
+}
+
+func extractCreateServiceAccount(raw interface{}) bool {
+	if l, ok := raw.([]interface{}); ok && len(l) > 0 && l[0] != nil {
+		if m, ok := l[0].(map[string]interface{}); ok {
+			if v, ok := m["create_service_account"].(bool); ok {
+				return v
+			}
+		}
+	}
+	return false
 }
 
 func getIdFromName(clusterName string, projectName string) (string, string, error) {

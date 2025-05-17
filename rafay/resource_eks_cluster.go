@@ -2704,7 +2704,7 @@ LOOP:
 		if yamlClusterMetadata.Spec.Sharing == nil && cseFromDb != "" {
 			// reset cse as sharing is removed
 			edgeDb.Settings[clusterSharingExtKey] = ""
-			err := cluster.UpdateCluster(edgeDb)
+			err := cluster.UpdateCluster(edgeDb, uaDef)
 			if err != nil {
 				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
 				return diag.Errorf("Unable to update the edge object, got error: %s", err)
@@ -2714,7 +2714,7 @@ LOOP:
 		if yamlClusterMetadata.Spec.Sharing != nil && cseFromDb != "false" {
 			// explicitly set cse to false
 			edgeDb.Settings[clusterSharingExtKey] = "false"
-			err := cluster.UpdateCluster(edgeDb)
+			err := cluster.UpdateCluster(edgeDb, uaDef)
 			if err != nil {
 				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
 				return diag.Errorf("Unable to update the edge object, got error: %s", err)

@@ -246,11 +246,11 @@ func expandProject(in *schema.ResourceData) (*systempb.Project, error) {
 	}
 	obj := &systempb.Project{}
 
-	if v, ok := in.Get("metadata").([]interface{}); ok {
+	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandMetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok {
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandProjectSpec(v)
 		if err != nil {
 			return nil, err

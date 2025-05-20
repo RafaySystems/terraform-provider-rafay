@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	CONN_TIMEOUT int64 = 120
+	CONN_TIMEOUT time.Duration = time.Second * 120
 )
 
 func resourceAKSWorkloadIdentity() *schema.Resource {
@@ -88,7 +88,7 @@ func resourceAKSWorkloadIdentityRead(ctx context.Context, d *schema.ResourceData
 
 func getAksWorkloadIdentity(ctx context.Context, name, clusterName, project string) (*infrapb.AksWorkloadIdentity, error) {
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithTimeout(auth.URL, auth.Key, versioninfo.GetUserAgent(), CONN_TIMEOUT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid), options.WithConnectionTimeout(CONN_TIMEOUT))
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func getAksWorkloadIdentity(ctx context.Context, name, clusterName, project stri
 
 func listAksWorkloadIdentity(ctx context.Context, clusterName, project string) (*infrapb.AksWorkloadIdentityList, error) {
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithTimeout(auth.URL, auth.Key, versioninfo.GetUserAgent(), CONN_TIMEOUT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid), options.WithConnectionTimeout(CONN_TIMEOUT))
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func resourceAKSWorkloadIdentityDelete(ctx context.Context, d *schema.ResourceDa
 	log.Printf("deleting workload identity: %s for edgename: %s and projectname: %s", wiName, wiClusterName, wiProjectName)
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithTimeout(auth.URL, auth.Key, versioninfo.GetUserAgent(), CONN_TIMEOUT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid), options.WithConnectionTimeout(CONN_TIMEOUT))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -248,7 +248,7 @@ func resourceAKSWorkloadIdentityUpsert(ctx context.Context, d *schema.ResourceDa
 	log.Printf("upserting workload identity: %s for edgename: %s and projectname: %s", wiName, wiClusterName, wiProjectName)
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithTimeout(auth.URL, auth.Key, versioninfo.GetUserAgent(), CONN_TIMEOUT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid), options.WithConnectionTimeout(CONN_TIMEOUT))
 	if err != nil {
 		return diag.FromErr(err)
 	}

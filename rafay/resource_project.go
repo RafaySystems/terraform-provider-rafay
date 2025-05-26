@@ -391,7 +391,14 @@ func expandProjectResourceQuota(p []interface{}) *systempb.ProjectResourceQuota 
 		//obj.ReplicationControllers = expandQuantityString(v)
 		obj.ReplicationControllers = v
 	}
-
+	if v, ok := in["ephemeral_storage_limits"].(string); ok && len(v) > 0 {
+		//obj.EphemeralStorageLimits = expandQuantityString(v)
+		obj.EphemeralStorageLimits = v
+	}
+	if v, ok := in["ephemeral_storage_requests"].(string); ok && len(v) > 0 {
+		//obj.EphemeralStorageRequests = expandQuantityString(v)
+		obj.EphemeralStorageRequests = v
+	}
 	return obj
 }
 
@@ -589,7 +596,14 @@ func flattenProjectResourceQuota(in *systempb.ProjectResourceQuota) []interface{
 		obj["storage_requests"] = in.StorageRequests
 		retNil = false
 	}
-
+	if len(in.EphemeralStorageLimits) > 0 {
+		obj["ephemeral_storage_limits"] = in.EphemeralStorageLimits
+		retNil = false
+	}
+	if len(in.EphemeralStorageRequests) > 0 {
+		obj["ephemeral_storage_requests"] = in.EphemeralStorageRequests
+		retNil = false
+	}
 	if retNil {
 		return nil
 	}

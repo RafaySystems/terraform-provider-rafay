@@ -79,6 +79,8 @@ resource "rafay_namespace" "cloudops" {
             storage_requests = "1Gi"
             gpu_requests = "10"
             gpu_limits = "10"
+            ephemeral_storage_limits = "250Mi"
+            ephemeral_storage_requests = "250Mi"
         }
 
         limit_range {
@@ -298,6 +300,8 @@ Optional:
 - `storage_requests` - (String) The size of the storage request in Gibibytes.
 - `gpu_limits` - (String) The maximum GPU resource. 
 - `gpu_requests` - (String) The number of GPU requests.
+- `ephemeral_storage_limits` - (String) The maximum sum of all ephemeral storage limits from all pods in the namespace.
+- `ephemeral_storage_requests` - (String) The maximum sum of all ephemeral storage requests from all pods in the namespace.
 
     See the Kubernetes [Resource Quotas](https://kubernetes.io/docs/concepts/policy/resource-quotas/) documentation page for more information.
 

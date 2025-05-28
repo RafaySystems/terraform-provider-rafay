@@ -49,7 +49,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v2.5.0
         with:
           version: v1.26.1
-          args: release --rm-dist
+          args: release --rm-dist -p 2 --timeout 45m
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           # GitHub sets this automatically

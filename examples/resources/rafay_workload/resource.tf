@@ -6,7 +6,7 @@ resource "rafay_workload" "tftestworkload1" {
   }
   spec {
     namespace = "test-workload1"
-    version = "v1"
+    version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -36,18 +36,18 @@ resource "rafay_workload" "tftestworkload2" {
   }
   spec {
     namespace = "test-workload2"
-    version = "v1"
+    version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
     artifact {
       type = "Helm"
-      artifact{
+      artifact {
         values_paths {
           name = "file://relative/path/to/some/chart/values.yaml"
         }
-        repository = "helm-repo-name"
-        chart_name = "chartname"
+        repository    = "helm-repo-name"
+        chart_name    = "chartname"
         chart_version = "versionID"
       }
     }
@@ -62,7 +62,7 @@ resource "rafay_workload" "tftestworkload3" {
   }
   spec {
     namespace = "test-workload3"
-    version = "v1"
+    version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -87,7 +87,7 @@ resource "rafay_workload" "tftestworkload4" {
   }
   spec {
     namespace = "test-workload4"
-    version = "v1"
+    version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -110,7 +110,7 @@ resource "rafay_workload" "tftestworkload5" {
   }
   spec {
     namespace = "test-workload5"
-    version = "v1"
+    version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -140,7 +140,7 @@ resource "rafay_workload" "tftestworkload6" {
   }
   spec {
     namespace = "test-workload6"
-    version = "v1"
+    version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
@@ -177,17 +177,17 @@ resource "rafay_workload" "tftestworkload7" {
   }
   spec {
     namespace = "test-workload7"
-    version = "v1"
+    version   = "v1"
     placement {
       selector = "rafay.dev/clusterName=cluster-1"
     }
     artifact {
       type = "Helm"
-      artifact{
-        catalog = "catalogName"
-        chart_name = "chartName"
+      artifact {
+        catalog       = "catalogName"
+        chart_name    = "chartName"
         chart_version = "chartVersion"
-         values_paths {
+        values_paths {
           name = "file://relative/path/to/some/chart/values.yaml"
         }
       }

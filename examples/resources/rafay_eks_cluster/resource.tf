@@ -22,7 +22,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       region  = "us-west-2"
       version = "1.30"
       tags = {
-        env = "dev"
+        env   = "dev"
         email = "bharath.reddy@rafay.co"
       }
     }
@@ -41,32 +41,32 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
           namespace = "yaml1"
         }
         attach_policy = jsonencode({
-          "Version": "2012-10-17",
-          "Statement": [
+          "Version" : "2012-10-17",
+          "Statement" : [
             {
-              "Effect": "Allow",
-              "Action": "ec2:Describe*",
-              "Resource": "*"
+              "Effect" : "Allow",
+              "Action" : "ec2:Describe*",
+              "Resource" : "*"
             },
             {
-              "Effect": "Allow",
-              "Action": [
+              "Effect" : "Allow",
+              "Action" : [
                 "ec2:AttachVolume",
               ],
-              "Resource": "*"
+              "Resource" : "*"
             },
             {
-              "Effect": "Allow",
-              "Action": "ec2:DetachVolume",
-              "Resource": "*"
+              "Effect" : "Allow",
+              "Action" : "ec2:DetachVolume",
+              "Resource" : "*"
             },
             {
-              "Effect": "Allow",
-              "Action": ["elasticloadbalancing:*"],
-              "Resource": [
+              "Effect" : "Allow",
+              "Action" : ["elasticloadbalancing:*"],
+              "Resource" : [
                 "*"
               ]
-            } 
+            }
           ]
         })
       }
@@ -84,9 +84,9 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       }
     }
     managed_nodegroups {
-      name       = "ng-1"
+      name = "ng-1"
       # ami = "ami-07a1409f173fe796b"
-      ami_family  = "AmazonLinux2"
+      ami_family = "AmazonLinux2"
       iam {
         iam_node_group_with_addon_policies {
           image_builder = true
@@ -107,9 +107,9 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
         dedicated = "true"
       }
     }
-     managed_nodegroups {
+    managed_nodegroups {
       name       = "ng-2"
-      ami_family  = "AmazonLinux2"
+      ami_family = "AmazonLinux2"
       iam {
         iam_node_group_with_addon_policies {
           image_builder = true

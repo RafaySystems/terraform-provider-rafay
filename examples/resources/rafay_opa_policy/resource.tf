@@ -6,7 +6,7 @@ resource "rafay_opa_policy" "tftestopapolicy1" {
   }
   spec {
     constraint_list {
-      name = "tfdemoopaconstraint1"
+      name    = "tfdemoopaconstraint1"
       version = "v1"
     }
     sharing {

@@ -134,13 +134,15 @@ resource "rafay_environment" "eks-rds-env-example" {
 - `sensitive` (Boolean) Determines whether the value is sensitive or not, accordingly applies encryption on it
 
 <a id="nestedblock--spec--variables--options--override"></a>
-### Nested Schema for `spec.variables.options.sensitive`
+### Nested Schema for `spec.variables.options.override`
 
 ***Optional***
 
+- `display_overridden` (Boolean) Display overridden values on UI
+- `restricted_key_values` (Map of String) If the override type is restricted_key_values, values it is restricted to
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
-- `type` (String) Specify the type of override this variable supports, Available types are `allowed`, `notallowed`, `restricted`
-
+- `selectors` (List of String) Used to alias a variable and restrict the override scope
+- `type` (String) Specify the type of ovverride this variable supports
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

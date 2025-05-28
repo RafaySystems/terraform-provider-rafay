@@ -5,13 +5,13 @@ resource "rafay_breakglassaccess" "test_user" {
   spec {
     groups {
       group_expiry {
-        expiry     = 7
-        name      = "grp-2"
+        expiry   = 7
+        name     = "grp-2"
         timezone = "America/Los_Angeles"
       }
       group_expiry {
         expiry     = 8
-        name      = "grp-1"
+        name       = "grp-1"
         start_time = "2024-09-20T08:00:00Z"
       }
       user_type = "local"

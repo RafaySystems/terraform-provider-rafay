@@ -24,6 +24,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+var FailOnExists bool = false
+
 func resourceProject() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceProjectCreate,
@@ -47,6 +49,7 @@ func resourceProject() *schema.Resource {
 
 func resourceProjectCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("project create starts")
+	FailOnExists = true
 	diags := resourceProjectUpsert(ctx, d, m)
 	if diags.HasError() {
 		tflog := os.Getenv("TF_LOG")
@@ -110,7 +113,9 @@ func resourceProjectUpsert(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	err = client.SystemV3().Project().Apply(ctx, pr, options.ApplyOptions{})
+	err = client.SystemV3().Project().Apply(ctx, pr, options.ApplyOptions{
+		FailOnExists: FailOnExists,
+	})
 	if err != nil {
 		// XXX Debug
 		n1 := spew.Sprintf("%+v", pr)
@@ -175,10 +180,10 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 		meta.Name = d.State().ID
 	}
 
-	// tfProjectState, err := expandProject(d)
-	// if err != nil {
-	// 	return diag.FromErr(err)
-	// }
+	tfProjectState, err := expandProject(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// XXX Debug
 	// w1 := spew.Sprintf("%+v", tfProjectState)
@@ -201,6 +206,9 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 			return diags
 		}
 		return diag.FromErr(err)
+	}
+	if tfProjectState.Spec != nil && tfProjectState.Spec.DriftWebhook == nil {
+		Project.Spec.DriftWebhook = nil
 	}
 
 	// XXX Debug
@@ -238,11 +246,11 @@ func expandProject(in *schema.ResourceData) (*systempb.Project, error) {
 	}
 	obj := &systempb.Project{}
 
-	if v, ok := in.Get("metadata").([]interface{}); ok {
+	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
 		obj.Metadata = expandMetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok {
+	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
 		objSpec, err := expandProjectSpec(v)
 		if err != nil {
 			return nil, err
@@ -383,7 +391,14 @@ func expandProjectResourceQuota(p []interface{}) *systempb.ProjectResourceQuota 
 		//obj.ReplicationControllers = expandQuantityString(v)
 		obj.ReplicationControllers = v
 	}
-
+	if v, ok := in["ephemeral_storage_limits"].(string); ok && len(v) > 0 {
+		//obj.EphemeralStorageLimits = expandQuantityString(v)
+		obj.EphemeralStorageLimits = v
+	}
+	if v, ok := in["ephemeral_storage_requests"].(string); ok && len(v) > 0 {
+		//obj.EphemeralStorageRequests = expandQuantityString(v)
+		obj.EphemeralStorageRequests = v
+	}
 	return obj
 }
 
@@ -581,7 +596,14 @@ func flattenProjectResourceQuota(in *systempb.ProjectResourceQuota) []interface{
 		obj["storage_requests"] = in.StorageRequests
 		retNil = false
 	}
-
+	if len(in.EphemeralStorageLimits) > 0 {
+		obj["ephemeral_storage_limits"] = in.EphemeralStorageLimits
+		retNil = false
+	}
+	if len(in.EphemeralStorageRequests) > 0 {
+		obj["ephemeral_storage_requests"] = in.EphemeralStorageRequests
+		retNil = false
+	}
 	if retNil {
 		return nil
 	}

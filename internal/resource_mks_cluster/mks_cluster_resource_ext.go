@@ -7,6 +7,7 @@ package resource_mks_cluster
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"time"
 
@@ -734,6 +735,7 @@ func (v ConfigValue) ToHub(ctx context.Context) (*infrapb.MksV3ConfigObject, dia
 	hub.KubernetesVersion = getStringValue(v.KubernetesVersion)
 	hub.InstallerTtl = getInt64Value(v.InstallerTtl)
 	hub.KubeletExtraArgs = convertFromTfMap(v.KubeletExtraArgs)
+	hub.PlatformVersion = getStringValue(v.PlatformVersion)
 
 	var networkType NetworkType
 
@@ -793,6 +795,8 @@ func (v ConfigValue) FromHub(ctx context.Context, hub *infrapb.MksV3ConfigObject
 	v.KubeletExtraArgs = convertToTfMap(hub.KubeletExtraArgs)
 
 	v.KubernetesVersion = types.StringValue(hub.KubernetesVersion)
+
+	v.PlatformVersion = types.StringValue(hub.PlatformVersion)
 
 	network, d := NewNetworkValue(v.Network.AttributeTypes(ctx), v.Network.Attributes())
 	if d.HasError() {
@@ -1027,10 +1031,12 @@ func ConvertMksClusterFromHub(ctx context.Context, hub *infrapb.Cluster, tf *Mks
 
 func WaitForClusterApplyOperation(ctx context.Context, client typed.Client, cluster *infrapb.Cluster, timeout <-chan time.Time, ticker *time.Ticker) diag.Diagnostics {
 	var diags diag.Diagnostics
+	maxRetries := 5
+	retryCount := 0
+
 	for {
 		select {
 		case <-timeout:
-			// Timeout reached
 			diags.AddError("Timeout reached while waiting for cluster operation to complete", "")
 			return diags
 
@@ -1039,11 +1045,20 @@ func WaitForClusterApplyOperation(ctx context.Context, client typed.Client, clus
 				Name:    cluster.Metadata.Name,
 				Project: cluster.Metadata.Project,
 			})
+
 			if err != nil {
-				// Error occurred while fetching cluster status
-				diags.AddError("Error occurred while fetching cluster status", err.Error())
-				return diags
+				// Implement exponential backoff and retry
+				retryCount++
+				if retryCount > maxRetries {
+					diags.AddError("Repeated failures in fetching cluster status", err.Error())
+					return diags
+				}
+				time.Sleep(time.Duration(math.Pow(2, float64(retryCount))) * time.Second)
+				continue
 			}
+
+			// Reset retry count on successful API call
+			retryCount = 0
 
 			if uCluster == nil {
 				continue
@@ -1060,7 +1075,7 @@ func WaitForClusterApplyOperation(ctx context.Context, client typed.Client, clus
 					return diags
 				case commonpb.ConditionStatus_StatusFailed:
 					failureReason := uClusterCommonStatus.Reason
-					diags.AddError("Cluster operation failed", failureReason)
+					diags.AddError(fmt.Sprintf("Cluster operation failed: %s", failureReason), failureReason)
 					return diags
 				}
 			}
@@ -1070,10 +1085,12 @@ func WaitForClusterApplyOperation(ctx context.Context, client typed.Client, clus
 
 func WaitForClusterDeleteOperation(ctx context.Context, client typed.Client, name string, project string, timeout <-chan time.Time, ticker *time.Ticker) diag.Diagnostics {
 	var diags diag.Diagnostics
+	maxRetries := 5
+	retryCount := 0
+
 	for {
 		select {
 		case <-timeout:
-			// Timeout reached
 			diags.AddError("Timeout reached while deleting the cluster resource", "")
 			return diags
 
@@ -1082,15 +1099,36 @@ func WaitForClusterDeleteOperation(ctx context.Context, client typed.Client, nam
 				Name:    name,
 				Project: project,
 			})
-			if err, ok := err.(*dynamic.DynamicClientGetError); ok && err != nil {
-				switch err.StatusCode {
-				case http.StatusNotFound:
-					return diags
-				default:
-					diags.AddError("Cluster Deletion failed", err.Error())
+
+			if err != nil {
+				// Type assertion for dynamic client error
+				if dynamicErr, ok := err.(*dynamic.DynamicClientGetError); ok {
+					switch dynamicErr.StatusCode {
+					case http.StatusNotFound:
+						// Cluster not found, deletion successful
+						return diags
+					case http.StatusInternalServerError, http.StatusServiceUnavailable, http.StatusGatewayTimeout, http.StatusBadGateway:
+						// Retry on server errors
+						retryCount++
+						if retryCount > maxRetries {
+							diags.AddError(fmt.Sprintf("Repeated failures during cluster deletion: %s", dynamicErr.Error()), dynamicErr.Error())
+							return diags
+						}
+						time.Sleep(time.Duration(math.Pow(2, float64(retryCount))) * time.Second)
+						continue
+					default:
+						// Other errors
+						diags.AddError(fmt.Sprintf("Cluster Deletion failed: %s", dynamicErr.Error()), dynamicErr.Error())
+						return diags
+					}
+				} else {
+					// Non-dynamic client errors
+					diags.AddError(fmt.Sprintf("Unexpected error during cluster deletion: %s", err.Error()), err.Error())
 					return diags
 				}
 			}
+			// Reset retry count on successful API call
+			retryCount = 0
 		}
 	}
 }

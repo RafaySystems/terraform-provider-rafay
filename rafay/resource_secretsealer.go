@@ -11,6 +11,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/integrationspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
@@ -158,6 +159,11 @@ func resourceSecretSealerRead(ctx context.Context, d *schema.ResourceData, m int
 			return diags
 		}
 		return diag.FromErr(err)
+	}
+
+	if tfSecretSealerState.Spec != nil && tfSecretSealerState.Spec.Sharing != nil && !tfSecretSealerState.Spec.Sharing.Enabled && ag.Spec.Sharing == nil {
+		ag.Spec.Sharing = &commonpb.SharingSpec{}
+		ag.Spec.Sharing.Enabled = false
 	}
 
 	err = flattenSecretSealer(d, ag)

@@ -29,7 +29,6 @@ resource "rafay_blueprint" "custom-blueprint" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       enable_csi_secret_store = true
@@ -96,7 +95,6 @@ resource "rafay_blueprint" "custom-blueprint" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       monitoring {
@@ -153,7 +151,6 @@ resource "rafay_blueprint" "custom-blueprint-advanced" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       monitoring {
@@ -221,11 +218,9 @@ resource "rafay_blueprint" "custom-blueprint-advanced2" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       enable_rook_ceph = true
-      enable_cni = false
       monitoring {
         metrics_server {
           enabled = true
@@ -277,7 +272,6 @@ resource "rafay_blueprint" "custom-golden-blueprint" {
     type = "golden"
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
       monitoring {
@@ -318,45 +312,6 @@ resource "rafay_blueprint" "custom-golden-blueprint" {
 
 ---
 
-Example of a custom blueprint resource with service mesh.
-
-```terraform
-resource "rafay_blueprint" "mesh-blueprint" {
-  metadata {
-    name    = "custom-mesh-blueprint"
-    project = "terraform"
-  }
-  spec {
-    version = "v0"
-    base {
-      name    = "default"
-      version = "1.19.0"
-    }
-    default_addons {
-      enable_ingress    = true
-      enable_logging    = false
-      enable_monitoring = true
-      enable_vm         = false
-    }
-    drift {
-      action  = "Deny"
-      enabled = true
-    }
-
-    service_mesh {
-      profile {
-        name = "tfdemomeshprofile1"
-        version = "v0"
-      }
-      policies {
-        name = "tfdemocmp1"
-        version = "v0"
-      }
-    }
-  }
-}
-```
-
 Example of a custom blueprint resource with cost profile.
 
 ```terraform
@@ -373,7 +328,6 @@ resource "rafay_blueprint" "cost-blueprint" {
     }
     default_addons {
       enable_ingress    = true
-      enable_logging    = false
       enable_monitoring = true
       enable_vm         = false
     }
@@ -434,7 +388,6 @@ resource "rafay_blueprint" "cost-blueprint" {
 - `namespace_config` (Block List, Max: 1) namespace config (see [below for nested schema](#nestedblock--spec--namespace_config))
 - `opa_policy` (Block List, Max: 1) opa policy and version details (see [below for nested schema](#nestedblock--spec--opa_policy))
 - `network_policy` (Block List, Max: 1) Network policy and version details (see [below for nested schema](#nestedblock--spec--network_policy))
-- `service_mesh` (Block List, Max: 1) Service Mesh Profile, Cluster Policies and version details (see [below for nested schema](#nestedblock--spec--service_mesh))
 - `cost_profile` (Block List, Max: 1) Cost Profile and version details (see [below for nested schema](#nestedblock--spec--cost_profile))
 - `version_state` - (String) Represents the current state of the blueprint version (draft, active or disable).
 <a id="nestedblock--spec--base"></a>
@@ -471,10 +424,13 @@ resource "rafay_blueprint" "cost-blueprint" {
 ***Optional***
 
 - `enable_ingress` - (Boolean) If enabled, ingress is installed on the cluster.  
-- `enable_logging` - (Boolean) If enabled, logging is installed on the cluster.  
 - `enable_monitoring` - (Boolean) If enabled, monitoring is installed on the cluster. 
 - `enable_rook_ceph` - (Boolean) If enabled, run ceph inside a cluster.
-- `enable_cni` - (Boolean) If enabled, custom cni add-ons on the clusters. 
+- `enable_cni` - (Boolean) If enabled, custom cni add-ons on the clusters. (deprecated)
+- `enable_cilium_cni` - (Boolean) If enabled, deploys custom cilium cni add-ons on the clusters. 
+- `enable_calico_cni` - (Boolean) If enabled, deploys custom calico cni add-ons on the clusters. 
+- `enable_kubeovn_cni` - (Boolean) If enabled, deploys custom kubeovn cni add-ons on the clusters. 
+- `enable_kubeovn_chaning_cni` - (Boolean) If enabled, deploys custom kubeovn Cilium Chaning mode cni add-ons on the clusters. 
 - `enable_vm` - (Boolean) If enabled, VM operator (kubevirt) is installed on the cluster. 
 - `enable_csi_secret_store` - (Boolean) If enabled, Secrets Store CSI Driver Add-on is installed on the cluster. 
 - `csi_secret_store_config` - (Block List) The configuration for Secrets Store CSI Driver Add-on is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--csistore-config))
@@ -677,30 +633,6 @@ Optional:
 - `name` (String) name of the network profile
 - `version` (String) version of the network profile
 
-
-<a id="nestedblock--spec--service_mesh"></a>
-### Nested Schema for `spec.service_mesh`
-
-***Required***
-
-- `policies` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--service_mesh--policies))
-- `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--service_mesh--profile))
-
-<a id="nestedblock--spec--service_mesh--policies"></a>
-### Nested Schema for `spec.service_mesh.policies`
-
-***Required***
-
-- `name` (String) name of the cluster mesh policy
-- `version` (String) version of the cluster mesh policy
-
-<a id="nestedblock--spec--service_mesh--profile"></a>
-### Nested Schema for `spec.service_mesh.profile`
-
-***Required***
-
-- `name` (String) name of the mesh profile
-- `version` (String) version of the mesh profile
 
 <a id="nestedblock--spec--cost_profile"></a>
 ### Nested Schema for `spec.cost_profile`

@@ -34,12 +34,12 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate2" {
   spec {
     artifact {
       type = "Helm"
-      artifact{
+      artifact {
         values_paths {
           name = "file://relative/path/to/some/chart/values.yaml"
         }
-        repository = "helm-repo-name"
-        chart_name = "chartname"
+        repository    = "helm-repo-name"
+        chart_name    = "chartname"
         chart_version = "versionID"
       }
     }
@@ -113,9 +113,9 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate6" {
   spec {
     artifact {
       type = "Helm"
-      artifact{
-        repository = "catalogName"
-        chart_name = "chartName"
+      artifact {
+        repository    = "catalogName"
+        chart_name    = "chartName"
         chart_version = "chartVersion"
         values_paths {
           name = "file://relative/path/to/some/chart/values.yaml"

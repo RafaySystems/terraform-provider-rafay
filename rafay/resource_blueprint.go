@@ -205,6 +205,17 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.Sharing != nil && !tfBlueprintState.Spec.Sharing.Enabled && bp.Spec.Sharing == nil {
 		bp.Spec.Sharing = &commonpb.SharingSpec{}
 		bp.Spec.Sharing.Enabled = false
+		bp.Spec.Sharing.Projects = tfBlueprintState.Spec.Sharing.Projects
+	}
+	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.DriftWebhook == nil {
+		bp.Spec.DriftWebhook = nil
+	}
+	if tfBlueprintState.Spec != nil && tfBlueprintState.Spec.DefaultAddons != nil && bp.Spec != nil && bp.Spec.DefaultAddons != nil {
+		if tfBlueprintState.Spec.DefaultAddons.EnableMonitoring {
+			if tfBlueprintState.Spec.DefaultAddons.Monitoring == nil && bp.Spec.DefaultAddons.Monitoring != nil {
+				bp.Spec.DefaultAddons.Monitoring = nil
+			}
+		}
 	}
 
 	// XXX Debug
@@ -458,6 +469,22 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 
 	if v, ok := in["enable_cni"].(bool); ok {
 		obj.EnableCni = v
+	}
+
+	if v, ok := in["enable_cilium_cni"].(bool); ok {
+		obj.EnableCiliumCni = v
+	}
+
+	if v, ok := in["enable_calico_cni"].(bool); ok {
+		obj.EnableCalicoCni = v
+	}
+
+	if v, ok := in["enable_kubeovn_cni"].(bool); ok {
+		obj.EnableKubeovnCni = v
+	}
+
+	if v, ok := in["enable_kubeovn_chaning_cni"].(bool); ok {
+		obj.EnableKubeovnChaningCni = v
 	}
 
 	if v, ok := in["enable_vm"].(bool); ok {
@@ -1027,7 +1054,7 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["version"] = in.Version
 	}
 
-	obj["version_state"] = flattenBlueprintVersionState(in.VersionState, p[0].(map[string]interface{}))
+	obj["version_state"] = flattenBlueprintVersionState(in.VersionState, p)
 
 	if in.DefaultAddons != nil {
 		v, ok := obj["default_addons"].([]interface{})
@@ -1137,10 +1164,19 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 	return []interface{}{obj}, nil
 }
 
-func flattenBlueprintVersionState(in string, p map[string]interface{}) string {
+func flattenBlueprintVersionState(versionStateInDB string, p []interface{}) string {
 
-	if v, ok := p["version_state"].(string); ok && len(v) > 0 {
-		return in
+	if len(p) == 0 || p[0] == nil {
+		return ""
+	}
+
+	obj, ok := p[0].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+
+	if v, ok := obj["version_state"].(string); ok && len(v) > 0 {
+		return versionStateInDB
 	}
 	return ""
 }
@@ -1494,6 +1530,26 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 
 	if in.EnableCni {
 		obj["enable_cni"] = in.EnableCni
+		retNil = false
+	}
+
+	if in.EnableCalicoCni {
+		obj["enable_calico_cni"] = in.EnableCalicoCni
+		retNil = false
+	}
+
+	if in.EnableCiliumCni {
+		obj["enable_cilium_cni"] = in.EnableCiliumCni
+		retNil = false
+	}
+
+	if in.EnableKubeovnCni {
+		obj["enable_kubeovn_cni"] = in.EnableKubeovnCni
+		retNil = false
+	}
+
+	if in.EnableKubeovnChaningCni {
+		obj["enable_kubeovn_chaning_cni"] = in.EnableKubeovnChaningCni
 		retNil = false
 	}
 

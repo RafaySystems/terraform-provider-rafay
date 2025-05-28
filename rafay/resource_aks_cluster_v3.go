@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -18,9 +19,11 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
+	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	structpb "google.golang.org/protobuf/types/known/structpb"
@@ -80,6 +83,27 @@ func resourceAKSClusterV3Read(ctx context.Context, d *schema.ResourceData, m int
 
 	// ============== Unfurl End =================
 
+	// fetch v1 cluster settings to check external sharing
+	clusterName := deployedCluster.Metadata.Name
+	projectName := deployedCluster.Metadata.Project
+	pid, err := getProjectIDFromName(projectName)
+	if err != nil {
+		tflog.Error(ctx, "failed to get project id", map[string]any{"clusterName": clusterName, "prjectName": projectName})
+		return diag.FromErr(err)
+	}
+	edge, err := cluster.GetCluster(clusterName, pid, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "failed to get v1 cluster", map[string]any{"clusterName": clusterName, "projectID": pid})
+		return diag.FromErr(err)
+	}
+
+	cse := edge.Settings[clusterSharingExtKey]
+	tflog.Error(ctx, "Got edge obj from backend", map[string]any{"cse": cse})
+
+	if cse == "true" {
+		deployedCluster.Spec.Sharing = nil
+	}
+
 	err = flattenAKSClusterV3(d, deployedCluster)
 	if err != nil {
 		return diag.FromErr(err)
@@ -121,6 +145,39 @@ func getDeployedClusterSpecV3(ctx context.Context, d *schema.ResourceData) (*inf
 
 func resourceAKSClusterV3Update(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("Cluster update starts")
+	clusterName, ok := d.Get("metadata.0.name").(string)
+	if !ok || clusterName == "" {
+		return diag.Errorf("cluster name is missing")
+	}
+	projectName, ok := d.Get("metadata.0.project").(string)
+	if !ok || projectName == "" {
+		return diag.Errorf("project name is missing")
+	}
+	projectID, err := getProjectIDFromName(projectName)
+	if err != nil {
+		log.Print("error converting project name to id")
+		return diag.Errorf("error converting project name to project ID")
+	}
+	c, err := cluster.GetCluster(clusterName, projectID, uaDef)
+	if err != nil {
+		log.Printf("error in get cluster %s", err.Error())
+		return diag.FromErr(err)
+	}
+	cse := c.Settings[clusterSharingExtKey]
+	tflog.Error(ctx, "Cluster fetched", map[string]any{clusterSharingExtKey: cse})
+
+	// Check if cse == true and `spec.sharing` specified. then
+	// Error out here only before procedding. The next Upsert is
+	// called by "Create" flow as well which is explicitly setting
+	// cse to false if `spec.sharing` provided.
+	if cse == "true" {
+		if d.HasChange("spec.0.sharing") {
+			_, new := d.GetChange("spec.0.sharing")
+			if new != nil {
+				return diag.Errorf("Cluster sharing is currently managed through the external 'rafay_cluster_sharing' resource. To prevent configuration conflicts, please remove the sharing settings from the 'rafay_aks_cluster_v3' resource and manage sharing exclusively via the external resource.")
+			}
+		}
+	}
 	return resourceAKSClusterV3Upsert(ctx, d, m)
 }
 
@@ -213,8 +270,8 @@ func resourceAKSClusterV3Import(d *schema.ResourceData, meta interface{}) ([]*sc
 func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("Cluster upsert starts")
-	tflog := os.Getenv("TF_LOG")
-	if tflog == "TRACE" || tflog == "DEBUG" {
+	tflogLevel := os.Getenv("TF_LOG")
+	if tflogLevel == "TRACE" || tflogLevel == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
@@ -347,6 +404,44 @@ LOOP:
 			}
 		}
 	}
+
+	pid, err := getProjectIDFromName(projectName)
+	if err != nil {
+		tflog.Error(ctx, "failed to get project id", map[string]any{"clusterName": edgeName, "projectName": projectName})
+		return diag.Errorf("Unable to read the project id, got error: %s", err)
+	}
+	edge, err := cluster.GetCluster(edgeName, pid, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "failed to get aks cluster", map[string]any{"clusterName": edgeName, "projectID": pid})
+		return diag.Errorf("Unable to read the edge object, got error: %s", err)
+	}
+
+	cse := edge.Settings[clusterSharingExtKey]
+
+	// for update, sharing is removed. Unset cse flag
+	if desiredCluster.GetSpec().Sharing == nil && cse == "false" {
+		edge.Settings[clusterSharingExtKey] = ""
+		err = cluster.UpdateCluster(edge, uaDef)
+		if err != nil {
+			tflog.Error(ctx, "failed to update aks cluster", map[string]any{"edgeObj": edge})
+			return diag.Errorf("Unable to update the edge object, got error: %s", err)
+		}
+		tflog.Debug(ctx, "cse flag unset")
+	}
+
+	// for create, edge is created, update cse flag
+	if desiredCluster.GetSpec().Sharing != nil && cse != "false" {
+		// explicitly set cse to false
+		edge.Settings[clusterSharingExtKey] = "false"
+		err = cluster.UpdateCluster(edge, uaDef)
+		if err != nil {
+			tflog.Error(ctx, "failed to update aks cluster", map[string]any{"edgeObj": edge})
+			return diag.Errorf("Unable to update the edge object, got error: %s", err)
+		}
+		// TODO(Akshay): change to Info log
+		tflog.Error(ctx, "cluster is updated successfully")
+	}
+
 	if len(warnings) > 0 {
 		diags = make([]diag.Diagnostic, len(warnings))
 		for i, message := range warnings {
@@ -354,6 +449,7 @@ LOOP:
 			diags[i].Summary = message
 		}
 	}
+
 	return diags
 }
 
@@ -825,18 +921,39 @@ func expandAKSManagedClusterV3Identity(p []interface{}) *infrapb.Identity {
 	if len(p) == 0 || p[0] == nil {
 		return obj
 	}
+
 	in := p[0].(map[string]interface{})
 
-	if v, ok := in["type"].(string); ok && len(v) > 0 {
+	if v, ok := in["type"].(string); ok && v != "" {
 		obj.Type = v
 	}
-	if v, ok := in["user_assigned_identities"].(map[string]interface{}); ok {
-		obj.UserAssignedIdentities = make(map[string]*structpb.Struct)
-		for identity := range v {
-			x, _ := structpb.NewStruct(map[string]interface{}{})
-			obj.UserAssignedIdentities[identity] = x
-		}
+
+	raw, ok := in["user_assigned_identities"].(map[string]interface{})
+	if !ok {
+		return obj
 	}
+	log.Printf("VISHAL: expand identity – raw UAI map: %#v", raw)
+
+	obj.UserAssignedIdentities = make(map[string]*structpb.Struct, len(raw))
+
+	for id, v := range raw {
+		val := strings.TrimSpace(fmt.Sprintf("%v", v))
+
+		if val == "" || val == "{}" {
+			obj.UserAssignedIdentities[id] = &structpb.Struct{}
+			continue
+		}
+
+		var m map[string]interface{}
+		if err := json.Unmarshal([]byte(val), &m); err != nil || len(m) == 0 {
+			obj.UserAssignedIdentities[id] = &structpb.Struct{}
+			continue
+		}
+
+		st, _ := structpb.NewStruct(m)
+		obj.UserAssignedIdentities[id] = st
+	}
+
 	return obj
 }
 
@@ -2824,25 +2941,47 @@ func flattenAKSV3ManagedClusterIdentity(in *infrapb.Identity, p []interface{}) [
 	if in == nil {
 		return nil
 	}
+
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.Type) > 0 {
+	if in.Type != "" {
 		obj["type"] = in.Type
 	}
 
-	if in.UserAssignedIdentities != nil && len(in.UserAssignedIdentities) > 0 {
-		identity := map[string]string{}
-		for k := range in.UserAssignedIdentities {
-			identity[k] = ""
-		}
-		obj["user_assigned_identities"] = identity
+	if len(in.UserAssignedIdentities) == 0 {
+		return []interface{}{obj}
 	}
 
-	return []interface{}{obj}
+	keys := make([]string, 0, len(in.UserAssignedIdentities))
+	for k := range in.UserAssignedIdentities {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
 
+	out := make(map[string]string, len(keys))
+
+	for _, k := range keys {
+		st := in.UserAssignedIdentities[k]
+
+		if st == nil || len(st.Fields) == 0 {
+			out[k] = "{}"
+			continue
+		}
+
+		b, err := json.Marshal(st.AsMap())
+		if err != nil {
+			out[k] = "{}"
+			continue
+		}
+
+		out[k] = string(b)
+	}
+
+	obj["user_assigned_identities"] = out
+	return []interface{}{obj}
 }
 
 func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, p []interface{}) []interface{} {

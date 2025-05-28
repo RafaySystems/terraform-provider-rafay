@@ -5,16 +5,40 @@ resource "rafay_cloud_credentials_v3" "tftestcredentials" {
     project = "defaultproject"
   }
   spec {
-    type = "ClusterProvisioning"
+    type     = "ClusterProvisioning"
     provider = "aws"
     credentials {
-        type = "AccessKey"
-        access_id = "dummy-id"
-        secret_key = "dummy-key"
-        session_token = "fake-token"
-    } 
+      type          = "AccessKey"
+      access_id     = "dummy-id"
+      secret_key    = "dummy-key"
+      session_token = "fake-token"
+    }
     sharing {
       enabled = false
+    }
+  }
+}
+
+
+resource "rafay_cloud_credentials_v3" "tf-example-azure-cred" {
+  metadata {
+    name    = "sample-azure"
+    project = "sample-project"
+  }
+  spec {
+    type     = "ClusterProvisioning"
+    provider = "azure"
+    credentials {
+      tenant_id       = "tenant_id"
+      subscription_id = "subscription_id"
+      client_id       = "client_id"
+      client_secret   = "client_secret"
+    }
+    sharing {
+      enabled = false
+      projects {
+        name = "*"
+      }
     }
   }
 }

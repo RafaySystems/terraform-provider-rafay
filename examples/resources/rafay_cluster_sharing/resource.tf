@@ -1,7 +1,7 @@
 #cluster sharing example, share to specific projects
 resource "rafay_cluster_sharing" "demo-terraform-specific" {
   clustername = "demo-terraform"
-  project = "terraform"
+  project     = "terraform"
   sharing {
     all = false
     projects {
@@ -20,7 +20,7 @@ resource "rafay_cluster_sharing" "demo-terraform-specific" {
 #cluster sharing example, share with ALL projects
 resource "rafay_cluster_sharing" "demo-terraform-all" {
   clustername = "demo-terraform"
-  project = "terraform"
+  project     = "terraform"
   sharing {
     all = true
   }

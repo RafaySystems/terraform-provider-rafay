@@ -141,7 +141,7 @@ resource "rafay_config_context" "config-context-example" {
 
 ***Optional***
 
-- `data` (String) Data of the file content ( required if name if not a relative path )
+- `data` (String) Data of the file content ( required if name is not a relative path )
 - `options` (Block List, Max: 1) Provide the variable options (see [below for nested schema](#nestedblock--spec--variables--options))
 
 ***Deprecated***
@@ -177,9 +177,11 @@ resource "rafay_config_context" "config-context-example" {
 
 ***Optional***
 
-- `restricted_values` (List of String) If the override type is restricted, specify the values it is restricted to
-- `type` (String) Specify the type of override this variable supports, Available types are `allowed`, `notallowed`, `restricted`
+- `display_overridden` (Boolean) Display overridden values on UI
+- `restricted_key_values` (Map of String) If the override type is restricted_key_values, values it is restricted to
+- `restricted_values` (List of String) If the override type is restricted, values it is restricted to
 - `selectors` (List of String) Used to alias a variable and restrict the override scope
+- `type` (String) Specify the type of ovverride this variable supports
 
 <a id="nestedblock--spec--variables--options--schema"></a>
 ### Nested Schema for `spec.variables.options.schema`

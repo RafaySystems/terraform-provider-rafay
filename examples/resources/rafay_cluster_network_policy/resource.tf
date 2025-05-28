@@ -6,7 +6,7 @@ resource "rafay_cluster_network_policy" "tfdemocnp2" {
   spec {
     version = "v0"
     rules {
-      name = "cluster-network-rule"
+      name    = "cluster-network-rule"
       version = "v0"
     }
     sharing {

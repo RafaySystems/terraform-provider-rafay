@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
-	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
@@ -39,7 +39,7 @@ func resourceConfigContext() *schema.Resource {
 	}
 }
 
-func resourceConfigContextCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceConfigContextCreate(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	log.Println("config context create")
 	diags := resourceConfigContextUpsert(ctx, d, m)
 	if diags.HasError() {
@@ -68,7 +68,7 @@ func resourceConfigContextCreate(ctx context.Context, d *schema.ResourceData, m 
 	return diags
 }
 
-func resourceConfigContextUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceConfigContextUpsert(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("config context upsert starts")
 	tflog := os.Getenv("TF_LOG")
@@ -96,7 +96,7 @@ func resourceConfigContextUpsert(ctx context.Context, d *schema.ResourceData, m 
 	return diags
 }
 
-func resourceConfigContextRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceConfigContextRead(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("config context read starts ")
 	meta := GetMetaData(d)
@@ -133,6 +133,12 @@ func resourceConfigContextRead(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
+	if cc.GetSpec().GetSharing() != nil && !cc.GetSpec().GetSharing().GetEnabled() && configcontext.GetSpec().GetSharing() == nil {
+		configcontext.Spec.Sharing = &commonpb.SharingSpec{}
+		configcontext.Spec.Sharing.Enabled = false
+		configcontext.Spec.Sharing.Projects = cc.GetSpec().GetSharing().GetProjects()
+	}
+
 	err = flattenConfigContext(d, configcontext)
 	if err != nil {
 		log.Println("read flatten err")
@@ -142,11 +148,11 @@ func resourceConfigContextRead(ctx context.Context, d *schema.ResourceData, m in
 
 }
 
-func resourceConfigContextUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceConfigContextUpdate(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	return resourceConfigContextUpsert(ctx, d, m)
 }
 
-func resourceConfigContextDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceConfigContextDelete(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Println("config context delete starts")
 	tflog := os.Getenv("TF_LOG")
@@ -193,11 +199,11 @@ func expandConfigContext(in *schema.ResourceData) (*eaaspb.ConfigContext, error)
 	}
 	obj := &eaaspb.ConfigContext{}
 
-	if v, ok := in.Get("metadata").([]interface{}); ok && len(v) > 0 {
+	if v, ok := in.Get("metadata").([]any); ok && len(v) > 0 {
 		obj.Metadata = expandV3MetaData(v)
 	}
 
-	if v, ok := in.Get("spec").([]interface{}); ok && len(v) > 0 {
+	if v, ok := in.Get("spec").([]any); ok && len(v) > 0 {
 		objSpec, err := expandConfigContextSpec(v)
 		if err != nil {
 			return nil, err
@@ -210,35 +216,35 @@ func expandConfigContext(in *schema.ResourceData) (*eaaspb.ConfigContext, error)
 	return obj, nil
 }
 
-func expandConfigContextSpec(p []interface{}) (*eaaspb.ConfigContextSpec, error) {
+func expandConfigContextSpec(p []any) (*eaaspb.ConfigContextSpec, error) {
 	log.Println("expand config context spec")
 	spec := &eaaspb.ConfigContextSpec{}
 	if len(p) == 0 || p[0] == nil {
 		return spec, fmt.Errorf("expand config context spec empty input")
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
-	if v, ok := in["envs"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["envs"].([]any); ok && len(v) > 0 {
 		spec.Envs = expandEnvVariables(v)
 	}
 
-	if v, ok := in["files"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["files"].([]any); ok && len(v) > 0 {
 		spec.Files = expandCommonpbFiles(v)
 	}
 
-	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["variables"].([]any); ok && len(v) > 0 {
 		spec.Variables = expandVariables(v)
 	}
 
-	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
 	}
 
 	return spec, nil
 }
 
-func expandEnvVariables(p []interface{}) []*eaaspb.EnvData {
+func expandEnvVariables(p []any) []*eaaspb.EnvData {
 	if len(p) == 0 || p[0] == nil {
 		return []*eaaspb.EnvData{}
 	}
@@ -247,7 +253,7 @@ func expandEnvVariables(p []interface{}) []*eaaspb.EnvData {
 
 	for i := range p {
 		obj := eaaspb.EnvData{}
-		in := p[i].(map[string]interface{})
+		in := p[i].(map[string]any)
 
 		if v, ok := in["key"].(string); ok && len(v) > 0 {
 			obj.Key = v
@@ -261,8 +267,8 @@ func expandEnvVariables(p []interface{}) []*eaaspb.EnvData {
 			obj.Sensitive = v
 		}
 
-		if v, ok := in["options"].([]interface{}); ok && len(v) > 0 {
-			obj.Options = expandEnvvarOptions(v)
+		if v, ok := in["options"].([]any); ok && len(v) > 0 {
+			obj.Options = expandEnvVarOptions(v)
 		}
 
 		envvars[i] = &obj
@@ -272,14 +278,15 @@ func expandEnvVariables(p []interface{}) []*eaaspb.EnvData {
 	return envvars
 }
 
-func expandConfigContextCompoundRefs(p []interface{}) []*eaaspb.ConfigContextCompoundRef {
+func expandConfigContextCompoundRefs(p []any) []*eaaspb.ConfigContextCompoundRef {
 	var ccs []*eaaspb.ConfigContextCompoundRef
 	if len(p) == 0 {
 		return ccs
 	}
 
 	for i := range p {
-		cc := expandConfigContextCompoundRef(p[i].(map[string]any))
+		v, _ := p[i].(map[string]any)
+		cc := expandConfigContextCompoundRef(v)
 		ccs = append(ccs, cc)
 	}
 
@@ -296,30 +303,30 @@ func expandConfigContextCompoundRef(p map[string]any) *eaaspb.ConfigContextCompo
 		cc.Name = v
 	}
 
-	if v, ok := p["data"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := p["data"].([]any); ok && len(v) > 0 {
 		cc.Data = expandConfigContextInline(v)
 	}
 
 	return cc
 }
 
-func expandConfigContextInline(p []interface{}) *eaaspb.ConfigContextInline {
+func expandConfigContextInline(p []any) *eaaspb.ConfigContextInline {
 	cc := &eaaspb.ConfigContextInline{}
 	if len(p) == 0 || p[0] == nil {
 		return cc
 	}
 
-	in := p[0].(map[string]interface{})
+	in := p[0].(map[string]any)
 
-	if v, ok := in["envs"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["envs"].([]any); ok && len(v) > 0 {
 		cc.Envs = expandEnvVariables(v)
 	}
 
-	if v, ok := in["files"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["files"].([]any); ok && len(v) > 0 {
 		cc.Files = expandCommonpbFiles(v)
 	}
 
-	if v, ok := in["variables"].([]interface{}); ok && len(v) > 0 {
+	if v, ok := in["variables"].([]any); ok && len(v) > 0 {
 		cc.Variables = expandVariables(v)
 	}
 
@@ -339,12 +346,12 @@ func flattenConfigContext(d *schema.ResourceData, in *eaaspb.ConfigContext) erro
 		return err
 	}
 
-	v, ok := d.Get("spec").([]interface{})
+	v, ok := d.Get("spec").([]any)
 	if !ok {
-		v = []interface{}{}
+		v = []any{}
 	}
 
-	var ret []interface{}
+	var ret []any
 	ret, err = flattenConfigContextSpec(in.Spec, v)
 	if err != nil {
 		log.Println("flatten config context spec err")
@@ -359,78 +366,61 @@ func flattenConfigContext(d *schema.ResourceData, in *eaaspb.ConfigContext) erro
 	return nil
 }
 
-func flattenConfigContextSpec(in *eaaspb.ConfigContextSpec, p []interface{}) ([]interface{}, error) {
+func flattenConfigContextSpec(in *eaaspb.ConfigContextSpec, p []any) ([]any, error) {
 	if in == nil {
 		return nil, fmt.Errorf("%s", "flatten config context spec empty input")
 	}
 
-	obj := map[string]interface{}{}
+	obj := map[string]any{}
 	if len(p) != 0 && p[0] != nil {
-		obj = p[0].(map[string]interface{})
+		obj = p[0].(map[string]any)
 	}
 
-	if len(in.Envs) > 0 {
-		v, ok := obj["envs"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
+	v, _ := obj["envs"].([]any)
+	obj["envs"] = flattenEnvVariables(in.Envs, v)
 
-		obj["envs"] = flattenEnvVariables(in.Envs, v)
-	}
 	obj["files"] = flattenCommonpbFiles(in.Files)
-	if len(in.Variables) > 0 {
-		v, ok := obj["variables"].([]interface{})
-		if !ok {
-			v = []interface{}{}
-		}
 
-		obj["variables"] = flattenVariables(in.Variables, v)
-	}
+	v, _ = obj["variables"].([]any)
+	obj["variables"] = flattenVariables(in.Variables, v)
+
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
-	return []interface{}{obj}, nil
+	return []any{obj}, nil
 }
 
-func flattenEnvVariables(input []*eaaspb.EnvData, p []interface{}) []interface{} {
+func flattenEnvVariables(input []*eaaspb.EnvData, p []any) []any {
 	log.Println("flatten environment variables start")
 	if input == nil {
 		return nil
 	}
 
-	out := make([]interface{}, len(input))
+	out := make([]any, len(input))
 	for i, in := range input {
 		log.Println("flatten environment variable ", in)
-		obj := map[string]interface{}{}
+		obj := map[string]any{}
 		if i < len(p) && p[i] != nil {
-			obj = p[i].(map[string]interface{})
+			obj = p[i].(map[string]any)
 		}
-
-		if len(in.Key) > 0 {
-			obj["key"] = in.Key
-		}
-
-		if len(in.Value) > 0 {
-			obj["value"] = in.Value
-		}
+		obj["key"] = in.Key
+		obj["value"] = in.Value
 		obj["sensitive"] = in.Sensitive
-		obj["options"] = flattenEnvvarOptions(in.Options)
-
+		obj["options"] = flattenEnvVarOptions(in.Options)
 		out[i] = &obj
 	}
 
 	return out
 }
 
-func flattenConfigContextCompoundRefs(input []*eaaspb.ConfigContextCompoundRef) []interface{} {
-	var ccs []interface{}
+func flattenConfigContextCompoundRefs(input []*eaaspb.ConfigContextCompoundRef) []any {
 	if input == nil {
-		return ccs
+		return nil
 	}
 
+	var ccs []any
 	for _, cc := range input {
 		ccs = append(ccs, flattenConfigContextCompoundRef(cc))
 	}
-
 	return ccs
 }
 
@@ -438,31 +428,25 @@ func flattenConfigContextCompoundRef(input *eaaspb.ConfigContextCompoundRef) map
 	if input == nil {
 		return nil
 	}
-
-	cc := make(map[string]any)
-	if len(input.Name) > 0 {
-		cc["name"] = input.Name
+	return map[string]any{
+		"name": input.Name,
+		"data": flattenConfigContextInline(input.Data),
 	}
-
-	cc["data"] = flattenConfigContextInline(input.Data)
-
-	return cc
 }
 
-func flattenConfigContextInline(input *eaaspb.ConfigContextInline) []interface{} {
+func flattenConfigContextInline(input *eaaspb.ConfigContextInline) []any {
 	if input == nil {
 		return nil
 	}
-	return []any{
-		map[string]any{
-			"envs":      flattenEnvVariables(input.Envs, nil),
-			"files":     flattenCommonpbFiles(input.Files),
-			"variables": flattenVariables(input.Variables, nil),
-		},
+	obj := map[string]any{
+		"envs":      flattenEnvVariables(input.Envs, nil),
+		"files":     flattenCommonpbFiles(input.Files),
+		"variables": flattenVariables(input.Variables, nil),
 	}
+	return []any{obj}
 }
 
-func resourceConfigContextImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func resourceConfigContextImport(d *schema.ResourceData, m any) ([]*schema.ResourceData, error) {
 
 	log.Printf("Config Context Import Starts")
 

@@ -267,7 +267,7 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 			break
 		}
 		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed {
-			return diag.FromErr(fmt.Errorf("%s", "failed to publish namespace"))
+			return diag.FromErr(fmt.Errorf("%s to %s", "failed to publish namespace", nsStatus.Status.Reason))
 		}
 		log.Println("nsStatus.Status.ConditionStatus ", nsStatus.Status.ConditionStatus)
 	}
@@ -705,6 +705,16 @@ func expandNamespaceResourceQuotas(p []interface{}) *infrapb.NamespaceResourceQu
 		obj.ReplicationControllers = v
 	}
 
+	if v, ok := in["ephemeral_storage_limits"].(string); ok && len(v) > 0 {
+		//obj.ReplicationControllers = expandQuantityString(v)
+		obj.EphemeralStorageLimits = v
+	}
+
+	if v, ok := in["ephemeral_storage_requests"].(string); ok && len(v) > 0 {
+		//obj.ReplicationControllers = expandQuantityString(v)
+		obj.EphemeralStorageRequests = v
+	}
+
 	log.Println("expandNamespaceResourceQuotas obj ", obj)
 	return obj
 }
@@ -899,6 +909,14 @@ func flattenNamespaceResourceQuotas(in *infrapb.NamespaceResourceQuotas) []inter
 	}
 	if len(in.StorageRequests) > 0 {
 		obj["storage_requests"] = in.StorageRequests
+		retNil = false
+	}
+	if len(in.EphemeralStorageLimits) > 0 {
+		obj["ephemeral_storage_limits"] = in.EphemeralStorageLimits
+		retNil = false
+	}
+	if len(in.EphemeralStorageRequests) > 0 {
+		obj["ephemeral_storage_requests"] = in.EphemeralStorageRequests
 		retNil = false
 	}
 

@@ -383,6 +383,11 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Description:         "holds node configuration for the cluster",
 								MarkdownDescription: "holds node configuration for the cluster",
 							},
+							"platform_version": schema.StringAttribute{
+								Required:            true,
+								Description:         "Platform version configuration",
+								MarkdownDescription: "Platform version configuration",
+							},
 						},
 						CustomType: ConfigType{
 							ObjectType: types.ObjectType{
@@ -2560,6 +2565,24 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 			fmt.Sprintf(`nodes expected to be basetypes.MapValue, was: %T`, nodesAttribute))
 	}
 
+	platformVersionAttribute, ok := attributes["platform_version"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`platform_version is missing from object`)
+
+		return nil, diags
+	}
+
+	platformVersionVal, ok := platformVersionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`platform_version expected to be basetypes.StringValue, was: %T`, platformVersionAttribute))
+	}
+
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -2576,6 +2599,7 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 		Location:              locationVal,
 		Network:               networkVal,
 		Nodes:                 nodesVal,
+		PlatformVersion:       platformVersionVal,
 		state:                 attr.ValueStateKnown,
 	}, diags
 }
@@ -2841,6 +2865,24 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 			fmt.Sprintf(`nodes expected to be basetypes.MapValue, was: %T`, nodesAttribute))
 	}
 
+	platformVersionAttribute, ok := attributes["platform_version"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`platform_version is missing from object`)
+
+		return NewConfigValueUnknown(), diags
+	}
+
+	platformVersionVal, ok := platformVersionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`platform_version expected to be basetypes.StringValue, was: %T`, platformVersionAttribute))
+	}
+
 	if diags.HasError() {
 		return NewConfigValueUnknown(), diags
 	}
@@ -2857,6 +2899,7 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 		Location:              locationVal,
 		Network:               networkVal,
 		Nodes:                 nodesVal,
+		PlatformVersion:       platformVersionVal,
 		state:                 attr.ValueStateKnown,
 	}, diags
 }
@@ -2940,11 +2983,12 @@ type ConfigValue struct {
 	Location              basetypes.StringValue `tfsdk:"location"`
 	Network               basetypes.ObjectValue `tfsdk:"network"`
 	Nodes                 basetypes.MapValue    `tfsdk:"nodes"`
+	PlatformVersion       basetypes.StringValue `tfsdk:"platform_version"`
 	state                 attr.ValueState
 }
 
 func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 11)
+	attrTypes := make(map[string]tftypes.Type, 12)
 
 	var val tftypes.Value
 	var err error
@@ -2970,12 +3014,13 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 	attrTypes["nodes"] = basetypes.MapType{
 		ElemType: NodesValue{}.Type(ctx),
 	}.TerraformType(ctx)
+	attrTypes["platform_version"] = basetypes.StringType{}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 11)
+		vals := make(map[string]tftypes.Value, 12)
 
 		val, err = v.AutoApproveNodes.ToTerraformValue(ctx)
 
@@ -3064,6 +3109,14 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 		}
 
 		vals["nodes"] = val
+
+		val, err = v.PlatformVersion.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["platform_version"] = val
 
 		if err := tftypes.ValidateValue(objectType, vals); err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
@@ -3221,6 +3274,7 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"nodes": basetypes.MapType{
 				ElemType: NodesValue{}.Type(ctx),
 			},
+			"platform_version": basetypes.StringType{},
 		}), diags
 	}
 
@@ -3246,6 +3300,7 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		"nodes": basetypes.MapType{
 			ElemType: NodesValue{}.Type(ctx),
 		},
+		"platform_version": basetypes.StringType{},
 	}
 
 	if v.IsNull() {
@@ -3270,6 +3325,7 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"location":                v.Location,
 			"network":                 network,
 			"nodes":                   nodes,
+			"platform_version":        v.PlatformVersion,
 		})
 
 	return objVal, diags
@@ -3334,6 +3390,10 @@ func (v ConfigValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.PlatformVersion.Equal(other.PlatformVersion) {
+		return false
+	}
+
 	return true
 }
 
@@ -3368,6 +3428,7 @@ func (v ConfigValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"nodes": basetypes.MapType{
 			ElemType: NodesValue{}.Type(ctx),
 		},
+		"platform_version": basetypes.StringType{},
 	}
 }
 

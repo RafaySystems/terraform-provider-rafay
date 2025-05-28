@@ -303,7 +303,7 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 		// XXX Debug
 		n1 := spew.Sprintf("%+v", pipeline)
 		log.Println("pipeline status pipeline:", n1)
-		log.Printf("pipeline status error:", err)
+		log.Println("pipeline status error:", err)
 		return diag.FromErr(err)
 	}
 

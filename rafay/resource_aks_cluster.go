@@ -21,6 +21,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	// Yaml pkg that have no limit for key length
@@ -6420,11 +6421,11 @@ func flattenAKSNodePoolUpgradeSettings(in *AKSNodePoolUpgradeSettings, p []inter
 
 }
 
-func aksClusterCTL(config *config.Config, clusterName string, configBytes []byte, dryRun bool) (string, error) {
+func aksClusterCTL(config *config.Config, clusterName string, configBytes []byte, dryRun bool, cse string) (string, error) {
 	log.Printf("aks cluster ctl start")
 	glogger.SetLevel(zap.DebugLevel)
 	logger := glogger.GetLogger()
-	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false, false, uaDef)
+	return clusterctl.Apply(logger, config, clusterName, configBytes, dryRun, false, false, false, uaDef, cse)
 }
 
 func aksClusterCTLStatus(taskid, projectID string) (string, error) {
@@ -6449,7 +6450,7 @@ func processInputs(ctx context.Context, d *schema.ResourceData, m interface{}) d
 
 		log.Println("Including first class edge resources in desired spec")
 
-		deployedObj, err := getDeployedClusterSpec(d)
+		deployedObj, err := getDeployedClusterSpec(ctx, d)
 		if err != nil {
 			log.Println("error while reading aks cluster", err)
 			return diag.FromErr(err)
@@ -6544,9 +6545,14 @@ func process_filebytes(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(fmt.Errorf("project does not exist. Error: %s", err.Error()))
 	}
 
+	var cse string
+	if obj.Spec.Sharing != nil {
+		cse = "false"
+	}
+
 	// cluster
 	clusterName := obj.Metadata.Name
-	response, err := aksClusterCTL(rctlCfg, clusterName, fileBytes, false)
+	response, err := aksClusterCTL(rctlCfg, clusterName, fileBytes, false, cse)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		return diag.FromErr(err)
@@ -6639,6 +6645,38 @@ LOOP:
 
 		}
 	}
+
+	edgeDb, err := cluster.GetCluster(obj.Metadata.Name, project.ID, uaDef)
+	if err != nil {
+		log.Printf("error while getCluster for %s %s", obj.Metadata.Name, err.Error())
+		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": obj.Metadata.Name, "pid": project.ID})
+		return diag.Errorf("Failed to fetch cluster: %s", err)
+	}
+
+	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
+	if cseFromDb != "true" {
+		if obj.Spec.Sharing == nil && cseFromDb != "" {
+			// reset cse as sharing is removed
+			edgeDb.Settings[clusterSharingExtKey] = ""
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
+				return diag.Errorf("Unable to update the edge object, got error: %s", err)
+			}
+			tflog.Error(ctx, "cse removed successfully")
+		}
+		if obj.Spec.Sharing != nil && cseFromDb != "false" {
+			// explicitly set cse to false
+			edgeDb.Settings[clusterSharingExtKey] = "false"
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
+				return diag.Errorf("Unable to update the edge object, got error: %s", err)
+			}
+			tflog.Error(ctx, "cse set to false")
+		}
+	}
+
 	if len(warnings) > 0 {
 		diags = make([]diag.Diagnostic, len(warnings))
 		for i, message := range warnings {
@@ -6679,7 +6717,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	var diags diag.Diagnostics
 	log.Println("resourceAKSClusterRead")
 
-	clusterSpec, err := getDeployedClusterSpec(d)
+	clusterSpec, err := getDeployedClusterSpec(ctx, d)
 	if err != nil {
 		log.Printf("error in get cluster spec %s", err.Error())
 		return diag.FromErr(err)
@@ -6708,7 +6746,7 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
-func getDeployedClusterSpec(d *schema.ResourceData) (*AKSCluster, error) {
+func getDeployedClusterSpec(ctx context.Context, d *schema.ResourceData) (*AKSCluster, error) {
 	clusterSpec := &AKSCluster{}
 
 	projectName, ok := d.Get("metadata.0.project").(string)
@@ -6741,6 +6779,9 @@ func getDeployedClusterSpec(d *schema.ResourceData) (*AKSCluster, error) {
 		return clusterSpec, err
 	}
 
+	cse := c.Settings[clusterSharingExtKey]
+	tflog.Info(ctx, "Got cluster from backend", map[string]any{clusterSharingExtKey: cse})
+
 	// another
 	logger := glogger.GetLogger()
 	rctlCfg := config.GetConfig()
@@ -6755,6 +6796,14 @@ func getDeployedClusterSpec(d *schema.ResourceData) (*AKSCluster, error) {
 	if err != nil {
 		return clusterSpec, err
 	}
+
+	// For backward compatibilty, if the cluster sharing is
+	// managed by separately then ignore sharing in cluster
+	// config. Both should not be present at a same time.
+	if cse == "true" {
+		clusterSpec.Spec.Sharing = nil
+	}
+
 	log.Println("unmarshalled clusterSpec from getClusterSpec:", clusterSpec)
 
 	return clusterSpec, nil
@@ -6781,10 +6830,26 @@ func resourceAKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(fmt.Errorf("Cluster project name is invalid. Error: %s", err.Error()))
 	}
 
-	_, err = cluster.GetCluster(clusterName, projectId, uaDef)
+	c, err := cluster.GetCluster(clusterName, projectId, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
 		return diag.FromErr(err)
+	}
+
+	cse := c.Settings[clusterSharingExtKey]
+	tflog.Error(ctx, "Cluster fetched", map[string]any{clusterSharingExtKey: cse})
+
+	// Check if cse == true and `spec.sharing` specified. then
+	// Error out here only before procedding. The next Upsert is
+	// called by "Create" flow as well which is explicitly setting
+	// cse to false if `spec.sharing` provided.
+	if cse == "true" {
+		if d.HasChange("spec.0.sharing") {
+			_, new := d.GetChange("spec.0.sharing")
+			if new != nil {
+				return diag.Errorf("Cluster sharing is currently managed through the external 'rafay_cluster_sharing' resource. To prevent configuration conflicts, please remove the sharing settings from the 'rafay_aks_cluster' resource and manage sharing exclusively via the external resource.")
+			}
+		}
 	}
 
 	return resourceAKSClusterUpsert(ctx, d, m)

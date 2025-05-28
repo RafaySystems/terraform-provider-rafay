@@ -161,6 +161,11 @@ func resourceNamespaceNetworkPolicyRead(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
+	if tfNamespaceNetworkPolicyState.Spec != nil && tfNamespaceNetworkPolicyState.Spec.Sharing != nil && !tfNamespaceNetworkPolicyState.Spec.Sharing.Enabled && nnp.Spec.Sharing == nil {
+		nnp.Spec.Sharing = &commonpb.SharingSpec{}
+		nnp.Spec.Sharing.Enabled = false
+	}
+
 	err = flattenNamespaceNetworkPolicy(d, nnp)
 	if err != nil {
 		return diag.FromErr(err)

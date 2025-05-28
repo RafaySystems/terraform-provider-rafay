@@ -766,10 +766,7 @@ func flattenEnvironmentResources(input []*eaaspb.EnvironmentResourceCompoundRef,
 
 		v, _ := obj["depends_on"].([]any)
 		obj["depends_on"] = flattenDependsOn(in.DependsOn, v)
-
-		if in.Overrides != nil {
-			obj["overrides"] = flattenFieldOverrideValues(in.Overrides)
-		}
+		obj["overrides"] = flattenFieldOverrideValues(in.Overrides)
 
 		out[i] = &obj
 	}

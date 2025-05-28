@@ -7048,7 +7048,11 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 				},
 			}
 
-			d.Set("cluster.0.spec.0.sharing", sharing)
+			// Ensure the full list structure is set
+			cluster := d.Get("cluster").([]interface{})
+			cluster[0].(map[string]interface{})["spec"].([]interface{})[0].(map[string]interface{})["sharing"] = sharing
+
+			err = d.Set("cluster", cluster)
 			tflog.Debug(ctx, "Printing d", map[string]any{"sharing": d.Get("cluster.0.spec.0.sharing")})
 		}
 

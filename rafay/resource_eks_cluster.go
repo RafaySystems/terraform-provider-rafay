@@ -7016,7 +7016,28 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 			if new != nil {
 				return diag.Errorf("Cluster sharing is currently managed through the external 'rafay_cluster_sharing' resource. To prevent configuration conflicts, please remove the sharing settings from the 'rafay_eks_cluster' resource and manage sharing exclusively via the external resource.")
 			}
+		} else {
+			// If the cluster sharing is managed externally, then (re-)populate sharing block.
+			logger := glogger.GetLogger()
+			rctlCfg := config.GetConfig()
+			clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID, uaDef)
+			if err != nil {
+				log.Printf("error in get clusterspec %s", err.Error())
+				return diag.FromErr(err)
+			}
+			log.Println("resourceEKSClusterUpdate clusterSpec ", clusterSpecYaml)
+
+			decoder := yaml.NewDecoder(bytes.NewReader([]byte(clusterSpecYaml)))
+			clusterSpec := EKSCluster{}
+			if err := decoder.Decode(&clusterSpec); err != nil {
+				log.Println("error decoding cluster spec")
+				return diag.FromErr(err)
+			}
+
+			d.Set("cluster.0.spec.0.sharing", clusterSpec.Spec.Sharing)
+			tflog.Debug(ctx, "Printing d", map[string]any{"d": d})
 		}
+
 	}
 	log.Println("finished update")
 

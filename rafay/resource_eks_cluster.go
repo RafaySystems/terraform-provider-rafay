@@ -7034,8 +7034,22 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 				return diag.FromErr(err)
 			}
 
-			d.Set("cluster.0.spec.0.sharing", clusterSpec.Spec.Sharing)
-			tflog.Debug(ctx, "Printing d", map[string]any{"d": d})
+			prjs := []interface{}{}
+			for _, prj := range clusterSpec.Spec.Sharing.Projects {
+				prjs = append(prjs, map[string]interface{}{
+					"name": prj.Name,
+				})
+			}
+
+			sharing := []interface{}{
+				map[string]interface{}{
+					"enabled":  clusterSpec.Spec.Sharing.Enabled,
+					"projects": prjs,
+				},
+			}
+
+			d.Set("cluster.0.spec.0.sharing", sharing)
+			tflog.Debug(ctx, "Printing d", map[string]any{"sharing": d.Get("cluster.0.spec.0.sharing")})
 		}
 
 	}

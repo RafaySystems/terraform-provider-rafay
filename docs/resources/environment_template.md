@@ -31,6 +31,11 @@ resource "rafay_environment_template" "aws-et-example" {
       depends_on {
         name = var.sr_name
       }
+      overrides {
+        values = {
+          "providerOptions.terraform.backendType": "system"
+        }
+      }
     }
     resources {
       type = "static"
@@ -678,6 +683,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `name` (String) Specify the environment resource name
 - `resource_options` (Block List, Max: 1) Specify the environment resource options (see [below for nested schema](#nestedblock--spec--resources--resource_options))
 - `type` (String) Specify the environment resource type, Accepted values are `dynamic`, `static`
+- `overrides` (Block List, Max: 1) Specify the values to be overridden with for field overrides defined in underlying resource configuration (see [below for nested schema](#nestedblock--spec--resources--overrides))
 
 <a id="nestedblock--spec--resources--depends_on"></a>
 ### Nested Schema for `spec.resources.depends_on`
@@ -2129,3 +2135,10 @@ Optional:
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
 - `selectors` (List of String) Used to alias a variable and restrict the override scope
 - `type` (String) Specify the type of ovverride this variable supports
+
+<a id="nestedblock--spec--resources--overrides"></a>
+### Nested Schema for `spec.resources.overrides`
+
+- `values` (Map) A map of string allowed_paths and values to be overridden with for field overrides defined in underlying resource configuration
+    Note: Same labels are required as shown in the examples.
+  - example "providerOptions.terraform.backendType" : "system"

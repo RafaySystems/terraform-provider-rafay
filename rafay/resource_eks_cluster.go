@@ -2637,7 +2637,18 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
 	if cseFromDb == "true" {
 		tflog.Debug(ctx, "setting sharing to nil in state")
-		d.Set("cluster.0.spec.0.sharing", nil)
+		//d.Set("cluster.0.spec.0.sharing", nil)
+
+		cluster := d.Get("cluster").([]interface{})
+		spec := cluster[0].(map[string]interface{})["spec"].([]interface{})[0].(map[string]interface{})
+
+		delete(spec, "sharing")
+		cluster[0].(map[string]interface{})["spec"] = []interface{}{spec}
+
+		// Persist the change in one call.
+		if err := d.Set("cluster", cluster); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	if res.TaskSetID == "" {

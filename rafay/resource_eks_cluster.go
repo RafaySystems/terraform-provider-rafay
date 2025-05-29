@@ -2628,6 +2628,18 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 		log.Println("response parse error", err)
 		return diag.FromErr(err)
 	}
+
+	edgeDb, err := cluster.GetCluster(clusterName, projectID, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": clusterName, "pid": projectID})
+		return diag.Errorf("Failed to fetch cluster: %s", err)
+	}
+	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
+	if cseFromDb == "true" {
+		tflog.Debug(ctx, "setting sharing to nil in state")
+		d.Set("cluster.0.spec.0.sharing", nil)
+	}
+
 	if res.TaskSetID == "" {
 		return nil
 	}
@@ -2700,12 +2712,6 @@ LOOP:
 		}
 	}
 
-	edgeDb, err := cluster.GetCluster(clusterName, projectID, uaDef)
-	if err != nil {
-		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": clusterName, "pid": projectID})
-		return diag.Errorf("Failed to fetch cluster: %s", err)
-	}
-	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
 	if cseFromDb != "true" {
 		if yamlClusterMetadata.Spec.Sharing == nil && cseFromDb != "" {
 			// reset cse as sharing is removed
@@ -2727,11 +2733,6 @@ LOOP:
 			}
 			tflog.Error(ctx, "cse set to false")
 		}
-	}
-
-	if cseFromDb == "true" {
-		// if cse is true, then remove the sharing key from the tf state
-		d.Set("cluster.0.spec.0.sharing", nil)
 	}
 
 	return diags

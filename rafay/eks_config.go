@@ -83,12 +83,12 @@ type EKSClusterAccess struct {
 }
 
 type EKSAccessEntry struct {
-	PrincipalARN       string   `yaml:"principalARN,omitempty"`
-	Type               string   `yaml:"type,omitempty"`
-	KubernetesUsername string   `yaml:"kubernetesUsername,omitempty"`
-	KubernetesGroups   []string `yaml:"kubernetesGroups,omitempty"`
-	//	Tags               map[string]string  `yaml:"tags,omitempty"`
-	AccessPolicies []*EKSAccessPolicy `yaml:"accessPolicies,omitempty"`
+	PrincipalARN       string             `yaml:"principalARN,omitempty"`
+	Type               string             `yaml:"type,omitempty"`
+	KubernetesUsername string             `yaml:"kubernetesUsername,omitempty"`
+	KubernetesGroups   []string           `yaml:"kubernetesGroups,omitempty"`
+	Tags               map[string]string  `yaml:"tags,omitempty"`
+	AccessPolicies     []*EKSAccessPolicy `yaml:"accessPolicies,omitempty"`
 }
 
 type EKSAccessPolicy struct {

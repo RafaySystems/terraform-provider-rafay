@@ -2829,9 +2829,9 @@ func expandAccessEntries(p []interface{}) []*EKSAccessEntry {
 		if v, ok := in["kubernetes_groups"].([]interface{}); ok && len(v) > 0 {
 			obj.KubernetesGroups = toArrayString(v)
 		}
-		// if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
-		// 	obj.Tags = toMapString(v)
-		// }
+		if v, ok := in["tags"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.Tags = toMapString(v)
+		}
 		if v, ok := in["access_policies"].([]interface{}); ok && len(v) > 0 {
 			obj.AccessPolicies = expandAccessPolicies(v)
 		}
@@ -5109,9 +5109,9 @@ func flattenEKSAccessEntry(inp []*EKSAccessEntry, p []interface{}) ([]interface{
 		if in.KubernetesGroups != nil && len(in.KubernetesGroups) > 0 {
 			obj["kubernetes_groups"] = toArrayInterfaceSorted(in.KubernetesGroups)
 		}
-		// if in.Tags != nil && len(in.Tags) > 0 {
-		// 	obj["tags"] = toMapInterface(in.Tags)
-		// }
+		if in.Tags != nil && len(in.Tags) > 0 {
+			obj["tags"] = toMapInterface(in.Tags)
+		}
 		if in.AccessPolicies != nil {
 			v, ok := obj["access_policies"].([]interface{})
 			if !ok {

@@ -2628,6 +2628,29 @@ func processEKSFilebytes(ctx context.Context, d *schema.ResourceData, m interfac
 		log.Println("response parse error", err)
 		return diag.FromErr(err)
 	}
+
+	edgeDb, err := cluster.GetCluster(clusterName, projectID, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": clusterName, "pid": projectID})
+		return diag.Errorf("Failed to fetch cluster: %s", err)
+	}
+	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
+	if cseFromDb == "true" {
+		tflog.Debug(ctx, "setting sharing to nil in state")
+		//d.Set("cluster.0.spec.0.sharing", nil)
+
+		cluster := d.Get("cluster").([]interface{})
+		spec := cluster[0].(map[string]interface{})["spec"].([]interface{})[0].(map[string]interface{})
+
+		delete(spec, "sharing")
+		cluster[0].(map[string]interface{})["spec"] = []interface{}{spec}
+
+		// Persist the change in one call.
+		if err := d.Set("cluster", cluster); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	if res.TaskSetID == "" {
 		return nil
 	}
@@ -2700,12 +2723,6 @@ LOOP:
 		}
 	}
 
-	edgeDb, err := cluster.GetCluster(clusterName, projectID, uaDef)
-	if err != nil {
-		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": clusterName, "pid": projectID})
-		return diag.Errorf("Failed to fetch cluster: %s", err)
-	}
-	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
 	if cseFromDb != "true" {
 		if yamlClusterMetadata.Spec.Sharing == nil && cseFromDb != "" {
 			// reset cse as sharing is removed
@@ -7016,7 +7033,102 @@ func resourceEKSClusterUpdate(ctx context.Context, d *schema.ResourceData, m int
 			if new != nil {
 				return diag.Errorf("Cluster sharing is currently managed through the external 'rafay_cluster_sharing' resource. To prevent configuration conflicts, please remove the sharing settings from the 'rafay_eks_cluster' resource and manage sharing exclusively via the external resource.")
 			}
+		} else {
+			// // If the cluster sharing is managed externally, then (re-)populate sharing block.
+			// logger := glogger.GetLogger()
+			// rctlCfg := config.GetConfig()
+			// clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID, uaDef)
+			// if err != nil {
+			// 	log.Printf("error in get clusterspec %s", err.Error())
+			// 	return diag.FromErr(err)
+			// }
+			// log.Println("resourceEKSClusterUpdate clusterSpec ", clusterSpecYaml)
+
+			// decoder := yaml.NewDecoder(bytes.NewReader([]byte(clusterSpecYaml)))
+			// clusterSpec := EKSCluster{}
+			// if err := decoder.Decode(&clusterSpec); err != nil {
+			// 	log.Println("error decoding cluster spec")
+			// 	return diag.FromErr(err)
+			// }
+
+			// prjs := []interface{}{}
+			// for _, prj := range clusterSpec.Spec.Sharing.Projects {
+			// 	prjs = append(prjs, map[string]interface{}{
+			// 		"name": prj.Name,
+			// 	})
+			// }
+
+			// sharing := []interface{}{
+			// 	map[string]interface{}{
+			// 		"enabled":  clusterSpec.Spec.Sharing.Enabled,
+			// 		"projects": prjs,
+			// 	},
+			// }
+
+			// // Ensure the full list structure is set
+			// cluster := d.Get("cluster").([]interface{})
+			// cluster[0].(map[string]interface{})["spec"].([]interface{})[0].(map[string]interface{})["sharing"] = sharing
+
+			// err = d.Set("cluster", cluster)
+			// tflog.Debug(ctx, "Printing d", map[string]any{"sharing": d.Get("cluster.0.spec.0.sharing")})'
+			// ---------------------------------------------------------------------------
+			// Re-populate spec.sharing from the live clusterSpec
+			// This runs only when cse == "true"   sharing managed externally
+			// ---------------------------------------------------------------------------
+
+			// --- fetch live spec ---------------------------------------------------
+			logger := glogger.GetLogger()
+			rctlCfg := config.GetConfig()
+			yamlStr, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID, uaDef)
+			if err != nil {
+				return diag.FromErr(fmt.Errorf("getClusterSpec: %w", err))
+			}
+
+			var clusterSpec EKSCluster
+			if err := yaml.NewDecoder(bytes.NewReader([]byte(yamlStr))).Decode(&clusterSpec); err != nil {
+				return diag.FromErr(fmt.Errorf("decode clusterSpec YAML: %w", err))
+			}
+
+			// --- build the sharing list-of-object ---------------------------------
+			sharing := []interface{}{} // empty slice keeps schema happy when not set
+			if clusterSpec.Spec.Sharing != nil {
+				enabled := false
+				if clusterSpec.Spec.Sharing.Enabled != nil {
+					enabled = *clusterSpec.Spec.Sharing.Enabled
+				}
+
+				projects := make([]interface{}, 0, len(clusterSpec.Spec.Sharing.Projects))
+				for _, p := range clusterSpec.Spec.Sharing.Projects {
+					projects = append(projects, map[string]interface{}{"name": p.Name})
+				}
+
+				sharing = []interface{}{ // TypeList + MaxItems=1
+					map[string]interface{}{
+						"enabled":  enabled,  // ***bool***, NOT []interface{}
+						"projects": projects, // may be empty
+					},
+				}
+			}
+
+			// --- pull current "cluster" attr, mutate locally ----------------------
+			raw := d.Get("cluster").([]interface{})
+			cluster := append([]interface{}(nil), raw...) // safe copy
+
+			spec := cluster[0].(map[string]interface{})["spec"].([]interface{})[0].(map[string]interface{})
+
+			spec["sharing"] = sharing // replace block
+			cluster[0].(map[string]interface{})["spec"] = []interface{}{spec}
+
+			// --- write the entire attribute back in one call ----------------------
+			if err := d.Set("cluster", cluster); err != nil {
+				return diag.FromErr(err)
+			}
+
+			tflog.Debug(ctx, "refreshed spec.sharing from live state",
+				map[string]any{"sharing": sharing})
+
 		}
+
 	}
 	log.Println("finished update")
 

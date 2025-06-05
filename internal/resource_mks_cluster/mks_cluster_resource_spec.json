@@ -189,7 +189,7 @@
 											{
 												"name": "platform_version",
 												"string": {
-													"computed_optional_required": "required",
+													"computed_optional_required": "optional",
 													"description": "Platform version configuration"
 												}
 											},

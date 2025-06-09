@@ -488,8 +488,11 @@ func expandDependsOn(p []any) []*commonpb.ResourceNameAndVersionRef {
 	}
 
 	for indx := range p {
-		obj := &commonpb.ResourceNameAndVersionRef{}
+		if p[indx] == nil {
+			continue
+		}
 
+		obj := &commonpb.ResourceNameAndVersionRef{}
 		in := p[indx].(map[string]any)
 
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
@@ -835,7 +838,7 @@ func resourceEnvironmentTemplateImport(d *schema.ResourceData, m any) ([]*schema
 }
 
 func expandFieldOverrideValues(p []interface{}) *eaaspb.Overrides {
-	if len(p) == 0 {
+	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
 

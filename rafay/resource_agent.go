@@ -353,6 +353,10 @@ func expandAgentSpec(p []interface{}) (*gitopspb.AgentSpec, error) {
 		obj.Sharing = expandSharingSpec(v)
 	}
 
+	if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
+		obj.Config = expandAgentConfig(v)
+	}
+
 	return obj, nil
 }
 
@@ -374,6 +378,121 @@ func expandAgentClusterMeta(p []interface{}) *gitopspb.ClusterMeta {
 
 	return obj
 
+}
+
+func expandAgentConfig(p []interface{}) *gitopspb.AgentConfig {
+	obj := &gitopspb.AgentConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["concurrency"].(int); ok {
+		obj.Concurrency = int32(v)
+	}
+
+	if v, ok := in["environment"].([]interface{}); ok && len(v) > 0 {
+		obj.Environment = expandAgentConfigEnvironment(v)
+	}
+
+	if v, ok := in["docker"].([]interface{}); ok && len(v) > 0 {
+		obj.Docker = expandDockerAgentConfig(v)
+	}
+
+	if v, ok := in["kubernetes"].([]interface{}); ok && len(v) > 0 {
+		obj.Kubernetes = expandKubernetesAgentConfig(v)
+	}
+
+	return obj
+}
+
+func expandKubernetesAgentConfig(p []interface{}) *gitopspb.KubernetesAgentConfig {
+	obj := &gitopspb.KubernetesAgentConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["limits"].([]interface{}); ok && len(v) > 0 {
+		obj.Limits = expandKubernetesLimits(v)
+	}
+
+	if v, ok := in["node_selector"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.NodeSelector = toMapString(v)
+	}
+
+	if v, ok := in["tolerations"].([]interface{}); ok {
+		obj.Tolerations = expandV3Tolerations(v)
+	}
+
+	if v, ok := in["affinity"].([]interface{}); ok && len(v) > 0 {
+		obj.Affinity = expandKubeOptionsAffinity(v)
+	}
+
+	return obj
+}
+
+func expandKubernetesLimits(p []interface{}) *gitopspb.KubernetesLimits {
+	obj := &gitopspb.KubernetesLimits{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["cpu"].(string); ok && len(v) > 0 {
+		obj.Cpu = v
+	}
+	if v, ok := in["memory"].(string); ok && len(v) > 0 {
+		obj.Memory = v
+	}
+
+	return obj
+}
+
+func expandDockerAgentConfig(p []interface{}) *gitopspb.DockerAgentConfig {
+	obj := &gitopspb.DockerAgentConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["limits"].([]interface{}); ok && len(v) > 0 {
+		obj.Limits = expandDockerLimits(v)
+	}
+
+	return obj
+}
+
+func expandDockerLimits(p []interface{}) *gitopspb.DockerLimits {
+	obj := &gitopspb.DockerLimits{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["cpu"].(string); ok && len(v) > 0 {
+		obj.Cpu = v
+	}
+	if v, ok := in["memory"].(string); ok && len(v) > 0 {
+		obj.Memory = v
+	}
+
+	return obj
+}
+
+func expandAgentConfigEnvironment(p []interface{}) *gitopspb.AgentConfigEnvironment {
+	obj := &gitopspb.AgentConfigEnvironment{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+
+	in := p[0].(map[string]interface{})
+	if v, ok := in["num_workers"].(int); ok {
+		obj.NumWorkers = int64(v)
+	}
+
+	return obj
 }
 
 // Flatteners
@@ -440,6 +559,12 @@ func flattenAgentSpec(in *gitopspb.AgentSpec, p []interface{}) ([]interface{}, e
 		obj["sharing"] = flattenSharingSpec(in.Sharing)
 	}
 
+	v, ok := obj["config"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	obj["config"] = flattenAgentConfig(in.Config, v)
+
 	return []interface{}{obj}, nil
 }
 
@@ -460,6 +585,143 @@ func flattenAgentClusterMeta(in *gitopspb.ClusterMeta, p []interface{}) []interf
 	if len(in.Id) > 0 {
 		obj["id"] = in.Id
 	}
+
+	return []interface{}{obj}
+}
+
+func flattenAgentConfig(in *gitopspb.AgentConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["concurrency"] = in.Concurrency
+
+	v, ok := obj["environment"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	obj["environment"] = flattenAgentConfigEnvironment(in.Environment, v)
+
+	v, ok = obj["docker"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	obj["docker"] = flattenDockerAgentConfig(in.Docker, v)
+
+	v, ok = obj["kubernetes"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	obj["kubernetes"] = flattenKubernetesAgentConfig(in.Kubernetes, v)
+
+	return []interface{}{obj}
+}
+
+func flattenKubernetesAgentConfig(in *gitopspb.KubernetesAgentConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	v, ok := obj["limits"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	obj["limits"] = flattenKubernetesLimits(in.Limits, v)
+
+	obj["node_selector"] = toMapInterface(in.NodeSelector)
+
+	v, ok = obj["affinity"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+	obj["affinity"] = flattenKubeOptionsAffinity(in.Affinity, v)
+
+	if len(in.Tolerations) > 0 {
+		v, ok := obj["tolerations"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["tolerations"] = flattenV3Tolerations(in.Tolerations, v)
+	} else {
+		delete(obj, "tolerations")
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenDockerAgentConfig(in *gitopspb.DockerAgentConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	v, ok := obj["limits"].([]interface{})
+	if !ok {
+		v = []interface{}{}
+	}
+
+	obj["limits"] = flattenDockerLimits(in.Limits, v)
+
+	return []interface{}{obj}
+}
+
+func flattenDockerLimits(in *gitopspb.DockerLimits, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["cpu"] = in.Cpu
+	obj["memory"] = in.Memory
+
+	return []interface{}{obj}
+}
+
+func flattenKubernetesLimits(in *gitopspb.KubernetesLimits, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["cpu"] = in.Cpu
+	obj["memory"] = in.Memory
+
+	return []interface{}{obj}
+}
+
+func flattenAgentConfigEnvironment(in *gitopspb.AgentConfigEnvironment, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["num_workers"] = in.NumWorkers
 
 	return []interface{}{obj}
 }

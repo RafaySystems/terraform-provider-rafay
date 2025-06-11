@@ -789,14 +789,15 @@ func (v ConfigValue) FromHub(ctx context.Context, hub *infrapb.MksV3ConfigObject
 	if hub.HighAvailability {
 		v.HighAvailability = types.BoolValue(hub.HighAvailability)
 	}
+	if hub.PlatformVersion != "" {
+		v.PlatformVersion = types.StringValue(hub.PlatformVersion)
+	}
 
 	v.InstallerTtl = types.Int64Value(hub.InstallerTtl)
 
 	v.KubeletExtraArgs = convertToTfMap(hub.KubeletExtraArgs)
 
 	v.KubernetesVersion = types.StringValue(hub.KubernetesVersion)
-
-	v.PlatformVersion = types.StringValue(hub.PlatformVersion)
 
 	network, d := NewNetworkValue(v.Network.AttributeTypes(ctx), v.Network.Attributes())
 	if d.HasError() {

@@ -1058,7 +1058,8 @@ func flattenWeightedPodAffinityTerms(in []corev1.WeightedPodAffinityTerm, p []in
 		}
 
 		obj["weight"] = term.Weight
-		obj["pod_affinity_term"] = flattenPodAffinityTerms([]corev1.PodAffinityTerm{term.PodAffinityTerm}, obj["pod_affinity_term"].([]interface{}))
+		v, _ := obj["pod_affinity_term"].([]any)
+		obj["pod_affinity_term"] = flattenPodAffinityTerms([]corev1.PodAffinityTerm{term.PodAffinityTerm}, v)
 
 		terms[i] = obj
 	}
@@ -1079,7 +1080,8 @@ func flattenPreferredSchedulingTerms(in []corev1.PreferredSchedulingTerm, p []in
 		}
 
 		obj["weight"] = term.Weight
-		obj["preference"] = flattenNodeSelectorTerm(term.Preference, obj["preference"].([]interface{}))
+		v, _ := obj["preference"].([]any)
+		obj["preference"] = flattenNodeSelectorTerm(term.Preference, v)
 
 		terms[i] = obj
 	}

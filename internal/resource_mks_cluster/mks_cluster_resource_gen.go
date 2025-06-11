@@ -384,7 +384,7 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 								MarkdownDescription: "holds node configuration for the cluster",
 							},
 							"platform_version": schema.StringAttribute{
-								Required:            true,
+								Optional:            true,
 								Description:         "Platform version configuration",
 								MarkdownDescription: "Platform version configuration",
 							},

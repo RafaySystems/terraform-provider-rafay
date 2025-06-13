@@ -5366,9 +5366,7 @@ func flattenIAMPodIdentityAssociations(inp []*IAMPodIdentityAssociation, p []int
 		if len(in.Tags) > 0 {
 			obj["tags"] = toMapInterface(in.Tags)
 		}
-		if in.CreateServiceAccount {
-			obj["create_service_account"] = in.CreateServiceAccount
-		}
+		obj["create_service_account"] = in.CreateServiceAccount
 
 		out[i] = obj
 	}

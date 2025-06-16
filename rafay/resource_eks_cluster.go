@@ -4602,21 +4602,8 @@ func flattenEKSClusterSpec(in *EKSSpec, p []interface{}, rawState cty.Value) ([]
 			v = []interface{}{}
 		}
 		var nRawState cty.Value
-		// if !rawState.IsNull() {
-		// 	if rawState.Type().IsObjectType() {
-		// 		if rawState.Type().HasAttribute("cni_params") {
-		// 			cniRaw := rawState.GetAttr("cni_params")
-		// 			if cniRaw.Type().IsListType() || cniRaw.Type().IsTupleType() {
-		// 				nRawState = cniRaw
-		// 				log.Println("Rawstate found for cni_params")
-		// 			}
-		// 		}
-		// 	} else if rawState.Type().IsListType() || rawState.Type().IsTupleType() {
-		// 		nRawState = rawState
-		// 	}
-		// }
-		if !rawState.IsNull() && (rawState.Type().IsListType() || rawState.Type().IsTupleType()) {
-			nRawState = rawState
+		if !rawState.IsNull() {
+			nRawState = rawState.GetAttr("cni_params")
 		}
 		obj["cni_params"] = flattenCNIParams(in.CniParams, v, nRawState)
 	}
@@ -4656,18 +4643,8 @@ func flattenCNIParams(in *CustomCni, p []interface{}, rawState cty.Value) []inte
 			v = []interface{}{}
 		}
 		var nRawState cty.Value
-		// if !rawState.IsNull() {
-		// 	if rawState.Type().IsObjectType() && rawState.Type().HasAttribute("custom_cni_crd_spec") {
-		// 		attr := rawState.GetAttr("custom_cni_crd_spec")
-		// 		if attr.Type().IsListType() || attr.Type().IsTupleType() {
-		// 			nRawState = attr
-		// 		}
-		// 	} else if rawState.Type().IsListType() || rawState.Type().IsTupleType() {
-		// 		nRawState = rawState
-		// 	}
-		// }
-		if !rawState.IsNull() && (rawState.Type().IsListType() || rawState.Type().IsTupleType()) {
-			nRawState = rawState
+		if !rawState.IsNull() {
+			nRawState = rawState.GetAttr("custom_cni_crd_spec")
 		}
 		obj["custom_cni_crd_spec"] = flattenCustomCNISpec(in.CustomCniCrdSpec, v, nRawState)
 	}

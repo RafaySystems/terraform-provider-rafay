@@ -16,6 +16,24 @@ resource "rafay_environment_template" "aws-et" {
       depends_on {
         name = var.sr_name
       }
+      overrides {
+        values = {
+          providerOptions = jsonencode(
+            {
+              terraform = {
+                version         = "v1.4.4"
+                backendType    = "system"
+                backendConfigs = ["path"]
+                varFiles       = ["path"]
+                pluginDirs     = ["path"]
+                lock = true
+                refresh = true
+                lockTimeoutSeconds = 1
+              }
+            }
+          )
+        }
+      }
     }
     resources {
       type = "static"
@@ -69,24 +87,6 @@ resource "rafay_environment_template" "aws-et" {
     }
     contexts {
       name = var.configcontext_name
-    }
-    overrides {
-      values = {
-        providerOptions = jsonencode(
-          {
-            terraform = {
-              version         = "v1.4.4"
-              backendType    = "system"
-              backendConfigs = ["path"]
-              varFiles       = ["path"]
-              pluginDirs     = ["path"]
-              lock = true
-              refresh = true
-              lockTimeoutSeconds = 1
-            }
-          }
-        )
-      }
     }
   }
 }

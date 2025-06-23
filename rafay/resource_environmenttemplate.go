@@ -241,6 +241,10 @@ func expandEnvironmentTemplateSpec(p []any) (*eaaspb.EnvironmentTemplateSpec, er
 		spec.Agents = expandEaasAgents(ag)
 	}
 
+	if agp, ok := in["agent_pools"].([]any); ok && len(agp) > 0 {
+		spec.AgentPools = expandEaasAgents(agp)
+	}
+
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
 	}
@@ -608,6 +612,7 @@ func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []any)
 	obj["hooks"] = flattenEnvironmentHooks(in.Hooks, v)
 
 	obj["agents"] = flattenEaasAgents(in.Agents)
+	obj["agent_pools"] = flattenEaasAgents(in.AgentPools)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	v, _ = obj["contexts"].([]any)

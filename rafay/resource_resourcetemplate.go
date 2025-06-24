@@ -245,6 +245,10 @@ func expandResourceTemplateSpec(p []any) (*eaaspb.ResourceTemplateSpec, error) {
 		spec.Agents = expandEaasAgents(ag)
 	}
 
+	if ap, ok := in["agent_pools"].([]any); ok && len(ap) > 0 {
+		spec.AgentPools = expandEaasAgents(ap)
+	}
+
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
 	}
@@ -1262,6 +1266,7 @@ func flattenResourceTemplateSpec(in *eaaspb.ResourceTemplateSpec, p []any) ([]an
 	obj["hooks"] = flattenResourceHooks(in.Hooks, v)
 
 	obj["agents"] = flattenEaasAgents(in.Agents)
+	obj["agent_pools"] = flattenEaasAgents(in.AgentPools)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	if w, ok := obj["artifact_driver"].([]any); ok && len(w) > 0 {

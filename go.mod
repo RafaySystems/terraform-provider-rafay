@@ -32,7 +32,7 @@ require (
 	github.com/Kunde21/markdownfmt/v3 v3.1.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250416063447-9affa1e9c3c5 // indirect
-	github.com/RafaySystems/paas-common v0.0.0-20250612060126-633ee903b5c8 // indirect
+	github.com/RafaySystems/paas-common v0.0.0-20250619104118-001d2ecd30d0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect

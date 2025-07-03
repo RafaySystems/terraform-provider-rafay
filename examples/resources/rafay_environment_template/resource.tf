@@ -17,22 +17,7 @@ resource "rafay_environment_template" "aws-et" {
         name = var.sr_name
       }
       overrides {
-        values = {
-          providerOptions = jsonencode(
-            {
-              terraform = {
-                version         = "v1.4.4"
-                backendType    = "system"
-                backendConfigs = ["path"]
-                varFiles       = ["path"]
-                pluginDirs     = ["path"]
-                lock = true
-                refresh = true
-                lockTimeoutSeconds = 1
-              }
-            }
-          )
-        }
+        values = "{\"providerOptions\":{\"custom\":{\"tasks\":[{\"name\":\"t-cont-wh\",\"onFailure\":\"unspecified\",\"skipConfig\":{},\"type\":\"workflowHandler\",\"workflowHandler\":{\"data\":{\"config\":{\"container\":{\"files\":\"\",\"image\":\"alpine12\",\"imagePullCredentials\":{},\"kubeConfigOptions\":{},\"kubeOptions\":{\"securityContext\":{}}},\"type\":\"container\"}}}}]}}}"
       }
     }
     resources {

@@ -234,8 +234,8 @@ resource "rafay_agent" "my-docker-agent" {
       concurrency = 45
       docker {
         limits {
-          cpu    = "0.50"
-          memory = "2gb"
+          cpu    = "500m"
+          memory = "2Gi"
         }
       }
       environment {

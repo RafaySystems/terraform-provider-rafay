@@ -54,6 +54,8 @@ resource "rafay_project" "terraform-quota" {
       storage_requests = "100Gi"
       gpu_requests = "10"
       gpu_limits = "10"
+      ephemeral_storage_limits = "1000Mi"
+      ephemeral_storage_requests = "1000Mi"
     }
     default_cluster_namespace_quota {
       cpu_requests = "1000m"
@@ -70,6 +72,8 @@ resource "rafay_project" "terraform-quota" {
       storage_requests = "10Gi"
       gpu_requests = "10"
       gpu_limits = "10"
+      ephemeral_storage_limits = "250Mi"
+      ephemeral_storage_requests = "250Mi"
     }
   }
 }
@@ -137,6 +141,8 @@ resource "rafay_project" "terraform-quota" {
 - `storage_requests` - (String) The size of the storage request in Gibibytes.
 - `gpu_limits` - (String) The maximum GPU resource. 
 - `gpu_requests` - (String) The number of GPU requests.
+- `ephemeral_storage_limits` - (String) The maximum sum of all ephemeral storage limits allowed in the cluster.
+- `ephemeral_storage_requests` - (String) The maximum sum of all ephemeral storage requests allowed in the cluster.
 
 
 <a id="nestedblock--specs--default_cluster_namespace_quota"></a>
@@ -162,7 +168,8 @@ resource "rafay_project" "terraform-quota" {
 - `storage_requests` - (String) The size of the storage request in Gibibytes.
 - `gpu_limits` - (String) The maximum GPU resource. 
 - `gpu_requests` - (String) The number of GPU requests.
-
+- `ephemeral_storage_limits` - (String) The maximum sum of all ephemeral storage limits from all pods in the namespace.
+- `ephemeral_storage_requests` - (String) The maximum sum of all ephemeral storage requests from all pods in the namespace.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

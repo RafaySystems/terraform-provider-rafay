@@ -1,13 +1,13 @@
 module github.com/RafaySystems/terraform-provider-rafay
 
-go 1.23
+go 1.23.0
 
 toolchain go1.23.4
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250509074101-570e96436509
-	github.com/RafaySystems/rctl v1.29.1-0.20250508075832-ed9baa6a9cc4
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250702181557-a830fe3430fe
+	github.com/RafaySystems/rctl v1.29.1-0.20250604044018-523278d4d642
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5
@@ -28,7 +28,7 @@ require (
 require (
 	github.com/IBM/sarama v1.43.2 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250509073823-2990743fe50c // indirect
+	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250702123503-13daab5401e9 // indirect
 	github.com/RafaySystems/paas-common v0.0.0-20250407132001-0d707c610b95 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -43,6 +43,7 @@ require (
 	github.com/gomatic/clock v1.0.0 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
+	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/invopop/yaml v0.3.1 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
@@ -185,13 +186,13 @@ require (
 	go.opentelemetry.io/otel v1.29.0 // indirect
 	go.opentelemetry.io/otel/trace v1.29.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.29.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/net v0.31.0 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
-	golang.org/x/sync v0.9.0 // indirect
-	golang.org/x/sys v0.27.0 // indirect
-	golang.org/x/term v0.26.0 // indirect
-	golang.org/x/text v0.20.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/term v0.30.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240610135401-a8a62080eff3 // indirect

@@ -16,11 +16,14 @@ import (
 	"github.com/RafaySystems/rafay-common/proto/types/common"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
+	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
+	_tflog "github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/pkg/errors"
 )
 
 func resourceGKEClusterV3() *schema.Resource {
@@ -86,18 +89,18 @@ func resourceGKEClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 		}
 	}
 
-	cluster, err := expandGKEClusterToV3(d)
+	c, err := expandGKEClusterToV3(d)
 	if err != nil {
 		log.Printf("Cluster expandCluster error " + err.Error())
 		return diag.FromErr(err)
 	}
 
-	if cluster == nil {
+	if c == nil {
 		log.Printf("Cluster is nil")
 		return diag.FromErr(fmt.Errorf("cluster is nil"))
 	}
 
-	log.Println(">>>>>> CLUSTER: ", cluster)
+	log.Println(">>>>>> CLUSTER: ", c)
 
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
@@ -106,10 +109,10 @@ func resourceGKEClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 	}
 
 	log.Println("GKE Cluster upsert: Invoking V3 Cluster Apply")
-	err = client.InfraV3().Cluster().Apply(ctx, cluster, options.ApplyOptions{})
+	err = client.InfraV3().Cluster().Apply(ctx, c, options.ApplyOptions{})
 	if err != nil {
 		// XXX Debug
-		n1 := spew.Sprintf("%+v", cluster)
+		n1 := spew.Sprintf("%+v", c)
 		log.Println("GKE Cluster apply cluster:", n1, err)
 		return diag.FromErr(err)
 	}
@@ -119,9 +122,9 @@ func resourceGKEClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 	defer ticker.Stop()
 	timeout := time.After(time.Duration(90) * time.Minute)
 
-	cName := cluster.Metadata.Name
-	pName := cluster.Metadata.Project
-	d.SetId(cluster.Metadata.Name)
+	cName := c.Metadata.Name
+	pName := c.Metadata.Project
+	d.SetId(c.Metadata.Name)
 
 LOOP:
 	for {
@@ -159,6 +162,40 @@ LOOP:
 
 			}
 		}
+	}
+
+	pid, err := getProjectIDFromName(c.Metadata.Project)
+	if err != nil {
+		_tflog.Error(ctx, "failed to get project id from name", map[string]any{"name": c.Metadata.Project})
+		return diag.FromErr(err)
+	}
+	edge, err := cluster.GetCluster(c.Metadata.Name, pid, uaDef)
+	if err != nil {
+		_tflog.Error(ctx, "failed to edge cluster", map[string]any{"name": c.Metadata.Name, "pid": pid})
+		return diag.FromErr(err)
+	}
+	cse := edge.Settings[clusterSharingExtKey]
+
+	// for update, sharing is removed. Unset cse flag.
+	if c.GetSpec().Sharing == nil && cse == "false" {
+		edge.Settings[clusterSharingExtKey] = ""
+		err = cluster.UpdateCluster(edge, uaDef)
+		if err != nil {
+			_tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edge})
+			return diag.Errorf("Unable to update the edge object, got error: %s", err)
+		}
+		_tflog.Debug(ctx, "cse flag unset successfully")
+	}
+
+	// for create, set cse flag
+	if c.GetSpec().Sharing != nil && cse != "false" {
+		edge.Settings[clusterSharingExtKey] = "false"
+		err = cluster.UpdateCluster(edge, uaDef)
+		if err != nil {
+			_tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edge})
+			return diag.Errorf("Unable to update the edge object, got error: %s", err)
+		}
+		_tflog.Debug(ctx, "cse is set to false")
 	}
 
 	return diags
@@ -201,6 +238,23 @@ func resourceGKEClusterV3Read(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 
+	// Get cluster from edgedb to identity how sharing is managed.
+	pid, err := getProjectIDFromName(ag.Metadata.Project)
+	if err != nil {
+		_tflog.Error(ctx, "failed to get project id from name", map[string]any{"name": ag.Metadata.Project})
+		return diag.FromErr(err)
+	}
+	edge, err := cluster.GetCluster(ag.Metadata.Name, pid, uaDef)
+	if err != nil {
+		_tflog.Error(ctx, "failed to edge cluster", map[string]any{"name": ag.Metadata.Name, "pid": pid})
+		return diag.FromErr(err)
+	}
+	cse := edge.Settings[clusterSharingExtKey]
+	_tflog.Info(ctx, "Got edge obj from upstream", map[string]any{"cse": cse})
+	if cse == "true" {
+		ag.Spec.Sharing = nil
+	}
+
 	err = flattenGKEClusterV3(d, ag)
 	if err != nil {
 		return diag.FromErr(err)
@@ -212,6 +266,34 @@ func resourceGKEClusterV3Read(ctx context.Context, d *schema.ResourceData, m int
 
 func resourceGKEClusterV3Update(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("GKE Cluster update starts")
+
+	prjName, ok := d.Get("metadata.0.project").(string)
+	if !ok || prjName == "" {
+		return diag.FromErr(errors.New("unable to find project name"))
+	}
+	clusterName, ok := d.Get("metadata.0.name").(string)
+	if !ok || clusterName == "" {
+		return diag.FromErr(errors.New("unable to find cluster name"))
+	}
+	prjId, err := getProjectIDFromName(prjName)
+	if err != nil {
+		return diag.Errorf("Failed to get project id from name. Error: %s", err)
+	}
+	c, err := cluster.GetCluster(clusterName, prjId, uaDef)
+	if err != nil {
+		return diag.Errorf("Failed to get cluster. Error: %s", err)
+	}
+	cse := c.Settings[clusterSharingExtKey]
+	// Check if cse == true and `spec.sharing` specified. then
+	// Error out here only before procedding.
+	if cse == "true" {
+		if d.HasChange("spec.0.sharing") {
+			_, new := d.GetChange("spec.0.sharing")
+			if new != nil {
+				return diag.Errorf("Cluster sharing is currently managed through the external 'rafay_cluster_sharing' resource. To prevent configuration conflicts, please remove the sharing settings from the 'rafay_gke_cluster' resource and manage sharing exclusively via the external resource.")
+			}
+		}
+	}
 
 	diags := resourceGKEClusterV3Upsert(ctx, d, m)
 	return diags

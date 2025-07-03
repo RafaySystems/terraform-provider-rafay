@@ -638,6 +638,9 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
             type = "cluster"
           }
         }
+        tags = {
+          "env" = "dev"
+        }
       }
     }
     iam {
@@ -1024,6 +1027,8 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 ### Nested Schema for `cluster_config.access_config.access_entries`
 
 - `principal_arn` - (String) The IAM principal that you want to grant access to Kubernetes objects on your cluster.
+
+- `tags` - (Map of String) The AWS tags for the access entry.
 
 - `type` - (String) Valid values EC2_LINUX, EC2_WINDOWS, FARGATE_LINUX or STANDARD.
 

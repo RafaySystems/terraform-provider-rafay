@@ -133,8 +133,9 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, m interface{
 		if IsResourceNotFoundErr(err) {
 			log.Println("Resource Read ", "error", err)
 			d.SetId("")
+			return diags
 		}
-		return diags
+		return diag.FromErr(err)
 	}
 
 	p, err := getGroupFromResponse([]byte(resp))

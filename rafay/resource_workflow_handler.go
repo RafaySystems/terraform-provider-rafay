@@ -785,20 +785,6 @@ func expandWorkflowHandlerFunctionConfig(p []any) *eaaspb.FunctionDriverConfig {
 		fdc.LanguageVersion = languageVersion
 	}
 
-	// FIXME: Below field not present in the latest swagger, but present in the
-	// FunctionDriverConfig model.
-	// Remove based on confirmation from Avinash
-	if buildArgs, ok := in["build_args"].([]any); ok && len(buildArgs) > 0 {
-		fdc.BuildArgs = toArrayString(buildArgs)
-	}
-
-	// FIXME: Below field not present in the latest swagger, but present in the
-	// FunctionDriverConfig model.
-	// Remove based on confirmation from Avinash
-	if buildSecrets, ok := in["build_secrets"].([]any); ok && len(buildSecrets) > 0 {
-		fdc.BuildSecrets = toArrayString(buildSecrets)
-	}
-
 	if cpuLimitMilli, ok := in["cpu_limit_milli"].(string); ok && len(cpuLimitMilli) > 0 {
 		fdc.CpuLimitMilli = cpuLimitMilli
 	}
@@ -813,13 +799,6 @@ func expandWorkflowHandlerFunctionConfig(p []any) *eaaspb.FunctionDriverConfig {
 
 	if image, ok := in["image"].(string); ok && len(image) > 0 {
 		fdc.Image = image
-	}
-
-	// FIXME: Below field not present in the latest swagger, but present in the
-	// FunctionDriverConfig model.
-	// Remove based on confirmation from Avinash
-	if functionProcess, ok := in["function_process"].(string); ok && len(functionProcess) > 0 {
-		fdc.FunctionProcess = functionProcess
 	}
 
 	if maxConcurrency, ok := in["max_concurrency"].(int); ok {
@@ -1477,13 +1456,10 @@ func flattenWorkflowHandlerFunctionConfig(in *eaaspb.FunctionDriverConfig, p []a
 	obj["system_packages"] = toArrayInterface(in.SystemPackages)
 	obj["target_platforms"] = toArrayInterface(in.TargetPlatforms)
 	obj["language_version"] = in.LanguageVersion
-	obj["build_args"] = toArrayInterface(in.BuildArgs)
-	obj["build_secrets"] = toArrayInterface(in.BuildSecrets)
 	obj["cpu_limit_milli"] = in.CpuLimitMilli
 	obj["memory_limit_mb"] = in.MemoryLimitMb
 	obj["skip_build"] = flattenBoolValue(in.SkipBuild)
 	obj["image"] = in.Image
-	obj["function_process"] = in.FunctionProcess
 	obj["max_concurrency"] = in.MaxConcurrency
 	obj["num_replicas"] = in.NumReplicas
 

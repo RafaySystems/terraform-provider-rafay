@@ -11,6 +11,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/gitopspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/davecgh/go-spew/spew"
@@ -161,6 +162,12 @@ func resourceAgentPoolRead(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
+	if tfAgentPoolState.GetSpec().GetSharing() != nil && !tfAgentPoolState.GetSpec().GetSharing().GetEnabled() && ag.GetSpec().GetSharing() == nil {
+		ag.Spec.Sharing = &commonpb.SharingSpec{}
+		ag.Spec.Sharing.Enabled = false
+		ag.Spec.Sharing.Projects = tfAgentPoolState.GetSpec().GetSharing().GetProjects()
+	}
+
 	err = flattenAgentPool(d, ag)
 	if err != nil {
 		return diag.FromErr(err)
@@ -238,7 +245,10 @@ func expandAgentPoolSpec(p []interface{}) (*gitopspb.AgentPoolSpec, error) {
 				obj.Agents = append(obj.Agents, agentStr)
 			}
 		}
+	}
 
+	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
+		obj.Sharing = expandSharingSpec(v)
 	}
 
 	return obj, nil
@@ -287,6 +297,8 @@ func flattenAgentPoolSpec(in *gitopspb.AgentPoolSpec, p []interface{}) ([]interf
 	if len(in.Agents) > 0 {
 		obj["agents"] = in.Agents
 	}
+
+	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	return []interface{}{obj}, nil
 }

@@ -298,6 +298,8 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed && len(nsStatus.Status.AssignedClusters) == len(nsStatus.Status.FailedClusters) {
 			return diag.FromErr(fmt.Errorf("%s to %s", "failed to publish namespace", nsStatus.Status.Reason))
 		}
+
+		time.Sleep(30 * time.Second)
 	}
 }
 

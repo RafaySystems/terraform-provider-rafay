@@ -301,6 +301,8 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 
 		time.Sleep(30 * time.Second)
 	}
+	d.SetId(ns.Metadata.Name)
+	return diags
 }
 
 func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

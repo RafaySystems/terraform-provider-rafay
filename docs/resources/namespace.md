@@ -147,7 +147,7 @@ resource "rafay_namespace" "cloudops" {
 
 ***Optional***
 
-- `timeouts` - (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
+- `timeouts` - (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. For create and update functions the timeout is set to 17 minutes and it is 10 minutes for delete and read. (See [below for nested schema](#nestedblock--timeouts))
 
 ---
 

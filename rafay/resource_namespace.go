@@ -271,7 +271,7 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 				diags = append(diags, diag.Diagnostic{
 					Severity: diag.Warning,
 					Summary:  "Failed to patch namespace",
-					Detail:   fmt.Errorf("namespace: %s patch may not be complete", ns.Metadata.Name).Error(),
+					Detail:   fmt.Sprintf("namespace: %s patch may not be complete", ns.Metadata.Name),
 				})
 				d.SetId(ns.Metadata.Name)
 				return diags
@@ -289,7 +289,7 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
 				Summary:  "Failed to patch namespace",
-				Detail:   fmt.Errorf("%s", nsStatus.Status.Reason).Error(),
+				Detail:   fmt.Sprintf("%s", nsStatus.Status.Reason),
 			})
 			d.SetId(ns.Metadata.Name)
 			return diags

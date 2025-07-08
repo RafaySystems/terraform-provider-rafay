@@ -267,16 +267,13 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		}
 
 		if timeRemaining < 30*time.Second {
-			if len(nsStatus.Status.AssignedClusters) != (len(nsStatus.Status.FailedClusters) + len(nsStatus.Status.ReadyClusters)) {
-				diags = append(diags, diag.Diagnostic{
-					Severity: diag.Warning,
-					Summary:  "Failed to patch namespace",
-					Detail:   fmt.Sprintf("namespace: %s patch may not be complete", ns.Metadata.Name),
-				})
-				d.SetId(ns.Metadata.Name)
-				return diags
-			}
-			break
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Context deadline reached",
+				Detail:   fmt.Sprintf("namespace: %s patch may not be complete", ns.Metadata.Name),
+			})
+			d.SetId(ns.Metadata.Name)
+			return diags
 		}
 
 		//check if namespace can be placed on a cluster, if true break out of infinite loop
@@ -295,7 +292,7 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 			return diags
 		}
 
-		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed && len(nsStatus.Status.AssignedClusters) == len(nsStatus.Status.FailedClusters) {
+		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed {
 			return diag.FromErr(fmt.Errorf("%s to %s", "failed to publish namespace", nsStatus.Status.Reason))
 		}
 

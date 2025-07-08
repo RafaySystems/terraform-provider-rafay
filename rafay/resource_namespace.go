@@ -256,8 +256,8 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 	// wait for publish
 	for {
 		ctxDeadlineTime, _ := ctx.Deadline()
-		log.Printf("Waiting for namespace %s to be published, context deadline: %s", ns.Metadata.Name, time.Until(ctxDeadlineTime))
 		timeRemaining := time.Until(ctxDeadlineTime)
+
 		nsStatus, err := client.InfraV3().Namespace().Status(ctx, options.StatusOptions{
 			Name:    ns.Metadata.Name,
 			Project: ns.Metadata.Project,
@@ -265,91 +265,40 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		assignedClusters := nsStatus.Status.AssignedClusters
-		deployedClusters := nsStatus.Status.DeployedClusters
-		readyClusters := nsStatus.Status.ReadyClusters
-		failedClusters := nsStatus.Status.FailedClusters
-
-		if len(assignedClusters) == 0 {
-			time.Sleep(30 * time.Second)
-			continue // No clusters assigned, wait for next iteration
-		}
-
-		var readyList, failedList, notDeployedList, inProgressList []string
-		for _, cluster := range assignedClusters {
-			if contains(readyClusters, cluster) {
-				readyList = append(readyList, cluster)
-			} else if contains(failedClusters, cluster) {
-				failedList = append(failedList, cluster)
-			} else if !contains(deployedClusters, cluster) {
-				notDeployedList = append(notDeployedList, cluster)
-			} else {
-				inProgressList = append(inProgressList, cluster)
-			}
-		}
 
 		if timeRemaining < 30*time.Second {
-			log.Printf("Context deadline is less than 30 seconds(%s), exiting wait loop", timeRemaining)
-			if len(failedClusters) > 0 || len(notDeployedList) > 0 || len(inProgressList) > 0 {
-				// All clusters are either ready or failed
-				clusterNames := ""
-				clusterNames += strings.Join(failedClusters, ", ")
-				clusterNames += strings.Join(notDeployedList, ", ")
-				clusterNames += strings.Join(inProgressList, ", ")
-				clusterNames = strings.TrimSpace(clusterNames)
+			if len(nsStatus.Status.AssignedClusters) != (len(nsStatus.Status.FailedClusters) + len(nsStatus.Status.ReadyClusters)) {
 				diags = append(diags, diag.Diagnostic{
 					Severity: diag.Warning,
 					Summary:  "Failed to patch namespace",
-					Detail:   fmt.Errorf("ns: %s patch failed on clusters: %s", ns.Metadata.Name, clusterNames).Error(),
+					Detail:   fmt.Errorf("namespace: %s patch may not be complete", ns.Metadata.Name).Error(),
 				})
+				d.SetId(ns.Metadata.Name)
+				return diags
 			}
+			break
+		}
+
+		//check if namespace can be placed on a cluster, if true break out of infinite loop
+		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusOK ||
+			nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusNotSet {
+			break
+		}
+
+		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusPartiallyReady {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Failed to patch namespace",
+				Detail:   fmt.Errorf("%s", nsStatus.Status.Reason).Error(),
+			})
 			d.SetId(ns.Metadata.Name)
 			return diags
 		}
 
-		if len(readyList) == len(assignedClusters) {
-			log.Printf("ns: %s publish succeeded on all assigned clusters: %v", ns.Metadata.Name, readyList)
-			d.SetId(ns.Metadata.Name)
-			return diags // All clusters are ready, exit the function
-		} else if len(failedList) == len(assignedClusters) {
-			log.Printf("ns: %s publish failed on all assigned clusters: %v", ns.Metadata.Name, strings.Join(failedList, ", "))
-			return diag.FromErr(fmt.Errorf("failed to publish namespace on all assigned clusters"))
-		} else if len(notDeployedList) == len(assignedClusters) {
-			log.Printf("ns: %s deployment not started on any assigned clusters: %v", ns.Metadata.Name, notDeployedList)
-		} else if len(inProgressList) > 0 {
-			log.Printf("ns: %s publish is in progress on some clusters: %v", ns.Metadata.Name, inProgressList)
-		} else if len(readyList) > 0 || len(failedList) > 0 {
-			log.Printf("ns: %s publish failed on some clusters: %s", ns.Metadata.Name, failedList)
-			if isPublishOver(assignedClusters, readyClusters, failedClusters) {
-				d.SetId(ns.Metadata.Name)
-				diags = append(diags, diag.Diagnostic{
-					Severity: diag.Warning,
-					Summary:  "Failed to patch namespace",
-					Detail:   fmt.Errorf("ns: %s publish failed on some cluster(s): %v", ns.Metadata.Name, strings.Join(failedList, ", ")).Error(),
-				})
-				return diags
-			}
+		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed && len(nsStatus.Status.AssignedClusters) == len(nsStatus.Status.FailedClusters) {
+			return diag.FromErr(fmt.Errorf("%s to %s", "failed to publish namespace", nsStatus.Status.Reason))
 		}
 	}
-}
-
-// checks if the namespace publish is over by verifying if all assigned clusters are either ready or failed
-func isPublishOver(assigned, ready, failed []string) bool {
-	for _, cluster := range assigned {
-		if !contains(ready, cluster) && !contains(failed, cluster) {
-			return false
-		}
-	}
-	return true
-}
-
-func contains(itemlist []string, item string) bool {
-	for _, v := range itemlist {
-		if v == item {
-			return true
-		}
-	}
-	return false
 }
 
 func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

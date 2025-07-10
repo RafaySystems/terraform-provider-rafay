@@ -77,6 +77,7 @@ resource "rafay_environment" "eks-rds-env-example" {
 - `files` (Block List) File path information (see [below for nested schema](#nestedblock--spec--files))
 - `schedule_optouts` (Block List) Request to opt of of schedules, this may be honoured or not depending on the template configurations and approvals (see [below for nested schema](#nestedblock--spec--schedule-optouts))
 - `reconcile_resources` (Block List) Specify resources to process while environment publish (see [below for nested schema](#nestedblock--spec--reconcileresources))
+- `schedules` (Block List) Reference to schedules associated with environment, if a schedule with same name exists at environment and template level, one defined at environment takes precedence (see [below for nested schema](#nestedblock--spec--schedules))
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
@@ -197,3 +198,48 @@ resource "rafay_environment" "eks-rds-env-example" {
 ***Required***
 
 - `name` (String) name of the resource to be reconciled during environment publish
+
+<a id="nestedblock--spec--schedules"></a>
+### Nested Schema for `spec.schedules`
+
+***Required***
+
+- `name` (String) name of the schedule
+- `type` (String) schedule type, Available options are `deploy`, `destroy`, `workflows`.
+- `cadence` (Block List, Max: 1) Configure a schedule cadence at which a job would automatically trigger (see [below for nested schema](#nestedblock--spec--schedules--cadence))
+
+***Optional***
+
+- `description` (String) Description of the schedule
+- `context` (Block List, Max: 1) Input data configuration that are needed as part of this schedule run (see [below for nested schema](#nestedblock--spec--contexts))
+- `workflows` (Block List, Max: 1) Name of the custom workflow provider that needs to be executed with this job (see [below for nested schema](#nestedblock--spec--workflows))
+- `opt_out_options` (Block List, Max: 1) Opt Out Options configured with this schedule (see [below for nested schema](#nestedblock--spec--schedules--optout))
+
+<a id="nestedblock--spec--schedules--cadence"></a>
+### Nested Schema for `spec.schedules.cadence`
+
+### https://en.wikipedia.org/wiki/Cron
+- `cron_expression` (String) Cron expression used to configure scheduling jobs
+
+***Optional***
+
+- `cron_timezone` (String) Specify the timezone of cron expression
+- `time_to_live` (String) Specify the maximum time to live duration of an environment, time units are 'h', 'd' e.g. 8h, 2d
+- `staggered` (Block List, Max: 1) Introduces random delay on schedules with permissible max interval, applicable only if enabled is set to true (see [below for nested schema](#nestedblock--spec--schedules--cadence--staggered))
+
+<a id="nestedblock--spec--schedules--cadence--staggered"></a>
+### Nested Schema for `spec.schedules.cadence.staggered`
+
+- `enabled` (Bool) Enable staggered schedule runs
+- `max_interval` (String) Specify the maximum permissible interval, time units are 's', 'm' e.g. 300s, 30m
+
+<a id="nestedblock--spec--schedules--optout"></a>
+### Nested Schema for `spec.schedules.optout`
+
+- `allow_opt_out` (Bool) Specify whether users can opt out from this schedule
+
+***Optional***
+
+- `max_allowed_duration` (String) Specify the maximum allowed opt out duration, time units are 'm', 'h', 'd' e.g. 8h, 2d
+- `max_allowed_times` (Number) Specify the maximum number of times users can opt out without approval e.g. users can max opt out of this schedule thrice
+- `approval` (Block List, Max: 1) Details of approval workflow that needs to be execution in case of user opt-out (see [below for nested schema](#nestedblock--spec--workflows--tasks))

@@ -61,10 +61,10 @@ func resourceNamespace() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceNamespaceImport,
 		},
-
+		// Set timeouts of 17 mins for Create and Update functions as it takes approx 15 mins for the namespace publish to be marked as failed.
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(17 * time.Minute),
+			Update: schema.DefaultTimeout(17 * time.Minute),
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 
@@ -106,6 +106,7 @@ func resourceNamespaceCreate(ctx context.Context, d *schema.ResourceData, m inte
 	log.Printf("namespace create starts")
 	create := isNamespaceAlreadyExists(ctx, d)
 	diags := resourceNamespaceUpsert(ctx, d, m)
+
 	if diags.HasError() && !create {
 		if checkStandardInputTextError(diags[0].Summary) {
 			return diags
@@ -164,6 +165,7 @@ func resourceNamespaceUpdate(ctx context.Context, d *schema.ResourceData, m inte
 func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	log.Printf("namespace upsert starts")
+
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
@@ -253,7 +255,9 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 
 	// wait for publish
 	for {
-		time.Sleep(30 * time.Second)
+		ctxDeadlineTime, _ := ctx.Deadline()
+		timeRemaining := time.Until(ctxDeadlineTime)
+
 		nsStatus, err := client.InfraV3().Namespace().Status(ctx, options.StatusOptions{
 			Name:    ns.Metadata.Name,
 			Project: ns.Metadata.Project,
@@ -261,20 +265,41 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		if err != nil {
 			return diag.FromErr(err)
 		}
+
+		if timeRemaining < 30*time.Second {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Context deadline reached",
+				Detail:   fmt.Sprintf("namespace: %s patch may not be complete", ns.Metadata.Name),
+			})
+			d.SetId(ns.Metadata.Name)
+			return diags
+		}
+
 		//check if namespace can be placed on a cluster, if true break out of infinite loop
 		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusOK ||
 			nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusNotSet {
 			break
 		}
+
+		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusPartiallyReady {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Failed to patch namespace",
+				Detail:   fmt.Sprintf("%s", nsStatus.Status.Reason),
+			})
+			d.SetId(ns.Metadata.Name)
+			return diags
+		}
+
 		if nsStatus.Status.ConditionStatus == commonpb.ConditionStatus_StatusFailed {
 			return diag.FromErr(fmt.Errorf("%s to %s", "failed to publish namespace", nsStatus.Status.Reason))
 		}
-		log.Println("nsStatus.Status.ConditionStatus ", nsStatus.Status.ConditionStatus)
-	}
 
+		time.Sleep(30 * time.Second)
+	}
 	d.SetId(ns.Metadata.Name)
 	return diags
-
 }
 
 func resourceNamespaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

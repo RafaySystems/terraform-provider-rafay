@@ -16,6 +16,9 @@ resource "rafay_environment_template" "aws-et" {
       depends_on {
         name = var.sr_name
       }
+      overrides {
+        values = "{\"providerOptions\":{\"custom\":{\"tasks\":[{\"name\":\"t-cont-wh\",\"onFailure\":\"unspecified\",\"skipConfig\":{},\"type\":\"workflowHandler\",\"workflowHandler\":{\"data\":{\"config\":{\"container\":{\"files\":\"\",\"image\":\"alpine12\",\"imagePullCredentials\":{},\"kubeConfigOptions\":{},\"kubeOptions\":{\"securityContext\":{}}},\"type\":\"container\"}}}}]}}}"
+      }
     }
     resources {
       type = "static"

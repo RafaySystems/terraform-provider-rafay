@@ -6,7 +6,7 @@ toolchain go1.23.4
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250708155516-b5fd5e9b5850
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250710064028-8e68455ff552
 	github.com/RafaySystems/rctl v1.29.1-0.20250604044018-523278d4d642
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -28,7 +28,7 @@ require (
 require (
 	github.com/IBM/sarama v1.43.2 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250702123503-13daab5401e9 // indirect
+	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250703133757-e37d1560523b // indirect
 	github.com/RafaySystems/paas-common v0.0.0-20250407132001-0d707c610b95 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect

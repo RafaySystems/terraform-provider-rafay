@@ -101,5 +101,8 @@ resource "rafay_resource_template" "aws-elasticache" {
     agents {
       name = var.agent_name
     }
+    overrides {
+      allowed_paths = ["providerOptions"]
+    }
   }
 }

@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 func resourceEnvironmentTemplate() *schema.Resource {
@@ -448,6 +450,10 @@ func expandEnvironmentResources(p []any) ([]*eaaspb.EnvironmentResourceCompoundR
 			obj.DependsOn = expandDependsOn(v)
 		}
 
+		if v, ok := in["overrides"].([]interface{}); ok && len(v) > 0 {
+			obj.Overrides = expandTemplateFieldOverrides(v)
+		}
+
 		envresources[i] = &obj
 
 	}
@@ -761,6 +767,7 @@ func flattenEnvironmentResources(input []*eaaspb.EnvironmentResourceCompoundRef,
 
 		v, _ := obj["depends_on"].([]any)
 		obj["depends_on"] = flattenDependsOn(in.DependsOn, v)
+		obj["overrides"] = flattenTemplateFieldOverrides(in.Overrides)
 
 		out[i] = &obj
 	}
@@ -826,4 +833,55 @@ func resourceEnvironmentTemplateImport(d *schema.ResourceData, m any) ([]*schema
 	d.SetId(et.Metadata.Name)
 	return []*schema.ResourceData{d}, nil
 
+}
+
+func expandTemplateFieldOverrides(p []interface{}) *eaaspb.Overrides {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	in := p[0].(map[string]interface{})
+	obj := &eaaspb.Overrides{}
+
+	if v, ok := in["values"].(string); ok && len(v) > 0 {
+		obj.Values = expandFieldOverrideValues(v)
+	}
+
+	return obj
+}
+
+func expandFieldOverrideValues(p string) *structpb.Struct {
+	if len(p) == 0 {
+		return nil
+	}
+
+	jsonSchemaMap := map[string]interface{}{}
+	if err := json.Unmarshal([]byte(p), &jsonSchemaMap); err == nil {
+		s, err := structpb.NewStruct(jsonSchemaMap)
+		if err != nil {
+			return nil
+		}
+
+		return s
+	}
+	return nil
+}
+
+func flattenTemplateFieldOverrides(in *eaaspb.Overrides) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]interface{})
+	obj["values"] = flattenFieldOverrideValues(in.Values)
+
+	return []interface{}{obj}
+}
+
+func flattenFieldOverrideValues(in *structpb.Struct) string {
+	if in == nil {
+		return ""
+	}
+	b, _ := in.MarshalJSON()
+	return string(b)
 }

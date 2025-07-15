@@ -7,7 +7,7 @@ toolchain go1.23.4
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8
 	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250714051308-eca7086482a1
-	github.com/RafaySystems/rctl v1.29.1-0.20250604045444-1393a07d5f35
+	github.com/RafaySystems/rctl v1.29.1-0.20250714061727-cbef8138681d
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5
@@ -43,6 +43,7 @@ require (
 	github.com/gomatic/clock v1.0.0 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
+	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/invopop/yaml v0.3.1 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect

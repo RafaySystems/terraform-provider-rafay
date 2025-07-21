@@ -57,8 +57,10 @@ resource "rafay_blueprint" "custom-blueprint" {
           enabled = true
         }
         resources {
-          limits = "200Mi"
-          cpu = "100m"
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
         }
       }
     }
@@ -117,8 +119,10 @@ resource "rafay_blueprint" "custom-blueprint" {
 	  customization_enabled = true
         }
         resources {
-          limits = "200Mi"
-          cpu = "100m"
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
         }
       }
     }

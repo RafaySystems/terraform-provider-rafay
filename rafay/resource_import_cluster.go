@@ -29,7 +29,7 @@ import (
 var (
 	supportedK8sProviderList    []string = []string{"AKS", "EKS", "GKE", "OPENSHIFT", "OTHER", "RKE", "EKSANYWHERE"}
 	supportedProvisionEnvList   []string = []string{"CLOUD", "ONPREM"}
-	environmentManagerLabelsKey []string = []string{"rafay.dev/envRun", "rafay.dev/k8sVersion"}
+	environmentManagerLabelsKey []string = []string{"rafay.dev/envRun", "rafay.dev/k8sVersion", "rafay.dev/envMode"}
 )
 
 func resourceImportCluster() *schema.Resource {
@@ -457,11 +457,8 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 		log.Printf("error getting cluster v2 labels: %s", err.Error())
 		return diag.FromErr(err)
 	}
-	log.Println("Debug--- existing labels: ", existingLabels)
-	log.Println("Debug--- new labels: ", labels)
 
 	for k := range labels {
-		log.Println("Debug--- new label key: ", k)
 		if strings.HasPrefix(k, "rafay.dev/") {
 			if _, ok := existingLabels[k]; !ok {
 				errMsg := "cannot edit system labels during update operation"

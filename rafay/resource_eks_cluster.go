@@ -5016,16 +5016,18 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		obj["secrets_encryption"] = ret12
 	}
 	// setting up flatten identity mappings
-	//var ret13 []interface{}
+	var ret13 []interface{}
 	if in.IdentityMappings != nil {
 		v, ok := obj["identity_mappings"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		ret13, err := flattenIdentityMappings(in.IdentityMappings, v)
-		if err != nil {
-			log.Println("flattenIdentityMapping err")
-			return nil, err
+		if len(in.IdentityMappings.Arns) != 0 || len(in.IdentityMappings.Accounts) != 0 {
+			ret13, err = flattenIdentityMappings(in.IdentityMappings, v)
+			if err != nil {
+				log.Println("flattenIdentityMapping err")
+				return nil, err
+			}
 		}
 		obj["identity_mappings"] = ret13
 	}
@@ -6845,7 +6847,7 @@ func flattenIdentityMappings(in *EKSClusterIdentityMappings, p []interface{}) ([
 		return []interface{}{obj}, nil
 	}
 
-	if in.Arns != nil {
+	if in.Arns != nil && len(in.Arns) > 0 {
 		v, ok := obj["arns"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -6853,7 +6855,7 @@ func flattenIdentityMappings(in *EKSClusterIdentityMappings, p []interface{}) ([
 		obj["arns"] = flattenArnFields(in.Arns, v)
 	}
 
-	if len(in.Accounts) > 0 {
+	if in.Accounts != nil && len(in.Accounts) > 0 {
 		obj["accounts"] = in.Accounts
 	}
 

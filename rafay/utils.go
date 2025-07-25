@@ -1830,7 +1830,7 @@ func flattenEaasHooks(input []*eaaspb.Hook, p []interface{}) []interface{} {
 		if v, ok := obj["driver"].([]interface{}); ok && len(v) > 0 {
 			obj["type"] = "driver"
 			obj["driver"] = flattenWorkflowHandlerCompoundRef(in.WorkflowHandler)
-		} else if v, ok = obj["workflow_handler"].([]interface{}); ok && len(v) > 0 {
+		} else {
 			obj["workflow_handler"] = flattenWorkflowHandlerCompoundRef(in.WorkflowHandler)
 		}
 		obj["depends_on"] = toArrayInterface(in.DependsOn)

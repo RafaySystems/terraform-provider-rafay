@@ -149,6 +149,9 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
     agents {
       name = var.agent_name
     }
+    overrides {
+      allowed_paths = ["providerOptions.terraform.backendType"]
+    }
   }
 }
 ```
@@ -198,6 +201,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `version_state` (String) Represents the current state of template version, Accepted values are `draft`, `active`, `disabled`. By default only new active versions are created if state not provided, and latest version will be synced.
 - `actions` (Block List) Actions that are defined as part of current environment template and may be applicable to one or more underlying resources (see [below for nested schema](#nestedblock--spec--actions))
 - `artifact_workflow_handler` (Block List, Max: 1) Specify the workflow handler responsible for execution (see [below for nested schema](#nestedblock--spec--workflowhandler))
+- `overrides` (Block List, Max: 1) These define the jsonpath strings representing fields that are to be overriden (see [below for nested schema](#nestedblock--spec--overrides))
 
 <a id="nestedblock--spec--agents"></a>
 ### Nested Schema for `spec.agents`
@@ -3413,3 +3417,7 @@ Optional:
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
 - `selectors` (List of String) Used to alias a variable and restrict the override scope
 - `type` (String) Specify the type of ovverride this variable supports
+
+<a id="nestedblock--spec--overrides"></a>
+### Nested Schema for `spec.overrides`
+- `allowed_paths` (List of String) the jsonpath strings representing fields that are to be overriden

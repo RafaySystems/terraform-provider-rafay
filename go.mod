@@ -6,8 +6,8 @@ toolchain go1.23.4
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250826035636-c2db98684108
-	github.com/RafaySystems/rctl v1.29.1-0.20250826082044-368db2bdc79d
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250912050905-22b524e069d3
+	github.com/RafaySystems/rctl v1.29.1-0.20251009073106-3a01a70d5f7f
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5

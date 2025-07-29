@@ -134,10 +134,28 @@ func resourceImportCluster() *schema.Resource {
 				},
 			},
 			"proxy_config": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"http_proxy": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"https_proxy": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"no_proxy": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
 				},
 			},
 		},
@@ -190,6 +208,25 @@ func updateClusterLabels(name, edgeId, projectId string, labels map[string]strin
 	return nil
 }
 
+func expandProxyConfigImportCluster(v interface{}) *models.ProxyConfig {
+	l, ok := v.([]interface{})
+	if !ok || len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m, ok := l[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	return &models.ProxyConfig{
+		HttpProxy:  m["http_proxy"].(string),
+		HttpsProxy: m["https_proxy"].(string),
+		NoProxy:    m["no_proxy"].(string),
+		Enabled:    m["enabled"].(bool),
+	}
+}
+
 func GetValuesFile(name, project string) (string, error) {
 	auth := config.GetConfig().GetAppAuthProfile()
 	uri := fmt.Sprintf("/v2/scheduler/project/%s/cluster/%s/download/valuesyaml", project, name)
@@ -236,7 +273,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	project_id := p.ID
 
 	//create imported cluster
-	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string), d.Get("provision_environment").(string), d.Get("kubernetes_provider").(string), d.Get("proxy_config").(models.ProxyConfig))
+	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string), d.Get("provision_environment").(string), d.Get("kubernetes_provider").(string), *expandProxyConfigImportCluster(d.Get("proxy_config")))
 	if err != nil {
 		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
 		return diag.FromErr(err)

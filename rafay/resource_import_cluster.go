@@ -133,6 +133,13 @@ func resourceImportCluster() *schema.Resource {
 					return diag.Diagnostics{}
 				},
 			},
+			"proxy_config": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }

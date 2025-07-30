@@ -1,0 +1,375 @@
+{
+	"version": "0.1",
+    "provider": {
+		"name": "rafay"
+	},
+	"resources": [
+		{
+            "name": "eks_cluster",
+            "schema": {
+                "attributes": [],
+                "blocks": [
+                    {
+                        "name": "cluster",
+                        "single_nested": {
+                            "attributes": [
+                                {
+                                    "name": "kind",
+                                    "string": {
+                                        "description": "The resource kind.",
+                                        "computed_optional_required": "optional"
+                                    }
+                                }
+                            ],
+                            "blocks": [
+                                {
+                                    "name": "metadata",
+                                    "single_nested": {
+                                        "attributes": [
+                                            {
+                                                "name": "name",
+                                                "string": {
+                                                    "description": "The name of the EKS cluster in Rafay console.",
+                                                    "computed_optional_required": "required"
+                                                }
+                                            },
+                                            {
+                                                "name": "project",
+                                                "string": {
+                                                    "description": "The name of the Rafay project the cluster will be created in.",
+                                                    "computed_optional_required": "required"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "spec",
+                                    "single_nested": {
+                                        "attributes": [
+                                            {
+                                                "name": "cloud_provider",
+                                                "string": {
+                                                    "description": "The name of the cloud provider for EKS cluster.",
+                                                    "computed_optional_required": "required"
+                                                }
+                                            },
+                                            {
+                                                "name": "blueprint",
+                                                "string": {
+                                                    "description": "The name of the blueprint to use for the EKS cluster.",
+                                                    "computed_optional_required": "optional"
+                                                }
+                                                
+                                            },
+                                            {
+                                                "name": "cni_provider",
+                                                "string": {
+                                                    "description": "The CNI provider to use for the EKS cluster.",
+                                                    "computed_optional_required": "optional"
+                                                }
+                                            },
+                                            {
+                                                "name": "type",
+                                                "string": {
+                                                    "description": "The type of the cluster.",
+                                                    "computed_optional_required": "optional"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "cluster_config",
+                        "single_nested": {
+                            "attributes": [
+                                {
+                                    "name": "apiversion",
+                                    "string": {
+                                        "description": "The Rafay API version of the EKS cluster.",
+                                        "computed_optional_required": "optional"
+                                    }
+                                },
+                                {
+                                    "name": "kind",
+                                    "string": {
+                                        "description": "The kind of the resource.",
+                                        "computed_optional_required": "optional"
+                                    }
+                                    
+                                },
+                                {
+                                    "name": "node_groups_map",
+                                    "map_nested": {
+                                        "computed_optional_required": "optional",
+                                        "description": "Map of node group names to their configurations. Each key is the name of the node group, and the value is an object containing the configuration for that node group.",
+                                        "nested_object": {
+                                            "attributes": [
+                                                {
+                                                    "name": "instance_type",
+                                                    "string": {
+                                                        "computed_optional_required": "required",
+                                                        "description": "The type of EC2 instance to use for the nodes in this group."
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                    
+                                }
+                            ],
+                            "blocks": [
+                                {
+                                    "name": "metadata2",
+                                    "single_nested": {
+                                        "attributes": [
+                                            {
+                                                "name": "name",
+                                                "string": {
+                                                    "description": "EKS Cluster name.",
+                                                    "computed_optional_required": "required"
+                                                }
+                                            },
+                                            {
+                                                "name": "region",
+                                                "string": {
+                                                    "description": "The AWS region hosting this cluster.",
+                                                    "computed_optional_required": "required"
+                                                }
+                                            },
+                                            {
+                                                "name": "version",
+                                                "string": {
+                                                    "description": "The version of the EKS control plane.",
+                                                    "computed_optional_required": "optional"
+                                                }
+                                            },
+                                            {
+                                                "name": "tags",
+                                                "map": {
+                                                    "description": "A map of tags to assign to the EKS cluster.",
+                                                    "computed_optional_required": "optional",
+                                                    "element_type": {
+														"string": {}
+													}
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "node_groups",
+                                    "list_nested": {
+                                        "deprecation_message": "The 'node_groups' block is deprecated. Use 'node_groups_map' attribute instead.",
+                                        "nested_object": {
+                                            "blocks": [
+                                                {
+                                                    "name": "iam",
+                                                    "single_nested": {
+                                                        "attributes": [],
+                                                        "blocks": [
+                                                            {
+                                                                "name": "iam_node_group_with_addon_policies",
+                                                                "single_nested": {
+                                                                    "attributes": [
+                                                                        {
+                                                                            "name": "alb_ingress",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "app_mesh",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "app_mesh_review",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "cert_manager",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "cloud_watch",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "ebs",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "efs",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "external_dns",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "fsx",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "xray",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "image_builder",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "auto_scaler",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ],
+                                            "attributes": [
+                                                {
+                                                    "name": "name",
+                                                    "string": {
+                                                        "computed_optional_required": "required",
+                                                        "description": "The name of the node group."
+                                                    }
+                                                },
+                                                {
+                                                    "name": "ami_family",
+                                                    "string": {
+                                                        "computed_optional_required": "optional"    
+                                                    }
+                                                },
+                                                {
+                                                    "name": "instance_type",
+                                                    "string": {
+                                                        "computed_optional_required": "required",
+                                                        "description": "The type of EC2 instance to use for the nodes in this group."
+                                                    }
+                                                },
+                                                {
+                                                    "name": "desired_capacity",
+                                                    "int64": {
+                                                        "computed_optional_required": "optional"    
+                                                    }
+                                                },
+                                                {
+                                                    "name": "min_size",
+                                                    "int64": {
+                                                        "computed_optional_required": "optional"    
+                                                    }
+                                                },
+                                                {
+                                                    "name": "max_size",
+                                                    "int64": {
+                                                        "computed_optional_required": "optional"    
+                                                    }
+                                                },
+                                                {
+                                                    "name": "max_pods_per_node",
+                                                    "int64": {
+                                                        "computed_optional_required": "optional"    
+                                                    }
+                                                },
+                                                {
+                                                    "name": "version",
+                                                    "string": {
+                                                        "computed_optional_required": "optional"    
+                                                    }
+                                                },
+                                                {
+                                                    "name": "disable_imdsv1",
+                                                    "bool": {
+                                                        "description": "Whether to disable IMDSv1 on the node group.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "disable_pods_imds",
+                                                    "bool": {
+                                                        "description": "Whether to disable IMDS for pods in the node group.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "efa_enabled",
+                                                    "bool": {
+                                                        "description": "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "private_networking",
+                                                    "bool": {
+                                                        "description": "Enable private networking for the node group.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "volume_iops",
+                                                    "int64": {
+                                                        "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "volume_size",
+                                                    "int64": {
+                                                        "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "volume_throughput",
+                                                    "int64": {
+                                                        "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "volume_type",
+                                                    "string": {
+                                                        "description": "The type of EBS volume to use for the nodes in this group.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                }
+                                            ]
+                                        }  
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -153,6 +153,7 @@ func (p *RafayFwProvider) Resources(ctx context.Context) []func() resource.Resou
 	return []func() resource.Resource{
 		// Register new resource here
 		NewMksClusterResource,
+		NewEksClusterResource,
 	}
 }
 

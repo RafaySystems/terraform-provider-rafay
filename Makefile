@@ -4,7 +4,7 @@ TOFU_HOSTNAME=registry.opentofu.org
 NAMESPACE=rafaysystems
 NAME=rafay
 BINARY=terraform-provider-${NAME}
-VERSION=1.1.28
+VERSION=1.1.88
 GIT_BRANCH ?= main
 OS := $(shell uname | grep -q 'Linux' && echo "linux" || echo "darwin")
 ARCH := $(shell uname -m | grep -q 'x86_64' && echo "amd64" || echo "arm64")
@@ -17,7 +17,7 @@ default: install
 
 build:
 	export GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ${BINARY}
+	GOOS=${OS} GOARCH=${ARCH} GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ${BINARY}
 	#go generate
 
 release:

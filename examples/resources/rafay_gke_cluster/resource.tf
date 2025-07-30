@@ -9,9 +9,9 @@ resource "rafay_gke_cluster" "tf-example" {
       name    = "minimal"
       version = "latest"
     }
-    cloud_credentials = "my-gcp-credential"
+    cloud_credentials = "gopi-gke"
     config {
-      gcp_project           = "my-gcp-project-id"
+      gcp_project           = "dev-382813"
       control_plane_version = "1.26"
       location {
         type = "zonal"
@@ -56,6 +56,9 @@ resource "rafay_gke_cluster" "tf-example" {
         #     }
         #   }
         # }
+      }
+      resource_labels = {
+        "env" = "dev"
       }
       features {
         enable_compute_engine_persistent_disk_csi_driver = "true"

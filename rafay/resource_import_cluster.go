@@ -221,12 +221,24 @@ func expandProxyConfigImportCluster(v interface{}) *models.ProxyConfig {
 		return nil
 	}
 
-	return &models.ProxyConfig{
-		HttpProxy:  m["http_proxy"].(string),
-		HttpsProxy: m["https_proxy"].(string),
-		NoProxy:    m["no_proxy"].(string),
-		Enabled:    m["enabled"].(bool),
+	proxyConfig := models.ProxyConfig{}
+	httpProxy, ok := m["http_proxy"].(string)
+	if ok {
+		proxyConfig.HttpProxy = httpProxy
 	}
+	httpsProxy, ok := m["https_proxy"].(string)
+	if ok {
+		proxyConfig.HttpsProxy = httpsProxy
+	}
+	noProxy, ok := m["no_proxy"].(string)
+	if ok {
+		proxyConfig.NoProxy = noProxy
+	}
+	enabled, ok := m["enabled"].(bool)
+	if ok {
+		proxyConfig.Enabled = enabled
+	}
+	return &proxyConfig
 }
 
 func GetValuesFile(name, project string) (string, error) {

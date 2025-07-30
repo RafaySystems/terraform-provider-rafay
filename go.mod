@@ -28,7 +28,7 @@ require (
 require (
 	github.com/IBM/sarama v1.43.2 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250825101928-c45648d22b1d // indirect
+	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250721055618-6223ea7b56e5 // indirect
 	github.com/RafaySystems/paas-common v0.0.0-20250407132001-0d707c610b95 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -215,7 +215,7 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
-	// github.com/RafaySystems/rafay-common => ../rafay-common
+	github.com/RafaySystems/rafay-common => ../rafay-common
 	// github.com/RafaySystems/rctl => ../rctl
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet

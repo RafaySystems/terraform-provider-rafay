@@ -156,6 +156,18 @@ func resourceImportCluster() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+						"proxy_auth": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"allow_insecure_bootstrap": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"bootstrap_ca": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -237,6 +249,18 @@ func expandProxyConfigImportCluster(v interface{}) *models.ProxyConfig {
 	enabled, ok := m["enabled"].(bool)
 	if ok {
 		proxyConfig.Enabled = enabled
+	}
+	allowInsecureBootstrap, ok := m["allow_insecure_bootstrap"].(bool)
+	if ok {
+		proxyConfig.AllowInsecureBootstrap = allowInsecureBootstrap
+	}
+	proxyAuth, ok := m["proxy_auth"].(string)
+	if ok {
+		proxyConfig.ProxyAuth = proxyAuth
+	}
+	bootstrapCa, ok := m["bootstrap_ca"].(string)
+	if ok {
+		proxyConfig.BootstrapCA = bootstrapCa
 	}
 	return &proxyConfig
 }

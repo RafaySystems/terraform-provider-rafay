@@ -18,273 +18,287 @@ import (
 func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Blocks: map[string]schema.Block{
-			"cluster": schema.SingleNestedBlock{
-				Attributes: map[string]schema.Attribute{
-					"kind": schema.StringAttribute{
-						Optional:            true,
-						Description:         "The resource kind.",
-						MarkdownDescription: "The resource kind.",
-					},
-				},
-				Blocks: map[string]schema.Block{
-					"metadata": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"name": schema.StringAttribute{
-								Required:            true,
-								Description:         "The name of the EKS cluster in Rafay console.",
-								MarkdownDescription: "The name of the EKS cluster in Rafay console.",
-							},
-							"project": schema.StringAttribute{
-								Required:            true,
-								Description:         "The name of the Rafay project the cluster will be created in.",
-								MarkdownDescription: "The name of the Rafay project the cluster will be created in.",
-							},
-						},
-						CustomType: MetadataType{
-							ObjectType: types.ObjectType{
-								AttrTypes: MetadataValue{}.AttributeTypes(ctx),
-							},
+			"cluster": schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"kind": schema.StringAttribute{
+							Optional:            true,
+							Description:         "The resource kind.",
+							MarkdownDescription: "The resource kind.",
 						},
 					},
-					"spec": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"blueprint": schema.StringAttribute{
-								Optional:            true,
-								Description:         "The name of the blueprint to use for the EKS cluster.",
-								MarkdownDescription: "The name of the blueprint to use for the EKS cluster.",
-							},
-							"cloud_provider": schema.StringAttribute{
-								Required:            true,
-								Description:         "The name of the cloud provider for EKS cluster.",
-								MarkdownDescription: "The name of the cloud provider for EKS cluster.",
-							},
-							"cni_provider": schema.StringAttribute{
-								Optional:            true,
-								Description:         "The CNI provider to use for the EKS cluster.",
-								MarkdownDescription: "The CNI provider to use for the EKS cluster.",
-							},
-							"type": schema.StringAttribute{
-								Optional:            true,
-								Description:         "The type of the cluster.",
-								MarkdownDescription: "The type of the cluster.",
+					Blocks: map[string]schema.Block{
+						"metadata": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"name": schema.StringAttribute{
+										Required:            true,
+										Description:         "The name of the EKS cluster in Rafay console.",
+										MarkdownDescription: "The name of the EKS cluster in Rafay console.",
+									},
+									"project": schema.StringAttribute{
+										Required:            true,
+										Description:         "The name of the Rafay project the cluster will be created in.",
+										MarkdownDescription: "The name of the Rafay project the cluster will be created in.",
+									},
+								},
+								CustomType: MetadataType{
+									ObjectType: types.ObjectType{
+										AttrTypes: MetadataValue{}.AttributeTypes(ctx),
+									},
+								},
 							},
 						},
-						CustomType: SpecType{
-							ObjectType: types.ObjectType{
-								AttrTypes: SpecValue{}.AttributeTypes(ctx),
+						"spec": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"blueprint": schema.StringAttribute{
+										Optional:            true,
+										Description:         "The name of the blueprint to use for the EKS cluster.",
+										MarkdownDescription: "The name of the blueprint to use for the EKS cluster.",
+									},
+									"cloud_provider": schema.StringAttribute{
+										Required:            true,
+										Description:         "The name of the cloud provider for EKS cluster.",
+										MarkdownDescription: "The name of the cloud provider for EKS cluster.",
+									},
+									"cni_provider": schema.StringAttribute{
+										Optional:            true,
+										Description:         "The CNI provider to use for the EKS cluster.",
+										MarkdownDescription: "The CNI provider to use for the EKS cluster.",
+									},
+									"type": schema.StringAttribute{
+										Optional:            true,
+										Description:         "The type of the cluster.",
+										MarkdownDescription: "The type of the cluster.",
+									},
+								},
+								CustomType: SpecType{
+									ObjectType: types.ObjectType{
+										AttrTypes: SpecValue{}.AttributeTypes(ctx),
+									},
+								},
 							},
 						},
 					},
-				},
-				CustomType: ClusterType{
-					ObjectType: types.ObjectType{
-						AttrTypes: ClusterValue{}.AttributeTypes(ctx),
+					CustomType: ClusterType{
+						ObjectType: types.ObjectType{
+							AttrTypes: ClusterValue{}.AttributeTypes(ctx),
+						},
 					},
 				},
 			},
-			"cluster_config": schema.SingleNestedBlock{
-				Attributes: map[string]schema.Attribute{
-					"apiversion": schema.StringAttribute{
-						Optional:            true,
-						Description:         "The Rafay API version of the EKS cluster.",
-						MarkdownDescription: "The Rafay API version of the EKS cluster.",
-					},
-					"kind": schema.StringAttribute{
-						Optional:            true,
-						Description:         "The kind of the resource.",
-						MarkdownDescription: "The kind of the resource.",
-					},
-					"node_groups_map": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"instance_type": schema.StringAttribute{
-									Required:            true,
-									Description:         "The type of EC2 instance to use for the nodes in this group.",
-									MarkdownDescription: "The type of EC2 instance to use for the nodes in this group.",
+			"cluster_config": schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"apiversion": schema.StringAttribute{
+							Optional:            true,
+							Description:         "The Rafay API version of the EKS cluster.",
+							MarkdownDescription: "The Rafay API version of the EKS cluster.",
+						},
+						"kind": schema.StringAttribute{
+							Optional:            true,
+							Description:         "The kind of the resource.",
+							MarkdownDescription: "The kind of the resource.",
+						},
+						"node_groups_map": schema.MapNestedAttribute{
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"instance_type": schema.StringAttribute{
+										Required:            true,
+										Description:         "The type of EC2 instance to use for the nodes in this group.",
+										MarkdownDescription: "The type of EC2 instance to use for the nodes in this group.",
+									},
+								},
+								CustomType: NodeGroupsMapType{
+									ObjectType: types.ObjectType{
+										AttrTypes: NodeGroupsMapValue{}.AttributeTypes(ctx),
+									},
 								},
 							},
-							CustomType: NodeGroupsMapType{
-								ObjectType: types.ObjectType{
-									AttrTypes: NodeGroupsMapValue{}.AttributeTypes(ctx),
+							Optional:            true,
+							Description:         "Map of node group names to their configurations. Each key is the name of the node group, and the value is an object containing the configuration for that node group.",
+							MarkdownDescription: "Map of node group names to their configurations. Each key is the name of the node group, and the value is an object containing the configuration for that node group.",
+						},
+					},
+					Blocks: map[string]schema.Block{
+						"metadata2": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"name": schema.StringAttribute{
+										Required:            true,
+										Description:         "EKS Cluster name.",
+										MarkdownDescription: "EKS Cluster name.",
+									},
+									"region": schema.StringAttribute{
+										Required:            true,
+										Description:         "The AWS region hosting this cluster.",
+										MarkdownDescription: "The AWS region hosting this cluster.",
+									},
+									"tags": schema.MapAttribute{
+										ElementType:         types.StringType,
+										Optional:            true,
+										Description:         "A map of tags to assign to the EKS cluster.",
+										MarkdownDescription: "A map of tags to assign to the EKS cluster.",
+									},
+									"version": schema.StringAttribute{
+										Optional:            true,
+										Description:         "The version of the EKS control plane.",
+										MarkdownDescription: "The version of the EKS control plane.",
+									},
+								},
+								CustomType: Metadata2Type{
+									ObjectType: types.ObjectType{
+										AttrTypes: Metadata2Value{}.AttributeTypes(ctx),
+									},
 								},
 							},
 						},
-						Optional:            true,
-						Description:         "Map of node group names to their configurations. Each key is the name of the node group, and the value is an object containing the configuration for that node group.",
-						MarkdownDescription: "Map of node group names to their configurations. Each key is the name of the node group, and the value is an object containing the configuration for that node group.",
-					},
-				},
-				Blocks: map[string]schema.Block{
-					"metadata2": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"name": schema.StringAttribute{
-								Required:            true,
-								Description:         "EKS Cluster name.",
-								MarkdownDescription: "EKS Cluster name.",
-							},
-							"region": schema.StringAttribute{
-								Required:            true,
-								Description:         "The AWS region hosting this cluster.",
-								MarkdownDescription: "The AWS region hosting this cluster.",
-							},
-							"tags": schema.MapAttribute{
-								ElementType:         types.StringType,
-								Optional:            true,
-								Description:         "A map of tags to assign to the EKS cluster.",
-								MarkdownDescription: "A map of tags to assign to the EKS cluster.",
-							},
-							"version": schema.StringAttribute{
-								Optional:            true,
-								Description:         "The version of the EKS control plane.",
-								MarkdownDescription: "The version of the EKS control plane.",
-							},
-						},
-						CustomType: Metadata2Type{
-							ObjectType: types.ObjectType{
-								AttrTypes: Metadata2Value{}.AttributeTypes(ctx),
-							},
-						},
-					},
-					"node_groups": schema.ListNestedBlock{
-						NestedObject: schema.NestedBlockObject{
-							Attributes: map[string]schema.Attribute{
-								"ami_family": schema.StringAttribute{
-									Optional: true,
+						"node_groups": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"ami_family": schema.StringAttribute{
+										Optional: true,
+									},
+									"desired_capacity": schema.Int64Attribute{
+										Optional: true,
+									},
+									"disable_imdsv1": schema.BoolAttribute{
+										Optional:            true,
+										Description:         "Whether to disable IMDSv1 on the node group.",
+										MarkdownDescription: "Whether to disable IMDSv1 on the node group.",
+									},
+									"disable_pods_imds": schema.BoolAttribute{
+										Optional:            true,
+										Description:         "Whether to disable IMDS for pods in the node group.",
+										MarkdownDescription: "Whether to disable IMDS for pods in the node group.",
+									},
+									"efa_enabled": schema.BoolAttribute{
+										Optional:            true,
+										Description:         "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+										MarkdownDescription: "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+									},
+									"instance_type": schema.StringAttribute{
+										Required:            true,
+										Description:         "The type of EC2 instance to use for the nodes in this group.",
+										MarkdownDescription: "The type of EC2 instance to use for the nodes in this group.",
+									},
+									"max_pods_per_node": schema.Int64Attribute{
+										Optional: true,
+									},
+									"max_size": schema.Int64Attribute{
+										Optional: true,
+									},
+									"min_size": schema.Int64Attribute{
+										Optional: true,
+									},
+									"name": schema.StringAttribute{
+										Required:            true,
+										Description:         "The name of the node group.",
+										MarkdownDescription: "The name of the node group.",
+									},
+									"private_networking": schema.BoolAttribute{
+										Optional:            true,
+										Description:         "Enable private networking for the node group.",
+										MarkdownDescription: "Enable private networking for the node group.",
+									},
+									"version": schema.StringAttribute{
+										Optional: true,
+									},
+									"volume_iops": schema.Int64Attribute{
+										Optional:            true,
+										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+									},
+									"volume_size": schema.Int64Attribute{
+										Optional:            true,
+										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+									},
+									"volume_throughput": schema.Int64Attribute{
+										Optional:            true,
+										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+									},
+									"volume_type": schema.StringAttribute{
+										Optional:            true,
+										Description:         "The type of EBS volume to use for the nodes in this group.",
+										MarkdownDescription: "The type of EBS volume to use for the nodes in this group.",
+									},
 								},
-								"desired_capacity": schema.Int64Attribute{
-									Optional: true,
-								},
-								"disable_imdsv1": schema.BoolAttribute{
-									Optional:            true,
-									Description:         "Whether to disable IMDSv1 on the node group.",
-									MarkdownDescription: "Whether to disable IMDSv1 on the node group.",
-								},
-								"disable_pods_imds": schema.BoolAttribute{
-									Optional:            true,
-									Description:         "Whether to disable IMDS for pods in the node group.",
-									MarkdownDescription: "Whether to disable IMDS for pods in the node group.",
-								},
-								"efa_enabled": schema.BoolAttribute{
-									Optional:            true,
-									Description:         "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-									MarkdownDescription: "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-								},
-								"instance_type": schema.StringAttribute{
-									Required:            true,
-									Description:         "The type of EC2 instance to use for the nodes in this group.",
-									MarkdownDescription: "The type of EC2 instance to use for the nodes in this group.",
-								},
-								"max_pods_per_node": schema.Int64Attribute{
-									Optional: true,
-								},
-								"max_size": schema.Int64Attribute{
-									Optional: true,
-								},
-								"min_size": schema.Int64Attribute{
-									Optional: true,
-								},
-								"name": schema.StringAttribute{
-									Required:            true,
-									Description:         "The name of the node group.",
-									MarkdownDescription: "The name of the node group.",
-								},
-								"private_networking": schema.BoolAttribute{
-									Optional:            true,
-									Description:         "Enable private networking for the node group.",
-									MarkdownDescription: "Enable private networking for the node group.",
-								},
-								"version": schema.StringAttribute{
-									Optional: true,
-								},
-								"volume_iops": schema.Int64Attribute{
-									Optional:            true,
-									Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-									MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-								},
-								"volume_size": schema.Int64Attribute{
-									Optional:            true,
-									Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-									MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-								},
-								"volume_throughput": schema.Int64Attribute{
-									Optional:            true,
-									Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-									MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-								},
-								"volume_type": schema.StringAttribute{
-									Optional:            true,
-									Description:         "The type of EBS volume to use for the nodes in this group.",
-									MarkdownDescription: "The type of EBS volume to use for the nodes in this group.",
-								},
-							},
-							Blocks: map[string]schema.Block{
-								"iam": schema.SingleNestedBlock{
-									Blocks: map[string]schema.Block{
-										"iam_node_group_with_addon_policies": schema.SingleNestedBlock{
-											Attributes: map[string]schema.Attribute{
-												"alb_ingress": schema.BoolAttribute{
-													Optional: true,
-												},
-												"app_mesh": schema.BoolAttribute{
-													Optional: true,
-												},
-												"app_mesh_review": schema.BoolAttribute{
-													Optional: true,
-												},
-												"auto_scaler": schema.BoolAttribute{
-													Optional: true,
-												},
-												"cert_manager": schema.BoolAttribute{
-													Optional: true,
-												},
-												"cloud_watch": schema.BoolAttribute{
-													Optional: true,
-												},
-												"ebs": schema.BoolAttribute{
-													Optional: true,
-												},
-												"efs": schema.BoolAttribute{
-													Optional: true,
-												},
-												"external_dns": schema.BoolAttribute{
-													Optional: true,
-												},
-												"fsx": schema.BoolAttribute{
-													Optional: true,
-												},
-												"image_builder": schema.BoolAttribute{
-													Optional: true,
-												},
-												"xray": schema.BoolAttribute{
-													Optional: true,
+								Blocks: map[string]schema.Block{
+									"iam": schema.ListNestedBlock{
+										NestedObject: schema.NestedBlockObject{
+											Blocks: map[string]schema.Block{
+												"iam_node_group_with_addon_policies": schema.ListNestedBlock{
+													NestedObject: schema.NestedBlockObject{
+														Attributes: map[string]schema.Attribute{
+															"alb_ingress": schema.BoolAttribute{
+																Optional: true,
+															},
+															"app_mesh": schema.BoolAttribute{
+																Optional: true,
+															},
+															"app_mesh_review": schema.BoolAttribute{
+																Optional: true,
+															},
+															"auto_scaler": schema.BoolAttribute{
+																Optional: true,
+															},
+															"cert_manager": schema.BoolAttribute{
+																Optional: true,
+															},
+															"cloud_watch": schema.BoolAttribute{
+																Optional: true,
+															},
+															"ebs": schema.BoolAttribute{
+																Optional: true,
+															},
+															"efs": schema.BoolAttribute{
+																Optional: true,
+															},
+															"external_dns": schema.BoolAttribute{
+																Optional: true,
+															},
+															"fsx": schema.BoolAttribute{
+																Optional: true,
+															},
+															"image_builder": schema.BoolAttribute{
+																Optional: true,
+															},
+															"xray": schema.BoolAttribute{
+																Optional: true,
+															},
+														},
+														CustomType: IamNodeGroupWithAddonPoliciesType{
+															ObjectType: types.ObjectType{
+																AttrTypes: IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx),
+															},
+														},
+													},
 												},
 											},
-											CustomType: IamNodeGroupWithAddonPoliciesType{
+											CustomType: IamType{
 												ObjectType: types.ObjectType{
-													AttrTypes: IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx),
+													AttrTypes: IamValue{}.AttributeTypes(ctx),
 												},
 											},
 										},
 									},
-									CustomType: IamType{
-										ObjectType: types.ObjectType{
-											AttrTypes: IamValue{}.AttributeTypes(ctx),
-										},
+								},
+								CustomType: NodeGroupsType{
+									ObjectType: types.ObjectType{
+										AttrTypes: NodeGroupsValue{}.AttributeTypes(ctx),
 									},
 								},
 							},
-							CustomType: NodeGroupsType{
-								ObjectType: types.ObjectType{
-									AttrTypes: NodeGroupsValue{}.AttributeTypes(ctx),
-								},
-							},
+							DeprecationMessage: "The 'node_groups' block is deprecated. Use 'node_groups_map' attribute instead.",
 						},
-						DeprecationMessage: "The 'node_groups' block is deprecated. Use 'node_groups_map' attribute instead.",
 					},
-				},
-				CustomType: ClusterConfigType{
-					ObjectType: types.ObjectType{
-						AttrTypes: ClusterConfigValue{}.AttributeTypes(ctx),
+					CustomType: ClusterConfigType{
+						ObjectType: types.ObjectType{
+							AttrTypes: ClusterConfigValue{}.AttributeTypes(ctx),
+						},
 					},
 				},
 			},
@@ -293,8 +307,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type EksClusterModel struct {
-	Cluster       ClusterValue       `tfsdk:"cluster"`
-	ClusterConfig ClusterConfigValue `tfsdk:"cluster_config"`
+	Cluster       types.List `tfsdk:"cluster"`
+	ClusterConfig types.List `tfsdk:"cluster_config"`
 }
 
 var _ basetypes.ObjectTypable = ClusterType{}
@@ -350,12 +364,12 @@ func (t ClusterType) ValueFromObject(ctx context.Context, in basetypes.ObjectVal
 		return nil, diags
 	}
 
-	metadataVal, ok := metadataAttribute.(basetypes.ObjectValue)
+	metadataVal, ok := metadataAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`metadata expected to be basetypes.ObjectValue, was: %T`, metadataAttribute))
+			fmt.Sprintf(`metadata expected to be basetypes.ListValue, was: %T`, metadataAttribute))
 	}
 
 	specAttribute, ok := attributes["spec"]
@@ -368,12 +382,12 @@ func (t ClusterType) ValueFromObject(ctx context.Context, in basetypes.ObjectVal
 		return nil, diags
 	}
 
-	specVal, ok := specAttribute.(basetypes.ObjectValue)
+	specVal, ok := specAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`spec expected to be basetypes.ObjectValue, was: %T`, specAttribute))
+			fmt.Sprintf(`spec expected to be basetypes.ListValue, was: %T`, specAttribute))
 	}
 
 	if diags.HasError() {
@@ -479,12 +493,12 @@ func NewClusterValue(attributeTypes map[string]attr.Type, attributes map[string]
 		return NewClusterValueUnknown(), diags
 	}
 
-	metadataVal, ok := metadataAttribute.(basetypes.ObjectValue)
+	metadataVal, ok := metadataAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`metadata expected to be basetypes.ObjectValue, was: %T`, metadataAttribute))
+			fmt.Sprintf(`metadata expected to be basetypes.ListValue, was: %T`, metadataAttribute))
 	}
 
 	specAttribute, ok := attributes["spec"]
@@ -497,12 +511,12 @@ func NewClusterValue(attributeTypes map[string]attr.Type, attributes map[string]
 		return NewClusterValueUnknown(), diags
 	}
 
-	specVal, ok := specAttribute.(basetypes.ObjectValue)
+	specVal, ok := specAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`spec expected to be basetypes.ObjectValue, was: %T`, specAttribute))
+			fmt.Sprintf(`spec expected to be basetypes.ListValue, was: %T`, specAttribute))
 	}
 
 	if diags.HasError() {
@@ -586,8 +600,8 @@ var _ basetypes.ObjectValuable = ClusterValue{}
 
 type ClusterValue struct {
 	Kind     basetypes.StringValue `tfsdk:"kind"`
-	Metadata basetypes.ObjectValue `tfsdk:"metadata"`
-	Spec     basetypes.ObjectValue `tfsdk:"spec"`
+	Metadata basetypes.ListValue   `tfsdk:"metadata"`
+	Spec     basetypes.ListValue   `tfsdk:"spec"`
 	state    attr.ValueState
 }
 
@@ -598,11 +612,11 @@ func (v ClusterValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 	var err error
 
 	attrTypes["kind"] = basetypes.StringType{}.TerraformType(ctx)
-	attrTypes["metadata"] = basetypes.ObjectType{
-		AttrTypes: MetadataValue{}.AttributeTypes(ctx),
+	attrTypes["metadata"] = basetypes.ListType{
+		ElemType: MetadataValue{}.Type(ctx),
 	}.TerraformType(ctx)
-	attrTypes["spec"] = basetypes.ObjectType{
-		AttrTypes: SpecValue{}.AttributeTypes(ctx),
+	attrTypes["spec"] = basetypes.ListType{
+		ElemType: SpecValue{}.Type(ctx),
 	}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
@@ -664,55 +678,71 @@ func (v ClusterValue) String() string {
 func (v ClusterValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	var metadata basetypes.ObjectValue
+	metadata := types.ListValueMust(
+		MetadataType{
+			basetypes.ObjectType{
+				AttrTypes: MetadataValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.Metadata.Elements(),
+	)
 
 	if v.Metadata.IsNull() {
-		metadata = types.ObjectNull(
-			MetadataValue{}.AttributeTypes(ctx),
+		metadata = types.ListNull(
+			MetadataType{
+				basetypes.ObjectType{
+					AttrTypes: MetadataValue{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
 	if v.Metadata.IsUnknown() {
-		metadata = types.ObjectUnknown(
-			MetadataValue{}.AttributeTypes(ctx),
+		metadata = types.ListUnknown(
+			MetadataType{
+				basetypes.ObjectType{
+					AttrTypes: MetadataValue{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
-	if !v.Metadata.IsNull() && !v.Metadata.IsUnknown() {
-		metadata = types.ObjectValueMust(
-			MetadataValue{}.AttributeTypes(ctx),
-			v.Metadata.Attributes(),
-		)
-	}
-
-	var spec basetypes.ObjectValue
+	spec := types.ListValueMust(
+		SpecType{
+			basetypes.ObjectType{
+				AttrTypes: SpecValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.Spec.Elements(),
+	)
 
 	if v.Spec.IsNull() {
-		spec = types.ObjectNull(
-			SpecValue{}.AttributeTypes(ctx),
+		spec = types.ListNull(
+			SpecType{
+				basetypes.ObjectType{
+					AttrTypes: SpecValue{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
 	if v.Spec.IsUnknown() {
-		spec = types.ObjectUnknown(
-			SpecValue{}.AttributeTypes(ctx),
-		)
-	}
-
-	if !v.Spec.IsNull() && !v.Spec.IsUnknown() {
-		spec = types.ObjectValueMust(
-			SpecValue{}.AttributeTypes(ctx),
-			v.Spec.Attributes(),
+		spec = types.ListUnknown(
+			SpecType{
+				basetypes.ObjectType{
+					AttrTypes: SpecValue{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
 	attributeTypes := map[string]attr.Type{
 		"kind": basetypes.StringType{},
-		"metadata": basetypes.ObjectType{
-			AttrTypes: MetadataValue{}.AttributeTypes(ctx),
+		"metadata": basetypes.ListType{
+			ElemType: MetadataValue{}.Type(ctx),
 		},
-		"spec": basetypes.ObjectType{
-			AttrTypes: SpecValue{}.AttributeTypes(ctx),
+		"spec": basetypes.ListType{
+			ElemType: SpecValue{}.Type(ctx),
 		},
 	}
 
@@ -776,11 +806,11 @@ func (v ClusterValue) Type(ctx context.Context) attr.Type {
 func (v ClusterValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"kind": basetypes.StringType{},
-		"metadata": basetypes.ObjectType{
-			AttrTypes: MetadataValue{}.AttributeTypes(ctx),
+		"metadata": basetypes.ListType{
+			ElemType: MetadataValue{}.Type(ctx),
 		},
-		"spec": basetypes.ObjectType{
-			AttrTypes: SpecValue{}.AttributeTypes(ctx),
+		"spec": basetypes.ListType{
+			ElemType: SpecValue{}.Type(ctx),
 		},
 	}
 }
@@ -1724,12 +1754,12 @@ func (t ClusterConfigType) ValueFromObject(ctx context.Context, in basetypes.Obj
 		return nil, diags
 	}
 
-	metadata2Val, ok := metadata2Attribute.(basetypes.ObjectValue)
+	metadata2Val, ok := metadata2Attribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`metadata2 expected to be basetypes.ObjectValue, was: %T`, metadata2Attribute))
+			fmt.Sprintf(`metadata2 expected to be basetypes.ListValue, was: %T`, metadata2Attribute))
 	}
 
 	nodeGroupsAttribute, ok := attributes["node_groups"]
@@ -1891,12 +1921,12 @@ func NewClusterConfigValue(attributeTypes map[string]attr.Type, attributes map[s
 		return NewClusterConfigValueUnknown(), diags
 	}
 
-	metadata2Val, ok := metadata2Attribute.(basetypes.ObjectValue)
+	metadata2Val, ok := metadata2Attribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`metadata2 expected to be basetypes.ObjectValue, was: %T`, metadata2Attribute))
+			fmt.Sprintf(`metadata2 expected to be basetypes.ListValue, was: %T`, metadata2Attribute))
 	}
 
 	nodeGroupsAttribute, ok := attributes["node_groups"]
@@ -2019,7 +2049,7 @@ var _ basetypes.ObjectValuable = ClusterConfigValue{}
 type ClusterConfigValue struct {
 	Apiversion    basetypes.StringValue `tfsdk:"apiversion"`
 	Kind          basetypes.StringValue `tfsdk:"kind"`
-	Metadata2     basetypes.ObjectValue `tfsdk:"metadata2"`
+	Metadata2     basetypes.ListValue   `tfsdk:"metadata2"`
 	NodeGroups    basetypes.ListValue   `tfsdk:"node_groups"`
 	NodeGroupsMap basetypes.MapValue    `tfsdk:"node_groups_map"`
 	state         attr.ValueState
@@ -2033,8 +2063,8 @@ func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 
 	attrTypes["apiversion"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["kind"] = basetypes.StringType{}.TerraformType(ctx)
-	attrTypes["metadata2"] = basetypes.ObjectType{
-		AttrTypes: Metadata2Value{}.AttributeTypes(ctx),
+	attrTypes["metadata2"] = basetypes.ListType{
+		ElemType: Metadata2Value{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["node_groups"] = basetypes.ListType{
 		ElemType: NodeGroupsValue{}.Type(ctx),
@@ -2118,24 +2148,32 @@ func (v ClusterConfigValue) String() string {
 func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	var metadata2 basetypes.ObjectValue
+	metadata2 := types.ListValueMust(
+		Metadata2Type{
+			basetypes.ObjectType{
+				AttrTypes: Metadata2Value{}.AttributeTypes(ctx),
+			},
+		},
+		v.Metadata2.Elements(),
+	)
 
 	if v.Metadata2.IsNull() {
-		metadata2 = types.ObjectNull(
-			Metadata2Value{}.AttributeTypes(ctx),
+		metadata2 = types.ListNull(
+			Metadata2Type{
+				basetypes.ObjectType{
+					AttrTypes: Metadata2Value{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
 	if v.Metadata2.IsUnknown() {
-		metadata2 = types.ObjectUnknown(
-			Metadata2Value{}.AttributeTypes(ctx),
-		)
-	}
-
-	if !v.Metadata2.IsNull() && !v.Metadata2.IsUnknown() {
-		metadata2 = types.ObjectValueMust(
-			Metadata2Value{}.AttributeTypes(ctx),
-			v.Metadata2.Attributes(),
+		metadata2 = types.ListUnknown(
+			Metadata2Type{
+				basetypes.ObjectType{
+					AttrTypes: Metadata2Value{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
@@ -2200,8 +2238,8 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 	attributeTypes := map[string]attr.Type{
 		"apiversion": basetypes.StringType{},
 		"kind":       basetypes.StringType{},
-		"metadata2": basetypes.ObjectType{
-			AttrTypes: Metadata2Value{}.AttributeTypes(ctx),
+		"metadata2": basetypes.ListType{
+			ElemType: Metadata2Value{}.Type(ctx),
 		},
 		"node_groups": basetypes.ListType{
 			ElemType: NodeGroupsValue{}.Type(ctx),
@@ -2282,8 +2320,8 @@ func (v ClusterConfigValue) AttributeTypes(ctx context.Context) map[string]attr.
 	return map[string]attr.Type{
 		"apiversion": basetypes.StringType{},
 		"kind":       basetypes.StringType{},
-		"metadata2": basetypes.ObjectType{
-			AttrTypes: Metadata2Value{}.AttributeTypes(ctx),
+		"metadata2": basetypes.ListType{
+			ElemType: Metadata2Value{}.Type(ctx),
 		},
 		"node_groups": basetypes.ListType{
 			ElemType: NodeGroupsValue{}.Type(ctx),
@@ -3261,12 +3299,12 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 		return nil, diags
 	}
 
-	iamVal, ok := iamAttribute.(basetypes.ObjectValue)
+	iamVal, ok := iamAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`iam expected to be basetypes.ObjectValue, was: %T`, iamAttribute))
+			fmt.Sprintf(`iam expected to be basetypes.ListValue, was: %T`, iamAttribute))
 	}
 
 	instanceTypeAttribute, ok := attributes["instance_type"]
@@ -3656,12 +3694,12 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 		return NewNodeGroupsValueUnknown(), diags
 	}
 
-	iamVal, ok := iamAttribute.(basetypes.ObjectValue)
+	iamVal, ok := iamAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`iam expected to be basetypes.ObjectValue, was: %T`, iamAttribute))
+			fmt.Sprintf(`iam expected to be basetypes.ListValue, was: %T`, iamAttribute))
 	}
 
 	instanceTypeAttribute, ok := attributes["instance_type"]
@@ -3961,7 +3999,7 @@ type NodeGroupsValue struct {
 	DisableImdsv1     basetypes.BoolValue   `tfsdk:"disable_imdsv1"`
 	DisablePodsImds   basetypes.BoolValue   `tfsdk:"disable_pods_imds"`
 	EfaEnabled        basetypes.BoolValue   `tfsdk:"efa_enabled"`
-	Iam               basetypes.ObjectValue `tfsdk:"iam"`
+	Iam               basetypes.ListValue   `tfsdk:"iam"`
 	InstanceType      basetypes.StringValue `tfsdk:"instance_type"`
 	MaxPodsPerNode    basetypes.Int64Value  `tfsdk:"max_pods_per_node"`
 	MaxSize           basetypes.Int64Value  `tfsdk:"max_size"`
@@ -3987,8 +4025,8 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 	attrTypes["disable_imdsv1"] = basetypes.BoolType{}.TerraformType(ctx)
 	attrTypes["disable_pods_imds"] = basetypes.BoolType{}.TerraformType(ctx)
 	attrTypes["efa_enabled"] = basetypes.BoolType{}.TerraformType(ctx)
-	attrTypes["iam"] = basetypes.ObjectType{
-		AttrTypes: IamValue{}.AttributeTypes(ctx),
+	attrTypes["iam"] = basetypes.ListType{
+		ElemType: IamValue{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["instance_type"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["max_pods_per_node"] = basetypes.Int64Type{}.TerraformType(ctx)
@@ -4173,24 +4211,32 @@ func (v NodeGroupsValue) String() string {
 func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	var iam basetypes.ObjectValue
+	iam := types.ListValueMust(
+		IamType{
+			basetypes.ObjectType{
+				AttrTypes: IamValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.Iam.Elements(),
+	)
 
 	if v.Iam.IsNull() {
-		iam = types.ObjectNull(
-			IamValue{}.AttributeTypes(ctx),
+		iam = types.ListNull(
+			IamType{
+				basetypes.ObjectType{
+					AttrTypes: IamValue{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
 	if v.Iam.IsUnknown() {
-		iam = types.ObjectUnknown(
-			IamValue{}.AttributeTypes(ctx),
-		)
-	}
-
-	if !v.Iam.IsNull() && !v.Iam.IsUnknown() {
-		iam = types.ObjectValueMust(
-			IamValue{}.AttributeTypes(ctx),
-			v.Iam.Attributes(),
+		iam = types.ListUnknown(
+			IamType{
+				basetypes.ObjectType{
+					AttrTypes: IamValue{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
@@ -4200,8 +4246,8 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		"disable_imdsv1":    basetypes.BoolType{},
 		"disable_pods_imds": basetypes.BoolType{},
 		"efa_enabled":       basetypes.BoolType{},
-		"iam": basetypes.ObjectType{
-			AttrTypes: IamValue{}.AttributeTypes(ctx),
+		"iam": basetypes.ListType{
+			ElemType: IamValue{}.Type(ctx),
 		},
 		"instance_type":      basetypes.StringType{},
 		"max_pods_per_node":  basetypes.Int64Type{},
@@ -4350,8 +4396,8 @@ func (v NodeGroupsValue) AttributeTypes(ctx context.Context) map[string]attr.Typ
 		"disable_imdsv1":    basetypes.BoolType{},
 		"disable_pods_imds": basetypes.BoolType{},
 		"efa_enabled":       basetypes.BoolType{},
-		"iam": basetypes.ObjectType{
-			AttrTypes: IamValue{}.AttributeTypes(ctx),
+		"iam": basetypes.ListType{
+			ElemType: IamValue{}.Type(ctx),
 		},
 		"instance_type":      basetypes.StringType{},
 		"max_pods_per_node":  basetypes.Int64Type{},
@@ -4402,12 +4448,12 @@ func (t IamType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) 
 		return nil, diags
 	}
 
-	iamNodeGroupWithAddonPoliciesVal, ok := iamNodeGroupWithAddonPoliciesAttribute.(basetypes.ObjectValue)
+	iamNodeGroupWithAddonPoliciesVal, ok := iamNodeGroupWithAddonPoliciesAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`iam_node_group_with_addon_policies expected to be basetypes.ObjectValue, was: %T`, iamNodeGroupWithAddonPoliciesAttribute))
+			fmt.Sprintf(`iam_node_group_with_addon_policies expected to be basetypes.ListValue, was: %T`, iamNodeGroupWithAddonPoliciesAttribute))
 	}
 
 	if diags.HasError() {
@@ -4493,12 +4539,12 @@ func NewIamValue(attributeTypes map[string]attr.Type, attributes map[string]attr
 		return NewIamValueUnknown(), diags
 	}
 
-	iamNodeGroupWithAddonPoliciesVal, ok := iamNodeGroupWithAddonPoliciesAttribute.(basetypes.ObjectValue)
+	iamNodeGroupWithAddonPoliciesVal, ok := iamNodeGroupWithAddonPoliciesAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`iam_node_group_with_addon_policies expected to be basetypes.ObjectValue, was: %T`, iamNodeGroupWithAddonPoliciesAttribute))
+			fmt.Sprintf(`iam_node_group_with_addon_policies expected to be basetypes.ListValue, was: %T`, iamNodeGroupWithAddonPoliciesAttribute))
 	}
 
 	if diags.HasError() {
@@ -4579,7 +4625,7 @@ func (t IamType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = IamValue{}
 
 type IamValue struct {
-	IamNodeGroupWithAddonPolicies basetypes.ObjectValue `tfsdk:"iam_node_group_with_addon_policies"`
+	IamNodeGroupWithAddonPolicies basetypes.ListValue `tfsdk:"iam_node_group_with_addon_policies"`
 	state                         attr.ValueState
 }
 
@@ -4589,8 +4635,8 @@ func (v IamValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	var val tftypes.Value
 	var err error
 
-	attrTypes["iam_node_group_with_addon_policies"] = basetypes.ObjectType{
-		AttrTypes: IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx),
+	attrTypes["iam_node_group_with_addon_policies"] = basetypes.ListType{
+		ElemType: IamNodeGroupWithAddonPoliciesValue{}.Type(ctx),
 	}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
@@ -4636,30 +4682,38 @@ func (v IamValue) String() string {
 func (v IamValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	var iamNodeGroupWithAddonPolicies basetypes.ObjectValue
+	iamNodeGroupWithAddonPolicies := types.ListValueMust(
+		IamNodeGroupWithAddonPoliciesType{
+			basetypes.ObjectType{
+				AttrTypes: IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.IamNodeGroupWithAddonPolicies.Elements(),
+	)
 
 	if v.IamNodeGroupWithAddonPolicies.IsNull() {
-		iamNodeGroupWithAddonPolicies = types.ObjectNull(
-			IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx),
+		iamNodeGroupWithAddonPolicies = types.ListNull(
+			IamNodeGroupWithAddonPoliciesType{
+				basetypes.ObjectType{
+					AttrTypes: IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
 	if v.IamNodeGroupWithAddonPolicies.IsUnknown() {
-		iamNodeGroupWithAddonPolicies = types.ObjectUnknown(
-			IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx),
-		)
-	}
-
-	if !v.IamNodeGroupWithAddonPolicies.IsNull() && !v.IamNodeGroupWithAddonPolicies.IsUnknown() {
-		iamNodeGroupWithAddonPolicies = types.ObjectValueMust(
-			IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx),
-			v.IamNodeGroupWithAddonPolicies.Attributes(),
+		iamNodeGroupWithAddonPolicies = types.ListUnknown(
+			IamNodeGroupWithAddonPoliciesType{
+				basetypes.ObjectType{
+					AttrTypes: IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
 	attributeTypes := map[string]attr.Type{
-		"iam_node_group_with_addon_policies": basetypes.ObjectType{
-			AttrTypes: IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx),
+		"iam_node_group_with_addon_policies": basetypes.ListType{
+			ElemType: IamNodeGroupWithAddonPoliciesValue{}.Type(ctx),
 		},
 	}
 
@@ -4712,8 +4766,8 @@ func (v IamValue) Type(ctx context.Context) attr.Type {
 
 func (v IamValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"iam_node_group_with_addon_policies": basetypes.ObjectType{
-			AttrTypes: IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx),
+		"iam_node_group_with_addon_policies": basetypes.ListType{
+			ElemType: IamNodeGroupWithAddonPoliciesValue{}.Type(ctx),
 		},
 	}
 }

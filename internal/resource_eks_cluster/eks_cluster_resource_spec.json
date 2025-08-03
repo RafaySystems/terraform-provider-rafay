@@ -11,7 +11,8 @@
                 "blocks": [
                     {
                         "name": "cluster",
-                        "single_nested": {
+                        "list_nested": {
+                            "nested_object": {
                             "attributes": [
                                 {
                                     "name": "kind",
@@ -24,7 +25,8 @@
                             "blocks": [
                                 {
                                     "name": "metadata",
-                                    "single_nested": {
+                                    "list_nested": {
+                                        "nested_object": {
                                         "attributes": [
                                             {
                                                 "name": "name",
@@ -42,10 +44,12 @@
                                             }
                                         ]
                                     }
+                                    }
                                 },
                                 {
                                     "name": "spec",
-                                    "single_nested": {
+                                    "list_nested": {
+                                        "nested_object": {
                                         "attributes": [
                                             {
                                                 "name": "cloud_provider",
@@ -78,13 +82,16 @@
                                             }
                                         ]
                                     }
+                                    }
                                 }
                             ]
+                        }
                         }
                     },
                     {
                         "name": "cluster_config",
-                        "single_nested": {
+                        "list_nested": {
+                            "nested_object": {
                             "attributes": [
                                 {
                                     "name": "apiversion",
@@ -124,7 +131,8 @@
                             "blocks": [
                                 {
                                     "name": "metadata2",
-                                    "single_nested": {
+                                    "list_nested": {
+                                        "nested_object": {
                                         "attributes": [
                                             {
                                                 "name": "name",
@@ -159,6 +167,7 @@
                                             }
                                         ]
                                     }
+                                    }
                                 },
                                 {
                                     "name": "node_groups",
@@ -168,12 +177,14 @@
                                             "blocks": [
                                                 {
                                                     "name": "iam",
-                                                    "single_nested": {
+                                                    "list_nested": {
+                                                        "nested_object": {
                                                         "attributes": [],
                                                         "blocks": [
                                                             {
                                                                 "name": "iam_node_group_with_addon_policies",
-                                                                "single_nested": {
+                                                                "list_nested": {
+                                                                    "nested_object": {
                                                                     "attributes": [
                                                                         {
                                                                             "name": "alb_ingress",
@@ -249,8 +260,10 @@
                                                                         }
                                                                     ]
                                                                 }
+                                                                }
                                                             }
                                                         ]
+                                                    }
                                                     }
                                                 }
                                             ],
@@ -366,6 +379,7 @@
                                     }
                                 }
                             ]
+                        }
                         }
                     }
                 ]

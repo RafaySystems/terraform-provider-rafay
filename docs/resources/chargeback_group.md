@@ -105,7 +105,7 @@ resource "rafay_chargeback_group" "tfdemodetailedcbgroup1" {
 
 ***Optional***
 
-- `annotations` - (Map of String) The annotations of the resource.Use  `additionalNSLabels` key (e.g., "additionalNSLabels" = "label1,label2") to include namespace labels in the report.
+- `annotations` - (Map of String) Optional metadata for the resource. The key additionalNSLabels can be used to specify a comma-separated list of namespace labels (e.g., "additionalNSLabels" = "label1,label2"). These labels will be included in the chargeback report when namespace level aggregation is enabled
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`

@@ -38,6 +38,30 @@ resource "rafay_chargeback_group" "tfdemosummarycbgroup1" {
 
 ---
 
+Example Chargeback Group resource with Summary Type for Nampespace aggregation with additionalNSLabels:
+
+```terraform
+resource "rafay_chargeback_group" "tfdemosummarycbgroup2" {
+  metadata {
+    name = "tfdemosummarycbgroup2"
+    annotations = {
+          "additionalNSLabels" = "label1,label2"
+        }
+  }
+  spec {
+    type = "summary"
+    inclusions {
+      project = "project-1"
+    }
+    aggregate {
+      namespace = true
+    }
+  }
+}
+```
+
+---
+
 Example Chargeback Group resource with Detailed Type:
 
 ```terraform
@@ -78,6 +102,10 @@ resource "rafay_chargeback_group" "tfdemodetailedcbgroup1" {
 ***Required***
 
 - `name` (String) The name of the resource.
+
+***Optional***
+
+- `annotations` - (Map of String) Optional metadata for the resource. The key additionalNSLabels can be used to specify a comma-separated list of namespace labels (e.g., "additionalNSLabels" = "label1,label2"). These labels will be included in the chargeback report when namespace level aggregation is enabled
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`

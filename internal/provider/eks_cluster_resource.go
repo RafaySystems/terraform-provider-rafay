@@ -394,6 +394,7 @@ func (r *eksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	ngs := clusterConfigSpec.NodeGroups
 	ngElements := []attr.Value{}
+	ngMapElements := make(map[string]attr.Value, len(ngs))
 	for _, ng := range ngs {
 		iamaddon := map[string]attr.Value{
 			"alb_ingress":     types.BoolValue(false),
@@ -464,8 +465,81 @@ func (r *eksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 			return
 		}
 		ngElements = append(ngElements, ngo)
+
+		// -----------
+
+		iamaddon2 := map[string]attr.Value{
+			"alb_ingress":     types.BoolValue(false),
+			"app_mesh":        types.BoolValue(*ng.IAM.WithAddonPolicies.AppMesh),
+			"app_mesh_review": types.BoolValue(*ng.IAM.WithAddonPolicies.AppMeshPreview),
+			"cert_manager":    types.BoolValue(*ng.IAM.WithAddonPolicies.CertManager),
+			"cloud_watch":     types.BoolValue(*ng.IAM.WithAddonPolicies.CloudWatch),
+			"ebs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EBS),
+			"efs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EFS),
+			"external_dns":    types.BoolValue(*ng.IAM.WithAddonPolicies.ExternalDNS),
+			"fsx":             types.BoolValue(*ng.IAM.WithAddonPolicies.FSX),
+			"xray":            types.BoolValue(*ng.IAM.WithAddonPolicies.XRay),
+			"image_builder":   types.BoolValue(*ng.IAM.WithAddonPolicies.ImageBuilder),
+			"auto_scaler":     types.BoolValue(*ng.IAM.WithAddonPolicies.AutoScaler),
+		}
+		iamaddonv2, d := resource_eks_cluster.NewIamNodeGroupWithAddonPolicies2Value(resource_eks_cluster.IamNodeGroupWithAddonPolicies2Value{}.AttributeTypes(ctx), iamaddon2)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+		iamaddonElements2 := []attr.Value{
+			iamaddonv2,
+		}
+		fiamaddon2, d := types.ListValue(resource_eks_cluster.IamNodeGroupWithAddonPolicies2Value{}.Type(ctx), iamaddonElements2)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+
+		iamv2 := map[string]attr.Value{
+			"iam_node_group_with_addon_policies": fiamaddon2,
+		}
+		iamo2, d := resource_eks_cluster.NewIam2Value(resource_eks_cluster.Iam2Value{}.AttributeTypes(ctx), iamv2)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+		iam2Elements := []attr.Value{
+			iamo2,
+		}
+		fiam2, d := types.ListValue(resource_eks_cluster.Iam2Value{}.Type(ctx), iam2Elements)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+		ngmapv := map[string]attr.Value{
+			//"name":               types.StringValue(ng.Name),
+			"ami_family":         types.StringValue(ng.AMIFamily),
+			"instance_type":      types.StringValue(ng.InstanceType),
+			"desired_capacity":   types.Int64Value(int64(*ng.DesiredCapacity)),
+			"min_size":           types.Int64Value(int64(*ng.MinSize)),
+			"max_size":           types.Int64Value(int64(*ng.MaxSize)),
+			"max_pods_per_node":  types.Int64Value(int64(ng.MaxPodsPerNode)),
+			"version":            types.StringValue(ng.Version),
+			"disable_imdsv1":     types.BoolValue(*ng.DisableIMDSv1),
+			"disable_pods_imds":  types.BoolValue(*ng.DisablePodIMDS),
+			"efa_enabled":        types.BoolValue(*ng.EFAEnabled),
+			"private_networking": types.BoolValue(*ng.PrivateNetworking),
+			"volume_iops":        types.Int64Value(int64(*ng.VolumeIOPS)),
+			"volume_size":        types.Int64Value(int64(*ng.VolumeSize)),
+			"volume_throughput":  types.Int64Value(int64(*ng.VolumeThroughput)),
+			"volume_type":        types.StringValue(ng.VolumeType),
+			"iam":                fiam2,
+		}
+		ngmapo, d := resource_eks_cluster.NewNodeGroupsMapValue(resource_eks_cluster.NodeGroupsMapValue{}.AttributeTypes(ctx), ngmapv)
+		ngMapElements[ng.Name] = ngmapo
 	}
 	fng, d := types.ListValue(resource_eks_cluster.NodeGroupsValue{}.Type(ctx), ngElements)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+	ngmap, d := types.MapValue(resource_eks_cluster.NodeGroupsMapValue{}.Type(ctx), ngMapElements)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -474,9 +548,9 @@ func (r *eksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 	cc := map[string]attr.Value{
 		"apiversion":      types.StringValue(clusterConfigSpec.APIVersion),
 		"kind":            types.StringValue(clusterConfigSpec.Kind),
-		"metadata2":       fmd2,
+		"metadata":        fmd2,
 		"node_groups":     fng,
-		"node_groups_map": types.MapNull(resource_eks_cluster.NodeGroupsMapValue{}.Type(ctx)),
+		"node_groups_map": ngmap,
 	}
 	fcc, d := resource_eks_cluster.NewClusterConfigValue(resource_eks_cluster.ClusterConfigValue{}.AttributeTypes(ctx), cc)
 	if d.HasError() {

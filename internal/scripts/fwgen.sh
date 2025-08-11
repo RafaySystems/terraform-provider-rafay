@@ -10,3 +10,7 @@ for file in $(find internal/resource_* -type f -name "*.json"); do
         --output=internal/ \
     ${file}
 done
+
+sed -i 's/"metadata2"/"metadata"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i 's/"iam2"/"iam"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i 's/"iam_node_group_with_addon_policies2"/"iam_node_group_with_addon_policies"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go

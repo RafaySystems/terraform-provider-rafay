@@ -121,6 +121,283 @@
                                                         "computed_optional_required": "required",
                                                         "description": "The type of EC2 instance to use for the nodes in this group."
                                                     }
+                                                },
+                                                {
+                                                    "name": "ami_family",
+                                                    "string": {
+                                                        "computed_optional_required": "optional"    
+                                                    }
+                                                },
+                                                {
+                                                    "name": "desired_capacity",
+                                                    "int64": {
+                                                        "computed_optional_required": "optional"    
+                                                    }
+                                                },
+                                                {
+                                                    "name": "min_size",
+                                                    "int64": {
+                                                        "computed_optional_required": "optional"    
+                                                    }
+                                                },
+                                                {
+                                                    "name": "max_size",
+                                                    "int64": {
+                                                        "computed_optional_required": "optional"    
+                                                    }
+                                                },
+                                                {
+                                                    "name": "max_pods_per_node",
+                                                    "int64": {
+                                                        "computed_optional_required": "optional"    
+                                                    }
+                                                },
+                                                {
+                                                    "name": "version",
+                                                    "string": {
+                                                        "computed_optional_required": "optional"    
+                                                    }
+                                                },
+                                                {
+                                                    "name": "disable_imdsv1",
+                                                    "bool": {
+                                                        "description": "Whether to disable IMDSv1 on the node group.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "disable_pods_imds",
+                                                    "bool": {
+                                                        "description": "Whether to disable IMDS for pods in the node group.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "efa_enabled",
+                                                    "bool": {
+                                                        "description": "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "private_networking",
+                                                    "bool": {
+                                                        "description": "Enable private networking for the node group.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "volume_iops",
+                                                    "int64": {
+                                                        "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "volume_size",
+                                                    "int64": {
+                                                        "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "volume_throughput",
+                                                    "int64": {
+                                                        "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "volume_type",
+                                                    "string": {
+                                                        "description": "The type of EBS volume to use for the nodes in this group.",
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "iam2",
+                                                    "list_nested": {
+                                                        "nested_object": {
+                                                            "attributes": [
+                                                                {
+                                                                    "name": "iam_node_group_with_addon_policies2",
+                                                                    "list_nested": {
+                                                                        "nested_object": {
+                                                                            "attributes": [
+                                                                                {
+                                                                                    "name": "alb_ingress",
+                                                                                    "bool": {
+                                                                                        "computed_optional_required": "optional"
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "app_mesh",
+                                                                                    "bool": {
+                                                                                        "computed_optional_required": "optional"
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "app_mesh_review",
+                                                                                    "bool": {
+                                                                                        "computed_optional_required": "optional"
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "cert_manager",
+                                                                                    "bool": {
+                                                                                        "computed_optional_required": "optional"
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "cloud_watch",
+                                                                                    "bool": {
+                                                                                        "computed_optional_required": "optional"
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "ebs",
+                                                                                    "bool": {
+                                                                                        "computed_optional_required": "optional"
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "efs",
+                                                                                    "bool": {
+                                                                                        "computed_optional_required": "optional"
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "external_dns",
+                                                                                    "bool": {
+                                                                                        "computed_optional_required": "optional"
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "fsx",
+                                                                                    "bool": {
+                                                                                        "computed_optional_required": "optional"
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "xray",
+                                                                                    "bool": {
+                                                                                        "computed_optional_required": "optional"
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "image_builder",
+                                                                                    "bool": {
+                                                                                        "computed_optional_required": "optional"
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "auto_scaler",
+                                                                                    "bool": {
+                                                                                        "computed_optional_required": "optional"
+                                                                                    }
+                                                                                }
+                                                                            ]
+                                                                        },
+                                                                        "computed_optional_required": "optional"
+                                                                    }
+                                                                }
+                                                            ]
+                                                        },
+                                                        "computed_optional_required": "optional"
+                                                    }
+                                                }
+                                            ],
+                                            "blocks": [
+                                                {
+                                                    "name": "iam",
+                                                    "list_nested": {
+                                                        "nested_object": {
+                                                        "attributes": [],
+                                                        "blocks": [
+                                                            {
+                                                                "name": "iam_node_group_with_addon_policies",
+                                                                "list_nested": {
+                                                                    "nested_object": {
+                                                                    "attributes": [
+                                                                        {
+                                                                            "name": "alb_ingress",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "app_mesh",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "app_mesh_review",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "cert_manager",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "cloud_watch",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "ebs",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "efs",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "external_dns",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "fsx",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "xray",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "image_builder",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "auto_scaler",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                }
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                    }
                                                 }
                                             ]
                                         }

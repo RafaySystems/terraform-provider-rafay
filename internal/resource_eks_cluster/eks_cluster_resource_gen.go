@@ -104,10 +104,128 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 						"node_groups_map": schema.MapNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
+									"ami_family": schema.StringAttribute{
+										Optional: true,
+									},
+									"desired_capacity": schema.Int64Attribute{
+										Optional: true,
+									},
+									"disable_imdsv1": schema.BoolAttribute{
+										Optional:            true,
+										Description:         "Whether to disable IMDSv1 on the node group.",
+										MarkdownDescription: "Whether to disable IMDSv1 on the node group.",
+									},
+									"disable_pods_imds": schema.BoolAttribute{
+										Optional:            true,
+										Description:         "Whether to disable IMDS for pods in the node group.",
+										MarkdownDescription: "Whether to disable IMDS for pods in the node group.",
+									},
+									"efa_enabled": schema.BoolAttribute{
+										Optional:            true,
+										Description:         "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+										MarkdownDescription: "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+									},
+									"iam": schema.ListNestedAttribute{
+										NestedObject: schema.NestedAttributeObject{
+											Attributes: map[string]schema.Attribute{
+												"iam_node_group_with_addon_policies": schema.ListNestedAttribute{
+													NestedObject: schema.NestedAttributeObject{
+														Attributes: map[string]schema.Attribute{
+															"alb_ingress": schema.BoolAttribute{
+																Optional: true,
+															},
+															"app_mesh": schema.BoolAttribute{
+																Optional: true,
+															},
+															"app_mesh_review": schema.BoolAttribute{
+																Optional: true,
+															},
+															"auto_scaler": schema.BoolAttribute{
+																Optional: true,
+															},
+															"cert_manager": schema.BoolAttribute{
+																Optional: true,
+															},
+															"cloud_watch": schema.BoolAttribute{
+																Optional: true,
+															},
+															"ebs": schema.BoolAttribute{
+																Optional: true,
+															},
+															"efs": schema.BoolAttribute{
+																Optional: true,
+															},
+															"external_dns": schema.BoolAttribute{
+																Optional: true,
+															},
+															"fsx": schema.BoolAttribute{
+																Optional: true,
+															},
+															"image_builder": schema.BoolAttribute{
+																Optional: true,
+															},
+															"xray": schema.BoolAttribute{
+																Optional: true,
+															},
+														},
+														CustomType: IamNodeGroupWithAddonPolicies2Type{
+															ObjectType: types.ObjectType{
+																AttrTypes: IamNodeGroupWithAddonPolicies2Value{}.AttributeTypes(ctx),
+															},
+														},
+													},
+													Optional: true,
+												},
+											},
+											CustomType: Iam2Type{
+												ObjectType: types.ObjectType{
+													AttrTypes: Iam2Value{}.AttributeTypes(ctx),
+												},
+											},
+										},
+										Optional: true,
+									},
 									"instance_type": schema.StringAttribute{
 										Required:            true,
 										Description:         "The type of EC2 instance to use for the nodes in this group.",
 										MarkdownDescription: "The type of EC2 instance to use for the nodes in this group.",
+									},
+									"max_pods_per_node": schema.Int64Attribute{
+										Optional: true,
+									},
+									"max_size": schema.Int64Attribute{
+										Optional: true,
+									},
+									"min_size": schema.Int64Attribute{
+										Optional: true,
+									},
+									"private_networking": schema.BoolAttribute{
+										Optional:            true,
+										Description:         "Enable private networking for the node group.",
+										MarkdownDescription: "Enable private networking for the node group.",
+									},
+									"version": schema.StringAttribute{
+										Optional: true,
+									},
+									"volume_iops": schema.Int64Attribute{
+										Optional:            true,
+										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+									},
+									"volume_size": schema.Int64Attribute{
+										Optional:            true,
+										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+									},
+									"volume_throughput": schema.Int64Attribute{
+										Optional:            true,
+										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+									},
+									"volume_type": schema.StringAttribute{
+										Optional:            true,
+										Description:         "The type of EBS volume to use for the nodes in this group.",
+										MarkdownDescription: "The type of EBS volume to use for the nodes in this group.",
 									},
 								},
 								CustomType: NodeGroupsMapType{
@@ -122,7 +240,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 						},
 					},
 					Blocks: map[string]schema.Block{
-						"metadata2": schema.ListNestedBlock{
+						"metadata": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"name": schema.StringAttribute{
@@ -303,6 +421,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 		},
+		Version: 1,
 	}
 }
 
@@ -1744,7 +1863,7 @@ func (t ClusterConfigType) ValueFromObject(ctx context.Context, in basetypes.Obj
 			fmt.Sprintf(`kind expected to be basetypes.StringValue, was: %T`, kindAttribute))
 	}
 
-	metadata2Attribute, ok := attributes["metadata2"]
+	metadata2Attribute, ok := attributes["metadata"]
 
 	if !ok {
 		diags.AddError(
@@ -1911,7 +2030,7 @@ func NewClusterConfigValue(attributeTypes map[string]attr.Type, attributes map[s
 			fmt.Sprintf(`kind expected to be basetypes.StringValue, was: %T`, kindAttribute))
 	}
 
-	metadata2Attribute, ok := attributes["metadata2"]
+	metadata2Attribute, ok := attributes["metadata"]
 
 	if !ok {
 		diags.AddError(
@@ -2049,7 +2168,7 @@ var _ basetypes.ObjectValuable = ClusterConfigValue{}
 type ClusterConfigValue struct {
 	Apiversion    basetypes.StringValue `tfsdk:"apiversion"`
 	Kind          basetypes.StringValue `tfsdk:"kind"`
-	Metadata2     basetypes.ListValue   `tfsdk:"metadata2"`
+	Metadata2     basetypes.ListValue   `tfsdk:"metadata"`
 	NodeGroups    basetypes.ListValue   `tfsdk:"node_groups"`
 	NodeGroupsMap basetypes.MapValue    `tfsdk:"node_groups_map"`
 	state         attr.ValueState
@@ -2063,7 +2182,7 @@ func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 
 	attrTypes["apiversion"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["kind"] = basetypes.StringType{}.TerraformType(ctx)
-	attrTypes["metadata2"] = basetypes.ListType{
+	attrTypes["metadata"] = basetypes.ListType{
 		ElemType: Metadata2Value{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["node_groups"] = basetypes.ListType{
@@ -2101,7 +2220,7 @@ func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["metadata2"] = val
+		vals["metadata"] = val
 
 		val, err = v.NodeGroups.ToTerraformValue(ctx)
 
@@ -2238,7 +2357,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 	attributeTypes := map[string]attr.Type{
 		"apiversion": basetypes.StringType{},
 		"kind":       basetypes.StringType{},
-		"metadata2": basetypes.ListType{
+		"metadata": basetypes.ListType{
 			ElemType: Metadata2Value{}.Type(ctx),
 		},
 		"node_groups": basetypes.ListType{
@@ -2262,7 +2381,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		map[string]attr.Value{
 			"apiversion":      v.Apiversion,
 			"kind":            v.Kind,
-			"metadata2":       metadata2,
+			"metadata":       metadata2,
 			"node_groups":     nodeGroups,
 			"node_groups_map": nodeGroupsMap,
 		})
@@ -2320,7 +2439,7 @@ func (v ClusterConfigValue) AttributeTypes(ctx context.Context) map[string]attr.
 	return map[string]attr.Type{
 		"apiversion": basetypes.StringType{},
 		"kind":       basetypes.StringType{},
-		"metadata2": basetypes.ListType{
+		"metadata": basetypes.ListType{
 			ElemType: Metadata2Value{}.Type(ctx),
 		},
 		"node_groups": basetypes.ListType{
@@ -2357,6 +2476,114 @@ func (t NodeGroupsMapType) ValueFromObject(ctx context.Context, in basetypes.Obj
 
 	attributes := in.Attributes()
 
+	amiFamilyAttribute, ok := attributes["ami_family"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`ami_family is missing from object`)
+
+		return nil, diags
+	}
+
+	amiFamilyVal, ok := amiFamilyAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`ami_family expected to be basetypes.StringValue, was: %T`, amiFamilyAttribute))
+	}
+
+	desiredCapacityAttribute, ok := attributes["desired_capacity"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`desired_capacity is missing from object`)
+
+		return nil, diags
+	}
+
+	desiredCapacityVal, ok := desiredCapacityAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`desired_capacity expected to be basetypes.Int64Value, was: %T`, desiredCapacityAttribute))
+	}
+
+	disableImdsv1Attribute, ok := attributes["disable_imdsv1"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`disable_imdsv1 is missing from object`)
+
+		return nil, diags
+	}
+
+	disableImdsv1Val, ok := disableImdsv1Attribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`disable_imdsv1 expected to be basetypes.BoolValue, was: %T`, disableImdsv1Attribute))
+	}
+
+	disablePodsImdsAttribute, ok := attributes["disable_pods_imds"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`disable_pods_imds is missing from object`)
+
+		return nil, diags
+	}
+
+	disablePodsImdsVal, ok := disablePodsImdsAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`disable_pods_imds expected to be basetypes.BoolValue, was: %T`, disablePodsImdsAttribute))
+	}
+
+	efaEnabledAttribute, ok := attributes["efa_enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`efa_enabled is missing from object`)
+
+		return nil, diags
+	}
+
+	efaEnabledVal, ok := efaEnabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`efa_enabled expected to be basetypes.BoolValue, was: %T`, efaEnabledAttribute))
+	}
+
+	iam2Attribute, ok := attributes["iam"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`iam2 is missing from object`)
+
+		return nil, diags
+	}
+
+	iam2Val, ok := iam2Attribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`iam2 expected to be basetypes.ListValue, was: %T`, iam2Attribute))
+	}
+
 	instanceTypeAttribute, ok := attributes["instance_type"]
 
 	if !ok {
@@ -2375,13 +2602,190 @@ func (t NodeGroupsMapType) ValueFromObject(ctx context.Context, in basetypes.Obj
 			fmt.Sprintf(`instance_type expected to be basetypes.StringValue, was: %T`, instanceTypeAttribute))
 	}
 
+	maxPodsPerNodeAttribute, ok := attributes["max_pods_per_node"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_pods_per_node is missing from object`)
+
+		return nil, diags
+	}
+
+	maxPodsPerNodeVal, ok := maxPodsPerNodeAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_pods_per_node expected to be basetypes.Int64Value, was: %T`, maxPodsPerNodeAttribute))
+	}
+
+	maxSizeAttribute, ok := attributes["max_size"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_size is missing from object`)
+
+		return nil, diags
+	}
+
+	maxSizeVal, ok := maxSizeAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_size expected to be basetypes.Int64Value, was: %T`, maxSizeAttribute))
+	}
+
+	minSizeAttribute, ok := attributes["min_size"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`min_size is missing from object`)
+
+		return nil, diags
+	}
+
+	minSizeVal, ok := minSizeAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`min_size expected to be basetypes.Int64Value, was: %T`, minSizeAttribute))
+	}
+
+	privateNetworkingAttribute, ok := attributes["private_networking"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`private_networking is missing from object`)
+
+		return nil, diags
+	}
+
+	privateNetworkingVal, ok := privateNetworkingAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`private_networking expected to be basetypes.BoolValue, was: %T`, privateNetworkingAttribute))
+	}
+
+	versionAttribute, ok := attributes["version"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`version is missing from object`)
+
+		return nil, diags
+	}
+
+	versionVal, ok := versionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`version expected to be basetypes.StringValue, was: %T`, versionAttribute))
+	}
+
+	volumeIopsAttribute, ok := attributes["volume_iops"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`volume_iops is missing from object`)
+
+		return nil, diags
+	}
+
+	volumeIopsVal, ok := volumeIopsAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`volume_iops expected to be basetypes.Int64Value, was: %T`, volumeIopsAttribute))
+	}
+
+	volumeSizeAttribute, ok := attributes["volume_size"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`volume_size is missing from object`)
+
+		return nil, diags
+	}
+
+	volumeSizeVal, ok := volumeSizeAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`volume_size expected to be basetypes.Int64Value, was: %T`, volumeSizeAttribute))
+	}
+
+	volumeThroughputAttribute, ok := attributes["volume_throughput"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`volume_throughput is missing from object`)
+
+		return nil, diags
+	}
+
+	volumeThroughputVal, ok := volumeThroughputAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`volume_throughput expected to be basetypes.Int64Value, was: %T`, volumeThroughputAttribute))
+	}
+
+	volumeTypeAttribute, ok := attributes["volume_type"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`volume_type is missing from object`)
+
+		return nil, diags
+	}
+
+	volumeTypeVal, ok := volumeTypeAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`volume_type expected to be basetypes.StringValue, was: %T`, volumeTypeAttribute))
+	}
+
 	if diags.HasError() {
 		return nil, diags
 	}
 
 	return NodeGroupsMapValue{
-		InstanceType: instanceTypeVal,
-		state:        attr.ValueStateKnown,
+		AmiFamily:         amiFamilyVal,
+		DesiredCapacity:   desiredCapacityVal,
+		DisableImdsv1:     disableImdsv1Val,
+		DisablePodsImds:   disablePodsImdsVal,
+		EfaEnabled:        efaEnabledVal,
+		Iam2:              iam2Val,
+		InstanceType:      instanceTypeVal,
+		MaxPodsPerNode:    maxPodsPerNodeVal,
+		MaxSize:           maxSizeVal,
+		MinSize:           minSizeVal,
+		PrivateNetworking: privateNetworkingVal,
+		Version:           versionVal,
+		VolumeIops:        volumeIopsVal,
+		VolumeSize:        volumeSizeVal,
+		VolumeThroughput:  volumeThroughputVal,
+		VolumeType:        volumeTypeVal,
+		state:             attr.ValueStateKnown,
 	}, diags
 }
 
@@ -2448,6 +2852,114 @@ func NewNodeGroupsMapValue(attributeTypes map[string]attr.Type, attributes map[s
 		return NewNodeGroupsMapValueUnknown(), diags
 	}
 
+	amiFamilyAttribute, ok := attributes["ami_family"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`ami_family is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	amiFamilyVal, ok := amiFamilyAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`ami_family expected to be basetypes.StringValue, was: %T`, amiFamilyAttribute))
+	}
+
+	desiredCapacityAttribute, ok := attributes["desired_capacity"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`desired_capacity is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	desiredCapacityVal, ok := desiredCapacityAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`desired_capacity expected to be basetypes.Int64Value, was: %T`, desiredCapacityAttribute))
+	}
+
+	disableImdsv1Attribute, ok := attributes["disable_imdsv1"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`disable_imdsv1 is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	disableImdsv1Val, ok := disableImdsv1Attribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`disable_imdsv1 expected to be basetypes.BoolValue, was: %T`, disableImdsv1Attribute))
+	}
+
+	disablePodsImdsAttribute, ok := attributes["disable_pods_imds"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`disable_pods_imds is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	disablePodsImdsVal, ok := disablePodsImdsAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`disable_pods_imds expected to be basetypes.BoolValue, was: %T`, disablePodsImdsAttribute))
+	}
+
+	efaEnabledAttribute, ok := attributes["efa_enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`efa_enabled is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	efaEnabledVal, ok := efaEnabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`efa_enabled expected to be basetypes.BoolValue, was: %T`, efaEnabledAttribute))
+	}
+
+	iam2Attribute, ok := attributes["iam"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`iam2 is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	iam2Val, ok := iam2Attribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`iam2 expected to be basetypes.ListValue, was: %T`, iam2Attribute))
+	}
+
 	instanceTypeAttribute, ok := attributes["instance_type"]
 
 	if !ok {
@@ -2466,13 +2978,190 @@ func NewNodeGroupsMapValue(attributeTypes map[string]attr.Type, attributes map[s
 			fmt.Sprintf(`instance_type expected to be basetypes.StringValue, was: %T`, instanceTypeAttribute))
 	}
 
+	maxPodsPerNodeAttribute, ok := attributes["max_pods_per_node"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_pods_per_node is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	maxPodsPerNodeVal, ok := maxPodsPerNodeAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_pods_per_node expected to be basetypes.Int64Value, was: %T`, maxPodsPerNodeAttribute))
+	}
+
+	maxSizeAttribute, ok := attributes["max_size"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_size is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	maxSizeVal, ok := maxSizeAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_size expected to be basetypes.Int64Value, was: %T`, maxSizeAttribute))
+	}
+
+	minSizeAttribute, ok := attributes["min_size"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`min_size is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	minSizeVal, ok := minSizeAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`min_size expected to be basetypes.Int64Value, was: %T`, minSizeAttribute))
+	}
+
+	privateNetworkingAttribute, ok := attributes["private_networking"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`private_networking is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	privateNetworkingVal, ok := privateNetworkingAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`private_networking expected to be basetypes.BoolValue, was: %T`, privateNetworkingAttribute))
+	}
+
+	versionAttribute, ok := attributes["version"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`version is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	versionVal, ok := versionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`version expected to be basetypes.StringValue, was: %T`, versionAttribute))
+	}
+
+	volumeIopsAttribute, ok := attributes["volume_iops"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`volume_iops is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	volumeIopsVal, ok := volumeIopsAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`volume_iops expected to be basetypes.Int64Value, was: %T`, volumeIopsAttribute))
+	}
+
+	volumeSizeAttribute, ok := attributes["volume_size"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`volume_size is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	volumeSizeVal, ok := volumeSizeAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`volume_size expected to be basetypes.Int64Value, was: %T`, volumeSizeAttribute))
+	}
+
+	volumeThroughputAttribute, ok := attributes["volume_throughput"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`volume_throughput is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	volumeThroughputVal, ok := volumeThroughputAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`volume_throughput expected to be basetypes.Int64Value, was: %T`, volumeThroughputAttribute))
+	}
+
+	volumeTypeAttribute, ok := attributes["volume_type"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`volume_type is missing from object`)
+
+		return NewNodeGroupsMapValueUnknown(), diags
+	}
+
+	volumeTypeVal, ok := volumeTypeAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`volume_type expected to be basetypes.StringValue, was: %T`, volumeTypeAttribute))
+	}
+
 	if diags.HasError() {
 		return NewNodeGroupsMapValueUnknown(), diags
 	}
 
 	return NodeGroupsMapValue{
-		InstanceType: instanceTypeVal,
-		state:        attr.ValueStateKnown,
+		AmiFamily:         amiFamilyVal,
+		DesiredCapacity:   desiredCapacityVal,
+		DisableImdsv1:     disableImdsv1Val,
+		DisablePodsImds:   disablePodsImdsVal,
+		EfaEnabled:        efaEnabledVal,
+		Iam2:              iam2Val,
+		InstanceType:      instanceTypeVal,
+		MaxPodsPerNode:    maxPodsPerNodeVal,
+		MaxSize:           maxSizeVal,
+		MinSize:           minSizeVal,
+		PrivateNetworking: privateNetworkingVal,
+		Version:           versionVal,
+		VolumeIops:        volumeIopsVal,
+		VolumeSize:        volumeSizeVal,
+		VolumeThroughput:  volumeThroughputVal,
+		VolumeType:        volumeTypeVal,
+		state:             attr.ValueStateKnown,
 	}, diags
 }
 
@@ -2544,23 +3233,103 @@ func (t NodeGroupsMapType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = NodeGroupsMapValue{}
 
 type NodeGroupsMapValue struct {
-	InstanceType basetypes.StringValue `tfsdk:"instance_type"`
-	state        attr.ValueState
+	AmiFamily         basetypes.StringValue `tfsdk:"ami_family"`
+	DesiredCapacity   basetypes.Int64Value  `tfsdk:"desired_capacity"`
+	DisableImdsv1     basetypes.BoolValue   `tfsdk:"disable_imdsv1"`
+	DisablePodsImds   basetypes.BoolValue   `tfsdk:"disable_pods_imds"`
+	EfaEnabled        basetypes.BoolValue   `tfsdk:"efa_enabled"`
+	Iam2              basetypes.ListValue   `tfsdk:"iam"`
+	InstanceType      basetypes.StringValue `tfsdk:"instance_type"`
+	MaxPodsPerNode    basetypes.Int64Value  `tfsdk:"max_pods_per_node"`
+	MaxSize           basetypes.Int64Value  `tfsdk:"max_size"`
+	MinSize           basetypes.Int64Value  `tfsdk:"min_size"`
+	PrivateNetworking basetypes.BoolValue   `tfsdk:"private_networking"`
+	Version           basetypes.StringValue `tfsdk:"version"`
+	VolumeIops        basetypes.Int64Value  `tfsdk:"volume_iops"`
+	VolumeSize        basetypes.Int64Value  `tfsdk:"volume_size"`
+	VolumeThroughput  basetypes.Int64Value  `tfsdk:"volume_throughput"`
+	VolumeType        basetypes.StringValue `tfsdk:"volume_type"`
+	state             attr.ValueState
 }
 
 func (v NodeGroupsMapValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 1)
+	attrTypes := make(map[string]tftypes.Type, 16)
 
 	var val tftypes.Value
 	var err error
 
+	attrTypes["ami_family"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["desired_capacity"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["disable_imdsv1"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["disable_pods_imds"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["efa_enabled"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["iam"] = basetypes.ListType{
+		ElemType: Iam2Value{}.Type(ctx),
+	}.TerraformType(ctx)
 	attrTypes["instance_type"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["max_pods_per_node"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["max_size"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["min_size"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["private_networking"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["version"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["volume_iops"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["volume_size"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["volume_throughput"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["volume_type"] = basetypes.StringType{}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 1)
+		vals := make(map[string]tftypes.Value, 16)
+
+		val, err = v.AmiFamily.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["ami_family"] = val
+
+		val, err = v.DesiredCapacity.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["desired_capacity"] = val
+
+		val, err = v.DisableImdsv1.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["disable_imdsv1"] = val
+
+		val, err = v.DisablePodsImds.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["disable_pods_imds"] = val
+
+		val, err = v.EfaEnabled.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["efa_enabled"] = val
+
+		val, err = v.Iam2.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["iam"] = val
 
 		val, err = v.InstanceType.ToTerraformValue(ctx)
 
@@ -2569,6 +3338,78 @@ func (v NodeGroupsMapValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 		}
 
 		vals["instance_type"] = val
+
+		val, err = v.MaxPodsPerNode.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["max_pods_per_node"] = val
+
+		val, err = v.MaxSize.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["max_size"] = val
+
+		val, err = v.MinSize.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["min_size"] = val
+
+		val, err = v.PrivateNetworking.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["private_networking"] = val
+
+		val, err = v.Version.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["version"] = val
+
+		val, err = v.VolumeIops.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["volume_iops"] = val
+
+		val, err = v.VolumeSize.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["volume_size"] = val
+
+		val, err = v.VolumeThroughput.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["volume_throughput"] = val
+
+		val, err = v.VolumeType.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["volume_type"] = val
 
 		if err := tftypes.ValidateValue(objectType, vals); err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
@@ -2599,8 +3440,54 @@ func (v NodeGroupsMapValue) String() string {
 func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
+	iam2 := types.ListValueMust(
+		Iam2Type{
+			basetypes.ObjectType{
+				AttrTypes: Iam2Value{}.AttributeTypes(ctx),
+			},
+		},
+		v.Iam2.Elements(),
+	)
+
+	if v.Iam2.IsNull() {
+		iam2 = types.ListNull(
+			Iam2Type{
+				basetypes.ObjectType{
+					AttrTypes: Iam2Value{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	if v.Iam2.IsUnknown() {
+		iam2 = types.ListUnknown(
+			Iam2Type{
+				basetypes.ObjectType{
+					AttrTypes: Iam2Value{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
 	attributeTypes := map[string]attr.Type{
-		"instance_type": basetypes.StringType{},
+		"ami_family":        basetypes.StringType{},
+		"desired_capacity":  basetypes.Int64Type{},
+		"disable_imdsv1":    basetypes.BoolType{},
+		"disable_pods_imds": basetypes.BoolType{},
+		"efa_enabled":       basetypes.BoolType{},
+		"iam": basetypes.ListType{
+			ElemType: Iam2Value{}.Type(ctx),
+		},
+		"instance_type":      basetypes.StringType{},
+		"max_pods_per_node":  basetypes.Int64Type{},
+		"max_size":           basetypes.Int64Type{},
+		"min_size":           basetypes.Int64Type{},
+		"private_networking": basetypes.BoolType{},
+		"version":            basetypes.StringType{},
+		"volume_iops":        basetypes.Int64Type{},
+		"volume_size":        basetypes.Int64Type{},
+		"volume_throughput":  basetypes.Int64Type{},
+		"volume_type":        basetypes.StringType{},
 	}
 
 	if v.IsNull() {
@@ -2614,7 +3501,22 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"instance_type": v.InstanceType,
+			"ami_family":         v.AmiFamily,
+			"desired_capacity":   v.DesiredCapacity,
+			"disable_imdsv1":     v.DisableImdsv1,
+			"disable_pods_imds":  v.DisablePodsImds,
+			"efa_enabled":        v.EfaEnabled,
+			"iam":               iam2,
+			"instance_type":      v.InstanceType,
+			"max_pods_per_node":  v.MaxPodsPerNode,
+			"max_size":           v.MaxSize,
+			"min_size":           v.MinSize,
+			"private_networking": v.PrivateNetworking,
+			"version":            v.Version,
+			"volume_iops":        v.VolumeIops,
+			"volume_size":        v.VolumeSize,
+			"volume_throughput":  v.VolumeThroughput,
+			"volume_type":        v.VolumeType,
 		})
 
 	return objVal, diags
@@ -2635,7 +3537,67 @@ func (v NodeGroupsMapValue) Equal(o attr.Value) bool {
 		return true
 	}
 
+	if !v.AmiFamily.Equal(other.AmiFamily) {
+		return false
+	}
+
+	if !v.DesiredCapacity.Equal(other.DesiredCapacity) {
+		return false
+	}
+
+	if !v.DisableImdsv1.Equal(other.DisableImdsv1) {
+		return false
+	}
+
+	if !v.DisablePodsImds.Equal(other.DisablePodsImds) {
+		return false
+	}
+
+	if !v.EfaEnabled.Equal(other.EfaEnabled) {
+		return false
+	}
+
+	if !v.Iam2.Equal(other.Iam2) {
+		return false
+	}
+
 	if !v.InstanceType.Equal(other.InstanceType) {
+		return false
+	}
+
+	if !v.MaxPodsPerNode.Equal(other.MaxPodsPerNode) {
+		return false
+	}
+
+	if !v.MaxSize.Equal(other.MaxSize) {
+		return false
+	}
+
+	if !v.MinSize.Equal(other.MinSize) {
+		return false
+	}
+
+	if !v.PrivateNetworking.Equal(other.PrivateNetworking) {
+		return false
+	}
+
+	if !v.Version.Equal(other.Version) {
+		return false
+	}
+
+	if !v.VolumeIops.Equal(other.VolumeIops) {
+		return false
+	}
+
+	if !v.VolumeSize.Equal(other.VolumeSize) {
+		return false
+	}
+
+	if !v.VolumeThroughput.Equal(other.VolumeThroughput) {
+		return false
+	}
+
+	if !v.VolumeType.Equal(other.VolumeType) {
 		return false
 	}
 
@@ -2652,7 +3614,1312 @@ func (v NodeGroupsMapValue) Type(ctx context.Context) attr.Type {
 
 func (v NodeGroupsMapValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"instance_type": basetypes.StringType{},
+		"ami_family":        basetypes.StringType{},
+		"desired_capacity":  basetypes.Int64Type{},
+		"disable_imdsv1":    basetypes.BoolType{},
+		"disable_pods_imds": basetypes.BoolType{},
+		"efa_enabled":       basetypes.BoolType{},
+		"iam": basetypes.ListType{
+			ElemType: Iam2Value{}.Type(ctx),
+		},
+		"instance_type":      basetypes.StringType{},
+		"max_pods_per_node":  basetypes.Int64Type{},
+		"max_size":           basetypes.Int64Type{},
+		"min_size":           basetypes.Int64Type{},
+		"private_networking": basetypes.BoolType{},
+		"version":            basetypes.StringType{},
+		"volume_iops":        basetypes.Int64Type{},
+		"volume_size":        basetypes.Int64Type{},
+		"volume_throughput":  basetypes.Int64Type{},
+		"volume_type":        basetypes.StringType{},
+	}
+}
+
+var _ basetypes.ObjectTypable = Iam2Type{}
+
+type Iam2Type struct {
+	basetypes.ObjectType
+}
+
+func (t Iam2Type) Equal(o attr.Type) bool {
+	other, ok := o.(Iam2Type)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t Iam2Type) String() string {
+	return "Iam2Type"
+}
+
+func (t Iam2Type) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	iamNodeGroupWithAddonPolicies2Attribute, ok := attributes["iam_node_group_with_addon_policies"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`iam_node_group_with_addon_policies2 is missing from object`)
+
+		return nil, diags
+	}
+
+	iamNodeGroupWithAddonPolicies2Val, ok := iamNodeGroupWithAddonPolicies2Attribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`iam_node_group_with_addon_policies2 expected to be basetypes.ListValue, was: %T`, iamNodeGroupWithAddonPolicies2Attribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return Iam2Value{
+		IamNodeGroupWithAddonPolicies2: iamNodeGroupWithAddonPolicies2Val,
+		state:                          attr.ValueStateKnown,
+	}, diags
+}
+
+func NewIam2ValueNull() Iam2Value {
+	return Iam2Value{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewIam2ValueUnknown() Iam2Value {
+	return Iam2Value{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewIam2Value(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (Iam2Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing Iam2Value Attribute Value",
+				"While creating a Iam2Value value, a missing attribute value was detected. "+
+					"A Iam2Value must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Iam2Value Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid Iam2Value Attribute Type",
+				"While creating a Iam2Value value, an invalid attribute value was detected. "+
+					"A Iam2Value must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Iam2Value Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("Iam2Value Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra Iam2Value Attribute Value",
+				"While creating a Iam2Value value, an extra attribute value was detected. "+
+					"A Iam2Value must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra Iam2Value Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewIam2ValueUnknown(), diags
+	}
+
+	iamNodeGroupWithAddonPolicies2Attribute, ok := attributes["iam_node_group_with_addon_policies"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`iam_node_group_with_addon_policies2 is missing from object`)
+
+		return NewIam2ValueUnknown(), diags
+	}
+
+	iamNodeGroupWithAddonPolicies2Val, ok := iamNodeGroupWithAddonPolicies2Attribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`iam_node_group_with_addon_policies2 expected to be basetypes.ListValue, was: %T`, iamNodeGroupWithAddonPolicies2Attribute))
+	}
+
+	if diags.HasError() {
+		return NewIam2ValueUnknown(), diags
+	}
+
+	return Iam2Value{
+		IamNodeGroupWithAddonPolicies2: iamNodeGroupWithAddonPolicies2Val,
+		state:                          attr.ValueStateKnown,
+	}, diags
+}
+
+func NewIam2ValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) Iam2Value {
+	object, diags := NewIam2Value(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewIam2ValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t Iam2Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewIam2ValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewIam2ValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewIam2ValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewIam2ValueMust(Iam2Value{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t Iam2Type) ValueType(ctx context.Context) attr.Value {
+	return Iam2Value{}
+}
+
+var _ basetypes.ObjectValuable = Iam2Value{}
+
+type Iam2Value struct {
+	IamNodeGroupWithAddonPolicies2 basetypes.ListValue `tfsdk:"iam_node_group_with_addon_policies"`
+	state                          attr.ValueState
+}
+
+func (v Iam2Value) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 1)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["iam_node_group_with_addon_policies"] = basetypes.ListType{
+		ElemType: IamNodeGroupWithAddonPolicies2Value{}.Type(ctx),
+	}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 1)
+
+		val, err = v.IamNodeGroupWithAddonPolicies2.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["iam_node_group_with_addon_policies"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v Iam2Value) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v Iam2Value) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v Iam2Value) String() string {
+	return "Iam2Value"
+}
+
+func (v Iam2Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	iamNodeGroupWithAddonPolicies2 := types.ListValueMust(
+		IamNodeGroupWithAddonPolicies2Type{
+			basetypes.ObjectType{
+				AttrTypes: IamNodeGroupWithAddonPolicies2Value{}.AttributeTypes(ctx),
+			},
+		},
+		v.IamNodeGroupWithAddonPolicies2.Elements(),
+	)
+
+	if v.IamNodeGroupWithAddonPolicies2.IsNull() {
+		iamNodeGroupWithAddonPolicies2 = types.ListNull(
+			IamNodeGroupWithAddonPolicies2Type{
+				basetypes.ObjectType{
+					AttrTypes: IamNodeGroupWithAddonPolicies2Value{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	if v.IamNodeGroupWithAddonPolicies2.IsUnknown() {
+		iamNodeGroupWithAddonPolicies2 = types.ListUnknown(
+			IamNodeGroupWithAddonPolicies2Type{
+				basetypes.ObjectType{
+					AttrTypes: IamNodeGroupWithAddonPolicies2Value{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	attributeTypes := map[string]attr.Type{
+		"iam_node_group_with_addon_policies": basetypes.ListType{
+			ElemType: IamNodeGroupWithAddonPolicies2Value{}.Type(ctx),
+		},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"iam_node_group_with_addon_policies": iamNodeGroupWithAddonPolicies2,
+		})
+
+	return objVal, diags
+}
+
+func (v Iam2Value) Equal(o attr.Value) bool {
+	other, ok := o.(Iam2Value)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.IamNodeGroupWithAddonPolicies2.Equal(other.IamNodeGroupWithAddonPolicies2) {
+		return false
+	}
+
+	return true
+}
+
+func (v Iam2Value) Type(ctx context.Context) attr.Type {
+	return Iam2Type{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v Iam2Value) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"iam_node_group_with_addon_policies": basetypes.ListType{
+			ElemType: IamNodeGroupWithAddonPolicies2Value{}.Type(ctx),
+		},
+	}
+}
+
+var _ basetypes.ObjectTypable = IamNodeGroupWithAddonPolicies2Type{}
+
+type IamNodeGroupWithAddonPolicies2Type struct {
+	basetypes.ObjectType
+}
+
+func (t IamNodeGroupWithAddonPolicies2Type) Equal(o attr.Type) bool {
+	other, ok := o.(IamNodeGroupWithAddonPolicies2Type)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t IamNodeGroupWithAddonPolicies2Type) String() string {
+	return "IamNodeGroupWithAddonPolicies2Type"
+}
+
+func (t IamNodeGroupWithAddonPolicies2Type) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	albIngressAttribute, ok := attributes["alb_ingress"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`alb_ingress is missing from object`)
+
+		return nil, diags
+	}
+
+	albIngressVal, ok := albIngressAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`alb_ingress expected to be basetypes.BoolValue, was: %T`, albIngressAttribute))
+	}
+
+	appMeshAttribute, ok := attributes["app_mesh"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`app_mesh is missing from object`)
+
+		return nil, diags
+	}
+
+	appMeshVal, ok := appMeshAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`app_mesh expected to be basetypes.BoolValue, was: %T`, appMeshAttribute))
+	}
+
+	appMeshReviewAttribute, ok := attributes["app_mesh_review"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`app_mesh_review is missing from object`)
+
+		return nil, diags
+	}
+
+	appMeshReviewVal, ok := appMeshReviewAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`app_mesh_review expected to be basetypes.BoolValue, was: %T`, appMeshReviewAttribute))
+	}
+
+	autoScalerAttribute, ok := attributes["auto_scaler"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`auto_scaler is missing from object`)
+
+		return nil, diags
+	}
+
+	autoScalerVal, ok := autoScalerAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`auto_scaler expected to be basetypes.BoolValue, was: %T`, autoScalerAttribute))
+	}
+
+	certManagerAttribute, ok := attributes["cert_manager"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`cert_manager is missing from object`)
+
+		return nil, diags
+	}
+
+	certManagerVal, ok := certManagerAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`cert_manager expected to be basetypes.BoolValue, was: %T`, certManagerAttribute))
+	}
+
+	cloudWatchAttribute, ok := attributes["cloud_watch"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`cloud_watch is missing from object`)
+
+		return nil, diags
+	}
+
+	cloudWatchVal, ok := cloudWatchAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`cloud_watch expected to be basetypes.BoolValue, was: %T`, cloudWatchAttribute))
+	}
+
+	ebsAttribute, ok := attributes["ebs"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`ebs is missing from object`)
+
+		return nil, diags
+	}
+
+	ebsVal, ok := ebsAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`ebs expected to be basetypes.BoolValue, was: %T`, ebsAttribute))
+	}
+
+	efsAttribute, ok := attributes["efs"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`efs is missing from object`)
+
+		return nil, diags
+	}
+
+	efsVal, ok := efsAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`efs expected to be basetypes.BoolValue, was: %T`, efsAttribute))
+	}
+
+	externalDnsAttribute, ok := attributes["external_dns"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`external_dns is missing from object`)
+
+		return nil, diags
+	}
+
+	externalDnsVal, ok := externalDnsAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`external_dns expected to be basetypes.BoolValue, was: %T`, externalDnsAttribute))
+	}
+
+	fsxAttribute, ok := attributes["fsx"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`fsx is missing from object`)
+
+		return nil, diags
+	}
+
+	fsxVal, ok := fsxAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`fsx expected to be basetypes.BoolValue, was: %T`, fsxAttribute))
+	}
+
+	imageBuilderAttribute, ok := attributes["image_builder"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`image_builder is missing from object`)
+
+		return nil, diags
+	}
+
+	imageBuilderVal, ok := imageBuilderAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`image_builder expected to be basetypes.BoolValue, was: %T`, imageBuilderAttribute))
+	}
+
+	xrayAttribute, ok := attributes["xray"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`xray is missing from object`)
+
+		return nil, diags
+	}
+
+	xrayVal, ok := xrayAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`xray expected to be basetypes.BoolValue, was: %T`, xrayAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return IamNodeGroupWithAddonPolicies2Value{
+		AlbIngress:    albIngressVal,
+		AppMesh:       appMeshVal,
+		AppMeshReview: appMeshReviewVal,
+		AutoScaler:    autoScalerVal,
+		CertManager:   certManagerVal,
+		CloudWatch:    cloudWatchVal,
+		Ebs:           ebsVal,
+		Efs:           efsVal,
+		ExternalDns:   externalDnsVal,
+		Fsx:           fsxVal,
+		ImageBuilder:  imageBuilderVal,
+		Xray:          xrayVal,
+		state:         attr.ValueStateKnown,
+	}, diags
+}
+
+func NewIamNodeGroupWithAddonPolicies2ValueNull() IamNodeGroupWithAddonPolicies2Value {
+	return IamNodeGroupWithAddonPolicies2Value{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewIamNodeGroupWithAddonPolicies2ValueUnknown() IamNodeGroupWithAddonPolicies2Value {
+	return IamNodeGroupWithAddonPolicies2Value{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewIamNodeGroupWithAddonPolicies2Value(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (IamNodeGroupWithAddonPolicies2Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing IamNodeGroupWithAddonPolicies2Value Attribute Value",
+				"While creating a IamNodeGroupWithAddonPolicies2Value value, a missing attribute value was detected. "+
+					"A IamNodeGroupWithAddonPolicies2Value must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("IamNodeGroupWithAddonPolicies2Value Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid IamNodeGroupWithAddonPolicies2Value Attribute Type",
+				"While creating a IamNodeGroupWithAddonPolicies2Value value, an invalid attribute value was detected. "+
+					"A IamNodeGroupWithAddonPolicies2Value must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("IamNodeGroupWithAddonPolicies2Value Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("IamNodeGroupWithAddonPolicies2Value Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra IamNodeGroupWithAddonPolicies2Value Attribute Value",
+				"While creating a IamNodeGroupWithAddonPolicies2Value value, an extra attribute value was detected. "+
+					"A IamNodeGroupWithAddonPolicies2Value must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra IamNodeGroupWithAddonPolicies2Value Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	albIngressAttribute, ok := attributes["alb_ingress"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`alb_ingress is missing from object`)
+
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	albIngressVal, ok := albIngressAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`alb_ingress expected to be basetypes.BoolValue, was: %T`, albIngressAttribute))
+	}
+
+	appMeshAttribute, ok := attributes["app_mesh"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`app_mesh is missing from object`)
+
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	appMeshVal, ok := appMeshAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`app_mesh expected to be basetypes.BoolValue, was: %T`, appMeshAttribute))
+	}
+
+	appMeshReviewAttribute, ok := attributes["app_mesh_review"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`app_mesh_review is missing from object`)
+
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	appMeshReviewVal, ok := appMeshReviewAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`app_mesh_review expected to be basetypes.BoolValue, was: %T`, appMeshReviewAttribute))
+	}
+
+	autoScalerAttribute, ok := attributes["auto_scaler"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`auto_scaler is missing from object`)
+
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	autoScalerVal, ok := autoScalerAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`auto_scaler expected to be basetypes.BoolValue, was: %T`, autoScalerAttribute))
+	}
+
+	certManagerAttribute, ok := attributes["cert_manager"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`cert_manager is missing from object`)
+
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	certManagerVal, ok := certManagerAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`cert_manager expected to be basetypes.BoolValue, was: %T`, certManagerAttribute))
+	}
+
+	cloudWatchAttribute, ok := attributes["cloud_watch"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`cloud_watch is missing from object`)
+
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	cloudWatchVal, ok := cloudWatchAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`cloud_watch expected to be basetypes.BoolValue, was: %T`, cloudWatchAttribute))
+	}
+
+	ebsAttribute, ok := attributes["ebs"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`ebs is missing from object`)
+
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	ebsVal, ok := ebsAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`ebs expected to be basetypes.BoolValue, was: %T`, ebsAttribute))
+	}
+
+	efsAttribute, ok := attributes["efs"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`efs is missing from object`)
+
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	efsVal, ok := efsAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`efs expected to be basetypes.BoolValue, was: %T`, efsAttribute))
+	}
+
+	externalDnsAttribute, ok := attributes["external_dns"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`external_dns is missing from object`)
+
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	externalDnsVal, ok := externalDnsAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`external_dns expected to be basetypes.BoolValue, was: %T`, externalDnsAttribute))
+	}
+
+	fsxAttribute, ok := attributes["fsx"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`fsx is missing from object`)
+
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	fsxVal, ok := fsxAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`fsx expected to be basetypes.BoolValue, was: %T`, fsxAttribute))
+	}
+
+	imageBuilderAttribute, ok := attributes["image_builder"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`image_builder is missing from object`)
+
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	imageBuilderVal, ok := imageBuilderAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`image_builder expected to be basetypes.BoolValue, was: %T`, imageBuilderAttribute))
+	}
+
+	xrayAttribute, ok := attributes["xray"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`xray is missing from object`)
+
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	xrayVal, ok := xrayAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`xray expected to be basetypes.BoolValue, was: %T`, xrayAttribute))
+	}
+
+	if diags.HasError() {
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), diags
+	}
+
+	return IamNodeGroupWithAddonPolicies2Value{
+		AlbIngress:    albIngressVal,
+		AppMesh:       appMeshVal,
+		AppMeshReview: appMeshReviewVal,
+		AutoScaler:    autoScalerVal,
+		CertManager:   certManagerVal,
+		CloudWatch:    cloudWatchVal,
+		Ebs:           ebsVal,
+		Efs:           efsVal,
+		ExternalDns:   externalDnsVal,
+		Fsx:           fsxVal,
+		ImageBuilder:  imageBuilderVal,
+		Xray:          xrayVal,
+		state:         attr.ValueStateKnown,
+	}, diags
+}
+
+func NewIamNodeGroupWithAddonPolicies2ValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) IamNodeGroupWithAddonPolicies2Value {
+	object, diags := NewIamNodeGroupWithAddonPolicies2Value(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewIamNodeGroupWithAddonPolicies2ValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t IamNodeGroupWithAddonPolicies2Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewIamNodeGroupWithAddonPolicies2ValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewIamNodeGroupWithAddonPolicies2ValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewIamNodeGroupWithAddonPolicies2ValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewIamNodeGroupWithAddonPolicies2ValueMust(IamNodeGroupWithAddonPolicies2Value{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t IamNodeGroupWithAddonPolicies2Type) ValueType(ctx context.Context) attr.Value {
+	return IamNodeGroupWithAddonPolicies2Value{}
+}
+
+var _ basetypes.ObjectValuable = IamNodeGroupWithAddonPolicies2Value{}
+
+type IamNodeGroupWithAddonPolicies2Value struct {
+	AlbIngress    basetypes.BoolValue `tfsdk:"alb_ingress"`
+	AppMesh       basetypes.BoolValue `tfsdk:"app_mesh"`
+	AppMeshReview basetypes.BoolValue `tfsdk:"app_mesh_review"`
+	AutoScaler    basetypes.BoolValue `tfsdk:"auto_scaler"`
+	CertManager   basetypes.BoolValue `tfsdk:"cert_manager"`
+	CloudWatch    basetypes.BoolValue `tfsdk:"cloud_watch"`
+	Ebs           basetypes.BoolValue `tfsdk:"ebs"`
+	Efs           basetypes.BoolValue `tfsdk:"efs"`
+	ExternalDns   basetypes.BoolValue `tfsdk:"external_dns"`
+	Fsx           basetypes.BoolValue `tfsdk:"fsx"`
+	ImageBuilder  basetypes.BoolValue `tfsdk:"image_builder"`
+	Xray          basetypes.BoolValue `tfsdk:"xray"`
+	state         attr.ValueState
+}
+
+func (v IamNodeGroupWithAddonPolicies2Value) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 12)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["alb_ingress"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["app_mesh"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["app_mesh_review"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["auto_scaler"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["cert_manager"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["cloud_watch"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["ebs"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["efs"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["external_dns"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["fsx"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["image_builder"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["xray"] = basetypes.BoolType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 12)
+
+		val, err = v.AlbIngress.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["alb_ingress"] = val
+
+		val, err = v.AppMesh.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["app_mesh"] = val
+
+		val, err = v.AppMeshReview.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["app_mesh_review"] = val
+
+		val, err = v.AutoScaler.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["auto_scaler"] = val
+
+		val, err = v.CertManager.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["cert_manager"] = val
+
+		val, err = v.CloudWatch.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["cloud_watch"] = val
+
+		val, err = v.Ebs.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["ebs"] = val
+
+		val, err = v.Efs.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["efs"] = val
+
+		val, err = v.ExternalDns.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["external_dns"] = val
+
+		val, err = v.Fsx.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["fsx"] = val
+
+		val, err = v.ImageBuilder.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["image_builder"] = val
+
+		val, err = v.Xray.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["xray"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v IamNodeGroupWithAddonPolicies2Value) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v IamNodeGroupWithAddonPolicies2Value) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v IamNodeGroupWithAddonPolicies2Value) String() string {
+	return "IamNodeGroupWithAddonPolicies2Value"
+}
+
+func (v IamNodeGroupWithAddonPolicies2Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"alb_ingress":     basetypes.BoolType{},
+		"app_mesh":        basetypes.BoolType{},
+		"app_mesh_review": basetypes.BoolType{},
+		"auto_scaler":     basetypes.BoolType{},
+		"cert_manager":    basetypes.BoolType{},
+		"cloud_watch":     basetypes.BoolType{},
+		"ebs":             basetypes.BoolType{},
+		"efs":             basetypes.BoolType{},
+		"external_dns":    basetypes.BoolType{},
+		"fsx":             basetypes.BoolType{},
+		"image_builder":   basetypes.BoolType{},
+		"xray":            basetypes.BoolType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"alb_ingress":     v.AlbIngress,
+			"app_mesh":        v.AppMesh,
+			"app_mesh_review": v.AppMeshReview,
+			"auto_scaler":     v.AutoScaler,
+			"cert_manager":    v.CertManager,
+			"cloud_watch":     v.CloudWatch,
+			"ebs":             v.Ebs,
+			"efs":             v.Efs,
+			"external_dns":    v.ExternalDns,
+			"fsx":             v.Fsx,
+			"image_builder":   v.ImageBuilder,
+			"xray":            v.Xray,
+		})
+
+	return objVal, diags
+}
+
+func (v IamNodeGroupWithAddonPolicies2Value) Equal(o attr.Value) bool {
+	other, ok := o.(IamNodeGroupWithAddonPolicies2Value)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.AlbIngress.Equal(other.AlbIngress) {
+		return false
+	}
+
+	if !v.AppMesh.Equal(other.AppMesh) {
+		return false
+	}
+
+	if !v.AppMeshReview.Equal(other.AppMeshReview) {
+		return false
+	}
+
+	if !v.AutoScaler.Equal(other.AutoScaler) {
+		return false
+	}
+
+	if !v.CertManager.Equal(other.CertManager) {
+		return false
+	}
+
+	if !v.CloudWatch.Equal(other.CloudWatch) {
+		return false
+	}
+
+	if !v.Ebs.Equal(other.Ebs) {
+		return false
+	}
+
+	if !v.Efs.Equal(other.Efs) {
+		return false
+	}
+
+	if !v.ExternalDns.Equal(other.ExternalDns) {
+		return false
+	}
+
+	if !v.Fsx.Equal(other.Fsx) {
+		return false
+	}
+
+	if !v.ImageBuilder.Equal(other.ImageBuilder) {
+		return false
+	}
+
+	if !v.Xray.Equal(other.Xray) {
+		return false
+	}
+
+	return true
+}
+
+func (v IamNodeGroupWithAddonPolicies2Value) Type(ctx context.Context) attr.Type {
+	return IamNodeGroupWithAddonPolicies2Type{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v IamNodeGroupWithAddonPolicies2Value) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"alb_ingress":     basetypes.BoolType{},
+		"app_mesh":        basetypes.BoolType{},
+		"app_mesh_review": basetypes.BoolType{},
+		"auto_scaler":     basetypes.BoolType{},
+		"cert_manager":    basetypes.BoolType{},
+		"cloud_watch":     basetypes.BoolType{},
+		"ebs":             basetypes.BoolType{},
+		"efs":             basetypes.BoolType{},
+		"external_dns":    basetypes.BoolType{},
+		"fsx":             basetypes.BoolType{},
+		"image_builder":   basetypes.BoolType{},
+		"xray":            basetypes.BoolType{},
 	}
 }
 

@@ -648,6 +648,10 @@ func flattenGKEV3Nodepools(in []*infrapb.GkeNodePool, p []interface{}) []interfa
 			obj["upgrade_settings"] = flattenGKEV3NodeUpgradeSettings(j.UpgradeSettings, v)
 		}
 
+		if len(j.ResourceLabels) > 0 {
+			obj["resource_labels"] = toMapInterface(j.ResourceLabels)
+		}
+
 		out[i] = &obj
 	}
 

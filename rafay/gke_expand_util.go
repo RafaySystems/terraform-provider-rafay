@@ -829,6 +829,11 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 			}
 		}
 
+		// resource_labels
+		if v, ok := in["resource_labels"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.ResourceLabels = toMapString(v)
+		}
+
 		out[i] = obj
 	}
 

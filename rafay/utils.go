@@ -2739,11 +2739,7 @@ func flattenReconcileResources(input []*commonpb.ResourceNameAndVersionRef) []in
 	out := make([]interface{}, len(input))
 	for i, in := range input {
 		obj := map[string]interface{}{}
-
-		if len(in.Name) > 0 {
-			obj["name"] = in.Name
-		}
-
+		obj["name"] = in.Name
 		out[i] = &obj
 	}
 

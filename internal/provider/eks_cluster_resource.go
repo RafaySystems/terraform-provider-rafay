@@ -699,6 +699,20 @@ func (r *eksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
+	updatedCluster, d := resource_eks_cluster.ExpandEksCluster(ctx, data)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	updatedClusterConfig, d := resource_eks_cluster.ExpandEksClusterConfig(ctx, data)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	tflog.Debug(ctx, "updated value", map[string]any{"updatedCluster": updatedCluster, "updatedClusterConfig": updatedClusterConfig})
+
 	// // Convert EKS cluster model to API request format
 	// var yamlCluster *rafay.EKSCluster
 	// var yamlClusterConfig *rafay.EKSClusterConfig
@@ -842,19 +856,17 @@ func (r *eksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	// 		})
 	// 	}
 	// }
-	//
-	// clusterName := yamlCluster.Metadata.Name
-	// // projectName := yamlCluster.Metadata.Project
-	//
-	// // Call API to update EKS cluster
+
+	// Call API to update EKS cluster
+	// clusterName := updatedCluster.Metadata.Name
 	// var b bytes.Buffer
 	// encoder := yaml.NewEncoder(&b)
-	// if err := encoder.Encode(yamlCluster); err != nil {
+	// if err := encoder.Encode(updatedCluster); err != nil {
 	// 	log.Printf("error encoding cluster: %s", err)
 	// 	resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to apply the cluster, got error: %s", err))
 	// 	return
 	// }
-	// if err := encoder.Encode(yamlClusterConfig); err != nil {
+	// if err := encoder.Encode(updatedClusterConfig); err != nil {
 	// 	log.Printf("error encoding cluster config: %s", err)
 	// 	resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to apply the cluster config, got error: %s", err))
 	// 	return
@@ -869,7 +881,7 @@ func (r *eksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	// }
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	//resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *eksClusterResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

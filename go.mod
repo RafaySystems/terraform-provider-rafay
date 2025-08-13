@@ -1,12 +1,12 @@
 module github.com/RafaySystems/terraform-provider-rafay
 
-go 1.23.8
+go 1.24.2
 
-toolchain go1.23.10
+toolchain go1.24.6
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20250109142024-dae92b291565
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250630083625-13cc4f9be48c
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20250813054614-30111dd73505
 	github.com/RafaySystems/rctl v1.29.1-0.20250425100014-7fb32576c5fc
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -31,8 +31,8 @@ require (
 	github.com/IBM/sarama v1.43.2 // indirect
 	github.com/Kunde21/markdownfmt/v3 v3.1.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250416063447-9affa1e9c3c5 // indirect
-	github.com/RafaySystems/paas-common v0.0.0-20250619104118-001d2ecd30d0 // indirect
+	github.com/RafaySystems/eaas-playground/proto v0.0.0-20250813054036-7843ea0c2508 // indirect
+	github.com/RafaySystems/paas-common v0.0.0-20250728074640-9bf98d682d90 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
@@ -202,13 +202,13 @@ require (
 	go.opentelemetry.io/otel v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.36.0 // indirect
-	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/crypto v0.37.0 // indirect
+	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/oauth2 v0.26.0 // indirect
-	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/term v0.30.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/term v0.31.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20241118233622-e639e219e697 // indirect

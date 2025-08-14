@@ -109,6 +109,12 @@ func resourceClusterOverride() *schema.Resource {
 						Optional:    true,
 						Type:        schema.TypeString,
 					},
+					"resource_selector_type": &schema.Schema{
+						Description: "Type of override resource selector",
+						Optional:    true,
+						Type:        schema.TypeString,
+						Computed:    true,
+					},
 					"sharing": &schema.Schema{
 						Description: "cluster override sharing configuration",
 						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
@@ -525,6 +531,10 @@ func expandOverrideSpec(p []interface{}) (models.ClusterOverrideSpec, error) {
 		}
 	}
 
+	if v, ok := in["resource_selector_type"].(string); ok && len(v) > 0 {
+		obj.ResourceSelectorType = v
+	}
+
 	return obj, nil
 }
 
@@ -766,6 +776,8 @@ func flattenOverrideSpecAndStatus(in models.ClusterOverrideSpec, inStatus models
 	}
 
 	obj["sharing"] = flattenOverrideSharingSpec(inStatus, in.ShareMode, projectName)
+
+	obj["resource_selector_type"] = in.ResourceSelectorType
 
 	return []interface{}{obj}, nil
 }

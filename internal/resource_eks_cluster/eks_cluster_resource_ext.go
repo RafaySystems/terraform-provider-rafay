@@ -180,6 +180,7 @@ func (v Metadata2Value) Expand(ctx context.Context) (*rafay.EKSClusterConfigMeta
 
 	md.Name = getStringValue(v.Name)
 	md.Region = getStringValue(v.Region)
+	md.Version = getStringValue(v.Version)
 
 	tags := make(map[string]string, len(v.Tags.Elements()))
 
@@ -250,6 +251,12 @@ func (v NodeGroupsValue) Expand(ctx context.Context) (*rafay.NodeGroup, diag.Dia
 	ng.VolumeThroughput = &volumeThrp
 
 	ng.VolumeType = getStringValue(v.VolumeType)
+
+	// TODO(Akshay): Update later
+	f := false
+	ng.EBSOptimized = &f
+	ng.EnableDetailedMonitoring = &f
+	ng.VolumeEncrypted = &f
 
 	return &ng, diags
 }
@@ -364,6 +371,12 @@ func (v NodeGroupsMapValue) Expand(ctx context.Context) (*rafay.NodeGroup, diag.
 	ng.VolumeThroughput = &volumeThrp
 
 	ng.VolumeType = getStringValue(v.VolumeType)
+
+	// TODO(Akshay): Update later
+	f := false
+	ng.EBSOptimized = &f
+	ng.EnableDetailedMonitoring = &f
+	ng.VolumeEncrypted = &f
 
 	return &ng, diags
 }

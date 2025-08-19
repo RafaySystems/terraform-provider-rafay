@@ -410,7 +410,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 								},
 							},
-							DeprecationMessage: "The 'node_groups' block is deprecated. Use 'node_groups_map' attribute instead.",
+							DeprecationMessage: "The 'node_groups' block is deprecated and will be removed in a future release. Use 'node_groups_map'                                                                                                             for new configs. Existing setups still work, but migration is recommended.",
 						},
 					},
 					CustomType: ClusterConfigType{

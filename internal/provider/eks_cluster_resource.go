@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
@@ -214,400 +212,294 @@ func (r *eksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		"clusterConfigSpec": clusterConfigSpec,
 	})
 
+	_ = ngMapInUse
+
 	// Update the model with the data from the API response
-	mdv := map[string]attr.Value{
-		"name":    types.StringValue(clusterSpec.Metadata.Name),
-		"project": types.StringValue(clusterSpec.Metadata.Project),
-	}
-	md1, d := resource_eks_cluster.NewMetadataValue(resource_eks_cluster.MetadataValue{}.AttributeTypes(ctx), mdv)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-	mdElements := []attr.Value{
-		md1,
-	}
-	fmd, d := types.ListValue(resource_eks_cluster.MetadataValue{}.Type(ctx), mdElements)
-
-	specv := map[string]attr.Value{
-		"cloud_provider": types.StringValue(clusterSpec.Spec.CloudProvider),
-		"blueprint":      types.StringValue(clusterSpec.Spec.Blueprint),
-		"cni_provider":   types.StringValue(clusterSpec.Spec.CniProvider),
-		"type":           types.StringValue(clusterSpec.Spec.Type),
-	}
-	spec1, d := resource_eks_cluster.NewSpecValue(resource_eks_cluster.SpecValue{}.AttributeTypes(ctx), specv)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-	specElements := []attr.Value{
-		spec1,
-	}
-	fspec, d := types.ListValue(resource_eks_cluster.SpecValue{}.Type(ctx), specElements)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	diags := resource_eks_cluster.FlattenEksCluster(ctx, clusterSpec, &data)
+	if diags.HasError() {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to convert the cluster, got error: %s", diags))
 		return
 	}
 
-	cv := map[string]attr.Value{
-		"kind":     types.StringValue(clusterSpec.Kind),
-		"metadata": fmd,
-		"spec":     fspec,
-	}
-	fcv, d := resource_eks_cluster.NewClusterValue(resource_eks_cluster.ClusterValue{}.AttributeTypes(ctx), cv)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-	clusterElements := []attr.Value{
-		fcv,
-	}
-	data.Cluster, d = types.ListValue(resource_eks_cluster.ClusterValue{}.Type(ctx), clusterElements)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	diags = resource_eks_cluster.FlattenEksClusterConfig(ctx, clusterConfigSpec, &data)
+	if diags.HasError() {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to convert the cluster config, got error: %s", diags))
 		return
 	}
 
-	/// Start of ClusterConfig
-	tgs := clusterConfigSpec.Metadata.Tags
-	tgsElements := make(map[string]attr.Value, len(tgs))
-	for tk, tv := range tgs {
-		tgsElements[tk] = types.StringValue(tv)
-	}
-	tgsV, d := types.MapValue(types.StringType, tgsElements)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-	md2v := map[string]attr.Value{
-		"name":    types.StringValue(clusterConfigSpec.Metadata.Name),
-		"region":  types.StringValue(clusterConfigSpec.Metadata.Region),
-		"version": types.StringValue(clusterConfigSpec.Metadata.Version),
-		"tags":    tgsV,
-	}
-	md2, d := resource_eks_cluster.NewMetadata2Value(resource_eks_cluster.Metadata2Value{}.AttributeTypes(ctx), md2v)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-	md2Elements := []attr.Value{
-		md2,
-	}
-	fmd2, d := types.ListValue(resource_eks_cluster.Metadata2Value{}.Type(ctx), md2Elements)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-
-	ngs := clusterConfigSpec.NodeGroups
-	var ngList basetypes.ListValue
-	var ngMap basetypes.MapValue
-
-	if ngMapInUse {
-		ngMapElements := make(map[string]attr.Value, len(ngs))
-		for _, ng := range ngs {
-			iamaddon2 := map[string]attr.Value{
-				"alb_ingress":     types.BoolValue(false),
-				"app_mesh":        types.BoolValue(*ng.IAM.WithAddonPolicies.AppMesh),
-				"app_mesh_review": types.BoolValue(*ng.IAM.WithAddonPolicies.AppMeshPreview),
-				"cert_manager":    types.BoolValue(*ng.IAM.WithAddonPolicies.CertManager),
-				"cloud_watch":     types.BoolValue(*ng.IAM.WithAddonPolicies.CloudWatch),
-				"ebs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EBS),
-				"efs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EFS),
-				"external_dns":    types.BoolValue(*ng.IAM.WithAddonPolicies.ExternalDNS),
-				"fsx":             types.BoolValue(*ng.IAM.WithAddonPolicies.FSX),
-				"xray":            types.BoolValue(*ng.IAM.WithAddonPolicies.XRay),
-				"image_builder":   types.BoolValue(*ng.IAM.WithAddonPolicies.ImageBuilder),
-				"auto_scaler":     types.BoolValue(*ng.IAM.WithAddonPolicies.AutoScaler),
-			}
-			iamaddonv2, d := resource_eks_cluster.NewIamNodeGroupWithAddonPolicies2Value(resource_eks_cluster.IamNodeGroupWithAddonPolicies2Value{}.AttributeTypes(ctx), iamaddon2)
-			if d.HasError() {
-				resp.Diagnostics.Append(d...)
-				return
-			}
-			iamaddonElements2 := []attr.Value{
-				iamaddonv2,
-			}
-			fiamaddon2, d := types.ListValue(resource_eks_cluster.IamNodeGroupWithAddonPolicies2Value{}.Type(ctx), iamaddonElements2)
-			if d.HasError() {
-				resp.Diagnostics.Append(d...)
-				return
-			}
-			iamv2 := map[string]attr.Value{
-				"iam_node_group_with_addon_policies": fiamaddon2,
-			}
-			iamo2, d := resource_eks_cluster.NewIam2Value(resource_eks_cluster.Iam2Value{}.AttributeTypes(ctx), iamv2)
-			if d.HasError() {
-				resp.Diagnostics.Append(d...)
-				return
-			}
-			iam2Elements := []attr.Value{
-				iamo2,
-			}
-			fiam2, d := types.ListValue(resource_eks_cluster.Iam2Value{}.Type(ctx), iam2Elements)
-			if d.HasError() {
-				resp.Diagnostics.Append(d...)
-				return
-			}
-			ngmapv := map[string]attr.Value{
-				//"name":               types.StringValue(ng.Name),
-				"ami_family":         types.StringValue(ng.AMIFamily),
-				"instance_type":      types.StringValue(ng.InstanceType),
-				"desired_capacity":   types.Int64Value(int64(*ng.DesiredCapacity)),
-				"min_size":           types.Int64Value(int64(*ng.MinSize)),
-				"max_size":           types.Int64Value(int64(*ng.MaxSize)),
-				"max_pods_per_node":  types.Int64Value(int64(ng.MaxPodsPerNode)),
-				"version":            types.StringValue(ng.Version),
-				"disable_imdsv1":     types.BoolValue(*ng.DisableIMDSv1),
-				"disable_pods_imds":  types.BoolValue(*ng.DisablePodIMDS),
-				"efa_enabled":        types.BoolValue(*ng.EFAEnabled),
-				"private_networking": types.BoolValue(*ng.PrivateNetworking),
-				"volume_iops":        types.Int64Value(int64(*ng.VolumeIOPS)),
-				"volume_size":        types.Int64Value(int64(*ng.VolumeSize)),
-				"volume_throughput":  types.Int64Value(int64(*ng.VolumeThroughput)),
-				"volume_type":        types.StringValue(ng.VolumeType),
-				"iam":                fiam2,
-			}
-			ngmapo, d := resource_eks_cluster.NewNodeGroupsMapValue(resource_eks_cluster.NodeGroupsMapValue{}.AttributeTypes(ctx), ngmapv)
-			ngMapElements[ng.Name] = ngmapo
-		}
-
-		ngMap, d = types.MapValue(resource_eks_cluster.NodeGroupsMapValue{}.Type(ctx), ngMapElements)
-		if d.HasError() {
-			resp.Diagnostics.Append(d...)
-			return
-		}
-
-	} else {
-		ngElements := []attr.Value{}
-		for _, ng := range ngs {
-			iamaddon := map[string]attr.Value{
-				"alb_ingress":     types.BoolValue(false),
-				"app_mesh":        types.BoolValue(*ng.IAM.WithAddonPolicies.AppMesh),
-				"app_mesh_review": types.BoolValue(*ng.IAM.WithAddonPolicies.AppMeshPreview),
-				"cert_manager":    types.BoolValue(*ng.IAM.WithAddonPolicies.CertManager),
-				"cloud_watch":     types.BoolValue(*ng.IAM.WithAddonPolicies.CloudWatch),
-				"ebs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EBS),
-				"efs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EFS),
-				"external_dns":    types.BoolValue(*ng.IAM.WithAddonPolicies.ExternalDNS),
-				"fsx":             types.BoolValue(*ng.IAM.WithAddonPolicies.FSX),
-				"xray":            types.BoolValue(*ng.IAM.WithAddonPolicies.XRay),
-				"image_builder":   types.BoolValue(*ng.IAM.WithAddonPolicies.ImageBuilder),
-				"auto_scaler":     types.BoolValue(*ng.IAM.WithAddonPolicies.AutoScaler),
-			}
-			iamaddonv, d := resource_eks_cluster.NewIamNodeGroupWithAddonPoliciesValue(resource_eks_cluster.IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx), iamaddon)
-			if d.HasError() {
-				resp.Diagnostics.Append(d...)
-				return
-			}
-			iamaddonElements := []attr.Value{
-				iamaddonv,
-			}
-			fiamaddon, d := types.ListValue(resource_eks_cluster.IamNodeGroupWithAddonPoliciesValue{}.Type(ctx), iamaddonElements)
-			if d.HasError() {
-				resp.Diagnostics.Append(d...)
-				return
-			}
-			iamv := map[string]attr.Value{
-				"iam_node_group_with_addon_policies": fiamaddon,
-			}
-			iamo, d := resource_eks_cluster.NewIamValue(resource_eks_cluster.IamValue{}.AttributeTypes(ctx), iamv)
-			if d.HasError() {
-				resp.Diagnostics.Append(d...)
-				return
-			}
-			iamElements := []attr.Value{
-				iamo,
-			}
-			fiam, d := types.ListValue(resource_eks_cluster.IamValue{}.Type(ctx), iamElements)
-			if d.HasError() {
-				resp.Diagnostics.Append(d...)
-				return
-			}
-
-			ngv := map[string]attr.Value{
-				"name":               types.StringValue(ng.Name),
-				"ami_family":         types.StringValue(ng.AMIFamily),
-				"instance_type":      types.StringValue(ng.InstanceType),
-				"desired_capacity":   types.Int64Value(int64(*ng.DesiredCapacity)),
-				"min_size":           types.Int64Value(int64(*ng.MinSize)),
-				"max_size":           types.Int64Value(int64(*ng.MaxSize)),
-				"max_pods_per_node":  types.Int64Value(int64(ng.MaxPodsPerNode)),
-				"version":            types.StringValue(ng.Version),
-				"disable_imdsv1":     types.BoolValue(*ng.DisableIMDSv1),
-				"disable_pods_imds":  types.BoolValue(*ng.DisablePodIMDS),
-				"efa_enabled":        types.BoolValue(*ng.EFAEnabled),
-				"private_networking": types.BoolValue(*ng.PrivateNetworking),
-				"volume_iops":        types.Int64Value(int64(*ng.VolumeIOPS)),
-				"volume_size":        types.Int64Value(int64(*ng.VolumeSize)),
-				"volume_throughput":  types.Int64Value(int64(*ng.VolumeThroughput)),
-				"volume_type":        types.StringValue(ng.VolumeType),
-				"iam":                fiam,
-			}
-			ngo, d := resource_eks_cluster.NewNodeGroupsValue(resource_eks_cluster.NodeGroupsValue{}.AttributeTypes(ctx), ngv)
-			if d.HasError() {
-				resp.Diagnostics.Append(d...)
-				return
-			}
-			ngElements = append(ngElements, ngo)
-		}
-
-		ngList, d = types.ListValue(resource_eks_cluster.NodeGroupsValue{}.Type(ctx), ngElements)
-		if d.HasError() {
-			resp.Diagnostics.Append(d...)
-			return
-		}
-
-	}
-
-	cc := map[string]attr.Value{
-		"apiversion": types.StringValue(clusterConfigSpec.APIVersion),
-		"kind":       types.StringValue(clusterConfigSpec.Kind),
-		"metadata":   fmd2,
-	}
-	if ngMapInUse {
-		cc["node_groups_map"] = ngMap
-		cc["node_groups"] = types.ListNull(resource_eks_cluster.NodeGroupsValue{}.Type(ctx))
-	} else {
-		cc["node_groups"] = ngList
-		cc["node_groups_map"] = types.MapNull(resource_eks_cluster.NodeGroupsMapValue{}.Type(ctx))
-	}
-
-	fcc, d := resource_eks_cluster.NewClusterConfigValue(resource_eks_cluster.ClusterConfigValue{}.AttributeTypes(ctx), cc)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-	ccElements := []attr.Value{
-		fcc,
-	}
-	data.ClusterConfig, d = types.ListValue(resource_eks_cluster.ClusterConfigValue{}.Type(ctx), ccElements)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// data.Cluster.Kind = types.StringValue(clusterSpec.Kind)
-	//
-	// mdV := map[string]attr.Value{
+	// mdv := map[string]attr.Value{
 	// 	"name":    types.StringValue(clusterSpec.Metadata.Name),
 	// 	"project": types.StringValue(clusterSpec.Metadata.Project),
 	// }
-	// mdT := resource_eks_cluster.MetadataValue.AttributeTypes(resource_eks_cluster.MetadataValue{}, ctx)
-	// mdVal, d := types.ObjectValue(mdT, mdV)
+	// md1, d := resource_eks_cluster.NewMetadataValue(resource_eks_cluster.MetadataValue{}.AttributeTypes(ctx), mdv)
 	// if d.HasError() {
 	// 	resp.Diagnostics.Append(d...)
 	// 	return
 	// }
-	// data.Cluster.Metadata, d = mdVal.ToObjectValue(ctx)
+	// mdElements := []attr.Value{
+	// 	md1,
+	// }
+	// fmd, d := types.ListValue(resource_eks_cluster.MetadataValue{}.Type(ctx), mdElements)
+	//
+	// specv := map[string]attr.Value{
+	// 	"cloud_provider": types.StringValue(clusterSpec.Spec.CloudProvider),
+	// 	"blueprint":      types.StringValue(clusterSpec.Spec.Blueprint),
+	// 	"cni_provider":   types.StringValue(clusterSpec.Spec.CniProvider),
+	// 	"type":           types.StringValue(clusterSpec.Spec.Type),
+	// }
+	// spec1, d := resource_eks_cluster.NewSpecValue(resource_eks_cluster.SpecValue{}.AttributeTypes(ctx), specv)
+	// if d.HasError() {
+	// 	resp.Diagnostics.Append(d...)
+	// 	return
+	// }
+	// specElements := []attr.Value{
+	// 	spec1,
+	// }
+	// fspec, d := types.ListValue(resource_eks_cluster.SpecValue{}.Type(ctx), specElements)
+	// if d.HasError() {
+	// 	resp.Diagnostics.Append(d...)
+	// 	return
+	// }
+	//
+	// cv := map[string]attr.Value{
+	// 	"kind":     types.StringValue(clusterSpec.Kind),
+	// 	"metadata": fmd,
+	// 	"spec":     fspec,
+	// }
+	// fcv, d := resource_eks_cluster.NewClusterValue(resource_eks_cluster.ClusterValue{}.AttributeTypes(ctx), cv)
+	// if d.HasError() {
+	// 	resp.Diagnostics.Append(d...)
+	// 	return
+	// }
+	// clusterElements := []attr.Value{
+	// 	fcv,
+	// }
+	// data.Cluster, d = types.ListValue(resource_eks_cluster.ClusterValue{}.Type(ctx), clusterElements)
+	// if d.HasError() {
+	// 	resp.Diagnostics.Append(d...)
+	// 	return
+	// }
+	//
+	// /// Start of ClusterConfig
+	// tgs := clusterConfigSpec.Metadata.Tags
+	// tgsElements := make(map[string]attr.Value, len(tgs))
+	// for tk, tv := range tgs {
+	// 	tgsElements[tk] = types.StringValue(tv)
+	// }
+	// tgsV, d := types.MapValue(types.StringType, tgsElements)
+	// if d.HasError() {
+	// 	resp.Diagnostics.Append(d...)
+	// 	return
+	// }
+	// md2v := map[string]attr.Value{
+	// 	"name":    types.StringValue(clusterConfigSpec.Metadata.Name),
+	// 	"region":  types.StringValue(clusterConfigSpec.Metadata.Region),
+	// 	"version": types.StringValue(clusterConfigSpec.Metadata.Version),
+	// 	"tags":    tgsV,
+	// }
+	// md2, d := resource_eks_cluster.NewMetadata2Value(resource_eks_cluster.Metadata2Value{}.AttributeTypes(ctx), md2v)
+	// if d.HasError() {
+	// 	resp.Diagnostics.Append(d...)
+	// 	return
+	// }
+	// md2Elements := []attr.Value{
+	// 	md2,
+	// }
+	// fmd2, d := types.ListValue(resource_eks_cluster.Metadata2Value{}.Type(ctx), md2Elements)
+	// if d.HasError() {
+	// 	resp.Diagnostics.Append(d...)
+	// 	return
+	// }
+	//
+	// ngs := clusterConfigSpec.NodeGroups
+	// var ngList basetypes.ListValue
+	// var ngMap basetypes.MapValue
+	//
+	// if ngMapInUse {
+	// 	ngMapElements := make(map[string]attr.Value, len(ngs))
+	// 	for _, ng := range ngs {
+	// 		iamaddon2 := map[string]attr.Value{
+	// 			"alb_ingress":     types.BoolValue(false),
+	// 			"app_mesh":        types.BoolValue(*ng.IAM.WithAddonPolicies.AppMesh),
+	// 			"app_mesh_review": types.BoolValue(*ng.IAM.WithAddonPolicies.AppMeshPreview),
+	// 			"cert_manager":    types.BoolValue(*ng.IAM.WithAddonPolicies.CertManager),
+	// 			"cloud_watch":     types.BoolValue(*ng.IAM.WithAddonPolicies.CloudWatch),
+	// 			"ebs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EBS),
+	// 			"efs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EFS),
+	// 			"external_dns":    types.BoolValue(*ng.IAM.WithAddonPolicies.ExternalDNS),
+	// 			"fsx":             types.BoolValue(*ng.IAM.WithAddonPolicies.FSX),
+	// 			"xray":            types.BoolValue(*ng.IAM.WithAddonPolicies.XRay),
+	// 			"image_builder":   types.BoolValue(*ng.IAM.WithAddonPolicies.ImageBuilder),
+	// 			"auto_scaler":     types.BoolValue(*ng.IAM.WithAddonPolicies.AutoScaler),
+	// 		}
+	// 		iamaddonv2, d := resource_eks_cluster.NewIamNodeGroupWithAddonPolicies2Value(resource_eks_cluster.IamNodeGroupWithAddonPolicies2Value{}.AttributeTypes(ctx), iamaddon2)
+	// 		if d.HasError() {
+	// 			resp.Diagnostics.Append(d...)
+	// 			return
+	// 		}
+	// 		iamaddonElements2 := []attr.Value{
+	// 			iamaddonv2,
+	// 		}
+	// 		fiamaddon2, d := types.ListValue(resource_eks_cluster.IamNodeGroupWithAddonPolicies2Value{}.Type(ctx), iamaddonElements2)
+	// 		if d.HasError() {
+	// 			resp.Diagnostics.Append(d...)
+	// 			return
+	// 		}
+	// 		iamv2 := map[string]attr.Value{
+	// 			"iam_node_group_with_addon_policies": fiamaddon2,
+	// 		}
+	// 		iamo2, d := resource_eks_cluster.NewIam2Value(resource_eks_cluster.Iam2Value{}.AttributeTypes(ctx), iamv2)
+	// 		if d.HasError() {
+	// 			resp.Diagnostics.Append(d...)
+	// 			return
+	// 		}
+	// 		iam2Elements := []attr.Value{
+	// 			iamo2,
+	// 		}
+	// 		fiam2, d := types.ListValue(resource_eks_cluster.Iam2Value{}.Type(ctx), iam2Elements)
+	// 		if d.HasError() {
+	// 			resp.Diagnostics.Append(d...)
+	// 			return
+	// 		}
+	// 		ngmapv := map[string]attr.Value{
+	// 			//"name":               types.StringValue(ng.Name),
+	// 			"ami_family":         types.StringValue(ng.AMIFamily),
+	// 			"instance_type":      types.StringValue(ng.InstanceType),
+	// 			"desired_capacity":   types.Int64Value(int64(*ng.DesiredCapacity)),
+	// 			"min_size":           types.Int64Value(int64(*ng.MinSize)),
+	// 			"max_size":           types.Int64Value(int64(*ng.MaxSize)),
+	// 			"max_pods_per_node":  types.Int64Value(int64(ng.MaxPodsPerNode)),
+	// 			"version":            types.StringValue(ng.Version),
+	// 			"disable_imdsv1":     types.BoolValue(*ng.DisableIMDSv1),
+	// 			"disable_pods_imds":  types.BoolValue(*ng.DisablePodIMDS),
+	// 			"efa_enabled":        types.BoolValue(*ng.EFAEnabled),
+	// 			"private_networking": types.BoolValue(*ng.PrivateNetworking),
+	// 			"volume_iops":        types.Int64Value(int64(*ng.VolumeIOPS)),
+	// 			"volume_size":        types.Int64Value(int64(*ng.VolumeSize)),
+	// 			"volume_throughput":  types.Int64Value(int64(*ng.VolumeThroughput)),
+	// 			"volume_type":        types.StringValue(ng.VolumeType),
+	// 			"iam":                fiam2,
+	// 		}
+	// 		ngmapo, d := resource_eks_cluster.NewNodeGroupsMapValue(resource_eks_cluster.NodeGroupsMapValue{}.AttributeTypes(ctx), ngmapv)
+	// 		ngMapElements[ng.Name] = ngmapo
+	// 	}
+	//
+	// 	ngMap, d = types.MapValue(resource_eks_cluster.NodeGroupsMapValue{}.Type(ctx), ngMapElements)
+	// 	if d.HasError() {
+	// 		resp.Diagnostics.Append(d...)
+	// 		return
+	// 	}
+	//
+	// } else {
+	// 	ngElements := []attr.Value{}
+	// 	for _, ng := range ngs {
+	// 		iamaddon := map[string]attr.Value{
+	// 			"alb_ingress":     types.BoolValue(false),
+	// 			"app_mesh":        types.BoolValue(*ng.IAM.WithAddonPolicies.AppMesh),
+	// 			"app_mesh_review": types.BoolValue(*ng.IAM.WithAddonPolicies.AppMeshPreview),
+	// 			"cert_manager":    types.BoolValue(*ng.IAM.WithAddonPolicies.CertManager),
+	// 			"cloud_watch":     types.BoolValue(*ng.IAM.WithAddonPolicies.CloudWatch),
+	// 			"ebs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EBS),
+	// 			"efs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EFS),
+	// 			"external_dns":    types.BoolValue(*ng.IAM.WithAddonPolicies.ExternalDNS),
+	// 			"fsx":             types.BoolValue(*ng.IAM.WithAddonPolicies.FSX),
+	// 			"xray":            types.BoolValue(*ng.IAM.WithAddonPolicies.XRay),
+	// 			"image_builder":   types.BoolValue(*ng.IAM.WithAddonPolicies.ImageBuilder),
+	// 			"auto_scaler":     types.BoolValue(*ng.IAM.WithAddonPolicies.AutoScaler),
+	// 		}
+	// 		iamaddonv, d := resource_eks_cluster.NewIamNodeGroupWithAddonPoliciesValue(resource_eks_cluster.IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx), iamaddon)
+	// 		if d.HasError() {
+	// 			resp.Diagnostics.Append(d...)
+	// 			return
+	// 		}
+	// 		iamaddonElements := []attr.Value{
+	// 			iamaddonv,
+	// 		}
+	// 		fiamaddon, d := types.ListValue(resource_eks_cluster.IamNodeGroupWithAddonPoliciesValue{}.Type(ctx), iamaddonElements)
+	// 		if d.HasError() {
+	// 			resp.Diagnostics.Append(d...)
+	// 			return
+	// 		}
+	// 		iamv := map[string]attr.Value{
+	// 			"iam_node_group_with_addon_policies": fiamaddon,
+	// 		}
+	// 		iamo, d := resource_eks_cluster.NewIamValue(resource_eks_cluster.IamValue{}.AttributeTypes(ctx), iamv)
+	// 		if d.HasError() {
+	// 			resp.Diagnostics.Append(d...)
+	// 			return
+	// 		}
+	// 		iamElements := []attr.Value{
+	// 			iamo,
+	// 		}
+	// 		fiam, d := types.ListValue(resource_eks_cluster.IamValue{}.Type(ctx), iamElements)
+	// 		if d.HasError() {
+	// 			resp.Diagnostics.Append(d...)
+	// 			return
+	// 		}
+	//
+	// 		ngv := map[string]attr.Value{
+	// 			"name":               types.StringValue(ng.Name),
+	// 			"ami_family":         types.StringValue(ng.AMIFamily),
+	// 			"instance_type":      types.StringValue(ng.InstanceType),
+	// 			"desired_capacity":   types.Int64Value(int64(*ng.DesiredCapacity)),
+	// 			"min_size":           types.Int64Value(int64(*ng.MinSize)),
+	// 			"max_size":           types.Int64Value(int64(*ng.MaxSize)),
+	// 			"max_pods_per_node":  types.Int64Value(int64(ng.MaxPodsPerNode)),
+	// 			"version":            types.StringValue(ng.Version),
+	// 			"disable_imdsv1":     types.BoolValue(*ng.DisableIMDSv1),
+	// 			"disable_pods_imds":  types.BoolValue(*ng.DisablePodIMDS),
+	// 			"efa_enabled":        types.BoolValue(*ng.EFAEnabled),
+	// 			"private_networking": types.BoolValue(*ng.PrivateNetworking),
+	// 			"volume_iops":        types.Int64Value(int64(*ng.VolumeIOPS)),
+	// 			"volume_size":        types.Int64Value(int64(*ng.VolumeSize)),
+	// 			"volume_throughput":  types.Int64Value(int64(*ng.VolumeThroughput)),
+	// 			"volume_type":        types.StringValue(ng.VolumeType),
+	// 			"iam":                fiam,
+	// 		}
+	// 		ngo, d := resource_eks_cluster.NewNodeGroupsValue(resource_eks_cluster.NodeGroupsValue{}.AttributeTypes(ctx), ngv)
+	// 		if d.HasError() {
+	// 			resp.Diagnostics.Append(d...)
+	// 			return
+	// 		}
+	// 		ngElements = append(ngElements, ngo)
+	// 	}
+	//
+	// 	ngList, d = types.ListValue(resource_eks_cluster.NodeGroupsValue{}.Type(ctx), ngElements)
+	// 	if d.HasError() {
+	// 		resp.Diagnostics.Append(d...)
+	// 		return
+	// 	}
+	//
+	// }
+	//
+	// cc := map[string]attr.Value{
+	// 	"apiversion": types.StringValue(clusterConfigSpec.APIVersion),
+	// 	"kind":       types.StringValue(clusterConfigSpec.Kind),
+	// 	"metadata":   fmd2,
+	// }
+	// if ngMapInUse {
+	// 	cc["node_groups_map"] = ngMap
+	// 	cc["node_groups"] = types.ListNull(resource_eks_cluster.NodeGroupsValue{}.Type(ctx))
+	// } else {
+	// 	cc["node_groups"] = ngList
+	// 	cc["node_groups_map"] = types.MapNull(resource_eks_cluster.NodeGroupsMapValue{}.Type(ctx))
+	// }
+	//
+	// fcc, d := resource_eks_cluster.NewClusterConfigValue(resource_eks_cluster.ClusterConfigValue{}.AttributeTypes(ctx), cc)
+	// if d.HasError() {
+	// 	resp.Diagnostics.Append(d...)
+	// 	return
+	// }
+	// ccElements := []attr.Value{
+	// 	fcc,
+	// }
+	// data.ClusterConfig, d = types.ListValue(resource_eks_cluster.ClusterConfigValue{}.Type(ctx), ccElements)
 	// if d.HasError() {
 	// 	resp.Diagnostics.Append(d...)
 	// 	return
 	// }
 
-	// specVal, d := resource_eks_cluster.SpecValue{
-	// 	Blueprint:     types.StringValue(clusterSpec.Spec.Blueprint),
-	// 	CloudProvider: types.StringValue(clusterSpec.Spec.CloudProvider),
-	// 	CniProvider:   types.StringValue(clusterSpec.Spec.CniProvider),
-	// 	SpecType:      types.StringValue(clusterSpec.Spec.Type),
-	// }.ToObjectValue(ctx)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	// data.Cluster.Spec = specVal
-	//
-	// data.ClusterConfig.Apiversion = types.StringValue(clusterConfigSpec.APIVersion)
-	// data.ClusterConfig.Kind = types.StringValue(clusterConfigSpec.Kind)
-	// elements := map[string]attr.Value{}
-	// for k, v := range clusterConfigSpec.Metadata.Tags {
-	// 	elements[k] = types.StringValue(v)
-	// }
-	// mapVal, d := types.MapValue(types.StringType, elements)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	// md2Val, d := resource_eks_cluster.Metadata2Value{
-	// 	Name:    types.StringValue(clusterConfigSpec.Metadata.Name),
-	// 	Region:  types.StringValue(clusterConfigSpec.Metadata.Region),
-	// 	Version: types.StringValue(clusterConfigSpec.Metadata.Version),
-	// 	Tags:    mapVal,
-	// }.ToObjectValue(ctx)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	// data.ClusterConfig.Metadata2 = md2Val
-	//
-	// ngElements := []attr.Value{}
-	// for _, ng := range clusterConfigSpec.NodeGroups {
-	// 	alb := false
-	// 	iamNgAddonPolicies, d := resource_eks_cluster.IamNodeGroupWithAddonPoliciesValue{
-	// 		AlbIngress: types.BoolPointerValue(&alb),
-	// 		AppMesh:    types.BoolPointerValue(ng.IAM.WithAddonPolicies.AppMesh),
-	// 		// TODO(Akshay): Mistake in AppMeshPreview and app_mesh_review = false
-	// 		AppMeshReview: types.BoolPointerValue(ng.IAM.WithAddonPolicies.AppMeshPreview),
-	// 		CertManager:   types.BoolPointerValue(ng.IAM.WithAddonPolicies.CertManager),
-	// 		CloudWatch:    types.BoolPointerValue(ng.IAM.WithAddonPolicies.CloudWatch),
-	// 		Ebs:           types.BoolPointerValue(ng.IAM.WithAddonPolicies.EBS),
-	// 		Efs:           types.BoolPointerValue(ng.IAM.WithAddonPolicies.EFS),
-	// 		ExternalDns:   types.BoolPointerValue(ng.IAM.WithAddonPolicies.ExternalDNS),
-	// 		Fsx:           types.BoolPointerValue(ng.IAM.WithAddonPolicies.FSX),
-	// 		Xray:          types.BoolPointerValue(ng.IAM.WithAddonPolicies.XRay),
-	// 		ImageBuilder:  types.BoolPointerValue(ng.IAM.WithAddonPolicies.ImageBuilder),
-	// 		AutoScaler:    types.BoolPointerValue(ng.IAM.WithAddonPolicies.AutoScaler),
-	// 	}.ToObjectValue(ctx)
-	// 	if d.HasError() {
-	// 		resp.Diagnostics.Append(d...)
-	// 		return
-	// 	}
-	// 	iam, d := resource_eks_cluster.IamValue{
-	// 		IamNodeGroupWithAddonPolicies: iamNgAddonPolicies,
-	// 	}.ToObjectValue(ctx)
-	// 	if d.HasError() {
-	// 		resp.Diagnostics.Append(d...)
-	// 		return
-	// 	}
-	// 	ngV := resource_eks_cluster.NodeGroupsValue{
-	// 		Name:              types.StringValue(ng.Name),
-	// 		DisableImdsv1:     types.BoolPointerValue(ng.DisableIMDSv1),
-	// 		DisablePodsImds:   types.BoolPointerValue(ng.DisablePodIMDS),
-	// 		EfaEnabled:        types.BoolPointerValue(ng.EFAEnabled),
-	// 		InstanceType:      types.StringValue(ng.InstanceType),
-	// 		PrivateNetworking: types.BoolPointerValue(ng.PrivateNetworking),
-	// 		VolumeIops:        types.Int64Value(int64(*ng.VolumeIOPS)),
-	// 		VolumeSize:        types.Int64Value(int64(*ng.VolumeSize)),
-	// 		VolumeThroughput:  types.Int64Value(int64(*ng.VolumeThroughput)),
-	// 		VolumeType:        types.StringValue(ng.VolumeType),
-	// 		AmiFamily:         types.StringValue(ng.AMIFamily),
-	// 		DesiredCapacity:   types.Int64Value(int64(*ng.DesiredCapacity)),
-	// 		MinSize:           types.Int64Value(int64(*ng.MinSize)),
-	// 		MaxSize:           types.Int64Value(int64(*ng.MaxSize)),
-	// 		MaxPodsPerNode:    types.Int64Value(int64(*&ng.MaxPodsPerNode)),
-	// 		Version:           types.StringValue(ng.Version),
-	// 		Iam:               iam,
-	// 	}
-	// 	ngElements = append(ngElements, ngV)
-	// }
-	// ngVal, d := types.ListValue(resource_eks_cluster.NodeGroupsType{
-	// 	ObjectType: types.ObjectType{
-	// 		AttrTypes: resource_eks_cluster.NodeGroupsValue{}.AttributeTypes(ctx),
-	// 	},
-	// }, ngElements)
-	// if d.HasError() {
-	// 	tflog.Error(ctx, "Error converting node groups to list value", map[string]interface{}{})
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	// data.ClusterConfig.NodeGroups = ngVal
-	//
-	// tflog.Info(ctx, "EKS Cluster Read updated data", map[string]interface{}{"data": data})
-
-	// Save updated data into Terraform state
-	//resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *eksClusterResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {

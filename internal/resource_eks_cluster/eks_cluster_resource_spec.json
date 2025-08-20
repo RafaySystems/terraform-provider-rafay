@@ -41,6 +41,16 @@
                                                     "description": "The name of the Rafay project the cluster will be created in.",
                                                     "computed_optional_required": "required"
                                                 }
+                                            },
+                                            {
+                                                "name": "labels",
+                                                "map": {
+                                                    "description": "The labels for the cluster in Rafay console.",
+                                                    "computed_optional_required": "optional",
+                                                    "element_type": {
+														"string": {}
+													}
+                                                }
                                             }
                                         ]
                                     }
@@ -67,6 +77,20 @@
                                                 
                                             },
                                             {
+                                                "name": "blueprint_version",
+                                                "string": {
+                                                    "description": "The blueprint version.",
+                                                    "computed_optional_required": "optional"
+                                                }
+                                            },
+                                            {
+                                                "name": "cross_account_role_arn",
+                                                "string": {
+                                                    "description": "Role ARN of the linked account.",
+                                                    "computed_optional_required": "optional"
+                                                }
+                                            },
+                                            {
                                                 "name": "cni_provider",
                                                 "string": {
                                                     "description": "The CNI provider to use for the EKS cluster.",
@@ -78,6 +102,239 @@
                                                 "string": {
                                                     "description": "The type of the cluster.",
                                                     "computed_optional_required": "optional"
+                                                }
+                                            },
+                                            {
+                                                "name": "proxy_config",
+                                                "map": {
+                                                    "description": "Proxy configuration for the EKS cluster.",
+                                                    "computed_optional_required": "optional",
+                                                    "element_type": {
+                                                        "string": {}
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "blocks": [
+                                            {
+                                                "name": "cni_params",
+                                                "list_nested": {
+                                                    "nested_object": {
+                                                        "attributes": [
+                                                            {
+                                                                "name": "custom_cni_cidr",
+                                                                "string": {
+                                                                    "description": "Secondary IPv4 CIDR block for the VPC. This should be specified if you choose to auto-create VPC and subnets while creating the EKS cluster.",
+                                                                    "computed_optional_required": "optional"
+                                                                }
+                                                            }
+                                                        ],
+                                                        "blocks": [
+                                                            {
+                                                                "name": "custom_cni_crd_spec",
+                                                                "list_nested": {
+                                                                    "nested_object": {
+                                                                        "attributes": [
+                                                                            {
+                                                                                "name": "name",
+                                                                                "string": {
+                                                                                    "computed_optional_required": "optional",
+                                                                                    "description": "The name of the Availability Zone (AZ). The availability zone specified here should be a part of the region specified for the EKS cluster."
+                                                                                }
+                                                                            }
+                                                                        ],
+                                                                        "blocks": [
+                                                                            {
+                                                                                "name": "cni_spec",
+                                                                                "list_nested": {
+                                                                                    "nested_object": {
+                                                                                        "attributes": [
+                                                                                            {
+                                                                                                "name": "subnet",
+                                                                                                "string": {
+                                                                                                    "computed_optional_required": "optional",
+                                                                                                    "description": "The subnet associated with secondary ENIs for AWS EC2 nodes."
+                                                                                                }
+                                                                                        
+                                                                                            },
+                                                                                            {
+                                                                                                "name": "security_groups",
+                                                                                                "list": {
+                                                                                                    "computed_optional_required": "optional",
+                                                                                                    "description": "The security groups associated with secondary ENIs for AWS EC2 nodes.",
+                                                                                                    "element_type": {
+                                                                                                        "string": {}
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        ],
+                                                                                        "blocks": []
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "name": "system_components_placement",
+                                                "single_nested": {
+                                                    "attributes": [
+                                                        {
+                                                            "name": "node_selector",
+                                                            "map": {
+                                                                "description": "Key-Value pairs insuring pods to be scheduled on desired nodes.",
+                                                                "computed_optional_required": "optional",
+                                                                "element_type": {
+													                "string": {}
+													            }
+                                                            }
+                                                        }
+                                                    ],
+                                                    "blocks": [
+                                                        {
+                                                            "name": "tolerations",
+                                                            "list_nested": {
+                                                                "nested_object": {
+                                                                    "attributes": [
+                                                                        {
+                                                                            "name": "key",
+                                                                            "string": {
+                                                                                "description": "the taint key that the toleration applies to.",
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "operator",
+                                                                            "string": {
+                                                                                "description": "represents a key's relationship to the value.",
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "value",
+                                                                            "string": {
+                                                                                "description": "the taint value the toleration matches to.",
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "effect",
+                                                                            "string": {
+                                                                                "description": "indicates the taint effect to match.",
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "toleration_seconds",
+                                                                            "int64": {
+                                                                                "description": "represents the period of time the toleration tolerates the taint.",
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        {
+                                                            "name": "daemonset_override",
+                                                            "list_nested": {
+                                                                "nested_object": {
+                                                                    "attributes": [
+                                                                        {
+                                                                            "name": "node_selection_enabled",
+                                                                            "bool": {
+                                                                                "description": "Whether to enable node selection for the daemonset.",
+                                                                                "computed_optional_required": "optional"
+                                                                            }
+                                                                        }
+                                                                    ],
+                                                                    "blocks": [
+                                                                        {
+                                                                            "name": "tolerations2",
+                                                                            "list_nested": {
+                                                                                "nested_object": {
+                                                                                    "attributes": [
+                                                                                        {
+                                                                                            "name": "key",
+                                                                                            "string": {
+                                                                                                "description": "the taint key that the toleration applies to.",
+                                                                                                "computed_optional_required": "optional"
+                                                                                            }
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "operator",
+                                                                                            "string": {
+                                                                                                "description": "represents a key's relationship to the value.",
+                                                                                                "computed_optional_required": "optional"
+                                                                                            }
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "value",
+                                                                                            "string": {
+                                                                                                "description": "the taint value the toleration matches to.",
+                                                                                                "computed_optional_required": "optional"
+                                                                                            }
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "effect",
+                                                                                            "string": {
+                                                                                                "description": "indicates the taint effect to match.",
+                                                                                                "computed_optional_required": "optional"
+                                                                                            }
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "toleration_seconds",
+                                                                                            "int64": {
+                                                                                                "description": "represents the period of time the toleration tolerates the taint.",
+                                                                                                "computed_optional_required": "optional"
+                                                                                            }
+                                                                                        }
+                                                                                    ]
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "name": "sharing",
+                                                "single_nested": {
+                                                    "attributes": [
+                                                        {
+                                                            "name": "enabled",
+                                                            "bool": {
+                                                                "description": "Whether to enable cluster sharing.",
+                                                                "computed_optional_required": "optional"
+                                                            }
+                                                        }
+                                                    ],
+                                                    "blocks": [
+                                                        {
+                                                            "name": "projects",
+                                                            "list_nested": {
+                                                                "nested_object": {
+                                                                    "attributes": [
+                                                                        {
+                                                                            "name": "name",
+                                                                            "string": {
+                                                                                "description": "The name of the project to share the cluster with.",
+                                                                                "computed_optional_required": "required"
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            }
+                                                        }
+                                                    ]
                                                 }
                                             }
                                         ]

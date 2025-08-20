@@ -133,8 +133,9 @@ func (v CniValue) ToHub(ctx context.Context) (*infrapb.Cni, diag.Diagnostics) {
 func (v CniValue) FromHub(ctx context.Context, hub *infrapb.Cni) (basetypes.ObjectValue, diag.Diagnostics) {
 	// Convert the hub object to terraform object
 	v.Name = types.StringValue(hub.Name)
-	v.Version = types.StringValue(hub.Version)
-
+	if !(v.Version.IsNull() || v.Version.IsUnknown()) {
+		v.Version = types.StringValue(hub.Version)
+	}
 	v.state = attr.ValueStateKnown
 	return v.ToObjectValue(ctx)
 }

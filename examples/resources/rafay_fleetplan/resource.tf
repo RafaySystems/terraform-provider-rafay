@@ -1,4 +1,4 @@
-resource "rafay_fleetplan" "fp1" {
+resource "rafay_fleetplan" "fp_clusters" {
   metadata {
     name    = "fleetplan1"
     project = "defaultproject"
@@ -115,6 +115,109 @@ resource "rafay_fleetplan" "fp1" {
 
     agents {
       name = "demoagent"
+    }
+  }
+}
+
+resource "rafay_fleetplan" "fp_environments" {
+  metadata {
+    name    = "fleetplan2"
+    project = "defaultproject"
+  }
+  spec {
+    fleet {
+      kind = "environments"
+      labels = {
+        k1 = "v1"
+      }
+
+      projects {
+        name = "defaultproject"
+      }
+      projects {
+        name = "project1"
+      }
+      target_batch_size = 2
+    }
+    operation_workflow {
+      # operations {
+      #   name = "op1"
+      #   action {
+      #     type        = "resourceDeploy"
+      #     description = "deploy environment resources"
+      #     name = "action1"
+      #   }
+      # }
+      # operations {
+      #   name = "op2"
+      #   action {
+      #     type        = "templateVersionUpdate"
+      #     description = "update template version"
+      #     environment_template_version_update_config {
+      #       version = "v1.1"
+      #     }
+      #     name = "action2"
+      #   }
+      # }
+      operations {
+        name = "op3"
+        action {
+          name        = "action3"
+          type        = "environmentVariableUpdate"
+          description = "update cluster blueprint"
+          environment_variable_update_config {
+            key = "Blueprint Name"
+            value = "minimal"
+            value_type = "text"
+          }
+          continue_on_failure = true
+        }
+      }
+      operations {
+        name = "op4"
+        action {
+          name        = "action4"
+          type        = "resourceDestroy"
+          description = "destroy environment resources"
+          resource_destroy_config {
+            force_destory = false
+          }
+        }
+      }
+    }
+    schedules {
+      name = "schedule1"
+      description = "schedule1 description"
+      type = "one-time"
+      action_type = "deploy"
+      cadence {
+        time_to_live = "10m"
+      }
+      opt_out_options {
+        allow_opt_out {
+          value = true
+        }
+        max_allowed_duration = "20m"
+        max_allowed_times = 5
+      }
+    }
+
+    schedules {
+      name = "schedule2"
+      description = "schedule2 description"
+      type = "recurring"
+      action_type = "deploy"
+      cadence {
+        cron_expression = "0 18 * * *"
+        cron_timezone = "Asia/Kolkata"
+      }
+      opt_out_options {
+        allow_opt_out {
+          value = true
+        }
+        max_allowed_duration = "20m"
+        max_allowed_times = 5
+      }
     }
   }
 }

@@ -21,6 +21,11 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
+const (
+	ResourceTypeClusters     = "clusters"
+	ResourceTypeEnvironments = "environments"
+)
+
 func resourceFleetPlan() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceFleetPlanCreate,
@@ -177,7 +182,68 @@ func flattenFleetPlanSpec(spec *infrapb.FleetPlanSpec) []interface{} {
 	obj["operation_workflow"] = flattenOperationWorkflow(spec.OperationWorkflow)
 	obj["agents"] = flattenFleetPlanAgents(spec.Agents)
 
+	if spec.Fleet.Kind == ResourceTypeEnvironments {
+		obj["schedules"] = flattenFleetPlanSchedules(spec.Schedules)
+	}
+
 	return []interface{}{obj}
+}
+
+func flattenScheduleCadence(cadence *infrapb.ScheduleOptions) []interface{} {
+	if cadence == nil {
+		return []interface{}{}
+	}
+	obj := make(map[string]interface{})
+	obj["cron_expression"] = cadence.CronExpression
+	obj["cron_timezone"] = cadence.CronTimezone
+	obj["time_to_live"] = cadence.TimeToLive
+	return []interface{}{obj}
+}
+
+func flattenScheduleOptOut(optOut *infrapb.ScheduleOptOut) []interface{} {
+	if optOut == nil {
+		return []interface{}{}
+	}
+	obj := make(map[string]interface{})
+	obj["duration"] = optOut.Duration
+	return []interface{}{obj}
+}
+
+func flattenScheduleOptOutOptions(optOutOptions *infrapb.ScheduleOptOutOptions) []interface{} {
+	if optOutOptions == nil {
+		return []interface{}{}
+	}
+	obj := make(map[string]interface{})
+	obj["allow_opt_out"] = flattenBoolValue(optOutOptions.AllowOptOut)
+	obj["max_allowed_duration"] = optOutOptions.MaxAllowedDuration
+	obj["max_allowed_times"] = optOutOptions.MaxAllowedTimes
+	return []interface{}{obj}
+}
+
+func flattenSchedule(schedule *infrapb.FleetSchedule) map[string]interface{} {
+	if schedule == nil {
+		return map[string]interface{}{}
+	}
+	obj := make(map[string]interface{})
+	obj["name"] = schedule.Name
+	obj["action_type"] = schedule.ActionType
+	obj["description"] = schedule.Description
+	obj["type"] = schedule.Type
+	obj["cadence"] = flattenScheduleCadence(schedule.Cadence)
+	obj["opt_out"] = flattenScheduleOptOut(schedule.OptOut)
+	obj["opt_out_options"] = flattenScheduleOptOutOptions(schedule.OptOutOptions)
+	return obj
+}
+
+func flattenFleetPlanSchedules(schedules []*infrapb.FleetSchedule) []interface{} {
+	if schedules == nil || len(schedules) == 0 {
+		return []interface{}{}
+	}
+	obj := make([]interface{}, len(schedules))
+	for i, v := range schedules {
+		obj[i] = flattenSchedule(v)
+	}
+	return obj
 }
 
 func flattenFleet(fs *infrapb.FleetSpec) []interface{} {
@@ -189,7 +255,26 @@ func flattenFleet(fs *infrapb.FleetSpec) []interface{} {
 	obj["kind"] = fs.Kind
 	obj["labels"] = fs.Labels
 	obj["projects"] = flattenProjects(fs.Projects)
+
+	if fs.Kind == ResourceTypeEnvironments {
+		obj["templates"] = flattenTemplates(fs.Templates)
+		obj["target_batch_size"] = fs.TargetBatchSize
+	}
 	return []interface{}{obj}
+}
+
+func flattenTemplates(templates []*infrapb.TemplateFilter) []interface{} {
+	if templates == nil {
+		return []interface{}{}
+	}
+	obj := make([]interface{}, len(templates))
+	for i, v := range templates {
+		obj[i] = map[string]interface{}{
+			"name":    v.Name,
+			"version": v.Version,
+		}
+	}
+	return obj
 }
 
 func flattenProjects(projects []*infrapb.ProjectFilter) []interface{} {
@@ -250,8 +335,45 @@ func flattenAction(action *infrapb.ActionSpec) []interface{} {
 	obj["node_groups_upgrade_config"] = flattenNodeGroupsUpgradeConfig(action.NodeGroupsUpgradeConfig)
 	obj["patch_config"] = flattenPatchConfig(action.PatchConfig)
 	obj["blueprint_update_config"] = flattenBlueprintUpdateConfig(action.BlueprintUpdateConfig)
+	obj["environment_template_version_update_config"] = flattenEnvironmentTemplateVersionUpdateConfig(action.EnvironmentTemplateVersionUpdateConfig)
+	obj["environment_variable_update_config"] = flattenEnvironmentVariableUpdateConfig(action.EnvironmentVariableUpdateConfig)
+	obj["resource_destroy_config"] = flattenResourceDestroyConfig(action.ResourceDestroyConfig)
 	obj["continue_on_failure"] = action.ContinueOnFailure
 
+	return []interface{}{obj}
+}
+
+func flattenResourceDestroyConfig(config *infrapb.EnvironmentDestroyConfigSpec) []interface{} {
+	if config == nil {
+		return []interface{}{}
+	}
+	obj := make(map[string]interface{})
+	obj["force_destory"] = config.ForceDestory
+	return []interface{}{obj}
+}
+
+func flattenEnvironmentVariableUpdateConfig(config []*infrapb.EnvironmentVariableUpdateConfigSpec) []interface{} {
+	if config == nil {
+		return []interface{}{}
+	}
+	obj := make([]interface{}, 0)
+	for _, v := range config {
+		p := make(map[string]interface{})
+		p["key"] = v.Key
+		p["value"] = v.Value
+		p["value_type"] = v.ValueType
+		obj = append(obj, toMapString(p))
+	}
+
+	return obj
+}
+
+func flattenEnvironmentTemplateVersionUpdateConfig(config *infrapb.EnvironmentTemplateVersionUpdateConfigSpec) []interface{} {
+	if config == nil {
+		return []interface{}{}
+	}
+	obj := make(map[string]interface{})
+	obj["version"] = config.Version
 	return []interface{}{obj}
 }
 
@@ -462,8 +584,101 @@ func expandFleetPlanSpec(p []interface{}) (*infrapb.FleetPlanSpec, error) {
 		obj.Agents = expandFleetPlanAgent(v)
 	}
 
+	if obj.Fleet.Kind == ResourceTypeEnvironments {
+		if v, ok := in["schedules"].([]interface{}); ok && len(v) > 0 {
+			obj.Schedules = expandFleetPlanSchedules(v)
+		}
+	}
 	return obj, nil
+}
 
+func expandFleetPlanSchedules(p []interface{}) []*infrapb.FleetSchedule {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	var outSchedules []*infrapb.FleetSchedule
+	for _, in := range p {
+		inMap := in.(map[string]interface{})
+		outSchedule := &infrapb.FleetSchedule{}
+		if val, ok := inMap["name"]; ok {
+			outSchedule.Name = val.(string)
+		}
+		if val, ok := inMap["description"]; ok {
+			outSchedule.Description = val.(string)
+		}
+		if val, ok := inMap["type"]; ok {
+			outSchedule.Type = val.(string)
+		}
+		if val, ok := inMap["action_type"]; ok {
+			outSchedule.ActionType = val.(string)
+		}
+		if val, ok := inMap["cadence"].([]interface{}); ok {
+			outSchedule.Cadence = expandScheduleCadence(val)
+		}
+		if val, ok := inMap["opt_out"].([]interface{}); ok {
+			outSchedule.OptOut = expandScheduleOptOut(val)
+		}
+		if val, ok := inMap["opt_out_options"].([]interface{}); ok {
+			outSchedule.OptOutOptions = expandScheduleOptOutOptions(val)
+		}
+		outSchedules = append(outSchedules, outSchedule)
+	}
+	return outSchedules
+}
+
+func expandScheduleOptOutOptions(p []interface{}) *infrapb.ScheduleOptOutOptions {
+	obj := &infrapb.ScheduleOptOutOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	v := p[0].(map[string]interface{})
+
+	if val, ok := v["allow_opt_out"].([]interface{}); ok {
+		obj.AllowOptOut = expandBoolValue(val)
+	}
+	if val, ok := v["max_allowed_duration"]; ok {
+		obj.MaxAllowedDuration = val.(string)
+	}
+	if val, ok := v["max_allowed_times"].(int); ok {
+		obj.MaxAllowedTimes = int32(val)
+	}
+	return obj
+}
+
+func expandScheduleOptOut(p []interface{}) *infrapb.ScheduleOptOut {
+	obj := &infrapb.ScheduleOptOut{}
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	v := p[0].(map[string]interface{})
+
+	if val, ok := v["duration"]; ok {
+		obj.Duration = val.(string)
+	}
+	return obj
+}
+
+func expandScheduleCadence(p []interface{}) *infrapb.ScheduleOptions {
+	obj := &infrapb.ScheduleOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	v := p[0].(map[string]interface{})
+
+	if val, ok := v["cron_expression"]; ok {
+		obj.CronExpression = val.(string)
+	}
+	if val, ok := v["cron_timezone"]; ok {
+		obj.CronTimezone = val.(string)
+	}
+	if val, ok := v["time_to_live"]; ok {
+		obj.TimeToLive = val.(string)
+	}
+	return obj
 }
 
 func expandFleetSpec(p []interface{}) *infrapb.FleetSpec {
@@ -486,7 +701,28 @@ func expandFleetSpec(p []interface{}) *infrapb.FleetSpec {
 	if v, ok := in["projects"].([]interface{}); ok {
 		obj.Projects = expandProjects(v)
 	}
+
+	if obj.Kind == ResourceTypeEnvironments {
+		if v, ok := in["templates"].([]interface{}); ok && len(v) > 0 {
+			obj.Templates = expandEnvironmentTemplates(v)
+		}
+		if v, ok := in["target_batch_size"].(int); ok {
+			obj.TargetBatchSize = int32(v)
+		}
+	}
 	return obj
+}
+
+func expandEnvironmentTemplates(v []interface{}) []*infrapb.TemplateFilter {
+	var templates []*infrapb.TemplateFilter
+	for _, template := range v {
+		template := template.(map[string]interface{})
+		templates = append(templates, &infrapb.TemplateFilter{
+			Name:    template["name"].(string),
+			Version: template["version"].(string),
+		})
+	}
+	return templates
 }
 
 func expandProjects(v []interface{}) []*infrapb.ProjectFilter {
@@ -582,12 +818,83 @@ func expandAction(in []interface{}) *infrapb.ActionSpec {
 		obj.BlueprintUpdateConfig = expandBlueprintConfig(v)
 	}
 
+	if v, ok := v["environment_template_version_update_config"].([]interface{}); ok {
+		obj.EnvironmentTemplateVersionUpdateConfig = expandEnvironmentTemplateVersionUpdateConfig(v)
+	}
+
+	if v, ok := v["environment_variable_update_config"].([]interface{}); ok {
+		obj.EnvironmentVariableUpdateConfig = expandEnvironmentVariableUpdateConfig(v)
+	}
+
+	if v, ok := v["resource_destroy_config"].([]interface{}); ok {
+		obj.ResourceDestroyConfig = expandResourceDestroyConfig(v)
+	}
+
 	if v, ok := v["continue_on_failure"].(bool); ok {
 		obj.ContinueOnFailure = v
 	}
 
 	return obj
 
+}
+
+func expandResourceDestroyConfig(in []interface{}) *infrapb.EnvironmentDestroyConfigSpec {
+	obj := &infrapb.EnvironmentDestroyConfigSpec{}
+	if len(in) == 0 || in[0] == nil {
+		return nil
+	}
+
+	v := in[0].(map[string]interface{})
+	if v, ok := v["force_destory"].(bool); ok {
+		obj.ForceDestory = v
+	}
+
+	return obj
+}
+
+func expandEnvironmentVariableUpdateConfig(in []interface{}) []*infrapb.EnvironmentVariableUpdateConfigSpec {
+	if len(in) == 0 || in[0] == nil {
+		return nil
+	}
+
+	obj := make([]*infrapb.EnvironmentVariableUpdateConfigSpec, 0)
+
+	for _, variableUpdate := range in {
+
+		vu := variableUpdate.(map[string]interface{})
+		var key, value, valueType string
+		if v, ok := vu["key"].(string); ok {
+			key = v
+		}
+		if v, ok := vu["value"].(string); ok {
+			value = v
+		}
+		if v, ok := vu["value_type"].(string); ok {
+			valueType = v
+		}
+
+		obj = append(obj, &infrapb.EnvironmentVariableUpdateConfigSpec{
+			Key:       key,
+			Value:     value,
+			ValueType: valueType,
+		})
+	}
+
+	return obj
+}
+
+func expandEnvironmentTemplateVersionUpdateConfig(in []interface{}) *infrapb.EnvironmentTemplateVersionUpdateConfigSpec {
+	obj := &infrapb.EnvironmentTemplateVersionUpdateConfigSpec{}
+	if len(in) == 0 || in[0] == nil {
+		return nil
+	}
+
+	v := in[0].(map[string]interface{})
+	if v, ok := v["version"].(string); ok {
+		obj.Version = v
+	}
+
+	return obj
 }
 
 func expandBlueprintConfig(in []interface{}) *infrapb.BlueprintUpdateConfigSpec {

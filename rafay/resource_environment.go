@@ -320,6 +320,10 @@ func expandEnvironmentSpec(p []any) (*eaaspb.EnvironmentSpec, error) {
 		spec.Agents = expandEaasAgents(ag)
 	}
 
+	if ap, ok := in["agent_pools"].([]any); ok && len(ap) > 0 {
+		spec.AgentPools = expandEaasAgents(ap)
+	}
+
 	if ev, ok := in["env_vars"].([]any); ok && len(ev) > 0 {
 		spec.EnvVars = expandEnvVariables(ev)
 	}
@@ -436,6 +440,7 @@ func flattenEnvironmentSpec(in *eaaspb.EnvironmentSpec, p []any) ([]any, error) 
 
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 	obj["agents"] = flattenEaasAgents(in.Agents)
+	obj["agent_pools"] = flattenEaasAgents(in.AgentPools)
 
 	v, _ = obj["env_vars"].([]any)
 	obj["env_vars"] = flattenEnvVariables(in.EnvVars, v)

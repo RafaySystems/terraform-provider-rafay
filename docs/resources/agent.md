@@ -34,6 +34,219 @@ resource "rafay_agent" "tfdemoagent1" {
 }
 ```
 
+Kubernetes type agent with configurations:
+```terraform
+resource "rafay_agent" "my-k8s-agent" {
+  metadata {
+    name    = "my-k8s-agent"
+    project = "my-project"
+  }
+
+  spec {
+    active = true
+    type   = "Cluster"
+
+    cluster {
+      name = "my-cluster"
+    }
+
+    sharing {
+      enabled = true
+      projects {
+        name = "my-project-1"
+      }
+      projects {
+        name = "my-project-2"
+      }
+    }
+
+    config {
+      concurrency = 45
+
+      kubernetes {
+        node_selector = {
+          "testing-key1" = "testing-value1"
+        }
+
+        affinity {
+          node_affinity {
+            preferred_during_scheduling_ignored_during_execution {
+              preference {
+                match_expressions {
+                  key      = "example-key"
+                  operator = "in"
+                  values   = ["value3", "value2", "value1"]
+                }
+                match_fields {
+                  key      = "example-field"
+                  operator = "in"
+                  values   = ["field3", "field2", "field1"]
+                }
+              }
+            }
+
+            required_during_scheduling_ignored_during_execution {
+              node_selector_terms {
+                match_expressions {
+                  key      = "example-key"
+                  operator = "in"
+                  values   = ["value2", "value3", "value1"]
+                }
+                match_fields {
+                  key      = "example-field"
+                  operator = "in"
+                  values   = ["field3", "field2", "field1"]
+                }
+              }
+            }
+          }
+
+          pod_affinity {
+            preferred_during_scheduling_ignored_during_execution {
+              pod_affinity_term {
+                namespaces = ["namespace4", "namespace2", "namespace3", "namespace1"]
+
+                label_selector {
+                  match_expressions {
+                    key      = "app"
+                    operator = "in"
+                    values   = ["label3", "label2", "label1"]
+                  }
+                }
+
+                namespace_selector {
+                  match_expressions {
+                    key      = "ns-key"
+                    operator = "in"
+                    values   = ["ns-value3", "ns-value4", "ns-value2", "ns-value1"]
+                  }
+                }
+              }
+            }
+
+            required_during_scheduling_ignored_during_execution {
+              namespaces = ["namespace4", "namespace2", "namespace3", "namespace1"]
+
+              label_selector {
+                match_expressions {
+                  key      = "app"
+                  operator = "in"
+                  values   = ["label3", "label2", "label1"]
+                }
+              }
+
+              namespace_selector {
+                match_expressions {
+                  key      = "ns-key"
+                  operator = "in"
+                  values   = ["ns-value3", "ns-value4", "ns-value2", "ns-value1"]
+                }
+              }
+            }
+          }
+
+          pod_anti_affinity {
+            preferred_during_scheduling_ignored_during_execution {
+              weight = 75
+              pod_affinity_term {
+                label_selector {
+                  match_expressions {
+                    key      = "environment"
+                    operator = "NotIn"
+                    values   = ["production"]
+                  }
+                  match_expressions {
+                    key      = "component"
+                    operator = "Exists"
+                  }
+                  match_labels = {
+                    tier = "backend"
+                  }
+                }
+
+                namespace_selector {
+                  match_expressions {
+                    key      = "owner"
+                    operator = "Equals"
+                    values   = ["team-alpha"]
+                  }
+                  match_labels = {
+                    purpose = "development"
+                  }
+                }
+
+                namespaces   = ["staging", "testing"]
+                topology_key = "kubernetes.io/hostname"
+              }
+            }
+
+            preferred_during_scheduling_ignored_during_execution {
+              weight = 30
+              pod_affinity_term {
+                label_selector {
+                  match_expressions {
+                    key      = "service"
+                    operator = "In"
+                    values   = ["cache", "database"]
+                  }
+                }
+                namespaces   = []
+                topology_key = "topology.kubernetes.io/zone"
+              }
+            }
+          }
+        }
+
+        limits {
+          cpu    = "450m"
+          memory = "2Gi"
+        }
+      }
+
+      environment {
+        num_workers = 14
+      }
+    }
+  }
+}
+```  
+
+Docker type agent with configurations:
+```terraform
+resource "rafay_agent" "my-docker-agent" {
+  metadata {
+    name    = "my-docker-agent"
+    project = "my-project"
+  }
+  spec {
+    type   = "Docker"
+    active = true
+    sharing {
+      enabled = true
+      projects {
+        name = "my-project-2"
+      }
+      projects {
+        name = "my-project-3"
+      }
+    }
+    config {
+      concurrency = 45
+      docker {
+        limits {
+          cpu    = "500m"
+          memory = "2Gi"
+        }
+      }
+      environment {
+        num_workers = 25
+      }
+    }
+  }
+}
+
+```
+
 <!-- schema generated by tfplugindocs -->
 ## Argument Reference 
 
@@ -70,6 +283,7 @@ resource "rafay_agent" "tfdemoagent1" {
 ***Optional***
 
 - `active` - (Boolean) Enables the agent. 
+- `config` (Block List, Max: 1) exposes options to tweak agent configuration (see [below for nested schema](#nestedblock--spec--config))
 - `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A blueprint can be shared with one or more projects.  (See [below for nested schema](#nestedblock--spec--sharing))
 
 
@@ -94,6 +308,401 @@ resource "rafay_agent" "tfdemoagent1" {
 ## Attribute Reference 
 
 - `id` - (String) The ID of the resource, generated by the system after you create the resource.
+
+
+<a id="nestedblock--spec--config"></a>
+### Nested Schema for `spec.config`
+
+Optional:
+
+- `concurrency` (Number) Number of concurrent API calls that the agent can handle. This is application for repository operations.
+- `docker` (Block List, Max: 1) configurations for agent of type Docker (see [below for nested schema](#nestedblock--spec--config--docker))
+- `environment` (Block List, Max: 1) configurations that affect agent when used in enviroment manager (see [below for nested schema](#nestedblock--spec--config--environment))
+- `kubernetes` (Block List, Max: 1) configurations for agent of type Kubernetes (see [below for nested schema](#nestedblock--spec--config--kubernetes))
+
+<a id="nestedblock--spec--config--docker"></a>
+### Nested Schema for `spec.config.docker`
+
+Optional:
+
+- `limits` (Block List, Max: 1) CPU and Memory limits for the Docker agent (see [below for nested schema](#nestedblock--spec--config--docker--limits))
+
+<a id="nestedblock--spec--config--docker--limits"></a>
+### Nested Schema for `spec.config.docker.limits`
+
+Optional:
+
+- `cpu` (String) CPU limit for the Docker agent. Has to be a valid Docker CPU limit format, e.g., '0.5' for 0.5 CPU cores.
+- `memory` (String) Memory limit for the Docker agent. Has to be a valid Docker memory limit format, e.g., '512mb' for 512 Megabytes. Must be greater than or equal to 1gb.
+
+
+
+<a id="nestedblock--spec--config--environment"></a>
+### Nested Schema for `spec.config.environment`
+
+Optional:
+
+- `num_workers` (Number) Maximum number of workers that the agent can spawn in parallel to handle activities during environment run.
+
+
+<a id="nestedblock--spec--config--kubernetes"></a>
+### Nested Schema for `spec.config.kubernetes`
+
+Optional:
+
+- `affinity` (Block List, Max: 1) Affinity rules for the Kubernetes agent (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity))
+- `limits` (Block List, Max: 1) CPU and Memory limits for the Kubernetes agent (see [below for nested schema](#nestedblock--spec--config--kubernetes--limits))
+- `node_selector` (Map of String) Node selector for the Kubernetes agent
+- `tolerations` (Block List) List of tolerations for the Kubernetes agent (see [below for nested schema](#nestedblock--spec--config--kubernetes--tolerations))
+
+<a id="nestedblock--spec--config--kubernetes--affinity"></a>
+### Nested Schema for `spec.config.kubernetes.affinity`
+
+Optional:
+
+- `node_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--node_affinity))
+- `pod_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_affinity))
+- `pod_anti_affinity` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity))
+
+<a id="nestedblock--spec--config--kubernetes--affinity--node_affinity"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.node_affinity`
+
+Optional:
+
+- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution))
+- `required_during_scheduling_ignored_during_execution` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--node_affinity--required_during_scheduling_ignored_during_execution))
+
+<a id="nestedblock--spec--config--kubernetes--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.node_affinity.preferred_during_scheduling_ignored_during_execution`
+
+Optional:
+
+- `preference` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution--preference))
+- `weight` (Number)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution--preference"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.node_affinity.preferred_during_scheduling_ignored_during_execution.preference`
+
+Optional:
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution--preference--match_expressions))
+- `match_fields` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution--preference--match_fields))
+
+<a id="nestedblock--spec--config--kubernetes--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution--preference--match_expressions"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.node_affinity.preferred_during_scheduling_ignored_during_execution.preference.match_expressions`
+
+Optional:
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+<a id="nestedblock--spec--config--kubernetes--affinity--node_affinity--preferred_during_scheduling_ignored_during_execution--preference--match_fields"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.node_affinity.preferred_during_scheduling_ignored_during_execution.preference.match_fields`
+
+Optional:
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+<a id="nestedblock--spec--config--kubernetes--affinity--node_affinity--required_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution`
+
+Optional:
+
+- `node_selector_terms` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms))
+
+<a id="nestedblock--spec--config--kubernetes--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms`
+
+Optional:
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_expressions))
+- `match_fields` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_fields))
+
+<a id="nestedblock--spec--config--kubernetes--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_expressions"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_expressions`
+
+Optional:
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+<a id="nestedblock--spec--config--kubernetes--affinity--node_affinity--required_during_scheduling_ignored_during_execution--node_selector_terms--match_fields"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_fields`
+
+Optional:
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_affinity"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_affinity`
+
+Optional:
+
+- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution))
+- `required_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_affinity--required_during_scheduling_ignored_during_execution))
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution`
+
+Optional:
+
+- `pod_affinity_term` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term))
+- `weight` (Number)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term`
+
+Optional:
+
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector))
+- `namespaces` (List of String)
+- `topology_key` (String)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.label_selector`
+
+Optional:
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector--match_expressions"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.label_selector.match_expressions`
+
+Optional:
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.namespace_selector`
+
+Optional:
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector--match_expressions"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.namespace_selector.match_expressions`
+
+Optional:
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_affinity--required_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_affinity.required_during_scheduling_ignored_during_execution`
+
+Optional:
+
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector))
+- `namespaces` (List of String)
+- `topology_key` (String)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.label_selector`
+
+Optional:
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--label_selector--match_expressions"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.label_selector.match_expressions`
+
+Optional:
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.namespace_selector`
+
+Optional:
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_affinity--required_during_scheduling_ignored_during_execution--namespace_selector--match_expressions"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_affinity.required_during_scheduling_ignored_during_execution.namespace_selector.match_expressions`
+
+Optional:
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_anti_affinity`
+
+Optional:
+
+- `preferred_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution))
+- `required_during_scheduling_ignored_during_execution` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution))
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_anti_affinity.preferred_during_scheduling_ignored_during_execution`
+
+Optional:
+
+- `pod_affinity_term` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term))
+- `weight` (Number)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_anti_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term`
+
+Optional:
+
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector))
+- `namespaces` (List of String)
+- `topology_key` (String)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_anti_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.label_selector`
+
+Optional:
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--label_selector--match_expressions"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_anti_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.label_selector.match_expressions`
+
+Optional:
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_anti_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.namespace_selector`
+
+Optional:
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--preferred_during_scheduling_ignored_during_execution--pod_affinity_term--namespace_selector--match_expressions"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_anti_affinity.preferred_during_scheduling_ignored_during_execution.pod_affinity_term.namespace_selector.match_expressions`
+
+Optional:
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution`
+
+Optional:
+
+- `label_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector))
+- `namespace_selector` (Block List, Max: 1) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector))
+- `namespaces` (List of String)
+- `topology_key` (String)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.label_selector`
+
+Optional:
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--label_selector--match_expressions"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.label_selector.match_expressions`
+
+Optional:
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.namespace_selector`
+
+Optional:
+
+- `match_expressions` (Block List) (see [below for nested schema](#nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector--match_expressions))
+- `match_labels` (Map of String)
+
+<a id="nestedblock--spec--config--kubernetes--affinity--pod_anti_affinity--required_during_scheduling_ignored_during_execution--namespace_selector--match_expressions"></a>
+### Nested Schema for `spec.config.kubernetes.affinity.pod_anti_affinity.required_during_scheduling_ignored_during_execution.namespace_selector.match_expressions`
+
+Optional:
+
+- `key` (String)
+- `operator` (String)
+- `values` (List of String)
+
+
+
+
+
+
+<a id="nestedblock--spec--config--kubernetes--limits"></a>
+### Nested Schema for `spec.config.kubernetes.limits`
+
+Optional:
+
+- `cpu` (String) CPU limit for the Kubernetes agent. Has to be a valid Kubernetes CPU limit format, e.g., '500m' for 0.5 CPU cores. Must be greater than or equal to 250m.
+- `memory` (String) Memory limit for the Kubernetes agent. Has to be a valid Kubernetes memory limit format, e.g., '512Mi' for 512 MiB. Must be greater than or equal to 1Gi.
+
+
+<a id="nestedblock--spec--config--kubernetes--tolerations"></a>
+### Nested Schema for `spec.config.kubernetes.tolerations`
+
+Optional:
+
+- `effect` (String)
+- `key` (String)
+- `operator` (String)
+- `toleration_seconds` (Number)
+- `value` (String)
+
+
+
 
 <a id="nestedblock--spec--sharing"></a>
 ### Nested Schema for `spec.sharing`

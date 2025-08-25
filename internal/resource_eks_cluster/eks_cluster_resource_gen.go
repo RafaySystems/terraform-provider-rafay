@@ -2072,12 +2072,6 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
 									},
-									"security_groups": schema.ListAttribute{
-										ElementType:         types.StringType,
-										Optional:            true,
-										Description:         "controls security groups for this nodegroup.",
-										MarkdownDescription: "controls security groups for this nodegroup.",
-									},
 									"subnet_cidr": schema.StringAttribute{
 										Optional:            true,
 										Description:         "Create new subnet from the CIDR block and limit nodes to this subnet (Applicable only for the WavelenghZone nodes).",
@@ -2095,7 +2089,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Description:         "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed).",
 										MarkdownDescription: "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed).",
 									},
-									"target_group_arns": schema.StringAttribute{
+									"target_group_arns": schema.ListAttribute{
+										ElementType:         types.StringType,
 										Optional:            true,
 										Description:         "Associate target group with auto scaling group.",
 										MarkdownDescription: "Associate target group with auto scaling group.",
@@ -2488,6 +2483,33 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											CustomType: PlacementType{
 												ObjectType: types.ObjectType{
 													AttrTypes: PlacementValue{}.AttributeTypes(ctx),
+												},
+											},
+										},
+									},
+									"security_groups": schema.ListNestedBlock{
+										NestedObject: schema.NestedBlockObject{
+											Attributes: map[string]schema.Attribute{
+												"attach_ids": schema.ListAttribute{
+													ElementType:         types.StringType,
+													Optional:            true,
+													Description:         "attaches additional security groups to the nodegroup",
+													MarkdownDescription: "attaches additional security groups to the nodegroup",
+												},
+												"with_local": schema.BoolAttribute{
+													Optional:            true,
+													Description:         "attach a security group local to this nodegroup Not supported for managed nodegroups",
+													MarkdownDescription: "attach a security group local to this nodegroup Not supported for managed nodegroups",
+												},
+												"with_shared": schema.BoolAttribute{
+													Optional:            true,
+													Description:         "attach the security group shared among all nodegroups in the cluster",
+													MarkdownDescription: "attach the security group shared among all nodegroups in the cluster",
+												},
+											},
+											CustomType: SecurityGroups2Type{
+												ObjectType: types.ObjectType{
+													AttrTypes: SecurityGroups2Value{}.AttributeTypes(ctx),
 												},
 											},
 										},
@@ -39593,22 +39615,22 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 			fmt.Sprintf(`asg_suspend_processes expected to be basetypes.ListValue, was: %T`, asgSuspendProcessesAttribute))
 	}
 
-	availabilityZonesAttribute, ok := attributes["availability_zones"]
+	availabilityZones2Attribute, ok := attributes["availability_zones"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`availability_zones is missing from object`)
+			`availability_zones2 is missing from object`)
 
 		return nil, diags
 	}
 
-	availabilityZonesVal, ok := availabilityZonesAttribute.(basetypes.ListValue)
+	availabilityZones2Val, ok := availabilityZones2Attribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`availability_zones expected to be basetypes.ListValue, was: %T`, availabilityZonesAttribute))
+			fmt.Sprintf(`availability_zones2 expected to be basetypes.ListValue, was: %T`, availabilityZones2Attribute))
 	}
 
 	bottleRocketAttribute, ok := attributes["bottle_rocket"]
@@ -39917,22 +39939,22 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 			fmt.Sprintf(`kubelet_extra_config expected to be basetypes.ListValue, was: %T`, kubeletExtraConfigAttribute))
 	}
 
-	labelsAttribute, ok := attributes["labels"]
+	labels2Attribute, ok := attributes["labels"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`labels is missing from object`)
+			`labels2 is missing from object`)
 
 		return nil, diags
 	}
 
-	labelsVal, ok := labelsAttribute.(basetypes.MapValue)
+	labels2Val, ok := labels2Attribute.(basetypes.MapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`labels expected to be basetypes.MapValue, was: %T`, labelsAttribute))
+			fmt.Sprintf(`labels2 expected to be basetypes.MapValue, was: %T`, labels2Attribute))
 	}
 
 	maxPodsPerNodeAttribute, ok := attributes["max_pods_per_node"]
@@ -40079,22 +40101,22 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 			fmt.Sprintf(`private_networking expected to be basetypes.BoolValue, was: %T`, privateNetworkingAttribute))
 	}
 
-	securityGroupsAttribute, ok := attributes["security_groups"]
+	securityGroups2Attribute, ok := attributes["security_groups"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`security_groups is missing from object`)
+			`security_groups2 is missing from object`)
 
 		return nil, diags
 	}
 
-	securityGroupsVal, ok := securityGroupsAttribute.(basetypes.ListValue)
+	securityGroups2Val, ok := securityGroups2Attribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`security_groups expected to be basetypes.ListValue, was: %T`, securityGroupsAttribute))
+			fmt.Sprintf(`security_groups2 expected to be basetypes.ListValue, was: %T`, securityGroups2Attribute))
 	}
 
 	sshAttribute, ok := attributes["ssh"]
@@ -40151,22 +40173,22 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 			fmt.Sprintf(`subnets expected to be basetypes.ListValue, was: %T`, subnetsAttribute))
 	}
 
-	tagsAttribute, ok := attributes["tags"]
+	tags2Attribute, ok := attributes["tags"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`tags is missing from object`)
+			`tags2 is missing from object`)
 
 		return nil, diags
 	}
 
-	tagsVal, ok := tagsAttribute.(basetypes.MapValue)
+	tags2Val, ok := tags2Attribute.(basetypes.MapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`tags expected to be basetypes.MapValue, was: %T`, tagsAttribute))
+			fmt.Sprintf(`tags2 expected to be basetypes.MapValue, was: %T`, tags2Attribute))
 	}
 
 	taintsAttribute, ok := attributes["taints"]
@@ -40197,12 +40219,12 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 		return nil, diags
 	}
 
-	targetGroupArnsVal, ok := targetGroupArnsAttribute.(basetypes.StringValue)
+	targetGroupArnsVal, ok := targetGroupArnsAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`target_group_arns expected to be basetypes.StringValue, was: %T`, targetGroupArnsAttribute))
+			fmt.Sprintf(`target_group_arns expected to be basetypes.ListValue, was: %T`, targetGroupArnsAttribute))
 	}
 
 	updateConfigAttribute, ok := attributes["update_config"]
@@ -40376,7 +40398,7 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 		AmiFamily:                amiFamilyVal,
 		AsgMetricsCollection:     asgMetricsCollectionVal,
 		AsgSuspendProcesses:      asgSuspendProcessesVal,
-		AvailabilityZones:        availabilityZonesVal,
+		AvailabilityZones2:       availabilityZones2Val,
 		BottleRocket:             bottleRocketVal,
 		ClassicLoadBalancerNames: classicLoadBalancerNamesVal,
 		ClusterDns:               clusterDnsVal,
@@ -40394,7 +40416,7 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 		InstanceType:             instanceTypeVal,
 		InstancesDistribution:    instancesDistributionVal,
 		KubeletExtraConfig:       kubeletExtraConfigVal,
-		Labels:                   labelsVal,
+		Labels2:                  labels2Val,
 		MaxPodsPerNode:           maxPodsPerNodeVal,
 		MaxSize:                  maxSizeVal,
 		MinSize:                  minSizeVal,
@@ -40403,11 +40425,11 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 		Placement:                placementVal,
 		PreBootstrapCommands:     preBootstrapCommandsVal,
 		PrivateNetworking:        privateNetworkingVal,
-		SecurityGroups:           securityGroupsVal,
+		SecurityGroups2:          securityGroups2Val,
 		Ssh:                      sshVal,
 		SubnetCidr:               subnetCidrVal,
 		Subnets:                  subnetsVal,
-		Tags:                     tagsVal,
+		Tags2:                    tags2Val,
 		Taints:                   taintsVal,
 		TargetGroupArns:          targetGroupArnsVal,
 		UpdateConfig:             updateConfigVal,
@@ -40558,22 +40580,22 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 			fmt.Sprintf(`asg_suspend_processes expected to be basetypes.ListValue, was: %T`, asgSuspendProcessesAttribute))
 	}
 
-	availabilityZonesAttribute, ok := attributes["availability_zones"]
+	availabilityZones2Attribute, ok := attributes["availability_zones"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`availability_zones is missing from object`)
+			`availability_zones2 is missing from object`)
 
 		return NewNodeGroupsValueUnknown(), diags
 	}
 
-	availabilityZonesVal, ok := availabilityZonesAttribute.(basetypes.ListValue)
+	availabilityZones2Val, ok := availabilityZones2Attribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`availability_zones expected to be basetypes.ListValue, was: %T`, availabilityZonesAttribute))
+			fmt.Sprintf(`availability_zones2 expected to be basetypes.ListValue, was: %T`, availabilityZones2Attribute))
 	}
 
 	bottleRocketAttribute, ok := attributes["bottle_rocket"]
@@ -40882,22 +40904,22 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 			fmt.Sprintf(`kubelet_extra_config expected to be basetypes.ListValue, was: %T`, kubeletExtraConfigAttribute))
 	}
 
-	labelsAttribute, ok := attributes["labels"]
+	labels2Attribute, ok := attributes["labels"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`labels is missing from object`)
+			`labels2 is missing from object`)
 
 		return NewNodeGroupsValueUnknown(), diags
 	}
 
-	labelsVal, ok := labelsAttribute.(basetypes.MapValue)
+	labels2Val, ok := labels2Attribute.(basetypes.MapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`labels expected to be basetypes.MapValue, was: %T`, labelsAttribute))
+			fmt.Sprintf(`labels2 expected to be basetypes.MapValue, was: %T`, labels2Attribute))
 	}
 
 	maxPodsPerNodeAttribute, ok := attributes["max_pods_per_node"]
@@ -41044,22 +41066,22 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 			fmt.Sprintf(`private_networking expected to be basetypes.BoolValue, was: %T`, privateNetworkingAttribute))
 	}
 
-	securityGroupsAttribute, ok := attributes["security_groups"]
+	securityGroups2Attribute, ok := attributes["security_groups"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`security_groups is missing from object`)
+			`security_groups2 is missing from object`)
 
 		return NewNodeGroupsValueUnknown(), diags
 	}
 
-	securityGroupsVal, ok := securityGroupsAttribute.(basetypes.ListValue)
+	securityGroups2Val, ok := securityGroups2Attribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`security_groups expected to be basetypes.ListValue, was: %T`, securityGroupsAttribute))
+			fmt.Sprintf(`security_groups2 expected to be basetypes.ListValue, was: %T`, securityGroups2Attribute))
 	}
 
 	sshAttribute, ok := attributes["ssh"]
@@ -41116,22 +41138,22 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 			fmt.Sprintf(`subnets expected to be basetypes.ListValue, was: %T`, subnetsAttribute))
 	}
 
-	tagsAttribute, ok := attributes["tags"]
+	tags2Attribute, ok := attributes["tags"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`tags is missing from object`)
+			`tags2 is missing from object`)
 
 		return NewNodeGroupsValueUnknown(), diags
 	}
 
-	tagsVal, ok := tagsAttribute.(basetypes.MapValue)
+	tags2Val, ok := tags2Attribute.(basetypes.MapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`tags expected to be basetypes.MapValue, was: %T`, tagsAttribute))
+			fmt.Sprintf(`tags2 expected to be basetypes.MapValue, was: %T`, tags2Attribute))
 	}
 
 	taintsAttribute, ok := attributes["taints"]
@@ -41162,12 +41184,12 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 		return NewNodeGroupsValueUnknown(), diags
 	}
 
-	targetGroupArnsVal, ok := targetGroupArnsAttribute.(basetypes.StringValue)
+	targetGroupArnsVal, ok := targetGroupArnsAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`target_group_arns expected to be basetypes.StringValue, was: %T`, targetGroupArnsAttribute))
+			fmt.Sprintf(`target_group_arns expected to be basetypes.ListValue, was: %T`, targetGroupArnsAttribute))
 	}
 
 	updateConfigAttribute, ok := attributes["update_config"]
@@ -41341,7 +41363,7 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 		AmiFamily:                amiFamilyVal,
 		AsgMetricsCollection:     asgMetricsCollectionVal,
 		AsgSuspendProcesses:      asgSuspendProcessesVal,
-		AvailabilityZones:        availabilityZonesVal,
+		AvailabilityZones2:       availabilityZones2Val,
 		BottleRocket:             bottleRocketVal,
 		ClassicLoadBalancerNames: classicLoadBalancerNamesVal,
 		ClusterDns:               clusterDnsVal,
@@ -41359,7 +41381,7 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 		InstanceType:             instanceTypeVal,
 		InstancesDistribution:    instancesDistributionVal,
 		KubeletExtraConfig:       kubeletExtraConfigVal,
-		Labels:                   labelsVal,
+		Labels2:                  labels2Val,
 		MaxPodsPerNode:           maxPodsPerNodeVal,
 		MaxSize:                  maxSizeVal,
 		MinSize:                  minSizeVal,
@@ -41368,11 +41390,11 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 		Placement:                placementVal,
 		PreBootstrapCommands:     preBootstrapCommandsVal,
 		PrivateNetworking:        privateNetworkingVal,
-		SecurityGroups:           securityGroupsVal,
+		SecurityGroups2:          securityGroups2Val,
 		Ssh:                      sshVal,
 		SubnetCidr:               subnetCidrVal,
 		Subnets:                  subnetsVal,
-		Tags:                     tagsVal,
+		Tags2:                    tags2Val,
 		Taints:                   taintsVal,
 		TargetGroupArns:          targetGroupArnsVal,
 		UpdateConfig:             updateConfigVal,
@@ -41460,7 +41482,7 @@ type NodeGroupsValue struct {
 	AmiFamily                basetypes.StringValue `tfsdk:"ami_family"`
 	AsgMetricsCollection     basetypes.ListValue   `tfsdk:"asg_metrics_collection"`
 	AsgSuspendProcesses      basetypes.ListValue   `tfsdk:"asg_suspend_processes"`
-	AvailabilityZones        basetypes.ListValue   `tfsdk:"availability_zones"`
+	AvailabilityZones2       basetypes.ListValue   `tfsdk:"availability_zones"`
 	BottleRocket             basetypes.ListValue   `tfsdk:"bottle_rocket"`
 	ClassicLoadBalancerNames basetypes.ListValue   `tfsdk:"classic_load_balancer_names"`
 	ClusterDns               basetypes.StringValue `tfsdk:"cluster_dns"`
@@ -41478,7 +41500,7 @@ type NodeGroupsValue struct {
 	InstanceType             basetypes.StringValue `tfsdk:"instance_type"`
 	InstancesDistribution    basetypes.ListValue   `tfsdk:"instances_distribution"`
 	KubeletExtraConfig       basetypes.ListValue   `tfsdk:"kubelet_extra_config"`
-	Labels                   basetypes.MapValue    `tfsdk:"labels"`
+	Labels2                  basetypes.MapValue    `tfsdk:"labels"`
 	MaxPodsPerNode           basetypes.Int64Value  `tfsdk:"max_pods_per_node"`
 	MaxSize                  basetypes.Int64Value  `tfsdk:"max_size"`
 	MinSize                  basetypes.Int64Value  `tfsdk:"min_size"`
@@ -41487,13 +41509,13 @@ type NodeGroupsValue struct {
 	Placement                basetypes.ListValue   `tfsdk:"placement"`
 	PreBootstrapCommands     basetypes.ListValue   `tfsdk:"pre_bootstrap_commands"`
 	PrivateNetworking        basetypes.BoolValue   `tfsdk:"private_networking"`
-	SecurityGroups           basetypes.ListValue   `tfsdk:"security_groups"`
+	SecurityGroups2          basetypes.ListValue   `tfsdk:"security_groups"`
 	Ssh                      basetypes.ListValue   `tfsdk:"ssh"`
 	SubnetCidr               basetypes.StringValue `tfsdk:"subnet_cidr"`
 	Subnets                  basetypes.ListValue   `tfsdk:"subnets"`
-	Tags                     basetypes.MapValue    `tfsdk:"tags"`
+	Tags2                    basetypes.MapValue    `tfsdk:"tags"`
 	Taints                   basetypes.ListValue   `tfsdk:"taints"`
-	TargetGroupArns          basetypes.StringValue `tfsdk:"target_group_arns"`
+	TargetGroupArns          basetypes.ListValue   `tfsdk:"target_group_arns"`
 	UpdateConfig             basetypes.ListValue   `tfsdk:"update_config"`
 	Version                  basetypes.StringValue `tfsdk:"version"`
 	VolumeEncrypted          basetypes.BoolValue   `tfsdk:"volume_encrypted"`
@@ -41568,7 +41590,7 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 	}.TerraformType(ctx)
 	attrTypes["private_networking"] = basetypes.BoolType{}.TerraformType(ctx)
 	attrTypes["security_groups"] = basetypes.ListType{
-		ElemType: types.StringType,
+		ElemType: SecurityGroups2Value{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["ssh"] = basetypes.ListType{
 		ElemType: SshValue{}.Type(ctx),
@@ -41583,7 +41605,9 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 	attrTypes["taints"] = basetypes.ListType{
 		ElemType: TaintsValue{}.Type(ctx),
 	}.TerraformType(ctx)
-	attrTypes["target_group_arns"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["target_group_arns"] = basetypes.ListType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
 	attrTypes["update_config"] = basetypes.ListType{
 		ElemType: UpdateConfigValue{}.Type(ctx),
 	}.TerraformType(ctx)
@@ -41634,7 +41658,7 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 
 		vals["asg_suspend_processes"] = val
 
-		val, err = v.AvailabilityZones.ToTerraformValue(ctx)
+		val, err = v.AvailabilityZones2.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
@@ -41778,7 +41802,7 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 
 		vals["kubelet_extra_config"] = val
 
-		val, err = v.Labels.ToTerraformValue(ctx)
+		val, err = v.Labels2.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
@@ -41850,7 +41874,7 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 
 		vals["private_networking"] = val
 
-		val, err = v.SecurityGroups.ToTerraformValue(ctx)
+		val, err = v.SecurityGroups2.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
@@ -41882,7 +41906,7 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 
 		vals["subnets"] = val
 
-		val, err = v.Tags.ToTerraformValue(ctx)
+		val, err = v.Tags2.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
@@ -42210,6 +42234,35 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		)
 	}
 
+	securityGroups2 := types.ListValueMust(
+		SecurityGroups2Type{
+			basetypes.ObjectType{
+				AttrTypes: SecurityGroups2Value{}.AttributeTypes(ctx),
+			},
+		},
+		v.SecurityGroups2.Elements(),
+	)
+
+	if v.SecurityGroups2.IsNull() {
+		securityGroups2 = types.ListNull(
+			SecurityGroups2Type{
+				basetypes.ObjectType{
+					AttrTypes: SecurityGroups2Value{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	if v.SecurityGroups2.IsUnknown() {
+		securityGroups2 = types.ListUnknown(
+			SecurityGroups2Type{
+				basetypes.ObjectType{
+					AttrTypes: SecurityGroups2Value{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
 	ssh := types.ListValueMust(
 		SshType{
 			basetypes.ObjectType{
@@ -42367,7 +42420,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			},
 			"private_networking": basetypes.BoolType{},
 			"security_groups": basetypes.ListType{
-				ElemType: types.StringType,
+				ElemType: SecurityGroups2Value{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -42382,7 +42435,9 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"taints": basetypes.ListType{
 				ElemType: TaintsValue{}.Type(ctx),
 			},
-			"target_group_arns": basetypes.StringType{},
+			"target_group_arns": basetypes.ListType{
+				ElemType: types.StringType,
+			},
 			"update_config": basetypes.ListType{
 				ElemType: UpdateConfigValue{}.Type(ctx),
 			},
@@ -42397,15 +42452,15 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		}), diags
 	}
 
-	var availabilityZonesVal basetypes.ListValue
+	var availabilityZones2Val basetypes.ListValue
 	switch {
-	case v.AvailabilityZones.IsUnknown():
-		availabilityZonesVal = types.ListUnknown(types.StringType)
-	case v.AvailabilityZones.IsNull():
-		availabilityZonesVal = types.ListNull(types.StringType)
+	case v.AvailabilityZones2.IsUnknown():
+		availabilityZones2Val = types.ListUnknown(types.StringType)
+	case v.AvailabilityZones2.IsNull():
+		availabilityZones2Val = types.ListNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		availabilityZonesVal, d = types.ListValue(types.StringType, v.AvailabilityZones.Elements())
+		availabilityZones2Val, d = types.ListValue(types.StringType, v.AvailabilityZones2.Elements())
 		diags.Append(d...)
 	}
 
@@ -42467,7 +42522,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			},
 			"private_networking": basetypes.BoolType{},
 			"security_groups": basetypes.ListType{
-				ElemType: types.StringType,
+				ElemType: SecurityGroups2Value{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -42482,7 +42537,9 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"taints": basetypes.ListType{
 				ElemType: TaintsValue{}.Type(ctx),
 			},
-			"target_group_arns": basetypes.StringType{},
+			"target_group_arns": basetypes.ListType{
+				ElemType: types.StringType,
+			},
 			"update_config": basetypes.ListType{
 				ElemType: UpdateConfigValue{}.Type(ctx),
 			},
@@ -42567,7 +42624,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			},
 			"private_networking": basetypes.BoolType{},
 			"security_groups": basetypes.ListType{
-				ElemType: types.StringType,
+				ElemType: SecurityGroups2Value{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -42582,7 +42639,9 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"taints": basetypes.ListType{
 				ElemType: TaintsValue{}.Type(ctx),
 			},
-			"target_group_arns": basetypes.StringType{},
+			"target_group_arns": basetypes.ListType{
+				ElemType: types.StringType,
+			},
 			"update_config": basetypes.ListType{
 				ElemType: UpdateConfigValue{}.Type(ctx),
 			},
@@ -42597,15 +42656,15 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		}), diags
 	}
 
-	var labelsVal basetypes.MapValue
+	var labels2Val basetypes.MapValue
 	switch {
-	case v.Labels.IsUnknown():
-		labelsVal = types.MapUnknown(types.StringType)
-	case v.Labels.IsNull():
-		labelsVal = types.MapNull(types.StringType)
+	case v.Labels2.IsUnknown():
+		labels2Val = types.MapUnknown(types.StringType)
+	case v.Labels2.IsNull():
+		labels2Val = types.MapNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		labelsVal, d = types.MapValue(types.StringType, v.Labels.Elements())
+		labels2Val, d = types.MapValue(types.StringType, v.Labels2.Elements())
 		diags.Append(d...)
 	}
 
@@ -42667,7 +42726,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			},
 			"private_networking": basetypes.BoolType{},
 			"security_groups": basetypes.ListType{
-				ElemType: types.StringType,
+				ElemType: SecurityGroups2Value{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -42682,7 +42741,9 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"taints": basetypes.ListType{
 				ElemType: TaintsValue{}.Type(ctx),
 			},
-			"target_group_arns": basetypes.StringType{},
+			"target_group_arns": basetypes.ListType{
+				ElemType: types.StringType,
+			},
 			"update_config": basetypes.ListType{
 				ElemType: UpdateConfigValue{}.Type(ctx),
 			},
@@ -42767,7 +42828,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			},
 			"private_networking": basetypes.BoolType{},
 			"security_groups": basetypes.ListType{
-				ElemType: types.StringType,
+				ElemType: SecurityGroups2Value{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -42782,107 +42843,9 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"taints": basetypes.ListType{
 				ElemType: TaintsValue{}.Type(ctx),
 			},
-			"target_group_arns": basetypes.StringType{},
-			"update_config": basetypes.ListType{
-				ElemType: UpdateConfigValue{}.Type(ctx),
-			},
-			"version":           basetypes.StringType{},
-			"volume_encrypted":  basetypes.BoolType{},
-			"volume_iops":       basetypes.Int64Type{},
-			"volume_kms_key_id": basetypes.StringType{},
-			"volume_name":       basetypes.StringType{},
-			"volume_size":       basetypes.Int64Type{},
-			"volume_throughput": basetypes.Int64Type{},
-			"volume_type":       basetypes.StringType{},
-		}), diags
-	}
-
-	var securityGroupsVal basetypes.ListValue
-	switch {
-	case v.SecurityGroups.IsUnknown():
-		securityGroupsVal = types.ListUnknown(types.StringType)
-	case v.SecurityGroups.IsNull():
-		securityGroupsVal = types.ListNull(types.StringType)
-	default:
-		var d diag.Diagnostics
-		securityGroupsVal, d = types.ListValue(types.StringType, v.SecurityGroups.Elements())
-		diags.Append(d...)
-	}
-
-	if diags.HasError() {
-		return types.ObjectUnknown(map[string]attr.Type{
-			"ami":        basetypes.StringType{},
-			"ami_family": basetypes.StringType{},
-			"asg_metrics_collection": basetypes.ListType{
-				ElemType: AsgMetricsCollectionValue{}.Type(ctx),
-			},
-			"asg_suspend_processes": basetypes.ListType{
+			"target_group_arns": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones": basetypes.ListType{
-				ElemType: types.StringType,
-			},
-			"bottle_rocket": basetypes.ListType{
-				ElemType: BottleRocketValue{}.Type(ctx),
-			},
-			"classic_load_balancer_names": basetypes.ListType{
-				ElemType: types.StringType,
-			},
-			"cluster_dns":                basetypes.StringType{},
-			"cpu_credits":                basetypes.StringType{},
-			"desired_capacity":           basetypes.Int64Type{},
-			"disable_imdsv1":             basetypes.BoolType{},
-			"disable_pods_imds":          basetypes.BoolType{},
-			"ebs_optimized":              basetypes.BoolType{},
-			"efa_enabled":                basetypes.BoolType{},
-			"enable_detailed_monitoring": basetypes.BoolType{},
-			"iam": basetypes.ListType{
-				ElemType: IamValue{}.Type(ctx),
-			},
-			"instance_name":   basetypes.StringType{},
-			"instance_prefix": basetypes.StringType{},
-			"instance_selector": basetypes.ListType{
-				ElemType: InstanceSelectorValue{}.Type(ctx),
-			},
-			"instance_type": basetypes.StringType{},
-			"instances_distribution": basetypes.ListType{
-				ElemType: InstancesDistributionValue{}.Type(ctx),
-			},
-			"kubelet_extra_config": basetypes.ListType{
-				ElemType: KubeletExtraConfigValue{}.Type(ctx),
-			},
-			"labels": basetypes.MapType{
-				ElemType: types.StringType,
-			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
-			"name":                       basetypes.StringType{},
-			"override_bootstrap_command": basetypes.StringType{},
-			"placement": basetypes.ListType{
-				ElemType: PlacementValue{}.Type(ctx),
-			},
-			"pre_bootstrap_commands": basetypes.ListType{
-				ElemType: types.StringType,
-			},
-			"private_networking": basetypes.BoolType{},
-			"security_groups": basetypes.ListType{
-				ElemType: types.StringType,
-			},
-			"ssh": basetypes.ListType{
-				ElemType: SshValue{}.Type(ctx),
-			},
-			"subnet_cidr": basetypes.StringType{},
-			"subnets": basetypes.ListType{
-				ElemType: types.StringType,
-			},
-			"tags": basetypes.MapType{
-				ElemType: types.StringType,
-			},
-			"taints": basetypes.ListType{
-				ElemType: TaintsValue{}.Type(ctx),
-			},
-			"target_group_arns": basetypes.StringType{},
 			"update_config": basetypes.ListType{
 				ElemType: UpdateConfigValue{}.Type(ctx),
 			},
@@ -42967,7 +42930,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			},
 			"private_networking": basetypes.BoolType{},
 			"security_groups": basetypes.ListType{
-				ElemType: types.StringType,
+				ElemType: SecurityGroups2Value{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -42982,7 +42945,9 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"taints": basetypes.ListType{
 				ElemType: TaintsValue{}.Type(ctx),
 			},
-			"target_group_arns": basetypes.StringType{},
+			"target_group_arns": basetypes.ListType{
+				ElemType: types.StringType,
+			},
 			"update_config": basetypes.ListType{
 				ElemType: UpdateConfigValue{}.Type(ctx),
 			},
@@ -42997,15 +42962,15 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		}), diags
 	}
 
-	var tagsVal basetypes.MapValue
+	var tags2Val basetypes.MapValue
 	switch {
-	case v.Tags.IsUnknown():
-		tagsVal = types.MapUnknown(types.StringType)
-	case v.Tags.IsNull():
-		tagsVal = types.MapNull(types.StringType)
+	case v.Tags2.IsUnknown():
+		tags2Val = types.MapUnknown(types.StringType)
+	case v.Tags2.IsNull():
+		tags2Val = types.MapNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		tagsVal, d = types.MapValue(types.StringType, v.Tags.Elements())
+		tags2Val, d = types.MapValue(types.StringType, v.Tags2.Elements())
 		diags.Append(d...)
 	}
 
@@ -43067,7 +43032,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			},
 			"private_networking": basetypes.BoolType{},
 			"security_groups": basetypes.ListType{
-				ElemType: types.StringType,
+				ElemType: SecurityGroups2Value{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -43082,7 +43047,111 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"taints": basetypes.ListType{
 				ElemType: TaintsValue{}.Type(ctx),
 			},
-			"target_group_arns": basetypes.StringType{},
+			"target_group_arns": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"update_config": basetypes.ListType{
+				ElemType: UpdateConfigValue{}.Type(ctx),
+			},
+			"version":           basetypes.StringType{},
+			"volume_encrypted":  basetypes.BoolType{},
+			"volume_iops":       basetypes.Int64Type{},
+			"volume_kms_key_id": basetypes.StringType{},
+			"volume_name":       basetypes.StringType{},
+			"volume_size":       basetypes.Int64Type{},
+			"volume_throughput": basetypes.Int64Type{},
+			"volume_type":       basetypes.StringType{},
+		}), diags
+	}
+
+	var targetGroupArnsVal basetypes.ListValue
+	switch {
+	case v.TargetGroupArns.IsUnknown():
+		targetGroupArnsVal = types.ListUnknown(types.StringType)
+	case v.TargetGroupArns.IsNull():
+		targetGroupArnsVal = types.ListNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		targetGroupArnsVal, d = types.ListValue(types.StringType, v.TargetGroupArns.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"ami":        basetypes.StringType{},
+			"ami_family": basetypes.StringType{},
+			"asg_metrics_collection": basetypes.ListType{
+				ElemType: AsgMetricsCollectionValue{}.Type(ctx),
+			},
+			"asg_suspend_processes": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"availability_zones": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"bottle_rocket": basetypes.ListType{
+				ElemType: BottleRocketValue{}.Type(ctx),
+			},
+			"classic_load_balancer_names": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"cluster_dns":                basetypes.StringType{},
+			"cpu_credits":                basetypes.StringType{},
+			"desired_capacity":           basetypes.Int64Type{},
+			"disable_imdsv1":             basetypes.BoolType{},
+			"disable_pods_imds":          basetypes.BoolType{},
+			"ebs_optimized":              basetypes.BoolType{},
+			"efa_enabled":                basetypes.BoolType{},
+			"enable_detailed_monitoring": basetypes.BoolType{},
+			"iam": basetypes.ListType{
+				ElemType: IamValue{}.Type(ctx),
+			},
+			"instance_name":   basetypes.StringType{},
+			"instance_prefix": basetypes.StringType{},
+			"instance_selector": basetypes.ListType{
+				ElemType: InstanceSelectorValue{}.Type(ctx),
+			},
+			"instance_type": basetypes.StringType{},
+			"instances_distribution": basetypes.ListType{
+				ElemType: InstancesDistributionValue{}.Type(ctx),
+			},
+			"kubelet_extra_config": basetypes.ListType{
+				ElemType: KubeletExtraConfigValue{}.Type(ctx),
+			},
+			"labels": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+			"max_pods_per_node":          basetypes.Int64Type{},
+			"max_size":                   basetypes.Int64Type{},
+			"min_size":                   basetypes.Int64Type{},
+			"name":                       basetypes.StringType{},
+			"override_bootstrap_command": basetypes.StringType{},
+			"placement": basetypes.ListType{
+				ElemType: PlacementValue{}.Type(ctx),
+			},
+			"pre_bootstrap_commands": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"private_networking": basetypes.BoolType{},
+			"security_groups": basetypes.ListType{
+				ElemType: SecurityGroups2Value{}.Type(ctx),
+			},
+			"ssh": basetypes.ListType{
+				ElemType: SshValue{}.Type(ctx),
+			},
+			"subnet_cidr": basetypes.StringType{},
+			"subnets": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"tags": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+			"taints": basetypes.ListType{
+				ElemType: TaintsValue{}.Type(ctx),
+			},
+			"target_group_arns": basetypes.ListType{
+				ElemType: types.StringType,
+			},
 			"update_config": basetypes.ListType{
 				ElemType: UpdateConfigValue{}.Type(ctx),
 			},
@@ -43154,7 +43223,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		},
 		"private_networking": basetypes.BoolType{},
 		"security_groups": basetypes.ListType{
-			ElemType: types.StringType,
+			ElemType: SecurityGroups2Value{}.Type(ctx),
 		},
 		"ssh": basetypes.ListType{
 			ElemType: SshValue{}.Type(ctx),
@@ -43169,7 +43238,9 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		"taints": basetypes.ListType{
 			ElemType: TaintsValue{}.Type(ctx),
 		},
-		"target_group_arns": basetypes.StringType{},
+		"target_group_arns": basetypes.ListType{
+			ElemType: types.StringType,
+		},
 		"update_config": basetypes.ListType{
 			ElemType: UpdateConfigValue{}.Type(ctx),
 		},
@@ -43198,7 +43269,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"ami_family":                  v.AmiFamily,
 			"asg_metrics_collection":      asgMetricsCollection,
 			"asg_suspend_processes":       asgSuspendProcessesVal,
-			"availability_zones":          availabilityZonesVal,
+			"availability_zones":         availabilityZones2Val,
 			"bottle_rocket":               bottleRocket,
 			"classic_load_balancer_names": classicLoadBalancerNamesVal,
 			"cluster_dns":                 v.ClusterDns,
@@ -43216,7 +43287,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"instance_type":               v.InstanceType,
 			"instances_distribution":      instancesDistribution,
 			"kubelet_extra_config":        kubeletExtraConfig,
-			"labels":                      labelsVal,
+			"labels":                     labels2Val,
 			"max_pods_per_node":           v.MaxPodsPerNode,
 			"max_size":                    v.MaxSize,
 			"min_size":                    v.MinSize,
@@ -43225,13 +43296,13 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"placement":                   placement,
 			"pre_bootstrap_commands":      preBootstrapCommandsVal,
 			"private_networking":          v.PrivateNetworking,
-			"security_groups":             securityGroupsVal,
+			"security_groups":            securityGroups2,
 			"ssh":                         ssh,
 			"subnet_cidr":                 v.SubnetCidr,
 			"subnets":                     subnetsVal,
-			"tags":                        tagsVal,
+			"tags":                       tags2Val,
 			"taints":                      taints,
-			"target_group_arns":           v.TargetGroupArns,
+			"target_group_arns":           targetGroupArnsVal,
 			"update_config":               updateConfig,
 			"version":                     v.Version,
 			"volume_encrypted":            v.VolumeEncrypted,
@@ -43277,7 +43348,7 @@ func (v NodeGroupsValue) Equal(o attr.Value) bool {
 		return false
 	}
 
-	if !v.AvailabilityZones.Equal(other.AvailabilityZones) {
+	if !v.AvailabilityZones2.Equal(other.AvailabilityZones2) {
 		return false
 	}
 
@@ -43349,7 +43420,7 @@ func (v NodeGroupsValue) Equal(o attr.Value) bool {
 		return false
 	}
 
-	if !v.Labels.Equal(other.Labels) {
+	if !v.Labels2.Equal(other.Labels2) {
 		return false
 	}
 
@@ -43385,7 +43456,7 @@ func (v NodeGroupsValue) Equal(o attr.Value) bool {
 		return false
 	}
 
-	if !v.SecurityGroups.Equal(other.SecurityGroups) {
+	if !v.SecurityGroups2.Equal(other.SecurityGroups2) {
 		return false
 	}
 
@@ -43401,7 +43472,7 @@ func (v NodeGroupsValue) Equal(o attr.Value) bool {
 		return false
 	}
 
-	if !v.Tags.Equal(other.Tags) {
+	if !v.Tags2.Equal(other.Tags2) {
 		return false
 	}
 
@@ -43518,7 +43589,7 @@ func (v NodeGroupsValue) AttributeTypes(ctx context.Context) map[string]attr.Typ
 		},
 		"private_networking": basetypes.BoolType{},
 		"security_groups": basetypes.ListType{
-			ElemType: types.StringType,
+			ElemType: SecurityGroups2Value{}.Type(ctx),
 		},
 		"ssh": basetypes.ListType{
 			ElemType: SshValue{}.Type(ctx),
@@ -43533,7 +43604,9 @@ func (v NodeGroupsValue) AttributeTypes(ctx context.Context) map[string]attr.Typ
 		"taints": basetypes.ListType{
 			ElemType: TaintsValue{}.Type(ctx),
 		},
-		"target_group_arns": basetypes.StringType{},
+		"target_group_arns": basetypes.ListType{
+			ElemType: types.StringType,
+		},
 		"update_config": basetypes.ListType{
 			ElemType: UpdateConfigValue{}.Type(ctx),
 		},
@@ -49609,6 +49682,468 @@ func (v PlacementValue) Type(ctx context.Context) attr.Type {
 func (v PlacementValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"group": basetypes.StringType{},
+	}
+}
+
+var _ basetypes.ObjectTypable = SecurityGroups2Type{}
+
+type SecurityGroups2Type struct {
+	basetypes.ObjectType
+}
+
+func (t SecurityGroups2Type) Equal(o attr.Type) bool {
+	other, ok := o.(SecurityGroups2Type)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t SecurityGroups2Type) String() string {
+	return "SecurityGroups2Type"
+}
+
+func (t SecurityGroups2Type) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	attachIdsAttribute, ok := attributes["attach_ids"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`attach_ids is missing from object`)
+
+		return nil, diags
+	}
+
+	attachIdsVal, ok := attachIdsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`attach_ids expected to be basetypes.ListValue, was: %T`, attachIdsAttribute))
+	}
+
+	withLocalAttribute, ok := attributes["with_local"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`with_local is missing from object`)
+
+		return nil, diags
+	}
+
+	withLocalVal, ok := withLocalAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`with_local expected to be basetypes.BoolValue, was: %T`, withLocalAttribute))
+	}
+
+	withSharedAttribute, ok := attributes["with_shared"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`with_shared is missing from object`)
+
+		return nil, diags
+	}
+
+	withSharedVal, ok := withSharedAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`with_shared expected to be basetypes.BoolValue, was: %T`, withSharedAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return SecurityGroups2Value{
+		AttachIds:  attachIdsVal,
+		WithLocal:  withLocalVal,
+		WithShared: withSharedVal,
+		state:      attr.ValueStateKnown,
+	}, diags
+}
+
+func NewSecurityGroups2ValueNull() SecurityGroups2Value {
+	return SecurityGroups2Value{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewSecurityGroups2ValueUnknown() SecurityGroups2Value {
+	return SecurityGroups2Value{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewSecurityGroups2Value(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (SecurityGroups2Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing SecurityGroups2Value Attribute Value",
+				"While creating a SecurityGroups2Value value, a missing attribute value was detected. "+
+					"A SecurityGroups2Value must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("SecurityGroups2Value Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid SecurityGroups2Value Attribute Type",
+				"While creating a SecurityGroups2Value value, an invalid attribute value was detected. "+
+					"A SecurityGroups2Value must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("SecurityGroups2Value Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("SecurityGroups2Value Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra SecurityGroups2Value Attribute Value",
+				"While creating a SecurityGroups2Value value, an extra attribute value was detected. "+
+					"A SecurityGroups2Value must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra SecurityGroups2Value Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewSecurityGroups2ValueUnknown(), diags
+	}
+
+	attachIdsAttribute, ok := attributes["attach_ids"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`attach_ids is missing from object`)
+
+		return NewSecurityGroups2ValueUnknown(), diags
+	}
+
+	attachIdsVal, ok := attachIdsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`attach_ids expected to be basetypes.ListValue, was: %T`, attachIdsAttribute))
+	}
+
+	withLocalAttribute, ok := attributes["with_local"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`with_local is missing from object`)
+
+		return NewSecurityGroups2ValueUnknown(), diags
+	}
+
+	withLocalVal, ok := withLocalAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`with_local expected to be basetypes.BoolValue, was: %T`, withLocalAttribute))
+	}
+
+	withSharedAttribute, ok := attributes["with_shared"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`with_shared is missing from object`)
+
+		return NewSecurityGroups2ValueUnknown(), diags
+	}
+
+	withSharedVal, ok := withSharedAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`with_shared expected to be basetypes.BoolValue, was: %T`, withSharedAttribute))
+	}
+
+	if diags.HasError() {
+		return NewSecurityGroups2ValueUnknown(), diags
+	}
+
+	return SecurityGroups2Value{
+		AttachIds:  attachIdsVal,
+		WithLocal:  withLocalVal,
+		WithShared: withSharedVal,
+		state:      attr.ValueStateKnown,
+	}, diags
+}
+
+func NewSecurityGroups2ValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) SecurityGroups2Value {
+	object, diags := NewSecurityGroups2Value(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewSecurityGroups2ValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t SecurityGroups2Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewSecurityGroups2ValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewSecurityGroups2ValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewSecurityGroups2ValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewSecurityGroups2ValueMust(SecurityGroups2Value{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t SecurityGroups2Type) ValueType(ctx context.Context) attr.Value {
+	return SecurityGroups2Value{}
+}
+
+var _ basetypes.ObjectValuable = SecurityGroups2Value{}
+
+type SecurityGroups2Value struct {
+	AttachIds  basetypes.ListValue `tfsdk:"attach_ids"`
+	WithLocal  basetypes.BoolValue `tfsdk:"with_local"`
+	WithShared basetypes.BoolValue `tfsdk:"with_shared"`
+	state      attr.ValueState
+}
+
+func (v SecurityGroups2Value) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 3)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["attach_ids"] = basetypes.ListType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
+	attrTypes["with_local"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["with_shared"] = basetypes.BoolType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 3)
+
+		val, err = v.AttachIds.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["attach_ids"] = val
+
+		val, err = v.WithLocal.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["with_local"] = val
+
+		val, err = v.WithShared.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["with_shared"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v SecurityGroups2Value) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v SecurityGroups2Value) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v SecurityGroups2Value) String() string {
+	return "SecurityGroups2Value"
+}
+
+func (v SecurityGroups2Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	var attachIdsVal basetypes.ListValue
+	switch {
+	case v.AttachIds.IsUnknown():
+		attachIdsVal = types.ListUnknown(types.StringType)
+	case v.AttachIds.IsNull():
+		attachIdsVal = types.ListNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		attachIdsVal, d = types.ListValue(types.StringType, v.AttachIds.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"attach_ids": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"with_local":  basetypes.BoolType{},
+			"with_shared": basetypes.BoolType{},
+		}), diags
+	}
+
+	attributeTypes := map[string]attr.Type{
+		"attach_ids": basetypes.ListType{
+			ElemType: types.StringType,
+		},
+		"with_local":  basetypes.BoolType{},
+		"with_shared": basetypes.BoolType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"attach_ids":  attachIdsVal,
+			"with_local":  v.WithLocal,
+			"with_shared": v.WithShared,
+		})
+
+	return objVal, diags
+}
+
+func (v SecurityGroups2Value) Equal(o attr.Value) bool {
+	other, ok := o.(SecurityGroups2Value)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.AttachIds.Equal(other.AttachIds) {
+		return false
+	}
+
+	if !v.WithLocal.Equal(other.WithLocal) {
+		return false
+	}
+
+	if !v.WithShared.Equal(other.WithShared) {
+		return false
+	}
+
+	return true
+}
+
+func (v SecurityGroups2Value) Type(ctx context.Context) attr.Type {
+	return SecurityGroups2Type{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v SecurityGroups2Value) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"attach_ids": basetypes.ListType{
+			ElemType: types.StringType,
+		},
+		"with_local":  basetypes.BoolType{},
+		"with_shared": basetypes.BoolType{},
 	}
 }
 

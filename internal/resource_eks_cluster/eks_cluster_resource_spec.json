@@ -659,7 +659,6 @@
                                             ]
                                         }
                                     }
-                                    
                                 },
                                 {
                                     "name": "availability_zones",
@@ -1301,8 +1300,40 @@
                                                             "blocks": []
                                                         }
                                                     }
+                                                },
+                                                {
+                                                    "name": "security_groups2",
+                                                    "list_nested": {
+                                                        "nested_object": {
+                                                            "attributes": [
+                                                                {
+                                                                    "name": "with_shared",
+                                                                    "bool": {
+                                                                        "description": "attach the security group shared among all nodegroups in the cluster",
+                                                                        "computed_optional_required": "optional"
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "name": "with_local",
+                                                                    "bool": {
+                                                                        "description": "attach a security group local to this nodegroup Not supported for managed nodegroups",
+                                                                        "computed_optional_required": "optional"
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "name": "attach_ids",
+                                                                    "list": {
+                                                                        "description": "attaches additional security groups to the nodegroup",
+                                                                        "computed_optional_required": "optional",
+                                                                        "element_type": {
+                                                                            "string": {}
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
                                                 }
-                                                
                                             ],
                                             "attributes": [
                                                 {
@@ -1328,9 +1359,12 @@
                                                 },
                                                 {
                                                     "name": "target_group_arns",
-                                                    "string": {
+                                                    "list": {
                                                         "description": "Associate target group with auto scaling group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "optional",
+                                                        "element_type": {
+                                                            "string": {}
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -1459,7 +1493,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "availability_zones",
+                                                    "name": "availability_zones2",
                                                     "list": {
                                                         "description": "Limit nodes to specific AZs",
                                                         "element_type": {
@@ -1493,7 +1527,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "labels",
+                                                    "name": "labels2",
                                                     "map": {
                                                         "description": "A map of labels to assign to the nodes in the group.",
                                                         "computed_optional_required": "optional",
@@ -1503,7 +1537,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "tags",
+                                                    "name": "tags2",
                                                     "map": {
                                                         "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed).",
                                                         "computed_optional_required": "optional",
@@ -1519,16 +1553,7 @@
                                                         "computed_optional_required": "optional"
                                                     }
                                                 },
-                                                {
-                                                    "name": "security_groups",
-                                                    "list": {
-                                                        "description": "controls security groups for this nodegroup.",
-                                                        "element_type": {
-                                                            "string": {}
-                                                        },
-                                                        "computed_optional_required": "optional"
-                                                    }
-                                                },
+                                                
                                                 {
                                                     "name": "asg_suspend_processes",
                                                     "list": {

@@ -16,3 +16,8 @@ sed -i 's/"iam2"/"iam"/g' internal/resource_eks_cluster/eks_cluster_resource_gen
 sed -i 's/"iam_node_group_with_addon_policies2"/"iam_node_group_with_addon_policies"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i 's/"tolerations2"/"tolerations"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i 's/"iam3"/"iam"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+
+sed -i 's/"availability_zones2"/"availability_zones"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i 's/"labels2"/"labels"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i 's/"tags2"/"tags"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i 's/"security_groups2"/"security_groups"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go

@@ -294,10 +294,7 @@ func flattenAgentPoolSpec(in *gitopspb.AgentPoolSpec, p []interface{}) ([]interf
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.Agents) > 0 {
-		obj["agents"] = in.Agents
-	}
-
+	obj["agents"] = in.Agents
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	return []interface{}{obj}, nil

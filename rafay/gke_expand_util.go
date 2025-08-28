@@ -189,6 +189,7 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 		- nodepools
 		- security
 		- Feature
+		- ResourceLabels
 	*/
 
 	obj := &infrapb.ClusterSpec_Gke{
@@ -256,6 +257,11 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 	// prebootstrapCommands
 	if v, ok := in["pre_bootstrap_commands"].([]interface{}); ok && len(v) > 0 {
 		obj.Gke.PreBootstrapCommands = toArrayString(v)
+	}
+
+	// resourceLabels
+	if v, ok := in["resource_labels"].(map[string]interface{}); ok && len(v) > 0 {
+		obj.Gke.ResourceLabels = toMapString(v)
 	}
 
 	return obj, nil
@@ -821,6 +827,11 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to expand Gke node upgrade settings " + err.Error())
 			}
+		}
+
+		// resource_labels
+		if v, ok := in["resource_labels"].(map[string]interface{}); ok && len(v) > 0 {
+			obj.ResourceLabels = toMapString(v)
 		}
 
 		out[i] = obj

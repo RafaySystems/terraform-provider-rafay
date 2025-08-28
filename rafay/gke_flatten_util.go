@@ -164,6 +164,7 @@ func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interf
 		- nodepools
 		- security
 		- Feature
+		- ResourceLabels
 	*/
 
 	if in == nil {
@@ -229,6 +230,11 @@ func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interf
 		}
 		obj["features"] = flattenGKEV3Features(in.Features, v)
 	}
+
+	if len(in.ResourceLabels) > 0 {
+		obj["resource_labels"] = toMapInterface(in.ResourceLabels)
+	}
+
 	fmt.Printf("flattenGKEV3Config complete %+v\n", obj)
 
 	return []interface{}{obj}
@@ -640,6 +646,10 @@ func flattenGKEV3Nodepools(in []*infrapb.GkeNodePool, p []interface{}) []interfa
 				v = []interface{}{}
 			}
 			obj["upgrade_settings"] = flattenGKEV3NodeUpgradeSettings(j.UpgradeSettings, v)
+		}
+
+		if len(j.ResourceLabels) > 0 {
+			obj["resource_labels"] = toMapInterface(j.ResourceLabels)
 		}
 
 		out[i] = &obj

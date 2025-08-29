@@ -21,3 +21,12 @@ sed -i 's/"availability_zones2"/"availability_zones"/g' internal/resource_eks_cl
 sed -i 's/"labels2"/"labels"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i 's/"tags2"/"tags"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i 's/"security_groups2"/"security_groups"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+
+sed -i 's/"subnets2"/"subnets"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i 's/"subnets3"/"subnets"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i 's/"subnets4"/"subnets"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i 's/"subnets5"/"subnets"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+
+sed -i 's/"attach_policy_arns3"/"attach_policy_arns"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i 's/"attach_policy_v2_2"/"attach_policy_v2"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+

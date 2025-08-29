@@ -1833,7 +1833,7 @@
                                                         "nested_object": {
                                                             "attributes": [
                                                                 {
-                                                                    "name": "attach_policy_arns",
+                                                                    "name": "attach_policy_arns2",
                                                                     "list": {
                                                                         "description": "CIDR range from where ClusterIPs are assigned.",
                                                                         "computed_optional_required": "optional",
@@ -1878,7 +1878,7 @@
                                                                     }
                                                                 },
                                                                 {
-                                                                    "name": "tags",
+                                                                    "name": "tags3",
                                                                     "map": {
                                                                         "description": "AWS tags for the service account.",
                                                                         "computed_optional_required": "optional",
@@ -1890,7 +1890,7 @@
                                                             ],
                                                             "blocks": [
                                                                 {
-                                                                    "name": "metadata",
+                                                                    "name": "metadata3",
                                                                     "list_nested": {
                                                                         "nested_object": {
                                                                             "attributes": [
@@ -1928,13 +1928,12 @@
                                                                                         }
                                                                                     }
                                                                                 }
-                                                                            ],
-                                                                            "blocks": []
+                                                                            ]
                                                                         }
                                                                     }
                                                                 },
                                                                 {
-                                                                    "name": "well_known_policies",
+                                                                    "name": "well_known_policies2",
                                                                     "list_nested": {
                                                                         "nested_object": {
                                                                             "attributes": [
@@ -2003,8 +2002,7 @@
                                                                                         "computed_optional_required": "optional"
                                                                                     }
                                                                                 }
-                                                                            ],
-                                                                            "blocks": []
+                                                                            ]
                                                                         }
                                                                     }
                                                                 }
@@ -2127,7 +2125,7 @@
                                             ],
                                             "blocks": [
                                                 {
-                                                    "name": "subnets",
+                                                    "name": "subnets3",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [],
@@ -2284,7 +2282,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "attach_policy_arns",
+                                                    "name": "attach_policy_arns3",
                                                     "list": {
                                                         "description": "list of ARNs of the IAM policies to attach",
                                                         "computed_optional_required": "optional",
@@ -2294,21 +2292,21 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "attach_policy_v2",
+                                                    "name": "attach_policy_v2_2",
                                                     "string": {
                                                         "description": "holds a policy document to attach to this addon in json string format",
                                                         "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
-                                                    "name": "permissions_boundary",
+                                                    "name": "permissions_boundary2",
                                                     "string": {
                                                         "description": "ARN of the permissions boundary to associate",
                                                         "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
-                                                    "name": "tags",
+                                                    "name": "tags4",
                                                     "map": {
                                                         "description": "The metadata to apply to the cluster to assist with categorization and organization. Each tag consists of a key and an optional value, both of which you define.",
                                                         "computed_optional_required": "optional",
@@ -2334,7 +2332,7 @@
                                             ],
                                             "blocks": [
                                                 {
-                                                    "name": "attach_policy",
+                                                    "name": "attach_policy3",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [
@@ -2355,7 +2353,7 @@
                                                             ],
                                                             "blocks": [
                                                                 {
-                                                                    "name": "statement",
+                                                                    "name": "statement2",
                                                                     "list_nested": {
                                                                         "nested_object": {
                                                                             "attributes": [
@@ -2441,7 +2439,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "well_known_policies",
+                                                    "name": "well_known_policies3",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [
@@ -2499,7 +2497,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "pod_identity_associations",
+                                                    "name": "pod_identity_associations2",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [
@@ -2576,7 +2574,7 @@
                                                             ],
                                                             "blocks": [
                                                                 {
-                                                                    "name": "well_known_policies",
+                                                                    "name": "well_known_policies4",
                                                                     "list_nested": {
                                                                         "nested_object": {
                                                                             "attributes": [
@@ -2681,7 +2679,7 @@
                                         "nested_object": {
                                             "blocks": [
                                                 {
-                                                    "name": "iam",
+                                                    "name": "iam4",
                                                     "list_nested": {
                                                         "nested_object": {
                                                         "attributes": [
@@ -2733,7 +2731,7 @@
                                                         ],
                                                         "blocks": [
                                                             {
-                                                                "name": "iam_node_group_with_addon_policies",
+                                                                "name": "iam_node_group_with_addon_policies4",
                                                                 "list_nested": {
                                                                     "nested_object": {
                                                                     "attributes": [
@@ -2814,7 +2812,7 @@
                                                                 }
                                                             },
                                                             {
-                                                                "name": "attach_policy",
+                                                                "name": "attach_policy4",
                                                                 "list_nested": {
                                                                     "nested_object": {
                                                                         "attributes": [
@@ -2835,7 +2833,7 @@
                                                                         ],
                                                                         "blocks": [
                                                                             {
-                                                                                "name": "statement",
+                                                                                "name": "statement4",
                                                                                 "list_nested": {
                                                                                     "nested_object": {
                                                                                         "attributes": [
@@ -2925,7 +2923,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "ssh",
+                                                    "name": "ssh4",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [
@@ -2973,7 +2971,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "placement",
+                                                    "name": "placement4",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [
@@ -2991,7 +2989,7 @@
 
                                                 },
                                                 {
-                                                    "name": "instance_selector",
+                                                    "name": "instance_selector4",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [
@@ -3029,7 +3027,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "bottle_rocket",
+                                                    "name": "bottle_rocket4",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [
@@ -3053,7 +3051,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "taints",
+                                                    "name": "taints4",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [
@@ -3084,7 +3082,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "update_config",
+                                                    "name": "update_config4",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [
@@ -3108,7 +3106,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "launch_template",
+                                                    "name": "launch_template4",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [
@@ -3477,7 +3475,6 @@
                                         }
                                     }
                                 },
-                                
                                 {
                                     "name": "cloud_watch",
                                     "list_nested": {
@@ -3613,7 +3610,7 @@
                                                         "computed_optional_required": "optional"
                                                     }
                                                 }
-                                            ],
+                                            ],  
                                             "blocks": [
                                                 {
                                                     "name": "access_entries",

@@ -1292,7 +1292,7 @@
                                                                         "computed_optional_required": "optional",
                                                                         "description": "feature gates.",
                                                                         "element_type": {
-                                                                            "string": {}
+                                                                            "bool": {}
                                                                         }
                                                                     }
                                                                 }

@@ -17,6 +17,7 @@ import (
 
 func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
+		Version: 1,
 		Blocks: map[string]schema.Block{
 			"cluster": schema.ListNestedBlock{
 				NestedObject: schema.NestedBlockObject{
@@ -2441,7 +2442,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 													MarkdownDescription: "eviction hard resources.",
 												},
 												"feature_gates": schema.MapAttribute{
-													ElementType:         types.StringType,
+													ElementType:         types.BoolType,
 													Optional:            true,
 													Description:         "feature gates.",
 													MarkdownDescription: "feature gates.",
@@ -49055,7 +49056,7 @@ func (v KubeletExtraConfigValue) ToTerraformValue(ctx context.Context) (tftypes.
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["feature_gates"] = basetypes.MapType{
-		ElemType: types.StringType,
+		ElemType: types.BoolType,
 	}.TerraformType(ctx)
 	attrTypes["kube_reserved"] = basetypes.MapType{
 		ElemType: types.StringType,
@@ -49158,7 +49159,7 @@ func (v KubeletExtraConfigValue) ToObjectValue(ctx context.Context) (basetypes.O
 				ElemType: types.StringType,
 			},
 			"feature_gates": basetypes.MapType{
-				ElemType: types.StringType,
+				ElemType: types.BoolType,
 			},
 			"kube_reserved": basetypes.MapType{
 				ElemType: types.StringType,
@@ -49173,12 +49174,12 @@ func (v KubeletExtraConfigValue) ToObjectValue(ctx context.Context) (basetypes.O
 	var featureGatesVal basetypes.MapValue
 	switch {
 	case v.FeatureGates.IsUnknown():
-		featureGatesVal = types.MapUnknown(types.StringType)
+		featureGatesVal = types.MapUnknown(types.BoolType)
 	case v.FeatureGates.IsNull():
-		featureGatesVal = types.MapNull(types.StringType)
+		featureGatesVal = types.MapNull(types.BoolType)
 	default:
 		var d diag.Diagnostics
-		featureGatesVal, d = types.MapValue(types.StringType, v.FeatureGates.Elements())
+		featureGatesVal, d = types.MapValue(types.BoolType, v.FeatureGates.Elements())
 		diags.Append(d...)
 	}
 
@@ -49188,7 +49189,7 @@ func (v KubeletExtraConfigValue) ToObjectValue(ctx context.Context) (basetypes.O
 				ElemType: types.StringType,
 			},
 			"feature_gates": basetypes.MapType{
-				ElemType: types.StringType,
+				ElemType: types.BoolType,
 			},
 			"kube_reserved": basetypes.MapType{
 				ElemType: types.StringType,
@@ -49218,7 +49219,7 @@ func (v KubeletExtraConfigValue) ToObjectValue(ctx context.Context) (basetypes.O
 				ElemType: types.StringType,
 			},
 			"feature_gates": basetypes.MapType{
-				ElemType: types.StringType,
+				ElemType: types.BoolType,
 			},
 			"kube_reserved": basetypes.MapType{
 				ElemType: types.StringType,
@@ -49248,7 +49249,7 @@ func (v KubeletExtraConfigValue) ToObjectValue(ctx context.Context) (basetypes.O
 				ElemType: types.StringType,
 			},
 			"feature_gates": basetypes.MapType{
-				ElemType: types.StringType,
+				ElemType: types.BoolType,
 			},
 			"kube_reserved": basetypes.MapType{
 				ElemType: types.StringType,
@@ -49265,7 +49266,7 @@ func (v KubeletExtraConfigValue) ToObjectValue(ctx context.Context) (basetypes.O
 			ElemType: types.StringType,
 		},
 		"feature_gates": basetypes.MapType{
-			ElemType: types.StringType,
+			ElemType: types.BoolType,
 		},
 		"kube_reserved": basetypes.MapType{
 			ElemType: types.StringType,
@@ -49349,7 +49350,7 @@ func (v KubeletExtraConfigValue) AttributeTypes(ctx context.Context) map[string]
 			ElemType: types.StringType,
 		},
 		"feature_gates": basetypes.MapType{
-			ElemType: types.StringType,
+			ElemType: types.BoolType,
 		},
 		"kube_reserved": basetypes.MapType{
 			ElemType: types.StringType,

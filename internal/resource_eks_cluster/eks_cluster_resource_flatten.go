@@ -553,7 +553,7 @@ func (v *ArnsValue) Flatten(ctx context.Context, in *rafay.IdentityMappingARN) d
 }
 
 func (v *SecretsEncryptionValue) Flatten(ctx context.Context, in *rafay.SecretsEncryption) diag.Diagnostics {
-	var diags, d diag.Diagnostics
+	var diags diag.Diagnostics
 	if in == nil {
 		return diags
 	}
@@ -694,7 +694,7 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, ng *rafay.ManagedN
 	v.AsgSuspendProcesses, d = types.ListValue(types.StringType, aspElements)
 	diags = append(diags, d...)
 
-	v.EnableDetailedMonitoring = types.BoolValue(*ng.EnableDetailedMonitoring)
+	v.EnableDetailedMonitoring = types.BoolPointerValue(ng.EnableDetailedMonitoring)
 
 	azElements := []attr.Value{}
 	for _, az := range ng.AvailabilityZones {
@@ -823,7 +823,7 @@ func (v *Taints4Value) Flatten(ctx context.Context, in rafay.NodeGroupTaint) dia
 func (v *BottleRocket4Value) Flatten(ctx context.Context, in *rafay.NodeGroupBottlerocket) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	v.EnableAdminContainer = types.BoolValue(*in.EnableAdminContainer)
+	v.EnableAdminContainer = types.BoolPointerValue(in.EnableAdminContainer)
 
 	if in.Settings != nil && len(in.Settings) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -841,9 +841,13 @@ func (v *BottleRocket4Value) Flatten(ctx context.Context, in *rafay.NodeGroupBot
 func (v *InstanceSelector4Value) Flatten(ctx context.Context, instanceSel *rafay.InstanceSelector) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	v.Vcpus = types.Int64Value(int64(*instanceSel.VCPUs))
+	if instanceSel.VCPUs != nil {
+		v.Vcpus = types.Int64Value(int64(*instanceSel.VCPUs))
+	}
 	v.Memory = types.StringValue(instanceSel.Memory)
-	v.Gpus = types.Int64Value(int64(*instanceSel.GPUs))
+	if instanceSel.GPUs != nil {
+		v.Gpus = types.Int64Value(int64(*instanceSel.GPUs))
+	}
 	v.CpuArchitecture = types.StringValue(instanceSel.CPUArchitecture)
 
 	v.state = attr.ValueStateKnown
@@ -862,7 +866,7 @@ func (v *Placement4Value) Flatten(ctx context.Context, placement *rafay.Placemen
 func (v *Ssh4Value) Flatten(ctx context.Context, ssh *rafay.NodeGroupSSH) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 
-	v.Allow = types.BoolValue(*ssh.Allow)
+	v.Allow = types.BoolPointerValue(ssh.Allow)
 	v.PublicKey = types.StringValue(ssh.PublicKey)
 	v.PublicKeyName = types.StringValue(ssh.PublicKeyName)
 
@@ -873,7 +877,7 @@ func (v *Ssh4Value) Flatten(ctx context.Context, ssh *rafay.NodeGroupSSH) diag.D
 	v.SourceSecurityGroupIds, d = types.ListValue(types.StringType, ids)
 	diags = append(diags, d...)
 
-	v.EnableSsm = types.BoolValue(*ssh.EnableSSM)
+	v.EnableSsm = types.BoolPointerValue(ssh.EnableSSM)
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1540,7 +1544,7 @@ func (v *ServiceAccountsValue) Flatten(ctx context.Context, in *rafay.EKSCluster
 }
 
 func (v *StatusValue) Flatten(ctx context.Context, in *rafay.ClusterIAMServiceAccountStatus) diag.Diagnostics {
-	var diags, d diag.Diagnostics
+	var diags diag.Diagnostics
 	if in == nil {
 		return diags
 	}
@@ -1787,25 +1791,37 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, ng *rafay.NodeGroup) diag
 
 	v.Name = types.StringValue(ng.Name)
 	v.AmiFamily = types.StringValue(ng.AMIFamily)
-	v.DesiredCapacity = types.Int64Value(int64(*ng.DesiredCapacity))
-	v.DisableImdsv1 = types.BoolValue(*ng.DisableIMDSv1)
-	v.DisablePodsImds = types.BoolValue(*ng.DisablePodIMDS)
-	v.EfaEnabled = types.BoolValue(*ng.EFAEnabled)
+	if ng.DesiredCapacity != nil {
+		v.DesiredCapacity = types.Int64Value(int64(*ng.DesiredCapacity))
+	}
+	v.DisableImdsv1 = types.BoolPointerValue(ng.DisableIMDSv1)
+	v.DisablePodsImds = types.BoolPointerValue(ng.DisablePodIMDS)
+	v.EfaEnabled = types.BoolPointerValue(ng.EFAEnabled)
 	v.InstanceType = types.StringValue(ng.InstanceType)
 	v.MaxPodsPerNode = types.Int64Value(int64(ng.MaxPodsPerNode))
-	v.MaxSize = types.Int64Value(int64(*ng.MaxSize))
-	v.MinSize = types.Int64Value(int64(*ng.MinSize))
-	v.PrivateNetworking = types.BoolValue(*ng.PrivateNetworking)
+	if ng.MaxSize != nil {
+		v.MaxSize = types.Int64Value(int64(*ng.MaxSize))
+	}
+	if ng.MinSize != nil {
+		v.MinSize = types.Int64Value(int64(*ng.MinSize))
+	}
+	v.PrivateNetworking = types.BoolPointerValue(ng.PrivateNetworking)
 	v.Version = types.StringValue(ng.Version)
-	v.VolumeIops = types.Int64Value(int64(*ng.VolumeIOPS))
-	v.VolumeSize = types.Int64Value(int64(*ng.VolumeSize))
-	v.VolumeThroughput = types.Int64Value(int64(*ng.VolumeThroughput))
+	if ng.VolumeIOPS != nil {
+		v.VolumeIops = types.Int64Value(int64(*ng.VolumeIOPS))
+	}
+	if ng.VolumeSize != nil {
+		v.VolumeSize = types.Int64Value(int64(*ng.VolumeSize))
+	}
+	if ng.VolumeThroughput != nil {
+		v.VolumeThroughput = types.Int64Value(int64(*ng.VolumeThroughput))
+	}
 	v.VolumeType = types.StringValue(ng.VolumeType)
 	// TODO: SubnetCidr is missing
 	v.ClusterDns = types.StringValue(ng.ClusterDNS)
-	v.EbsOptimized = types.BoolValue(*ng.EBSOptimized)
+	v.EbsOptimized = types.BoolPointerValue(ng.EBSOptimized)
 	v.VolumeName = types.StringValue(ng.VolumeName)
-	v.VolumeEncrypted = types.BoolValue(*ng.VolumeEncrypted)
+	v.VolumeEncrypted = types.BoolPointerValue(ng.VolumeEncrypted)
 	v.VolumeKmsKeyId = types.StringValue(ng.VolumeKmsKeyID)
 	v.OverrideBootstrapCommand = types.StringValue(ng.OverrideBootstrapCommand)
 
@@ -1838,7 +1854,7 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, ng *rafay.NodeGroup) diag
 	diags = append(diags, d...)
 
 	v.CpuCredits = types.StringValue(ng.CPUCredits)
-	v.EnableDetailedMonitoring = types.BoolValue(*ng.EnableDetailedMonitoring)
+	v.EnableDetailedMonitoring = types.BoolPointerValue(ng.EnableDetailedMonitoring)
 	v.InstanceType = types.StringValue(ng.InstanceType)
 
 	azElements := []attr.Value{}
@@ -1945,11 +1961,72 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, ng *rafay.NodeGroup) diag
 	v.UpdateConfig, d = types.ListValue(UpdateConfigValue{}.Type(ctx), []attr.Value{updateConfig})
 	diags = append(diags, d...)
 
+	kubeletExtraConfig := NewKubeletExtraConfigValueNull()
+	d = kubeletExtraConfig.Flatten(ctx, ng.KubeletExtraConfig)
+	diags = append(diags, d...)
+	v.KubeletExtraConfig, d = types.ListValue(KubeletExtraConfigValue{}.Type(ctx), []attr.Value{kubeletExtraConfig})
+	diags = append(diags, d...)
+
 	secGroup := NewSecurityGroups2ValueNull()
 	d = secGroup.Flatten(ctx, ng.SecurityGroups)
 	diags = append(diags, d...)
 	v.SecurityGroups2, d = types.ListValue(SecurityGroups2Value{}.Type(ctx), []attr.Value{secGroup})
 	diags = append(diags, d...)
+
+	v.state = attr.ValueStateKnown
+	return diags
+}
+
+func (v *KubeletExtraConfigValue) Flatten(ctx context.Context, in *rafay.KubeletExtraConfig) diag.Diagnostics {
+	var diags, d diag.Diagnostics
+	if in == nil {
+		return diags
+	}
+
+	kubeReserved := types.MapNull(types.StringType)
+	if len(in.KubeReserved) > 0 {
+		kr := map[string]attr.Value{}
+		for key, val := range in.KubeReserved {
+			kr[key] = types.StringValue(val)
+		}
+		kubeReserved, d = types.MapValue(types.StringType, kr)
+		diags = append(diags, d...)
+	}
+	v.KubeReserved = kubeReserved
+	v.KubeReservedCgroup = types.StringValue(in.KubeReservedCGroup)
+
+	sysReserved := types.MapNull(types.StringType)
+	if len(in.SystemReserved) > 0 {
+		sr := map[string]attr.Value{}
+		for key, val := range in.SystemReserved {
+			sr[key] = types.StringValue(val)
+		}
+		sysReserved, d = types.MapValue(types.StringType, sr)
+		diags = append(diags, d...)
+	}
+	v.SystemReserved = sysReserved
+
+	evictionHard := types.MapNull(types.StringType)
+	if len(in.EvictionHard) > 0 {
+		eh := map[string]attr.Value{}
+		for key, val := range in.EvictionHard {
+			eh[key] = types.StringValue(val)
+		}
+		evictionHard, d = types.MapValue(types.StringType, eh)
+		diags = append(diags, d...)
+	}
+	v.EvictionHard = evictionHard
+
+	featureGates := types.MapNull(types.BoolType)
+	if len(in.FeatureGates) > 0 {
+		fg := map[string]attr.Value{}
+		for key, val := range in.FeatureGates {
+			fg[key] = types.BoolValue(val)
+		}
+		featureGates, d = types.MapValue(types.BoolType, fg)
+		diags = append(diags, d...)
+	}
+	v.FeatureGates = featureGates
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -2001,6 +2078,9 @@ func (v *AsgMetricsCollectionValue) Flatten(ctx context.Context, in rafay.Metric
 
 func (v *InstancesDistributionValue) Flatten(ctx context.Context, in *rafay.NodeGroupInstancesDistribution) diag.Diagnostics {
 	var diags, d diag.Diagnostics
+	if in == nil {
+		return diags
+	}
 
 	instanceTypes := []attr.Value{}
 	for _, it := range in.InstanceTypes {
@@ -2014,7 +2094,9 @@ func (v *InstancesDistributionValue) Flatten(ctx context.Context, in *rafay.Node
 		v.OnDemandBaseCapacity = types.Int64Value(int64(*in.OnDemandBaseCapacity))
 	}
 
-	v.OnDemandPercentageAboveBaseCapacity = types.Int64Value(int64(*in.OnDemandPercentageAboveBaseCapacity))
+	if in.OnDemandPercentageAboveBaseCapacity != nil {
+		v.OnDemandPercentageAboveBaseCapacity = types.Int64Value(int64(*in.OnDemandPercentageAboveBaseCapacity))
+	}
 	if in.SpotInstancePools != nil {
 		v.SpotInstancePools = types.Int64Value(int64(*in.SpotInstancePools))
 	}
@@ -2027,8 +2109,11 @@ func (v *InstancesDistributionValue) Flatten(ctx context.Context, in *rafay.Node
 
 func (v *BottleRocketValue) Flatten(ctx context.Context, in *rafay.NodeGroupBottlerocket) diag.Diagnostics {
 	var diags diag.Diagnostics
+	if in == nil {
+		return diags
+	}
 
-	v.EnableAdminContainer = types.BoolValue(*in.EnableAdminContainer)
+	v.EnableAdminContainer = types.BoolPointerValue(in.EnableAdminContainer)
 
 	if in.Settings != nil && len(in.Settings) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -2046,9 +2131,18 @@ func (v *BottleRocketValue) Flatten(ctx context.Context, in *rafay.NodeGroupBott
 func (v *InstanceSelectorValue) Flatten(ctx context.Context, instanceSel *rafay.InstanceSelector) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	v.Vcpus = types.Int64Value(int64(*instanceSel.VCPUs))
+	if instanceSel == nil {
+		return diags
+	}
+
+	if instanceSel.VCPUs != nil {
+		v.Vcpus = types.Int64Value(int64(*instanceSel.VCPUs))
+	}
 	v.Memory = types.StringValue(instanceSel.Memory)
-	v.Gpus = types.Int64Value(int64(*instanceSel.GPUs))
+
+	if instanceSel.GPUs != nil {
+		v.Gpus = types.Int64Value(int64(*instanceSel.GPUs))
+	}
 	v.CpuArchitecture = types.StringValue(instanceSel.CPUArchitecture)
 
 	v.state = attr.ValueStateKnown
@@ -2058,6 +2152,10 @@ func (v *InstanceSelectorValue) Flatten(ctx context.Context, instanceSel *rafay.
 func (v *PlacementValue) Flatten(ctx context.Context, placement *rafay.Placement) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	if placement == nil {
+		return diags
+	}
+
 	v.Group = types.StringValue(placement.GroupName)
 
 	v.state = attr.ValueStateKnown
@@ -2066,8 +2164,11 @@ func (v *PlacementValue) Flatten(ctx context.Context, placement *rafay.Placement
 
 func (v *SshValue) Flatten(ctx context.Context, ssh *rafay.NodeGroupSSH) diag.Diagnostics {
 	var diags, d diag.Diagnostics
+	if ssh == nil {
+		return diags
+	}
 
-	v.Allow = types.BoolValue(*ssh.Allow)
+	v.Allow = types.BoolPointerValue(ssh.Allow)
 	v.PublicKey = types.StringValue(ssh.PublicKey)
 	v.PublicKeyName = types.StringValue(ssh.PublicKeyName)
 
@@ -2078,7 +2179,7 @@ func (v *SshValue) Flatten(ctx context.Context, ssh *rafay.NodeGroupSSH) diag.Di
 	v.SourceSecurityGroupIds, d = types.ListValue(types.StringType, ids)
 	diags = append(diags, d...)
 
-	v.EnableSsm = types.BoolValue(*ssh.EnableSSM)
+	v.EnableSsm = types.BoolPointerValue(ssh.EnableSSM)
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -2090,8 +2191,8 @@ func (v *SecurityGroups2Value) Flatten(ctx context.Context, sg *rafay.NodeGroupS
 		return diags
 	}
 
-	v.WithShared = types.BoolValue(*sg.WithShared)
-	v.WithLocal = types.BoolValue(*sg.WithLocal)
+	v.WithShared = types.BoolPointerValue(sg.WithShared)
+	v.WithLocal = types.BoolPointerValue(sg.WithLocal)
 
 	aidsElements := []attr.Value{}
 	for _, aid := range sg.AttachIDs {

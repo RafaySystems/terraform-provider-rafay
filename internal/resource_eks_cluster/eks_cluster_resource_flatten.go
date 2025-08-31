@@ -3,6 +3,7 @@ package resource_eks_cluster
 import (
 	"context"
 	"log"
+	"strings"
 
 	"github.com/RafaySystems/terraform-provider-rafay/rafay"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -13,6 +14,7 @@ import (
 )
 
 var ngMapInUse = true
+var existingAddonNames = []string{}
 
 func FlattenEksCluster(ctx context.Context, c rafay.EKSCluster, data *EksClusterModel) diag.Diagnostics {
 	var diags, d diag.Diagnostics
@@ -39,8 +41,18 @@ func FlattenEksClusterConfig(ctx context.Context, c rafay.EKSClusterConfig, data
 	ccList := make([]ClusterConfigValue, len(data.ClusterConfig.Elements()))
 	d = data.ClusterConfig.ElementsAs(ctx, &ccList, false)
 	diags = append(diags, d...)
-	if len(ccList[0].NodeGroups.Elements()) > 0 {
+	if len(ccList) > 0 && len(ccList[0].NodeGroups.Elements()) > 0 {
 		ngMapInUse = false
+	}
+
+	// get existing addons
+	if len(ccList) > 0 {
+		addonsList := make([]AddonsValue, 0, len(ccList[0].Addons.Elements()))
+		diags = ccList[0].Addons.ElementsAs(ctx, &addonsList, false)
+		diags = append(diags, d...)
+		for _, addon := range addonsList {
+			existingAddonNames = append(existingAddonNames, getStringValue(addon.Name))
+		}
 	}
 
 	cc := NewClusterConfigValueNull()
@@ -174,14 +186,19 @@ func (v *CniParamsValue) Flatten(ctx context.Context, cp *rafay.CustomCni) diag.
 
 	v.CustomCniCidr = types.StringValue(cp.CustomCniCidr)
 
-	csElements := make([]attr.Value, 0, len(cp.CustomCniCrdSpec))
-	for name, cniSpec := range cp.CustomCniCrdSpec {
-		cs := NewCustomCniCrdSpecValueNull()
-		d = cs.Flatten(ctx, name, cniSpec)
+	customCniCrdSpec := types.ListNull(CustomCniCrdSpecValue{}.Type(ctx))
+	if len(cp.CustomCniCrdSpec) > 0 {
+		csElements := make([]attr.Value, 0, len(cp.CustomCniCrdSpec))
+		for name, cniSpec := range cp.CustomCniCrdSpec {
+			cs := NewCustomCniCrdSpecValueNull()
+			d = cs.Flatten(ctx, name, cniSpec)
+			diags = append(diags, d...)
+			csElements = append(csElements, cs)
+		}
+		customCniCrdSpec, d = types.ListValue(CustomCniCrdSpecValue{}.Type(ctx), csElements)
 		diags = append(diags, d...)
 	}
-	v.CustomCniCrdSpec, d = types.ListValue(CustomCniCrdSpecValue{}.Type(ctx), csElements)
-	diags = append(diags, d...)
+	v.CustomCniCrdSpec = customCniCrdSpec
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -192,14 +209,19 @@ func (v *CustomCniCrdSpecValue) Flatten(ctx context.Context, name string, cs []r
 
 	v.Name = types.StringValue(name)
 
-	specElements := make([]attr.Value, 0, len(cs))
-	for _, spec := range cs {
-		s := NewCniSpecValueNull()
-		d = s.Flatten(ctx, spec)
+	cniSpec := types.ListNull(CniSpecValue{}.Type(ctx))
+	if len(cs) > 0 {
+		specElements := make([]attr.Value, 0, len(cs))
+		for _, spec := range cs {
+			s := NewCniSpecValueNull()
+			d = s.Flatten(ctx, spec)
+			diags = append(diags, d...)
+			specElements = append(specElements, s)
+		}
+		cniSpec, d = types.ListValue(CniSpecValue{}.Type(ctx), specElements)
 		diags = append(diags, d...)
 	}
-	v.CniSpec, d = types.ListValue(CniSpecValue{}.Type(ctx), specElements)
-	diags = append(diags, d...)
+	v.CniSpec = cniSpec
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -210,12 +232,16 @@ func (v *CniSpecValue) Flatten(ctx context.Context, spec rafay.CustomCniSpec) di
 
 	v.Subnet = types.StringValue(spec.Subnet)
 
-	sgElements := make([]attr.Value, 0, len(spec.SecurityGroups))
-	for _, sg := range spec.SecurityGroups {
-		sgElements = append(sgElements, types.StringValue(sg))
+	securityGroups := types.ListNull(types.StringType)
+	if len(spec.SecurityGroups) > 0 {
+		sgElements := make([]attr.Value, 0, len(spec.SecurityGroups))
+		for _, sg := range spec.SecurityGroups {
+			sgElements = append(sgElements, types.StringValue(sg))
+		}
+		securityGroups, d = types.ListValue(types.StringType, sgElements)
+		diags = append(diags, d...)
 	}
-	v.SecurityGroups, d = types.ListValue(types.StringType, sgElements)
-	diags = append(diags, d...)
+	v.SecurityGroups = securityGroups
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -227,12 +253,16 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	v.Apiversion = types.StringValue(in.APIVersion)
 	v.Kind = types.StringValue(in.Kind)
 
-	azElements := []attr.Value{}
-	for _, az := range in.AvailabilityZones {
-		azElements = append(azElements, types.StringValue(az))
+	availabilityZones := types.ListNull(types.StringType)
+	if len(in.AvailabilityZones) > 0 {
+		azElements := []attr.Value{}
+		for _, az := range in.AvailabilityZones {
+			azElements = append(azElements, types.StringValue(az))
+		}
+		availabilityZones, d = types.ListValue(types.StringType, azElements)
+		diags = append(diags, d...)
 	}
-	v.AvailabilityZones, d = types.ListValue(types.StringType, azElements)
-	diags = append(diags, d...)
+	v.AvailabilityZones = availabilityZones
 
 	md := NewMetadata2ValueNull()
 	d = md.Flatten(ctx, in.Metadata)
@@ -285,14 +315,19 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	v.Iam3, d = types.ListValue(Iam3Value{}.Type(ctx), []attr.Value{iam})
 	diags = append(diags, d...)
 
-	identityProviders := []attr.Value{}
-	for _, identityProvider := range in.IdentityProviders {
-		ip := NewIdentityProvidersValueNull()
-		d = ip.Flatten(ctx, identityProvider)
-		identityProviders = append(identityProviders, ip)
+	identityProviders := types.ListNull(IdentityProvidersValue{}.Type(ctx))
+	if len(in.IdentityProviders) > 0 {
+		identityProvidersList := []attr.Value{}
+		for _, identityProvider := range in.IdentityProviders {
+			ip := NewIdentityProvidersValueNull()
+			d = ip.Flatten(ctx, identityProvider)
+			diags = append(diags, d...)
+			identityProvidersList = append(identityProvidersList, ip)
+		}
+		identityProviders, d = types.ListValue(IdentityProvidersValue{}.Type(ctx), identityProvidersList)
+		diags = append(diags, d...)
 	}
-	v.IdentityProviders, d = types.ListValue(IdentityProvidersValue{}.Type(ctx), identityProviders)
-	diags = append(diags, d...)
+	v.IdentityProviders = identityProviders
 
 	vpc := NewVpcValueNull()
 	d = vpc.Flatten(ctx, in.VPC)
@@ -300,15 +335,29 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	v.Vpc, d = types.ListValue(VpcValue{}.Type(ctx), []attr.Value{vpc})
 	diags = append(diags, d...)
 
-	addons := []attr.Value{}
-	for _, add := range in.Addons {
-		addon := NewAddonsValueNull()
-		d = addon.Flatten(ctx, add)
+	addons := types.ListNull(AddonsValue{}.Type(ctx))
+	if len(in.Addons) > 0 {
+		addonsList := []attr.Value{}
+		for _, add := range in.Addons {
+			// Hack: Check if addon exists in state (ie. provided by user while creating)
+			exists := false
+			for _, e := range existingAddonNames {
+				if strings.EqualFold(e, add.Name) {
+					exists = true
+				}
+			}
+
+			if exists {
+				addon := NewAddonsValueNull()
+				d = addon.Flatten(ctx, add)
+				diags = append(diags, d...)
+				addonsList = append(addonsList, addon)
+			}
+		}
+		addons, d = types.ListValue(AddonsValue{}.Type(ctx), addonsList)
 		diags = append(diags, d...)
-		addons = append(addons, addon)
 	}
-	v.Addons, d = types.ListValue(AddonsValue{}.Type(ctx), addons)
-	diags = append(diags, d...)
+	v.Addons = addons
 
 	privateCluster := NewPrivateClusterValueNull()
 	d = privateCluster.Flatten(ctx, in.PrivateCluster)
@@ -317,25 +366,33 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	diags = append(diags, d...)
 
 	// managed node groups
-	mngElements := []attr.Value{}
-	for _, mng := range in.ManagedNodeGroups {
-		mngList := NewManagedNodegroupsValueNull()
-		d = mngList.Flatten(ctx, mng)
+	managedNodegroups := types.ListNull(ManagedNodegroupsValue{}.Type(ctx))
+	if len(in.ManagedNodeGroups) > 0 {
+		mngElements := []attr.Value{}
+		for _, mng := range in.ManagedNodeGroups {
+			mngList := NewManagedNodegroupsValueNull()
+			d = mngList.Flatten(ctx, mng)
+			diags = append(diags, d...)
+			mngElements = append(mngElements, mngList)
+		}
+		managedNodegroups, d = types.ListValue(ManagedNodegroupsValue{}.Type(ctx), mngElements)
 		diags = append(diags, d...)
-		mngElements = append(mngElements, mngList)
 	}
-	v.ManagedNodegroups, d = types.ListValue(ManagedNodegroupsValue{}.Type(ctx), mngElements)
-	diags = append(diags, d...)
+	v.ManagedNodegroups = managedNodegroups
 
-	fargateProfiles := []attr.Value{}
-	for _, fargateProfile := range in.FargateProfiles {
-		fp := NewFargateProfilesValueNull()
-		d = fp.Flatten(ctx, fargateProfile)
+	fargateProfiles := types.ListNull(FargateProfilesValue{}.Type(ctx))
+	if len(in.FargateProfiles) > 0 {
+		fargateProfilesList := []attr.Value{}
+		for _, fargateProfile := range in.FargateProfiles {
+			fp := NewFargateProfilesValueNull()
+			d = fp.Flatten(ctx, fargateProfile)
+			diags = append(diags, d...)
+			fargateProfilesList = append(fargateProfilesList, fp.Name)
+		}
+		fargateProfiles, d = types.ListValue(FargateProfilesValue{}.Type(ctx), fargateProfilesList)
 		diags = append(diags, d...)
-		fargateProfiles = append(fargateProfiles, fp.Name)
 	}
-	v.FargateProfiles, d = types.ListValue(FargateProfilesValue{}.Type(ctx), fargateProfiles)
-	diags = append(diags, d...)
+	v.FargateProfiles = fargateProfiles
 
 	cloudWatch := NewCloudWatchValueNull()
 	d = cloudWatch.Flatten(ctx, in.CloudWatch)
@@ -385,12 +442,16 @@ func (v *AutoModeConfigValue) Flatten(ctx context.Context, in *rafay.EKSAutoMode
 
 	v.Enabled = types.BoolValue(in.Enabled)
 	v.NodeRoleArn = types.StringValue(in.NodeRoleARN)
-	nodepools := []attr.Value{}
-	for _, nodepool := range in.NodePools {
-		nodepools = append(nodepools, types.StringValue(nodepool))
+	nodePools := types.ListNull(types.StringType)
+	if len(in.NodePools) > 0 {
+		nodepools := []attr.Value{}
+		for _, nodepool := range in.NodePools {
+			nodepools = append(nodepools, types.StringValue(nodepool))
+		}
+		nodePools, d = types.ListValue(types.StringType, nodepools)
+		diags = append(diags, d...)
 	}
-	v.NodePools, d = types.ListValue(types.StringType, nodepools)
-	diags = append(diags, d...)
+	v.NodePools = nodePools
 
 	return diags
 }
@@ -417,15 +478,19 @@ func (v *AccessConfigValue) Flatten(ctx context.Context, in *rafay.EKSClusterAcc
 	v.BootstrapClusterCreatorAdminPermissions = types.BoolPointerValue(&in.BootstrapClusterCreatorAdminPermissions)
 	v.AuthenticationMode = types.StringValue(in.AuthenticationMode)
 
-	accessEntries := []attr.Value{}
-	for _, accessEntry := range in.AccessEntries {
-		ae := NewAccessEntriesValueNull()
-		d = ae.Flatten(ctx, accessEntry)
+	accessEntries := types.ListNull(AccessEntriesValue{}.Type(ctx))
+	if len(in.AccessEntries) > 0 {
+		accessEntriesList := []attr.Value{}
+		for _, accessEntry := range in.AccessEntries {
+			ae := NewAccessEntriesValueNull()
+			d = ae.Flatten(ctx, accessEntry)
+			diags = append(diags, d...)
+			accessEntriesList = append(accessEntriesList, ae)
+		}
+		accessEntries, d = types.ListValue(AccessEntriesValue{}.Type(ctx), accessEntriesList)
 		diags = append(diags, d...)
-		accessEntries = append(accessEntries, ae)
 	}
-	v.AccessEntries, d = types.ListValue(AccessEntriesValue{}.Type(ctx), accessEntries)
-	diags = append(diags, d...)
+	v.AccessEntries = accessEntries
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -440,12 +505,16 @@ func (v *AccessEntriesValue) Flatten(ctx context.Context, in *rafay.EKSAccessEnt
 	v.PrincipalArn = types.StringValue(in.PrincipalARN)
 	v.AccessEntriesType = types.StringValue(in.Type)
 	v.KubernetesUsername = types.StringValue(in.KubernetesUsername)
-	groups := []attr.Value{}
-	for _, group := range in.KubernetesGroups {
-		groups = append(groups, types.StringValue(group))
+	kubernetesGroups := types.ListNull(types.StringType)
+	if len(in.KubernetesGroups) > 0 {
+		groups := []attr.Value{}
+		for _, group := range in.KubernetesGroups {
+			groups = append(groups, types.StringValue(group))
+		}
+		kubernetesGroups, d = types.ListValue(types.StringType, groups)
+		diags = append(diags, d...)
 	}
-	v.KubernetesGroups, d = types.ListValue(types.StringType, groups)
-	diags = append(diags, d...)
+	v.KubernetesGroups = kubernetesGroups
 
 	tags := types.MapNull(types.StringType)
 	if len(in.Tags) > 0 {
@@ -458,15 +527,19 @@ func (v *AccessEntriesValue) Flatten(ctx context.Context, in *rafay.EKSAccessEnt
 	}
 	v.Tags = tags
 
-	accessPolicies := []attr.Value{}
-	for _, accessPolicy := range in.AccessPolicies {
-		ap := NewAccessPoliciesValueNull()
-		d = ap.Flatten(ctx, accessPolicy)
+	accessPolicies := types.ListNull(AccessPoliciesValue{}.Type(ctx))
+	if len(in.AccessPolicies) > 0 {
+		accessPoliciesList := []attr.Value{}
+		for _, accessPolicy := range in.AccessPolicies {
+			ap := NewAccessPoliciesValueNull()
+			d = ap.Flatten(ctx, accessPolicy)
+			diags = append(diags, d...)
+			accessPoliciesList = append(accessPoliciesList, ap)
+		}
+		accessPolicies, d = types.ListValue(AccessPoliciesValue{}.Type(ctx), accessPoliciesList)
 		diags = append(diags, d...)
-		accessPolicies = append(accessPolicies, ap)
 	}
-	v.AccessPolicies, d = types.ListValue(AccessPoliciesValue{}.Type(ctx), accessPolicies)
-	diags = append(diags, d...)
+	v.AccessPolicies = accessPolicies
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -497,12 +570,16 @@ func (v *AccessScopeValue) Flatten(ctx context.Context, in *rafay.EKSAccessScope
 	}
 
 	v.AccessScopeType = types.StringValue(in.Type)
-	namespaces := []attr.Value{}
-	for _, namespace := range in.Namespaces {
-		namespaces = append(namespaces, types.StringValue(namespace))
+	namespaces := types.ListNull(types.StringType)
+	if len(in.Namespaces) > 0 {
+		namespacesList := []attr.Value{}
+		for _, namespace := range in.Namespaces {
+			namespacesList = append(namespacesList, types.StringValue(namespace))
+		}
+		namespaces, d = types.ListValue(types.StringType, namespacesList)
+		diags = append(diags, d...)
 	}
-	v.Namespaces, d = types.ListValue(types.StringType, namespaces)
-	diags = append(diags, d...)
+	v.Namespaces = namespaces
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -514,22 +591,30 @@ func (v *IdentityMappingsValue) Flatten(ctx context.Context, in *rafay.EKSCluste
 		return diags
 	}
 
-	accounts := []attr.Value{}
-	for _, account := range in.Accounts {
-		accounts = append(accounts, types.StringValue(account))
-	}
-	v.Accounts, d = types.ListValue(types.StringType, accounts)
-	diags = append(diags, d...)
-
-	arnElements := []attr.Value{}
-	for _, arn := range in.Arns {
-		arns := NewArnsValueNull()
-		d = arns.Flatten(ctx, arn)
+	accounts := types.ListNull(types.StringType)
+	if len(in.Accounts) > 0 {
+		accountsList := []attr.Value{}
+		for _, account := range in.Accounts {
+			accountsList = append(accountsList, types.StringValue(account))
+		}
+		accounts, d = types.ListValue(types.StringType, accountsList)
 		diags = append(diags, d...)
-		arnElements = append(arnElements, arns)
 	}
-	v.Arns, d = types.ListValue(ArnsValue{}.Type(ctx), arnElements)
-	diags = append(diags, d...)
+	v.Accounts = accounts
+
+	arns := types.ListNull(ArnsValue{}.Type(ctx))
+	if len(in.Arns) > 0 {
+		arnElements := []attr.Value{}
+		for _, arn := range in.Arns {
+			arnsValue := NewArnsValueNull()
+			d = arnsValue.Flatten(ctx, arn)
+			diags = append(diags, d...)
+			arnElements = append(arnElements, arnsValue)
+		}
+		arns, d = types.ListValue(ArnsValue{}.Type(ctx), arnElements)
+		diags = append(diags, d...)
+	}
+	v.Arns = arns
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -543,12 +628,16 @@ func (v *ArnsValue) Flatten(ctx context.Context, in *rafay.IdentityMappingARN) d
 
 	v.Arn = types.StringValue(in.Arn)
 	v.Username = types.StringValue(in.Username)
-	groups := []attr.Value{}
-	for _, group := range in.Group {
-		groups = append(groups, types.StringValue(group))
+	group := types.ListNull(types.StringType)
+	if len(in.Group) > 0 {
+		groups := []attr.Value{}
+		for _, groupItem := range in.Group {
+			groups = append(groups, types.StringValue(groupItem))
+		}
+		group, d = types.ListValue(types.StringType, groups)
+		diags = append(diags, d...)
 	}
-	v.Group, d = types.ListValue(types.StringType, groups)
-	diags = append(diags, d...)
+	v.Group = group
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -589,12 +678,16 @@ func (v *CloudLoggingValue) Flatten(ctx context.Context, in *rafay.EKSClusterClo
 		return diags
 	}
 
-	enableTypes := []attr.Value{}
-	for _, enableType := range in.EnableTypes {
-		enableTypes = append(enableTypes, types.StringValue(enableType))
+	enableTypes := types.ListNull(types.StringType)
+	if len(in.EnableTypes) > 0 {
+		enableTypesList := []attr.Value{}
+		for _, enableType := range in.EnableTypes {
+			enableTypesList = append(enableTypesList, types.StringValue(enableType))
+		}
+		enableTypes, d = types.ListValue(types.StringType, enableTypesList)
+		diags = append(diags, d...)
 	}
-	v.EnableTypes, d = types.ListValue(types.StringType, enableTypes)
-	diags = append(diags, d...)
+	v.EnableTypes = enableTypes
 
 	v.LogRetentionInDays = types.Int64Value(int64(in.LogRetentionInDays))
 
@@ -610,12 +703,16 @@ func (v *FargateProfilesValue) Flatten(ctx context.Context, in *rafay.FargatePro
 
 	v.Name = types.StringValue(in.Name)
 	v.PodExecutionRoleArn = types.StringValue(in.PodExecutionRoleARN)
-	subnets := []attr.Value{}
-	for _, subnet := range in.Subnets {
-		subnets = append(subnets, types.StringValue(subnet))
+	subnets := types.ListNull(types.StringType)
+	if len(in.Subnets) > 0 {
+		subnetsList := []attr.Value{}
+		for _, subnet := range in.Subnets {
+			subnetsList = append(subnetsList, types.StringValue(subnet))
+		}
+		subnets, d = types.ListValue(types.StringType, subnetsList)
+		diags = append(diags, d...)
 	}
-	v.Subnets, d = types.ListValue(types.StringType, subnets)
-	diags = append(diags, d...)
+	v.Subnets = subnets
 	tags := types.MapNull(types.StringType)
 	if len(in.Tags) > 0 {
 		tgs := make(map[string]attr.Value, len(in.Tags))
@@ -628,15 +725,19 @@ func (v *FargateProfilesValue) Flatten(ctx context.Context, in *rafay.FargatePro
 	v.Tags = tags
 	v.Status = types.StringValue(in.Status)
 
-	selectorsList := []attr.Value{}
-	for _, sel := range in.Selectors {
-		selectors := NewSelectorsValueNull()
-		d = selectors.Flatten(ctx, sel)
+	selectors := types.ListNull(SelectorsValue{}.Type(ctx))
+	if len(in.Selectors) > 0 {
+		selectorsList := []attr.Value{}
+		for _, sel := range in.Selectors {
+			selectorsValue := NewSelectorsValueNull()
+			d = selectorsValue.Flatten(ctx, sel)
+			diags = append(diags, d...)
+			selectorsList = append(selectorsList, selectorsValue)
+		}
+		selectors, d = types.ListValue(SelectorsValue{}.Type(ctx), selectorsList)
 		diags = append(diags, d...)
-		selectorsList = append(selectorsList, selectors)
 	}
-	v.Selectors, d = types.ListValue(SelectorsValue{}.Type(ctx), selectorsList)
-	diags = append(diags, d...)
+	v.Selectors = selectors
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -682,28 +783,40 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, ng *rafay.ManagedN
 	v.VolumeKmsKeyId = types.StringValue(ng.VolumeKmsKeyID)
 	v.OverrideBootstrapCommand = types.StringValue(ng.OverrideBootstrapCommand)
 
-	pbElements := []attr.Value{}
-	for _, pb := range ng.PreBootstrapCommands {
-		pbElements = append(pbElements, types.StringValue(pb))
+	preBootstrapCommands := types.ListNull(types.StringType)
+	if len(ng.PreBootstrapCommands) > 0 {
+		pbElements := []attr.Value{}
+		for _, pb := range ng.PreBootstrapCommands {
+			pbElements = append(pbElements, types.StringValue(pb))
+		}
+		preBootstrapCommands, d = types.ListValue(types.StringType, pbElements)
+		diags = append(diags, d...)
 	}
-	v.PreBootstrapCommands, d = types.ListValue(types.StringType, pbElements)
-	diags = append(diags, d...)
+	v.PreBootstrapCommands = preBootstrapCommands
 
-	aspElements := []attr.Value{}
-	for _, asp := range ng.ASGSuspendProcesses {
-		aspElements = append(aspElements, types.StringValue(asp))
+	asgSuspendProcesses := types.ListNull(types.StringType)
+	if len(ng.ASGSuspendProcesses) > 0 {
+		aspElements := []attr.Value{}
+		for _, asp := range ng.ASGSuspendProcesses {
+			aspElements = append(aspElements, types.StringValue(asp))
+		}
+		asgSuspendProcesses, d = types.ListValue(types.StringType, aspElements)
+		diags = append(diags, d...)
 	}
-	v.AsgSuspendProcesses, d = types.ListValue(types.StringType, aspElements)
-	diags = append(diags, d...)
+	v.AsgSuspendProcesses = asgSuspendProcesses
 
 	v.EnableDetailedMonitoring = types.BoolPointerValue(ng.EnableDetailedMonitoring)
 
-	azElements := []attr.Value{}
-	for _, az := range ng.AvailabilityZones {
-		azElements = append(azElements, types.StringValue(az))
+	availabilityZones := types.ListNull(types.StringType)
+	if len(ng.AvailabilityZones) > 0 {
+		azElements := []attr.Value{}
+		for _, az := range ng.AvailabilityZones {
+			azElements = append(azElements, types.StringValue(az))
+		}
+		availabilityZones, d = types.ListValue(types.StringType, azElements)
+		diags = append(diags, d...)
 	}
-	v.AvailabilityZones, d = types.ListValue(types.StringType, azElements)
-	diags = append(diags, d...)
+	v.AvailabilityZones = availabilityZones
 	snElements := []attr.Value{}
 	for _, sn := range ng.Subnets {
 		snElements = append(snElements, types.StringValue(sn))
@@ -734,12 +847,16 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, ng *rafay.ManagedN
 	v.Tags = tagMap
 	v.Ami = types.StringValue(ng.AMI)
 	v.Spot = types.BoolPointerValue(ng.Spot)
-	instanceTypes := []attr.Value{}
-	for _, val := range ng.InstanceTypes {
-		instanceTypes = append(instanceTypes, types.StringValue(val))
+	instanceTypes := types.ListNull(types.StringType)
+	if len(ng.InstanceTypes) > 0 {
+		instanceTypesList := []attr.Value{}
+		for _, val := range ng.InstanceTypes {
+			instanceTypesList = append(instanceTypesList, types.StringValue(val))
+		}
+		instanceTypes, d = types.ListValue(types.StringType, instanceTypesList)
+		diags = append(diags, d...)
 	}
-	v.InstanceTypes, d = types.ListValue(types.StringType, instanceTypes)
-	diags = append(diags, d...)
+	v.InstanceTypes = instanceTypes
 
 	// blocks start here
 	iam := NewIam4ValueNull()
@@ -773,15 +890,19 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, ng *rafay.ManagedN
 	v.BottleRocket4, d = types.ListValue(BottleRocket4Value{}.Type(ctx), []attr.Value{bottlerkt})
 	diags = append(diags, d...)
 
-	taints := []attr.Value{}
-	for _, val := range ng.Taints {
-		taint := NewTaints4ValueNull()
-		d = taint.Flatten(ctx, val)
+	taints := types.ListNull(Taints4Value{}.Type(ctx))
+	if len(ng.Taints) > 0 {
+		taintsList := []attr.Value{}
+		for _, val := range ng.Taints {
+			taint := NewTaints4ValueNull()
+			d = taint.Flatten(ctx, val)
+			diags = append(diags, d...)
+			taintsList = append(taintsList, taint)
+		}
+		taints, d = types.ListValue(Taints4Value{}.Type(ctx), taintsList)
 		diags = append(diags, d...)
-		taints = append(taints, taint)
 	}
-	v.Taints4, d = types.ListValue(Taints4Value{}.Type(ctx), taints)
-	diags = append(diags, d...)
+	v.Taints4 = taints
 
 	updateConfig := NewUpdateConfig4ValueNull()
 	d = updateConfig.Flatten(ctx, ng.UpdateConfig)
@@ -872,12 +993,16 @@ func (v *Ssh4Value) Flatten(ctx context.Context, ssh *rafay.NodeGroupSSH) diag.D
 	v.PublicKey = types.StringValue(ssh.PublicKey)
 	v.PublicKeyName = types.StringValue(ssh.PublicKeyName)
 
-	ids := []attr.Value{}
-	for _, id := range ssh.SourceSecurityGroupIDs {
-		ids = append(ids, types.StringValue(id))
+	sourceSecurityGroupIds := types.ListNull(types.StringType)
+	if len(ssh.SourceSecurityGroupIDs) > 0 {
+		ids := []attr.Value{}
+		for _, id := range ssh.SourceSecurityGroupIDs {
+			ids = append(ids, types.StringValue(id))
+		}
+		sourceSecurityGroupIds, d = types.ListValue(types.StringType, ids)
+		diags = append(diags, d...)
 	}
-	v.SourceSecurityGroupIds, d = types.ListValue(types.StringType, ids)
-	diags = append(diags, d...)
+	v.SourceSecurityGroupIds = sourceSecurityGroupIds
 
 	v.EnableSsm = types.BoolPointerValue(ssh.EnableSSM)
 
@@ -892,12 +1017,14 @@ func (v *Iam4Value) Flatten(ctx context.Context, iam *rafay.NodeGroupIAM) diag.D
 	}
 
 	// TODO(Akshay): Check if Attach Policy v2. based on that populate attach_policy and attach_policy_v2
-	var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-	jsonBytes, err := json2.Marshal(iam.AttachPolicy)
-	if err != nil {
-		diags.AddError("Attach Policy Marshal Error", err.Error())
+	if iam.AttachPolicy != nil {
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		jsonBytes, err := json2.Marshal(iam.AttachPolicy)
+		if err != nil {
+			diags.AddError("Attach Policy Marshal Error", err.Error())
+		}
+		v.AttachPolicyV2 = types.StringValue(string(jsonBytes))
 	}
-	v.AttachPolicyV2 = types.StringValue(string(jsonBytes))
 
 	attachPolicy := NewAttachPolicyValueNull()
 	d = attachPolicy.Flatten(ctx, iam.AttachPolicy)
@@ -905,12 +1032,16 @@ func (v *Iam4Value) Flatten(ctx context.Context, iam *rafay.NodeGroupIAM) diag.D
 	v.AttachPolicy4, d = types.ListValue(AttachPolicy4Value{}.Type(ctx), []attr.Value{attachPolicy})
 	diags = append(diags, d...)
 
-	arns := []attr.Value{}
-	for _, arn := range iam.AttachPolicyARNs {
-		arns = append(arns, types.StringValue(arn))
+	attachPolicyArns := types.ListNull(types.StringType)
+	if len(iam.AttachPolicyARNs) > 0 {
+		arns := []attr.Value{}
+		for _, arn := range iam.AttachPolicyARNs {
+			arns = append(arns, types.StringValue(arn))
+		}
+		attachPolicyArns, d = types.ListValue(types.StringType, arns)
+		diags = append(diags, d...)
 	}
-	v.AttachPolicyArns, d = types.ListValue(types.StringType, arns)
-	diags = append(diags, d...)
+	v.AttachPolicyArns = attachPolicyArns
 
 	v.InstanceProfileArn = types.StringValue(iam.InstanceProfileARN)
 	v.InstanceRoleArn = types.StringValue(iam.InstanceRoleARN)
@@ -937,15 +1068,19 @@ func (v *AttachPolicy4Value) Flatten(ctx context.Context, attachpol *rafay.Inlin
 	v.Version = types.StringValue(attachpol.Version)
 	v.Id = types.StringValue(attachpol.Id)
 
-	stms := []attr.Value{}
-	for _, stm := range attachpol.Statement {
-		sv := NewStatementValueNull()
-		d = sv.Flatten(ctx, stm)
+	statement4 := types.ListNull(Statement4Value{}.Type(ctx))
+	if len(attachpol.Statement) > 0 {
+		stms := []attr.Value{}
+		for _, stm := range attachpol.Statement {
+			sv := NewStatementValueNull()
+			d = sv.Flatten(ctx, stm)
+			diags = append(diags, d...)
+			stms = append(stms, sv)
+		}
+		statement4, d = types.ListValue(Statement4Value{}.Type(ctx), stms)
 		diags = append(diags, d...)
-		stms = append(stms, sv)
 	}
-	v.Statement4, d = types.ListValue(Statement4Value{}.Type(ctx), stms)
-	diags = append(diags, d...)
+	v.Statement4 = statement4
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1053,12 +1188,16 @@ func (v *PrivateClusterValue) Flatten(ctx context.Context, in *rafay.PrivateClus
 
 	v.Enabled = types.BoolPointerValue(in.Enabled)
 	v.SkipEndpointCreation = types.BoolPointerValue(in.SkipEndpointCreation)
-	additionalEndpointServices := []attr.Value{}
-	for _, val := range in.AdditionalEndpointServices {
-		additionalEndpointServices = append(additionalEndpointServices, types.StringValue(val))
+	additionalEndpointServices := types.ListNull(types.StringType)
+	if len(in.AdditionalEndpointServices) > 0 {
+		additionalEndpointServicesList := []attr.Value{}
+		for _, val := range in.AdditionalEndpointServices {
+			additionalEndpointServicesList = append(additionalEndpointServicesList, types.StringValue(val))
+		}
+		additionalEndpointServices, d = types.ListValue(types.StringType, additionalEndpointServicesList)
+		diags = append(diags, d...)
 	}
-	v.AdditionalEndpointServices, d = types.ListValue(types.StringType, additionalEndpointServices)
-	diags = append(diags, d...)
+	v.AdditionalEndpointServices = additionalEndpointServices
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1070,20 +1209,26 @@ func (v *AddonsValue) Flatten(ctx context.Context, in *rafay.Addon) diag.Diagnos
 	v.Name = types.StringValue(in.Name)
 	v.Version = types.StringValue(in.Version)
 	v.ServiceAccountRoleArn = types.StringValue(in.ServiceAccountRoleARN)
-	policyARNs := []attr.Value{}
-	for _, arn := range in.AttachPolicyARNs {
-		policyARNs = append(policyARNs, types.StringValue(arn))
+	attachPolicyArns3 := types.ListNull(types.StringType)
+	if len(in.AttachPolicyARNs) > 0 {
+		policyARNs := []attr.Value{}
+		for _, arn := range in.AttachPolicyARNs {
+			policyARNs = append(policyARNs, types.StringValue(arn))
+		}
+		attachPolicyArns3, d = types.ListValue(types.StringType, policyARNs)
+		diags = append(diags, d...)
 	}
-	v.AttachPolicyArns3, d = types.ListValue(types.StringType, policyARNs)
-	diags = append(diags, d...)
+	v.AttachPolicyArns3 = attachPolicyArns3
 
 	// TODO(Akshay): Check if Attach Policy v2. based on that populate attach_policy and attach_policy_v2
-	var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-	jsonBytes, err := json2.Marshal(in.AttachPolicy)
-	if err != nil {
-		diags.AddError("Attach Policy Marshal Error", err.Error())
+	if in.AttachPolicy != nil {
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		jsonBytes, err := json2.Marshal(in.AttachPolicy)
+		if err != nil {
+			diags.AddError("Attach Policy Marshal Error", err.Error())
+		}
+		v.AttachPolicyV22 = types.StringValue(string(jsonBytes))
 	}
-	v.AttachPolicyV22 = types.StringValue(string(jsonBytes))
 
 	v.PermissionsBoundary2 = types.StringValue(in.PermissionsBoundary)
 	tags := types.MapNull(types.StringType)
@@ -1112,15 +1257,19 @@ func (v *AddonsValue) Flatten(ctx context.Context, in *rafay.Addon) diag.Diagnos
 	v.WellKnownPolicies3, d = types.ListValue(WellKnownPolicies3Value{}.Type(ctx), []attr.Value{policies})
 	diags = append(diags, d...)
 
-	pias := []attr.Value{}
-	for _, p := range in.PodIdentityAssociations {
-		pia := NewPodIdentityAssociations2ValueNull()
-		d = pia.Flatten(ctx, p)
+	podIdentityAssociations2 := types.ListNull(PodIdentityAssociations2Value{}.Type(ctx))
+	if len(in.PodIdentityAssociations) > 0 {
+		pias := []attr.Value{}
+		for _, p := range in.PodIdentityAssociations {
+			pia := NewPodIdentityAssociations2ValueNull()
+			d = pia.Flatten(ctx, p)
+			diags = append(diags, d...)
+			pias = append(pias, pia)
+		}
+		podIdentityAssociations2, d = types.ListValue(PodIdentityAssociations2Value{}.Type(ctx), pias)
 		diags = append(diags, d...)
-		pias = append(pias, pia)
 	}
-	v.PodIdentityAssociations2, d = types.ListValue(PodIdentityAssociations2Value{}.Type(ctx), pias)
-	diags = append(diags, d...)
+	v.PodIdentityAssociations2 = podIdentityAssociations2
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1138,12 +1287,16 @@ func (v *PodIdentityAssociations2Value) Flatten(ctx context.Context, in *rafay.I
 	v.CreateServiceAccount = types.BoolValue(in.CreateServiceAccount)
 	v.RoleName = types.StringValue(in.RoleName)
 	v.PermissionBoundaryArn = types.StringValue(in.PermissionsBoundaryARN)
-	arns := []attr.Value{}
-	for _, arn := range in.PermissionPolicyARNs {
-		arns = append(arns, types.StringValue(arn))
+	permissionPolicyArns := types.ListNull(types.StringType)
+	if len(in.PermissionPolicyARNs) > 0 {
+		arns := []attr.Value{}
+		for _, arn := range in.PermissionPolicyARNs {
+			arns = append(arns, types.StringValue(arn))
+		}
+		permissionPolicyArns, d = types.ListValue(types.StringType, arns)
+		diags = append(diags, d...)
 	}
-	v.PermissionPolicyArns, d = types.ListValue(types.StringType, arns)
-	diags = append(diags, d...)
+	v.PermissionPolicyArns = permissionPolicyArns
 	if len(in.PermissionPolicy) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.PermissionPolicy)
@@ -1216,15 +1369,19 @@ func (v *AttachPolicy3Value) Flatten(ctx context.Context, attachpol *rafay.Inlin
 	v.Version = types.StringValue(attachpol.Version)
 	v.Id = types.StringValue(attachpol.Id)
 
-	stms := []attr.Value{}
-	for _, stm := range attachpol.Statement {
-		sv := NewStatementValueNull()
-		d = sv.Flatten(ctx, stm)
+	statement2 := types.ListNull(StatementValue{}.Type(ctx))
+	if len(attachpol.Statement) > 0 {
+		stms := []attr.Value{}
+		for _, stm := range attachpol.Statement {
+			sv := NewStatementValueNull()
+			d = sv.Flatten(ctx, stm)
+			diags = append(diags, d...)
+			stms = append(stms, sv)
+		}
+		statement2, d = types.ListValue(StatementValue{}.Type(ctx), stms)
 		diags = append(diags, d...)
-		stms = append(stms, sv)
 	}
-	v.Statement2, d = types.ListValue(StatementValue{}.Type(ctx), stms)
-	diags = append(diags, d...)
+	v.Statement2 = statement2
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1310,30 +1467,42 @@ func (v *VpcValue) Flatten(ctx context.Context, in *rafay.EKSClusterVPC) diag.Di
 	v.Ipv6Cidr = types.StringValue(in.IPv6Cidr)
 	v.Ipv6Pool = types.StringValue(in.IPv6Pool)
 	v.SecurityGroup = types.StringValue(in.SecurityGroup)
-	extraCidrs := []attr.Value{}
-	for _, cidr := range in.ExtraCIDRs {
-		extraCidrs = append(extraCidrs, types.StringValue(cidr))
+	extraCidrs := types.ListNull(types.StringType)
+	if len(in.ExtraCIDRs) > 0 {
+		extraCidrsList := []attr.Value{}
+		for _, cidr := range in.ExtraCIDRs {
+			extraCidrsList = append(extraCidrsList, types.StringValue(cidr))
+		}
+		extraCidrs, d = types.ListValue(types.StringType, extraCidrsList)
+		diags = append(diags, d...)
 	}
-	v.ExtraCidrs, d = types.ListValue(types.StringType, extraCidrs)
-	diags = append(diags, d...)
+	v.ExtraCidrs = extraCidrs
 
-	extraIPv6Cidrs := []attr.Value{}
-	for _, cidr := range in.ExtraIPv6CIDRs {
-		extraIPv6Cidrs = append(extraIPv6Cidrs, types.StringValue(cidr))
+	extraIPv6Cidrs := types.ListNull(types.StringType)
+	if len(in.ExtraIPv6CIDRs) > 0 {
+		extraIPv6CidrsList := []attr.Value{}
+		for _, cidr := range in.ExtraIPv6CIDRs {
+			extraIPv6CidrsList = append(extraIPv6CidrsList, types.StringValue(cidr))
+		}
+		extraIPv6Cidrs, d = types.ListValue(types.StringType, extraIPv6CidrsList)
+		diags = append(diags, d...)
 	}
-	v.ExtraIpv6Cidrs, d = types.ListValue(types.StringType, extraIPv6Cidrs)
-	diags = append(diags, d...)
+	v.ExtraIpv6Cidrs = extraIPv6Cidrs
 
 	v.SharedNodeSecurityGroup = types.StringValue(in.SharedNodeSecurityGroup)
 	v.ManageSharedNodeSecurityGroupRules = types.BoolPointerValue(in.ManageSharedNodeSecurityGroupRules)
 	v.AutoAllocateIpv6 = types.BoolPointerValue(in.AutoAllocateIPv6)
 
-	publicAccessCidrs := []attr.Value{}
-	for _, cidr := range in.PublicAccessCIDRs {
-		publicAccessCidrs = append(publicAccessCidrs, types.StringValue(cidr))
+	publicAccessCidrs := types.ListNull(types.StringType)
+	if len(in.PublicAccessCIDRs) > 0 {
+		publicAccessCidrsList := []attr.Value{}
+		for _, cidr := range in.PublicAccessCIDRs {
+			publicAccessCidrsList = append(publicAccessCidrsList, types.StringValue(cidr))
+		}
+		publicAccessCidrs, d = types.ListValue(types.StringType, publicAccessCidrsList)
+		diags = append(diags, d...)
 	}
-	v.PublicAccessCidrs, d = types.ListValue(types.StringType, publicAccessCidrs)
-	diags = append(diags, d...)
+	v.PublicAccessCidrs = publicAccessCidrs
 
 	subnets := NewSubnets3ValueNull()
 	d = subnets.Flatten(ctx, in.Subnets)
@@ -1388,25 +1557,33 @@ func (v *Subnets3Value) Flatten(ctx context.Context, in *rafay.ClusterSubnets) d
 		return diags
 	}
 
-	privates := []attr.Value{}
-	for nm, pvSubnet := range in.Private {
-		private := NewPrivateValueNull()
-		d = private.Flatten(ctx, nm, pvSubnet)
+	private := types.ListNull(PrivateValue{}.Type(ctx))
+	if len(in.Private) > 0 {
+		privates := []attr.Value{}
+		for nm, pvSubnet := range in.Private {
+			privateValue := NewPrivateValueNull()
+			d = privateValue.Flatten(ctx, nm, pvSubnet)
+			diags = append(diags, d...)
+			privates = append(privates, privateValue)
+		}
+		private, d = types.ListValue(PrivateValue{}.Type(ctx), privates)
 		diags = append(diags, d...)
-		privates = append(privates, private)
 	}
-	v.Private, d = types.ListValue(PrivateValue{}.Type(ctx), privates)
-	diags = append(diags, d...)
+	v.Private = private
 
-	publics := []attr.Value{}
-	for nm, puSubnet := range in.Public {
-		public := NewPublicValueNull()
-		d = public.Flatten(ctx, nm, puSubnet)
+	public := types.ListNull(PublicValue{}.Type(ctx))
+	if len(in.Public) > 0 {
+		publics := []attr.Value{}
+		for nm, puSubnet := range in.Public {
+			publicValue := NewPublicValueNull()
+			d = publicValue.Flatten(ctx, nm, puSubnet)
+			diags = append(diags, d...)
+			publics = append(publics, publicValue)
+		}
+		public, d = types.ListValue(PublicValue{}.Type(ctx), publics)
 		diags = append(diags, d...)
-		publics = append(publics, public)
 	}
-	v.Public, d = types.ListValue(PublicValue{}.Type(ctx), publics)
-	diags = append(diags, d...)
+	v.Public = public
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1461,25 +1638,33 @@ func (v *Iam3Value) Flatten(ctx context.Context, in *rafay.EKSClusterIAM) diag.D
 	v.WithOidc = types.BoolPointerValue(in.WithOIDC)
 	v.VpcResourceControllerPolicy = types.BoolPointerValue(in.VPCResourceControllerPolicy)
 
-	pias := []attr.Value{}
-	for _, p := range in.PodIdentityAssociations {
-		pia := NewPodIdentityAssociationsValueNull()
-		d = pia.Flatten(ctx, p)
+	podIdentityAssociations := types.ListNull(PodIdentityAssociationsValue{}.Type(ctx))
+	if len(in.PodIdentityAssociations) > 0 {
+		pias := []attr.Value{}
+		for _, p := range in.PodIdentityAssociations {
+			pia := NewPodIdentityAssociationsValueNull()
+			d = pia.Flatten(ctx, p)
+			diags = append(diags, d...)
+			pias = append(pias, pia)
+		}
+		podIdentityAssociations, d = types.ListValue(PodIdentityAssociationsValue{}.Type(ctx), pias)
 		diags = append(diags, d...)
-		pias = append(pias, pia)
 	}
-	v.PodIdentityAssociations, d = types.ListValue(PodIdentityAssociationsValue{}.Type(ctx), pias)
-	diags = append(diags, d...)
+	v.PodIdentityAssociations = podIdentityAssociations
 
-	serviceAccounts := []attr.Value{}
-	for _, sa := range in.ServiceAccounts {
-		serviceAccount := NewServiceAccountsValueNull()
-		d = serviceAccount.Flatten(ctx, sa)
+	serviceAccounts := types.ListNull(ServiceAccountsValue{}.Type(ctx))
+	if len(in.ServiceAccounts) > 0 {
+		serviceAccountsList := []attr.Value{}
+		for _, sa := range in.ServiceAccounts {
+			serviceAccount := NewServiceAccountsValueNull()
+			d = serviceAccount.Flatten(ctx, sa)
+			diags = append(diags, d...)
+			serviceAccountsList = append(serviceAccountsList, serviceAccount)
+		}
+		serviceAccounts, d = types.ListValue(ServiceAccountsValue{}.Type(ctx), serviceAccountsList)
 		diags = append(diags, d...)
-		serviceAccounts = append(serviceAccounts, serviceAccount)
 	}
-	v.ServiceAccounts, d = types.ListValue(ServiceAccountsValue{}.Type(ctx), serviceAccounts)
-	diags = append(diags, d...)
+	v.ServiceAccounts = serviceAccounts
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1491,12 +1676,16 @@ func (v *ServiceAccountsValue) Flatten(ctx context.Context, in *rafay.EKSCluster
 		return diags
 	}
 
-	arns := []attr.Value{}
-	for _, arn := range in.AttachPolicyARNs {
-		arns = append(arns, types.StringValue(arn))
+	attachPolicyArns2 := types.ListNull(types.StringType)
+	if len(in.AttachPolicyARNs) > 0 {
+		arns := []attr.Value{}
+		for _, arn := range in.AttachPolicyARNs {
+			arns = append(arns, types.StringValue(arn))
+		}
+		attachPolicyArns2, d = types.ListValue(types.StringType, arns)
+		diags = append(diags, d...)
 	}
-	v.AttachPolicyArns2, d = types.ListValue(types.StringType, arns)
-	diags = append(diags, d...)
+	v.AttachPolicyArns2 = attachPolicyArns2
 
 	if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -1620,12 +1809,16 @@ func (v *PodIdentityAssociationsValue) Flatten(ctx context.Context, in *rafay.IA
 	v.CreateServiceAccount = types.BoolValue(in.CreateServiceAccount)
 	v.RoleName = types.StringValue(in.RoleName)
 	v.PermissionBoundaryArn = types.StringValue(in.PermissionsBoundaryARN)
-	arns := []attr.Value{}
-	for _, arn := range in.PermissionPolicyARNs {
-		arns = append(arns, types.StringValue(arn))
+	permissionPolicyArns := types.ListNull(types.StringType)
+	if len(in.PermissionPolicyARNs) > 0 {
+		arns := []attr.Value{}
+		for _, arn := range in.PermissionPolicyARNs {
+			arns = append(arns, types.StringValue(arn))
+		}
+		permissionPolicyArns, d = types.ListValue(types.StringType, arns)
+		diags = append(diags, d...)
 	}
-	v.PermissionPolicyArns, d = types.ListValue(types.StringType, arns)
-	diags = append(diags, d...)
+	v.PermissionPolicyArns = permissionPolicyArns
 	if len(in.PermissionPolicy) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.PermissionPolicy)
@@ -1827,12 +2020,16 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, ng *rafay.NodeGroup) diag
 	v.VolumeKmsKeyId = types.StringValue(ng.VolumeKmsKeyID)
 	v.OverrideBootstrapCommand = types.StringValue(ng.OverrideBootstrapCommand)
 
-	pbElements := []attr.Value{}
-	for _, pb := range ng.PreBootstrapCommands {
-		pbElements = append(pbElements, types.StringValue(pb))
+	preBootstrapCommands := types.ListNull(types.StringType)
+	if len(ng.PreBootstrapCommands) > 0 {
+		pbElements := []attr.Value{}
+		for _, pb := range ng.PreBootstrapCommands {
+			pbElements = append(pbElements, types.StringValue(pb))
+		}
+		preBootstrapCommands, d = types.ListValue(types.StringType, pbElements)
+		diags = append(diags, d...)
 	}
-	v.PreBootstrapCommands, d = types.ListValue(types.StringType, pbElements)
-	diags = append(diags, d...)
+	v.PreBootstrapCommands = preBootstrapCommands
 
 	asgSuspendProcess := types.ListNull(types.StringType)
 	if len(ng.ASGSuspendProcesses) > 0 {
@@ -1845,37 +2042,53 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, ng *rafay.NodeGroup) diag
 	}
 	v.AsgSuspendProcesses = asgSuspendProcess
 
-	tgaElements := []attr.Value{}
-	for _, tga := range ng.TargetGroupARNs {
-		tgaElements = append(tgaElements, types.StringValue(tga))
+	targetGroupArns := types.ListNull(types.StringType)
+	if len(ng.TargetGroupARNs) > 0 {
+		tgaElements := []attr.Value{}
+		for _, tga := range ng.TargetGroupARNs {
+			tgaElements = append(tgaElements, types.StringValue(tga))
+		}
+		targetGroupArns, d = types.ListValue(types.StringType, tgaElements)
+		diags = append(diags, d...)
 	}
-	v.TargetGroupArns, d = types.ListValue(types.StringType, tgaElements)
-	diags = append(diags, d...)
+	v.TargetGroupArns = targetGroupArns
 
-	clbElements := []attr.Value{}
-	for _, clb := range ng.ClassicLoadBalancerNames {
-		clbElements = append(clbElements, types.StringValue(clb))
+	classicLoadBalancerNames := types.ListNull(types.StringType)
+	if len(ng.ClassicLoadBalancerNames) > 0 {
+		clbElements := []attr.Value{}
+		for _, clb := range ng.ClassicLoadBalancerNames {
+			clbElements = append(clbElements, types.StringValue(clb))
+		}
+		classicLoadBalancerNames, d = types.ListValue(types.StringType, clbElements)
+		diags = append(diags, d...)
 	}
-	v.ClassicLoadBalancerNames, d = types.ListValue(types.StringType, clbElements)
-	diags = append(diags, d...)
+	v.ClassicLoadBalancerNames = classicLoadBalancerNames
 
 	v.CpuCredits = types.StringValue(ng.CPUCredits)
 	v.EnableDetailedMonitoring = types.BoolPointerValue(ng.EnableDetailedMonitoring)
 	v.InstanceType = types.StringValue(ng.InstanceType)
 
-	azElements := []attr.Value{}
-	for _, az := range ng.AvailabilityZones {
-		azElements = append(azElements, types.StringValue(az))
+	availabilityZones2 := types.ListNull(types.StringType)
+	if len(ng.AvailabilityZones) > 0 {
+		azElements := []attr.Value{}
+		for _, az := range ng.AvailabilityZones {
+			azElements = append(azElements, types.StringValue(az))
+		}
+		availabilityZones2, d = types.ListValue(types.StringType, azElements)
+		diags = append(diags, d...)
 	}
-	v.AvailabilityZones2, d = types.ListValue(types.StringType, azElements)
-	diags = append(diags, d...)
+	v.AvailabilityZones2 = availabilityZones2
 
-	snElements := []attr.Value{}
-	for _, sn := range ng.Subnets {
-		snElements = append(snElements, types.StringValue(sn))
+	subnets := types.ListNull(types.StringType)
+	if len(ng.Subnets) > 0 {
+		snElements := []attr.Value{}
+		for _, sn := range ng.Subnets {
+			snElements = append(snElements, types.StringValue(sn))
+		}
+		subnets, d = types.ListValue(types.StringType, snElements)
+		diags = append(diags, d...)
 	}
-	v.Subnets, d = types.ListValue(types.StringType, snElements)
-	diags = append(diags, d...)
+	v.Subnets = subnets
 
 	v.InstancePrefix = types.StringValue(ng.InstancePrefix)
 	v.InstanceName = types.StringValue(ng.InstanceName)
@@ -1941,25 +2154,33 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, ng *rafay.NodeGroup) diag
 	v.InstancesDistribution, d = types.ListValue(InstancesDistributionValue{}.Type(ctx), []attr.Value{instDistribution})
 	diags = append(diags, d...)
 
-	amcList := []attr.Value{}
-	for _, val := range ng.ASGMetricsCollection {
-		amc := NewAsgMetricsCollectionValueNull()
-		d = amc.Flatten(ctx, val)
+	asgMetricsCollection := types.ListNull(AsgMetricsCollectionValue{}.Type(ctx))
+	if len(ng.ASGMetricsCollection) > 0 {
+		amcList := []attr.Value{}
+		for _, val := range ng.ASGMetricsCollection {
+			amc := NewAsgMetricsCollectionValueNull()
+			d = amc.Flatten(ctx, val)
+			diags = append(diags, d...)
+			amcList = append(amcList, amc)
+		}
+		asgMetricsCollection, d = types.ListValue(AsgMetricsCollectionValue{}.Type(ctx), amcList)
 		diags = append(diags, d...)
-		amcList = append(amcList, amc)
 	}
-	v.AsgMetricsCollection, d = types.ListValue(AsgMetricsCollectionValue{}.Type(ctx), amcList)
-	diags = append(diags, d...)
+	v.AsgMetricsCollection = asgMetricsCollection
 
-	taints := []attr.Value{}
-	for _, val := range ng.Taints {
-		taint := NewTaintsValueNull()
-		d = taint.Flatten(ctx, val)
+	taints := types.ListNull(TaintsValue{}.Type(ctx))
+	if len(ng.Taints) > 0 {
+		taintsList := []attr.Value{}
+		for _, val := range ng.Taints {
+			taint := NewTaintsValueNull()
+			d = taint.Flatten(ctx, val)
+			diags = append(diags, d...)
+			taintsList = append(taintsList, taint)
+		}
+		taints, d = types.ListValue(TaintsValue{}.Type(ctx), taintsList)
 		diags = append(diags, d...)
-		taints = append(taints, taint)
 	}
-	v.Taints, d = types.ListValue(TaintsValue{}.Type(ctx), taints)
-	diags = append(diags, d...)
+	v.Taints = taints
 
 	updateConfig := NewUpdateConfigValueNull()
 	d = updateConfig.Flatten(ctx, ng.UpdateConfig)
@@ -2071,12 +2292,16 @@ func (v *AsgMetricsCollectionValue) Flatten(ctx context.Context, in rafay.Metric
 
 	v.Granularity = types.StringValue(in.Granularity)
 
-	metrics := []attr.Value{}
-	for _, metric := range in.Metrics {
-		metrics = append(metrics, types.StringValue(metric))
+	metrics := types.ListNull(types.StringType)
+	if len(in.Metrics) > 0 {
+		metricsList := []attr.Value{}
+		for _, metric := range in.Metrics {
+			metricsList = append(metricsList, types.StringValue(metric))
+		}
+		metrics, d = types.ListValue(types.StringType, metricsList)
+		diags = append(diags, d...)
 	}
-	v.Metrics, d = types.ListValue(types.StringType, metrics)
-	diags = append(diags, d...)
+	v.Metrics = metrics
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -2088,12 +2313,16 @@ func (v *InstancesDistributionValue) Flatten(ctx context.Context, in *rafay.Node
 		return diags
 	}
 
-	instanceTypes := []attr.Value{}
-	for _, it := range in.InstanceTypes {
-		instanceTypes = append(instanceTypes, types.StringValue(it))
+	instanceTypes := types.ListNull(types.StringType)
+	if len(in.InstanceTypes) > 0 {
+		instanceTypesList := []attr.Value{}
+		for _, it := range in.InstanceTypes {
+			instanceTypesList = append(instanceTypesList, types.StringValue(it))
+		}
+		instanceTypes, d = types.ListValue(types.StringType, instanceTypesList)
+		diags = append(diags, d...)
 	}
-	v.InstanceTypes, d = types.ListValue(types.StringType, instanceTypes)
-	diags = append(diags, d...)
+	v.InstanceTypes = instanceTypes
 
 	v.MaxPrice = types.Float64PointerValue(in.MaxPrice)
 	if in.OnDemandBaseCapacity != nil {
@@ -2178,12 +2407,16 @@ func (v *SshValue) Flatten(ctx context.Context, ssh *rafay.NodeGroupSSH) diag.Di
 	v.PublicKey = types.StringValue(ssh.PublicKey)
 	v.PublicKeyName = types.StringValue(ssh.PublicKeyName)
 
-	ids := []attr.Value{}
-	for _, id := range ssh.SourceSecurityGroupIDs {
-		ids = append(ids, types.StringValue(id))
+	sourceSecurityGroupIds := types.ListNull(types.StringType)
+	if len(ssh.SourceSecurityGroupIDs) > 0 {
+		ids := []attr.Value{}
+		for _, id := range ssh.SourceSecurityGroupIDs {
+			ids = append(ids, types.StringValue(id))
+		}
+		sourceSecurityGroupIds, d = types.ListValue(types.StringType, ids)
+		diags = append(diags, d...)
 	}
-	v.SourceSecurityGroupIds, d = types.ListValue(types.StringType, ids)
-	diags = append(diags, d...)
+	v.SourceSecurityGroupIds = sourceSecurityGroupIds
 
 	v.EnableSsm = types.BoolPointerValue(ssh.EnableSSM)
 
@@ -2200,12 +2433,16 @@ func (v *SecurityGroups2Value) Flatten(ctx context.Context, sg *rafay.NodeGroupS
 	v.WithShared = types.BoolPointerValue(sg.WithShared)
 	v.WithLocal = types.BoolPointerValue(sg.WithLocal)
 
-	aidsElements := []attr.Value{}
-	for _, aid := range sg.AttachIDs {
-		aidsElements = append(aidsElements, types.StringValue(aid))
+	attachIds := types.ListNull(types.StringType)
+	if len(sg.AttachIDs) > 0 {
+		aidsElements := []attr.Value{}
+		for _, aid := range sg.AttachIDs {
+			aidsElements = append(aidsElements, types.StringValue(aid))
+		}
+		attachIds, d = types.ListValue(types.StringType, aidsElements)
+		diags = append(diags, d...)
 	}
-	v.AttachIds, d = types.ListValue(types.StringType, aidsElements)
-	diags = append(diags, d...)
+	v.AttachIds = attachIds
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -2218,12 +2455,14 @@ func (v *IamValue) Flatten(ctx context.Context, iam *rafay.NodeGroupIAM) diag.Di
 	}
 
 	// TODO(Akshay): Check if Attach Policy v2. based on that populate attach_policy and attach_policy_v2
-	var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-	jsonBytes, err := json2.Marshal(iam.AttachPolicy)
-	if err != nil {
-		diags.AddError("Attach Policy Marshal Error", err.Error())
+	if iam.AttachPolicy != nil {
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		jsonBytes, err := json2.Marshal(iam.AttachPolicy)
+		if err != nil {
+			diags.AddError("Attach Policy Marshal Error", err.Error())
+		}
+		v.AttachPolicyV2 = types.StringValue(string(jsonBytes))
 	}
-	v.AttachPolicyV2 = types.StringValue(string(jsonBytes))
 
 	attachPolicy := NewAttachPolicyValueNull()
 	d = attachPolicy.Flatten(ctx, iam.AttachPolicy)
@@ -2231,12 +2470,16 @@ func (v *IamValue) Flatten(ctx context.Context, iam *rafay.NodeGroupIAM) diag.Di
 	v.AttachPolicy, d = types.ListValue(AttachPolicyValue{}.Type(ctx), []attr.Value{attachPolicy})
 	diags = append(diags, d...)
 
-	arns := []attr.Value{}
-	for _, arn := range iam.AttachPolicyARNs {
-		arns = append(arns, types.StringValue(arn))
+	attachPolicyArns := types.ListNull(types.StringType)
+	if len(iam.AttachPolicyARNs) > 0 {
+		arns := []attr.Value{}
+		for _, arn := range iam.AttachPolicyARNs {
+			arns = append(arns, types.StringValue(arn))
+		}
+		attachPolicyArns, d = types.ListValue(types.StringType, arns)
+		diags = append(diags, d...)
 	}
-	v.AttachPolicyArns, d = types.ListValue(types.StringType, arns)
-	diags = append(diags, d...)
+	v.AttachPolicyArns = attachPolicyArns
 
 	v.InstanceProfileArn = types.StringValue(iam.InstanceProfileARN)
 	v.InstanceRoleArn = types.StringValue(iam.InstanceRoleARN)
@@ -2263,15 +2506,19 @@ func (v *AttachPolicyValue) Flatten(ctx context.Context, attachpol *rafay.Inline
 	v.Version = types.StringValue(attachpol.Version)
 	v.Id = types.StringValue(attachpol.Id)
 
-	stms := []attr.Value{}
-	for _, stm := range attachpol.Statement {
-		sv := NewStatementValueNull()
-		d = sv.Flatten(ctx, stm)
+	statement := types.ListNull(StatementValue{}.Type(ctx))
+	if len(attachpol.Statement) > 0 {
+		stms := []attr.Value{}
+		for _, stm := range attachpol.Statement {
+			sv := NewStatementValueNull()
+			d = sv.Flatten(ctx, stm)
+			diags = append(diags, d...)
+			stms = append(stms, sv)
+		}
+		statement, d = types.ListValue(StatementValue{}.Type(ctx), stms)
 		diags = append(diags, d...)
-		stms = append(stms, sv)
 	}
-	v.Statement, d = types.ListValue(StatementValue{}.Type(ctx), stms)
-	diags = append(diags, d...)
+	v.Statement = statement
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -2386,15 +2633,19 @@ func (v *SystemComponentsPlacementValue) Flatten(ctx context.Context, scp *rafay
 	}
 	v.NodeSelector = ns
 
-	tolerations := make([]attr.Value, 0, len(scp.Tolerations))
-	for _, t := range scp.Tolerations {
-		tol := NewTolerationsValueNull()
-		d = tol.Flatten(ctx, t)
+	tolerations := types.ListNull(TolerationsValue{}.Type(ctx))
+	if len(scp.Tolerations) > 0 {
+		tolerationsList := make([]attr.Value, 0, len(scp.Tolerations))
+		for _, t := range scp.Tolerations {
+			tol := NewTolerationsValueNull()
+			d = tol.Flatten(ctx, t)
+			diags = append(diags, d...)
+			tolerationsList = append(tolerationsList, tol)
+		}
+		tolerations, d = types.ListValue(TolerationsValue{}.Type(ctx), tolerationsList)
 		diags = append(diags, d...)
-		tolerations = append(tolerations, tol)
 	}
-	v.Tolerations, d = types.ListValue(TolerationsValue{}.Type(ctx), tolerations)
-	diags = append(diags, d...)
+	v.Tolerations = tolerations
 
 	// DaemonsetOverride
 	daemonsetOverride := NewDaemonsetOverrideValueNull()
@@ -2435,15 +2686,19 @@ func (v *DaemonsetOverrideValue) Flatten(ctx context.Context, dso *rafay.Daemons
 
 	v.NodeSelectionEnabled = types.BoolPointerValue(dso.NodeSelectionEnabled)
 
-	tolerations := make([]attr.Value, 0, len(dso.Tolerations))
-	for _, t := range dso.Tolerations {
-		tol := NewTolerations2ValueNull()
-		d = tol.Flatten(ctx, t)
+	tolerations2 := types.ListNull(Tolerations2Value{}.Type(ctx))
+	if len(dso.Tolerations) > 0 {
+		tolerationsList := make([]attr.Value, 0, len(dso.Tolerations))
+		for _, t := range dso.Tolerations {
+			tol := NewTolerations2ValueNull()
+			d = tol.Flatten(ctx, t)
+			diags = append(diags, d...)
+			tolerationsList = append(tolerationsList, tol)
+		}
+		tolerations2, d = types.ListValue(Tolerations2Value{}.Type(ctx), tolerationsList)
 		diags = append(diags, d...)
-		tolerations = append(tolerations, tol)
 	}
-	v.Tolerations2, d = types.ListValue(Tolerations2Value{}.Type(ctx), tolerations)
-	diags = append(diags, d...)
+	v.Tolerations2 = tolerations2
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -2477,15 +2732,19 @@ func (v *SharingValue) Flatten(ctx context.Context, sh *rafay.V1ClusterSharing) 
 
 	v.Enabled = types.BoolPointerValue(sh.Enabled)
 
-	projects := make([]attr.Value, 0, len(sh.Projects))
-	for _, p := range sh.Projects {
-		proj := NewProjectsValueNull()
-		d = proj.Flatten(ctx, p)
+	projects := types.ListNull(ProjectsValue{}.Type(ctx))
+	if len(sh.Projects) > 0 {
+		projectsList := make([]attr.Value, 0, len(sh.Projects))
+		for _, p := range sh.Projects {
+			proj := NewProjectsValueNull()
+			d = proj.Flatten(ctx, p)
+			diags = append(diags, d...)
+			projectsList = append(projectsList, proj)
+		}
+		projects, d = types.ListValue(ProjectsValue{}.Type(ctx), projectsList)
 		diags = append(diags, d...)
-		projects = append(projects, proj)
 	}
-	v.Projects, d = types.ListValue(ProjectsValue{}.Type(ctx), projects)
-	diags = append(diags, d...)
+	v.Projects = projects
 
 	v.state = attr.ValueStateKnown
 	return diags

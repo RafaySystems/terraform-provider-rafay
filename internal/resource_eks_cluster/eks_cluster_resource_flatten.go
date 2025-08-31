@@ -16,6 +16,9 @@ var ngMapInUse = true
 
 func FlattenEksCluster(ctx context.Context, c rafay.EKSCluster, data *EksClusterModel) diag.Diagnostics {
 	var diags, d diag.Diagnostics
+	if data == nil {
+		return diags
+	}
 
 	cv := NewClusterValueNull()
 	d = cv.Flatten(ctx, c)
@@ -36,8 +39,7 @@ func FlattenEksClusterConfig(ctx context.Context, c rafay.EKSClusterConfig, data
 	ccList := make([]ClusterConfigValue, len(data.ClusterConfig.Elements()))
 	d = data.ClusterConfig.ElementsAs(ctx, &ccList, false)
 	diags = append(diags, d...)
-	cc0 := ccList[0]
-	if len(cc0.NodeGroups.Elements()) > 0 {
+	if len(ccList[0].NodeGroups.Elements()) > 0 {
 		ngMapInUse = false
 	}
 
@@ -1832,12 +1834,16 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, ng *rafay.NodeGroup) diag
 	v.PreBootstrapCommands, d = types.ListValue(types.StringType, pbElements)
 	diags = append(diags, d...)
 
-	aspElements := []attr.Value{}
-	for _, asp := range ng.ASGSuspendProcesses {
-		aspElements = append(aspElements, types.StringValue(asp))
+	asgSuspendProcess := types.ListNull(types.StringType)
+	if len(ng.ASGSuspendProcesses) > 0 {
+		aspElements := []attr.Value{}
+		for _, asp := range ng.ASGSuspendProcesses {
+			aspElements = append(aspElements, types.StringValue(asp))
+		}
+		asgSuspendProcess, d = types.ListValue(types.StringType, aspElements)
+		diags = append(diags, d...)
 	}
-	v.AsgSuspendProcesses, d = types.ListValue(types.StringType, aspElements)
-	diags = append(diags, d...)
+	v.AsgSuspendProcesses = asgSuspendProcess
 
 	tgaElements := []attr.Value{}
 	for _, tga := range ng.TargetGroupARNs {

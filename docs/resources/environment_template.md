@@ -136,6 +136,9 @@ resource "rafay_environment_template" "aws-et-example" {
     agents {
       name = var.agent_name
     }
+    agent_pools {
+      name = "my-agent-pool"
+    }
     contexts {
       name = var.configcontext_name
     }
@@ -179,6 +182,7 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Optional***
 
 - `agents` (Block List) Agents that are eligible to process the template (see [below for nested schema](#nestedblock--spec--agents))
+- `agent_pools` (Block List) Agent Pools that are eligible to process the template (see [below for nested schema](#nestedblock--spec--agent--pools))
 - `contexts` (Block List) Reference to config context data associated with environment templates (see [below for nested schema](#nestedblock--spec--contexts))
 - `hooks` (Block List, Max: 1) Specify lifecycle hook actions (see [below for nested schema](#nestedblock--spec--hooks))
 - `sharing` (Block List, Max: 1) Sharing options with other projects (see [below for nested schema](#nestedblock--spec--sharing))
@@ -205,6 +209,13 @@ resource "rafay_environment_template" "aws-et-example" {
 ***Required***
 
 - `name` (String) name of the agent resource
+
+<a id="nestedblock--spec--agent--pools"></a>
+### Nested Schema for `spec.agent_pools`
+
+***Required***
+
+- `name` (String) name of the agent pool resource
 
 
 <a id="nestedblock--spec--contexts"></a>

@@ -71,6 +71,7 @@ resource "rafay_environment" "eks-rds-env-example" {
 ***Optional***
 
 - `agents` (Block List) Agents that are eligible to process the environment (see [below for nested schema](#nestedblock--spec--agents))
+- `agent_pools` (Block List) Agent Pools that are eligible to process the environment (see [below for nested schema](#nestedblock--spec--agent--pools))
 - `sharing` (Block List, Max: 1) Defines if this is shared with other projects (see [below for nested schema](#nestedblock--spec--sharing))
 - `variables` (Block List) Variables data for environment to be created (see [below for nested schema](#nestedblock--spec--variables))
 - `env_vars` (Block List) Environment variables data (see [below for nested schema](#nestedblock--spec--envs))
@@ -85,6 +86,13 @@ resource "rafay_environment" "eks-rds-env-example" {
 ***Required***
 
 - `name` (String) name of the resource
+
+<a id="nestedblock--spec--agent--pools"></a>
+### Nested Schema for `spec.agent_pools`
+
+***Required***
+
+- `name` (String) name of the agent pool resource
 
 
 <a id="nestedblock--spec--sharing"></a>

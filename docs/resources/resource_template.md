@@ -149,6 +149,9 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
     agents {
       name = var.agent_name
     }
+    agent_pools {
+      name = "my-agent-pool"
+    }
     overrides {
       allowed_paths = ["providerOptions.terraform.backendType"]
     }
@@ -193,6 +196,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Optional***
 
 - `agents` (Block List) Reference to agents to process resource template (see [below for nested schema](#nestedblock--spec--agents))
+- `agent_pools` (Block List) Reference to agent pools to process resource template (see [below for nested schema](#nestedblock--spec--agent--pools))
 - `contexts` (Block List) Reference to config context data associated with resource templates (see [below for nested schema](#nestedblock--spec--contexts))
 - `hooks` (Block List, Max: 1) Lifecycle hooks for resource template (see [below for nested schema](#nestedblock--spec--hooks))
 - `provider_options` (Block List, Max: 1) Provider specific options to be provided (see [below for nested schema](#nestedblock--spec--provider_options))
@@ -209,6 +213,13 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 ***Required***
 
 - `name` (String) name of the agent
+
+<a id="nestedblock--spec--agent--pools"></a>
+### Nested Schema for `spec.agent_pools`
+
+***Required***
+
+- `name` (String) name of the agent pool
 
 
 <a id="nestedblock--spec--contexts"></a>

@@ -1317,10 +1317,16 @@ func (v StatusValue) Expand(ctx context.Context) (*rafay.ClusterIAMServiceAccoun
 func (v IdentityProvidersValue) Expand(ctx context.Context) (*rafay.IdentityProvider, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var idp rafay.IdentityProvider
+
 	if v.IsNull() {
 		return &rafay.IdentityProvider{}, diags
 	}
-	// TODO: Map fields appropriately
+
+	// Map string fields
+	if !v.IdentityProvidersType.IsNull() && !v.IdentityProvidersType.IsUnknown() {
+		idp.Type = getStringValue(v.IdentityProvidersType)
+	}
+
 	return &idp, diags
 }
 

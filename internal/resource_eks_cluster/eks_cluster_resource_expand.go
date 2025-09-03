@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func getStringValue(tfString types.String) string {
@@ -818,10 +819,10 @@ func (v PodIdentityAssociationsValue) Expand(ctx context.Context) (*rafay.IAMPod
 	if !v.PermissionPolicy.IsNull() && !v.PermissionPolicy.IsUnknown() {
 		policyStr := getStringValue(v.PermissionPolicy)
 		if policyStr != "" {
-			// Note: This would need json.Unmarshal or similar to parse the JSON string
-			// For now, we'll set it as a string and let the calling code handle parsing
-			// TODO: Implement proper JSON parsing if needed
-			pia.PermissionPolicy = map[string]interface{}{"raw_policy": policyStr}
+			var policyDoc map[string]interface{}
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			json2.Unmarshal([]byte(policyStr), &policyDoc)
+			pia.PermissionPolicy = policyDoc
 		}
 	}
 
@@ -967,10 +968,10 @@ func (v ServiceAccountsValue) Expand(ctx context.Context) (*rafay.EKSClusterIAMS
 	if !v.AttachPolicy.IsNull() && !v.AttachPolicy.IsUnknown() {
 		policyStr := getStringValue(v.AttachPolicy)
 		if policyStr != "" {
-			// Note: This would need json.Unmarshal or similar to parse the JSON string
-			// For now, we'll set it as a string and let the calling code handle parsing
-			// TODO: Implement proper JSON parsing if needed
-			sa.AttachPolicy = map[string]interface{}{"raw_policy": policyStr}
+			var policyDoc map[string]interface{}
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			json2.Unmarshal([]byte(policyStr), &policyDoc)
+			sa.AttachPolicy = policyDoc
 		}
 	}
 

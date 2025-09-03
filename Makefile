@@ -65,6 +65,9 @@ testacc:
 fwgen:
 	bash internal/scripts/fwgen.sh
 
+fwgen-mac:
+	bash internal/scripts/fwgen-mac.sh
+
 push:
 	aws s3 cp ./bin/${BINARY}_${VERSION}_darwin_amd64  s3://$(BUCKET_NAME)/$(TAG)/$(BUILD_NUMBER)/${BINARY}_${VERSION}_darwin_amd64 --no-progress
 	aws s3 cp ./bin/${BINARY}_${VERSION}_darwin_arm64  s3://$(BUCKET_NAME)/$(TAG)/$(BUILD_NUMBER)/${BINARY}_${VERSION}_darwin_arm64 --no-progress

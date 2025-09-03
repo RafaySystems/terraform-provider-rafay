@@ -526,7 +526,7 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 }
 
 // Dedicated Expand functions for each block type
-// TODO: Implement Expand functions for: KubernetesNetworkConfigValue, Iam3Value, IdentityProvidersValue, VpcValue, AddonsValue, PrivateClusterValue, ManagedNodeGroupsValue, FargateProfilesValue, CloudWatchValue, SecretsEncryptionValue, IdentityMappingsValue, AccessConfigValue, AddonsConfigValue, AutoModeConfigValue, NodeGroupsMapValue
+// TODO: Implement Expand functions for: IdentityProvidersValue, VpcValue, AddonsValue, PrivateClusterValue, ManagedNodeGroupsValue, FargateProfilesValue, CloudWatchValue, SecretsEncryptionValue, IdentityMappingsValue, AccessConfigValue, AddonsConfigValue, AutoModeConfigValue, NodeGroupsMapValue
 
 // Stub Expand methods for all referenced block types
 func (v Metadata2Value) Expand(ctx context.Context) (*rafay.EKSClusterConfigMetadata, diag.Diagnostics) {
@@ -869,10 +869,20 @@ func (v NodeGroupsMapValue) Expand(ctx context.Context) (*rafay.NodeGroup, diag.
 func (v KubernetesNetworkConfigValue) Expand(ctx context.Context) (*rafay.KubernetesNetworkConfig, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var knc rafay.KubernetesNetworkConfig
+
 	if v.IsNull() {
 		return &rafay.KubernetesNetworkConfig{}, diags
 	}
-	// TODO: Map fields appropriately
+
+	// Map string fields
+	if !v.IpFamily.IsNull() && !v.IpFamily.IsUnknown() {
+		knc.IPFamily = getStringValue(v.IpFamily)
+	}
+
+	if !v.ServiceIpv4Cidr.IsNull() && !v.ServiceIpv4Cidr.IsUnknown() {
+		knc.ServiceIPv4CIDR = getStringValue(v.ServiceIpv4Cidr)
+	}
+
 	return &knc, diags
 }
 

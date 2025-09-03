@@ -1,0 +1,766 @@
+---
+alwaysApply: false
+---
+
+# Terraform Provider Migration Guide: Expand Functions
+
+## Overview
+
+This document outlines the methodology for migrating expand functions from the old Terraform SDKv2 (`rafay/resource_eks_cluster.go`) to the new Terraform Plugin Framework (`internal/resource_eks_cluster/eks_cluster_resource_expand.go`).
+
+## Core Translation Logic
+
+### 1. **Function Signature Transformation**
+
+**Old SDKv2 Pattern:**
+```go
+func expandFunctionName(p []interface{}) *TargetStruct {
+    // Implementation
+}
+```
+
+**New Plugin Framework Pattern:**
+```go
+func (v ValueType) Expand(ctx context.Context) (*rafay.TargetStruct, diag.Diagnostics) {
+    // Implementation
+}
+```
+
+### 2. **Data Access Pattern Transformation**
+
+**Old SDKv2:**
+```go
+in := p[0].(map[string]interface{})
+if v, ok := in["field_name"].(string); ok && len(v) > 0 {
+    obj.FieldName = v
+}
+```
+
+**New Plugin Framework:**
+```go
+if !v.FieldName.IsNull() && !v.FieldName.IsUnknown() {
+    obj.FieldName = getStringValue(v.FieldName)
+}
+```
+
+### 3. **Type Conversion Patterns**
+
+| Old SDKv2 | New Plugin Framework | Helper Function |
+|------------|---------------------|-----------------|
+| `v.(string)` | `getStringValue(v.FieldName)` | `getStringValue(tfString types.String) string` |
+| `v.(bool)` | `getBoolValue(v.FieldName)` | `getBoolValue(tfBool types.Bool) bool` |
+| `v.(int64)` | `getInt64Value(v.FieldName)` | `getInt64Value(tfInt types.Int64) int64` |
+| `v.([]interface{})` | `v.FieldName.ElementsAs(ctx, &list, false)` | Direct framework method |
+| `v.(map[string]interface{})` | `v.FieldName.ElementsAs(ctx, &map, false)` | Direct framework method |
+
+## Step-by-Step Migration Process
+
+### Phase 1: Codebase Analysis
+
+#### 1.1 **Identify Source Function**
+```bash
+# Search for the old expand function
+grep_search -query "func expandFunctionName" -include_pattern "*.go"
+```
+
+#### 1.2 **Examine Function Implementation**
+```bash
+# Read the complete function to understand its logic
+read_file -target_file "rafay/resource_eks_cluster.go" -start_line_one_indexed X -end_line_one_indexed Y
+```
+
+#### 1.3 **Identify Target Struct**
+```bash
+# Find the target struct definition
+grep_search -query "type TargetStruct struct" -include_pattern "*.go"
+read_file -target_file "rafay/eks_config.go" -start_line_one_indexed X -end_line_one_indexed Y
+```
+
+### Phase 2: Schema Analysis
+
+#### 2.1 **Examine Generated Value Struct**
+```bash
+# Find the generated Value struct for the target
+grep_search -query "type ValueType struct" -include_pattern "*_gen.go"
+read_file -target_file "internal/resource_eks_cluster/eks_cluster_resource_gen.go" -start_line_one_indexed X -end_line_one_indexed Y
+```
+
+#### 2.2 **Map Field Relationships**
+- **String fields**: Direct mapping with `getStringValue()`
+- **Boolean fields**: Direct mapping with `getBoolValue()`, often to pointers
+- **List fields**: Use `ElementsAs()` with proper type conversion
+- **Map fields**: Use `ElementsAs()` with nested iteration
+- **Nested blocks**: Call `Expand()` on child Value types
+
+### Phase 3: Implementation
+
+#### 3.1 **Create Function Skeleton**
+```go
+func (v ValueType) Expand(ctx context.Context) (*rafay.TargetStruct, diag.Diagnostics) {
+    var diags diag.Diagnostics
+    var obj rafay.TargetStruct
+
+    if v.IsNull() {
+        return &rafay.TargetStruct{}, diags
+    }
+
+    // TODO: Implement field mappings
+
+    return &obj, diags
+}
+```
+
+#### 3.2 **Implement Field Mappings**
+```go
+// String fields
+if !v.FieldName.IsNull() && !v.FieldName.IsUnknown() {
+    obj.FieldName = getStringValue(v.FieldName)
+}
+
+// Boolean fields (often to pointers)
+if !v.BoolField.IsNull() && !v.BoolField.IsUnknown() {
+    boolVal := getBoolValue(v.BoolField)
+    obj.BoolField = &boolVal
+}
+
+// List fields
+if !v.ListField.IsNull() && !v.ListField.IsUnknown() {
+    listItems := make([]types.String, 0, len(v.ListField.Elements()))
+    d := v.ListField.ElementsAs(ctx, &listItems, false)
+    diags = append(diags, d...)
+    
+    result := make([]string, 0, len(listItems))
+    for _, item := range listItems {
+        result = append(result, getStringValue(item))
+    }
+    if len(result) > 0 {
+        obj.ListField = result
+    }
+}
+
+// Map fields
+if !v.MapField.IsNull() && !v.MapField.IsUnknown() {
+    mapData := make(map[string]types.String, len(v.MapField.Elements()))
+    d := v.MapField.ElementsAs(ctx, &mapData, false)
+    diags = append(diags, d...)
+    
+    result := make(map[string]string, len(mapData))
+    for k, val := range mapData {
+        result[k] = getStringValue(val)
+    }
+    if len(result) > 0 {
+        obj.MapField = result
+    }
+}
+
+// Nested blocks
+if !v.NestedBlock.IsNull() && !v.NestedBlock.IsUnknown() {
+    nestedList := make([]NestedValueType, 0, len(v.NestedBlock.Elements()))
+    d := v.NestedBlock.ElementsAs(ctx, &nestedList, false)
+    diags = append(diags, d...)
+    
+    if len(nestedList) > 0 {
+        nestedObj, d := nestedList[0].Expand(ctx)
+        diags = append(diags, d...)
+        obj.NestedField = nestedObj
+    }
+}
+```
+
+#### 3.3 **Handle Special Cases**
+
+**JSON String to Map Conversion:**
+```go
+// Old pattern: JSON string to map[string]interface{}
+if v, ok := in["policy"].(string); ok && len(v) > 0 {
+    var policyDoc map[string]interface{}
+    json.Unmarshal([]byte(v), &policyDoc)
+    obj.Policy = policyDoc
+}
+
+// New pattern: Store as raw policy for later parsing
+if !v.Policy.IsNull() && !v.Policy.IsUnknown() {
+    policyStr := getStringValue(v.Policy)
+    if policyStr != "" {
+        // TODO: Implement proper JSON parsing if needed
+        obj.Policy = map[string]interface{}{"raw_policy": policyStr}
+    }
+}
+```
+
+### Phase 4: Dependency Resolution
+
+#### 4.1 **Identify Required Expand Functions**
+When implementing a parent Expand function, identify all child Value types that need Expand methods.
+
+#### 4.2 **Create Stub Functions**
+```go
+// Stub implementation to resolve compilation errors
+func (v ChildValueType) Expand(ctx context.Context) (*rafay.ChildStruct, diag.Diagnostics) {
+    var diags diag.Diagnostics
+    var obj rafay.ChildStruct
+    if v.IsNull() {
+        return &rafay.ChildStruct{}, diags
+    }
+    // TODO: Implement field mappings
+    return &obj, diags
+}
+```
+
+#### 4.3 **Implement Child Functions**
+Follow the same process to implement child Expand functions, then return to complete parent functions.
+
+### Phase 5: Validation
+
+#### 5.1 **Build Verification**
+```bash
+go build ./internal/resource_eks_cluster/
+```
+
+#### 5.2 **Error Resolution**
+- **Undefined methods**: Add stub Expand functions for referenced Value types
+- **Duplicate declarations**: Remove redundant function definitions
+- **Unused variables**: Clean up unused variable declarations
+- **Type mismatches**: Ensure proper type conversions
+
+## Common Patterns and Best Practices
+
+### 1. **Null/Unknown Checks**
+Always check both `IsNull()` and `IsUnknown()` before accessing field values:
+```go
+if !v.FieldName.IsNull() && !v.FieldName.IsUnknown() {
+    // Safe to access field
+}
+```
+
+### 2. **Diagnostics Aggregation**
+Collect diagnostics from all operations and return them:
+```go
+var diags, d diag.Diagnostics
+// ... operations ...
+d = someOperation(ctx)
+diags = append(diags, d...)
+```
+
+### 3. **Conditional Field Assignment**
+Only assign fields when they have meaningful values:
+```go
+if len(result) > 0 {
+    obj.Field = result
+}
+```
+
+### 4. **Error Handling**
+Use the same error handling patterns as existing functions:
+```go
+// For JSON parsing errors, store raw data for later processing
+// For type conversion errors, use safe conversion helpers
+```
+
+### 5. **Consistent Naming**
+- Use the same field names as the target struct
+- Follow Go naming conventions
+- Maintain consistency with existing implementations
+
+## File Organization
+
+### 1. **Source Files**
+- **Old implementations**: `rafay/resource_eks_cluster.go`
+- **Target structs**: `rafay/eks_config.go`
+- **Schema definitions**: `internal/resource_eks_cluster/eks_cluster_resource_spec.json`
+
+### 2. **Generated Files**
+- **Value structs**: `internal/resource_eks_cluster/eks_cluster_resource_gen.go`
+- **Target implementations**: `internal/resource_eks_cluster/eks_cluster_resource_expand.go`
+
+### 3. **Helper Functions**
+All helper functions (`getStringValue`, `getBoolValue`, etc.) are defined at the top of the expand file.
+
+## Migration Checklist
+
+- [ ] **Analysis Complete**
+  - [ ] Source function identified and understood
+  - [ ] Target struct identified and examined
+  - [ ] Generated Value struct identified and examined
+  - [ ] Field mapping relationships established
+
+- [ ] **Implementation Complete**
+  - [ ] Function skeleton created
+  - [ ] All field types mapped correctly
+  - [ ] Nested blocks handled
+  - [ ] Special cases (JSON, pointers) handled
+  - [ ] Diagnostics properly aggregated
+
+- [ ] **Dependencies Resolved**
+  - [ ] All required child Expand functions implemented
+  - [ ] No compilation errors
+  - [ ] Build succeeds
+
+- [ ] **Quality Assurance**
+  - [ ] Code follows established patterns
+  - [ ] Error handling consistent
+  - [ ] No unused variables or imports
+  - [ ] Proper null/unknown checks
+
+## Example: Complete Migration
+
+### Before (Old SDKv2)
+```go
+func expandServiceAccountsMetadata(p []interface{}) *EKSClusterIAMMeta {
+    obj := &EKSClusterIAMMeta{}
+    if len(p) == 0 || p[0] == nil {
+        return obj
+    }
+    in := p[0].(map[string]interface{})
+    
+    if v, ok := in["name"].(string); ok && len(v) > 0 {
+        obj.Name = v
+    }
+    if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+        obj.Namespace = v
+    }
+    if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
+        obj.Labels = toMapString(v)
+    }
+    if v, ok := in["annotations"].(map[string]interface{}); ok && len(v) > 0 {
+        obj.Annotations = toMapString(v)
+    }
+    return obj
+}
+```
+
+### After (New Plugin Framework)
+```go
+func (v Metadata3Value) Expand(ctx context.Context) (*rafay.EKSClusterIAMMeta, diag.Diagnostics) {
+    var diags diag.Diagnostics
+    var meta rafay.EKSClusterIAMMeta
+
+    if v.IsNull() {
+        return &rafay.EKSClusterIAMMeta{}, diags
+    }
+
+    // Map string fields
+    if !v.Name.IsNull() && !v.Name.IsUnknown() {
+        meta.Name = getStringValue(v.Name)
+    }
+
+    if !v.Namespace.IsNull() && !v.Namespace.IsUnknown() {
+        meta.Namespace = getStringValue(v.Namespace)
+    }
+
+    // Map labels (map of strings)
+    if !v.Labels.IsNull() && !v.Labels.IsUnknown() {
+        labels := make(map[string]string, len(v.Labels.Elements()))
+        vLabels := make(map[string]types.String, len(v.Labels.Elements()))
+        d := v.Labels.ElementsAs(ctx, &vLabels, false)
+        diags = append(diags, d...)
+        for k, val := range vLabels {
+            labels[k] = getStringValue(val)
+        }
+        if len(labels) > 0 {
+            meta.Labels = labels
+        }
+    }
+
+    // Map annotations (map of strings)
+    if !v.Annotations.IsNull() && !v.Annotations.IsUnknown() {
+        annotations := make(map[string]string, len(v.Annotations.Elements()))
+        vAnnotations := make(map[string]types.String, len(v.Annotations.Elements()))
+        d := v.Annotations.ElementsAs(ctx, &vAnnotations, false)
+        diags = append(diags, d...)
+        for k, val := range vAnnotations {
+            annotations[k] = getStringValue(val)
+        }
+        if len(annotations) > 0 {
+            meta.Annotations = annotations
+        }
+    }
+
+    return &meta, diags
+}
+```
+
+## Conclusion
+
+This migration process ensures that the new Terraform Plugin Framework implementations maintain functional parity with the old SDKv2 implementations while leveraging the improved type safety and error handling capabilities of the new framework. The systematic approach outlined here can be applied to migrate any expand function in the codebase.
+# Terraform Provider Migration Guide: Expand Functions
+
+## Overview
+
+This document outlines the methodology for migrating expand functions from the old Terraform SDKv2 (`rafay/resource_eks_cluster.go`) to the new Terraform Plugin Framework (`internal/resource_eks_cluster/eks_cluster_resource_expand.go`).
+
+## Core Translation Logic
+
+### 1. **Function Signature Transformation**
+
+**Old SDKv2 Pattern:**
+```go
+func expandFunctionName(p []interface{}) *TargetStruct {
+    // Implementation
+}
+```
+
+**New Plugin Framework Pattern:**
+```go
+func (v ValueType) Expand(ctx context.Context) (*rafay.TargetStruct, diag.Diagnostics) {
+    // Implementation
+}
+```
+
+### 2. **Data Access Pattern Transformation**
+
+**Old SDKv2:**
+```go
+in := p[0].(map[string]interface{})
+if v, ok := in["field_name"].(string); ok && len(v) > 0 {
+    obj.FieldName = v
+}
+```
+
+**New Plugin Framework:**
+```go
+if !v.FieldName.IsNull() && !v.FieldName.IsUnknown() {
+    obj.FieldName = getStringValue(v.FieldName)
+}
+```
+
+### 3. **Type Conversion Patterns**
+
+| Old SDKv2 | New Plugin Framework | Helper Function |
+|------------|---------------------|-----------------|
+| `v.(string)` | `getStringValue(v.FieldName)` | `getStringValue(tfString types.String) string` |
+| `v.(bool)` | `getBoolValue(v.FieldName)` | `getBoolValue(tfBool types.Bool) bool` |
+| `v.(int64)` | `getInt64Value(v.FieldName)` | `getInt64Value(tfInt types.Int64) int64` |
+| `v.([]interface{})` | `v.FieldName.ElementsAs(ctx, &list, false)` | Direct framework method |
+| `v.(map[string]interface{})` | `v.FieldName.ElementsAs(ctx, &map, false)` | Direct framework method |
+
+## Step-by-Step Migration Process
+
+### Phase 1: Codebase Analysis
+
+#### 1.1 **Identify Source Function**
+```bash
+# Search for the old expand function
+grep_search -query "func expandFunctionName" -include_pattern "*.go"
+```
+
+#### 1.2 **Examine Function Implementation**
+```bash
+# Read the complete function to understand its logic
+read_file -target_file "rafay/resource_eks_cluster.go" -start_line_one_indexed X -end_line_one_indexed Y
+```
+
+#### 1.3 **Identify Target Struct**
+```bash
+# Find the target struct definition
+grep_search -query "type TargetStruct struct" -include_pattern "*.go"
+read_file -target_file "rafay/eks_config.go" -start_line_one_indexed X -end_line_one_indexed Y
+```
+
+### Phase 2: Schema Analysis
+
+#### 2.1 **Examine Generated Value Struct**
+```bash
+# Find the generated Value struct for the target
+grep_search -query "type ValueType struct" -include_pattern "*_gen.go"
+read_file -target_file "internal/resource_eks_cluster/eks_cluster_resource_gen.go" -start_line_one_indexed X -end_line_one_indexed Y
+```
+
+#### 2.2 **Map Field Relationships**
+- **String fields**: Direct mapping with `getStringValue()`
+- **Boolean fields**: Direct mapping with `getBoolValue()`, often to pointers
+- **List fields**: Use `ElementsAs()` with proper type conversion
+- **Map fields**: Use `ElementsAs()` with nested iteration
+- **Nested blocks**: Call `Expand()` on child Value types
+
+### Phase 3: Implementation
+
+#### 3.1 **Create Function Skeleton**
+```go
+func (v ValueType) Expand(ctx context.Context) (*rafay.TargetStruct, diag.Diagnostics) {
+    var diags diag.Diagnostics
+    var obj rafay.TargetStruct
+
+    if v.IsNull() {
+        return &rafay.TargetStruct{}, diags
+    }
+
+    // TODO: Implement field mappings
+
+    return &obj, diags
+}
+```
+
+#### 3.2 **Implement Field Mappings**
+```go
+// String fields
+if !v.FieldName.IsNull() && !v.FieldName.IsUnknown() {
+    obj.FieldName = getStringValue(v.FieldName)
+}
+
+// Boolean fields (often to pointers)
+if !v.BoolField.IsNull() && !v.BoolField.IsUnknown() {
+    boolVal := getBoolValue(v.BoolField)
+    obj.BoolField = &boolVal
+}
+
+// List fields
+if !v.ListField.IsNull() && !v.ListField.IsUnknown() {
+    listItems := make([]types.String, 0, len(v.ListField.Elements()))
+    d := v.ListField.ElementsAs(ctx, &listItems, false)
+    diags = append(diags, d...)
+    
+    result := make([]string, 0, len(listItems))
+    for _, item := range listItems {
+        result = append(result, getStringValue(item))
+    }
+    if len(result) > 0 {
+        obj.ListField = result
+    }
+}
+
+// Map fields
+if !v.MapField.IsNull() && !v.MapField.IsUnknown() {
+    mapData := make(map[string]types.String, len(v.MapField.Elements()))
+    d := v.MapField.ElementsAs(ctx, &mapData, false)
+    diags = append(diags, d...)
+    
+    result := make(map[string]string, len(mapData))
+    for k, val := range mapData {
+        result[k] = getStringValue(val)
+    }
+    if len(result) > 0 {
+        obj.MapField = result
+    }
+}
+
+// Nested blocks
+if !v.NestedBlock.IsNull() && !v.NestedBlock.IsUnknown() {
+    nestedList := make([]NestedValueType, 0, len(v.NestedBlock.Elements()))
+    d := v.NestedBlock.ElementsAs(ctx, &nestedList, false)
+    diags = append(diags, d...)
+    
+    if len(nestedList) > 0 {
+        nestedObj, d := nestedList[0].Expand(ctx)
+        diags = append(diags, d...)
+        obj.NestedField = nestedObj
+    }
+}
+```
+
+#### 3.3 **Handle Special Cases**
+
+**JSON String to Map Conversion:**
+```go
+// Old pattern: JSON string to map[string]interface{}
+if v, ok := in["policy"].(string); ok && len(v) > 0 {
+    var policyDoc map[string]interface{}
+    json.Unmarshal([]byte(v), &policyDoc)
+    obj.Policy = policyDoc
+}
+
+// New pattern: Store as raw policy for later parsing
+if !v.Policy.IsNull() && !v.Policy.IsUnknown() {
+    policyStr := getStringValue(v.Policy)
+    if policyStr != "" {
+        // TODO: Implement proper JSON parsing if needed
+        obj.Policy = map[string]interface{}{"raw_policy": policyStr}
+    }
+}
+```
+
+### Phase 4: Dependency Resolution
+
+#### 4.1 **Identify Required Expand Functions**
+When implementing a parent Expand function, identify all child Value types that need Expand methods.
+
+#### 4.2 **Create Stub Functions**
+```go
+// Stub implementation to resolve compilation errors
+func (v ChildValueType) Expand(ctx context.Context) (*rafay.ChildStruct, diag.Diagnostics) {
+    var diags diag.Diagnostics
+    var obj rafay.ChildStruct
+    if v.IsNull() {
+        return &rafay.ChildStruct{}, diags
+    }
+    // TODO: Implement field mappings
+    return &obj, diags
+}
+```
+
+#### 4.3 **Implement Child Functions**
+Follow the same process to implement child Expand functions, then return to complete parent functions.
+
+### Phase 5: Validation
+
+#### 5.1 **Build Verification**
+```bash
+go build ./internal/resource_eks_cluster/
+```
+
+#### 5.2 **Error Resolution**
+- **Undefined methods**: Add stub Expand functions for referenced Value types
+- **Duplicate declarations**: Remove redundant function definitions
+- **Unused variables**: Clean up unused variable declarations
+- **Type mismatches**: Ensure proper type conversions
+
+## Common Patterns and Best Practices
+
+### 1. **Null/Unknown Checks**
+Always check both `IsNull()` and `IsUnknown()` before accessing field values:
+```go
+if !v.FieldName.IsNull() && !v.FieldName.IsUnknown() {
+    // Safe to access field
+}
+```
+
+### 2. **Diagnostics Aggregation**
+Collect diagnostics from all operations and return them:
+```go
+var diags, d diag.Diagnostics
+// ... operations ...
+d = someOperation(ctx)
+diags = append(diags, d...)
+```
+
+### 3. **Conditional Field Assignment**
+Only assign fields when they have meaningful values:
+```go
+if len(result) > 0 {
+    obj.Field = result
+}
+```
+
+### 4. **Error Handling**
+Use the same error handling patterns as existing functions:
+```go
+// For JSON parsing errors, store raw data for later processing
+// For type conversion errors, use safe conversion helpers
+```
+
+### 5. **Consistent Naming**
+- Use the same field names as the target struct
+- Follow Go naming conventions
+- Maintain consistency with existing implementations
+
+## File Organization
+
+### 1. **Source Files**
+- **Old implementations**: `rafay/resource_eks_cluster.go`
+- **Target structs**: `rafay/eks_config.go`
+- **Schema definitions**: `internal/resource_eks_cluster/eks_cluster_resource_spec.json`
+
+### 2. **Generated Files**
+- **Value structs**: `internal/resource_eks_cluster/eks_cluster_resource_gen.go`
+- **Target implementations**: `internal/resource_eks_cluster/eks_cluster_resource_expand.go`
+
+### 3. **Helper Functions**
+All helper functions (`getStringValue`, `getBoolValue`, etc.) are defined at the top of the expand file.
+
+## Migration Checklist
+
+- [ ] **Analysis Complete**
+  - [ ] Source function identified and understood
+  - [ ] Target struct identified and examined
+  - [ ] Generated Value struct identified and examined
+  - [ ] Field mapping relationships established
+
+- [ ] **Implementation Complete**
+  - [ ] Function skeleton created
+  - [ ] All field types mapped correctly
+  - [ ] Nested blocks handled
+  - [ ] Special cases (JSON, pointers) handled
+  - [ ] Diagnostics properly aggregated
+
+- [ ] **Dependencies Resolved**
+  - [ ] All required child Expand functions implemented
+  - [ ] No compilation errors
+  - [ ] Build succeeds
+
+- [ ] **Quality Assurance**
+  - [ ] Code follows established patterns
+  - [ ] Error handling consistent
+  - [ ] No unused variables or imports
+  - [ ] Proper null/unknown checks
+
+## Example: Complete Migration
+
+### Before (Old SDKv2)
+```go
+func expandServiceAccountsMetadata(p []interface{}) *EKSClusterIAMMeta {
+    obj := &EKSClusterIAMMeta{}
+    if len(p) == 0 || p[0] == nil {
+        return obj
+    }
+    in := p[0].(map[string]interface{})
+    
+    if v, ok := in["name"].(string); ok && len(v) > 0 {
+        obj.Name = v
+    }
+    if v, ok := in["namespace"].(string); ok && len(v) > 0 {
+        obj.Namespace = v
+    }
+    if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
+        obj.Labels = toMapString(v)
+    }
+    if v, ok := in["annotations"].(map[string]interface{}); ok && len(v) > 0 {
+        obj.Annotations = toMapString(v)
+    }
+    return obj
+}
+```
+
+### After (New Plugin Framework)
+```go
+func (v Metadata3Value) Expand(ctx context.Context) (*rafay.EKSClusterIAMMeta, diag.Diagnostics) {
+    var diags diag.Diagnostics
+    var meta rafay.EKSClusterIAMMeta
+
+    if v.IsNull() {
+        return &rafay.EKSClusterIAMMeta{}, diags
+    }
+
+    // Map string fields
+    if !v.Name.IsNull() && !v.Name.IsUnknown() {
+        meta.Name = getStringValue(v.Name)
+    }
+
+    if !v.Namespace.IsNull() && !v.Namespace.IsUnknown() {
+        meta.Namespace = getStringValue(v.Namespace)
+    }
+
+    // Map labels (map of strings)
+    if !v.Labels.IsNull() && !v.Labels.IsUnknown() {
+        labels := make(map[string]string, len(v.Labels.Elements()))
+        vLabels := make(map[string]types.String, len(v.Labels.Elements()))
+        d := v.Labels.ElementsAs(ctx, &vLabels, false)
+        diags = append(diags, d...)
+        for k, val := range vLabels {
+            labels[k] = getStringValue(val)
+        }
+        if len(labels) > 0 {
+            meta.Labels = labels
+        }
+    }
+
+    // Map annotations (map of strings)
+    if !v.Annotations.IsNull() && !v.Annotations.IsUnknown() {
+        annotations := make(map[string]string, len(v.Annotations.Elements()))
+        vAnnotations := make(map[string]types.String, len(v.Annotations.Elements()))
+        d := v.Annotations.ElementsAs(ctx, &vAnnotations, false)
+        diags = append(diags, d...)
+        for k, val := range vAnnotations {
+            annotations[k] = getStringValue(val)
+        }
+        if len(annotations) > 0 {
+            meta.Annotations = annotations
+        }
+    }
+
+    return &meta, diags
+}
+```
+
+## Conclusion
+
+This migration process ensures that the new Terraform Plugin Framework implementations maintain functional parity with the old SDKv2 implementations while leveraging the improved type safety and error handling capabilities of the new framework. The systematic approach outlined here can be applied to migrate any expand function in the codebase.

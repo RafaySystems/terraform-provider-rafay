@@ -526,7 +526,7 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 }
 
 // Dedicated Expand functions for each block type
-// TODO: Implement Expand functions for: IdentityProvidersValue, VpcValue, AddonsValue, PrivateClusterValue, ManagedNodeGroupsValue, FargateProfilesValue, CloudWatchValue, SecretsEncryptionValue, IdentityMappingsValue, AccessConfigValue, AddonsConfigValue, AutoModeConfigValue, NodeGroupsMapValue
+// TODO: Implement Expand functions for: VpcValue, AddonsValue, PrivateClusterValue, ManagedNodeGroupsValue, FargateProfilesValue, CloudWatchValue, SecretsEncryptionValue, IdentityMappingsValue, AccessConfigValue, AddonsConfigValue, AutoModeConfigValue, NodeGroupsMapValue
 
 // Stub Expand methods for all referenced block types
 func (v Metadata2Value) Expand(ctx context.Context) (*rafay.EKSClusterConfigMetadata, diag.Diagnostics) {
@@ -1356,7 +1356,32 @@ func (v PrivateClusterValue) Expand(ctx context.Context) (*rafay.PrivateCluster,
 	if v.IsNull() {
 		return &rafay.PrivateCluster{}, diags
 	}
-	// TODO: Map fields appropriately
+
+	// Map boolean fields to pointers
+	if !v.Enabled.IsNull() && !v.Enabled.IsUnknown() {
+		enabled := getBoolValue(v.Enabled)
+		pc.Enabled = &enabled
+	}
+
+	if !v.SkipEndpointCreation.IsNull() && !v.SkipEndpointCreation.IsUnknown() {
+		skipEndpointCreation := getBoolValue(v.SkipEndpointCreation)
+		pc.SkipEndpointCreation = &skipEndpointCreation
+	}
+
+	// Map additional_endpoint_services (list of strings)
+	if !v.AdditionalEndpointServices.IsNull() && !v.AdditionalEndpointServices.IsUnknown() {
+		endpointServicesList := make([]types.String, 0, len(v.AdditionalEndpointServices.Elements()))
+		d := v.AdditionalEndpointServices.ElementsAs(ctx, &endpointServicesList, false)
+		diags = append(diags, d...)
+		endpointServices := make([]string, 0, len(endpointServicesList))
+		for _, service := range endpointServicesList {
+			endpointServices = append(endpointServices, getStringValue(service))
+		}
+		if len(endpointServices) > 0 {
+			pc.AdditionalEndpointServices = endpointServices
+		}
+	}
+
 	return &pc, diags
 }
 

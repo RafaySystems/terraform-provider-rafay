@@ -229,3 +229,37 @@ resource "rafay_cluster_override" "tfdemocluster-workload-setting-override" {
     EOS
   }
 }
+
+resource "rafay_cluster_override" "override-with-addon-version" {
+  metadata {
+    name    = "override-with-addon-version"
+    project = "defaultproject"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "manifestsFile"
+    }
+  }
+  spec {
+    artifact_type    = "NativeYAML"
+    cluster_selector = "rafay.dev/clusterName in (cluster-1)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key   = "rafay.dev/clusterName"
+        value = "cluster-1"
+      }
+    }
+    resource_selector = "rafay.dev/name=nginx-addon,rafay.dev/version=v2"
+    type              = "ClusterOverrideTypeAddon"
+    override_values   = <<-EOS
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nginx
+      patch:
+      - op: replace
+        path: /spec/replicas
+        value: 6
+    EOS
+  }
+}

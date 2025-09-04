@@ -6,7 +6,6 @@ import (
 	"github.com/RafaySystems/terraform-provider-rafay/rafay"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -48,9 +47,10 @@ func ExpandEksCluster(ctx context.Context, v EksClusterModel) (*rafay.EKSCluster
 
 	vClusterList := make([]ClusterValue, 0, len(v.Cluster.Elements()))
 	diags = v.Cluster.ElementsAs(ctx, &vClusterList, false)
-	vCluster := vClusterList[0]
-	cluster, d = vCluster.Expand(ctx)
-	diags = append(diags, d...)
+	if len(vClusterList) > 0 {
+		cluster, d = vClusterList[0].Expand(ctx)
+		diags = append(diags, d...)
+	}
 
 	return cluster, diags
 }
@@ -65,15 +65,15 @@ func ExpandEksClusterConfig(ctx context.Context, v EksClusterModel) (*rafay.EKSC
 
 	vClusterConfigList := make([]ClusterConfigValue, 0, len(v.ClusterConfig.Elements()))
 	diags = v.ClusterConfig.ElementsAs(ctx, &vClusterConfigList, false)
-	vClusterConfig := vClusterConfigList[0]
-	clusterConfig, d = vClusterConfig.Expand(ctx)
-	diags = append(diags, d...)
+	if len(vClusterConfigList) > 0 {
+		clusterConfig, d = vClusterConfigList[0].Expand(ctx)
+		diags = append(diags, d...)
+	}
 
 	return clusterConfig, diags
 }
 
 // Cluster Expand
-
 func (v ClusterValue) Expand(ctx context.Context) (*rafay.EKSCluster, diag.Diagnostics) {
 	var diags, d diag.Diagnostics
 	var cluster rafay.EKSCluster
@@ -82,21 +82,23 @@ func (v ClusterValue) Expand(ctx context.Context) (*rafay.EKSCluster, diag.Diagn
 		return &rafay.EKSCluster{}, diags
 	}
 
-	cluster.Kind = getStringValue(v.Kind)
+	if !v.Kind.IsNull() && !v.Kind.IsUnknown() {
+		cluster.Kind = getStringValue(v.Kind)
+	}
 
 	vMetadataList := make([]MetadataValue, 0, len(v.Metadata.Elements()))
 	diags = v.Metadata.ElementsAs(ctx, &vMetadataList, false)
-	vMetadata := vMetadataList[0]
-	md, d := vMetadata.Expand(ctx)
-	diags = append(diags, d...)
-	cluster.Metadata = md
+	if len(vMetadataList) > 0 {
+		cluster.Metadata, d = vMetadataList[0].Expand(ctx)
+		diags = append(diags, d...)
+	}
 
 	vSpecList := make([]SpecValue, 0, len(v.Spec.Elements()))
 	diags = v.Spec.ElementsAs(ctx, &vSpecList, false)
-	vSpec := vSpecList[0]
-	spec, d := vSpec.Expand(ctx)
-	diags = append(diags, d...)
-	cluster.Spec = spec
+	if len(vSpecList) > 0 {
+		cluster.Spec, d = vSpecList[0].Expand(ctx)
+		diags = append(diags, d...)
+	}
 
 	return &cluster, diags
 }
@@ -109,17 +111,21 @@ func (v MetadataValue) Expand(ctx context.Context) (*rafay.EKSClusterMetadata, d
 		return &rafay.EKSClusterMetadata{}, diags
 	}
 
-	metadata.Name = getStringValue(v.Name)
-	metadata.Project = getStringValue(v.Project)
+	if !v.Name.IsNull() && !v.Name.IsUnknown() {
+		metadata.Name = getStringValue(v.Name)
+	}
+	if !v.Project.IsNull() && !v.Project.IsUnknown() {
+		metadata.Project = getStringValue(v.Project)
+	}
 
-	labels := make(map[string]string, len(v.Labels.Elements()))
 	vLabels := make(map[string]types.String, len(v.Labels.Elements()))
 	d = v.Labels.ElementsAs(ctx, &vLabels, false)
 	diags = append(diags, d...)
-	for k, val := range vLabels {
-		labels[k] = getStringValue(val)
+	if len(vLabels) > 0 {
+		for k, val := range vLabels {
+			metadata.Labels[k] = getStringValue(val)
+		}
 	}
-	metadata.Labels = labels
 
 	return &metadata, diags
 }
@@ -132,12 +138,24 @@ func (v SpecValue) Expand(ctx context.Context) (*rafay.EKSSpec, diag.Diagnostics
 		return &rafay.EKSSpec{}, diags
 	}
 
-	spec.Blueprint = getStringValue(v.Blueprint)
-	spec.BlueprintVersion = getStringValue(v.BlueprintVersion)
-	spec.CloudProvider = getStringValue(v.CloudProvider)
-	spec.CniProvider = getStringValue(v.CniProvider)
-	spec.Type = getStringValue(v.SpecType)
-	spec.CrossAccountRoleArn = getStringValue(v.CrossAccountRoleArn)
+	if !v.Blueprint.IsNull() && !v.Blueprint.IsUnknown() {
+		spec.Blueprint = getStringValue(v.Blueprint)
+	}
+	if !v.BlueprintVersion.IsNull() && !v.BlueprintVersion.IsUnknown() {
+		spec.BlueprintVersion = getStringValue(v.BlueprintVersion)
+	}
+	if !v.CloudProvider.IsNull() && !v.CloudProvider.IsUnknown() {
+		spec.CloudProvider = getStringValue(v.CloudProvider)
+	}
+	if !v.CniProvider.IsNull() && !v.CniProvider.IsUnknown() {
+		spec.CniProvider = getStringValue(v.CniProvider)
+	}
+	if !v.SpecType.IsNull() && !v.SpecType.IsUnknown() {
+		spec.Type = getStringValue(v.SpecType)
+	}
+	if !v.CrossAccountRoleArn.IsNull() && !v.CrossAccountRoleArn.IsUnknown() {
+		spec.CrossAccountRoleArn = getStringValue(v.CrossAccountRoleArn)
+	}
 
 	proxyConfig := make(map[string]types.String, len(v.ProxyConfig.Elements()))
 	d = v.ProxyConfig.ElementsAs(ctx, &proxyConfig, false)
@@ -164,17 +182,25 @@ func (v SpecValue) Expand(ctx context.Context) (*rafay.EKSSpec, diag.Diagnostics
 		spec.ProxyConfig.AllowInsecureBootstrap = getStringValue(allowInsecureBootstrap) == "true"
 	}
 
-	var vSCP SystemComponentsPlacementValue
-	d = v.SystemComponentsPlacement.As(ctx, &vSCP, basetypes.ObjectAsOptions{})
-	diags = append(diags, d...)
-	spec.SystemComponentsPlacement, d = vSCP.Expand(ctx)
-	diags = append(diags, d...)
+	if !v.SystemComponentsPlacement.IsNull() && !v.SystemComponentsPlacement.IsUnknown() {
+		vSCPList := make([]SystemComponentsPlacementValue, 0, len(v.SystemComponentsPlacement.Elements()))
+		d = v.SystemComponentsPlacement.ElementsAs(ctx, &vSCPList, false)
+		diags = append(diags, d...)
+		if len(vSCPList) > 0 {
+			spec.SystemComponentsPlacement, d = vSCPList[0].Expand(ctx)
+			diags = append(diags, d...)
+		}
+	}
 
-	var sharing SharingValue
-	d = v.Sharing.As(ctx, &sharing, basetypes.ObjectAsOptions{})
-	diags = append(diags, d...)
-	spec.Sharing, d = sharing.Expand(ctx)
-	diags = append(diags, d...)
+	if !v.Sharing.IsNull() && !v.Sharing.IsUnknown() {
+		vSharingList := make([]SharingValue, 0, len(v.Sharing.Elements()))
+		d = v.Sharing.ElementsAs(ctx, &vSharingList, false)
+		diags = append(diags, d...)
+		if len(vSharingList) > 0 {
+			spec.Sharing, d = vSharingList[0].Expand(ctx)
+			diags = append(diags, d...)
+		}
+	}
 
 	return &spec, diags
 }
@@ -187,19 +213,23 @@ func (v SharingValue) Expand(ctx context.Context) (*rafay.V1ClusterSharing, diag
 		return &rafay.V1ClusterSharing{}, diags
 	}
 
-	b := getBoolValue(v.Enabled)
-	sharing.Enabled = &b
+	if !v.Enabled.IsNull() && !v.Enabled.IsUnknown() {
+		b := getBoolValue(v.Enabled)
+		sharing.Enabled = &b
+	}
 
 	vProjectsList := make([]ProjectsValue, 0, len(v.Projects.Elements()))
 	d = v.Projects.ElementsAs(ctx, &vProjectsList, false)
 	diags = append(diags, d...)
-	prjs := make([]*rafay.V1ClusterSharingProject, 0, len(vProjectsList))
-	for _, prj := range vProjectsList {
-		p, d := prj.Expand(ctx)
-		diags = append(diags, d...)
-		prjs = append(prjs, p)
+	if len(vProjectsList) > 0 {
+		prjs := make([]*rafay.V1ClusterSharingProject, 0, len(vProjectsList))
+		for _, prj := range vProjectsList {
+			p, d := prj.Expand(ctx)
+			diags = append(diags, d...)
+			prjs = append(prjs, p)
+		}
+		sharing.Projects = prjs
 	}
-	sharing.Projects = prjs
 
 	return &sharing, diags
 }
@@ -212,7 +242,9 @@ func (v ProjectsValue) Expand(ctx context.Context) (*rafay.V1ClusterSharingProje
 		return &rafay.V1ClusterSharingProject{}, diags
 	}
 
-	project.Name = getStringValue(v.Name)
+	if !v.Name.IsNull() && !v.Name.IsUnknown() {
+		project.Name = getStringValue(v.Name)
+	}
 
 	return &project, diags
 }
@@ -225,32 +257,38 @@ func (v SystemComponentsPlacementValue) Expand(ctx context.Context) (*rafay.Syst
 		return &rafay.SystemComponentsPlacement{}, diags
 	}
 
-	nsel := make(map[string]string, len(v.NodeSelector.Elements()))
 	vnsel := make(map[string]types.String, len(v.NodeSelector.Elements()))
 	d = v.NodeSelector.ElementsAs(ctx, &vnsel, false)
 	diags = append(diags, d...)
-	for k, val := range vnsel {
-		nsel[k] = getStringValue(val)
+	if len(vnsel) > 0 {
+		nsel := make(map[string]string, len(vnsel))
+		for k, val := range vnsel {
+			nsel[k] = getStringValue(val)
+		}
+		scp.NodeSelector = nsel
 	}
-	scp.NodeSelector = nsel
 
 	vTolerationList := make([]TolerationsValue, 0, len(v.Tolerations.Elements()))
 	d = v.Tolerations.ElementsAs(ctx, &vTolerationList, false)
 	diags = append(diags, d...)
-	tols := make([]*rafay.Tolerations, 0, len(vTolerationList))
-	for _, tl := range vTolerationList {
-		t, d := tl.Expand(ctx)
-		diags = append(diags, d...)
-		tols = append(tols, t)
+	if len(vTolerationList) > 0 {
+		tols := make([]*rafay.Tolerations, 0, len(vTolerationList))
+		for _, tl := range vTolerationList {
+			t, d := tl.Expand(ctx)
+			diags = append(diags, d...)
+			tols = append(tols, t)
+		}
+		scp.Tolerations = tols
 	}
-	scp.Tolerations = tols
 
 	vDaemonsetOverrideList := make([]DaemonsetOverrideValue, 0, len(v.DaemonsetOverride.Elements()))
 	d = v.DaemonsetOverride.ElementsAs(ctx, &vDaemonsetOverrideList, false)
 	diags = append(diags, d...)
-	do, d := vDaemonsetOverrideList[0].Expand(ctx)
-	diags = append(diags, d...)
-	scp.DaemonsetOverride = do
+	if len(vDaemonsetOverrideList) > 0 {
+		do, d := vDaemonsetOverrideList[0].Expand(ctx)
+		diags = append(diags, d...)
+		scp.DaemonsetOverride = do
+	}
 
 	return &scp, diags
 }
@@ -263,19 +301,23 @@ func (v DaemonsetOverrideValue) Expand(ctx context.Context) (*rafay.DaemonsetOve
 		return &rafay.DaemonsetOverride{}, diags
 	}
 
-	nse := getBoolValue(v.NodeSelectionEnabled)
-	do.NodeSelectionEnabled = &nse
+	if !v.NodeSelectionEnabled.IsNull() && !v.NodeSelectionEnabled.IsUnknown() {
+		nse := getBoolValue(v.NodeSelectionEnabled)
+		do.NodeSelectionEnabled = &nse
+	}
 
 	vTolerationList := make([]Tolerations2Value, 0, len(v.Tolerations2.Elements()))
 	d = v.Tolerations2.ElementsAs(ctx, &vTolerationList, false)
 	diags = append(diags, d...)
-	tols := make([]*rafay.Tolerations, 0, len(vTolerationList))
-	for _, tl := range vTolerationList {
-		t, d := tl.Expand(ctx)
-		diags = append(diags, d...)
-		tols = append(tols, t)
+	if len(vTolerationList) > 0 {
+		tols := make([]*rafay.Tolerations, 0, len(vTolerationList))
+		for _, tl := range vTolerationList {
+			t, d := tl.Expand(ctx)
+			diags = append(diags, d...)
+			tols = append(tols, t)
+		}
+		do.Tolerations = tols
 	}
-	do.Tolerations = tols
 
 	return &do, diags
 }
@@ -288,13 +330,22 @@ func (v *Tolerations2Value) Expand(ctx context.Context) (*rafay.Tolerations, dia
 		return &rafay.Tolerations{}, diags
 	}
 
-	tol.Key = getStringValue(v.Key)
-	tol.Operator = getStringValue(v.Operator)
-	tol.Value = getStringValue(v.Value)
-	tol.Effect = getStringValue(v.Effect)
-
-	d := int(getInt64Value(v.TolerationSeconds))
-	tol.TolerationSeconds = &d
+	if !v.Key.IsNull() && !v.Key.IsUnknown() {
+		tol.Key = getStringValue(v.Key)
+	}
+	if !v.Operator.IsNull() && !v.Operator.IsUnknown() {
+		tol.Operator = getStringValue(v.Operator)
+	}
+	if !v.Value.IsNull() && !v.Value.IsUnknown() {
+		tol.Value = getStringValue(v.Value)
+	}
+	if !v.Effect.IsNull() && !v.Effect.IsUnknown() {
+		tol.Effect = getStringValue(v.Effect)
+	}
+	if !v.TolerationSeconds.IsNull() && !v.TolerationSeconds.IsUnknown() {
+		d := int(getInt64Value(v.TolerationSeconds))
+		tol.TolerationSeconds = &d
+	}
 
 	return &tol, diags
 }
@@ -307,13 +358,22 @@ func (v *TolerationsValue) Expand(ctx context.Context) (*rafay.Tolerations, diag
 		return &rafay.Tolerations{}, diags
 	}
 
-	tol.Key = getStringValue(v.Key)
-	tol.Operator = getStringValue(v.Operator)
-	tol.Value = getStringValue(v.Value)
-	tol.Effect = getStringValue(v.Effect)
-
-	d := int(getInt64Value(v.TolerationSeconds))
-	tol.TolerationSeconds = &d
+	if !v.Key.IsNull() && !v.Key.IsUnknown() {
+		tol.Key = getStringValue(v.Key)
+	}
+	if !v.Operator.IsNull() && !v.Operator.IsUnknown() {
+		tol.Operator = getStringValue(v.Operator)
+	}
+	if !v.Value.IsNull() && !v.Value.IsUnknown() {
+		tol.Value = getStringValue(v.Value)
+	}
+	if !v.Effect.IsNull() && !v.Effect.IsUnknown() {
+		tol.Effect = getStringValue(v.Effect)
+	}
+	if !v.TolerationSeconds.IsNull() && !v.TolerationSeconds.IsUnknown() {
+		d := int(getInt64Value(v.TolerationSeconds))
+		tol.TolerationSeconds = &d
+	}
 
 	return &tol, diags
 }
@@ -328,8 +388,12 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 		return &rafay.EKSClusterConfig{}, diags
 	}
 
-	clusterConfig.APIVersion = getStringValue(v.Apiversion)
-	clusterConfig.Kind = getStringValue(v.Kind)
+	if !v.Apiversion.IsNull() && !v.Apiversion.IsUnknown() {
+		clusterConfig.APIVersion = getStringValue(v.Apiversion)
+	}
+	if !v.Kind.IsNull() && !v.Kind.IsUnknown() {
+		clusterConfig.Kind = getStringValue(v.Kind)
+	}
 
 	// metadata2 block
 	vMetadata2List := make([]Metadata2Value, 0, len(v.Metadata2.Elements()))
@@ -541,7 +605,7 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 }
 
 // Dedicated Expand functions for each block type
-// TODO: Implement Expand functions for: VpcValue, AddonsValue, ManagedNodeGroupsValue, FargateProfilesValue, CloudWatchValue, SecretsEncryptionValue, IdentityMappingsValue, AccessConfigValue, AddonsConfigValue, AutoModeConfigValue, NodeGroupsMapValue
+// TODO: Implement Expand functions for: VpcValue, AddonsValue, FargateProfilesValue, CloudWatchValue, SecretsEncryptionValue, IdentityMappingsValue, AccessConfigValue, AddonsConfigValue, AutoModeConfigValue
 
 // Stub Expand methods for all referenced block types
 func (v Metadata2Value) Expand(ctx context.Context) (*rafay.EKSClusterConfigMetadata, diag.Diagnostics) {

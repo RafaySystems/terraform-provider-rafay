@@ -181,7 +181,8 @@
                                             },
                                             {
                                                 "name": "system_components_placement",
-                                                "single_nested": {
+                                                "list_nested": {
+                                                    "nested_object": {
                                                     "attributes": [
                                                         {
                                                             "name": "node_selector",
@@ -303,10 +304,12 @@
                                                         }
                                                     ]
                                                 }
+                                                }
                                             },
                                             {
                                                 "name": "sharing",
-                                                "single_nested": {
+                                                "list_nested": {
+                                                    "nested_object": {
                                                     "attributes": [
                                                         {
                                                             "name": "enabled",
@@ -334,6 +337,7 @@
                                                             }
                                                         }
                                                     ]
+                                                }
                                                 }
                                             }
                                         ]

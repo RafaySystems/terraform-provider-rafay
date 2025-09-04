@@ -165,13 +165,13 @@ func (v *SpecValue) Flatten(ctx context.Context, spec *rafay.EKSSpec) diag.Diagn
 	scp := NewSystemComponentsPlacementValueNull()
 	d = scp.Flatten(ctx, spec.SystemComponentsPlacement)
 	diags = append(diags, d...)
-	v.SystemComponentsPlacement, d = scp.ToObjectValue(ctx)
+	v.SystemComponentsPlacement, d = types.ListValue(SystemComponentsPlacementValue{}.Type(ctx), []attr.Value{scp})
 	diags = append(diags, d...)
 
 	sh := NewSharingValueNull()
 	d = sh.Flatten(ctx, spec.Sharing)
 	diags = append(diags, d...)
-	v.Sharing, d = sh.ToObjectValue(ctx)
+	v.Sharing, d = types.ListValue(SharingValue{}.Type(ctx), []attr.Value{sh})
 	diags = append(diags, d...)
 
 	v.state = attr.ValueStateKnown

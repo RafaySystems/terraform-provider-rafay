@@ -17,6 +17,7 @@ import (
 
 func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
+		Version: 1,
 		Blocks: map[string]schema.Block{
 			"cluster": schema.ListNestedBlock{
 				NestedObject: schema.NestedBlockObject{
@@ -154,142 +155,146 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											},
 										},
 									},
-									"sharing": schema.SingleNestedBlock{
-										Attributes: map[string]schema.Attribute{
-											"enabled": schema.BoolAttribute{
-												Optional:            true,
-												Description:         "Whether to enable cluster sharing.",
-												MarkdownDescription: "Whether to enable cluster sharing.",
+									"sharing": schema.ListNestedBlock{
+										NestedObject: schema.NestedBlockObject{
+											Attributes: map[string]schema.Attribute{
+												"enabled": schema.BoolAttribute{
+													Optional:            true,
+													Description:         "Whether to enable cluster sharing.",
+													MarkdownDescription: "Whether to enable cluster sharing.",
+												},
 											},
-										},
-										Blocks: map[string]schema.Block{
-											"projects": schema.ListNestedBlock{
-												NestedObject: schema.NestedBlockObject{
-													Attributes: map[string]schema.Attribute{
-														"name": schema.StringAttribute{
-															Required:            true,
-															Description:         "The name of the project to share the cluster with.",
-															MarkdownDescription: "The name of the project to share the cluster with.",
+											Blocks: map[string]schema.Block{
+												"projects": schema.ListNestedBlock{
+													NestedObject: schema.NestedBlockObject{
+														Attributes: map[string]schema.Attribute{
+															"name": schema.StringAttribute{
+																Required:            true,
+																Description:         "The name of the project to share the cluster with.",
+																MarkdownDescription: "The name of the project to share the cluster with.",
+															},
 														},
-													},
-													CustomType: ProjectsType{
-														ObjectType: types.ObjectType{
-															AttrTypes: ProjectsValue{}.AttributeTypes(ctx),
+														CustomType: ProjectsType{
+															ObjectType: types.ObjectType{
+																AttrTypes: ProjectsValue{}.AttributeTypes(ctx),
+															},
 														},
 													},
 												},
 											},
-										},
-										CustomType: SharingType{
-											ObjectType: types.ObjectType{
-												AttrTypes: SharingValue{}.AttributeTypes(ctx),
+											CustomType: SharingType{
+												ObjectType: types.ObjectType{
+													AttrTypes: SharingValue{}.AttributeTypes(ctx),
+												},
 											},
 										},
 									},
-									"system_components_placement": schema.SingleNestedBlock{
-										Attributes: map[string]schema.Attribute{
-											"node_selector": schema.MapAttribute{
-												ElementType:         types.StringType,
-												Optional:            true,
-												Description:         "Key-Value pairs insuring pods to be scheduled on desired nodes.",
-												MarkdownDescription: "Key-Value pairs insuring pods to be scheduled on desired nodes.",
+									"system_components_placement": schema.ListNestedBlock{
+										NestedObject: schema.NestedBlockObject{
+											Attributes: map[string]schema.Attribute{
+												"node_selector": schema.MapAttribute{
+													ElementType:         types.StringType,
+													Optional:            true,
+													Description:         "Key-Value pairs insuring pods to be scheduled on desired nodes.",
+													MarkdownDescription: "Key-Value pairs insuring pods to be scheduled on desired nodes.",
+												},
 											},
-										},
-										Blocks: map[string]schema.Block{
-											"daemonset_override": schema.ListNestedBlock{
-												NestedObject: schema.NestedBlockObject{
-													Attributes: map[string]schema.Attribute{
-														"node_selection_enabled": schema.BoolAttribute{
-															Optional:            true,
-															Description:         "Whether to enable node selection for the daemonset.",
-															MarkdownDescription: "Whether to enable node selection for the daemonset.",
+											Blocks: map[string]schema.Block{
+												"daemonset_override": schema.ListNestedBlock{
+													NestedObject: schema.NestedBlockObject{
+														Attributes: map[string]schema.Attribute{
+															"node_selection_enabled": schema.BoolAttribute{
+																Optional:            true,
+																Description:         "Whether to enable node selection for the daemonset.",
+																MarkdownDescription: "Whether to enable node selection for the daemonset.",
+															},
 														},
-													},
-													Blocks: map[string]schema.Block{
-														"tolerations": schema.ListNestedBlock{
-															NestedObject: schema.NestedBlockObject{
-																Attributes: map[string]schema.Attribute{
-																	"effect": schema.StringAttribute{
-																		Optional:            true,
-																		Description:         "indicates the taint effect to match.",
-																		MarkdownDescription: "indicates the taint effect to match.",
+														Blocks: map[string]schema.Block{
+															"tolerations": schema.ListNestedBlock{
+																NestedObject: schema.NestedBlockObject{
+																	Attributes: map[string]schema.Attribute{
+																		"effect": schema.StringAttribute{
+																			Optional:            true,
+																			Description:         "indicates the taint effect to match.",
+																			MarkdownDescription: "indicates the taint effect to match.",
+																		},
+																		"key": schema.StringAttribute{
+																			Optional:            true,
+																			Description:         "the taint key that the toleration applies to.",
+																			MarkdownDescription: "the taint key that the toleration applies to.",
+																		},
+																		"operator": schema.StringAttribute{
+																			Optional:            true,
+																			Description:         "represents a key's relationship to the value.",
+																			MarkdownDescription: "represents a key's relationship to the value.",
+																		},
+																		"toleration_seconds": schema.Int64Attribute{
+																			Optional:            true,
+																			Description:         "represents the period of time the toleration tolerates the taint.",
+																			MarkdownDescription: "represents the period of time the toleration tolerates the taint.",
+																		},
+																		"value": schema.StringAttribute{
+																			Optional:            true,
+																			Description:         "the taint value the toleration matches to.",
+																			MarkdownDescription: "the taint value the toleration matches to.",
+																		},
 																	},
-																	"key": schema.StringAttribute{
-																		Optional:            true,
-																		Description:         "the taint key that the toleration applies to.",
-																		MarkdownDescription: "the taint key that the toleration applies to.",
-																	},
-																	"operator": schema.StringAttribute{
-																		Optional:            true,
-																		Description:         "represents a key's relationship to the value.",
-																		MarkdownDescription: "represents a key's relationship to the value.",
-																	},
-																	"toleration_seconds": schema.Int64Attribute{
-																		Optional:            true,
-																		Description:         "represents the period of time the toleration tolerates the taint.",
-																		MarkdownDescription: "represents the period of time the toleration tolerates the taint.",
-																	},
-																	"value": schema.StringAttribute{
-																		Optional:            true,
-																		Description:         "the taint value the toleration matches to.",
-																		MarkdownDescription: "the taint value the toleration matches to.",
-																	},
-																},
-																CustomType: Tolerations2Type{
-																	ObjectType: types.ObjectType{
-																		AttrTypes: Tolerations2Value{}.AttributeTypes(ctx),
+																	CustomType: Tolerations2Type{
+																		ObjectType: types.ObjectType{
+																			AttrTypes: Tolerations2Value{}.AttributeTypes(ctx),
+																		},
 																	},
 																},
 															},
 														},
+														CustomType: DaemonsetOverrideType{
+															ObjectType: types.ObjectType{
+																AttrTypes: DaemonsetOverrideValue{}.AttributeTypes(ctx),
+															},
+														},
 													},
-													CustomType: DaemonsetOverrideType{
-														ObjectType: types.ObjectType{
-															AttrTypes: DaemonsetOverrideValue{}.AttributeTypes(ctx),
+												},
+												"tolerations": schema.ListNestedBlock{
+													NestedObject: schema.NestedBlockObject{
+														Attributes: map[string]schema.Attribute{
+															"effect": schema.StringAttribute{
+																Optional:            true,
+																Description:         "indicates the taint effect to match.",
+																MarkdownDescription: "indicates the taint effect to match.",
+															},
+															"key": schema.StringAttribute{
+																Optional:            true,
+																Description:         "the taint key that the toleration applies to.",
+																MarkdownDescription: "the taint key that the toleration applies to.",
+															},
+															"operator": schema.StringAttribute{
+																Optional:            true,
+																Description:         "represents a key's relationship to the value.",
+																MarkdownDescription: "represents a key's relationship to the value.",
+															},
+															"toleration_seconds": schema.Int64Attribute{
+																Optional:            true,
+																Description:         "represents the period of time the toleration tolerates the taint.",
+																MarkdownDescription: "represents the period of time the toleration tolerates the taint.",
+															},
+															"value": schema.StringAttribute{
+																Optional:            true,
+																Description:         "the taint value the toleration matches to.",
+																MarkdownDescription: "the taint value the toleration matches to.",
+															},
+														},
+														CustomType: TolerationsType{
+															ObjectType: types.ObjectType{
+																AttrTypes: TolerationsValue{}.AttributeTypes(ctx),
+															},
 														},
 													},
 												},
 											},
-											"tolerations": schema.ListNestedBlock{
-												NestedObject: schema.NestedBlockObject{
-													Attributes: map[string]schema.Attribute{
-														"effect": schema.StringAttribute{
-															Optional:            true,
-															Description:         "indicates the taint effect to match.",
-															MarkdownDescription: "indicates the taint effect to match.",
-														},
-														"key": schema.StringAttribute{
-															Optional:            true,
-															Description:         "the taint key that the toleration applies to.",
-															MarkdownDescription: "the taint key that the toleration applies to.",
-														},
-														"operator": schema.StringAttribute{
-															Optional:            true,
-															Description:         "represents a key's relationship to the value.",
-															MarkdownDescription: "represents a key's relationship to the value.",
-														},
-														"toleration_seconds": schema.Int64Attribute{
-															Optional:            true,
-															Description:         "represents the period of time the toleration tolerates the taint.",
-															MarkdownDescription: "represents the period of time the toleration tolerates the taint.",
-														},
-														"value": schema.StringAttribute{
-															Optional:            true,
-															Description:         "the taint value the toleration matches to.",
-															MarkdownDescription: "the taint value the toleration matches to.",
-														},
-													},
-													CustomType: TolerationsType{
-														ObjectType: types.ObjectType{
-															AttrTypes: TolerationsValue{}.AttributeTypes(ctx),
-														},
-													},
+											CustomType: SystemComponentsPlacementType{
+												ObjectType: types.ObjectType{
+													AttrTypes: SystemComponentsPlacementValue{}.AttributeTypes(ctx),
 												},
-											},
-										},
-										CustomType: SystemComponentsPlacementType{
-											ObjectType: types.ObjectType{
-												AttrTypes: SystemComponentsPlacementValue{}.AttributeTypes(ctx),
 											},
 										},
 									},
@@ -5036,12 +5041,12 @@ func (t SpecType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue)
 		return nil, diags
 	}
 
-	sharingVal, ok := sharingAttribute.(basetypes.ObjectValue)
+	sharingVal, ok := sharingAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`sharing expected to be basetypes.ObjectValue, was: %T`, sharingAttribute))
+			fmt.Sprintf(`sharing expected to be basetypes.ListValue, was: %T`, sharingAttribute))
 	}
 
 	systemComponentsPlacementAttribute, ok := attributes["system_components_placement"]
@@ -5054,12 +5059,12 @@ func (t SpecType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue)
 		return nil, diags
 	}
 
-	systemComponentsPlacementVal, ok := systemComponentsPlacementAttribute.(basetypes.ObjectValue)
+	systemComponentsPlacementVal, ok := systemComponentsPlacementAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`system_components_placement expected to be basetypes.ObjectValue, was: %T`, systemComponentsPlacementAttribute))
+			fmt.Sprintf(`system_components_placement expected to be basetypes.ListValue, was: %T`, systemComponentsPlacementAttribute))
 	}
 
 	typeAttribute, ok := attributes["type"]
@@ -5298,12 +5303,12 @@ func NewSpecValue(attributeTypes map[string]attr.Type, attributes map[string]att
 		return NewSpecValueUnknown(), diags
 	}
 
-	sharingVal, ok := sharingAttribute.(basetypes.ObjectValue)
+	sharingVal, ok := sharingAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`sharing expected to be basetypes.ObjectValue, was: %T`, sharingAttribute))
+			fmt.Sprintf(`sharing expected to be basetypes.ListValue, was: %T`, sharingAttribute))
 	}
 
 	systemComponentsPlacementAttribute, ok := attributes["system_components_placement"]
@@ -5316,12 +5321,12 @@ func NewSpecValue(attributeTypes map[string]attr.Type, attributes map[string]att
 		return NewSpecValueUnknown(), diags
 	}
 
-	systemComponentsPlacementVal, ok := systemComponentsPlacementAttribute.(basetypes.ObjectValue)
+	systemComponentsPlacementVal, ok := systemComponentsPlacementAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`system_components_placement expected to be basetypes.ObjectValue, was: %T`, systemComponentsPlacementAttribute))
+			fmt.Sprintf(`system_components_placement expected to be basetypes.ListValue, was: %T`, systemComponentsPlacementAttribute))
 	}
 
 	typeAttribute, ok := attributes["type"]
@@ -5436,8 +5441,8 @@ type SpecValue struct {
 	CniProvider               basetypes.StringValue `tfsdk:"cni_provider"`
 	CrossAccountRoleArn       basetypes.StringValue `tfsdk:"cross_account_role_arn"`
 	ProxyConfig               basetypes.MapValue    `tfsdk:"proxy_config"`
-	Sharing                   basetypes.ObjectValue `tfsdk:"sharing"`
-	SystemComponentsPlacement basetypes.ObjectValue `tfsdk:"system_components_placement"`
+	Sharing                   basetypes.ListValue   `tfsdk:"sharing"`
+	SystemComponentsPlacement basetypes.ListValue   `tfsdk:"system_components_placement"`
 	SpecType                  basetypes.StringValue `tfsdk:"type"`
 	state                     attr.ValueState
 }
@@ -5459,11 +5464,11 @@ func (v SpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) 
 	attrTypes["proxy_config"] = basetypes.MapType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
-	attrTypes["sharing"] = basetypes.ObjectType{
-		AttrTypes: SharingValue{}.AttributeTypes(ctx),
+	attrTypes["sharing"] = basetypes.ListType{
+		ElemType: SharingValue{}.Type(ctx),
 	}.TerraformType(ctx)
-	attrTypes["system_components_placement"] = basetypes.ObjectType{
-		AttrTypes: SystemComponentsPlacementValue{}.AttributeTypes(ctx),
+	attrTypes["system_components_placement"] = basetypes.ListType{
+		ElemType: SystemComponentsPlacementValue{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["type"] = basetypes.StringType{}.TerraformType(ctx)
 
@@ -5611,45 +5616,61 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		)
 	}
 
-	var sharing basetypes.ObjectValue
+	sharing := types.ListValueMust(
+		SharingType{
+			basetypes.ObjectType{
+				AttrTypes: SharingValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.Sharing.Elements(),
+	)
 
 	if v.Sharing.IsNull() {
-		sharing = types.ObjectNull(
-			SharingValue{}.AttributeTypes(ctx),
+		sharing = types.ListNull(
+			SharingType{
+				basetypes.ObjectType{
+					AttrTypes: SharingValue{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
 	if v.Sharing.IsUnknown() {
-		sharing = types.ObjectUnknown(
-			SharingValue{}.AttributeTypes(ctx),
+		sharing = types.ListUnknown(
+			SharingType{
+				basetypes.ObjectType{
+					AttrTypes: SharingValue{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
-	if !v.Sharing.IsNull() && !v.Sharing.IsUnknown() {
-		sharing = types.ObjectValueMust(
-			SharingValue{}.AttributeTypes(ctx),
-			v.Sharing.Attributes(),
-		)
-	}
-
-	var systemComponentsPlacement basetypes.ObjectValue
+	systemComponentsPlacement := types.ListValueMust(
+		SystemComponentsPlacementType{
+			basetypes.ObjectType{
+				AttrTypes: SystemComponentsPlacementValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.SystemComponentsPlacement.Elements(),
+	)
 
 	if v.SystemComponentsPlacement.IsNull() {
-		systemComponentsPlacement = types.ObjectNull(
-			SystemComponentsPlacementValue{}.AttributeTypes(ctx),
+		systemComponentsPlacement = types.ListNull(
+			SystemComponentsPlacementType{
+				basetypes.ObjectType{
+					AttrTypes: SystemComponentsPlacementValue{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
 	if v.SystemComponentsPlacement.IsUnknown() {
-		systemComponentsPlacement = types.ObjectUnknown(
-			SystemComponentsPlacementValue{}.AttributeTypes(ctx),
-		)
-	}
-
-	if !v.SystemComponentsPlacement.IsNull() && !v.SystemComponentsPlacement.IsUnknown() {
-		systemComponentsPlacement = types.ObjectValueMust(
-			SystemComponentsPlacementValue{}.AttributeTypes(ctx),
-			v.SystemComponentsPlacement.Attributes(),
+		systemComponentsPlacement = types.ListUnknown(
+			SystemComponentsPlacementType{
+				basetypes.ObjectType{
+					AttrTypes: SystemComponentsPlacementValue{}.AttributeTypes(ctx),
+				},
+			},
 		)
 	}
 
@@ -5678,11 +5699,11 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 			"proxy_config": basetypes.MapType{
 				ElemType: types.StringType,
 			},
-			"sharing": basetypes.ObjectType{
-				AttrTypes: SharingValue{}.AttributeTypes(ctx),
+			"sharing": basetypes.ListType{
+				ElemType: SharingValue{}.Type(ctx),
 			},
-			"system_components_placement": basetypes.ObjectType{
-				AttrTypes: SystemComponentsPlacementValue{}.AttributeTypes(ctx),
+			"system_components_placement": basetypes.ListType{
+				ElemType: SystemComponentsPlacementValue{}.Type(ctx),
 			},
 			"type": basetypes.StringType{},
 		}), diags
@@ -5700,11 +5721,11 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		"proxy_config": basetypes.MapType{
 			ElemType: types.StringType,
 		},
-		"sharing": basetypes.ObjectType{
-			AttrTypes: SharingValue{}.AttributeTypes(ctx),
+		"sharing": basetypes.ListType{
+			ElemType: SharingValue{}.Type(ctx),
 		},
-		"system_components_placement": basetypes.ObjectType{
-			AttrTypes: SystemComponentsPlacementValue{}.AttributeTypes(ctx),
+		"system_components_placement": basetypes.ListType{
+			ElemType: SystemComponentsPlacementValue{}.Type(ctx),
 		},
 		"type": basetypes.StringType{},
 	}
@@ -5814,11 +5835,11 @@ func (v SpecValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"proxy_config": basetypes.MapType{
 			ElemType: types.StringType,
 		},
-		"sharing": basetypes.ObjectType{
-			AttrTypes: SharingValue{}.AttributeTypes(ctx),
+		"sharing": basetypes.ListType{
+			ElemType: SharingValue{}.Type(ctx),
 		},
-		"system_components_placement": basetypes.ObjectType{
-			AttrTypes: SystemComponentsPlacementValue{}.AttributeTypes(ctx),
+		"system_components_placement": basetypes.ListType{
+			ElemType: SystemComponentsPlacementValue{}.Type(ctx),
 		},
 		"type": basetypes.StringType{},
 	}

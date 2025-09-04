@@ -1314,10 +1314,22 @@ func (v CloudLoggingValue) Expand(ctx context.Context) (*rafay.EKSClusterCloudWa
 func (v SecretsEncryptionValue) Expand(ctx context.Context) (*rafay.SecretsEncryption, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var se rafay.SecretsEncryption
+
 	if v.IsNull() {
 		return &rafay.SecretsEncryption{}, diags
 	}
-	// TODO: Map fields appropriately
+
+	// Map key_arn field
+	if !v.KeyArn.IsNull() && !v.KeyArn.IsUnknown() {
+		se.KeyARN = getStringValue(v.KeyArn)
+	}
+
+	// Map encrypt_existing_secrets field (bool to pointer)
+	if !v.EncryptExistingSecrets.IsNull() && !v.EncryptExistingSecrets.IsUnknown() {
+		encryptExisting := getBoolValue(v.EncryptExistingSecrets)
+		se.EncryptExistingSecrets = &encryptExisting
+	}
+
 	return &se, diags
 }
 

@@ -1406,13 +1406,57 @@ func (v FargateProfilesValue) Expand(ctx context.Context) (*rafay.FargateProfile
 }
 
 func (v CloudWatchValue) Expand(ctx context.Context) (*rafay.EKSClusterCloudWatch, diag.Diagnostics) {
-	var diags diag.Diagnostics
+	var diags, d diag.Diagnostics
 	var cw rafay.EKSClusterCloudWatch
+
 	if v.IsNull() {
 		return &rafay.EKSClusterCloudWatch{}, diags
 	}
-	// TODO: Map fields appropriately
+
+	// Map cloud_logging block
+	if !v.CloudLogging.IsNull() && !v.CloudLogging.IsUnknown() {
+		vCloudLoggingList := make([]CloudLoggingValue, 0, len(v.CloudLogging.Elements()))
+		d = v.CloudLogging.ElementsAs(ctx, &vCloudLoggingList, false)
+		diags = append(diags, d...)
+		if len(vCloudLoggingList) > 0 {
+			clusterLogging, d := vCloudLoggingList[0].Expand(ctx)
+			diags = append(diags, d...)
+			cw.ClusterLogging = clusterLogging
+		}
+	}
+
 	return &cw, diags
+}
+
+// CloudLoggingValue Expand
+func (v CloudLoggingValue) Expand(ctx context.Context) (*rafay.EKSClusterCloudWatchLogging, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
+	var logging rafay.EKSClusterCloudWatchLogging
+
+	if v.IsNull() {
+		return &rafay.EKSClusterCloudWatchLogging{}, diags
+	}
+
+	// Map enable_types (list of strings)
+	if !v.EnableTypes.IsNull() && !v.EnableTypes.IsUnknown() {
+		enableTypesList := make([]types.String, 0, len(v.EnableTypes.Elements()))
+		d = v.EnableTypes.ElementsAs(ctx, &enableTypesList, false)
+		diags = append(diags, d...)
+		enableTypes := make([]string, 0, len(enableTypesList))
+		for _, enableType := range enableTypesList {
+			enableTypes = append(enableTypes, getStringValue(enableType))
+		}
+		if len(enableTypes) > 0 {
+			logging.EnableTypes = enableTypes
+		}
+	}
+
+	// Map log_retention_in_days (int64 field)
+	if !v.LogRetentionInDays.IsNull() && !v.LogRetentionInDays.IsUnknown() {
+		logging.LogRetentionInDays = int(getInt64Value(v.LogRetentionInDays))
+	}
+
+	return &logging, diags
 }
 
 func (v SecretsEncryptionValue) Expand(ctx context.Context) (*rafay.SecretsEncryption, diag.Diagnostics) {

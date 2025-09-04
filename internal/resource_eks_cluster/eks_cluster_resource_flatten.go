@@ -1048,7 +1048,7 @@ func (v *Iam4Value) Flatten(ctx context.Context, iam *rafay.NodeGroupIAM) diag.D
 	v.InstanceRoleName = types.StringValue(iam.InstanceRoleName)
 	v.InstanceRolePermissionBoundary = types.StringValue(iam.InstanceRolePermissionsBoundary)
 
-	addonPolicies := NewIamNodeGroupWithAddonPoliciesValueNull()
+	addonPolicies := NewIamNodeGroupWithAddonPolicies4ValueNull()
 	d = addonPolicies.Flatten(ctx, iam.WithAddonPolicies)
 	diags = append(diags, d...)
 	addonPoliciesElements := []attr.Value{addonPolicies}
@@ -1912,7 +1912,7 @@ func (v *Metadata2Value) Flatten(ctx context.Context, md *rafay.EKSClusterConfig
 }
 
 func (v *NodeGroupsMapValue) Flatten(ctx context.Context, ng *rafay.NodeGroup) diag.Diagnostics {
-	var diags, d diag.Diagnostics
+	var diags diag.Diagnostics
 
 	v.AmiFamily = types.StringValue(ng.AMIFamily)
 	v.DesiredCapacity = types.Int64Value(int64(*ng.DesiredCapacity))
@@ -1930,35 +1930,28 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, ng *rafay.NodeGroup) d
 	v.VolumeThroughput = types.Int64Value(int64(*ng.VolumeThroughput))
 	v.VolumeType = types.StringValue(ng.VolumeType)
 
-	iam := NewIam2ValueNull()
-	d = iam.Flatten(ctx, ng.IAM)
-	diags = append(diags, d...)
-	iamElements := []attr.Value{iam}
-	v.Iam2, d = types.ListValue(Iam2Value{}.Type(ctx), iamElements)
-	diags = append(diags, d...)
+	// iam := NewIam2ValueNull()
+	// d = iam.Flatten(ctx, ng.IAM)
+	// diags = append(diags, d...)
+	// iamElements := []attr.Value{iam}
+	// v.Iam2, d = types.ListValue(Iam2Value{}.Type(ctx), iamElements)
+	// diags = append(diags, d...)
 
 	v.state = attr.ValueStateKnown
 	return diags
 }
 
-func (v *Iam2Value) Flatten(ctx context.Context, iam *rafay.NodeGroupIAM) diag.Diagnostics {
-	var diags, d diag.Diagnostics
+func (v *Iam6Value) Flatten(ctx context.Context, iam *rafay.NodeGroupIAM) diag.Diagnostics {
+	var diags diag.Diagnostics
 	if iam == nil {
 		return diags
 	}
 
-	addonPolicies := NewIamNodeGroupWithAddonPolicies2ValueNull()
-	d = addonPolicies.Flatten(ctx, iam.WithAddonPolicies)
-	diags = append(diags, d...)
-	addonPoliciesElements := []attr.Value{addonPolicies}
-	v.IamNodeGroupWithAddonPolicies2, d = types.ListValue(IamNodeGroupWithAddonPolicies2Value{}.Type(ctx), addonPoliciesElements)
-	diags = append(diags, d...)
-
 	v.state = attr.ValueStateKnown
 	return diags
 }
 
-func (v *IamNodeGroupWithAddonPolicies2Value) Flatten(ctx context.Context, addonPolicies *rafay.NodeGroupIAMAddonPolicies) diag.Diagnostics {
+func (v *IamNodeGroupWithAddonPolicies6Value) Flatten(ctx context.Context, addonPolicies *rafay.NodeGroupIAMAddonPolicies) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if addonPolicies == nil {
 		return diags

@@ -526,7 +526,7 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 }
 
 // Dedicated Expand functions for each block type
-// TODO: Implement Expand functions for: VpcValue, AddonsValue, ManagedNodeGroupsValue, FargateProfilesValue, CloudWatchValue, SecretsEncryptionValue, IdentityMappingsValue, AccessConfigValue, AddonsConfigValue, AutoModeConfigValue, NodeGroupsMapValue
+// TODO: Implement Expand functions for: VpcValue, AddonsValue, ManagedNodeGroupsValue, SecretsEncryptionValue, IdentityMappingsValue, AccessConfigValue, AddonsConfigValue, AutoModeConfigValue, NodeGroupsMapValue
 
 // Stub Expand methods for all referenced block types
 func (v Metadata2Value) Expand(ctx context.Context) (*rafay.EKSClusterConfigMetadata, diag.Diagnostics) {
@@ -1396,13 +1396,102 @@ func (v ManagedNodegroupsValue) Expand(ctx context.Context) (*rafay.ManagedNodeG
 }
 
 func (v FargateProfilesValue) Expand(ctx context.Context) (*rafay.FargateProfile, diag.Diagnostics) {
-	var diags diag.Diagnostics
+	var diags, d diag.Diagnostics
 	var fp rafay.FargateProfile
+
 	if v.IsNull() {
 		return &rafay.FargateProfile{}, diags
 	}
-	// TODO: Map fields appropriately
+
+	// Map string fields
+	if !v.Name.IsNull() && !v.Name.IsUnknown() {
+		fp.Name = getStringValue(v.Name)
+	}
+
+	if !v.PodExecutionRoleArn.IsNull() && !v.PodExecutionRoleArn.IsUnknown() {
+		fp.PodExecutionRoleARN = getStringValue(v.PodExecutionRoleArn)
+	}
+
+	if !v.Status.IsNull() && !v.Status.IsUnknown() {
+		fp.Status = getStringValue(v.Status)
+	}
+
+	// Map selectors block
+	if !v.Selectors.IsNull() && !v.Selectors.IsUnknown() {
+		vSelectorsList := make([]SelectorsValue, 0, len(v.Selectors.Elements()))
+		d = v.Selectors.ElementsAs(ctx, &vSelectorsList, false)
+		diags = append(diags, d...)
+		selectors := make([]rafay.FargateProfileSelector, 0, len(vSelectorsList))
+		for _, selectorValue := range vSelectorsList {
+			selector, d := selectorValue.Expand(ctx)
+			diags = append(diags, d...)
+			selectors = append(selectors, selector)
+		}
+		if len(selectors) > 0 {
+			fp.Selectors = selectors
+		}
+	}
+
+	// Map subnets (list of strings)
+	if !v.Subnets.IsNull() && !v.Subnets.IsUnknown() {
+		subnetsList := make([]types.String, 0, len(v.Subnets.Elements()))
+		d = v.Subnets.ElementsAs(ctx, &subnetsList, false)
+		diags = append(diags, d...)
+		subnets := make([]string, 0, len(subnetsList))
+		for _, subnet := range subnetsList {
+			subnets = append(subnets, getStringValue(subnet))
+		}
+		if len(subnets) > 0 {
+			fp.Subnets = subnets
+		}
+	}
+
+	// Map tags (map of strings)
+	if !v.Tags.IsNull() && !v.Tags.IsUnknown() {
+		tags := make(map[string]string, len(v.Tags.Elements()))
+		vTags := make(map[string]types.String, len(v.Tags.Elements()))
+		d = v.Tags.ElementsAs(ctx, &vTags, false)
+		diags = append(diags, d...)
+		for k, val := range vTags {
+			tags[k] = getStringValue(val)
+		}
+		if len(tags) > 0 {
+			fp.Tags = tags
+		}
+	}
+
 	return &fp, diags
+}
+
+// SelectorsValue Expand
+func (v SelectorsValue) Expand(ctx context.Context) (rafay.FargateProfileSelector, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
+	var selector rafay.FargateProfileSelector
+
+	if v.IsNull() {
+		return rafay.FargateProfileSelector{}, diags
+	}
+
+	// Map namespace field
+	if !v.Namespace.IsNull() && !v.Namespace.IsUnknown() {
+		selector.Namespace = getStringValue(v.Namespace)
+	}
+
+	// Map labels (map of strings)
+	if !v.Labels.IsNull() && !v.Labels.IsUnknown() {
+		labels := make(map[string]string, len(v.Labels.Elements()))
+		vLabels := make(map[string]types.String, len(v.Labels.Elements()))
+		d = v.Labels.ElementsAs(ctx, &vLabels, false)
+		diags = append(diags, d...)
+		for k, val := range vLabels {
+			labels[k] = getStringValue(val)
+		}
+		if len(labels) > 0 {
+			selector.Labels = labels
+		}
+	}
+
+	return selector, diags
 }
 
 func (v CloudWatchValue) Expand(ctx context.Context) (*rafay.EKSClusterCloudWatch, diag.Diagnostics) {

@@ -1818,10 +1818,21 @@ func (v AccessScopeValue) Expand(ctx context.Context) (*rafay.EKSAccessScope, di
 func (v AddonsConfigValue) Expand(ctx context.Context) (*rafay.EKSAddonsConfig, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var acfg rafay.EKSAddonsConfig
+
 	if v.IsNull() {
 		return &rafay.EKSAddonsConfig{}, diags
 	}
-	// TODO: Map fields appropriately
+
+	// Map auto_apply_pod_identity_associations field
+	if !v.AutoApplyPodIdentityAssociations.IsNull() && !v.AutoApplyPodIdentityAssociations.IsUnknown() {
+		acfg.AutoApplyPodIdentityAssociations = getBoolValue(v.AutoApplyPodIdentityAssociations)
+	}
+
+	// Map disable_ebs_csi_driver field
+	if !v.DisableEbsCsiDriver.IsNull() && !v.DisableEbsCsiDriver.IsUnknown() {
+		acfg.DisableEBSCSIDriver = getBoolValue(v.DisableEbsCsiDriver)
+	}
+
 	return &acfg, diags
 }
 

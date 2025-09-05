@@ -526,7 +526,7 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 }
 
 // Dedicated Expand functions for each block type
-// TODO: Implement Expand functions for: VpcValue, AddonsValue, ManagedNodeGroupsValue, SecretsEncryptionValue, IdentityMappingsValue, AccessConfigValue, AddonsConfigValue, AutoModeConfigValue, NodeGroupsMapValue
+// TODO: Implement Expand functions for: VpcValue, AddonsValue, ManagedNodeGroupsValue, SecretsEncryptionValue, AddonsConfigValue, AutoModeConfigValue, NodeGroupsMapValue
 
 // Stub Expand methods for all referenced block types
 func (v Metadata2Value) Expand(ctx context.Context) (*rafay.EKSClusterConfigMetadata, diag.Diagnostics) {
@@ -1648,13 +1648,171 @@ func (v ArnsValue) Expand(ctx context.Context) (*rafay.IdentityMappingARN, diag.
 }
 
 func (v AccessConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterAccess, diag.Diagnostics) {
-	var diags diag.Diagnostics
+	var diags, d diag.Diagnostics
 	var ac rafay.EKSClusterAccess
+
 	if v.IsNull() {
 		return &rafay.EKSClusterAccess{}, diags
 	}
-	// TODO: Map fields appropriately
+
+	// Map bootstrap_cluster_creator_admin_permissions field
+	if !v.BootstrapClusterCreatorAdminPermissions.IsNull() && !v.BootstrapClusterCreatorAdminPermissions.IsUnknown() {
+		ac.BootstrapClusterCreatorAdminPermissions = getBoolValue(v.BootstrapClusterCreatorAdminPermissions)
+	}
+
+	// Map authentication_mode field
+	if !v.AuthenticationMode.IsNull() && !v.AuthenticationMode.IsUnknown() {
+		ac.AuthenticationMode = getStringValue(v.AuthenticationMode)
+	}
+
+	// Map access_entries block
+	if !v.AccessEntries.IsNull() && !v.AccessEntries.IsUnknown() {
+		vAccessEntriesList := make([]AccessEntriesValue, 0, len(v.AccessEntries.Elements()))
+		d = v.AccessEntries.ElementsAs(ctx, &vAccessEntriesList, false)
+		diags = append(diags, d...)
+		accessEntries := make([]*rafay.EKSAccessEntry, 0, len(vAccessEntriesList))
+		for _, accessEntryValue := range vAccessEntriesList {
+			accessEntry, d := accessEntryValue.Expand(ctx)
+			diags = append(diags, d...)
+			accessEntries = append(accessEntries, accessEntry)
+		}
+		if len(accessEntries) > 0 {
+			ac.AccessEntries = accessEntries
+		}
+	}
+
 	return &ac, diags
+}
+
+// AccessEntriesValue Expand
+func (v AccessEntriesValue) Expand(ctx context.Context) (*rafay.EKSAccessEntry, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
+	var ae rafay.EKSAccessEntry
+
+	if v.IsNull() {
+		return &rafay.EKSAccessEntry{}, diags
+	}
+
+	// Map principal_arn field
+	if !v.PrincipalArn.IsNull() && !v.PrincipalArn.IsUnknown() {
+		ae.PrincipalARN = getStringValue(v.PrincipalArn)
+	}
+
+	// Map type field
+	if !v.AccessEntriesType.IsNull() && !v.AccessEntriesType.IsUnknown() {
+		ae.Type = getStringValue(v.AccessEntriesType)
+	}
+
+	// Map kubernetes_username field
+	if !v.KubernetesUsername.IsNull() && !v.KubernetesUsername.IsUnknown() {
+		ae.KubernetesUsername = getStringValue(v.KubernetesUsername)
+	}
+
+	// Map kubernetes_groups (list of strings)
+	if !v.KubernetesGroups.IsNull() && !v.KubernetesGroups.IsUnknown() {
+		kubernetesGroupsList := make([]types.String, 0, len(v.KubernetesGroups.Elements()))
+		d = v.KubernetesGroups.ElementsAs(ctx, &kubernetesGroupsList, false)
+		diags = append(diags, d...)
+		kubernetesGroups := make([]string, 0, len(kubernetesGroupsList))
+		for _, group := range kubernetesGroupsList {
+			kubernetesGroups = append(kubernetesGroups, getStringValue(group))
+		}
+		if len(kubernetesGroups) > 0 {
+			ae.KubernetesGroups = kubernetesGroups
+		}
+	}
+
+	// Map tags (map of strings)
+	if !v.Tags.IsNull() && !v.Tags.IsUnknown() {
+		tags := make(map[string]string, len(v.Tags.Elements()))
+		vTags := make(map[string]types.String, len(v.Tags.Elements()))
+		d = v.Tags.ElementsAs(ctx, &vTags, false)
+		diags = append(diags, d...)
+		for k, val := range vTags {
+			tags[k] = getStringValue(val)
+		}
+		if len(tags) > 0 {
+			ae.Tags = tags
+		}
+	}
+
+	// Map access_policies block
+	if !v.AccessPolicies.IsNull() && !v.AccessPolicies.IsUnknown() {
+		vAccessPoliciesList := make([]AccessPoliciesValue, 0, len(v.AccessPolicies.Elements()))
+		d = v.AccessPolicies.ElementsAs(ctx, &vAccessPoliciesList, false)
+		diags = append(diags, d...)
+		accessPolicies := make([]*rafay.EKSAccessPolicy, 0, len(vAccessPoliciesList))
+		for _, accessPolicyValue := range vAccessPoliciesList {
+			accessPolicy, d := accessPolicyValue.Expand(ctx)
+			diags = append(diags, d...)
+			accessPolicies = append(accessPolicies, accessPolicy)
+		}
+		if len(accessPolicies) > 0 {
+			ae.AccessPolicies = accessPolicies
+		}
+	}
+
+	return &ae, diags
+}
+
+// AccessPoliciesValue Expand
+func (v AccessPoliciesValue) Expand(ctx context.Context) (*rafay.EKSAccessPolicy, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
+	var ap rafay.EKSAccessPolicy
+
+	if v.IsNull() {
+		return &rafay.EKSAccessPolicy{}, diags
+	}
+
+	// Map policy_arn field
+	if !v.PolicyArn.IsNull() && !v.PolicyArn.IsUnknown() {
+		ap.PolicyARN = getStringValue(v.PolicyArn)
+	}
+
+	// Map access_scope block
+	if !v.AccessScope.IsNull() && !v.AccessScope.IsUnknown() {
+		vAccessScopeList := make([]AccessScopeValue, 0, len(v.AccessScope.Elements()))
+		d = v.AccessScope.ElementsAs(ctx, &vAccessScopeList, false)
+		diags = append(diags, d...)
+		if len(vAccessScopeList) > 0 {
+			accessScope, d := vAccessScopeList[0].Expand(ctx)
+			diags = append(diags, d...)
+			ap.AccessScope = accessScope
+		}
+	}
+
+	return &ap, diags
+}
+
+// AccessScopeValue Expand
+func (v AccessScopeValue) Expand(ctx context.Context) (*rafay.EKSAccessScope, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
+	var as rafay.EKSAccessScope
+
+	if v.IsNull() {
+		return &rafay.EKSAccessScope{}, diags
+	}
+
+	// Map type field
+	if !v.AccessScopeType.IsNull() && !v.AccessScopeType.IsUnknown() {
+		as.Type = getStringValue(v.AccessScopeType)
+	}
+
+	// Map namespaces (list of strings)
+	if !v.Namespaces.IsNull() && !v.Namespaces.IsUnknown() {
+		namespacesList := make([]types.String, 0, len(v.Namespaces.Elements()))
+		d = v.Namespaces.ElementsAs(ctx, &namespacesList, false)
+		diags = append(diags, d...)
+		namespaces := make([]string, 0, len(namespacesList))
+		for _, namespace := range namespacesList {
+			namespaces = append(namespaces, getStringValue(namespace))
+		}
+		if len(namespaces) > 0 {
+			as.Namespaces = namespaces
+		}
+	}
+
+	return &as, diags
 }
 
 func (v AddonsConfigValue) Expand(ctx context.Context) (*rafay.EKSAddonsConfig, diag.Diagnostics) {

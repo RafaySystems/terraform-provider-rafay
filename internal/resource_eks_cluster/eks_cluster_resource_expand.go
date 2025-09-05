@@ -1837,12 +1837,37 @@ func (v AddonsConfigValue) Expand(ctx context.Context) (*rafay.EKSAddonsConfig, 
 }
 
 func (v AutoModeConfigValue) Expand(ctx context.Context) (*rafay.EKSAutoModeConfig, diag.Diagnostics) {
-	var diags diag.Diagnostics
+	var diags, d diag.Diagnostics
 	var amc rafay.EKSAutoModeConfig
+
 	if v.IsNull() {
 		return &rafay.EKSAutoModeConfig{}, diags
 	}
-	// TODO: Map fields appropriately
+
+	// Map enabled field
+	if !v.Enabled.IsNull() && !v.Enabled.IsUnknown() {
+		amc.Enabled = getBoolValue(v.Enabled)
+	}
+
+	// Map node_role_arn field
+	if !v.NodeRoleArn.IsNull() && !v.NodeRoleArn.IsUnknown() {
+		amc.NodeRoleARN = getStringValue(v.NodeRoleArn)
+	}
+
+	// Map node_pools (list of strings)
+	if !v.NodePools.IsNull() && !v.NodePools.IsUnknown() {
+		nodePoolsList := make([]types.String, 0, len(v.NodePools.Elements()))
+		d = v.NodePools.ElementsAs(ctx, &nodePoolsList, false)
+		diags = append(diags, d...)
+		nodePools := make([]string, 0, len(nodePoolsList))
+		for _, nodePool := range nodePoolsList {
+			nodePools = append(nodePools, getStringValue(nodePool))
+		}
+		if len(nodePools) > 0 {
+			amc.NodePools = nodePools
+		}
+	}
+
 	return &amc, diags
 }
 

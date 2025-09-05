@@ -1571,13 +1571,80 @@ func (v SecretsEncryptionValue) Expand(ctx context.Context) (*rafay.SecretsEncry
 }
 
 func (v IdentityMappingsValue) Expand(ctx context.Context) (*rafay.EKSClusterIdentityMappings, diag.Diagnostics) {
-	var diags diag.Diagnostics
+	var diags, d diag.Diagnostics
 	var im rafay.EKSClusterIdentityMappings
+
 	if v.IsNull() {
 		return &rafay.EKSClusterIdentityMappings{}, diags
 	}
-	// TODO: Map fields appropriately
+
+	// Map arns block
+	if !v.Arns.IsNull() && !v.Arns.IsUnknown() {
+		vArnsList := make([]ArnsValue, 0, len(v.Arns.Elements()))
+		d = v.Arns.ElementsAs(ctx, &vArnsList, false)
+		diags = append(diags, d...)
+		arns := make([]*rafay.IdentityMappingARN, 0, len(vArnsList))
+		for _, arnValue := range vArnsList {
+			arn, d := arnValue.Expand(ctx)
+			diags = append(diags, d...)
+			arns = append(arns, arn)
+		}
+		if len(arns) > 0 {
+			im.Arns = arns
+		}
+	}
+
+	// Map accounts (list of strings)
+	if !v.Accounts.IsNull() && !v.Accounts.IsUnknown() {
+		accountsList := make([]types.String, 0, len(v.Accounts.Elements()))
+		d = v.Accounts.ElementsAs(ctx, &accountsList, false)
+		diags = append(diags, d...)
+		accounts := make([]string, 0, len(accountsList))
+		for _, account := range accountsList {
+			accounts = append(accounts, getStringValue(account))
+		}
+		if len(accounts) > 0 {
+			im.Accounts = accounts
+		}
+	}
+
 	return &im, diags
+}
+
+// ArnsValue Expand
+func (v ArnsValue) Expand(ctx context.Context) (*rafay.IdentityMappingARN, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
+	var arn rafay.IdentityMappingARN
+
+	if v.IsNull() {
+		return &rafay.IdentityMappingARN{}, diags
+	}
+
+	// Map arn field
+	if !v.Arn.IsNull() && !v.Arn.IsUnknown() {
+		arn.Arn = getStringValue(v.Arn)
+	}
+
+	// Map username field
+	if !v.Username.IsNull() && !v.Username.IsUnknown() {
+		arn.Username = getStringValue(v.Username)
+	}
+
+	// Map group (list of strings)
+	if !v.Group.IsNull() && !v.Group.IsUnknown() {
+		groupList := make([]types.String, 0, len(v.Group.Elements()))
+		d = v.Group.ElementsAs(ctx, &groupList, false)
+		diags = append(diags, d...)
+		group := make([]string, 0, len(groupList))
+		for _, groupItem := range groupList {
+			group = append(group, getStringValue(groupItem))
+		}
+		if len(group) > 0 {
+			arn.Group = group
+		}
+	}
+
+	return &arn, diags
 }
 
 func (v AccessConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterAccess, diag.Diagnostics) {

@@ -312,19 +312,18 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	diags = append(diags, d...)
 
 	if ngMapInUse {
-		// TODO(Akshay): Update later
 		ngMap := types.MapNull(NodeGroupsMapValue{}.Type(ctx))
-		// if len(in.NodeGroups) != 0 {
-		// 	nodegrp := map[string]attr.Value{}
-		// 	for _, ng := range in.NodeGroups {
-		// 		ngrp := NewNodeGroupsMapValueNull()
-		// 		d = ngrp.Flatten(ctx, ng)
-		// 		diags = append(diags, d...)
-		// 		nodegrp[ng.Name] = ngrp
-		// 	}
-		// 	ngMap, d = types.MapValue(NodeGroupsMapValue{}.Type(ctx), nodegrp)
-		// 	diags = append(diags, d...)
-		// }
+		if len(in.NodeGroups) != 0 {
+			nodegrp := map[string]attr.Value{}
+			for _, ng := range in.NodeGroups {
+				ngrp := NewNodeGroupsMapValueNull()
+				d = ngrp.Flatten(ctx, ng)
+				diags = append(diags, d...)
+				nodegrp[ng.Name] = ngrp
+			}
+			ngMap, d = types.MapValue(NodeGroupsMapValue{}.Type(ctx), nodegrp)
+			diags = append(diags, d...)
+		}
 
 		v.NodeGroupsMap = ngMap
 		v.NodeGroups = types.ListNull(NodeGroupsValue{}.Type(ctx))

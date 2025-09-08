@@ -605,9 +605,6 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 }
 
 // Dedicated Expand functions for each block type
-// TODO: Implement Expand functions for: VpcValue, AddonsValue, ManagedNodeGroupsValue, SecretsEncryptionValue, NodeGroupsMapValue
-
-// Stub Expand methods for all referenced block types
 func (v Metadata2Value) Expand(ctx context.Context) (*rafay.EKSClusterConfigMetadata, diag.Diagnostics) {
 	var diags, d diag.Diagnostics
 	var md rafay.EKSClusterConfigMetadata
@@ -1109,18 +1106,518 @@ func (v VpcValue) Expand(ctx context.Context) (*rafay.EKSClusterVPC, diag.Diagno
 	if v.IsNull() {
 		return &rafay.EKSClusterVPC{}, diags
 	}
-	// TODO: Map fields appropriately
+
+	if !v.Id.IsNull() && !v.Id.IsUnknown() {
+		vpc.ID = getStringValue(v.Id)
+	}
+	if !v.Cidr.IsNull() && !v.Cidr.IsUnknown() {
+		vpc.CIDR = getStringValue(v.Cidr)
+	}
+	if !v.Ipv6Cidr.IsNull() && !v.Ipv6Cidr.IsUnknown() {
+		vpc.IPv6Cidr = getStringValue(v.Ipv6Cidr)
+	}
+	if !v.Ipv6Pool.IsNull() && !v.Ipv6Pool.IsUnknown() {
+		vpc.IPv6Pool = getStringValue(v.Ipv6Pool)
+	}
+	if !v.SecurityGroup.IsNull() && !v.SecurityGroup.IsUnknown() {
+		vpc.SecurityGroup = getStringValue(v.SecurityGroup)
+	}
+	if !v.ExtraCidrs.IsNull() && !v.ExtraCidrs.IsUnknown() {
+		extraCidrsList := make([]types.String, 0, len(v.ExtraCidrs.Elements()))
+		d := v.ExtraCidrs.ElementsAs(ctx, &extraCidrsList, false)
+		diags = append(diags, d...)
+		extraCidrs := make([]string, 0, len(extraCidrsList))
+		for _, cidr := range extraCidrsList {
+			extraCidrs = append(extraCidrs, getStringValue(cidr))
+		}
+		if len(extraCidrs) > 0 {
+			vpc.ExtraCIDRs = extraCidrs
+		}
+	}
+	if !v.ExtraIpv6Cidrs.IsNull() && !v.ExtraIpv6Cidrs.IsUnknown() {
+		extraIpv6CidrsList := make([]types.String, 0, len(v.ExtraIpv6Cidrs.Elements()))
+		d := v.ExtraIpv6Cidrs.ElementsAs(ctx, &extraIpv6CidrsList, false)
+		diags = append(diags, d...)
+		extraIpv6Cidrs := make([]string, 0, len(extraIpv6CidrsList))
+		for _, cidr := range extraIpv6CidrsList {
+			extraIpv6Cidrs = append(extraIpv6Cidrs, getStringValue(cidr))
+		}
+		if len(extraIpv6Cidrs) > 0 {
+			vpc.ExtraIPv6CIDRs = extraIpv6Cidrs
+		}
+	}
+	if !v.SharedNodeSecurityGroup.IsNull() && !v.SharedNodeSecurityGroup.IsUnknown() {
+		vpc.SharedNodeSecurityGroup = getStringValue(v.SharedNodeSecurityGroup)
+	}
+	if !v.ManageSharedNodeSecurityGroupRules.IsNull() && !v.ManageSharedNodeSecurityGroupRules.IsUnknown() {
+		manage := getBoolValue(v.ManageSharedNodeSecurityGroupRules)
+		vpc.ManageSharedNodeSecurityGroupRules = &manage
+	}
+	if !v.AutoAllocateIpv6.IsNull() && !v.AutoAllocateIpv6.IsUnknown() {
+		autoallocate := getBoolValue(v.AutoAllocateIpv6)
+		vpc.AutoAllocateIPv6 = &autoallocate
+	}
+	if !v.PublicAccessCidrs.IsNull() && !v.PublicAccessCidrs.IsUnknown() {
+		publicAccessCidrsList := make([]types.String, 0, len(v.PublicAccessCidrs.Elements()))
+		d := v.PublicAccessCidrs.ElementsAs(ctx, &publicAccessCidrsList, false)
+		diags = append(diags, d...)
+		publicAccessCidrs := make([]string, 0, len(publicAccessCidrsList))
+		for _, cidr := range publicAccessCidrsList {
+			publicAccessCidrs = append(publicAccessCidrs, getStringValue(cidr))
+		}
+		if len(publicAccessCidrs) > 0 {
+			vpc.PublicAccessCIDRs = publicAccessCidrs
+		}
+	}
+
+	if !v.Subnets3.IsNull() && !v.Subnets3.IsUnknown() {
+		vSubnets := make([]Subnets3Value, 0, len(v.Subnets3.Elements()))
+		d := v.Subnets3.ElementsAs(ctx, &vSubnets, false)
+		diags = append(diags, d...)
+		if len(vSubnets) > 0 {
+			sn, d := vSubnets[0].Expand(ctx)
+			diags = append(diags, d...)
+			vpc.Subnets = sn
+		}
+	}
+
+	if !v.Nat.IsNull() && !v.Nat.IsUnknown() {
+		vNatList := make([]NatValue, 0, len(v.Nat.Elements()))
+		d := v.Nat.ElementsAs(ctx, &vNatList, false)
+		diags = append(diags, d...)
+		if len(vNatList) > 0 {
+			nat, d := vNatList[0].Expand(ctx)
+			diags = append(diags, d...)
+			vpc.NAT = nat
+		}
+	}
+
+	if !v.ClusterEndpoints.IsNull() && !v.ClusterEndpoints.IsUnknown() {
+		vClusterEndpointsList := make([]ClusterEndpointsValue, 0, len(v.ClusterEndpoints.Elements()))
+		d := v.ClusterEndpoints.ElementsAs(ctx, &vClusterEndpointsList, false)
+		diags = append(diags, d...)
+		if len(vClusterEndpointsList) > 0 {
+			ce, d := vClusterEndpointsList[0].Expand(ctx)
+			diags = append(diags, d...)
+			vpc.ClusterEndpoints = ce
+		}
+	}
+
 	return &vpc, diags
 }
 
-func (v AddonsValue) Expand(ctx context.Context) (*rafay.Addon, diag.Diagnostics) {
+func (v Subnets3Value) Expand(ctx context.Context) (*rafay.ClusterSubnets, diag.Diagnostics) {
 	var diags diag.Diagnostics
+	var subnets rafay.ClusterSubnets
+	if v.IsNull() {
+		return &rafay.ClusterSubnets{}, diags
+	}
+	if !v.Private.IsNull() && !v.Private.IsUnknown() {
+		privateList := make([]PrivateValue, 0, len(v.Private.Elements()))
+		d := v.Private.ElementsAs(ctx, &privateList, false)
+		diags = append(diags, d...)
+		if len(privateList) > 0 {
+			snmapping := make(rafay.AZSubnetMapping)
+			for _, ps := range privateList {
+				nm, azspec, d := ps.Expand(ctx)
+				diags = append(diags, d...)
+				snmapping[nm] = *azspec
+			}
+			subnets.Private = snmapping
+		}
+	}
+
+	if !v.Public.IsNull() && !v.Public.IsUnknown() {
+		publicList := make([]PublicValue, 0, len(v.Public.Elements()))
+		d := v.Public.ElementsAs(ctx, &publicList, false)
+		diags = append(diags, d...)
+		if len(publicList) > 0 {
+			snmapping := make(rafay.AZSubnetMapping)
+			for _, ps := range publicList {
+				nm, azspec, d := ps.Expand(ctx)
+				diags = append(diags, d...)
+				snmapping[nm] = *azspec
+			}
+			subnets.Public = snmapping
+		}
+	}
+
+	return &subnets, diags
+}
+
+func (v PrivateValue) Expand(ctx context.Context) (string, *rafay.AZSubnetSpec, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var azspec rafay.AZSubnetSpec
+	if v.IsNull() {
+		return "", &rafay.AZSubnetSpec{}, diags
+	}
+	var name string
+	if !v.Name.IsNull() && !v.Name.IsUnknown() {
+		name = getStringValue(v.Name)
+	}
+	if !v.Id.IsNull() && !v.Id.IsUnknown() {
+		azspec.ID = getStringValue(v.Id)
+	}
+	if !v.Cidr.IsNull() && !v.Cidr.IsUnknown() {
+		azspec.CIDR = getStringValue(v.Cidr)
+	}
+	if !v.Az.IsNull() && !v.Az.IsUnknown() {
+		azspec.AZ = getStringValue(v.Az)
+	}
+
+	return name, &azspec, diags
+}
+
+func (v PublicValue) Expand(ctx context.Context) (string, *rafay.AZSubnetSpec, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var azspec rafay.AZSubnetSpec
+	if v.IsNull() {
+		return "", &rafay.AZSubnetSpec{}, diags
+	}
+	var name string
+	if !v.Name.IsNull() && !v.Name.IsUnknown() {
+		name = getStringValue(v.Name)
+	}
+	if !v.Id.IsNull() && !v.Id.IsUnknown() {
+		azspec.ID = getStringValue(v.Id)
+	}
+	if !v.Cidr.IsNull() && !v.Cidr.IsUnknown() {
+		azspec.CIDR = getStringValue(v.Cidr)
+	}
+	if !v.Az.IsNull() && !v.Az.IsUnknown() {
+		azspec.AZ = getStringValue(v.Az)
+	}
+	return name, &azspec, diags
+}
+
+func (v NatValue) Expand(ctx context.Context) (*rafay.ClusterNAT, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var nat rafay.ClusterNAT
+	if v.IsNull() {
+		return &rafay.ClusterNAT{}, diags
+	}
+
+	if !v.Gateway.IsNull() && !v.Gateway.IsUnknown() {
+		nat.Gateway = getStringValue(v.Gateway)
+	}
+
+	return &nat, diags
+}
+
+func (v ClusterEndpointsValue) Expand(ctx context.Context) (*rafay.ClusterEndpoints, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var ce rafay.ClusterEndpoints
+	if v.IsNull() {
+		return &rafay.ClusterEndpoints{}, diags
+	}
+
+	if !v.PublicAccess.IsNull() && !v.PublicAccess.IsUnknown() {
+		publicAccess := getBoolValue(v.PublicAccess)
+		ce.PublicAccess = &publicAccess
+	}
+
+	if !v.PrivateAccess.IsNull() && !v.PrivateAccess.IsUnknown() {
+		privateAccess := getBoolValue(v.PrivateAccess)
+		ce.PrivateAccess = &privateAccess
+	}
+	return &ce, diags
+}
+
+func (v AddonsValue) Expand(ctx context.Context) (*rafay.Addon, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
 	var addon rafay.Addon
 	if v.IsNull() {
 		return &rafay.Addon{}, diags
 	}
-	// TODO: Map fields appropriately
+	if !v.Name.IsNull() && !v.Name.IsUnknown() {
+		addon.Name = getStringValue(v.Name)
+	}
+	if !v.Version.IsNull() && !v.Version.IsUnknown() {
+		addon.Version = getStringValue(v.Version)
+	}
+	if !v.ServiceAccountRoleArn.IsNull() && !v.ServiceAccountRoleArn.IsUnknown() {
+		addon.ServiceAccountRoleARN = getStringValue(v.ServiceAccountRoleArn)
+	}
+	if !v.AttachPolicyArns3.IsNull() && !v.AttachPolicyArns3.IsUnknown() {
+		policyArnsList := make([]types.String, 0, len(v.AttachPolicyArns3.Elements()))
+		d := v.AttachPolicyArns3.ElementsAs(ctx, &policyArnsList, false)
+		diags = append(diags, d...)
+		policyArns := make([]string, 0, len(policyArnsList))
+		for _, arn := range policyArnsList {
+			policyArns = append(policyArns, getStringValue(arn))
+		}
+		if len(policyArns) > 0 {
+			addon.AttachPolicyARNs = policyArns
+		}
+	}
+	if !v.AttachPolicyV22.IsNull() && !v.AttachPolicyV22.IsUnknown() {
+		var policyDoc *rafay.InlineDocument
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		json2.Unmarshal([]byte(getStringValue(v.AttachPolicyV22)), &policyDoc)
+		addon.AttachPolicy = policyDoc
+	}
+	if !v.PermissionsBoundary2.IsNull() && !v.PermissionsBoundary2.IsUnknown() {
+		addon.PermissionsBoundary = getStringValue(v.PermissionsBoundary2)
+	}
+	if !v.Tags4.IsNull() && !v.Tags4.IsUnknown() {
+		tags := make(map[string]string, len(v.Tags4.Elements()))
+		vTags := make(map[string]types.String, len(v.Tags4.Elements()))
+		d := v.Tags4.ElementsAs(ctx, &vTags, false)
+		diags = append(diags, d...)
+		for key, val := range vTags {
+			tags[key] = getStringValue(val)
+		}
+		if len(tags) > 0 {
+			addon.Tags = tags
+		}
+	}
+	if !v.ConfigurationValues.IsNull() && !v.ConfigurationValues.IsUnknown() {
+		addon.ConfigurationValues = getStringValue(v.ConfigurationValues)
+	}
+	if !v.UseDefaultPodIdentityAssociations.IsNull() && !v.UseDefaultPodIdentityAssociations.IsUnknown() {
+		addon.UseDefaultPodIdentityAssociations = getBoolValue(v.UseDefaultPodIdentityAssociations)
+	}
+
+	if !v.AttachPolicy3.IsNull() && !v.AttachPolicy3.IsUnknown() {
+		vAttachPolicy := make([]AttachPolicy3Value, 0, len(v.AttachPolicy3.Elements()))
+		d = v.AttachPolicy3.ElementsAs(ctx, &vAttachPolicy, false)
+		diags = append(diags, d...)
+		if len(vAttachPolicy) > 0 {
+			policy, d := vAttachPolicy[0].Expand(ctx)
+			diags = append(diags, d...)
+			addon.AttachPolicy = policy
+		}
+	}
+
+	if !v.WellKnownPolicies3.IsNull() && !v.WellKnownPolicies3.IsUnknown() {
+		vWellKnownPolicies := make([]WellKnownPolicies3Value, 0, len(v.WellKnownPolicies3.Elements()))
+		d = v.WellKnownPolicies3.ElementsAs(ctx, &vWellKnownPolicies, false)
+		diags = append(diags, d...)
+		if len(vWellKnownPolicies) > 0 {
+			wellKnownPolicies, d := vWellKnownPolicies[0].Expand(ctx)
+			diags = append(diags, d...)
+			addon.WellKnownPolicies = wellKnownPolicies
+		}
+	}
+
+	if !v.PodIdentityAssociations2.IsNull() && !v.PodIdentityAssociations2.IsUnknown() {
+		vPodIdentityAssociations := make([]PodIdentityAssociations2Value, 0, len(v.PodIdentityAssociations2.Elements()))
+		d = v.PodIdentityAssociations2.ElementsAs(ctx, &vPodIdentityAssociations, false)
+		diags = append(diags, d...)
+		podIdentityAssociations := make([]*rafay.IAMPodIdentityAssociation, 0, len(vPodIdentityAssociations))
+		for _, pia := range vPodIdentityAssociations {
+			piaObj, d := pia.Expand(ctx)
+			diags = append(diags, d...)
+			podIdentityAssociations = append(podIdentityAssociations, piaObj)
+		}
+		if len(podIdentityAssociations) > 0 {
+			addon.PodIdentityAssociations = podIdentityAssociations
+		}
+	}
+
 	return &addon, diags
+}
+
+func (v AttachPolicy3Value) Expand(ctx context.Context) (*rafay.InlineDocument, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var policyDoc rafay.InlineDocument
+	if v.IsNull() {
+		return &rafay.InlineDocument{}, diags
+	}
+	if !v.Version.IsNull() && !v.Version.IsUnknown() {
+		policyDoc.Version = getStringValue(v.Version)
+	}
+	if !v.Id.IsNull() && !v.Id.IsUnknown() {
+		policyDoc.Id = getStringValue(v.Id)
+	}
+	if !v.Statement2.IsNull() && !v.Statement2.IsUnknown() {
+		vStatement := make([]StatementValue, 0, len(v.Statement2.Elements()))
+		d := v.Statement2.ElementsAs(ctx, &vStatement, false)
+		diags = append(diags, d...)
+		statements := make([]rafay.InlineStatement, 0, len(vStatement))
+		for _, stmt := range vStatement {
+			stmtObj, d := stmt.Expand(ctx)
+			diags = append(diags, d...)
+			statements = append(statements, stmtObj)
+		}
+		if len(statements) > 0 {
+			policyDoc.Statement = statements
+		}
+	}
+
+	return &policyDoc, diags
+}
+
+func (v WellKnownPolicies3Value) Expand(ctx context.Context) (*rafay.WellKnownPolicies, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var wp rafay.WellKnownPolicies
+
+	if v.IsNull() {
+		return &rafay.WellKnownPolicies{}, diags
+	}
+
+	if !v.ImageBuilder.IsNull() && !v.ImageBuilder.IsUnknown() {
+		imageBuilder := getBoolValue(v.ImageBuilder)
+		wp.ImageBuilder = &imageBuilder
+	}
+
+	if !v.AutoScaler.IsNull() && !v.AutoScaler.IsUnknown() {
+		autoScaler := getBoolValue(v.AutoScaler)
+		wp.AutoScaler = &autoScaler
+	}
+
+	if !v.AwsLoadBalancerController.IsNull() && !v.AwsLoadBalancerController.IsUnknown() {
+		awsLoadBalancerController := getBoolValue(v.AwsLoadBalancerController)
+		wp.AWSLoadBalancerController = &awsLoadBalancerController
+	}
+
+	if !v.ExternalDns.IsNull() && !v.ExternalDns.IsUnknown() {
+		externalDns := getBoolValue(v.ExternalDns)
+		wp.ExternalDNS = &externalDns
+	}
+
+	if !v.CertManager.IsNull() && !v.CertManager.IsUnknown() {
+		certManager := getBoolValue(v.CertManager)
+		wp.CertManager = &certManager
+	}
+
+	if !v.EbsCsiController.IsNull() && !v.EbsCsiController.IsUnknown() {
+		ebsCsiController := getBoolValue(v.EbsCsiController)
+		wp.EBSCSIController = &ebsCsiController
+	}
+
+	if !v.EfsCsiController.IsNull() && !v.EfsCsiController.IsUnknown() {
+		efsCsiController := getBoolValue(v.EfsCsiController)
+		wp.EFSCSIController = &efsCsiController
+	}
+
+	return &wp, diags
+}
+
+func (v PodIdentityAssociations2Value) Expand(ctx context.Context) (*rafay.IAMPodIdentityAssociation, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
+	var pia rafay.IAMPodIdentityAssociation
+
+	if v.IsNull() {
+		return &rafay.IAMPodIdentityAssociation{}, diags
+	}
+
+	// Map string fields
+	if !v.Namespace.IsNull() && !v.Namespace.IsUnknown() {
+		pia.Namespace = getStringValue(v.Namespace)
+	}
+
+	if !v.ServiceAccountName.IsNull() && !v.ServiceAccountName.IsUnknown() {
+		pia.ServiceAccountName = getStringValue(v.ServiceAccountName)
+	}
+
+	if !v.RoleArn.IsNull() && !v.RoleArn.IsUnknown() {
+		pia.RoleARN = getStringValue(v.RoleArn)
+	}
+
+	if !v.CreateServiceAccount.IsNull() && !v.CreateServiceAccount.IsUnknown() {
+		pia.CreateServiceAccount = getBoolValue(v.CreateServiceAccount)
+	}
+
+	if !v.RoleName.IsNull() && !v.RoleName.IsUnknown() {
+		pia.RoleName = getStringValue(v.RoleName)
+	}
+
+	if !v.PermissionBoundaryArn.IsNull() && !v.PermissionBoundaryArn.IsUnknown() {
+		pia.PermissionsBoundaryARN = getStringValue(v.PermissionBoundaryArn)
+	}
+
+	if !v.PermissionPolicyArns.IsNull() && !v.PermissionPolicyArns.IsUnknown() {
+		policyArnsList := make([]types.String, 0, len(v.PermissionPolicyArns.Elements()))
+		d = v.PermissionPolicyArns.ElementsAs(ctx, &policyArnsList, false)
+		diags = append(diags, d...)
+		policyArns := make([]string, 0, len(policyArnsList))
+		for _, arn := range policyArnsList {
+			policyArns = append(policyArns, getStringValue(arn))
+		}
+		if len(policyArns) > 0 {
+			pia.PermissionPolicyARNs = policyArns
+		}
+	}
+
+	if !v.PermissionPolicy.IsNull() && !v.PermissionPolicy.IsUnknown() {
+		var policyDoc map[string]interface{}
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		json2.Unmarshal([]byte(getStringValue(v.PermissionPolicy)), &policyDoc)
+		pia.PermissionPolicy = policyDoc
+	}
+
+	if !v.Tags.IsNull() && !v.Tags.IsUnknown() {
+		tags := make(map[string]string, len(v.Tags.Elements()))
+		vTags := make(map[string]types.String, len(v.Tags.Elements()))
+		d = v.Tags.ElementsAs(ctx, &vTags, false)
+		diags = append(diags, d...)
+		for k, val := range vTags {
+			tags[k] = getStringValue(val)
+		}
+		if len(tags) > 0 {
+			pia.Tags = tags
+		}
+	}
+
+	if !v.WellKnownPolicies4.IsNull() && !v.WellKnownPolicies4.IsUnknown() {
+		vWellKnownPoliciesList := make([]WellKnownPolicies4Value, 0, len(v.WellKnownPolicies4.Elements()))
+		d = v.WellKnownPolicies4.ElementsAs(ctx, &vWellKnownPoliciesList, false)
+		diags = append(diags, d...)
+		if len(vWellKnownPoliciesList) > 0 {
+			wellKnownPolicies, d := vWellKnownPoliciesList[0].Expand(ctx)
+			diags = append(diags, d...)
+			pia.WellKnownPolicies = wellKnownPolicies
+		}
+	}
+
+	return &pia, diags
+}
+
+func (v WellKnownPolicies4Value) Expand(ctx context.Context) (*rafay.WellKnownPolicies, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var wp rafay.WellKnownPolicies
+
+	if v.IsNull() {
+		return &rafay.WellKnownPolicies{}, diags
+	}
+
+	if !v.ImageBuilder.IsNull() && !v.ImageBuilder.IsUnknown() {
+		imageBuilder := getBoolValue(v.ImageBuilder)
+		wp.ImageBuilder = &imageBuilder
+	}
+
+	if !v.AutoScaler.IsNull() && !v.AutoScaler.IsUnknown() {
+		autoScaler := getBoolValue(v.AutoScaler)
+		wp.AutoScaler = &autoScaler
+	}
+
+	if !v.AwsLoadBalancerController.IsNull() && !v.AwsLoadBalancerController.IsUnknown() {
+		awsLoadBalancerController := getBoolValue(v.AwsLoadBalancerController)
+		wp.AWSLoadBalancerController = &awsLoadBalancerController
+	}
+
+	if !v.ExternalDns.IsNull() && !v.ExternalDns.IsUnknown() {
+		externalDns := getBoolValue(v.ExternalDns)
+		wp.ExternalDNS = &externalDns
+	}
+
+	if !v.CertManager.IsNull() && !v.CertManager.IsUnknown() {
+		certManager := getBoolValue(v.CertManager)
+		wp.CertManager = &certManager
+	}
+
+	if !v.EbsCsiController.IsNull() && !v.EbsCsiController.IsUnknown() {
+		ebsCsiController := getBoolValue(v.EbsCsiController)
+		wp.EBSCSIController = &ebsCsiController
+	}
+
+	if !v.EfsCsiController.IsNull() && !v.EfsCsiController.IsUnknown() {
+		efsCsiController := getBoolValue(v.EfsCsiController)
+		wp.EFSCSIController = &efsCsiController
+	}
+
+	return &wp, diags
 }
 
 func (v PrivateClusterValue) Expand(ctx context.Context) (*rafay.PrivateCluster, diag.Diagnostics) {

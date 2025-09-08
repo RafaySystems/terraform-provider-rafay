@@ -3357,7 +3357,6 @@
                                                         "computed_optional_required": "optional"
                                                     }
                                                 },
-                                                
                                                 {
                                                     "name": "extra_cidrs",
                                                     "list": {
@@ -3450,8 +3449,7 @@
                                                                                         "computed_optional_required": "optional"
                                                                                     }
                                                                                 }
-                                                                            ],
-                                                                            "blocks": []
+                                                                            ]
                                                                         }
                                                                     }
                                                                 },
@@ -3488,8 +3486,7 @@
                                                                                         "computed_optional_required": "optional"
                                                                                     }
                                                                                 }
-                                                                            ],
-                                                                            "blocks": []
+                                                                            ]
                                                                         }
                                                                     }
                                                                 }
@@ -3714,8 +3711,7 @@
                                                                                         "computed_optional_required": "optional"
                                                                                     }
                                                                                 }
-                                                                            ],
-                                                                            "blocks": []
+                                                                            ]
                                                                         }
                                                                     }
                                                                 }

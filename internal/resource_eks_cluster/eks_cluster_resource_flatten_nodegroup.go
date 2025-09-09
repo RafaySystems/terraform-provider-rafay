@@ -11,7 +11,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup) diag.Diagnostics {
+func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, state NodeGroupsValue) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 
 	v.Name = types.StringValue(in.Name)
@@ -147,12 +147,24 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup) diag
 
 	v.Ami = types.StringValue(in.AMI)
 
-	iam := NewIamValueNull()
-	d = iam.Flatten(ctx, in.IAM)
-	diags = append(diags, d...)
-	iamElements := []attr.Value{iam}
-	v.Iam, d = types.ListValue(IamValue{}.Type(ctx), iamElements)
-	diags = append(diags, d...)
+	if in.IAM != nil {
+		// get state iam
+		stIams := make([]IamValue, 0, len(state.Iam.Elements()))
+		d = state.Iam.ElementsAs(ctx, &stIams, false)
+		diags = append(diags, d...)
+
+		var stIam IamValue
+		if len(stIams) > 0 {
+			stIam = stIams[0]
+		}
+
+		iam := NewIamValueNull()
+		d = iam.Flatten(ctx, in.IAM, stIam)
+		diags = append(diags, d...)
+		iamElements := []attr.Value{iam}
+		v.Iam, d = types.ListValue(IamValue{}.Type(ctx), iamElements)
+		diags = append(diags, d...)
+	}
 
 	ssh := NewSshValueNull()
 	d = ssh.Flatten(ctx, in.SSH)
@@ -478,27 +490,37 @@ func (v *SecurityGroups2Value) Flatten(ctx context.Context, in *rafay.NodeGroupS
 	return diags
 }
 
-func (v *IamValue) Flatten(ctx context.Context, in *rafay.NodeGroupIAM) diag.Diagnostics {
+func (v *IamValue) Flatten(ctx context.Context, in *rafay.NodeGroupIAM, state IamValue) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 	if in == nil {
 		return diags
 	}
 
-	// TODO(Akshay): Check if Attach Policy v2. based on that populate attach_policy and attach_policy_v2
-	if in.AttachPolicy != nil {
-		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		jsonBytes, err := json2.Marshal(in.AttachPolicy)
-		if err != nil {
-			diags.AddError("Attach Policy Marshal Error", err.Error())
-		}
-		v.AttachPolicyV2 = types.StringValue(string(jsonBytes))
+	var isPolicyV1, isPolicyV2 bool
+	if !state.IsNull() && !state.AttachPolicyV2.IsNull() && !state.AttachPolicyV2.IsUnknown() &&
+		getStringValue(state.AttachPolicyV2) != "" {
+		isPolicyV2 = true
+	}
+	if !state.IsNull() && !state.AttachPolicy.IsNull() && !state.AttachPolicy.IsUnknown() {
+		isPolicyV1 = true
 	}
 
-	attachPolicy := NewAttachPolicyValueNull()
-	d = attachPolicy.Flatten(ctx, in.AttachPolicy)
-	diags = append(diags, d...)
-	v.AttachPolicy, d = types.ListValue(AttachPolicyValue{}.Type(ctx), []attr.Value{attachPolicy})
-	diags = append(diags, d...)
+	if in.AttachPolicy != nil {
+		if isPolicyV1 && !isPolicyV2 {
+			attachPolicy := NewAttachPolicyValueNull()
+			d = attachPolicy.Flatten(ctx, in.AttachPolicy)
+			diags = append(diags, d...)
+			v.AttachPolicy, d = types.ListValue(AttachPolicyValue{}.Type(ctx), []attr.Value{attachPolicy})
+			diags = append(diags, d...)
+		} else {
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonBytes, err := json2.Marshal(in.AttachPolicy)
+			if err != nil {
+				diags.AddError("Attach Policy Marshal Error", err.Error())
+			}
+			v.AttachPolicyV2 = types.StringValue(string(jsonBytes))
+		}
+	}
 
 	attachPolicyArns := types.ListNull(types.StringType)
 	if len(in.AttachPolicyARNs) > 0 {

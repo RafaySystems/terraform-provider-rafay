@@ -14,7 +14,6 @@ import (
 )
 
 var ngMapInUse = true
-var existingAddonNames = []string{}
 
 func FlattenEksCluster(ctx context.Context, in rafay.EKSCluster, data *EksClusterModel) diag.Diagnostics {
 	var diags, d diag.Diagnostics
@@ -42,21 +41,15 @@ func FlattenEksClusterConfig(ctx context.Context, in rafay.EKSClusterConfig, dat
 		ngMapInUse = false
 	}
 
-	// get existing addons from TF state
 	if len(ccList) > 0 {
-		addonsList := make([]AddonsValue, 0, len(ccList[0].Addons.Elements()))
-		diags = ccList[0].Addons.ElementsAs(ctx, &addonsList, false)
+		cc := NewClusterConfigValueNull()
+		d = cc.Flatten(ctx, in, ccList[0])
 		diags = append(diags, d...)
-		for _, addon := range addonsList {
-			existingAddonNames = append(existingAddonNames, getStringValue(addon.Name))
-		}
+		data.ClusterConfig, d = types.ListValue(ClusterConfigValue{}.Type(ctx), []attr.Value{cc})
+		diags = append(diags, d...)
+	} else {
+		data.ClusterConfig = types.ListNull(ClusterConfigValue{}.Type(ctx))
 	}
-
-	cc := NewClusterConfigValueNull()
-	d = cc.Flatten(ctx, in)
-	diags = append(diags, d...)
-	data.ClusterConfig, d = types.ListValue(ClusterConfigValue{}.Type(ctx), []attr.Value{cc})
-	diags = append(diags, d...)
 
 	return diags
 }
@@ -128,7 +121,6 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec) diag.Diagnos
 		return diags
 	}
 
-	// Only assign string values if not empty
 	if in.Blueprint != "" {
 		v.Blueprint = types.StringValue(in.Blueprint)
 	} else {
@@ -285,8 +277,17 @@ func (v *CniSpecValue) Flatten(ctx context.Context, in rafay.CustomCniSpec) diag
 
 // --- Cluster config ---
 
-func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterConfig) diag.Diagnostics {
+func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterConfig, state ClusterConfigValue) diag.Diagnostics {
 	var diags, d diag.Diagnostics
+
+	// get existing addons from TF state
+	var stAddonNames []string
+	stAddons := make([]AddonsValue, 0, len(state.Addons.Elements()))
+	diags = state.Addons.ElementsAs(ctx, &stAddons, false)
+	diags = append(diags, d...)
+	for _, addon := range stAddons {
+		stAddonNames = append(stAddonNames, getStringValue(addon.Name))
+	}
 
 	v.Apiversion = types.StringValue(in.APIVersion)
 	v.Kind = types.StringValue(in.Kind)
@@ -312,12 +313,21 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	diags = append(diags, d...)
 
 	if ngMapInUse {
+		stNgMaps := make(map[string]NodeGroupsMapValue, len(state.NodeGroupsMap.Elements()))
+		d = state.NodeGroupsMap.ElementsAs(ctx, &stNgMaps, false)
+		diags = append(diags, d...)
+
 		ngMap := types.MapNull(NodeGroupsMapValue{}.Type(ctx))
-		if len(in.NodeGroups) != 0 {
+		if len(in.NodeGroups) > 0 {
 			nodegrp := map[string]attr.Value{}
 			for _, ng := range in.NodeGroups {
+				stNgMap := NodeGroupsMapValue{}
+				if _, ok := stNgMaps[ng.Name]; ok {
+					stNgMap = stNgMaps[ng.Name]
+				}
+
 				ngrp := NewNodeGroupsMapValueNull()
-				d = ngrp.Flatten(ctx, ng)
+				d = ngrp.Flatten(ctx, ng, stNgMap)
 				diags = append(diags, d...)
 				nodegrp[ng.Name] = ngrp
 			}
@@ -328,10 +338,21 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		v.NodeGroupsMap = ngMap
 		v.NodeGroups = types.ListNull(NodeGroupsValue{}.Type(ctx))
 	} else {
+		stNgs := make([]NodeGroupsValue, 0, len(state.NodeGroups.Elements()))
+		d = state.NodeGroups.ElementsAs(ctx, &stNgs, false)
+		diags = append(diags, d...)
+
 		ngElements := []attr.Value{}
 		for _, ng := range in.NodeGroups {
+			stNg := NodeGroupsValue{}
+			for _, sng := range stNgs {
+				if strings.EqualFold(getStringValue(sng.Name), ng.Name) {
+					stNg = sng
+				}
+			}
+
 			ngList := NewNodeGroupsValueNull()
-			d = ngList.Flatten(ctx, ng)
+			d = ngList.Flatten(ctx, ng, stNg)
 			diags = append(diags, d...)
 			ngElements = append(ngElements, ngList)
 		}
@@ -376,17 +397,24 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	if len(in.Addons) > 0 {
 		addonsList := []attr.Value{}
 		for _, add := range in.Addons {
-			// Hack: Check if addon exists in state (ie. provided by user while creating)
+			// Hack: Check if addon exists in the state. Addons (CoreDNS, Kube-Proxy, VPC CNI, EBS CSI Driver)
+			// are auto created by EKS Cluster.
 			exists := false
-			for _, e := range existingAddonNames {
+			for _, e := range stAddonNames {
 				if strings.EqualFold(e, add.Name) {
 					exists = true
 				}
 			}
 
 			if exists {
+				stAddon := AddonsValue{}
+				for _, stAdd := range stAddons {
+					if strings.EqualFold(getStringValue(stAdd.Name), add.Name) {
+						stAddon = stAdd
+					}
+				}
 				addon := NewAddonsValueNull()
-				d = addon.Flatten(ctx, add)
+				d = addon.Flatten(ctx, add, stAddon)
 				diags = append(diags, d...)
 				addonsList = append(addonsList, addon)
 			}
@@ -405,10 +433,21 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	// managed node groups
 	managedNodegroups := types.ListNull(ManagedNodegroupsValue{}.Type(ctx))
 	if len(in.ManagedNodeGroups) > 0 {
+		stMngs := make([]ManagedNodegroupsValue, 0, len(state.ManagedNodegroups.Elements()))
+		d = state.ManagedNodegroups.ElementsAs(ctx, &stMngs, false)
+		diags = append(diags, d...)
+
 		mngElements := []attr.Value{}
 		for _, mng := range in.ManagedNodeGroups {
+			stMng := ManagedNodegroupsValue{}
+			for _, smng := range stMngs {
+				if strings.EqualFold(getStringValue(smng.Name), mng.Name) {
+					stMng = smng
+				}
+			}
+
 			mngList := NewManagedNodegroupsValueNull()
-			d = mngList.Flatten(ctx, mng)
+			d = mngList.Flatten(ctx, mng, stMng)
 			diags = append(diags, d...)
 			mngElements = append(mngElements, mngList)
 		}
@@ -419,10 +458,19 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 
 	// managed node groups map
 	if len(in.ManagedNodeGroups) > 0 {
+		stMngMaps := make(map[string]ManagedNodegroupsMapValue, len(state.ManagedNodegroupsMap.Elements()))
+		d = state.ManagedNodegroupsMap.ElementsAs(ctx, &stMngMaps, false)
+		diags = append(diags, d...)
+
 		managednodegrp := map[string]attr.Value{}
 		for _, mng := range in.ManagedNodeGroups {
+			stMngMap := ManagedNodegroupsMapValue{}
+			if _, ok := stMngMaps[mng.Name]; ok {
+				stMngMap = stMngMaps[mng.Name]
+			}
+
 			mngm := NewManagedNodegroupsMapValueNull()
-			d = mngm.Flatten(ctx, mng)
+			d = mngm.Flatten(ctx, mng, stMngMap)
 			diags = append(diags, d...)
 			managednodegrp[mng.Name] = mngm
 		}
@@ -834,8 +882,18 @@ func (v *PrivateClusterValue) Flatten(ctx context.Context, in *rafay.PrivateClus
 	return diags
 }
 
-func (v *AddonsValue) Flatten(ctx context.Context, in *rafay.Addon) diag.Diagnostics {
+func (v *AddonsValue) Flatten(ctx context.Context, in *rafay.Addon, state AddonsValue) diag.Diagnostics {
 	var diags, d diag.Diagnostics
+
+	var isPolicyV1, isPolicyV2 bool
+	if !state.AttachPolicyV22.IsNull() && !state.AttachPolicyV22.IsUnknown() &&
+		getStringValue(state.AttachPolicyV22) != "" {
+		isPolicyV2 = true
+	}
+	if !state.AttachPolicy3.IsNull() && !state.AttachPolicy3.IsUnknown() &&
+		len(state.AttachPolicy3.Elements()) > 0 {
+		isPolicyV1 = true
+	}
 
 	v.Name = types.StringValue(in.Name)
 	v.Version = types.StringValue(in.Version)
@@ -851,14 +909,22 @@ func (v *AddonsValue) Flatten(ctx context.Context, in *rafay.Addon) diag.Diagnos
 	}
 	v.AttachPolicyArns3 = attachPolicyArns3
 
-	// TODO(Akshay): Check if Attach Policy v2. based on that populate attach_policy and attach_policy_v2
+	// Rafay supports two formats for AttachPolicy
 	if in.AttachPolicy != nil {
-		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		jsonBytes, err := json2.Marshal(in.AttachPolicy)
-		if err != nil {
-			diags.AddError("Attach Policy Marshal Error", err.Error())
+		if isPolicyV1 && !isPolicyV2 {
+			attachPolicy := NewAttachPolicy3ValueNull()
+			d = attachPolicy.Flatten(ctx, in.AttachPolicy)
+			diags = append(diags, d...)
+			v.AttachPolicy3, d = types.ListValue(AttachPolicy3Value{}.Type(ctx), []attr.Value{attachPolicy})
+			diags = append(diags, d...)
+		} else {
+			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+			jsonBytes, err := json2.Marshal(in.AttachPolicy)
+			if err != nil {
+				diags.AddError("Attach Policy Marshal Error", err.Error())
+			}
+			v.AttachPolicyV22 = types.StringValue(string(jsonBytes))
 		}
-		v.AttachPolicyV22 = types.StringValue(string(jsonBytes))
 	}
 
 	v.PermissionsBoundary2 = types.StringValue(in.PermissionsBoundary)
@@ -875,12 +941,6 @@ func (v *AddonsValue) Flatten(ctx context.Context, in *rafay.Addon) diag.Diagnos
 
 	v.ConfigurationValues = types.StringValue(in.ConfigurationValues)
 	v.UseDefaultPodIdentityAssociations = types.BoolValue(in.UseDefaultPodIdentityAssociations)
-
-	attachPolicy := NewAttachPolicy3ValueNull()
-	d = attachPolicy.Flatten(ctx, in.AttachPolicy)
-	diags = append(diags, d...)
-	v.AttachPolicy3, d = types.ListValue(AttachPolicy3Value{}.Type(ctx), []attr.Value{attachPolicy})
-	diags = append(diags, d...)
 
 	policies := NewWellKnownPolicies3ValueNull()
 	d = policies.Flatten(ctx, in.WellKnownPolicies)

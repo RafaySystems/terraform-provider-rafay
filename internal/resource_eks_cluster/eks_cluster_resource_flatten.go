@@ -13,8 +13,6 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-var ngMapInUse = true
-
 func FlattenEksCluster(ctx context.Context, in rafay.EKSCluster, data *EksClusterModel) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 	if data == nil {
@@ -33,13 +31,10 @@ func FlattenEksCluster(ctx context.Context, in rafay.EKSCluster, data *EksCluste
 func FlattenEksClusterConfig(ctx context.Context, in rafay.EKSClusterConfig, data *EksClusterModel) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 
-	// check ngMap are used
+	// get cluster config from state
 	ccList := make([]ClusterConfigValue, len(data.ClusterConfig.Elements()))
 	d = data.ClusterConfig.ElementsAs(ctx, &ccList, false)
 	diags = append(diags, d...)
-	if len(ccList) > 0 && len(ccList[0].NodeGroups.Elements()) > 0 {
-		ngMapInUse = false
-	}
 
 	if len(ccList) > 0 {
 		cc := NewClusterConfigValueNull()
@@ -60,7 +55,6 @@ func (v *ClusterValue) Flatten(ctx context.Context, in rafay.EKSCluster) diag.Di
 		v.Kind = types.StringValue(in.Kind)
 	}
 
-	metadata := types.ListNull(MetadataValue{}.Type(ctx))
 	if in.Metadata != nil {
 		md := NewMetadataValueNull()
 		d = md.Flatten(ctx, in.Metadata)
@@ -68,10 +62,11 @@ func (v *ClusterValue) Flatten(ctx context.Context, in rafay.EKSCluster) diag.Di
 		mdElements := []attr.Value{
 			md,
 		}
-		metadata, d = types.ListValue(MetadataValue{}.Type(ctx), mdElements)
+		v.Metadata, d = types.ListValue(MetadataValue{}.Type(ctx), mdElements)
 		diags = append(diags, d...)
+	} else {
+		v.Metadata = types.ListNull(MetadataValue{}.Type(ctx))
 	}
-	v.Metadata = metadata
 
 	spec := types.ListNull(SpecValue{}.Type(ctx))
 	if in.Spec != nil {
@@ -152,14 +147,16 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec) diag.Diagnos
 		v.SpecType = types.StringNull()
 	}
 
-	cp := NewCniParamsValueNull()
-	d = cp.Flatten(ctx, in.CniParams)
-	diags = append(diags, d...)
-	cpElements := []attr.Value{
-		cp,
+	if in.CniParams != nil {
+		cp := NewCniParamsValueNull()
+		d = cp.Flatten(ctx, in.CniParams)
+		diags = append(diags, d...)
+		cpElements := []attr.Value{
+			cp,
+		}
+		v.CniParams, d = types.ListValue(CniParamsValue{}.Type(ctx), cpElements)
+		diags = append(diags, d...)
 	}
-	v.CniParams, d = types.ListValue(CniParamsValue{}.Type(ctx), cpElements)
-	diags = append(diags, d...)
 
 	proxycfgMap := types.MapNull(types.StringType)
 	if in.ProxyConfig != nil {
@@ -190,17 +187,21 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec) diag.Diagnos
 	}
 	v.ProxyConfig = proxycfgMap
 
-	scp := NewSystemComponentsPlacementValueNull()
-	d = scp.Flatten(ctx, in.SystemComponentsPlacement)
-	diags = append(diags, d...)
-	v.SystemComponentsPlacement, d = types.ListValue(SystemComponentsPlacementValue{}.Type(ctx), []attr.Value{scp})
-	diags = append(diags, d...)
+	if in.SystemComponentsPlacement != nil {
+		scp := NewSystemComponentsPlacementValueNull()
+		d = scp.Flatten(ctx, in.SystemComponentsPlacement)
+		diags = append(diags, d...)
+		v.SystemComponentsPlacement, d = types.ListValue(SystemComponentsPlacementValue{}.Type(ctx), []attr.Value{scp})
+		diags = append(diags, d...)
+	}
 
-	sh := NewSharingValueNull()
-	d = sh.Flatten(ctx, in.Sharing)
-	diags = append(diags, d...)
-	v.Sharing, d = types.ListValue(SharingValue{}.Type(ctx), []attr.Value{sh})
-	diags = append(diags, d...)
+	if in.Sharing != nil {
+		sh := NewSharingValueNull()
+		d = sh.Flatten(ctx, in.Sharing)
+		diags = append(diags, d...)
+		v.Sharing, d = types.ListValue(SharingValue{}.Type(ctx), []attr.Value{sh})
+		diags = append(diags, d...)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -212,7 +213,9 @@ func (v *CniParamsValue) Flatten(ctx context.Context, in *rafay.CustomCni) diag.
 		return diags
 	}
 
-	v.CustomCniCidr = types.StringValue(in.CustomCniCidr)
+	if in.CustomCniCidr != "" {
+		v.CustomCniCidr = types.StringValue(in.CustomCniCidr)
+	}
 
 	customCniCrdSpec := types.ListNull(CustomCniCrdSpecValue{}.Type(ctx))
 	if len(in.CustomCniCrdSpec) > 0 {
@@ -258,7 +261,9 @@ func (v *CustomCniCrdSpecValue) Flatten(ctx context.Context, name string, in []r
 func (v *CniSpecValue) Flatten(ctx context.Context, in rafay.CustomCniSpec) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 
-	v.Subnet = types.StringValue(in.Subnet)
+	if in.Subnet != "" {
+		v.Subnet = types.StringValue(in.Subnet)
+	}
 
 	securityGroups := types.ListNull(types.StringType)
 	if len(in.SecurityGroups) > 0 {
@@ -289,8 +294,26 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		stAddonNames = append(stAddonNames, getStringValue(addon.Name))
 	}
 
-	v.Apiversion = types.StringValue(in.APIVersion)
-	v.Kind = types.StringValue(in.Kind)
+	// node groups list or map?
+	isNodeGroupsMap := false
+	if !state.NodeGroupsMap.IsNull() && !state.NodeGroupsMap.IsUnknown() &&
+		len(state.NodeGroupsMap.Elements()) > 0 {
+		isNodeGroupsMap = true
+	}
+
+	// managed node groups list or map?
+	isManagedNodeGroupsMap := false
+	if !state.ManagedNodegroupsMap.IsNull() && !state.ManagedNodegroupsMap.IsUnknown() &&
+		len(state.ManagedNodegroupsMap.Elements()) > 0 {
+		isManagedNodeGroupsMap = true
+	}
+
+	if in.APIVersion != "" {
+		v.Apiversion = types.StringValue(in.APIVersion)
+	}
+	if in.Kind != "" {
+		v.Kind = types.StringValue(in.Kind)
+	}
 
 	availabilityZones := types.ListNull(types.StringType)
 	if len(in.AvailabilityZones) > 0 {
@@ -303,22 +326,24 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	}
 	v.AvailabilityZones = availabilityZones
 
-	md := NewMetadata2ValueNull()
-	d = md.Flatten(ctx, in.Metadata)
-	diags = append(diags, d...)
-	mdElements := []attr.Value{
-		md,
-	}
-	v.Metadata2, d = types.ListValue(Metadata2Value{}.Type(ctx), mdElements)
-	diags = append(diags, d...)
-
-	if ngMapInUse {
-		stNgMaps := make(map[string]NodeGroupsMapValue, len(state.NodeGroupsMap.Elements()))
-		d = state.NodeGroupsMap.ElementsAs(ctx, &stNgMaps, false)
+	if in.Metadata != nil {
+		md := NewMetadata2ValueNull()
+		d = md.Flatten(ctx, in.Metadata)
 		diags = append(diags, d...)
+		mdElements := []attr.Value{
+			md,
+		}
+		v.Metadata2, d = types.ListValue(Metadata2Value{}.Type(ctx), mdElements)
+		diags = append(diags, d...)
+	}
 
-		ngMap := types.MapNull(NodeGroupsMapValue{}.Type(ctx))
-		if len(in.NodeGroups) > 0 {
+	// node groups
+	if len(in.NodeGroups) > 0 {
+		if isNodeGroupsMap {
+			stNgMaps := make(map[string]NodeGroupsMapValue, len(state.NodeGroupsMap.Elements()))
+			d = state.NodeGroupsMap.ElementsAs(ctx, &stNgMaps, false)
+			diags = append(diags, d...)
+
 			nodegrp := map[string]attr.Value{}
 			for _, ng := range in.NodeGroups {
 				stNgMap := NodeGroupsMapValue{}
@@ -331,47 +356,50 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 				diags = append(diags, d...)
 				nodegrp[ng.Name] = ngrp
 			}
-			ngMap, d = types.MapValue(NodeGroupsMapValue{}.Type(ctx), nodegrp)
+			v.NodeGroupsMap, d = types.MapValue(NodeGroupsMapValue{}.Type(ctx), nodegrp)
 			diags = append(diags, d...)
-		}
 
-		v.NodeGroupsMap = ngMap
-		v.NodeGroups = types.ListNull(NodeGroupsValue{}.Type(ctx))
-	} else {
-		stNgs := make([]NodeGroupsValue, 0, len(state.NodeGroups.Elements()))
-		d = state.NodeGroups.ElementsAs(ctx, &stNgs, false)
-		diags = append(diags, d...)
+			v.NodeGroups = types.ListNull(NodeGroupsValue{}.Type(ctx))
+		} else {
+			stNgs := make([]NodeGroupsValue, 0, len(state.NodeGroups.Elements()))
+			d = state.NodeGroups.ElementsAs(ctx, &stNgs, false)
+			diags = append(diags, d...)
 
-		ngElements := []attr.Value{}
-		for _, ng := range in.NodeGroups {
-			stNg := NodeGroupsValue{}
-			for _, sng := range stNgs {
-				if strings.EqualFold(getStringValue(sng.Name), ng.Name) {
-					stNg = sng
+			ngElements := []attr.Value{}
+			for _, ng := range in.NodeGroups {
+				stNg := NodeGroupsValue{}
+				for _, sng := range stNgs {
+					if strings.EqualFold(getStringValue(sng.Name), ng.Name) {
+						stNg = sng
+					}
 				}
-			}
 
-			ngList := NewNodeGroupsValueNull()
-			d = ngList.Flatten(ctx, ng, stNg)
+				ngList := NewNodeGroupsValueNull()
+				d = ngList.Flatten(ctx, ng, stNg)
+				diags = append(diags, d...)
+				ngElements = append(ngElements, ngList)
+			}
+			v.NodeGroups, d = types.ListValue(NodeGroupsValue{}.Type(ctx), ngElements)
 			diags = append(diags, d...)
-			ngElements = append(ngElements, ngList)
+			v.NodeGroupsMap = types.MapNull(NodeGroupsMapValue{}.Type(ctx))
 		}
-		v.NodeGroups, d = types.ListValue(NodeGroupsValue{}.Type(ctx), ngElements)
-		diags = append(diags, d...)
-		v.NodeGroupsMap = types.MapNull(NodeGroupsMapValue{}.Type(ctx))
 	}
 
-	netconf := NewKubernetesNetworkConfigValueNull()
-	d = netconf.Flatten(ctx, in.KubernetesNetworkConfig)
-	diags = append(diags, d...)
-	v.KubernetesNetworkConfig, d = types.ListValue(KubernetesNetworkConfigValue{}.Type(ctx), []attr.Value{netconf})
-	diags = append(diags, d...)
+	if in.KubernetesNetworkConfig != nil {
+		netconf := NewKubernetesNetworkConfigValueNull()
+		d = netconf.Flatten(ctx, in.KubernetesNetworkConfig)
+		diags = append(diags, d...)
+		v.KubernetesNetworkConfig, d = types.ListValue(KubernetesNetworkConfigValue{}.Type(ctx), []attr.Value{netconf})
+		diags = append(diags, d...)
+	}
 
-	iam := NewIam3ValueNull()
-	d = iam.Flatten(ctx, in.IAM)
-	diags = append(diags, d...)
-	v.Iam3, d = types.ListValue(Iam3Value{}.Type(ctx), []attr.Value{iam})
-	diags = append(diags, d...)
+	if in.IAM != nil {
+		iam := NewIam3ValueNull()
+		d = iam.Flatten(ctx, in.IAM)
+		diags = append(diags, d...)
+		v.Iam3, d = types.ListValue(Iam3Value{}.Type(ctx), []attr.Value{iam})
+		diags = append(diags, d...)
+	}
 
 	identityProviders := types.ListNull(IdentityProvidersValue{}.Type(ctx))
 	if len(in.IdentityProviders) > 0 {
@@ -387,11 +415,13 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	}
 	v.IdentityProviders = identityProviders
 
-	vpc := NewVpcValueNull()
-	d = vpc.Flatten(ctx, in.VPC)
-	diags = append(diags, d...)
-	v.Vpc, d = types.ListValue(VpcValue{}.Type(ctx), []attr.Value{vpc})
-	diags = append(diags, d...)
+	if in.VPC != nil {
+		vpc := NewVpcValueNull()
+		d = vpc.Flatten(ctx, in.VPC)
+		diags = append(diags, d...)
+		v.Vpc, d = types.ListValue(VpcValue{}.Type(ctx), []attr.Value{vpc})
+		diags = append(diags, d...)
+	}
 
 	addons := types.ListNull(AddonsValue{}.Type(ctx))
 	if len(in.Addons) > 0 {
@@ -424,61 +454,59 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	}
 	v.Addons = addons
 
-	privateCluster := NewPrivateClusterValueNull()
-	d = privateCluster.Flatten(ctx, in.PrivateCluster)
-	diags = append(diags, d...)
-	v.PrivateCluster, d = types.ListValue(PrivateClusterValue{}.Type(ctx), []attr.Value{privateCluster})
-	diags = append(diags, d...)
-
-	// managed node groups
-	managedNodegroups := types.ListNull(ManagedNodegroupsValue{}.Type(ctx))
-	if len(in.ManagedNodeGroups) > 0 {
-		stMngs := make([]ManagedNodegroupsValue, 0, len(state.ManagedNodegroups.Elements()))
-		d = state.ManagedNodegroups.ElementsAs(ctx, &stMngs, false)
+	if in.PrivateCluster != nil {
+		privateCluster := NewPrivateClusterValueNull()
+		d = privateCluster.Flatten(ctx, in.PrivateCluster)
 		diags = append(diags, d...)
-
-		mngElements := []attr.Value{}
-		for _, mng := range in.ManagedNodeGroups {
-			stMng := ManagedNodegroupsValue{}
-			for _, smng := range stMngs {
-				if strings.EqualFold(getStringValue(smng.Name), mng.Name) {
-					stMng = smng
-				}
-			}
-
-			mngList := NewManagedNodegroupsValueNull()
-			d = mngList.Flatten(ctx, mng, stMng)
-			diags = append(diags, d...)
-			mngElements = append(mngElements, mngList)
-		}
-		managedNodegroups, d = types.ListValue(ManagedNodegroupsValue{}.Type(ctx), mngElements)
+		v.PrivateCluster, d = types.ListValue(PrivateClusterValue{}.Type(ctx), []attr.Value{privateCluster})
 		diags = append(diags, d...)
 	}
-	v.ManagedNodegroups = managedNodegroups
 
-	// managed node groups map
+	// managed node groups
 	if len(in.ManagedNodeGroups) > 0 {
-		stMngMaps := make(map[string]ManagedNodegroupsMapValue, len(state.ManagedNodegroupsMap.Elements()))
-		d = state.ManagedNodegroupsMap.ElementsAs(ctx, &stMngMaps, false)
-		diags = append(diags, d...)
-
-		managednodegrp := map[string]attr.Value{}
-		for _, mng := range in.ManagedNodeGroups {
-			stMngMap := ManagedNodegroupsMapValue{}
-			if _, ok := stMngMaps[mng.Name]; ok {
-				stMngMap = stMngMaps[mng.Name]
-			}
-
-			mngm := NewManagedNodegroupsMapValueNull()
-			d = mngm.Flatten(ctx, mng, stMngMap)
+		if isManagedNodeGroupsMap {
+			stMngMaps := make(map[string]ManagedNodegroupsMapValue, len(state.ManagedNodegroupsMap.Elements()))
+			d = state.ManagedNodegroupsMap.ElementsAs(ctx, &stMngMaps, false)
 			diags = append(diags, d...)
-			managednodegrp[mng.Name] = mngm
-		}
-		mngMap, d := types.MapValue(ManagedNodegroupsMapValue{}.Type(ctx), managednodegrp)
-		diags = append(diags, d...)
 
-		v.ManagedNodegroupsMap = mngMap
-		v.ManagedNodegroups = types.ListNull(ManagedNodegroupsValue{}.Type(ctx))
+			managednodegrp := map[string]attr.Value{}
+			for _, mng := range in.ManagedNodeGroups {
+				stMngMap := ManagedNodegroupsMapValue{}
+				if _, ok := stMngMaps[mng.Name]; ok {
+					stMngMap = stMngMaps[mng.Name]
+				}
+
+				mngm := NewManagedNodegroupsMapValueNull()
+				d = mngm.Flatten(ctx, mng, stMngMap)
+				diags = append(diags, d...)
+				managednodegrp[mng.Name] = mngm
+			}
+			v.ManagedNodegroupsMap, d = types.MapValue(ManagedNodegroupsMapValue{}.Type(ctx), managednodegrp)
+			diags = append(diags, d...)
+			v.ManagedNodegroups = types.ListNull(ManagedNodegroupsValue{}.Type(ctx))
+		} else {
+			stMngs := make([]ManagedNodegroupsValue, 0, len(state.ManagedNodegroups.Elements()))
+			d = state.ManagedNodegroups.ElementsAs(ctx, &stMngs, false)
+			diags = append(diags, d...)
+
+			mngElements := []attr.Value{}
+			for _, mng := range in.ManagedNodeGroups {
+				stMng := ManagedNodegroupsValue{}
+				for _, smng := range stMngs {
+					if strings.EqualFold(getStringValue(smng.Name), mng.Name) {
+						stMng = smng
+					}
+				}
+
+				mngList := NewManagedNodegroupsValueNull()
+				d = mngList.Flatten(ctx, mng, stMng)
+				diags = append(diags, d...)
+				mngElements = append(mngElements, mngList)
+			}
+			v.ManagedNodegroups, d = types.ListValue(ManagedNodegroupsValue{}.Type(ctx), mngElements)
+			diags = append(diags, d...)
+			v.ManagedNodegroupsMap = types.MapNull(ManagedNodegroupsMapValue{}.Type(ctx))
+		}
 	}
 
 	fargateProfiles := types.ListNull(FargateProfilesValue{}.Type(ctx))
@@ -495,41 +523,53 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	}
 	v.FargateProfiles = fargateProfiles
 
-	cloudWatch := NewCloudWatchValueNull()
-	d = cloudWatch.Flatten(ctx, in.CloudWatch)
-	diags = append(diags, d...)
-	v.CloudWatch, d = types.ListValue(CloudWatchValue{}.Type(ctx), []attr.Value{cloudWatch})
-	diags = append(diags, d...)
+	if in.CloudWatch != nil {
+		cloudWatch := NewCloudWatchValueNull()
+		d = cloudWatch.Flatten(ctx, in.CloudWatch)
+		diags = append(diags, d...)
+		v.CloudWatch, d = types.ListValue(CloudWatchValue{}.Type(ctx), []attr.Value{cloudWatch})
+		diags = append(diags, d...)
+	}
 
-	SecretsEncryption := NewSecretsEncryptionValueNull()
-	d = SecretsEncryption.Flatten(ctx, in.SecretsEncryption)
-	diags = append(diags, d...)
-	v.SecretsEncryption, d = types.ListValue(SecretsEncryptionValue{}.Type(ctx), []attr.Value{SecretsEncryption})
-	diags = append(diags, d...)
+	if in.SecretsEncryption != nil {
+		SecretsEncryption := NewSecretsEncryptionValueNull()
+		d = SecretsEncryption.Flatten(ctx, in.SecretsEncryption)
+		diags = append(diags, d...)
+		v.SecretsEncryption, d = types.ListValue(SecretsEncryptionValue{}.Type(ctx), []attr.Value{SecretsEncryption})
+		diags = append(diags, d...)
+	}
 
-	identityMappings := NewIdentityMappingsValueNull()
-	d = identityMappings.Flatten(ctx, in.IdentityMappings)
-	diags = append(diags, d...)
-	v.IdentityMappings, d = types.ListValue(IdentityMappingsValue{}.Type(ctx), []attr.Value{identityMappings})
-	diags = append(diags, d...)
+	if in.IdentityMappings != nil {
+		identityMappings := NewIdentityMappingsValueNull()
+		d = identityMappings.Flatten(ctx, in.IdentityMappings)
+		diags = append(diags, d...)
+		v.IdentityMappings, d = types.ListValue(IdentityMappingsValue{}.Type(ctx), []attr.Value{identityMappings})
+		diags = append(diags, d...)
+	}
 
-	accessConfig := NewAccessConfigValueNull()
-	d = accessConfig.Flatten(ctx, in.AccessConfig)
-	diags = append(diags, d...)
-	v.AccessConfig, d = types.ListValue(AccessConfigValue{}.Type(ctx), []attr.Value{accessConfig})
-	diags = append(diags, d...)
+	if in.AccessConfig != nil {
+		accessConfig := NewAccessConfigValueNull()
+		d = accessConfig.Flatten(ctx, in.AccessConfig)
+		diags = append(diags, d...)
+		v.AccessConfig, d = types.ListValue(AccessConfigValue{}.Type(ctx), []attr.Value{accessConfig})
+		diags = append(diags, d...)
+	}
 
-	addonsConfig := NewAddonsConfigValueNull()
-	d = addonsConfig.Flatten(ctx, in.AddonsConfig)
-	diags = append(diags, d...)
-	v.AddonsConfig, d = types.ListValue(AddonsConfigValue{}.Type(ctx), []attr.Value{addonsConfig})
-	diags = append(diags, d...)
+	if in.AddonsConfig != nil {
+		addonsConfig := NewAddonsConfigValueNull()
+		d = addonsConfig.Flatten(ctx, in.AddonsConfig)
+		diags = append(diags, d...)
+		v.AddonsConfig, d = types.ListValue(AddonsConfigValue{}.Type(ctx), []attr.Value{addonsConfig})
+		diags = append(diags, d...)
+	}
 
-	autoModeConfig := NewAutoModeConfigValueNull()
-	d = autoModeConfig.Flatten(ctx, in.AutoModeConfig)
-	diags = append(diags, d...)
-	v.AutoModeConfig, d = types.ListValue(AutoModeConfigValue{}.Type(ctx), []attr.Value{autoModeConfig})
-	diags = append(diags, d...)
+	if in.AutoModeConfig != nil {
+		autoModeConfig := NewAutoModeConfigValueNull()
+		d = autoModeConfig.Flatten(ctx, in.AutoModeConfig)
+		diags = append(diags, d...)
+		v.AutoModeConfig, d = types.ListValue(AutoModeConfigValue{}.Type(ctx), []attr.Value{autoModeConfig})
+		diags = append(diags, d...)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags

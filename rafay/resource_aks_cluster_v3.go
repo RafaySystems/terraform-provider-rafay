@@ -932,7 +932,6 @@ func expandAKSManagedClusterV3Identity(p []interface{}) *infrapb.Identity {
 	if !ok {
 		return obj
 	}
-	log.Printf("VISHAL: expand identity – raw UAI map: %#v", raw)
 
 	obj.UserAssignedIdentities = make(map[string]*structpb.Struct, len(raw))
 

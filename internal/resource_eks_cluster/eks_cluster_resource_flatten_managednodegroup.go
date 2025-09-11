@@ -14,27 +14,43 @@ import (
 func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, in *rafay.ManagedNodeGroup, state ManagedNodegroupsValue) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 
-	v.Name = types.StringValue(in.Name)
-	v.AmiFamily = types.StringValue(in.AMIFamily)
+	if in.Name != "" {
+		v.Name = types.StringValue(in.Name)
+	}
+	if in.AMIFamily != "" {
+		v.AmiFamily = types.StringValue(in.AMIFamily)
+	}
 	v.DesiredCapacity = types.Int64Value(int64(*in.DesiredCapacity))
 	v.DisableImdsv1 = types.BoolValue(*in.DisableIMDSv1)
 	v.DisablePodsImds = types.BoolValue(*in.DisablePodIMDS)
 	v.EfaEnabled = types.BoolValue(*in.EFAEnabled)
-	v.InstanceType = types.StringValue(in.InstanceType)
+	if in.InstanceType != "" {
+		v.InstanceType = types.StringValue(in.InstanceType)
+	}
 	v.MaxPodsPerNode = types.Int64Value(int64(*in.MaxPodsPerNode))
 	v.MaxSize = types.Int64Value(int64(*in.MaxSize))
 	v.MinSize = types.Int64Value(int64(*in.MinSize))
 	v.PrivateNetworking = types.BoolValue(*in.PrivateNetworking)
-	v.Version = types.StringValue(in.Version)
+	if in.Version != "" {
+		v.Version = types.StringValue(in.Version)
+	}
 	v.VolumeIops = types.Int64Value(int64(*in.VolumeIOPS))
 	v.VolumeSize = types.Int64Value(int64(*in.VolumeSize))
 	v.VolumeThroughput = types.Int64Value(int64(*in.VolumeThroughput))
-	v.VolumeType = types.StringValue(in.VolumeType)
+	if in.VolumeType != "" {
+		v.VolumeType = types.StringValue(in.VolumeType)
+	}
 	v.EbsOptimized = types.BoolValue(*in.EBSOptimized)
-	v.VolumeName = types.StringValue(in.VolumeName)
+	if in.VolumeName != "" {
+		v.VolumeName = types.StringValue(in.VolumeName)
+	}
 	v.VolumeEncrypted = types.BoolValue(*in.VolumeEncrypted)
-	v.VolumeKmsKeyId = types.StringValue(in.VolumeKmsKeyID)
-	v.OverrideBootstrapCommand = types.StringValue(in.OverrideBootstrapCommand)
+	if in.VolumeKmsKeyID != "" {
+		v.VolumeKmsKeyId = types.StringValue(in.VolumeKmsKeyID)
+	}
+	if in.OverrideBootstrapCommand != "" {
+		v.OverrideBootstrapCommand = types.StringValue(in.OverrideBootstrapCommand)
+	}
 
 	preBootstrapCommands := types.ListNull(types.StringType)
 	if len(in.PreBootstrapCommands) > 0 {
@@ -70,14 +86,21 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, in *rafay.ManagedN
 		diags = append(diags, d...)
 	}
 	v.AvailabilityZones = availabilityZones
+
 	snElements := []attr.Value{}
 	for _, sn := range in.Subnets {
 		snElements = append(snElements, types.StringValue(sn))
 	}
 	v.Subnets, d = types.ListValue(types.StringType, snElements)
 	diags = append(diags, d...)
-	v.InstancePrefix = types.StringValue(in.InstancePrefix)
-	v.InstanceName = types.StringValue(in.InstanceName)
+
+	if in.InstancePrefix != "" {
+		v.InstancePrefix = types.StringValue(in.InstancePrefix)
+	}
+	if in.InstanceName != "" {
+		v.InstanceName = types.StringValue(in.InstanceName)
+	}
+
 	lbsMap := types.MapNull(types.StringType)
 	if len(in.Labels) != 0 {
 		lbs := map[string]attr.Value{}
@@ -88,6 +111,7 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, in *rafay.ManagedN
 		diags = append(diags, d...)
 	}
 	v.Labels = lbsMap
+
 	tagMap := types.MapNull(types.StringType)
 	if len(in.Tags) != 0 {
 		tag := map[string]attr.Value{}
@@ -98,8 +122,12 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, in *rafay.ManagedN
 		diags = append(diags, d...)
 	}
 	v.Tags = tagMap
-	v.Ami = types.StringValue(in.AMI)
+
+	if in.AMI != "" {
+		v.Ami = types.StringValue(in.AMI)
+	}
 	v.Spot = types.BoolPointerValue(in.Spot)
+
 	instanceTypes := types.ListNull(types.StringType)
 	if len(in.InstanceTypes) > 0 {
 		instanceTypesList := []attr.Value{}
@@ -111,7 +139,6 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, in *rafay.ManagedN
 	}
 	v.InstanceTypes = instanceTypes
 
-	// blocks start here
 	if in.IAM != nil {
 		// get state iam
 		stIams := make([]Iam4Value, 0, len(state.Iam4.Elements()))
@@ -130,29 +157,45 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, in *rafay.ManagedN
 		diags = append(diags, d...)
 	}
 
-	ssh := NewSsh4ValueNull()
-	d = ssh.Flatten(ctx, in.SSH)
-	diags = append(diags, d...)
-	v.Ssh4, d = types.ListValue(Ssh4Value{}.Type(ctx), []attr.Value{ssh})
-	diags = append(diags, d...)
+	if in.SSH != nil {
+		ssh := NewSsh4ValueNull()
+		d = ssh.Flatten(ctx, in.SSH)
+		diags = append(diags, d...)
+		v.Ssh4, d = types.ListValue(Ssh4Value{}.Type(ctx), []attr.Value{ssh})
+		diags = append(diags, d...)
+	} else {
+		v.Ssh4 = types.ListNull(Ssh4Value{}.Type(ctx))
+	}
 
-	placement := NewPlacement4ValueNull()
-	d = placement.Flatten(ctx, in.Placement)
-	diags = append(diags, d...)
-	v.Placement4, d = types.ListValue(Placement4Value{}.Type(ctx), []attr.Value{placement})
-	diags = append(diags, d...)
+	if in.Placement != nil {
+		placement := NewPlacement4ValueNull()
+		d = placement.Flatten(ctx, in.Placement)
+		diags = append(diags, d...)
+		v.Placement4, d = types.ListValue(Placement4Value{}.Type(ctx), []attr.Value{placement})
+		diags = append(diags, d...)
+	} else {
+		v.Placement4 = types.ListNull(Placement4Value{}.Type(ctx))
+	}
 
-	instanceSel := NewInstanceSelector4ValueNull()
-	d = instanceSel.Flatten(ctx, in.InstanceSelector)
-	diags = append(diags, d...)
-	v.InstanceSelector4, d = types.ListValue(InstanceSelector4Value{}.Type(ctx), []attr.Value{instanceSel})
-	diags = append(diags, d...)
+	if in.InstanceSelector != nil {
+		instanceSel := NewInstanceSelector4ValueNull()
+		d = instanceSel.Flatten(ctx, in.InstanceSelector)
+		diags = append(diags, d...)
+		v.InstanceSelector4, d = types.ListValue(InstanceSelector4Value{}.Type(ctx), []attr.Value{instanceSel})
+		diags = append(diags, d...)
+	} else {
+		v.InstanceSelector4 = types.ListNull(InstanceSelector4Value{}.Type(ctx))
+	}
 
-	bottlerkt := NewBottleRocket4ValueNull()
-	d = bottlerkt.Flatten(ctx, in.Bottlerocket)
-	diags = append(diags, d...)
-	v.BottleRocket4, d = types.ListValue(BottleRocket4Value{}.Type(ctx), []attr.Value{bottlerkt})
-	diags = append(diags, d...)
+	if in.Bottlerocket != nil {
+		bottlerkt := NewBottleRocket4ValueNull()
+		d = bottlerkt.Flatten(ctx, in.Bottlerocket)
+		diags = append(diags, d...)
+		v.BottleRocket4, d = types.ListValue(BottleRocket4Value{}.Type(ctx), []attr.Value{bottlerkt})
+		diags = append(diags, d...)
+	} else {
+		v.BottleRocket4 = types.ListNull(BottleRocket4Value{}.Type(ctx))
+	}
 
 	taints := types.ListNull(Taints4Value{}.Type(ctx))
 	if len(in.Taints) > 0 {
@@ -168,11 +211,15 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, in *rafay.ManagedN
 	}
 	v.Taints4 = taints
 
-	updateConfig := NewUpdateConfig4ValueNull()
-	d = updateConfig.Flatten(ctx, in.UpdateConfig)
-	diags = append(diags, d...)
-	v.UpdateConfig4, d = types.ListValue(UpdateConfig4Value{}.Type(ctx), []attr.Value{updateConfig})
-	diags = append(diags, d...)
+	if in.UpdateConfig != nil {
+		updateConfig := NewUpdateConfig4ValueNull()
+		d = updateConfig.Flatten(ctx, in.UpdateConfig)
+		diags = append(diags, d...)
+		v.UpdateConfig4, d = types.ListValue(UpdateConfig4Value{}.Type(ctx), []attr.Value{updateConfig})
+		diags = append(diags, d...)
+	} else {
+		v.UpdateConfig4 = types.ListNull(UpdateConfig4Value{}.Type(ctx))
+	}
 
 	if in.SecurityGroups != nil {
 		secGroup := NewSecurityGroups4ValueNull()
@@ -198,7 +245,6 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, in *rafay.ManagedN
 	return diags
 }
 
-// --- managed node groups ---
 func (v *UpdateConfig4Value) Flatten(ctx context.Context, in *rafay.NodeGroupUpdateConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if in == nil {
@@ -219,9 +265,15 @@ func (v *UpdateConfig4Value) Flatten(ctx context.Context, in *rafay.NodeGroupUpd
 func (v *Taints4Value) Flatten(ctx context.Context, in rafay.NodeGroupTaint) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	v.Key = types.StringValue(in.Key)
-	v.Value = types.StringValue(in.Value)
-	v.Effect = types.StringValue(in.Effect)
+	if in.Key != "" {
+		v.Key = types.StringValue(in.Key)
+	}
+	if in.Value != "" {
+		v.Value = types.StringValue(in.Value)
+	}
+	if in.Effect != "" {
+		v.Effect = types.StringValue(in.Effect)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -251,11 +303,15 @@ func (v *InstanceSelector4Value) Flatten(ctx context.Context, in *rafay.Instance
 	if in.VCPUs != nil {
 		v.Vcpus = types.Int64Value(int64(*in.VCPUs))
 	}
-	v.Memory = types.StringValue(in.Memory)
+	if in.Memory != "" {
+		v.Memory = types.StringValue(in.Memory)
+	}
 	if in.GPUs != nil {
 		v.Gpus = types.Int64Value(int64(*in.GPUs))
 	}
-	v.CpuArchitecture = types.StringValue(in.CPUArchitecture)
+	if in.CPUArchitecture != "" {
+		v.CpuArchitecture = types.StringValue(in.CPUArchitecture)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -264,7 +320,9 @@ func (v *InstanceSelector4Value) Flatten(ctx context.Context, in *rafay.Instance
 func (v *Placement4Value) Flatten(ctx context.Context, in *rafay.Placement) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	v.Group = types.StringValue(in.GroupName)
+	if in.GroupName != "" {
+		v.Group = types.StringValue(in.GroupName)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -274,8 +332,12 @@ func (v *Ssh4Value) Flatten(ctx context.Context, in *rafay.NodeGroupSSH) diag.Di
 	var diags, d diag.Diagnostics
 
 	v.Allow = types.BoolPointerValue(in.Allow)
-	v.PublicKey = types.StringValue(in.PublicKey)
-	v.PublicKeyName = types.StringValue(in.PublicKeyName)
+	if in.PublicKeyPath != "" {
+		v.PublicKey = types.StringValue(in.PublicKeyPath)
+	}
+	if in.PublicKeyName != "" {
+		v.PublicKeyName = types.StringValue(in.PublicKeyName)
+	}
 
 	sourceSecurityGroupIds := types.ListNull(types.StringType)
 	if len(in.SourceSecurityGroupIDs) > 0 {
@@ -338,17 +400,29 @@ func (v *Iam4Value) Flatten(ctx context.Context, in *rafay.NodeGroupIAM, state I
 	}
 	v.AttachPolicyArns = attachPolicyArns
 
-	v.InstanceProfileArn = types.StringValue(in.InstanceProfileARN)
-	v.InstanceRoleArn = types.StringValue(in.InstanceRoleARN)
-	v.InstanceRoleName = types.StringValue(in.InstanceRoleName)
-	v.InstanceRolePermissionBoundary = types.StringValue(in.InstanceRolePermissionsBoundary)
+	if in.InstanceProfileARN != "" {
+		v.InstanceProfileArn = types.StringValue(in.InstanceProfileARN)
+	}
+	if in.InstanceRoleARN != "" {
+		v.InstanceRoleArn = types.StringValue(in.InstanceRoleARN)
+	}
+	if in.InstanceRoleName != "" {
+		v.InstanceRoleName = types.StringValue(in.InstanceRoleName)
+	}
+	if in.InstanceRolePermissionsBoundary != "" {
+		v.InstanceRolePermissionBoundary = types.StringValue(in.InstanceRolePermissionsBoundary)
+	}
 
-	addonPolicies := NewIamNodeGroupWithAddonPolicies4ValueNull()
-	d = addonPolicies.Flatten(ctx, in.WithAddonPolicies)
-	diags = append(diags, d...)
-	addonPoliciesElements := []attr.Value{addonPolicies}
-	v.IamNodeGroupWithAddonPolicies4, d = types.ListValue(IamNodeGroupWithAddonPolicies4Value{}.Type(ctx), addonPoliciesElements)
-	diags = append(diags, d...)
+	if in.WithAddonPolicies != nil {
+		addonPolicies := NewIamNodeGroupWithAddonPolicies4ValueNull()
+		d = addonPolicies.Flatten(ctx, in.WithAddonPolicies)
+		diags = append(diags, d...)
+		addonPoliciesElements := []attr.Value{addonPolicies}
+		v.IamNodeGroupWithAddonPolicies4, d = types.ListValue(IamNodeGroupWithAddonPolicies4Value{}.Type(ctx), addonPoliciesElements)
+		diags = append(diags, d...)
+	} else {
+		v.IamNodeGroupWithAddonPolicies4 = types.ListNull(IamNodeGroupWithAddonPolicies4Value{}.Type(ctx))
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -360,8 +434,12 @@ func (v *AttachPolicy4Value) Flatten(ctx context.Context, in *rafay.InlineDocume
 		return diags
 	}
 
-	v.Version = types.StringValue(in.Version)
-	v.Id = types.StringValue(in.Id)
+	if in.Version != "" {
+		v.Version = types.StringValue(in.Version)
+	}
+	if in.Id != "" {
+		v.Id = types.StringValue(in.Id)
+	}
 
 	statement4 := types.ListNull(Statement4Value{}.Type(ctx))
 	if len(in.Statement) > 0 {

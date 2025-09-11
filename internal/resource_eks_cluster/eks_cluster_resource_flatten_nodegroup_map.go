@@ -13,6 +13,7 @@ import (
 
 func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, state NodeGroupsMapValue) diag.Diagnostics {
 	var diags, d diag.Diagnostics
+
 	if in.AMIFamily != "" {
 		v.AmiFamily = types.StringValue(in.AMIFamily)
 	}
@@ -74,6 +75,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 	if in.OverrideBootstrapCommand != "" {
 		v.OverrideBootstrapCommand = types.StringValue(in.OverrideBootstrapCommand)
 	}
+
 	preBootstrapCommands := types.ListNull(types.StringType)
 	if len(in.PreBootstrapCommands) > 0 {
 		pbElements := []attr.Value{}
@@ -84,6 +86,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		diags = append(diags, d...)
 	}
 	v.PreBootstrapCommands = preBootstrapCommands
+
 	asgSuspendProcess := types.ListNull(types.StringType)
 	if len(in.ASGSuspendProcesses) > 0 {
 		aspElements := []attr.Value{}
@@ -94,6 +97,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		diags = append(diags, d...)
 	}
 	v.AsgSuspendProcesses = asgSuspendProcess
+
 	targetGroupArns := types.ListNull(types.StringType)
 	if len(in.TargetGroupARNs) > 0 {
 		tgaElements := []attr.Value{}
@@ -104,6 +108,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		diags = append(diags, d...)
 	}
 	v.TargetGroupArns = targetGroupArns
+
 	classicLoadBalancerNames := types.ListNull(types.StringType)
 	if len(in.ClassicLoadBalancerNames) > 0 {
 		clbElements := []attr.Value{}
@@ -114,6 +119,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		diags = append(diags, d...)
 	}
 	v.ClassicLoadBalancerNames = classicLoadBalancerNames
+
 	if in.CPUCredits != "" {
 		v.CpuCredits = types.StringValue(in.CPUCredits)
 	}
@@ -123,6 +129,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 	if in.InstanceType != "" {
 		v.InstanceType = types.StringValue(in.InstanceType)
 	}
+
 	availabilityZones2 := types.ListNull(types.StringType)
 	if len(in.AvailabilityZones) > 0 {
 		azElements := []attr.Value{}
@@ -133,6 +140,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		diags = append(diags, d...)
 	}
 	v.AvailabilityZones2 = availabilityZones2
+
 	subnets := types.ListNull(types.StringType)
 	if len(in.Subnets) > 0 {
 		snElements := []attr.Value{}
@@ -143,12 +151,14 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		diags = append(diags, d...)
 	}
 	v.Subnets = subnets
+
 	if in.InstancePrefix != "" {
 		v.InstancePrefix = types.StringValue(in.InstancePrefix)
 	}
 	if in.InstanceName != "" {
 		v.InstanceName = types.StringValue(in.InstanceName)
 	}
+
 	lbsMap := types.MapNull(types.StringType)
 	if len(in.Labels) != 0 {
 		lbs := map[string]attr.Value{}
@@ -159,6 +169,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		diags = append(diags, d...)
 	}
 	v.Labels2 = lbsMap
+
 	tagMap := types.MapNull(types.StringType)
 	if len(in.Tags) != 0 {
 		tag := map[string]attr.Value{}
@@ -169,9 +180,11 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		diags = append(diags, d...)
 	}
 	v.Tags2 = tagMap
+
 	if in.AMI != "" {
 		v.Ami = types.StringValue(in.AMI)
 	}
+
 	if in.IAM != nil {
 		// get state iam
 		var stIam Iam6Value
@@ -190,6 +203,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		v.Iam6, d = NewIam6ValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
+
 	if in.SSH != nil {
 		ssh := NewSsh6ValueNull()
 		d = ssh.Flatten(ctx, in.SSH)
@@ -200,6 +214,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		v.Ssh6, d = NewSsh6ValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
+
 	if in.Placement != nil {
 		placement := NewPlacement6ValueNull()
 		d = placement.Flatten(ctx, in.Placement)
@@ -210,6 +225,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		v.Placement6, d = NewPlacement6ValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
+
 	if in.InstanceSelector != nil {
 		instanceSel := NewInstanceSelector6ValueNull()
 		d = instanceSel.Flatten(ctx, in.InstanceSelector)
@@ -220,6 +236,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		v.InstanceSelector6, d = NewInstanceSelector6ValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
+
 	if in.Bottlerocket != nil {
 		bottlerkt := NewBottleRocket6ValueNull()
 		d = bottlerkt.Flatten(ctx, in.Bottlerocket)
@@ -230,6 +247,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		v.BottleRocket6, d = NewBottleRocket6ValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
+
 	if in.InstancesDistribution != nil {
 		instDistribution := NewInstancesDistribution6ValueNull()
 		d = instDistribution.Flatten(ctx, in.InstancesDistribution)
@@ -240,6 +258,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		v.InstancesDistribution6, d = NewInstancesDistribution6ValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
+
 	if len(in.ASGMetricsCollection) > 0 {
 		amcList := []attr.Value{}
 		for _, val := range in.ASGMetricsCollection {
@@ -253,6 +272,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 	} else {
 		v.AsgMetricsCollection6 = types.SetNull(AsgMetricsCollection6Value{}.Type(ctx))
 	}
+
 	if len(in.Taints) > 0 {
 		taintsList := []attr.Value{}
 		for _, val := range in.Taints {
@@ -266,6 +286,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 	} else {
 		v.Taints6 = types.SetNull(TaintsValue{}.Type(ctx))
 	}
+
 	if in.UpdateConfig != nil {
 		updateConfig := NewUpdateConfig6ValueNull()
 		d = updateConfig.Flatten(ctx, in.UpdateConfig)
@@ -276,6 +297,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		v.UpdateConfig6, d = NewUpdateConfig6ValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
+
 	if in.KubeletExtraConfig != nil {
 		kubeletExtraConfig := NewKubeletExtraConfig6ValueNull()
 		d = kubeletExtraConfig.Flatten(ctx, in.KubeletExtraConfig)
@@ -286,6 +308,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		v.KubeletExtraConfig6, d = NewKubeletExtraConfig6ValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
+
 	if in.SecurityGroups != nil {
 		secGroup := NewSecurityGroups6ValueNull()
 		d = secGroup.Flatten(ctx, in.SecurityGroups)
@@ -296,6 +319,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		v.SecurityGroups6, d = NewSecurityGroups6ValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
+
 	v.state = attr.ValueStateKnown
 	return diags
 }
@@ -343,6 +367,8 @@ func (v *Iam6Value) Flatten(ctx context.Context, in *rafay.NodeGroupIAM, state I
 		}
 		v.AttachPolicyArns, d = types.ListValue(types.StringType, aparns)
 		diags = append(diags, d...)
+	} else {
+		v.AttachPolicyArns = types.ListNull(types.StringType)
 	}
 
 	if in.InstanceProfileARN != "" {
@@ -426,6 +452,7 @@ func (v *AttachPolicy6Value) Flatten(ctx context.Context, in *rafay.InlineDocume
 	if len(in.Id) > 0 {
 		v.Id = types.StringValue(in.Id)
 	}
+
 	if len(in.Statement) > 0 {
 		var tfStatements []attr.Value
 		for _, stmt := range in.Statement {
@@ -440,6 +467,7 @@ func (v *AttachPolicy6Value) Flatten(ctx context.Context, in *rafay.InlineDocume
 	} else {
 		v.Statement6 = types.SetNull(Statement6Value{}.Type(ctx))
 	}
+
 	v.state = attr.ValueStateKnown
 	return diags
 }

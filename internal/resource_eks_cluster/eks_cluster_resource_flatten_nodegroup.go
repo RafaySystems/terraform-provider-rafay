@@ -14,15 +14,21 @@ import (
 func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, state NodeGroupsValue) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 
-	v.Name = types.StringValue(in.Name)
-	v.AmiFamily = types.StringValue(in.AMIFamily)
+	if in.Name != "" {
+		v.Name = types.StringValue(in.Name)
+	}
+	if in.AMIFamily != "" {
+		v.AmiFamily = types.StringValue(in.AMIFamily)
+	}
 	if in.DesiredCapacity != nil {
 		v.DesiredCapacity = types.Int64Value(int64(*in.DesiredCapacity))
 	}
 	v.DisableImdsv1 = types.BoolPointerValue(in.DisableIMDSv1)
 	v.DisablePodsImds = types.BoolPointerValue(in.DisablePodIMDS)
 	v.EfaEnabled = types.BoolPointerValue(in.EFAEnabled)
-	v.InstanceType = types.StringValue(in.InstanceType)
+	if in.InstanceType != "" {
+		v.InstanceType = types.StringValue(in.InstanceType)
+	}
 	v.MaxPodsPerNode = types.Int64Value(int64(in.MaxPodsPerNode))
 	if in.MaxSize != nil {
 		v.MaxSize = types.Int64Value(int64(*in.MaxSize))
@@ -31,7 +37,9 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 		v.MinSize = types.Int64Value(int64(*in.MinSize))
 	}
 	v.PrivateNetworking = types.BoolPointerValue(in.PrivateNetworking)
-	v.Version = types.StringValue(in.Version)
+	if in.Version != "" {
+		v.Version = types.StringValue(in.Version)
+	}
 	if in.VolumeIOPS != nil {
 		v.VolumeIops = types.Int64Value(int64(*in.VolumeIOPS))
 	}
@@ -41,14 +49,24 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	if in.VolumeThroughput != nil {
 		v.VolumeThroughput = types.Int64Value(int64(*in.VolumeThroughput))
 	}
-	v.VolumeType = types.StringValue(in.VolumeType)
-	// TODO: SubnetCidr is missing
-	v.ClusterDns = types.StringValue(in.ClusterDNS)
+	if in.VolumeType != "" {
+		v.VolumeType = types.StringValue(in.VolumeType)
+	}
+	if in.ClusterDNS != "" {
+		v.ClusterDns = types.StringValue(in.ClusterDNS)
+	}
 	v.EbsOptimized = types.BoolPointerValue(in.EBSOptimized)
-	v.VolumeName = types.StringValue(in.VolumeName)
+
+	if in.VolumeName != "" {
+		v.VolumeName = types.StringValue(in.VolumeName)
+	}
 	v.VolumeEncrypted = types.BoolPointerValue(in.VolumeEncrypted)
-	v.VolumeKmsKeyId = types.StringValue(in.VolumeKmsKeyID)
-	v.OverrideBootstrapCommand = types.StringValue(in.OverrideBootstrapCommand)
+	if in.VolumeKmsKeyID != "" {
+		v.VolumeKmsKeyId = types.StringValue(in.VolumeKmsKeyID)
+	}
+	if in.OverrideBootstrapCommand != "" {
+		v.OverrideBootstrapCommand = types.StringValue(in.OverrideBootstrapCommand)
+	}
 
 	preBootstrapCommands := types.ListNull(types.StringType)
 	if len(in.PreBootstrapCommands) > 0 {
@@ -94,9 +112,15 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	}
 	v.ClassicLoadBalancerNames = classicLoadBalancerNames
 
-	v.CpuCredits = types.StringValue(in.CPUCredits)
-	v.EnableDetailedMonitoring = types.BoolPointerValue(in.EnableDetailedMonitoring)
-	v.InstanceType = types.StringValue(in.InstanceType)
+	if in.CPUCredits != "" {
+		v.CpuCredits = types.StringValue(in.CPUCredits)
+	}
+	if in.EnableDetailedMonitoring != nil {
+		v.EnableDetailedMonitoring = types.BoolPointerValue(in.EnableDetailedMonitoring)
+	}
+	if in.InstanceType != "" {
+		v.InstanceType = types.StringValue(in.InstanceType)
+	}
 
 	availabilityZones2 := types.ListNull(types.StringType)
 	if len(in.AvailabilityZones) > 0 {
@@ -120,8 +144,12 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	}
 	v.Subnets = subnets
 
-	v.InstancePrefix = types.StringValue(in.InstancePrefix)
-	v.InstanceName = types.StringValue(in.InstanceName)
+	if in.InstancePrefix != "" {
+		v.InstancePrefix = types.StringValue(in.InstancePrefix)
+	}
+	if in.InstanceName != "" {
+		v.InstanceName = types.StringValue(in.InstanceName)
+	}
 
 	lbsMap := types.MapNull(types.StringType)
 	if len(in.Labels) != 0 {
@@ -145,7 +173,9 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	}
 	v.Tags2 = tagMap
 
-	v.Ami = types.StringValue(in.AMI)
+	if in.AMI != "" {
+		v.Ami = types.StringValue(in.AMI)
+	}
 
 	if in.IAM != nil {
 		// get state iam
@@ -296,7 +326,10 @@ func (v *KubeletExtraConfigValue) Flatten(ctx context.Context, in *rafay.Kubelet
 		diags = append(diags, d...)
 	}
 	v.KubeReserved = kubeReserved
-	v.KubeReservedCgroup = types.StringValue(in.KubeReservedCGroup)
+
+	if in.KubeReservedCGroup != "" {
+		v.KubeReservedCgroup = types.StringValue(in.KubeReservedCGroup)
+	}
 
 	sysReserved := types.MapNull(types.StringType)
 	if len(in.SystemReserved) > 0 {
@@ -355,9 +388,15 @@ func (v *UpdateConfigValue) Flatten(ctx context.Context, in *rafay.NodeGroupUpda
 func (v *TaintsValue) Flatten(ctx context.Context, in rafay.NodeGroupTaint) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	v.Key = types.StringValue(in.Key)
-	v.Value = types.StringValue(in.Value)
-	v.Effect = types.StringValue(in.Effect)
+	if in.Key != "" {
+		v.Key = types.StringValue(in.Key)
+	}
+	if in.Value != "" {
+		v.Value = types.StringValue(in.Value)
+	}
+	if in.Effect != "" {
+		v.Effect = types.StringValue(in.Effect)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -366,7 +405,9 @@ func (v *TaintsValue) Flatten(ctx context.Context, in rafay.NodeGroupTaint) diag
 func (v *AsgMetricsCollectionValue) Flatten(ctx context.Context, in rafay.MetricsCollection) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 
-	v.Granularity = types.StringValue(in.Granularity)
+	if in.Granularity != "" {
+		v.Granularity = types.StringValue(in.Granularity)
+	}
 
 	metrics := types.ListNull(types.StringType)
 	if len(in.Metrics) > 0 {
@@ -411,8 +452,12 @@ func (v *InstancesDistributionValue) Flatten(ctx context.Context, in *rafay.Node
 	if in.SpotInstancePools != nil {
 		v.SpotInstancePools = types.Int64Value(int64(*in.SpotInstancePools))
 	}
-	v.SpotAllocationStrategy = types.StringValue(in.SpotAllocationStrategy)
-	v.CapacityRebalance = types.BoolPointerValue(in.CapacityRebalance)
+	if in.SpotAllocationStrategy != "" {
+		v.SpotAllocationStrategy = types.StringValue(in.SpotAllocationStrategy)
+	}
+	if in.CapacityRebalance != nil {
+		v.CapacityRebalance = types.BoolPointerValue(in.CapacityRebalance)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -449,12 +494,16 @@ func (v *InstanceSelectorValue) Flatten(ctx context.Context, in *rafay.InstanceS
 	if in.VCPUs != nil {
 		v.Vcpus = types.Int64Value(int64(*in.VCPUs))
 	}
-	v.Memory = types.StringValue(in.Memory)
+	if in.Memory != "" {
+		v.Memory = types.StringValue(in.Memory)
+	}
 
 	if in.GPUs != nil {
 		v.Gpus = types.Int64Value(int64(*in.GPUs))
 	}
-	v.CpuArchitecture = types.StringValue(in.CPUArchitecture)
+	if in.CPUArchitecture != "" {
+		v.CpuArchitecture = types.StringValue(in.CPUArchitecture)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -467,7 +516,9 @@ func (v *PlacementValue) Flatten(ctx context.Context, in *rafay.Placement) diag.
 		return diags
 	}
 
-	v.Group = types.StringValue(in.GroupName)
+	if in.GroupName != "" {
+		v.Group = types.StringValue(in.GroupName)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -480,8 +531,12 @@ func (v *SshValue) Flatten(ctx context.Context, in *rafay.NodeGroupSSH) diag.Dia
 	}
 
 	v.Allow = types.BoolPointerValue(in.Allow)
-	v.PublicKey = types.StringValue(in.PublicKey)
-	v.PublicKeyName = types.StringValue(in.PublicKeyName)
+	if in.PublicKeyPath != "" {
+		v.PublicKey = types.StringValue(in.PublicKeyPath)
+	}
+	if in.PublicKeyName != "" {
+		v.PublicKeyName = types.StringValue(in.PublicKeyName)
+	}
 
 	sourceSecurityGroupIds := types.ListNull(types.StringType)
 	if len(in.SourceSecurityGroupIDs) > 0 {
@@ -570,17 +625,29 @@ func (v *IamValue) Flatten(ctx context.Context, in *rafay.NodeGroupIAM, state Ia
 	}
 	v.AttachPolicyArns = attachPolicyArns
 
-	v.InstanceProfileArn = types.StringValue(in.InstanceProfileARN)
-	v.InstanceRoleArn = types.StringValue(in.InstanceRoleARN)
-	v.InstanceRoleName = types.StringValue(in.InstanceRoleName)
-	v.InstanceRolePermissionBoundary = types.StringValue(in.InstanceRolePermissionsBoundary)
+	if in.InstanceProfileARN != "" {
+		v.InstanceProfileArn = types.StringValue(in.InstanceProfileARN)
+	}
+	if in.InstanceRoleARN != "" {
+		v.InstanceRoleArn = types.StringValue(in.InstanceRoleARN)
+	}
+	if in.InstanceRoleName != "" {
+		v.InstanceRoleName = types.StringValue(in.InstanceRoleName)
+	}
+	if in.InstanceRolePermissionsBoundary != "" {
+		v.InstanceRolePermissionBoundary = types.StringValue(in.InstanceRolePermissionsBoundary)
+	}
 
-	addonPolicies := NewIamNodeGroupWithAddonPoliciesValueNull()
-	d = addonPolicies.Flatten(ctx, in.WithAddonPolicies)
-	diags = append(diags, d...)
-	addonPoliciesElements := []attr.Value{addonPolicies}
-	v.IamNodeGroupWithAddonPolicies, d = types.ListValue(IamNodeGroupWithAddonPoliciesValue{}.Type(ctx), addonPoliciesElements)
-	diags = append(diags, d...)
+	if in.WithAddonPolicies != nil {
+		addonPolicies := NewIamNodeGroupWithAddonPoliciesValueNull()
+		d = addonPolicies.Flatten(ctx, in.WithAddonPolicies)
+		diags = append(diags, d...)
+		addonPoliciesElements := []attr.Value{addonPolicies}
+		v.IamNodeGroupWithAddonPolicies, d = types.ListValue(IamNodeGroupWithAddonPoliciesValue{}.Type(ctx), addonPoliciesElements)
+		diags = append(diags, d...)
+	} else {
+		v.IamNodeGroupWithAddonPolicies = types.ListNull(IamNodeGroupWithAddonPoliciesValue{}.Type(ctx))
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -592,8 +659,12 @@ func (v *AttachPolicyValue) Flatten(ctx context.Context, in *rafay.InlineDocumen
 		return diags
 	}
 
-	v.Version = types.StringValue(in.Version)
-	v.Id = types.StringValue(in.Id)
+	if in.Version != "" {
+		v.Version = types.StringValue(in.Version)
+	}
+	if in.Id != "" {
+		v.Id = types.StringValue(in.Id)
+	}
 
 	statement := types.ListNull(StatementValue{}.Type(ctx))
 	if len(in.Statement) > 0 {

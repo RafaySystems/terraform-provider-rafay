@@ -366,8 +366,12 @@ func (v *AttachPolicy5Value) Flatten(ctx context.Context, in *rafay.InlineDocume
 		return diags
 	}
 
-	v.Version = types.StringValue(in.Version)
-	v.Id = types.StringValue(in.Id)
+	if in.Version != "" {
+		v.Version = types.StringValue(in.Version)
+	}
+	if in.Id != "" {
+		v.Id = types.StringValue(in.Id)
+	}
 
 	if len(in.Statement) > 0 {
 		stms := []attr.Value{}
@@ -508,8 +512,8 @@ func (v *Ssh5Value) Flatten(ctx context.Context, in *rafay.NodeGroupSSH) diag.Di
 	if in.Allow != nil {
 		v.Allow = types.BoolPointerValue(in.Allow)
 	}
-	if in.PublicKey != "" {
-		v.PublicKey = types.StringValue(in.PublicKey)
+	if in.PublicKeyPath != "" {
+		v.PublicKey = types.StringValue(in.PublicKeyPath)
 	}
 	if in.PublicKeyName != "" {
 		v.PublicKeyName = types.StringValue(in.PublicKeyName)

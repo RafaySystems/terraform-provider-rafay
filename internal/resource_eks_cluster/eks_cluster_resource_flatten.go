@@ -87,6 +87,9 @@ func (v *ClusterValue) Flatten(ctx context.Context, in rafay.EKSCluster) diag.Di
 
 func (v *MetadataValue) Flatten(ctx context.Context, in *rafay.EKSClusterMetadata) diag.Diagnostics {
 	var diags, d diag.Diagnostics
+	if in == nil {
+		return diags
+	}
 
 	if in.Name != "" {
 		v.Name = types.StringValue(in.Name)
@@ -1005,6 +1008,9 @@ func (v *PrivateClusterValue) Flatten(ctx context.Context, in *rafay.PrivateClus
 
 func (v *AddonsValue) Flatten(ctx context.Context, in *rafay.Addon, state AddonsValue) diag.Diagnostics {
 	var diags, d diag.Diagnostics
+	if in == nil {
+		return diags
+	}
 
 	var isPolicyV1, isPolicyV2 bool
 	if !state.AttachPolicyV22.IsNull() && !state.AttachPolicyV22.IsUnknown() &&
@@ -1836,6 +1842,9 @@ func (v *KubernetesNetworkConfigValue) Flatten(ctx context.Context, in *rafay.Ku
 
 func (v *Metadata2Value) Flatten(ctx context.Context, in *rafay.EKSClusterConfigMetadata) diag.Diagnostics {
 	var diags, d diag.Diagnostics
+	if in == nil {
+		return diags
+	}
 
 	if in.Name != "" {
 		v.Name = types.StringValue(in.Name)

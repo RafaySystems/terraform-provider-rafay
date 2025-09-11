@@ -13,6 +13,9 @@ import (
 
 func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, state NodeGroupsMapValue) diag.Diagnostics {
 	var diags, d diag.Diagnostics
+	if in == nil {
+		return diags
+	}
 
 	if in.AMIFamily != "" {
 		v.AmiFamily = types.StringValue(in.AMIFamily)

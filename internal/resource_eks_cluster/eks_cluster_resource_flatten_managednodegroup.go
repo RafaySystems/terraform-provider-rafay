@@ -13,6 +13,9 @@ import (
 
 func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, in *rafay.ManagedNodeGroup, state ManagedNodegroupsValue) diag.Diagnostics {
 	var diags, d diag.Diagnostics
+	if in == nil {
+		return diags
+	}
 
 	if in.Name != "" {
 		v.Name = types.StringValue(in.Name)

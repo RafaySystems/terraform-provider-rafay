@@ -164,37 +164,59 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 		iamElements := []attr.Value{iam}
 		v.Iam, d = types.ListValue(IamValue{}.Type(ctx), iamElements)
 		diags = append(diags, d...)
+	} else {
+		v.Iam = types.ListNull(IamValue{}.Type(ctx))
 	}
 
-	ssh := NewSshValueNull()
-	d = ssh.Flatten(ctx, in.SSH)
-	diags = append(diags, d...)
-	v.Ssh, d = types.ListValue(SshValue{}.Type(ctx), []attr.Value{ssh})
-	diags = append(diags, d...)
+	if in.SSH != nil {
+		ssh := NewSshValueNull()
+		d = ssh.Flatten(ctx, in.SSH)
+		diags = append(diags, d...)
+		v.Ssh, d = types.ListValue(SshValue{}.Type(ctx), []attr.Value{ssh})
+		diags = append(diags, d...)
+	} else {
+		v.Ssh = types.ListNull(SshValue{}.Type(ctx))
+	}
 
-	placement := NewPlacementValueNull()
-	d = placement.Flatten(ctx, in.Placement)
-	diags = append(diags, d...)
-	v.Placement, d = types.ListValue(PlacementValue{}.Type(ctx), []attr.Value{placement})
-	diags = append(diags, d...)
+	if in.Placement != nil {
+		placement := NewPlacementValueNull()
+		d = placement.Flatten(ctx, in.Placement)
+		diags = append(diags, d...)
+		v.Placement, d = types.ListValue(PlacementValue{}.Type(ctx), []attr.Value{placement})
+		diags = append(diags, d...)
+	} else {
+		v.Placement = types.ListNull(PlacementValue{}.Type(ctx))
+	}
 
-	instanceSel := NewInstanceSelectorValueNull()
-	d = instanceSel.Flatten(ctx, in.InstanceSelector)
-	diags = append(diags, d...)
-	v.InstanceSelector, d = types.ListValue(InstanceSelectorValue{}.Type(ctx), []attr.Value{instanceSel})
-	diags = append(diags, d...)
+	if in.InstanceSelector != nil {
+		instanceSel := NewInstanceSelectorValueNull()
+		d = instanceSel.Flatten(ctx, in.InstanceSelector)
+		diags = append(diags, d...)
+		v.InstanceSelector, d = types.ListValue(InstanceSelectorValue{}.Type(ctx), []attr.Value{instanceSel})
+		diags = append(diags, d...)
+	} else {
+		v.InstanceSelector = types.ListNull(InstanceSelectorValue{}.Type(ctx))
+	}
 
-	bottlerkt := NewBottleRocketValueNull()
-	d = bottlerkt.Flatten(ctx, in.Bottlerocket)
-	diags = append(diags, d...)
-	v.BottleRocket, d = types.ListValue(BottleRocketValue{}.Type(ctx), []attr.Value{bottlerkt})
-	diags = append(diags, d...)
+	if in.Bottlerocket != nil {
+		bottlerkt := NewBottleRocketValueNull()
+		d = bottlerkt.Flatten(ctx, in.Bottlerocket)
+		diags = append(diags, d...)
+		v.BottleRocket, d = types.ListValue(BottleRocketValue{}.Type(ctx), []attr.Value{bottlerkt})
+		diags = append(diags, d...)
+	} else {
+		v.BottleRocket = types.ListNull(BottleRocketValue{}.Type(ctx))
+	}
 
-	instDistribution := NewInstancesDistributionValueNull()
-	d = instDistribution.Flatten(ctx, in.InstancesDistribution)
-	diags = append(diags, d...)
-	v.InstancesDistribution, d = types.ListValue(InstancesDistributionValue{}.Type(ctx), []attr.Value{instDistribution})
-	diags = append(diags, d...)
+	if in.InstancesDistribution != nil {
+		instDistribution := NewInstancesDistributionValueNull()
+		d = instDistribution.Flatten(ctx, in.InstancesDistribution)
+		diags = append(diags, d...)
+		v.InstancesDistribution, d = types.ListValue(InstancesDistributionValue{}.Type(ctx), []attr.Value{instDistribution})
+		diags = append(diags, d...)
+	} else {
+		v.InstancesDistribution = types.ListNull(InstancesDistributionValue{}.Type(ctx))
+	}
 
 	asgMetricsCollection := types.ListNull(AsgMetricsCollectionValue{}.Type(ctx))
 	if len(in.ASGMetricsCollection) > 0 {
@@ -224,23 +246,35 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	}
 	v.Taints = taints
 
-	updateConfig := NewUpdateConfigValueNull()
-	d = updateConfig.Flatten(ctx, in.UpdateConfig)
-	diags = append(diags, d...)
-	v.UpdateConfig, d = types.ListValue(UpdateConfigValue{}.Type(ctx), []attr.Value{updateConfig})
-	diags = append(diags, d...)
+	if in.UpdateConfig != nil {
+		updateConfig := NewUpdateConfigValueNull()
+		d = updateConfig.Flatten(ctx, in.UpdateConfig)
+		diags = append(diags, d...)
+		v.UpdateConfig, d = types.ListValue(UpdateConfigValue{}.Type(ctx), []attr.Value{updateConfig})
+		diags = append(diags, d...)
+	} else {
+		v.UpdateConfig = types.ListNull(UpdateConfigValue{}.Type(ctx))
+	}
 
-	kubeletExtraConfig := NewKubeletExtraConfigValueNull()
-	d = kubeletExtraConfig.Flatten(ctx, in.KubeletExtraConfig)
-	diags = append(diags, d...)
-	v.KubeletExtraConfig, d = types.ListValue(KubeletExtraConfigValue{}.Type(ctx), []attr.Value{kubeletExtraConfig})
-	diags = append(diags, d...)
+	if in.KubeletExtraConfig != nil {
+		kubeletExtraConfig := NewKubeletExtraConfigValueNull()
+		d = kubeletExtraConfig.Flatten(ctx, in.KubeletExtraConfig)
+		diags = append(diags, d...)
+		v.KubeletExtraConfig, d = types.ListValue(KubeletExtraConfigValue{}.Type(ctx), []attr.Value{kubeletExtraConfig})
+		diags = append(diags, d...)
+	} else {
+		v.KubeletExtraConfig = types.ListNull(KubeletExtraConfigValue{}.Type(ctx))
+	}
 
-	secGroup := NewSecurityGroups2ValueNull()
-	d = secGroup.Flatten(ctx, in.SecurityGroups)
-	diags = append(diags, d...)
-	v.SecurityGroups2, d = types.ListValue(SecurityGroups2Value{}.Type(ctx), []attr.Value{secGroup})
-	diags = append(diags, d...)
+	if in.SecurityGroups != nil {
+		secGroup := NewSecurityGroups2ValueNull()
+		d = secGroup.Flatten(ctx, in.SecurityGroups)
+		diags = append(diags, d...)
+		v.SecurityGroups2, d = types.ListValue(SecurityGroups2Value{}.Type(ctx), []attr.Value{secGroup})
+		diags = append(diags, d...)
+	} else {
+		v.SecurityGroups2 = types.ListNull(SecurityGroups2Value{}.Type(ctx))
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -520,6 +554,9 @@ func (v *IamValue) Flatten(ctx context.Context, in *rafay.NodeGroupIAM, state Ia
 			}
 			v.AttachPolicyV2 = types.StringValue(string(jsonBytes))
 		}
+	} else {
+		v.AttachPolicy = types.ListNull(AttachPolicyValue{}.Type(ctx))
+		v.AttachPolicyV2 = types.StringNull()
 	}
 
 	attachPolicyArns := types.ListNull(types.StringType)

@@ -7,7 +7,15 @@
 		{
             "name": "eks_cluster",
             "schema": {
-                "attributes": [],
+                "attributes": [
+                    {
+                        "name": "id",
+                        "string": {
+                            "description": "The ID of the EKS cluster.",
+                            "computed_optional_required": "computed"
+                        }
+                    }
+                ],
                 "blocks": [
                     {
                         "name": "cluster",

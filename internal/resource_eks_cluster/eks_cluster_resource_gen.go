@@ -18,6 +18,13 @@ import (
 func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Version: 1,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed:            true,
+				Description:         "The ID of the EKS cluster.",
+				MarkdownDescription: "The ID of the EKS cluster.",
+			},
+		},
 		Blocks: map[string]schema.Block{
 			"cluster": schema.ListNestedBlock{
 				NestedObject: schema.NestedBlockObject{
@@ -3910,8 +3917,9 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type EksClusterModel struct {
-	Cluster       types.List `tfsdk:"cluster"`
-	ClusterConfig types.List `tfsdk:"cluster_config"`
+	Id            types.String `tfsdk:"id"`
+	Cluster       types.List   `tfsdk:"cluster"`
+	ClusterConfig types.List   `tfsdk:"cluster_config"`
 }
 
 var _ basetypes.ObjectTypable = ClusterType{}

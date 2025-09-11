@@ -3,8 +3,11 @@ package provider
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,10 +30,6 @@ func NewEksClusterResource() resource.Resource {
 }
 
 type eksClusterResource struct{}
-
-type eksClusterResourceModel struct {
-	Id types.String `tfsdk:"id"`
-}
 
 func (r *eksClusterResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_eks_cluster"
@@ -70,7 +69,6 @@ func (r *eksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -86,8 +84,14 @@ func (r *eksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 		resp.Diagnostics.Append(d...)
 		return
 	}
-
 	tflog.Debug(ctx, "cluster value", map[string]any{"newCluster": newCluster, "newClusterConfig": newClusterConfig})
+
+	// Specific to create flow: If `spec.sharing` specified then
+	// set "cluster_sharing_external" to false.
+	var cse string
+	if newCluster.Spec != nil && newCluster.Spec.Sharing != nil {
+		cse = "false"
+	}
 
 	// Call API to create EKS cluster
 	clusterName := newCluster.Metadata.Name
@@ -105,11 +109,136 @@ func (r *eksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 	logger := glogger.GetLogger()
 	rctlConfig := config.GetConfig()
-	_, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false, false, uaDef, "")
+	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false, false, uaDef, cse)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to apply the cluster, got error: %s", err))
 		return
+	}
+
+	// wait until cluster is ready
+	projectName := newCluster.Metadata.Project
+	projectID, err := getProjectIDFromName(projectName)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get project ID from name '%s', got error: %s", projectName, err))
+		return
+	}
+	log.Printf("process_filebytes response : %s", response)
+	res := clusterCTLResponse{}
+	err = json.Unmarshal([]byte(response), &res)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to parse the cluster apply response, got error: %s", err))
+		return
+	}
+	if res.TaskSetID == "" {
+		return
+	}
+	time.Sleep(10 * time.Second)
+	s, errGet := cluster.GetCluster(clusterName, projectID, uaDef)
+	if errGet != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", errGet))
+		return
+	}
+
+	data.Id = types.StringValue(s.ID)
+
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
+	defer ticker.Stop()
+LOOP:
+	for {
+		//Check for cluster operation timeout
+		select {
+		case <-ctx.Done():
+			log.Println("Cluster operation stopped due to operation timeout.")
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("cluster operation stopped for cluster: `%s` due to operation timeout", clusterName))
+			return
+		case <-ticker.C:
+			log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, projectName)
+			check, errGet := cluster.GetCluster(newCluster.Metadata.Name, projectID, uaDef)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", errGet))
+				return
+			}
+			edgeId := check.ID
+			check, errGet = cluster.GetClusterWithEdgeID(edgeId, projectID, uaDef)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", errGet))
+				return
+			}
+			rctlConfig.ProjectID = projectID
+			statusResp, err := clusterctl.Status(logger, rctlConfig, res.TaskSetID)
+			if err != nil {
+				log.Println("status response parse error", err)
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster status, got error: %s", err))
+				return
+			}
+			log.Println("statusResp:\n ", statusResp)
+			sres := clusterCTLResponse{}
+			err = json.Unmarshal([]byte(statusResp), &sres)
+			if err != nil {
+				log.Println("status response unmarshal error", err)
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to parse the cluster status response, got error: %s", err))
+				return
+			}
+			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+				log.Println("Checking in cluster conditions for blueprint sync success..")
+				conditionsFailure, clusterReadiness, err := getClusterConditions(edgeId, projectID)
+				if err != nil {
+					log.Printf("error while getCluster %s", err.Error())
+					resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster conditions, got error: %s", err))
+					return
+				}
+				if conditionsFailure {
+					log.Printf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, projectName)
+					resp.Diagnostics.AddError("Client Error", fmt.Sprintf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, projectName))
+					return
+				} else if clusterReadiness {
+					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", clusterName, projectName)
+					break LOOP
+				} else {
+					log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
+				}
+			} else if strings.Contains(sres.Status, "STATUS_FAILED") {
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("failed to create/update cluster while provisioning cluster %s %s", clusterName, statusResp))
+				return
+			} else {
+				log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, projectName)
+			}
+		}
+	}
+
+	edgeDb, err := cluster.GetCluster(clusterName, projectID, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": clusterName, "pid": projectID})
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", err))
+		return
+	}
+	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
+	if cseFromDb != "true" {
+		if newCluster.Spec.Sharing == nil && cseFromDb != "" {
+			// reset cse as sharing is removed
+			edgeDb.Settings[clusterSharingExtKey] = ""
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update the edge object, got error: %s", err))
+				return
+			}
+			tflog.Error(ctx, "cse removed successfully")
+		}
+		if newCluster.Spec.Sharing != nil && cseFromDb != "false" {
+			// explicitly set cse to false
+			edgeDb.Settings[clusterSharingExtKey] = "false"
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update the edge object, got error: %s", err))
+				return
+			}
+			tflog.Error(ctx, "cse set to false")
+		}
 	}
 
 	// Save data into Terraform state
@@ -127,8 +256,6 @@ func (r *eksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 	tflog.Debug(ctx, "EKS Cluster Read existing data", map[string]interface{}{"data": data})
 
-	// TODO(Akshay): handle null/unknown cluster
-
 	clusterEls := make([]resource_eks_cluster.ClusterValue, 0, len(data.Cluster.Elements()))
 	d := data.Cluster.ElementsAs(ctx, &clusterEls, false)
 	if d.HasError() {
@@ -136,10 +263,20 @@ func (r *eksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
+	if len(clusterEls) < 1 {
+		resp.Diagnostics.AddError("Invalid Configuration", "Cluster block is missing")
+		return
+	}
+
 	metadataEls := make([]resource_eks_cluster.MetadataValue, 0, len(clusterEls[0].Metadata.Elements()))
 	d = clusterEls[0].Metadata.ElementsAs(ctx, &metadataEls, false)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	if len(metadataEls) < 1 {
+		resp.Diagnostics.AddError("Invalid Configuration", "Metadata block is missing")
 		return
 	}
 
@@ -168,32 +305,24 @@ func (r *eksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	// read prior state of cluster config to find out which one out of "node_groups" and "node_groups_map" is being used by user.
-	ngMapInUse := true
-	ccList := make([]resource_eks_cluster.ClusterConfigValue, 0, len(data.ClusterConfig.Elements()))
-	d = data.ClusterConfig.ElementsAs(ctx, &ccList, false)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-	cConfig := ccList[0]
-	if !cConfig.NodeGroups.IsNull() {
-		ngMapInUse = false
-	}
-
 	// Read API call logic
 	c, err := cluster.GetCluster(clusterName, projectID, "")
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", err))
 		return
 	}
+	cse := c.Settings[clusterSharingExtKey]
+	tflog.Info(ctx, "Got cluster from backend", map[string]interface{}{clusterSharingExtKey: cse})
+
 	logger := glogger.GetLogger()
 	rctlConfig := config.GetConfig()
-	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlConfig, c.Name, projectID, "")
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlConfig, c.Name, projectID, uaDef)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster spec, got error: %s", err))
 		return
 	}
+	tflog.Debug(ctx, "EKS Cluster Read API data", map[string]interface{}{"clusterSpecYaml": clusterSpecYaml})
+
 	decoder := yaml.NewDecoder(bytes.NewReader([]byte(clusterSpecYaml)))
 	clusterSpec := rafay.EKSCluster{}
 	err = decoder.Decode(&clusterSpec)
@@ -201,6 +330,14 @@ func (r *eksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to decode the cluster spec, got error: %s", err))
 		return
 	}
+
+	// If the cluster sharing is managed by separate resource then
+	// don't consider sharing from `rafay_eks_cluster`. Both
+	// should not be present simultaneously.
+	if cse == "true" {
+		clusterSpec.Spec.Sharing = nil
+	}
+
 	clusterConfigSpec := rafay.EKSClusterConfig{}
 	err = decoder.Decode(&clusterConfigSpec)
 	if err != nil {
@@ -211,8 +348,6 @@ func (r *eksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		"clusterSpec":       clusterSpec,
 		"clusterConfigSpec": clusterConfigSpec,
 	})
-
-	_ = ngMapInUse
 
 	// Update the model with the data from the API response
 	diags := resource_eks_cluster.FlattenEksCluster(ctx, clusterSpec, &data)
@@ -227,278 +362,6 @@ func (r *eksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	// mdv := map[string]attr.Value{
-	// 	"name":    types.StringValue(clusterSpec.Metadata.Name),
-	// 	"project": types.StringValue(clusterSpec.Metadata.Project),
-	// }
-	// md1, d := resource_eks_cluster.NewMetadataValue(resource_eks_cluster.MetadataValue{}.AttributeTypes(ctx), mdv)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	// mdElements := []attr.Value{
-	// 	md1,
-	// }
-	// fmd, d := types.ListValue(resource_eks_cluster.MetadataValue{}.Type(ctx), mdElements)
-	//
-	// specv := map[string]attr.Value{
-	// 	"cloud_provider": types.StringValue(clusterSpec.Spec.CloudProvider),
-	// 	"blueprint":      types.StringValue(clusterSpec.Spec.Blueprint),
-	// 	"cni_provider":   types.StringValue(clusterSpec.Spec.CniProvider),
-	// 	"type":           types.StringValue(clusterSpec.Spec.Type),
-	// }
-	// spec1, d := resource_eks_cluster.NewSpecValue(resource_eks_cluster.SpecValue{}.AttributeTypes(ctx), specv)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	// specElements := []attr.Value{
-	// 	spec1,
-	// }
-	// fspec, d := types.ListValue(resource_eks_cluster.SpecValue{}.Type(ctx), specElements)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	//
-	// cv := map[string]attr.Value{
-	// 	"kind":     types.StringValue(clusterSpec.Kind),
-	// 	"metadata": fmd,
-	// 	"spec":     fspec,
-	// }
-	// fcv, d := resource_eks_cluster.NewClusterValue(resource_eks_cluster.ClusterValue{}.AttributeTypes(ctx), cv)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	// clusterElements := []attr.Value{
-	// 	fcv,
-	// }
-	// data.Cluster, d = types.ListValue(resource_eks_cluster.ClusterValue{}.Type(ctx), clusterElements)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	//
-	// /// Start of ClusterConfig
-	// tgs := clusterConfigSpec.Metadata.Tags
-	// tgsElements := make(map[string]attr.Value, len(tgs))
-	// for tk, tv := range tgs {
-	// 	tgsElements[tk] = types.StringValue(tv)
-	// }
-	// tgsV, d := types.MapValue(types.StringType, tgsElements)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	// md2v := map[string]attr.Value{
-	// 	"name":    types.StringValue(clusterConfigSpec.Metadata.Name),
-	// 	"region":  types.StringValue(clusterConfigSpec.Metadata.Region),
-	// 	"version": types.StringValue(clusterConfigSpec.Metadata.Version),
-	// 	"tags":    tgsV,
-	// }
-	// md2, d := resource_eks_cluster.NewMetadata2Value(resource_eks_cluster.Metadata2Value{}.AttributeTypes(ctx), md2v)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	// md2Elements := []attr.Value{
-	// 	md2,
-	// }
-	// fmd2, d := types.ListValue(resource_eks_cluster.Metadata2Value{}.Type(ctx), md2Elements)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	//
-	// ngs := clusterConfigSpec.NodeGroups
-	// var ngList basetypes.ListValue
-	// var ngMap basetypes.MapValue
-	//
-	// if ngMapInUse {
-	// 	ngMapElements := make(map[string]attr.Value, len(ngs))
-	// 	for _, ng := range ngs {
-	// 		iamaddon2 := map[string]attr.Value{
-	// 			"alb_ingress":     types.BoolValue(false),
-	// 			"app_mesh":        types.BoolValue(*ng.IAM.WithAddonPolicies.AppMesh),
-	// 			"app_mesh_review": types.BoolValue(*ng.IAM.WithAddonPolicies.AppMeshPreview),
-	// 			"cert_manager":    types.BoolValue(*ng.IAM.WithAddonPolicies.CertManager),
-	// 			"cloud_watch":     types.BoolValue(*ng.IAM.WithAddonPolicies.CloudWatch),
-	// 			"ebs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EBS),
-	// 			"efs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EFS),
-	// 			"external_dns":    types.BoolValue(*ng.IAM.WithAddonPolicies.ExternalDNS),
-	// 			"fsx":             types.BoolValue(*ng.IAM.WithAddonPolicies.FSX),
-	// 			"xray":            types.BoolValue(*ng.IAM.WithAddonPolicies.XRay),
-	// 			"image_builder":   types.BoolValue(*ng.IAM.WithAddonPolicies.ImageBuilder),
-	// 			"auto_scaler":     types.BoolValue(*ng.IAM.WithAddonPolicies.AutoScaler),
-	// 		}
-	// 		iamaddonv2, d := resource_eks_cluster.NewIamNodeGroupWithAddonPolicies2Value(resource_eks_cluster.IamNodeGroupWithAddonPolicies2Value{}.AttributeTypes(ctx), iamaddon2)
-	// 		if d.HasError() {
-	// 			resp.Diagnostics.Append(d...)
-	// 			return
-	// 		}
-	// 		iamaddonElements2 := []attr.Value{
-	// 			iamaddonv2,
-	// 		}
-	// 		fiamaddon2, d := types.ListValue(resource_eks_cluster.IamNodeGroupWithAddonPolicies2Value{}.Type(ctx), iamaddonElements2)
-	// 		if d.HasError() {
-	// 			resp.Diagnostics.Append(d...)
-	// 			return
-	// 		}
-	// 		iamv2 := map[string]attr.Value{
-	// 			"iam_node_group_with_addon_policies": fiamaddon2,
-	// 		}
-	// 		iamo2, d := resource_eks_cluster.NewIam2Value(resource_eks_cluster.Iam2Value{}.AttributeTypes(ctx), iamv2)
-	// 		if d.HasError() {
-	// 			resp.Diagnostics.Append(d...)
-	// 			return
-	// 		}
-	// 		iam2Elements := []attr.Value{
-	// 			iamo2,
-	// 		}
-	// 		fiam2, d := types.ListValue(resource_eks_cluster.Iam2Value{}.Type(ctx), iam2Elements)
-	// 		if d.HasError() {
-	// 			resp.Diagnostics.Append(d...)
-	// 			return
-	// 		}
-	// 		ngmapv := map[string]attr.Value{
-	// 			//"name":               types.StringValue(ng.Name),
-	// 			"ami_family":         types.StringValue(ng.AMIFamily),
-	// 			"instance_type":      types.StringValue(ng.InstanceType),
-	// 			"desired_capacity":   types.Int64Value(int64(*ng.DesiredCapacity)),
-	// 			"min_size":           types.Int64Value(int64(*ng.MinSize)),
-	// 			"max_size":           types.Int64Value(int64(*ng.MaxSize)),
-	// 			"max_pods_per_node":  types.Int64Value(int64(ng.MaxPodsPerNode)),
-	// 			"version":            types.StringValue(ng.Version),
-	// 			"disable_imdsv1":     types.BoolValue(*ng.DisableIMDSv1),
-	// 			"disable_pods_imds":  types.BoolValue(*ng.DisablePodIMDS),
-	// 			"efa_enabled":        types.BoolValue(*ng.EFAEnabled),
-	// 			"private_networking": types.BoolValue(*ng.PrivateNetworking),
-	// 			"volume_iops":        types.Int64Value(int64(*ng.VolumeIOPS)),
-	// 			"volume_size":        types.Int64Value(int64(*ng.VolumeSize)),
-	// 			"volume_throughput":  types.Int64Value(int64(*ng.VolumeThroughput)),
-	// 			"volume_type":        types.StringValue(ng.VolumeType),
-	// 			"iam":                fiam2,
-	// 		}
-	// 		ngmapo, d := resource_eks_cluster.NewNodeGroupsMapValue(resource_eks_cluster.NodeGroupsMapValue{}.AttributeTypes(ctx), ngmapv)
-	// 		ngMapElements[ng.Name] = ngmapo
-	// 	}
-	//
-	// 	ngMap, d = types.MapValue(resource_eks_cluster.NodeGroupsMapValue{}.Type(ctx), ngMapElements)
-	// 	if d.HasError() {
-	// 		resp.Diagnostics.Append(d...)
-	// 		return
-	// 	}
-	//
-	// } else {
-	// 	ngElements := []attr.Value{}
-	// 	for _, ng := range ngs {
-	// 		iamaddon := map[string]attr.Value{
-	// 			"alb_ingress":     types.BoolValue(false),
-	// 			"app_mesh":        types.BoolValue(*ng.IAM.WithAddonPolicies.AppMesh),
-	// 			"app_mesh_review": types.BoolValue(*ng.IAM.WithAddonPolicies.AppMeshPreview),
-	// 			"cert_manager":    types.BoolValue(*ng.IAM.WithAddonPolicies.CertManager),
-	// 			"cloud_watch":     types.BoolValue(*ng.IAM.WithAddonPolicies.CloudWatch),
-	// 			"ebs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EBS),
-	// 			"efs":             types.BoolValue(*ng.IAM.WithAddonPolicies.EFS),
-	// 			"external_dns":    types.BoolValue(*ng.IAM.WithAddonPolicies.ExternalDNS),
-	// 			"fsx":             types.BoolValue(*ng.IAM.WithAddonPolicies.FSX),
-	// 			"xray":            types.BoolValue(*ng.IAM.WithAddonPolicies.XRay),
-	// 			"image_builder":   types.BoolValue(*ng.IAM.WithAddonPolicies.ImageBuilder),
-	// 			"auto_scaler":     types.BoolValue(*ng.IAM.WithAddonPolicies.AutoScaler),
-	// 		}
-	// 		iamaddonv, d := resource_eks_cluster.NewIamNodeGroupWithAddonPoliciesValue(resource_eks_cluster.IamNodeGroupWithAddonPoliciesValue{}.AttributeTypes(ctx), iamaddon)
-	// 		if d.HasError() {
-	// 			resp.Diagnostics.Append(d...)
-	// 			return
-	// 		}
-	// 		iamaddonElements := []attr.Value{
-	// 			iamaddonv,
-	// 		}
-	// 		fiamaddon, d := types.ListValue(resource_eks_cluster.IamNodeGroupWithAddonPoliciesValue{}.Type(ctx), iamaddonElements)
-	// 		if d.HasError() {
-	// 			resp.Diagnostics.Append(d...)
-	// 			return
-	// 		}
-	// 		iamv := map[string]attr.Value{
-	// 			"iam_node_group_with_addon_policies": fiamaddon,
-	// 		}
-	// 		iamo, d := resource_eks_cluster.NewIamValue(resource_eks_cluster.IamValue{}.AttributeTypes(ctx), iamv)
-	// 		if d.HasError() {
-	// 			resp.Diagnostics.Append(d...)
-	// 			return
-	// 		}
-	// 		iamElements := []attr.Value{
-	// 			iamo,
-	// 		}
-	// 		fiam, d := types.ListValue(resource_eks_cluster.IamValue{}.Type(ctx), iamElements)
-	// 		if d.HasError() {
-	// 			resp.Diagnostics.Append(d...)
-	// 			return
-	// 		}
-	//
-	// 		ngv := map[string]attr.Value{
-	// 			"name":               types.StringValue(ng.Name),
-	// 			"ami_family":         types.StringValue(ng.AMIFamily),
-	// 			"instance_type":      types.StringValue(ng.InstanceType),
-	// 			"desired_capacity":   types.Int64Value(int64(*ng.DesiredCapacity)),
-	// 			"min_size":           types.Int64Value(int64(*ng.MinSize)),
-	// 			"max_size":           types.Int64Value(int64(*ng.MaxSize)),
-	// 			"max_pods_per_node":  types.Int64Value(int64(ng.MaxPodsPerNode)),
-	// 			"version":            types.StringValue(ng.Version),
-	// 			"disable_imdsv1":     types.BoolValue(*ng.DisableIMDSv1),
-	// 			"disable_pods_imds":  types.BoolValue(*ng.DisablePodIMDS),
-	// 			"efa_enabled":        types.BoolValue(*ng.EFAEnabled),
-	// 			"private_networking": types.BoolValue(*ng.PrivateNetworking),
-	// 			"volume_iops":        types.Int64Value(int64(*ng.VolumeIOPS)),
-	// 			"volume_size":        types.Int64Value(int64(*ng.VolumeSize)),
-	// 			"volume_throughput":  types.Int64Value(int64(*ng.VolumeThroughput)),
-	// 			"volume_type":        types.StringValue(ng.VolumeType),
-	// 			"iam":                fiam,
-	// 		}
-	// 		ngo, d := resource_eks_cluster.NewNodeGroupsValue(resource_eks_cluster.NodeGroupsValue{}.AttributeTypes(ctx), ngv)
-	// 		if d.HasError() {
-	// 			resp.Diagnostics.Append(d...)
-	// 			return
-	// 		}
-	// 		ngElements = append(ngElements, ngo)
-	// 	}
-	//
-	// 	ngList, d = types.ListValue(resource_eks_cluster.NodeGroupsValue{}.Type(ctx), ngElements)
-	// 	if d.HasError() {
-	// 		resp.Diagnostics.Append(d...)
-	// 		return
-	// 	}
-	//
-	// }
-	//
-	// cc := map[string]attr.Value{
-	// 	"apiversion": types.StringValue(clusterConfigSpec.APIVersion),
-	// 	"kind":       types.StringValue(clusterConfigSpec.Kind),
-	// 	"metadata":   fmd2,
-	// }
-	// if ngMapInUse {
-	// 	cc["node_groups_map"] = ngMap
-	// 	cc["node_groups"] = types.ListNull(resource_eks_cluster.NodeGroupsValue{}.Type(ctx))
-	// } else {
-	// 	cc["node_groups"] = ngList
-	// 	cc["node_groups_map"] = types.MapNull(resource_eks_cluster.NodeGroupsMapValue{}.Type(ctx))
-	// }
-	//
-	// fcc, d := resource_eks_cluster.NewClusterConfigValue(resource_eks_cluster.ClusterConfigValue{}.AttributeTypes(ctx), cc)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-	// ccElements := []attr.Value{
-	// 	fcc,
-	// }
-	// data.ClusterConfig, d = types.ListValue(resource_eks_cluster.ClusterConfigValue{}.Type(ctx), ccElements)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -507,9 +370,155 @@ func (r *eksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	clusterEls := make([]resource_eks_cluster.ClusterValue, 0, len(data.Cluster.Elements()))
+	d := data.Cluster.ElementsAs(ctx, &clusterEls, false)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	if len(clusterEls) < 1 {
+		resp.Diagnostics.AddError("Invalid Configuration", "Cluster block is missing")
+		return
+	}
+
+	metadataEls := make([]resource_eks_cluster.MetadataValue, 0, len(clusterEls[0].Metadata.Elements()))
+	d = clusterEls[0].Metadata.ElementsAs(ctx, &metadataEls, false)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	if len(metadataEls) < 1 {
+		resp.Diagnostics.AddError("Invalid Configuration", "Metadata block is missing")
+		return
+	}
+
+	mdO, d := metadataEls[0].ToObjectValue(ctx)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	var md resource_eks_cluster.MetadataType
+	mdObj, d := md.ValueFromObject(ctx, mdO)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+	mdValue, ok := mdObj.(resource_eks_cluster.MetadataValue)
+	if !ok {
+		resp.Diagnostics.AddError("Invalid Metadata", "Expected MetadataValue type but got a different type.")
+		return
+	}
+	clusterName := mdValue.Name.ValueString()
+	projectName := mdValue.Project.ValueString()
+	projectID, err := getProjectIDFromName(projectName)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get project ID from name '%s', got error: %s", projectName, err))
+		return
+	}
+
+	c, err := cluster.GetCluster(clusterName, projectID, uaDef)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", err))
+		return
+	}
+	cse := c.Settings[clusterSharingExtKey]
+	tflog.Info(ctx, "Got cluster from backend", map[string]interface{}{clusterSharingExtKey: cse})
+
+	setSharing := false
+
+	// Check if cse == true and `spec.sharing` specified. then
+	// Error out here only before procedding. The next Upsert is
+	// called by "Create" flow as well which is explicitly setting
+	// cse to false if `spec.sharing` provided.
+	if cse == "true" {
+		// Load current state
+		var state resource_eks_cluster.EksClusterModel
+		resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+		specEls := make([]resource_eks_cluster.SpecValue, 0, len(clusterEls[0].Spec.Elements()))
+		d = clusterEls[0].Spec.ElementsAs(ctx, &specEls, false)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+		if len(specEls) < 1 {
+			resp.Diagnostics.AddError("Invalid Configuration", "Spec block is missing")
+			return
+		}
+		specO, d := specEls[0].ToObjectValue(ctx)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+		var spec resource_eks_cluster.SpecType
+		specObj, d := spec.ValueFromObject(ctx, specO)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+		specValue, ok := specObj.(resource_eks_cluster.SpecValue)
+		if !ok {
+			resp.Diagnostics.AddError("Invalid Spec", "Expected SpecValue type but got a different type.")
+			return
+		}
+
+		// state
+		stClusterEls := make([]resource_eks_cluster.ClusterValue, 0, len(state.Cluster.Elements()))
+		d = state.Cluster.ElementsAs(ctx, &stClusterEls, false)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+
+		if len(stClusterEls) < 1 {
+			resp.Diagnostics.AddError("Invalid Configuration", "Cluster block is missing")
+			return
+		}
+
+		stSpecEls := make([]resource_eks_cluster.SpecValue, 0, len(stClusterEls[0].Spec.Elements()))
+		d = stClusterEls[0].Spec.ElementsAs(ctx, &stSpecEls, false)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+		if len(stSpecEls) < 1 {
+			resp.Diagnostics.AddError("Invalid Configuration", "Spec block is missing")
+			return
+		}
+		stSpecO, d := stSpecEls[0].ToObjectValue(ctx)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+		var stSpec resource_eks_cluster.SpecType
+		stSpecObj, d := stSpec.ValueFromObject(ctx, stSpecO)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+		stSpecValue, ok := stSpecObj.(resource_eks_cluster.SpecValue)
+		if !ok {
+			resp.Diagnostics.AddError("Invalid Spec", "Expected SpecValue type but got a different type.")
+			return
+		}
+
+		if !specValue.Sharing.Equal(stSpecValue.Sharing) {
+			if !specValue.Sharing.IsNull() {
+				resp.Diagnostics.AddError("Invalid Configuration", "Cluster sharing is currently managed through the external 'rafay_cluster_sharing' resource. To prevent configuration conflicts, please remove the sharing settings from the 'rafay_eks_cluster' resource and manage sharing exclusively via the external resource.")
+				return
+			}
+		} else {
+			// If the cluster sharing is managed externally, then (re-)populate sharing block.
+			setSharing = true
+
+		}
 	}
 
 	updatedCluster, d := resource_eks_cluster.ExpandEksCluster(ctx, data)
@@ -518,16 +527,35 @@ func (r *eksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
+	if setSharing {
+		logger := glogger.GetLogger()
+		rctlCfg := config.GetConfig()
+		clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID, uaDef)
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster spec, got error: %s", err))
+			return
+		}
+		log.Println("resourceEKSClusterUpdate clusterSpec ", clusterSpecYaml)
+
+		decoder := yaml.NewDecoder(bytes.NewReader([]byte(clusterSpecYaml)))
+		clusterSpec := rafay.EKSCluster{}
+		if err := decoder.Decode(&clusterSpec); err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to decode the cluster spec, got error: %s", err))
+			return
+		}
+
+		updatedCluster.Spec.Sharing = clusterSpec.Spec.Sharing
+	}
+
 	updatedClusterConfig, d := resource_eks_cluster.ExpandEksClusterConfig(ctx, data)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
 	}
-
 	tflog.Debug(ctx, "updated value", map[string]any{"updatedCluster": updatedCluster, "updatedClusterConfig": updatedClusterConfig})
 
 	// Call API to update EKS cluster
-	clusterName := updatedCluster.Metadata.Name
+	uClusterName := updatedCluster.Metadata.Name
 	var b bytes.Buffer
 	encoder := yaml.NewEncoder(&b)
 	if err := encoder.Encode(updatedCluster); err != nil {
@@ -540,13 +568,140 @@ func (r *eksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to apply the cluster config, got error: %s", err))
 		return
 	}
+
+	// Specific to create flow: If `spec.sharing` specified then
+	// set "cluster_sharing_external" to false.
+	var newCse string
+	if updatedCluster.Spec != nil && updatedCluster.Spec.Sharing != nil {
+		newCse = "false"
+	}
+
 	logger := glogger.GetLogger()
 	rctlConfig := config.GetConfig()
-	_, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false, false, uaDef, "")
+	response, err := clusterctl.Apply(logger, rctlConfig, uClusterName, b.Bytes(), false, false, false, false, uaDef, newCse)
 	if err != nil {
 		log.Printf("cluster error 1: %s", err)
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to apply the cluster, got error: %s", err))
 		return
+	}
+
+	// wait until cluster is ready
+	log.Printf("process_filebytes response : %s", response)
+	res := clusterCTLResponse{}
+	err = json.Unmarshal([]byte(response), &res)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to parse the cluster apply response, got error: %s", err))
+		return
+	}
+	if res.TaskSetID == "" {
+		return
+	}
+	time.Sleep(10 * time.Second)
+	s, errGet := cluster.GetCluster(clusterName, projectID, uaDef)
+	if errGet != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", errGet))
+		return
+	}
+
+	data.Id = types.StringValue(s.ID)
+
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
+	defer ticker.Stop()
+LOOP:
+	for {
+		//Check for cluster operation timeout
+		select {
+		case <-ctx.Done():
+			log.Println("Cluster operation stopped due to operation timeout.")
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("cluster operation stopped for cluster: `%s` due to operation timeout", clusterName))
+			return
+		case <-ticker.C:
+			log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, projectName)
+			check, errGet := cluster.GetCluster(updatedCluster.Metadata.Name, projectID, uaDef)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", errGet))
+				return
+			}
+			edgeId := check.ID
+			check, errGet = cluster.GetClusterWithEdgeID(edgeId, projectID, uaDef)
+			if errGet != nil {
+				log.Printf("error while getCluster %s", errGet.Error())
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", errGet))
+				return
+			}
+			rctlConfig.ProjectID = projectID
+			statusResp, err := clusterctl.Status(logger, rctlConfig, res.TaskSetID)
+			if err != nil {
+				log.Println("status response parse error", err)
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster status, got error: %s", err))
+				return
+			}
+			log.Println("statusResp:\n ", statusResp)
+			sres := clusterCTLResponse{}
+			err = json.Unmarshal([]byte(statusResp), &sres)
+			if err != nil {
+				log.Println("status response unmarshal error", err)
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to parse the cluster status response, got error: %s", err))
+				return
+			}
+			if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+				log.Println("Checking in cluster conditions for blueprint sync success..")
+				conditionsFailure, clusterReadiness, err := getClusterConditions(edgeId, projectID)
+				if err != nil {
+					log.Printf("error while getCluster %s", err.Error())
+					resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster conditions, got error: %s", err))
+					return
+				}
+				if conditionsFailure {
+					log.Printf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, projectName)
+					resp.Diagnostics.AddError("Client Error", fmt.Sprintf("blueprint sync failed for edgename: %s and projectname: %s", clusterName, projectName))
+					return
+				} else if clusterReadiness {
+					log.Printf("Cluster operation completed for edgename: %s and projectname: %s", clusterName, projectName)
+					break LOOP
+				} else {
+					log.Println("Cluster Provisiong is Complete. Waiting for cluster to be Ready...")
+				}
+			} else if strings.Contains(sres.Status, "STATUS_FAILED") {
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("failed to create/update cluster while provisioning cluster %s %s", clusterName, statusResp))
+				return
+			} else {
+				log.Printf("Cluster operation not completed for edgename: %s and projectname: %s. Waiting 60 seconds more for cluster to complete the operation.", clusterName, projectName)
+			}
+		}
+	}
+
+	edgeDb, err := cluster.GetCluster(clusterName, projectID, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "failed to get cluster", map[string]any{"name": clusterName, "pid": projectID})
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get the cluster, got error: %s", err))
+		return
+	}
+	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
+	if cseFromDb != "true" {
+		if updatedCluster.Spec.Sharing == nil && cseFromDb != "" {
+			// reset cse as sharing is removed
+			edgeDb.Settings[clusterSharingExtKey] = ""
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update the edge object, got error: %s", err))
+				return
+			}
+			tflog.Error(ctx, "cse removed successfully")
+		}
+		if updatedCluster.Spec.Sharing != nil && cseFromDb != "false" {
+			// explicitly set cse to false
+			edgeDb.Settings[clusterSharingExtKey] = "false"
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "failed to update cluster", map[string]any{"edgeObj": edgeDb})
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update the edge object, got error: %s", err))
+				return
+			}
+			tflog.Error(ctx, "cse set to false")
+		}
 	}
 
 	// Save updated data into Terraform state
@@ -569,10 +724,18 @@ func (r *eksClusterResource) Delete(ctx context.Context, req resource.DeleteRequ
 		resp.Diagnostics.Append(d...)
 		return
 	}
+	if len(clusterList) < 1 {
+		resp.Diagnostics.AddError("Invalid Configuration", "Cluster block is missing")
+		return
+	}
 	mdList := make([]resource_eks_cluster.MetadataValue, 0, len(clusterList[0].Metadata.Elements()))
 	d = clusterList[0].Metadata.ElementsAs(ctx, &mdList, false)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
+		return
+	}
+	if len(mdList) < 1 {
+		resp.Diagnostics.AddError("Invalid Configuration", "Metadagta block is missing")
 		return
 	}
 	mdO, d := mdList[0].ToObjectValue(ctx)
@@ -607,4 +770,29 @@ func (r *eksClusterResource) Delete(ctx context.Context, req resource.DeleteRequ
 			fmt.Sprintf("Failed to delete cluster, got error: %s", err),
 		)
 	}
+
+	ticker := time.NewTicker(time.Duration(60) * time.Second)
+	defer ticker.Stop()
+
+LOOP:
+	for {
+		select {
+		case <-ctx.Done():
+			log.Printf("Cluster Deletion for edgename: %s and projectname: %s got timeout out.", clusterName, projectName)
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("cluster deletion for edgename: %s and projectname: %s got timeout out", clusterName, projectName))
+			return
+		case <-ticker.C:
+			check, errGet := cluster.GetCluster(clusterName, projectID, uaDef)
+			if errGet != nil {
+				log.Printf("error while getCluster %s, delete success", errGet.Error())
+				break LOOP
+			}
+			if check == nil {
+				break LOOP
+			}
+			log.Printf("Cluster Deletion is in progress for edgename: %s and projectname: %s. Waiting 60 seconds more for operation to complete.", clusterName, projectName)
+		}
+	}
+	log.Printf("Cluster Deletion completes for edgename: %s and projectname: %s", clusterName, projectName)
+
 }

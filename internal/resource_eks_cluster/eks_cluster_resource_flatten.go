@@ -156,6 +156,8 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec) diag.Diagnos
 		}
 		v.CniParams, d = types.ListValue(CniParamsValue{}.Type(ctx), cpElements)
 		diags = append(diags, d...)
+	} else {
+		v.CniParams = types.ListNull(CniParamsValue{}.Type(ctx))
 	}
 
 	proxycfgMap := types.MapNull(types.StringType)
@@ -193,6 +195,8 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec) diag.Diagnos
 		diags = append(diags, d...)
 		v.SystemComponentsPlacement, d = types.ListValue(SystemComponentsPlacementValue{}.Type(ctx), []attr.Value{scp})
 		diags = append(diags, d...)
+	} else {
+		v.SystemComponentsPlacement = types.ListNull(SystemComponentsPlacementValue{}.Type(ctx))
 	}
 
 	if in.Sharing != nil {
@@ -201,6 +205,8 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec) diag.Diagnos
 		diags = append(diags, d...)
 		v.Sharing, d = types.ListValue(SharingValue{}.Type(ctx), []attr.Value{sh})
 		diags = append(diags, d...)
+	} else {
+		v.Sharing = types.ListNull(SharingValue{}.Type(ctx))
 	}
 
 	v.state = attr.ValueStateKnown
@@ -335,6 +341,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		}
 		v.Metadata2, d = types.ListValue(Metadata2Value{}.Type(ctx), mdElements)
 		diags = append(diags, d...)
+	} else {
+		v.Metadata2 = types.ListNull(Metadata2Value{}.Type(ctx))
 	}
 
 	// node groups
@@ -383,6 +391,9 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 			diags = append(diags, d...)
 			v.NodeGroupsMap = types.MapNull(NodeGroupsMapValue{}.Type(ctx))
 		}
+	} else {
+		v.NodeGroups = types.ListNull(NodeGroupsValue{}.Type(ctx))
+		v.NodeGroupsMap = types.MapNull(NodeGroupsMapValue{}.Type(ctx))
 	}
 
 	if in.KubernetesNetworkConfig != nil {
@@ -391,6 +402,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		diags = append(diags, d...)
 		v.KubernetesNetworkConfig, d = types.ListValue(KubernetesNetworkConfigValue{}.Type(ctx), []attr.Value{netconf})
 		diags = append(diags, d...)
+	} else {
+		v.KubernetesNetworkConfig = types.ListNull(KubernetesNetworkConfigValue{}.Type(ctx))
 	}
 
 	if in.IAM != nil {
@@ -399,6 +412,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		diags = append(diags, d...)
 		v.Iam3, d = types.ListValue(Iam3Value{}.Type(ctx), []attr.Value{iam})
 		diags = append(diags, d...)
+	} else {
+		v.Iam3 = types.ListNull(Iam3Value{}.Type(ctx))
 	}
 
 	identityProviders := types.ListNull(IdentityProvidersValue{}.Type(ctx))
@@ -421,6 +436,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		diags = append(diags, d...)
 		v.Vpc, d = types.ListValue(VpcValue{}.Type(ctx), []attr.Value{vpc})
 		diags = append(diags, d...)
+	} else {
+		v.Vpc = types.ListNull(VpcValue{}.Type(ctx))
 	}
 
 	addons := types.ListNull(AddonsValue{}.Type(ctx))
@@ -460,6 +477,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		diags = append(diags, d...)
 		v.PrivateCluster, d = types.ListValue(PrivateClusterValue{}.Type(ctx), []attr.Value{privateCluster})
 		diags = append(diags, d...)
+	} else {
+		v.PrivateCluster = types.ListNull(PrivateClusterValue{}.Type(ctx))
 	}
 
 	// managed node groups
@@ -507,6 +526,9 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 			diags = append(diags, d...)
 			v.ManagedNodegroupsMap = types.MapNull(ManagedNodegroupsMapValue{}.Type(ctx))
 		}
+	} else {
+		v.ManagedNodegroups = types.ListNull(ManagedNodegroupsValue{}.Type(ctx))
+		v.ManagedNodegroupsMap = types.MapNull(ManagedNodegroupsMapValue{}.Type(ctx))
 	}
 
 	fargateProfiles := types.ListNull(FargateProfilesValue{}.Type(ctx))
@@ -529,6 +551,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		diags = append(diags, d...)
 		v.CloudWatch, d = types.ListValue(CloudWatchValue{}.Type(ctx), []attr.Value{cloudWatch})
 		diags = append(diags, d...)
+	} else {
+		v.CloudWatch = types.ListNull(CloudWatchValue{}.Type(ctx))
 	}
 
 	if in.SecretsEncryption != nil {
@@ -537,6 +561,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		diags = append(diags, d...)
 		v.SecretsEncryption, d = types.ListValue(SecretsEncryptionValue{}.Type(ctx), []attr.Value{SecretsEncryption})
 		diags = append(diags, d...)
+	} else {
+		v.SecretsEncryption = types.ListNull(SecretsEncryptionValue{}.Type(ctx))
 	}
 
 	if in.IdentityMappings != nil {
@@ -545,6 +571,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		diags = append(diags, d...)
 		v.IdentityMappings, d = types.ListValue(IdentityMappingsValue{}.Type(ctx), []attr.Value{identityMappings})
 		diags = append(diags, d...)
+	} else {
+		v.IdentityMappings = types.ListNull(IdentityMappingsValue{}.Type(ctx))
 	}
 
 	if in.AccessConfig != nil {
@@ -553,6 +581,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		diags = append(diags, d...)
 		v.AccessConfig, d = types.ListValue(AccessConfigValue{}.Type(ctx), []attr.Value{accessConfig})
 		diags = append(diags, d...)
+	} else {
+		v.AccessConfig = types.ListNull(AccessConfigValue{}.Type(ctx))
 	}
 
 	if in.AddonsConfig != nil {
@@ -561,6 +591,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		diags = append(diags, d...)
 		v.AddonsConfig, d = types.ListValue(AddonsConfigValue{}.Type(ctx), []attr.Value{addonsConfig})
 		diags = append(diags, d...)
+	} else {
+		v.AddonsConfig = types.ListNull(AddonsConfigValue{}.Type(ctx))
 	}
 
 	if in.AutoModeConfig != nil {
@@ -569,6 +601,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		diags = append(diags, d...)
 		v.AutoModeConfig, d = types.ListValue(AutoModeConfigValue{}.Type(ctx), []attr.Value{autoModeConfig})
 		diags = append(diags, d...)
+	} else {
+		v.AutoModeConfig = types.ListNull(AutoModeConfigValue{}.Type(ctx))
 	}
 
 	v.state = attr.ValueStateKnown
@@ -854,6 +888,7 @@ func (v *FargateProfilesValue) Flatten(ctx context.Context, in *rafay.FargatePro
 		diags = append(diags, d...)
 	}
 	v.Subnets = subnets
+
 	tags := types.MapNull(types.StringType)
 	if len(in.Tags) > 0 {
 		tgs := make(map[string]attr.Value, len(in.Tags))
@@ -965,6 +1000,9 @@ func (v *AddonsValue) Flatten(ctx context.Context, in *rafay.Addon, state Addons
 			}
 			v.AttachPolicyV22 = types.StringValue(string(jsonBytes))
 		}
+	} else {
+		v.AttachPolicy3 = types.ListNull(AttachPolicyValue{}.Type(ctx))
+		v.AttachPolicyV22 = types.StringNull()
 	}
 
 	v.PermissionsBoundary2 = types.StringValue(in.PermissionsBoundary)
@@ -1193,11 +1231,21 @@ func (v *VpcValue) Flatten(ctx context.Context, in *rafay.EKSClusterVPC) diag.Di
 		return diags
 	}
 
-	v.Id = types.StringValue(in.ID)
-	v.Cidr = types.StringValue(in.CIDR)
-	v.Ipv6Cidr = types.StringValue(in.IPv6Cidr)
-	v.Ipv6Pool = types.StringValue(in.IPv6Pool)
-	v.SecurityGroup = types.StringValue(in.SecurityGroup)
+	if in.ID != "" {
+		v.Id = types.StringValue(in.ID)
+	}
+	if in.CIDR != "" {
+		v.Cidr = types.StringValue(in.CIDR)
+	}
+	if in.IPv6Cidr != "" {
+		v.Ipv6Cidr = types.StringValue(in.IPv6Cidr)
+	}
+	if in.IPv6Pool != "" {
+		v.Ipv6Pool = types.StringValue(in.IPv6Pool)
+	}
+	if in.SecurityGroup != "" {
+		v.SecurityGroup = types.StringValue(in.SecurityGroup)
+	}
 	extraCidrs := types.ListNull(types.StringType)
 	if len(in.ExtraCIDRs) > 0 {
 		extraCidrsList := []attr.Value{}
@@ -1220,9 +1268,15 @@ func (v *VpcValue) Flatten(ctx context.Context, in *rafay.EKSClusterVPC) diag.Di
 	}
 	v.ExtraIpv6Cidrs = extraIPv6Cidrs
 
-	v.SharedNodeSecurityGroup = types.StringValue(in.SharedNodeSecurityGroup)
-	v.ManageSharedNodeSecurityGroupRules = types.BoolPointerValue(in.ManageSharedNodeSecurityGroupRules)
-	v.AutoAllocateIpv6 = types.BoolPointerValue(in.AutoAllocateIPv6)
+	if in.SharedNodeSecurityGroup != "" {
+		v.SharedNodeSecurityGroup = types.StringValue(in.SharedNodeSecurityGroup)
+	}
+	if in.ManageSharedNodeSecurityGroupRules != nil {
+		v.ManageSharedNodeSecurityGroupRules = types.BoolPointerValue(in.ManageSharedNodeSecurityGroupRules)
+	}
+	if in.AutoAllocateIPv6 != nil {
+		v.AutoAllocateIpv6 = types.BoolPointerValue(in.AutoAllocateIPv6)
+	}
 
 	publicAccessCidrs := types.ListNull(types.StringType)
 	if len(in.PublicAccessCIDRs) > 0 {
@@ -1235,23 +1289,35 @@ func (v *VpcValue) Flatten(ctx context.Context, in *rafay.EKSClusterVPC) diag.Di
 	}
 	v.PublicAccessCidrs = publicAccessCidrs
 
-	subnets := NewSubnets3ValueNull()
-	d = subnets.Flatten(ctx, in.Subnets)
-	diags = append(diags, d...)
-	v.Subnets3, d = types.ListValue(Subnets3Value{}.Type(ctx), []attr.Value{subnets})
-	diags = append(diags, d...)
+	if in.Subnets != nil {
+		subnets := NewSubnets3ValueNull()
+		d = subnets.Flatten(ctx, in.Subnets)
+		diags = append(diags, d...)
+		v.Subnets3, d = types.ListValue(Subnets3Value{}.Type(ctx), []attr.Value{subnets})
+		diags = append(diags, d...)
+	} else {
+		v.Subnets3 = types.ListNull(Subnets3Value{}.Type(ctx))
+	}
 
-	nat := NewNatValueNull()
-	d = nat.Flatten(ctx, in.NAT)
-	diags = append(diags, d...)
-	v.Nat, d = types.ListValue(NatValue{}.Type(ctx), []attr.Value{nat})
-	diags = append(diags, d...)
+	if in.NAT != nil {
+		nat := NewNatValueNull()
+		d = nat.Flatten(ctx, in.NAT)
+		diags = append(diags, d...)
+		v.Nat, d = types.ListValue(NatValue{}.Type(ctx), []attr.Value{nat})
+		diags = append(diags, d...)
+	} else {
+		v.Nat = types.ListNull(NatValue{}.Type(ctx))
+	}
 
-	clusterEndpoints := NewClusterEndpointsValueNull()
-	d = clusterEndpoints.Flatten(ctx, in.ClusterEndpoints)
-	diags = append(diags, d...)
-	v.ClusterEndpoints, d = types.ListValue(ClusterEndpointsValue{}.Type(ctx), []attr.Value{clusterEndpoints})
-	diags = append(diags, d...)
+	if in.ClusterEndpoints != nil {
+		clusterEndpoints := NewClusterEndpointsValueNull()
+		d = clusterEndpoints.Flatten(ctx, in.ClusterEndpoints)
+		diags = append(diags, d...)
+		v.ClusterEndpoints, d = types.ListValue(ClusterEndpointsValue{}.Type(ctx), []attr.Value{clusterEndpoints})
+		diags = append(diags, d...)
+	} else {
+		v.ClusterEndpoints = types.ListNull(ClusterEndpointsValue{}.Type(ctx))
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1263,8 +1329,12 @@ func (v *ClusterEndpointsValue) Flatten(ctx context.Context, in *rafay.ClusterEn
 		return diags
 	}
 
-	v.PrivateAccess = types.BoolPointerValue(in.PrivateAccess)
-	v.PublicAccess = types.BoolPointerValue(in.PublicAccess)
+	if in.PrivateAccess != nil {
+		v.PrivateAccess = types.BoolPointerValue(in.PrivateAccess)
+	}
+	if in.PublicAccess != nil {
+		v.PublicAccess = types.BoolPointerValue(in.PublicAccess)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1276,7 +1346,9 @@ func (v *NatValue) Flatten(ctx context.Context, in *rafay.ClusterNAT) diag.Diagn
 		return diags
 	}
 
-	v.Gateway = types.StringValue(in.Gateway)
+	if in.Gateway != "" {
+		v.Gateway = types.StringValue(in.Gateway)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1443,23 +1515,35 @@ func (v *ServiceAccountsValue) Flatten(ctx context.Context, in *rafay.EKSCluster
 	}
 	v.Tags3 = tagMap
 
-	md := NewMetadata3ValueNull()
-	d = md.Flatten(ctx, in.Metadata)
-	diags = append(diags, d...)
-	v.Metadata3, d = types.ListValue(Metadata3Value{}.Type(ctx), []attr.Value{md})
-	diags = append(diags, d...)
+	if in.Metadata != nil {
+		md := NewMetadata3ValueNull()
+		d = md.Flatten(ctx, in.Metadata)
+		diags = append(diags, d...)
+		v.Metadata3, d = types.ListValue(Metadata3Value{}.Type(ctx), []attr.Value{md})
+		diags = append(diags, d...)
+	} else {
+		v.Metadata3 = types.ListNull(Metadata3Value{}.Type(ctx))
+	}
 
-	policies := NewWellKnownPolicies2ValueNull()
-	d = policies.Flatten(ctx, in.WellKnownPolicies)
-	diags = append(diags, d...)
-	v.WellKnownPolicies2, d = types.ListValue(WellKnownPolicies2Value{}.Type(ctx), []attr.Value{policies})
-	diags = append(diags, d...)
+	if in.WellKnownPolicies != nil {
+		policies := NewWellKnownPolicies2ValueNull()
+		d = policies.Flatten(ctx, in.WellKnownPolicies)
+		diags = append(diags, d...)
+		v.WellKnownPolicies2, d = types.ListValue(WellKnownPolicies2Value{}.Type(ctx), []attr.Value{policies})
+		diags = append(diags, d...)
+	} else {
+		v.WellKnownPolicies2 = types.ListNull(WellKnownPolicies2Value{}.Type(ctx))
+	}
 
-	status := NewStatusValueNull()
-	d = status.Flatten(ctx, in.Status)
-	diags = append(diags, d...)
-	v.Status, d = types.ListValue(StatusValue{}.Type(ctx), []attr.Value{status})
-	diags = append(diags, d...)
+	if in.Status != nil {
+		status := NewStatusValueNull()
+		d = status.Flatten(ctx, in.Status)
+		diags = append(diags, d...)
+		v.Status, d = types.ListValue(StatusValue{}.Type(ctx), []attr.Value{status})
+		diags = append(diags, d...)
+	} else {
+		v.Status = types.ListNull(StatusValue{}.Type(ctx))
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1674,11 +1758,15 @@ func (v *SystemComponentsPlacementValue) Flatten(ctx context.Context, in *rafay.
 	v.Tolerations = tolerations
 
 	// DaemonsetOverride
-	daemonsetOverride := NewDaemonsetOverrideValueNull()
-	d = daemonsetOverride.Flatten(ctx, in.DaemonsetOverride)
-	diags = append(diags, d...)
-	v.DaemonsetOverride, d = types.ListValue(DaemonsetOverrideValue{}.Type(ctx), []attr.Value{daemonsetOverride})
-	diags = append(diags, d...)
+	if in.DaemonsetOverride != nil {
+		daemonsetOverride := NewDaemonsetOverrideValueNull()
+		d = daemonsetOverride.Flatten(ctx, in.DaemonsetOverride)
+		diags = append(diags, d...)
+		v.DaemonsetOverride, d = types.ListValue(DaemonsetOverrideValue{}.Type(ctx), []attr.Value{daemonsetOverride})
+		diags = append(diags, d...)
+	} else {
+		v.DaemonsetOverride = types.ListNull(DaemonsetOverrideValue{}.Type(ctx))
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags

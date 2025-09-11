@@ -616,7 +616,10 @@ func (v *AutoModeConfigValue) Flatten(ctx context.Context, in *rafay.EKSAutoMode
 	}
 
 	v.Enabled = types.BoolValue(in.Enabled)
-	v.NodeRoleArn = types.StringValue(in.NodeRoleARN)
+	if len(in.NodeRoleARN) > 0 {
+		v.NodeRoleArn = types.StringValue(in.NodeRoleARN)
+	}
+
 	nodePools := types.ListNull(types.StringType)
 	if len(in.NodePools) > 0 {
 		nodepools := []attr.Value{}
@@ -650,8 +653,10 @@ func (v *AccessConfigValue) Flatten(ctx context.Context, in *rafay.EKSClusterAcc
 		return diags
 	}
 
-	v.BootstrapClusterCreatorAdminPermissions = types.BoolPointerValue(&in.BootstrapClusterCreatorAdminPermissions)
-	v.AuthenticationMode = types.StringValue(in.AuthenticationMode)
+	v.BootstrapClusterCreatorAdminPermissions = types.BoolValue(in.BootstrapClusterCreatorAdminPermissions)
+	if in.AuthenticationMode != "" {
+		v.AuthenticationMode = types.StringValue(in.AuthenticationMode)
+	}
 
 	accessEntries := types.ListNull(AccessEntriesValue{}.Type(ctx))
 	if len(in.AccessEntries) > 0 {
@@ -677,11 +682,18 @@ func (v *AccessEntriesValue) Flatten(ctx context.Context, in *rafay.EKSAccessEnt
 		return diags
 	}
 
-	v.PrincipalArn = types.StringValue(in.PrincipalARN)
-	v.AccessEntriesType = types.StringValue(in.Type)
-	v.KubernetesUsername = types.StringValue(in.KubernetesUsername)
+	if len(in.PrincipalARN) > 0 {
+		v.PrincipalArn = types.StringValue(in.PrincipalARN)
+	}
+	if in.Type != "" {
+		v.AccessEntriesType = types.StringValue(in.Type)
+	}
+	if in.KubernetesUsername != "" {
+		v.KubernetesUsername = types.StringValue(in.KubernetesUsername)
+	}
+
 	kubernetesGroups := types.ListNull(types.StringType)
-	if len(in.KubernetesGroups) > 0 {
+	if in.KubernetesGroups != nil && len(in.KubernetesGroups) > 0 {
 		groups := []attr.Value{}
 		for _, group := range in.KubernetesGroups {
 			groups = append(groups, types.StringValue(group))
@@ -692,7 +704,7 @@ func (v *AccessEntriesValue) Flatten(ctx context.Context, in *rafay.EKSAccessEnt
 	v.KubernetesGroups = kubernetesGroups
 
 	tags := types.MapNull(types.StringType)
-	if len(in.Tags) > 0 {
+	if in.Tags != nil && len(in.Tags) > 0 {
 		tgs := make(map[string]attr.Value, len(in.Tags))
 		for key, val := range in.Tags {
 			tgs[key] = types.StringValue(val)
@@ -703,7 +715,7 @@ func (v *AccessEntriesValue) Flatten(ctx context.Context, in *rafay.EKSAccessEnt
 	v.Tags = tags
 
 	accessPolicies := types.ListNull(AccessPoliciesValue{}.Type(ctx))
-	if len(in.AccessPolicies) > 0 {
+	if in.AccessPolicies != nil && len(in.AccessPolicies) > 0 {
 		accessPoliciesList := []attr.Value{}
 		for _, accessPolicy := range in.AccessPolicies {
 			ap := NewAccessPoliciesValueNull()
@@ -726,13 +738,19 @@ func (v *AccessPoliciesValue) Flatten(ctx context.Context, in *rafay.EKSAccessPo
 		return diags
 	}
 
-	v.PolicyArn = types.StringValue(in.PolicyARN)
+	if in.PolicyARN != "" {
+		v.PolicyArn = types.StringValue(in.PolicyARN)
+	}
 
-	accessScope := NewAccessScopeValueNull()
-	d = accessScope.Flatten(ctx, in.AccessScope)
-	diags = append(diags, d...)
-	v.AccessScope, d = types.ListValue(AccessScopeValue{}.Type(ctx), []attr.Value{accessScope})
-	diags = append(diags, d...)
+	if in.AccessScope != nil {
+		accessScope := NewAccessScopeValueNull()
+		d = accessScope.Flatten(ctx, in.AccessScope)
+		diags = append(diags, d...)
+		v.AccessScope, d = types.ListValue(AccessScopeValue{}.Type(ctx), []attr.Value{accessScope})
+		diags = append(diags, d...)
+	} else {
+		v.AccessScope = types.ListNull(AccessScopeValue{}.Type(ctx))
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -744,7 +762,9 @@ func (v *AccessScopeValue) Flatten(ctx context.Context, in *rafay.EKSAccessScope
 		return diags
 	}
 
-	v.AccessScopeType = types.StringValue(in.Type)
+	if in.Type != "" {
+		v.AccessScopeType = types.StringValue(in.Type)
+	}
 	namespaces := types.ListNull(types.StringType)
 	if len(in.Namespaces) > 0 {
 		namespacesList := []attr.Value{}
@@ -767,7 +787,7 @@ func (v *IdentityMappingsValue) Flatten(ctx context.Context, in *rafay.EKSCluste
 	}
 
 	accounts := types.ListNull(types.StringType)
-	if len(in.Accounts) > 0 {
+	if in.Accounts != nil && len(in.Accounts) > 0 {
 		accountsList := []attr.Value{}
 		for _, account := range in.Accounts {
 			accountsList = append(accountsList, types.StringValue(account))
@@ -778,7 +798,7 @@ func (v *IdentityMappingsValue) Flatten(ctx context.Context, in *rafay.EKSCluste
 	v.Accounts = accounts
 
 	arns := types.ListNull(ArnsValue{}.Type(ctx))
-	if len(in.Arns) > 0 {
+	if in.Arns != nil && len(in.Arns) > 0 {
 		arnElements := []attr.Value{}
 		for _, arn := range in.Arns {
 			arnsValue := NewArnsValueNull()
@@ -801,8 +821,12 @@ func (v *ArnsValue) Flatten(ctx context.Context, in *rafay.IdentityMappingARN) d
 		return diags
 	}
 
-	v.Arn = types.StringValue(in.Arn)
-	v.Username = types.StringValue(in.Username)
+	if in.Arn != "" {
+		v.Arn = types.StringValue(in.Arn)
+	}
+	if in.Username != "" {
+		v.Username = types.StringValue(in.Username)
+	}
 	group := types.ListNull(types.StringType)
 	if len(in.Group) > 0 {
 		groups := []attr.Value{}
@@ -824,8 +848,12 @@ func (v *SecretsEncryptionValue) Flatten(ctx context.Context, in *rafay.SecretsE
 		return diags
 	}
 
-	v.KeyArn = types.StringValue(in.KeyARN)
-	v.EncryptExistingSecrets = types.BoolPointerValue(in.EncryptExistingSecrets)
+	if in.KeyARN != "" {
+		v.KeyArn = types.StringValue(in.KeyARN)
+	}
+	if in.EncryptExistingSecrets != nil {
+		v.EncryptExistingSecrets = types.BoolPointerValue(in.EncryptExistingSecrets)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -837,11 +865,15 @@ func (v *CloudWatchValue) Flatten(ctx context.Context, in *rafay.EKSClusterCloud
 		return diags
 	}
 
-	cloudLogging := NewCloudLoggingValueNull()
-	d = cloudLogging.Flatten(ctx, in.ClusterLogging)
-	diags = append(diags, d...)
-	v.CloudLogging, d = types.ListValue(CloudLoggingValue{}.Type(ctx), []attr.Value{cloudLogging})
-	diags = append(diags, d...)
+	if in.ClusterLogging != nil {
+		cloudLogging := NewCloudLoggingValueNull()
+		d = cloudLogging.Flatten(ctx, in.ClusterLogging)
+		diags = append(diags, d...)
+		v.CloudLogging, d = types.ListValue(CloudLoggingValue{}.Type(ctx), []attr.Value{cloudLogging})
+		diags = append(diags, d...)
+	} else {
+		v.CloudLogging = types.ListNull(CloudLoggingValue{}.Type(ctx))
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -864,7 +896,9 @@ func (v *CloudLoggingValue) Flatten(ctx context.Context, in *rafay.EKSClusterClo
 	}
 	v.EnableTypes = enableTypes
 
-	v.LogRetentionInDays = types.Int64Value(int64(in.LogRetentionInDays))
+	if in.LogRetentionInDays != 0 {
+		v.LogRetentionInDays = types.Int64Value(int64(in.LogRetentionInDays))
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -876,8 +910,12 @@ func (v *FargateProfilesValue) Flatten(ctx context.Context, in *rafay.FargatePro
 		return diags
 	}
 
-	v.Name = types.StringValue(in.Name)
-	v.PodExecutionRoleArn = types.StringValue(in.PodExecutionRoleARN)
+	if in.Name != "" {
+		v.Name = types.StringValue(in.Name)
+	}
+	if in.PodExecutionRoleARN != "" {
+		v.PodExecutionRoleArn = types.StringValue(in.PodExecutionRoleARN)
+	}
 	subnets := types.ListNull(types.StringType)
 	if len(in.Subnets) > 0 {
 		subnetsList := []attr.Value{}
@@ -899,7 +937,9 @@ func (v *FargateProfilesValue) Flatten(ctx context.Context, in *rafay.FargatePro
 		diags = append(diags, d...)
 	}
 	v.Tags = tags
-	v.Status = types.StringValue(in.Status)
+	if in.Status != "" {
+		v.Status = types.StringValue(in.Status)
+	}
 
 	selectors := types.ListNull(SelectorsValue{}.Type(ctx))
 	if len(in.Selectors) > 0 {
@@ -922,13 +962,19 @@ func (v *FargateProfilesValue) Flatten(ctx context.Context, in *rafay.FargatePro
 func (v *SelectorsValue) Flatten(ctx context.Context, in rafay.FargateProfileSelector) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 
-	v.Namespace = types.StringValue(in.Namespace)
-	labels := map[string]attr.Value{}
-	for key, val := range in.Labels {
-		labels[key] = types.StringValue(val)
+	if in.Namespace != "" {
+		v.Namespace = types.StringValue(in.Namespace)
 	}
-	v.Labels, d = types.MapValue(types.StringType, labels)
-	diags = append(diags, d...)
+	if in.Labels != nil && len(in.Labels) > 0 {
+		labels := map[string]attr.Value{}
+		for key, val := range in.Labels {
+			labels[key] = types.StringValue(val)
+		}
+		v.Labels, d = types.MapValue(types.StringType, labels)
+		diags = append(diags, d...)
+	} else {
+		v.Labels = types.MapNull(types.StringType)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -970,9 +1016,15 @@ func (v *AddonsValue) Flatten(ctx context.Context, in *rafay.Addon, state Addons
 		isPolicyV1 = true
 	}
 
-	v.Name = types.StringValue(in.Name)
-	v.Version = types.StringValue(in.Version)
-	v.ServiceAccountRoleArn = types.StringValue(in.ServiceAccountRoleARN)
+	if in.Name != "" {
+		v.Name = types.StringValue(in.Name)
+	}
+	if in.Version != "" {
+		v.Version = types.StringValue(in.Version)
+	}
+	if in.ServiceAccountRoleARN != "" {
+		v.ServiceAccountRoleArn = types.StringValue(in.ServiceAccountRoleARN)
+	}
 	attachPolicyArns3 := types.ListNull(types.StringType)
 	if len(in.AttachPolicyARNs) > 0 {
 		policyARNs := []attr.Value{}
@@ -1005,7 +1057,9 @@ func (v *AddonsValue) Flatten(ctx context.Context, in *rafay.Addon, state Addons
 		v.AttachPolicyV22 = types.StringNull()
 	}
 
-	v.PermissionsBoundary2 = types.StringValue(in.PermissionsBoundary)
+	if in.PermissionsBoundary != "" {
+		v.PermissionsBoundary2 = types.StringValue(in.PermissionsBoundary)
+	}
 	tags := types.MapNull(types.StringType)
 	if len(in.Tags) > 0 {
 		tgs := map[string]attr.Value{}
@@ -1017,14 +1071,22 @@ func (v *AddonsValue) Flatten(ctx context.Context, in *rafay.Addon, state Addons
 	}
 	v.Tags4 = tags
 
-	v.ConfigurationValues = types.StringValue(in.ConfigurationValues)
-	v.UseDefaultPodIdentityAssociations = types.BoolValue(in.UseDefaultPodIdentityAssociations)
+	if in.ConfigurationValues != "" {
+		v.ConfigurationValues = types.StringValue(in.ConfigurationValues)
+	}
+	if in.UseDefaultPodIdentityAssociations {
+		v.UseDefaultPodIdentityAssociations = types.BoolValue(in.UseDefaultPodIdentityAssociations)
+	}
 
-	policies := NewWellKnownPolicies3ValueNull()
-	d = policies.Flatten(ctx, in.WellKnownPolicies)
-	diags = append(diags, d...)
-	v.WellKnownPolicies3, d = types.ListValue(WellKnownPolicies3Value{}.Type(ctx), []attr.Value{policies})
-	diags = append(diags, d...)
+	if in.WellKnownPolicies != nil {
+		policies := NewWellKnownPolicies3ValueNull()
+		d = policies.Flatten(ctx, in.WellKnownPolicies)
+		diags = append(diags, d...)
+		v.WellKnownPolicies3, d = types.ListValue(WellKnownPolicies3Value{}.Type(ctx), []attr.Value{policies})
+		diags = append(diags, d...)
+	} else {
+		v.WellKnownPolicies3 = types.ListNull(WellKnownPolicies3Value{}.Type(ctx))
+	}
 
 	podIdentityAssociations2 := types.ListNull(PodIdentityAssociations2Value{}.Type(ctx))
 	if len(in.PodIdentityAssociations) > 0 {
@@ -1050,12 +1112,24 @@ func (v *PodIdentityAssociations2Value) Flatten(ctx context.Context, in *rafay.I
 		return diags
 	}
 
-	v.Namespace = types.StringValue(in.Namespace)
-	v.ServiceAccountName = types.StringValue(in.ServiceAccountName)
-	v.RoleArn = types.StringValue(in.RoleARN)
-	v.CreateServiceAccount = types.BoolValue(in.CreateServiceAccount)
-	v.RoleName = types.StringValue(in.RoleName)
-	v.PermissionBoundaryArn = types.StringValue(in.PermissionsBoundaryARN)
+	if in.Namespace != "" {
+		v.Namespace = types.StringValue(in.Namespace)
+	}
+	if in.ServiceAccountName != "" {
+		v.ServiceAccountName = types.StringValue(in.ServiceAccountName)
+	}
+	if in.RoleARN != "" {
+		v.RoleArn = types.StringValue(in.RoleARN)
+	}
+	if in.CreateServiceAccount {
+		v.CreateServiceAccount = types.BoolValue(in.CreateServiceAccount)
+	}
+	if in.RoleName != "" {
+		v.RoleName = types.StringValue(in.RoleName)
+	}
+	if in.PermissionsBoundaryARN != "" {
+		v.PermissionBoundaryArn = types.StringValue(in.PermissionsBoundaryARN)
+	}
 	permissionPolicyArns := types.ListNull(types.StringType)
 	if len(in.PermissionPolicyARNs) > 0 {
 		arns := []attr.Value{}
@@ -1085,11 +1159,15 @@ func (v *PodIdentityAssociations2Value) Flatten(ctx context.Context, in *rafay.I
 	}
 	v.Tags = tagMap
 
-	policies := NewWellKnownPolicies4ValueNull()
-	d = policies.Flatten(ctx, in.WellKnownPolicies)
-	diags = append(diags, d...)
-	v.WellKnownPolicies4, d = types.ListValue(WellKnownPolicies4Value{}.Type(ctx), []attr.Value{policies})
-	diags = append(diags, d...)
+	if in.WellKnownPolicies != nil {
+		policies := NewWellKnownPolicies4ValueNull()
+		d = policies.Flatten(ctx, in.WellKnownPolicies)
+		diags = append(diags, d...)
+		v.WellKnownPolicies4, d = types.ListValue(WellKnownPolicies4Value{}.Type(ctx), []attr.Value{policies})
+		diags = append(diags, d...)
+	} else {
+		v.WellKnownPolicies4 = types.ListNull(WellKnownPolicies4Value{}.Type(ctx))
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1102,6 +1180,7 @@ func (v *WellKnownPolicies4Value) Flatten(ctx context.Context, in *rafay.WellKno
 	}
 
 	v.ImageBuilder = types.BoolPointerValue(in.ImageBuilder)
+	v.AutoScaler = types.BoolPointerValue(in.AutoScaler)
 	v.AwsLoadBalancerController = types.BoolPointerValue(in.AWSLoadBalancerController)
 	v.ExternalDns = types.BoolPointerValue(in.ExternalDNS)
 	v.CertManager = types.BoolPointerValue(in.CertManager)
@@ -1119,6 +1198,7 @@ func (v *WellKnownPolicies3Value) Flatten(ctx context.Context, in *rafay.WellKno
 	}
 
 	v.ImageBuilder = types.BoolPointerValue(in.ImageBuilder)
+	v.AutoScaler = types.BoolPointerValue(in.AutoScaler)
 	v.AwsLoadBalancerController = types.BoolPointerValue(in.AWSLoadBalancerController)
 	v.ExternalDns = types.BoolPointerValue(in.ExternalDNS)
 	v.CertManager = types.BoolPointerValue(in.CertManager)
@@ -1129,19 +1209,23 @@ func (v *WellKnownPolicies3Value) Flatten(ctx context.Context, in *rafay.WellKno
 	return diags
 }
 
-func (v *AttachPolicy3Value) Flatten(ctx context.Context, attachpol *rafay.InlineDocument) diag.Diagnostics {
+func (v *AttachPolicy3Value) Flatten(ctx context.Context, in *rafay.InlineDocument) diag.Diagnostics {
 	var diags, d diag.Diagnostics
-	if attachpol == nil {
+	if in == nil {
 		return diags
 	}
 
-	v.Version = types.StringValue(attachpol.Version)
-	v.Id = types.StringValue(attachpol.Id)
+	if in.Version != "" {
+		v.Version = types.StringValue(in.Version)
+	}
+	if in.Id != "" {
+		v.Id = types.StringValue(in.Id)
+	}
 
 	statement2 := types.ListNull(StatementValue{}.Type(ctx))
-	if len(attachpol.Statement) > 0 {
+	if len(in.Statement) > 0 {
 		stms := []attr.Value{}
-		for _, stm := range attachpol.Statement {
+		for _, stm := range in.Statement {
 			sv := NewStatementValueNull()
 			d = sv.Flatten(ctx, stm)
 			diags = append(diags, d...)
@@ -1271,12 +1355,8 @@ func (v *VpcValue) Flatten(ctx context.Context, in *rafay.EKSClusterVPC) diag.Di
 	if in.SharedNodeSecurityGroup != "" {
 		v.SharedNodeSecurityGroup = types.StringValue(in.SharedNodeSecurityGroup)
 	}
-	if in.ManageSharedNodeSecurityGroupRules != nil {
-		v.ManageSharedNodeSecurityGroupRules = types.BoolPointerValue(in.ManageSharedNodeSecurityGroupRules)
-	}
-	if in.AutoAllocateIPv6 != nil {
-		v.AutoAllocateIpv6 = types.BoolPointerValue(in.AutoAllocateIPv6)
-	}
+	v.ManageSharedNodeSecurityGroupRules = types.BoolPointerValue(in.ManageSharedNodeSecurityGroupRules)
+	v.AutoAllocateIpv6 = types.BoolPointerValue(in.AutoAllocateIPv6)
 
 	publicAccessCidrs := types.ListNull(types.StringType)
 	if len(in.PublicAccessCIDRs) > 0 {
@@ -1395,10 +1475,18 @@ func (v *Subnets3Value) Flatten(ctx context.Context, in *rafay.ClusterSubnets) d
 func (v *PublicValue) Flatten(ctx context.Context, name string, in rafay.AZSubnetSpec) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	v.Name = types.StringValue(name)
-	v.Id = types.StringValue(in.ID)
-	v.Az = types.StringValue(in.AZ)
-	v.Cidr = types.StringValue(in.CIDR)
+	if name != "" {
+		v.Name = types.StringValue(name)
+	}
+	if in.ID != "" {
+		v.Id = types.StringValue(in.ID)
+	}
+	if in.AZ != "" {
+		v.Az = types.StringValue(in.AZ)
+	}
+	if in.CIDR != "" {
+		v.Cidr = types.StringValue(in.CIDR)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1407,10 +1495,18 @@ func (v *PublicValue) Flatten(ctx context.Context, name string, in rafay.AZSubne
 func (v *PrivateValue) Flatten(ctx context.Context, name string, in rafay.AZSubnetSpec) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	v.Name = types.StringValue(name)
-	v.Id = types.StringValue(in.ID)
-	v.Az = types.StringValue(in.AZ)
-	v.Cidr = types.StringValue(in.CIDR)
+	if name != "" {
+		v.Name = types.StringValue(name)
+	}
+	if in.ID != "" {
+		v.Id = types.StringValue(in.ID)
+	}
+	if in.AZ != "" {
+		v.Az = types.StringValue(in.AZ)
+	}
+	if in.CIDR != "" {
+		v.Cidr = types.StringValue(in.CIDR)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1422,7 +1518,9 @@ func (v *IdentityProvidersValue) Flatten(ctx context.Context, in *rafay.Identity
 		return diags
 	}
 
-	v.IdentityProvidersType = types.StringValue(in.Type)
+	if in.Type != "" {
+		v.IdentityProvidersType = types.StringValue(in.Type)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1434,10 +1532,18 @@ func (v *Iam3Value) Flatten(ctx context.Context, in *rafay.EKSClusterIAM) diag.D
 		return diags
 	}
 
-	v.ServiceRoleArn = types.StringValue(in.ServiceRoleARN)
-	v.ServiceRolePermissionBoundary = types.StringValue(in.ServiceRolePermissionsBoundary)
-	v.FargatePodExecutionRoleArn = types.StringValue(in.FargatePodExecutionRoleARN)
-	v.FargatePodExecutionRolePermissionsBoundary = types.StringValue(in.FargatePodExecutionRolePermissionsBoundary)
+	if in.ServiceRoleARN != "" {
+		v.ServiceRoleArn = types.StringValue(in.ServiceRoleARN)
+	}
+	if in.ServiceRolePermissionsBoundary != "" {
+		v.ServiceRolePermissionBoundary = types.StringValue(in.ServiceRolePermissionsBoundary)
+	}
+	if in.FargatePodExecutionRoleARN != "" {
+		v.FargatePodExecutionRoleArn = types.StringValue(in.FargatePodExecutionRoleARN)
+	}
+	if in.FargatePodExecutionRolePermissionsBoundary != "" {
+		v.FargatePodExecutionRolePermissionsBoundary = types.StringValue(in.FargatePodExecutionRolePermissionsBoundary)
+	}
 	v.WithOidc = types.BoolPointerValue(in.WithOIDC)
 	v.VpcResourceControllerPolicy = types.BoolPointerValue(in.VPCResourceControllerPolicy)
 
@@ -1499,9 +1605,15 @@ func (v *ServiceAccountsValue) Flatten(ctx context.Context, in *rafay.EKSCluster
 		v.AttachPolicy = types.StringValue(string(jsonStr))
 	}
 
-	v.AttachRoleArn = types.StringValue(in.AttachRoleARN)
-	v.PermissionsBoundary = types.StringValue(in.PermissionsBoundary)
-	v.RoleName = types.StringValue(in.RoleName)
+	if in.AttachRoleARN != "" {
+		v.AttachRoleArn = types.StringValue(in.AttachRoleARN)
+	}
+	if in.PermissionsBoundary != "" {
+		v.PermissionsBoundary = types.StringValue(in.PermissionsBoundary)
+	}
+	if in.RoleName != "" {
+		v.RoleName = types.StringValue(in.RoleName)
+	}
 	v.RoleOnly = types.BoolPointerValue(in.RoleOnly)
 
 	tagMap := types.MapNull(types.StringType)
@@ -1555,7 +1667,9 @@ func (v *StatusValue) Flatten(ctx context.Context, in *rafay.ClusterIAMServiceAc
 		return diags
 	}
 
-	v.RoleArn = types.StringValue(in.RoleARN)
+	if in.RoleARN != "" {
+		v.RoleArn = types.StringValue(in.RoleARN)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1568,6 +1682,7 @@ func (v *WellKnownPolicies2Value) Flatten(ctx context.Context, in *rafay.WellKno
 	}
 
 	v.ImageBuilder = types.BoolPointerValue(in.ImageBuilder)
+	v.AutoScaler = types.BoolPointerValue(in.AutoScaler)
 	v.AwsLoadBalancerController = types.BoolPointerValue(in.AWSLoadBalancerController)
 	v.ExternalDns = types.BoolPointerValue(in.ExternalDNS)
 	v.CertManager = types.BoolPointerValue(in.CertManager)
@@ -1584,8 +1699,12 @@ func (v *Metadata3Value) Flatten(ctx context.Context, in *rafay.EKSClusterIAMMet
 		return diags
 	}
 
-	v.Name = types.StringValue(in.Name)
-	v.Namespace = types.StringValue(in.Namespace)
+	if in.Name != "" {
+		v.Name = types.StringValue(in.Name)
+	}
+	if in.Namespace != "" {
+		v.Namespace = types.StringValue(in.Namespace)
+	}
 	labels := types.MapNull(types.StringType)
 	if len(in.Labels) > 0 {
 		lbs := map[string]attr.Value{}
@@ -1618,12 +1737,25 @@ func (v *PodIdentityAssociationsValue) Flatten(ctx context.Context, in *rafay.IA
 		return diags
 	}
 
-	v.Namespace = types.StringValue(in.Namespace)
-	v.ServiceAccountName = types.StringValue(in.ServiceAccountName)
-	v.RoleArn = types.StringValue(in.RoleARN)
-	v.CreateServiceAccount = types.BoolValue(in.CreateServiceAccount)
-	v.RoleName = types.StringValue(in.RoleName)
-	v.PermissionBoundaryArn = types.StringValue(in.PermissionsBoundaryARN)
+	if in.Namespace != "" {
+		v.Namespace = types.StringValue(in.Namespace)
+	}
+	if in.ServiceAccountName != "" {
+		v.ServiceAccountName = types.StringValue(in.ServiceAccountName)
+	}
+	if in.RoleARN != "" {
+		v.RoleArn = types.StringValue(in.RoleARN)
+	}
+	if in.CreateServiceAccount {
+		v.CreateServiceAccount = types.BoolValue(in.CreateServiceAccount)
+	}
+	if in.RoleName != "" {
+		v.RoleName = types.StringValue(in.RoleName)
+	}
+	if in.PermissionsBoundaryARN != "" {
+		v.PermissionBoundaryArn = types.StringValue(in.PermissionsBoundaryARN)
+	}
+
 	permissionPolicyArns := types.ListNull(types.StringType)
 	if len(in.PermissionPolicyARNs) > 0 {
 		arns := []attr.Value{}
@@ -1653,11 +1785,15 @@ func (v *PodIdentityAssociationsValue) Flatten(ctx context.Context, in *rafay.IA
 	}
 	v.Tags = tagMap
 
-	policies := NewWellKnownPoliciesValueNull()
-	d = policies.Flatten(ctx, in.WellKnownPolicies)
-	diags = append(diags, d...)
-	v.WellKnownPolicies, d = types.ListValue(WellKnownPoliciesValue{}.Type(ctx), []attr.Value{policies})
-	diags = append(diags, d...)
+	if in.WellKnownPolicies != nil {
+		policies := NewWellKnownPoliciesValueNull()
+		d = policies.Flatten(ctx, in.WellKnownPolicies)
+		diags = append(diags, d...)
+		v.WellKnownPolicies, d = types.ListValue(WellKnownPoliciesValue{}.Type(ctx), []attr.Value{policies})
+		diags = append(diags, d...)
+	} else {
+		v.WellKnownPolicies = types.ListNull(WellKnownPoliciesValue{}.Type(ctx))
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1670,6 +1806,7 @@ func (v *WellKnownPoliciesValue) Flatten(ctx context.Context, in *rafay.WellKnow
 	}
 
 	v.ImageBuilder = types.BoolPointerValue(in.ImageBuilder)
+	v.AutoScaler = types.BoolPointerValue(in.AutoScaler)
 	v.AwsLoadBalancerController = types.BoolPointerValue(in.AWSLoadBalancerController)
 	v.ExternalDns = types.BoolPointerValue(in.ExternalDNS)
 	v.CertManager = types.BoolPointerValue(in.CertManager)
@@ -1686,8 +1823,12 @@ func (v *KubernetesNetworkConfigValue) Flatten(ctx context.Context, in *rafay.Ku
 		return diags
 	}
 
-	v.IpFamily = types.StringValue(in.IPFamily)
-	v.ServiceIpv4Cidr = types.StringValue(in.ServiceIPv4CIDR)
+	if in.IPFamily != "" {
+		v.IpFamily = types.StringValue(in.IPFamily)
+	}
+	if in.ServiceIPv4CIDR != "" {
+		v.ServiceIpv4Cidr = types.StringValue(in.ServiceIPv4CIDR)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -1696,12 +1837,18 @@ func (v *KubernetesNetworkConfigValue) Flatten(ctx context.Context, in *rafay.Ku
 func (v *Metadata2Value) Flatten(ctx context.Context, in *rafay.EKSClusterConfigMetadata) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 
-	v.Name = types.StringValue(in.Name)
-	v.Region = types.StringValue(in.Region)
-	v.Version = types.StringValue(in.Version)
+	if in.Name != "" {
+		v.Name = types.StringValue(in.Name)
+	}
+	if in.Region != "" {
+		v.Region = types.StringValue(in.Region)
+	}
+	if in.Version != "" {
+		v.Version = types.StringValue(in.Version)
+	}
 
 	tagMap := types.MapNull(types.StringType)
-	if len(in.Tags) != 0 {
+	if len(in.Tags) > 0 {
 		tag := map[string]attr.Value{}
 		for key, val := range in.Tags {
 			tag[key] = types.StringValue(val)
@@ -1712,7 +1859,7 @@ func (v *Metadata2Value) Flatten(ctx context.Context, in *rafay.EKSClusterConfig
 	v.Tags = tagMap
 
 	antsMap := types.MapNull(types.StringType)
-	if len(in.Annotations) != 0 {
+	if len(in.Annotations) > 0 {
 		ants := map[string]attr.Value{}
 		for key, val := range in.Annotations {
 			ants[key] = types.StringValue(val)
@@ -1733,7 +1880,7 @@ func (v *SystemComponentsPlacementValue) Flatten(ctx context.Context, in *rafay.
 	}
 
 	ns := types.MapNull(types.StringType)
-	if len(in.NodeSelector) != 0 {
+	if len(in.NodeSelector) > 0 {
 		nodeSelector := map[string]attr.Value{}
 		for key, val := range in.NodeSelector {
 			nodeSelector[key] = types.StringValue(val)
@@ -1778,10 +1925,18 @@ func (v *TolerationsValue) Flatten(ctx context.Context, in *rafay.Tolerations) d
 		return diags
 	}
 
-	v.Key = types.StringValue(in.Key)
-	v.Operator = types.StringValue(in.Operator)
-	v.Value = types.StringValue(in.Value)
-	v.Effect = types.StringValue(in.Effect)
+	if in.Key != "" {
+		v.Key = types.StringValue(in.Key)
+	}
+	if in.Operator != "" {
+		v.Operator = types.StringValue(in.Operator)
+	}
+	if in.Value != "" {
+		v.Value = types.StringValue(in.Value)
+	}
+	if in.Effect != "" {
+		v.Effect = types.StringValue(in.Effect)
+	}
 	if in.TolerationSeconds != nil {
 		v.TolerationSeconds = types.Int64Value(int64(*in.TolerationSeconds))
 	} else {
@@ -1824,10 +1979,18 @@ func (v *Tolerations2Value) Flatten(ctx context.Context, in *rafay.Tolerations) 
 		return diags
 	}
 
-	v.Key = types.StringValue(in.Key)
-	v.Operator = types.StringValue(in.Operator)
-	v.Value = types.StringValue(in.Value)
-	v.Effect = types.StringValue(in.Effect)
+	if in.Key != "" {
+		v.Key = types.StringValue(in.Key)
+	}
+	if in.Operator != "" {
+		v.Operator = types.StringValue(in.Operator)
+	}
+	if in.Value != "" {
+		v.Value = types.StringValue(in.Value)
+	}
+	if in.Effect != "" {
+		v.Effect = types.StringValue(in.Effect)
+	}
 	if in.TolerationSeconds != nil {
 		v.TolerationSeconds = types.Int64Value(int64(*in.TolerationSeconds))
 	} else {
@@ -1870,7 +2033,9 @@ func (v *ProjectsValue) Flatten(ctx context.Context, in *rafay.V1ClusterSharingP
 		return diags
 	}
 
-	v.Name = types.StringValue(in.Name)
+	if in.Name != "" {
+		v.Name = types.StringValue(in.Name)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags

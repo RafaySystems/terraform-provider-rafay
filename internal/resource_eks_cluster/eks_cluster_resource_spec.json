@@ -4921,7 +4921,7 @@
                                             "blocks": [
                                                 {
                                                     "name": "access_entries",
-                                                    "list_nested": {
+                                                    "set_nested": {
                                                         "nested_object": {
                                                             "attributes": [
                                                                 {
@@ -4947,7 +4947,7 @@
                                                                 },
                                                                 {
                                                                     "name": "kubernetes_groups",
-                                                                    "list": {
+                                                                    "set": {
                                                                         "description": "set of Kubernetes groups to map to the principal ARN.",
                                                                         "element_type": {
                                                                             "string": {}
@@ -4969,7 +4969,7 @@
                                                             "blocks": [
                                                                 {
                                                                     "name": "access_policies",
-                                                                    "list_nested": {
+                                                                    "set_nested": {
                                                                         "nested_object": {
                                                                             "attributes": [
                                                                                 {
@@ -4983,7 +4983,7 @@
                                                                             "blocks": [
                                                                                 {
                                                                                     "name": "access_scope",
-                                                                                    "list_nested": {
+                                                                                    "set_nested": {
                                                                                         "nested_object": {
                                                                                             "attributes": [
                                                                                                 {
@@ -4995,7 +4995,7 @@
                                                                                                 },
                                                                                                 {
                                                                                                     "name": "namespaces",
-                                                                                                    "list": {
+                                                                                                    "set": {
                                                                                                         "description": "Scope access to namespace(s).",
                                                                                                         "element_type": {
                                                                                                             "string": {}

@@ -1529,10 +1529,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 								},
 								Blocks: map[string]schema.Block{
-									"access_entries": schema.ListNestedBlock{
+									"access_entries": schema.SetNestedBlock{
 										NestedObject: schema.NestedBlockObject{
 											Attributes: map[string]schema.Attribute{
-												"kubernetes_groups": schema.ListAttribute{
+												"kubernetes_groups": schema.SetAttribute{
 													ElementType:         types.StringType,
 													Optional:            true,
 													Description:         "set of Kubernetes groups to map to the principal ARN.",
@@ -1561,7 +1561,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												},
 											},
 											Blocks: map[string]schema.Block{
-												"access_policies": schema.ListNestedBlock{
+												"access_policies": schema.SetNestedBlock{
 													NestedObject: schema.NestedBlockObject{
 														Attributes: map[string]schema.Attribute{
 															"policy_arn": schema.StringAttribute{
@@ -1571,10 +1571,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 															},
 														},
 														Blocks: map[string]schema.Block{
-															"access_scope": schema.ListNestedBlock{
+															"access_scope": schema.SetNestedBlock{
 																NestedObject: schema.NestedBlockObject{
 																	Attributes: map[string]schema.Attribute{
-																		"namespaces": schema.ListAttribute{
+																		"namespaces": schema.SetAttribute{
 																			ElementType:         types.StringType,
 																			Optional:            true,
 																			Description:         "Scope access to namespace(s).",
@@ -33842,12 +33842,12 @@ func (t AccessConfigType) ValueFromObject(ctx context.Context, in basetypes.Obje
 		return nil, diags
 	}
 
-	accessEntriesVal, ok := accessEntriesAttribute.(basetypes.ListValue)
+	accessEntriesVal, ok := accessEntriesAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`access_entries expected to be basetypes.ListValue, was: %T`, accessEntriesAttribute))
+			fmt.Sprintf(`access_entries expected to be basetypes.SetValue, was: %T`, accessEntriesAttribute))
 	}
 
 	authenticationModeAttribute, ok := attributes["authentication_mode"]
@@ -33971,12 +33971,12 @@ func NewAccessConfigValue(attributeTypes map[string]attr.Type, attributes map[st
 		return NewAccessConfigValueUnknown(), diags
 	}
 
-	accessEntriesVal, ok := accessEntriesAttribute.(basetypes.ListValue)
+	accessEntriesVal, ok := accessEntriesAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`access_entries expected to be basetypes.ListValue, was: %T`, accessEntriesAttribute))
+			fmt.Sprintf(`access_entries expected to be basetypes.SetValue, was: %T`, accessEntriesAttribute))
 	}
 
 	authenticationModeAttribute, ok := attributes["authentication_mode"]
@@ -34095,7 +34095,7 @@ func (t AccessConfigType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = AccessConfigValue{}
 
 type AccessConfigValue struct {
-	AccessEntries                           basetypes.ListValue   `tfsdk:"access_entries"`
+	AccessEntries                           basetypes.SetValue    `tfsdk:"access_entries"`
 	AuthenticationMode                      basetypes.StringValue `tfsdk:"authentication_mode"`
 	BootstrapClusterCreatorAdminPermissions basetypes.BoolValue   `tfsdk:"bootstrap_cluster_creator_admin_permissions"`
 	state                                   attr.ValueState
@@ -34107,7 +34107,7 @@ func (v AccessConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value,
 	var val tftypes.Value
 	var err error
 
-	attrTypes["access_entries"] = basetypes.ListType{
+	attrTypes["access_entries"] = basetypes.SetType{
 		ElemType: AccessEntriesValue{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["authentication_mode"] = basetypes.StringType{}.TerraformType(ctx)
@@ -34172,7 +34172,7 @@ func (v AccessConfigValue) String() string {
 func (v AccessConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	accessEntries := types.ListValueMust(
+	accessEntries := types.SetValueMust(
 		AccessEntriesType{
 			basetypes.ObjectType{
 				AttrTypes: AccessEntriesValue{}.AttributeTypes(ctx),
@@ -34182,7 +34182,7 @@ func (v AccessConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectV
 	)
 
 	if v.AccessEntries.IsNull() {
-		accessEntries = types.ListNull(
+		accessEntries = types.SetNull(
 			AccessEntriesType{
 				basetypes.ObjectType{
 					AttrTypes: AccessEntriesValue{}.AttributeTypes(ctx),
@@ -34192,7 +34192,7 @@ func (v AccessConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectV
 	}
 
 	if v.AccessEntries.IsUnknown() {
-		accessEntries = types.ListUnknown(
+		accessEntries = types.SetUnknown(
 			AccessEntriesType{
 				basetypes.ObjectType{
 					AttrTypes: AccessEntriesValue{}.AttributeTypes(ctx),
@@ -34202,7 +34202,7 @@ func (v AccessConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectV
 	}
 
 	attributeTypes := map[string]attr.Type{
-		"access_entries": basetypes.ListType{
+		"access_entries": basetypes.SetType{
 			ElemType: AccessEntriesValue{}.Type(ctx),
 		},
 		"authentication_mode":                         basetypes.StringType{},
@@ -34268,7 +34268,7 @@ func (v AccessConfigValue) Type(ctx context.Context) attr.Type {
 
 func (v AccessConfigValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"access_entries": basetypes.ListType{
+		"access_entries": basetypes.SetType{
 			ElemType: AccessEntriesValue{}.Type(ctx),
 		},
 		"authentication_mode":                         basetypes.StringType{},
@@ -34311,12 +34311,12 @@ func (t AccessEntriesType) ValueFromObject(ctx context.Context, in basetypes.Obj
 		return nil, diags
 	}
 
-	accessPoliciesVal, ok := accessPoliciesAttribute.(basetypes.ListValue)
+	accessPoliciesVal, ok := accessPoliciesAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`access_policies expected to be basetypes.ListValue, was: %T`, accessPoliciesAttribute))
+			fmt.Sprintf(`access_policies expected to be basetypes.SetValue, was: %T`, accessPoliciesAttribute))
 	}
 
 	kubernetesGroupsAttribute, ok := attributes["kubernetes_groups"]
@@ -34329,12 +34329,12 @@ func (t AccessEntriesType) ValueFromObject(ctx context.Context, in basetypes.Obj
 		return nil, diags
 	}
 
-	kubernetesGroupsVal, ok := kubernetesGroupsAttribute.(basetypes.ListValue)
+	kubernetesGroupsVal, ok := kubernetesGroupsAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`kubernetes_groups expected to be basetypes.ListValue, was: %T`, kubernetesGroupsAttribute))
+			fmt.Sprintf(`kubernetes_groups expected to be basetypes.SetValue, was: %T`, kubernetesGroupsAttribute))
 	}
 
 	kubernetesUsernameAttribute, ok := attributes["kubernetes_username"]
@@ -34497,12 +34497,12 @@ func NewAccessEntriesValue(attributeTypes map[string]attr.Type, attributes map[s
 		return NewAccessEntriesValueUnknown(), diags
 	}
 
-	accessPoliciesVal, ok := accessPoliciesAttribute.(basetypes.ListValue)
+	accessPoliciesVal, ok := accessPoliciesAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`access_policies expected to be basetypes.ListValue, was: %T`, accessPoliciesAttribute))
+			fmt.Sprintf(`access_policies expected to be basetypes.SetValue, was: %T`, accessPoliciesAttribute))
 	}
 
 	kubernetesGroupsAttribute, ok := attributes["kubernetes_groups"]
@@ -34515,12 +34515,12 @@ func NewAccessEntriesValue(attributeTypes map[string]attr.Type, attributes map[s
 		return NewAccessEntriesValueUnknown(), diags
 	}
 
-	kubernetesGroupsVal, ok := kubernetesGroupsAttribute.(basetypes.ListValue)
+	kubernetesGroupsVal, ok := kubernetesGroupsAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`kubernetes_groups expected to be basetypes.ListValue, was: %T`, kubernetesGroupsAttribute))
+			fmt.Sprintf(`kubernetes_groups expected to be basetypes.SetValue, was: %T`, kubernetesGroupsAttribute))
 	}
 
 	kubernetesUsernameAttribute, ok := attributes["kubernetes_username"]
@@ -34678,8 +34678,8 @@ func (t AccessEntriesType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = AccessEntriesValue{}
 
 type AccessEntriesValue struct {
-	AccessPolicies     basetypes.ListValue   `tfsdk:"access_policies"`
-	KubernetesGroups   basetypes.ListValue   `tfsdk:"kubernetes_groups"`
+	AccessPolicies     basetypes.SetValue    `tfsdk:"access_policies"`
+	KubernetesGroups   basetypes.SetValue    `tfsdk:"kubernetes_groups"`
 	KubernetesUsername basetypes.StringValue `tfsdk:"kubernetes_username"`
 	PrincipalArn       basetypes.StringValue `tfsdk:"principal_arn"`
 	Tags               basetypes.MapValue    `tfsdk:"tags"`
@@ -34693,10 +34693,10 @@ func (v AccessEntriesValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 	var val tftypes.Value
 	var err error
 
-	attrTypes["access_policies"] = basetypes.ListType{
+	attrTypes["access_policies"] = basetypes.SetType{
 		ElemType: AccessPoliciesValue{}.Type(ctx),
 	}.TerraformType(ctx)
-	attrTypes["kubernetes_groups"] = basetypes.ListType{
+	attrTypes["kubernetes_groups"] = basetypes.SetType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["kubernetes_username"] = basetypes.StringType{}.TerraformType(ctx)
@@ -34789,7 +34789,7 @@ func (v AccessEntriesValue) String() string {
 func (v AccessEntriesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	accessPolicies := types.ListValueMust(
+	accessPolicies := types.SetValueMust(
 		AccessPoliciesType{
 			basetypes.ObjectType{
 				AttrTypes: AccessPoliciesValue{}.AttributeTypes(ctx),
@@ -34799,7 +34799,7 @@ func (v AccessEntriesValue) ToObjectValue(ctx context.Context) (basetypes.Object
 	)
 
 	if v.AccessPolicies.IsNull() {
-		accessPolicies = types.ListNull(
+		accessPolicies = types.SetNull(
 			AccessPoliciesType{
 				basetypes.ObjectType{
 					AttrTypes: AccessPoliciesValue{}.AttributeTypes(ctx),
@@ -34809,7 +34809,7 @@ func (v AccessEntriesValue) ToObjectValue(ctx context.Context) (basetypes.Object
 	}
 
 	if v.AccessPolicies.IsUnknown() {
-		accessPolicies = types.ListUnknown(
+		accessPolicies = types.SetUnknown(
 			AccessPoliciesType{
 				basetypes.ObjectType{
 					AttrTypes: AccessPoliciesValue{}.AttributeTypes(ctx),
@@ -34818,24 +34818,24 @@ func (v AccessEntriesValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		)
 	}
 
-	var kubernetesGroupsVal basetypes.ListValue
+	var kubernetesGroupsVal basetypes.SetValue
 	switch {
 	case v.KubernetesGroups.IsUnknown():
-		kubernetesGroupsVal = types.ListUnknown(types.StringType)
+		kubernetesGroupsVal = types.SetUnknown(types.StringType)
 	case v.KubernetesGroups.IsNull():
-		kubernetesGroupsVal = types.ListNull(types.StringType)
+		kubernetesGroupsVal = types.SetNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		kubernetesGroupsVal, d = types.ListValue(types.StringType, v.KubernetesGroups.Elements())
+		kubernetesGroupsVal, d = types.SetValue(types.StringType, v.KubernetesGroups.Elements())
 		diags.Append(d...)
 	}
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
-			"access_policies": basetypes.ListType{
+			"access_policies": basetypes.SetType{
 				ElemType: AccessPoliciesValue{}.Type(ctx),
 			},
-			"kubernetes_groups": basetypes.ListType{
+			"kubernetes_groups": basetypes.SetType{
 				ElemType: types.StringType,
 			},
 			"kubernetes_username": basetypes.StringType{},
@@ -34861,10 +34861,10 @@ func (v AccessEntriesValue) ToObjectValue(ctx context.Context) (basetypes.Object
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
-			"access_policies": basetypes.ListType{
+			"access_policies": basetypes.SetType{
 				ElemType: AccessPoliciesValue{}.Type(ctx),
 			},
-			"kubernetes_groups": basetypes.ListType{
+			"kubernetes_groups": basetypes.SetType{
 				ElemType: types.StringType,
 			},
 			"kubernetes_username": basetypes.StringType{},
@@ -34877,10 +34877,10 @@ func (v AccessEntriesValue) ToObjectValue(ctx context.Context) (basetypes.Object
 	}
 
 	attributeTypes := map[string]attr.Type{
-		"access_policies": basetypes.ListType{
+		"access_policies": basetypes.SetType{
 			ElemType: AccessPoliciesValue{}.Type(ctx),
 		},
-		"kubernetes_groups": basetypes.ListType{
+		"kubernetes_groups": basetypes.SetType{
 			ElemType: types.StringType,
 		},
 		"kubernetes_username": basetypes.StringType{},
@@ -34965,10 +34965,10 @@ func (v AccessEntriesValue) Type(ctx context.Context) attr.Type {
 
 func (v AccessEntriesValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"access_policies": basetypes.ListType{
+		"access_policies": basetypes.SetType{
 			ElemType: AccessPoliciesValue{}.Type(ctx),
 		},
-		"kubernetes_groups": basetypes.ListType{
+		"kubernetes_groups": basetypes.SetType{
 			ElemType: types.StringType,
 		},
 		"kubernetes_username": basetypes.StringType{},
@@ -35015,12 +35015,12 @@ func (t AccessPoliciesType) ValueFromObject(ctx context.Context, in basetypes.Ob
 		return nil, diags
 	}
 
-	accessScopeVal, ok := accessScopeAttribute.(basetypes.ListValue)
+	accessScopeVal, ok := accessScopeAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`access_scope expected to be basetypes.ListValue, was: %T`, accessScopeAttribute))
+			fmt.Sprintf(`access_scope expected to be basetypes.SetValue, was: %T`, accessScopeAttribute))
 	}
 
 	policyArnAttribute, ok := attributes["policy_arn"]
@@ -35125,12 +35125,12 @@ func NewAccessPoliciesValue(attributeTypes map[string]attr.Type, attributes map[
 		return NewAccessPoliciesValueUnknown(), diags
 	}
 
-	accessScopeVal, ok := accessScopeAttribute.(basetypes.ListValue)
+	accessScopeVal, ok := accessScopeAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`access_scope expected to be basetypes.ListValue, was: %T`, accessScopeAttribute))
+			fmt.Sprintf(`access_scope expected to be basetypes.SetValue, was: %T`, accessScopeAttribute))
 	}
 
 	policyArnAttribute, ok := attributes["policy_arn"]
@@ -35230,7 +35230,7 @@ func (t AccessPoliciesType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = AccessPoliciesValue{}
 
 type AccessPoliciesValue struct {
-	AccessScope basetypes.ListValue   `tfsdk:"access_scope"`
+	AccessScope basetypes.SetValue    `tfsdk:"access_scope"`
 	PolicyArn   basetypes.StringValue `tfsdk:"policy_arn"`
 	state       attr.ValueState
 }
@@ -35241,7 +35241,7 @@ func (v AccessPoliciesValue) ToTerraformValue(ctx context.Context) (tftypes.Valu
 	var val tftypes.Value
 	var err error
 
-	attrTypes["access_scope"] = basetypes.ListType{
+	attrTypes["access_scope"] = basetypes.SetType{
 		ElemType: AccessScopeValue{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["policy_arn"] = basetypes.StringType{}.TerraformType(ctx)
@@ -35297,7 +35297,7 @@ func (v AccessPoliciesValue) String() string {
 func (v AccessPoliciesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	accessScope := types.ListValueMust(
+	accessScope := types.SetValueMust(
 		AccessScopeType{
 			basetypes.ObjectType{
 				AttrTypes: AccessScopeValue{}.AttributeTypes(ctx),
@@ -35307,7 +35307,7 @@ func (v AccessPoliciesValue) ToObjectValue(ctx context.Context) (basetypes.Objec
 	)
 
 	if v.AccessScope.IsNull() {
-		accessScope = types.ListNull(
+		accessScope = types.SetNull(
 			AccessScopeType{
 				basetypes.ObjectType{
 					AttrTypes: AccessScopeValue{}.AttributeTypes(ctx),
@@ -35317,7 +35317,7 @@ func (v AccessPoliciesValue) ToObjectValue(ctx context.Context) (basetypes.Objec
 	}
 
 	if v.AccessScope.IsUnknown() {
-		accessScope = types.ListUnknown(
+		accessScope = types.SetUnknown(
 			AccessScopeType{
 				basetypes.ObjectType{
 					AttrTypes: AccessScopeValue{}.AttributeTypes(ctx),
@@ -35327,7 +35327,7 @@ func (v AccessPoliciesValue) ToObjectValue(ctx context.Context) (basetypes.Objec
 	}
 
 	attributeTypes := map[string]attr.Type{
-		"access_scope": basetypes.ListType{
+		"access_scope": basetypes.SetType{
 			ElemType: AccessScopeValue{}.Type(ctx),
 		},
 		"policy_arn": basetypes.StringType{},
@@ -35387,7 +35387,7 @@ func (v AccessPoliciesValue) Type(ctx context.Context) attr.Type {
 
 func (v AccessPoliciesValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"access_scope": basetypes.ListType{
+		"access_scope": basetypes.SetType{
 			ElemType: AccessScopeValue{}.Type(ctx),
 		},
 		"policy_arn": basetypes.StringType{},
@@ -35429,12 +35429,12 @@ func (t AccessScopeType) ValueFromObject(ctx context.Context, in basetypes.Objec
 		return nil, diags
 	}
 
-	namespacesVal, ok := namespacesAttribute.(basetypes.ListValue)
+	namespacesVal, ok := namespacesAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`namespaces expected to be basetypes.ListValue, was: %T`, namespacesAttribute))
+			fmt.Sprintf(`namespaces expected to be basetypes.SetValue, was: %T`, namespacesAttribute))
 	}
 
 	typeAttribute, ok := attributes["type"]
@@ -35539,12 +35539,12 @@ func NewAccessScopeValue(attributeTypes map[string]attr.Type, attributes map[str
 		return NewAccessScopeValueUnknown(), diags
 	}
 
-	namespacesVal, ok := namespacesAttribute.(basetypes.ListValue)
+	namespacesVal, ok := namespacesAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`namespaces expected to be basetypes.ListValue, was: %T`, namespacesAttribute))
+			fmt.Sprintf(`namespaces expected to be basetypes.SetValue, was: %T`, namespacesAttribute))
 	}
 
 	typeAttribute, ok := attributes["type"]
@@ -35644,7 +35644,7 @@ func (t AccessScopeType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = AccessScopeValue{}
 
 type AccessScopeValue struct {
-	Namespaces      basetypes.ListValue   `tfsdk:"namespaces"`
+	Namespaces      basetypes.SetValue    `tfsdk:"namespaces"`
 	AccessScopeType basetypes.StringValue `tfsdk:"type"`
 	state           attr.ValueState
 }
@@ -35655,7 +35655,7 @@ func (v AccessScopeValue) ToTerraformValue(ctx context.Context) (tftypes.Value, 
 	var val tftypes.Value
 	var err error
 
-	attrTypes["namespaces"] = basetypes.ListType{
+	attrTypes["namespaces"] = basetypes.SetType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["type"] = basetypes.StringType{}.TerraformType(ctx)
@@ -35711,21 +35711,21 @@ func (v AccessScopeValue) String() string {
 func (v AccessScopeValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	var namespacesVal basetypes.ListValue
+	var namespacesVal basetypes.SetValue
 	switch {
 	case v.Namespaces.IsUnknown():
-		namespacesVal = types.ListUnknown(types.StringType)
+		namespacesVal = types.SetUnknown(types.StringType)
 	case v.Namespaces.IsNull():
-		namespacesVal = types.ListNull(types.StringType)
+		namespacesVal = types.SetNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		namespacesVal, d = types.ListValue(types.StringType, v.Namespaces.Elements())
+		namespacesVal, d = types.SetValue(types.StringType, v.Namespaces.Elements())
 		diags.Append(d...)
 	}
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
-			"namespaces": basetypes.ListType{
+			"namespaces": basetypes.SetType{
 				ElemType: types.StringType,
 			},
 			"type": basetypes.StringType{},
@@ -35733,7 +35733,7 @@ func (v AccessScopeValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVa
 	}
 
 	attributeTypes := map[string]attr.Type{
-		"namespaces": basetypes.ListType{
+		"namespaces": basetypes.SetType{
 			ElemType: types.StringType,
 		},
 		"type": basetypes.StringType{},
@@ -35793,7 +35793,7 @@ func (v AccessScopeValue) Type(ctx context.Context) attr.Type {
 
 func (v AccessScopeValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"namespaces": basetypes.ListType{
+		"namespaces": basetypes.SetType{
 			ElemType: types.StringType,
 		},
 		"type": basetypes.StringType{},

@@ -661,7 +661,7 @@ func (v *AccessConfigValue) Flatten(ctx context.Context, in *rafay.EKSClusterAcc
 		v.AuthenticationMode = types.StringValue(in.AuthenticationMode)
 	}
 
-	accessEntries := types.ListNull(AccessEntriesValue{}.Type(ctx))
+	accessEntries := types.SetNull(AccessEntriesValue{}.Type(ctx))
 	if len(in.AccessEntries) > 0 {
 		accessEntriesList := []attr.Value{}
 		for _, accessEntry := range in.AccessEntries {
@@ -670,7 +670,7 @@ func (v *AccessConfigValue) Flatten(ctx context.Context, in *rafay.EKSClusterAcc
 			diags = append(diags, d...)
 			accessEntriesList = append(accessEntriesList, ae)
 		}
-		accessEntries, d = types.ListValue(AccessEntriesValue{}.Type(ctx), accessEntriesList)
+		accessEntries, d = types.SetValue(AccessEntriesValue{}.Type(ctx), accessEntriesList)
 		diags = append(diags, d...)
 	}
 	v.AccessEntries = accessEntries
@@ -695,13 +695,13 @@ func (v *AccessEntriesValue) Flatten(ctx context.Context, in *rafay.EKSAccessEnt
 		v.KubernetesUsername = types.StringValue(in.KubernetesUsername)
 	}
 
-	kubernetesGroups := types.ListNull(types.StringType)
+	kubernetesGroups := types.SetNull(types.StringType)
 	if in.KubernetesGroups != nil && len(in.KubernetesGroups) > 0 {
 		groups := []attr.Value{}
 		for _, group := range in.KubernetesGroups {
 			groups = append(groups, types.StringValue(group))
 		}
-		kubernetesGroups, d = types.ListValue(types.StringType, groups)
+		kubernetesGroups, d = types.SetValue(types.StringType, groups)
 		diags = append(diags, d...)
 	}
 	v.KubernetesGroups = kubernetesGroups
@@ -717,7 +717,7 @@ func (v *AccessEntriesValue) Flatten(ctx context.Context, in *rafay.EKSAccessEnt
 	}
 	v.Tags = tags
 
-	accessPolicies := types.ListNull(AccessPoliciesValue{}.Type(ctx))
+	accessPolicies := types.SetNull(AccessPoliciesValue{}.Type(ctx))
 	if in.AccessPolicies != nil && len(in.AccessPolicies) > 0 {
 		accessPoliciesList := []attr.Value{}
 		for _, accessPolicy := range in.AccessPolicies {
@@ -726,7 +726,7 @@ func (v *AccessEntriesValue) Flatten(ctx context.Context, in *rafay.EKSAccessEnt
 			diags = append(diags, d...)
 			accessPoliciesList = append(accessPoliciesList, ap)
 		}
-		accessPolicies, d = types.ListValue(AccessPoliciesValue{}.Type(ctx), accessPoliciesList)
+		accessPolicies, d = types.SetValue(AccessPoliciesValue{}.Type(ctx), accessPoliciesList)
 		diags = append(diags, d...)
 	}
 	v.AccessPolicies = accessPolicies
@@ -749,10 +749,10 @@ func (v *AccessPoliciesValue) Flatten(ctx context.Context, in *rafay.EKSAccessPo
 		accessScope := NewAccessScopeValueNull()
 		d = accessScope.Flatten(ctx, in.AccessScope)
 		diags = append(diags, d...)
-		v.AccessScope, d = types.ListValue(AccessScopeValue{}.Type(ctx), []attr.Value{accessScope})
+		v.AccessScope, d = types.SetValue(AccessScopeValue{}.Type(ctx), []attr.Value{accessScope})
 		diags = append(diags, d...)
 	} else {
-		v.AccessScope = types.ListNull(AccessScopeValue{}.Type(ctx))
+		v.AccessScope = types.SetNull(AccessScopeValue{}.Type(ctx))
 	}
 
 	v.state = attr.ValueStateKnown
@@ -768,13 +768,13 @@ func (v *AccessScopeValue) Flatten(ctx context.Context, in *rafay.EKSAccessScope
 	if in.Type != "" {
 		v.AccessScopeType = types.StringValue(in.Type)
 	}
-	namespaces := types.ListNull(types.StringType)
+	namespaces := types.SetNull(types.StringType)
 	if len(in.Namespaces) > 0 {
 		namespacesList := []attr.Value{}
 		for _, namespace := range in.Namespaces {
 			namespacesList = append(namespacesList, types.StringValue(namespace))
 		}
-		namespaces, d = types.ListValue(types.StringType, namespacesList)
+		namespaces, d = types.SetValue(types.StringType, namespacesList)
 		diags = append(diags, d...)
 	}
 	v.Namespaces = namespaces

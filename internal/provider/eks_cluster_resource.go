@@ -362,6 +362,8 @@ func (r *eksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
+	data.Id = types.StringValue(c.ID)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

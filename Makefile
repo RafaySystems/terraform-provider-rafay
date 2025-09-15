@@ -1,10 +1,10 @@
 TEST?=$$(go list ./... | grep -v 'vendor')
 HOSTNAME=registry.terraform.io
 TOFU_HOSTNAME=registry.opentofu.org
-NAMESPACE=rafay
+NAMESPACE=rafaysystems
 NAME=rafay
 BINARY=terraform-provider-${NAME}
-VERSION=1.1.50
+VERSION=1.1.52
 GIT_BRANCH ?= main
 OS := $(shell uname | grep -q 'Linux' && echo "linux" || echo "darwin")
 ARCH := $(shell uname -m | grep -q 'x86_64' && echo "amd64" || echo "arm64")
@@ -16,7 +16,7 @@ TAG := $(or $(shell git describe --tags --exact-match  2>/dev/null), $(shell ech
 default: install
 
 build:
-	bash internal/scripts/fwgen.sh
+	# bash internal/scripts/fwgen.sh # removed due to schema version update manually
 	export GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ${BINARY}
 	#go generate

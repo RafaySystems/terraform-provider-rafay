@@ -1962,7 +1962,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 						"cloud_watch": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Blocks: map[string]schema.Block{
-									"cloud_logging": schema.ListNestedBlock{
+									"cluster_logging": schema.ListNestedBlock{
 										NestedObject: schema.NestedBlockObject{
 											Attributes: map[string]schema.Attribute{
 												"enable_types": schema.ListAttribute{
@@ -1977,9 +1977,9 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 													MarkdownDescription: "Number of days to retain the log events in the specified log group.",
 												},
 											},
-											CustomType: CloudLoggingType{
+											CustomType: ClusterLoggingType{
 												ObjectType: types.ObjectType{
-													AttrTypes: CloudLoggingValue{}.AttributeTypes(ctx),
+													AttrTypes: ClusterLoggingValue{}.AttributeTypes(ctx),
 												},
 											},
 										},
@@ -2195,7 +2195,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											},
 										},
 									},
-									"service_accounts": schema.ListNestedBlock{
+									"service_accounts": schema.SetNestedBlock{
 										NestedObject: schema.NestedBlockObject{
 											Attributes: map[string]schema.Attribute{
 												"attach_policy": schema.StringAttribute{
@@ -2203,7 +2203,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 													Description:         "holds a policy document to attach to this service account.",
 													MarkdownDescription: "holds a policy document to attach to this service account.",
 												},
-												"attach_policy_arns": schema.ListAttribute{
+												"attach_policy_arns": schema.SetAttribute{
 													ElementType:         types.StringType,
 													Optional:            true,
 													Description:         "CIDR range from where ClusterIPs are assigned.",
@@ -2237,7 +2237,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												},
 											},
 											Blocks: map[string]schema.Block{
-												"metadata": schema.ListNestedBlock{
+												"metadata": schema.SetNestedBlock{
 													NestedObject: schema.NestedBlockObject{
 														Attributes: map[string]schema.Attribute{
 															"annotations": schema.MapAttribute{
@@ -2270,7 +2270,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 														},
 													},
 												},
-												"status": schema.ListNestedBlock{
+												"status": schema.SetNestedBlock{
 													NestedObject: schema.NestedBlockObject{
 														Attributes: map[string]schema.Attribute{
 															"role_arn": schema.StringAttribute{
@@ -2286,7 +2286,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 														},
 													},
 												},
-												"well_known_policies": schema.ListNestedBlock{
+												"well_known_policies": schema.SetNestedBlock{
 													NestedObject: schema.NestedBlockObject{
 														Attributes: map[string]schema.Attribute{
 															"auto_scaler": schema.BoolAttribute{
@@ -2348,10 +2348,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
-						"identity_mappings": schema.ListNestedBlock{
+						"identity_mappings": schema.SetNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
-									"accounts": schema.ListAttribute{
+									"accounts": schema.SetAttribute{
 										ElementType:         types.StringType,
 										Optional:            true,
 										Description:         "List of IAM accounts to map.",
@@ -2359,7 +2359,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 								},
 								Blocks: map[string]schema.Block{
-									"arns": schema.ListNestedBlock{
+									"arns": schema.SetNestedBlock{
 										NestedObject: schema.NestedBlockObject{
 											Attributes: map[string]schema.Attribute{
 												"arn": schema.StringAttribute{
@@ -2367,7 +2367,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 													Description:         "IAM role or user ARN.",
 													MarkdownDescription: "IAM role or user ARN.",
 												},
-												"group": schema.ListAttribute{
+												"group": schema.SetAttribute{
 													ElementType:         types.StringType,
 													Optional:            true,
 													Description:         "List of kubernetes groups to be mapped to.",
@@ -10060,12 +10060,12 @@ func (t ClusterConfigType) ValueFromObject(ctx context.Context, in basetypes.Obj
 		return nil, diags
 	}
 
-	identityMappingsVal, ok := identityMappingsAttribute.(basetypes.ListValue)
+	identityMappingsVal, ok := identityMappingsAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`identity_mappings expected to be basetypes.ListValue, was: %T`, identityMappingsAttribute))
+			fmt.Sprintf(`identity_mappings expected to be basetypes.SetValue, was: %T`, identityMappingsAttribute))
 	}
 
 	identityProvidersAttribute, ok := attributes["identity_providers"]
@@ -10531,12 +10531,12 @@ func NewClusterConfigValue(attributeTypes map[string]attr.Type, attributes map[s
 		return NewClusterConfigValueUnknown(), diags
 	}
 
-	identityMappingsVal, ok := identityMappingsAttribute.(basetypes.ListValue)
+	identityMappingsVal, ok := identityMappingsAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`identity_mappings expected to be basetypes.ListValue, was: %T`, identityMappingsAttribute))
+			fmt.Sprintf(`identity_mappings expected to be basetypes.SetValue, was: %T`, identityMappingsAttribute))
 	}
 
 	identityProvidersAttribute, ok := attributes["identity_providers"]
@@ -10844,7 +10844,7 @@ type ClusterConfigValue struct {
 	CloudWatch              basetypes.ListValue   `tfsdk:"cloud_watch"`
 	FargateProfiles         basetypes.ListValue   `tfsdk:"fargate_profiles"`
 	Iam3                    basetypes.ListValue   `tfsdk:"iam"`
-	IdentityMappings        basetypes.ListValue   `tfsdk:"identity_mappings"`
+	IdentityMappings        basetypes.SetValue    `tfsdk:"identity_mappings"`
 	IdentityProviders       basetypes.ListValue   `tfsdk:"identity_providers"`
 	Kind                    basetypes.StringValue `tfsdk:"kind"`
 	KubernetesNetworkConfig basetypes.ListValue   `tfsdk:"kubernetes_network_config"`
@@ -10890,7 +10890,7 @@ func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 	attrTypes["iam"] = basetypes.ListType{
 		ElemType: Iam3Value{}.Type(ctx),
 	}.TerraformType(ctx)
-	attrTypes["identity_mappings"] = basetypes.ListType{
+	attrTypes["identity_mappings"] = basetypes.SetType{
 		ElemType: IdentityMappingsValue{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["identity_providers"] = basetypes.ListType{
@@ -11331,7 +11331,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		)
 	}
 
-	identityMappings := types.ListValueMust(
+	identityMappings := types.SetValueMust(
 		IdentityMappingsType{
 			basetypes.ObjectType{
 				AttrTypes: IdentityMappingsValue{}.AttributeTypes(ctx),
@@ -11341,7 +11341,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 	)
 
 	if v.IdentityMappings.IsNull() {
-		identityMappings = types.ListNull(
+		identityMappings = types.SetNull(
 			IdentityMappingsType{
 				basetypes.ObjectType{
 					AttrTypes: IdentityMappingsValue{}.AttributeTypes(ctx),
@@ -11351,7 +11351,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 	}
 
 	if v.IdentityMappings.IsUnknown() {
-		identityMappings = types.ListUnknown(
+		identityMappings = types.SetUnknown(
 			IdentityMappingsType{
 				basetypes.ObjectType{
 					AttrTypes: IdentityMappingsValue{}.AttributeTypes(ctx),
@@ -11689,7 +11689,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"iam": basetypes.ListType{
 				ElemType: Iam3Value{}.Type(ctx),
 			},
-			"identity_mappings": basetypes.ListType{
+			"identity_mappings": basetypes.SetType{
 				ElemType: IdentityMappingsValue{}.Type(ctx),
 			},
 			"identity_providers": basetypes.ListType{
@@ -11752,7 +11752,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		"iam": basetypes.ListType{
 			ElemType: Iam3Value{}.Type(ctx),
 		},
-		"identity_mappings": basetypes.ListType{
+		"identity_mappings": basetypes.SetType{
 			ElemType: IdentityMappingsValue{}.Type(ctx),
 		},
 		"identity_providers": basetypes.ListType{
@@ -11962,7 +11962,7 @@ func (v ClusterConfigValue) AttributeTypes(ctx context.Context) map[string]attr.
 		"iam": basetypes.ListType{
 			ElemType: Iam3Value{}.Type(ctx),
 		},
-		"identity_mappings": basetypes.ListType{
+		"identity_mappings": basetypes.SetType{
 			ElemType: IdentityMappingsValue{}.Type(ctx),
 		},
 		"identity_providers": basetypes.ListType{
@@ -41377,22 +41377,22 @@ func (t CloudWatchType) ValueFromObject(ctx context.Context, in basetypes.Object
 
 	attributes := in.Attributes()
 
-	cloudLoggingAttribute, ok := attributes["cloud_logging"]
+	clusterLoggingAttribute, ok := attributes["cluster_logging"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`cloud_logging is missing from object`)
+			`cluster_logging is missing from object`)
 
 		return nil, diags
 	}
 
-	cloudLoggingVal, ok := cloudLoggingAttribute.(basetypes.ListValue)
+	clusterLoggingVal, ok := clusterLoggingAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`cloud_logging expected to be basetypes.ListValue, was: %T`, cloudLoggingAttribute))
+			fmt.Sprintf(`cluster_logging expected to be basetypes.ListValue, was: %T`, clusterLoggingAttribute))
 	}
 
 	if diags.HasError() {
@@ -41400,8 +41400,8 @@ func (t CloudWatchType) ValueFromObject(ctx context.Context, in basetypes.Object
 	}
 
 	return CloudWatchValue{
-		CloudLogging: cloudLoggingVal,
-		state:        attr.ValueStateKnown,
+		ClusterLogging: clusterLoggingVal,
+		state:          attr.ValueStateKnown,
 	}, diags
 }
 
@@ -41468,22 +41468,22 @@ func NewCloudWatchValue(attributeTypes map[string]attr.Type, attributes map[stri
 		return NewCloudWatchValueUnknown(), diags
 	}
 
-	cloudLoggingAttribute, ok := attributes["cloud_logging"]
+	clusterLoggingAttribute, ok := attributes["cluster_logging"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`cloud_logging is missing from object`)
+			`cluster_logging is missing from object`)
 
 		return NewCloudWatchValueUnknown(), diags
 	}
 
-	cloudLoggingVal, ok := cloudLoggingAttribute.(basetypes.ListValue)
+	clusterLoggingVal, ok := clusterLoggingAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`cloud_logging expected to be basetypes.ListValue, was: %T`, cloudLoggingAttribute))
+			fmt.Sprintf(`cluster_logging expected to be basetypes.ListValue, was: %T`, clusterLoggingAttribute))
 	}
 
 	if diags.HasError() {
@@ -41491,8 +41491,8 @@ func NewCloudWatchValue(attributeTypes map[string]attr.Type, attributes map[stri
 	}
 
 	return CloudWatchValue{
-		CloudLogging: cloudLoggingVal,
-		state:        attr.ValueStateKnown,
+		ClusterLogging: clusterLoggingVal,
+		state:          attr.ValueStateKnown,
 	}, diags
 }
 
@@ -41564,8 +41564,8 @@ func (t CloudWatchType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = CloudWatchValue{}
 
 type CloudWatchValue struct {
-	CloudLogging basetypes.ListValue `tfsdk:"cloud_logging"`
-	state        attr.ValueState
+	ClusterLogging basetypes.ListValue `tfsdk:"cluster_logging"`
+	state          attr.ValueState
 }
 
 func (v CloudWatchValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
@@ -41574,8 +41574,8 @@ func (v CloudWatchValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 	var val tftypes.Value
 	var err error
 
-	attrTypes["cloud_logging"] = basetypes.ListType{
-		ElemType: CloudLoggingValue{}.Type(ctx),
+	attrTypes["cluster_logging"] = basetypes.ListType{
+		ElemType: ClusterLoggingValue{}.Type(ctx),
 	}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
@@ -41584,13 +41584,13 @@ func (v CloudWatchValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 	case attr.ValueStateKnown:
 		vals := make(map[string]tftypes.Value, 1)
 
-		val, err = v.CloudLogging.ToTerraformValue(ctx)
+		val, err = v.ClusterLogging.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["cloud_logging"] = val
+		vals["cluster_logging"] = val
 
 		if err := tftypes.ValidateValue(objectType, vals); err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
@@ -41621,38 +41621,38 @@ func (v CloudWatchValue) String() string {
 func (v CloudWatchValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	cloudLogging := types.ListValueMust(
-		CloudLoggingType{
+	clusterLogging := types.ListValueMust(
+		ClusterLoggingType{
 			basetypes.ObjectType{
-				AttrTypes: CloudLoggingValue{}.AttributeTypes(ctx),
+				AttrTypes: ClusterLoggingValue{}.AttributeTypes(ctx),
 			},
 		},
-		v.CloudLogging.Elements(),
+		v.ClusterLogging.Elements(),
 	)
 
-	if v.CloudLogging.IsNull() {
-		cloudLogging = types.ListNull(
-			CloudLoggingType{
+	if v.ClusterLogging.IsNull() {
+		clusterLogging = types.ListNull(
+			ClusterLoggingType{
 				basetypes.ObjectType{
-					AttrTypes: CloudLoggingValue{}.AttributeTypes(ctx),
+					AttrTypes: ClusterLoggingValue{}.AttributeTypes(ctx),
 				},
 			},
 		)
 	}
 
-	if v.CloudLogging.IsUnknown() {
-		cloudLogging = types.ListUnknown(
-			CloudLoggingType{
+	if v.ClusterLogging.IsUnknown() {
+		clusterLogging = types.ListUnknown(
+			ClusterLoggingType{
 				basetypes.ObjectType{
-					AttrTypes: CloudLoggingValue{}.AttributeTypes(ctx),
+					AttrTypes: ClusterLoggingValue{}.AttributeTypes(ctx),
 				},
 			},
 		)
 	}
 
 	attributeTypes := map[string]attr.Type{
-		"cloud_logging": basetypes.ListType{
-			ElemType: CloudLoggingValue{}.Type(ctx),
+		"cluster_logging": basetypes.ListType{
+			ElemType: ClusterLoggingValue{}.Type(ctx),
 		},
 	}
 
@@ -41667,7 +41667,7 @@ func (v CloudWatchValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"cloud_logging": cloudLogging,
+			"cluster_logging": clusterLogging,
 		})
 
 	return objVal, diags
@@ -41688,7 +41688,7 @@ func (v CloudWatchValue) Equal(o attr.Value) bool {
 		return true
 	}
 
-	if !v.CloudLogging.Equal(other.CloudLogging) {
+	if !v.ClusterLogging.Equal(other.ClusterLogging) {
 		return false
 	}
 
@@ -41705,20 +41705,20 @@ func (v CloudWatchValue) Type(ctx context.Context) attr.Type {
 
 func (v CloudWatchValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"cloud_logging": basetypes.ListType{
-			ElemType: CloudLoggingValue{}.Type(ctx),
+		"cluster_logging": basetypes.ListType{
+			ElemType: ClusterLoggingValue{}.Type(ctx),
 		},
 	}
 }
 
-var _ basetypes.ObjectTypable = CloudLoggingType{}
+var _ basetypes.ObjectTypable = ClusterLoggingType{}
 
-type CloudLoggingType struct {
+type ClusterLoggingType struct {
 	basetypes.ObjectType
 }
 
-func (t CloudLoggingType) Equal(o attr.Type) bool {
-	other, ok := o.(CloudLoggingType)
+func (t ClusterLoggingType) Equal(o attr.Type) bool {
+	other, ok := o.(ClusterLoggingType)
 
 	if !ok {
 		return false
@@ -41727,11 +41727,11 @@ func (t CloudLoggingType) Equal(o attr.Type) bool {
 	return t.ObjectType.Equal(other.ObjectType)
 }
 
-func (t CloudLoggingType) String() string {
-	return "CloudLoggingType"
+func (t ClusterLoggingType) String() string {
+	return "ClusterLoggingType"
 }
 
-func (t CloudLoggingType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+func (t ClusterLoggingType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	attributes := in.Attributes()
@@ -41776,26 +41776,26 @@ func (t CloudLoggingType) ValueFromObject(ctx context.Context, in basetypes.Obje
 		return nil, diags
 	}
 
-	return CloudLoggingValue{
+	return ClusterLoggingValue{
 		EnableTypes:        enableTypesVal,
 		LogRetentionInDays: logRetentionInDaysVal,
 		state:              attr.ValueStateKnown,
 	}, diags
 }
 
-func NewCloudLoggingValueNull() CloudLoggingValue {
-	return CloudLoggingValue{
+func NewClusterLoggingValueNull() ClusterLoggingValue {
+	return ClusterLoggingValue{
 		state: attr.ValueStateNull,
 	}
 }
 
-func NewCloudLoggingValueUnknown() CloudLoggingValue {
-	return CloudLoggingValue{
+func NewClusterLoggingValueUnknown() ClusterLoggingValue {
+	return ClusterLoggingValue{
 		state: attr.ValueStateUnknown,
 	}
 }
 
-func NewCloudLoggingValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (CloudLoggingValue, diag.Diagnostics) {
+func NewClusterLoggingValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (ClusterLoggingValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
@@ -41806,11 +41806,11 @@ func NewCloudLoggingValue(attributeTypes map[string]attr.Type, attributes map[st
 
 		if !ok {
 			diags.AddError(
-				"Missing CloudLoggingValue Attribute Value",
-				"While creating a CloudLoggingValue value, a missing attribute value was detected. "+
-					"A CloudLoggingValue must contain values for all attributes, even if null or unknown. "+
+				"Missing ClusterLoggingValue Attribute Value",
+				"While creating a ClusterLoggingValue value, a missing attribute value was detected. "+
+					"A ClusterLoggingValue must contain values for all attributes, even if null or unknown. "+
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("CloudLoggingValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+					fmt.Sprintf("ClusterLoggingValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
 			)
 
 			continue
@@ -41818,12 +41818,12 @@ func NewCloudLoggingValue(attributeTypes map[string]attr.Type, attributes map[st
 
 		if !attributeType.Equal(attribute.Type(ctx)) {
 			diags.AddError(
-				"Invalid CloudLoggingValue Attribute Type",
-				"While creating a CloudLoggingValue value, an invalid attribute value was detected. "+
-					"A CloudLoggingValue must use a matching attribute type for the value. "+
+				"Invalid ClusterLoggingValue Attribute Type",
+				"While creating a ClusterLoggingValue value, an invalid attribute value was detected. "+
+					"A ClusterLoggingValue must use a matching attribute type for the value. "+
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("CloudLoggingValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
-					fmt.Sprintf("CloudLoggingValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+					fmt.Sprintf("ClusterLoggingValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("ClusterLoggingValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
 			)
 		}
 	}
@@ -41833,17 +41833,17 @@ func NewCloudLoggingValue(attributeTypes map[string]attr.Type, attributes map[st
 
 		if !ok {
 			diags.AddError(
-				"Extra CloudLoggingValue Attribute Value",
-				"While creating a CloudLoggingValue value, an extra attribute value was detected. "+
-					"A CloudLoggingValue must not contain values beyond the expected attribute types. "+
+				"Extra ClusterLoggingValue Attribute Value",
+				"While creating a ClusterLoggingValue value, an extra attribute value was detected. "+
+					"A ClusterLoggingValue must not contain values beyond the expected attribute types. "+
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("Extra CloudLoggingValue Attribute Name: %s", name),
+					fmt.Sprintf("Extra ClusterLoggingValue Attribute Name: %s", name),
 			)
 		}
 	}
 
 	if diags.HasError() {
-		return NewCloudLoggingValueUnknown(), diags
+		return NewClusterLoggingValueUnknown(), diags
 	}
 
 	enableTypesAttribute, ok := attributes["enable_types"]
@@ -41853,7 +41853,7 @@ func NewCloudLoggingValue(attributeTypes map[string]attr.Type, attributes map[st
 			"Attribute Missing",
 			`enable_types is missing from object`)
 
-		return NewCloudLoggingValueUnknown(), diags
+		return NewClusterLoggingValueUnknown(), diags
 	}
 
 	enableTypesVal, ok := enableTypesAttribute.(basetypes.ListValue)
@@ -41871,7 +41871,7 @@ func NewCloudLoggingValue(attributeTypes map[string]attr.Type, attributes map[st
 			"Attribute Missing",
 			`log_retention_in_days is missing from object`)
 
-		return NewCloudLoggingValueUnknown(), diags
+		return NewClusterLoggingValueUnknown(), diags
 	}
 
 	logRetentionInDaysVal, ok := logRetentionInDaysAttribute.(basetypes.Int64Value)
@@ -41883,18 +41883,18 @@ func NewCloudLoggingValue(attributeTypes map[string]attr.Type, attributes map[st
 	}
 
 	if diags.HasError() {
-		return NewCloudLoggingValueUnknown(), diags
+		return NewClusterLoggingValueUnknown(), diags
 	}
 
-	return CloudLoggingValue{
+	return ClusterLoggingValue{
 		EnableTypes:        enableTypesVal,
 		LogRetentionInDays: logRetentionInDaysVal,
 		state:              attr.ValueStateKnown,
 	}, diags
 }
 
-func NewCloudLoggingValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) CloudLoggingValue {
-	object, diags := NewCloudLoggingValue(attributeTypes, attributes)
+func NewClusterLoggingValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) ClusterLoggingValue {
+	object, diags := NewClusterLoggingValue(attributeTypes, attributes)
 
 	if diags.HasError() {
 		// This could potentially be added to the diag package.
@@ -41908,15 +41908,15 @@ func NewCloudLoggingValueMust(attributeTypes map[string]attr.Type, attributes ma
 				diagnostic.Detail()))
 		}
 
-		panic("NewCloudLoggingValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+		panic("NewClusterLoggingValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
 	}
 
 	return object
 }
 
-func (t CloudLoggingType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+func (t ClusterLoggingType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if in.Type() == nil {
-		return NewCloudLoggingValueNull(), nil
+		return NewClusterLoggingValueNull(), nil
 	}
 
 	if !in.Type().Equal(t.TerraformType(ctx)) {
@@ -41924,11 +41924,11 @@ func (t CloudLoggingType) ValueFromTerraform(ctx context.Context, in tftypes.Val
 	}
 
 	if !in.IsKnown() {
-		return NewCloudLoggingValueUnknown(), nil
+		return NewClusterLoggingValueUnknown(), nil
 	}
 
 	if in.IsNull() {
-		return NewCloudLoggingValueNull(), nil
+		return NewClusterLoggingValueNull(), nil
 	}
 
 	attributes := map[string]attr.Value{}
@@ -41951,22 +41951,22 @@ func (t CloudLoggingType) ValueFromTerraform(ctx context.Context, in tftypes.Val
 		attributes[k] = a
 	}
 
-	return NewCloudLoggingValueMust(CloudLoggingValue{}.AttributeTypes(ctx), attributes), nil
+	return NewClusterLoggingValueMust(ClusterLoggingValue{}.AttributeTypes(ctx), attributes), nil
 }
 
-func (t CloudLoggingType) ValueType(ctx context.Context) attr.Value {
-	return CloudLoggingValue{}
+func (t ClusterLoggingType) ValueType(ctx context.Context) attr.Value {
+	return ClusterLoggingValue{}
 }
 
-var _ basetypes.ObjectValuable = CloudLoggingValue{}
+var _ basetypes.ObjectValuable = ClusterLoggingValue{}
 
-type CloudLoggingValue struct {
+type ClusterLoggingValue struct {
 	EnableTypes        basetypes.ListValue  `tfsdk:"enable_types"`
 	LogRetentionInDays basetypes.Int64Value `tfsdk:"log_retention_in_days"`
 	state              attr.ValueState
 }
 
-func (v CloudLoggingValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+func (v ClusterLoggingValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	attrTypes := make(map[string]tftypes.Type, 2)
 
 	var val tftypes.Value
@@ -42013,19 +42013,19 @@ func (v CloudLoggingValue) ToTerraformValue(ctx context.Context) (tftypes.Value,
 	}
 }
 
-func (v CloudLoggingValue) IsNull() bool {
+func (v ClusterLoggingValue) IsNull() bool {
 	return v.state == attr.ValueStateNull
 }
 
-func (v CloudLoggingValue) IsUnknown() bool {
+func (v ClusterLoggingValue) IsUnknown() bool {
 	return v.state == attr.ValueStateUnknown
 }
 
-func (v CloudLoggingValue) String() string {
-	return "CloudLoggingValue"
+func (v ClusterLoggingValue) String() string {
+	return "ClusterLoggingValue"
 }
 
-func (v CloudLoggingValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+func (v ClusterLoggingValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	var enableTypesVal basetypes.ListValue
@@ -42074,8 +42074,8 @@ func (v CloudLoggingValue) ToObjectValue(ctx context.Context) (basetypes.ObjectV
 	return objVal, diags
 }
 
-func (v CloudLoggingValue) Equal(o attr.Value) bool {
-	other, ok := o.(CloudLoggingValue)
+func (v ClusterLoggingValue) Equal(o attr.Value) bool {
+	other, ok := o.(ClusterLoggingValue)
 
 	if !ok {
 		return false
@@ -42100,15 +42100,15 @@ func (v CloudLoggingValue) Equal(o attr.Value) bool {
 	return true
 }
 
-func (v CloudLoggingValue) Type(ctx context.Context) attr.Type {
-	return CloudLoggingType{
+func (v ClusterLoggingValue) Type(ctx context.Context) attr.Type {
+	return ClusterLoggingType{
 		basetypes.ObjectType{
 			AttrTypes: v.AttributeTypes(ctx),
 		},
 	}
 }
 
-func (v CloudLoggingValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+func (v ClusterLoggingValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"enable_types": basetypes.ListType{
 			ElemType: types.StringType,
@@ -43316,12 +43316,12 @@ func (t Iam3Type) ValueFromObject(ctx context.Context, in basetypes.ObjectValue)
 		return nil, diags
 	}
 
-	serviceAccountsVal, ok := serviceAccountsAttribute.(basetypes.ListValue)
+	serviceAccountsVal, ok := serviceAccountsAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`service_accounts expected to be basetypes.ListValue, was: %T`, serviceAccountsAttribute))
+			fmt.Sprintf(`service_accounts expected to be basetypes.SetValue, was: %T`, serviceAccountsAttribute))
 	}
 
 	serviceRoleArnAttribute, ok := attributes["service_role_arn"]
@@ -43540,12 +43540,12 @@ func NewIam3Value(attributeTypes map[string]attr.Type, attributes map[string]att
 		return NewIam3ValueUnknown(), diags
 	}
 
-	serviceAccountsVal, ok := serviceAccountsAttribute.(basetypes.ListValue)
+	serviceAccountsVal, ok := serviceAccountsAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`service_accounts expected to be basetypes.ListValue, was: %T`, serviceAccountsAttribute))
+			fmt.Sprintf(`service_accounts expected to be basetypes.SetValue, was: %T`, serviceAccountsAttribute))
 	}
 
 	serviceRoleArnAttribute, ok := attributes["service_role_arn"]
@@ -43708,7 +43708,7 @@ type Iam3Value struct {
 	FargatePodExecutionRoleArn                 basetypes.StringValue `tfsdk:"fargate_pod_execution_role_arn"`
 	FargatePodExecutionRolePermissionsBoundary basetypes.StringValue `tfsdk:"fargate_pod_execution_role_permissions_boundary"`
 	PodIdentityAssociations                    basetypes.ListValue   `tfsdk:"pod_identity_associations"`
-	ServiceAccounts                            basetypes.ListValue   `tfsdk:"service_accounts"`
+	ServiceAccounts                            basetypes.SetValue    `tfsdk:"service_accounts"`
 	ServiceRoleArn                             basetypes.StringValue `tfsdk:"service_role_arn"`
 	ServiceRolePermissionBoundary              basetypes.StringValue `tfsdk:"service_role_permission_boundary"`
 	VpcResourceControllerPolicy                basetypes.BoolValue   `tfsdk:"vpc_resource_controller_policy"`
@@ -43727,7 +43727,7 @@ func (v Iam3Value) ToTerraformValue(ctx context.Context) (tftypes.Value, error) 
 	attrTypes["pod_identity_associations"] = basetypes.ListType{
 		ElemType: PodIdentityAssociationsValue{}.Type(ctx),
 	}.TerraformType(ctx)
-	attrTypes["service_accounts"] = basetypes.ListType{
+	attrTypes["service_accounts"] = basetypes.SetType{
 		ElemType: ServiceAccountsValue{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["service_role_arn"] = basetypes.StringType{}.TerraformType(ctx)
@@ -43863,7 +43863,7 @@ func (v Iam3Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		)
 	}
 
-	serviceAccounts := types.ListValueMust(
+	serviceAccounts := types.SetValueMust(
 		ServiceAccountsType{
 			basetypes.ObjectType{
 				AttrTypes: ServiceAccountsValue{}.AttributeTypes(ctx),
@@ -43873,7 +43873,7 @@ func (v Iam3Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 	)
 
 	if v.ServiceAccounts.IsNull() {
-		serviceAccounts = types.ListNull(
+		serviceAccounts = types.SetNull(
 			ServiceAccountsType{
 				basetypes.ObjectType{
 					AttrTypes: ServiceAccountsValue{}.AttributeTypes(ctx),
@@ -43883,7 +43883,7 @@ func (v Iam3Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 	}
 
 	if v.ServiceAccounts.IsUnknown() {
-		serviceAccounts = types.ListUnknown(
+		serviceAccounts = types.SetUnknown(
 			ServiceAccountsType{
 				basetypes.ObjectType{
 					AttrTypes: ServiceAccountsValue{}.AttributeTypes(ctx),
@@ -43898,7 +43898,7 @@ func (v Iam3Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		"pod_identity_associations": basetypes.ListType{
 			ElemType: PodIdentityAssociationsValue{}.Type(ctx),
 		},
-		"service_accounts": basetypes.ListType{
+		"service_accounts": basetypes.SetType{
 			ElemType: ServiceAccountsValue{}.Type(ctx),
 		},
 		"service_role_arn":                 basetypes.StringType{},
@@ -43996,7 +43996,7 @@ func (v Iam3Value) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"pod_identity_associations": basetypes.ListType{
 			ElemType: PodIdentityAssociationsValue{}.Type(ctx),
 		},
-		"service_accounts": basetypes.ListType{
+		"service_accounts": basetypes.SetType{
 			ElemType: ServiceAccountsValue{}.Type(ctx),
 		},
 		"service_role_arn":                 basetypes.StringType{},
@@ -45645,12 +45645,12 @@ func (t ServiceAccountsType) ValueFromObject(ctx context.Context, in basetypes.O
 		return nil, diags
 	}
 
-	attachPolicyArns2Val, ok := attachPolicyArns2Attribute.(basetypes.ListValue)
+	attachPolicyArns2Val, ok := attachPolicyArns2Attribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`attach_policy_arns2 expected to be basetypes.ListValue, was: %T`, attachPolicyArns2Attribute))
+			fmt.Sprintf(`attach_policy_arns2 expected to be basetypes.SetValue, was: %T`, attachPolicyArns2Attribute))
 	}
 
 	attachRoleArnAttribute, ok := attributes["attach_role_arn"]
@@ -45681,12 +45681,12 @@ func (t ServiceAccountsType) ValueFromObject(ctx context.Context, in basetypes.O
 		return nil, diags
 	}
 
-	metadata3Val, ok := metadata3Attribute.(basetypes.ListValue)
+	metadata3Val, ok := metadata3Attribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`metadata3 expected to be basetypes.ListValue, was: %T`, metadata3Attribute))
+			fmt.Sprintf(`metadata3 expected to be basetypes.SetValue, was: %T`, metadata3Attribute))
 	}
 
 	permissionsBoundaryAttribute, ok := attributes["permissions_boundary"]
@@ -45753,12 +45753,12 @@ func (t ServiceAccountsType) ValueFromObject(ctx context.Context, in basetypes.O
 		return nil, diags
 	}
 
-	statusVal, ok := statusAttribute.(basetypes.ListValue)
+	statusVal, ok := statusAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`status expected to be basetypes.ListValue, was: %T`, statusAttribute))
+			fmt.Sprintf(`status expected to be basetypes.SetValue, was: %T`, statusAttribute))
 	}
 
 	tags3Attribute, ok := attributes["tags"]
@@ -45789,12 +45789,12 @@ func (t ServiceAccountsType) ValueFromObject(ctx context.Context, in basetypes.O
 		return nil, diags
 	}
 
-	wellKnownPolicies2Val, ok := wellKnownPolicies2Attribute.(basetypes.ListValue)
+	wellKnownPolicies2Val, ok := wellKnownPolicies2Attribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`well_known_policies2 expected to be basetypes.ListValue, was: %T`, wellKnownPolicies2Attribute))
+			fmt.Sprintf(`well_known_policies2 expected to be basetypes.SetValue, was: %T`, wellKnownPolicies2Attribute))
 	}
 
 	if diags.HasError() {
@@ -45907,12 +45907,12 @@ func NewServiceAccountsValue(attributeTypes map[string]attr.Type, attributes map
 		return NewServiceAccountsValueUnknown(), diags
 	}
 
-	attachPolicyArns2Val, ok := attachPolicyArns2Attribute.(basetypes.ListValue)
+	attachPolicyArns2Val, ok := attachPolicyArns2Attribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`attach_policy_arns2 expected to be basetypes.ListValue, was: %T`, attachPolicyArns2Attribute))
+			fmt.Sprintf(`attach_policy_arns2 expected to be basetypes.SetValue, was: %T`, attachPolicyArns2Attribute))
 	}
 
 	attachRoleArnAttribute, ok := attributes["attach_role_arn"]
@@ -45943,12 +45943,12 @@ func NewServiceAccountsValue(attributeTypes map[string]attr.Type, attributes map
 		return NewServiceAccountsValueUnknown(), diags
 	}
 
-	metadata3Val, ok := metadata3Attribute.(basetypes.ListValue)
+	metadata3Val, ok := metadata3Attribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`metadata3 expected to be basetypes.ListValue, was: %T`, metadata3Attribute))
+			fmt.Sprintf(`metadata3 expected to be basetypes.SetValue, was: %T`, metadata3Attribute))
 	}
 
 	permissionsBoundaryAttribute, ok := attributes["permissions_boundary"]
@@ -46015,12 +46015,12 @@ func NewServiceAccountsValue(attributeTypes map[string]attr.Type, attributes map
 		return NewServiceAccountsValueUnknown(), diags
 	}
 
-	statusVal, ok := statusAttribute.(basetypes.ListValue)
+	statusVal, ok := statusAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`status expected to be basetypes.ListValue, was: %T`, statusAttribute))
+			fmt.Sprintf(`status expected to be basetypes.SetValue, was: %T`, statusAttribute))
 	}
 
 	tags3Attribute, ok := attributes["tags"]
@@ -46051,12 +46051,12 @@ func NewServiceAccountsValue(attributeTypes map[string]attr.Type, attributes map
 		return NewServiceAccountsValueUnknown(), diags
 	}
 
-	wellKnownPolicies2Val, ok := wellKnownPolicies2Attribute.(basetypes.ListValue)
+	wellKnownPolicies2Val, ok := wellKnownPolicies2Attribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`well_known_policies2 expected to be basetypes.ListValue, was: %T`, wellKnownPolicies2Attribute))
+			fmt.Sprintf(`well_known_policies2 expected to be basetypes.SetValue, was: %T`, wellKnownPolicies2Attribute))
 	}
 
 	if diags.HasError() {
@@ -46147,15 +46147,15 @@ var _ basetypes.ObjectValuable = ServiceAccountsValue{}
 
 type ServiceAccountsValue struct {
 	AttachPolicy        basetypes.StringValue `tfsdk:"attach_policy"`
-	AttachPolicyArns2   basetypes.ListValue   `tfsdk:"attach_policy_arns"`
+	AttachPolicyArns2   basetypes.SetValue    `tfsdk:"attach_policy_arns"`
 	AttachRoleArn       basetypes.StringValue `tfsdk:"attach_role_arn"`
-	Metadata3           basetypes.ListValue   `tfsdk:"metadata"`
+	Metadata3           basetypes.SetValue    `tfsdk:"metadata"`
 	PermissionsBoundary basetypes.StringValue `tfsdk:"permissions_boundary"`
 	RoleName            basetypes.StringValue `tfsdk:"role_name"`
 	RoleOnly            basetypes.BoolValue   `tfsdk:"role_only"`
-	Status              basetypes.ListValue   `tfsdk:"status"`
+	Status              basetypes.SetValue    `tfsdk:"status"`
 	Tags3               basetypes.MapValue    `tfsdk:"tags"`
-	WellKnownPolicies2  basetypes.ListValue   `tfsdk:"well_known_policies"`
+	WellKnownPolicies2  basetypes.SetValue    `tfsdk:"well_known_policies"`
 	state               attr.ValueState
 }
 
@@ -46166,23 +46166,23 @@ func (v ServiceAccountsValue) ToTerraformValue(ctx context.Context) (tftypes.Val
 	var err error
 
 	attrTypes["attach_policy"] = basetypes.StringType{}.TerraformType(ctx)
-	attrTypes["attach_policy_arns"] = basetypes.ListType{
+	attrTypes["attach_policy_arns"] = basetypes.SetType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["attach_role_arn"] = basetypes.StringType{}.TerraformType(ctx)
-	attrTypes["metadata"] = basetypes.ListType{
+	attrTypes["metadata"] = basetypes.SetType{
 		ElemType: Metadata3Value{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["permissions_boundary"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["role_name"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["role_only"] = basetypes.BoolType{}.TerraformType(ctx)
-	attrTypes["status"] = basetypes.ListType{
+	attrTypes["status"] = basetypes.SetType{
 		ElemType: StatusValue{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["tags"] = basetypes.MapType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
-	attrTypes["well_known_policies"] = basetypes.ListType{
+	attrTypes["well_known_policies"] = basetypes.SetType{
 		ElemType: WellKnownPolicies2Value{}.Type(ctx),
 	}.TerraformType(ctx)
 
@@ -46301,7 +46301,7 @@ func (v ServiceAccountsValue) String() string {
 func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	metadata3 := types.ListValueMust(
+	metadata3 := types.SetValueMust(
 		Metadata3Type{
 			basetypes.ObjectType{
 				AttrTypes: Metadata3Value{}.AttributeTypes(ctx),
@@ -46311,7 +46311,7 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 	)
 
 	if v.Metadata3.IsNull() {
-		metadata3 = types.ListNull(
+		metadata3 = types.SetNull(
 			Metadata3Type{
 				basetypes.ObjectType{
 					AttrTypes: Metadata3Value{}.AttributeTypes(ctx),
@@ -46321,7 +46321,7 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 	}
 
 	if v.Metadata3.IsUnknown() {
-		metadata3 = types.ListUnknown(
+		metadata3 = types.SetUnknown(
 			Metadata3Type{
 				basetypes.ObjectType{
 					AttrTypes: Metadata3Value{}.AttributeTypes(ctx),
@@ -46330,7 +46330,7 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 		)
 	}
 
-	status := types.ListValueMust(
+	status := types.SetValueMust(
 		StatusType{
 			basetypes.ObjectType{
 				AttrTypes: StatusValue{}.AttributeTypes(ctx),
@@ -46340,7 +46340,7 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 	)
 
 	if v.Status.IsNull() {
-		status = types.ListNull(
+		status = types.SetNull(
 			StatusType{
 				basetypes.ObjectType{
 					AttrTypes: StatusValue{}.AttributeTypes(ctx),
@@ -46350,7 +46350,7 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 	}
 
 	if v.Status.IsUnknown() {
-		status = types.ListUnknown(
+		status = types.SetUnknown(
 			StatusType{
 				basetypes.ObjectType{
 					AttrTypes: StatusValue{}.AttributeTypes(ctx),
@@ -46359,7 +46359,7 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 		)
 	}
 
-	wellKnownPolicies2 := types.ListValueMust(
+	wellKnownPolicies2 := types.SetValueMust(
 		WellKnownPolicies2Type{
 			basetypes.ObjectType{
 				AttrTypes: WellKnownPolicies2Value{}.AttributeTypes(ctx),
@@ -46369,7 +46369,7 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 	)
 
 	if v.WellKnownPolicies2.IsNull() {
-		wellKnownPolicies2 = types.ListNull(
+		wellKnownPolicies2 = types.SetNull(
 			WellKnownPolicies2Type{
 				basetypes.ObjectType{
 					AttrTypes: WellKnownPolicies2Value{}.AttributeTypes(ctx),
@@ -46379,7 +46379,7 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 	}
 
 	if v.WellKnownPolicies2.IsUnknown() {
-		wellKnownPolicies2 = types.ListUnknown(
+		wellKnownPolicies2 = types.SetUnknown(
 			WellKnownPolicies2Type{
 				basetypes.ObjectType{
 					AttrTypes: WellKnownPolicies2Value{}.AttributeTypes(ctx),
@@ -46388,38 +46388,38 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 		)
 	}
 
-	var attachPolicyArns2Val basetypes.ListValue
+	var attachPolicyArns2Val basetypes.SetValue
 	switch {
 	case v.AttachPolicyArns2.IsUnknown():
-		attachPolicyArns2Val = types.ListUnknown(types.StringType)
+		attachPolicyArns2Val = types.SetUnknown(types.StringType)
 	case v.AttachPolicyArns2.IsNull():
-		attachPolicyArns2Val = types.ListNull(types.StringType)
+		attachPolicyArns2Val = types.SetNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		attachPolicyArns2Val, d = types.ListValue(types.StringType, v.AttachPolicyArns2.Elements())
+		attachPolicyArns2Val, d = types.SetValue(types.StringType, v.AttachPolicyArns2.Elements())
 		diags.Append(d...)
 	}
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
 			"attach_policy": basetypes.StringType{},
-			"attach_policy_arns": basetypes.ListType{
+			"attach_policy_arns": basetypes.SetType{
 				ElemType: types.StringType,
 			},
 			"attach_role_arn": basetypes.StringType{},
-			"metadata": basetypes.ListType{
+			"metadata": basetypes.SetType{
 				ElemType: Metadata3Value{}.Type(ctx),
 			},
 			"permissions_boundary": basetypes.StringType{},
 			"role_name":            basetypes.StringType{},
 			"role_only":            basetypes.BoolType{},
-			"status": basetypes.ListType{
+			"status": basetypes.SetType{
 				ElemType: StatusValue{}.Type(ctx),
 			},
 			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
-			"well_known_policies": basetypes.ListType{
+			"well_known_policies": basetypes.SetType{
 				ElemType: WellKnownPolicies2Value{}.Type(ctx),
 			},
 		}), diags
@@ -46440,23 +46440,23 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
 			"attach_policy": basetypes.StringType{},
-			"attach_policy_arns": basetypes.ListType{
+			"attach_policy_arns": basetypes.SetType{
 				ElemType: types.StringType,
 			},
 			"attach_role_arn": basetypes.StringType{},
-			"metadata": basetypes.ListType{
+			"metadata": basetypes.SetType{
 				ElemType: Metadata3Value{}.Type(ctx),
 			},
 			"permissions_boundary": basetypes.StringType{},
 			"role_name":            basetypes.StringType{},
 			"role_only":            basetypes.BoolType{},
-			"status": basetypes.ListType{
+			"status": basetypes.SetType{
 				ElemType: StatusValue{}.Type(ctx),
 			},
 			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
-			"well_known_policies": basetypes.ListType{
+			"well_known_policies": basetypes.SetType{
 				ElemType: WellKnownPolicies2Value{}.Type(ctx),
 			},
 		}), diags
@@ -46464,23 +46464,23 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 
 	attributeTypes := map[string]attr.Type{
 		"attach_policy": basetypes.StringType{},
-		"attach_policy_arns": basetypes.ListType{
+		"attach_policy_arns": basetypes.SetType{
 			ElemType: types.StringType,
 		},
 		"attach_role_arn": basetypes.StringType{},
-		"metadata": basetypes.ListType{
+		"metadata": basetypes.SetType{
 			ElemType: Metadata3Value{}.Type(ctx),
 		},
 		"permissions_boundary": basetypes.StringType{},
 		"role_name":            basetypes.StringType{},
 		"role_only":            basetypes.BoolType{},
-		"status": basetypes.ListType{
+		"status": basetypes.SetType{
 			ElemType: StatusValue{}.Type(ctx),
 		},
 		"tags": basetypes.MapType{
 			ElemType: types.StringType,
 		},
-		"well_known_policies": basetypes.ListType{
+		"well_known_policies": basetypes.SetType{
 			ElemType: WellKnownPolicies2Value{}.Type(ctx),
 		},
 	}
@@ -46580,23 +46580,23 @@ func (v ServiceAccountsValue) Type(ctx context.Context) attr.Type {
 func (v ServiceAccountsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"attach_policy": basetypes.StringType{},
-		"attach_policy_arns": basetypes.ListType{
+		"attach_policy_arns": basetypes.SetType{
 			ElemType: types.StringType,
 		},
 		"attach_role_arn": basetypes.StringType{},
-		"metadata": basetypes.ListType{
+		"metadata": basetypes.SetType{
 			ElemType: Metadata3Value{}.Type(ctx),
 		},
 		"permissions_boundary": basetypes.StringType{},
 		"role_name":            basetypes.StringType{},
 		"role_only":            basetypes.BoolType{},
-		"status": basetypes.ListType{
+		"status": basetypes.SetType{
 			ElemType: StatusValue{}.Type(ctx),
 		},
 		"tags": basetypes.MapType{
 			ElemType: types.StringType,
 		},
-		"well_known_policies": basetypes.ListType{
+		"well_known_policies": basetypes.SetType{
 			ElemType: WellKnownPolicies2Value{}.Type(ctx),
 		},
 	}
@@ -48166,12 +48166,12 @@ func (t IdentityMappingsType) ValueFromObject(ctx context.Context, in basetypes.
 		return nil, diags
 	}
 
-	accountsVal, ok := accountsAttribute.(basetypes.ListValue)
+	accountsVal, ok := accountsAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`accounts expected to be basetypes.ListValue, was: %T`, accountsAttribute))
+			fmt.Sprintf(`accounts expected to be basetypes.SetValue, was: %T`, accountsAttribute))
 	}
 
 	arnsAttribute, ok := attributes["arns"]
@@ -48184,12 +48184,12 @@ func (t IdentityMappingsType) ValueFromObject(ctx context.Context, in basetypes.
 		return nil, diags
 	}
 
-	arnsVal, ok := arnsAttribute.(basetypes.ListValue)
+	arnsVal, ok := arnsAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`arns expected to be basetypes.ListValue, was: %T`, arnsAttribute))
+			fmt.Sprintf(`arns expected to be basetypes.SetValue, was: %T`, arnsAttribute))
 	}
 
 	if diags.HasError() {
@@ -48276,12 +48276,12 @@ func NewIdentityMappingsValue(attributeTypes map[string]attr.Type, attributes ma
 		return NewIdentityMappingsValueUnknown(), diags
 	}
 
-	accountsVal, ok := accountsAttribute.(basetypes.ListValue)
+	accountsVal, ok := accountsAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`accounts expected to be basetypes.ListValue, was: %T`, accountsAttribute))
+			fmt.Sprintf(`accounts expected to be basetypes.SetValue, was: %T`, accountsAttribute))
 	}
 
 	arnsAttribute, ok := attributes["arns"]
@@ -48294,12 +48294,12 @@ func NewIdentityMappingsValue(attributeTypes map[string]attr.Type, attributes ma
 		return NewIdentityMappingsValueUnknown(), diags
 	}
 
-	arnsVal, ok := arnsAttribute.(basetypes.ListValue)
+	arnsVal, ok := arnsAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`arns expected to be basetypes.ListValue, was: %T`, arnsAttribute))
+			fmt.Sprintf(`arns expected to be basetypes.SetValue, was: %T`, arnsAttribute))
 	}
 
 	if diags.HasError() {
@@ -48381,8 +48381,8 @@ func (t IdentityMappingsType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = IdentityMappingsValue{}
 
 type IdentityMappingsValue struct {
-	Accounts basetypes.ListValue `tfsdk:"accounts"`
-	Arns     basetypes.ListValue `tfsdk:"arns"`
+	Accounts basetypes.SetValue `tfsdk:"accounts"`
+	Arns     basetypes.SetValue `tfsdk:"arns"`
 	state    attr.ValueState
 }
 
@@ -48392,10 +48392,10 @@ func (v IdentityMappingsValue) ToTerraformValue(ctx context.Context) (tftypes.Va
 	var val tftypes.Value
 	var err error
 
-	attrTypes["accounts"] = basetypes.ListType{
+	attrTypes["accounts"] = basetypes.SetType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
-	attrTypes["arns"] = basetypes.ListType{
+	attrTypes["arns"] = basetypes.SetType{
 		ElemType: ArnsValue{}.Type(ctx),
 	}.TerraformType(ctx)
 
@@ -48450,7 +48450,7 @@ func (v IdentityMappingsValue) String() string {
 func (v IdentityMappingsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	arns := types.ListValueMust(
+	arns := types.SetValueMust(
 		ArnsType{
 			basetypes.ObjectType{
 				AttrTypes: ArnsValue{}.AttributeTypes(ctx),
@@ -48460,7 +48460,7 @@ func (v IdentityMappingsValue) ToObjectValue(ctx context.Context) (basetypes.Obj
 	)
 
 	if v.Arns.IsNull() {
-		arns = types.ListNull(
+		arns = types.SetNull(
 			ArnsType{
 				basetypes.ObjectType{
 					AttrTypes: ArnsValue{}.AttributeTypes(ctx),
@@ -48470,7 +48470,7 @@ func (v IdentityMappingsValue) ToObjectValue(ctx context.Context) (basetypes.Obj
 	}
 
 	if v.Arns.IsUnknown() {
-		arns = types.ListUnknown(
+		arns = types.SetUnknown(
 			ArnsType{
 				basetypes.ObjectType{
 					AttrTypes: ArnsValue{}.AttributeTypes(ctx),
@@ -48479,34 +48479,34 @@ func (v IdentityMappingsValue) ToObjectValue(ctx context.Context) (basetypes.Obj
 		)
 	}
 
-	var accountsVal basetypes.ListValue
+	var accountsVal basetypes.SetValue
 	switch {
 	case v.Accounts.IsUnknown():
-		accountsVal = types.ListUnknown(types.StringType)
+		accountsVal = types.SetUnknown(types.StringType)
 	case v.Accounts.IsNull():
-		accountsVal = types.ListNull(types.StringType)
+		accountsVal = types.SetNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		accountsVal, d = types.ListValue(types.StringType, v.Accounts.Elements())
+		accountsVal, d = types.SetValue(types.StringType, v.Accounts.Elements())
 		diags.Append(d...)
 	}
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
-			"accounts": basetypes.ListType{
+			"accounts": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"arns": basetypes.ListType{
+			"arns": basetypes.SetType{
 				ElemType: ArnsValue{}.Type(ctx),
 			},
 		}), diags
 	}
 
 	attributeTypes := map[string]attr.Type{
-		"accounts": basetypes.ListType{
+		"accounts": basetypes.SetType{
 			ElemType: types.StringType,
 		},
-		"arns": basetypes.ListType{
+		"arns": basetypes.SetType{
 			ElemType: ArnsValue{}.Type(ctx),
 		},
 	}
@@ -48565,10 +48565,10 @@ func (v IdentityMappingsValue) Type(ctx context.Context) attr.Type {
 
 func (v IdentityMappingsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"accounts": basetypes.ListType{
+		"accounts": basetypes.SetType{
 			ElemType: types.StringType,
 		},
-		"arns": basetypes.ListType{
+		"arns": basetypes.SetType{
 			ElemType: ArnsValue{}.Type(ctx),
 		},
 	}
@@ -48627,12 +48627,12 @@ func (t ArnsType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue)
 		return nil, diags
 	}
 
-	groupVal, ok := groupAttribute.(basetypes.ListValue)
+	groupVal, ok := groupAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`group expected to be basetypes.ListValue, was: %T`, groupAttribute))
+			fmt.Sprintf(`group expected to be basetypes.SetValue, was: %T`, groupAttribute))
 	}
 
 	usernameAttribute, ok := attributes["username"]
@@ -48756,12 +48756,12 @@ func NewArnsValue(attributeTypes map[string]attr.Type, attributes map[string]att
 		return NewArnsValueUnknown(), diags
 	}
 
-	groupVal, ok := groupAttribute.(basetypes.ListValue)
+	groupVal, ok := groupAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`group expected to be basetypes.ListValue, was: %T`, groupAttribute))
+			fmt.Sprintf(`group expected to be basetypes.SetValue, was: %T`, groupAttribute))
 	}
 
 	usernameAttribute, ok := attributes["username"]
@@ -48863,7 +48863,7 @@ var _ basetypes.ObjectValuable = ArnsValue{}
 
 type ArnsValue struct {
 	Arn      basetypes.StringValue `tfsdk:"arn"`
-	Group    basetypes.ListValue   `tfsdk:"group"`
+	Group    basetypes.SetValue    `tfsdk:"group"`
 	Username basetypes.StringValue `tfsdk:"username"`
 	state    attr.ValueState
 }
@@ -48875,7 +48875,7 @@ func (v ArnsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) 
 	var err error
 
 	attrTypes["arn"] = basetypes.StringType{}.TerraformType(ctx)
-	attrTypes["group"] = basetypes.ListType{
+	attrTypes["group"] = basetypes.SetType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["username"] = basetypes.StringType{}.TerraformType(ctx)
@@ -48939,22 +48939,22 @@ func (v ArnsValue) String() string {
 func (v ArnsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	var groupVal basetypes.ListValue
+	var groupVal basetypes.SetValue
 	switch {
 	case v.Group.IsUnknown():
-		groupVal = types.ListUnknown(types.StringType)
+		groupVal = types.SetUnknown(types.StringType)
 	case v.Group.IsNull():
-		groupVal = types.ListNull(types.StringType)
+		groupVal = types.SetNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		groupVal, d = types.ListValue(types.StringType, v.Group.Elements())
+		groupVal, d = types.SetValue(types.StringType, v.Group.Elements())
 		diags.Append(d...)
 	}
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
 			"arn": basetypes.StringType{},
-			"group": basetypes.ListType{
+			"group": basetypes.SetType{
 				ElemType: types.StringType,
 			},
 			"username": basetypes.StringType{},
@@ -48963,7 +48963,7 @@ func (v ArnsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 
 	attributeTypes := map[string]attr.Type{
 		"arn": basetypes.StringType{},
-		"group": basetypes.ListType{
+		"group": basetypes.SetType{
 			ElemType: types.StringType,
 		},
 		"username": basetypes.StringType{},
@@ -49029,7 +49029,7 @@ func (v ArnsValue) Type(ctx context.Context) attr.Type {
 func (v ArnsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"arn": basetypes.StringType{},
-		"group": basetypes.ListType{
+		"group": basetypes.SetType{
 			ElemType: types.StringType,
 		},
 		"username": basetypes.StringType{},

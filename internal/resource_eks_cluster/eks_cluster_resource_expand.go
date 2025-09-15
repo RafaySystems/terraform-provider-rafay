@@ -39,7 +39,7 @@ func getFloat64Value(tfFloat types.Float64) float64 {
 
 func ExpandEksCluster(ctx context.Context, v EksClusterModel) (*rafay.EKSCluster, diag.Diagnostics) {
 	var diags, d diag.Diagnostics
-	var cluster *rafay.EKSCluster
+	cluster := &rafay.EKSCluster{}
 
 	if v.Cluster.IsNull() {
 		return &rafay.EKSCluster{}, diags
@@ -89,6 +89,8 @@ func (v ClusterValue) Expand(ctx context.Context) (*rafay.EKSCluster, diag.Diagn
 	vMetadataList := make([]MetadataValue, 0, len(v.Metadata.Elements()))
 	diags = v.Metadata.ElementsAs(ctx, &vMetadataList, false)
 	if len(vMetadataList) > 0 {
+		md := rafay.EKSClusterMetadata{}
+		cluster.Metadata = &md
 		cluster.Metadata, d = vMetadataList[0].Expand(ctx)
 		diags = append(diags, d...)
 	}
@@ -122,6 +124,7 @@ func (v MetadataValue) Expand(ctx context.Context) (*rafay.EKSClusterMetadata, d
 	d = v.Labels.ElementsAs(ctx, &vLabels, false)
 	diags = append(diags, d...)
 	if len(vLabels) > 0 {
+		metadata.Labels = make(map[string]string, len(vLabels))
 		for k, val := range vLabels {
 			metadata.Labels[k] = getStringValue(val)
 		}
@@ -1762,13 +1765,13 @@ func (v CloudWatchValue) Expand(ctx context.Context) (*rafay.EKSClusterCloudWatc
 		return &rafay.EKSClusterCloudWatch{}, diags
 	}
 
-	// Map cloud_logging block
-	if !v.CloudLogging.IsNull() && !v.CloudLogging.IsUnknown() {
-		vCloudLoggingList := make([]CloudLoggingValue, 0, len(v.CloudLogging.Elements()))
-		d = v.CloudLogging.ElementsAs(ctx, &vCloudLoggingList, false)
+	// Map cluster_logging block
+	if !v.ClusterLogging.IsNull() && !v.ClusterLogging.IsUnknown() {
+		vClusterLoggingList := make([]ClusterLoggingValue, 0, len(v.ClusterLogging.Elements()))
+		d = v.ClusterLogging.ElementsAs(ctx, &vClusterLoggingList, false)
 		diags = append(diags, d...)
-		if len(vCloudLoggingList) > 0 {
-			clusterLogging, d := vCloudLoggingList[0].Expand(ctx)
+		if len(vClusterLoggingList) > 0 {
+			clusterLogging, d := vClusterLoggingList[0].Expand(ctx)
 			diags = append(diags, d...)
 			cw.ClusterLogging = clusterLogging
 		}
@@ -1778,7 +1781,7 @@ func (v CloudWatchValue) Expand(ctx context.Context) (*rafay.EKSClusterCloudWatc
 }
 
 // CloudLoggingValue Expand
-func (v CloudLoggingValue) Expand(ctx context.Context) (*rafay.EKSClusterCloudWatchLogging, diag.Diagnostics) {
+func (v ClusterLoggingValue) Expand(ctx context.Context) (*rafay.EKSClusterCloudWatchLogging, diag.Diagnostics) {
 	var diags, d diag.Diagnostics
 	var logging rafay.EKSClusterCloudWatchLogging
 

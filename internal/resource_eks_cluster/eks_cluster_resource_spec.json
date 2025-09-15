@@ -3047,7 +3047,6 @@
                                                                         "computed_optional_required": "optional"
                                                                     }
                                                                 },
-                                                                
                                                                 {
                                                                     "name": "tags",
                                                                     "map": {
@@ -3124,12 +3123,12 @@
                                                 },
                                                 {
                                                     "name": "service_accounts",
-                                                    "list_nested": {
+                                                    "set_nested": {
                                                         "nested_object": {
                                                             "attributes": [
                                                                 {
                                                                     "name": "attach_policy_arns2",
-                                                                    "list": {
+                                                                    "set": {
                                                                         "description": "CIDR range from where ClusterIPs are assigned.",
                                                                         "computed_optional_required": "optional",
                                                                         "element_type": {
@@ -3186,7 +3185,7 @@
                                                             "blocks": [
                                                                 {
                                                                     "name": "metadata3",
-                                                                    "list_nested": {
+                                                                    "set_nested": {
                                                                         "nested_object": {
                                                                             "attributes": [
                                                                                 {
@@ -3229,7 +3228,7 @@
                                                                 },
                                                                 {
                                                                     "name": "well_known_policies2",
-                                                                    "list_nested": {
+                                                                    "set_nested": {
                                                                         "nested_object": {
                                                                             "attributes": [
                                                                                 {
@@ -3287,7 +3286,7 @@
                                                                 },
                                                                 {
                                                                     "name": "status",
-                                                                    "list_nested": {
+                                                                    "set_nested": {
                                                                         "nested_object": {
                                                                             "attributes": [
                                                                                 {
@@ -4792,7 +4791,7 @@
                                             "attributes": [],
                                             "blocks": [
                                                 {
-                                                    "name": "cloud_logging",
+                                                    "name": "cluster_logging",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [
@@ -4846,12 +4845,12 @@
                                 },
                                 {
                                     "name": "identity_mappings",
-                                    "list_nested": {
+                                    "set_nested": {
                                         "nested_object": {
                                             "attributes": [
                                                 {
                                                     "name": "accounts",
-                                                    "list": {
+                                                    "set": {
                                                         "description": "List of IAM accounts to map.",
                                                         "element_type": {
                                                             "string": {}
@@ -4863,7 +4862,7 @@
                                             "blocks": [
                                                 {
                                                     "name": "arns",
-                                                    "list_nested": {
+                                                    "set_nested": {
                                                         "nested_object": {
                                                             "attributes": [
                                                                 {
@@ -4882,7 +4881,7 @@
                                                                 },
                                                                 {
                                                                     "name": "group",
-                                                                    "list": {
+                                                                    "set": {
                                                                         "description": "List of kubernetes groups to be mapped to.",
                                                                         "element_type": {
                                                                             "string": {}

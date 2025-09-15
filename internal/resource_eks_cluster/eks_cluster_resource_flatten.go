@@ -572,10 +572,10 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		identityMappings := NewIdentityMappingsValueNull()
 		d = identityMappings.Flatten(ctx, in.IdentityMappings)
 		diags = append(diags, d...)
-		v.IdentityMappings, d = types.ListValue(IdentityMappingsValue{}.Type(ctx), []attr.Value{identityMappings})
+		v.IdentityMappings, d = types.SetValue(IdentityMappingsValue{}.Type(ctx), []attr.Value{identityMappings})
 		diags = append(diags, d...)
 	} else {
-		v.IdentityMappings = types.ListNull(IdentityMappingsValue{}.Type(ctx))
+		v.IdentityMappings = types.SetNull(IdentityMappingsValue{}.Type(ctx))
 	}
 
 	if in.AccessConfig != nil {
@@ -789,18 +789,18 @@ func (v *IdentityMappingsValue) Flatten(ctx context.Context, in *rafay.EKSCluste
 		return diags
 	}
 
-	accounts := types.ListNull(types.StringType)
+	accounts := types.SetNull(types.StringType)
 	if in.Accounts != nil && len(in.Accounts) > 0 {
 		accountsList := []attr.Value{}
 		for _, account := range in.Accounts {
 			accountsList = append(accountsList, types.StringValue(account))
 		}
-		accounts, d = types.ListValue(types.StringType, accountsList)
+		accounts, d = types.SetValue(types.StringType, accountsList)
 		diags = append(diags, d...)
 	}
 	v.Accounts = accounts
 
-	arns := types.ListNull(ArnsValue{}.Type(ctx))
+	arns := types.SetNull(ArnsValue{}.Type(ctx))
 	if in.Arns != nil && len(in.Arns) > 0 {
 		arnElements := []attr.Value{}
 		for _, arn := range in.Arns {
@@ -809,7 +809,7 @@ func (v *IdentityMappingsValue) Flatten(ctx context.Context, in *rafay.EKSCluste
 			diags = append(diags, d...)
 			arnElements = append(arnElements, arnsValue)
 		}
-		arns, d = types.ListValue(ArnsValue{}.Type(ctx), arnElements)
+		arns, d = types.SetValue(ArnsValue{}.Type(ctx), arnElements)
 		diags = append(diags, d...)
 	}
 	v.Arns = arns
@@ -830,13 +830,13 @@ func (v *ArnsValue) Flatten(ctx context.Context, in *rafay.IdentityMappingARN) d
 	if in.Username != "" {
 		v.Username = types.StringValue(in.Username)
 	}
-	group := types.ListNull(types.StringType)
+	group := types.SetNull(types.StringType)
 	if len(in.Group) > 0 {
 		groups := []attr.Value{}
 		for _, groupItem := range in.Group {
 			groups = append(groups, types.StringValue(groupItem))
 		}
-		group, d = types.ListValue(types.StringType, groups)
+		group, d = types.SetValue(types.StringType, groups)
 		diags = append(diags, d...)
 	}
 	v.Group = group
@@ -869,20 +869,20 @@ func (v *CloudWatchValue) Flatten(ctx context.Context, in *rafay.EKSClusterCloud
 	}
 
 	if in.ClusterLogging != nil {
-		cloudLogging := NewCloudLoggingValueNull()
-		d = cloudLogging.Flatten(ctx, in.ClusterLogging)
+		clusterLogging := NewClusterLoggingValueNull()
+		d = clusterLogging.Flatten(ctx, in.ClusterLogging)
 		diags = append(diags, d...)
-		v.CloudLogging, d = types.ListValue(CloudLoggingValue{}.Type(ctx), []attr.Value{cloudLogging})
+		v.ClusterLogging, d = types.ListValue(ClusterLoggingValue{}.Type(ctx), []attr.Value{clusterLogging})
 		diags = append(diags, d...)
 	} else {
-		v.CloudLogging = types.ListNull(CloudLoggingValue{}.Type(ctx))
+		v.ClusterLogging = types.ListNull(ClusterLoggingValue{}.Type(ctx))
 	}
 
 	v.state = attr.ValueStateKnown
 	return diags
 }
 
-func (v *CloudLoggingValue) Flatten(ctx context.Context, in *rafay.EKSClusterCloudWatchLogging) diag.Diagnostics {
+func (v *ClusterLoggingValue) Flatten(ctx context.Context, in *rafay.EKSClusterCloudWatchLogging) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 	if in == nil {
 		return diags
@@ -1567,7 +1567,7 @@ func (v *Iam3Value) Flatten(ctx context.Context, in *rafay.EKSClusterIAM) diag.D
 	}
 	v.PodIdentityAssociations = podIdentityAssociations
 
-	serviceAccounts := types.ListNull(ServiceAccountsValue{}.Type(ctx))
+	serviceAccounts := types.SetNull(ServiceAccountsValue{}.Type(ctx))
 	if len(in.ServiceAccounts) > 0 {
 		serviceAccountsList := []attr.Value{}
 		for _, sa := range in.ServiceAccounts {
@@ -1576,7 +1576,7 @@ func (v *Iam3Value) Flatten(ctx context.Context, in *rafay.EKSClusterIAM) diag.D
 			diags = append(diags, d...)
 			serviceAccountsList = append(serviceAccountsList, serviceAccount)
 		}
-		serviceAccounts, d = types.ListValue(ServiceAccountsValue{}.Type(ctx), serviceAccountsList)
+		serviceAccounts, d = types.SetValue(ServiceAccountsValue{}.Type(ctx), serviceAccountsList)
 		diags = append(diags, d...)
 	}
 	v.ServiceAccounts = serviceAccounts
@@ -1591,13 +1591,13 @@ func (v *ServiceAccountsValue) Flatten(ctx context.Context, in *rafay.EKSCluster
 		return diags
 	}
 
-	attachPolicyArns2 := types.ListNull(types.StringType)
+	attachPolicyArns2 := types.SetNull(types.StringType)
 	if len(in.AttachPolicyARNs) > 0 {
 		arns := []attr.Value{}
 		for _, arn := range in.AttachPolicyARNs {
 			arns = append(arns, types.StringValue(arn))
 		}
-		attachPolicyArns2, d = types.ListValue(types.StringType, arns)
+		attachPolicyArns2, d = types.SetValue(types.StringType, arns)
 		diags = append(diags, d...)
 	}
 	v.AttachPolicyArns2 = attachPolicyArns2
@@ -1637,30 +1637,30 @@ func (v *ServiceAccountsValue) Flatten(ctx context.Context, in *rafay.EKSCluster
 		md := NewMetadata3ValueNull()
 		d = md.Flatten(ctx, in.Metadata)
 		diags = append(diags, d...)
-		v.Metadata3, d = types.ListValue(Metadata3Value{}.Type(ctx), []attr.Value{md})
+		v.Metadata3, d = types.SetValue(Metadata3Value{}.Type(ctx), []attr.Value{md})
 		diags = append(diags, d...)
 	} else {
-		v.Metadata3 = types.ListNull(Metadata3Value{}.Type(ctx))
+		v.Metadata3 = types.SetNull(Metadata3Value{}.Type(ctx))
 	}
 
 	if in.WellKnownPolicies != nil {
 		policies := NewWellKnownPolicies2ValueNull()
 		d = policies.Flatten(ctx, in.WellKnownPolicies)
 		diags = append(diags, d...)
-		v.WellKnownPolicies2, d = types.ListValue(WellKnownPolicies2Value{}.Type(ctx), []attr.Value{policies})
+		v.WellKnownPolicies2, d = types.SetValue(WellKnownPolicies2Value{}.Type(ctx), []attr.Value{policies})
 		diags = append(diags, d...)
 	} else {
-		v.WellKnownPolicies2 = types.ListNull(WellKnownPolicies2Value{}.Type(ctx))
+		v.WellKnownPolicies2 = types.SetNull(WellKnownPolicies2Value{}.Type(ctx))
 	}
 
 	if in.Status != nil {
 		status := NewStatusValueNull()
 		d = status.Flatten(ctx, in.Status)
 		diags = append(diags, d...)
-		v.Status, d = types.ListValue(StatusValue{}.Type(ctx), []attr.Value{status})
+		v.Status, d = types.SetValue(StatusValue{}.Type(ctx), []attr.Value{status})
 		diags = append(diags, d...)
 	} else {
-		v.Status = types.ListNull(StatusValue{}.Type(ctx))
+		v.Status = types.SetNull(StatusValue{}.Type(ctx))
 	}
 
 	v.state = attr.ValueStateKnown

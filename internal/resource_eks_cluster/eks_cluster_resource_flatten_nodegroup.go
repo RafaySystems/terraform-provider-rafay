@@ -300,13 +300,13 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	}
 
 	if in.SecurityGroups != nil {
-		secGroup := NewSecurityGroups2ValueNull()
+		secGroup := NewSecurityGroupsValueNull()
 		d = secGroup.Flatten(ctx, in.SecurityGroups)
 		diags = append(diags, d...)
-		v.SecurityGroups2, d = types.ListValue(SecurityGroups2Value{}.Type(ctx), []attr.Value{secGroup})
+		v.SecurityGroups, d = types.ListValue(SecurityGroupsValue{}.Type(ctx), []attr.Value{secGroup})
 		diags = append(diags, d...)
 	} else {
-		v.SecurityGroups2 = types.ListNull(SecurityGroups2Value{}.Type(ctx))
+		v.SecurityGroups = types.ListNull(SecurityGroupsValue{}.Type(ctx))
 	}
 
 	v.state = attr.ValueStateKnown
@@ -558,7 +558,7 @@ func (v *SshValue) Flatten(ctx context.Context, in *rafay.NodeGroupSSH) diag.Dia
 	return diags
 }
 
-func (v *SecurityGroups2Value) Flatten(ctx context.Context, in *rafay.NodeGroupSGs) diag.Diagnostics {
+func (v *SecurityGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroupSGs) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 	if in == nil {
 		return diags

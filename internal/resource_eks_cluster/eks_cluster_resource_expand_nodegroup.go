@@ -293,12 +293,12 @@ func (v NodeGroupsValue) Expand(ctx context.Context) (*rafay.NodeGroup, diag.Dia
 		}
 	}
 
-	if !v.SecurityGroups2.IsNull() && !v.SecurityGroups2.IsUnknown() {
-		vSecurityGroups2List := make([]SecurityGroups2Value, 0, len(v.SecurityGroups2.Elements()))
-		d = v.SecurityGroups2.ElementsAs(ctx, &vSecurityGroups2List, false)
+	if !v.SecurityGroups.IsNull() && !v.SecurityGroups.IsUnknown() {
+		vSecurityGroupsList := make([]SecurityGroupsValue, 0, len(v.SecurityGroups.Elements()))
+		d = v.SecurityGroups.ElementsAs(ctx, &vSecurityGroupsList, false)
 		diags = append(diags, d...)
-		if len(vSecurityGroups2List) > 0 {
-			ng.SecurityGroups, d = vSecurityGroups2List[0].Expand(ctx)
+		if len(vSecurityGroupsList) > 0 {
+			ng.SecurityGroups, d = vSecurityGroupsList[0].Expand(ctx)
 			diags = append(diags, d...)
 		}
 	}
@@ -845,7 +845,7 @@ func (v KubeletExtraConfigValue) Expand(ctx context.Context) (*rafay.KubeletExtr
 }
 
 // SecurityGroups2Value Expand
-func (v SecurityGroups2Value) Expand(ctx context.Context) (*rafay.NodeGroupSGs, diag.Diagnostics) {
+func (v SecurityGroupsValue) Expand(ctx context.Context) (*rafay.NodeGroupSGs, diag.Diagnostics) {
 	var diags, d diag.Diagnostics
 	var sgs rafay.NodeGroupSGs
 

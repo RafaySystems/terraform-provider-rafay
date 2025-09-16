@@ -127,7 +127,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 															"cni_spec": schema.ListNestedBlock{
 																NestedObject: schema.NestedBlockObject{
 																	Attributes: map[string]schema.Attribute{
-																		"security_groups": schema.ListAttribute{
+																		"security_groups2": schema.ListAttribute{
 																			ElementType:         types.StringType,
 																			Optional:            true,
 																			Description:         "The security groups associated with secondary ENIs for AWS EC2 nodes.",
@@ -3555,7 +3555,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											},
 										},
 									},
-									"security_groups2": schema.ListNestedBlock{
+									"security_groups": schema.ListNestedBlock{
 										NestedObject: schema.NestedBlockObject{
 											Attributes: map[string]schema.Attribute{
 												"attach_ids": schema.ListAttribute{
@@ -3575,9 +3575,9 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 													MarkdownDescription: "attach the security group shared among all nodegroups in the cluster",
 												},
 											},
-											CustomType: SecurityGroups2Type{
+											CustomType: SecurityGroupsType{
 												ObjectType: types.ObjectType{
-													AttrTypes: SecurityGroups2Value{}.AttributeTypes(ctx),
+													AttrTypes: SecurityGroupsValue{}.AttributeTypes(ctx),
 												},
 											},
 										},
@@ -6706,22 +6706,22 @@ func (t CniSpecType) ValueFromObject(ctx context.Context, in basetypes.ObjectVal
 
 	attributes := in.Attributes()
 
-	securityGroupsAttribute, ok := attributes["security_groups"]
+	securityGroups2Attribute, ok := attributes["security_groups2"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`security_groups is missing from object`)
+			`security_groups2 is missing from object`)
 
 		return nil, diags
 	}
 
-	securityGroupsVal, ok := securityGroupsAttribute.(basetypes.ListValue)
+	securityGroups2Val, ok := securityGroups2Attribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`security_groups expected to be basetypes.ListValue, was: %T`, securityGroupsAttribute))
+			fmt.Sprintf(`security_groups2 expected to be basetypes.ListValue, was: %T`, securityGroups2Attribute))
 	}
 
 	subnetAttribute, ok := attributes["subnet"]
@@ -6747,9 +6747,9 @@ func (t CniSpecType) ValueFromObject(ctx context.Context, in basetypes.ObjectVal
 	}
 
 	return CniSpecValue{
-		SecurityGroups: securityGroupsVal,
-		Subnet:         subnetVal,
-		state:          attr.ValueStateKnown,
+		SecurityGroups2: securityGroups2Val,
+		Subnet:          subnetVal,
+		state:           attr.ValueStateKnown,
 	}, diags
 }
 
@@ -6816,22 +6816,22 @@ func NewCniSpecValue(attributeTypes map[string]attr.Type, attributes map[string]
 		return NewCniSpecValueUnknown(), diags
 	}
 
-	securityGroupsAttribute, ok := attributes["security_groups"]
+	securityGroups2Attribute, ok := attributes["security_groups2"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`security_groups is missing from object`)
+			`security_groups2 is missing from object`)
 
 		return NewCniSpecValueUnknown(), diags
 	}
 
-	securityGroupsVal, ok := securityGroupsAttribute.(basetypes.ListValue)
+	securityGroups2Val, ok := securityGroups2Attribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`security_groups expected to be basetypes.ListValue, was: %T`, securityGroupsAttribute))
+			fmt.Sprintf(`security_groups2 expected to be basetypes.ListValue, was: %T`, securityGroups2Attribute))
 	}
 
 	subnetAttribute, ok := attributes["subnet"]
@@ -6857,9 +6857,9 @@ func NewCniSpecValue(attributeTypes map[string]attr.Type, attributes map[string]
 	}
 
 	return CniSpecValue{
-		SecurityGroups: securityGroupsVal,
-		Subnet:         subnetVal,
-		state:          attr.ValueStateKnown,
+		SecurityGroups2: securityGroups2Val,
+		Subnet:          subnetVal,
+		state:           attr.ValueStateKnown,
 	}, diags
 }
 
@@ -6931,9 +6931,9 @@ func (t CniSpecType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = CniSpecValue{}
 
 type CniSpecValue struct {
-	SecurityGroups basetypes.ListValue   `tfsdk:"security_groups"`
-	Subnet         basetypes.StringValue `tfsdk:"subnet"`
-	state          attr.ValueState
+	SecurityGroups2 basetypes.ListValue   `tfsdk:"security_groups2"`
+	Subnet          basetypes.StringValue `tfsdk:"subnet"`
+	state           attr.ValueState
 }
 
 func (v CniSpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
@@ -6942,7 +6942,7 @@ func (v CniSpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 	var val tftypes.Value
 	var err error
 
-	attrTypes["security_groups"] = basetypes.ListType{
+	attrTypes["security_groups2"] = basetypes.ListType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["subnet"] = basetypes.StringType{}.TerraformType(ctx)
@@ -6953,13 +6953,13 @@ func (v CniSpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 	case attr.ValueStateKnown:
 		vals := make(map[string]tftypes.Value, 2)
 
-		val, err = v.SecurityGroups.ToTerraformValue(ctx)
+		val, err = v.SecurityGroups2.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["security_groups"] = val
+		vals["security_groups2"] = val
 
 		val, err = v.Subnet.ToTerraformValue(ctx)
 
@@ -6998,21 +6998,21 @@ func (v CniSpecValue) String() string {
 func (v CniSpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	var securityGroupsVal basetypes.ListValue
+	var securityGroups2Val basetypes.ListValue
 	switch {
-	case v.SecurityGroups.IsUnknown():
-		securityGroupsVal = types.ListUnknown(types.StringType)
-	case v.SecurityGroups.IsNull():
-		securityGroupsVal = types.ListNull(types.StringType)
+	case v.SecurityGroups2.IsUnknown():
+		securityGroups2Val = types.ListUnknown(types.StringType)
+	case v.SecurityGroups2.IsNull():
+		securityGroups2Val = types.ListNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		securityGroupsVal, d = types.ListValue(types.StringType, v.SecurityGroups.Elements())
+		securityGroups2Val, d = types.ListValue(types.StringType, v.SecurityGroups2.Elements())
 		diags.Append(d...)
 	}
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
-			"security_groups": basetypes.ListType{
+			"security_groups2": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"subnet": basetypes.StringType{},
@@ -7020,7 +7020,7 @@ func (v CniSpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 	}
 
 	attributeTypes := map[string]attr.Type{
-		"security_groups": basetypes.ListType{
+		"security_groups2": basetypes.ListType{
 			ElemType: types.StringType,
 		},
 		"subnet": basetypes.StringType{},
@@ -7037,8 +7037,8 @@ func (v CniSpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"security_groups": securityGroupsVal,
-			"subnet":          v.Subnet,
+			"security_groups2": securityGroups2Val,
+			"subnet":           v.Subnet,
 		})
 
 	return objVal, diags
@@ -7059,7 +7059,7 @@ func (v CniSpecValue) Equal(o attr.Value) bool {
 		return true
 	}
 
-	if !v.SecurityGroups.Equal(other.SecurityGroups) {
+	if !v.SecurityGroups2.Equal(other.SecurityGroups2) {
 		return false
 	}
 
@@ -7080,7 +7080,7 @@ func (v CniSpecValue) Type(ctx context.Context) attr.Type {
 
 func (v CniSpecValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"security_groups": basetypes.ListType{
+		"security_groups2": basetypes.ListType{
 			ElemType: types.StringType,
 		},
 		"subnet": basetypes.StringType{},
@@ -61015,22 +61015,22 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 			fmt.Sprintf(`private_networking expected to be basetypes.BoolValue, was: %T`, privateNetworkingAttribute))
 	}
 
-	securityGroups2Attribute, ok := attributes["security_groups2"]
+	securityGroupsAttribute, ok := attributes["security_groups"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`security_groups2 is missing from object`)
+			`security_groups is missing from object`)
 
 		return nil, diags
 	}
 
-	securityGroups2Val, ok := securityGroups2Attribute.(basetypes.ListValue)
+	securityGroupsVal, ok := securityGroupsAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`security_groups2 expected to be basetypes.ListValue, was: %T`, securityGroups2Attribute))
+			fmt.Sprintf(`security_groups expected to be basetypes.ListValue, was: %T`, securityGroupsAttribute))
 	}
 
 	sshAttribute, ok := attributes["ssh"]
@@ -61339,7 +61339,7 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 		Placement:                placementVal,
 		PreBootstrapCommands:     preBootstrapCommandsVal,
 		PrivateNetworking:        privateNetworkingVal,
-		SecurityGroups2:          securityGroups2Val,
+		SecurityGroups:           securityGroupsVal,
 		Ssh:                      sshVal,
 		SubnetCidr:               subnetCidrVal,
 		Subnets:                  subnetsVal,
@@ -61980,22 +61980,22 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 			fmt.Sprintf(`private_networking expected to be basetypes.BoolValue, was: %T`, privateNetworkingAttribute))
 	}
 
-	securityGroups2Attribute, ok := attributes["security_groups2"]
+	securityGroupsAttribute, ok := attributes["security_groups"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`security_groups2 is missing from object`)
+			`security_groups is missing from object`)
 
 		return NewNodeGroupsValueUnknown(), diags
 	}
 
-	securityGroups2Val, ok := securityGroups2Attribute.(basetypes.ListValue)
+	securityGroupsVal, ok := securityGroupsAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`security_groups2 expected to be basetypes.ListValue, was: %T`, securityGroups2Attribute))
+			fmt.Sprintf(`security_groups expected to be basetypes.ListValue, was: %T`, securityGroupsAttribute))
 	}
 
 	sshAttribute, ok := attributes["ssh"]
@@ -62304,7 +62304,7 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 		Placement:                placementVal,
 		PreBootstrapCommands:     preBootstrapCommandsVal,
 		PrivateNetworking:        privateNetworkingVal,
-		SecurityGroups2:          securityGroups2Val,
+		SecurityGroups:           securityGroupsVal,
 		Ssh:                      sshVal,
 		SubnetCidr:               subnetCidrVal,
 		Subnets:                  subnetsVal,
@@ -62423,7 +62423,7 @@ type NodeGroupsValue struct {
 	Placement                basetypes.ListValue   `tfsdk:"placement"`
 	PreBootstrapCommands     basetypes.ListValue   `tfsdk:"pre_bootstrap_commands"`
 	PrivateNetworking        basetypes.BoolValue   `tfsdk:"private_networking"`
-	SecurityGroups2          basetypes.ListValue   `tfsdk:"security_groups2"`
+	SecurityGroups           basetypes.ListValue   `tfsdk:"security_groups"`
 	Ssh                      basetypes.ListValue   `tfsdk:"ssh"`
 	SubnetCidr               basetypes.StringValue `tfsdk:"subnet_cidr"`
 	Subnets                  basetypes.ListValue   `tfsdk:"subnets"`
@@ -62503,8 +62503,8 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["private_networking"] = basetypes.BoolType{}.TerraformType(ctx)
-	attrTypes["security_groups2"] = basetypes.ListType{
-		ElemType: SecurityGroups2Value{}.Type(ctx),
+	attrTypes["security_groups"] = basetypes.ListType{
+		ElemType: SecurityGroupsValue{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["ssh"] = basetypes.ListType{
 		ElemType: SshValue{}.Type(ctx),
@@ -62788,13 +62788,13 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 
 		vals["private_networking"] = val
 
-		val, err = v.SecurityGroups2.ToTerraformValue(ctx)
+		val, err = v.SecurityGroups.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["security_groups2"] = val
+		vals["security_groups"] = val
 
 		val, err = v.Ssh.ToTerraformValue(ctx)
 
@@ -63148,30 +63148,30 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		)
 	}
 
-	securityGroups2 := types.ListValueMust(
-		SecurityGroups2Type{
+	securityGroups := types.ListValueMust(
+		SecurityGroupsType{
 			basetypes.ObjectType{
-				AttrTypes: SecurityGroups2Value{}.AttributeTypes(ctx),
+				AttrTypes: SecurityGroupsValue{}.AttributeTypes(ctx),
 			},
 		},
-		v.SecurityGroups2.Elements(),
+		v.SecurityGroups.Elements(),
 	)
 
-	if v.SecurityGroups2.IsNull() {
-		securityGroups2 = types.ListNull(
-			SecurityGroups2Type{
+	if v.SecurityGroups.IsNull() {
+		securityGroups = types.ListNull(
+			SecurityGroupsType{
 				basetypes.ObjectType{
-					AttrTypes: SecurityGroups2Value{}.AttributeTypes(ctx),
+					AttrTypes: SecurityGroupsValue{}.AttributeTypes(ctx),
 				},
 			},
 		)
 	}
 
-	if v.SecurityGroups2.IsUnknown() {
-		securityGroups2 = types.ListUnknown(
-			SecurityGroups2Type{
+	if v.SecurityGroups.IsUnknown() {
+		securityGroups = types.ListUnknown(
+			SecurityGroupsType{
 				basetypes.ObjectType{
-					AttrTypes: SecurityGroups2Value{}.AttributeTypes(ctx),
+					AttrTypes: SecurityGroupsValue{}.AttributeTypes(ctx),
 				},
 			},
 		)
@@ -63333,8 +63333,8 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 				ElemType: types.StringType,
 			},
 			"private_networking": basetypes.BoolType{},
-			"security_groups2": basetypes.ListType{
-				ElemType: SecurityGroups2Value{}.Type(ctx),
+			"security_groups": basetypes.ListType{
+				ElemType: SecurityGroupsValue{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -63435,8 +63435,8 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 				ElemType: types.StringType,
 			},
 			"private_networking": basetypes.BoolType{},
-			"security_groups2": basetypes.ListType{
-				ElemType: SecurityGroups2Value{}.Type(ctx),
+			"security_groups": basetypes.ListType{
+				ElemType: SecurityGroupsValue{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -63537,8 +63537,8 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 				ElemType: types.StringType,
 			},
 			"private_networking": basetypes.BoolType{},
-			"security_groups2": basetypes.ListType{
-				ElemType: SecurityGroups2Value{}.Type(ctx),
+			"security_groups": basetypes.ListType{
+				ElemType: SecurityGroupsValue{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -63639,8 +63639,8 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 				ElemType: types.StringType,
 			},
 			"private_networking": basetypes.BoolType{},
-			"security_groups2": basetypes.ListType{
-				ElemType: SecurityGroups2Value{}.Type(ctx),
+			"security_groups": basetypes.ListType{
+				ElemType: SecurityGroupsValue{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -63741,8 +63741,8 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 				ElemType: types.StringType,
 			},
 			"private_networking": basetypes.BoolType{},
-			"security_groups2": basetypes.ListType{
-				ElemType: SecurityGroups2Value{}.Type(ctx),
+			"security_groups": basetypes.ListType{
+				ElemType: SecurityGroupsValue{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -63843,8 +63843,8 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 				ElemType: types.StringType,
 			},
 			"private_networking": basetypes.BoolType{},
-			"security_groups2": basetypes.ListType{
-				ElemType: SecurityGroups2Value{}.Type(ctx),
+			"security_groups": basetypes.ListType{
+				ElemType: SecurityGroupsValue{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -63945,8 +63945,8 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 				ElemType: types.StringType,
 			},
 			"private_networking": basetypes.BoolType{},
-			"security_groups2": basetypes.ListType{
-				ElemType: SecurityGroups2Value{}.Type(ctx),
+			"security_groups": basetypes.ListType{
+				ElemType: SecurityGroupsValue{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -64047,8 +64047,8 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 				ElemType: types.StringType,
 			},
 			"private_networking": basetypes.BoolType{},
-			"security_groups2": basetypes.ListType{
-				ElemType: SecurityGroups2Value{}.Type(ctx),
+			"security_groups": basetypes.ListType{
+				ElemType: SecurityGroupsValue{}.Type(ctx),
 			},
 			"ssh": basetypes.ListType{
 				ElemType: SshValue{}.Type(ctx),
@@ -64136,8 +64136,8 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			ElemType: types.StringType,
 		},
 		"private_networking": basetypes.BoolType{},
-		"security_groups2": basetypes.ListType{
-			ElemType: SecurityGroups2Value{}.Type(ctx),
+		"security_groups": basetypes.ListType{
+			ElemType: SecurityGroupsValue{}.Type(ctx),
 		},
 		"ssh": basetypes.ListType{
 			ElemType: SshValue{}.Type(ctx),
@@ -64210,7 +64210,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"placement":                   placement,
 			"pre_bootstrap_commands":      preBootstrapCommandsVal,
 			"private_networking":          v.PrivateNetworking,
-			"security_groups2":            securityGroups2,
+			"security_groups":             securityGroups,
 			"ssh":                         ssh,
 			"subnet_cidr":                 v.SubnetCidr,
 			"subnets":                     subnetsVal,
@@ -64370,7 +64370,7 @@ func (v NodeGroupsValue) Equal(o attr.Value) bool {
 		return false
 	}
 
-	if !v.SecurityGroups2.Equal(other.SecurityGroups2) {
+	if !v.SecurityGroups.Equal(other.SecurityGroups) {
 		return false
 	}
 
@@ -64502,8 +64502,8 @@ func (v NodeGroupsValue) AttributeTypes(ctx context.Context) map[string]attr.Typ
 			ElemType: types.StringType,
 		},
 		"private_networking": basetypes.BoolType{},
-		"security_groups2": basetypes.ListType{
-			ElemType: SecurityGroups2Value{}.Type(ctx),
+		"security_groups": basetypes.ListType{
+			ElemType: SecurityGroupsValue{}.Type(ctx),
 		},
 		"ssh": basetypes.ListType{
 			ElemType: SshValue{}.Type(ctx),
@@ -70599,14 +70599,14 @@ func (v PlacementValue) AttributeTypes(ctx context.Context) map[string]attr.Type
 	}
 }
 
-var _ basetypes.ObjectTypable = SecurityGroups2Type{}
+var _ basetypes.ObjectTypable = SecurityGroupsType{}
 
-type SecurityGroups2Type struct {
+type SecurityGroupsType struct {
 	basetypes.ObjectType
 }
 
-func (t SecurityGroups2Type) Equal(o attr.Type) bool {
-	other, ok := o.(SecurityGroups2Type)
+func (t SecurityGroupsType) Equal(o attr.Type) bool {
+	other, ok := o.(SecurityGroupsType)
 
 	if !ok {
 		return false
@@ -70615,11 +70615,11 @@ func (t SecurityGroups2Type) Equal(o attr.Type) bool {
 	return t.ObjectType.Equal(other.ObjectType)
 }
 
-func (t SecurityGroups2Type) String() string {
-	return "SecurityGroups2Type"
+func (t SecurityGroupsType) String() string {
+	return "SecurityGroupsType"
 }
 
-func (t SecurityGroups2Type) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+func (t SecurityGroupsType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	attributes := in.Attributes()
@@ -70682,7 +70682,7 @@ func (t SecurityGroups2Type) ValueFromObject(ctx context.Context, in basetypes.O
 		return nil, diags
 	}
 
-	return SecurityGroups2Value{
+	return SecurityGroupsValue{
 		AttachIds:  attachIdsVal,
 		WithLocal:  withLocalVal,
 		WithShared: withSharedVal,
@@ -70690,19 +70690,19 @@ func (t SecurityGroups2Type) ValueFromObject(ctx context.Context, in basetypes.O
 	}, diags
 }
 
-func NewSecurityGroups2ValueNull() SecurityGroups2Value {
-	return SecurityGroups2Value{
+func NewSecurityGroupsValueNull() SecurityGroupsValue {
+	return SecurityGroupsValue{
 		state: attr.ValueStateNull,
 	}
 }
 
-func NewSecurityGroups2ValueUnknown() SecurityGroups2Value {
-	return SecurityGroups2Value{
+func NewSecurityGroupsValueUnknown() SecurityGroupsValue {
+	return SecurityGroupsValue{
 		state: attr.ValueStateUnknown,
 	}
 }
 
-func NewSecurityGroups2Value(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (SecurityGroups2Value, diag.Diagnostics) {
+func NewSecurityGroupsValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (SecurityGroupsValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
@@ -70713,11 +70713,11 @@ func NewSecurityGroups2Value(attributeTypes map[string]attr.Type, attributes map
 
 		if !ok {
 			diags.AddError(
-				"Missing SecurityGroups2Value Attribute Value",
-				"While creating a SecurityGroups2Value value, a missing attribute value was detected. "+
-					"A SecurityGroups2Value must contain values for all attributes, even if null or unknown. "+
+				"Missing SecurityGroupsValue Attribute Value",
+				"While creating a SecurityGroupsValue value, a missing attribute value was detected. "+
+					"A SecurityGroupsValue must contain values for all attributes, even if null or unknown. "+
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("SecurityGroups2Value Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+					fmt.Sprintf("SecurityGroupsValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
 			)
 
 			continue
@@ -70725,12 +70725,12 @@ func NewSecurityGroups2Value(attributeTypes map[string]attr.Type, attributes map
 
 		if !attributeType.Equal(attribute.Type(ctx)) {
 			diags.AddError(
-				"Invalid SecurityGroups2Value Attribute Type",
-				"While creating a SecurityGroups2Value value, an invalid attribute value was detected. "+
-					"A SecurityGroups2Value must use a matching attribute type for the value. "+
+				"Invalid SecurityGroupsValue Attribute Type",
+				"While creating a SecurityGroupsValue value, an invalid attribute value was detected. "+
+					"A SecurityGroupsValue must use a matching attribute type for the value. "+
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("SecurityGroups2Value Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
-					fmt.Sprintf("SecurityGroups2Value Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+					fmt.Sprintf("SecurityGroupsValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("SecurityGroupsValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
 			)
 		}
 	}
@@ -70740,17 +70740,17 @@ func NewSecurityGroups2Value(attributeTypes map[string]attr.Type, attributes map
 
 		if !ok {
 			diags.AddError(
-				"Extra SecurityGroups2Value Attribute Value",
-				"While creating a SecurityGroups2Value value, an extra attribute value was detected. "+
-					"A SecurityGroups2Value must not contain values beyond the expected attribute types. "+
+				"Extra SecurityGroupsValue Attribute Value",
+				"While creating a SecurityGroupsValue value, an extra attribute value was detected. "+
+					"A SecurityGroupsValue must not contain values beyond the expected attribute types. "+
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("Extra SecurityGroups2Value Attribute Name: %s", name),
+					fmt.Sprintf("Extra SecurityGroupsValue Attribute Name: %s", name),
 			)
 		}
 	}
 
 	if diags.HasError() {
-		return NewSecurityGroups2ValueUnknown(), diags
+		return NewSecurityGroupsValueUnknown(), diags
 	}
 
 	attachIdsAttribute, ok := attributes["attach_ids"]
@@ -70760,7 +70760,7 @@ func NewSecurityGroups2Value(attributeTypes map[string]attr.Type, attributes map
 			"Attribute Missing",
 			`attach_ids is missing from object`)
 
-		return NewSecurityGroups2ValueUnknown(), diags
+		return NewSecurityGroupsValueUnknown(), diags
 	}
 
 	attachIdsVal, ok := attachIdsAttribute.(basetypes.ListValue)
@@ -70778,7 +70778,7 @@ func NewSecurityGroups2Value(attributeTypes map[string]attr.Type, attributes map
 			"Attribute Missing",
 			`with_local is missing from object`)
 
-		return NewSecurityGroups2ValueUnknown(), diags
+		return NewSecurityGroupsValueUnknown(), diags
 	}
 
 	withLocalVal, ok := withLocalAttribute.(basetypes.BoolValue)
@@ -70796,7 +70796,7 @@ func NewSecurityGroups2Value(attributeTypes map[string]attr.Type, attributes map
 			"Attribute Missing",
 			`with_shared is missing from object`)
 
-		return NewSecurityGroups2ValueUnknown(), diags
+		return NewSecurityGroupsValueUnknown(), diags
 	}
 
 	withSharedVal, ok := withSharedAttribute.(basetypes.BoolValue)
@@ -70808,10 +70808,10 @@ func NewSecurityGroups2Value(attributeTypes map[string]attr.Type, attributes map
 	}
 
 	if diags.HasError() {
-		return NewSecurityGroups2ValueUnknown(), diags
+		return NewSecurityGroupsValueUnknown(), diags
 	}
 
-	return SecurityGroups2Value{
+	return SecurityGroupsValue{
 		AttachIds:  attachIdsVal,
 		WithLocal:  withLocalVal,
 		WithShared: withSharedVal,
@@ -70819,8 +70819,8 @@ func NewSecurityGroups2Value(attributeTypes map[string]attr.Type, attributes map
 	}, diags
 }
 
-func NewSecurityGroups2ValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) SecurityGroups2Value {
-	object, diags := NewSecurityGroups2Value(attributeTypes, attributes)
+func NewSecurityGroupsValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) SecurityGroupsValue {
+	object, diags := NewSecurityGroupsValue(attributeTypes, attributes)
 
 	if diags.HasError() {
 		// This could potentially be added to the diag package.
@@ -70834,15 +70834,15 @@ func NewSecurityGroups2ValueMust(attributeTypes map[string]attr.Type, attributes
 				diagnostic.Detail()))
 		}
 
-		panic("NewSecurityGroups2ValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+		panic("NewSecurityGroupsValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
 	}
 
 	return object
 }
 
-func (t SecurityGroups2Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+func (t SecurityGroupsType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if in.Type() == nil {
-		return NewSecurityGroups2ValueNull(), nil
+		return NewSecurityGroupsValueNull(), nil
 	}
 
 	if !in.Type().Equal(t.TerraformType(ctx)) {
@@ -70850,11 +70850,11 @@ func (t SecurityGroups2Type) ValueFromTerraform(ctx context.Context, in tftypes.
 	}
 
 	if !in.IsKnown() {
-		return NewSecurityGroups2ValueUnknown(), nil
+		return NewSecurityGroupsValueUnknown(), nil
 	}
 
 	if in.IsNull() {
-		return NewSecurityGroups2ValueNull(), nil
+		return NewSecurityGroupsValueNull(), nil
 	}
 
 	attributes := map[string]attr.Value{}
@@ -70877,23 +70877,23 @@ func (t SecurityGroups2Type) ValueFromTerraform(ctx context.Context, in tftypes.
 		attributes[k] = a
 	}
 
-	return NewSecurityGroups2ValueMust(SecurityGroups2Value{}.AttributeTypes(ctx), attributes), nil
+	return NewSecurityGroupsValueMust(SecurityGroupsValue{}.AttributeTypes(ctx), attributes), nil
 }
 
-func (t SecurityGroups2Type) ValueType(ctx context.Context) attr.Value {
-	return SecurityGroups2Value{}
+func (t SecurityGroupsType) ValueType(ctx context.Context) attr.Value {
+	return SecurityGroupsValue{}
 }
 
-var _ basetypes.ObjectValuable = SecurityGroups2Value{}
+var _ basetypes.ObjectValuable = SecurityGroupsValue{}
 
-type SecurityGroups2Value struct {
+type SecurityGroupsValue struct {
 	AttachIds  basetypes.ListValue `tfsdk:"attach_ids"`
 	WithLocal  basetypes.BoolValue `tfsdk:"with_local"`
 	WithShared basetypes.BoolValue `tfsdk:"with_shared"`
 	state      attr.ValueState
 }
 
-func (v SecurityGroups2Value) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+func (v SecurityGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	attrTypes := make(map[string]tftypes.Type, 3)
 
 	var val tftypes.Value
@@ -70949,19 +70949,19 @@ func (v SecurityGroups2Value) ToTerraformValue(ctx context.Context) (tftypes.Val
 	}
 }
 
-func (v SecurityGroups2Value) IsNull() bool {
+func (v SecurityGroupsValue) IsNull() bool {
 	return v.state == attr.ValueStateNull
 }
 
-func (v SecurityGroups2Value) IsUnknown() bool {
+func (v SecurityGroupsValue) IsUnknown() bool {
 	return v.state == attr.ValueStateUnknown
 }
 
-func (v SecurityGroups2Value) String() string {
-	return "SecurityGroups2Value"
+func (v SecurityGroupsValue) String() string {
+	return "SecurityGroupsValue"
 }
 
-func (v SecurityGroups2Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+func (v SecurityGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	var attachIdsVal basetypes.ListValue
@@ -71013,8 +71013,8 @@ func (v SecurityGroups2Value) ToObjectValue(ctx context.Context) (basetypes.Obje
 	return objVal, diags
 }
 
-func (v SecurityGroups2Value) Equal(o attr.Value) bool {
-	other, ok := o.(SecurityGroups2Value)
+func (v SecurityGroupsValue) Equal(o attr.Value) bool {
+	other, ok := o.(SecurityGroupsValue)
 
 	if !ok {
 		return false
@@ -71043,15 +71043,15 @@ func (v SecurityGroups2Value) Equal(o attr.Value) bool {
 	return true
 }
 
-func (v SecurityGroups2Value) Type(ctx context.Context) attr.Type {
-	return SecurityGroups2Type{
+func (v SecurityGroupsValue) Type(ctx context.Context) attr.Type {
+	return SecurityGroupsType{
 		basetypes.ObjectType{
 			AttrTypes: v.AttributeTypes(ctx),
 		},
 	}
 }
 
-func (v SecurityGroups2Value) AttributeTypes(ctx context.Context) map[string]attr.Type {
+func (v SecurityGroupsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"attach_ids": basetypes.ListType{
 			ElemType: types.StringType,

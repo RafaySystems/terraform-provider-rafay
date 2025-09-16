@@ -166,7 +166,7 @@
                                                                                         
                                                                                             },
                                                                                             {
-                                                                                                "name": "security_groups",
+                                                                                                "name": "security_groups2",
                                                                                                 "list": {
                                                                                                     "computed_optional_required": "optional",
                                                                                                     "description": "The security groups associated with secondary ENIs for AWS EC2 nodes.",
@@ -2872,7 +2872,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "security_groups2",
+                                                    "name": "security_groups",
                                                     "list_nested": {
                                                         "nested_object": {
                                                             "attributes": [

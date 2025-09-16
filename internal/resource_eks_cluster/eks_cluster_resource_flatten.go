@@ -283,7 +283,7 @@ func (v *CniSpecValue) Flatten(ctx context.Context, in rafay.CustomCniSpec) diag
 		securityGroups, d = types.ListValue(types.StringType, sgElements)
 		diags = append(diags, d...)
 	}
-	v.SecurityGroups = securityGroups
+	v.SecurityGroups2 = securityGroups
 
 	v.state = attr.ValueStateKnown
 	return diags

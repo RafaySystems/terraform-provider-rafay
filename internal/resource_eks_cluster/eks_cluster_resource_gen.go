@@ -127,7 +127,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 															"cni_spec": schema.ListNestedBlock{
 																NestedObject: schema.NestedBlockObject{
 																	Attributes: map[string]schema.Attribute{
-																		"security_groups2": schema.ListAttribute{
+																		"security_groups": schema.ListAttribute{
 																			ElementType:         types.StringType,
 																			Optional:            true,
 																			Description:         "The security groups associated with secondary ENIs for AWS EC2 nodes.",
@@ -2348,7 +2348,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
-						"identity_mappings": schema.SetNestedBlock{
+						"identity_mappings": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"accounts": schema.SetAttribute{
@@ -6706,7 +6706,7 @@ func (t CniSpecType) ValueFromObject(ctx context.Context, in basetypes.ObjectVal
 
 	attributes := in.Attributes()
 
-	securityGroups2Attribute, ok := attributes["security_groups2"]
+	securityGroups2Attribute, ok := attributes["security_groups"]
 
 	if !ok {
 		diags.AddError(
@@ -6816,7 +6816,7 @@ func NewCniSpecValue(attributeTypes map[string]attr.Type, attributes map[string]
 		return NewCniSpecValueUnknown(), diags
 	}
 
-	securityGroups2Attribute, ok := attributes["security_groups2"]
+	securityGroups2Attribute, ok := attributes["security_groups"]
 
 	if !ok {
 		diags.AddError(
@@ -6931,7 +6931,7 @@ func (t CniSpecType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = CniSpecValue{}
 
 type CniSpecValue struct {
-	SecurityGroups2 basetypes.ListValue   `tfsdk:"security_groups2"`
+	SecurityGroups2 basetypes.ListValue   `tfsdk:"security_groups"`
 	Subnet          basetypes.StringValue `tfsdk:"subnet"`
 	state           attr.ValueState
 }
@@ -6942,7 +6942,7 @@ func (v CniSpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 	var val tftypes.Value
 	var err error
 
-	attrTypes["security_groups2"] = basetypes.ListType{
+	attrTypes["security_groups"] = basetypes.ListType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["subnet"] = basetypes.StringType{}.TerraformType(ctx)
@@ -6959,7 +6959,7 @@ func (v CniSpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["security_groups2"] = val
+		vals["security_groups"] = val
 
 		val, err = v.Subnet.ToTerraformValue(ctx)
 
@@ -7012,7 +7012,7 @@ func (v CniSpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
-			"security_groups2": basetypes.ListType{
+			"security_groups": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"subnet": basetypes.StringType{},
@@ -7020,7 +7020,7 @@ func (v CniSpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 	}
 
 	attributeTypes := map[string]attr.Type{
-		"security_groups2": basetypes.ListType{
+		"security_groups": basetypes.ListType{
 			ElemType: types.StringType,
 		},
 		"subnet": basetypes.StringType{},
@@ -7037,7 +7037,7 @@ func (v CniSpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"security_groups2": securityGroups2Val,
+			"security_groups": securityGroups2Val,
 			"subnet":           v.Subnet,
 		})
 
@@ -7080,7 +7080,7 @@ func (v CniSpecValue) Type(ctx context.Context) attr.Type {
 
 func (v CniSpecValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"security_groups2": basetypes.ListType{
+		"security_groups": basetypes.ListType{
 			ElemType: types.StringType,
 		},
 		"subnet": basetypes.StringType{},
@@ -10060,12 +10060,12 @@ func (t ClusterConfigType) ValueFromObject(ctx context.Context, in basetypes.Obj
 		return nil, diags
 	}
 
-	identityMappingsVal, ok := identityMappingsAttribute.(basetypes.SetValue)
+	identityMappingsVal, ok := identityMappingsAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`identity_mappings expected to be basetypes.SetValue, was: %T`, identityMappingsAttribute))
+			fmt.Sprintf(`identity_mappings expected to be basetypes.ListValue, was: %T`, identityMappingsAttribute))
 	}
 
 	identityProvidersAttribute, ok := attributes["identity_providers"]
@@ -10531,12 +10531,12 @@ func NewClusterConfigValue(attributeTypes map[string]attr.Type, attributes map[s
 		return NewClusterConfigValueUnknown(), diags
 	}
 
-	identityMappingsVal, ok := identityMappingsAttribute.(basetypes.SetValue)
+	identityMappingsVal, ok := identityMappingsAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`identity_mappings expected to be basetypes.SetValue, was: %T`, identityMappingsAttribute))
+			fmt.Sprintf(`identity_mappings expected to be basetypes.ListValue, was: %T`, identityMappingsAttribute))
 	}
 
 	identityProvidersAttribute, ok := attributes["identity_providers"]
@@ -10844,7 +10844,7 @@ type ClusterConfigValue struct {
 	CloudWatch              basetypes.ListValue   `tfsdk:"cloud_watch"`
 	FargateProfiles         basetypes.ListValue   `tfsdk:"fargate_profiles"`
 	Iam3                    basetypes.ListValue   `tfsdk:"iam"`
-	IdentityMappings        basetypes.SetValue    `tfsdk:"identity_mappings"`
+	IdentityMappings        basetypes.ListValue   `tfsdk:"identity_mappings"`
 	IdentityProviders       basetypes.ListValue   `tfsdk:"identity_providers"`
 	Kind                    basetypes.StringValue `tfsdk:"kind"`
 	KubernetesNetworkConfig basetypes.ListValue   `tfsdk:"kubernetes_network_config"`
@@ -10890,7 +10890,7 @@ func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 	attrTypes["iam"] = basetypes.ListType{
 		ElemType: Iam3Value{}.Type(ctx),
 	}.TerraformType(ctx)
-	attrTypes["identity_mappings"] = basetypes.SetType{
+	attrTypes["identity_mappings"] = basetypes.ListType{
 		ElemType: IdentityMappingsValue{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["identity_providers"] = basetypes.ListType{
@@ -11331,7 +11331,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		)
 	}
 
-	identityMappings := types.SetValueMust(
+	identityMappings := types.ListValueMust(
 		IdentityMappingsType{
 			basetypes.ObjectType{
 				AttrTypes: IdentityMappingsValue{}.AttributeTypes(ctx),
@@ -11341,7 +11341,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 	)
 
 	if v.IdentityMappings.IsNull() {
-		identityMappings = types.SetNull(
+		identityMappings = types.ListNull(
 			IdentityMappingsType{
 				basetypes.ObjectType{
 					AttrTypes: IdentityMappingsValue{}.AttributeTypes(ctx),
@@ -11351,7 +11351,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 	}
 
 	if v.IdentityMappings.IsUnknown() {
-		identityMappings = types.SetUnknown(
+		identityMappings = types.ListUnknown(
 			IdentityMappingsType{
 				basetypes.ObjectType{
 					AttrTypes: IdentityMappingsValue{}.AttributeTypes(ctx),
@@ -11689,7 +11689,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"iam": basetypes.ListType{
 				ElemType: Iam3Value{}.Type(ctx),
 			},
-			"identity_mappings": basetypes.SetType{
+			"identity_mappings": basetypes.ListType{
 				ElemType: IdentityMappingsValue{}.Type(ctx),
 			},
 			"identity_providers": basetypes.ListType{
@@ -11752,7 +11752,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		"iam": basetypes.ListType{
 			ElemType: Iam3Value{}.Type(ctx),
 		},
-		"identity_mappings": basetypes.SetType{
+		"identity_mappings": basetypes.ListType{
 			ElemType: IdentityMappingsValue{}.Type(ctx),
 		},
 		"identity_providers": basetypes.ListType{
@@ -11962,7 +11962,7 @@ func (v ClusterConfigValue) AttributeTypes(ctx context.Context) map[string]attr.
 		"iam": basetypes.ListType{
 			ElemType: Iam3Value{}.Type(ctx),
 		},
-		"identity_mappings": basetypes.SetType{
+		"identity_mappings": basetypes.ListType{
 			ElemType: IdentityMappingsValue{}.Type(ctx),
 		},
 		"identity_providers": basetypes.ListType{

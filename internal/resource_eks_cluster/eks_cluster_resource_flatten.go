@@ -572,10 +572,10 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		identityMappings := NewIdentityMappingsValueNull()
 		d = identityMappings.Flatten(ctx, in.IdentityMappings)
 		diags = append(diags, d...)
-		v.IdentityMappings, d = types.SetValue(IdentityMappingsValue{}.Type(ctx), []attr.Value{identityMappings})
+		v.IdentityMappings, d = types.ListValue(IdentityMappingsValue{}.Type(ctx), []attr.Value{identityMappings})
 		diags = append(diags, d...)
 	} else {
-		v.IdentityMappings = types.SetNull(IdentityMappingsValue{}.Type(ctx))
+		v.IdentityMappings = types.ListNull(IdentityMappingsValue{}.Type(ctx))
 	}
 
 	if in.AccessConfig != nil {

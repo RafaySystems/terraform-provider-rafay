@@ -4845,7 +4845,7 @@
                                 },
                                 {
                                     "name": "identity_mappings",
-                                    "set_nested": {
+                                    "list_nested": {
                                         "nested_object": {
                                             "attributes": [
                                                 {

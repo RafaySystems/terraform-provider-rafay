@@ -185,6 +185,16 @@ func (v SpecValue) Expand(ctx context.Context) (*rafay.EKSSpec, diag.Diagnostics
 		spec.ProxyConfig.AllowInsecureBootstrap = getStringValue(allowInsecureBootstrap) == "true"
 	}
 
+	if !v.CniParams.IsNull() && !v.CniParams.IsUnknown() {
+		vCniParams := make([]CniParamsValue, 0, len(v.CniParams.Elements()))
+		d = v.CniParams.ElementsAs(ctx, &vCniParams, false)
+		diags = append(diags, d...)
+		if len(vCniParams) > 0 {
+			spec.CniParams, d = vCniParams[0].Expand(ctx)
+			diags = append(diags, d...)
+		}
+	}
+
 	if !v.SystemComponentsPlacement.IsNull() && !v.SystemComponentsPlacement.IsUnknown() {
 		vSCPList := make([]SystemComponentsPlacementValue, 0, len(v.SystemComponentsPlacement.Elements()))
 		d = v.SystemComponentsPlacement.ElementsAs(ctx, &vSCPList, false)
@@ -206,6 +216,92 @@ func (v SpecValue) Expand(ctx context.Context) (*rafay.EKSSpec, diag.Diagnostics
 	}
 
 	return &spec, diags
+}
+
+func (v CniParamsValue) Expand(ctx context.Context) (*rafay.CustomCni, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
+	var cniParams rafay.CustomCni
+
+	if v.IsNull() {
+		return &rafay.CustomCni{}, diags
+	}
+
+	if !v.CustomCniCidr.IsNull() && !v.CustomCniCidr.IsUnknown() {
+		cniParams.CustomCniCidr = getStringValue(v.CustomCniCidr)
+	}
+
+	if !v.CustomCniCrdSpec.IsNull() && !v.CustomCniCrdSpec.IsUnknown() {
+		vCustomCniCrdSpec := make([]CustomCniCrdSpecValue, 0, len(v.CustomCniCrdSpec.Elements()))
+		d = v.CustomCniCrdSpec.ElementsAs(ctx, &vCustomCniCrdSpec, false)
+		diags = append(diags, d...)
+		if len(vCustomCniCrdSpec) > 0 {
+			cniParams.CustomCniCrdSpec = make(map[string][]rafay.CustomCniSpec, len(vCustomCniCrdSpec))
+			for _, crdSpec := range vCustomCniCrdSpec {
+				nm, ele, d := crdSpec.Expand(ctx)
+				diags = append(diags, d...)
+				if nm != "" && len(ele) > 0 {
+					cniParams.CustomCniCrdSpec[nm] = ele
+				}
+			}
+
+		}
+	}
+	return &cniParams, diags
+}
+
+func (v CustomCniCrdSpecValue) Expand(ctx context.Context) (string, []rafay.CustomCniSpec, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
+	var spec []rafay.CustomCniSpec
+
+	if v.IsNull() {
+		return "", spec, diags
+	}
+
+	var name string
+	if !v.Name.IsNull() && !v.Name.IsUnknown() {
+		name = getStringValue(v.Name)
+	}
+
+	if !v.CniSpec.IsNull() && !v.CniSpec.IsUnknown() {
+		vCniSpec := make([]CniSpecValue, 0, len(v.CniSpec.Elements()))
+		d = v.CniSpec.ElementsAs(ctx, &vCniSpec, false)
+		diags = append(diags, d...)
+		if len(vCniSpec) > 0 {
+			for _, vcs := range vCniSpec {
+				cs, d := vcs.Expand(ctx)
+				diags = append(diags, d...)
+				spec = append(spec, cs)
+			}
+		}
+	}
+
+	return name, spec, diags
+}
+
+func (v CniSpecValue) Expand(ctx context.Context) (rafay.CustomCniSpec, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
+	var spec rafay.CustomCniSpec
+	if v.IsNull() {
+		return rafay.CustomCniSpec{}, diags
+	}
+
+	if !v.Subnet.IsNull() && !v.Subnet.IsUnknown() {
+		spec.Subnet = getStringValue(v.Subnet)
+	}
+
+	if !v.SecurityGroups2.IsNull() && !v.SecurityGroups2.IsUnknown() {
+		vSecurityGroups := make([]types.String, 0, len(v.SecurityGroups2.Elements()))
+		d = v.SecurityGroups2.ElementsAs(ctx, &vSecurityGroups, false)
+		diags = append(diags, d...)
+		if len(vSecurityGroups) > 0 {
+			sg := make([]string, 0, len(vSecurityGroups))
+			for _, s := range vSecurityGroups {
+				sg = append(sg, getStringValue(s))
+			}
+		}
+	}
+
+	return spec, diags
 }
 
 func (v SharingValue) Expand(ctx context.Context) (*rafay.V1ClusterSharing, diag.Diagnostics) {

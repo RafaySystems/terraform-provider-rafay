@@ -554,7 +554,7 @@
                                                 },
                                                 {
                                                     "name": "subnets",
-                                                    "list": {
+                                                    "set": {
                                                         "description": "Limit nodes to specific subnets.",
                                                         "element_type": {
                                                             "string": {}
@@ -1375,7 +1375,7 @@
                                                 },
                                                 {
                                                     "name": "subnets",
-                                                    "list": {
+                                                    "set": {
                                                         "description": "Limit nodes to specific subnets.",
                                                         "element_type": {
                                                             "string": {}
@@ -2191,7 +2191,7 @@
                                                 },
                                                 {
                                                     "name": "subnets",
-                                                    "list": {
+                                                    "set": {
                                                         "description": "Limit nodes to specific subnets.",
                                                         "element_type": {
                                                             "string": {}
@@ -3425,7 +3425,7 @@
                                                             "blocks": [
                                                                 {
                                                                     "name": "private",
-                                                                    "list_nested": {
+                                                                    "set_nested": {
                                                                         "nested_object": {
                                                                             "attributes": [
                                                                                 {
@@ -3462,7 +3462,7 @@
                                                                 },
                                                                 {
                                                                     "name": "public",
-                                                                    "list_nested": {
+                                                                    "set_nested": {
                                                                         "nested_object": {
                                                                             "attributes": [
                                                                                 {
@@ -4581,7 +4581,7 @@
                                                 },
                                                 {
                                                     "name": "subnets",
-                                                    "list": {
+                                                    "set": {
                                                         "description": "Limit nodes to specific subnets.",
                                                         "element_type": {
                                                             "string": {}

@@ -1446,7 +1446,7 @@ func (v *Subnets3Value) Flatten(ctx context.Context, in *rafay.ClusterSubnets) d
 		return diags
 	}
 
-	private := types.ListNull(PrivateValue{}.Type(ctx))
+	private := types.SetNull(PrivateValue{}.Type(ctx))
 	if len(in.Private) > 0 {
 		privates := []attr.Value{}
 		for nm, pvSubnet := range in.Private {
@@ -1455,12 +1455,12 @@ func (v *Subnets3Value) Flatten(ctx context.Context, in *rafay.ClusterSubnets) d
 			diags = append(diags, d...)
 			privates = append(privates, privateValue)
 		}
-		private, d = types.ListValue(PrivateValue{}.Type(ctx), privates)
+		private, d = types.SetValue(PrivateValue{}.Type(ctx), privates)
 		diags = append(diags, d...)
 	}
 	v.Private = private
 
-	public := types.ListNull(PublicValue{}.Type(ctx))
+	public := types.SetNull(PublicValue{}.Type(ctx))
 	if len(in.Public) > 0 {
 		publics := []attr.Value{}
 		for nm, puSubnet := range in.Public {
@@ -1469,7 +1469,7 @@ func (v *Subnets3Value) Flatten(ctx context.Context, in *rafay.ClusterSubnets) d
 			diags = append(diags, d...)
 			publics = append(publics, publicValue)
 		}
-		public, d = types.ListValue(PublicValue{}.Type(ctx), publics)
+		public, d = types.SetValue(PublicValue{}.Type(ctx), publics)
 		diags = append(diags, d...)
 	}
 	v.Public = public

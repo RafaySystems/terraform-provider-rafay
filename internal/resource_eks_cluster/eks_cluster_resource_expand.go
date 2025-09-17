@@ -298,6 +298,7 @@ func (v CniSpecValue) Expand(ctx context.Context) (rafay.CustomCniSpec, diag.Dia
 			for _, s := range vSecurityGroups {
 				sg = append(sg, getStringValue(s))
 			}
+			spec.SecurityGroups = sg
 		}
 	}
 

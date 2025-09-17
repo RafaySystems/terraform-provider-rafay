@@ -119,10 +119,10 @@ func (v *ManagedNodegroupsMapValue) Flatten(ctx context.Context, in *rafay.Manag
 		for _, sn := range in.Subnets {
 			snElements = append(snElements, types.StringValue(sn))
 		}
-		v.Subnets, d = types.ListValue(types.StringType, snElements)
+		v.Subnets, d = types.SetValue(types.StringType, snElements)
 		diags = append(diags, d...)
 	} else {
-		v.Subnets = types.ListNull(types.StringType)
+		v.Subnets = types.SetNull(types.StringType)
 	}
 
 	if in.InstancePrefix == "" {

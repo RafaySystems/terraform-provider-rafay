@@ -136,13 +136,13 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	}
 	v.AvailabilityZones2 = availabilityZones2
 
-	subnets := types.ListNull(types.StringType)
+	subnets := types.SetNull(types.StringType)
 	if len(in.Subnets) > 0 {
 		snElements := []attr.Value{}
 		for _, sn := range in.Subnets {
 			snElements = append(snElements, types.StringValue(sn))
 		}
-		subnets, d = types.ListValue(types.StringType, snElements)
+		subnets, d = types.SetValue(types.StringType, snElements)
 		diags = append(diags, d...)
 	}
 	v.Subnets = subnets

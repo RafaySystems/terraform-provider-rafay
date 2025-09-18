@@ -382,6 +382,8 @@ func (v *Iam4Value) Flatten(ctx context.Context, in *rafay.NodeGroupIAM, state I
 			diags = append(diags, d...)
 			v.AttachPolicy4, d = types.ListValue(AttachPolicy4Value{}.Type(ctx), []attr.Value{attachPolicy})
 			diags = append(diags, d...)
+
+			v.AttachPolicyV2 = types.StringNull()
 		} else {
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			jsonBytes, err := json2.Marshal(in.AttachPolicy)
@@ -389,6 +391,8 @@ func (v *Iam4Value) Flatten(ctx context.Context, in *rafay.NodeGroupIAM, state I
 				diags.AddError("Attach Policy Marshal Error", err.Error())
 			}
 			v.AttachPolicyV2 = types.StringValue(string(jsonBytes))
+
+			v.AttachPolicy4 = types.ListNull(AttachPolicy4Value{}.Type(ctx))
 		}
 	} else {
 		v.AttachPolicy4 = types.ListNull(AttachPolicy4Value{}.Type(ctx))

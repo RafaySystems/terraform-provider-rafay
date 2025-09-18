@@ -1283,7 +1283,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										},
 										Optional: true,
 									},
-									"labels2": schema.MapAttribute{
+									"labels": schema.MapAttribute{
 										ElementType:         types.StringType,
 										Optional:            true,
 										Description:         "A map of labels to assign to the nodes in the group.",
@@ -3104,7 +3104,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Description:         "The type of EC2 instance to use for the nodes in this group.",
 										MarkdownDescription: "The type of EC2 instance to use for the nodes in this group.",
 									},
-									"labels2": schema.MapAttribute{
+									"labels": schema.MapAttribute{
 										ElementType:         types.StringType,
 										Optional:            true,
 										Description:         "A map of labels to assign to the nodes in the group.",
@@ -22363,22 +22363,22 @@ func (t NodeGroupsMapType) ValueFromObject(ctx context.Context, in basetypes.Obj
 			fmt.Sprintf(`kubelet_extra_config6 expected to be basetypes.ObjectValue, was: %T`, kubeletExtraConfig6Attribute))
 	}
 
-	labels2Attribute, ok := attributes["labels2"]
+	labelsAttribute, ok := attributes["labels"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`labels2 is missing from object`)
+			`labels is missing from object`)
 
 		return nil, diags
 	}
 
-	labels2Val, ok := labels2Attribute.(basetypes.MapValue)
+	labelsVal, ok := labelsAttribute.(basetypes.MapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`labels2 expected to be basetypes.MapValue, was: %T`, labels2Attribute))
+			fmt.Sprintf(`labels expected to be basetypes.MapValue, was: %T`, labelsAttribute))
 	}
 
 	maxPodsPerNodeAttribute, ok := attributes["max_pods_per_node"]
@@ -22822,7 +22822,7 @@ func (t NodeGroupsMapType) ValueFromObject(ctx context.Context, in basetypes.Obj
 		InstanceType:             instanceTypeVal,
 		InstancesDistribution6:   instancesDistribution6Val,
 		KubeletExtraConfig6:      kubeletExtraConfig6Val,
-		Labels2:                  labels2Val,
+		Labels:                   labelsVal,
 		MaxPodsPerNode:           maxPodsPerNodeVal,
 		MaxSize:                  maxSizeVal,
 		MinSize:                  minSizeVal,
@@ -23309,22 +23309,22 @@ func NewNodeGroupsMapValue(attributeTypes map[string]attr.Type, attributes map[s
 			fmt.Sprintf(`kubelet_extra_config6 expected to be basetypes.ObjectValue, was: %T`, kubeletExtraConfig6Attribute))
 	}
 
-	labels2Attribute, ok := attributes["labels2"]
+	labelsAttribute, ok := attributes["labels"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`labels2 is missing from object`)
+			`labels is missing from object`)
 
 		return NewNodeGroupsMapValueUnknown(), diags
 	}
 
-	labels2Val, ok := labels2Attribute.(basetypes.MapValue)
+	labelsVal, ok := labelsAttribute.(basetypes.MapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`labels2 expected to be basetypes.MapValue, was: %T`, labels2Attribute))
+			fmt.Sprintf(`labels expected to be basetypes.MapValue, was: %T`, labelsAttribute))
 	}
 
 	maxPodsPerNodeAttribute, ok := attributes["max_pods_per_node"]
@@ -23768,7 +23768,7 @@ func NewNodeGroupsMapValue(attributeTypes map[string]attr.Type, attributes map[s
 		InstanceType:             instanceTypeVal,
 		InstancesDistribution6:   instancesDistribution6Val,
 		KubeletExtraConfig6:      kubeletExtraConfig6Val,
-		Labels2:                  labels2Val,
+		Labels:                   labelsVal,
 		MaxPodsPerNode:           maxPodsPerNodeVal,
 		MaxSize:                  maxSizeVal,
 		MinSize:                  minSizeVal,
@@ -23886,7 +23886,7 @@ type NodeGroupsMapValue struct {
 	InstanceType             basetypes.StringValue `tfsdk:"instance_type"`
 	InstancesDistribution6   basetypes.ObjectValue `tfsdk:"instances_distribution6"`
 	KubeletExtraConfig6      basetypes.ObjectValue `tfsdk:"kubelet_extra_config6"`
-	Labels2                  basetypes.MapValue    `tfsdk:"labels2"`
+	Labels                   basetypes.MapValue    `tfsdk:"labels"`
 	MaxPodsPerNode           basetypes.Int64Value  `tfsdk:"max_pods_per_node"`
 	MaxSize                  basetypes.Int64Value  `tfsdk:"max_size"`
 	MinSize                  basetypes.Int64Value  `tfsdk:"min_size"`
@@ -23959,7 +23959,7 @@ func (v NodeGroupsMapValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 	attrTypes["kubelet_extra_config6"] = basetypes.ObjectType{
 		AttrTypes: KubeletExtraConfig6Value{}.AttributeTypes(ctx),
 	}.TerraformType(ctx)
-	attrTypes["labels2"] = basetypes.MapType{
+	attrTypes["labels"] = basetypes.MapType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["max_pods_per_node"] = basetypes.Int64Type{}.TerraformType(ctx)
@@ -24186,13 +24186,13 @@ func (v NodeGroupsMapValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 
 		vals["kubelet_extra_config6"] = val
 
-		val, err = v.Labels2.ToTerraformValue(ctx)
+		val, err = v.Labels.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["labels2"] = val
+		vals["labels"] = val
 
 		val, err = v.MaxPodsPerNode.ToTerraformValue(ctx)
 
@@ -24708,7 +24708,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"kubelet_extra_config6": basetypes.ObjectType{
 				AttrTypes: KubeletExtraConfig6Value{}.AttributeTypes(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -24809,7 +24809,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"kubelet_extra_config6": basetypes.ObjectType{
 				AttrTypes: KubeletExtraConfig6Value{}.AttributeTypes(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -24910,7 +24910,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"kubelet_extra_config6": basetypes.ObjectType{
 				AttrTypes: KubeletExtraConfig6Value{}.AttributeTypes(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -24957,15 +24957,15 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		}), diags
 	}
 
-	var labels2Val basetypes.MapValue
+	var labelsVal basetypes.MapValue
 	switch {
-	case v.Labels2.IsUnknown():
-		labels2Val = types.MapUnknown(types.StringType)
-	case v.Labels2.IsNull():
-		labels2Val = types.MapNull(types.StringType)
+	case v.Labels.IsUnknown():
+		labelsVal = types.MapUnknown(types.StringType)
+	case v.Labels.IsNull():
+		labelsVal = types.MapNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		labels2Val, d = types.MapValue(types.StringType, v.Labels2.Elements())
+		labelsVal, d = types.MapValue(types.StringType, v.Labels.Elements())
 		diags.Append(d...)
 	}
 
@@ -25011,7 +25011,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"kubelet_extra_config6": basetypes.ObjectType{
 				AttrTypes: KubeletExtraConfig6Value{}.AttributeTypes(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -25112,7 +25112,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"kubelet_extra_config6": basetypes.ObjectType{
 				AttrTypes: KubeletExtraConfig6Value{}.AttributeTypes(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -25213,7 +25213,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"kubelet_extra_config6": basetypes.ObjectType{
 				AttrTypes: KubeletExtraConfig6Value{}.AttributeTypes(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -25314,7 +25314,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"kubelet_extra_config6": basetypes.ObjectType{
 				AttrTypes: KubeletExtraConfig6Value{}.AttributeTypes(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -25415,7 +25415,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"kubelet_extra_config6": basetypes.ObjectType{
 				AttrTypes: KubeletExtraConfig6Value{}.AttributeTypes(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -25503,7 +25503,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		"kubelet_extra_config6": basetypes.ObjectType{
 			AttrTypes: KubeletExtraConfig6Value{}.AttributeTypes(ctx),
 		},
-		"labels2": basetypes.MapType{
+		"labels": basetypes.MapType{
 			ElemType: types.StringType,
 		},
 		"max_pods_per_node":          basetypes.Int64Type{},
@@ -25582,7 +25582,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"instance_type":               v.InstanceType,
 			"instances_distribution6":     instancesDistribution6,
 			"kubelet_extra_config6":       kubeletExtraConfig6,
-			"labels2":                     labels2Val,
+			"labels":                      labelsVal,
 			"max_pods_per_node":           v.MaxPodsPerNode,
 			"max_size":                    v.MaxSize,
 			"min_size":                    v.MinSize,
@@ -25714,7 +25714,7 @@ func (v NodeGroupsMapValue) Equal(o attr.Value) bool {
 		return false
 	}
 
-	if !v.Labels2.Equal(other.Labels2) {
+	if !v.Labels.Equal(other.Labels) {
 		return false
 	}
 
@@ -25863,7 +25863,7 @@ func (v NodeGroupsMapValue) AttributeTypes(ctx context.Context) map[string]attr.
 		"kubelet_extra_config6": basetypes.ObjectType{
 			AttrTypes: KubeletExtraConfig6Value{}.AttributeTypes(ctx),
 		},
-		"labels2": basetypes.MapType{
+		"labels": basetypes.MapType{
 			ElemType: types.StringType,
 		},
 		"max_pods_per_node":          basetypes.Int64Type{},
@@ -60853,22 +60853,22 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 			fmt.Sprintf(`kubelet_extra_config expected to be basetypes.ListValue, was: %T`, kubeletExtraConfigAttribute))
 	}
 
-	labels2Attribute, ok := attributes["labels2"]
+	labelsAttribute, ok := attributes["labels"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`labels2 is missing from object`)
+			`labels is missing from object`)
 
 		return nil, diags
 	}
 
-	labels2Val, ok := labels2Attribute.(basetypes.MapValue)
+	labelsVal, ok := labelsAttribute.(basetypes.MapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`labels2 expected to be basetypes.MapValue, was: %T`, labels2Attribute))
+			fmt.Sprintf(`labels expected to be basetypes.MapValue, was: %T`, labelsAttribute))
 	}
 
 	maxPodsPerNodeAttribute, ok := attributes["max_pods_per_node"]
@@ -61330,7 +61330,7 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 		InstanceType:             instanceTypeVal,
 		InstancesDistribution:    instancesDistributionVal,
 		KubeletExtraConfig:       kubeletExtraConfigVal,
-		Labels2:                  labels2Val,
+		Labels:                   labelsVal,
 		MaxPodsPerNode:           maxPodsPerNodeVal,
 		MaxSize:                  maxSizeVal,
 		MinSize:                  minSizeVal,
@@ -61818,22 +61818,22 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 			fmt.Sprintf(`kubelet_extra_config expected to be basetypes.ListValue, was: %T`, kubeletExtraConfigAttribute))
 	}
 
-	labels2Attribute, ok := attributes["labels2"]
+	labelsAttribute, ok := attributes["labels"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`labels2 is missing from object`)
+			`labels is missing from object`)
 
 		return NewNodeGroupsValueUnknown(), diags
 	}
 
-	labels2Val, ok := labels2Attribute.(basetypes.MapValue)
+	labelsVal, ok := labelsAttribute.(basetypes.MapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`labels2 expected to be basetypes.MapValue, was: %T`, labels2Attribute))
+			fmt.Sprintf(`labels expected to be basetypes.MapValue, was: %T`, labelsAttribute))
 	}
 
 	maxPodsPerNodeAttribute, ok := attributes["max_pods_per_node"]
@@ -62295,7 +62295,7 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 		InstanceType:             instanceTypeVal,
 		InstancesDistribution:    instancesDistributionVal,
 		KubeletExtraConfig:       kubeletExtraConfigVal,
-		Labels2:                  labels2Val,
+		Labels:                   labelsVal,
 		MaxPodsPerNode:           maxPodsPerNodeVal,
 		MaxSize:                  maxSizeVal,
 		MinSize:                  minSizeVal,
@@ -62414,7 +62414,7 @@ type NodeGroupsValue struct {
 	InstanceType             basetypes.StringValue `tfsdk:"instance_type"`
 	InstancesDistribution    basetypes.ListValue   `tfsdk:"instances_distribution"`
 	KubeletExtraConfig       basetypes.ListValue   `tfsdk:"kubelet_extra_config"`
-	Labels2                  basetypes.MapValue    `tfsdk:"labels2"`
+	Labels                   basetypes.MapValue    `tfsdk:"labels"`
 	MaxPodsPerNode           basetypes.Int64Value  `tfsdk:"max_pods_per_node"`
 	MaxSize                  basetypes.Int64Value  `tfsdk:"max_size"`
 	MinSize                  basetypes.Int64Value  `tfsdk:"min_size"`
@@ -62488,7 +62488,7 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 	attrTypes["kubelet_extra_config"] = basetypes.ListType{
 		ElemType: KubeletExtraConfigValue{}.Type(ctx),
 	}.TerraformType(ctx)
-	attrTypes["labels2"] = basetypes.MapType{
+	attrTypes["labels"] = basetypes.MapType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["max_pods_per_node"] = basetypes.Int64Type{}.TerraformType(ctx)
@@ -62716,13 +62716,13 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 
 		vals["kubelet_extra_config"] = val
 
-		val, err = v.Labels2.ToTerraformValue(ctx)
+		val, err = v.Labels.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["labels2"] = val
+		vals["labels"] = val
 
 		val, err = v.MaxPodsPerNode.ToTerraformValue(ctx)
 
@@ -63318,7 +63318,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"kubelet_extra_config": basetypes.ListType{
 				ElemType: KubeletExtraConfigValue{}.Type(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -63420,7 +63420,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"kubelet_extra_config": basetypes.ListType{
 				ElemType: KubeletExtraConfigValue{}.Type(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -63522,7 +63522,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"kubelet_extra_config": basetypes.ListType{
 				ElemType: KubeletExtraConfigValue{}.Type(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -63570,15 +63570,15 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		}), diags
 	}
 
-	var labels2Val basetypes.MapValue
+	var labelsVal basetypes.MapValue
 	switch {
-	case v.Labels2.IsUnknown():
-		labels2Val = types.MapUnknown(types.StringType)
-	case v.Labels2.IsNull():
-		labels2Val = types.MapNull(types.StringType)
+	case v.Labels.IsUnknown():
+		labelsVal = types.MapUnknown(types.StringType)
+	case v.Labels.IsNull():
+		labelsVal = types.MapNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		labels2Val, d = types.MapValue(types.StringType, v.Labels2.Elements())
+		labelsVal, d = types.MapValue(types.StringType, v.Labels.Elements())
 		diags.Append(d...)
 	}
 
@@ -63624,7 +63624,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"kubelet_extra_config": basetypes.ListType{
 				ElemType: KubeletExtraConfigValue{}.Type(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -63726,7 +63726,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"kubelet_extra_config": basetypes.ListType{
 				ElemType: KubeletExtraConfigValue{}.Type(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -63828,7 +63828,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"kubelet_extra_config": basetypes.ListType{
 				ElemType: KubeletExtraConfigValue{}.Type(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -63930,7 +63930,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"kubelet_extra_config": basetypes.ListType{
 				ElemType: KubeletExtraConfigValue{}.Type(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -64032,7 +64032,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"kubelet_extra_config": basetypes.ListType{
 				ElemType: KubeletExtraConfigValue{}.Type(ctx),
 			},
-			"labels2": basetypes.MapType{
+			"labels": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"max_pods_per_node":          basetypes.Int64Type{},
@@ -64121,7 +64121,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		"kubelet_extra_config": basetypes.ListType{
 			ElemType: KubeletExtraConfigValue{}.Type(ctx),
 		},
-		"labels2": basetypes.MapType{
+		"labels": basetypes.MapType{
 			ElemType: types.StringType,
 		},
 		"max_pods_per_node":          basetypes.Int64Type{},
@@ -64201,7 +64201,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"instance_type":               v.InstanceType,
 			"instances_distribution":      instancesDistribution,
 			"kubelet_extra_config":        kubeletExtraConfig,
-			"labels2":                     labels2Val,
+			"labels":                      labelsVal,
 			"max_pods_per_node":           v.MaxPodsPerNode,
 			"max_size":                    v.MaxSize,
 			"min_size":                    v.MinSize,
@@ -64334,7 +64334,7 @@ func (v NodeGroupsValue) Equal(o attr.Value) bool {
 		return false
 	}
 
-	if !v.Labels2.Equal(other.Labels2) {
+	if !v.Labels.Equal(other.Labels) {
 		return false
 	}
 
@@ -64487,7 +64487,7 @@ func (v NodeGroupsValue) AttributeTypes(ctx context.Context) map[string]attr.Typ
 		"kubelet_extra_config": basetypes.ListType{
 			ElemType: KubeletExtraConfigValue{}.Type(ctx),
 		},
-		"labels2": basetypes.MapType{
+		"labels": basetypes.MapType{
 			ElemType: types.StringType,
 		},
 		"max_pods_per_node":          basetypes.Int64Type{},

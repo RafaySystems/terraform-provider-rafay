@@ -577,7 +577,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "labels2",
+                                                    "name": "labels",
                                                     "map": {
                                                         "description": "A map of labels to assign to the nodes in the group.",
                                                         "computed_optional_required": "optional",
@@ -2214,7 +2214,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "labels2",
+                                                    "name": "labels",
                                                     "map": {
                                                         "description": "A map of labels to assign to the nodes in the group.",
                                                         "computed_optional_required": "optional",

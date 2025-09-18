@@ -75,10 +75,10 @@ func (v NodeGroupsValue) Expand(ctx context.Context) (*rafay.NodeGroup, diag.Dia
 		efaEnabled := getBoolValue(v.EfaEnabled)
 		ng.EFAEnabled = &efaEnabled
 	}
-	if !v.Labels2.IsNull() && !v.Labels2.IsUnknown() {
-		ng.Labels = make(map[string]string, len(v.Labels2.Elements()))
-		vLabels := make(map[string]types.String, len(v.Labels2.Elements()))
-		d = v.Labels2.ElementsAs(ctx, &vLabels, false)
+	if !v.Labels.IsNull() && !v.Labels.IsUnknown() {
+		ng.Labels = make(map[string]string, len(v.Labels.Elements()))
+		vLabels := make(map[string]types.String, len(v.Labels.Elements()))
+		d = v.Labels.ElementsAs(ctx, &vLabels, false)
 		diags = append(diags, d...)
 		for k, val := range vLabels {
 			ng.Labels[k] = getStringValue(val)

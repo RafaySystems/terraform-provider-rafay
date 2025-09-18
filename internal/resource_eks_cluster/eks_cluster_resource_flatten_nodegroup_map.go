@@ -171,7 +171,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		lbsMap, d = types.MapValue(types.StringType, lbs)
 		diags = append(diags, d...)
 	}
-	v.Labels2 = lbsMap
+	v.Labels = lbsMap
 
 	tagMap := types.MapNull(types.StringType)
 	if len(in.Tags) != 0 {

@@ -319,6 +319,7 @@ func (v *Iam5Value) Flatten(ctx context.Context, in *rafay.NodeGroupIAM, state I
 	} else {
 		v.AttachPolicy5, d = NewAttachPolicyValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
+		v.AttachPolicyV2 = types.StringNull()
 	}
 
 	if len(in.AttachPolicyARNs) > 0 {

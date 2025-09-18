@@ -146,6 +146,7 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, in *rafay.ManagedN
 		// get state iam
 		stIams := make([]Iam4Value, 0, len(state.Iam4.Elements()))
 		d = state.Iam4.ElementsAs(ctx, &stIams, false)
+		diags = append(diags, d...)
 
 		var stIam Iam4Value
 		if len(stIams) > 0 {
@@ -389,7 +390,9 @@ func (v *Iam4Value) Flatten(ctx context.Context, in *rafay.NodeGroupIAM, state I
 			}
 			v.AttachPolicyV2 = types.StringValue(string(jsonBytes))
 		}
-
+	} else {
+		v.AttachPolicy4 = types.ListNull(AttachPolicy4Value{}.Type(ctx))
+		v.AttachPolicyV2 = types.StringNull()
 	}
 
 	attachPolicyArns := types.ListNull(types.StringType)

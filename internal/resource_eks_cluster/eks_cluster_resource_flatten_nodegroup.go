@@ -134,7 +134,7 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 		availabilityZones2, d = types.ListValue(types.StringType, azElements)
 		diags = append(diags, d...)
 	}
-	v.AvailabilityZones2 = availabilityZones2
+	v.AvailabilityZones = availabilityZones2
 
 	subnets := types.SetNull(types.StringType)
 	if len(in.Subnets) > 0 {
@@ -174,7 +174,7 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 		tagMap, d = types.MapValue(types.StringType, tag)
 		diags = append(diags, d...)
 	}
-	v.Tags2 = tagMap
+	v.Tags = tagMap
 
 	if in.AMI != "" {
 		v.Ami = types.StringValue(in.AMI)

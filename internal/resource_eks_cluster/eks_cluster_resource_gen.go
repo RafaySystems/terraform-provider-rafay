@@ -3039,7 +3039,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Description:         "List of autoscaling processes to suspend.",
 										MarkdownDescription: "List of autoscaling processes to suspend.",
 									},
-									"availability_zones2": schema.ListAttribute{
+									"availability_zones": schema.ListAttribute{
 										ElementType:         types.StringType,
 										Optional:            true,
 										Description:         "Limit nodes to specific AZs",
@@ -3151,7 +3151,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Description:         "Limit nodes to specific subnets.",
 										MarkdownDescription: "Limit nodes to specific subnets.",
 									},
-									"tags2": schema.MapAttribute{
+									"tags": schema.MapAttribute{
 										ElementType:         types.StringType,
 										Optional:            true,
 										Description:         "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed).",
@@ -60529,22 +60529,22 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 			fmt.Sprintf(`asg_suspend_processes expected to be basetypes.ListValue, was: %T`, asgSuspendProcessesAttribute))
 	}
 
-	availabilityZones2Attribute, ok := attributes["availability_zones2"]
+	availabilityZonesAttribute, ok := attributes["availability_zones"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`availability_zones2 is missing from object`)
+			`availability_zones is missing from object`)
 
 		return nil, diags
 	}
 
-	availabilityZones2Val, ok := availabilityZones2Attribute.(basetypes.ListValue)
+	availabilityZonesVal, ok := availabilityZonesAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`availability_zones2 expected to be basetypes.ListValue, was: %T`, availabilityZones2Attribute))
+			fmt.Sprintf(`availability_zones expected to be basetypes.ListValue, was: %T`, availabilityZonesAttribute))
 	}
 
 	bottleRocketAttribute, ok := attributes["bottle_rocket"]
@@ -61087,22 +61087,22 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 			fmt.Sprintf(`subnets expected to be basetypes.SetValue, was: %T`, subnetsAttribute))
 	}
 
-	tags2Attribute, ok := attributes["tags2"]
+	tagsAttribute, ok := attributes["tags"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`tags2 is missing from object`)
+			`tags is missing from object`)
 
 		return nil, diags
 	}
 
-	tags2Val, ok := tags2Attribute.(basetypes.MapValue)
+	tagsVal, ok := tagsAttribute.(basetypes.MapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`tags2 expected to be basetypes.MapValue, was: %T`, tags2Attribute))
+			fmt.Sprintf(`tags expected to be basetypes.MapValue, was: %T`, tagsAttribute))
 	}
 
 	taintsAttribute, ok := attributes["taints"]
@@ -61312,7 +61312,7 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 		AmiFamily:                amiFamilyVal,
 		AsgMetricsCollection:     asgMetricsCollectionVal,
 		AsgSuspendProcesses:      asgSuspendProcessesVal,
-		AvailabilityZones2:       availabilityZones2Val,
+		AvailabilityZones:        availabilityZonesVal,
 		BottleRocket:             bottleRocketVal,
 		ClassicLoadBalancerNames: classicLoadBalancerNamesVal,
 		ClusterDns:               clusterDnsVal,
@@ -61343,7 +61343,7 @@ func (t NodeGroupsType) ValueFromObject(ctx context.Context, in basetypes.Object
 		Ssh:                      sshVal,
 		SubnetCidr:               subnetCidrVal,
 		Subnets:                  subnetsVal,
-		Tags2:                    tags2Val,
+		Tags:                     tagsVal,
 		Taints:                   taintsVal,
 		TargetGroupArns:          targetGroupArnsVal,
 		UpdateConfig:             updateConfigVal,
@@ -61494,22 +61494,22 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 			fmt.Sprintf(`asg_suspend_processes expected to be basetypes.ListValue, was: %T`, asgSuspendProcessesAttribute))
 	}
 
-	availabilityZones2Attribute, ok := attributes["availability_zones2"]
+	availabilityZonesAttribute, ok := attributes["availability_zones"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`availability_zones2 is missing from object`)
+			`availability_zones is missing from object`)
 
 		return NewNodeGroupsValueUnknown(), diags
 	}
 
-	availabilityZones2Val, ok := availabilityZones2Attribute.(basetypes.ListValue)
+	availabilityZonesVal, ok := availabilityZonesAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`availability_zones2 expected to be basetypes.ListValue, was: %T`, availabilityZones2Attribute))
+			fmt.Sprintf(`availability_zones expected to be basetypes.ListValue, was: %T`, availabilityZonesAttribute))
 	}
 
 	bottleRocketAttribute, ok := attributes["bottle_rocket"]
@@ -62052,22 +62052,22 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 			fmt.Sprintf(`subnets expected to be basetypes.SetValue, was: %T`, subnetsAttribute))
 	}
 
-	tags2Attribute, ok := attributes["tags2"]
+	tagsAttribute, ok := attributes["tags"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`tags2 is missing from object`)
+			`tags is missing from object`)
 
 		return NewNodeGroupsValueUnknown(), diags
 	}
 
-	tags2Val, ok := tags2Attribute.(basetypes.MapValue)
+	tagsVal, ok := tagsAttribute.(basetypes.MapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`tags2 expected to be basetypes.MapValue, was: %T`, tags2Attribute))
+			fmt.Sprintf(`tags expected to be basetypes.MapValue, was: %T`, tagsAttribute))
 	}
 
 	taintsAttribute, ok := attributes["taints"]
@@ -62277,7 +62277,7 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 		AmiFamily:                amiFamilyVal,
 		AsgMetricsCollection:     asgMetricsCollectionVal,
 		AsgSuspendProcesses:      asgSuspendProcessesVal,
-		AvailabilityZones2:       availabilityZones2Val,
+		AvailabilityZones:        availabilityZonesVal,
 		BottleRocket:             bottleRocketVal,
 		ClassicLoadBalancerNames: classicLoadBalancerNamesVal,
 		ClusterDns:               clusterDnsVal,
@@ -62308,7 +62308,7 @@ func NewNodeGroupsValue(attributeTypes map[string]attr.Type, attributes map[stri
 		Ssh:                      sshVal,
 		SubnetCidr:               subnetCidrVal,
 		Subnets:                  subnetsVal,
-		Tags2:                    tags2Val,
+		Tags:                     tagsVal,
 		Taints:                   taintsVal,
 		TargetGroupArns:          targetGroupArnsVal,
 		UpdateConfig:             updateConfigVal,
@@ -62396,7 +62396,7 @@ type NodeGroupsValue struct {
 	AmiFamily                basetypes.StringValue `tfsdk:"ami_family"`
 	AsgMetricsCollection     basetypes.ListValue   `tfsdk:"asg_metrics_collection"`
 	AsgSuspendProcesses      basetypes.ListValue   `tfsdk:"asg_suspend_processes"`
-	AvailabilityZones2       basetypes.ListValue   `tfsdk:"availability_zones2"`
+	AvailabilityZones        basetypes.ListValue   `tfsdk:"availability_zones"`
 	BottleRocket             basetypes.ListValue   `tfsdk:"bottle_rocket"`
 	ClassicLoadBalancerNames basetypes.ListValue   `tfsdk:"classic_load_balancer_names"`
 	ClusterDns               basetypes.StringValue `tfsdk:"cluster_dns"`
@@ -62427,7 +62427,7 @@ type NodeGroupsValue struct {
 	Ssh                      basetypes.ListValue   `tfsdk:"ssh"`
 	SubnetCidr               basetypes.StringValue `tfsdk:"subnet_cidr"`
 	Subnets                  basetypes.SetValue    `tfsdk:"subnets"`
-	Tags2                    basetypes.MapValue    `tfsdk:"tags2"`
+	Tags                     basetypes.MapValue    `tfsdk:"tags"`
 	Taints                   basetypes.ListValue   `tfsdk:"taints"`
 	TargetGroupArns          basetypes.ListValue   `tfsdk:"target_group_arns"`
 	UpdateConfig             basetypes.ListValue   `tfsdk:"update_config"`
@@ -62456,7 +62456,7 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 	attrTypes["asg_suspend_processes"] = basetypes.ListType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
-	attrTypes["availability_zones2"] = basetypes.ListType{
+	attrTypes["availability_zones"] = basetypes.ListType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["bottle_rocket"] = basetypes.ListType{
@@ -62513,7 +62513,7 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 	attrTypes["subnets"] = basetypes.SetType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
-	attrTypes["tags2"] = basetypes.MapType{
+	attrTypes["tags"] = basetypes.MapType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["taints"] = basetypes.ListType{
@@ -62572,13 +62572,13 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 
 		vals["asg_suspend_processes"] = val
 
-		val, err = v.AvailabilityZones2.ToTerraformValue(ctx)
+		val, err = v.AvailabilityZones.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["availability_zones2"] = val
+		vals["availability_zones"] = val
 
 		val, err = v.BottleRocket.ToTerraformValue(ctx)
 
@@ -62820,13 +62820,13 @@ func (v NodeGroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 
 		vals["subnets"] = val
 
-		val, err = v.Tags2.ToTerraformValue(ctx)
+		val, err = v.Tags.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["tags2"] = val
+		vals["tags"] = val
 
 		val, err = v.Taints.ToTerraformValue(ctx)
 
@@ -63286,7 +63286,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ListType{
@@ -63343,7 +63343,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.ListType{
@@ -63366,15 +63366,15 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		}), diags
 	}
 
-	var availabilityZones2Val basetypes.ListValue
+	var availabilityZonesVal basetypes.ListValue
 	switch {
-	case v.AvailabilityZones2.IsUnknown():
-		availabilityZones2Val = types.ListUnknown(types.StringType)
-	case v.AvailabilityZones2.IsNull():
-		availabilityZones2Val = types.ListNull(types.StringType)
+	case v.AvailabilityZones.IsUnknown():
+		availabilityZonesVal = types.ListUnknown(types.StringType)
+	case v.AvailabilityZones.IsNull():
+		availabilityZonesVal = types.ListNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		availabilityZones2Val, d = types.ListValue(types.StringType, v.AvailabilityZones2.Elements())
+		availabilityZonesVal, d = types.ListValue(types.StringType, v.AvailabilityZones.Elements())
 		diags.Append(d...)
 	}
 
@@ -63388,7 +63388,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ListType{
@@ -63445,7 +63445,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.ListType{
@@ -63490,7 +63490,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ListType{
@@ -63547,7 +63547,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.ListType{
@@ -63592,7 +63592,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ListType{
@@ -63649,7 +63649,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.ListType{
@@ -63694,7 +63694,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ListType{
@@ -63751,7 +63751,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.ListType{
@@ -63796,7 +63796,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ListType{
@@ -63853,7 +63853,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.ListType{
@@ -63876,15 +63876,15 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		}), diags
 	}
 
-	var tags2Val basetypes.MapValue
+	var tagsVal basetypes.MapValue
 	switch {
-	case v.Tags2.IsUnknown():
-		tags2Val = types.MapUnknown(types.StringType)
-	case v.Tags2.IsNull():
-		tags2Val = types.MapNull(types.StringType)
+	case v.Tags.IsUnknown():
+		tagsVal = types.MapUnknown(types.StringType)
+	case v.Tags.IsNull():
+		tagsVal = types.MapNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		tags2Val, d = types.MapValue(types.StringType, v.Tags2.Elements())
+		tagsVal, d = types.MapValue(types.StringType, v.Tags.Elements())
 		diags.Append(d...)
 	}
 
@@ -63898,7 +63898,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ListType{
@@ -63955,7 +63955,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.ListType{
@@ -64000,7 +64000,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ListType{
@@ -64057,7 +64057,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.ListType{
@@ -64089,7 +64089,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		"asg_suspend_processes": basetypes.ListType{
 			ElemType: types.StringType,
 		},
-		"availability_zones2": basetypes.ListType{
+		"availability_zones": basetypes.ListType{
 			ElemType: types.StringType,
 		},
 		"bottle_rocket": basetypes.ListType{
@@ -64146,7 +64146,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 		"subnets": basetypes.SetType{
 			ElemType: types.StringType,
 		},
-		"tags2": basetypes.MapType{
+		"tags": basetypes.MapType{
 			ElemType: types.StringType,
 		},
 		"taints": basetypes.ListType{
@@ -64183,7 +64183,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"ami_family":                  v.AmiFamily,
 			"asg_metrics_collection":      asgMetricsCollection,
 			"asg_suspend_processes":       asgSuspendProcessesVal,
-			"availability_zones2":         availabilityZones2Val,
+			"availability_zones":          availabilityZonesVal,
 			"bottle_rocket":               bottleRocket,
 			"classic_load_balancer_names": classicLoadBalancerNamesVal,
 			"cluster_dns":                 v.ClusterDns,
@@ -64214,7 +64214,7 @@ func (v NodeGroupsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 			"ssh":                         ssh,
 			"subnet_cidr":                 v.SubnetCidr,
 			"subnets":                     subnetsVal,
-			"tags2":                       tags2Val,
+			"tags":                        tagsVal,
 			"taints":                      taints,
 			"target_group_arns":           targetGroupArnsVal,
 			"update_config":               updateConfig,
@@ -64262,7 +64262,7 @@ func (v NodeGroupsValue) Equal(o attr.Value) bool {
 		return false
 	}
 
-	if !v.AvailabilityZones2.Equal(other.AvailabilityZones2) {
+	if !v.AvailabilityZones.Equal(other.AvailabilityZones) {
 		return false
 	}
 
@@ -64386,7 +64386,7 @@ func (v NodeGroupsValue) Equal(o attr.Value) bool {
 		return false
 	}
 
-	if !v.Tags2.Equal(other.Tags2) {
+	if !v.Tags.Equal(other.Tags) {
 		return false
 	}
 
@@ -64455,7 +64455,7 @@ func (v NodeGroupsValue) AttributeTypes(ctx context.Context) map[string]attr.Typ
 		"asg_suspend_processes": basetypes.ListType{
 			ElemType: types.StringType,
 		},
-		"availability_zones2": basetypes.ListType{
+		"availability_zones": basetypes.ListType{
 			ElemType: types.StringType,
 		},
 		"bottle_rocket": basetypes.ListType{
@@ -64512,7 +64512,7 @@ func (v NodeGroupsValue) AttributeTypes(ctx context.Context) map[string]attr.Typ
 		"subnets": basetypes.SetType{
 			ElemType: types.StringType,
 		},
-		"tags2": basetypes.MapType{
+		"tags": basetypes.MapType{
 			ElemType: types.StringType,
 		},
 		"taints": basetypes.ListType{

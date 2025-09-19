@@ -2180,7 +2180,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "availability_zones2",
+                                                    "name": "availability_zones",
                                                     "list": {
                                                         "description": "Limit nodes to specific AZs",
                                                         "element_type": {
@@ -2224,7 +2224,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "tags2",
+                                                    "name": "tags",
                                                     "map": {
                                                         "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed).",
                                                         "computed_optional_required": "optional",

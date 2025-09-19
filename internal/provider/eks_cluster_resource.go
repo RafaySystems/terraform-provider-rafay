@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -797,4 +798,22 @@ LOOP:
 	}
 	log.Printf("Cluster Deletion completes for edgename: %s and projectname: %s", clusterName, projectName)
 
+}
+
+func (r *eksClusterResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	idParts := strings.Split(req.ID, "/")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: name/project. Got: %q", req.ID),
+		)
+		return
+	}
+
+	name := idParts[0]
+	project := idParts[1]
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cluster").AtListIndex(0).AtName("metadata").AtListIndex(0).AtName("name"), name)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cluster").AtListIndex(0).AtName("metadata").AtListIndex(0).AtName("project"), project)...)
 }

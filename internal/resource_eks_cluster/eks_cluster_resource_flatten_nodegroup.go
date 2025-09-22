@@ -26,9 +26,15 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	if in.DesiredCapacity != nil {
 		v.DesiredCapacity = types.Int64Value(int64(*in.DesiredCapacity))
 	}
-	v.DisableImdsv1 = types.BoolPointerValue(in.DisableIMDSv1)
-	v.DisablePodsImds = types.BoolPointerValue(in.DisablePodIMDS)
-	v.EfaEnabled = types.BoolPointerValue(in.EFAEnabled)
+	if in.DisableIMDSv1 != nil {
+		v.DisableImdsv1 = types.BoolPointerValue(in.DisableIMDSv1)
+	}
+	if in.DisablePodIMDS != nil {
+		v.DisablePodsImds = types.BoolPointerValue(in.DisablePodIMDS)
+	}
+	if in.EFAEnabled != nil {
+		v.EfaEnabled = types.BoolPointerValue(in.EFAEnabled)
+	}
 	if in.InstanceType != "" {
 		v.InstanceType = types.StringValue(in.InstanceType)
 	}
@@ -39,7 +45,9 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	if in.MinSize != nil {
 		v.MinSize = types.Int64Value(int64(*in.MinSize))
 	}
-	v.PrivateNetworking = types.BoolPointerValue(in.PrivateNetworking)
+	if in.PrivateNetworking != nil {
+		v.PrivateNetworking = types.BoolPointerValue(in.PrivateNetworking)
+	}
 	if in.Version != "" {
 		v.Version = types.StringValue(in.Version)
 	}
@@ -58,12 +66,16 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	if in.ClusterDNS != "" {
 		v.ClusterDns = types.StringValue(in.ClusterDNS)
 	}
-	v.EbsOptimized = types.BoolPointerValue(in.EBSOptimized)
+	if in.EBSOptimized != nil {
+		v.EbsOptimized = types.BoolPointerValue(in.EBSOptimized)
+	}
 
 	if in.VolumeName != "" {
 		v.VolumeName = types.StringValue(in.VolumeName)
 	}
-	v.VolumeEncrypted = types.BoolPointerValue(in.VolumeEncrypted)
+	if in.VolumeEncrypted != nil {
+		v.VolumeEncrypted = types.BoolPointerValue(in.VolumeEncrypted)
+	}
 	if in.VolumeKmsKeyID != "" {
 		v.VolumeKmsKeyId = types.StringValue(in.VolumeKmsKeyID)
 	}
@@ -444,7 +456,9 @@ func (v *InstancesDistributionValue) Flatten(ctx context.Context, in *rafay.Node
 	}
 	v.InstanceTypes = instanceTypes
 
-	v.MaxPrice = types.Float64PointerValue(in.MaxPrice)
+	if in.MaxPrice != nil {
+		v.MaxPrice = types.Float64PointerValue(in.MaxPrice)
+	}
 	if in.OnDemandBaseCapacity != nil {
 		v.OnDemandBaseCapacity = types.Int64Value(int64(*in.OnDemandBaseCapacity))
 	}
@@ -472,7 +486,9 @@ func (v *BottleRocketValue) Flatten(ctx context.Context, in *rafay.NodeGroupBott
 		return diags
 	}
 
-	v.EnableAdminContainer = types.BoolPointerValue(in.EnableAdminContainer)
+	if in.EnableAdminContainer != nil {
+		v.EnableAdminContainer = types.BoolPointerValue(in.EnableAdminContainer)
+	}
 
 	if in.Settings != nil && len(in.Settings) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -533,7 +549,9 @@ func (v *SshValue) Flatten(ctx context.Context, in *rafay.NodeGroupSSH) diag.Dia
 		return diags
 	}
 
-	v.Allow = types.BoolPointerValue(in.Allow)
+	if in.Allow != nil {
+		v.Allow = types.BoolPointerValue(in.Allow)
+	}
 	if in.PublicKeyPath != "" {
 		v.PublicKey = types.StringValue(in.PublicKeyPath)
 	}
@@ -552,7 +570,9 @@ func (v *SshValue) Flatten(ctx context.Context, in *rafay.NodeGroupSSH) diag.Dia
 	}
 	v.SourceSecurityGroupIds = sourceSecurityGroupIds
 
-	v.EnableSsm = types.BoolPointerValue(in.EnableSSM)
+	if in.EnableSSM != nil {
+		v.EnableSsm = types.BoolPointerValue(in.EnableSSM)
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags
@@ -564,8 +584,12 @@ func (v *SecurityGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroupSG
 		return diags
 	}
 
-	v.WithShared = types.BoolPointerValue(in.WithShared)
-	v.WithLocal = types.BoolPointerValue(in.WithLocal)
+	if in.WithShared != nil {
+		v.WithShared = types.BoolPointerValue(in.WithShared)
+	}
+	if in.WithLocal != nil {
+		v.WithLocal = types.BoolPointerValue(in.WithLocal)
+	}
 
 	attachIds := types.ListNull(types.StringType)
 	if len(in.AttachIDs) > 0 {
@@ -766,19 +790,42 @@ func (v *IamNodeGroupWithAddonPoliciesValue) Flatten(ctx context.Context, in *ra
 		return diags
 	}
 
-	v.AlbIngress = types.BoolPointerValue(in.AWSLoadBalancerController)
-	v.AppMesh = types.BoolPointerValue(in.AppMesh)
-	v.AppMeshReview = types.BoolPointerValue(in.AppMeshPreview)
-	v.AutoScaler = types.BoolPointerValue(in.AutoScaler)
-	v.CertManager = types.BoolPointerValue(in.CertManager)
-	v.CloudWatch = types.BoolPointerValue(in.CloudWatch)
-	v.Ebs = types.BoolPointerValue(in.EBS)
-	v.Efs = types.BoolPointerValue(in.EFS)
-	v.ExternalDns = types.BoolPointerValue(in.ExternalDNS)
-	v.Fsx = types.BoolPointerValue(in.FSX)
-	v.ImageBuilder = types.BoolPointerValue(in.ImageBuilder)
-	v.Xray = types.BoolPointerValue(in.XRay)
-
+	if in.AWSLoadBalancerController != nil {
+		v.AlbIngress = types.BoolPointerValue(in.AWSLoadBalancerController)
+	}
+	if in.AppMesh != nil {
+		v.AppMesh = types.BoolPointerValue(in.AppMesh)
+	}
+	if in.AppMeshPreview != nil {
+		v.AppMeshReview = types.BoolPointerValue(in.AppMeshPreview)
+	}
+	if in.AutoScaler != nil {
+		v.AutoScaler = types.BoolPointerValue(in.AutoScaler)
+	}
+	if in.CertManager != nil {
+		v.CertManager = types.BoolPointerValue(in.CertManager)
+	}
+	if in.CloudWatch != nil {
+		v.CloudWatch = types.BoolPointerValue(in.CloudWatch)
+	}
+	if in.EBS != nil {
+		v.Ebs = types.BoolPointerValue(in.EBS)
+	}
+	if in.EFS != nil {
+		v.Efs = types.BoolPointerValue(in.EFS)
+	}
+	if in.ExternalDNS != nil {
+		v.ExternalDns = types.BoolPointerValue(in.ExternalDNS)
+	}
+	if in.FSX != nil {
+		v.Fsx = types.BoolPointerValue(in.FSX)
+	}
+	if in.ImageBuilder != nil {
+		v.ImageBuilder = types.BoolPointerValue(in.ImageBuilder)
+	}
+	if in.XRay != nil {
+		v.Xray = types.BoolPointerValue(in.XRay)
+	}
 	v.state = attr.ValueStateKnown
 	return diags
 }

@@ -118,12 +118,16 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, in *rafay.ManagedN
 	}
 	v.AvailabilityZones = availabilityZones
 
-	snElements := []attr.Value{}
-	for _, sn := range in.Subnets {
-		snElements = append(snElements, types.StringValue(sn))
+	if len(in.Subnets) > 0 {
+		snElements := []attr.Value{}
+		for _, sn := range in.Subnets {
+			snElements = append(snElements, types.StringValue(sn))
+		}
+		v.Subnets, d = types.SetValue(types.StringType, snElements)
+		diags = append(diags, d...)
+	} else {
+		v.Subnets = types.SetNull(types.StringType)
 	}
-	v.Subnets, d = types.SetValue(types.StringType, snElements)
-	diags = append(diags, d...)
 
 	if in.InstancePrefix != "" {
 		v.InstancePrefix = types.StringValue(in.InstancePrefix)
@@ -320,7 +324,7 @@ func (v *BottleRocket4Value) Flatten(ctx context.Context, in *rafay.NodeGroupBot
 		v.EnableAdminContainer = types.BoolPointerValue(in.EnableAdminContainer)
 	}
 
-	if in.Settings != nil && len(in.Settings) > 0 {
+	if len(in.Settings) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.Settings)
 		if err != nil {

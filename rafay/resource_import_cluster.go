@@ -29,7 +29,7 @@ import (
 var (
 	supportedK8sProviderList    []string = []string{"AKS", "EKS", "GKE", "OPENSHIFT", "OTHER", "RKE", "EKSANYWHERE"}
 	supportedProvisionEnvList   []string = []string{"CLOUD", "ONPREM"}
-	environmentManagerLabelsKey []string = []string{"rafay.dev/envRun", "rafay.dev/k8sVersion", "rafay.dev/envMode"}
+	environmentManagerLabelsKey []string = []string{"rafay.dev/envRun", "rafay.dev/k8sVersion", "rafay.dev/envMode", "rafay.dev/gkeAutopilot"}
 )
 
 func resourceImportCluster() *schema.Resource {

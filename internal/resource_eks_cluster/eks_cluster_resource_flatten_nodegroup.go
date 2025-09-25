@@ -38,7 +38,9 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	if in.InstanceType != "" {
 		v.InstanceType = types.StringValue(in.InstanceType)
 	}
-	v.MaxPodsPerNode = types.Int64Value(int64(in.MaxPodsPerNode))
+	if in.MaxPodsPerNode != 0 {
+		v.MaxPodsPerNode = types.Int64Value(int64(in.MaxPodsPerNode))
+	}
 	if in.MaxSize != nil {
 		v.MaxSize = types.Int64Value(int64(*in.MaxSize))
 	}
@@ -490,7 +492,7 @@ func (v *BottleRocketValue) Flatten(ctx context.Context, in *rafay.NodeGroupBott
 		v.EnableAdminContainer = types.BoolPointerValue(in.EnableAdminContainer)
 	}
 
-	if in.Settings != nil && len(in.Settings) > 0 {
+	if len(in.Settings) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.Settings)
 		if err != nil {

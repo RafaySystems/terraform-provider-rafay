@@ -35,7 +35,9 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 	if in.InstanceType != "" {
 		v.InstanceType = types.StringValue(in.InstanceType)
 	}
-	v.MaxPodsPerNode = types.Int64Value(int64(in.MaxPodsPerNode))
+	if in.MaxPodsPerNode != 0 {
+		v.MaxPodsPerNode = types.Int64Value(int64(in.MaxPodsPerNode))
+	}
 	if in.MaxSize != nil {
 		v.MaxSize = types.Int64Value(int64(*in.MaxSize))
 	}

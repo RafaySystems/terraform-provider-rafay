@@ -133,7 +133,7 @@ func (v *ManagedNodegroupsMapValue) Flatten(ctx context.Context, in *rafay.Manag
 		v.InstanceName = types.StringValue(in.InstanceName)
 	}
 
-	if in.Labels != nil && len(in.Labels) > 0 {
+	if len(in.Labels) > 0 {
 		lbs := map[string]attr.Value{}
 		for key, val := range in.Labels {
 			lbs[key] = types.StringValue(val)
@@ -460,6 +460,8 @@ func (v *Statement5Value) Flatten(ctx context.Context, in rafay.InlineStatement)
 		}
 		v.Action, d = types.ListValue(types.StringType, actEle)
 		diags = append(diags, d...)
+	} else {
+		v.Action = types.ListNull(types.StringType)
 	}
 	if in.NotAction != nil && len(in.NotAction.([]interface{})) > 0 {
 		naEle := []attr.Value{}
@@ -468,6 +470,8 @@ func (v *Statement5Value) Flatten(ctx context.Context, in rafay.InlineStatement)
 		}
 		v.NotAction, d = types.ListValue(types.StringType, naEle)
 		diags = append(diags, d...)
+	} else {
+		v.NotAction = types.ListNull(types.StringType)
 	}
 	if len(in.Resource.(string)) > 0 {
 		v.Resource = types.StringValue(in.Resource.(string))
@@ -479,6 +483,8 @@ func (v *Statement5Value) Flatten(ctx context.Context, in rafay.InlineStatement)
 		}
 		v.NotResource, d = types.ListValue(types.StringType, nrEle)
 		diags = append(diags, d...)
+	} else {
+		v.NotResource = types.ListNull(types.StringType)
 	}
 
 	if len(in.Condition) > 0 {
@@ -582,7 +588,7 @@ func (v *BottleRocket5Value) Flatten(ctx context.Context, in *rafay.NodeGroupBot
 		v.EnableAdminContainer = types.BoolPointerValue(in.EnableAdminContainer)
 	}
 
-	if in.Settings != nil && len(in.Settings) > 0 {
+	if len(in.Settings) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.Settings)
 		if err != nil {

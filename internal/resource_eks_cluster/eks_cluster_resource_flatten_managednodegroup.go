@@ -193,6 +193,8 @@ func (v *ManagedNodegroupsValue) Flatten(ctx context.Context, in *rafay.ManagedN
 		iamElements := []attr.Value{iam}
 		v.Iam4, d = types.ListValue(Iam4Value{}.Type(ctx), iamElements)
 		diags = append(diags, d...)
+	} else {
+		v.Iam4 = types.ListNull(Iam4Value{}.Type(ctx))
 	}
 
 	if in.SSH != nil {
@@ -525,6 +527,8 @@ func (v *Statement4Value) Flatten(ctx context.Context, in rafay.InlineStatement)
 		}
 		v.Action, d = types.ListValue(types.StringType, actEle)
 		diags = append(diags, d...)
+	} else {
+		v.Action = types.ListNull(types.StringType)
 	}
 	if in.NotAction != nil && len(in.NotAction.([]interface{})) > 0 {
 		naEle := []attr.Value{}
@@ -533,6 +537,8 @@ func (v *Statement4Value) Flatten(ctx context.Context, in rafay.InlineStatement)
 		}
 		v.NotAction, d = types.ListValue(types.StringType, naEle)
 		diags = append(diags, d...)
+	} else {
+		v.NotAction = types.ListNull(types.StringType)
 	}
 	if len(in.Resource.(string)) > 0 {
 		v.Resource = types.StringValue(in.Resource.(string))
@@ -544,6 +550,8 @@ func (v *Statement4Value) Flatten(ctx context.Context, in rafay.InlineStatement)
 		}
 		v.NotResource, d = types.ListValue(types.StringType, nrEle)
 		diags = append(diags, d...)
+	} else {
+		v.NotResource = types.ListNull(types.StringType)
 	}
 
 	if len(in.Condition) > 0 {

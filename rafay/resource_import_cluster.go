@@ -317,7 +317,13 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	}
 
 	//create imported cluster
-	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string), d.Get("provision_environment").(string), d.Get("kubernetes_provider").(string), *proxyCfg)
+	labels := map[string]string{}
+	if labelsX, ok := d.Get("labels").(map[string]interface{}); ok && len(labelsX) > 0 {
+		for k, v := range labelsX {
+			labels[k] = v.(string)
+		}
+	}
+	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string), d.Get("provision_environment").(string), d.Get("kubernetes_provider").(string), *proxyCfg, labels)
 	if err != nil {
 		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
 		return diag.FromErr(err)

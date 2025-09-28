@@ -55,7 +55,6 @@ func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.Va
 		return
 	}
 	cc := ccList[0]
-	_ = cc
 
 	if !cc.NodeGroups.IsNull() && !cc.NodeGroupsMap.IsNull() {
 		resp.Diagnostics.AddError(
@@ -63,6 +62,9 @@ func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.Va
 			"Only one of 'node_groups' or 'node_groups_map' can be set at a time. Please remove one of them.",
 		)
 	}
+
+	// TODO(Akshay): Add validation for this error "could not create cluster provider from options: managedNodeGroups[0].overrideBootstrapCommand
+	// can only be set when a custom AMI (managedNodeGroups[0].ami) is specified"
 }
 
 func (r *eksClusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -251,7 +253,6 @@ func (r *eksClusterResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -596,9 +597,6 @@ func (r *eksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to parse the cluster apply response, got error: %s", err))
 		return
 	}
-	if res.TaskSetID == "" {
-		return
-	}
 	time.Sleep(10 * time.Second)
 	s, errGet := cluster.GetCluster(clusterName, projectID, uaDef)
 	if errGet != nil {
@@ -607,6 +605,11 @@ func (r *eksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	data.Id = types.StringValue(s.ID)
+
+	if res.TaskSetID == "" {
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+		return
+	}
 
 	ticker := time.NewTicker(time.Duration(60) * time.Second)
 	defer ticker.Stop()

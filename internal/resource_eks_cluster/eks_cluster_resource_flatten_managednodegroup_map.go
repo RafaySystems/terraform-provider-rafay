@@ -17,7 +17,7 @@ func (v *ManagedNodegroupsMapValue) Flatten(ctx context.Context, in *rafay.Manag
 		return diags
 	}
 
-	if in.AMIFamily == "" {
+	if in.AMIFamily != "" {
 		v.AmiFamily = types.StringValue(in.AMIFamily)
 	}
 	if in.DesiredCapacity != nil {
@@ -125,11 +125,11 @@ func (v *ManagedNodegroupsMapValue) Flatten(ctx context.Context, in *rafay.Manag
 		v.Subnets = types.SetNull(types.StringType)
 	}
 
-	if in.InstancePrefix == "" {
+	if in.InstancePrefix != "" {
 		v.InstancePrefix = types.StringValue(in.InstancePrefix)
 	}
 
-	if in.InstanceName == "" {
+	if in.InstanceName != "" {
 		v.InstanceName = types.StringValue(in.InstanceName)
 	}
 

@@ -190,7 +190,7 @@ func (v ManagedNodegroupsMapValue) Expand(ctx context.Context) (*rafay.ManagedNo
 	}
 
 	if !v.Ssh5.IsNull() && !v.Ssh5.IsUnknown() {
-		var sshTypes SshType
+		var sshTypes Ssh5Type
 		tfSshValue, d := sshTypes.ValueFromObject(ctx, v.Ssh5)
 		if d.HasError() {
 			diags = append(diags, d...)

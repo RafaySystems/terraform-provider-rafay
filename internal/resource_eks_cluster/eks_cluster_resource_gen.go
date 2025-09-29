@@ -5,12 +5,13 @@ package resource_eks_cluster
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -92,6 +93,11 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										MarkdownDescription: "Role ARN of the linked account.",
 									},
 									"proxy_config": schema.MapAttribute{
+										CustomType: NullableEmptyMapType{
+											MapType: types.MapType{
+												ElemType: types.StringType,
+											},
+										},
 										ElementType:         types.StringType,
 										Optional:            true,
 										Description:         "Proxy configuration for the EKS cluster.",
@@ -5031,7 +5037,7 @@ func (t SpecType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue)
 		return nil, diags
 	}
 
-	proxyConfigVal, ok := proxyConfigAttribute.(basetypes.MapValue)
+	proxyConfigVal, ok := proxyConfigAttribute.(NullableEmptyMapValue)
 
 	if !ok {
 		diags.AddError(
@@ -5293,12 +5299,12 @@ func NewSpecValue(attributeTypes map[string]attr.Type, attributes map[string]att
 		return NewSpecValueUnknown(), diags
 	}
 
-	proxyConfigVal, ok := proxyConfigAttribute.(basetypes.MapValue)
+	proxyConfigVal, ok := proxyConfigAttribute.(NullableEmptyMapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`proxy_config expected to be basetypes.MapValue, was: %T`, proxyConfigAttribute))
+			fmt.Sprintf(`proxy_config expected to be NullableEmptyMapValue, was: %T`, proxyConfigAttribute))
 	}
 
 	sharingAttribute, ok := attributes["sharing"]
@@ -5448,7 +5454,7 @@ type SpecValue struct {
 	CniParams                 basetypes.ListValue   `tfsdk:"cni_params"`
 	CniProvider               basetypes.StringValue `tfsdk:"cni_provider"`
 	CrossAccountRoleArn       basetypes.StringValue `tfsdk:"cross_account_role_arn"`
-	ProxyConfig               basetypes.MapValue    `tfsdk:"proxy_config"`
+	ProxyConfig               NullableEmptyMapValue `tfsdk:"proxy_config"`
 	Sharing                   basetypes.ListValue   `tfsdk:"sharing"`
 	SystemComponentsPlacement basetypes.ListValue   `tfsdk:"system_components_placement"`
 	SpecType                  basetypes.StringValue `tfsdk:"type"`
@@ -5469,8 +5475,10 @@ func (v SpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) 
 	}.TerraformType(ctx)
 	attrTypes["cni_provider"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["cross_account_role_arn"] = basetypes.StringType{}.TerraformType(ctx)
-	attrTypes["proxy_config"] = basetypes.MapType{
-		ElemType: types.StringType,
+	attrTypes["proxy_config"] = NullableEmptyMapType{
+		MapType: basetypes.MapType{
+			ElemType: types.StringType,
+		},
 	}.TerraformType(ctx)
 	attrTypes["sharing"] = basetypes.ListType{
 		ElemType: SharingValue{}.Type(ctx),
@@ -5682,16 +5690,18 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		)
 	}
 
-	var proxyConfigVal basetypes.MapValue
+	var proxyConfigVal NullableEmptyMapValue
 	switch {
 	case v.ProxyConfig.IsUnknown():
-		proxyConfigVal = types.MapUnknown(types.StringType)
+		proxyConfigVal = NullableEmptyMapValue{types.MapUnknown(types.StringType)}
 	case v.ProxyConfig.IsNull():
-		proxyConfigVal = types.MapNull(types.StringType)
+		proxyConfigVal = NullableEmptyMapValue{types.MapNull(types.StringType)}
 	default:
 		var d diag.Diagnostics
-		proxyConfigVal, d = types.MapValue(types.StringType, v.ProxyConfig.Elements())
+		pcmVal, d := types.MapValue(types.StringType, v.ProxyConfig.Elements())
 		diags.Append(d...)
+		proxyConfigVal = NullableEmptyMapValue{pcmVal}
+
 	}
 
 	if diags.HasError() {
@@ -5704,8 +5714,10 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 			},
 			"cni_provider":           basetypes.StringType{},
 			"cross_account_role_arn": basetypes.StringType{},
-			"proxy_config": basetypes.MapType{
-				ElemType: types.StringType,
+			"proxy_config": NullableEmptyMapType{
+				MapType: basetypes.MapType{
+					ElemType: types.StringType,
+				},
 			},
 			"sharing": basetypes.ListType{
 				ElemType: SharingValue{}.Type(ctx),
@@ -5726,8 +5738,10 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		},
 		"cni_provider":           basetypes.StringType{},
 		"cross_account_role_arn": basetypes.StringType{},
-		"proxy_config": basetypes.MapType{
-			ElemType: types.StringType,
+		"proxy_config": NullableEmptyMapType{
+			MapType: basetypes.MapType{
+				ElemType: types.StringType,
+			},
 		},
 		"sharing": basetypes.ListType{
 			ElemType: SharingValue{}.Type(ctx),
@@ -5840,8 +5854,10 @@ func (v SpecValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		},
 		"cni_provider":           basetypes.StringType{},
 		"cross_account_role_arn": basetypes.StringType{},
-		"proxy_config": basetypes.MapType{
-			ElemType: types.StringType,
+		"proxy_config": NullableEmptyMapType{
+			MapType: basetypes.MapType{
+				ElemType: types.StringType,
+			},
 		},
 		"sharing": basetypes.ListType{
 			ElemType: SharingValue{}.Type(ctx),
@@ -7038,7 +7054,7 @@ func (v CniSpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 		attributeTypes,
 		map[string]attr.Value{
 			"security_groups": securityGroups2Val,
-			"subnet":           v.Subnet,
+			"subnet":          v.Subnet,
 		})
 
 	return objVal, diags
@@ -8726,7 +8742,7 @@ func (v DaemonsetOverrideValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 		attributeTypes,
 		map[string]attr.Value{
 			"node_selection_enabled": v.NodeSelectionEnabled,
-			"tolerations":           tolerations2,
+			"tolerations":            tolerations2,
 		})
 
 	return objVal, diags
@@ -11807,14 +11823,14 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"availability_zones":        availabilityZonesVal,
 			"cloud_watch":               cloudWatch,
 			"fargate_profiles":          fargateProfiles,
-			"iam":                      iam3,
+			"iam":                       iam3,
 			"identity_mappings":         identityMappings,
 			"identity_providers":        identityProviders,
 			"kind":                      v.Kind,
 			"kubernetes_network_config": kubernetesNetworkConfig,
 			"managed_nodegroups":        managedNodegroups,
 			"managed_nodegroups_map":    managedNodegroupsMap,
-			"metadata":                 metadata2,
+			"metadata":                  metadata2,
 			"node_groups":               nodeGroups,
 			"node_groups_map":           nodeGroupsMap,
 			"private_cluster":           privateCluster,
@@ -15136,35 +15152,35 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 			"ami_family":                 v.AmiFamily,
 			"asg_suspend_processes":      asgSuspendProcessesVal,
 			"availability_zones":         availabilityZonesVal,
-			"bottle_rocket":             bottleRocket5,
+			"bottle_rocket":              bottleRocket5,
 			"desired_capacity":           v.DesiredCapacity,
 			"disable_imdsv1":             v.DisableImdsv1,
 			"disable_pods_imds":          v.DisablePodsImds,
 			"ebs_optimized":              v.EbsOptimized,
 			"efa_enabled":                v.EfaEnabled,
 			"enable_detailed_monitoring": v.EnableDetailedMonitoring,
-			"iam":                       iam5,
+			"iam":                        iam5,
 			"instance_name":              v.InstanceName,
 			"instance_prefix":            v.InstancePrefix,
-			"instance_selector":         instanceSelector5,
+			"instance_selector":          instanceSelector5,
 			"instance_type":              v.InstanceType,
 			"instance_types":             instanceTypesVal,
 			"labels":                     labelsVal,
-			"launch_template":           launchTemplate5,
+			"launch_template":            launchTemplate5,
 			"max_pods_per_node":          v.MaxPodsPerNode,
 			"max_size":                   v.MaxSize,
 			"min_size":                   v.MinSize,
 			"override_bootstrap_command": v.OverrideBootstrapCommand,
-			"placement":                 placement5,
+			"placement":                  placement5,
 			"pre_bootstrap_commands":     preBootstrapCommandsVal,
 			"private_networking":         v.PrivateNetworking,
-			"security_groups":           securityGroups5,
+			"security_groups":            securityGroups5,
 			"spot":                       v.Spot,
-			"ssh":                       ssh5,
+			"ssh":                        ssh5,
 			"subnets":                    subnetsVal,
 			"tags":                       tagsVal,
-			"taints":                    taints5,
-			"update_config":             updateConfig5,
+			"taints":                     taints5,
+			"update_config":              updateConfig5,
 			"version":                    v.Version,
 			"volume_encrypted":           v.VolumeEncrypted,
 			"volume_iops":                v.VolumeIops,
@@ -16536,13 +16552,13 @@ func (v Iam5Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		attributeTypes,
 		map[string]attr.Value{
 			"attach_policy":                      attachPolicy5,
-			"attach_policy_arns":                  attachPolicyArnsVal,
-			"attach_policy_v2":                    v.AttachPolicyV2,
+			"attach_policy_arns":                 attachPolicyArnsVal,
+			"attach_policy_v2":                   v.AttachPolicyV2,
 			"iam_node_group_with_addon_policies": iamNodeGroupWithAddonPolicies5,
-			"instance_profile_arn":                v.InstanceProfileArn,
-			"instance_role_arn":                   v.InstanceRoleArn,
-			"instance_role_name":                  v.InstanceRoleName,
-			"instance_role_permission_boundary":   v.InstanceRolePermissionBoundary,
+			"instance_profile_arn":               v.InstanceProfileArn,
+			"instance_role_arn":                  v.InstanceRoleArn,
+			"instance_role_name":                 v.InstanceRoleName,
+			"instance_role_permission_boundary":  v.InstanceRolePermissionBoundary,
 		})
 
 	return objVal, diags
@@ -17038,9 +17054,9 @@ func (v AttachPolicy5Value) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"id":         v.Id,
+			"id":        v.Id,
 			"statement": statement5,
-			"version":    v.Version,
+			"version":   v.Version,
 		})
 
 	return objVal, diags
@@ -25565,7 +25581,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"asg_metrics_collection6":     asgMetricsCollection6,
 			"asg_suspend_processes":       asgSuspendProcessesVal,
 			"availability_zones2":         availabilityZones2Val,
-			"bottle_rocket":              bottleRocket6,
+			"bottle_rocket":               bottleRocket6,
 			"classic_load_balancer_names": classicLoadBalancerNamesVal,
 			"cluster_dns":                 v.ClusterDns,
 			"cpu_credits":                 v.CpuCredits,
@@ -25575,10 +25591,10 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"ebs_optimized":               v.EbsOptimized,
 			"efa_enabled":                 v.EfaEnabled,
 			"enable_detailed_monitoring":  v.EnableDetailedMonitoring,
-			"iam":                        iam6,
+			"iam":                         iam6,
 			"instance_name":               v.InstanceName,
 			"instance_prefix":             v.InstancePrefix,
-			"instance_selector":          instanceSelector6,
+			"instance_selector":           instanceSelector6,
 			"instance_type":               v.InstanceType,
 			"instances_distribution6":     instancesDistribution6,
 			"kubelet_extra_config6":       kubeletExtraConfig6,
@@ -25587,17 +25603,17 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"max_size":                    v.MaxSize,
 			"min_size":                    v.MinSize,
 			"override_bootstrap_command":  v.OverrideBootstrapCommand,
-			"placement":                  placement6,
+			"placement":                   placement6,
 			"pre_bootstrap_commands":      preBootstrapCommandsVal,
 			"private_networking":          v.PrivateNetworking,
-			"security_groups":            securityGroups6,
-			"ssh":                        ssh6,
+			"security_groups":             securityGroups6,
+			"ssh":                         ssh6,
 			"subnet_cidr":                 v.SubnetCidr,
 			"subnets":                     subnetsVal,
 			"tags2":                       tags2Val,
-			"taints":                     taints6,
+			"taints":                      taints6,
 			"target_group_arns":           targetGroupArnsVal,
-			"update_config":              updateConfig6,
+			"update_config":               updateConfig6,
 			"version":                     v.Version,
 			"volume_encrypted":            v.VolumeEncrypted,
 			"volume_iops":                 v.VolumeIops,
@@ -27406,13 +27422,13 @@ func (v Iam6Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		attributeTypes,
 		map[string]attr.Value{
 			"attach_policy":                      attachPolicy6,
-			"attach_policy_arns":                  attachPolicyArnsVal,
-			"attach_policy_v2":                    v.AttachPolicyV2,
+			"attach_policy_arns":                 attachPolicyArnsVal,
+			"attach_policy_v2":                   v.AttachPolicyV2,
 			"iam_node_group_with_addon_policies": iamNodeGroupWithAddonPolicies6,
-			"instance_profile_arn":                v.InstanceProfileArn,
-			"instance_role_arn":                   v.InstanceRoleArn,
-			"instance_role_name":                  v.InstanceRoleName,
-			"instance_role_permission_boundary":   v.InstanceRolePermissionBoundary,
+			"instance_profile_arn":               v.InstanceProfileArn,
+			"instance_role_arn":                  v.InstanceRoleArn,
+			"instance_role_name":                 v.InstanceRoleName,
+			"instance_role_permission_boundary":  v.InstanceRolePermissionBoundary,
 		})
 
 	return objVal, diags
@@ -27908,9 +27924,9 @@ func (v AttachPolicy6Value) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"id":         v.Id,
+			"id":        v.Id,
 			"statement": statement6,
-			"version":    v.Version,
+			"version":   v.Version,
 		})
 
 	return objVal, diags
@@ -36712,9 +36728,9 @@ func (v AddonsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"attach_policy_arns": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"attach_policy_v2":    basetypes.StringType{},
-			"configuration_values":  basetypes.StringType{},
-			"name":                  basetypes.StringType{},
+			"attach_policy_v2":     basetypes.StringType{},
+			"configuration_values": basetypes.StringType{},
+			"name":                 basetypes.StringType{},
 			"permissions_boundary": basetypes.StringType{},
 			"pod_identity_associations": basetypes.ListType{
 				ElemType: PodIdentityAssociations2Value{}.Type(ctx),
@@ -36751,9 +36767,9 @@ func (v AddonsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"attach_policy_arns": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"attach_policy_v2":    basetypes.StringType{},
-			"configuration_values":  basetypes.StringType{},
-			"name":                  basetypes.StringType{},
+			"attach_policy_v2":     basetypes.StringType{},
+			"configuration_values": basetypes.StringType{},
+			"name":                 basetypes.StringType{},
 			"permissions_boundary": basetypes.StringType{},
 			"pod_identity_associations": basetypes.ListType{
 				ElemType: PodIdentityAssociations2Value{}.Type(ctx),
@@ -36777,9 +36793,9 @@ func (v AddonsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		"attach_policy_arns": basetypes.ListType{
 			ElemType: types.StringType,
 		},
-		"attach_policy_v2":    basetypes.StringType{},
-		"configuration_values":  basetypes.StringType{},
-		"name":                  basetypes.StringType{},
+		"attach_policy_v2":     basetypes.StringType{},
+		"configuration_values": basetypes.StringType{},
+		"name":                 basetypes.StringType{},
 		"permissions_boundary": basetypes.StringType{},
 		"pod_identity_associations": basetypes.ListType{
 			ElemType: PodIdentityAssociations2Value{}.Type(ctx),
@@ -36806,18 +36822,18 @@ func (v AddonsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"attach_policy":                        attachPolicy3,
-			"attach_policy_arns":                   attachPolicyArns3Val,
-			"attach_policy_v2":                    v.AttachPolicyV22,
+			"attach_policy":                         attachPolicy3,
+			"attach_policy_arns":                    attachPolicyArns3Val,
+			"attach_policy_v2":                      v.AttachPolicyV22,
 			"configuration_values":                  v.ConfigurationValues,
 			"name":                                  v.Name,
-			"permissions_boundary":                 v.PermissionsBoundary2,
-			"pod_identity_associations":            podIdentityAssociations2,
+			"permissions_boundary":                  v.PermissionsBoundary2,
+			"pod_identity_associations":             podIdentityAssociations2,
 			"service_account_role_arn":              v.ServiceAccountRoleArn,
-			"tags":                                 tags4Val,
+			"tags":                                  tags4Val,
 			"use_default_pod_identity_associations": v.UseDefaultPodIdentityAssociations,
 			"version":                               v.Version,
-			"well_known_policies":                  wellKnownPolicies3,
+			"well_known_policies":                   wellKnownPolicies3,
 		})
 
 	return objVal, diags
@@ -36905,9 +36921,9 @@ func (v AddonsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"attach_policy_arns": basetypes.ListType{
 			ElemType: types.StringType,
 		},
-		"attach_policy_v2":    basetypes.StringType{},
-		"configuration_values":  basetypes.StringType{},
-		"name":                  basetypes.StringType{},
+		"attach_policy_v2":     basetypes.StringType{},
+		"configuration_values": basetypes.StringType{},
+		"name":                 basetypes.StringType{},
 		"permissions_boundary": basetypes.StringType{},
 		"pod_identity_associations": basetypes.ListType{
 			ElemType: PodIdentityAssociations2Value{}.Type(ctx),
@@ -37337,9 +37353,9 @@ func (v AttachPolicy3Value) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"id":         v.Id,
+			"id":        v.Id,
 			"statement": statement2,
-			"version":    v.Version,
+			"version":   v.Version,
 		})
 
 	return objVal, diags
@@ -39110,7 +39126,7 @@ func (v PodIdentityAssociations2Value) ToObjectValue(ctx context.Context) (baset
 			"role_name":               v.RoleName,
 			"service_account_name":    v.ServiceAccountName,
 			"tags":                    tagsVal,
-			"well_known_policies":    wellKnownPolicies4,
+			"well_known_policies":     wellKnownPolicies4,
 		})
 
 	return objVal, diags
@@ -46497,15 +46513,15 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 		attributeTypes,
 		map[string]attr.Value{
 			"attach_policy":        v.AttachPolicy,
-			"attach_policy_arns":  attachPolicyArns2Val,
+			"attach_policy_arns":   attachPolicyArns2Val,
 			"attach_role_arn":      v.AttachRoleArn,
-			"metadata":            metadata3,
+			"metadata":             metadata3,
 			"permissions_boundary": v.PermissionsBoundary,
 			"role_name":            v.RoleName,
 			"role_only":            v.RoleOnly,
 			"status":               status,
-			"tags":                tags3Val,
-			"well_known_policies": wellKnownPolicies2,
+			"tags":                 tags3Val,
+			"well_known_policies":  wellKnownPolicies2,
 		})
 
 	return objVal, diags
@@ -52996,36 +53012,36 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 			"ami_family":                 v.AmiFamily,
 			"asg_suspend_processes":      asgSuspendProcessesVal,
 			"availability_zones":         availabilityZonesVal,
-			"bottle_rocket":             bottleRocket4,
+			"bottle_rocket":              bottleRocket4,
 			"desired_capacity":           v.DesiredCapacity,
 			"disable_imdsv1":             v.DisableImdsv1,
 			"disable_pods_imds":          v.DisablePodsImds,
 			"ebs_optimized":              v.EbsOptimized,
 			"efa_enabled":                v.EfaEnabled,
 			"enable_detailed_monitoring": v.EnableDetailedMonitoring,
-			"iam":                       iam4,
+			"iam":                        iam4,
 			"instance_name":              v.InstanceName,
 			"instance_prefix":            v.InstancePrefix,
-			"instance_selector":         instanceSelector4,
+			"instance_selector":          instanceSelector4,
 			"instance_type":              v.InstanceType,
 			"instance_types":             instanceTypesVal,
 			"labels":                     labelsVal,
-			"launch_template":           launchTemplate4,
+			"launch_template":            launchTemplate4,
 			"max_pods_per_node":          v.MaxPodsPerNode,
 			"max_size":                   v.MaxSize,
 			"min_size":                   v.MinSize,
 			"name":                       v.Name,
 			"override_bootstrap_command": v.OverrideBootstrapCommand,
-			"placement":                 placement4,
+			"placement":                  placement4,
 			"pre_bootstrap_commands":     preBootstrapCommandsVal,
 			"private_networking":         v.PrivateNetworking,
-			"security_groups":           securityGroups4,
+			"security_groups":            securityGroups4,
 			"spot":                       v.Spot,
-			"ssh":                       ssh4,
+			"ssh":                        ssh4,
 			"subnets":                    subnetsVal,
 			"tags":                       tagsVal,
-			"taints":                    taints4,
-			"update_config":             updateConfig4,
+			"taints":                     taints4,
+			"update_config":              updateConfig4,
 			"version":                    v.Version,
 			"volume_encrypted":           v.VolumeEncrypted,
 			"volume_iops":                v.VolumeIops,
@@ -54418,13 +54434,13 @@ func (v Iam4Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		attributeTypes,
 		map[string]attr.Value{
 			"attach_policy":                      attachPolicy4,
-			"attach_policy_arns":                  attachPolicyArnsVal,
-			"attach_policy_v2":                    v.AttachPolicyV2,
+			"attach_policy_arns":                 attachPolicyArnsVal,
+			"attach_policy_v2":                   v.AttachPolicyV2,
 			"iam_node_group_with_addon_policies": iamNodeGroupWithAddonPolicies4,
-			"instance_profile_arn":                v.InstanceProfileArn,
-			"instance_role_arn":                   v.InstanceRoleArn,
-			"instance_role_name":                  v.InstanceRoleName,
-			"instance_role_permission_boundary":   v.InstanceRolePermissionBoundary,
+			"instance_profile_arn":               v.InstanceProfileArn,
+			"instance_role_arn":                  v.InstanceRoleArn,
+			"instance_role_name":                 v.InstanceRoleName,
+			"instance_role_permission_boundary":  v.InstanceRolePermissionBoundary,
 		})
 
 	return objVal, diags
@@ -54920,9 +54936,9 @@ func (v AttachPolicy4Value) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"id":         v.Id,
+			"id":        v.Id,
 			"statement": statement4,
-			"version":    v.Version,
+			"version":   v.Version,
 		})
 
 	return objVal, diags
@@ -74461,7 +74477,7 @@ func (v VpcValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, dia
 			"public_access_cidrs":        publicAccessCidrsVal,
 			"security_group":             v.SecurityGroup,
 			"shared_node_security_group": v.SharedNodeSecurityGroup,
-			"subnets":                   subnets3,
+			"subnets":                    subnets3,
 		})
 
 	return objVal, diags

@@ -163,7 +163,8 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec) diag.Diagnos
 		v.CniParams = types.ListNull(CniParamsValue{}.Type(ctx))
 	}
 
-	proxycfgMap := types.MapNull(types.StringType)
+	//proxycfgMap := types.MapNull(types.StringType)
+	proxycfgMap := NullableEmptyMapValue{types.MapNull(types.StringType)}
 	if in.ProxyConfig != nil {
 		pc := map[string]attr.Value{}
 		if in.ProxyConfig.HttpProxy != "" {
@@ -187,8 +188,9 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec) diag.Diagnos
 		if in.ProxyConfig.AllowInsecureBootstrap {
 			pc["allow_insecure_bootstrap"] = types.StringValue("true")
 		}
-		proxycfgMap, d = types.MapValue(types.StringType, pc)
+		pcm, d := types.MapValue(types.StringType, pc)
 		diags = append(diags, d...)
+		proxycfgMap = NullableEmptyMapValue{pcm}
 	}
 	v.ProxyConfig = proxycfgMap
 

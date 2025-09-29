@@ -63,6 +63,13 @@ func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.Va
 		)
 	}
 
+	if !cc.ManagedNodegroups.IsNull() && !cc.ManagedNodegroupsMap.IsNull() {
+		resp.Diagnostics.AddError(
+			"Invalid Configuration",
+			"Only one of 'managed_nodegroups' or 'managed_nodegroups_map' can be set at a time. Please remove one of them.",
+		)
+	}
+
 	// TODO(Akshay): Add validation for this error "could not create cluster provider from options: managedNodeGroups[0].overrideBootstrapCommand
 	// can only be set when a custom AMI (managedNodeGroups[0].ami) is specified"
 }

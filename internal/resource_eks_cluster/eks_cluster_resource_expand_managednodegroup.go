@@ -328,7 +328,7 @@ func (v Iam4Value) Expand(ctx context.Context) (*rafay.NodeGroupIAM, diag.Diagno
 
 	// Map attach_policy block (list)
 	if !v.AttachPolicy4.IsNull() && !v.AttachPolicy4.IsUnknown() {
-		attachPolicyList := make([]AttachPolicyValue, 0, len(v.AttachPolicy4.Elements()))
+		attachPolicyList := make([]AttachPolicy4Value, 0, len(v.AttachPolicy4.Elements()))
 		d = v.AttachPolicy4.ElementsAs(ctx, &attachPolicyList, false)
 		diags = append(diags, d...)
 		if len(attachPolicyList) > 0 {

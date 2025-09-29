@@ -419,7 +419,7 @@ func (v *Iam4Value) Flatten(ctx context.Context, in *rafay.NodeGroupIAM, state I
 
 	if in.AttachPolicy != nil {
 		if isPolicyV1 && !isPolicyV2 {
-			attachPolicy := NewAttachPolicyValueNull()
+			attachPolicy := NewAttachPolicy4ValueNull()
 			d = attachPolicy.Flatten(ctx, in.AttachPolicy)
 			diags = append(diags, d...)
 			v.AttachPolicy4, d = types.ListValue(AttachPolicy4Value{}.Type(ctx), []attr.Value{attachPolicy})

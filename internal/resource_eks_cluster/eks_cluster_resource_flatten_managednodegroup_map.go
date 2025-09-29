@@ -322,7 +322,7 @@ func (v *Iam5Value) Flatten(ctx context.Context, in *rafay.NodeGroupIAM, state I
 			diags = append(diags, d...)
 		}
 	} else {
-		v.AttachPolicy5, d = NewAttachPolicyValueNull().ToObjectValue(ctx)
+		v.AttachPolicy5, d = NewAttachPolicy5ValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 		v.AttachPolicyV2 = types.StringNull()
 	}

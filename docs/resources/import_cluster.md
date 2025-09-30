@@ -28,6 +28,16 @@ resource "rafay_import_cluster" "import_cluster" {
   }
   kubernetes_provider   = "AKS"
   provision_environment = "CLOUD"
+
+  proxy_config {
+    http_proxy  = "http://10.100.0.10:8080/"
+    https_proxy = "http://10.100.0.10:8080/"
+    no_proxy    = "10.0.0.0/16,localhost,127.0.0.1,internal-service.svc,webhook.svc,10.100.0.0/24,custom-dns.example.com,10.200.0.0/16,10.101.0.0/12,169.254.169.254,.internal.example.com,168.63.129.16,proxy,master.service.consul,10.240.0.0/16,drift-service.svc,*.privatelink.example.com,.privatelink.example.com"
+    enabled     = true
+    proxy_auth  = "username:password"
+    allow_insecure_bootstrap = false
+    bootstrap_ca = "<ca-certificate-data>"
+  }
 }
 
 output "values_data" {
@@ -66,6 +76,14 @@ output "bootstrap_path" {
 - `provision_environment` (String) This field is used to define the type of environment. The supported values are `CLOUD` and `ONPREM`
 - `values_path` - (String) The path to save the `values.yaml` file to. This is an optional parameter. If path is provided values.yaml will be downloaded to that path. Otherwise values.yaml will be downloaded to current directory and this output variable will be populated with path to the downloaded file.
 - `bootstrap_path` - (String) The path to save the `bootstrap.yaml` file to. This is an optional parameter. If path is provided bootstrap.yaml will be downloaded to that path. Otherwise bootstrap.yaml will be downloaded to current directory and this output variable will be populated with path to the downloaded file.
+- `proxy_config` - (Block, Optional) Proxy configuration for the cluster. Only one block can be specified. The following attributes are supported:
+    - `http_proxy` - (String, Optional) HTTP proxy URL.
+    - `https_proxy` - (String, Optional) HTTPS proxy URL.
+    - `no_proxy` - (String, Optional) Comma-separated list of hosts that should bypass the proxy.
+    - `enabled` - (Boolean, Optional) Whether proxy is enabled.
+    - `proxy_auth` - (String, Optional) Proxy authentication string.
+    - `allow_insecure_bootstrap` - (Boolean, Optional) Allow insecure bootstrap.
+    - `bootstrap_ca` - (String, Optional) CA certificate for bootstrap.
 - `timeouts` - (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
 
 <a id="nestedblock--timeouts"></a>

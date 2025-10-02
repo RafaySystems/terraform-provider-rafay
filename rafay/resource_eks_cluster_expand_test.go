@@ -402,12 +402,12 @@ func TestExpandVPC(t *testing.T) {
 				CIDR: "10.0.0.0/16",
 				Subnets: &ClusterSubnets{
 					Private: AZSubnetMapping{
-						"us-west-2a": EKSAZSubnetSpec{ID: "subnet-private-1"},
-						"us-west-2b": EKSAZSubnetSpec{ID: "subnet-private-2"},
+						"us-west-2a": AZSubnetSpec{ID: "subnet-private-1"},
+						"us-west-2b": AZSubnetSpec{ID: "subnet-private-2"},
 					},
 					Public: AZSubnetMapping{
-						"us-west-2a": EKSAZSubnetSpec{ID: "subnet-public-1"},
-						"us-west-2b": EKSAZSubnetSpec{ID: "subnet-public-2"},
+						"us-west-2a": AZSubnetSpec{ID: "subnet-public-1"},
+						"us-west-2b": AZSubnetSpec{ID: "subnet-public-2"},
 					},
 				},
 				NAT: &ClusterNAT{
@@ -502,32 +502,23 @@ func TestExpandNodeGroups(t *testing.T) {
 			},
 			expected: []*NodeGroup{
 				{
-					NodeGroupBase: &NodeGroupBase{
-						Name:         "worker-nodes",
-						InstanceType: "m5.large",
-						ScalingConfig: &ScalingConfig{
-							DesiredCapacity: &[]int64{2}[0],
-							MinSize:         &[]int64{1}[0],
-							MaxSize:         &[]int64{4}[0],
+					VolumeSize: &[]int{20}[0],
+					AMIFamily:  "AmazonLinux2",
+					SSH: &NodeGroupSSH{
+						Allow:                  &[]bool{true}[0],
+						PublicKeyName:          "my-key",
+						SourceSecurityGroupIDs: []string{"sg-12345678"},
+					},
+					IAM: &NodeGroupIAM{
+						AttachPolicyARNs: []string{
+							"arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+							"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+							"arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
 						},
-						VolumeSize: &[]int64{20}[0],
-						AMIFamily:  "AmazonLinux2",
-						SSH: &NodeGroupSSH{
-							Allow:                  &[]bool{true}[0],
-							PublicKeyName:          "my-key",
-							SourceSecurityGroupIds: []string{"sg-12345678"},
-						},
-						IAM: &NodeGroupIAM{
-							AttachPolicyARNs: []string{
-								"arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-								"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
-								"arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
-							},
-						},
-						Tags: map[string]string{
-							"Environment": "test",
-							"NodeGroup":   "worker-nodes",
-						},
+					},
+					Tags: map[string]string{
+						"Environment": "test",
+						"NodeGroup":   "worker-nodes",
 					},
 				},
 			},
@@ -541,19 +532,26 @@ func TestExpandNodeGroups(t *testing.T) {
 
 			for i, expected := range tt.expected {
 				if i < len(result) {
-					assert.Equal(t, expected.NodeGroupBase.Name, result[i].NodeGroupBase.Name)
-					assert.Equal(t, expected.NodeGroupBase.InstanceType, result[i].NodeGroupBase.InstanceType)
-					assert.Equal(t, expected.NodeGroupBase.AMIFamily, result[i].NodeGroupBase.AMIFamily)
+					assert.Equal(t, expected.Name, result[i].Name)
+					assert.Equal(t, expected.InstanceType, result[i].InstanceType)
+					assert.Equal(t, expected.AMIFamily, result[i].AMIFamily)
 
-					if expected.NodeGroupBase.ScalingConfig != nil {
-						require.NotNil(t, result[i].NodeGroupBase.ScalingConfig)
-						assert.Equal(t, expected.NodeGroupBase.ScalingConfig.DesiredCapacity, result[i].NodeGroupBase.ScalingConfig.DesiredCapacity)
-						assert.Equal(t, expected.NodeGroupBase.ScalingConfig.MinSize, result[i].NodeGroupBase.ScalingConfig.MinSize)
-						assert.Equal(t, expected.NodeGroupBase.ScalingConfig.MaxSize, result[i].NodeGroupBase.ScalingConfig.MaxSize)
+					// Check scaling config fields directly on NodeGroup
+					if expected.DesiredCapacity != nil {
+						require.NotNil(t, result[i].DesiredCapacity)
+						assert.Equal(t, *expected.DesiredCapacity, *result[i].DesiredCapacity)
+					}
+					if expected.MinSize != nil {
+						require.NotNil(t, result[i].MinSize)
+						assert.Equal(t, *expected.MinSize, *result[i].MinSize)
+					}
+					if expected.MaxSize != nil {
+						require.NotNil(t, result[i].MaxSize)
+						assert.Equal(t, *expected.MaxSize, *result[i].MaxSize)
 					}
 
-					assert.Equal(t, expected.NodeGroupBase.VolumeSize, result[i].NodeGroupBase.VolumeSize)
-					assert.Equal(t, expected.NodeGroupBase.Tags, result[i].NodeGroupBase.Tags)
+					assert.Equal(t, expected.VolumeSize, result[i].VolumeSize)
+					assert.Equal(t, expected.Tags, result[i].Tags)
 				}
 			}
 		})
@@ -637,15 +635,15 @@ func TestExpandIAMFields(t *testing.T) {
 						AttachPolicyARNs: []string{
 							"arn:aws:iam::123456789012:policy/AWSLoadBalancerControllerIAMPolicy",
 						},
-						AttachPolicy: &InlineDocument{
-							Statement: []InlineStatement{
+						AttachPolicy: map[string]interface{}{
+							"Statement": []map[string]interface{}{
 								{
-									Effect: "Allow",
-									Action: []string{
+									"Effect": "Allow",
+									"Action": []string{
 										"ec2:DescribeVpcs",
 										"ec2:DescribeSubnets",
 									},
-									Resource: "*",
+									"Resource": "*",
 								},
 							},
 						},
@@ -657,9 +655,9 @@ func TestExpandIAMFields(t *testing.T) {
 				},
 				PodIdentityAssociations: []*IAMPodIdentityAssociation{
 					{
-						Namespace:      "default",
-						ServiceAccount: "my-service-account",
-						RoleARN:        "arn:aws:iam::123456789012:role/my-pod-role",
+						Namespace:          "default",
+						ServiceAccountName: "my-service-account",
+						RoleARN:            "arn:aws:iam::123456789012:role/my-pod-role",
 						PermissionPolicy: map[string]interface{}{
 							"Version": "2012-10-17",
 							"Statement": []interface{}{
@@ -712,7 +710,7 @@ func TestExpandIAMFields(t *testing.T) {
 				for i, expectedPIA := range tt.expected.PodIdentityAssociations {
 					if i < len(result.PodIdentityAssociations) {
 						assert.Equal(t, expectedPIA.Namespace, result.PodIdentityAssociations[i].Namespace)
-						assert.Equal(t, expectedPIA.ServiceAccount, result.PodIdentityAssociations[i].ServiceAccount)
+						assert.Equal(t, expectedPIA.ServiceAccountName, result.PodIdentityAssociations[i].ServiceAccountName)
 						assert.Equal(t, expectedPIA.RoleARN, result.PodIdentityAssociations[i].RoleARN)
 						assert.Equal(t, expectedPIA.PermissionPolicy, result.PodIdentityAssociations[i].PermissionPolicy)
 					}

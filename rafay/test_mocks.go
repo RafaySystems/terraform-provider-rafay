@@ -415,7 +415,6 @@ func NewMockEKSData() MockEKSData {
 				{
 					PrincipalARN: "arn:aws:iam::123456789012:user/test-user",
 					Type:         "STANDARD",
-					Username:     "test-user",
 					AccessPolicies: []*EKSAccessPolicy{
 						{
 							PolicyARN: "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy",
@@ -429,30 +428,26 @@ func NewMockEKSData() MockEKSData {
 			},
 		},
 		VPCStruct: &EKSClusterVPC{
-			ID:                 "vpc-12345678",
-			CIDR:               "10.0.0.0/16",
-			EnableDNSHostnames: &[]bool{true}[0],
-			EnableDNSSupport:   &[]bool{true}[0],
+			ID:   "vpc-12345678",
+			CIDR: "10.0.0.0/16",
 			Subnets: &ClusterSubnets{
 				Private: AZSubnetMapping{
-					"us-west-2a": EKSAZSubnetSpec{ID: "subnet-private-1"},
-					"us-west-2b": EKSAZSubnetSpec{ID: "subnet-private-2"},
-					"us-west-2c": EKSAZSubnetSpec{ID: "subnet-private-3"},
+					"us-west-2a": AZSubnetSpec{ID: "subnet-private-1"},
+					"us-west-2b": AZSubnetSpec{ID: "subnet-private-2"},
+					"us-west-2c": AZSubnetSpec{ID: "subnet-private-3"},
 				},
 				Public: AZSubnetMapping{
-					"us-west-2a": EKSAZSubnetSpec{ID: "subnet-public-1"},
-					"us-west-2b": EKSAZSubnetSpec{ID: "subnet-public-2"},
-					"us-west-2c": EKSAZSubnetSpec{ID: "subnet-public-3"},
+					"us-west-2a": AZSubnetSpec{ID: "subnet-public-1"},
+					"us-west-2b": AZSubnetSpec{ID: "subnet-public-2"},
+					"us-west-2c": AZSubnetSpec{ID: "subnet-public-3"},
 				},
 			},
 			NAT: &ClusterNAT{
 				Gateway: "HighlyAvailable",
 			},
 			ClusterEndpoints: &ClusterEndpoints{
-				PrivateAccess:      &[]bool{true}[0],
-				PublicAccess:       &[]bool{true}[0],
-				PublicAccessCIDRs:  []string{"0.0.0.0/0"},
-				PrivateAccessCIDRs: []string{"10.0.0.0/8"},
+				PrivateAccess: &[]bool{true}[0],
+				PublicAccess:  &[]bool{true}[0],
 			},
 		},
 		IAMStruct: &EKSClusterIAM{
@@ -477,7 +472,6 @@ func NewMockEKSData() MockEKSData {
 						AutoScaler:                &[]bool{true}[0],
 						AWSLoadBalancerController: &[]bool{true}[0],
 						CertManager:               &[]bool{false}[0],
-						ClusterAutoscaler:         &[]bool{true}[0],
 					},
 					PermissionsBoundary: "arn:aws:iam::123456789012:policy/PermissionsBoundary",
 					RoleOnly:            &[]bool{false}[0],
@@ -805,7 +799,7 @@ func NewMockAKSData() MockAKSData {
 		},
 		ManagedClusterStruct: &AKSManagedCluster{
 			Location: "East US",
-			Tags: map[string]string{
+			Tags: map[string]interface{}{
 				"Environment": "test",
 				"Team":        "platform",
 				"Project":     "terraform-provider-rafay",
@@ -857,8 +851,21 @@ func GetCtyValue(data map[string]interface{}) cty.Value {
 }
 
 // MockResourceData creates a mock ResourceData for testing
-func MockResourceData(schema map[string]*schema.Schema, data map[string]interface{}) *schema.ResourceData {
-	return schema.TestResourceDataRaw(nil, schema, data)
+func MockResourceData(resourceSchema map[string]*schema.Schema, data map[string]interface{}) *schema.ResourceData {
+	// Use schema.Resource to create a proper ResourceData
+	resource := &schema.Resource{
+		Schema: resourceSchema,
+	}
+
+	// Create ResourceData using the resource
+	d := resource.TestResourceData()
+
+	// Set the config values
+	for key, value := range data {
+		d.Set(key, value)
+	}
+
+	return d
 }
 
 // MockDiagnostics creates mock diagnostics for testing

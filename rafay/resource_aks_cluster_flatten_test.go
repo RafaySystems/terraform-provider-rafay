@@ -122,8 +122,26 @@ func TestFlattenAKSClusterSpec(t *testing.T) {
 					},
 				},
 			},
-			p:        []interface{}{},
-			rawState: cty.ObjectVal(map[string]cty.Value{}),
+			p: []interface{}{},
+			rawState: cty.ObjectVal(map[string]cty.Value{
+				"cluster_config": cty.ListVal([]cty.Value{
+					cty.ObjectVal(map[string]cty.Value{
+						"apiversion": cty.StringVal("rafay.io/v1alpha5"),
+						"kind":       cty.StringVal("Cluster"),
+						"metadata": cty.ListVal([]cty.Value{
+							cty.ObjectVal(map[string]cty.Value{
+								"name": cty.StringVal("test-aks-cluster"),
+							}),
+						}),
+						"spec": cty.ListVal([]cty.Value{
+							cty.ObjectVal(map[string]cty.Value{
+								"subscription_id":     cty.StringVal("12345678-1234-1234-1234-123456789012"),
+								"resource_group_name": cty.StringVal("test-rg"),
+							}),
+						}),
+					}),
+				}),
+			}),
 			expected: []interface{}{
 				map[string]interface{}{
 					"type":             "aks",
@@ -362,7 +380,7 @@ func TestFlattenAKSManagedCluster(t *testing.T) {
 			name: "complete managed cluster",
 			input: &AKSManagedCluster{
 				Location: "East US",
-				Tags: map[string]string{
+				Tags: map[string]interface{}{
 					"Environment": "test",
 					"Team":        "platform",
 				},
@@ -489,18 +507,18 @@ func TestFlattenAKSNodePool(t *testing.T) {
 					APIVersion: "2022-03-01",
 					Name:       "nodepool1",
 					Properties: &AKSNodePoolProperties{
-						Count:             &[]int64{3}[0],
-						VMSize:            "Standard_DS2_v2",
-						OSType:            "Linux",
+						Count:             &[]int{3}[0],
+						VmSize:            "Standard_DS2_v2",
+						OsType:            "Linux",
 						Type:              "VirtualMachineScaleSets",
 						Mode:              "System",
-						MaxPods:           &[]int64{30}[0],
+						MaxPods:           &[]int{30}[0],
 						AvailabilityZones: []string{"1", "2", "3"},
 						EnableAutoScaling: &[]bool{true}[0],
-						MinCount:          &[]int64{1}[0],
-						MaxCount:          &[]int64{5}[0],
-						OSDiskSizeGB:      &[]int64{100}[0],
-						OSDiskType:        "Managed",
+						MinCount:          &[]int{1}[0],
+						MaxCount:          &[]int{5}[0],
+						OsDiskSizeGB:      &[]int{100}[0],
+						OsDiskType:        "Managed",
 					},
 				},
 			},
@@ -596,13 +614,13 @@ func TestFlattenAKSMaintenanceConfigs(t *testing.T) {
 					Properties: &AKSMaintenanceConfigProperties{
 						MaintenanceWindow: &AKSMaintenanceWindow{
 							Schedule: &AKSMaintenanceSchedule{
-								Weekly: &AKSMaintenanceWeeklySchedule{
-									IntervalWeeks: &[]int64{1}[0],
+								WeeklySchedule: &AKSMaintenanceWeeklySchedule{
+									IntervalWeeks: 1,
 									DayOfWeek:     "Sunday",
 								},
 							},
-							DurationHours: &[]int64{4}[0],
-							UTCOffset:     "+00:00",
+							DurationHours: 4,
+							UtcOffset:     "+00:00",
 							StartDate:     "2023-01-01",
 							StartTime:     "01:00",
 						},
@@ -741,7 +759,7 @@ func BenchmarkFlattenAKSClusterMetadata(b *testing.B) {
 func BenchmarkFlattenAKSManagedCluster(b *testing.B) {
 	input := &AKSManagedCluster{
 		Location: "East US",
-		Tags: map[string]string{
+		Tags: map[string]interface{}{
 			"Environment": "benchmark",
 			"Team":        "platform",
 		},

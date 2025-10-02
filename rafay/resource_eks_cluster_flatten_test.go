@@ -644,12 +644,12 @@ func TestFlattenEKSClusterVPC(t *testing.T) {
 				CIDR: "10.0.0.0/16",
 				Subnets: &ClusterSubnets{
 					Private: AZSubnetMapping{
-						"us-west-2a": EKSAZSubnetSpec{ID: "subnet-private-1"},
-						"us-west-2b": EKSAZSubnetSpec{ID: "subnet-private-2"},
+						"us-west-2a": AZSubnetSpec{ID: "subnet-private-1"},
+						"us-west-2b": AZSubnetSpec{ID: "subnet-private-2"},
 					},
 					Public: AZSubnetMapping{
-						"us-west-2a": EKSAZSubnetSpec{ID: "subnet-public-1"},
-						"us-west-2b": EKSAZSubnetSpec{ID: "subnet-public-2"},
+						"us-west-2a": AZSubnetSpec{ID: "subnet-public-1"},
+						"us-west-2b": AZSubnetSpec{ID: "subnet-public-2"},
 					},
 				},
 				NAT: &ClusterNAT{

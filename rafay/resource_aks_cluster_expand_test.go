@@ -105,10 +105,30 @@ func TestExpandAKSClusterSpec(t *testing.T) {
 					},
 				},
 			},
-			rawConfig: cty.ObjectVal(map[string]cty.Value{
-				"type":          cty.StringVal("aks"),
-				"blueprint":     cty.StringVal("minimal"),
-				"cloudprovider": cty.StringVal("azure"),
+			rawConfig: cty.ListVal([]cty.Value{
+				cty.ObjectVal(map[string]cty.Value{
+					"type":             cty.StringVal("aks"),
+					"blueprint":        cty.StringVal("minimal"),
+					"blueprintversion": cty.StringVal("1.0"),
+					"cloudprovider":    cty.StringVal("azure"),
+					"cluster_config": cty.ListVal([]cty.Value{
+						cty.ObjectVal(map[string]cty.Value{
+							"apiversion": cty.StringVal("rafay.io/v1alpha5"),
+							"kind":       cty.StringVal("Cluster"),
+							"metadata": cty.ListVal([]cty.Value{
+								cty.ObjectVal(map[string]cty.Value{
+									"name": cty.StringVal("test-aks-cluster"),
+								}),
+							}),
+							"spec": cty.ListVal([]cty.Value{
+								cty.ObjectVal(map[string]cty.Value{
+									"subscription_id":     cty.StringVal("12345678-1234-1234-1234-123456789012"),
+									"resource_group_name": cty.StringVal("test-rg"),
+								}),
+							}),
+						}),
+					}),
+				}),
 			}),
 			expected: &AKSClusterSpec{
 				Type:             "aks",
@@ -202,9 +222,33 @@ func TestExpandAKSClusterConfig(t *testing.T) {
 					},
 				},
 			},
-			rawConfig: cty.ObjectVal(map[string]cty.Value{
-				"apiversion": cty.StringVal("rafay.io/v1alpha5"),
-				"kind":       cty.StringVal("Cluster"),
+			rawConfig: cty.ListVal([]cty.Value{
+				cty.ObjectVal(map[string]cty.Value{
+					"apiversion": cty.StringVal("rafay.io/v1alpha5"),
+					"kind":       cty.StringVal("Cluster"),
+					"metadata": cty.ListVal([]cty.Value{
+						cty.ObjectVal(map[string]cty.Value{
+							"name": cty.StringVal("test-aks-cluster"),
+						}),
+					}),
+					"spec": cty.ListVal([]cty.Value{
+						cty.ObjectVal(map[string]cty.Value{
+							"subscription_id":     cty.StringVal("12345678-1234-1234-1234-123456789012"),
+							"resource_group_name": cty.StringVal("test-rg"),
+							"managed_cluster": cty.ListVal([]cty.Value{
+								cty.ObjectVal(map[string]cty.Value{
+									"location": cty.StringVal("East US"),
+									"properties": cty.ListVal([]cty.Value{
+										cty.ObjectVal(map[string]cty.Value{
+											"dns_prefix":         cty.StringVal("test-aks"),
+											"kubernetes_version": cty.StringVal("1.25.6"),
+										}),
+									}),
+								}),
+							}),
+						}),
+					}),
+				}),
 			}),
 			expected: &AKSClusterConfig{
 				APIVersion: "rafay.io/v1alpha5",
@@ -311,7 +355,7 @@ func TestExpandAKSManagedCluster(t *testing.T) {
 			},
 			expected: &AKSManagedCluster{
 				Location: "East US",
-				Tags: map[string]string{
+				Tags: map[string]interface{}{
 					"Environment": "test",
 					"Team":        "platform",
 				},
@@ -324,15 +368,15 @@ func TestExpandAKSManagedCluster(t *testing.T) {
 					NodeResourceGroup: "MC_test-rg_test-aks_eastus",
 					APIServerAccessProfile: &AKSManagedClusterAPIServerAccessProfile{
 						EnablePrivateCluster:           &[]bool{true}[0],
-						PrivateDNSZone:                 "system",
+						PrivateDnsZone:                 "system",
 						EnablePrivateClusterPublicFQDN: &[]bool{false}[0],
 					},
 					NetworkProfile: &AKSManagedClusterNetworkProfile{
 						NetworkPlugin:    "azure",
 						NetworkPolicy:    "azure",
 						DNSServiceIP:     "10.0.0.10",
-						ServiceCIDR:      "10.0.0.0/16",
-						DockerBridgeCIDR: "172.17.0.1/16",
+						ServiceCidr:      "10.0.0.0/16",
+						DockerBridgeCidr: "172.17.0.1/16",
 					},
 				},
 			},
@@ -359,7 +403,7 @@ func TestExpandAKSManagedCluster(t *testing.T) {
 				if tt.expected.Properties.APIServerAccessProfile != nil {
 					require.NotNil(t, result.Properties.APIServerAccessProfile)
 					assert.Equal(t, tt.expected.Properties.APIServerAccessProfile.EnablePrivateCluster, result.Properties.APIServerAccessProfile.EnablePrivateCluster)
-					assert.Equal(t, tt.expected.Properties.APIServerAccessProfile.PrivateDNSZone, result.Properties.APIServerAccessProfile.PrivateDNSZone)
+					assert.Equal(t, tt.expected.Properties.APIServerAccessProfile.PrivateDnsZone, result.Properties.APIServerAccessProfile.PrivateDnsZone)
 					assert.Equal(t, tt.expected.Properties.APIServerAccessProfile.EnablePrivateClusterPublicFQDN, result.Properties.APIServerAccessProfile.EnablePrivateClusterPublicFQDN)
 				}
 
@@ -368,8 +412,8 @@ func TestExpandAKSManagedCluster(t *testing.T) {
 					assert.Equal(t, tt.expected.Properties.NetworkProfile.NetworkPlugin, result.Properties.NetworkProfile.NetworkPlugin)
 					assert.Equal(t, tt.expected.Properties.NetworkProfile.NetworkPolicy, result.Properties.NetworkProfile.NetworkPolicy)
 					assert.Equal(t, tt.expected.Properties.NetworkProfile.DNSServiceIP, result.Properties.NetworkProfile.DNSServiceIP)
-					assert.Equal(t, tt.expected.Properties.NetworkProfile.ServiceCIDR, result.Properties.NetworkProfile.ServiceCIDR)
-					assert.Equal(t, tt.expected.Properties.NetworkProfile.DockerBridgeCIDR, result.Properties.NetworkProfile.DockerBridgeCIDR)
+					assert.Equal(t, tt.expected.Properties.NetworkProfile.ServiceCidr, result.Properties.NetworkProfile.ServiceCidr)
+					assert.Equal(t, tt.expected.Properties.NetworkProfile.DockerBridgeCidr, result.Properties.NetworkProfile.DockerBridgeCidr)
 				}
 			}
 		})
@@ -413,7 +457,7 @@ func TestExpandAKSNodePool(t *testing.T) {
 							"kubelet_config": []interface{}{
 								map[string]interface{}{
 									"cpu_manager_policy":      "static",
-									"cpu_cfs_quota":           &[]bool{true}[0],
+									"cpu_cfs_quota":           true,
 									"cpu_cfs_quota_period":    "100ms",
 									"image_gc_high_threshold": 85,
 									"image_gc_low_threshold":  80,
@@ -436,41 +480,61 @@ func TestExpandAKSNodePool(t *testing.T) {
 					},
 				},
 			},
-			rawConfig: cty.ObjectVal(map[string]cty.Value{
-				"apiversion": cty.StringVal("2022-03-01"),
-				"name":       cty.StringVal("nodepool1"),
+			rawConfig: cty.ListVal([]cty.Value{
+				cty.ObjectVal(map[string]cty.Value{
+					"apiversion": cty.StringVal("2022-03-01"),
+					"name":       cty.StringVal("nodepool1"),
+					"properties": cty.ListVal([]cty.Value{
+						cty.ObjectVal(map[string]cty.Value{
+							"count":                     cty.NumberIntVal(3),
+							"vm_size":                   cty.StringVal("Standard_DS2_v2"),
+							"os_type":                   cty.StringVal("Linux"),
+							"type":                      cty.StringVal("VirtualMachineScaleSets"),
+							"mode":                      cty.StringVal("System"),
+							"max_pods":                  cty.NumberIntVal(30),
+							"availability_zones":        cty.ListVal([]cty.Value{cty.StringVal("1"), cty.StringVal("2"), cty.StringVal("3")}),
+							"enable_auto_scaling":       cty.BoolVal(true),
+							"min_count":                 cty.NumberIntVal(1),
+							"max_count":                 cty.NumberIntVal(5),
+							"os_disk_size_gb":           cty.NumberIntVal(100),
+							"os_disk_type":              cty.StringVal("Managed"),
+							"scale_set_eviction_policy": cty.NullVal(cty.String),
+							"scale_set_priority":        cty.NullVal(cty.String),
+						}),
+					}),
+				}),
 			}),
 			expected: []*AKSNodePool{
 				{
 					APIVersion: "2022-03-01",
 					Name:       "nodepool1",
 					Properties: &AKSNodePoolProperties{
-						Count:             &[]int64{3}[0],
-						VMSize:            "Standard_DS2_v2",
-						OSType:            "Linux",
+						Count:             &[]int{3}[0],
+						VmSize:            "Standard_DS2_v2",
+						OsType:            "Linux",
 						Type:              "VirtualMachineScaleSets",
 						Mode:              "System",
-						MaxPods:           &[]int64{30}[0],
+						MaxPods:           &[]int{30}[0],
 						AvailabilityZones: []string{"1", "2", "3"},
 						EnableAutoScaling: &[]bool{true}[0],
-						MinCount:          &[]int64{1}[0],
-						MaxCount:          &[]int64{5}[0],
-						OSDiskSizeGB:      &[]int64{100}[0],
-						OSDiskType:        "Managed",
+						MinCount:          &[]int{1}[0],
+						MaxCount:          &[]int{5}[0],
+						OsDiskSizeGB:      &[]int{100}[0],
+						OsDiskType:        "Managed",
 						KubeletConfig: &AKSNodePoolKubeletConfig{
-							CPUManagerPolicy:     "static",
-							CPUCfsQuota:          &[]bool{true}[0],
-							CPUCfsQuotaPeriod:    "100ms",
-							ImageGcHighThreshold: &[]int64{85}[0],
-							ImageGcLowThreshold:  &[]int64{80}[0],
+							CpuManagerPolicy:     "static",
+							CpuCfsQuota:          &[]bool{true}[0],
+							CpuCfsQuotaPeriod:    "100ms",
+							ImageGcHighThreshold: &[]int{85}[0],
+							ImageGcLowThreshold:  &[]int{80}[0],
 						},
 						LinuxOSConfig: &AKSNodePoolLinuxOsConfig{
 							TransparentHugePageEnabled: "always",
 							TransparentHugePageDefrag:  "always",
-							SwapFileSizeMB:             &[]int64{1024}[0],
+							SwapFileSizeMB:             &[]int{1024}[0],
 							Sysctls: &AKSNodePoolLinuxOsConfigSysctls{
-								VMMaxMapCount:           &[]int64{262144}[0],
-								FsInotifyMaxUserWatches: &[]int64{1048576}[0],
+								VmMaxMapCount:           &[]int{262144}[0],
+								FsInotifyMaxUserWatches: &[]int{1048576}[0],
 							},
 						},
 					},
@@ -492,8 +556,8 @@ func TestExpandAKSNodePool(t *testing.T) {
 					if expected.Properties != nil {
 						require.NotNil(t, result[i].Properties)
 						assert.Equal(t, expected.Properties.Count, result[i].Properties.Count)
-						assert.Equal(t, expected.Properties.VMSize, result[i].Properties.VMSize)
-						assert.Equal(t, expected.Properties.OSType, result[i].Properties.OSType)
+						assert.Equal(t, expected.Properties.VmSize, result[i].Properties.VmSize)
+						assert.Equal(t, expected.Properties.OsType, result[i].Properties.OsType)
 						assert.Equal(t, expected.Properties.Type, result[i].Properties.Type)
 						assert.Equal(t, expected.Properties.Mode, result[i].Properties.Mode)
 						assert.Equal(t, expected.Properties.MaxPods, result[i].Properties.MaxPods)
@@ -501,14 +565,14 @@ func TestExpandAKSNodePool(t *testing.T) {
 						assert.Equal(t, expected.Properties.EnableAutoScaling, result[i].Properties.EnableAutoScaling)
 						assert.Equal(t, expected.Properties.MinCount, result[i].Properties.MinCount)
 						assert.Equal(t, expected.Properties.MaxCount, result[i].Properties.MaxCount)
-						assert.Equal(t, expected.Properties.OSDiskSizeGB, result[i].Properties.OSDiskSizeGB)
-						assert.Equal(t, expected.Properties.OSDiskType, result[i].Properties.OSDiskType)
+						assert.Equal(t, expected.Properties.OsDiskSizeGB, result[i].Properties.OsDiskSizeGB)
+						assert.Equal(t, expected.Properties.OsDiskType, result[i].Properties.OsDiskType)
 
 						if expected.Properties.KubeletConfig != nil {
 							require.NotNil(t, result[i].Properties.KubeletConfig)
-							assert.Equal(t, expected.Properties.KubeletConfig.CPUManagerPolicy, result[i].Properties.KubeletConfig.CPUManagerPolicy)
-							assert.Equal(t, expected.Properties.KubeletConfig.CPUCfsQuota, result[i].Properties.KubeletConfig.CPUCfsQuota)
-							assert.Equal(t, expected.Properties.KubeletConfig.CPUCfsQuotaPeriod, result[i].Properties.KubeletConfig.CPUCfsQuotaPeriod)
+							assert.Equal(t, expected.Properties.KubeletConfig.CpuManagerPolicy, result[i].Properties.KubeletConfig.CpuManagerPolicy)
+							assert.Equal(t, expected.Properties.KubeletConfig.CpuCfsQuota, result[i].Properties.KubeletConfig.CpuCfsQuota)
+							assert.Equal(t, expected.Properties.KubeletConfig.CpuCfsQuotaPeriod, result[i].Properties.KubeletConfig.CpuCfsQuotaPeriod)
 							assert.Equal(t, expected.Properties.KubeletConfig.ImageGcHighThreshold, result[i].Properties.KubeletConfig.ImageGcHighThreshold)
 							assert.Equal(t, expected.Properties.KubeletConfig.ImageGcLowThreshold, result[i].Properties.KubeletConfig.ImageGcLowThreshold)
 						}
@@ -521,7 +585,7 @@ func TestExpandAKSNodePool(t *testing.T) {
 
 							if expected.Properties.LinuxOSConfig.Sysctls != nil {
 								require.NotNil(t, result[i].Properties.LinuxOSConfig.Sysctls)
-								assert.Equal(t, expected.Properties.LinuxOSConfig.Sysctls.VMMaxMapCount, result[i].Properties.LinuxOSConfig.Sysctls.VMMaxMapCount)
+								assert.Equal(t, expected.Properties.LinuxOSConfig.Sysctls.VmMaxMapCount, result[i].Properties.LinuxOSConfig.Sysctls.VmMaxMapCount)
 								assert.Equal(t, expected.Properties.LinuxOSConfig.Sysctls.FsInotifyMaxUserWatches, result[i].Properties.LinuxOSConfig.Sysctls.FsInotifyMaxUserWatches)
 							}
 						}
@@ -585,13 +649,13 @@ func TestExpandAKSMaintenanceConfigs(t *testing.T) {
 					Properties: &AKSMaintenanceConfigProperties{
 						MaintenanceWindow: &AKSMaintenanceWindow{
 							Schedule: &AKSMaintenanceSchedule{
-								Weekly: &AKSMaintenanceWeeklySchedule{
-									IntervalWeeks: &[]int64{1}[0],
+								WeeklySchedule: &AKSMaintenanceWeeklySchedule{
+									IntervalWeeks: 1,
 									DayOfWeek:     "Sunday",
 								},
 							},
-							DurationHours: &[]int64{4}[0],
-							UTCOffset:     "+00:00",
+							DurationHours: 4,
+							UtcOffset:     "+00:00",
 							StartDate:     "2023-01-01",
 							StartTime:     "01:00",
 						},
@@ -622,17 +686,17 @@ func TestExpandAKSMaintenanceConfigs(t *testing.T) {
 						if expected.Properties.MaintenanceWindow != nil {
 							require.NotNil(t, result[i].Properties.MaintenanceWindow)
 							assert.Equal(t, expected.Properties.MaintenanceWindow.DurationHours, result[i].Properties.MaintenanceWindow.DurationHours)
-							assert.Equal(t, expected.Properties.MaintenanceWindow.UTCOffset, result[i].Properties.MaintenanceWindow.UTCOffset)
+							assert.Equal(t, expected.Properties.MaintenanceWindow.UtcOffset, result[i].Properties.MaintenanceWindow.UtcOffset)
 							assert.Equal(t, expected.Properties.MaintenanceWindow.StartDate, result[i].Properties.MaintenanceWindow.StartDate)
 							assert.Equal(t, expected.Properties.MaintenanceWindow.StartTime, result[i].Properties.MaintenanceWindow.StartTime)
 
 							if expected.Properties.MaintenanceWindow.Schedule != nil {
 								require.NotNil(t, result[i].Properties.MaintenanceWindow.Schedule)
 
-								if expected.Properties.MaintenanceWindow.Schedule.Weekly != nil {
-									require.NotNil(t, result[i].Properties.MaintenanceWindow.Schedule.Weekly)
-									assert.Equal(t, expected.Properties.MaintenanceWindow.Schedule.Weekly.IntervalWeeks, result[i].Properties.MaintenanceWindow.Schedule.Weekly.IntervalWeeks)
-									assert.Equal(t, expected.Properties.MaintenanceWindow.Schedule.Weekly.DayOfWeek, result[i].Properties.MaintenanceWindow.Schedule.Weekly.DayOfWeek)
+								if expected.Properties.MaintenanceWindow.Schedule.WeeklySchedule != nil {
+									require.NotNil(t, result[i].Properties.MaintenanceWindow.Schedule.WeeklySchedule)
+									assert.Equal(t, expected.Properties.MaintenanceWindow.Schedule.WeeklySchedule.IntervalWeeks, result[i].Properties.MaintenanceWindow.Schedule.WeeklySchedule.IntervalWeeks)
+									assert.Equal(t, expected.Properties.MaintenanceWindow.Schedule.WeeklySchedule.DayOfWeek, result[i].Properties.MaintenanceWindow.Schedule.WeeklySchedule.DayOfWeek)
 								}
 							}
 						}

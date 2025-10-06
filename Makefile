@@ -82,11 +82,11 @@ test-negative:
 
 test-framework:
 	@echo "Running Plugin Framework tests..."
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./internal/provider/
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=planonly ./tests/framework/
 
 test-all-organized:
 	@echo "Running all tests with organized structure..."
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/... ./internal/provider/
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/...
 
 # Test targets with coverage
 .PHONY: test-unit-cover test-integration-cover test-all-cover
@@ -101,7 +101,7 @@ test-integration-cover:
 
 test-all-cover:
 	@echo "Running all tests with coverage..."
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover ./rafay ./tests/... ./internal/provider/
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover ./rafay ./tests/...
 
 
 fwgen:

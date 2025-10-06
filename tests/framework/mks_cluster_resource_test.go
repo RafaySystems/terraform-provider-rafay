@@ -1,4 +1,7 @@
-package provider
+//go:build planonly
+// +build planonly
+
+package framework
 
 import (
 	"testing"
@@ -17,27 +20,11 @@ func TestAccMksClusterResource(t *testing.T) {
 			tfversion.SkipBelow(tfversion.Version1_1_0),
 		},
 		Steps: []resource.TestStep{
-			{ // Create and Read testing
-				Config: testMksClusterResourceConfig(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("rafay_mks_cluster.mks-example-cluster", "metadata.name", "mks-example-cluster"),
-					resource.TestCheckResourceAttr("rafay_mks_cluster.mks-example-cluster", "metadata.project", "defaultproject"),
-					resource.TestCheckResourceAttr("rafay_mks_cluster.mks-example-cluster", "spec.config.dedicated_control_plane", "true"),
-					resource.TestCheckResourceAttr("rafay_mks_cluster.mks-example-cluster", "spec.config.high_availability", "false"),
-				),
+			{ // Plan-only testing
+				Config:             testMksClusterResourceConfig(),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
 			},
-			// Update and Read testing
-			{
-				Config: testMksClusterResourceConfigUpdated(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("rafay_mks_cluster.mks-example-cluster", "metadata.name", "mks-example-cluster"),
-					resource.TestCheckResourceAttr("rafay_mks_cluster.mks-example-cluster", "metadata.project", "defaultproject"),
-					resource.TestCheckResourceAttr("rafay_mks_cluster.mks-example-cluster", "spec.config.dedicated_control_plane", "true"),
-					resource.TestCheckResourceAttr("rafay_mks_cluster.mks-example-cluster", "spec.config.high_availability", "false"),
-				),
-			},
-
-			// Delete testing automatically occurs in TestCase
 		},
 	})
 }

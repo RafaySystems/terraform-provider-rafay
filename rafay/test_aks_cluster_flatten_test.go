@@ -123,20 +123,22 @@ func TestFlattenAKSClusterSpec(t *testing.T) {
 				},
 			},
 			p: []interface{}{},
-			rawState: cty.ObjectVal(map[string]cty.Value{
-				"cluster_config": cty.ListVal([]cty.Value{
-					cty.ObjectVal(map[string]cty.Value{
-						"apiversion": cty.StringVal("rafay.io/v1alpha5"),
-						"kind":       cty.StringVal("Cluster"),
-						"metadata": cty.ListVal([]cty.Value{
-							cty.ObjectVal(map[string]cty.Value{
-								"name": cty.StringVal("test-aks-cluster"),
+			rawState: cty.ListVal([]cty.Value{
+				cty.ObjectVal(map[string]cty.Value{
+					"cluster_config": cty.ListVal([]cty.Value{
+						cty.ObjectVal(map[string]cty.Value{
+							"apiversion": cty.StringVal("rafay.io/v1alpha5"),
+							"kind":       cty.StringVal("Cluster"),
+							"metadata": cty.ListVal([]cty.Value{
+								cty.ObjectVal(map[string]cty.Value{
+									"name": cty.StringVal("test-aks-cluster"),
+								}),
 							}),
-						}),
-						"spec": cty.ListVal([]cty.Value{
-							cty.ObjectVal(map[string]cty.Value{
-								"subscription_id":     cty.StringVal("12345678-1234-1234-1234-123456789012"),
-								"resource_group_name": cty.StringVal("test-rg"),
+							"spec": cty.ListVal([]cty.Value{
+								cty.ObjectVal(map[string]cty.Value{
+									"subscription_id":     cty.StringVal("12345678-1234-1234-1234-123456789012"),
+									"resource_group_name": cty.StringVal("test-rg"),
+								}),
 							}),
 						}),
 					}),

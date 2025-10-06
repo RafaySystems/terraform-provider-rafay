@@ -61,6 +61,48 @@ test:
 testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
+# New organized test targets based on reorganized test structure
+.PHONY: test-unit test-integration test-plan-only test-negative test-framework test-all-organized
+
+test-unit:
+	@echo "Running unit tests (internal function tests in rafay/ package)..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay
+
+test-integration:
+	@echo "Running all integration tests..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=integration ./tests/integration/...
+
+test-plan-only:
+	@echo "Running plan-only integration tests..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=planonly ./tests/integration/plan_only/
+
+test-negative:
+	@echo "Running negative integration tests..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags='!planonly' ./tests/integration/negative/
+
+test-framework:
+	@echo "Running Plugin Framework tests..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./internal/provider/
+
+test-all-organized:
+	@echo "Running all tests with organized structure..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/... ./internal/provider/
+
+# Test targets with coverage
+.PHONY: test-unit-cover test-integration-cover test-all-cover
+
+test-unit-cover:
+	@echo "Running unit tests with coverage..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover ./rafay
+
+test-integration-cover:
+	@echo "Running integration tests with coverage..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover -tags=integration ./tests/integration/...
+
+test-all-cover:
+	@echo "Running all tests with coverage..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover ./rafay ./tests/... ./internal/provider/
+
 
 fwgen:
 	bash internal/scripts/fwgen.sh

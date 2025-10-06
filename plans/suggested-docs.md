@@ -152,15 +152,44 @@ Based on analysis of the comprehensive testing infrastructure in the codebase, t
   - Build tag usage (`//go:build !planonly`) for test categorization
 
 #### **Testing Best Practices**
-- **Test Organization**
-  - Separation of unit tests (in `rafay/`) vs integration tests (in `tests/`)
-  - Build tag usage for different test categories
-  - External provider configuration for registry testing
+- **Test Organization (Recommended Structure)**
+  ```
+  tests/
+  ├── unit/                    # Unit tests for internal functions
+  │   ├── expand/             # Expand function tests (from rafay/)
+  │   ├── flatten/            # Flatten function tests (from rafay/)
+  │   └── mocks/              # Mock infrastructure (test_mocks.go)
+  ├── integration/            # Integration tests
+  │   ├── plan_only/          # Plan validation tests
+  │   ├── negative/           # Error handling tests
+  │   └── acceptance/         # Full lifecycle tests
+  └── framework/              # Plugin Framework tests
+      ├── resources/          # Framework resource tests
+      └── data_sources/       # Framework data source tests
+  ```
+
+- **Migration Strategy for Test Consolidation**
+  - **Phase 1:** Create new `tests/unit/` structure
+  - **Phase 2:** Move unit tests with package adjustments
+  - **Phase 3:** Refactor to use public interfaces where possible
+  - **Phase 4:** Maintain hybrid approach during SDKv2→Framework migration
+
+- **Package Organization Options**
+  - **Option A (Current):** Unit tests in `rafay` package for internal function access
+  - **Option B (Consolidated):** All tests in `tests` package with exported functions
+  - **Option C (Hybrid):** Structured `tests/` folder with appropriate package imports
+
+- **Build Tag Usage**
+  - Unit tests: No build tags (run always)
+  - Integration tests: `//go:build integration`
+  - Plan-only tests: `//go:build planonly`
+  - Negative tests: `//go:build !planonly`
 
 - **Mock Data Management**
-  - Centralized mock data in `test_mocks.go`
+  - Centralized mock infrastructure in `tests/unit/mocks/`
   - Reusable test utilities and helpers
   - Complex data structure mocking for EKS/AKS resources
+  - Cross-package mock access patterns
 
 - **Test Coverage Strategies**
   - Expand/flatten function pairing validation

@@ -31,7 +31,7 @@ type artifactTranspose struct {
 			Revision    string  `protobuf:"bytes,2,opt,name=revision,proto3" json:"revision,omitempty"`
 			ValuesPaths []*File `protobuf:"bytes,3,rep,name=valuesPaths,proto3" json:"valuesPaths,omitempty"`
 		} `json:"valuesRef,omitempty"`
-		Url       string  `protobuf:"bytes,4,opt,name=url,proto3" json:"url,omitempty"`
+		Url       []string  `protobuf:"bytes,4,opt,name=url,proto3" json:"url,omitempty"`
 	} `json:"artifact,omitempty"`
 
 	Options struct {
@@ -129,8 +129,12 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 			at.Artifact.Statefulset = expandFile(v)
 		}
 
-		if v, ok := in["url"].(string); ok && len(v) > 0 {
-			at.Artifact.Url = v
+		if v, ok := in["url"].([]interface{}); ok && len(v) > 0 {
+			for _, value := range v {
+				if value != nil && value.(string) != "" {
+					at.Artifact.Url = append(at.Artifact.Url, value.(string))
+				}
+			}
 		}
 
 		if v, ok := in["values_paths"].([]interface{}); ok && len(v) > 0 {
@@ -348,7 +352,7 @@ func FlattenArtifact(at *artifactTranspose, p []interface{}) ([]interface{}, err
 	}
 
 	if len(at.Artifact.Url) > 0 {
-		obj["url"] = at.Artifact.Url
+		obj["url"] = toArrayInterface(at.Artifact.Url)
 	}
 
 	if len(at.Artifact.ChartVersion) > 0 {

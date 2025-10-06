@@ -1,144 +1,99 @@
 # Documentation Suggestions for the `rafay/` Folder
 
-Based on analysis of the [Terraform AWS Provider documentation structure](https://github.com/hashicorp/terraform-provider-aws/tree/main/docs) and examination of the `rafay/` folder codebase, here are the top 3 documentation pieces that would provide the most value.
+## Top 5 Priority Documentation
 
-## Top 3 Priority Documentation
-
-### 1. Contributing Guide (`CONTRIBUTING.md`)
+### 1. Deprecation Policy (`docs/deprecation-policy.md`)
 **Priority: Critical**
 
-Following the AWS provider's pattern, this should include:
+Based on the ongoing migration from SDKv2 to Plugin Framework, this should include:
 
-- **Development Environment Setup**
-  - How to set up local development with `rctl` and `rafay-common` dependencies
-  - Required Go version and development tools
-  - Configuration of provider authentication and testing environments
+#### **Deprecation Strategy**
+- **Criteria for Deprecation**
+  - Technical debt assessment for legacy SDKv2 implementations
+  - Performance and maintainability considerations
+  - Plugin Framework feature parity requirements
+  - User impact analysis for breaking changes
 
-- **Resource Development Guidelines**
-  - Patterns for creating new resources using Terraform SDKv2 patterns
-  - Standard resource lifecycle implementation (Create/Read/Update/Delete)
-  - Schema definition best practices for complex nested configurations
+- **Clear Examples of SDKv2 vs Plugin Framework**
+  - **SDKv2 Implementation Examples (`rafay/` folder):**
+    - `rafay/provider.go` - SDKv2 provider using `schema.Provider` and `helper/schema`
+    - `rafay/resource_group.go` - Simple resource with manual schema definition
+    - `rafay/resource_driver.go` - Complex resource with expand/flatten patterns
+    - `rafay/resource_eks_cluster.go` - Large complex resource (195KB, 7172 lines)
+    - SDKv2 patterns: `schema.Resource`, `ResourceData`, `diag.Diagnostics`
 
-- **Testing Standards**
-  - How to use the comprehensive `test_mocks.go` infrastructure (889 lines)
-  - Writing effective expand/flatten function tests
-  - Integration testing with Rafay's control plane
-  - Mock data patterns for EKS/AKS cluster testing
+  - **Plugin Framework Implementation Examples (`internal/` folder):**
+    - `internal/provider/provider.go` - Framework provider using `provider.Provider` interface
+    - `internal/resource_mks_cluster/mks_cluster_resource_gen.go` - Generated code from JSON schema
+    - `internal/resource_mks_cluster/mks_cluster_resource_ext.go` - Custom conversion methods
+    - `internal/provider/mks_cluster_resource_test.go` - Framework testing patterns
+    - Framework patterns: `types.String`, `basetypes.BoolValue`, `schema.Schema`
 
-- **Code Organization**
-  - Explaining the relationship between `rafay/` (legacy SDKv2) and `internal/` (new Plugin Framework)
-  - File naming conventions and structure
-  - When to modify existing vs create new resources
+- **Key Differences Illustrated:**
+  ```go
+  // SDKv2 Pattern (rafay/resource_group.go)
+  func resourceGroup() *schema.Resource {
+      return &schema.Resource{
+          CreateContext: resourceGroupCreate,
+          Schema: map[string]*schema.Schema{
+              "name": {
+                  Type:     schema.TypeString,
+                  Required: true,
+              },
+          },
+      }
+  }
 
-- **Pull Request Process**
-  - Code review requirements and standards
-  - Testing requirements before submission
-  - Documentation update requirements
+  // Plugin Framework Pattern (internal/provider/provider.go)
+  type RafayFwProviderModel struct {
+      ProviderConfigFile types.String `tfsdk:"provider_config_file"`
+  }
+  
+  func (p *RafayFwProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+      resp.Schema = schema.Schema{
+          Attributes: map[string]schema.Attribute{
+              "provider_config_file": schema.StringAttribute{
+                  Optional: true,
+              },
+          },
+      }
+  }
+  ```
 
-- **Migration Guidelines**
-  - Understanding the ongoing migration from SDKv2 to Plugin Framework
-  - How to work with legacy code during transition
-  - Deprecation and compatibility considerations
+- **Deprecation Timeline**
+  - **Phase 1 (Current):** Maintain SDKv2 stability while developing Plugin Framework
+  - **Phase 2 (6-12 months):** Gradual deprecation warnings and migration paths
+  - **Phase 3 (12+ months):** Full deprecation and removal of legacy code
 
-**Rationale:** Critical given the complexity of the codebase (195KB `resource_eks_cluster.go` file alone) and the ongoing migration effort from SDKv2 to Plugin Framework.
+#### **Communication Strategy**
+- **User Notification Process**
+  - Deprecation warnings in provider logs
+  - Documentation updates with migration guides
+  - Community communication through forums and GitHub
+  - Version-specific deprecation notices
 
-### 2. Resource Implementation Guide (`docs/resource-guide.md`)
-**Priority: High**
+- **Migration Support**
+  - Detailed migration guides for each deprecated resource
+  - Compatibility matrices between old and new implementations
+  - Support channels for migration assistance
+  - Timeline extensions for complex migration scenarios
 
-Based on the AWS provider's resource documentation patterns, this should cover:
+#### **Backward Compatibility**
+- **State File Compatibility**
+  - Automatic state migration utilities
+  - Manual migration procedures for edge cases
+  - Rollback procedures if migration fails
+  - State validation and integrity checks
 
-- **Standard Resource Lifecycle**
-  - The Create/Read/Update/Delete patterns used across 70+ resources
-  - Context handling and timeout configurations
-  - Error handling and diagnostics patterns
-  - Import functionality implementation
+- **Configuration Compatibility**
+  - Syntax preservation during migration
+  - Deprecated argument handling
+  - Default value migration strategies
+  - Breaking change documentation
 
-- **Schema Definition Patterns**
-  - How complex nested schemas are structured (EKS/AKS cluster configurations)
-  - Optional vs required field patterns
-  - List and map handling in Terraform schemas
-  - Schema versioning strategies
+**Rationale:** Critical for managing the complex migration from SDKv2 to Plugin Framework while maintaining user trust and system stability.
 
-- **Expand/Flatten Function Patterns**
-  - Understanding the extensive utility functions in `utils.go` (2474 lines)
-  - Data transformation between Terraform state and Rafay API
-  - Handling complex nested data structures
-  - JSON parsing and validation patterns
-
-- **API Integration Standards**
-  - Consistent patterns for Rafay control plane integration
-  - Authentication and authorization handling
-  - Error handling from API calls
-  - Retry and timeout strategies
-
-- **Testing Patterns**
-  - How to use the mock infrastructure effectively
-  - Unit testing strategies for expand/flatten functions
-  - Integration testing approaches
-  - Test data organization and reuse
-
-**Rationale:** Essential for maintaining consistency across the massive codebase and helping developers understand established patterns.
-
-### 3. Architecture Overview (`docs/architecture.md`)
-**Priority: High**
-
-Similar to how the AWS provider documents its internal structure, this should explain:
-
-- **Package Structure**
-  - Organization of resources, data sources, and utilities
-  - File naming conventions and categorization
-  - Relationship between different resource types
-
-- **API Integration Architecture**
-  - How the provider integrates with Rafay's control plane via `rctl` and `rafay-common`
-  - Protocol buffer integration patterns
-  - Client initialization and management
-
-- **Authentication Flow**
-  - Provider configuration mechanisms
-  - Config file vs environment variable authentication
-  - TLS configuration and security considerations
-
-- **Resource Categories**
-  - **Cluster Resources:** EKS (`resource_eks_cluster.go`), AKS (`resource_aks_cluster.go`, `resource_aks_cluster_v3.go`), GKE (`resource_gke_cluster.go`)
-  - **Workload Resources:** Workloads, templates, blueprints, namespaces, projects
-  - **Infrastructure Resources:** Agents, repositories, credentials, network policies
-  - **Management Resources:** Users, groups, roles, policies
-
-- **Legacy vs Modern Code**
-  - Clear explanation of what's in `rafay/` (SDKv2) vs `internal/` (Plugin Framework)
-  - Migration strategy and timeline
-  - Compatibility considerations during transition
-
-- **Dependencies and External Integrations**
-  - Understanding the complex dependency tree with Rafay's internal packages
-  - External tool integrations (`exec.go` for command execution)
-  - Version compatibility requirements
-
-- **Data Flow**
-  - How Terraform configuration flows through expand functions to API calls
-  - How API responses flow through flatten functions back to Terraform state
-  - State management and drift detection
-
-**Rationale:** Provides essential context for anyone working with the codebase, especially given the size (100+ files) and complexity of the implementation.
-
-## Why These Three?
-
-Looking at the [AWS provider's documentation approach](https://github.com/hashicorp/terraform-provider-aws), these three documents would:
-
-1. **Enable Contribution** - The contributing guide removes barriers for new developers joining the project
-2. **Ensure Consistency** - The resource guide maintains code quality across the large and complex codebase
-3. **Provide Context** - The architecture overview helps developers understand the big picture and make informed decisions
-
-These align with HashiCorp's documentation standards while addressing the specific challenges of the `rafay/` folder:
-- **Size:** 100+ files with some extremely large implementations
-- **Complexity:** Massive resource implementations with intricate nested configurations
-- **Legacy Nature:** Built on Terraform SDKv2 during active migration to Plugin Framework
-- **Domain Complexity:** Deep integration with Rafay's Kubernetes management platform
-
-## Additional High-Priority Documentation
-
-### 4. Testing Guide (`docs/testing-guide.md`)
+### 2. Testing Guide (`docs/testing-guide.md`)
 **Priority: High**
 
 Based on analysis of the comprehensive testing infrastructure in the codebase, this should include:
@@ -224,123 +179,190 @@ Based on analysis of the comprehensive testing infrastructure in the codebase, t
   - External provider testing with registry
   - Negative test validation in pipelines
 
-### 5. Migration Roadmap (`docs/migration-roadmap.md`)
+**Rationale:** Essential for maintaining code quality and reliability during the migration period and beyond.
+
+### 3. Examples Directory (`examples/`)
+**Priority: Critical**
+
+Following the [AWS provider examples structure](https://github.com/hashicorp/terraform-provider-aws/tree/main/examples), this should include:
+
+#### **Basic Examples**
+- **Simple Resource Configurations**
+  - Basic EKS cluster setup with minimal configuration
+  - AKS cluster with default settings
+  - Simple project and namespace creation
+  - Basic user and group management
+
+- **Common Use Cases**
+  - Multi-region cluster deployment
+  - Development vs production environment patterns
+  - Basic CI/CD pipeline configurations
+  - Simple workload deployment examples
+
+#### **Advanced Examples**
+- **Complex Cluster Configurations**
+  - EKS cluster with custom VPC, IAM roles, and node groups
+  - AKS cluster with managed identity and advanced networking
+  - GKE cluster with custom configurations
+  - Multi-cluster management scenarios
+
+- **Enterprise Patterns**
+  - RBAC and security policy configurations
+  - Cost management and chargeback setups
+  - Fleet management with multiple clusters
+  - GitOps workflow implementations
+
+#### **Integration Examples**
+- **Multi-Resource Scenarios**
+  - Complete application deployment workflows
+  - Infrastructure and application lifecycle management
+  - Disaster recovery configurations
+  - Monitoring and alerting setups
+
+- **Migration Examples**
+  - Legacy to modern resource migration patterns
+  - State migration examples
+  - Configuration upgrade patterns
+  - Compatibility examples during deprecation
+
+#### **Example Structure**
+Following AWS provider patterns:
+```
+examples/
+├── basic/
+│   ├── eks-cluster/
+│   ├── aks-cluster/
+│   └── project-setup/
+├── advanced/
+│   ├── multi-cluster/
+│   ├── enterprise-rbac/
+│   └── gitops-workflow/
+├── integrations/
+│   ├── complete-application/
+│   └── disaster-recovery/
+└── migration/
+    ├── sdkv2-to-plugin-framework/
+    └── state-migration/
+```
+
+**Rationale:** Critical for user adoption and understanding, especially during the migration period where clear examples help users navigate changes.
+
+### 4. Automated Changelog (`CHANGELOG.md` + GitHub Actions)
 **Priority: High**
 
-Based on the existing migration patterns and Plugin Framework transition, this should include:
+Implementation of an AI-powered changelog generation system:
 
-#### **Current State Analysis**
-- **Legacy SDKv2 Implementation (`rafay/` folder)**
-  - 100+ resource and data source files
-  - Complex expand/flatten function patterns
-  - Extensive mock testing infrastructure
-  - Integration with `rctl` and `rafay-common` packages
+#### **GitHub Actions Workflow**
+- **Trigger Configuration**
+  - Activate on merge to main branch
+  - Process pull request metadata and commit history
+  - Generate changelog entries automatically
 
-- **Modern Plugin Framework Implementation (`internal/` folder)**
-  - New framework adoption in progress
-  - Structured approach with generated code
-  - Enhanced type safety and validation
+- **AI Integration**
+  - Parse commit messages using conventional commit patterns
+  - Analyze pull request descriptions and comments
+  - Categorize changes (features, bug fixes, breaking changes, deprecations)
+  - Generate human-readable changelog entries
 
-#### **Migration Strategy**
-- **Phase 1: Foundation (Current)**
-  - Maintain SDKv2 implementation for stability
-  - Develop Plugin Framework patterns in `internal/`
-  - Establish migration guidelines and patterns
-  - Create compatibility testing framework
+#### **Changelog Structure**
+- **Version-based Organization**
+  - Semantic versioning (major.minor.patch)
+  - Release date and version tags
+  - Clear categorization of changes
 
-- **Phase 2: Gradual Migration**
-  - **Resource Prioritization**
-    - Start with simpler resources (users, groups, basic configurations)
-    - Progress to complex resources (EKS/AKS clusters)
-    - Maintain backward compatibility during transition
-  
-  - **Migration Pattern per Resource**
-    - Create Plugin Framework equivalent in `internal/`
-    - Implement comprehensive test coverage
-    - Validate feature parity with legacy implementation
-    - Switch provider registration to new implementation
-    - Deprecate legacy implementation
+- **Change Categories**
+  - **BREAKING CHANGES:** SDKv2 to Plugin Framework migrations
+  - **FEATURES:** New resources and functionality
+  - **ENHANCEMENTS:** Improvements to existing resources
+  - **BUG FIXES:** Issue resolutions and patches
+  - **DEPRECATIONS:** Legacy feature deprecations
+  - **DOCUMENTATION:** Documentation updates and improvements
 
-- **Phase 3: Completion and Cleanup**
-  - Remove deprecated SDKv2 implementations
-  - Clean up legacy test infrastructure
-  - Update documentation and examples
-  - Final compatibility validation
+#### **Implementation Details**
+- **GitHub Action Workflow**
+  ```yaml
+  name: Generate Changelog
+  on:
+    push:
+      branches: [main]
+  jobs:
+    changelog:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - name: Generate Changelog
+          uses: ai-changelog-generator@v1
+          with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            output: CHANGELOG.md
+  ```
 
-#### **Technical Migration Patterns**
-- **From SDKv2 to Plugin Framework**
-  - Schema definition transformation
-  - Expand/flatten function migration to Value types
-  - Context handling updates
-  - Error handling pattern changes
-  - Testing framework adaptation
+- **AI Processing Logic**
+  - Natural language processing of commit messages
+  - Merge request description analysis
+  - Automatic categorization and formatting
+  - Duplicate detection and consolidation
 
-- **Compatibility Considerations**
-  - State file compatibility during migration
-  - Configuration syntax preservation
-  - Provider behavior consistency
-  - Deprecation warnings and communication
+**Rationale:** Essential for tracking the complex migration process and keeping users informed of changes, especially during the SDKv2 to Plugin Framework transition.
 
-#### **Risk Mitigation**
-- **Testing Strategy**
-  - Parallel testing of old and new implementations
-  - State migration validation
-  - Regression testing for existing users
-  - Performance comparison testing
+### 5. Resource Implementation Guide (`docs/resource-implementation-guide.md`)
+**Priority: Medium**
 
-- **Rollback Planning**
-  - Ability to revert to SDKv2 implementation
-  - State rollback procedures
-  - User communication for issues
-  - Hotfix deployment strategies
+Selected as the fifth priority from the lower priority items, this should cover:
 
-#### **Timeline and Milestones**
-- **Short-term (3-6 months)**
-  - Complete migration guidelines documentation
-  - Migrate 5-10 simple resources
-  - Establish testing patterns for Plugin Framework
-  - User communication about migration plans
+#### **SDKv2 Implementation Patterns**
+- **Standard Resource Lifecycle**
+  - The Create/Read/Update/Delete patterns used across 70+ resources
+  - Context handling and timeout configurations
+  - Error handling and diagnostics patterns
+  - Import functionality implementation
 
-- **Medium-term (6-12 months)**
-  - Migrate complex resources (EKS, AKS clusters)
-  - Comprehensive compatibility testing
-  - Beta release with Plugin Framework resources
-  - Gather user feedback and iterate
+- **Schema Definition Patterns**
+  - How complex nested schemas are structured (EKS/AKS cluster configurations)
+  - Optional vs required field patterns
+  - List and map handling in Terraform schemas
+  - Schema versioning strategies
 
-- **Long-term (12+ months)**
-  - Complete migration of all resources
-  - Remove legacy SDKv2 code
-  - Final documentation updates
-  - Provider v2.0 release
+#### **Expand/Flatten Function Patterns**
+- **Data Transformation**
+  - Understanding the extensive utility functions in `utils.go` (2474 lines)
+  - Data transformation between Terraform state and Rafay API
+  - Handling complex nested data structures
+  - JSON parsing and validation patterns
 
-#### **Success Metrics**
-- **Technical Metrics**
-  - 100% feature parity with legacy implementation
-  - No regression in functionality or performance
-  - Comprehensive test coverage for new implementation
-  - Clean separation of legacy vs modern code
+- **Testing Integration**
+  - How to use the mock infrastructure effectively
+  - Unit testing strategies for expand/flatten functions
+  - Integration testing approaches
+  - Test data organization and reuse
 
-- **User Experience Metrics**
-  - Seamless migration for existing users
-  - No breaking changes in configuration syntax
-  - Improved error messages and validation
-  - Enhanced provider performance and reliability
+#### **Migration Considerations**
+- **Plugin Framework Preparation**
+  - Identifying resources ready for migration
+  - Compatibility requirements during transition
+  - Testing strategies for parallel implementations
+  - Deprecation planning for legacy resources
 
-## Additional Considerations
+**Rationale:** Important for maintaining consistency during the migration period and helping developers understand the established patterns in the legacy codebase.
 
-While the top 5 priorities above address the most critical needs, other valuable documentation pieces could include:
+## Lower Priority Documentation
 
-- **Troubleshooting Guide** - Common issues and debugging approaches
-- **Resource-Specific Guides** - Deep dives into complex resources like EKS clusters
-- **Performance Optimization Guide** - Best practices for large-scale deployments
-- **Security Best Practices** - Authentication, authorization, and secure configuration patterns
+The following documentation pieces are valuable but lower priority:
+
+- **Contributing Guide (`CONTRIBUTING.md`)** - Development environment setup and contribution guidelines
+- **Architecture Overview (`docs/architecture.md`)** - High-level system architecture and component relationships
+- **Troubleshooting Guide (`docs/troubleshooting.md`)** - Common issues and debugging approaches
+- **Performance Optimization Guide (`docs/performance.md`)** - Best practices for large-scale deployments
+- **Security Best Practices (`docs/security.md`)** - Authentication, authorization, and secure configuration patterns
 
 ## Implementation Approach
 
-Following the AWS provider model:
-1. Start with the Contributing Guide to establish development standards
-2. Create the Architecture Overview to provide necessary context
-3. Develop the Resource Implementation Guide to ensure consistency
-4. Iterate based on developer feedback and common questions
+Following the reordered priorities:
 
-This documentation foundation would significantly improve developer experience and code maintainability for the `rafay/` folder.
+1. **Start with Deprecation Policy** to establish clear migration expectations
+2. **Implement Testing Guide** to ensure code quality during transition
+3. **Create Examples Directory** to help users navigate changes
+4. **Set up Automated Changelog** to track migration progress
+5. **Develop Resource Implementation Guide** for consistency maintenance
+
+This prioritization focuses on managing the SDKv2 to Plugin Framework migration while maintaining user experience and code quality throughout the transition period.

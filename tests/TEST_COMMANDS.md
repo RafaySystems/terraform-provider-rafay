@@ -1,17 +1,17 @@
 # Test Commands Reference
 
-This document provides a comprehensive reference for the new organized test commands added to the Makefile.
+This document provides a comprehensive reference for the streamlined test commands in the Makefile.
 
-## New Organized Test Commands
+## Streamlined Test Commands
 
-### Comprehensive Tests
-#### `make test-all-organized`
-- **Purpose:** Run all tests with organized structure
+### Primary Commands (Daily Use)
+#### `make test`
+- **Purpose:** Run all tests (unit + integration) - the default command
 - **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/...`
 - **Usage:** Run all test categories in one command
 
-#### `make test-all-cover`
-- **Purpose:** Run all tests with coverage
+#### `make test-cover`
+- **Purpose:** Run all tests with coverage reporting
 - **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover ./rafay ./tests/...`
 - **Usage:** Comprehensive testing with coverage analysis
 
@@ -21,37 +21,16 @@ This document provides a comprehensive reference for the new organized test comm
 - **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay`
 - **Usage:** Test expand/flatten functions and internal logic
 
-#### `make test-unit-cover`
-- **Purpose:** Run unit tests with coverage reporting
-- **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover ./rafay`
-- **Usage:** Unit testing with coverage analysis
-
-### Integration Tests
+### Specialized Commands (When Needed)
 #### `make test-integration`
-- **Purpose:** Run all integration tests
+- **Purpose:** Run integration tests only
 - **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=integration ./tests/integration/...`
-- **Usage:** Comprehensive integration testing
+- **Usage:** Integration testing focus
 
-#### `make test-plan-only`
-- **Purpose:** Run plan-only integration tests
-- **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=planonly ./tests/integration/plan_only/`
-- **Usage:** Test configuration validation without resource creation
-
-#### `make test-negative`
-- **Purpose:** Run negative integration tests
-- **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags='!planonly' ./tests/integration/negative/`
-- **Usage:** Test error handling and edge cases
-
-#### `make test-integration-cover`
-- **Purpose:** Run integration tests with coverage
-- **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover -tags=integration ./tests/integration/...`
-- **Usage:** Integration testing with coverage analysis
-
-### Plugin Framework Tests
-#### `make test-framework`
-- **Purpose:** Run Plugin Framework tests (plan-only)
-- **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=planonly ./tests/framework/`
-- **Usage:** Test new Plugin Framework implementation without API calls
+#### `make test-api`
+- **Purpose:** Run tests that require real API credentials
+- **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=integration ./tests/integration/acceptance/`
+- **Usage:** Real API credential tests (internal use)
 
 ## Environment Setup
 
@@ -91,20 +70,20 @@ tests/
 ## Usage Examples
 
 ```bash
+# Default: Run all tests (unit + integration)
+make test
+
+# Run all tests with coverage
+make test-cover
+
 # Quick unit testing during development
 make test-unit
 
-# Test configuration validation
-make test-plan-only
+# Integration testing only
+make test-integration
 
-# Test error handling
-make test-negative
-
-# Test new Plugin Framework features
-make test-framework
-
-# Comprehensive testing before release
-make test-all-cover
+# Tests requiring real API credentials
+make test-api
 ```
 
 ## Build Tags
@@ -119,9 +98,10 @@ This allows fine-grained control over which tests run in different environments.
 
 ## Integration with Existing Commands
 
-These new commands complement the existing Makefile targets:
-- `make test` - Original test command (preserved)
+These streamlined commands complement the existing Makefile targets:
+- `make test` - Now the primary command for all tests
+- `make test-cover` - Primary command with coverage
 - `make testacc` - Acceptance tests (preserved)
 - `make test-migrate` - Migration tests (preserved)
 
-The new organized commands provide more granular control over test execution while maintaining compatibility with existing workflows.
+The streamlined commands provide a cleaner interface while maintaining compatibility with existing workflows.

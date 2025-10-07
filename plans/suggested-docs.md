@@ -5,93 +5,113 @@
 ### 1. Deprecation Policy (`docs/deprecation-policy.md`)
 **Priority: Critical**
 
-Based on the ongoing migration from SDKv2 to Plugin Framework, this should include:
+Based on the Rafay provider's adoption of strict semantic versioning and the need for clear upgrade guidance, this should include:
 
-#### **Deprecation Strategy**
-- **Criteria for Deprecation**
-  - Technical debt assessment for legacy SDKv2 implementations
-  - Performance and maintainability considerations
-  - Plugin Framework feature parity requirements
-  - User impact analysis for breaking changes
+#### **Semantic Versioning Strategy**
+- **MAJOR Version Changes (Breaking Changes)**
+  - Removing resources (e.g., removing `rafay_legacy_cluster`)
+  - Removing or renaming resource arguments (e.g., removing `project_id` attribute from `rafay_cluster`)
+  - Changing default behavior that breaks existing configurations
+  - Schema changes that require state migration
+  - Next version example: `1.1.51` → `2.0.0`
 
-- **Clear Examples of SDKv2 vs Plugin Framework**
-  - **SDKv2 Implementation Examples (`rafay/` folder):**
-    - `rafay/provider.go` - SDKv2 provider using `schema.Provider` and `helper/schema`
-    - `rafay/resource_group.go` - Simple resource with manual schema definition
-    - `rafay/resource_driver.go` - Complex resource with expand/flatten patterns
-    - `rafay/resource_eks_cluster.go` - Large complex resource (195KB, 7172 lines)
-    - SDKv2 patterns: `schema.Resource`, `ResourceData`, `diag.Diagnostics`
+- **MINOR Version Changes (Backward Compatible)**
+  - Adding new resources (e.g., adding `rafay_environment_template`)
+  - Adding new optional arguments to existing resources
+  - Adding new data sources
+  - New features that don't break existing configurations
+  - Next version example: `1.1.51` → `1.2.0`
 
-  - **Plugin Framework Implementation Examples (`internal/` folder):**
-    - `internal/provider/provider.go` - Framework provider using `provider.Provider` interface
-    - `internal/resource_mks_cluster/mks_cluster_resource_gen.go` - Generated code from JSON schema
-    - `internal/resource_mks_cluster/mks_cluster_resource_ext.go` - Custom conversion methods
-    - `internal/provider/mks_cluster_resource_test.go` - Framework testing patterns
-    - Framework patterns: `types.String`, `basetypes.BoolValue`, `schema.Schema`
+- **PATCH Version Changes (Bug Fixes)**
+  - Fixing diff suppression bugs
+  - Correcting documentation
+  - Tightening validation without breaking usage
+  - Patching crashes without breaking existing usage
+  - Fixing `terraform import` issues
+  - Next version example: `1.1.51` → `1.1.52`
 
-- **Key Differences Illustrated:**
-  ```go
-  // SDKv2 Pattern (rafay/resource_group.go)
-  func resourceGroup() *schema.Resource {
-      return &schema.Resource{
-          CreateContext: resourceGroupCreate,
-          Schema: map[string]*schema.Schema{
-              "name": {
-                  Type:     schema.TypeString,
-                  Required: true,
-              },
-          },
-      }
-  }
+#### **Deprecation Process**
+Following the [AWS provider deprecation model](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/version-4-upgrade):
 
-  // Plugin Framework Pattern (internal/provider/provider.go)
-  type RafayFwProviderModel struct {
-      ProviderConfigFile types.String `tfsdk:"provider_config_file"`
+- **Deprecation Announcement**
+  - Announce deprecations with at least one minor version lead time
+  - Provide clear upgrade notes in `UPGRADE.md`
+  - Include deprecation warnings in provider logs
+  - Document in `CHANGELOG.md` with categorization
+
+- **Resource Deprecation Examples**
+  ```hcl
+  # Example: Deprecating rafay_cluster in favor of rafay_eks_cluster
+  resource "rafay_cluster" "example" {
+    # DEPRECATED: Use rafay_eks_cluster instead
+    # This resource will be removed in version 2.0.0
+    name = "my-cluster"
   }
   
-  func (p *RafayFwProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
-      resp.Schema = schema.Schema{
-          Attributes: map[string]schema.Attribute{
-              "provider_config_file": schema.StringAttribute{
-                  Optional: true,
-              },
-          },
-      }
+  # New recommended approach
+  resource "rafay_eks_cluster" "example" {
+    metadata {
+      name = "my-cluster"
+    }
   }
   ```
 
-- **Deprecation Timeline**
-  - **Phase 1 (Current):** Maintain SDKv2 stability while developing Plugin Framework
-  - **Phase 2 (6-12 months):** Gradual deprecation warnings and migration paths
-  - **Phase 3 (12+ months):** Full deprecation and removal of legacy code
+- **Argument Deprecation Examples**
+  ```hcl
+  resource "rafay_aks_cluster" "example" {
+    # DEPRECATED: project_id is deprecated, use metadata.project instead
+    # project_id will be removed in version 2.0.0
+    project_id = "my-project"  # Deprecated
+    
+    metadata {
+      project = "my-project"  # New approach
+    }
+  }
+  ```
+
+#### **Version Support Policy**
+- **Support Windows**: Document support for current version (N) and previous version (N-1)
+- **End-of-Life Timeline**: Clear communication when versions reach end-of-life
+- **Security Updates**: Policy for backporting critical security fixes
+- **Migration Assistance**: Provide automated migration tools where possible
 
 #### **Communication Strategy**
+- **CHANGELOG.md Integration**
+  - Automated changelog generation via GitHub Actions
+  - Clear categorization: BREAKING CHANGES, FEATURES, ENHANCEMENTS, BUG FIXES, DEPRECATIONS
+  - Version-based organization with release dates
+  - Direct links to upgrade guides
+
 - **User Notification Process**
-  - Deprecation warnings in provider logs
-  - Documentation updates with migration guides
-  - Community communication through forums and GitHub
-  - Version-specific deprecation notices
+  - Provider log warnings for deprecated features
+  - Documentation updates with migration examples
+  - GitHub releases with detailed upgrade notes
+  - Community forum announcements
 
-- **Migration Support**
-  - Detailed migration guides for each deprecated resource
-  - Compatibility matrices between old and new implementations
-  - Support channels for migration assistance
-  - Timeline extensions for complex migration scenarios
+#### **State Migration Support**
+- **Automatic State Migration**
+  - Built-in state migration for schema changes
+  - Validation and integrity checks
+  - Rollback procedures for failed migrations
 
-#### **Backward Compatibility**
-- **State File Compatibility**
-  - Automatic state migration utilities
-  - Manual migration procedures for edge cases
-  - Rollback procedures if migration fails
-  - State validation and integrity checks
+- **Manual Migration Procedures**
+  - Step-by-step guides for complex migrations
+  - `terraform state mv` commands for resource renames
+  - Import procedures for restructured resources
 
-- **Configuration Compatibility**
-  - Syntax preservation during migration
-  - Deprecated argument handling
-  - Default value migration strategies
-  - Breaking change documentation
+#### **Upgrade Documentation Structure**
+Following AWS provider patterns:
+```
+docs/
+├── guides/
+│   ├── version-2-upgrade.md    # Major version upgrade guide
+│   ├── version-1.5-upgrade.md  # Minor version with breaking changes
+│   └── migration-examples/     # Specific migration scenarios
+├── UPGRADE.md                  # Current upgrade notes
+└── CHANGELOG.md               # Automated changelog
+```
 
-**Rationale:** Critical for managing the complex migration from SDKv2 to Plugin Framework while maintaining user trust and system stability.
+**Rationale:** Critical for maintaining user trust during resource evolution and ensuring smooth upgrades as the provider matures with 70+ resources.
 
 ### 2. Testing Guide (`docs/testing-guide.md`)
 **Priority: High**

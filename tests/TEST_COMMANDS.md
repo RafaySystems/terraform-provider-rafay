@@ -2,38 +2,18 @@
 
 This document provides a comprehensive reference for the new organized test commands added to the Makefile.
 
-## Test Status and Recent Fixes
-
-### ✅ Working Tests
-- **Framework Tests**: Now working as plan-only tests (no API calls required)
-- **AKS Cluster Flatten Tests**: Fixed `TestFlattenAKSClusterSpec` 
-
-### ⚠️ Known Issues in Unit Tests
-The following unit tests have known issues that need addressing:
-
-1. **TestFlattenAKSCluster** - APIVersion and Kind fields not being set correctly
-2. **TestFlattenAKSNodePool** - Type assertion issues with integer fields and slice types
-3. **TestFlattenAKSMaintenanceConfigs** - Type mismatch between int64 and int
-4. **TestExpandEKSCluster** - CloudProvider field not being set correctly
-5. **TestExpandVPC** - Panic due to incorrect cty.Value structure
-
-### 🔧 Recent Fixes Applied
-
-1. **Framework Test Failures**: 
-   - Converted acceptance tests to plan-only tests
-   - Added build tags `//go:build planonly`
-   - Moved tests to `tests/framework/` directory
-   - Added provider test helpers
-
-2. **AKS Cluster Flatten Test**:
-   - Fixed `rawState` parameter structure in `TestFlattenAKSClusterSpec`
-   - Changed from `cty.ObjectVal` to `cty.ListVal` wrapper
-
-3. **Test Organization**:
-   - Updated Makefile commands to reflect new test structure
-   - Framework tests now run from `tests/framework/` with plan-only tag
-
 ## New Organized Test Commands
+
+### Comprehensive Tests
+#### `make test-all-organized`
+- **Purpose:** Run all tests with organized structure
+- **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/...`
+- **Usage:** Run all test categories in one command
+
+#### `make test-all-cover`
+- **Purpose:** Run all tests with coverage
+- **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover ./rafay ./tests/...`
+- **Usage:** Comprehensive testing with coverage analysis
 
 ### Unit Tests
 #### `make test-unit`
@@ -72,17 +52,6 @@ The following unit tests have known issues that need addressing:
 - **Purpose:** Run Plugin Framework tests (plan-only)
 - **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=planonly ./tests/framework/`
 - **Usage:** Test new Plugin Framework implementation without API calls
-
-### Comprehensive Tests
-#### `make test-all-organized`
-- **Purpose:** Run all tests with organized structure
-- **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/...`
-- **Usage:** Run all test categories in one command
-
-#### `make test-all-cover`
-- **Purpose:** Run all tests with coverage
-- **Command:** `GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover ./rafay ./tests/...`
-- **Usage:** Comprehensive testing with coverage analysis
 
 ## Environment Setup
 

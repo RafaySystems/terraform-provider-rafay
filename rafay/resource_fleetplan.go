@@ -179,7 +179,11 @@ func flattenFleetPlanSpec(spec *infrapb.FleetPlanSpec) []interface{} {
 
 	obj := make(map[string]interface{})
 	obj["fleet"] = flattenFleet(spec.Fleet)
-	obj["operation_workflow"] = flattenOperationWorkflow(spec.OperationWorkflow)
+	fleetPlanKind := ""
+	if spec.Fleet != nil {
+		fleetPlanKind = spec.Fleet.Kind
+	}
+	obj["operation_workflow"] = flattenOperationWorkflow(spec.OperationWorkflow, fleetPlanKind)
 	obj["agents"] = flattenFleetPlanAgents(spec.Agents)
 
 	if spec.Fleet.Kind == ResourceTypeEnvironments {
@@ -226,7 +230,6 @@ func flattenSchedule(schedule *infrapb.FleetSchedule) map[string]interface{} {
 	}
 	obj := make(map[string]interface{})
 	obj["name"] = schedule.Name
-	obj["action_type"] = schedule.ActionType
 	obj["description"] = schedule.Description
 	obj["type"] = schedule.Type
 	obj["cadence"] = flattenScheduleCadence(schedule.Cadence)
@@ -290,44 +293,47 @@ func flattenProjects(projects []*infrapb.ProjectFilter) []interface{} {
 	return obj
 }
 
-func flattenOperationWorkflow(workflow *infrapb.OperationWorkflowSpec) []interface{} {
+func flattenOperationWorkflow(workflow *infrapb.OperationWorkflowSpec, fleetPlanKind string) []interface{} {
 	if workflow == nil {
 		return []interface{}{}
 	}
 	obj := make(map[string]interface{})
-	obj["operations"] = flattenOperations(workflow.Operations)
+	obj["operations"] = flattenOperations(workflow.Operations, fleetPlanKind)
 	return []interface{}{obj}
 }
 
-func flattenOperations(operations []*infrapb.OperationSpec) []interface{} {
+func flattenOperations(operations []*infrapb.OperationSpec, fleetPlanKind string) []interface{} {
 	if operations == nil {
 		return []interface{}{}
 	}
 	obj := make([]interface{}, len(operations))
 	for i, v := range operations {
-		obj[i] = flattenOperation(v)
+		obj[i] = flattenOperation(v, fleetPlanKind)
 	}
 	return obj
 }
 
-func flattenOperation(operation *infrapb.OperationSpec) map[string]interface{} {
+func flattenOperation(operation *infrapb.OperationSpec, fleetPlanKind string) map[string]interface{} {
 	if operation == nil {
 		return map[string]interface{}{}
 	}
 	obj := make(map[string]interface{})
 	obj["name"] = operation.Name
-	obj["action"] = flattenAction(operation.Action)
+	obj["action"] = flattenAction(operation.Action, fleetPlanKind)
 	obj["prehooks"] = flattenHooks(operation.Prehooks)
 	obj["posthooks"] = flattenHooks(operation.Posthooks)
 	return obj
 }
 
-func flattenAction(action *infrapb.ActionSpec) []interface{} {
+func flattenAction(action *infrapb.ActionSpec, fleetPlanKind string) []interface{} {
 	if action == nil {
 		return []interface{}{}
 	}
 	obj := make(map[string]interface{})
-	obj["name"] = action.Name
+
+	if fleetPlanKind == ResourceTypeEnvironments {
+		obj["name"] = action.Name
+	}
 	obj["type"] = action.Type
 	obj["description"] = action.Description
 	obj["control_plane_upgrade_config"] = flattenControlPlaneUpgradeConfig(action.ControlPlaneUpgradeConfig)
@@ -337,18 +343,8 @@ func flattenAction(action *infrapb.ActionSpec) []interface{} {
 	obj["blueprint_update_config"] = flattenBlueprintUpdateConfig(action.BlueprintUpdateConfig)
 	obj["environment_template_version_update_config"] = flattenEnvironmentTemplateVersionUpdateConfig(action.EnvironmentTemplateVersionUpdateConfig)
 	obj["environment_variable_update_config"] = flattenEnvironmentVariableUpdateConfig(action.EnvironmentVariableUpdateConfig)
-	obj["resource_destroy_config"] = flattenResourceDestroyConfig(action.ResourceDestroyConfig)
 	obj["continue_on_failure"] = action.ContinueOnFailure
 
-	return []interface{}{obj}
-}
-
-func flattenResourceDestroyConfig(config *infrapb.EnvironmentDestroyConfigSpec) []interface{} {
-	if config == nil {
-		return []interface{}{}
-	}
-	obj := make(map[string]interface{})
-	obj["force_destory"] = config.ForceDestory
 	return []interface{}{obj}
 }
 
@@ -576,8 +572,13 @@ func expandFleetPlanSpec(p []interface{}) (*infrapb.FleetPlanSpec, error) {
 		obj.Fleet = expandFleetSpec(v)
 	}
 
+	fleetPlanKind := ""
+	if obj.Fleet != nil {
+		fleetPlanKind = obj.Fleet.Kind
+	}
+
 	if v, ok := in["operation_workflow"].([]interface{}); ok && len(v) > 0 {
-		obj.OperationWorkflow = expandOperationWorkflow(v)
+		obj.OperationWorkflow = expandOperationWorkflow(v, fleetPlanKind)
 	}
 
 	if v, ok := in["agents"].([]interface{}); ok && len(v) > 0 {
@@ -609,9 +610,6 @@ func expandFleetPlanSchedules(p []interface{}) []*infrapb.FleetSchedule {
 		}
 		if val, ok := inMap["type"]; ok {
 			outSchedule.Type = val.(string)
-		}
-		if val, ok := inMap["action_type"]; ok {
-			outSchedule.ActionType = val.(string)
 		}
 		if val, ok := inMap["cadence"].([]interface{}); ok {
 			outSchedule.Cadence = expandScheduleCadence(val)
@@ -741,7 +739,7 @@ func expandProjects(v []interface{}) []*infrapb.ProjectFilter {
 
 }
 
-func expandOperationWorkflow(v []interface{}) *infrapb.OperationWorkflowSpec {
+func expandOperationWorkflow(v []interface{}, fleetPlanKind string) *infrapb.OperationWorkflowSpec {
 
 	obj := &infrapb.OperationWorkflowSpec{}
 	if len(v) == 0 || v[0] == nil {
@@ -751,13 +749,13 @@ func expandOperationWorkflow(v []interface{}) *infrapb.OperationWorkflowSpec {
 	in := v[0].(map[string]interface{})
 
 	if operations, ok := in["operations"]; ok && len(in) > 0 {
-		obj.Operations = expandOperations(operations.([]interface{}))
+		obj.Operations = expandOperations(operations.([]interface{}), fleetPlanKind)
 	}
 
 	return obj
 }
 
-func expandOperations(v []interface{}) []*infrapb.OperationSpec {
+func expandOperations(v []interface{}, fleetPlanKind string) []*infrapb.OperationSpec {
 	var operations []*infrapb.OperationSpec
 
 	if v == nil || len(v) == 0 {
@@ -770,7 +768,7 @@ func expandOperations(v []interface{}) []*infrapb.OperationSpec {
 		//TODO
 		operations = append(operations, &infrapb.OperationSpec{
 			Name:      op["name"].(string),
-			Action:    expandAction(op["action"].([]interface{})),
+			Action:    expandAction(op["action"].([]interface{}), fleetPlanKind),
 			Prehooks:  expandHooks(op["prehooks"].([]interface{})),
 			Posthooks: expandHooks(op["posthooks"].([]interface{})),
 		})
@@ -778,7 +776,7 @@ func expandOperations(v []interface{}) []*infrapb.OperationSpec {
 	return operations
 }
 
-func expandAction(in []interface{}) *infrapb.ActionSpec {
+func expandAction(in []interface{}, fleetPlanKind string) *infrapb.ActionSpec {
 	obj := &infrapb.ActionSpec{}
 	if len(in) == 0 || in[0] == nil {
 		return nil
@@ -786,8 +784,10 @@ func expandAction(in []interface{}) *infrapb.ActionSpec {
 
 	v := in[0].(map[string]interface{})
 
-	if v, ok := v["name"].(string); ok {
-		obj.Name = v
+	if fleetPlanKind != ResourceTypeEnvironments {
+		if v, ok := v["name"].(string); ok {
+			obj.Name = v
+		}
 	}
 
 	if v, ok := v["type"].(string); ok {
@@ -826,30 +826,12 @@ func expandAction(in []interface{}) *infrapb.ActionSpec {
 		obj.EnvironmentVariableUpdateConfig = expandEnvironmentVariableUpdateConfig(v)
 	}
 
-	if v, ok := v["resource_destroy_config"].([]interface{}); ok {
-		obj.ResourceDestroyConfig = expandResourceDestroyConfig(v)
-	}
-
 	if v, ok := v["continue_on_failure"].(bool); ok {
 		obj.ContinueOnFailure = v
 	}
 
 	return obj
 
-}
-
-func expandResourceDestroyConfig(in []interface{}) *infrapb.EnvironmentDestroyConfigSpec {
-	obj := &infrapb.EnvironmentDestroyConfigSpec{}
-	if len(in) == 0 || in[0] == nil {
-		return nil
-	}
-
-	v := in[0].(map[string]interface{})
-	if v, ok := v["force_destory"].(bool); ok {
-		obj.ForceDestory = v
-	}
-
-	return obj
 }
 
 func expandEnvironmentVariableUpdateConfig(in []interface{}) []*infrapb.EnvironmentVariableUpdateConfigSpec {

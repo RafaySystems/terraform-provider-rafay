@@ -127,42 +127,33 @@ resource "rafay_fleetplan" "fp_environments" {
   spec {
     fleet {
       kind = "environments"
-      labels = {
-        k1 = "v1"
-      }
 
       projects {
         name = "defaultproject"
       }
-      projects {
-        name = "project1"
-      }
       target_batch_size = 2
     }
     operation_workflow {
-      # operations {
-      #   name = "op1"
-      #   action {
-      #     type        = "resourceDeploy"
-      #     description = "deploy environment resources"
-      #     name = "action1"
-      #   }
-      # }
-      # operations {
-      #   name = "op2"
-      #   action {
-      #     type        = "templateVersionUpdate"
-      #     description = "update template version"
-      #     environment_template_version_update_config {
-      #       version = "v1.1"
-      #     }
-      #     name = "action2"
-      #   }
-      # }
+      operations {
+        name = "op1"
+        action {
+          type        = "resourceDeploy"
+          description = "deploy environment resources"
+        }
+      }
+      operations {
+        name = "op2"
+        action {
+          type        = "templateVersionUpdate"
+          description = "update template version"
+          environment_template_version_update_config {
+            version = "v1.1"
+          }
+        }
+      }
       operations {
         name = "op3"
         action {
-          name        = "action3"
           type        = "environmentVariableUpdate"
           description = "update cluster blueprint"
           environment_variable_update_config {
@@ -176,12 +167,8 @@ resource "rafay_fleetplan" "fp_environments" {
       operations {
         name = "op4"
         action {
-          name        = "action4"
           type        = "resourceDestroy"
           description = "destroy environment resources"
-          resource_destroy_config {
-            force_destory = false
-          }
         }
       }
     }
@@ -189,16 +176,8 @@ resource "rafay_fleetplan" "fp_environments" {
       name = "schedule1"
       description = "schedule1 description"
       type = "one-time"
-      action_type = "deploy"
       cadence {
-        time_to_live = "10m"
-      }
-      opt_out_options {
-        allow_opt_out {
-          value = true
-        }
-        max_allowed_duration = "20m"
-        max_allowed_times = 5
+        time_to_live = "7m"
       }
     }
 

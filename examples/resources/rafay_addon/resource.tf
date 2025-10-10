@@ -91,8 +91,8 @@ resource "rafay_addon" "tfdemoaddon5" {
     project = "terraform"
   }
   spec {
-    namespace     = "tfdemonamespace1"
-    version       = "v1.0"
+    namespace = "tfdemonamespace1"
+    version   = "v1.0"
     version_state = "active"
     artifact {
       type = "Yaml"

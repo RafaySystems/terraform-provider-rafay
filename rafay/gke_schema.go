@@ -23,6 +23,7 @@ func GKEClusterV3Schema() map[string]*schema.Schema {
 	nodePools := config.Schema["node_pools"]
 	security := config.Schema["security"]
 	pbCommands := config.Schema["pre_bootstrap_commands"]
+	resourceLabels := config.Schema["resource_labels"]
 
 	return map[string]*schema.Schema{
 		"api_version": {
@@ -61,6 +62,7 @@ func GKEClusterV3Schema() map[string]*schema.Schema {
 								"node_pools":             nodePools,
 								"security":               security,
 								"pre_bootstrap_commands": pbCommands,
+								"resource_labels":        resourceLabels,
 							},
 						},
 					},

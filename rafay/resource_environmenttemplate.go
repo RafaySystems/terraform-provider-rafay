@@ -242,6 +242,10 @@ func expandEnvironmentTemplateSpec(p []any) (*eaaspb.EnvironmentTemplateSpec, er
 		spec.Agents = expandEaasAgents(ag)
 	}
 
+	if agp, ok := in["agent_pools"].([]any); ok && len(agp) > 0 {
+		spec.AgentPools = expandEaasAgents(agp)
+	}
+
 	if v, ok := in["sharing"].([]any); ok && len(v) > 0 {
 		spec.Sharing = expandSharingSpec(v)
 	}
@@ -252,6 +256,10 @@ func expandEnvironmentTemplateSpec(p []any) (*eaaspb.EnvironmentTemplateSpec, er
 
 	if v, ok := in["agent_override"].([]any); ok && len(v) > 0 {
 		spec.AgentOverride = expandEaasAgentOverrideOptions(v)
+	}
+
+	if v, ok := in["agent_pool_override"].([]any); ok && len(v) > 0 {
+		spec.AgentPoolOverride = expandEaasAgentPoolOverrideOptions(v)
 	}
 
 	if s, ok := in["schedules"].([]any); ok && len(s) > 0 {
@@ -416,6 +424,28 @@ func expandEaasAgentOverrideOptions(p []any) *eaaspb.AgentOverrideOptions {
 	}
 
 	return agentOverrideOptions
+}
+
+func expandEaasAgentPoolOverrideOptions(p []any) *eaaspb.AgentPoolOverrideOptions {
+	agentPoolOverrideOptions := &eaaspb.AgentPoolOverrideOptions{}
+	if len(p) == 0 || p[0] == nil {
+		return agentPoolOverrideOptions
+	}
+
+	in := p[0].(map[string]any)
+	if v, ok := in["required"].(bool); ok {
+		agentPoolOverrideOptions.Required = v
+	}
+
+	if aot, ok := in["type"].(string); ok {
+		agentPoolOverrideOptions.Type = aot
+	}
+
+	if pools, ok := in["restricted_agent_pools"].([]any); ok && len(pools) > 0 {
+		agentPoolOverrideOptions.RestrictedAgentPools = toArrayString(pools)
+	}
+
+	return agentPoolOverrideOptions
 }
 
 func expandEnvironmentResources(p []any) ([]*eaaspb.EnvironmentResourceCompoundRef, error) {
@@ -609,12 +639,14 @@ func flattenEnvironmentTemplateSpec(in *eaaspb.EnvironmentTemplateSpec, p []any)
 	obj["hooks"] = flattenEnvironmentHooks(in.Hooks, v)
 
 	obj["agents"] = flattenEaasAgents(in.Agents)
+	obj["agent_pools"] = flattenEaasAgents(in.AgentPools)
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
 	v, _ = obj["contexts"].([]any)
 	obj["contexts"] = flattenContexts(in.Contexts, v)
 
 	obj["agent_override"] = flattenEaasAgentOverrideOptions(in.AgentOverride)
+	obj["agent_pool_override"] = flattenEaasAgentPoolOverrideOptions(in.AgentPoolOverride)
 
 	v, _ = obj["schedules"].([]any)
 	obj["schedules"] = flattenSchedules(in.Schedules, v)
@@ -636,6 +668,19 @@ func flattenEaasAgentOverrideOptions(in *eaaspb.AgentOverrideOptions) []any {
 	obj["required"] = in.Required
 	obj["type"] = in.Type
 	obj["restricted_agents"] = toArrayInterface(in.RestrictedAgents)
+
+	return []any{obj}
+}
+
+func flattenEaasAgentPoolOverrideOptions(in *eaaspb.AgentPoolOverrideOptions) []any {
+	if in == nil {
+		return nil
+	}
+
+	obj := make(map[string]any)
+	obj["required"] = in.Required
+	obj["type"] = in.Type
+	obj["restricted_agent_pools"] = toArrayInterface(in.RestrictedAgentPools)
 
 	return []any{obj}
 }

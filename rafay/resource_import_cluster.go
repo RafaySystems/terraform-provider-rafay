@@ -29,7 +29,7 @@ import (
 var (
 	supportedK8sProviderList    []string = []string{"AKS", "EKS", "GKE", "OPENSHIFT", "OTHER", "RKE", "EKSANYWHERE"}
 	supportedProvisionEnvList   []string = []string{"CLOUD", "ONPREM"}
-	environmentManagerLabelsKey []string = []string{"rafay.dev/envRun", "rafay.dev/k8sVersion"}
+	environmentManagerLabelsKey []string = []string{"rafay.dev/envRun", "rafay.dev/k8sVersion", "rafay.dev/envMode", "rafay.dev/gkeAutopilot"}
 )
 
 func resourceImportCluster() *schema.Resource {
@@ -134,6 +134,43 @@ func resourceImportCluster() *schema.Resource {
 					return diag.Diagnostics{}
 				},
 			},
+			"proxy_config": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"http_proxy": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"https_proxy": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"no_proxy": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"proxy_auth": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"allow_insecure_bootstrap": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"bootstrap_ca": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -185,6 +222,49 @@ func updateClusterLabels(name, edgeId, projectId string, labels map[string]strin
 	return nil
 }
 
+func expandProxyConfigImportCluster(v interface{}) *models.ProxyConfig {
+	l, ok := v.([]interface{})
+	if !ok || len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m, ok := l[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	proxyConfig := models.ProxyConfig{}
+	httpProxy, ok := m["http_proxy"].(string)
+	if ok {
+		proxyConfig.HttpProxy = httpProxy
+	}
+	httpsProxy, ok := m["https_proxy"].(string)
+	if ok {
+		proxyConfig.HttpsProxy = httpsProxy
+	}
+	noProxy, ok := m["no_proxy"].(string)
+	if ok {
+		proxyConfig.NoProxy = noProxy
+	}
+	enabled, ok := m["enabled"].(bool)
+	if ok {
+		proxyConfig.Enabled = enabled
+	}
+	allowInsecureBootstrap, ok := m["allow_insecure_bootstrap"].(bool)
+	if ok {
+		proxyConfig.AllowInsecureBootstrap = allowInsecureBootstrap
+	}
+	proxyAuth, ok := m["proxy_auth"].(string)
+	if ok {
+		proxyConfig.ProxyAuth = proxyAuth
+	}
+	bootstrapCa, ok := m["bootstrap_ca"].(string)
+	if ok {
+		proxyConfig.BootstrapCA = bootstrapCa
+	}
+	return &proxyConfig
+}
+
 func GetValuesFile(name, project string) (string, error) {
 	auth := config.GetConfig().GetAppAuthProfile()
 	uri := fmt.Sprintf("/v2/scheduler/project/%s/cluster/%s/download/valuesyaml", project, name)
@@ -230,8 +310,20 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	project_id := p.ID
 
+	proxyCfg := expandProxyConfigImportCluster(d.Get("proxy_config"))
+	if proxyCfg == nil {
+		// Cases where no proxy config is provided
+		proxyCfg = &models.ProxyConfig{}
+	}
+
 	//create imported cluster
-	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string), d.Get("provision_environment").(string), d.Get("kubernetes_provider").(string))
+	labels := map[string]string{}
+	if labelsX, ok := d.Get("labels").(map[string]interface{}); ok && len(labelsX) > 0 {
+		for k, v := range labelsX {
+			labels[k] = v.(string)
+		}
+	}
+	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string), d.Get("provision_environment").(string), d.Get("kubernetes_provider").(string), *proxyCfg, labels)
 	if err != nil {
 		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
 		return diag.FromErr(err)

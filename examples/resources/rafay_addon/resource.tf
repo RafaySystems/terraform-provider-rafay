@@ -82,3 +82,26 @@ resource "rafay_addon" "tfdemoaddon2" {
     }
   }
 }
+
+
+# Web YAML
+resource "rafay_addon" "tfdemoaddon5" {
+  metadata {
+    name    = "tfdemoaddon5"
+    project = "terraform"
+  }
+  spec {
+    namespace = "tfdemonamespace1"
+    version   = "v1.0"
+    version_state = "active"
+    artifact {
+      type = "Yaml"
+      artifact {
+        url = ["https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/application/nginx-app.yaml"]
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}

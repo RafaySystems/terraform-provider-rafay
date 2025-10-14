@@ -102,6 +102,11 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										MarkdownDescription: "Role ARN of the linked account.",
 									},
 									"proxy_config": schema.MapAttribute{
+										CustomType: NullableEmptyMapType{
+											MapType: types.MapType{
+												ElemType: types.StringType,
+											},
+										},
 										ElementType:         types.StringType,
 										Optional:            true,
 										Description:         "Proxy configuration for the EKS cluster.",
@@ -5323,7 +5328,7 @@ func (t SpecType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue)
 		return nil, diags
 	}
 
-	proxyConfigVal, ok := proxyConfigAttribute.(basetypes.MapValue)
+	proxyConfigVal, ok := proxyConfigAttribute.(NullableEmptyMapValue)
 
 	if !ok {
 		diags.AddError(
@@ -5585,12 +5590,12 @@ func NewSpecValue(attributeTypes map[string]attr.Type, attributes map[string]att
 		return NewSpecValueUnknown(), diags
 	}
 
-	proxyConfigVal, ok := proxyConfigAttribute.(basetypes.MapValue)
+	proxyConfigVal, ok := proxyConfigAttribute.(NullableEmptyMapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`proxy_config expected to be basetypes.MapValue, was: %T`, proxyConfigAttribute))
+			fmt.Sprintf(`proxy_config expected to be NullableEmptyMapValue, was: %T`, proxyConfigAttribute))
 	}
 
 	sharingAttribute, ok := attributes["sharing"]
@@ -5740,7 +5745,7 @@ type SpecValue struct {
 	CniParams                 basetypes.ListValue   `tfsdk:"cni_params"`
 	CniProvider               basetypes.StringValue `tfsdk:"cni_provider"`
 	CrossAccountRoleArn       basetypes.StringValue `tfsdk:"cross_account_role_arn"`
-	ProxyConfig               basetypes.MapValue    `tfsdk:"proxy_config"`
+	ProxyConfig               NullableEmptyMapValue `tfsdk:"proxy_config"`
 	Sharing                   basetypes.ListValue   `tfsdk:"sharing"`
 	SystemComponentsPlacement basetypes.ListValue   `tfsdk:"system_components_placement"`
 	SpecType                  basetypes.StringValue `tfsdk:"type"`
@@ -5761,8 +5766,10 @@ func (v SpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) 
 	}.TerraformType(ctx)
 	attrTypes["cni_provider"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["cross_account_role_arn"] = basetypes.StringType{}.TerraformType(ctx)
-	attrTypes["proxy_config"] = basetypes.MapType{
-		ElemType: types.StringType,
+	attrTypes["proxy_config"] = NullableEmptyMapType{
+		MapType: basetypes.MapType{
+			ElemType: types.StringType,
+		},
 	}.TerraformType(ctx)
 	attrTypes["sharing"] = basetypes.ListType{
 		ElemType: SharingValue{}.Type(ctx),
@@ -5974,16 +5981,18 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		)
 	}
 
-	var proxyConfigVal basetypes.MapValue
+	var proxyConfigVal NullableEmptyMapValue
 	switch {
 	case v.ProxyConfig.IsUnknown():
-		proxyConfigVal = types.MapUnknown(types.StringType)
+		proxyConfigVal = NullableEmptyMapValue{types.MapUnknown(types.StringType)}
 	case v.ProxyConfig.IsNull():
-		proxyConfigVal = types.MapNull(types.StringType)
+		proxyConfigVal = NullableEmptyMapValue{types.MapNull(types.StringType)}
 	default:
 		var d diag.Diagnostics
-		proxyConfigVal, d = types.MapValue(types.StringType, v.ProxyConfig.Elements())
+		pcmVal, d := types.MapValue(types.StringType, v.ProxyConfig.Elements())
 		diags.Append(d...)
+		proxyConfigVal = NullableEmptyMapValue{pcmVal}
+
 	}
 
 	if diags.HasError() {
@@ -5996,8 +6005,10 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 			},
 			"cni_provider":           basetypes.StringType{},
 			"cross_account_role_arn": basetypes.StringType{},
-			"proxy_config": basetypes.MapType{
-				ElemType: types.StringType,
+			"proxy_config": NullableEmptyMapType{
+				MapType: basetypes.MapType{
+					ElemType: types.StringType,
+				},
 			},
 			"sharing": basetypes.ListType{
 				ElemType: SharingValue{}.Type(ctx),
@@ -6018,8 +6029,10 @@ func (v SpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		},
 		"cni_provider":           basetypes.StringType{},
 		"cross_account_role_arn": basetypes.StringType{},
-		"proxy_config": basetypes.MapType{
-			ElemType: types.StringType,
+		"proxy_config": NullableEmptyMapType{
+			MapType: basetypes.MapType{
+				ElemType: types.StringType,
+			},
 		},
 		"sharing": basetypes.ListType{
 			ElemType: SharingValue{}.Type(ctx),
@@ -6132,8 +6145,10 @@ func (v SpecValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		},
 		"cni_provider":           basetypes.StringType{},
 		"cross_account_role_arn": basetypes.StringType{},
-		"proxy_config": basetypes.MapType{
-			ElemType: types.StringType,
+		"proxy_config": NullableEmptyMapType{
+			MapType: basetypes.MapType{
+				ElemType: types.StringType,
+			},
 		},
 		"sharing": basetypes.ListType{
 			ElemType: SharingValue{}.Type(ctx),

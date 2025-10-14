@@ -26,7 +26,10 @@
                                     "name": "kind",
                                     "string": {
                                         "description": "The resource kind.",
-                                        "computed_optional_required": "optional"
+                                        "computed_optional_required": "computed_optional",
+                                        "default": {
+                                            "static": "Cluster"
+                                        }
                                     }
                                 }
                             ],
@@ -80,7 +83,10 @@
                                                 "name": "blueprint",
                                                 "string": {
                                                     "description": "The name of the blueprint to use for the EKS cluster.",
-                                                    "computed_optional_required": "optional"
+                                                    "computed_optional_required": "computed_optional",
+                                                    "default": {
+                                                        "static": "default"
+                                                    }
                                                 }
                                                 
                                             },
@@ -102,14 +108,20 @@
                                                 "name": "cni_provider",
                                                 "string": {
                                                     "description": "The CNI provider to use for the EKS cluster.",
-                                                    "computed_optional_required": "optional"
+                                                    "computed_optional_required": "computed_optional",
+                                                    "default": {
+                                                        "static": "aws-cni"
+                                                    }
                                                 }
                                             },
                                             {
                                                 "name": "type",
                                                 "string": {
                                                     "description": "The type of the cluster.",
-                                                    "computed_optional_required": "optional"
+                                                    "computed_optional_required": "computed_optional",
+                                                    "default": {
+                                                        "static": "aws-eks"
+                                                    }
                                                 }
                                             },
                                             {
@@ -365,14 +377,20 @@
                                     "name": "apiversion",
                                     "string": {
                                         "description": "The Rafay API version of the EKS cluster.",
-                                        "computed_optional_required": "optional"
+                                        "computed_optional_required": "computed_optional",
+                                        "default": {
+                                            "static": "rafay.io/v1alpha5"
+                                        }
                                     }
                                 },
                                 {
                                     "name": "kind",
                                     "string": {
                                         "description": "The kind of the resource.",
-                                        "computed_optional_required": "optional"
+                                        "computed_optional_required": "computed_optional",
+                                        "default": {
+                                            "static": "ClusterConfig"
+                                        }
                                     }
                                     
                                 },
@@ -490,56 +508,80 @@
                                                     "name": "disable_imdsv1",
                                                     "bool": {
                                                         "description": "Whether to disable IMDSv1 on the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "disable_pods_imds",
                                                     "bool": {
                                                         "description": "Whether to disable IMDS for pods in the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "efa_enabled",
                                                     "bool": {
                                                         "description": "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 3000
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 80
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 125
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_type",
                                                     "string": {
                                                         "description": "The type of EBS volume to use for the nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": "gp3"
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -717,73 +759,109 @@
                                                                         {
                                                                             "name": "alb_ingress",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "app_mesh",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "app_mesh_review",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "cert_manager",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "cloud_watch",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "ebs",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "efs",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "external_dns",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "fsx",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "xray",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "image_builder",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": true
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "auto_scaler",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": true
+                                                                                }
                                                                             }
                                                                         }
                                                                     ]
@@ -986,7 +1064,10 @@
                                                                 {
                                                                     "name": "cpu_architecture",
                                                                     "string": {
-                                                                        "computed_optional_required": "optional",
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": "x86_64"
+                                                                        },
                                                                         "description": "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'"
                                                                     }
                                                                 }
@@ -1040,21 +1121,30 @@
                                                                 {
                                                                     "name": "on_demand_base_capacity",
                                                                     "int64": {
-                                                                        "computed_optional_required": "optional",
-                                                                        "description": "base number of on-demand instances (non-negative)."
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "description": "base number of on-demand instances (non-negative).",
+                                                                        "default": {
+                                                                            "static": 0
+                                                                        }
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "on_demand_percentage_above_base_capacity",
                                                                     "int64": {
-                                                                        "computed_optional_required": "optional",
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": 100
+                                                                        },
                                                                         "description": "percentage of on-demand instances above base capacity (0-100)."
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "spot_instance_pools",
                                                                     "int64": {
-                                                                        "computed_optional_required": "optional",
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": 2
+                                                                        },
                                                                         "description": "number of spot instance pools to use (1-20)."
                                                                     }
                                                                 },
@@ -1068,7 +1158,10 @@
                                                                 {
                                                                     "name": "capacity_rebalance",
                                                                     "bool": {
-                                                                        "computed_optional_required": "optional",
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": false
+                                                                        },
                                                                         "description": "Enable capacity rebalancing for spot instances."
                                                                     }
                                                                 }
@@ -1219,14 +1312,20 @@
                                                                     "name": "with_shared",
                                                                     "bool": {
                                                                         "description": "attach the security group shared among all nodegroups in the cluster",
-                                                                        "computed_optional_required": "optional"
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": true
+                                                                        }
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "with_local",
                                                                     "bool": {
                                                                         "description": "attach a security group local to this nodegroup Not supported for managed nodegroups",
-                                                                        "computed_optional_required": "optional"
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": true
+                                                                        }
                                                                     }
                                                                 },
                                                                 {
@@ -1263,8 +1362,11 @@
                                                 {
                                                     "name": "enable_detailed_monitoring",
                                                     "bool": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "Enable EC2 detailed monitoring"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "description": "Enable EC2 detailed monitoring",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -1311,56 +1413,80 @@
                                                     "name": "disable_imdsv1",
                                                     "bool": {
                                                         "description": "Whether to disable IMDSv1 on the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "disable_pods_imds",
                                                     "bool": {
                                                         "description": "Whether to disable IMDS for pods in the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "efa_enabled",
                                                     "bool": {
                                                         "description": "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 3000
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 80
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 125
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_type",
                                                     "string": {
                                                         "description": "The type of EBS volume to use for the nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": "gp3"
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -1438,7 +1564,10 @@
                                                     "name": "ebs_optimized",
                                                     "bool": {
                                                         "description": "enables EBS optimization.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -1452,7 +1581,10 @@
                                                     "name": "volume_encrypted",
                                                     "bool": {
                                                         "description": "whether to encrypt volumes attached to instances in the nodegroup.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -1493,7 +1625,10 @@
                                                     "name": "spot",
                                                     "bool": {
                                                         "description": "Whether to use spot instances for the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -1554,73 +1689,109 @@
                                                                         {
                                                                             "name": "alb_ingress",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "app_mesh",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "app_mesh_review",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "cert_manager",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "cloud_watch",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "ebs",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "efs",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "external_dns",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "fsx",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "xray",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "image_builder",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": true
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "auto_scaler",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": true
+                                                                                }
                                                                             }
                                                                         }
                                                                     ]
@@ -1824,7 +1995,10 @@
                                                                 {
                                                                     "name": "cpu_architecture",
                                                                     "string": {
-                                                                        "computed_optional_required": "optional",
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": "x86_64"
+                                                                        },
                                                                         "description": "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'"
                                                                     }
                                                                 }
@@ -1990,7 +2164,10 @@
                                                 "name": "version",
                                                 "string": {
                                                     "description": "The version of the EKS control plane.",
-                                                    "computed_optional_required": "optional"
+                                                    "computed_optional_required": "computed_optional",
+                                                    "default": {
+                                                        "static": "1.20"
+                                                    }
                                                 }
                                             },
                                             {
@@ -2127,56 +2304,80 @@
                                                     "name": "disable_imdsv1",
                                                     "bool": {
                                                         "description": "Whether to disable IMDSv1 on the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "disable_pods_imds",
                                                     "bool": {
                                                         "description": "Whether to disable IMDS for pods in the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "efa_enabled",
                                                     "bool": {
                                                         "description": "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 3000
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 80
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 125
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_type",
                                                     "string": {
                                                         "description": "The type of EBS volume to use for the nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": "gp3"
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -2358,73 +2559,109 @@
                                                                         {
                                                                             "name": "alb_ingress",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "app_mesh",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "app_mesh_review",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "cert_manager",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "cloud_watch",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "ebs",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "efs",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "external_dns",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "fsx",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "xray",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "image_builder",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": true
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "auto_scaler",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": true
+                                                                                }
                                                                             }
                                                                         }
                                                                     ]
@@ -2637,7 +2874,10 @@
                                                                 {
                                                                     "name": "cpu_architecture",
                                                                     "string": {
-                                                                        "computed_optional_required": "optional",
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": "x86_64"
+                                                                        },
                                                                         "description": "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'"
                                                                     }
                                                                 }
@@ -2695,21 +2935,30 @@
                                                                 {
                                                                     "name": "on_demand_base_capacity",
                                                                     "int64": {
-                                                                        "computed_optional_required": "optional",
-                                                                        "description": "base number of on-demand instances (non-negative)."
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "description": "base number of on-demand instances (non-negative).",
+                                                                        "default": {
+                                                                            "static": 0
+                                                                        }
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "on_demand_percentage_above_base_capacity",
                                                                     "int64": {
-                                                                        "computed_optional_required": "optional",
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": 100
+                                                                        },
                                                                         "description": "percentage of on-demand instances above base capacity (0-100)."
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "spot_instance_pools",
                                                                     "int64": {
-                                                                        "computed_optional_required": "optional",
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": 2
+                                                                        },
                                                                         "description": "number of spot instance pools to use (1-20)."
                                                                     }
                                                                 },
@@ -2723,7 +2972,10 @@
                                                                 {
                                                                     "name": "capacity_rebalance",
                                                                     "bool": {
-                                                                        "computed_optional_required": "optional",
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": false
+                                                                        },
                                                                         "description": "Enable capacity rebalancing for spot instances."
                                                                     }
                                                                 }
@@ -2880,14 +3132,20 @@
                                                                     "name": "with_shared",
                                                                     "bool": {
                                                                         "description": "attach the security group shared among all nodegroups in the cluster",
-                                                                        "computed_optional_required": "optional"
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": true
+                                                                        }
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "with_local",
                                                                     "bool": {
                                                                         "description": "attach a security group local to this nodegroup Not supported for managed nodegroups",
-                                                                        "computed_optional_required": "optional"
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": true
+                                                                        }
                                                                     }
                                                                 },
                                                                 {
@@ -2917,7 +3175,10 @@
                                                     "name": "ip_family",
                                                     "string": {
                                                         "description": "The IP family for the Kubernetes network. Valid variants are: IPv4, IPv6",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": "IPv4"
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -3068,49 +3329,70 @@
                                                                                     "name": "image_builder",
                                                                                     "bool": {
                                                                                         "description": "allows for full ECR (Elastic Container Registry) access.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "auto_scaler",
                                                                                     "bool": {
                                                                                         "description": "service account annotations.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "aws_load_balancer_controller",
                                                                                     "bool": {
                                                                                         "description": "adds policies for using the aws-load-balancer-controller.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "external_dns",
                                                                                     "bool": {
                                                                                         "description": "adds external-dns policies for Amazon Route 53.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "cert_manager",
                                                                                     "bool": {
                                                                                         "description": "adds cert-manager policies.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "ebs_csi_controller",
                                                                                     "bool": {
                                                                                         "description": "adds ebs-csi-controller policies.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "efs_csi_controller",
                                                                                     "bool": {
                                                                                         "description": "adds policies for using the efs-csi-driver controller.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 }
                                                                             ]
@@ -3235,50 +3517,70 @@
                                                                                     "name": "image_builder",
                                                                                     "bool": {
                                                                                         "description": "allows for full ECR (Elastic Container Registry) access.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "auto_scaler",
                                                                                     "bool": {
                                                                                         "description": "service account annotations.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "aws_load_balancer_controller",
                                                                                     "bool": {
                                                                                         "description": "adds policies for using the aws-load-balancer-controller.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "external_dns",
                                                                                     "bool": {
                                                                                         "description": "adds external-dns policies for Amazon Route 53.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "cert_manager",
                                                                                     "bool": {
                                                                                         "description": "adds cert-manager policies.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "ebs_csi_controller",
                                                                                     "bool": {
                                                                                         "description": "adds ebs-csi-controller policies.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "efs_csi_controller",
                                                                                     "bool": {
                                                                                         "description": "adds policies for using the efs-csi-driver controller.",
-                                                                                        "computed_optional_required": "optional"
-                                                                                    }
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }                                                                                    }
                                                                                 }
                                                                             ]
                                                                         }
@@ -3317,7 +3619,10 @@
                                                     "name": "type",
                                                     "string": {
                                                         "description": "Valid variants are: 'oidc': OIDC identity provider",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": "oidc"
+                                                        }
                                                     }
                                                 }
                                             ]
@@ -3510,7 +3815,10 @@
                                                                     "name": "gateway",
                                                                     "string": {
                                                                         "description": "Valid variants are: 'HighlyAvailable' configures a highly available NAT gateway, 'Single' configures a single NAT gateway (default), 'Disable' disables NAT.",
-                                                                        "computed_optional_required": "optional"
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": "Single"
+                                                                        }
                                                                     }
                                                                 }
                                                             ]
@@ -3735,49 +4043,70 @@
                                                                     "name": "image_builder",
                                                                     "bool": {
                                                                         "description": "allows for full ECR (Elastic Container Registry) access.",
-                                                                        "computed_optional_required": "optional"
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": false
+                                                                        }
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "auto_scaler",
                                                                     "bool": {
                                                                         "description": "service account annotations.",
-                                                                        "computed_optional_required": "optional"
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": false
+                                                                        }
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "aws_load_balancer_controller",
                                                                     "bool": {
                                                                         "description": "adds policies for using the aws-load-balancer-controller.",
-                                                                        "computed_optional_required": "optional"
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": false
+                                                                        }
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "external_dns",
                                                                     "bool": {
                                                                         "description": "adds external-dns policies for Amazon Route 53.",
-                                                                        "computed_optional_required": "optional"
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": false
+                                                                        }
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "cert_manager",
                                                                     "bool": {
                                                                         "description": "adds cert-manager policies.",
-                                                                        "computed_optional_required": "optional"
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": false
+                                                                        }
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "ebs_csi_controller",
                                                                     "bool": {
                                                                         "description": "adds ebs-csi-controller policies.",
-                                                                        "computed_optional_required": "optional"
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": false
+                                                                        }
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "efs_csi_controller",
                                                                     "bool": {
                                                                         "description": "adds policies for using the efs-csi-driver controller.",
-                                                                        "computed_optional_required": "optional"
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": false
+                                                                        }
                                                                     }
                                                                 }
                                                             ]
@@ -3870,49 +4199,70 @@
                                                                                     "name": "image_builder",
                                                                                     "bool": {
                                                                                         "description": "allows for full ECR (Elastic Container Registry) access.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "auto_scaler",
                                                                                     "bool": {
                                                                                         "description": "service account annotations.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "aws_load_balancer_controller",
                                                                                     "bool": {
                                                                                         "description": "adds policies for using the aws-load-balancer-controller.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "external_dns",
                                                                                     "bool": {
                                                                                         "description": "adds external-dns policies for Amazon Route 53.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "cert_manager",
                                                                                     "bool": {
                                                                                         "description": "adds cert-manager policies.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "ebs_csi_controller",
                                                                                     "bool": {
                                                                                         "description": "adds ebs-csi-controller policies.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 {
                                                                                     "name": "efs_csi_controller",
                                                                                     "bool": {
                                                                                         "description": "adds policies for using the efs-csi-driver controller.",
-                                                                                        "computed_optional_required": "optional"
+                                                                                        "computed_optional_required": "computed_optional",
+                                                                                        "default": {
+                                                                                            "static": false
+                                                                                        }
                                                                                     }
                                                                                 }
                                                                             ]
@@ -3936,14 +4286,20 @@
                                                     "name": "enabled",
                                                     "bool": {
                                                         "description": "Whether to create the cluster as a private cluster.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "skip_endpoint_creation",
                                                     "bool": {
                                                         "description": "skips the creation process for endpoints completely. This is only used in case of an already provided VPC and if the user decided to set it to true..",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -4026,73 +4382,109 @@
                                                                         {
                                                                             "name": "alb_ingress",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "app_mesh",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "app_mesh_review",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "cert_manager",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "cloud_watch",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "ebs",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "efs",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "external_dns",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "fsx",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "xray",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": false
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "image_builder",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": true
+                                                                                }
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "auto_scaler",
                                                                             "bool": {
-                                                                                "computed_optional_required": "optional"
+                                                                                "computed_optional_required": "computed_optional",
+                                                                                "default": {
+                                                                                    "static": true
+                                                                                }
                                                                             }
                                                                         }
                                                                     ]
@@ -4305,7 +4697,10 @@
                                                                 {
                                                                     "name": "cpu_architecture",
                                                                     "string": {
-                                                                        "computed_optional_required": "optional",
+                                                                        "computed_optional_required": "computed_optional",
+                                                                        "default": {
+                                                                            "static": "x86_64"
+                                                                        },
                                                                         "description": "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'"
                                                                     }
                                                                 }
@@ -4463,8 +4858,11 @@
                                                 {
                                                     "name": "enable_detailed_monitoring",
                                                     "bool": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "Enable EC2 detailed monitoring"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "description": "Enable EC2 detailed monitoring",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -4517,56 +4915,80 @@
                                                     "name": "disable_imdsv1",
                                                     "bool": {
                                                         "description": "Whether to disable IMDSv1 on the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "disable_pods_imds",
                                                     "bool": {
                                                         "description": "Whether to disable IMDS for pods in the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "efa_enabled",
                                                     "bool": {
                                                         "description": "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 3000
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 80
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 125
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_type",
                                                     "string": {
                                                         "description": "The type of EBS volume to use for the nodes in this group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": "gp3"
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -4644,7 +5066,10 @@
                                                     "name": "ebs_optimized",
                                                     "bool": {
                                                         "description": "enables EBS optimization.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -4658,7 +5083,10 @@
                                                     "name": "volume_encrypted",
                                                     "bool": {
                                                         "description": "whether to encrypt volumes attached to instances in the nodegroup.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -4699,7 +5127,10 @@
                                                     "name": "spot",
                                                     "bool": {
                                                         "description": "Whether to use spot instances for the node group.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 }
                                             ]

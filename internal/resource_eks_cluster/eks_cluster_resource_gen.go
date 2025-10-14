@@ -5,12 +5,16 @@ package resource_eks_cluster
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -31,8 +35,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 					Attributes: map[string]schema.Attribute{
 						"kind": schema.StringAttribute{
 							Optional:            true,
+							Computed:            true,
 							Description:         "The resource kind.",
 							MarkdownDescription: "The resource kind.",
+							Default:             stringdefault.StaticString("Cluster"),
 						},
 					},
 					Blocks: map[string]schema.Block{
@@ -68,8 +74,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Attributes: map[string]schema.Attribute{
 									"blueprint": schema.StringAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The name of the blueprint to use for the EKS cluster.",
 										MarkdownDescription: "The name of the blueprint to use for the EKS cluster.",
+										Default:             stringdefault.StaticString("default"),
 									},
 									"blueprint_version": schema.StringAttribute{
 										Optional:            true,
@@ -83,8 +91,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"cni_provider": schema.StringAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The CNI provider to use for the EKS cluster.",
 										MarkdownDescription: "The CNI provider to use for the EKS cluster.",
+										Default:             stringdefault.StaticString("aws-cni"),
 									},
 									"cross_account_role_arn": schema.StringAttribute{
 										Optional:            true,
@@ -99,8 +109,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"type": schema.StringAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The type of the cluster.",
 										MarkdownDescription: "The type of the cluster.",
+										Default:             stringdefault.StaticString("aws-eks"),
 									},
 								},
 								Blocks: map[string]schema.Block{
@@ -326,8 +338,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 					Attributes: map[string]schema.Attribute{
 						"apiversion": schema.StringAttribute{
 							Optional:            true,
+							Computed:            true,
 							Description:         "The Rafay API version of the EKS cluster.",
 							MarkdownDescription: "The Rafay API version of the EKS cluster.",
+							Default:             stringdefault.StaticString("rafay.io/v1alpha5"),
 						},
 						"availability_zones": schema.ListAttribute{
 							ElementType:         types.StringType,
@@ -337,8 +351,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"kind": schema.StringAttribute{
 							Optional:            true,
+							Computed:            true,
 							Description:         "The kind of the resource.",
 							MarkdownDescription: "The kind of the resource.",
+							Default:             stringdefault.StaticString("ClusterConfig"),
 						},
 						"managed_nodegroups_map": schema.MapNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
@@ -392,28 +408,38 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"disable_imdsv1": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Whether to disable IMDSv1 on the node group.",
 										MarkdownDescription: "Whether to disable IMDSv1 on the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"disable_pods_imds": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Whether to disable IMDS for pods in the node group.",
 										MarkdownDescription: "Whether to disable IMDS for pods in the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"ebs_optimized": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "enables EBS optimization.",
 										MarkdownDescription: "enables EBS optimization.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"efa_enabled": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
 										MarkdownDescription: "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"enable_detailed_monitoring": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Enable EC2 detailed monitoring",
 										MarkdownDescription: "Enable EC2 detailed monitoring",
+										Default:             booldefault.StaticBool(false),
 									},
 									"iam": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -512,39 +538,63 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												Attributes: map[string]schema.Attribute{
 													"alb_ingress": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"app_mesh": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"app_mesh_review": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"auto_scaler": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(true),
 													},
 													"cert_manager": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"cloud_watch": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"ebs": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"efs": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"external_dns": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"fsx": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"image_builder": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(true),
 													},
 													"xray": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 												},
 												CustomType: IamNodeGroupWithAddonPolicies5Type{
@@ -596,8 +646,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Attributes: map[string]schema.Attribute{
 											"cpu_architecture": schema.StringAttribute{
 												Optional:            true,
+												Computed:            true,
 												Description:         "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'",
 												MarkdownDescription: "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'",
+												Default:             stringdefault.StaticString("x86_64"),
 											},
 											"gpus": schema.Int64Attribute{
 												Optional:            true,
@@ -696,8 +748,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"security_groups": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -727,8 +781,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"spot": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Whether to use spot instances for the node group.",
 										MarkdownDescription: "Whether to use spot instances for the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"ssh": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -832,13 +888,17 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_encrypted": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "whether to encrypt volumes attached to instances in the nodegroup.",
 										MarkdownDescription: "whether to encrypt volumes attached to instances in the nodegroup.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+										Default:             int64default.StaticInt64(3000),
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -852,18 +912,24 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_size": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+										Default:             int64default.StaticInt64(80),
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+										Default:             int64default.StaticInt64(125),
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The type of EBS volume to use for the nodes in this group.",
 										MarkdownDescription: "The type of EBS volume to use for the nodes in this group.",
+										Default:             stringdefault.StaticString("gp3"),
 									},
 								},
 								CustomType: ManagedNodegroupsMapType{
@@ -963,13 +1029,17 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"disable_imdsv1": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Whether to disable IMDSv1 on the node group.",
 										MarkdownDescription: "Whether to disable IMDSv1 on the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"disable_pods_imds": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Whether to disable IMDS for pods in the node group.",
 										MarkdownDescription: "Whether to disable IMDS for pods in the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"ebs_optimized": schema.BoolAttribute{
 										Optional:            true,
@@ -978,8 +1048,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"efa_enabled": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
 										MarkdownDescription: "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"enable_detailed_monitoring": schema.BoolAttribute{
 										Optional:            true,
@@ -1083,39 +1155,63 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												Attributes: map[string]schema.Attribute{
 													"alb_ingress": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"app_mesh": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"app_mesh_review": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"auto_scaler": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(true),
 													},
 													"cert_manager": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"cloud_watch": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"ebs": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"efs": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"external_dns": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"fsx": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 													"image_builder": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(true),
 													},
 													"xray": schema.BoolAttribute{
 														Optional: true,
+														Computed: true,
+														Default:  booldefault.StaticBool(false),
 													},
 												},
 												CustomType: IamNodeGroupWithAddonPolicies6Type{
@@ -1167,8 +1263,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Attributes: map[string]schema.Attribute{
 											"cpu_architecture": schema.StringAttribute{
 												Optional:            true,
+												Computed:            true,
 												Description:         "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'",
 												MarkdownDescription: "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'",
+												Default:             stringdefault.StaticString("x86_64"),
 											},
 											"gpus": schema.Int64Attribute{
 												Optional:            true,
@@ -1202,8 +1300,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Attributes: map[string]schema.Attribute{
 											"capacity_rebalance": schema.BoolAttribute{
 												Optional:            true,
+												Computed:            true,
 												Description:         "Enable capacity rebalancing for spot instances.",
 												MarkdownDescription: "Enable capacity rebalancing for spot instances.",
+												Default:             booldefault.StaticBool(false),
 											},
 											"instance_types": schema.ListAttribute{
 												ElementType:         types.StringType,
@@ -1218,13 +1318,17 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"on_demand_base_capacity": schema.Int64Attribute{
 												Optional:            true,
+												Computed:            true,
 												Description:         "base number of on-demand instances (non-negative).",
 												MarkdownDescription: "base number of on-demand instances (non-negative).",
+												Default:             int64default.StaticInt64(0),
 											},
 											"on_demand_percentage_above_base_capacity": schema.Int64Attribute{
 												Optional:            true,
+												Computed:            true,
 												Description:         "percentage of on-demand instances above base capacity (0-100).",
 												MarkdownDescription: "percentage of on-demand instances above base capacity (0-100).",
+												Default:             int64default.StaticInt64(100),
 											},
 											"spot_allocation_strategy": schema.StringAttribute{
 												Optional:            true,
@@ -1233,8 +1337,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"spot_instance_pools": schema.Int64Attribute{
 												Optional:            true,
+												Computed:            true,
 												Description:         "number of spot instance pools to use (1-20).",
 												MarkdownDescription: "number of spot instance pools to use (1-20).",
+												Default:             int64default.StaticInt64(2),
 											},
 										},
 										CustomType: InstancesDistribution6Type{
@@ -1326,8 +1432,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"security_groups": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -1339,13 +1447,17 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"with_local": schema.BoolAttribute{
 												Optional:            true,
+												Computed:            true,
 												Description:         "attach a security group local to this nodegroup Not supported for managed nodegroups",
 												MarkdownDescription: "attach a security group local to this nodegroup Not supported for managed nodegroups",
+												Default:             booldefault.StaticBool(true),
 											},
 											"with_shared": schema.BoolAttribute{
 												Optional:            true,
+												Computed:            true,
 												Description:         "attach the security group shared among all nodegroups in the cluster",
 												MarkdownDescription: "attach the security group shared among all nodegroups in the cluster",
+												Default:             booldefault.StaticBool(true),
 											},
 										},
 										CustomType: SecurityGroups6Type{
@@ -1473,8 +1585,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+										Default:             int64default.StaticInt64(3000),
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -1488,18 +1602,24 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_size": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+										Default:             int64default.StaticInt64(80),
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+										Default:             int64default.StaticInt64(125),
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The type of EBS volume to use for the nodes in this group.",
 										MarkdownDescription: "The type of EBS volume to use for the nodes in this group.",
+										Default:             stringdefault.StaticString("gp3"),
 									},
 								},
 								CustomType: NodeGroupsMapType{
@@ -1808,38 +1928,52 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 														Attributes: map[string]schema.Attribute{
 															"auto_scaler": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "service account annotations.",
 																MarkdownDescription: "service account annotations.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"aws_load_balancer_controller": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds policies for using the aws-load-balancer-controller.",
 																MarkdownDescription: "adds policies for using the aws-load-balancer-controller.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"cert_manager": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds cert-manager policies.",
 																MarkdownDescription: "adds cert-manager policies.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"ebs_csi_controller": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds ebs-csi-controller policies.",
 																MarkdownDescription: "adds ebs-csi-controller policies.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"efs_csi_controller": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds policies for using the efs-csi-driver controller.",
 																MarkdownDescription: "adds policies for using the efs-csi-driver controller.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"external_dns": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds external-dns policies for Amazon Route 53.",
 																MarkdownDescription: "adds external-dns policies for Amazon Route 53.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"image_builder": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "allows for full ECR (Elastic Container Registry) access.",
 																MarkdownDescription: "allows for full ECR (Elastic Container Registry) access.",
+																Default:             booldefault.StaticBool(false),
 															},
 														},
 														CustomType: WellKnownPolicies4Type{
@@ -1862,38 +1996,52 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											Attributes: map[string]schema.Attribute{
 												"auto_scaler": schema.BoolAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "service account annotations.",
 													MarkdownDescription: "service account annotations.",
+													Default:             booldefault.StaticBool(false),
 												},
 												"aws_load_balancer_controller": schema.BoolAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "adds policies for using the aws-load-balancer-controller.",
 													MarkdownDescription: "adds policies for using the aws-load-balancer-controller.",
+													Default:             booldefault.StaticBool(false),
 												},
 												"cert_manager": schema.BoolAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "adds cert-manager policies.",
 													MarkdownDescription: "adds cert-manager policies.",
+													Default:             booldefault.StaticBool(false),
 												},
 												"ebs_csi_controller": schema.BoolAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "adds ebs-csi-controller policies.",
 													MarkdownDescription: "adds ebs-csi-controller policies.",
+													Default:             booldefault.StaticBool(false),
 												},
 												"efs_csi_controller": schema.BoolAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "adds policies for using the efs-csi-driver controller.",
 													MarkdownDescription: "adds policies for using the efs-csi-driver controller.",
+													Default:             booldefault.StaticBool(false),
 												},
 												"external_dns": schema.BoolAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "adds external-dns policies for Amazon Route 53.",
 													MarkdownDescription: "adds external-dns policies for Amazon Route 53.",
+													Default:             booldefault.StaticBool(false),
 												},
 												"image_builder": schema.BoolAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "allows for full ECR (Elastic Container Registry) access.",
 													MarkdownDescription: "allows for full ECR (Elastic Container Registry) access.",
+													Default:             booldefault.StaticBool(false),
 												},
 											},
 											CustomType: WellKnownPolicies3Type{
@@ -2146,38 +2294,52 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 														Attributes: map[string]schema.Attribute{
 															"auto_scaler": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "service account annotations.",
 																MarkdownDescription: "service account annotations.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"aws_load_balancer_controller": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds policies for using the aws-load-balancer-controller.",
 																MarkdownDescription: "adds policies for using the aws-load-balancer-controller.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"cert_manager": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds cert-manager policies.",
 																MarkdownDescription: "adds cert-manager policies.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"ebs_csi_controller": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds ebs-csi-controller policies.",
 																MarkdownDescription: "adds ebs-csi-controller policies.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"efs_csi_controller": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds policies for using the efs-csi-driver controller.",
 																MarkdownDescription: "adds policies for using the efs-csi-driver controller.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"external_dns": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds external-dns policies for Amazon Route 53.",
 																MarkdownDescription: "adds external-dns policies for Amazon Route 53.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"image_builder": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "allows for full ECR (Elastic Container Registry) access.",
 																MarkdownDescription: "allows for full ECR (Elastic Container Registry) access.",
+																Default:             booldefault.StaticBool(false),
 															},
 														},
 														CustomType: WellKnownPoliciesType{
@@ -2291,38 +2453,52 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 														Attributes: map[string]schema.Attribute{
 															"auto_scaler": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "service account annotations.",
 																MarkdownDescription: "service account annotations.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"aws_load_balancer_controller": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds policies for using the aws-load-balancer-controller.",
 																MarkdownDescription: "adds policies for using the aws-load-balancer-controller.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"cert_manager": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds cert-manager policies.",
 																MarkdownDescription: "adds cert-manager policies.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"ebs_csi_controller": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds ebs-csi-controller policies.",
 																MarkdownDescription: "adds ebs-csi-controller policies.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"efs_csi_controller": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds policies for using the efs-csi-driver controller.",
 																MarkdownDescription: "adds policies for using the efs-csi-driver controller.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"external_dns": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "adds external-dns policies for Amazon Route 53.",
 																MarkdownDescription: "adds external-dns policies for Amazon Route 53.",
+																Default:             booldefault.StaticBool(false),
 															},
 															"image_builder": schema.BoolAttribute{
 																Optional:            true,
+																Computed:            true,
 																Description:         "allows for full ECR (Elastic Container Registry) access.",
 																MarkdownDescription: "allows for full ECR (Elastic Container Registry) access.",
+																Default:             booldefault.StaticBool(false),
 															},
 														},
 														CustomType: WellKnownPolicies2Type{
@@ -2399,8 +2575,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Attributes: map[string]schema.Attribute{
 									"type": schema.StringAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Valid variants are: 'oidc': OIDC identity provider",
 										MarkdownDescription: "Valid variants are: 'oidc': OIDC identity provider",
+										Default:             stringdefault.StaticString("oidc"),
 									},
 								},
 								CustomType: IdentityProvidersType{
@@ -2415,8 +2593,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Attributes: map[string]schema.Attribute{
 									"ip_family": schema.StringAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The IP family for the Kubernetes network. Valid variants are: IPv4, IPv6",
 										MarkdownDescription: "The IP family for the Kubernetes network. Valid variants are: IPv4, IPv6",
+										Default:             stringdefault.StaticString("IPv4"),
 									},
 									"service_ipv4_cidr": schema.StringAttribute{
 										Optional:            true,
@@ -2463,28 +2643,38 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"disable_imdsv1": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Whether to disable IMDSv1 on the node group.",
 										MarkdownDescription: "Whether to disable IMDSv1 on the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"disable_pods_imds": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Whether to disable IMDS for pods in the node group.",
 										MarkdownDescription: "Whether to disable IMDS for pods in the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"ebs_optimized": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "enables EBS optimization.",
 										MarkdownDescription: "enables EBS optimization.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"efa_enabled": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
 										MarkdownDescription: "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"enable_detailed_monitoring": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Enable EC2 detailed monitoring",
 										MarkdownDescription: "Enable EC2 detailed monitoring",
+										Default:             booldefault.StaticBool(false),
 									},
 									"instance_name": schema.StringAttribute{
 										Optional:            true,
@@ -2540,13 +2730,17 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"spot": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Whether to use spot instances for the node group.",
 										MarkdownDescription: "Whether to use spot instances for the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"subnets": schema.SetAttribute{
 										ElementType:         types.StringType,
@@ -2567,13 +2761,17 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_encrypted": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "whether to encrypt volumes attached to instances in the nodegroup.",
 										MarkdownDescription: "whether to encrypt volumes attached to instances in the nodegroup.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+										Default:             int64default.StaticInt64(3000),
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -2587,18 +2785,24 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_size": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+										Default:             int64default.StaticInt64(80),
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+										Default:             int64default.StaticInt64(125),
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The type of EBS volume to use for the nodes in this group.",
 										MarkdownDescription: "The type of EBS volume to use for the nodes in this group.",
+										Default:             stringdefault.StaticString("gp3"),
 									},
 								},
 								Blocks: map[string]schema.Block{
@@ -2746,39 +2950,63 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 														Attributes: map[string]schema.Attribute{
 															"alb_ingress": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"app_mesh": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"app_mesh_review": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"auto_scaler": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(true),
 															},
 															"cert_manager": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"cloud_watch": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"ebs": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"efs": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"external_dns": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"fsx": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"image_builder": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(true),
 															},
 															"xray": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 														},
 														CustomType: IamNodeGroupWithAddonPolicies4Type{
@@ -2801,8 +3029,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											Attributes: map[string]schema.Attribute{
 												"cpu_architecture": schema.StringAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'",
 													MarkdownDescription: "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'",
+													Default:             stringdefault.StaticString("x86_64"),
 												},
 												"gpus": schema.Int64Attribute{
 													Optional:            true,
@@ -3011,8 +3241,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"version": schema.StringAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The version of the EKS control plane.",
 										MarkdownDescription: "The version of the EKS control plane.",
+										Default:             stringdefault.StaticString("1.20"),
 									},
 								},
 								CustomType: Metadata2Type{
@@ -3066,13 +3298,17 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"disable_imdsv1": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Whether to disable IMDSv1 on the node group.",
 										MarkdownDescription: "Whether to disable IMDSv1 on the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"disable_pods_imds": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Whether to disable IMDS for pods in the node group.",
 										MarkdownDescription: "Whether to disable IMDS for pods in the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"ebs_optimized": schema.BoolAttribute{
 										Optional:            true,
@@ -3081,8 +3317,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"efa_enabled": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
 										MarkdownDescription: "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"enable_detailed_monitoring": schema.BoolAttribute{
 										Optional:            true,
@@ -3137,8 +3375,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"subnet_cidr": schema.StringAttribute{
 										Optional:            true,
@@ -3175,8 +3415,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
+										Default:             int64default.StaticInt64(3000),
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -3190,18 +3432,24 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_size": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The size of the EBS volumes attached to the nodes in this group, in GiB.",
 										MarkdownDescription: "The size of the EBS volumes attached to the nodes in this group, in GiB.",
+										Default:             int64default.StaticInt64(80),
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
+										Default:             int64default.StaticInt64(125),
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "The type of EBS volume to use for the nodes in this group.",
 										MarkdownDescription: "The type of EBS volume to use for the nodes in this group.",
+										Default:             stringdefault.StaticString("gp3"),
 									},
 								},
 								Blocks: map[string]schema.Block{
@@ -3371,39 +3619,63 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 														Attributes: map[string]schema.Attribute{
 															"alb_ingress": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"app_mesh": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"app_mesh_review": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"auto_scaler": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(true),
 															},
 															"cert_manager": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"cloud_watch": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"ebs": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"efs": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"external_dns": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"fsx": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 															"image_builder": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(true),
 															},
 															"xray": schema.BoolAttribute{
 																Optional: true,
+																Computed: true,
+																Default:  booldefault.StaticBool(false),
 															},
 														},
 														CustomType: IamNodeGroupWithAddonPoliciesType{
@@ -3426,8 +3698,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											Attributes: map[string]schema.Attribute{
 												"cpu_architecture": schema.StringAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'",
 													MarkdownDescription: "CPU Architecture of the EC2 instance type. Valid variants are: 'x86_64' 'amd64' 'arm64'",
+													Default:             stringdefault.StaticString("x86_64"),
 												},
 												"gpus": schema.Int64Attribute{
 													Optional:            true,
@@ -3457,8 +3731,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											Attributes: map[string]schema.Attribute{
 												"capacity_rebalance": schema.BoolAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "Enable capacity rebalancing for spot instances.",
 													MarkdownDescription: "Enable capacity rebalancing for spot instances.",
+													Default:             booldefault.StaticBool(false),
 												},
 												"instance_types": schema.ListAttribute{
 													ElementType:         types.StringType,
@@ -3473,13 +3749,17 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												},
 												"on_demand_base_capacity": schema.Int64Attribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "base number of on-demand instances (non-negative).",
 													MarkdownDescription: "base number of on-demand instances (non-negative).",
+													Default:             int64default.StaticInt64(0),
 												},
 												"on_demand_percentage_above_base_capacity": schema.Int64Attribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "percentage of on-demand instances above base capacity (0-100).",
 													MarkdownDescription: "percentage of on-demand instances above base capacity (0-100).",
+													Default:             int64default.StaticInt64(100),
 												},
 												"spot_allocation_strategy": schema.StringAttribute{
 													Optional:            true,
@@ -3488,8 +3768,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												},
 												"spot_instance_pools": schema.Int64Attribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "number of spot instance pools to use (1-20).",
 													MarkdownDescription: "number of spot instance pools to use (1-20).",
+													Default:             int64default.StaticInt64(2),
 												},
 											},
 											CustomType: InstancesDistributionType{
@@ -3566,13 +3848,17 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												},
 												"with_local": schema.BoolAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "attach a security group local to this nodegroup Not supported for managed nodegroups",
 													MarkdownDescription: "attach a security group local to this nodegroup Not supported for managed nodegroups",
+													Default:             booldefault.StaticBool(true),
 												},
 												"with_shared": schema.BoolAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "attach the security group shared among all nodegroups in the cluster",
 													MarkdownDescription: "attach the security group shared among all nodegroups in the cluster",
+													Default:             booldefault.StaticBool(true),
 												},
 											},
 											CustomType: SecurityGroupsType{
@@ -3686,13 +3972,17 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"enabled": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Whether to create the cluster as a private cluster.",
 										MarkdownDescription: "Whether to create the cluster as a private cluster.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"skip_endpoint_creation": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "skips the creation process for endpoints completely. This is only used in case of an already provided VPC and if the user decided to set it to true..",
 										MarkdownDescription: "skips the creation process for endpoints completely. This is only used in case of an already provided VPC and if the user decided to set it to true..",
+										Default:             booldefault.StaticBool(false),
 									},
 								},
 								CustomType: PrivateClusterType{
@@ -3812,8 +4102,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											Attributes: map[string]schema.Attribute{
 												"gateway": schema.StringAttribute{
 													Optional:            true,
+													Computed:            true,
 													Description:         "Valid variants are: 'HighlyAvailable' configures a highly available NAT gateway, 'Single' configures a single NAT gateway (default), 'Disable' disables NAT.",
 													MarkdownDescription: "Valid variants are: 'HighlyAvailable' configures a highly available NAT gateway, 'Single' configures a single NAT gateway (default), 'Disable' disables NAT.",
+													Default:             stringdefault.StaticString("Single"),
 												},
 											},
 											CustomType: NatType{
@@ -7038,7 +7330,7 @@ func (v CniSpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 		attributeTypes,
 		map[string]attr.Value{
 			"security_groups": securityGroups2Val,
-			"subnet":           v.Subnet,
+			"subnet":          v.Subnet,
 		})
 
 	return objVal, diags
@@ -8726,7 +9018,7 @@ func (v DaemonsetOverrideValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 		attributeTypes,
 		map[string]attr.Value{
 			"node_selection_enabled": v.NodeSelectionEnabled,
-			"tolerations":           tolerations2,
+			"tolerations":            tolerations2,
 		})
 
 	return objVal, diags
@@ -11807,14 +12099,14 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"availability_zones":        availabilityZonesVal,
 			"cloud_watch":               cloudWatch,
 			"fargate_profiles":          fargateProfiles,
-			"iam":                      iam3,
+			"iam":                       iam3,
 			"identity_mappings":         identityMappings,
 			"identity_providers":        identityProviders,
 			"kind":                      v.Kind,
 			"kubernetes_network_config": kubernetesNetworkConfig,
 			"managed_nodegroups":        managedNodegroups,
 			"managed_nodegroups_map":    managedNodegroupsMap,
-			"metadata":                 metadata2,
+			"metadata":                  metadata2,
 			"node_groups":               nodeGroups,
 			"node_groups_map":           nodeGroupsMap,
 			"private_cluster":           privateCluster,
@@ -15136,35 +15428,35 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 			"ami_family":                 v.AmiFamily,
 			"asg_suspend_processes":      asgSuspendProcessesVal,
 			"availability_zones":         availabilityZonesVal,
-			"bottle_rocket":             bottleRocket5,
+			"bottle_rocket":              bottleRocket5,
 			"desired_capacity":           v.DesiredCapacity,
 			"disable_imdsv1":             v.DisableImdsv1,
 			"disable_pods_imds":          v.DisablePodsImds,
 			"ebs_optimized":              v.EbsOptimized,
 			"efa_enabled":                v.EfaEnabled,
 			"enable_detailed_monitoring": v.EnableDetailedMonitoring,
-			"iam":                       iam5,
+			"iam":                        iam5,
 			"instance_name":              v.InstanceName,
 			"instance_prefix":            v.InstancePrefix,
-			"instance_selector":         instanceSelector5,
+			"instance_selector":          instanceSelector5,
 			"instance_type":              v.InstanceType,
 			"instance_types":             instanceTypesVal,
 			"labels":                     labelsVal,
-			"launch_template":           launchTemplate5,
+			"launch_template":            launchTemplate5,
 			"max_pods_per_node":          v.MaxPodsPerNode,
 			"max_size":                   v.MaxSize,
 			"min_size":                   v.MinSize,
 			"override_bootstrap_command": v.OverrideBootstrapCommand,
-			"placement":                 placement5,
+			"placement":                  placement5,
 			"pre_bootstrap_commands":     preBootstrapCommandsVal,
 			"private_networking":         v.PrivateNetworking,
-			"security_groups":           securityGroups5,
+			"security_groups":            securityGroups5,
 			"spot":                       v.Spot,
-			"ssh":                       ssh5,
+			"ssh":                        ssh5,
 			"subnets":                    subnetsVal,
 			"tags":                       tagsVal,
-			"taints":                    taints5,
-			"update_config":             updateConfig5,
+			"taints":                     taints5,
+			"update_config":              updateConfig5,
 			"version":                    v.Version,
 			"volume_encrypted":           v.VolumeEncrypted,
 			"volume_iops":                v.VolumeIops,
@@ -16536,13 +16828,13 @@ func (v Iam5Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		attributeTypes,
 		map[string]attr.Value{
 			"attach_policy":                      attachPolicy5,
-			"attach_policy_arns":                  attachPolicyArnsVal,
-			"attach_policy_v2":                    v.AttachPolicyV2,
+			"attach_policy_arns":                 attachPolicyArnsVal,
+			"attach_policy_v2":                   v.AttachPolicyV2,
 			"iam_node_group_with_addon_policies": iamNodeGroupWithAddonPolicies5,
-			"instance_profile_arn":                v.InstanceProfileArn,
-			"instance_role_arn":                   v.InstanceRoleArn,
-			"instance_role_name":                  v.InstanceRoleName,
-			"instance_role_permission_boundary":   v.InstanceRolePermissionBoundary,
+			"instance_profile_arn":               v.InstanceProfileArn,
+			"instance_role_arn":                  v.InstanceRoleArn,
+			"instance_role_name":                 v.InstanceRoleName,
+			"instance_role_permission_boundary":  v.InstanceRolePermissionBoundary,
 		})
 
 	return objVal, diags
@@ -17038,9 +17330,9 @@ func (v AttachPolicy5Value) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"id":         v.Id,
+			"id":        v.Id,
 			"statement": statement5,
-			"version":    v.Version,
+			"version":   v.Version,
 		})
 
 	return objVal, diags
@@ -25565,7 +25857,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"asg_metrics_collection6":     asgMetricsCollection6,
 			"asg_suspend_processes":       asgSuspendProcessesVal,
 			"availability_zones2":         availabilityZones2Val,
-			"bottle_rocket":              bottleRocket6,
+			"bottle_rocket":               bottleRocket6,
 			"classic_load_balancer_names": classicLoadBalancerNamesVal,
 			"cluster_dns":                 v.ClusterDns,
 			"cpu_credits":                 v.CpuCredits,
@@ -25575,10 +25867,10 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"ebs_optimized":               v.EbsOptimized,
 			"efa_enabled":                 v.EfaEnabled,
 			"enable_detailed_monitoring":  v.EnableDetailedMonitoring,
-			"iam":                        iam6,
+			"iam":                         iam6,
 			"instance_name":               v.InstanceName,
 			"instance_prefix":             v.InstancePrefix,
-			"instance_selector":          instanceSelector6,
+			"instance_selector":           instanceSelector6,
 			"instance_type":               v.InstanceType,
 			"instances_distribution6":     instancesDistribution6,
 			"kubelet_extra_config6":       kubeletExtraConfig6,
@@ -25587,17 +25879,17 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"max_size":                    v.MaxSize,
 			"min_size":                    v.MinSize,
 			"override_bootstrap_command":  v.OverrideBootstrapCommand,
-			"placement":                  placement6,
+			"placement":                   placement6,
 			"pre_bootstrap_commands":      preBootstrapCommandsVal,
 			"private_networking":          v.PrivateNetworking,
-			"security_groups":            securityGroups6,
-			"ssh":                        ssh6,
+			"security_groups":             securityGroups6,
+			"ssh":                         ssh6,
 			"subnet_cidr":                 v.SubnetCidr,
 			"subnets":                     subnetsVal,
 			"tags2":                       tags2Val,
-			"taints":                     taints6,
+			"taints":                      taints6,
 			"target_group_arns":           targetGroupArnsVal,
-			"update_config":              updateConfig6,
+			"update_config":               updateConfig6,
 			"version":                     v.Version,
 			"volume_encrypted":            v.VolumeEncrypted,
 			"volume_iops":                 v.VolumeIops,
@@ -27406,13 +27698,13 @@ func (v Iam6Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		attributeTypes,
 		map[string]attr.Value{
 			"attach_policy":                      attachPolicy6,
-			"attach_policy_arns":                  attachPolicyArnsVal,
-			"attach_policy_v2":                    v.AttachPolicyV2,
+			"attach_policy_arns":                 attachPolicyArnsVal,
+			"attach_policy_v2":                   v.AttachPolicyV2,
 			"iam_node_group_with_addon_policies": iamNodeGroupWithAddonPolicies6,
-			"instance_profile_arn":                v.InstanceProfileArn,
-			"instance_role_arn":                   v.InstanceRoleArn,
-			"instance_role_name":                  v.InstanceRoleName,
-			"instance_role_permission_boundary":   v.InstanceRolePermissionBoundary,
+			"instance_profile_arn":               v.InstanceProfileArn,
+			"instance_role_arn":                  v.InstanceRoleArn,
+			"instance_role_name":                 v.InstanceRoleName,
+			"instance_role_permission_boundary":  v.InstanceRolePermissionBoundary,
 		})
 
 	return objVal, diags
@@ -27908,9 +28200,9 @@ func (v AttachPolicy6Value) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"id":         v.Id,
+			"id":        v.Id,
 			"statement": statement6,
-			"version":    v.Version,
+			"version":   v.Version,
 		})
 
 	return objVal, diags
@@ -36712,9 +37004,9 @@ func (v AddonsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"attach_policy_arns": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"attach_policy_v2":    basetypes.StringType{},
-			"configuration_values":  basetypes.StringType{},
-			"name":                  basetypes.StringType{},
+			"attach_policy_v2":     basetypes.StringType{},
+			"configuration_values": basetypes.StringType{},
+			"name":                 basetypes.StringType{},
 			"permissions_boundary": basetypes.StringType{},
 			"pod_identity_associations": basetypes.ListType{
 				ElemType: PodIdentityAssociations2Value{}.Type(ctx),
@@ -36751,9 +37043,9 @@ func (v AddonsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"attach_policy_arns": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"attach_policy_v2":    basetypes.StringType{},
-			"configuration_values":  basetypes.StringType{},
-			"name":                  basetypes.StringType{},
+			"attach_policy_v2":     basetypes.StringType{},
+			"configuration_values": basetypes.StringType{},
+			"name":                 basetypes.StringType{},
 			"permissions_boundary": basetypes.StringType{},
 			"pod_identity_associations": basetypes.ListType{
 				ElemType: PodIdentityAssociations2Value{}.Type(ctx),
@@ -36777,9 +37069,9 @@ func (v AddonsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		"attach_policy_arns": basetypes.ListType{
 			ElemType: types.StringType,
 		},
-		"attach_policy_v2":    basetypes.StringType{},
-		"configuration_values":  basetypes.StringType{},
-		"name":                  basetypes.StringType{},
+		"attach_policy_v2":     basetypes.StringType{},
+		"configuration_values": basetypes.StringType{},
+		"name":                 basetypes.StringType{},
 		"permissions_boundary": basetypes.StringType{},
 		"pod_identity_associations": basetypes.ListType{
 			ElemType: PodIdentityAssociations2Value{}.Type(ctx),
@@ -36806,18 +37098,18 @@ func (v AddonsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"attach_policy":                        attachPolicy3,
-			"attach_policy_arns":                   attachPolicyArns3Val,
-			"attach_policy_v2":                    v.AttachPolicyV22,
+			"attach_policy":                         attachPolicy3,
+			"attach_policy_arns":                    attachPolicyArns3Val,
+			"attach_policy_v2":                      v.AttachPolicyV22,
 			"configuration_values":                  v.ConfigurationValues,
 			"name":                                  v.Name,
-			"permissions_boundary":                 v.PermissionsBoundary2,
-			"pod_identity_associations":            podIdentityAssociations2,
+			"permissions_boundary":                  v.PermissionsBoundary2,
+			"pod_identity_associations":             podIdentityAssociations2,
 			"service_account_role_arn":              v.ServiceAccountRoleArn,
-			"tags":                                 tags4Val,
+			"tags":                                  tags4Val,
 			"use_default_pod_identity_associations": v.UseDefaultPodIdentityAssociations,
 			"version":                               v.Version,
-			"well_known_policies":                  wellKnownPolicies3,
+			"well_known_policies":                   wellKnownPolicies3,
 		})
 
 	return objVal, diags
@@ -36905,9 +37197,9 @@ func (v AddonsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"attach_policy_arns": basetypes.ListType{
 			ElemType: types.StringType,
 		},
-		"attach_policy_v2":    basetypes.StringType{},
-		"configuration_values":  basetypes.StringType{},
-		"name":                  basetypes.StringType{},
+		"attach_policy_v2":     basetypes.StringType{},
+		"configuration_values": basetypes.StringType{},
+		"name":                 basetypes.StringType{},
 		"permissions_boundary": basetypes.StringType{},
 		"pod_identity_associations": basetypes.ListType{
 			ElemType: PodIdentityAssociations2Value{}.Type(ctx),
@@ -37337,9 +37629,9 @@ func (v AttachPolicy3Value) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"id":         v.Id,
+			"id":        v.Id,
 			"statement": statement2,
-			"version":    v.Version,
+			"version":   v.Version,
 		})
 
 	return objVal, diags
@@ -39110,7 +39402,7 @@ func (v PodIdentityAssociations2Value) ToObjectValue(ctx context.Context) (baset
 			"role_name":               v.RoleName,
 			"service_account_name":    v.ServiceAccountName,
 			"tags":                    tagsVal,
-			"well_known_policies":    wellKnownPolicies4,
+			"well_known_policies":     wellKnownPolicies4,
 		})
 
 	return objVal, diags
@@ -46497,15 +46789,15 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 		attributeTypes,
 		map[string]attr.Value{
 			"attach_policy":        v.AttachPolicy,
-			"attach_policy_arns":  attachPolicyArns2Val,
+			"attach_policy_arns":   attachPolicyArns2Val,
 			"attach_role_arn":      v.AttachRoleArn,
-			"metadata":            metadata3,
+			"metadata":             metadata3,
 			"permissions_boundary": v.PermissionsBoundary,
 			"role_name":            v.RoleName,
 			"role_only":            v.RoleOnly,
 			"status":               status,
-			"tags":                tags3Val,
-			"well_known_policies": wellKnownPolicies2,
+			"tags":                 tags3Val,
+			"well_known_policies":  wellKnownPolicies2,
 		})
 
 	return objVal, diags
@@ -52996,36 +53288,36 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 			"ami_family":                 v.AmiFamily,
 			"asg_suspend_processes":      asgSuspendProcessesVal,
 			"availability_zones":         availabilityZonesVal,
-			"bottle_rocket":             bottleRocket4,
+			"bottle_rocket":              bottleRocket4,
 			"desired_capacity":           v.DesiredCapacity,
 			"disable_imdsv1":             v.DisableImdsv1,
 			"disable_pods_imds":          v.DisablePodsImds,
 			"ebs_optimized":              v.EbsOptimized,
 			"efa_enabled":                v.EfaEnabled,
 			"enable_detailed_monitoring": v.EnableDetailedMonitoring,
-			"iam":                       iam4,
+			"iam":                        iam4,
 			"instance_name":              v.InstanceName,
 			"instance_prefix":            v.InstancePrefix,
-			"instance_selector":         instanceSelector4,
+			"instance_selector":          instanceSelector4,
 			"instance_type":              v.InstanceType,
 			"instance_types":             instanceTypesVal,
 			"labels":                     labelsVal,
-			"launch_template":           launchTemplate4,
+			"launch_template":            launchTemplate4,
 			"max_pods_per_node":          v.MaxPodsPerNode,
 			"max_size":                   v.MaxSize,
 			"min_size":                   v.MinSize,
 			"name":                       v.Name,
 			"override_bootstrap_command": v.OverrideBootstrapCommand,
-			"placement":                 placement4,
+			"placement":                  placement4,
 			"pre_bootstrap_commands":     preBootstrapCommandsVal,
 			"private_networking":         v.PrivateNetworking,
-			"security_groups":           securityGroups4,
+			"security_groups":            securityGroups4,
 			"spot":                       v.Spot,
-			"ssh":                       ssh4,
+			"ssh":                        ssh4,
 			"subnets":                    subnetsVal,
 			"tags":                       tagsVal,
-			"taints":                    taints4,
-			"update_config":             updateConfig4,
+			"taints":                     taints4,
+			"update_config":              updateConfig4,
 			"version":                    v.Version,
 			"volume_encrypted":           v.VolumeEncrypted,
 			"volume_iops":                v.VolumeIops,
@@ -54418,13 +54710,13 @@ func (v Iam4Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		attributeTypes,
 		map[string]attr.Value{
 			"attach_policy":                      attachPolicy4,
-			"attach_policy_arns":                  attachPolicyArnsVal,
-			"attach_policy_v2":                    v.AttachPolicyV2,
+			"attach_policy_arns":                 attachPolicyArnsVal,
+			"attach_policy_v2":                   v.AttachPolicyV2,
 			"iam_node_group_with_addon_policies": iamNodeGroupWithAddonPolicies4,
-			"instance_profile_arn":                v.InstanceProfileArn,
-			"instance_role_arn":                   v.InstanceRoleArn,
-			"instance_role_name":                  v.InstanceRoleName,
-			"instance_role_permission_boundary":   v.InstanceRolePermissionBoundary,
+			"instance_profile_arn":               v.InstanceProfileArn,
+			"instance_role_arn":                  v.InstanceRoleArn,
+			"instance_role_name":                 v.InstanceRoleName,
+			"instance_role_permission_boundary":  v.InstanceRolePermissionBoundary,
 		})
 
 	return objVal, diags
@@ -54920,9 +55212,9 @@ func (v AttachPolicy4Value) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"id":         v.Id,
+			"id":        v.Id,
 			"statement": statement4,
-			"version":    v.Version,
+			"version":   v.Version,
 		})
 
 	return objVal, diags
@@ -74461,7 +74753,7 @@ func (v VpcValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, dia
 			"public_access_cidrs":        publicAccessCidrsVal,
 			"security_group":             v.SecurityGroup,
 			"shared_node_security_group": v.SharedNodeSecurityGroup,
-			"subnets":                   subnets3,
+			"subnets":                    subnets3,
 		})
 
 	return objVal, diags

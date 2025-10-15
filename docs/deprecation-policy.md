@@ -1,12 +1,12 @@
-# Rafay Terraform Provider Deprecation Policy
+# Deprecation Policy and Semantic Versioning
 
 ## Overview
 
-This document outlines the deprecation policy for the Rafay Terraform Provider, establishing clear guidelines for managing breaking changes, version upgrades, and maintaining backward compatibility. This policy ensures predictable upgrade paths and maintains user trust during provider evolution.
+This document outlines the deprecation policy and semantic versioning for the Rafay Terraform Provider, establishing clear guidelines for managing breaking changes, version upgrades, and maintaining backward compatibility. This policy ensures predictable upgrade paths and maintains user trust during provider evolution.
 
 ## Semantic Versioning Strategy
 
-The Rafay Terraform Provider follows strict [Semantic Versioning (SemVer)](https://semver.org/) using the format `MAJOR.MINOR.PATCH`:
+The Rafay Terraform Provider follows strict Semantic Versioning (SemVer) using the format `MAJOR.MINOR.PATCH`:
 
 ### MAJOR Version Changes (Breaking Changes)
 

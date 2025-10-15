@@ -15,12 +15,19 @@ import (
 
 func FlattenEksCluster(ctx context.Context, in rafay.EKSCluster, data *EksClusterModel) diag.Diagnostics {
 	var diags, d diag.Diagnostics
-	if data == nil {
-		return diags
+
+	// get cluster from state
+	cList := make([]ClusterValue, len(data.Cluster.Elements()))
+	d = data.Cluster.ElementsAs(ctx, &cList, false)
+	diags = append(diags, d...)
+
+	state := ClusterValue{}
+	if len(cList) > 0 {
+		state = cList[0]
 	}
 
 	cv := NewClusterValueNull()
-	d = cv.Flatten(ctx, in)
+	d = cv.Flatten(ctx, in, state)
 	diags = append(diags, d...)
 	data.Cluster, d = types.ListValue(ClusterValue{}.Type(ctx), []attr.Value{cv})
 	diags = append(diags, d...)
@@ -49,8 +56,19 @@ func FlattenEksClusterConfig(ctx context.Context, in rafay.EKSClusterConfig, dat
 	return diags
 }
 
-func (v *ClusterValue) Flatten(ctx context.Context, in rafay.EKSCluster) diag.Diagnostics {
+func (v *ClusterValue) Flatten(ctx context.Context, in rafay.EKSCluster, state ClusterValue) diag.Diagnostics {
 	var diags, d diag.Diagnostics
+
+	// get spec from state
+	sList := make([]SpecValue, len(state.Spec.Elements()))
+	d = state.Spec.ElementsAs(ctx, &sList, false)
+	diags = append(diags, d...)
+
+	specState := SpecValue{}
+	if len(sList) > 0 {
+		specState = sList[0]
+	}
+
 	if in.Kind != "" {
 		v.Kind = types.StringValue(in.Kind)
 	}
@@ -71,7 +89,7 @@ func (v *ClusterValue) Flatten(ctx context.Context, in rafay.EKSCluster) diag.Di
 	spec := types.ListNull(SpecValue{}.Type(ctx))
 	if in.Spec != nil {
 		sp := NewSpecValueNull()
-		d = sp.Flatten(ctx, in.Spec)
+		d = sp.Flatten(ctx, in.Spec, specState)
 		diags = append(diags, d...)
 		specElements := []attr.Value{
 			sp,
@@ -113,7 +131,7 @@ func (v *MetadataValue) Flatten(ctx context.Context, in *rafay.EKSClusterMetadat
 	return diags
 }
 
-func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec) diag.Diagnostics {
+func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec, state SpecValue) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 	if in == nil {
 		return diags
@@ -163,7 +181,6 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec) diag.Diagnos
 		v.CniParams = types.ListNull(CniParamsValue{}.Type(ctx))
 	}
 
-	proxycfgMap := types.MapNull(types.StringType)
 	if in.ProxyConfig != nil {
 		pc := map[string]attr.Value{}
 		if in.ProxyConfig.HttpProxy != "" {
@@ -187,10 +204,16 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec) diag.Diagnos
 		if in.ProxyConfig.AllowInsecureBootstrap {
 			pc["allow_insecure_bootstrap"] = types.StringValue("true")
 		}
-		proxycfgMap, d = types.MapValue(types.StringType, pc)
+		v.ProxyConfig, d = types.MapValue(types.StringType, pc)
 		diags = append(diags, d...)
+	} else {
+		// hack: API sends nil for ProxyConfig even it is set to {} (empty map). This is to avoid unnecessary diffs.
+		if !state.ProxyConfig.IsNull() && len(state.ProxyConfig.Elements()) == 0 {
+			v.ProxyConfig = state.ProxyConfig
+		} else {
+			v.ProxyConfig = types.MapNull(types.StringType)
+		}
 	}
-	v.ProxyConfig = proxycfgMap
 
 	if in.SystemComponentsPlacement != nil {
 		scp := NewSystemComponentsPlacementValueNull()
@@ -209,7 +232,12 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec) diag.Diagnos
 		v.Sharing, d = types.ListValue(SharingValue{}.Type(ctx), []attr.Value{sh})
 		diags = append(diags, d...)
 	} else {
-		v.Sharing = types.ListNull(SharingValue{}.Type(ctx))
+		// hack: API sends nil for Sharing even it is set to {} (empty map). This is to avoid unnecessary diffs.
+		if !state.Sharing.IsNull() && len(state.Sharing.Elements()) == 0 {
+			v.Sharing = state.Sharing
+		} else {
+			v.Sharing = types.ListNull(SharingValue{}.Type(ctx))
+		}
 	}
 
 	v.state = attr.ValueStateKnown
@@ -565,7 +593,12 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		v.SecretsEncryption, d = types.ListValue(SecretsEncryptionValue{}.Type(ctx), []attr.Value{SecretsEncryption})
 		diags = append(diags, d...)
 	} else {
-		v.SecretsEncryption = types.ListNull(SecretsEncryptionValue{}.Type(ctx))
+		// hack: API sends nil for SecretsEncryption even it is set to {} (empty map). This is to avoid unnecessary diffs.
+		if !state.SecretsEncryption.IsNull() && len(state.SecretsEncryption.Elements()) == 0 {
+			v.SecretsEncryption = state.SecretsEncryption
+		} else {
+			v.SecretsEncryption = types.ListNull(SecretsEncryptionValue{}.Type(ctx))
+		}
 	}
 
 	if in.IdentityMappings != nil {

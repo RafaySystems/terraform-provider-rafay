@@ -1,6 +1,6 @@
 # Testing Implementation Guidelines for Rafay Terraform Provider
 
-This document provides comprehensive guidelines for creating and fixing unit tests in the Rafay Terraform provider, based on lessons learned from fixing 12 test issues across AKS and EKS cluster resources.
+This document provides comprehensive guidelines for creating and fixing unit tests and integration tests in the Rafay Terraform provider, based on lessons learned from fixing 12 unit test issues and implementing 59 integration test scenarios across AKS and EKS cluster resources.
 
 ## Table of Contents
 1. [Core Principles](#core-principles)
@@ -9,6 +9,7 @@ This document provides comprehensive guidelines for creating and fixing unit tes
 4. [Test Structure Guidelines](#test-structure-guidelines)
 5. [Debugging and Troubleshooting](#debugging-and-troubleshooting)
 6. [Implementation Examples](#implementation-examples)
+7. [Integration Test Guidelines](#integration-test-guidelines)
 
 ## Core Principles
 
@@ -435,8 +436,169 @@ tests/
     └── *_test.go                       # Plugin Framework tests
 ```
 
+## Integration Test Guidelines
+
+### Schema Validation in Integration Tests
+
+Integration tests must use configurations that exactly match the resource schema. Schema mismatches are the most common cause of integration test failures.
+
+#### Common Schema Issues
+
+**1. Wrong Block Names**
+```hcl
+# WRONG - Schema expects "cluster_config"
+spec {
+  config {  # ❌ Error: Blocks of type "config" are not expected here
+    apiversion = "rafay.io/v1alpha5"
+  }
+}
+
+# CORRECT - Use actual schema block name
+spec {
+  cluster_config {  # ✅ Matches schema definition
+    apiversion = "rafay.io/v1alpha5"
+  }
+}
+```
+
+**2. Field Naming Convention Errors**
+```hcl
+# WRONG - camelCase doesn't match schema
+metadata {
+  clustername = "test"  # ❌ Error: Unsupported attribute "clustername"
+}
+
+# CORRECT - Use snake_case
+metadata {
+  cluster_name = "test"  # ✅ Matches schema definition
+}
+```
+
+**3. Nested Block Structure Errors**
+```hcl
+# WRONG - Non-existent nested block
+service_accounts {
+  k8s_metadata {  # ❌ Error: Unsupported block type "k8s_metadata"
+    name = "sa"
+  }
+}
+
+# CORRECT - Use actual schema block name
+service_accounts {
+  metadata {  # ✅ Correct block name
+    name = "sa"
+  }
+}
+```
+
+### Required vs Optional Field Testing
+
+**Critical Rule**: Only test `null` values for Required fields. Optional fields accept `null` without error.
+
+#### Identifying Required vs Optional Fields
+
+```go
+// Check the resource schema definition
+"field_name": {
+    Type:     schema.TypeString,
+    Required: true,   // ← Test null values for this
+}
+
+"other_field": {
+    Type:     schema.TypeString,
+    Optional: true,   // ← Do NOT test null values for this
+}
+```
+
+#### Test Pattern for Required Fields Only
+
+```go
+// CORRECT - Test null value for Required field
+func TestAccNeg_NullRequiredField_Error(t *testing.T) {
+    resource.Test(t, resource.TestCase{
+        ExternalProviders: externalProviders,
+        Steps: []resource.TestStep{
+            {
+                PlanOnly: true,
+                Config: `
+                    resource "rafay_resource" "test" {
+                      required_field = null  # ← Will error
+                    }
+                `,
+                ExpectError: regexp.MustCompile(`Missing required argument`),
+            },
+        },
+    })
+}
+
+// WRONG - Don't test null for Optional fields
+// func TestAccNeg_NullOptionalField_Error(t *testing.T) { ... }
+// Optional fields accept null without error
+```
+
+### Black-Box Testing with External Providers
+
+Integration tests use the published provider from Terraform Registry for validation.
+
+```go
+// Use external provider for black-box testing
+var externalProviders = map[string]resource.ExternalProvider{
+    "rafay": {Source: "RafaySystems/rafay"},
+}
+
+// Set dummy environment variables for plan-only validation
+func setDummyEnv(t *testing.T) {
+    _ = os.Setenv("RCTL_API_KEY", "dummy")
+    _ = os.Setenv("RCTL_PROJECT", "default")
+    _ = os.Setenv("RCTL_REST_ENDPOINT", "console.example.dev")
+}
+```
+
+**Benefits**:
+- Tests validate against published provider behavior
+- No need for local provider compilation
+- Catches schema validation errors early
+- Mirrors end-user experience
+
+### Schema Validation Checklist
+
+Before implementing integration tests, verify:
+
+1. **Block Names**: Use exact schema block names
+   - Check: `grep -A 5 "\"block_name\":" rafay/resource_*.go`
+   - Common mistake: `config` vs `cluster_config`
+
+2. **Field Names**: Use snake_case consistently
+   - Terraform always uses snake_case for field names
+   - Common mistake: `clustername` vs `cluster_name`
+
+3. **Nesting Structure**: Verify nested block names
+   - Check nested schema definitions carefully
+   - Common mistake: `k8s_metadata` vs `metadata`
+
+4. **Required vs Optional**: Check field requirements
+   - Look for `Required: true` vs `Optional: true` in schema
+   - Only test null values for Required fields
+
+5. **External Provider**: Use black-box testing
+   - Always test with published provider first
+   - Catches schema mismatches immediately
+
+### Integration Test Error Patterns
+
+| Error Message | Cause | Fix |
+|---------------|-------|-----|
+| `"Insufficient cluster_config blocks"` | Wrong block name | Use correct schema block name |
+| `"Blocks of type 'config' are not expected"` | Schema mismatch | Check schema definition |
+| `"Unsupported attribute: clustername"` | Field name error | Use snake_case |
+| `"Missing required argument"` for Optional | Testing Optional as Required | Remove test or verify field is Required |
+| `"Unsupported block type"` | Wrong nested block name | Check nested block schema |
+
 ## Conclusion
 
-These guidelines represent lessons learned from fixing 12 different test issues across complex Terraform resources. The key insight is that tests should validate actual behavior rather than ideal behavior, and test-only fixes are often preferable to implementation changes when the goal is to achieve passing tests without breaking existing functionality.
+These guidelines represent lessons learned from fixing 12 unit test issues and implementing 59 integration test scenarios across complex Terraform resources. The key insights are:
 
-When implementing new tests, always start by understanding what the function actually does, not what you think it should do. This approach leads to more reliable tests and fewer surprises during development.
+1. **Unit Tests**: Validate actual behavior, use test-only fixes, handle type conversions carefully
+2. **Integration Tests**: Match schema exactly, understand Required vs Optional, use black-box testing
+
+When implementing new tests, always start by understanding what the function actually does (for unit tests) or what the schema actually requires (for integration tests). This approach leads to more reliable tests and fewer surprises during development.

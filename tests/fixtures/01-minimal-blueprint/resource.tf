@@ -23,7 +23,7 @@ resource "rafay_eks_cluster" "ekscluster-minimal-blueprint" {
       version = "1.30"
       tags = {
         env   = "dev"
-        email = "bharath.reddy@rafay.co"
+        email = "akshay.gaikwad@rafay.co"
       }
     }
     addons_config {

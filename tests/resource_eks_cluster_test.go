@@ -1,7 +1,9 @@
 package tests
 
 import (
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
 	"testing"
@@ -98,7 +100,10 @@ func TestEKSClusterConfigs(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		expectedName := randomString("tf-eks-test", 10)
+		expectedName, err := randomString("tf-eks-test", 6)
+		if err != nil {
+			t.Fatalf("Failed to generate random string: %v", err)
+		}
 		t.Parallel()
 		t.Run(tc.name, func(t *testing.T) {
 			tfDir := filepath.Join(".", tc.tfDir)
@@ -149,11 +154,19 @@ func TestEKSClusterConfigs(t *testing.T) {
 	}
 }
 
-func randomString(prefix string, n int) string {
-	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letters[i%len(letters)]
+func randomString(prefix string, maxLength int) (string, error) {
+	allowedChars := "abcdefghijklmnopqrstuvwxyz0123456789"
+	if maxLength <= 0 {
+		return "", fmt.Errorf("maxLength must be positive")
 	}
-	return fmt.Sprintf("%s-%s", prefix, string(b))
+
+	result := make([]byte, maxLength)
+	for i := 0; i < maxLength; i++ {
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(allowedChars))))
+		if err != nil {
+			return "", err
+		}
+		result[i] = allowedChars[n.Int64()]
+	}
+	return fmt.Sprintf("%s-%s", prefix, string(result)), nil
 }

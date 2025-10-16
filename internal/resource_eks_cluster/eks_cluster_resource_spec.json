@@ -5457,14 +5457,20 @@
                                                 {
                                                     "name": "auto_apply_pod_identity_associations",
                                                     "bool": {
-                                                        "computed_optional_required": "optional",
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        },
                                                         "description": "Flag to create pod identity by default for managed addons."
                                                     }
                                                 },
                                                 {
                                                     "name": "disable_ebs_csi_driver",
                                                     "bool": {
-                                                        "computed_optional_required": "optional",
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        },
                                                         "description": "flag to enable or disable ebs csi driver."
                                                     }
                                                 }

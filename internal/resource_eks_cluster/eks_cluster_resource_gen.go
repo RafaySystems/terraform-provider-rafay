@@ -2064,13 +2064,17 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Attributes: map[string]schema.Attribute{
 									"auto_apply_pod_identity_associations": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Flag to create pod identity by default for managed addons.",
 										MarkdownDescription: "Flag to create pod identity by default for managed addons.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"disable_ebs_csi_driver": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "flag to enable or disable ebs csi driver.",
 										MarkdownDescription: "flag to enable or disable ebs csi driver.",
+										Default:             booldefault.StaticBool(false),
 									},
 								},
 								CustomType: AddonsConfigType{

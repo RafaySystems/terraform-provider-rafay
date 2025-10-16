@@ -142,11 +142,16 @@ func (v *SpecValue) Flatten(ctx context.Context, in *rafay.EKSSpec, state SpecVa
 	} else {
 		v.Blueprint = types.StringNull()
 	}
-	if in.BlueprintVersion != "" {
+
+	// hack: API sends version string for "Latest" value after successful cluster provision. This is to avoid unnecessary diffs.
+	if strings.EqualFold(getStringValue(state.BlueprintVersion), "Latest") {
+		v.BlueprintVersion = state.BlueprintVersion
+	} else if in.BlueprintVersion != "" {
 		v.BlueprintVersion = types.StringValue(in.BlueprintVersion)
 	} else {
 		v.BlueprintVersion = types.StringNull()
 	}
+
 	if in.CloudProvider != "" {
 		v.CloudProvider = types.StringValue(in.CloudProvider)
 	} else {

@@ -14,7 +14,7 @@ The Rafay Terraform Provider follows strict Semantic Versioning (SemVer) using t
 
 **Examples:**
 - Removing resources (e.g., removing `rafay_legacy_cluster`)
-- Removing or renaming resource arguments (e.g., removing `project_id` attribute from `rafay_cluster`)
+- Removing or renaming resource fields (e.g., removing `project_id` attribute from `rafay_cluster`)
 - Changing default behavior that breaks existing configurations
 - Schema changes that require state migration
 - Changing required vs optional field status
@@ -28,8 +28,8 @@ The Rafay Terraform Provider follows strict Semantic Versioning (SemVer) using t
 **Examples:**
 - Adding new resources (e.g., adding `rafay_environment_template`)
 - Adding new optional arguments to existing resources
-- Adding new data sources
-- New features that don't break existing configurations
+- Add or remove data sources
+- New resources that don't break existing configurations
 - Adding new computed attributes
 
 **Version Example:** `1.1.51` → `1.2.0`
@@ -85,6 +85,563 @@ Following AWS provider standards:
 - **Data Sources:** Minimum 3 months or 1 minor version, whichever is longer
 - **Provider Configuration:** Minimum 9 months or 3 minor versions, whichever is longer
 - **Default Behavior Changes:** Minimum 6 months with opt-in mechanisms where possible
+
+## Implementation Guide: Go Code to Terraform Resource Mapping
+
+This section demonstrates how Go code deprecation warnings translate to user-facing Terraform warnings.
+
+### 1. Deprecating Individual Fields/Arguments
+
+**Go Implementation (SDKv2):**
+
+```go
+package rafay
+
+import (
+  "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+func resourceAKSCluster() *schema.Resource {
+  return &schema.Resource{
+    Schema: map[string]*schema.Schema{
+      "project_id": {
+        Type:       schema.TypeString,
+        Optional:   true,
+        Deprecated: "Argument `project_id` is deprecated and will be removed in v2.0.0. Use `metadata.project` instead for consistency with Kubernetes conventions.",
+        Description: "DEPRECATED: Use metadata.project instead.",
+      },
+      "metadata": {
+        Type:     schema.TypeList,
+        Optional: true,
+        MaxItems: 1,
+        Elem: &schema.Resource{
+          Schema: map[string]*schema.Schema{
+            "project": {
+              Type:        schema.TypeString,
+              Required:    true,
+              Description: "Project name for the cluster.",
+            },
+            // ... other metadata fields
+          },
+        },
+      },
+      "tags": {
+        Type:       schema.TypeMap,
+        Optional:   true,
+        Deprecated: "Argument `tags` is deprecated and will be removed in v2.0.0. Use `resource_tags` block instead for enhanced tagging capabilities with propagation support.",
+        Elem: &schema.Schema{
+          Type: schema.TypeString,
+        },
+      },
+      "resource_tags": {
+        Type:     schema.TypeList,
+        Optional: true,
+        MaxItems: 1,
+        Elem: &schema.Resource{
+          Schema: map[string]*schema.Schema{
+            "tags": {
+              Type:     schema.TypeMap,
+              Optional: true,
+              Elem: &schema.Schema{
+                Type: schema.TypeString,
+              },
+            },
+            "propagate_to_resources": {
+              Type:        schema.TypeBool,
+              Optional:    true,
+              Default:     false,
+              Description: "Propagate tags to underlying Azure resources.",
+            },
+          },
+        },
+      },
+    },
+  }
+}
+```
+
+**Resulting Terraform Warning:**
+
+```
+│ Warning: Argument is deprecated
+│ 
+│   on main.tf line 5, in resource "rafay_aks_cluster" "example":
+│    5:   project_id = "my-project"
+│ 
+│ Argument `project_id` is deprecated and will be removed in v2.0.0. Use
+│ `metadata.project` instead for consistency with Kubernetes conventions.
+```
+
+**User-Facing Terraform Configuration:**
+
+```terraform
+resource "rafay_aks_cluster" "example" {
+  # DEPRECATED: Will generate warning during terraform plan/apply
+  project_id = "my-project"
+  
+  # NEW: Recommended approach
+  metadata {
+    name    = "my-cluster"
+    project = "my-project"
+  }
+}
+```
+
+### 2. Deprecating Entire Resources
+
+**Go Implementation (SDKv2):**
+
+```go
+package rafay
+
+func resourceCluster() *schema.Resource {
+  return &schema.Resource{
+    DeprecationMessage: "Resource `rafay_cluster` is deprecated and will be removed in v2.0.0. Use `rafay_eks_cluster`, `rafay_aks_cluster`, or `rafay_gke_cluster` instead for enhanced functionality and cloud-specific features.",
+    
+    Schema: map[string]*schema.Schema{
+      "name": {
+        Type:        schema.TypeString,
+        Required:    true,
+        Description: "Cluster name.",
+      },
+      "project_id": {
+        Type:        schema.TypeString,
+        Required:    true,
+        Description: "Project ID.",
+      },
+      // ... other legacy fields
+    },
+    
+    CreateContext: resourceClusterCreate,
+    ReadContext:   resourceClusterRead,
+    UpdateContext: resourceClusterUpdate,
+    DeleteContext: resourceClusterDelete,
+  }
+}
+```
+
+**Resulting Terraform Warning:**
+
+```
+│ Warning: Resource is deprecated
+│ 
+│   on main.tf line 1, in resource "rafay_cluster" "example":
+│    1: resource "rafay_cluster" "example" {
+│ 
+│ Resource `rafay_cluster` is deprecated and will be removed in v2.0.0. Use
+│ `rafay_eks_cluster`, `rafay_aks_cluster`, or `rafay_gke_cluster` instead for
+│ enhanced functionality and cloud-specific features.
+```
+
+### 3. Deprecating Data Sources
+
+**Go Implementation (SDKv2):**
+
+```go
+package rafay
+
+func dataSourceClusters() *schema.Resource {
+  return &schema.Resource{
+    DeprecationMessage: "Data source `rafay_clusters` is deprecated and will be removed in v2.0.0. Use cloud-specific data sources `rafay_eks_clusters`, `rafay_aks_clusters`, or `rafay_gke_clusters` instead for better performance and enhanced filtering.",
+    
+    ReadContext: dataSourceClustersRead,
+    
+    Schema: map[string]*schema.Schema{
+      "project": {
+        Type:        schema.TypeString,
+        Required:    true,
+        Description: "Project name.",
+      },
+      // ... other fields
+    },
+  }
+}
+```
+
+**Resulting Terraform Warning:**
+
+```
+│ Warning: Data source is deprecated
+│ 
+│   on main.tf line 10, in data "rafay_clusters" "all":
+│   10: data "rafay_clusters" "all" {
+│ 
+│ Data source `rafay_clusters` is deprecated and will be removed in v2.0.0. Use
+│ cloud-specific data sources `rafay_eks_clusters`, `rafay_aks_clusters`, or
+│ `rafay_gke_clusters` instead for better performance and enhanced filtering.
+```
+
+### 4. Deprecating Nested Blocks
+
+**Go Implementation (SDKv2):**
+
+```go
+func resourceEKSCluster() *schema.Resource {
+  return &schema.Resource{
+    Schema: map[string]*schema.Schema{
+      "spec": {
+        Type:     schema.TypeList,
+        Required: true,
+        MaxItems: 1,
+        Elem: &schema.Resource{
+          Schema: map[string]*schema.Schema{
+            "cluster_config": {
+              Type:     schema.TypeList,
+              Required: true,
+              MaxItems: 1,
+              Elem: &schema.Resource{
+                Schema: map[string]*schema.Schema{
+                  "vpc_config": {
+                    Type:       schema.TypeList,
+                    Optional:   true,
+                    Deprecated: "Block `vpc_config` is deprecated and will be removed in v2.0.0. Use `network_config` block instead for enhanced networking features including IPv6 and security group management.",
+                    MaxItems:   1,
+                    Elem: &schema.Resource{
+                      Schema: map[string]*schema.Schema{
+                        "subnet_ids": {
+                          Type:     schema.TypeList,
+                          Required: true,
+                          Elem: &schema.Schema{
+                            Type: schema.TypeString,
+                          },
+                        },
+                      },
+                    },
+                  },
+                  "network_config": {
+                    Type:     schema.TypeList,
+                    Optional: true,
+                    MaxItems: 1,
+                    Elem: &schema.Resource{
+                      Schema: map[string]*schema.Schema{
+                        "subnet_ids": {
+                          Type:     schema.TypeList,
+                          Required: true,
+                          Elem: &schema.Schema{
+                            Type: schema.TypeString,
+                          },
+                        },
+                        "ipv6_enabled": {
+                          Type:     schema.TypeBool,
+                          Optional: true,
+                          Default:  false,
+                        },
+                        "security_group_ids": {
+                          Type:     schema.TypeList,
+                          Optional: true,
+                          Elem: &schema.Schema{
+                            Type: schema.TypeString,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  }
+}
+```
+
+### 5. Deprecating Specific Values with Validation
+
+**Go Implementation (SDKv2):**
+
+```go
+package rafay
+
+import (
+  "fmt"
+  "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+  "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+func validateCapacityType(val interface{}, key string) (warns []string, errs []error) {
+  v := val.(string)
+  
+  deprecatedValues := map[string]string{
+    "SPOT": "Value `SPOT` for `capacity_type` is deprecated. Use `MIXED` with spot configuration for better cost optimization and availability.",
+  }
+  
+  if msg, deprecated := deprecatedValues[v]; deprecated {
+    warns = append(warns, fmt.Sprintf("%s: %s", key, msg))
+  }
+  
+  validValues := []string{"ON_DEMAND", "SPOT", "MIXED"}
+  for _, valid := range validValues {
+    if v == valid {
+      return warns, errs
+    }
+  }
+  
+  errs = append(errs, fmt.Errorf("%s must be one of %v, got: %s", key, validValues, v))
+  return warns, errs
+}
+
+func resourceEKSClusterNodeGroup() *schema.Resource {
+  return &schema.Resource{
+    Schema: map[string]*schema.Schema{
+      "capacity_type": {
+        Type:         schema.TypeString,
+        Optional:     true,
+        Default:      "ON_DEMAND",
+        ValidateFunc: validateCapacityType,
+        Description:  "Capacity type for node group: ON_DEMAND, SPOT (deprecated), or MIXED.",
+      },
+    },
+  }
+}
+```
+
+**Resulting Terraform Warning:**
+
+```
+│ Warning: capacity_type: Value `SPOT` for `capacity_type` is deprecated. Use
+│ `MIXED` with spot configuration for better cost optimization and availability.
+```
+
+### 6. Plugin Framework Deprecation (New Framework Resources)
+
+**Go Implementation (Plugin Framework):**
+
+```go
+package resource_eks_cluster
+
+import (
+  "context"
+  "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+  "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+  "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+)
+
+func (r *EKSClusterResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+  resp.Schema = schema.Schema{
+    Attributes: map[string]schema.Attribute{
+      "project_id": schema.StringAttribute{
+        Optional:           true,
+        DeprecationMessage: "Attribute `project_id` is deprecated and will be removed in v2.0.0. Use `metadata.project` instead.",
+        PlanModifiers: []planmodifier.String{
+          stringplanmodifier.UseStateForUnknown(),
+        },
+      },
+    },
+    Blocks: map[string]schema.Block{
+      "metadata": schema.SingleNestedBlock{
+        Attributes: map[string]schema.Attribute{
+          "project": schema.StringAttribute{
+            Required:    true,
+            Description: "Project name for the cluster.",
+          },
+        },
+      },
+    },
+  }
+}
+```
+
+### 7. State Migration for Deprecated Resources
+
+**Go Implementation (SDKv2):**
+
+```go
+package rafay
+
+func resourceAKSClusterV0() *schema.Resource {
+  return &schema.Resource{
+    Schema: map[string]*schema.Schema{
+      "project_id": {
+        Type:     schema.TypeString,
+        Required: true,
+      },
+      "tags": {
+        Type:     schema.TypeMap,
+        Optional: true,
+        Elem: &schema.Schema{
+          Type: schema.TypeString,
+        },
+      },
+    },
+  }
+}
+
+func resourceAKSCluster() *schema.Resource {
+  return &schema.Resource{
+    Schema: map[string]*schema.Schema{
+      "metadata": {
+        Type:     schema.TypeList,
+        Required: true,
+        MaxItems: 1,
+        Elem: &schema.Resource{
+          Schema: map[string]*schema.Schema{
+            "project": {
+              Type:     schema.TypeString,
+              Required: true,
+            },
+          },
+        },
+      },
+      "resource_tags": {
+        Type:     schema.TypeList,
+        Optional: true,
+        MaxItems: 1,
+        Elem: &schema.Resource{
+          Schema: map[string]*schema.Schema{
+            "tags": {
+              Type:     schema.TypeMap,
+              Optional: true,
+              Elem: &schema.Schema{
+                Type: schema.TypeString,
+              },
+            },
+          },
+        },
+      },
+    },
+    
+    SchemaVersion: 1,
+    StateUpgraders: []schema.StateUpgrader{
+      {
+        Type:    resourceAKSClusterV0().CoreConfigSchema().ImpliedType(),
+        Upgrade: resourceAKSClusterStateUpgradeV0,
+        Version: 0,
+      },
+    },
+  }
+}
+
+func resourceAKSClusterStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+  // Migrate project_id to metadata.project
+  if projectID, ok := rawState["project_id"].(string); ok {
+    rawState["metadata"] = []interface{}{
+      map[string]interface{}{
+        "project": projectID,
+      },
+    }
+    delete(rawState, "project_id")
+  }
+  
+  // Migrate tags to resource_tags
+  if tags, ok := rawState["tags"].(map[string]interface{}); ok {
+    rawState["resource_tags"] = []interface{}{
+      map[string]interface{}{
+        "tags": tags,
+      },
+    }
+    delete(rawState, "tags")
+  }
+  
+  return rawState, nil
+}
+```
+
+### Complete Deprecation Lifecycle Example
+
+**Phase 1: v1.5.0 - Add Deprecation Warnings**
+
+```go
+// rafay/resource_aks_cluster.go
+func resourceAKSCluster() *schema.Resource {
+  return &schema.Resource{
+    Schema: map[string]*schema.Schema{
+      "project_id": {
+        Type:       schema.TypeString,
+        Optional:   true,
+        Deprecated: "Deprecated in v1.5.0, will be removed in v2.0.0. Use metadata.project instead.",
+      },
+      "metadata": {
+        Type:     schema.TypeList,
+        Optional: true,  // Still optional to maintain backward compatibility
+        MaxItems: 1,
+        Elem: &schema.Resource{
+          Schema: map[string]*schema.Schema{
+            "project": {
+              Type:     schema.TypeString,
+              Required: true,
+            },
+          },
+        },
+      },
+    },
+    SchemaVersion: 0,
+  }
+}
+```
+
+**Phase 2: v1.6.0 - Add State Upgrader**
+
+```go
+// rafay/resource_aks_cluster.go
+func resourceAKSCluster() *schema.Resource {
+  return &schema.Resource{
+    Schema: map[string]*schema.Schema{
+      "project_id": {
+        Type:       schema.TypeString,
+        Optional:   true,
+        Deprecated: "Deprecated in v1.5.0, will be removed in v2.0.0. Use metadata.project instead.",
+      },
+      "metadata": {
+        Type:     schema.TypeList,
+        Optional: true,
+        MaxItems: 1,
+        Elem: &schema.Resource{
+          Schema: map[string]*schema.Schema{
+            "project": {
+              Type:     schema.TypeString,
+              Required: true,
+            },
+          },
+        },
+      },
+    },
+    SchemaVersion: 1,
+    StateUpgraders: []schema.StateUpgrader{
+      {
+        Type:    resourceAKSClusterV0().CoreConfigSchema().ImpliedType(),
+        Upgrade: resourceAKSClusterStateUpgradeV0,
+        Version: 0,
+      },
+    },
+  }
+}
+```
+
+**Phase 3: v2.0.0 - Remove Deprecated Field**
+
+```go
+// rafay/resource_aks_cluster.go
+func resourceAKSCluster() *schema.Resource {
+  return &schema.Resource{
+    Schema: map[string]*schema.Schema{
+      // project_id field removed entirely
+      "metadata": {
+        Type:     schema.TypeList,
+        Required: true,  // Now required since old field is removed
+        MaxItems: 1,
+        Elem: &schema.Resource{
+          Schema: map[string]*schema.Schema{
+            "project": {
+              Type:     schema.TypeString,
+              Required: true,
+            },
+          },
+        },
+      },
+    },
+    SchemaVersion: 1,  // Keep schema version for historical state migrations
+    StateUpgraders: []schema.StateUpgrader{
+      {
+        Type:    resourceAKSClusterV0().CoreConfigSchema().ImpliedType(),
+        Upgrade: resourceAKSClusterStateUpgradeV0,
+        Version: 0,
+      },
+    },
+  }
+}
+```
 
 ## Deprecation Examples
 
@@ -757,9 +1314,8 @@ In rare cases where security vulnerabilities or critical bugs require immediate 
 For questions about deprecations or migration assistance:
 
 - **Documentation:** [Provider Documentation](https://registry.terraform.io/providers/RafaySystems/rafay/latest/docs)
-- **Community Forum:** [Rafay Community](https://community.rafay.co)
-- **GitHub Issues:** [terraform-provider-rafay](https://github.com/RafaySystems/terraform-provider-rafay/issues)
-- **Professional Services:** Contact your Rafay representative
+- **GitHub Issues:** [Rafay TF Provider](https://github.com/RafaySystems/terraform-provider-rafay/issues)
+- **Professional Services:** [Book a Demo](https://rafay.co/)
 
 ---
 

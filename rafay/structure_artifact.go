@@ -31,7 +31,10 @@ type artifactTranspose struct {
 			Revision    string  `protobuf:"bytes,2,opt,name=revision,proto3" json:"revision,omitempty"`
 			ValuesPaths []*File `protobuf:"bytes,3,rep,name=valuesPaths,proto3" json:"valuesPaths,omitempty"`
 		} `json:"valuesRef,omitempty"`
-		Url       []string  `protobuf:"bytes,4,opt,name=url,proto3" json:"url,omitempty"`
+		Url       []string `protobuf:"bytes,4,opt,name=url,proto3" json:"url,omitempty"`
+		File      *File    `protobuf:"bytes,5,opt,name=file,proto3" json:"file,omitempty"`
+		Path      string   `protobuf:"bytes,6,opt,name=path,proto3" json:"path,omitempty"`
+		Directory string   `protobuf:"bytes,7,opt,name=directory,proto3" json:"directory,omitempty"`
 	} `json:"artifact,omitempty"`
 
 	Options struct {
@@ -92,6 +95,18 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 
 		if v, ok := in["configmap"].([]interface{}); ok && len(v) > 0 {
 			at.Artifact.Configmap = expandFile(v)
+		}
+
+		if v, ok := in["path"].(string); ok && len(v) > 0 {
+			at.Artifact.Path = v
+		}
+
+		if v, ok := in["file"].([]interface{}); ok && len(v) > 0 {
+			at.Artifact.File = expandFile(v)
+		}
+
+		if v, ok := in["directory"].(string); ok && len(v) > 0 {
+			at.Artifact.Directory = v
 		}
 
 		if v, ok := in["configuration"].([]interface{}); ok && len(v) > 0 {

@@ -105,3 +105,49 @@ resource "rafay_addon" "tfdemoaddon5" {
     }
   }
 }
+
+resource "rafay_addon" "tfdemoaddon6" {
+  metadata {
+    name    = "tfdemoaddon6"
+    project = "terraform"
+  }
+  spec {
+    namespace = "default"
+    version   = "production"
+    artifact {
+      type = "Kustomize"
+      artifact {
+        path = "production"
+        file {
+          name = "file://artifacts/tfdemoaddon6/archive.tar.gz"
+        }
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+
+resource "rafay_addon" "tfdemoaddon7" {
+  metadata {
+    name    = "tfdemoaddon7"
+    project = "terraform"
+  }
+  spec {
+    namespace = "default"
+    version   = "prod"
+    artifact {
+      type = "Kustomize"
+      artifact {
+        repository = "kustomize-repo"
+        revision = "master"
+        directory = "examples/multibases"
+        path = "production"
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}

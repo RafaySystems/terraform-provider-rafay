@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 
@@ -521,6 +522,10 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	if d.Get("blueprint_version").(string) != "" {
 		cluster_resp.ClusterBlueprintVersion = d.Get("blueprint_version").(string)
 	}
+	oldProxyConfig := cluster_resp.ProxyConfig
+	newProxyConfig := expandProxyConfigImportCluster(d.Get("proxy_config"))
+	cluster_resp.ProxyConfig = newProxyConfig
+
 	//update cluster to send updated cluster details to core
 	err = cluster.UpdateCluster(cluster_resp, uaDef)
 	if err != nil {
@@ -529,7 +534,8 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	}
 
 	//publish cluster bp
-	if (cluster_resp.ClusterBlueprint != oldClusterBlueprint) || (cluster_resp.ClusterBlueprintVersion != oldClusterBlueprintVersion) {
+	if (cluster_resp.ClusterBlueprint != oldClusterBlueprint) || (cluster_resp.ClusterBlueprintVersion != oldClusterBlueprintVersion) || (!reflect.DeepEqual(oldProxyConfig, newProxyConfig)) {
+		log.Printf("publishing cluster blueprint")
 		err = cluster.PublishClusterBlueprint(d.Get("clustername").(string), project_id, false)
 		if err != nil {
 			log.Printf("cluster was not updated, error %s", err.Error())

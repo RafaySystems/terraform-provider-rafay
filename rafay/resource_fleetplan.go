@@ -74,7 +74,7 @@ func resourceFleetPlanUpsert(ctx context.Context, d *schema.ResourceData) diag.D
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT)
 	if err != nil {
 		return diag.FromErr(err)
 	}

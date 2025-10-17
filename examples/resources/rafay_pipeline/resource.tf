@@ -231,3 +231,28 @@ resource "rafay_pipeline" "tfdemopipeline" {
     active = false
   }
 }
+
+resource "rafay_pipeline" "parallel-procesing-pipeline" {
+  metadata {
+    name        = "parallel-processing-pipeline"
+    project     = "terraform"
+    annotations = {}
+    labels      = {}
+  }
+  spec {
+    stages {
+      name = "s1"
+      type = "DeployWorkload"
+      config {
+        workload = "w1"
+      }
+    }
+    stages {
+      name = "s2"
+      type = "DeployWorkload"
+      config {
+        workload = "w1"
+      }
+    }
+  }
+}

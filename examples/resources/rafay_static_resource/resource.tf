@@ -5,9 +5,9 @@ resource "rafay_static_resource" "static-resource" {
   }
   spec {
     variables {
-      name = "inp1"
+      name       = "inp1"
       value_type = "text"
-      value = "inp1-value"
+      value      = "inp1-value"
     }
   }
 }

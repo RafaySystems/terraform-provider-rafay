@@ -17,6 +17,8 @@ The Rafay Terraform Provider follows strict Semantic Versioning (SemVer) using t
 - Removing or renaming resource fields (e.g., removing `project_id` attribute from `rafay_cluster`)
 - Changing default behavior that breaks existing configurations
 - Schema changes that require state migration
+- Removing/renaming resource data sources/types
+- Changing resource names (config refactoring)
 - Changing required vs optional field status
 
 **Version Example:** `1.1.51` → `2.0.0`
@@ -28,7 +30,7 @@ The Rafay Terraform Provider follows strict Semantic Versioning (SemVer) using t
 **Examples:**
 - Adding new resources (e.g., adding `rafay_environment_template`)
 - Adding new optional arguments to existing resources
-- Add or remove data sources
+- Adding data sources
 - New resources that don't break existing configurations
 - Adding new computed attributes
 
@@ -68,7 +70,6 @@ Based on AWS provider patterns observed in their [release history](https://githu
    - Provide comprehensive migration examples and upgrade guides
    - Continue deprecation warnings with version-specific messaging
    - Offer automated migration tools and state migration utilities
-   - Monitor community feedback and adjust timelines if necessary
 
 3. **Breaking Change Implementation** (Next Major Version)
    - Implement breaking changes in major version releases only
@@ -1041,7 +1042,6 @@ resource "rafay_eks_cluster" "legacy_behavior" {
 ### Migration Assistance
 - Automated migration tools for common scenarios
 - Step-by-step migration guides
-- Community support during transition periods
 - Professional services for complex migrations
 
 ## Communication Strategy
@@ -1116,12 +1116,6 @@ Following AWS provider communication patterns:
    - Direct links to migration guides and documentation
    - Highlight breaking changes and deprecations in release notes
    - Provide downloadable migration scripts where applicable
-
-4. **Community Communication**
-   - Forum announcements for major changes with Q&A sessions
-   - Blog posts for significant deprecations with technical rationale
-   - Conference presentations for major versions
-   - Webinars demonstrating migration procedures
 
 ## State Migration Support
 
@@ -1252,7 +1246,6 @@ docs/
 
 2. **During Deprecation Period:**
    - Maintain backward compatibility
-   - Monitor community feedback
    - Provide migration assistance
    - Update documentation regularly
 
@@ -1268,7 +1261,6 @@ docs/
    - Subscribe to release notifications
    - Review changelog for each update
    - Monitor provider logs for warnings
-   - Join community forums for updates
 
 2. **Plan Migrations:**
    - Test migrations in non-production environments
@@ -1286,13 +1278,6 @@ In rare cases where security vulnerabilities or critical bugs require immediate 
 - Accelerated migration assistance
 - Clear communication about urgency
 
-### Community Feedback Integration
-
-- 30-day public comment period for major deprecations
-- Community input consideration for timeline adjustments
-- Regular feedback collection through surveys
-- Open discussion forums for concerns
-
 ## Compliance and Monitoring
 
 ### Deprecation Tracking
@@ -1307,7 +1292,6 @@ In rare cases where security vulnerabilities or critical bugs require immediate 
 - All deprecations must include migration paths
 - Automated testing of upgrade scenarios
 - Documentation review requirements
-- Community validation of migration guides
 
 ## Contact and Support
 

@@ -1,0 +1,82 @@
+{
+  "ai_model": "claude-3-5-sonnet-20241022",
+  "max_commits_per_pr": 50,
+  "changelog_style": "terraform-aws-provider",
+  "categories": [
+    "BREAKING CHANGES",
+    "FEATURES",
+    "ENHANCEMENTS",
+    "BUG FIXES",
+    "DEPRECATIONS",
+    "DOCUMENTATION"
+  ],
+  "feature_keywords": [
+    "new resource",
+    "new data source",
+    "new feature",
+    "add resource",
+    "add data source"
+  ],
+  "breaking_keywords": [
+    "breaking change",
+    "removed",
+    "renamed",
+    "breaking",
+    "incompatible"
+  ],
+  "deprecation_keywords": [
+    "deprecated",
+    "deprecation",
+    "deprecate"
+  ],
+  "enhancement_keywords": [
+    "improve",
+    "enhance",
+    "add",
+    "update",
+    "support"
+  ],
+  "bugfix_keywords": [
+    "fix",
+    "bug",
+    "correct",
+    "resolve",
+    "patch"
+  ],
+  "documentation_keywords": [
+    "doc",
+    "documentation",
+    "readme",
+    "example",
+    "guide"
+  ],
+  "terraform_resource_patterns": [
+    "rafay_eks_cluster",
+    "rafay_aks_cluster",
+    "rafay_gke_cluster",
+    "rafay_blueprint",
+    "rafay_workload",
+    "rafay_namespace",
+    "rafay_project",
+    "rafay_environment",
+    "rafay_credential",
+    "rafay_addon"
+  ],
+  "skip_patterns": [
+    "merge branch",
+    "revert",
+    "ci:",
+    "chore: update changelog",
+    "skip ci",
+    "skip-changelog"
+  ],
+  "priority_score_weights": {
+    "breaking": 10,
+    "feature": 8,
+    "deprecation": 7,
+    "bugfix": 6,
+    "enhancement": 5,
+    "documentation": 3
+  }
+}
+

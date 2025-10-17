@@ -21,6 +21,11 @@ jobs:
       with:
         token: ${{ secrets.JENKINS_PAT }}
 
+    - name: Configure Git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
     - name: Create new branch
       run: |
         git fetch --all
@@ -33,3 +38,27 @@ jobs:
         fi
         git checkout -b ${{ github.event.inputs.release_branch }} origin/$SOURCE_BRANCH
         git push origin HEAD:${{ github.event.inputs.release_branch }}
+    
+    - name: Update CHANGELOG for release branch
+      run: |
+        RELEASE_BRANCH="${{ github.event.inputs.release_branch }}"
+        # Remove 'v' prefix if present (e.g., v1.2.0 -> 1.2.0)
+        VERSION=$(echo "$RELEASE_BRANCH" | sed 's/^v//')
+        
+        echo "Updating CHANGELOG.md for version ${VERSION}"
+        
+        # Update CHANGELOG on release branch
+        git checkout ${{ github.event.inputs.release_branch }}
+        
+        if [ -f "CHANGELOG.md" ]; then
+          # Rename Unreleased to version number
+          chmod +x scripts/update-unreleased.sh
+          bash scripts/update-unreleased.sh rename "${VERSION}" CHANGELOG.md
+          
+          git add CHANGELOG.md
+          git commit -m "chore: Prepare CHANGELOG for ${VERSION} release\n\n[skip ci]" || echo "No changes to commit"
+          git push origin ${{ github.event.inputs.release_branch }}
+          echo "✓ Updated CHANGELOG on release branch ${RELEASE_BRANCH}"
+        else
+          echo "Warning: CHANGELOG.md not found"
+        fi

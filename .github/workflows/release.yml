@@ -45,11 +45,26 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
       -
+        name: Extract Release Notes from CHANGELOG
+        run: |
+          # Extract version from tag (remove 'v' prefix if present)
+          VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          echo "Extracting release notes for version ${VERSION}"
+          
+          # Make script executable and extract release notes
+          chmod +x scripts/extract-release-notes.sh
+          bash scripts/extract-release-notes.sh "${VERSION}" CHANGELOG.md > release-notes.md
+          
+          # Show extracted notes for debugging
+          echo "--- Release Notes ---"
+          cat release-notes.md
+          echo "--------------------"
+      -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2.5.0
         with:
           version: v1.26.1
-          args: release --rm-dist -p 2 --timeout 45m
+          args: release --rm-dist -p 2 --timeout 15m --release-notes=release-notes.md
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           # GitHub sets this automatically

@@ -131,6 +131,10 @@ resource "rafay_fleetplan" "fp_environments" {
       projects {
         name = "defaultproject"
       }
+
+      projects {
+        name = "project1"
+      }
       target_batch_size = 2
     }
     operation_workflow {
@@ -175,17 +179,7 @@ resource "rafay_fleetplan" "fp_environments" {
     schedules {
       name = "schedule1"
       description = "schedule1 description"
-      type = "one-time"
-      cadence {
-        time_to_live = "7m"
-      }
-    }
-
-    schedules {
-      name = "schedule2"
-      description = "schedule2 description"
       type = "recurring"
-      action_type = "deploy"
       cadence {
         cron_expression = "0 18 * * *"
         cron_timezone = "Asia/Kolkata"
@@ -200,4 +194,51 @@ resource "rafay_fleetplan" "fp_environments" {
     }
   }
 }
+
+resource "rafay_fleetplan_trigger" "fp_trigger" {
+  depends_on = [ rafay_fleetplan.fp_environments ]
+  
+  fleetplan_name = rafay_fleetplan.fp_environments.metadata[0].name
+  project = rafay_fleetplan.fp_environments.metadata[0].project
+  trigger_value = ""
+}
+
+data "rafay_fleetplan" "environment_fleetplan" {
+  depends_on = [ rafay_fleetplan.fp_environments ]
+
+  metadata {
+    project = rafay_fleetplan.fp_environments.metadata[0].project
+    name = rafay_fleetplan.fp_environments.metadata[0].name
+  }
+}
+
+data "rafay_fleetplan_jobs" "fleetplan_jobs" {
+  depends_on = [ rafay_fleetplan.fp_environments ]
+  fleetplan_name = rafay_fleetplan.fp_environments.metadata[0].name
+  project = rafay_fleetplan.fp_environments.metadata[0].project
+}
+
+data "rafay_fleetplan_job" "job1" {
+  depends_on = [ rafay_fleetplan.fp_environments, data.rafay_fleetplan_jobs.fleetplan_jobs ]
+  fleetplan_name = rafay_fleetplan.fp_environments.metadata[0].name
+  project = rafay_fleetplan.fp_environments.metadata[0].project
+  name = data.rafay_fleetplan_jobs.fleetplan_jobs.jobs[0].job_name
+}
+
+output "environment_fleetplan_spec" {
+  value = data.rafay_fleetplan.environment_fleetplan.spec
+}
+
+output "environment_fleetplan_meta" {
+  value = data.rafay_fleetplan.environment_fleetplan.metadata
+}
+
+output "fleetplan_jobs" {
+  value = data.rafay_fleetplan_jobs.fleetplan_jobs.jobs
+}
+
+output "fleetplan_job_status" {
+  value = data.rafay_fleetplan_job.job1.status
+}
+
 

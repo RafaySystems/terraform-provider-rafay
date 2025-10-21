@@ -157,7 +157,7 @@ func downloadKubeConfigUtil(ctx context.Context, d *schema.ResourceData, m inter
 
 	resp, err := auth.AuthAndRequestFullResponse(uri, "GET", nil)
 	if err != nil {
-		log.Printf("failed to get kubeconfig; err: ", err)
+		log.Printf("failed to get kubeconfig; err: %v", err)
 		return diag.FromErr(fmt.Errorf("failed to get kubeconfig; err: %s", err))
 	}
 

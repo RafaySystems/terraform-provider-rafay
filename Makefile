@@ -61,6 +61,9 @@ test:
 testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
+run-test:
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay/tests -timeout=30s
+
 
 fwgen:
 	bash internal/scripts/fwgen.sh

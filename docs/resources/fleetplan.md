@@ -3,10 +3,37 @@
 page_title: "rafay_fleetplan Resource - terraform-provider-rafay"
 subcategory: ""
 description: |-
-  
+  The `rafay_fleetplan` resource allows you to create and manage Fleet Plans in Rafay. Fleet Plans enable you to perform operations across multiple clusters or environments in a coordinated manner. This resource supports both cluster-based and environment-based fleet operations with scheduling capabilities.
 ---
 
 # rafay_fleetplan (Resource)
+
+## Fleet Plan Types
+
+The `rafay_fleetplan` resource supports two types of fleet operations:
+
+### Cluster-based Fleet Plans (`kind = "clusters"`)
+- Operate on Kubernetes clusters
+- Support cluster upgrades, node group updates, and patch operations
+- Use labels to select target clusters
+- Ideal for infrastructure management across multiple clusters
+
+### Environment-based Fleet Plans (`kind = "environments"`)
+- Operate on Rafay environments
+- Support environment template updates and blueprint modifications
+- Use labels to select target environments
+- Support scheduling for automated operations
+- Include batch processing with `target_batch_size`
+- Ideal for application deployment and environment management
+
+## Scheduling (Environment Fleet Plans Only)
+
+When using `kind = "environments"`, you can define schedules to automate fleet plan execution:
+
+- **Cron-based scheduling**: Use standard cron expressions with timezone support
+- **Opt-out capabilities**: Allow environments to opt out of scheduled operations
+- **Batch processing**: Control how many environments are processed simultaneously
+- **Time-to-live**: Set maximum duration for scheduled operations
 
 
 
@@ -149,14 +176,786 @@ resource "rafay_fleetplan" "demo-fleetplan" {
 }
 ```
 
+### Example 3: Fleet Plan for Environments with Scheduling
+
+```terraform
+resource "rafay_fleetplan" "environment-fleetplan" {
+    metadata {
+        name    = "environment-fleetplan"
+        project = "terraform1"
+    }
+    spec {
+        fleet {
+            kind = "environments"
+            labels = {
+                "env" = "production"
+                "region" = "us-west-2"
+            }
+
+            projects {
+                name = "terraform1"
+            }
+            projects {
+                name = "terraform2"
+            }
+
+            templates {
+                name    = "production-template"
+                version = "v1.2.0"
+            }
+            templates {
+                name    = "monitoring-template"
+                version = "latest"
+            }
+
+            target_batch_size = 3
+        }
+
+        operation_workflow {
+            operations {
+                name = "update-environments"
+                action {
+                    type        = "blueprintUpdate"
+                    description = "updating environment blueprints"
+                    blueprint_update_config {
+                        name    = "production-blueprint"
+                        version = "v2.0.0"
+                    }
+                }
+            }
+        }
+
+        schedules {
+            name        = "maintenance-window"
+            description = "Weekly maintenance schedule"
+            type        = "maintenance"
+            cadence {
+                cron_expression = "0 2 * * 0"  # Every Sunday at 2 AM
+                cron_timezone   = "UTC"
+                time_to_live    = "2h"
+            }
+            opt_out {
+                duration = "24h"
+            }
+            opt_out_options {
+                allow_opt_out         = true
+                max_allowed_duration  = "48h"
+                max_allowed_times     = 2
+            }
+        }
+
+        schedules {
+            name        = "security-updates"
+            description = "Monthly security updates"
+            type        = "security"
+            cadence {
+                cron_expression = "0 1 1 * *"  # First day of every month at 1 AM
+                cron_timezone   = "UTC"
+                time_to_live    = "4h"
+            }
+        }
+    }
+}
+```
+
+## Fleet Plan Job Execution
+
+The `rafay_fleetplan_job` resource allows you to trigger and monitor the execution of Fleet Plans. This resource is used to manually execute a Fleet Plan and track its progress until completion.
+
+### Example: Triggering a Fleet Plan Job
+
+```terraform
+# First, create a fleet plan
+resource "rafay_fleetplan" "demo-fleetplan" {
+    metadata {
+        name    = "demo-fleetplan"
+        project = "terraform1"
+    }
+    spec {
+        fleet {
+            kind = "clusters"
+            labels = {
+                "env" = "production"
+            }
+            projects {
+                name = "terraform1"
+            }
+        }
+        operation_workflow {
+            operations {
+                name = "upgrade-clusters"
+                action {
+                    type        = "nodeGroupsAndControlPlaneUpgrade"
+                    description = "upgrading clusters to latest version"
+                    node_groups_and_control_plane_upgrade_config {
+                        version = "1.25"
+                    }
+                    name = "upgrade-action"
+                }
+            }
+        }
+    }
+}
+
+# Then, trigger the fleet plan execution
+resource "rafay_fleetplan_job" "demo-fleetplan-execution" {
+    fleetplan_name = rafay_fleetplan.demo-fleetplan.metadata[0].name
+    project        = rafay_fleetplan.demo-fleetplan.metadata[0].project
+    trigger_value  = "manual-execution-${timestamp()}"
+}
+```
+
+### Example: Scheduled Fleet Plan Job Execution
+
+```terraform
+# Environment-based fleet plan with scheduling
+resource "rafay_fleetplan" "environment-fleetplan" {
+    metadata {
+        name    = "environment-fleetplan"
+        project = "terraform1"
+    }
+    spec {
+        fleet {
+            kind = "environments"
+            labels = {
+                "env" = "production"
+            }
+            projects {
+                name = "terraform1"
+            }
+            templates {
+                name    = "production-template"
+                version = "v1.2.0"
+            }
+            target_batch_size = 3
+        }
+        operation_workflow {
+            operations {
+                name = "update-environments"
+                action {
+                    type        = "blueprintUpdate"
+                    description = "updating environment blueprints"
+                    blueprint_update_config {
+                        name    = "production-blueprint"
+                        version = "v2.0.0"
+                    }
+                }
+            }
+        }
+        schedules {
+            name        = "weekly-maintenance"
+            description = "Weekly maintenance schedule"
+            type        = "maintenance"
+            cadence {
+                cron_expression = "0 2 * * 0"  # Every Sunday at 2 AM
+                cron_timezone   = "UTC"
+                time_to_live    = "2h"
+            }
+        }
+    }
+}
+
+# Trigger the scheduled fleet plan execution
+resource "rafay_fleetplan_job" "scheduled-execution" {
+    fleetplan_name = rafay_fleetplan.environment-fleetplan.metadata[0].name
+    project        = rafay_fleetplan.environment-fleetplan.metadata[0].project
+    trigger_value  = "scheduled-maintenance-${formatdate("YYYY-MM-DD", timestamp())}"
+}
+```
+
+## Fleet Plan Job Resource
+
+The `rafay_fleetplan_job` resource provides the following capabilities:
+
+### Features
+- **Manual Execution**: Trigger Fleet Plan execution on-demand
+- **Job Monitoring**: Automatically polls and waits for job completion
+- **Status Tracking**: Monitors job status (running, success, failed, cancelled, etc.)
+- **Timeout Handling**: Configurable timeouts for job execution
+- **Logging Support**: Debug and trace logging for troubleshooting
+
+### Job Status Values
+The resource monitors the following job statuses:
+- `running` - Job is currently executing
+- `success` - Job completed successfully
+- `fail` - Job failed during execution
+- `completed_with_failures` - Job completed but with some failures
+- `skipped` - Job was skipped (e.g., no matching targets)
+- `cancelled` - Job was cancelled
+
+### Timeouts
+- **Create/Update**: 2 hours (default) - Time to wait for job completion
+- **Delete**: 2 minutes (default) - Time for cleanup operations
+
+### Important Notes
+- **No Delete Operation**: The delete operation only removes the resource from Terraform state; it doesn't cancel running jobs
+- **Job Polling**: The resource polls job status every 60 seconds until completion
+- **Trigger Value**: The `trigger_value` field is used to identify the job execution and can be any unique string
+- **Dependencies**: This resource depends on an existing `rafay_fleetplan` resource
+
+### Best Practices
+- Use descriptive `trigger_value` strings to identify different job executions
+- Monitor job logs using `TF_LOG=DEBUG` or `TF_LOG=TRACE` for detailed execution information
+- Set appropriate timeouts based on your fleet plan complexity
+- Use unique trigger values to avoid conflicts between multiple job executions
 
 <!-- schema generated by tfplugindocs -->
 ## Schema
+
+### rafay_fleetplan Resource Schema
 
 ***Required***
 
 - `metadata` - (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata))
 - `spec` - (Block List, Max: 1) Defines the characteristics for the resource. This is the desired state for the resource. (See [below for nested schema](#nestedblock--spec))
+
+### rafay_fleetplan_job Resource Schema
+
+The `rafay_fleetplan_job` resource has the following schema:
+
+***Required***
+
+- `fleetplan_name` - (String) The name of the Fleet Plan to execute
+- `project` - (String) The project containing the Fleet Plan  
+- `trigger_value` - (String) A unique identifier for this job execution
+
+#### Schema Details
+
+**fleetplan_name**
+- **Type**: `String`
+- **Required**: Yes
+- **Description**: The name of the Fleet Plan to execute. Must reference an existing `rafay_fleetplan` resource.
+- **Example**: `"my-fleetplan"`
+
+**project** 
+- **Type**: `String`
+- **Required**: Yes
+- **Description**: The project containing the Fleet Plan. Must match the project of the referenced Fleet Plan.
+- **Example**: `"my-project"`
+
+**trigger_value**
+- **Type**: `String` 
+- **Required**: Yes
+- **Description**: A unique identifier for this job execution. This value is used to identify and track the specific job execution.
+- **Example**: `"manual-execution-2024-01-15"` or `"scheduled-maintenance-${timestamp()}"`
+
+#### Resource Behavior
+
+**Create Operation**
+- Triggers execution of the specified Fleet Plan
+- Polls job status every 60 seconds until completion
+- Waits for one of the final states: `success`, `fail`, `completed_with_failures`, `skipped`, or `cancelled`
+- Times out after 2 hours (configurable)
+
+**Read Operation**  
+- Retrieves the latest job execution information
+- Updates the `trigger_value` with the most recent job name
+- Does not trigger new job execution
+
+**Update Operation**
+- Triggers a new job execution with the updated `trigger_value`
+- Follows the same polling behavior as create operation
+- Useful for re-executing Fleet Plans with different parameters
+
+**Delete Operation**
+- Removes the resource from Terraform state only
+- Does not cancel or stop running jobs
+- No actual deletion of job execution occurs
+
+#### Usage Examples
+
+**Basic Job Execution**
+```terraform
+resource "rafay_fleetplan_job" "basic-execution" {
+    fleetplan_name = "my-fleetplan"
+    project        = "my-project"
+    trigger_value  = "basic-execution-${timestamp()}"
+}
+```
+
+**Scheduled Job with Date-based Trigger**
+```terraform
+resource "rafay_fleetplan_job" "scheduled-execution" {
+    fleetplan_name = "maintenance-fleetplan"
+    project        = "production"
+    trigger_value  = "maintenance-${formatdate("YYYY-MM-DD", timestamp())}"
+}
+```
+
+**Job with Custom Timeout**
+```terraform
+resource "rafay_fleetplan_job" "long-running-execution" {
+    fleetplan_name = "complex-fleetplan"
+    project        = "production"
+    trigger_value  = "complex-execution-${timestamp()}"
+    
+    timeouts {
+        create = "4h"  # 4 hours for complex operations
+    }
+}
+```
+
+**Multiple Job Executions**
+```terraform
+# Different jobs for different purposes
+resource "rafay_fleetplan_job" "upgrade-execution" {
+    fleetplan_name = "upgrade-fleetplan"
+    project        = "production"
+    trigger_value  = "upgrade-${timestamp()}"
+}
+
+resource "rafay_fleetplan_job" "maintenance-execution" {
+    fleetplan_name = "maintenance-fleetplan"
+    project        = "production"
+    trigger_value  = "maintenance-${timestamp()}"
+}
+```
+
+## Resource Relationship
+
+The `rafay_fleetplan` and `rafay_fleetplan_job` resources work together:
+
+1. **`rafay_fleetplan`** - Defines the Fleet Plan configuration and operations
+2. **`rafay_fleetplan_job`** - Triggers execution of the Fleet Plan and monitors progress
+
+### Workflow
+1. Create a `rafay_fleetplan` resource with your desired configuration
+2. Use `rafay_fleetplan_job` to trigger execution of the Fleet Plan
+3. The job resource will poll for completion and wait until the job finishes
+4. Monitor job status through Terraform logs or job status values
+
+## Timeouts
+
+### rafay_fleetplan Timeouts
+- `create` - (Default 10 minutes) Used for creating the Fleet Plan
+- `update` - (Default 10 minutes) Used for updating the Fleet Plan  
+- `delete` - (Default 10 minutes) Used for deleting the Fleet Plan
+
+### rafay_fleetplan_job Timeouts
+- `create` - (Default 2 hours) Used for job execution and monitoring
+- `update` - (Default 2 hours) Used for job re-execution and monitoring
+- `delete` - (Default 2 minutes) Used for cleanup operations
+
+## Complete rafay_fleetplan_job Schema Reference
+
+### Attributes
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `fleetplan_name` | `string` | Yes | The name of the Fleet Plan to execute |
+| `project` | `string` | Yes | The project containing the Fleet Plan |
+| `trigger_value` | `string` | Yes | Unique identifier for this job execution |
+| `id` | `string` | No | The job ID (computed, set after job creation) |
+
+### Timeouts
+
+| Name | Default | Description |
+|------|---------|-------------|
+| `create` | 2 hours | Time to wait for job completion during creation |
+| `update` | 2 hours | Time to wait for job completion during updates |
+| `delete` | 2 minutes | Time for cleanup operations during deletion |
+
+### Lifecycle
+
+The `rafay_fleetplan_job` resource follows this lifecycle:
+
+1. **Creation**: 
+   - Validates Fleet Plan exists
+   - Triggers job execution
+   - Polls status every 60 seconds
+   - Waits for completion or timeout
+
+2. **Reading**:
+   - Retrieves latest job information
+   - Updates `trigger_value` with current job name
+   - No new job execution triggered
+
+3. **Updating**:
+   - Triggers new job execution
+   - Follows same polling behavior as creation
+   - Useful for re-execution with different parameters
+
+4. **Deletion**:
+   - Removes from Terraform state only
+   - Does not affect running jobs
+   - No actual job cancellation
+
+### Advanced Usage Patterns
+
+#### Conditional Job Execution
+```terraform
+# Only execute job when certain conditions are met
+resource "rafay_fleetplan_job" "conditional-execution" {
+    count = var.enable_maintenance ? 1 : 0
+    
+    fleetplan_name = "maintenance-fleetplan"
+    project        = "production"
+    trigger_value  = "conditional-maintenance-${timestamp()}"
+}
+```
+
+#### Job Execution with Dependencies
+```terraform
+# Execute job only after other resources are ready
+resource "rafay_fleetplan_job" "dependent-execution" {
+    depends_on = [rafay_fleetplan.main-fleetplan]
+    
+    fleetplan_name = rafay_fleetplan.main-fleetplan.metadata[0].name
+    project        = rafay_fleetplan.main-fleetplan.metadata[0].project
+    trigger_value  = "dependent-execution-${timestamp()}"
+}
+```
+
+### Best Practices for rafay_fleetplan_job
+
+#### Naming Conventions
+- Use descriptive `trigger_value` strings that indicate the purpose
+- Include timestamps or version information for tracking
+- Use consistent naming patterns across your organization
+
+#### Timeout Management
+- Set appropriate timeouts based on Fleet Plan complexity
+- Use longer timeouts for environment-based fleet plans
+- Consider batch size when setting timeouts
+
+#### Error Handling
+- Monitor job status through Terraform logs
+- Use `TF_LOG=DEBUG` for detailed execution information
+- Implement proper error handling in your Terraform configurations
+
+#### Resource Management
+- Use `depends_on` to ensure proper execution order
+- Consider using `count` or `for_each` for multiple job executions
+- Clean up unused job resources to avoid state bloat
+
+## Data Sources
+
+The Rafay Terraform provider includes several data sources for querying Fleet Plan information:
+
+### rafay_fleetplan
+
+The `rafay_fleetplan` data source allows you to read information about a specific Fleet Plan.
+
+#### Example Usage
+
+**Minimal Configuration (for reading existing Fleet Plan)**
+```terraform
+data "rafay_fleetplan" "example" {
+    metadata {
+        name    = "my-fleetplan"
+        project = "my-project"
+    }
+    spec {
+        fleet {
+            kind = "clusters"
+            labels = {
+                "env" = "production"
+            }
+            projects {
+                name = "my-project"
+            }
+        }
+        operation_workflow {
+            operations {
+                name = "upgrade-operation"
+                action {
+                    type        = "nodeGroupsAndControlPlaneUpgrade"
+                    description = "upgrading clusters"
+                    node_groups_and_control_plane_upgrade_config {
+                        version = "1.25"
+                    }
+                    name = "upgrade-action"
+                }
+            }
+        }
+    }
+}
+
+# Use the fleet plan information
+output "fleetplan_spec" {
+    value = data.rafay_fleetplan.example.spec
+}
+```
+
+**Note**: The `rafay_fleetplan` data source requires the complete Fleet Plan schema including the `spec` block, as it reads an existing Fleet Plan configuration. The spec block should match the actual Fleet Plan configuration in Rafay.
+
+#### Schema
+
+The `rafay_fleetplan` data source uses the same schema as the `rafay_fleetplan` resource, requiring both `metadata` and `spec` blocks with all necessary fields. This allows you to read all Fleet Plan configuration and status information.
+
+**Note**: Unlike other data sources, `rafay_fleetplan` requires the complete Fleet Plan schema including `spec` block, as it reads an existing Fleet Plan configuration.
+
+### rafay_fleetplans
+
+The `rafay_fleetplans` data source allows you to list all Fleet Plans in a project with their status information.
+
+#### Example Usage
+
+```terraform
+# List all cluster-based fleet plans
+data "rafay_fleetplans" "cluster_fleetplans" {
+    project = "my-project"
+    type    = "clusters"
+}
+
+# List all environment-based fleet plans
+data "rafay_fleetplans" "environment_fleetplans" {
+    project = "my-project"
+    type    = "environments"
+}
+
+# List all fleet plans (type is optional, defaults to "clusters")
+data "rafay_fleetplans" "all_fleetplans" {
+    project = "my-project"
+}
+
+# Use the fleet plans information
+output "fleetplan_names" {
+    value = [for fp in data.rafay_fleetplans.cluster_fleetplans.fleetplans : fp.fleetplan_name]
+}
+```
+
+#### Schema
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `project` | `string` | Yes | Project name from where fleetplans to be listed |
+| `type` | `string` | No | Resource type of the fleet plan (default: "clusters") |
+| `fleetplans` | `list` | No | List of fleetplans (computed) |
+
+**Note**: Only the `project` field is required. The `type` field is optional and defaults to "clusters" if not specified.
+
+#### Fleet Plans List Schema
+
+Each item in the `fleetplans` list contains:
+
+| Name | Type | Description |
+|------|------|-------------|
+| `fleetplan_name` | `string` | Name of the fleet plan |
+| `status` | `list` | Status information including job status and schedule status |
+
+#### Status Information
+
+The `status` field contains:
+
+- **Job Status**: Current job execution status
+- **Schedule Status**: Information about scheduled operations (for environment fleet plans)
+
+### rafay_fleetplan_job
+
+The `rafay_fleetplan_job` data source allows you to read detailed information about a specific Fleet Plan job execution.
+
+#### Example Usage
+
+```terraform
+data "rafay_fleetplan_job" "example" {
+    project        = "my-project"
+    fleetplan_name = "my-fleetplan"
+    name           = "job-12345"
+}
+
+# Use the job status information
+output "job_status" {
+    value = data.rafay_fleetplan_job.example.status
+}
+```
+
+#### Schema
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `project` | `string` | Yes | Project name containing the Fleet Plan |
+| `fleetplan_name` | `string` | Yes | FleetPlan name |
+| `name` | `string` | Yes | FleetPlan job name |
+| `status` | `list` | No | Job status information (computed) |
+
+#### Job Status Schema
+
+The `status` field contains detailed information about the job execution:
+
+| Name | Type | Description |
+|------|------|-------------|
+| `name` | `string` | Fleet plan job name |
+| `status` | `string` | Fleet plan job status |
+| `reason` | `string` | Fleet plan job reason |
+| `targets` | `list` | Fleet plan job targets |
+
+#### Target Information
+
+Each target in the `targets` list contains:
+
+| Name | Type | Description |
+|------|------|-------------|
+| `name` | `string` | Target name |
+| `project` | `string` | Target project |
+| `operations` | `list` | Target operations |
+
+### rafay_fleetplan_jobs
+
+The `rafay_fleetplan_jobs` data source allows you to list all jobs for a specific Fleet Plan.
+
+#### Example Usage
+
+```terraform
+data "rafay_fleetplan_jobs" "example" {
+    project        = "my-project"
+    fleetplan_name = "my-fleetplan"
+}
+
+# Use the jobs information
+output "job_names" {
+    value = [for job in data.rafay_fleetplan_jobs.example.jobs : job.job_name]
+}
+
+output "recent_jobs" {
+    value = [
+        for job in data.rafay_fleetplan_jobs.example.jobs : {
+            name = job.job_name
+            state = job.state
+            created_at = job.created_at
+        }
+    ]
+}
+```
+
+#### Schema
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `project` | `string` | Yes | Project name containing the Fleet Plan |
+| `fleetplan_name` | `string` | Yes | FleetPlan name |
+| `jobs` | `list` | No | List of fleetplan jobs (computed) |
+
+#### Jobs List Schema
+
+Each job in the `jobs` list contains:
+
+| Name | Type | Description |
+|------|------|-------------|
+| `job_name` | `string` | Name of the job |
+| `created_at` | `string` | Creation timestamp of the job |
+| `execution_duration` | `number` | Execution duration of the job |
+| `resource_count` | `number` | Number of resources used by the job |
+| `state` | `string` | Current state of the job |
+| `reason` | `string` | Reason for the job's current state |
+| `workflow_id` | `string` | ID of the workflow |
+
+## Data Source Usage Examples
+
+### Monitoring Fleet Plan Status
+
+```terraform
+# Get all fleet plans in a project
+data "rafay_fleetplans" "all_fleetplans" {
+    project = "production"
+}
+
+# Check status of each fleet plan
+locals {
+    fleetplan_status = {
+        for fp in data.rafay_fleetplans.all_fleetplans.fleetplans : 
+        fp.fleetplan_name => fp.status
+    }
+}
+
+output "fleetplan_status_summary" {
+    value = local.fleetplan_status
+}
+```
+
+### Job Execution Monitoring
+
+```terraform
+# Get all jobs for a specific fleet plan
+data "rafay_fleetplan_jobs" "fleetplan_jobs" {
+    project        = "production"
+    fleetplan_name = "maintenance-fleetplan"
+}
+
+# Filter recent jobs
+locals {
+    recent_jobs = [
+        for job in data.rafay_fleetplan_jobs.fleetplan_jobs.jobs :
+        job if job.state == "success" && 
+        timeadd(job.created_at, "24h") > timestamp()
+    ]
+}
+
+output "recent_successful_jobs" {
+    value = local.recent_jobs
+}
+```
+
+### Conditional Resource Creation
+
+```terraform
+# Check if a fleet plan exists before creating resources
+data "rafay_fleetplan" "existing_fleetplan" {
+    metadata {
+        name    = "my-fleetplan"
+        project = "my-project"
+    }
+    spec {
+        fleet {
+            kind = "clusters"
+            labels = {
+                "env" = "production"
+            }
+            projects {
+                name = "my-project"
+            }
+        }
+        operation_workflow {
+            operations {
+                name = "upgrade-operation"
+                action {
+                    type        = "nodeGroupsAndControlPlaneUpgrade"
+                    description = "upgrading clusters"
+                    node_groups_and_control_plane_upgrade_config {
+                        version = "1.25"
+                    }
+                    name = "upgrade-action"
+                }
+            }
+        }
+    }
+}
+
+# Only create job if fleet plan exists
+resource "rafay_fleetplan_job" "conditional_job" {
+    count = data.rafay_fleetplan.existing_fleetplan.id != "" ? 1 : 0
+    
+    fleetplan_name = "my-fleetplan"
+    project        = "my-project"
+    trigger_value  = "conditional-execution-${timestamp()}"
+}
+```
+
+## Data Source Timeouts
+
+All Fleet Plan data sources have a default read timeout of 10 minutes:
+
+- `rafay_fleetplan` - 10 minutes
+- `rafay_fleetplans` - 10 minutes  
+- `rafay_fleetplan_job` - 10 minutes
+- `rafay_fleetplan_jobs` - 10 minutes
+
+## Best Practices for Data Sources
+
+### Performance Considerations
+- Use specific filters when possible to reduce data transfer
+- Consider caching results for frequently accessed data
+- Use appropriate timeouts for large datasets
+
+### Error Handling
+- Handle cases where data sources return empty results
+- Implement proper error checking for missing resources
+- Use conditional logic based on data source results
+
+### Security
+- Ensure proper permissions for data source access
+- Use least-privilege access for data source queries
+- Monitor data source usage for security compliance
 
 
 <a id="nestedblock--metadata"></a>
@@ -172,9 +971,12 @@ resource "rafay_fleetplan" "demo-fleetplan" {
 ### Nested Schema for `spec`
 
 ***Required***
-- `agents` (Block List) gitops agent required for hooks with runner type as agent  (see [below for nested schema](#nestedblock--spec--agents))
-- `fleet` (Block List, Max: 1) This block specifies the kind of Fleet (e.g., "clusters")  (see [below for nested schema](#nestedblock--spec--fleet))
+- `fleet` (Block List, Max: 1) This block specifies the kind of Fleet (e.g., "clusters" or "environments")  (see [below for nested schema](#nestedblock--spec--fleet))
 - `operation_workflow` (Block List, Max: 1)  (see [below for nested schema](#nestedblock--spec--operation_workflow))
+
+***Optional***
+- `agents` (Block List) gitops agent required for hooks with runner type as agent  (see [below for nested schema](#nestedblock--spec--agents))
+- `schedules` (Block List) **Only available when fleet kind is "environments"** - Defines scheduled operations for environment-based fleet plans (see [below for nested schema](#nestedblock--spec--schedules))
 
 
 <a id="nestedblock--spec--agents"></a>
@@ -190,16 +992,113 @@ If the runner type in the hooks configuration is set to agent, then this field i
 
 ***Required***
 
-- `kind` (String)  Specifies the kind of Fleet. The supported value is `clusters`
-- `labels` (Map of String) This map allows you to attach key-value labels to the Fleet for selecting clusters.
-- `projects` (Block List) This block allows you to specify one or more projects, and you can select clusters from these specified projects. (see [below for nested schema](#nestedblock--spec--fleet--projects))
+- `kind` (String)  Specifies the kind of Fleet. The supported values are `clusters` and `environments`
+- `labels` (Map of String) This map allows you to attach key-value labels to the Fleet for selecting clusters or environments.
+- `projects` (Block List) This block allows you to specify one or more projects, and you can select clusters or environments from these specified projects. (see [below for nested schema](#nestedblock--spec--fleet--projects))
+
+***Optional (only available when kind is "environments")***
+
+- `templates` (Block List) **Only available when fleet kind is "environments"** - Specifies environment templates to be used (see [below for nested schema](#nestedblock--spec--fleet--templates))
+- `target_batch_size` (Number) **Only available when fleet kind is "environments"** - Specifies the number of environments to process in each batch during operations
 
 <a id="nestedblock--spec--fleet--projects"></a>
 ### Nested Schema for `spec.fleet.projects`
 
 ***Required***
 
-- `name` (String) Name of the project this fleet plan will act on applicable clusters.
+- `name` (String) Name of the project this fleet plan will act on applicable clusters or environments.
+
+<a id="nestedblock--spec--fleet--templates"></a>
+### Nested Schema for `spec.fleet.templates`
+
+***Required***
+
+- `name` (String) Name of the environment template.
+- `version` (String) Version of the environment template.
+
+<a id="nestedblock--spec--schedules"></a>
+### Nested Schema for `spec.schedules`
+
+***Required***
+
+- `name` (String) Name of the schedule.
+- `type` (String) Type of the schedule (e.g., "maintenance", "security").
+- `cadence` (Block List, Max: 1) Defines the schedule timing (see [below for nested schema](#nestedblock--spec--schedules--cadence))
+
+***Optional***
+
+- `description` (String) Description of the schedule.
+- `opt_out` (Block List, Max: 1) Defines opt-out configuration (see [below for nested schema](#nestedblock--spec--schedules--opt_out))
+- `opt_out_options` (Block List, Max: 1) Defines opt-out options (see [below for nested schema](#nestedblock--spec--schedules--opt_out_options))
+
+<a id="nestedblock--spec--schedules--cadence"></a>
+### Nested Schema for `spec.schedules.cadence`
+
+***Required***
+
+- `cron_expression` (String) Cron expression defining when the schedule should run.
+- `cron_timezone` (String) Timezone for the cron expression.
+
+***Optional***
+
+- `time_to_live` (String) Maximum duration for the scheduled operation.
+
+<a id="nestedblock--spec--schedules--opt_out"></a>
+### Nested Schema for `spec.schedules.opt_out`
+
+***Required***
+
+- `duration` (String) Duration for which the schedule can be opted out.
+
+<a id="nestedblock--spec--schedules--opt_out_options"></a>
+### Nested Schema for `spec.schedules.opt_out_options`
+
+***Optional***
+
+- `allow_opt_out` (Boolean) Whether opt-out is allowed for this schedule.
+- `max_allowed_duration` (String) Maximum duration allowed for opt-out.
+- `max_allowed_times` (Number) Maximum number of times opt-out is allowed.
+
+## Important Notes
+
+### Fleet Plan Limitations
+- **Name changes**: Changing the `metadata.name` after creation is not supported and will cause the resource to be recreated
+- **Environment-only features**: `schedules`, `templates`, and `target_batch_size` are only available when `fleet.kind = "environments"`
+- **Agent requirements**: When using `runner.type = "agent"` in hooks, you must specify the `agents` block with the agent name
+
+### Best Practices
+- Use descriptive names for fleet plans to identify their purpose
+- Test fleet plans on a small subset of targets before applying to production
+- Use appropriate labels to ensure fleet plans target the correct clusters or environments
+- Set reasonable `target_batch_size` values to avoid overwhelming your infrastructure
+- Use opt-out mechanisms for critical environments that may need to skip scheduled operations
+
+### Error Handling
+- Fleet plan operations may show warnings if jobs cannot be executed immediately
+- Failed operations will be logged with detailed error information
+- Use `TF_LOG=DEBUG` or `TF_LOG=TRACE` for detailed logging during troubleshooting
+
+### Fleet Plan Job Troubleshooting
+
+#### Common Issues
+- **Job Timeout**: If a job exceeds the 2-hour timeout, increase the timeout value or check for stuck operations
+- **Job Stuck in Running**: Check if the Fleet Plan has valid targets and the operations are properly configured
+- **Job Failed**: Review the job logs and ensure all prerequisites are met (e.g., valid clusters/environments, proper permissions)
+
+#### Debugging Steps
+1. Enable debug logging: `export TF_LOG=DEBUG`
+2. Check job status in Rafay console
+3. Verify Fleet Plan configuration and target selection
+4. Ensure proper permissions for Fleet Plan execution
+5. Review operation workflow configuration
+
+#### Job Status Interpretation
+- `running` - Normal execution state, job is progressing
+- `success` - Job completed successfully
+- `fail` - Job failed, check logs for specific error details
+- `completed_with_failures` - Partial success, some targets may have failed
+- `skipped` - No matching targets found, verify labels and project selection
+- `cancelled` - Job was manually cancelled or timed out
 
 <a id="nestedblock--spec--operation_workflow"></a>
 ### Nested Schema for `spec.operation_workflow`

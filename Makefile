@@ -83,6 +83,9 @@ test-ci:
 
 # Updated .PHONY declarations for streamlined test commands
 .PHONY: test test-cover test-unit test-integration test-api test-ci
+run-test:
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay/tests -timeout=30s
+
 
 fwgen:
 	bash internal/scripts/fwgen.sh

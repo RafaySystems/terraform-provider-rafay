@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
@@ -275,12 +276,18 @@ func resourceClusterSharingSingleRead(ctx context.Context, d *schema.ResourceDat
 
 	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
 	if errGet != nil {
+		if strings.Contains(errGet.Error(), "not found") {
+			log.Printf("cluster %s not found, removing from state", clusterName)
+			d.SetId("")
+			return diags
+		}
 		log.Printf("failed to get cluster info %s", errGet.Error())
 		return diag.FromErr(errGet)
 	}
 	if clusterObj == nil {
-		log.Printf("failed to get cluster info")
-		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
+		log.Printf("cluster %s not found, removing from state", clusterName)
+		d.SetId("")
+		return diags
 	}
 
 	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
@@ -378,12 +385,18 @@ func resourceClusterSharingSingleDelete(ctx context.Context, d *schema.ResourceD
 
 	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
 	if errGet != nil {
+		if strings.Contains(errGet.Error(), "not found") {
+			log.Printf("cluster %s already deleted, removing from state", clusterName)
+			d.SetId("")
+			return diags
+		}
 		log.Printf("failed to get cluster info %s", errGet.Error())
 		return diag.FromErr(errGet)
 	}
 	if clusterObj == nil {
-		log.Printf("failed to get cluster info")
-		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
+		log.Printf("cluster %s already deleted, removing from state", clusterName)
+		d.SetId("")
+		return diags
 	}
 
 	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {

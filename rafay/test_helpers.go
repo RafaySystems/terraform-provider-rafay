@@ -58,7 +58,7 @@ func TestExpandEnvironmentTemplates(v []interface{}) []*infrapb.TemplateFilter {
 	return expandEnvironmentTemplates(v)
 }
 
-func TestExpandFleetPlanSchedules(p []interface{}) []*infrapb.FleetSchedule {
+func TestExpandFleetPlanSchedules(p []interface{}) *infrapb.FleetSchedule {
 	return expandFleetPlanSchedules(p)
 }
 
@@ -86,7 +86,7 @@ func TestFlattenScheduleOptOutOptions(optOutOptions *infrapb.ScheduleOptOutOptio
 	return flattenScheduleOptOutOptions(optOutOptions)
 }
 
-func TestFlattenSchedule(schedule *infrapb.FleetSchedule) map[string]interface{} {
+func TestFlattenSchedule(schedule *infrapb.FleetSchedule) []interface{} {
 	return flattenSchedule(schedule)
 }
 

@@ -190,19 +190,20 @@ func flattenFleetPlanJobStatus(d *schema.ResourceData, status *infrapb.StatusObj
 	return []interface{}{obj}
 }
 
-func flattenFleetPlanScheduleStatus(d *schema.ResourceData, status map[string]*infrapb.ScheduleStatus) []interface{} {
+func flattenFleetPlanScheduleStatus(d *schema.ResourceData, status *infrapb.ScheduleStatus) []interface{} {
 	if status == nil {
 		return nil
 	}
 	obj := map[string]interface{}{}
 
-	for k, v := range status {
-		obj["name"] = k
-		obj["last_run"] = v.LastRun.AsTime().String()
-		obj["next_run"] = v.NextRun.AsTime().String()
-		obj["times_opted_out"] = v.TimesOptedOut
-		obj["opted_out_duration"] = v.OptedOutDuration
+	if status.LastRun != nil {
+		obj["last_run"] = status.LastRun.AsTime().String()
 	}
+	if status.NextRun != nil {
+		obj["next_run"] = status.NextRun.AsTime().String()
+	}
+	obj["times_opted_out"] = status.TimesOptedOut
+	obj["opted_out_duration"] = status.OptedOutDuration
 
 	return []interface{}{obj}
 }

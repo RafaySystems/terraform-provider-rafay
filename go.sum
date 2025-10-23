@@ -22,8 +22,8 @@ github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8 h1:Pce
 github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8/go.mod h1:5mRn2xN25Y8mpObHyOwDB3OLudeuglzHTQX9IiNHxhM=
 github.com/RafaySystems/paas-common v0.0.0-20250407132001-0d707c610b95 h1:3z1arMhSoXGTwtYV8jFGsfJh/IhjaZ8X1exoXHSc5oc=
 github.com/RafaySystems/paas-common v0.0.0-20250407132001-0d707c610b95/go.mod h1:vDR0S28Q+hwE/5wO0L/Ohn9CZwaI/o2QuPupJ2iLI7k=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251008191746-1dd826ff1fb6 h1:iOwnDCEhyg3ITkf0Sa+inm/lUxTRTkFCKVhIsD09/MQ=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251008191746-1dd826ff1fb6/go.mod h1:VEShNUFlp2WGcX0uokWkvT4yE+7jaEYQ5EGfRVmkbCk=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251023120044-c920d3ed4322 h1:ttx0YJwQzdMG7XTs9RBIUJ1LsQ0loUlH1DHLTQiwMXU=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251023120044-c920d3ed4322/go.mod h1:VEShNUFlp2WGcX0uokWkvT4yE+7jaEYQ5EGfRVmkbCk=
 github.com/RafaySystems/rctl v1.29.1-0.20250731042639-aff15b94561d h1:xmP744yjoZBN4gVyohGASA6EjZavDeQbLZigU7B00ng=
 github.com/RafaySystems/rctl v1.29.1-0.20250731042639-aff15b94561d/go.mod h1:Jtllq8E7MaiPZSWaBCKqBye0umwayebQUgjx2n4pwNo=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=
@@ -467,6 +467,8 @@ github.com/stoewer/go-strcase v1.2.0/go.mod h1:IBiWB2sKIp3wVVQ3Y035++gc+knqhUQag
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
+github.com/stretchr/objx v0.5.2 h1:xuMeJ0Sdp5ZMRXx/aWO6RZxdr3beISkG5/G/aIRr3pY=
+github.com/stretchr/objx v0.5.2/go.mod h1:FRsXN1f5AsAjCGJKqEizvkpNtU+EGNCLh3NxZ/8L+MA=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=

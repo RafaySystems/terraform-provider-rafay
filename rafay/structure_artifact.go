@@ -402,6 +402,18 @@ func FlattenArtifact(at *artifactTranspose, p []interface{}) ([]interface{}, err
 		obj["values_ref"] = flattenValuesRef(at, v)
 	}
 
+	if at.Artifact.File != nil {
+		obj["file"] = flattenFile(at.Artifact.File)
+	}
+
+	if len(at.Artifact.Path) > 0 {
+		obj["path"] = at.Artifact.Path
+	}
+
+	if len(at.Artifact.Directory) > 0 {
+		obj["directory"] = at.Artifact.Directory
+	}
+
 	s1 := spew.Sprintf("%+v", obj)
 	log.Println("FlattenArtifact obj", s1)
 

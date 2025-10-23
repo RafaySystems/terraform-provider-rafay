@@ -756,29 +756,26 @@ func TestExpandFleetPlanSchedules(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    []interface{}
-		expected []*infrapb.FleetSchedule
+		expected *infrapb.FleetSchedule
 	}{
 		{
 			name: "Valid schedules",
 			input: []interface{}{
 				map[string]interface{}{
-					"name":        "schedule1",
-					"description": "Test schedule 1",
-					"type":        "maintenance",
+					"type": "one-time",
 					"cadence": []interface{}{
 						map[string]interface{}{
 							"cron_expression": "0 2 * * *",
 							"cron_timezone":   "UTC",
-							"time_to_live":    "1h",
 						},
 					},
 				},
 			},
-			expected: []*infrapb.FleetSchedule{
-				{
-					Name:        "schedule1",
-					Description: "Test schedule 1",
-					Type:        "maintenance",
+			expected: &infrapb.FleetSchedule{
+				Type: "one-time",
+				Cadence: &infrapb.ScheduleOptions{
+					CronExpression: "0 2 * * *",
+					CronTimezone:   "UTC",
 				},
 			},
 		},
@@ -800,12 +797,7 @@ func TestExpandFleetPlanSchedules(t *testing.T) {
 			if tt.expected == nil {
 				assert.Nil(t, result)
 			} else {
-				assert.Equal(t, len(tt.expected), len(result))
-				for i, expected := range tt.expected {
-					assert.Equal(t, expected.Name, result[i].Name)
-					assert.Equal(t, expected.Description, result[i].Description)
-					assert.Equal(t, expected.Type, result[i].Type)
-				}
+				assert.Equal(t, tt.expected, result)
 			}
 		})
 	}
@@ -1055,93 +1047,32 @@ func TestFlattenSchedule(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    *infrapb.FleetSchedule
-		expected map[string]interface{}
+		expected []interface{}
 	}{
 		{
 			name: "Valid schedule",
 			input: &infrapb.FleetSchedule{
-				Name:        "test-schedule",
-				Description: "Test schedule",
-				Type:        "maintenance",
+				Type: "maintenance",
 			},
-			expected: map[string]interface{}{
-				"name":            "test-schedule",
-				"description":     "Test schedule",
-				"type":            "maintenance",
-				"cadence":         []interface{}{},
-				"opt_out":         []interface{}{},
-				"opt_out_options": []interface{}{},
+			expected: []interface{}{
+				map[string]interface{}{
+					"type":            "maintenance",
+					"cadence":         []interface{}{},
+					"opt_out":         []interface{}{},
+					"opt_out_options": []interface{}{},
+				},
 			},
 		},
 		{
 			name:     "Nil input",
 			input:    nil,
-			expected: map[string]interface{}{},
+			expected: []interface{}{},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := rafay.TestFlattenSchedule(tt.input)
-			assert.Equal(t, tt.expected, result)
-		})
-	}
-}
-
-func TestFlattenFleetPlanSchedules(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    []*infrapb.FleetSchedule
-		expected []interface{}
-	}{
-		{
-			name: "Valid schedules",
-			input: []*infrapb.FleetSchedule{
-				{
-					Name:        "schedule1",
-					Description: "Test schedule 1",
-					Type:        "maintenance",
-				},
-				{
-					Name:        "schedule2",
-					Description: "Test schedule 2",
-					Type:        "backup",
-				},
-			},
-			expected: []interface{}{
-				map[string]interface{}{
-					"name":            "schedule1",
-					"description":     "Test schedule 1",
-					"type":            "maintenance",
-					"cadence":         []interface{}{},
-					"opt_out":         []interface{}{},
-					"opt_out_options": []interface{}{},
-				},
-				map[string]interface{}{
-					"name":            "schedule2",
-					"description":     "Test schedule 2",
-					"type":            "backup",
-					"cadence":         []interface{}{},
-					"opt_out":         []interface{}{},
-					"opt_out_options": []interface{}{},
-				},
-			},
-		},
-		{
-			name:     "Empty input",
-			input:    []*infrapb.FleetSchedule{},
-			expected: []interface{}{},
-		},
-		{
-			name:     "Nil input",
-			input:    nil,
-			expected: []interface{}{},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := rafay.TestFlattenFleetPlanSchedules(tt.input)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

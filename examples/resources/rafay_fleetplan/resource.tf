@@ -121,7 +121,7 @@ resource "rafay_fleetplan" "fp_clusters" {
 
 resource "rafay_fleetplan" "fp_environments" {
   metadata {
-    name    = "fleetplan2"
+    name    = "fleetplan-env"
     project = "defaultproject"
   }
   spec {
@@ -177,11 +177,9 @@ resource "rafay_fleetplan" "fp_environments" {
       }
     }
     schedules {
-      name = "schedule1"
-      description = "schedule1 description"
       type = "recurring"
       cadence {
-        cron_expression = "0 18 * * *"
+        cron_expression = "50 16 * * *"
         cron_timezone = "Asia/Kolkata"
       }
       opt_out_options {
@@ -191,7 +189,26 @@ resource "rafay_fleetplan" "fp_environments" {
         max_allowed_duration = "20m"
         max_allowed_times = 5
       }
+      opt_out {
+        duration = "300s"
+      }
     }
+    # schedules {
+    #   type = "one-time"
+    #   cadence {
+    #     time_to_live = "5m"
+    #   }
+    #   opt_out_options {
+    #     allow_opt_out {
+    #       value = true
+    #     }
+    #     max_allowed_duration = "20m"
+    #     max_allowed_times = 5
+    #   }
+    #   opt_out {
+    #     duration = "300s"
+    #   }
+    # }
   }
 }
 
@@ -222,7 +239,7 @@ data "rafay_fleetplan_job" "job1" {
   depends_on = [ rafay_fleetplan.fp_environments, data.rafay_fleetplan_jobs.fleetplan_jobs ]
   fleetplan_name = rafay_fleetplan.fp_environments.metadata[0].name
   project = rafay_fleetplan.fp_environments.metadata[0].project
-  name = data.rafay_fleetplan_jobs.fleetplan_jobs.jobs[0].job_name
+  name = "1"
 }
 
 output "environment_fleetplan_spec" {

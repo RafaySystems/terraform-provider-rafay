@@ -187,7 +187,7 @@ func flattenFleetPlanSpec(spec *infrapb.FleetPlanSpec) []interface{} {
 	obj["agents"] = flattenFleetPlanAgents(spec.Agents)
 
 	if spec.Fleet.Kind == ResourceTypeEnvironments {
-		obj["schedules"] = flattenFleetPlanSchedules(spec.Schedules)
+		obj["schedules"] = flattenSchedule(spec.Schedule)
 	}
 
 	return []interface{}{obj}
@@ -224,18 +224,16 @@ func flattenScheduleOptOutOptions(optOutOptions *infrapb.ScheduleOptOutOptions) 
 	return []interface{}{obj}
 }
 
-func flattenSchedule(schedule *infrapb.FleetSchedule) map[string]interface{} {
+func flattenSchedule(schedule *infrapb.FleetSchedule) []interface{} {
 	if schedule == nil {
-		return map[string]interface{}{}
+		return []interface{}{}
 	}
 	obj := make(map[string]interface{})
-	obj["name"] = schedule.Name
-	obj["description"] = schedule.Description
 	obj["type"] = schedule.Type
 	obj["cadence"] = flattenScheduleCadence(schedule.Cadence)
 	obj["opt_out"] = flattenScheduleOptOut(schedule.OptOut)
 	obj["opt_out_options"] = flattenScheduleOptOutOptions(schedule.OptOutOptions)
-	return obj
+	return []interface{}{obj}
 }
 
 func flattenFleetPlanSchedules(schedules []*infrapb.FleetSchedule) []interface{} {
@@ -587,42 +585,33 @@ func expandFleetPlanSpec(p []interface{}) (*infrapb.FleetPlanSpec, error) {
 
 	if obj.Fleet.Kind == ResourceTypeEnvironments {
 		if v, ok := in["schedules"].([]interface{}); ok && len(v) > 0 {
-			obj.Schedules = expandFleetPlanSchedules(v)
+			obj.Schedule = expandFleetPlanSchedules(v)
 		}
 	}
 	return obj, nil
 }
 
-func expandFleetPlanSchedules(p []interface{}) []*infrapb.FleetSchedule {
+func expandFleetPlanSchedules(p []interface{}) *infrapb.FleetSchedule {
+	outSchedule := &infrapb.FleetSchedule{}
 	if len(p) == 0 || p[0] == nil {
 		return nil
 	}
 
-	var outSchedules []*infrapb.FleetSchedule
-	for _, in := range p {
-		inMap := in.(map[string]interface{})
-		outSchedule := &infrapb.FleetSchedule{}
-		if val, ok := inMap["name"]; ok {
-			outSchedule.Name = val.(string)
-		}
-		if val, ok := inMap["description"]; ok {
-			outSchedule.Description = val.(string)
-		}
-		if val, ok := inMap["type"]; ok {
-			outSchedule.Type = val.(string)
-		}
-		if val, ok := inMap["cadence"].([]interface{}); ok {
-			outSchedule.Cadence = expandScheduleCadence(val)
-		}
-		if val, ok := inMap["opt_out"].([]interface{}); ok {
-			outSchedule.OptOut = expandScheduleOptOut(val)
-		}
-		if val, ok := inMap["opt_out_options"].([]interface{}); ok {
-			outSchedule.OptOutOptions = expandScheduleOptOutOptions(val)
-		}
-		outSchedules = append(outSchedules, outSchedule)
+	in := p[0].(map[string]interface{})
+
+	if val, ok := in["type"]; ok {
+		outSchedule.Type = val.(string)
 	}
-	return outSchedules
+	if val, ok := in["cadence"].([]interface{}); ok {
+		outSchedule.Cadence = expandScheduleCadence(val)
+	}
+	if val, ok := in["opt_out"].([]interface{}); ok {
+		outSchedule.OptOut = expandScheduleOptOut(val)
+	}
+	if val, ok := in["opt_out_options"].([]interface{}); ok {
+		outSchedule.OptOutOptions = expandScheduleOptOutOptions(val)
+	}
+	return outSchedule
 }
 
 func expandScheduleOptOutOptions(p []interface{}) *infrapb.ScheduleOptOutOptions {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"net/http"
+	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
@@ -46,6 +47,9 @@ func New(version string) func() provider.Provider {
 type RafayFwProviderModel struct {
 	ProviderConfigFile     types.String        `tfsdk:"provider_config_file"`
 	IgnoreInsecureTlsError basetypes.BoolValue `tfsdk:"ignore_insecure_tls_error"`
+	ApiKey                 types.String        `tfsdk:"api_key"`
+	RestEndpoint           types.String        `tfsdk:"rest_endpoint"`
+	Project                types.String        `tfsdk:"project"`
 }
 
 func (p *RafayFwProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
@@ -56,6 +60,19 @@ func (p *RafayFwProvider) Schema(ctx context.Context, req provider.SchemaRequest
 			},
 			"ignore_insecure_tls_error": schema.BoolAttribute{
 				Optional: true,
+			},
+			"api_key": schema.StringAttribute{
+				Description: "Rafay API key",
+				Optional:    true,
+				Sensitive:   true,
+			},
+			"rest_endpoint": schema.StringAttribute{
+				Description: "Rafay API endpoint",
+				Optional:    true,
+			},
+			"project": schema.StringAttribute{
+				Description: "Rafay project",
+				Optional:    true,
 			},
 		},
 	}
@@ -77,12 +94,45 @@ func (p *RafayFwProvider) Configure(ctx context.Context, req provider.ConfigureR
 		return
 	}
 
+	apiKey := data.ApiKey.ValueString()
+	restEndpoint := data.RestEndpoint.ValueString()
+	project := data.Project.ValueString()
+
+	if apiKey != "" && restEndpoint != "" {
+		os.Setenv("RCTL_API_KEY", apiKey)
+		os.Setenv("RCTL_REST_ENDPOINT", restEndpoint)
+		if project != "" {
+			os.Setenv("RCTL_PROJECT", project)
+		}
+	}
+
 	configFile := data.ProviderConfigFile.ValueString()
 	ignoreTlsError := data.IgnoreInsecureTlsError
 
 	tflog.Info(ctx, "rafay provider config file", map[string]interface{}{
 		"config_file": configFile,
 	})
+
+	if apiKey != "" && restEndpoint != "" {
+		if ignoreTlsError.ValueBool() {
+			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		}
+
+		auth := &config.AppAuthConfig{
+			URL: restEndpoint,
+			Key: apiKey,
+		}
+
+		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+		if err != nil {
+			resp.Diagnostics.AddError("Unable to initialise the Client, Error", err.Error())
+			return
+		}
+		// Save the client in the provider data
+		resp.ResourceData = client
+		resp.DataSourceData = client
+		return
+	}
 
 	cliCtx := rctlcontext.GetContext()
 

@@ -168,7 +168,8 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 	}
 
 	// try to order cluster list based on local state
-	if len(projs) > 0 && sharingSpec.Projects != nil {
+	// Note: sharingSpec is guaranteed to be non-nil here due to early return above
+	if len(projs) > 0 && len(sharingSpec.Projects) > 0 {
 		for _, p := range sharingSpec.Projects {
 			for _, pi := range projs {
 				if pi.Id == p.Id {
@@ -188,6 +189,9 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 				sortprojs = append(sortprojs, p)
 			}
 		}
+	} else if len(projs) > 0 {
+		// If sharingSpec has no projects, just use the projs list as-is
+		sortprojs = projs
 	}
 
 	if sharingSpec.Enabled {
@@ -362,7 +366,7 @@ func resourceClusterSharingRead(ctx context.Context, d *schema.ResourceData, m i
 	}
 
 	// try to order cluster list based on local state
-	if len(projs) > 0 {
+	if len(projs) > 0 && sharingSpec != nil && len(sharingSpec.Projects) > 0 {
 		for _, p := range sharingSpec.Projects {
 			for _, pi := range projs {
 				if pi.Id == p.Id {
@@ -382,6 +386,9 @@ func resourceClusterSharingRead(ctx context.Context, d *schema.ResourceData, m i
 				sortprojs = append(sortprojs, p)
 			}
 		}
+	} else if len(projs) > 0 {
+		// If sharingSpec is nil or has no projects, just use the projs list as-is
+		sortprojs = projs
 	}
 
 	err = d.Set("clustername", clusterName)

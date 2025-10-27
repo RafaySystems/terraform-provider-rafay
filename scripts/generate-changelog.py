@@ -98,22 +98,47 @@ class ChangelogGenerator:
             subject = commit['subject'].lower()
             body = commit.get('body', '').lower()
             
-            # Score based on keywords
-            if any(kw in subject for kw in ['breaking', 'major', 'removed']):
+            # Score based on commit type prefixes (higher priority)
+            if subject.startswith('breaking:'):
                 score += 10
-            if any(kw in subject for kw in ['feat', 'feature', 'add', 'new']):
+            elif subject.startswith('deprecate:'):
+                score += 9
+            elif subject.startswith('feat:'):
                 score += 8
-            if any(kw in subject for kw in ['fix', 'bug', 'patch']):
-                score += 6
-            if any(kw in subject for kw in ['deprecat']):
+            elif subject.startswith('add:'):
                 score += 7
-            if any(kw in subject for kw in ['doc', 'readme', 'comment']):
+            elif subject.startswith('fix:'):
+                score += 6
+            elif subject.startswith('patch:'):
+                score += 6
+            elif subject.startswith('enhance:') or subject.startswith('improve:') or subject.startswith('update:'):
+                score += 5
+            elif subject.startswith('docs:') or subject.startswith('example:'):
                 score += 3
-            if any(kw in subject for kw in ['refactor', 'cleanup', 'style']):
-                score += 4
+            elif subject.startswith('refactor:') or subject.startswith('test:') or subject.startswith('chore:') or subject.startswith('ci:'):
+                score += 1  # Low priority, likely to be skipped
             
-            # Check for resource/provider changes
-            if re.search(r'resource[/_]', subject):
+            # Additional keyword scoring (if no prefix was matched)
+            if score == 0:
+                if any(kw in subject for kw in ['breaking', 'major', 'removed']):
+                    score += 10
+                elif any(kw in subject for kw in ['deprecat']):
+                    score += 9
+                elif any(kw in subject for kw in ['feat', 'feature', 'new']):
+                    score += 8
+                elif any(kw in subject for kw in ['add']):
+                    score += 7
+                elif any(kw in subject for kw in ['fix', 'bug', 'patch']):
+                    score += 6
+                elif any(kw in subject for kw in ['enhance', 'improve', 'update']):
+                    score += 5
+                elif any(kw in subject for kw in ['doc', 'readme', 'example']):
+                    score += 3
+                elif any(kw in subject for kw in ['refactor', 'cleanup', 'style', 'test', 'chore']):
+                    score += 1
+            
+            # Boost score for resource/provider changes
+            if re.search(r'resource[/_]', subject) or re.search(r'rafay_\w+', subject):
                 score += 2
             if re.search(r'data[_\s]source', subject):
                 score += 2
@@ -154,23 +179,55 @@ class ChangelogGenerator:
                 deprecations_text += f": {dep['message']}\n  (in {dep['file']})\n"
         
         # Build the prompt
+        pr_reference_instruction = ""
+        if pr_number and pr_url:
+            pr_reference_instruction = f"5. Include the PR reference at the end: ([#{pr_number}]({pr_url}))"
+        else:
+            pr_reference_instruction = "5. Do NOT include any PR reference"
+        
         prompt = f"""You are a technical writer for a Terraform provider. Generate a changelog entry in the style of the HashiCorp AWS Terraform provider.
 
 COMMITS TO ANALYZE:
 {commits_text}
 {deprecations_text}
 
+COMMIT TYPE PREFIXES TO RECOGNIZE:
+- `feat:` - New resources, data sources, or major functionality
+- `add:` - Adding new capabilities to existing resources
+- `fix:` / `patch:` - Bug fixes and corrections
+- `deprecate:` - Deprecating existing functionality
+- `breaking:` - Breaking changes
+- `enhance:` / `improve:` / `update:` - Enhancements and improvements
+- `docs:` / `example:` - Documentation changes
+- `refactor:` / `test:` / `chore:` / `ci:` - Internal changes (usually skip these)
+
 REQUIREMENTS:
 1. Categorize changes into these sections: {', '.join(self.config['categories'])}
 2. Write clear, user-focused descriptions (not just commit messages)
-3. Follow this format for each entry: "* resource/rafay_resource_name: Description of change"
-4. For new resources/data sources, use: "* **New Resource:** `rafay_resource_name`"
-5. Include the PR reference at the end: ([#{pr_number}]({pr_url}))
-6. Group related changes together intelligently
-7. Prioritize significant changes, skip trivial ones (typos, minor refactoring, code comments)
-8. Use present tense ("Add" not "Added", "Fix" not "Fixed")
-9. If the change is not significant, skip it entirely
-10. Do not include emojis in the changelog entries
+3. Use commit type prefixes to guide categorization:
+   - `feat:` / `add:` → FEATURES or ENHANCEMENTS (depending on scope)
+   - `fix:` / `patch:` → BUG FIXES
+   - `deprecate:` → DEPRECATIONS
+   - `breaking:` → BREAKING CHANGES
+   - `enhance:` / `improve:` / `update:` → ENHANCEMENTS
+   - `docs:` / `example:` → DOCUMENTATION
+   - Skip: `refactor:`, `test:`, `chore:`, `ci:` (unless significant user impact)
+4. ONLY use resource notation for ACTUAL Terraform resources/data sources (files in rafay/ or internal/ that define resources):
+   - For actual new resources: "* **New Resource:** `rafay_resource_name`"
+   - For actual new data sources: "* **New Data Source:** `rafay_data_source_name`"
+   - For changes to existing resources: "* resource/rafay_resource_name: Description of change"
+{pr_reference_instruction}
+6. For changes to tooling, automation, documentation, policies, or testing, use general descriptive format:
+   - "* Implement automated changelog generation system"
+   - "* Add deprecation policy documentation"
+   - "* Improve testing framework for integration tests"
+   - "* Update dependency versions for security patches"
+7. Group related changes together intelligently
+8. Prioritize significant changes, skip trivial ones (typos, minor refactoring, code comments)
+9. Use present tense ("Add" not "Added", "Fix" not "Fixed")
+10. If the change is not significant, skip it entirely
+11. Do not include emojis in the changelog entries
+12. Do NOT create fake resource names for non-resource changes (e.g., changelog scripts, docs, policies are NOT resources)
 
 CATEGORIZATION RULES:
 
@@ -225,8 +282,9 @@ Generate ONLY the changelog entries (bullet points), grouped by category. Do not
             
             content = response.choices[0].message.content
             
-            # Post-process: Add PR reference if not already present
-            if pr_number and pr_url:
+            # Post-process: Add PR reference if not already present and if valid
+            # Only add PR reference if both pr_number and pr_url are provided and valid
+            if pr_number and pr_url and pr_number != "None" and pr_url != "None":
                 lines = content.split('\n')
                 processed_lines = []
                 for line in lines:
@@ -254,7 +312,10 @@ Generate ONLY the changelog entries (bullet points), grouped by category. Do not
         entries = []
         for commit in commits:
             subject = commit['subject']
-            ref = f" ([#{pr_number}]({pr_url}))" if pr_number and pr_url else ""
+            # Only include PR reference if both are valid and not "None"
+            ref = ""
+            if pr_number and pr_url and pr_number != "None" and pr_url != "None":
+                ref = f" ([#{pr_number}]({pr_url}))"
             entries.append(f"* {subject}{ref}")
         return '\n'.join(entries)
     

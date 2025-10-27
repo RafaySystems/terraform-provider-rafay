@@ -33,7 +33,7 @@ This document lists all files created for the automated changelog system, their 
 **Contents**:
 - `requests>=2.25.0`
 - `python-dotenv>=0.19.0`
-- `anthropic>=0.18.0`
+- `openai>=1.0.0`
 - `gitpython>=3.1.0`
 
 ---
@@ -44,7 +44,7 @@ This document lists all files created for the automated changelog system, their 
 **Purpose**: AI-powered changelog generator (adapted from your [ai-changelog project](https://github.com/Deeraj-G/ai-changelog.git))
 
 **Key Features**:
-- Uses Claude AI (claude-3-5-sonnet-20241022) for intelligent categorization
+- Uses OpenAI GPT (gpt-4-turbo-preview) for intelligent categorization
 - Analyzes commits and generates user-friendly descriptions
 - Categorizes changes into: BREAKING CHANGES, FEATURES, ENHANCEMENTS, BUG FIXES, DEPRECATIONS, DOCUMENTATION
 - Integrates with deprecation scanner output
@@ -203,7 +203,7 @@ bash scripts/update-unreleased.sh reset
 **Purpose**: Configuration for AI model and categorization rules
 
 **Contents**:
-- AI model version: `claude-3-5-sonnet-20241022`
+- AI model version: `gpt-4-turbo-preview`
 - Category definitions
 - Keyword patterns for categorization
 - Skip patterns (merge commits, ci changes, etc.)
@@ -212,7 +212,7 @@ bash scripts/update-unreleased.sh reset
 **Example**:
 ```json
 {
-  "ai_model": "claude-3-5-sonnet-20241022",
+  "ai_model": "gpt-4-turbo-preview",
   "max_commits_per_pr": 100,
   "changelog_style": "terraform-aws-provider",
   "categories": [...]
@@ -334,7 +334,7 @@ This PR will be automatically included in the CHANGELOG upon merge...
 ## 🎯 Key Features
 
 ### 1. AI-Powered Categorization
-- Uses Claude AI to intelligently analyze commits
+- Uses OpenAI GPT to intelligently analyze commits
 - Converts technical commits into user-friendly descriptions
 - Handles any commit message style
 - Follows Terraform AWS provider standards
@@ -375,7 +375,7 @@ git commit -m "feat: Add IPv6 support to EKS clusters"
 
 ```bash
 # Test locally
-export CLAUDE_API_KEY="your-key"
+export OPENAI_API_KEY="your-key"
 python3 scripts/generate-changelog.py --dry-run ...
 
 # Test deprecation scanner
@@ -385,7 +385,7 @@ go build scripts/scan-deprecations.go
 
 ### For Deployment
 
-1. Add `CLAUDE_API_KEY` to GitHub repository secrets
+1. Add `OPENAI_API_KEY` to GitHub repository secrets
 2. Workflows are already in place
 3. System activates on next PR merge
 
@@ -445,7 +445,7 @@ All tasks completed:
 
 Before using the system, configure these GitHub Secrets:
 
-1. **`CLAUDE_API_KEY`** - Your Anthropic Claude API key (Required)
+1. **`OPENAI_API_KEY`** - Your OpenAI API key (Required)
 2. **`GITHUB_TOKEN`** - Automatically provided by GitHub Actions
 3. **`JENKINS_PAT`** - For branch cut workflow (if using)
 4. **`RCTL_GO_MODULES_TOKEN`** - For private Go modules access
@@ -454,7 +454,7 @@ Before using the system, configure these GitHub Secrets:
 
 ## Next Steps
 
-1. **Add `CLAUDE_API_KEY`** to GitHub repository secrets
+1. **Add `OPENAI_API_KEY`** to GitHub repository secrets
 2. **Test locally** using the testing guide
 3. **Create a test PR** to verify the system works
 4. **Review the first generated changelog** entry

@@ -1,4 +1,4 @@
-# Deprecation Policy and Semantic Versioning
+# Deprecation Policy
 
 ## Overview
 
@@ -56,30 +56,36 @@ Following the [AWS provider deprecation model](https://registry.terraform.io/pro
 
 ### Deprecation Timeline
 
-Based on AWS provider patterns observed in their [release history](https://github.com/hashicorp/terraform-provider-aws/releases):
+Based on HashiCorp Terraform recommended best practices ([Framework Deprecations](https://developer.hashicorp.com/terraform/plugin/framework/deprecations)):
 
-1. **Deprecation Announcement** (Version N)
-   - Announce deprecations with at least one minor version lead time
-   - Add deprecation warnings to provider logs using standardized format
+1. **Phase 1: Deprecated** (Version N)
+   - **Status**: Feature is marked for removal in a future major release
+   - Announce deprecations with at least one minor version lead time (minimum 3 months)
+   - Add practitioner-focused deprecation warnings using `DeprecationMessage` field
    - Update documentation with deprecation notices and migration paths
    - Include in `CHANGELOG.md` under **DEPRECATIONS** section
    - Provide automated detection tools where possible
+   - Feature remains fully functional with warnings
 
-2. **Grace Period** (Version N+1 to N+X)
-   - Maintain full backward compatibility
+2. **Phase 2: Pending Removal** (Version N+1 to N+X)
+   - **Status**: Feature behavior fundamentally altered; use strongly discouraged
+   - Maintain backward compatibility for a grace period
    - Provide comprehensive migration examples and upgrade guides
    - Continue deprecation warnings with version-specific messaging
    - Offer automated migration tools and state migration utilities
+   - May include runtime warnings or validation errors
 
-3. **Breaking Change Implementation** (Next Major Version)
+3. **Phase 3: Removed** (Next Major Version)
+   - **Status**: Feature no longer supported and has been removed
    - Implement breaking changes in major version releases only
    - Remove deprecated functionality with clear upgrade documentation
    - Provide automated state migration where technically feasible
    - Include detailed upgrade guides with before/after examples
+   - Keep state upgraders for historical migrations
 
 ### Minimum Deprecation Periods
 
-Following AWS provider standards:
+Following HashiCorp and AWS provider standards:
 
 - **Resources:** Minimum 6 months or 2 minor versions, whichever is longer
 - **Arguments/Attributes:** Minimum 3 months or 1 minor version, whichever is longer  
@@ -87,962 +93,142 @@ Following AWS provider standards:
 - **Provider Configuration:** Minimum 9 months or 3 minor versions, whichever is longer
 - **Default Behavior Changes:** Minimum 6 months with opt-in mechanisms where possible
 
+**Note:** These are minimum periods. Security vulnerabilities may require immediate breaking changes, bypassing normal deprecation timelines with expedited communication to users.
+
 ## Implementation Guide: Go Code to Terraform Resource Mapping
 
 This section demonstrates how Go code deprecation warnings translate to user-facing Terraform warnings.
 
-### 1. Deprecating Individual Fields/Arguments
-
-**Go Implementation (SDKv2):**
-
-```go
-package rafay
-
-import (
-  "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-)
-
-func resourceAKSCluster() *schema.Resource {
-  return &schema.Resource{
-    Schema: map[string]*schema.Schema{
-      "project_id": {
-        Type:       schema.TypeString,
-        Optional:   true,
-        Deprecated: "Argument `project_id` is deprecated and will be removed in v2.0.0. Use `metadata.project` instead for consistency with Kubernetes conventions.",
-        Description: "DEPRECATED: Use metadata.project instead.",
-      },
-      "metadata": {
-        Type:     schema.TypeList,
-        Optional: true,
-        MaxItems: 1,
-        Elem: &schema.Resource{
-          Schema: map[string]*schema.Schema{
-            "project": {
-              Type:        schema.TypeString,
-              Required:    true,
-              Description: "Project name for the cluster.",
-            },
-            // ... other metadata fields
-          },
-        },
-      },
-      "tags": {
-        Type:       schema.TypeMap,
-        Optional:   true,
-        Deprecated: "Argument `tags` is deprecated and will be removed in v2.0.0. Use `resource_tags` block instead for enhanced tagging capabilities with propagation support.",
-        Elem: &schema.Schema{
-          Type: schema.TypeString,
-        },
-      },
-      "resource_tags": {
-        Type:     schema.TypeList,
-        Optional: true,
-        MaxItems: 1,
-        Elem: &schema.Resource{
-          Schema: map[string]*schema.Schema{
-            "tags": {
-              Type:     schema.TypeMap,
-              Optional: true,
-              Elem: &schema.Schema{
-                Type: schema.TypeString,
-              },
-            },
-            "propagate_to_resources": {
-              Type:        schema.TypeBool,
-              Optional:    true,
-              Default:     false,
-              Description: "Propagate tags to underlying Azure resources.",
-            },
-          },
-        },
-      },
-    },
-  }
-}
-```
-
-**Resulting Terraform Warning:**
-
-```
-│ Warning: Argument is deprecated
-│ 
-│   on main.tf line 5, in resource "rafay_aks_cluster" "example":
-│    5:   project_id = "my-project"
-│ 
-│ Argument `project_id` is deprecated and will be removed in v2.0.0. Use
-│ `metadata.project` instead for consistency with Kubernetes conventions.
-```
-
-**User-Facing Terraform Configuration:**
-
-```terraform
-resource "rafay_aks_cluster" "example" {
-  # DEPRECATED: Will generate warning during terraform plan/apply
-  project_id = "my-project"
-  
-  # NEW: Recommended approach
-  metadata {
-    name    = "my-cluster"
-    project = "my-project"
-  }
-}
-```
-
-### 2. Deprecating Entire Resources
-
-**Go Implementation (SDKv2):**
-
-```go
-package rafay
-
-func resourceCluster() *schema.Resource {
-  return &schema.Resource{
-    DeprecationMessage: "Resource `rafay_cluster` is deprecated and will be removed in v2.0.0. Use `rafay_eks_cluster`, `rafay_aks_cluster`, or `rafay_gke_cluster` instead for enhanced functionality and cloud-specific features.",
-    
-    Schema: map[string]*schema.Schema{
-      "name": {
-        Type:        schema.TypeString,
-        Required:    true,
-        Description: "Cluster name.",
-      },
-      "project_id": {
-        Type:        schema.TypeString,
-        Required:    true,
-        Description: "Project ID.",
-      },
-      // ... other legacy fields
-    },
-    
-    CreateContext: resourceClusterCreate,
-    ReadContext:   resourceClusterRead,
-    UpdateContext: resourceClusterUpdate,
-    DeleteContext: resourceClusterDelete,
-  }
-}
-```
-
-**Resulting Terraform Warning:**
-
-```
-│ Warning: Resource is deprecated
-│ 
-│   on main.tf line 1, in resource "rafay_cluster" "example":
-│    1: resource "rafay_cluster" "example" {
-│ 
-│ Resource `rafay_cluster` is deprecated and will be removed in v2.0.0. Use
-│ `rafay_eks_cluster`, `rafay_aks_cluster`, or `rafay_gke_cluster` instead for
-│ enhanced functionality and cloud-specific features.
-```
-
-### 3. Deprecating Data Sources
-
-**Go Implementation (SDKv2):**
-
-```go
-package rafay
-
-func dataSourceClusters() *schema.Resource {
-  return &schema.Resource{
-    DeprecationMessage: "Data source `rafay_clusters` is deprecated and will be removed in v2.0.0. Use cloud-specific data sources `rafay_eks_clusters`, `rafay_aks_clusters`, or `rafay_gke_clusters` instead for better performance and enhanced filtering.",
-    
-    ReadContext: dataSourceClustersRead,
-    
-    Schema: map[string]*schema.Schema{
-      "project": {
-        Type:        schema.TypeString,
-        Required:    true,
-        Description: "Project name.",
-      },
-      // ... other fields
-    },
-  }
-}
-```
-
-**Resulting Terraform Warning:**
-
-```
-│ Warning: Data source is deprecated
-│ 
-│   on main.tf line 10, in data "rafay_clusters" "all":
-│   10: data "rafay_clusters" "all" {
-│ 
-│ Data source `rafay_clusters` is deprecated and will be removed in v2.0.0. Use
-│ cloud-specific data sources `rafay_eks_clusters`, `rafay_aks_clusters`, or
-│ `rafay_gke_clusters` instead for better performance and enhanced filtering.
-```
-
-### 4. Deprecating Nested Blocks
-
-**Go Implementation (SDKv2):**
-
-```go
-func resourceEKSCluster() *schema.Resource {
-  return &schema.Resource{
-    Schema: map[string]*schema.Schema{
-      "spec": {
-        Type:     schema.TypeList,
-        Required: true,
-        MaxItems: 1,
-        Elem: &schema.Resource{
-          Schema: map[string]*schema.Schema{
-            "cluster_config": {
-              Type:     schema.TypeList,
-              Required: true,
-              MaxItems: 1,
-              Elem: &schema.Resource{
-                Schema: map[string]*schema.Schema{
-                  "vpc_config": {
-                    Type:       schema.TypeList,
-                    Optional:   true,
-                    Deprecated: "Block `vpc_config` is deprecated and will be removed in v2.0.0. Use `network_config` block instead for enhanced networking features including IPv6 and security group management.",
-                    MaxItems:   1,
-                    Elem: &schema.Resource{
-                      Schema: map[string]*schema.Schema{
-                        "subnet_ids": {
-                          Type:     schema.TypeList,
-                          Required: true,
-                          Elem: &schema.Schema{
-                            Type: schema.TypeString,
-                          },
-                        },
-                      },
-                    },
-                  },
-                  "network_config": {
-                    Type:     schema.TypeList,
-                    Optional: true,
-                    MaxItems: 1,
-                    Elem: &schema.Resource{
-                      Schema: map[string]*schema.Schema{
-                        "subnet_ids": {
-                          Type:     schema.TypeList,
-                          Required: true,
-                          Elem: &schema.Schema{
-                            Type: schema.TypeString,
-                          },
-                        },
-                        "ipv6_enabled": {
-                          Type:     schema.TypeBool,
-                          Optional: true,
-                          Default:  false,
-                        },
-                        "security_group_ids": {
-                          Type:     schema.TypeList,
-                          Optional: true,
-                          Elem: &schema.Schema{
-                            Type: schema.TypeString,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  }
-}
-```
-
-### 5. Deprecating Specific Values with Validation
-
-**Go Implementation (SDKv2):**
-
-```go
-package rafay
-
-import (
-  "fmt"
-  "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-  "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-)
-
-func validateCapacityType(val interface{}, key string) (warns []string, errs []error) {
-  v := val.(string)
-  
-  deprecatedValues := map[string]string{
-    "SPOT": "Value `SPOT` for `capacity_type` is deprecated. Use `MIXED` with spot configuration for better cost optimization and availability.",
-  }
-  
-  if msg, deprecated := deprecatedValues[v]; deprecated {
-    warns = append(warns, fmt.Sprintf("%s: %s", key, msg))
-  }
-  
-  validValues := []string{"ON_DEMAND", "SPOT", "MIXED"}
-  for _, valid := range validValues {
-    if v == valid {
-      return warns, errs
-    }
-  }
-  
-  errs = append(errs, fmt.Errorf("%s must be one of %v, got: %s", key, validValues, v))
-  return warns, errs
-}
-
-func resourceEKSClusterNodeGroup() *schema.Resource {
-  return &schema.Resource{
-    Schema: map[string]*schema.Schema{
-      "capacity_type": {
-        Type:         schema.TypeString,
-        Optional:     true,
-        Default:      "ON_DEMAND",
-        ValidateFunc: validateCapacityType,
-        Description:  "Capacity type for node group: ON_DEMAND, SPOT (deprecated), or MIXED.",
-      },
-    },
-  }
-}
-```
-
-**Resulting Terraform Warning:**
-
-```
-│ Warning: capacity_type: Value `SPOT` for `capacity_type` is deprecated. Use
-│ `MIXED` with spot configuration for better cost optimization and availability.
-```
-
-### 6. Plugin Framework Deprecation (New Framework Resources)
-
-**Go Implementation (Plugin Framework):**
-
-```go
-package resource_eks_cluster
-
-import (
-  "context"
-  "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-  "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-  "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-)
-
-func (r *EKSClusterResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-  resp.Schema = schema.Schema{
-    Attributes: map[string]schema.Attribute{
-      "project_id": schema.StringAttribute{
-        Optional:           true,
-        DeprecationMessage: "Attribute `project_id` is deprecated and will be removed in v2.0.0. Use `metadata.project` instead.",
-        PlanModifiers: []planmodifier.String{
-          stringplanmodifier.UseStateForUnknown(),
-        },
-      },
-    },
-    Blocks: map[string]schema.Block{
-      "metadata": schema.SingleNestedBlock{
-        Attributes: map[string]schema.Attribute{
-          "project": schema.StringAttribute{
-            Required:    true,
-            Description: "Project name for the cluster.",
-          },
-        },
-      },
-    },
-  }
-}
-```
-
-### 7. State Migration for Deprecated Resources
-
-**Go Implementation (SDKv2):**
-
-```go
-package rafay
-
-func resourceAKSClusterV0() *schema.Resource {
-  return &schema.Resource{
-    Schema: map[string]*schema.Schema{
-      "project_id": {
-        Type:     schema.TypeString,
-        Required: true,
-      },
-      "tags": {
-        Type:     schema.TypeMap,
-        Optional: true,
-        Elem: &schema.Schema{
-          Type: schema.TypeString,
-        },
-      },
-    },
-  }
-}
-
-func resourceAKSCluster() *schema.Resource {
-  return &schema.Resource{
-    Schema: map[string]*schema.Schema{
-      "metadata": {
-        Type:     schema.TypeList,
-        Required: true,
-        MaxItems: 1,
-        Elem: &schema.Resource{
-          Schema: map[string]*schema.Schema{
-            "project": {
-              Type:     schema.TypeString,
-              Required: true,
-            },
-          },
-        },
-      },
-      "resource_tags": {
-        Type:     schema.TypeList,
-        Optional: true,
-        MaxItems: 1,
-        Elem: &schema.Resource{
-          Schema: map[string]*schema.Schema{
-            "tags": {
-              Type:     schema.TypeMap,
-              Optional: true,
-              Elem: &schema.Schema{
-                Type: schema.TypeString,
-              },
-            },
-          },
-        },
-      },
-    },
-    
-    SchemaVersion: 1,
-    StateUpgraders: []schema.StateUpgrader{
-      {
-        Type:    resourceAKSClusterV0().CoreConfigSchema().ImpliedType(),
-        Upgrade: resourceAKSClusterStateUpgradeV0,
-        Version: 0,
-      },
-    },
-  }
-}
-
-func resourceAKSClusterStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-  // Migrate project_id to metadata.project
-  if projectID, ok := rawState["project_id"].(string); ok {
-    rawState["metadata"] = []interface{}{
-      map[string]interface{}{
-        "project": projectID,
-      },
-    }
-    delete(rawState, "project_id")
-  }
-  
-  // Migrate tags to resource_tags
-  if tags, ok := rawState["tags"].(map[string]interface{}); ok {
-    rawState["resource_tags"] = []interface{}{
-      map[string]interface{}{
-        "tags": tags,
-      },
-    }
-    delete(rawState, "tags")
-  }
-  
-  return rawState, nil
-}
-```
-
-### Complete Deprecation Lifecycle Example
-
-**Phase 1: v1.5.0 - Add Deprecation Warnings**
-
-```go
-// rafay/resource_aks_cluster.go
-func resourceAKSCluster() *schema.Resource {
-  return &schema.Resource{
-    Schema: map[string]*schema.Schema{
-      "project_id": {
-        Type:       schema.TypeString,
-        Optional:   true,
-        Deprecated: "Deprecated in v1.5.0, will be removed in v2.0.0. Use metadata.project instead.",
-      },
-      "metadata": {
-        Type:     schema.TypeList,
-        Optional: true,  // Still optional to maintain backward compatibility
-        MaxItems: 1,
-        Elem: &schema.Resource{
-          Schema: map[string]*schema.Schema{
-            "project": {
-              Type:     schema.TypeString,
-              Required: true,
-            },
-          },
-        },
-      },
-    },
-    SchemaVersion: 0,
-  }
-}
-```
-
-**Phase 2: v1.6.0 - Add State Upgrader**
-
-```go
-// rafay/resource_aks_cluster.go
-func resourceAKSCluster() *schema.Resource {
-  return &schema.Resource{
-    Schema: map[string]*schema.Schema{
-      "project_id": {
-        Type:       schema.TypeString,
-        Optional:   true,
-        Deprecated: "Deprecated in v1.5.0, will be removed in v2.0.0. Use metadata.project instead.",
-      },
-      "metadata": {
-        Type:     schema.TypeList,
-        Optional: true,
-        MaxItems: 1,
-        Elem: &schema.Resource{
-          Schema: map[string]*schema.Schema{
-            "project": {
-              Type:     schema.TypeString,
-              Required: true,
-            },
-          },
-        },
-      },
-    },
-    SchemaVersion: 1,
-    StateUpgraders: []schema.StateUpgrader{
-      {
-        Type:    resourceAKSClusterV0().CoreConfigSchema().ImpliedType(),
-        Upgrade: resourceAKSClusterStateUpgradeV0,
-        Version: 0,
-      },
-    },
-  }
-}
-```
-
-**Phase 3: v2.0.0 - Remove Deprecated Field**
-
-```go
-// rafay/resource_aks_cluster.go
-func resourceAKSCluster() *schema.Resource {
-  return &schema.Resource{
-    Schema: map[string]*schema.Schema{
-      // project_id field removed entirely
-      "metadata": {
-        Type:     schema.TypeList,
-        Required: true,  // Now required since old field is removed
-        MaxItems: 1,
-        Elem: &schema.Resource{
-          Schema: map[string]*schema.Schema{
-            "project": {
-              Type:     schema.TypeString,
-              Required: true,
-            },
-          },
-        },
-      },
-    },
-    SchemaVersion: 1,  // Keep schema version for historical state migrations
-    StateUpgraders: []schema.StateUpgrader{
-      {
-        Type:    resourceAKSClusterV0().CoreConfigSchema().ImpliedType(),
-        Upgrade: resourceAKSClusterStateUpgradeV0,
-        Version: 0,
-      },
-    },
-  }
-}
-```
-
-## Deprecation Examples
-
-### Resource Deprecation
-
-Following AWS provider patterns for resource lifecycle management:
-
-```terraform
-# DEPRECATED: rafay_cluster resource (Deprecated in v1.2.0, removed in v2.0.0)
-# Use rafay_eks_cluster instead for enhanced functionality and better AWS integration
-resource "rafay_cluster" "example" {
-  name       = "my-cluster"
-  project_id = "my-project"
-  
-  # Legacy configuration structure
-  config = {
-    kubernetes_version = "1.24"
-    node_count        = 3
-  }
-}
-
-# NEW: Recommended approach using enhanced resource structure
-resource "rafay_eks_cluster" "example" {
-  metadata {
-    name    = "my-cluster"
-    project = "my-project"
-    labels = {
-      environment = "production"
-      team        = "platform"
-    }
-  }
-  
-  spec {
-    cluster_config {
-      version = "1.24"
-      
-      # Enhanced networking configuration
-      vpc_config {
-        subnet_ids = ["subnet-12345", "subnet-67890"]
-      }
-      
-      # Improved node group management
-      node_groups {
-        name          = "primary"
-        instance_type = "m5.large"
-        desired_size  = 3
-        min_size      = 1
-        max_size      = 10
-      }
-    }
-  }
-}
-```
-
-### Argument Deprecation
-
-Based on AWS provider argument restructuring patterns:
-
-```terraform
-resource "rafay_aks_cluster" "example" {
-  # DEPRECATED: project_id argument (Deprecated in v1.3.0, removed in v2.0.0)
-  # Use metadata.project instead for consistency with Kubernetes conventions
-  project_id = "my-project"  # Will generate deprecation warning
-  
-  # DEPRECATED: Simple tags map (Deprecated in v1.3.0, removed in v2.0.0)  
-  # Use resource_tags block for enhanced tagging capabilities
-  tags = {
-    Environment = "production"
-    Team        = "platform"
-  }
-  
-  # NEW: Recommended metadata structure
-  metadata {
-    name    = "my-cluster"
-    project = "my-project"  # Replaces deprecated project_id
-    
-    # Enhanced labeling system
-    labels = {
-      "rafay.io/environment" = "production"
-      "rafay.io/team"        = "platform"
-      "rafay.io/cost-center" = "engineering"
-    }
-  }
-  
-  # NEW: Enhanced resource tagging (replaces simple tags map)
-  resource_tags {
-    tags = {
-      Environment   = "production"
-      Team         = "platform"
-      CostCenter   = "engineering"
-      ManagedBy    = "terraform"
-    }
-    
-    # Propagate tags to underlying Azure resources
-    propagate_to_resources = true
-  }
-  
-  spec {
-    cluster_config {
-      # Configuration remains compatible
-      kubernetes_version = "1.24"
-      
-      # Enhanced node pool configuration
-      node_pools {
-        name = "system"
-        mode = "System"
-        
-        # Improved scaling configuration
-        auto_scaling {
-          enabled   = true
-          min_count = 1
-          max_count = 10
-        }
-      }
-    }
-  }
-}
-```
-
-### Data Source Deprecation
-
-Following AWS provider data source evolution patterns:
-
-```terraform
-# DEPRECATED: rafay_clusters data source (Deprecated in v1.4.0, removed in v2.0.0)
-# Use type-specific data sources for better performance and filtering
-data "rafay_clusters" "example" {
-  project = "my-project"
-  
-  # Limited filtering capabilities
-  filter {
-    name   = "status"
-    values = ["READY"]
-  }
-}
-
-# NEW: Type-specific data sources with enhanced filtering
-data "rafay_eks_clusters" "production_eks" {
-  metadata {
-    project = "my-project"
-  }
-  
-  # Enhanced filtering with multiple criteria
-  filter {
-    cluster_status = ["READY", "UPDATING"]
-    
-    # Filter by Kubernetes version range
-    kubernetes_version_min = "1.23"
-    kubernetes_version_max = "1.26"
-    
-    # Filter by labels
-    label_selector = {
-      "environment" = "production"
-      "team"        = "platform"
-    }
-  }
-  
-  # Improved sorting and pagination
-  sort_by    = "created_at"
-  sort_order = "desc"
-  limit      = 50
-}
-
-data "rafay_aks_clusters" "production_aks" {
-  metadata {
-    project = "my-project"
-  }
-  
-  # AKS-specific filtering capabilities
-  filter {
-    cluster_status = ["READY"]
-    
-    # Filter by Azure region
-    azure_region = "East US 2"
-    
-    # Filter by node pool configuration
-    min_node_count = 3
-    max_node_count = 100
-  }
-}
-```
-
-### Provider Configuration Changes
-
-Following AWS provider configuration evolution:
-
-```terraform
-# DEPRECATED: Legacy provider configuration (Deprecated in v1.5.0, removed in v2.0.0)
-provider "rafay" {
-  # DEPRECATED: Individual authentication fields
-  api_key    = var.rafay_api_key     # Use api_credentials block instead
-  api_secret = var.rafay_api_secret  # Use api_credentials block instead
-  
-  # DEPRECATED: Simple endpoint configuration
-  console_url = "https://console.rafay.dev"  # Use endpoints block instead
-  
-  # DEPRECATED: Basic retry configuration
-  max_retries = 3  # Use retry_config block for enhanced control
-}
-
-# NEW: Enhanced provider configuration with structured blocks
-provider "rafay" {
-  # NEW: Structured API credentials with multiple authentication methods
-  api_credentials {
-    # Option 1: API Key authentication
-    api_key    = var.rafay_api_key
-    api_secret = var.rafay_api_secret
-    
-    # Option 2: Service account authentication (new capability)
-    # service_account_key_file = "/path/to/service-account.json"
-    
-    # Option 3: OIDC authentication (new capability)  
-    # oidc_token_source = "environment"
-  }
-  
-  # NEW: Structured endpoint configuration
-  endpoints {
-    console_url = "https://console.rafay.dev"
-    api_url     = "https://api.rafay.dev"
-    
-    # Regional endpoint support (new capability)
-    region = "us-west-2"
-    
-    # Custom endpoints for private deployments
-    # custom_endpoints = {
-    #   console = "https://rafay.internal.company.com"
-    #   api     = "https://api.rafay.internal.company.com"
-    # }
-  }
-  
-  # NEW: Enhanced retry and timeout configuration
-  retry_config {
-    max_retries      = 5
-    retry_delay_base = "1s"
-    retry_delay_max  = "30s"
-    
-    # Exponential backoff configuration
-    backoff_multiplier = 2.0
-    
-    # Jitter to prevent thundering herd
-    enable_jitter = true
-  }
-  
-  # NEW: Request timeout configuration
-  timeout_config {
-    default_timeout = "30s"
-    
-    # Operation-specific timeouts
-    create_timeout = "10m"
-    update_timeout = "10m"
-    delete_timeout = "5m"
-  }
-  
-  # NEW: Enhanced logging and debugging
-  logging_config {
-    level = "INFO"  # DEBUG, INFO, WARN, ERROR
-    
-    # Log request/response for debugging
-    log_requests  = false
-    log_responses = false
-    
-    # Structured logging format
-    format = "json"  # json, text
-  }
-}
-```
-
-### Default Behavior Changes
-
-Following AWS provider patterns for behavioral changes:
-
-```terraform
-# Example: Node group defaults evolution (similar to AWS EKS defaults)
-
-# BEFORE v2.0.0: Manual node group configuration required
-resource "rafay_eks_cluster" "example" {
-  metadata {
-    name    = "my-cluster"
-    project = "my-project"
-  }
-  
-  spec {
-    cluster_config {
-      version = "1.24"
-      
-      # BEFORE: Manual node group configuration was required
-      node_groups {
-        name          = "primary"
-        instance_type = "m5.large"
-        desired_size  = 3
-        min_size      = 1
-        max_size      = 10
-        
-        # Manual AMI selection required
-        ami_type = "AL2_x86_64"
-        
-        # Manual capacity type selection
-        capacity_type = "ON_DEMAND"
-      }
-    }
-  }
-}
-
-# AFTER v2.0.0: Intelligent defaults with opt-out capability
-resource "rafay_eks_cluster" "example" {
-  metadata {
-    name    = "my-cluster" 
-    project = "my-project"
-  }
-  
-  spec {
-    cluster_config {
-      version = "1.24"
-      
-      # NEW: Automatic default node group creation (can be disabled)
-      auto_create_node_group = true  # Default: true (breaking change)
-      
-      # NEW: Intelligent defaults based on cluster configuration
-      default_node_group {
-        # Automatically selects appropriate instance types based on workload hints
-        auto_instance_selection = true
-        
-        # Intelligent scaling based on cluster usage patterns  
-        auto_scaling_policy = "balanced"  # cost_optimized, performance_optimized, balanced
-        
-        # Automatic AMI selection based on Kubernetes version
-        auto_ami_selection = true
-        
-        # Mixed capacity for cost optimization (new default behavior)
-        capacity_type = "MIXED"  # Changed from ON_DEMAND default
-        
-        # Spot instance configuration for mixed capacity
-        spot_allocation_strategy = "price-capacity-optimized"
-        spot_max_price_percentage = 50  # % of On-Demand price
-      }
-      
-      # Override defaults when needed
-      node_groups {
-        name = "custom-workload"
-        
-        # Explicit configuration overrides defaults
-        instance_type = "c5.xlarge"
-        capacity_type = "ON_DEMAND"
-        
-        # Custom node group still benefits from new features
-        auto_ami_selection = true
-      }
-    }
-  }
-}
-
-# Migration helper for preserving v1.x behavior
-resource "rafay_eks_cluster" "legacy_behavior" {
-  metadata {
-    name    = "legacy-cluster"
-    project = "my-project"
-  }
-  
-  spec {
-    cluster_config {
-      version = "1.24"
-      
-      # Disable new default behaviors to preserve v1.x compatibility
-      auto_create_node_group = false
-      
-      # Explicit node group configuration (v1.x style)
-      node_groups {
-        name          = "primary"
-        instance_type = "m5.large"
-        desired_size  = 3
-        min_size      = 1
-        max_size      = 10
-        
-        # Explicit v1.x defaults
-        ami_type      = "AL2_x86_64"
-        capacity_type = "ON_DEMAND"
-        
-        # Opt out of new automatic features
-        auto_ami_selection = false
-      }
-    }
-  }
-}
+### Deprecation Message Best Practices
+
+Following HashiCorp's practitioner-focused messaging guidelines:
+
+**✅ GOOD Examples (Actionable and Clear):**
+- `"Configure metadata.project instead. This attribute will be removed in the next major version of the provider."`
+- `"Configure network_config block instead. This block will be removed in the next major version of the provider."`
+- `"Use rafay_eks_cluster resource instead. This resource will be removed in v2.0.0."`
+
+**❌ BAD Examples (Too Technical or Vague):**
+- `"Attribute project_id is deprecated"` - Not actionable, doesn't tell users what to do
+- `"This field is going away"` - No timeline or alternative provided
+- `"Deprecated in favor of new implementation"` - Not specific enough
+- `"Do not use this anymore"` - No migration path provided
+
+**Message Format Guidelines:**
+
+1. **Start with Action**: Begin with "Configure" or "Use" to tell users what to do
+   - ✅ `"Configure metadata.project instead..."`
+   - ❌ `"The attribute project_id is deprecated..."`
+
+2. **Specify Alternative**: Clearly name the replacement feature
+   - ✅ `"...instead. Use network_config block..."`
+   - ❌ `"...instead. Use the new option..."`
+
+3. **Include Timeline**: State when removal will occur
+   - ✅ `"...will be removed in the next major version of the provider"`
+   - ✅ `"...will be removed in v2.0.0"`
+   - ❌ `"...will be removed soon"`
+
+4. **Keep it Concise**: One or two sentences maximum
+   - Users see these warnings during normal workflow
+   - Long messages are often skipped
+
+5. **Consistent Terminology**:
+   - Use "attribute" for scalar values
+   - Use "block" for nested configuration structures
+   - Use "resource" for entire resource types
+   - Use "data source" for data sources
 
 ## Version Support Policy
 
-### Support Windows
-- **Current Version (N):** Full support including new features and bug fixes
-- **Previous Version (N-1):** Security updates and critical bug fixes only
-- **Older Versions (N-2 and below):** End-of-life, no support
+### Backward Compatibility Promise
 
-### End-of-Life Timeline
-- **Minor Versions:** Supported for 12 months after release
-- **Major Versions:** Previous major version supported for 18 months after new major release
-- **Security Updates:** Critical security fixes backported to N-1 for 6 months
+Following the [HashiCorp Terraform AWS Provider model](https://hashicorp.github.io/terraform-provider-aws/faq/), our backward compatibility policy is:
+
+**Once a major release is published, will new features and fixes be backported to previous versions?**
+
+**Generally, no.** New features and fixes will only be added to the most recent major version. When a new major version is released, previous major versions become **static** and will not receive:
+- ❌ New features (FEATURES in changelog)
+- ❌ Enhancements (ENHANCEMENTS in changelog)  
+- ❌ New resources or data sources
+- ❌ Minor version updates
+- ❌ Non-critical bug fixes
+
+**Exception for Security Vulnerabilities:**  
+Critical security vulnerabilities are reviewed on a case-by-case basis. Backporting security fixes to previous major versions may occur when it is the most reasonable course of action to protect users.
+
+**Rationale:**  
+Due to the high-touch nature of provider development and the extensive regression testing required to ensure stability, maintaining multiple active major versions is not sustainable. This approach allows the team to focus on delivering the best experience on the current major version.
+
+**Recommendation:**  
+Users should plan to upgrade to the latest major version to receive new features, enhancements, and bug fixes. It is generally recommended to pin the provider version in your configuration and test upgrades in non-production environments first.
+
+### Support Windows
+- **Current Major Version (N):** Full support including new features, enhancements, and bug fixes
+- **Previous Major Version (N-1):** Static - no new features or enhancements; security updates only (case-by-case basis)
+- **Older Major Versions (N-2 and below):** End-of-life, no support
+
+### Support Timeline Details
+
+**Minor Versions (within same major version):**
+- Latest minor version receives all updates
+- Previous minor versions: Users should upgrade to latest minor within the same major version
+- No backporting to older minor versions within a major version
+
+**Major Version Lifecycle:**
+- **Active Development:** Current major version (N) receives all updates
+- **Security-Only Period:** Previous major version (N-1) may receive critical security fixes for 6 months after new major release
+- **End-of-Life:** After 6 months, previous major versions receive no updates
 
 ### Migration Assistance
 - Automated migration tools for common scenarios
-- Step-by-step migration guides
+- Step-by-step migration guides in dedicated upgrade documentation
 - Professional services for complex migrations
+- Community support during major version transitions
+
+### Example Version Lifecycle
+
+**Scenario:** Provider is at v1.8.9, and v2.0.0 is about to be released
+
+**Before v2.0.0 release:**
+```
+v1.8.9 (Current) → Receives all updates:
+  ✅ New features
+  ✅ Enhancements
+  ✅ Bug fixes
+  ✅ Security patches
+```
+
+**After v2.0.0 release (Day 1):**
+```
+v2.0.0 (Current) → Receives all updates:
+  ✅ New features
+  ✅ Enhancements  
+  ✅ Bug fixes
+  ✅ Security patches
+
+v1.8.9 (Previous) → STATIC (security-only period):
+  ❌ New features
+  ❌ Enhancements
+  ❌ Bug fixes
+  ⚠️ Security patches (case-by-case, 6 months only)
+```
+
+**After v2.0.0 release (6+ months):**
+```
+v2.0.0+ (Current) → Receives all updates:
+  ✅ New features
+  ✅ Enhancements
+  ✅ Bug fixes
+  ✅ Security patches
+
+v1.x (Previous) → END OF LIFE:
+  ❌ No updates of any kind
+  ❌ No security patches
+  ⚠️ Users must upgrade to v2.x
+```
+
+**Key Takeaway:** Plan major version upgrades proactively. Previous major versions become static immediately upon new major release.
 
 ## Communication Strategy
 
@@ -1094,9 +280,23 @@ DEPRECATIONS:
 
 ### User Notification Process
 
-Following AWS provider communication patterns:
+Following HashiCorp and AWS provider communication patterns with multi-channel approach:
 
-1. **Provider Log Warnings**
+1. **In-Code Deprecation Warnings** (Primary Channel)
+   
+   Terraform Plugin Framework automatically generates warnings during `terraform plan` and `terraform apply`:
+   ```
+   │ Warning: Attribute Deprecated
+   │ 
+   │   with rafay_eks_cluster.example,
+   │   on main.tf line 5, in resource "rafay_eks_cluster" "example":
+   │    5:   project_id = "my-project"
+   │ 
+   │ Configure metadata.project instead. This attribute will be removed in the
+   │ next major version of the provider.
+   ```
+
+2. **Provider Log Messages** (Development/Debug)
    ```
    [WARN] rafay_cluster resource is deprecated and will be removed in version 2.0.0. Use rafay_eks_cluster instead. See upgrade guide: https://registry.terraform.io/providers/RafaySystems/rafay/latest/docs/guides/version-2-upgrade
    
@@ -1105,17 +305,39 @@ Following AWS provider communication patterns:
    [WARN] rafay_aks_cluster.example: Argument "tags" is deprecated and will be removed in version 2.0.0. Use "resource_tags" block instead for enhanced tagging capabilities.
    ```
 
-2. **Documentation Updates**
-   - Deprecation notices prominently displayed in resource documentation
-   - Migration examples with side-by-side comparisons
-   - Clear timelines with specific version numbers
-   - Links to upgrade guides and automated migration tools
+3. **Documentation Updates** (Reference Material)
+   - **Deprecation notices** prominently displayed at the top of resource documentation
+   - **Warning banners** on affected pages with timeline and migration path
+   - **Migration examples** with side-by-side comparisons (before/after)
+   - **Clear timelines** with specific version numbers
+   - **Links to upgrade guides** and automated migration tools
+   - **Search optimization** to help users find deprecation information
 
-3. **GitHub Releases**
+4. **CHANGELOG.md** (Version History)
+   - **DEPRECATIONS section** in every release that introduces deprecations
+   - **BREAKING CHANGES section** in major versions
+   - Consistent formatting following AWS provider patterns
+   - Direct links to migration guides and related issues
+
+5. **GitHub Releases** (Release Announcements)
    - Detailed upgrade notes with each release following AWS provider format
+   - Prominent deprecation warnings in release notes
    - Direct links to migration guides and documentation
-   - Highlight breaking changes and deprecations in release notes
+   - Highlight breaking changes with visual markers
    - Provide downloadable migration scripts where applicable
+
+6. **Upgrade Guides** (Detailed Migration Instructions)
+   - Dedicated upgrade guide for each major version (e.g., `version-2-upgrade.md`)
+   - Step-by-step migration instructions
+   - Before/after code examples
+   - Common pitfalls and troubleshooting
+   - Automated migration tool documentation
+
+**Multi-Channel Strategy Benefits:**
+- **Proactive Warnings**: Users see warnings in their workflow (`terraform plan`)
+- **Reference Documentation**: Users can research deprecations before encountering them
+- **Version Control**: Changelog provides historical context
+- **Search Discoverability**: Multiple channels improve search engine visibility
 
 ## State Migration Support
 
@@ -1270,13 +492,36 @@ docs/
 
 ## Exceptions and Special Cases
 
-### Emergency Deprecations
+### Emergency Deprecations and Security Vulnerabilities
 
-In rare cases where security vulnerabilities or critical bugs require immediate action:
-- Minimum 30-day notice for emergency deprecations
+Following HashiCorp best practices for handling security-critical situations:
+
+**Security Vulnerabilities:**
+- **Immediate Action Required**: Security vulnerabilities may require immediate breaking changes, bypassing normal deprecation timelines
+- **No Minimum Notice Period**: When security is at risk, changes may be implemented immediately without the standard grace period
+- **Enhanced Communication**: 
+  - Immediate security advisory with CVE details (if applicable)
+  - Clear explanation of the vulnerability and impact
+  - Urgent upgrade recommendations
+  - Direct notification to known users via multiple channels
+- **Expedited Documentation**: Fast-tracked documentation updates and migration guides
+- **Backport Policy**: Critical security fixes may be backported to previous major version (N-1) on a case-by-case basis, reviewed within 6 months of major release
+
+**Critical Bug Emergency Deprecations:**
+For non-security critical bugs requiring rapid action:
+- **Minimum 30-day notice** for emergency deprecations
 - Immediate patch release with fixes
-- Accelerated migration assistance
-- Clear communication about urgency
+- Accelerated migration assistance with direct support
+- Clear communication about urgency and impact
+- Temporary workarounds provided where possible
+
+**Communication Priority Order:**
+1. Security advisories (for vulnerabilities)
+2. GitHub releases with emergency tag
+3. Provider changelog with prominent warnings
+4. Documentation homepage notices
+5. Community channels (forums, slack, etc.)
+6. Direct email to registered users (if available)
 
 ## Compliance and Monitoring
 
@@ -1293,6 +538,67 @@ In rare cases where security vulnerabilities or critical bugs require immediate 
 - Automated testing of upgrade scenarios
 - Documentation review requirements
 
+## Summary: HashiCorp Deprecation Best Practices
+
+This policy aligns with HashiCorp's core deprecation principles:
+
+### Key Principles
+
+1. **Practitioner-Focused Communication**
+   - Use clear, actionable language in deprecation messages
+   - Tell users what to do, not just what's deprecated
+   - Include timelines in all deprecation notices
+
+2. **Phased Deprecation Approach**
+   - **Phase 1 (Deprecated)**: Feature marked for removal, fully functional with warnings
+   - **Phase 2 (Pending Removal)**: Behavior altered, use strongly discouraged
+   - **Phase 3 (Removed)**: Feature removed in major version with migration support
+
+3. **Multi-Channel Communication**
+   - In-code warnings (primary channel for practitioners)
+   - Documentation updates (reference and research)
+   - Changelog entries (version history)
+   - GitHub releases (announcements)
+   - Upgrade guides (detailed migration instructions)
+
+4. **Adequate Notice Periods**
+   - Minimum 3 months for attributes and data sources
+   - Minimum 6 months for resources
+   - Minimum 9 months for provider configuration
+   - Security exceptions may bypass timelines
+
+5. **Backward Compatibility**
+   - Deprecated features remain fully functional during grace period
+   - Breaking changes only in major versions
+   - State migration support for smooth upgrades
+   - **Previous major versions become STATIC** - no new features or enhancements after new major release
+
+6. **Clear Migration Paths**
+   - Always provide alternatives before deprecation
+   - Include side-by-side examples
+   - Offer automated migration tools where possible
+   - Maintain historical state upgraders
+
+7. **Version Support Model** (Following [AWS Provider approach](https://hashicorp.github.io/terraform-provider-aws/faq/))
+   - Only current major version receives features, enhancements, and bug fixes
+   - Previous major versions: security patches only (case-by-case, 6 months max)
+   - Older major versions: end-of-life, no support
+   - Users should plan proactive upgrades to latest major version
+
+### Plugin Framework Specifics
+
+- Use `DeprecationMessage` field on both attributes and blocks
+- Follow format: "Configure {alternative} instead. This {type} will be removed in the next major version of the provider."
+- Update both `DeprecationMessage` and `Description` fields
+- Terraform automatically generates warnings during plan/apply
+
+### SDKv2 Specifics
+
+- Use `Deprecated` field for schema attributes
+- Use `DeprecationMessage` field for entire resources/data sources
+- Custom validation functions for value-specific deprecations
+- Implement `StateUpgraders` for schema version migrations
+
 ## Contact and Support
 
 For questions about deprecations or migration assistance:
@@ -1303,8 +609,9 @@ For questions about deprecations or migration assistance:
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** October 2024  
-**Next Review:** January 2025
+**Document Version:** 1.1  
+**Last Updated:** October 2025  
+**Next Review:** January 2026
+**Change Summary:** Updated to align with HashiCorp Terraform Plugin Framework deprecation best practices
 
-This deprecation policy ensures predictable, user-friendly evolution of the Rafay Terraform Provider while maintaining stability and trust in production environments.
+This deprecation policy ensures predictable, user-friendly evolution of the Rafay Terraform Provider while maintaining stability and trust in production environments. It follows HashiCorp's recommended best practices for practitioner-focused communication, phased deprecation timelines, and multi-channel notification strategies.

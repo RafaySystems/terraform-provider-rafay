@@ -60,14 +60,14 @@ Based on HashiCorp Terraform recommended best practices ([Framework Deprecations
 
 1. **Phase 1: Deprecated** (Version N)
    - **Status**: Feature is marked for removal in a future major release
-   - Announce deprecations with at least one minor version lead time (minimum 3 months)
+   - Announce deprecations with at least one minor version lead time
    - Add practitioner-focused deprecation warnings using `DeprecationMessage` field
    - Update documentation with deprecation notices and migration paths
    - Include in `CHANGELOG.md` under **DEPRECATIONS** section
    - Provide automated detection tools where possible
    - Feature remains fully functional with warnings
 
-2. **Phase 2: Pending Removal** (Version N+1 to N+X)
+2. **Phase 2: Pending Removal** (Version N.1 to N.X)
    - **Status**: Feature behavior fundamentally altered; use strongly discouraged
    - Maintain backward compatibility for a grace period
    - Provide comprehensive migration examples and upgrade guides
@@ -234,7 +234,7 @@ v1.x (Previous) → END OF LIFE:
 
 ### CHANGELOG.md Integration
 
-Based on AWS provider [changelog patterns](https://github.com/hashicorp/terraform-provider-aws/releases), automated changelog generation via GitHub Actions with clear categorization:
+Automated changelog generation via GitHub Actions with clear categorization:
 
 - **BREAKING CHANGES:** Schema changes, resource removals, behavior changes requiring user action
 - **FEATURES:** New resources, data sources, and major functionality additions
@@ -243,9 +243,7 @@ Based on AWS provider [changelog patterns](https://github.com/hashicorp/terrafor
 - **DEPRECATIONS:** Advance notice of upcoming changes with removal timelines
 - **DOCUMENTATION:** Documentation updates, example improvements, and clarifications
 
-### AWS Provider Changelog Format Example
-
-Following the standardized format from AWS provider releases:
+### Changelog Format Example
 
 ```markdown
 ## 2.0.0 (January 15, 2025)
@@ -351,7 +349,7 @@ For compatible schema changes:
 
 ### Manual Migration Procedures
 
-For complex changes requiring user intervention, following AWS provider migration patterns:
+For complex changes requiring user intervention:
 
 1. **Resource Renames**
    ```bash
@@ -423,8 +421,6 @@ For complex changes requiring user intervention, following AWS provider migratio
 
 ### Automated Migration Tools
 
-Following AWS provider automation patterns:
-
 ```bash
 # Rafay Provider Migration CLI Tool (planned for v2.0 release)
 
@@ -439,21 +435,6 @@ rafay-migrate apply --backup-state
 
 # Validate migration results
 rafay-migrate validate --post-migration-check
-```
-
-## Upgrade Documentation Structure
-
-```
-docs/
-├── guides/
-│   ├── version-2-upgrade.md      # Major version upgrade guide
-│   ├── version-1.5-upgrade.md    # Minor version with deprecations
-│   └── migration-examples/       # Specific migration scenarios
-│       ├── cluster-migration.md
-│       ├── rbac-migration.md
-│       └── state-migration.md
-├── UPGRADE.md                    # Current upgrade notes
-└── CHANGELOG.md                  # Automated changelog
 ```
 
 ## Implementation Guidelines
@@ -552,7 +533,7 @@ This policy aligns with HashiCorp's core deprecation principles:
 2. **Phased Deprecation Approach**
    - **Phase 1 (Deprecated)**: Feature marked for removal, fully functional with warnings
    - **Phase 2 (Pending Removal)**: Behavior altered, use strongly discouraged
-   - **Phase 3 (Removed)**: Feature removed in major version with migration support
+   - **Phase 3 (Removed)**: Feature removed in new major version with migration support
 
 3. **Multi-Channel Communication**
    - In-code warnings (primary channel for practitioners)
@@ -609,9 +590,8 @@ For questions about deprecations or migration assistance:
 
 ---
 
-**Document Version:** 1.1  
+**Document Version:** 1.0
 **Last Updated:** October 2025  
-**Next Review:** January 2026
 **Change Summary:** Updated to align with HashiCorp Terraform Plugin Framework deprecation best practices
 
 This deprecation policy ensures predictable, user-friendly evolution of the Rafay Terraform Provider while maintaining stability and trust in production environments. It follows HashiCorp's recommended best practices for practitioner-focused communication, phased deprecation timelines, and multi-channel notification strategies.

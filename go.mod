@@ -247,3 +247,5 @@ replace (
 	sigs.k8s.io/cluster-api => github.com/abhay-krishna/cluster-api v1.4.2-eksa.1
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.14.5
 )
+
+replace github.com/RafaySystems/rctl => /Users/vishalv/terraform-changes/rctl

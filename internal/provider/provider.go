@@ -98,9 +98,12 @@ func (p *RafayFwProvider) Configure(ctx context.Context, req provider.ConfigureR
 	restEndpoint := data.RestEndpoint.ValueString()
 	project := data.Project.ValueString()
 
+	cliCtx := rctlcontext.GetContext()
 	if apiKey != "" && restEndpoint != "" {
-		os.Setenv("RCTL_API_KEY", apiKey)
-		os.Setenv("RCTL_REST_ENDPOINT", restEndpoint)
+		cliCtx.APIKey = apiKey
+		cliCtx.RestEndpoint = restEndpoint
+
+		// The project is handled by setting an environment variable, which rctl already supports.
 		if project != "" {
 			os.Setenv("RCTL_PROJECT", project)
 		}
@@ -112,29 +115,6 @@ func (p *RafayFwProvider) Configure(ctx context.Context, req provider.ConfigureR
 	tflog.Info(ctx, "rafay provider config file", map[string]interface{}{
 		"config_file": configFile,
 	})
-
-	if apiKey != "" && restEndpoint != "" {
-		if ignoreTlsError.ValueBool() {
-			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-		}
-
-		auth := &config.AppAuthConfig{
-			URL: restEndpoint,
-			Key: apiKey,
-		}
-
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
-		if err != nil {
-			resp.Diagnostics.AddError("Unable to initialise the Client, Error", err.Error())
-			return
-		}
-		// Save the client in the provider data
-		resp.ResourceData = client
-		resp.DataSourceData = client
-		return
-	}
-
-	cliCtx := rctlcontext.GetContext()
 
 	if configFile != "" {
 		var err error

@@ -1,4 +1,4 @@
-# Deprecation Policy
+# Deprecation Policy and Semantic Versioning
 
 ## Overview
 

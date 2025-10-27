@@ -8,7 +8,7 @@ The Rafay Terraform Provider uses an **automated AI-powered changelog system** t
 
 When you merge a PR:
 1. **Automatic Trigger**: GitHub Actions workflow activates
-2. **AI Analysis**: Claude AI analyzes your commits and code changes
+2. **AI Analysis**: OpenAI GPT analyzes your commits and code changes
 3. **Smart Categorization**: Changes are categorized into BREAKING CHANGES, FEATURES, ENHANCEMENTS, BUG FIXES, DEPRECATIONS, and DOCUMENTATION
 4. **Deprecation Detection**: Go code is scanned for `Deprecated` and `DeprecationMessage` fields
 5. **CHANGELOG Update**: Entries are automatically added to CHANGELOG.md

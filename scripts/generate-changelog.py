@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 AI-Powered Changelog Generator for Terraform Provider
-Adapted from ai-changelog project for GitHub Actions integration
+Uses OpenAI GPT models for intelligent changelog generation
 """
 
 import os
@@ -14,7 +14,7 @@ from typing import List, Dict, Optional
 import subprocess
 
 try:
-    from anthropic import Anthropic
+    from openai import OpenAI
     from dotenv import load_dotenv
 except ImportError:
     print("Error: Required packages not installed. Run: pip install -r scripts/requirements.txt")
@@ -25,8 +25,8 @@ load_dotenv()
 
 class ChangelogGenerator:
     def __init__(self, api_key: str, config_path: str = ".github/changelog-config.json"):
-        """Initialize the changelog generator with Claude API."""
-        self.client = Anthropic(api_key=api_key)
+        """Initialize the changelog generator with OpenAI API."""
+        self.client = OpenAI(api_key=api_key)
         self.config = self._load_config(config_path)
         
     def _load_config(self, config_path: str) -> Dict:
@@ -37,7 +37,7 @@ class ChangelogGenerator:
         except FileNotFoundError:
             # Default configuration
             return {
-                "ai_model": "claude-3-5-sonnet-20241022",
+                "ai_model": "gpt-4o",
                 "max_commits_per_pr": 100,
                 "changelog_style": "terraform-aws-provider",
                 "categories": [
@@ -129,7 +129,7 @@ class ChangelogGenerator:
                                    deprecations: List[Dict],
                                    pr_number: Optional[int] = None,
                                    pr_url: Optional[str] = None) -> str:
-        """Generate changelog content using Claude AI."""
+        """Generate changelog content using OpenAI GPT."""
         
         # Preprocess commits
         processed_commits = self._preprocess_commits(commits)
@@ -210,17 +210,20 @@ CATEGORIZATION RULES:
 Generate ONLY the changelog entries (bullet points), grouped by category. Do not include section headers, just the categorized bullet points."""
 
         try:
-            response = self.client.messages.create(
+            response = self.client.chat.completions.create(
                 model=self.config['ai_model'],
                 max_tokens=2000,
                 temperature=0.3,
                 messages=[{
+                    "role": "system",
+                    "content": "You are a technical writer specializing in Terraform provider documentation. You generate professional changelog entries following HashiCorp AWS provider standards."
+                }, {
                     "role": "user",
                     "content": prompt
                 }]
             )
             
-            content = response.content[0].text
+            content = response.choices[0].message.content
             
             # Post-process: Add PR reference if not already present
             if pr_number and pr_url:
@@ -294,6 +297,10 @@ Generate ONLY the changelog entries (bullet points), grouped by category. Do not
                     else:
                         current_category = 'ENHANCEMENTS'
                 
+                categorized[current_category].append(line)
+            elif current_category:
+                # Non-bullet line but we have a category - include it as continuation
+                # This handles multi-line entries or important context from AI
                 categorized[current_category].append(line)
         
         return categorized
@@ -376,7 +383,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### DOCUMENTATION
 
 ---
-*Note: Changelog entries are automatically generated from commits using AI analysis.*
 """
 
 
@@ -394,10 +400,22 @@ def main():
     
     args = parser.parse_args()
     
+    # Debug: Print received arguments
+    print("=" * 50)
+    print("DEBUG: Received Arguments")
+    print("=" * 50)
+    print(f"PR Number: {args.pr_number}")
+    print(f"PR URL: {args.pr_url}")
+    print(f"Base Ref: {args.base_ref}")
+    print(f"Head Ref: {args.head_ref}")
+    print(f"Target Section: {args.target_section}")
+    print(f"Deprecations File: {args.deprecations_file}")
+    print("=" * 50)
+
     # Get API key from environment
-    api_key = os.getenv('CLAUDE_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
+    api_key = os.getenv('OPENAI_API_KEY')
     if not api_key:
-        print("Error: CLAUDE_API_KEY or ANTHROPIC_API_KEY environment variable not set")
+        print("Error: OPENAI_API_KEY environment variable not set")
         sys.exit(1)
     
     # Initialize generator

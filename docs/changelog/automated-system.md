@@ -6,7 +6,7 @@ The Rafay Terraform Provider uses an AI-powered automated changelog system that 
 
 ## Key Features
 
-- **AI-Powered Categorization**: Uses Claude AI to intelligently categorize and describe changes
+- **AI-Powered Categorization**: Uses OpenAI GPT models to intelligently categorize and describe changes
 - **Automatic Deprecation Detection**: Scans Go code for `Deprecated` and `DeprecationMessage` fields
 - **Branch-Aware**: Handles both master branch (Unreleased) and release branches
 - **Cherry-Pick Support**: Works seamlessly with the existing cherry-pick workflow
@@ -20,7 +20,7 @@ When a PR is merged to the `master` branch:
 
 1. **GitHub Action Triggers**: The `changelog-on-merge.yml` workflow activates
 2. **Deprecation Scanning**: Go code changes are scanned for deprecation warnings
-3. **Commit Analysis**: Claude AI analyzes commit messages and changes
+3. **Commit Analysis**: OpenAI GPT analyzes commit messages and changes
 4. **Categorization**: Changes are categorized into:
    - BREAKING CHANGES
    - FEATURES
@@ -122,7 +122,7 @@ When a tag is created on a release branch:
 
 ## AI Categorization Rules
 
-The system uses Claude AI with specific rules to categorize changes:
+The system uses OpenAI GPT with specific rules to categorize changes:
 
 ### BREAKING CHANGES
 **Only for user-facing breaking changes:**
@@ -164,7 +164,7 @@ The system uses Claude AI with specific rules to categorize changes:
 ### Environment Variables (GitHub Secrets)
 
 Required:
-- `CLAUDE_API_KEY` or `ANTHROPIC_API_KEY` - For AI-powered changelog generation
+- `OPENAI_API_KEY` - For AI-powered changelog generation
 - `GITHUB_TOKEN` - Automatically provided by GitHub Actions
 - `JENKINS_PAT` - For branch cut workflow (if using Jenkins integration)
 - `RCTL_GO_MODULES_TOKEN` - For accessing private Go modules
@@ -172,7 +172,7 @@ Required:
 ### Customization
 
 Edit `.github/changelog-config.json` to customize:
-- AI model version
+- AI model version (e.g., gpt-4-turbo-preview, gpt-4, gpt-3.5-turbo)
 - Maximum commits per PR
 - Category names
 - Keyword weights
@@ -185,7 +185,7 @@ Edit `.github/changelog-config.json` to customize:
 **Check:**
 1. Was the PR actually merged (not just closed)?
 2. Check the GitHub Actions run for errors
-3. Verify `CLAUDE_API_KEY` is set in repository secrets
+3. Verify `OPENAI_API_KEY` is set in repository secrets
 4. Check if PR has `skip-changelog` label
 
 ### Incorrect Categorization
@@ -220,7 +220,7 @@ You can test the changelog generator locally:
 pip install -r scripts/requirements.txt
 
 # Set API key
-export CLAUDE_API_KEY="your-key-here"
+export OPENAI_API_KEY="your-key-here"
 
 # Generate changelog (dry run)
 python3 scripts/generate-changelog.py \
@@ -272,7 +272,7 @@ bash scripts/extract-release-notes.sh 1.2.0 > release-notes.md
 Edit `.github/changelog-config.json`:
 ```json
 {
-  "ai_model": "claude-3-5-sonnet-20250201"  // Update to newer model
+  "ai_model": "gpt-4-turbo-preview"  // Or gpt-4, gpt-4o, etc.
 }
 ```
 
@@ -284,10 +284,10 @@ Edit the categorization rules in `.github/changelog-config.json` or adjust the p
 
 ```bash
 # Update requirements.txt
-pip install --upgrade anthropic requests python-dotenv
+pip install --upgrade openai requests python-dotenv
 
 # Regenerate requirements.txt
-pip freeze | grep -E 'anthropic|requests|python-dotenv' > scripts/requirements.txt
+pip freeze | grep -E 'openai|requests|python-dotenv' > scripts/requirements.txt
 ```
 
 ## Support

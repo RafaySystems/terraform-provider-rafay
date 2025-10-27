@@ -96,8 +96,7 @@ jobs:
       
       - name: Generate changelog entries
         env:
-          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           PR_URL=${{ github.event.pull_request.html_url }}

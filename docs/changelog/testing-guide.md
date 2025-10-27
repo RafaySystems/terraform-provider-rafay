@@ -10,7 +10,7 @@ Before testing, ensure you have:
 
 1. **Python 3.9+** installed
 2. **Go 1.19+** installed (for deprecation scanner)
-3. **Claude API Key** (set as `CLAUDE_API_KEY` environment variable)
+3. **OpenAI API Key** (set as `OPENAI_API_KEY` environment variable)
 4. **Git repository** with full history
 5. **GitHub repository secrets** configured (for CI/CD testing)
 
@@ -24,7 +24,7 @@ cd /path/to/terraform-provider-rafay
 pip install -r scripts/requirements.txt
 
 # Verify installation
-python3 -c "import anthropic; print('✓ Dependencies installed')"
+python3 -c "import openai; print('✓ Dependencies installed')"
 ```
 
 ### 2. Test Deprecation Scanner
@@ -60,7 +60,7 @@ cat test-deprecations.json | python3 -m json.tool
 
 ```bash
 # Set your API key
-export CLAUDE_API_KEY="your-key-here"
+export OPENAI_API_KEY="your-key-here"
 
 # Test with recent commits
 python3 scripts/generate-changelog.py \
@@ -228,7 +228,7 @@ git push origin :refs/tags/v9.9.9-test
 - [ ] Changelog generator works in dry-run mode
 - [ ] Changelog generator updates CHANGELOG.md correctly
 - [ ] Helper scripts execute without errors
-- [ ] CLAUDE_API_KEY is set in GitHub secrets
+- [ ] OPENAI_API_KEY is set in GitHub secrets
 
 ### Post-Deployment
 
@@ -244,12 +244,12 @@ git push origin :refs/tags/v9.9.9-test
 
 ## Common Issues and Solutions
 
-### Issue: "CLAUDE_API_KEY not set"
+### Issue: "OPENAI_API_KEY not set"
 
 **Solution:**
 ```bash
 # For local testing
-export CLAUDE_API_KEY="sk-ant-..."
+export OPENAI_API_KEY="sk-..."
 
 # For GitHub Actions
 # Add to repository secrets: Settings → Secrets → Actions → New secret

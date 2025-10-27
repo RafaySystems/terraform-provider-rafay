@@ -1,5 +1,5 @@
 {
-  "ai_model": "claude-3-5-sonnet-20241022",
+  "ai_model": "gpt-4-turbo-preview",
   "max_commits_per_pr": 50,
   "changelog_style": "terraform-aws-provider",
   "categories": [

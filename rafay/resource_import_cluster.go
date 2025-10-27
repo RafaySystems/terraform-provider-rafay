@@ -310,14 +310,8 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	project_id := p.ID
 
-	proxyCfg := expandProxyConfigImportCluster(d.Get("proxy_config"))
-	if proxyCfg == nil {
-		// Cases where no proxy config is provided
-		proxyCfg = &models.ProxyConfig{}
-	}
-
 	//create imported cluster
-	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string), d.Get("provision_environment").(string), d.Get("kubernetes_provider").(string), *proxyCfg)
+	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string), d.Get("provision_environment").(string), d.Get("kubernetes_provider").(string), *expandProxyConfigImportCluster(d.Get("proxy_config")))
 	if err != nil {
 		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
 		return diag.FromErr(err)

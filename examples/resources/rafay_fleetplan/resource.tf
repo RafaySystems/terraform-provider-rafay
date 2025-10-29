@@ -1,4 +1,4 @@
-resource "rafay_fleetplan" "fp1" {
+resource "rafay_fleetplan" "fp_clusters" {
   metadata {
     name    = "fleetplan1"
     project = "defaultproject"
@@ -118,4 +118,144 @@ resource "rafay_fleetplan" "fp1" {
     }
   }
 }
+
+resource "rafay_fleetplan" "fp_environments" {
+  metadata {
+    name    = "fleetplan-env"
+    project = "defaultproject"
+  }
+  spec {
+    fleet {
+      kind = "environments"
+
+      projects {
+        name = "defaultproject"
+      }
+
+      projects {
+        name = "project1"
+      }
+      target_batch_size = 2
+    }
+    operation_workflow {
+      operations {
+        name = "op1"
+        action {
+          type        = "resourceDeploy"
+          description = "deploy environment resources"
+        }
+      }
+      operations {
+        name = "op2"
+        action {
+          type        = "templateVersionUpdate"
+          description = "update template version"
+          environment_template_version_update_config {
+            version = "v1.1"
+          }
+        }
+      }
+      operations {
+        name = "op3"
+        action {
+          type        = "environmentVariableUpdate"
+          description = "update cluster blueprint"
+          environment_variable_update_config {
+            key = "Blueprint Name"
+            value = "minimal"
+            value_type = "text"
+          }
+          continue_on_failure = true
+        }
+      }
+      operations {
+        name = "op4"
+        action {
+          type        = "resourceDestroy"
+          description = "destroy environment resources"
+        }
+      }
+    }
+    schedules {
+      type = "recurring"
+      cadence {
+        cron_expression = "50 16 * * *"
+        cron_timezone = "Asia/Kolkata"
+      }
+      opt_out_options {
+        allow_opt_out {
+          value = true
+        }
+        max_allowed_duration = "20m"
+        max_allowed_times = 5
+      }
+      opt_out {
+        duration = "300s"
+      }
+    }
+    # schedules {
+    #   type = "one-time"
+    #   cadence {
+    #     time_to_live = "5m"
+    #   }
+    #   opt_out_options {
+    #     allow_opt_out {
+    #       value = true
+    #     }
+    #     max_allowed_duration = "20m"
+    #     max_allowed_times = 5
+    #   }
+    #   opt_out {
+    #     duration = "300s"
+    #   }
+    # }
+  }
+}
+
+resource "rafay_fleetplan_trigger" "fp_trigger" {
+  depends_on = [ rafay_fleetplan.fp_environments ]
+  
+  fleetplan_name = rafay_fleetplan.fp_environments.metadata[0].name
+  project = rafay_fleetplan.fp_environments.metadata[0].project
+  trigger_value = ""
+}
+
+data "rafay_fleetplan" "environment_fleetplan" {
+  depends_on = [ rafay_fleetplan.fp_environments ]
+
+  metadata {
+    project = rafay_fleetplan.fp_environments.metadata[0].project
+    name = rafay_fleetplan.fp_environments.metadata[0].name
+  }
+}
+
+data "rafay_fleetplan_jobs" "fleetplan_jobs" {
+  depends_on = [ rafay_fleetplan.fp_environments ]
+  fleetplan_name = rafay_fleetplan.fp_environments.metadata[0].name
+  project = rafay_fleetplan.fp_environments.metadata[0].project
+}
+
+data "rafay_fleetplan_job" "job1" {
+  depends_on = [ rafay_fleetplan.fp_environments, data.rafay_fleetplan_jobs.fleetplan_jobs ]
+  fleetplan_name = rafay_fleetplan.fp_environments.metadata[0].name
+  project = rafay_fleetplan.fp_environments.metadata[0].project
+  name = "1"
+}
+
+output "environment_fleetplan_spec" {
+  value = data.rafay_fleetplan.environment_fleetplan.spec
+}
+
+output "environment_fleetplan_meta" {
+  value = data.rafay_fleetplan.environment_fleetplan.metadata
+}
+
+output "fleetplan_jobs" {
+  value = data.rafay_fleetplan_jobs.fleetplan_jobs.jobs
+}
+
+output "fleetplan_job_status" {
+  value = data.rafay_fleetplan_job.job1.status
+}
+
 

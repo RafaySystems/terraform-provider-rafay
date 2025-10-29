@@ -267,6 +267,8 @@ CATEGORIZATION RULES:
 - Fixes for import/export problems
 
 **DEPRECATIONS** - Advance notice of future breaking changes:
+- ONLY for actual deprecation actions (using "deprecate:" prefix or announcing "X is deprecated")
+- NOT for fixes/changes that mention deprecations in passing (e.g., "Fix: handle deprecated field" is a BUG FIX, not a DEPRECATION)
 - Deprecated resources, arguments, or values
 - Include migration path in description
 
@@ -283,7 +285,7 @@ Generate ONLY the changelog entries (bullet points), grouped by category. Do not
                 temperature=0.2,
                 messages=[{
                     "role": "system",
-                    "content": "You are a technical writer specializing in Terraform provider documentation. You generate professional, CONCISE changelog entries following HashiCorp AWS provider standards. Write matter-of-fact descriptions without explanatory phrases about benefits or rationale. State what changed, nothing more."
+                    "content": "You are a technical writer specializing in Terraform provider documentation. You generate professional, CONCISE changelog entries following HashiCorp AWS provider standards. Write matter-of-fact descriptions without explanatory phrases about benefits or rationale. State what changed, nothing more. Respect commit type prefixes (fix:, feat:, deprecate:, etc.) when categorizing - they take precedence over keywords in the message."
                 }, {
                     "role": "user",
                     "content": prompt
@@ -353,11 +355,34 @@ Generate ONLY the changelog entries (bullet points), grouped by category. Do not
                 line_lower = line.lower()
                 
                 if not current_category:
-                    if any(kw in line_lower for kw in ['breaking', 'removed', 'renamed']):
+                    # SOLUTION 1: Check commit type prefixes first (more reliable than keywords)
+                    if 'fix:' in line_lower or 'patch:' in line_lower:
+                        current_category = 'BUG FIXES'
+                    elif 'breaking:' in line_lower:
+                        current_category = 'BREAKING CHANGES'
+                    elif 'feat:' in line_lower and 'new resource' in line_lower:
+                        current_category = 'FEATURES'
+                    elif 'feat:' in line_lower and 'new data source' in line_lower:
+                        current_category = 'FEATURES'
+                    elif 'deprecate:' in line_lower:  # Only the prefix, not just the word
+                        current_category = 'DEPRECATIONS'
+                    elif 'docs:' in line_lower or 'example:' in line_lower:
+                        current_category = 'DOCUMENTATION'
+                    elif 'feat:' in line_lower or 'add:' in line_lower:
+                        current_category = 'FEATURES'
+                    elif 'enhance:' in line_lower or 'improve:' in line_lower or 'update:' in line_lower:
+                        current_category = 'ENHANCEMENTS'
+                    # Then check for specific patterns (fallback)
+                    elif any(kw in line_lower for kw in ['breaking', 'removed', 'renamed']):
                         current_category = 'BREAKING CHANGES'
                     elif any(kw in line_lower for kw in ['new resource', 'new data source']):
                         current_category = 'FEATURES'
-                    elif any(kw in line_lower for kw in ['deprecat']):
+                    # SOLUTION 2: More specific deprecation patterns (not just "deprecat" anywhere)
+                    elif any(pattern in line_lower for pattern in [
+                        'deprecate ', 'deprecated ', 'deprecation of',
+                        'mark deprecated', 'marked as deprecated',
+                        'is deprecated', 'are deprecated'
+                    ]):
                         current_category = 'DEPRECATIONS'
                     elif any(kw in line_lower for kw in ['fix', 'correct', 'resolve']):
                         current_category = 'BUG FIXES'

@@ -544,7 +544,7 @@ def main():
     if args.deprecations_file and os.path.exists(args.deprecations_file):
         with open(args.deprecations_file, 'r') as f:
             dep_data = json.load(f)
-            deprecations = dep_data.get('deprecations', [])
+            deprecations = dep_data.get('deprecations') or []
         print(f"Loaded {len(deprecations)} deprecation(s)")
     
     # Generate changelog content

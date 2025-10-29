@@ -129,7 +129,7 @@ jobs:
             echo "No changes to CHANGELOG.md or .changelog/"
           else
             git add .changelog/ CHANGELOG.md
-            git commit -m "chore: Update CHANGELOG for PR #${{ github.event.pull_request.number }}\n\nAuto-generated changelog entry for merged PR.\n\nPR: ${{ github.event.pull_request.html_url }}\n[skip ci]"
+            git commit -m "chore: Update CHANGELOG for PR #${{ github.event.pull_request.number }} [skip ci]"
             git push origin ${{ github.event.pull_request.base.ref }}
             echo "✓ CHANGELOG.md and .changelog/ updated and pushed"
           fi

@@ -281,7 +281,7 @@ Generate ONLY the changelog entries (bullet points), grouped by category. Do not
         try:
             response = self.client.chat.completions.create(
                 model=self.config['ai_model'],
-                max_tokens=5000,
+                max_tokens=2000,
                 temperature=0.2,
                 messages=[{
                     "role": "system",

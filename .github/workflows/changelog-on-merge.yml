@@ -124,13 +124,14 @@ jobs:
       
       - name: Commit and push changelog
         run: |
-          if git diff --quiet CHANGELOG.md; then
-            echo "No changes to CHANGELOG.md"
+          # Check if there are any changes to commit
+          if git diff --quiet CHANGELOG.md && [ -z "$(git status --porcelain .changelog/)" ]; then
+            echo "No changes to CHANGELOG.md or .changelog/"
           else
-            git add CHANGELOG.md
+            git add .changelog/ CHANGELOG.md
             git commit -m "chore: Update CHANGELOG for PR #${{ github.event.pull_request.number }}\n\nAuto-generated changelog entry for merged PR.\n\nPR: ${{ github.event.pull_request.html_url }}\n[skip ci]"
             git push origin ${{ github.event.pull_request.base.ref }}
-            echo "✓ CHANGELOG.md updated and pushed"
+            echo "✓ CHANGELOG.md and .changelog/ updated and pushed"
           fi
       
       - name: Comment on PR

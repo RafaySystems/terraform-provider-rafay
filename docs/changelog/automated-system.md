@@ -28,8 +28,9 @@ When a PR is merged to the `master` branch:
    - BUG FIXES
    - DEPRECATIONS
    - DOCUMENTATION
-5. **CHANGELOG Update**: Entries are added to the "Unreleased" section
-6. **Auto-Commit**: Changes are committed and pushed back to master
+5. **Fragment Creation**: Entries are written to `.changelog/{PR_NUMBER}.txt`
+6. **CHANGELOG Update**: Entries are added to the "Unreleased" section in `CHANGELOG.md`
+7. **Auto-Commit**: Both the fragment file and CHANGELOG.md are committed and pushed back to master
 
 ### 2. PR Merge to Release Branch
 
@@ -54,6 +55,40 @@ When a tag is created on a release branch:
 2. GoReleaser creates a GitHub Release with these notes
 3. The full CHANGELOG.md is included in release artifacts
 
+### 5. Changelog Fragments Workflow
+
+The system maintains individual changelog fragments in `.changelog/` for audit trail and traceability:
+
+**On PR Merge:**
+```
+PR #1131 merged
+    ↓
+Generate changelog entries
+    ↓
+Write to .changelog/1131.txt    ← Individual fragment
+    ↓
+Update CHANGELOG.md Unreleased  ← Consolidated changelog
+    ↓
+Commit both files
+```
+
+**Fragment File Example** (`.changelog/1131.txt`):
+```markdown
+### FEATURES
+
+* **New Resource:** `rafay_eks_pod_identity`: Support for EKS Pod Identity ([#1131](URL))
+
+### ENHANCEMENTS
+
+* resource/rafay_eks_cluster_spec: Add Pod Identity configuration support ([#1131](URL))
+```
+
+**Benefits:**
+- **Audit Trail**: Track exactly what changed in each PR
+- **Easy Review**: Review individual PR changes before release
+- **Revert Capability**: Easy to identify and revert specific PR's changes
+- **Release Compilation**: Can rebuild CHANGELOG.md from fragments if needed
+
 ## System Components
 
 ### Files and Their Purpose
@@ -73,6 +108,9 @@ When a tag is created on a release branch:
 #### Configuration
 - **`.github/changelog-config.json`** - AI model settings and categorization rules
 - **`CHANGELOG.md`** - Main changelog file (root level)
+- **`.changelog/`** - Directory containing individual PR changelog fragments
+  - `.changelog/README.md` - Documentation for changelog fragments
+  - `.changelog/{PR_NUMBER}.txt` - Individual PR changelog entries
 
 #### Documentation
 - **`docs/changelog/automated-system.md`** - This file
@@ -222,7 +260,7 @@ pip install -r scripts/requirements.txt
 # Set API key
 export OPENAI_API_KEY="your-key-here"
 
-# Generate changelog (dry run)
+# Generate changelog (dry run - preview only, no files written)
 python3 scripts/generate-changelog.py \
   --pr-number 123 \
   --pr-url "https://github.com/RafaySystems/terraform-provider-rafay/pull/123" \
@@ -230,14 +268,26 @@ python3 scripts/generate-changelog.py \
   --head-ref HEAD \
   --dry-run
 
-# Actually update CHANGELOG.md
+# Actually generate and write both .changelog/123.txt and update CHANGELOG.md
 python3 scripts/generate-changelog.py \
   --pr-number 123 \
   --pr-url "https://github.com/RafaySystems/terraform-provider-rafay/pull/123" \
   --base-ref origin/master \
   --head-ref HEAD \
   --target-section "Unreleased"
+
+# Generate without PR number (only updates CHANGELOG.md, no fragment file)
+python3 scripts/generate-changelog.py \
+  --base-ref HEAD~5 \
+  --head-ref HEAD \
+  --target-section "Unreleased"
 ```
+
+**Note:** When `--pr-number` is provided, the script will:
+1. Create/update `.changelog/{PR_NUMBER}.txt` with the categorized entries
+2. Update the `CHANGELOG.md` Unreleased section with the same entries
+
+When `--pr-number` is NOT provided, only `CHANGELOG.md` is updated.
 
 ### Manually Update Unreleased Section
 

@@ -366,6 +366,39 @@ Generate ONLY the changelog entries (bullet points), grouped by category. Do not
         
         return categorized
     
+    def write_pr_changelog_fragment(self, entries: Dict[str, List[str]], 
+                                    pr_number: int,
+                                    changelog_dir: str = ".changelog") -> bool:
+        """Write PR-specific changelog fragment to .changelog/ directory."""
+        try:
+            # Create .changelog directory if it doesn't exist
+            os.makedirs(changelog_dir, exist_ok=True)
+            
+            # Build changelog fragment content
+            fragment_content = ""
+            for category in self.config['categories']:
+                if entries.get(category):
+                    fragment_content += f"### {category}\n\n"
+                    for entry in entries[category]:
+                        fragment_content += f"{entry}\n"
+                    fragment_content += "\n"
+            
+            if not fragment_content.strip():
+                print("No changelog entries to write.")
+                return False
+            
+            # Write to PR-specific file
+            fragment_path = os.path.join(changelog_dir, f"{pr_number}.txt")
+            with open(fragment_path, 'w') as f:
+                f.write(fragment_content)
+            
+            print(f"✓ Successfully wrote changelog fragment to {fragment_path}")
+            return True
+        
+        except Exception as e:
+            print(f"Error writing changelog fragment: {e}")
+            return False
+    
     def update_changelog_file(self, entries: Dict[str, List[str]], 
                              target_section: str = "Unreleased",
                              changelog_path: str = "CHANGELOG.md") -> bool:
@@ -526,11 +559,25 @@ def main():
                     print(entry)
                 print()
     else:
-        success = generator.update_changelog_file(
+        # If PR number is provided, write both fragment and update main changelog
+        success = True
+        
+        if args.pr_number:
+            # Write PR-specific changelog fragment to .changelog/{PR_NUMBER}.txt
+            fragment_success = generator.write_pr_changelog_fragment(
+                categorized_entries,
+                pr_number=args.pr_number
+            )
+            success = success and fragment_success
+        
+        # Always update the main CHANGELOG.md
+        changelog_success = generator.update_changelog_file(
             categorized_entries,
             target_section=args.target_section,
             changelog_path=args.changelog_path
         )
+        success = success and changelog_success
+        
         sys.exit(0 if success else 1)
 
 

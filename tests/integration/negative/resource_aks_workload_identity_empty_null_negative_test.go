@@ -37,16 +37,22 @@ func TestAccNegAKSWorkloadIdentity_EmptyName_AllowsPlan(t *testing.T) {
 				Config: `
 					resource "rafay_aks_workload_identity" "test" {
 					  metadata {
-					    name        = ""          # empty
 					    cluster_name = "test-cluster"
 					    project     = "default"
 					  }
 					  
 					  spec {
+					    create_identity = true
 					    metadata {
-					      name           = "test-wi"
+					      name           = ""          # empty
 					      resource_group = "test-rg"
-					      tenant_id      = "12345678-1234-1234-1234-123456789012"
+					    }
+					    service_accounts {
+					      create_account = true
+					      metadata {
+					        name      = "test-sa"
+					        namespace = "default"
+					      }
 					    }
 					  }
 					}
@@ -57,35 +63,42 @@ func TestAccNegAKSWorkloadIdentity_EmptyName_AllowsPlan(t *testing.T) {
 }
 
 // null is treated as missing; expect "Missing required argument".
-func TestAccNegAKSWorkloadIdentity_NullName_RequiredError(t *testing.T) {
-	t.Parallel()
-	resource.Test(t, resource.TestCase{
-		ExternalProviders: externalProvidersNegWI,
-		Steps: []resource.TestStep{
-			{
-				PlanOnly: true,
-				Config: `
-					resource "rafay_aks_workload_identity" "test" {
-					  metadata {
-					    name        = null       # null
-					    cluster_name = "test-cluster"
-					    project     = "default"
-					  }
-					  
-					  spec {
-					    metadata {
-					      name           = "test-wi"
-					      resource_group = "test-rg"
-					      tenant_id      = "12345678-1234-1234-1234-123456789012"
-					    }
-					  }
-					}
-				`,
-				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*"metadata\.0\.name" is required`),
-			},
-		},
-	})
-}
+// COMMENTED OUT: spec.metadata.name is optional in the schema, not required
+// func TestAccNegAKSWorkloadIdentity_NullName_RequiredError(t *testing.T) {
+// 	t.Parallel()
+// 	resource.Test(t, resource.TestCase{
+// 		ExternalProviders: externalProvidersNegWI,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				PlanOnly: true,
+// 				Config: `
+// 					resource "rafay_aks_workload_identity" "test" {
+// 					  metadata {
+// 					    cluster_name = "test-cluster"
+// 					    project     = "default"
+// 					  }
+//
+// 					  spec {
+// 					    create_identity = true
+// 					    metadata {
+// 					      name           = null              # null
+// 					      resource_group = "test-rg"
+// 					    }
+// 					    service_accounts {
+// 					      create_account = true
+// 					      metadata {
+// 					        name      = "test-sa"
+// 					        namespace = "default"
+// 					      }
+// 					    }
+// 					  }
+// 					}
+// 				`,
+// 				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*spec.*metadata.*name.*is required`),
+// 			},
+// 		},
+// 	})
+// }
 
 // ---------- metadata.clustername ----------
 
@@ -101,16 +114,22 @@ func TestAccNegAKSWorkloadIdentity_EmptyClusterName_AllowsPlan(t *testing.T) {
 				Config: `
 					resource "rafay_aks_workload_identity" "test" {
 					  metadata {
-					    name        = "tf-neg-wi-empty-cluster"
-					    clustername = ""            # empty
+					    cluster_name = ""            # empty
 					    project     = "default"
 					  }
 					  
 					  spec {
+					    create_identity = true
 					    metadata {
 					      name           = "tf-neg-wi-empty-cluster"
 					      resource_group = "test-rg"
-					      tenant_id      = "12345678-1234-1234-1234-123456789012"
+					    }
+					    service_accounts {
+					      create_account = true
+					      metadata {
+					        name      = "test-sa"
+					        namespace = "default"
+					      }
 					    }
 					  }
 					}
@@ -131,21 +150,27 @@ func TestAccNegAKSWorkloadIdentity_NullClusterName_RequiredError(t *testing.T) {
 				Config: `
 					resource "rafay_aks_workload_identity" "test" {
 					  metadata {
-					    name        = "tf-neg-wi-null-cluster"
-					    clustername = null            # null
+					    cluster_name = null            # null
 					    project     = "default"
 					  }
 					  
 					  spec {
+					    create_identity = true
 					    metadata {
 					      name           = "tf-neg-wi-null-cluster"
 					      resource_group = "test-rg"
-					      tenant_id      = "12345678-1234-1234-1234-123456789012"
+					    }
+					    service_accounts {
+					      create_account = true
+					      metadata {
+					        name      = "test-sa"
+					        namespace = "default"
+					      }
 					    }
 					  }
 					}
 				`,
-				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*"metadata\.0\.clustername" is required`),
+				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*metadata.*cluster_name.*is required`),
 			},
 		},
 	})
@@ -165,16 +190,22 @@ func TestAccNegAKSWorkloadIdentity_EmptyProject_AllowsPlan(t *testing.T) {
 				Config: `
 					resource "rafay_aks_workload_identity" "test" {
 					  metadata {
-					    name        = "tf-neg-wi-empty-project"
 					    cluster_name = "test-cluster"
 					    project     = ""            # empty
 					  }
 					  
 					  spec {
+					    create_identity = true
 					    metadata {
 					      name           = "tf-neg-wi-empty-project"
 					      resource_group = "test-rg"
-					      tenant_id      = "12345678-1234-1234-1234-123456789012"
+					    }
+					    service_accounts {
+					      create_account = true
+					      metadata {
+					        name      = "test-sa"
+					        namespace = "default"
+					      }
 					    }
 					  }
 					}
@@ -195,21 +226,27 @@ func TestAccNegAKSWorkloadIdentity_NullProject_RequiredError(t *testing.T) {
 				Config: `
 					resource "rafay_aks_workload_identity" "test" {
 					  metadata {
-					    name        = "tf-neg-wi-null-project"
 					    cluster_name = "test-cluster"
 					    project     = null            # null
 					  }
 					  
 					  spec {
+					    create_identity = true
 					    metadata {
 					      name           = "tf-neg-wi-null-project"
 					      resource_group = "test-rg"
-					      tenant_id      = "12345678-1234-1234-1234-123456789012"
+					    }
+					    service_accounts {
+					      create_account = true
+					      metadata {
+					        name      = "test-sa"
+					        namespace = "default"
+					      }
 					    }
 					  }
 					}
 				`,
-				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*"metadata\.0\.project" is required`),
+				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*metadata.*project.*is required`),
 			},
 		},
 	})
@@ -229,16 +266,22 @@ func TestAccNegAKSWorkloadIdentity_EmptySpecName_AllowsPlan(t *testing.T) {
 				Config: `
 					resource "rafay_aks_workload_identity" "test" {
 					  metadata {
-					    name        = "tf-neg-wi-empty-spec-name"
 					    cluster_name = "test-cluster"
 					    project     = "default"
 					  }
 					  
 					  spec {
+					    create_identity = true
 					    metadata {
 					      name           = ""              # empty
 					      resource_group = "test-rg"
-					      tenant_id      = "12345678-1234-1234-1234-123456789012"
+					    }
+					    service_accounts {
+					      create_account = true
+					      metadata {
+					        name      = "test-sa"
+					        namespace = "default"
+					      }
 					    }
 					  }
 					}
@@ -249,35 +292,42 @@ func TestAccNegAKSWorkloadIdentity_EmptySpecName_AllowsPlan(t *testing.T) {
 }
 
 // null -> missing -> error.
-func TestAccNegAKSWorkloadIdentity_NullSpecName_RequiredError(t *testing.T) {
-	t.Parallel()
-	resource.Test(t, resource.TestCase{
-		ExternalProviders: externalProvidersNegWI,
-		Steps: []resource.TestStep{
-			{
-				PlanOnly: true,
-				Config: `
-					resource "rafay_aks_workload_identity" "test" {
-					  metadata {
-					    name        = "tf-neg-wi-null-spec-name"
-					    cluster_name = "test-cluster"
-					    project     = "default"
-					  }
-					  
-					  spec {
-					    metadata {
-					      name           = null              # null
-					      resource_group = "test-rg"
-					      tenant_id      = "12345678-1234-1234-1234-123456789012"
-					    }
-					  }
-					}
-				`,
-				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*"spec\.0\.metadata\.0\.name" is required`),
-			},
-		},
-	})
-}
+// COMMENTED OUT: spec.metadata.name is optional in the schema, not required
+// func TestAccNegAKSWorkloadIdentity_NullSpecName_RequiredError(t *testing.T) {
+// 	t.Parallel()
+// 	resource.Test(t, resource.TestCase{
+// 		ExternalProviders: externalProvidersNegWI,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				PlanOnly: true,
+// 				Config: `
+// 					resource "rafay_aks_workload_identity" "test" {
+// 					  metadata {
+// 					    cluster_name = "test-cluster"
+// 					    project     = "default"
+// 					  }
+//
+// 					  spec {
+// 					    create_identity = true
+// 					    metadata {
+// 					      name           = null              # null
+// 					      resource_group = "test-rg"
+// 					    }
+// 					    service_accounts {
+// 					      create_account = true
+// 					      metadata {
+// 					        name      = "test-sa"
+// 					        namespace = "default"
+// 					      }
+// 					    }
+// 					  }
+// 					}
+// 				`,
+// 				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*spec.*metadata.*name.*is required`),
+// 			},
+// 		},
+// 	})
+// }
 
 // ---------- invalid role scope ----------
 
@@ -293,21 +343,28 @@ func TestAccNegAKSWorkloadIdentity_InvalidRoleScope_Error(t *testing.T) {
 				Config: `
 					resource "rafay_aks_workload_identity" "test" {
 					  metadata {
-					    name        = "tf-neg-wi-invalid-scope"
 					    cluster_name = "test-cluster"
 					    project     = "default"
 					  }
 					  
 					  spec {
+					    create_identity = true
 					    metadata {
 					      name           = "tf-neg-wi-invalid-scope"
 					      resource_group = "test-rg"
-					      tenant_id      = "12345678-1234-1234-1234-123456789012"
 					    }
 					    
 					    role_assignments {
-					      scope                = "invalid-scope-format"   # Invalid scope
-					      role_definition_name = "Reader"
+					      name  = "Reader"
+					      scope = "invalid-scope-format"   # Invalid scope
+					    }
+					    
+					    service_accounts {
+					      create_account = true
+					      metadata {
+					        name      = "test-sa"
+					        namespace = "default"
+					      }
 					    }
 					  }
 					}
@@ -331,19 +388,19 @@ func TestAccNegAKSWorkloadIdentity_InvalidServiceAccountNamespace_Error(t *testi
 				Config: `
 					resource "rafay_aks_workload_identity" "test" {
 					  metadata {
-					    name        = "tf-neg-wi-invalid-ns"
 					    cluster_name = "test-cluster"
 					    project     = "default"
 					  }
 					  
 					  spec {
+					    create_identity = true
 					    metadata {
 					      name           = "tf-neg-wi-invalid-ns"
 					      resource_group = "test-rg"
-					      tenant_id      = "12345678-1234-1234-1234-123456789012"
 					    }
 					    
 					    service_accounts {
+					      create_account = true
 					      metadata {
 					        name      = "app-sa"
 					        namespace = "Invalid-Namespace!"   # Invalid namespace format

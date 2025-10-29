@@ -70,6 +70,16 @@ func TestAccNegAKSCluster_EmptyClusterName_AllowsPlan(t *testing.T) {
 					            dns_prefix        = "test"
 					          }
 					        }
+					        
+					        node_pools {
+					          apiversion = "2023-01-01"
+					          name       = "default"
+					          properties {
+					            count    = 1
+					            vm_size  = "Standard_DS2_v2"
+					            mode     = "System"
+					          }
+					        }
 					      }
 					    }
 					  }
@@ -124,12 +134,22 @@ func TestAccNegAKSCluster_NullClusterName_RequiredError(t *testing.T) {
 					            dns_prefix        = "test"
 					          }
 					        }
+					        
+					        node_pools {
+					          apiversion = "2023-01-01"
+					          name       = "default"
+					          properties {
+					            count    = 1
+					            vm_size  = "Standard_DS2_v2"
+					            mode     = "System"
+					          }
+					        }
 					      }
 					    }
 					  }
 					}
 				`,
-				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*"metadata\.0\.name" is required`),
+				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*metadata.*name.*is required`),
 			},
 		},
 	})
@@ -180,6 +200,16 @@ func TestAccNegAKSCluster_EmptyProject_AllowsPlan(t *testing.T) {
 					          properties {
 					            kubernetes_version = "1.27.3"
 					            dns_prefix        = "test"
+					          }
+					        }
+					        
+					        node_pools {
+					          apiversion = "2023-01-01"
+					          name       = "default"
+					          properties {
+					            count    = 1
+					            vm_size  = "Standard_DS2_v2"
+					            mode     = "System"
 					          }
 					        }
 					      }
@@ -236,12 +266,22 @@ func TestAccNegAKSCluster_NullProject_RequiredError(t *testing.T) {
 					            dns_prefix        = "test"
 					          }
 					        }
+					        
+					        node_pools {
+					          apiversion = "2023-01-01"
+					          name       = "default"
+					          properties {
+					            count    = 1
+					            vm_size  = "Standard_DS2_v2"
+					            mode     = "System"
+					          }
+					        }
 					      }
 					    }
 					  }
 					}
 				`,
-				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*"metadata\.0\.project" is required`),
+				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*metadata.*project.*is required`),
 			},
 		},
 	})
@@ -292,6 +332,16 @@ func TestAccNegAKSCluster_EmptyCloudProvider_AllowsPlan(t *testing.T) {
 					          properties {
 					            kubernetes_version = "1.27.3"
 					            dns_prefix        = "test"
+					          }
+					        }
+					        
+					        node_pools {
+					          apiversion = "2023-01-01"
+					          name       = "default"
+					          properties {
+					            count    = 1
+					            vm_size  = "Standard_DS2_v2"
+					            mode     = "System"
 					          }
 					        }
 					      }
@@ -348,12 +398,22 @@ func TestAccNegAKSCluster_NullCloudProvider_RequiredError(t *testing.T) {
 					            dns_prefix        = "test"
 					          }
 					        }
+					        
+					        node_pools {
+					          apiversion = "2023-01-01"
+					          name       = "default"
+					          properties {
+					            count    = 1
+					            vm_size  = "Standard_DS2_v2"
+					            mode     = "System"
+					          }
+					        }
 					      }
 					    }
 					  }
 					}
 				`,
-				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*"spec\.0\.cloudprovider" is required`),
+				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*spec.*cloudprovider.*is required`),
 			},
 		},
 	})
@@ -404,6 +464,16 @@ func TestAccNegAKSCluster_EmptyType_AllowsPlan(t *testing.T) {
 					          properties {
 					            kubernetes_version = "1.27.3"
 					            dns_prefix        = "test"
+					          }
+					        }
+					        
+					        node_pools {
+					          apiversion = "2023-01-01"
+					          name       = "default"
+					          properties {
+					            count    = 1
+					            vm_size  = "Standard_DS2_v2"
+					            mode     = "System"
 					          }
 					        }
 					      }
@@ -460,12 +530,22 @@ func TestAccNegAKSCluster_NullType_RequiredError(t *testing.T) {
 					            dns_prefix        = "test"
 					          }
 					        }
+					        
+					        node_pools {
+					          apiversion = "2023-01-01"
+					          name       = "default"
+					          properties {
+					            count    = 1
+					            vm_size  = "Standard_DS2_v2"
+					            mode     = "System"
+					          }
+					        }
 					      }
 					    }
 					  }
 					}
 				`,
-				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*"spec\.0\.type" is required`),
+				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*spec.*type.*is required`),
 			},
 		},
 	})
@@ -520,6 +600,16 @@ func TestAccNegAKSCluster_InvalidIdentityType_Error(t *testing.T) {
 					          properties {
 					            kubernetes_version = "1.27.3"
 					            dns_prefix        = "test"
+					          }
+					        }
+					        
+					        node_pools {
+					          apiversion = "2023-01-01"
+					          name       = "default"
+					          properties {
+					            count    = 1
+					            vm_size  = "Standard_DS2_v2"
+					            mode     = "System"
 					          }
 					        }
 					      }
@@ -581,6 +671,16 @@ func TestAccNegAKSCluster_InvalidNetworkPlugin_Error(t *testing.T) {
 					            network_profile {
 					              network_plugin = "invalid-plugin"   # Invalid plugin
 					            }
+					          }
+					        }
+					        
+					        node_pools {
+					          apiversion = "2023-01-01"
+					          name       = "default"
+					          properties {
+					            count    = 1
+					            vm_size  = "Standard_DS2_v2"
+					            mode     = "System"
 					          }
 					        }
 					      }

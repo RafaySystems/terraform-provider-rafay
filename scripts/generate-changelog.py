@@ -38,7 +38,7 @@ class ChangelogGenerator:
             # Default configuration
             return {
                 "ai_model": "gpt-4o-mini",
-                "max_commits_per_pr": 100,
+                "max_commits_per_pr": 300,
                 "changelog_style": "terraform-aws-provider",
                 "categories": [
                     "BREAKING CHANGES",

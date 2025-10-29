@@ -37,7 +37,7 @@ class ChangelogGenerator:
         except FileNotFoundError:
             # Default configuration
             return {
-                "ai_model": "gpt-4o",
+                "ai_model": "gpt-4o-mini",
                 "max_commits_per_pr": 100,
                 "changelog_style": "terraform-aws-provider",
                 "categories": [

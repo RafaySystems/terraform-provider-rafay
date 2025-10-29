@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - master
+      - main
       - 'v*'  # Release branches like v1.2.0, v1.3.0, etc.
 
 permissions:
@@ -84,9 +84,9 @@ jobs:
         id: target_section
         run: |
           BRANCH="${{ github.event.pull_request.base.ref }}"
-          if [ "$BRANCH" = "master" ] || [ "$BRANCH" = "main" ]; then
+          if [ "$BRANCH" = "main" ]; then
             echo "section=Unreleased" >> $GITHUB_OUTPUT
-            echo "Target section: Unreleased (master branch)"
+            echo "Target section: Unreleased (main branch)"
           else
             # Extract version from branch name (e.g., v1.2.0 -> 1.2.0)
             VERSION=$(echo "$BRANCH" | sed 's/^v//')
@@ -133,33 +133,3 @@ jobs:
             git push origin ${{ github.event.pull_request.base.ref }}
             echo "✓ CHANGELOG.md and .changelog/ updated and pushed"
           fi
-      
-      - name: Comment on PR
-        if: success()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const prNumber = context.payload.pull_request.number;
-            const targetSection = '${{ steps.target_section.outputs.section }}';
-            
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: `✅ **Changelog Updated**\n\nThis PR has been automatically added to the \`${targetSection}\` section of the [CHANGELOG.md](${context.payload.repository.html_url}/blob/${{ github.event.pull_request.base.ref }}/CHANGELOG.md).`
-            });
-      
-      - name: Handle errors
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const prNumber = context.payload.pull_request.number;
-            
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: `⚠️ **Changelog Update Failed**\n\nThere was an error automatically updating the CHANGELOG. Please update it manually or contact a maintainer.\n\nWorkflow run: ${context.payload.repository.html_url}/actions/runs/${context.runId}`
-            });
-

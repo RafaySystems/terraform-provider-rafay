@@ -228,6 +228,18 @@ REQUIREMENTS:
 10. If the change is not significant, skip it entirely
 11. Do not include emojis in the changelog entries
 12. Do NOT create fake resource names for non-resource changes (e.g., changelog scripts, docs, policies are NOT resources)
+13. BE CONCISE - Do NOT add explanatory phrases about why, how it helps, or benefits. State ONLY what changed.
+14. AVOID verbose language:
+    - Do NOT add: "ensuring...", "to help...", "allowing users to...", "enhancing...", "providing..."
+    - Do NOT explain benefits or rationale
+    - State the change directly and stop
+15. Examples of good vs bad entries:
+    - ❌ BAD: "Implement automated changelog system to maintain CHANGELOG.md efficiently, ensuring accurate documentation"
+    - ✅ GOOD: "Implement automated changelog generation system"
+    - ❌ BAD: "Add deprecation policy documentation to guide users through upcoming changes"
+    - ✅ GOOD: "Add comprehensive deprecation policy documentation"
+    - ❌ BAD: "Fix NPE to enhance stability and prevent crashes during operations"
+    - ✅ GOOD: "Fix NPE in cluster status polling"
 
 CATEGORIZATION RULES:
 
@@ -269,11 +281,11 @@ Generate ONLY the changelog entries (bullet points), grouped by category. Do not
         try:
             response = self.client.chat.completions.create(
                 model=self.config['ai_model'],
-                max_tokens=2000,
-                temperature=0.3,
+                max_tokens=5000,
+                temperature=0.2,
                 messages=[{
                     "role": "system",
-                    "content": "You are a technical writer specializing in Terraform provider documentation. You generate professional changelog entries following HashiCorp AWS provider standards."
+                    "content": "You are a technical writer specializing in Terraform provider documentation. You generate professional, CONCISE changelog entries following HashiCorp AWS provider standards. Write matter-of-fact descriptions without explanatory phrases about benefits or rationale. State what changed, nothing more."
                 }, {
                     "role": "user",
                     "content": prompt

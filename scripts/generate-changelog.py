@@ -94,9 +94,14 @@ class ChangelogGenerator:
         scored_commits = []
         
         for commit in commits:
-            score = 0
             subject = commit['subject'].lower()
             body = commit.get('body', '').lower()
+            
+            # Skip commits with [skip-changelog] marker
+            if '[skip-changelog]' in subject or '[skip-changelog]' in body:
+                continue
+            
+            score = 0
             
             # Score based on commit type prefixes (higher priority)
             if subject.startswith('breaking:'):
@@ -218,10 +223,10 @@ REQUIREMENTS:
    - For changes to existing resources: "* resource/rafay_resource_name: Description of change"
 {pr_reference_instruction}
 6. For changes to tooling, automation, documentation, policies, or testing, use general descriptive format:
-   - "* Implement automated changelog generation system"
-   - "* Add deprecation policy documentation"
-   - "* Improve testing framework for integration tests"
-   - "* Update dependency versions for security patches"
+   - "- Implement automated changelog generation system"
+   - "- Add deprecation policy documentation"
+   - "- Improve testing framework for integration tests"
+   - "- Update dependency versions for security patches"
 7. Group related changes together intelligently
 8. Prioritize significant changes, skip trivial ones (typos, minor refactoring, code comments)
 9. Use present tense ("Add" not "Added", "Fix" not "Fixed")
@@ -233,13 +238,6 @@ REQUIREMENTS:
     - Do NOT add: "ensuring...", "to help...", "allowing users to...", "enhancing...", "providing..."
     - Do NOT explain benefits or rationale
     - State the change directly and stop
-15. Examples of good vs bad entries:
-    - ❌ BAD: "Implement automated changelog system to maintain CHANGELOG.md efficiently, ensuring accurate documentation"
-    - ✅ GOOD: "Implement automated changelog generation system"
-    - ❌ BAD: "Add deprecation policy documentation to guide users through upcoming changes"
-    - ✅ GOOD: "Add comprehensive deprecation policy documentation"
-    - ❌ BAD: "Fix NPE to enhance stability and prevent crashes during operations"
-    - ✅ GOOD: "Fix NPE in cluster status polling"
 
 CATEGORIZATION RULES:
 

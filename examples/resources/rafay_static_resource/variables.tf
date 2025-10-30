@@ -1,7 +1,7 @@
 variable "rafay_config_file" {
   description = "rafay provider config file for authentication"
   sensitive   = true
-  default     = "/Users/user1/.rafay/cli/config.json"
+  default     = "/Users/niravparikh/development/rafay/terraform-provider-rafay/np-qa.json"
 }
 
 variable "name" {
@@ -12,5 +12,5 @@ variable "name" {
 
 variable "project" {
   description = "project name where resource to be created"
-  default     = "terraform"
+  default     = "defaultproject"
 }

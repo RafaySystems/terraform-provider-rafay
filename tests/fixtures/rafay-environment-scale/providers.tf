@@ -7,12 +7,6 @@ terraform {
   }
 }
 
-variable "rafay_config_file" {
-  description = "rafay provider config file for authentication"
-  default     = "/Users/niravparikh/development/rafay/terraform-provider-rafay/np-qa.json"
-  sensitive   = true
-}
-
 provider "rafay" {
   provider_config_file = var.rafay_config_file
 }

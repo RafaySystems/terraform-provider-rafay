@@ -624,11 +624,9 @@ func resourceAKSCluster() *schema.Resource {
 
 ### Resource Deprecation
 
-Following AWS provider patterns for resource lifecycle management:
-
 ```terraform
 # DEPRECATED: rafay_cluster resource (Deprecated in v1.2.0, removed in v2.0.0)
-# Use rafay_eks_cluster instead for enhanced functionality and better AWS integration
+# Use rafay_eks_cluster instead for enhanced functionality
 resource "rafay_cluster" "example" {
   name       = "my-cluster"
   project_id = "my-project"
@@ -674,8 +672,6 @@ resource "rafay_eks_cluster" "example" {
 ```
 
 ### Argument Deprecation
-
-Based on AWS provider argument restructuring patterns:
 
 ```terraform
 resource "rafay_aks_cluster" "example" {
@@ -740,8 +736,6 @@ resource "rafay_aks_cluster" "example" {
 
 ### Data Source Deprecation
 
-Following AWS provider data source evolution patterns:
-
 ```terraform
 # DEPRECATED: rafay_clusters data source (Deprecated in v1.4.0, removed in v2.0.0)
 # Use type-specific data sources for better performance and filtering
@@ -802,8 +796,6 @@ data "rafay_aks_clusters" "production_aks" {
 ```
 
 ### Provider Configuration Changes
-
-Following AWS provider configuration evolution:
 
 ```terraform
 # DEPRECATED: Legacy provider configuration (Deprecated in v1.5.0, removed in v2.0.0)
@@ -888,10 +880,8 @@ provider "rafay" {
 
 ### Default Behavior Changes
 
-Following AWS provider patterns for behavioral changes:
-
 ```terraform
-# Example: Node group defaults evolution (similar to AWS EKS defaults)
+# Example: Node group defaults evolution
 
 # BEFORE v2.0.0: Manual node group configuration required
 resource "rafay_eks_cluster" "example" {

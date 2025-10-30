@@ -115,12 +115,11 @@ breaking: Remove deprecated rafay_cluster resource
 
 ## Questions?
 
-- 💬 Open an issue with the `changelog` label
 - 📚 Read the [detailed documentation](./automated-system.md)
 - 🧪 Check the [testing guide](./testing-guide.md) to validate locally
 
 ---
 
 **System Status**: ✅ Active  
-**Last Updated**: January 2025  
+**Last Updated**: October 2025  
 **Version**: 1.0

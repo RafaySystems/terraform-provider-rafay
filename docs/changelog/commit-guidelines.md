@@ -280,11 +280,4 @@ No user-facing changes.
 
 If you're unsure about commit message format:
 1. Check recent commits in the repository for examples
-2. Review generated CHANGELOG.md entries to see what works well
-3. Ask in the PR review process
-4. The AI system is forgiving - it will do its best to categorize any commit style
-
----
-
-**Remember**: The AI system is designed to be flexible, but good commit messages make everyone's life easier - including users reading the changelog!
-
+2. Review generated CHANGELOG.md and .changelog/{PR_number}.txt entries to see what works well

@@ -31,6 +31,10 @@ type artifactTranspose struct {
 			Revision    string  `protobuf:"bytes,2,opt,name=revision,proto3" json:"revision,omitempty"`
 			ValuesPaths []*File `protobuf:"bytes,3,rep,name=valuesPaths,proto3" json:"valuesPaths,omitempty"`
 		} `json:"valuesRef,omitempty"`
+		Url       []string `protobuf:"bytes,4,opt,name=url,proto3" json:"url,omitempty"`
+		File      *File    `protobuf:"bytes,5,opt,name=file,proto3" json:"file,omitempty"`
+		Path      string   `protobuf:"bytes,6,opt,name=path,proto3" json:"path,omitempty"`
+		Directory string   `protobuf:"bytes,7,opt,name=directory,proto3" json:"directory,omitempty"`
 	} `json:"artifact,omitempty"`
 
 	Options struct {
@@ -93,6 +97,18 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 			at.Artifact.Configmap = expandFile(v)
 		}
 
+		if v, ok := in["path"].(string); ok && len(v) > 0 {
+			at.Artifact.Path = v
+		}
+
+		if v, ok := in["file"].([]interface{}); ok && len(v) > 0 {
+			at.Artifact.File = expandFile(v)
+		}
+
+		if v, ok := in["directory"].(string); ok && len(v) > 0 {
+			at.Artifact.Directory = v
+		}
+
 		if v, ok := in["configuration"].([]interface{}); ok && len(v) > 0 {
 			at.Artifact.Configuration = expandFile(v)
 			artfct = spew.Sprintf("%+v", at.Artifact.Configuration)
@@ -126,6 +142,14 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 
 		if v, ok := in["statefulset"].([]interface{}); ok && len(v) > 0 {
 			at.Artifact.Statefulset = expandFile(v)
+		}
+
+		if v, ok := in["url"].([]interface{}); ok && len(v) > 0 {
+			for _, value := range v {
+				if value != nil && value.(string) != "" {
+					at.Artifact.Url = append(at.Artifact.Url, value.(string))
+				}
+			}
 		}
 
 		if v, ok := in["values_paths"].([]interface{}); ok && len(v) > 0 {
@@ -342,6 +366,10 @@ func FlattenArtifact(at *artifactTranspose, p []interface{}) ([]interface{}, err
 		obj["chart_name"] = at.Artifact.ChartName
 	}
 
+	if len(at.Artifact.Url) > 0 {
+		obj["url"] = toArrayInterface(at.Artifact.Url)
+	}
+
 	if len(at.Artifact.ChartVersion) > 0 {
 		obj["chart_version"] = at.Artifact.ChartVersion
 	}
@@ -372,6 +400,18 @@ func FlattenArtifact(at *artifactTranspose, p []interface{}) ([]interface{}, err
 	}
 	if at.Artifact.ValuesRef.Repository != "" {
 		obj["values_ref"] = flattenValuesRef(at, v)
+	}
+
+	if at.Artifact.File != nil {
+		obj["file"] = flattenFile(at.Artifact.File)
+	}
+
+	if len(at.Artifact.Path) > 0 {
+		obj["path"] = at.Artifact.Path
+	}
+
+	if len(at.Artifact.Directory) > 0 {
+		obj["directory"] = at.Artifact.Directory
 	}
 
 	s1 := spew.Sprintf("%+v", obj)

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 	"time"
-	"reflect"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
@@ -235,7 +235,7 @@ func resourceAddonRead(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 
-	if tfAddonState.Spec != nil && tfAddonState.Spec.Sharing == nil && ( addon.Spec.Sharing == nil || reflect.DeepEqual(addon.Spec.Sharing, &commonpb.SharingSpec{}) ){
+	if tfAddonState.Spec != nil && tfAddonState.Spec.Sharing == nil && (addon.Spec.Sharing == nil || reflect.DeepEqual(addon.Spec.Sharing, &commonpb.SharingSpec{})) {
 		addon.Spec.Sharing = nil
 	}
 
@@ -412,7 +412,7 @@ func flattenAddonSpec(dataResource bool, in *infrapb.AddonSpec, p []interface{})
 		obj["version"] = in.Version
 	}
 
-	obj["version_state"] = flattenAddonVersionState(in.VersionState, p )
+	obj["version_state"] = flattenAddonVersionState(in.VersionState, p)
 
 	v, ok := obj["artifact"].([]interface{})
 	if !ok {

@@ -194,3 +194,24 @@ resource "rafay_workload" "tftestworkload7" {
     }
   }
 }
+
+# Create a workload from web URL
+resource "rafay_workload" "tftestworkload8" {
+  metadata {
+    name    = "tftestworkload8"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload5"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Yaml"
+      artifact {
+        url = ["https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/application/nginx-app.yaml"]
+      }
+    }
+  }
+}

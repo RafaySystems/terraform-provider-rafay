@@ -82,3 +82,72 @@ resource "rafay_addon" "tfdemoaddon2" {
     }
   }
 }
+
+
+# Web YAML
+resource "rafay_addon" "tfdemoaddon5" {
+  metadata {
+    name    = "tfdemoaddon5"
+    project = "terraform"
+  }
+  spec {
+    namespace     = "tfdemonamespace1"
+    version       = "v1.0"
+    version_state = "active"
+    artifact {
+      type = "Yaml"
+      artifact {
+        url = ["https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/application/nginx-app.yaml"]
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+
+resource "rafay_addon" "tfdemoaddon6" {
+  metadata {
+    name    = "tfdemoaddon6"
+    project = "terraform"
+  }
+  spec {
+    namespace = "default"
+    version   = "production"
+    artifact {
+      type = "Kustomize"
+      artifact {
+        path = "production"
+        file {
+          name = "file://artifacts/tfdemoaddon6/archive.tar.gz"
+        }
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}
+
+resource "rafay_addon" "tfdemoaddon7" {
+  metadata {
+    name    = "tfdemoaddon7"
+    project = "terraform"
+  }
+  spec {
+    namespace = "default"
+    version   = "prod"
+    artifact {
+      type = "Kustomize"
+      artifact {
+        repository = "kustomize-repo"
+        revision = "master"
+        directory = "examples/multibases"
+        path = "production"
+      }
+    }
+    sharing {
+      enabled = false
+    }
+  }
+}

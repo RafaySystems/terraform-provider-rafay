@@ -420,6 +420,12 @@ func resourcePipelineRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
+	if tfPipelineState.GetSpec().GetSharing() != nil && !tfPipelineState.GetSpec().GetSharing().GetEnabled() && ag.GetSpec().GetSharing() == nil {
+		ag.Spec.Sharing = &commonpb.SharingSpec{}
+		ag.Spec.Sharing.Enabled = false
+		ag.Spec.Sharing.Projects = tfPipelineState.GetSpec().GetSharing().GetProjects()
+	}
+
 	err = flattenPipeline(d, ag)
 	if err != nil {
 		return diag.FromErr(err)

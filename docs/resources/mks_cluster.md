@@ -338,7 +338,7 @@ You can change the current Kubernetes version under `spec.config.kubernetes_vers
 - `high_availability` (Boolean) Select this option for highly available control plane. Minimum three control plane nodes are required
 - `kubernetes_upgrade` (Attributes) Strategize the Kubernetes upgrade behaviour among the worker nodes (see [below for nested schema](#nestedatt--spec--config--kubernetes_upgrade))
 - `location` (String) The data center location where the cluster nodes will be launched
-- `platform_version` (String) Platform version that allows upgrading the cluster's internal components such as Cluster utils, Chisel, Salt minion,Containerd, and ETCD.
+- `platform_version` (String) Platform version that allows upgrading the cluster's internal components such as Cluster utils, Orchestration proxy, Orchestration agent, CRI, and etcd.
 
 <a id="nestedatt--spec--config--network"></a>
 ### Nested Schema for `spec.config.network`

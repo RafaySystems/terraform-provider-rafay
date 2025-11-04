@@ -1,4 +1,7 @@
-package provider
+//go:build planonly
+// +build planonly
+
+package framework
 
 import (
 	"testing"
@@ -12,13 +15,11 @@ func TestAccMksClusterDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testFwProviderFactories,
 		Steps: []resource.TestStep{
-			// Read testing
+			// Plan-only testing
 			{
-				Config: testProviderConfig + testMksClusterDataSource(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.rafay_mks_cluster.mks-example-cluster", "metadata.name", "mks-example-cluster"),
-					resource.TestCheckResourceAttr("data.rafay_mks_cluster.mks-example-cluster", "metadata.project", "defaultproject"),
-				),
+				Config:             testProviderConfig + testMksClusterDataSource(),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

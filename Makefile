@@ -54,13 +54,31 @@ uninstall:
 	rm -rf ~/.terraform.d/plugins/${TOFU_HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 
 test:
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
-	go test -i $(TEST) || exit 1
-	echo $(TEST) | xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
+	@echo "Running all tests (unit + integration)..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/...
+
+test-cover:
+	@echo "Running all tests with coverage..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover ./rafay ./tests/...
+
+# Specific test categories for targeted testing
+test-unit:
+	@echo "Running unit tests only..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay
+
+test-integration:
+	@echo "Running integration tests only..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=integration ./tests/integration/...
+
+test-api:
+	@echo "Running tests that require real API credentials..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=integration ./tests/integration/acceptance/
 
 testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
+# Updated .PHONY declarations for streamlined test commands
+.PHONY: test test-cover test-unit test-integration test-api
 
 fwgen:
 	bash internal/scripts/fwgen.sh

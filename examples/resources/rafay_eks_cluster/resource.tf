@@ -20,7 +20,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
     metadata {
       name    = "bharath-eks-clustertest2"
       region  = "us-west-2"
-      version = "1.30"
+      version = "1.32"
       tags = {
         env   = "dev"
         email = "bharath.reddy@rafay.co"
@@ -98,7 +98,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       min_size           = 1
       max_size           = 2
       max_pods_per_node  = 50
-      version            = "1.30"
+      version            = "1.32"
       volume_size        = 80
       volume_type        = "gp3"
       private_networking = true
@@ -121,7 +121,7 @@ resource "rafay_eks_cluster" "ekscluster-basic" {
       min_size           = 1
       max_size           = 2
       max_pods_per_node  = 50
-      version            = "1.30"
+      version            = "1.32"
       volume_size        = 80
       volume_type        = "gp3"
       private_networking = true

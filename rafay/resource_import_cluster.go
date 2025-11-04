@@ -310,12 +310,6 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	}
 	project_id := p.ID
 
-	proxyCfg := expandProxyConfigImportCluster(d.Get("proxy_config"))
-	if proxyCfg == nil {
-		// Cases where no proxy config is provided
-		proxyCfg = &models.ProxyConfig{}
-	}
-
 	//create imported cluster
 	labels := map[string]string{}
 	if labelsX, ok := d.Get("labels").(map[string]interface{}); ok && len(labelsX) > 0 {

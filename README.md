@@ -7,9 +7,23 @@ The Rafay provider offers a flexible means of providing credentials for
 authentication. The following methods are supported, in this order, and
 explained below:
 
-- Environment variables
-- Credentials/configuration file
+-   Direct Credentials in Provider Configuration
+-   Environment variables
+-   Credentials/configuration file
 
+### Direct Credentials in Provider Configuration
+
+You can provide credentials directly in the `rafay` provider block. This is the recommended approach when fetching credentials from a secret management tool like HashiCorp Vault.
+
+```terraform
+provider "rafay" {
+  api_key       = data.vault_kv_secret_v2.rafay.data.api_key
+  rest_endpoint = data.vault_kv_secret_v2.rafay.data.endpoint
+  project       = data.vault_kv_secret_v2.rafay.data.project
+}
+```
+
+This method takes precedence over environment variables and the configuration file.
 
 ### Environment Variables
 

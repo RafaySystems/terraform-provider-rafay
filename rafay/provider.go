@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"log"
 	"net/http"
+	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
@@ -30,6 +31,25 @@ func New(_ string) func() *schema.Provider {
 				"ignore_insecure_tls_error": &schema.Schema{
 					Type:     schema.TypeBool,
 					Optional: true,
+				},
+				"api_key": &schema.Schema{
+					Type:        schema.TypeString,
+					Description: "Rafay API key",
+					Optional:    true,
+					Sensitive:   true,
+					DefaultFunc: schema.EnvDefaultFunc("RCTL_API_KEY", nil),
+				},
+				"rest_endpoint": &schema.Schema{
+					Type:        schema.TypeString,
+					Description: "Rafay API endpoint",
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("RCTL_REST_ENDPOINT", nil),
+				},
+				"project": &schema.Schema{
+					Type:        schema.TypeString,
+					Description: "Rafay project",
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("RCTL_PROJECT", nil),
 				},
 			},
 			ResourcesMap: map[string]*schema.Resource{
@@ -152,9 +172,21 @@ func providerConfigure(ctx context.Context, rd *schema.ResourceData) (interface{
 
 	config_file := rd.Get("provider_config_file").(string)
 	ignoreTlsError := rd.Get("ignore_insecure_tls_error").(bool)
+	apiKey := rd.Get("api_key").(string)
+	restEndpoint := rd.Get("rest_endpoint").(string)
+	project := rd.Get("project").(string)
 
 	log.Printf("rafay provider config file %s", config_file)
 	cliCtx := rctlcontext.GetContext()
+
+	// If direct credentials provided, use them (takes precedence)
+	if apiKey != "" && restEndpoint != "" {
+		cliCtx.APIKey = apiKey
+		cliCtx.RestEndpoint = restEndpoint
+		if project != "" {
+			os.Setenv("RCTL_PROJECT", project)
+		}
+	}
 	if config_file != "" {
 		var err error
 

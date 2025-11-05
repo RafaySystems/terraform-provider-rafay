@@ -112,10 +112,34 @@ provider "rafay" {
 The Rafay provider offers a flexible means of providing credentials for
 authentication. The following methods are supported, in this order, and
 explained below:
-
+- Direct Credentials in Provider Configuration
 - Environment variables
 - Credentials/configuration file
 
+
+### Direct Credentials in Provider Configuration
+
+You can provide credentials directly in the `rafay` provider block. This is the recommended approach when fetching credentials from a secret management tool like HashiCorp Vault.
+
+```terraform
+provider "rafay" {
+  api_key       = data.vault_kv_secret_v2.rafay.data.api_key
+  rest_endpoint = data.vault_kv_secret_v2.rafay.data.endpoint
+  project       = data.vault_kv_secret_v2.rafay.data.project
+}
+```
+
+Or with hardcoded values (not recommended for production):
+
+```terraform
+provider "rafay" {
+  api_key       = "ra2.xxxxxxxxxxxxx"
+  rest_endpoint = "console.rafay.dev"
+  project       = "defaultproject"
+}
+```
+
+This method takes precedence over environment variables and the configuration file.
 
 ### Environment Variables
 
@@ -155,5 +179,10 @@ provider "rafay" {
 
 ### Optional
 
+- **api_key** (String, Sensitive) Rafay API key. Can also be set via the `RCTL_API_KEY` environment variable.
+- **ignore_insecure_tls_error** (Boolean) Skip TLS certificate verification.
+- **project** (String) Rafay project name. Can also be set via the `RCTL_PROJECT` environment variable.
+- **provider_config_file** (String) Path to Rafay configuration file. Defaults to `~/.rafay/cli/config.json`. Can also be set via the `RAFAY_PROVIDER_CONFIG` environment variable.
+- **rest_endpoint** (String) Rafay API endpoint (e.g., `console.rafay.dev`). Can also be set via the `RCTL_REST_ENDPOINT` environment variable.
 - **ignore_insecure_tls_error** (Boolean)
 - **provider_config_file** (String)

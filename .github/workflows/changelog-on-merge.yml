@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - main
+      - master
       - 'v*'  # Release branches like v1.2.0, v1.3.0, etc.
 
 permissions:
@@ -84,9 +84,9 @@ jobs:
         id: target_section
         run: |
           BRANCH="${{ github.event.pull_request.base.ref }}"
-          if [ "$BRANCH" = "main" ]; then
+          if [ "$BRANCH" = "master" ]; then
             echo "section=Unreleased" >> $GITHUB_OUTPUT
-            echo "Target section: Unreleased (main branch)"
+            echo "Target section: Unreleased (master branch)"
           else
             # Extract version from branch name (e.g., v1.2.0 -> 1.2.0)
             VERSION=$(echo "$BRANCH" | sed 's/^v//')

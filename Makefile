@@ -77,8 +77,12 @@ test-api:
 testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
+test-ci:
+	@echo "Running CI tests with acceptance tests enabled..."
+	TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/...
+
 # Updated .PHONY declarations for streamlined test commands
-.PHONY: test test-cover test-unit test-integration test-api
+.PHONY: test test-cover test-unit test-integration test-api test-ci
 
 fwgen:
 	bash internal/scripts/fwgen.sh

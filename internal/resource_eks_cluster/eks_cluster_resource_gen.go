@@ -1045,8 +1045,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"ebs_optimized": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "enables EBS optimization.",
 										MarkdownDescription: "enables EBS optimization.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"efa_enabled": schema.BoolAttribute{
 										Optional:            true,
@@ -1057,8 +1059,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"enable_detailed_monitoring": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Enable EC2 detailed monitoring",
 										MarkdownDescription: "Enable EC2 detailed monitoring",
+										Default:             booldefault.StaticBool(false),
 									},
 									"iam": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -1582,8 +1586,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_encrypted": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "whether to encrypt volumes attached to instances in the nodegroup.",
 										MarkdownDescription: "whether to encrypt volumes attached to instances in the nodegroup.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
@@ -3320,8 +3326,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"ebs_optimized": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "enables EBS optimization.",
 										MarkdownDescription: "enables EBS optimization.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"efa_enabled": schema.BoolAttribute{
 										Optional:            true,
@@ -3332,8 +3340,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"enable_detailed_monitoring": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "Enable EC2 detailed monitoring",
 										MarkdownDescription: "Enable EC2 detailed monitoring",
+										Default:             booldefault.StaticBool(false),
 									},
 									"instance_name": schema.StringAttribute{
 										Optional:            true,
@@ -3418,8 +3428,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_encrypted": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
 										Description:         "whether to encrypt volumes attached to instances in the nodegroup.",
 										MarkdownDescription: "whether to encrypt volumes attached to instances in the nodegroup.",
+										Default:             booldefault.StaticBool(false),
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,

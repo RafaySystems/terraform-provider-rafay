@@ -465,8 +465,11 @@
                                                 {
                                                     "name": "enable_detailed_monitoring",
                                                     "bool": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "Enable EC2 detailed monitoring"
+                                                        "description": "Enable EC2 detailed monitoring",
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -663,7 +666,10 @@
                                                     "name": "ebs_optimized",
                                                     "bool": {
                                                         "description": "enables EBS optimization.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -677,7 +683,10 @@
                                                     "name": "volume_encrypted",
                                                     "bool": {
                                                         "description": "whether to encrypt volumes attached to instances in the nodegroup.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -1365,8 +1374,8 @@
                                                 {
                                                     "name": "enable_detailed_monitoring",
                                                     "bool": {
-                                                        "computed_optional_required": "computed_optional",
                                                         "description": "Enable EC2 detailed monitoring",
+                                                        "computed_optional_required": "computed_optional",
                                                         "default": {
                                                             "static": false
                                                         }
@@ -2254,8 +2263,11 @@
                                                 {
                                                     "name": "enable_detailed_monitoring",
                                                     "bool": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "Enable EC2 detailed monitoring"
+                                                        "description": "Enable EC2 detailed monitoring",
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -2459,7 +2471,10 @@
                                                     "name": "ebs_optimized",
                                                     "bool": {
                                                         "description": "enables EBS optimization.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -2473,7 +2488,10 @@
                                                     "name": "volume_encrypted",
                                                     "bool": {
                                                         "description": "whether to encrypt volumes attached to instances in the nodegroup.",
-                                                        "computed_optional_required": "optional"
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": false
+                                                        }
                                                     }
                                                 },
                                                 {

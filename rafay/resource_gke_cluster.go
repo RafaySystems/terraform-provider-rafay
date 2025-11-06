@@ -91,7 +91,7 @@ func resourceGKEClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 
 	c, err := expandGKEClusterToV3(d)
 	if err != nil {
-		log.Printf("Cluster expandCluster error " + err.Error())
+		log.Printf("Cluster expandCluster error : %v", err)
 		return diag.FromErr(err)
 	}
 

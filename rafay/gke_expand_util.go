@@ -78,7 +78,7 @@ func expandGKEClusterToV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 		var err error
 		obj.Blueprint, err = expandGKEClusterToV3Blueprint(v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to expand blueprint " + err.Error())
+			return nil, fmt.Errorf("failed to expand blueprint : %w", err)
 		}
 	}
 
@@ -90,7 +90,7 @@ func expandGKEClusterToV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 		var err error
 		obj.Proxy, err = expandToV3GKEProxy(v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to expand proxy " + err.Error())
+			return nil, fmt.Errorf("failed to expand proxy : %w", err)
 		}
 	}
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
@@ -107,7 +107,7 @@ func expandGKEClusterToV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 			var err error
 			obj.Config, err = expandToV3GkeConfigObject(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand to gke config " + err.Error())
+				return nil, fmt.Errorf("failed to expand to gke config : %w", err)
 			}
 		}
 	}
@@ -218,7 +218,7 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 	if v, ok := in["location"].([]interface{}); ok && len(v) > 0 {
 		obj.Gke.Location, err = expandToV3GkeLocation(v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to expand gke location from schema " + err.Error())
+			return nil, fmt.Errorf("failed to expand gke location from schema : %w", err)
 		}
 	}
 
@@ -226,7 +226,7 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 	if v, ok := in["network"].([]interface{}); ok && len(v) > 0 {
 		obj.Gke.Network, err = expandToV3GkeNetwork(v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to expand gke network from schema " + err.Error())
+			return nil, fmt.Errorf("failed to expand gke network from schema : %w", err)
 		}
 	}
 
@@ -234,7 +234,7 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 	if v, ok := in["security"].([]interface{}); ok && len(v) > 0 {
 		obj.Gke.Security, err = expandToV3GkeSecurity(v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to expand gke security from schema " + err.Error())
+			return nil, fmt.Errorf("failed to expand gke security from schema : %w", err)
 		}
 	}
 
@@ -242,7 +242,7 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 	if v, ok := in["features"].([]interface{}); ok && len(v) > 0 {
 		obj.Gke.Features, err = expandToV3GkeFeatures(v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to expand gke feature from schema " + err.Error())
+			return nil, fmt.Errorf("failed to expand gke feature from schema : %w", err)
 		}
 	}
 
@@ -250,7 +250,7 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 	if v, ok := in["node_pools"].([]interface{}); ok && len(v) > 0 {
 		obj.Gke.NodePools, err = expandToV3GkeNodepools(v)
 		if err != nil {
-			return obj, fmt.Errorf("failed to expand gke nodepool " + err.Error())
+			return obj, fmt.Errorf("failed to expand gke nodepool : %w", err)
 		}
 	}
 
@@ -285,7 +285,7 @@ func expandToV3GkeLocation(p []interface{}) (*infrapb.GkeLocation, error) {
 	if v, ok := in["default_node_locations"].([]interface{}); ok && len(v) > 0 {
 		obj.DefaultNodeLocations, err = expandToV3GkeDefaultNodeLocations(v)
 		if err != nil {
-			return obj, fmt.Errorf("failed to expand gke default node locations " + err.Error())
+			return obj, fmt.Errorf("failed to expand gke default node locations : %w", err)
 		}
 	}
 
@@ -296,12 +296,12 @@ func expandToV3GkeLocation(p []interface{}) (*infrapb.GkeLocation, error) {
 			//	zonalConfig := &infrapb.GkeLocation_Zonal{}
 			obj.Config, err = expandToV3GkeZonalCluster(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand gke zonal cluster " + err.Error())
+				return nil, fmt.Errorf("failed to expand gke zonal cluster : %w", err)
 			}
 		} else if strings.EqualFold(obj.Type, GKE_REGIONAL_CLUSTER_TYPE) {
 			obj.Config, err = expandToV3GkeRegionalCluster(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand gke regional cluster " + err.Error())
+				return nil, fmt.Errorf("failed to expand gke regional cluster : %w", err)
 			}
 		}
 	}
@@ -472,7 +472,7 @@ func expandToV3GkeNetwork(p []interface{}) (*infrapb.GkeNetwork, error) {
 	if v, ok := in["access"].([]interface{}); ok && len(v) > 0 {
 		obj.Access, err = expandToV3GkeAccess(v)
 		if err != nil {
-			return obj, fmt.Errorf("failed to expand gke cluster access " + err.Error())
+			return obj, fmt.Errorf("failed to expand gke cluster access : %w", err)
 		}
 	}
 
@@ -525,7 +525,7 @@ func expandToV3GkeNetwork(p []interface{}) (*infrapb.GkeNetwork, error) {
 	if v, ok := in["control_plane_authorized_network"].([]interface{}); ok && len(v) > 0 {
 		obj.ControlPlaneAuthorizedNetwork, err = expandToV3GkeControlPlaneAuthorizedNetwork(v)
 		if err != nil {
-			return obj, fmt.Errorf("failed to expand control plane authorized network " + err.Error())
+			return obj, fmt.Errorf("failed to expand control plane authorized network : %w", err)
 		}
 	}
 
@@ -550,7 +550,7 @@ func expandToV3GkeAccess(p []interface{}) (*infrapb.GkeAccess, error) {
 		if strings.EqualFold(obj.Type, GKE_PRIVATE_CLUSTER_TYPE) {
 			obj.Config, err = expandToV3GkePrivateCluster(v)
 			if err != nil {
-				return obj, fmt.Errorf("failed to expand gke private cluster config " + err.Error())
+				return obj, fmt.Errorf("failed to expand gke private cluster config : %w", err)
 			}
 		}
 		// else if strings.EqualFold(obj.Type, GKE_PUBLIC_CLUSTER_TYPE) {
@@ -591,7 +591,7 @@ func expandToV3GkePrivateCluster(p []interface{}) (*infrapb.GkeAccess_Private, e
 	if v, ok := in["firewall_rules"].([]interface{}); ok && len(v) > 0 {
 		obj.Private.FirewallRules, err = expandToV3GkeFirewalls(v)
 		if err != nil {
-			return obj, fmt.Errorf("failed to expand gke private cluster firewall rules " + err.Error())
+			return obj, fmt.Errorf("failed to expand gke private cluster firewall rules : %w", err)
 		}
 	}
 
@@ -658,7 +658,7 @@ func expandToV3GkeFirewalls(p []interface{}) ([]*infrapb.FirewallRule, error) {
 		if v, ok := in["rules"].([]interface{}); ok && len(v) > 0 {
 			obj.Rules, err = expandToV3GkeFirewallRules(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand gke private cluster firewall rules " + err.Error())
+				return nil, fmt.Errorf("failed to expand gke private cluster firewall rules : %w", err)
 			}
 		}
 
@@ -708,7 +708,7 @@ func expandToV3GkeControlPlaneAuthorizedNetwork(p []interface{}) (*infrapb.GkeCo
 	if v, ok := in["authorized_network"].([]interface{}); ok && len(v) > 0 {
 		obj.AuthorizedNetwork, err = expandToV3GkeAuthorizedNetwork(v)
 		if err != nil {
-			return obj, fmt.Errorf("failed to expand Gke authorized networks " + err.Error())
+			return obj, fmt.Errorf("failed to expand Gke authorized networks : %w", err)
 		}
 	}
 
@@ -769,7 +769,7 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 		if v, ok := in["node_locations"].([]interface{}); ok && len(v) > 0 {
 			obj.NodeLocations, err = expandToV3GkeNodeLocation(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand Gke node locations " + err.Error())
+				return nil, fmt.Errorf("failed to expand Gke node locations : %w", err)
 			}
 		}
 
@@ -777,7 +777,7 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 		if v, ok := in["auto_scaling"].([]interface{}); ok && len(v) > 0 {
 			obj.AutoScaling, err = expandToV3GkeNodeAutoScale(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand Gke autoscaling " + err.Error())
+				return nil, fmt.Errorf("failed to expand Gke autoscaling : %w", err)
 			}
 		}
 
@@ -785,7 +785,7 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 		if v, ok := in["machine_config"].([]interface{}); ok && len(v) > 0 {
 			obj.MachineConfig, err = expandToV3GkeNodeMachineConfig(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand Gke machine config " + err.Error())
+				return nil, fmt.Errorf("failed to expand Gke machine config : %w", err)
 			}
 		}
 
@@ -793,7 +793,7 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 		if v, ok := in["networking"].([]interface{}); ok && len(v) > 0 {
 			obj.Networking, err = expandToV3GkeNodeNetworking(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand Gke node networking " + err.Error())
+				return nil, fmt.Errorf("failed to expand Gke node networking : %w", err)
 			}
 		}
 
@@ -801,7 +801,7 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 		if v, ok := in["security"].([]interface{}); ok && len(v) > 0 {
 			obj.Security, err = expandToV3GkeNodeSecurity(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand Gke node security " + err.Error())
+				return nil, fmt.Errorf("failed to expand Gke node security : %w", err)
 			}
 		}
 
@@ -809,7 +809,7 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 		if v, ok := in["metadata"].([]interface{}); ok && len(v) > 0 {
 			obj.Metadata, err = expandToV3GkeNodeMetaData(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand Gke authorized networks " + err.Error())
+				return nil, fmt.Errorf("failed to expand Gke authorized networks : %w", err)
 			}
 		}
 
@@ -817,7 +817,7 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 		if v, ok := in["management"].([]interface{}); ok && len(v) > 0 {
 			obj.Management, err = expandToV3GkeNodeManagement(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand Gke node management " + err.Error())
+				return nil, fmt.Errorf("failed to expand Gke node management : %w", err)
 			}
 		}
 
@@ -825,7 +825,7 @@ func expandToV3GkeNodepools(p []interface{}) ([]*infrapb.GkeNodePool, error) {
 		if v, ok := in["upgrade_settings"].([]interface{}); ok && len(v) > 0 {
 			obj.UpgradeSettings, err = expandToV3GkeNodeUpgradeSettings(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand Gke node upgrade settings " + err.Error())
+				return nil, fmt.Errorf("failed to expand Gke node upgrade settings : %w", err)
 			}
 		}
 
@@ -910,7 +910,7 @@ func expandToV3GkeNodeMachineConfig(p []interface{}) (*infrapb.GkeNodeMachineCon
 	if v, ok := in["reservation_affinity"].([]interface{}); ok && len(v) > 0 {
 		obj.ReservationAffinity, err = expandToV3GkeNodeReservationAffinity(v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to expand Gke reservation affinity " + err.Error())
+			return nil, fmt.Errorf("failed to expand Gke reservation affinity : %w", err)
 		}
 	}
 
@@ -918,7 +918,7 @@ func expandToV3GkeNodeMachineConfig(p []interface{}) (*infrapb.GkeNodeMachineCon
 	if v, ok := in["accelerators"].([]interface{}); ok && len(v) > 0 {
 		obj.Accelerators, err = expandToV3GkeNodeAccelerators(v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to expand Gke node accelerators " + err.Error())
+			return nil, fmt.Errorf("failed to expand Gke node accelerators : %w", err)
 		}
 	}
 
@@ -1004,7 +1004,7 @@ func expandToV3GkeNodeGpuDriverInstallation(p []interface{}) (*infrapb.GPUDriver
 		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
 			obj.Config, err = expandToV3GoogleDriverInstallation(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand Google driver installation settings" + err.Error())
+				return nil, fmt.Errorf("failed to expand Google driver installation settings: %w", err)
 			}
 		}
 	}
@@ -1012,7 +1012,7 @@ func expandToV3GkeNodeGpuDriverInstallation(p []interface{}) (*infrapb.GPUDriver
 		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
 			obj.Config, err = expandToV3UserDriverInstallation(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand User driver installation settings" + err.Error())
+				return nil, fmt.Errorf("failed to expand User driver installation settings: %w", err)
 			}
 		}
 	}
@@ -1120,21 +1120,21 @@ func expandToV3GkeNodeMetaData(p []interface{}) (*infrapb.GkeNodeMetadata, error
 	if v, ok := in["kubernetes_labels"].([]interface{}); ok && len(v) > 0 {
 		obj.KubernetesLabels, err = expandToV3GkeKubernetesLabels(v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to expand Gke kubernetes labels " + err.Error())
+			return nil, fmt.Errorf("failed to expand Gke kubernetes labels : %w", err)
 		}
 	}
 
 	if v, ok := in["gce_instance_metadata"].([]interface{}); ok && len(v) > 0 {
 		obj.GceInstanceMetadata, err = expandToV3GkeGceInstanceMetadata(v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to expand Gke gce instance metadata " + err.Error())
+			return nil, fmt.Errorf("failed to expand Gke gce instance metadata : %w", err)
 		}
 	}
 
 	if v, ok := in["node_taints"].([]interface{}); ok && len(v) > 0 {
 		obj.NodeTaints, err = expandToV3GkeNodeTaints(v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to expand Gke node taints " + err.Error())
+			return nil, fmt.Errorf("failed to expand Gke node taints : %w", err)
 		}
 	}
 
@@ -1173,7 +1173,7 @@ func expandToV3GkeNodeUpgradeSettings(p []interface{}) (*infrapb.GkeNodeUpgradeS
 		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
 			obj.Config, err = expandToV3GkeNodeSurgeSettings(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand Gke Node surge settings " + err.Error())
+				return nil, fmt.Errorf("failed to expand Gke Node surge settings : %w", err)
 			}
 		}
 	}
@@ -1181,7 +1181,7 @@ func expandToV3GkeNodeUpgradeSettings(p []interface{}) (*infrapb.GkeNodeUpgradeS
 		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
 			obj.Config, err = expandToV3GkeNodeBlueGreenSettings(v)
 			if err != nil {
-				return nil, fmt.Errorf("failed to expand Gke Node blue green settings " + err.Error())
+				return nil, fmt.Errorf("failed to expand Gke Node blue green settings : %w", err)
 			}
 		}
 	}

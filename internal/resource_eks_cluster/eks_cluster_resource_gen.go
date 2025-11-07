@@ -718,9 +718,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										Default:  int64default.StaticInt64(0),
 									},
 									"min_size": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										Default:  int64default.StaticInt64(0),
 									},
 									"override_bootstrap_command": schema.StringAttribute{
 										Optional:            true,
@@ -1406,9 +1410,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										Default:  int64default.StaticInt64(0),
 									},
 									"min_size": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										Default:  int64default.StaticInt64(0),
 									},
 									"override_bootstrap_command": schema.StringAttribute{
 										Optional:            true,
@@ -2722,9 +2730,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										Default:  int64default.StaticInt64(0),
 									},
 									"min_size": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										Default:  int64default.StaticInt64(0),
 									},
 									"name": schema.StringAttribute{
 										Required:            true,
@@ -3371,9 +3383,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										Default:  int64default.StaticInt64(0),
 									},
 									"min_size": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										Default:  int64default.StaticInt64(0),
 									},
 									"name": schema.StringAttribute{
 										Required:            true,

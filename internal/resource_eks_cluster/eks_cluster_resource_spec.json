@@ -494,13 +494,19 @@
                                                 {
                                                     "name": "min_size",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"    
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 0
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "max_size",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"    
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 0
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -1405,13 +1411,19 @@
                                                 {
                                                     "name": "min_size",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"    
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 0
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "max_size",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"    
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 0
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -2299,13 +2311,19 @@
                                                 {
                                                     "name": "min_size",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"    
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 0
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "max_size",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"    
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 0
+                                                        }
                                                     }
                                                 },
                                                 {
@@ -4923,13 +4941,19 @@
                                                 {
                                                     "name": "min_size",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"    
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 0
+                                                        }
                                                     }
                                                 },
                                                 {
                                                     "name": "max_size",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"    
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 0
+                                                        }
                                                     }
                                                 },
                                                 {

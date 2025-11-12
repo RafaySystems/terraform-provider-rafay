@@ -166,18 +166,26 @@ func resourceUserUpsert(ctx context.Context, d *schema.ResourceData, create bool
 	if create {
 		account, api, secret, err = commands.CreateUserTF(userName, groups, consoleAccessInputs, isGroup, isAPi, isConsole)
 		if len(api) > 0 {
-			d.Set("apikey", api)
+			if err := d.Set("apikey", api); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 		if len(secret) > 0 {
-			d.Set("api_secret", secret)
+			if err := d.Set("api_secret", secret); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	} else {
 		account, api, secret, err = commands.UpdateUserTF(userName, groups, consoleAccessInputs, isGroup, isAPi, isConsole)
 		if len(api) > 0 {
-			d.Set("apikey", api)
+			if err := d.Set("apikey", api); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 		if len(secret) > 0 {
-			d.Set("api_secret", secret)
+			if err := d.Set("api_secret", secret); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	}
 

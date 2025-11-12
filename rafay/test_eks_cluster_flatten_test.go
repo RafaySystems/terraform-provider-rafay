@@ -849,7 +849,7 @@ func BenchmarkFlattenEKSCluster(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		flattenEKSCluster(input, p, rawState)
+		_, _ = flattenEKSCluster(input, p, rawState) //nolint:errcheck // benchmark, error not relevant
 	}
 }
 
@@ -867,6 +867,6 @@ func BenchmarkFlattenEKSClusterMetadata(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		flattenEKSClusterMetadata(input, p)
+		_, _ = flattenEKSClusterMetadata(input, p) //nolint:errcheck // benchmark, error not relevant
 	}
 }

@@ -159,7 +159,7 @@ func resourceCloudCredentialRead(ctx context.Context, d *schema.ResourceData, m 
 		log.Printf("failed to get cloud provider %s", err.Error())
 		//return diag.FromErr(err)
 		if err := d.Set("name", c.Name); err != nil {
-			d.Set("name", "")
+			_ = d.Set("name", "") //nolint:errcheck // fallback to empty string on error
 		}
 	}
 	if err := d.Set("name", c.Name); err != nil {

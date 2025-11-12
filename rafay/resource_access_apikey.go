@@ -147,10 +147,14 @@ func resourceAccessApiUpsert(ctx context.Context, d *schema.ResourceData, create
 	log.Println("resourceAccessApiUpsert  len(api) ", len(api), len(secret))
 
 	if len(api) > 0 {
-		d.Set("apikey", api)
+		if err := d.Set("apikey", api); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 	if len(secret) > 0 {
-		d.Set("api_secret", secret)
+		if err := d.Set("api_secret", secret); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	d.SetId(userName)
@@ -245,8 +249,12 @@ func flattenAccessApi(d *schema.ResourceData, in *models.UserResponse, api strin
 	// }
 
 	if len(api) <= 0 {
-		d.Set("apikey", "use 'terraform apply -replace=resource-name' to recreate")
-		d.Set("api_secret", "use 'terraform apply -replace=resource-name' to recreate")
+		if err := d.Set("apikey", "use 'terraform apply -replace=resource-name' to recreate"); err != nil {
+			return err
+		}
+		if err := d.Set("api_secret", "use 'terraform apply -replace=resource-name' to recreate"); err != nil {
+			return err
+		}
 		return nil
 	}
 

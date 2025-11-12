@@ -3927,8 +3927,11 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 			var policyDoc *InlineDocument
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.AttachPolicy = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal attach_policy_v2: %v", err)
+			} else {
+				obj.AttachPolicy = policyDoc
+			}
 			//log.Println("attach policy expanded correct")
 		}
 
@@ -4226,8 +4229,11 @@ func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAs
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.PermissionPolicy = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal permission_policy: %v", err)
+			} else {
+				obj.PermissionPolicy = policyDoc
+			}
 		}
 		if v, ok := in["permission_policy_arns"].([]interface{}); ok && len(v) > 0 {
 			obj.PermissionPolicyARNs = toArrayString(v)
@@ -4267,9 +4273,12 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.AttachPolicy = policyDoc
-			log.Println("attach policy expanded correct")
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal attach_policy: %v", err)
+			} else {
+				obj.AttachPolicy = policyDoc
+				log.Println("attach policy expanded correct")
+			}
 		}
 		if v, ok := in["attach_role_arn"].(string); ok && len(v) > 0 {
 			obj.AttachRoleARN = v

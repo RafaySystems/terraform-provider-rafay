@@ -43,20 +43,25 @@ func (r *eksClusterResource) Schema(ctx context.Context, req resource.SchemaRequ
 
 func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var data resource_eks_cluster.EksClusterModel
+	var d diag.Diagnostics
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ccList := make([]resource_eks_cluster.ClusterConfigValue, 0, len(data.ClusterConfig.Elements()))
-	d := data.ClusterConfig.ElementsAs(ctx, &ccList, false)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
+	cc := resource_eks_cluster.ClusterConfigValue{}
+	if !data.ClusterConfig.IsNull() && !data.ClusterConfig.IsUnknown() {
+		ccList := make([]resource_eks_cluster.ClusterConfigValue, 0, len(data.ClusterConfig.Elements()))
+		d := data.ClusterConfig.ElementsAs(ctx, &ccList, false)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+		cc = ccList[0]
 	}
-	cc := ccList[0]
 
+	// Validate mutually exclusive node_groups and node_groups_map
 	if !cc.NodeGroups.IsNull() && !cc.NodeGroupsMap.IsNull() {
 		resp.Diagnostics.AddError(
 			"Invalid Configuration",
@@ -64,6 +69,7 @@ func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.Va
 		)
 	}
 
+	// Validate mutually exclusive managed_nodegroups and managed_nodegroups_map
 	if !cc.ManagedNodegroups.IsNull() && !cc.ManagedNodegroupsMap.IsNull() {
 		resp.Diagnostics.AddError(
 			"Invalid Configuration",
@@ -73,13 +79,15 @@ func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.Va
 
 	// Validate SSH settings for nodegroups
 	vNodeGroupsList := make([]resource_eks_cluster.NodeGroupsValue, 0, len(cc.NodeGroups.Elements()))
-	d = cc.NodeGroups.ElementsAs(ctx, &vNodeGroupsList, false)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
+	if !cc.NodeGroups.IsNull() && !cc.NodeGroups.IsUnknown() {
+		d = cc.NodeGroups.ElementsAs(ctx, &vNodeGroupsList, false)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
 	}
 	for _, ng := range vNodeGroupsList {
-		if !ng.Ssh.IsNull() {
+		if !ng.Ssh.IsNull() && !ng.Ssh.IsUnknown() {
 			vSshList := make([]resource_eks_cluster.SshValue, 0, len(ng.Ssh.Elements()))
 			d = ng.Ssh.ElementsAs(ctx, &vSshList, false)
 			if d.HasError() {
@@ -99,13 +107,15 @@ func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.Va
 
 	// Validate SSH settings for managed_nodegroups
 	vMngNodeGroupsList := make([]resource_eks_cluster.ManagedNodegroupsValue, 0, len(cc.ManagedNodegroups.Elements()))
-	d = cc.ManagedNodegroups.ElementsAs(ctx, &vMngNodeGroupsList, false)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
+	if !cc.ManagedNodegroups.IsNull() && !cc.ManagedNodegroups.IsUnknown() {
+		d = cc.ManagedNodegroups.ElementsAs(ctx, &vMngNodeGroupsList, false)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
 	}
 	for _, mngNg := range vMngNodeGroupsList {
-		if !mngNg.Ssh4.IsNull() {
+		if !mngNg.Ssh4.IsNull() && !mngNg.Ssh4.IsUnknown() {
 			vSshList := make([]resource_eks_cluster.SshValue, 0, len(mngNg.Ssh4.Elements()))
 			d = mngNg.Ssh4.ElementsAs(ctx, &vSshList, false)
 			if d.HasError() {
@@ -125,13 +135,15 @@ func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.Va
 
 	// validate SSH settings in nodegroup maps
 	vngMap := make(map[string]resource_eks_cluster.NodeGroupsMapValue, len(cc.NodeGroupsMap.Elements()))
-	d = cc.NodeGroupsMap.ElementsAs(ctx, &vngMap, false)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
+	if !cc.NodeGroupsMap.IsNull() && !cc.NodeGroupsMap.IsUnknown() {
+		d = cc.NodeGroupsMap.ElementsAs(ctx, &vngMap, false)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
 	}
 	for _, ngMap := range vngMap {
-		if !ngMap.Ssh6.IsNull() {
+		if !ngMap.Ssh6.IsNull() && !ngMap.Ssh6.IsUnknown() {
 			var sshTypes resource_eks_cluster.Ssh6Type
 			tfSshValue, d := sshTypes.ValueFromObject(ctx, ngMap.Ssh6)
 			if d.HasError() {
@@ -150,13 +162,15 @@ func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.Va
 
 	// validate SSH settings in managed nodegroup map
 	vmngNgMap := make(map[string]resource_eks_cluster.ManagedNodegroupsMapValue, len(cc.ManagedNodegroupsMap.Elements()))
-	d = cc.ManagedNodegroupsMap.ElementsAs(ctx, &vmngNgMap, false)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
+	if !cc.ManagedNodegroupsMap.IsNull() && !cc.ManagedNodegroupsMap.IsUnknown() {
+		d = cc.ManagedNodegroupsMap.ElementsAs(ctx, &vmngNgMap, false)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
 	}
 	for _, mngNgMap := range vmngNgMap {
-		if !mngNgMap.Ssh5.IsNull() {
+		if !mngNgMap.Ssh5.IsNull() && !mngNgMap.Ssh5.IsUnknown() {
 			var sshTypes resource_eks_cluster.Ssh5Type
 			tfSshValue, d := sshTypes.ValueFromObject(ctx, mngNgMap.Ssh5)
 			if d.HasError() {

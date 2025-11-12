@@ -880,7 +880,9 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		}
 	} else {
 		log.Println("Set workload_status nil")
-		d.Set("workload_status", nil)
+		if err := d.Set("workload_status", nil); err != nil {
+			log.Println("failed to set status to nil error ", err)
+		}
 	}
 
 	if workloadCDConfig.Decommissions != nil && len(workloadCDConfig.Decommissions) > 0 {
@@ -900,7 +902,9 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		log.Println("flattenWorkloadDecommisions returned ret", ret)
 	} else {
 		log.Println("Set workload_decommissions nil")
-		d.Set("workload_decommissions", nil)
+		if err := d.Set("workload_decommissions", nil); err != nil {
+			log.Println("failed to set decommissions to nil error ", err)
+		}
 	}
 
 	if workloadCDConfig.Upserts != nil && len(workloadCDConfig.Upserts) > 0 {
@@ -919,7 +923,9 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		}
 	} else {
 		log.Println("Set workload_upserts nil")
-		d.Set("workload_upserts", nil)
+		if err := d.Set("workload_upserts", nil); err != nil {
+			log.Println("failed to set upserts to nil error ", err)
+		}
 	}
 
 	d.SetId(workloadCDConfig.Metadata.Name)
@@ -1769,7 +1775,7 @@ func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, workl
 			workload.ChartHelmRepoName != "" ||
 			workload.ChartGitRepoName != "") && len(valuePaths) > 0 {
 			wg.Add(1)
-			go createApplication(ctx, cfg, workload, folder, project, namespace, workload.Name, chartPath, valuePaths, &wg)
+			go createApplication(ctx, cfg, workload, folder, project, namespace, workload.Name, chartPath, valuePaths, &wg) //nolint:errcheck // fire-and-forget goroutine, errors logged and tracked in cfg.Status
 			time.Sleep(time.Duration(5) * time.Second)
 		} else {
 			log.Println("processApplicationFolders ignore folder ", folder, "  chartPath or valuePaths (or) catalog (or) helm-repo (or) gitrepo is empty")

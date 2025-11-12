@@ -370,7 +370,9 @@ func resourceUserDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 func resourceUserImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	d.SetId(d.Id())
-	d.Set("user_name", d.Id())
+	if err := d.Set("user_name", d.Id()); err != nil {
+		return nil, err
+	}
 	log.Println("user_name", d.Id())
 	return []*schema.ResourceData{d}, nil
 }

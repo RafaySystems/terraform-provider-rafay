@@ -3699,24 +3699,33 @@ func expandStatement(p []interface{}) []InlineStatement {
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.Condition = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal condition policy: %v", err)
+			} else {
+				obj.Condition = policyDoc
+			}
 		}
 
 		if v, ok := in["principal"].(string); ok && len(v) > 0 {
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.Principal = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal principal policy: %v", err)
+			} else {
+				obj.Principal = policyDoc
+			}
 		}
 
 		if v, ok := in["not_principal"].(string); ok && len(v) > 0 {
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.NotPrincipal = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal not_principal policy: %v", err)
+			} else {
+				obj.NotPrincipal = policyDoc
+			}
 		}
 
 		out[i] = *obj

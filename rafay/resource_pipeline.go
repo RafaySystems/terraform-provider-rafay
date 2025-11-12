@@ -330,29 +330,29 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 				Triggers []snakeTriggerExtra `json:"triggers,omitempty"`
 			}
 
-		var ct camelTriggers
+			var ct camelTriggers
 
-		b, _ := json.Marshal(in)
-		if err := json.Unmarshal(b, &ct); err != nil {
-			log.Printf("warning: failed to unmarshal camelTriggers: %v", err)
-			return nil
-		}
-		log.Println("status pipeline:", string(b))
+			b, _ := json.Marshal(in)
+			if err := json.Unmarshal(b, &ct); err != nil {
+				log.Printf("warning: failed to unmarshal camelTriggers: %v", err)
+				return nil
+			}
+			log.Println("status pipeline:", string(b))
 
-		var out []interface{}
-		var st = snakeTrigger{}
-		for _, t := range ct.Triggers {
-			st.Triggers = append(st.Triggers, snakeTriggerExtra(t))
-		}
-		log.Println("status pipeline:", st)
-		b, _ = json.Marshal(st)
-		log.Println("status pipeline:", string(b))
-		var obj = make(map[string]interface{})
-		if err := json.Unmarshal(b, &obj); err != nil {
-			log.Printf("warning: failed to unmarshal pipeline triggers: %v", err)
-			return nil
-		}
-		out = append(out, obj)
+			var out []interface{}
+			var st = snakeTrigger{}
+			for _, t := range ct.Triggers {
+				st.Triggers = append(st.Triggers, snakeTriggerExtra(t))
+			}
+			log.Println("status pipeline:", st)
+			b, _ = json.Marshal(st)
+			log.Println("status pipeline:", string(b))
+			var obj = make(map[string]interface{})
+			if err := json.Unmarshal(b, &obj); err != nil {
+				log.Printf("warning: failed to unmarshal pipeline triggers: %v", err)
+				return nil
+			}
+			out = append(out, obj)
 
 			log.Println("status pipeline:", []interface{}{out})
 			return out

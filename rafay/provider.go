@@ -181,13 +181,13 @@ func providerConfigure(ctx context.Context, rd *schema.ResourceData) (interface{
 
 	// If direct credentials provided, use them (takes precedence)
 	if apiKey != "" && restEndpoint != "" {
-	cliCtx.APIKey = apiKey
-	cliCtx.RestEndpoint = restEndpoint
-	if project != "" {
-		if err := os.Setenv("RCTL_PROJECT", project); err != nil {
-			log.Printf("warning: failed to set RCTL_PROJECT environment variable: %v", err)
+		cliCtx.APIKey = apiKey
+		cliCtx.RestEndpoint = restEndpoint
+		if project != "" {
+			if err := os.Setenv("RCTL_PROJECT", project); err != nil {
+				log.Printf("warning: failed to set RCTL_PROJECT environment variable: %v", err)
+			}
 		}
-	}
 	}
 	if config_file != "" {
 		var err error

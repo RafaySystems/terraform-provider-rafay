@@ -149,12 +149,17 @@ func dataWorkloadRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		} else if wls.Status.ConditionStatus == commonpb.ConditionStatus_StatusSubmitted {
 			status = "submitted"
 		}
-		d.Set("condition", wls.Status.ConditionType)
-		d.Set("condition_status", status)
-		d.Set("reason", wls.Status.Reason)
+		if err := d.Set("condition", wls.Status.ConditionType); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := d.Set("condition_status", status); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := d.Set("reason", wls.Status.Reason); err != nil {
+			return diag.FromErr(err)
+		}
 		// d.Set("clusters", wls.Status.DeployedClusters)
 	}
-	d.Set("condition_status", status)
 	d.SetId(wl.Metadata.Name)
 
 	return diags

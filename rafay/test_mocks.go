@@ -862,7 +862,10 @@ func MockResourceData(resourceSchema map[string]*schema.Schema, data map[string]
 
 	// Set the config values
 	for key, value := range data {
-		d.Set(key, value)
+		if err := d.Set(key, value); err != nil {
+			// In tests, we can panic on set errors as they indicate a problem with the test setup
+			panic(err)
+		}
 	}
 
 	return d

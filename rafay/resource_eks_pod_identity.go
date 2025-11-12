@@ -397,7 +397,7 @@ func resourceEksPodIdentityDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	podIdentity := []*IAMPodIdentityAssociation{}
+	var podIdentity []*IAMPodIdentityAssociation
 
 	//rawConfig := d.GetRawConfig()
 

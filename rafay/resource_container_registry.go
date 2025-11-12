@@ -502,7 +502,10 @@ func flattenContainerRegistrySpec(in *integrationspb.ContainerRegistrySpec, p []
 	log.Println("flattenContainerRegistrySpec jsonBytes ", string(jsonBytes))
 
 	crt := ContainerRegistrySpecTranspose{}
-	err = json.Unmarshal(jsonBytes, &crt)
+	if err := json.Unmarshal(jsonBytes, &crt); err != nil {
+		log.Printf("warning: failed to unmarshal container registry spec: %v", err)
+		// Continue with best-effort flattening using protobuf data
+	}
 
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {

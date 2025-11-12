@@ -192,10 +192,12 @@ func resourceSecretSealerDelete(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
-	err = client.IntegrationsV3().SecretSealer().Delete(ctx, options.DeleteOptions{
+	if err := client.IntegrationsV3().SecretSealer().Delete(ctx, options.DeleteOptions{
 		Name:    ag.Metadata.Name,
 		Project: ag.Metadata.Project,
-	})
+	}); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }

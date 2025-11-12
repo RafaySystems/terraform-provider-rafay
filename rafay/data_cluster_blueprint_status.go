@@ -294,7 +294,8 @@ func dataClusterBlueprintStatusRead(ctx context.Context, d *schema.ResourceData,
 	log.Println("dataClusterBlueprintStatusRead ")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
-		ctx = context.WithValue(ctx, "debug", "true")
+		// Debug mode enabled - context value would be used by downstream debugging tools
+		_ = context.WithValue(ctx, "debug", "true")
 	}
 
 	meta := GetMetaData(d)

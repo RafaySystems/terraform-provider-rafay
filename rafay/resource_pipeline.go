@@ -1971,21 +1971,17 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 	if in == nil {
 		return nil
 	}
-	retNil := true
 	obj := make(map[string]interface{})
 
 	if len(in.Config.Action.Action) > 0 {
 		obj["action"] = (in.Config.Action.Action)
-		retNil = false
 	}
 
 	if len(in.Config.Action.Version) > 0 {
 		obj["version"] = (in.Config.Action.Version)
-		retNil = false
 	}
 
 	if len(in.Config.Action.InputVars) > 0 {
-		retNil = false
 		v, ok := obj["input_vars"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -1993,16 +1989,13 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 		obj["input_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
 	} else {
 		obj["input_vars"] = nil
-		retNil = false
 	}
 
 	if in.Config.Action.TfVarsFilePath != nil {
 		obj["tf_vars_file_path"] = flattenCommonpbFile(in.Config.Action.TfVarsFilePath)
-		retNil = false
 	}
 
 	if len(in.Config.Action.EnvVars) > 0 {
-		retNil = false
 		v, ok := obj["input_vars"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -2010,11 +2003,9 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 		obj["env_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
 	} else {
 		obj["env_vars"] = nil
-		retNil = false
 	}
 
 	if len(in.Config.Action.BackendVars) > 0 {
-		retNil = false
 		v, ok := obj["backend_vars"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -2022,21 +2013,17 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 		obj["backend_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
 	} else {
 		obj["backend_vars"] = nil
-		retNil = false
 	}
 
 	if in.Config.Action.BackendFilePath != nil {
 		obj["backend_file_path"] = flattenCommonpbFile(in.Config.Action.BackendFilePath)
-		retNil = false
 	}
 
 	if in.Config.Action.Refresh {
 		obj["refresh"] = in.Config.Action.Refresh
-		retNil = false
 	}
 
 	if len(in.Config.Action.Targets) > 0 {
-		retNil = false
 		v, ok := obj["targets"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -2044,23 +2031,17 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 		obj["targets"] = flattenStageSpecConfigActionTargets(in.Config.Action.Targets, v)
 	} else {
 		obj["targets"] = nil
-		retNil = false
 	}
 
 	if in.Config.Action.Destroy {
 		obj["destroy"] = in.Config.Action.Destroy
-		retNil = false
 	}
 
 	if len(in.Config.Action.SecretGroups) > 0 {
 		obj["secret_groups"] = in.Config.Action.SecretGroups
-		retNil = false
 	}
 
-	if retNil {
-		return nil
-	}
-
+	// Always return the object - even if all fields are defaults
 	return []interface{}{obj}
 }
 

@@ -1710,15 +1710,14 @@ func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, workload *Wor
 }
 
 func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, workload *Workload, baseChart string, baseValues, folders []string, gWorkloadList *appspb.WorkloadList, cwg *sync.WaitGroup) error {
-	var chartPath string
 	var wg sync.WaitGroup
 	defer cwg.Done()
 
 	for _, folder := range folders {
 		var project, namespace, workloadName string
 		var valuePaths []string
+		var chartPath string
 		// process folder and create application
-		chartPath = ""
 
 		projectCheck := httprouter.New()
 		pattern := strings.TrimPrefix(strings.TrimSuffix(cfg.Spec.RepositoryLocalPath, "/"), ".") + workload.PathMatchPattern

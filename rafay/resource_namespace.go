@@ -1021,7 +1021,10 @@ func flattenNamespaceSpec(in *infrapb.NamespaceSpec, p []interface{}) ([]interfa
 	log.Println("flattenNamespaceSpec jsonBytes ", string(jsonBytes))
 
 	nsat := namespaceSpecTranspose{}
-	err = json.Unmarshal(jsonBytes, &nsat)
+	if err := json.Unmarshal(jsonBytes, &nsat); err != nil {
+		log.Printf("warning: failed to unmarshal namespace spec: %v", err)
+		// Continue with best-effort flattening using protobuf data
+	}
 
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {

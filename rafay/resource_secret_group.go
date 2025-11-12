@@ -185,10 +185,12 @@ func resourceSecretGroupDelete(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	err = client.GitopsV3().SecretGroup().Delete(ctx, options.DeleteOptions{
+	if err := client.GitopsV3().SecretGroup().Delete(ctx, options.DeleteOptions{
 		Name:    secretGroup.Metadata.Name,
 		Project: secretGroup.Metadata.Project,
-	})
+	}); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }

@@ -779,10 +779,14 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 	var output []string
 	var ssh_key_path string
 	if workloadCDConfig.Spec.Credentials != nil && workloadCDConfig.Spec.Credentials.PrivateKey != "" {
-		output, ssh_key_path, err = cloneRepoSSH(workloadCDConfig)
-		if ssh_key_path != "" {
-			defer os.Remove(ssh_key_path)
-		}
+	output, ssh_key_path, err = cloneRepoSSH(workloadCDConfig)
+	if ssh_key_path != "" {
+		defer func() {
+			if err := os.Remove(ssh_key_path); err != nil {
+				log.Printf("warning: failed to remove SSH key file: %v", err)
+			}
+		}()
+	}
 	} else {
 		output, err = cloneRepo(workloadCDConfig)
 	}
@@ -809,9 +813,9 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		// as we loop through put an empty struct to channel guard.
 		// If the channel is still empty, the process will continue.
 		// Else, the process will be blocked until there are rooms in the channel to put the empty struct.
-		guard <- struct{}{}
-		wg.Add(1)
-		go getProjectWorkloadList(ctx, pr, &golbalWorkloadList, &mu, &wg)
+	guard <- struct{}{}
+	wg.Add(1)
+	go getProjectWorkloadList(ctx, pr, &golbalWorkloadList, &mu, &wg) //nolint:errcheck // fire-and-forget goroutine, errors logged internally
 	}
 	//wait for all the go routines to finish
 	wg.Wait()
@@ -831,10 +835,10 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		log.Println("resourceWorkloadCDOperatorUpsert ", "folders", folders)
 		log.Println("resourceWorkloadCDOperatorUpsert ", "baseValues", baseValues)
 
-		if workload.DeleteAction != "none" {
-			dwg.Add(1)
-			go processApplicationFoldersForDelete(ctx, workloadCDConfig, workload, baseChart, folders, &golbalWorkloadList, &dwg)
-			time.Sleep(time.Duration(10) * time.Second)
+	if workload.DeleteAction != "none" {
+		dwg.Add(1)
+		go processApplicationFoldersForDelete(ctx, workloadCDConfig, workload, baseChart, folders, &golbalWorkloadList, &dwg) //nolint:errcheck // fire-and-forget goroutine, errors logged internally
+		time.Sleep(time.Duration(10) * time.Second)
 		}
 	}
 	//wait for all the go routines to finish
@@ -853,9 +857,9 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		log.Println("resourceWorkloadCDOperatorUpsert ", "folders", folders)
 		log.Println("resourceWorkloadCDOperatorUpsert ", "baseValues", baseValues)
 
-		cwg.Add(1)
-		go processApplicationFolders(ctx, workloadCDConfig, workload, baseChart, baseValues, folders, &golbalWorkloadList, &cwg)
-		time.Sleep(time.Duration(10) * time.Second)
+	cwg.Add(1)
+	go processApplicationFolders(ctx, workloadCDConfig, workload, baseChart, baseValues, folders, &golbalWorkloadList, &cwg) //nolint:errcheck // fire-and-forget goroutine, errors logged internally
+	time.Sleep(time.Duration(10) * time.Second)
 	}
 	//wait for all the go routines to finish
 	cwg.Wait()
@@ -1411,8 +1415,13 @@ func cloneRepoSSH(workloadCdCfg *WorkloadCDConfig) ([]string, string, error) {
 		log.Println("failed to create file", err)
 		return nil, "", err
 	}
-	f.Write([]byte(sshKey))
-	f.Close()
+	if _, err := f.Write([]byte(sshKey)); err != nil {
+		f.Close()
+		return nil, "", fmt.Errorf("failed to write SSH key: %w", err)
+	}
+	if err := f.Close(); err != nil {
+		return nil, "", fmt.Errorf("failed to close SSH key file: %w", err)
+	}
 	ssh_key_path := f.Name()
 
 	time.Sleep(5 * time.Second)
@@ -1543,13 +1552,15 @@ func walkRepo(cfg *WorkloadCDConfig, wl *Workload) ([]string, []string, string, 
 		} else {
 			// check if the folder is a leaf
 			var isLeaf = true
-			filepath.Walk(path, func(path1 string, info1 os.FileInfo, err1 error) error {
+			if err := filepath.Walk(path, func(path1 string, info1 os.FileInfo, err1 error) error {
 				if path != path1 && info1.IsDir() {
 					isLeaf = false
 					return nil
 				}
 				return nil
-			})
+			}); err != nil {
+				log.Printf("warning: failed to walk directory %s: %v", path, err)
+			}
 			if isLeaf {
 				abs, err := filepath.Abs(path)
 				if err == nil {

@@ -103,10 +103,12 @@ func (p *RafayFwProvider) Configure(ctx context.Context, req provider.ConfigureR
 		cliCtx.APIKey = apiKey
 		cliCtx.RestEndpoint = restEndpoint
 
-		// The project is handled by setting an environment variable, which rctl already supports.
-		if project != "" {
-			os.Setenv("RCTL_PROJECT", project)
+	// The project is handled by setting an environment variable, which rctl already supports.
+	if project != "" {
+		if err := os.Setenv("RCTL_PROJECT", project); err != nil {
+			resp.Diagnostics.AddWarning("Failed to set RCTL_PROJECT environment variable", err.Error())
 		}
+	}
 	}
 
 	configFile := data.ProviderConfigFile.ValueString()

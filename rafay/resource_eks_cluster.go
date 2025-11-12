@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// go:embed resource_eks_cluster_description.md
+//go:embed resource_eks_cluster_description.md
 var resourceEKSClusterDescription string
 
 func resourceEKSCluster() *schema.Resource {

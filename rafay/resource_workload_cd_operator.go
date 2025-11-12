@@ -81,7 +81,7 @@ type Workload struct {
 	ChartGitRepoName   string            `json:"chartGitRepoName,omitempty"`   // the name of the git repo
 	ChartGitRepoBranch string            `json:"chartGitRepoBranch,omitempty"` // the branch of the git repo
 	ChartGitRepoPath   string            `json:"chartGitRepoPath,omitempty"`   // the path of the git repo
-	ChartCatalogName   string            `json:"chartGitRepoPath,omitempty"`   // the name of the catalog to source the chart
+	ChartCatalogName   string            `json:"chartCatalogName,omitempty"`   // the name of the catalog to source the chart
 }
 
 // The config spec for the WorkloadCD resource

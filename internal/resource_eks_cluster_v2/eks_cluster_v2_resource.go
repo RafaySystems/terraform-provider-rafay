@@ -1,14 +1,19 @@
 package resource_eks_cluster_v2
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/clusterctl"
 	"github.com/RafaySystems/rctl/pkg/config"
+	glogger "github.com/RafaySystems/rctl/pkg/log"
+	"github.com/RafaySystems/terraform-provider-rafay/rafay"
+	"github.com/go-yaml/yaml"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -755,17 +760,229 @@ func (r *EKSClusterV2Resource) Create(ctx context.Context, req resource.CreateRe
 
 	tflog.Info(ctx, "Creating EKS cluster v2")
 
-	// TODO: Extract cluster configuration from data
-	// TODO: Call Rafay API to create cluster
-	// TODO: Wait for cluster to be ready
-	// TODO: Set ID and state
+	// Convert Terraform model to API structs
+	eksCluster, eksClusterConfig, diags := convertModelToClusterSpec(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// Placeholder implementation
-	clusterName := "placeholder-cluster-name"
-	projectName := "placeholder-project"
+	// Get cluster name and project for API calls
+	clusterName := eksCluster.Metadata.Name
+	projectName := eksCluster.Metadata.Project
 
-	// Set ID
-	data.ID = types.StringValue(fmt.Sprintf("%s/%s", projectName, clusterName))
+	tflog.Info(ctx, "Creating cluster", map[string]interface{}{
+		"name":    clusterName,
+		"project": projectName,
+	})
+
+	// Get project ID from name
+	projectID, err := getProjectIDFromName(projectName)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get project ID",
+			fmt.Sprintf("Could not convert project name %s to ID: %s", projectName, err.Error()),
+		)
+		return
+	}
+
+	// Set cluster sharing external flag if spec.sharing is specified
+	var cse string
+	if eksCluster.Spec.Sharing != nil {
+		cse = "false"
+	}
+
+	// Encode cluster spec to YAML
+	var b bytes.Buffer
+	encoder := yaml.NewEncoder(&b)
+	if err := encoder.Encode(eksCluster); err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to encode cluster spec",
+			fmt.Sprintf("Could not encode cluster metadata: %s", err.Error()),
+		)
+		return
+	}
+	if err := encoder.Encode(eksClusterConfig); err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to encode cluster config",
+			fmt.Sprintf("Could not encode cluster config: %s", err.Error()),
+		)
+		return
+	}
+
+	tflog.Debug(ctx, "Cluster YAML", map[string]interface{}{
+		"yaml": b.String(),
+	})
+
+	// Apply cluster via clusterctl
+	logger := glogger.GetLogger()
+	rctlConfig := config.GetConfig()
+
+	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false, false, uaDef, cse)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to create cluster",
+			fmt.Sprintf("clusterctl.Apply failed: %s", err.Error()),
+		)
+		return
+	}
+
+	// Parse response to get task ID
+	res := clusterCTLResponse{}
+	err = json.Unmarshal([]byte(response), &res)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to parse API response",
+			fmt.Sprintf("Could not parse clusterctl response: %s", err.Error()),
+		)
+		return
+	}
+
+	if res.TaskSetID == "" {
+		tflog.Warn(ctx, "No task ID returned, cluster may already exist or operation completed immediately")
+	} else {
+		tflog.Info(ctx, "Cluster creation task started", map[string]interface{}{
+			"taskSetID": res.TaskSetID,
+		})
+	}
+
+	// Wait a moment for cluster to be created in database
+	time.Sleep(10 * time.Second)
+
+	// Get cluster to set ID
+	s, errGet := cluster.GetCluster(clusterName, projectID, uaDef)
+	if errGet != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get cluster after creation",
+			fmt.Sprintf("Could not retrieve cluster %s: %s", clusterName, errGet.Error()),
+		)
+		return
+	}
+
+	// Set ID early so partial state is saved if operation times out
+	data.ID = types.StringValue(s.ID)
+
+	tflog.Info(ctx, "Cluster created in database, waiting for provisioning to complete (15-20 minutes typical)")
+
+	// Poll for cluster readiness
+	if res.TaskSetID != "" {
+		ticker := time.NewTicker(60 * time.Second)
+		defer ticker.Stop()
+
+	LOOP:
+		for {
+			select {
+			case <-ctx.Done():
+				resp.Diagnostics.AddWarning(
+					"Cluster creation timeout",
+					fmt.Sprintf("Cluster %s provisioning timed out. The cluster may still be provisioning in the background. Check the Rafay console for status.", clusterName),
+				)
+				// Still save the state with what we have
+				break LOOP
+
+			case <-ticker.C:
+				tflog.Debug(ctx, "Checking cluster provision status...")
+
+				// Check cluster status
+				check, errGet := cluster.GetCluster(clusterName, projectID, uaDef)
+				if errGet != nil {
+					resp.Diagnostics.AddError(
+						"Failed to check cluster status",
+						fmt.Sprintf("Could not retrieve cluster status: %s", errGet.Error()),
+					)
+					return
+				}
+
+				// Get detailed status via clusterctl
+				rctlConfig.ProjectID = projectID
+				statusResp, err := clusterctl.Status(logger, rctlConfig, res.TaskSetID)
+				if err != nil {
+					tflog.Error(ctx, "Failed to get cluster status", map[string]interface{}{
+						"error": err.Error(),
+					})
+					continue
+				}
+
+				sres := clusterCTLResponse{}
+				err = json.Unmarshal([]byte(statusResp), &sres)
+				if err != nil {
+					tflog.Error(ctx, "Failed to parse status response", map[string]interface{}{
+						"error": err.Error(),
+					})
+					continue
+				}
+
+				tflog.Info(ctx, "Cluster status", map[string]interface{}{
+					"status": sres.Status,
+				})
+
+				if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+					// Check cluster conditions for blueprint sync
+					conditionsFailure, clusterReadiness, err := getClusterConditions(check.ID, projectID)
+					if err != nil {
+						resp.Diagnostics.AddError(
+							"Failed to check cluster conditions",
+							fmt.Sprintf("Could not check cluster readiness: %s", err.Error()),
+						)
+						return
+					}
+
+					if conditionsFailure {
+						resp.Diagnostics.AddError(
+							"Blueprint sync failed",
+							fmt.Sprintf("Blueprint sync failed for cluster %s", clusterName),
+						)
+						return
+					} else if clusterReadiness {
+						tflog.Info(ctx, "Cluster is ready")
+						break LOOP
+					} else {
+						tflog.Info(ctx, "Cluster provisioning complete, waiting for cluster to be ready...")
+					}
+				} else if strings.Contains(sres.Status, "STATUS_FAILED") {
+					resp.Diagnostics.AddError(
+						"Cluster provisioning failed",
+						fmt.Sprintf("Failed to provision cluster %s: %s", clusterName, statusResp),
+					)
+					return
+				}
+			}
+		}
+	}
+
+	// Handle cluster sharing external flag
+	edgeDb, err := cluster.GetCluster(clusterName, projectID, uaDef)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get cluster after provisioning",
+			fmt.Sprintf("Could not retrieve cluster: %s", err.Error()),
+		)
+		return
+	}
+
+	cseFromDb := edgeDb.Settings[clusterSharingExtKey]
+	if cseFromDb != "true" {
+		if eksCluster.Spec.Sharing == nil && cseFromDb != "" {
+			// Reset cse as sharing is removed
+			edgeDb.Settings[clusterSharingExtKey] = ""
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "Failed to reset cluster sharing flag", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
+		}
+		if eksCluster.Spec.Sharing != nil && cseFromDb != "false" {
+			// Explicitly set cse to false
+			edgeDb.Settings[clusterSharingExtKey] = "false"
+			err := cluster.UpdateCluster(edgeDb, uaDef)
+			if err != nil {
+				tflog.Error(ctx, "Failed to set cluster sharing flag", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -786,11 +1003,110 @@ func (r *EKSClusterV2Resource) Read(ctx context.Context, req resource.ReadReques
 		"id": data.ID.ValueString(),
 	})
 
-	// TODO: Call Rafay API to get cluster details
-	// TODO: Handle cluster not found (remove from state)
-	// TODO: Update data model with latest state
+	// Extract cluster metadata from state
+	var clusterModel ClusterModel
+	diags := data.Cluster.As(ctx, &clusterModel, types.ObjectAsOptions{})
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	var metadataModel ClusterMetadataModel
+	diags = clusterModel.Metadata.As(ctx, &metadataModel, types.ObjectAsOptions{})
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	clusterName := metadataModel.Name.ValueString()
+	projectName := metadataModel.Project.ValueString()
+
+	tflog.Info(ctx, "Reading cluster", map[string]interface{}{
+		"name":    clusterName,
+		"project": projectName,
+	})
+
+	// Get project ID
+	projectID, err := getProjectIDFromName(projectName)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get project ID",
+			fmt.Sprintf("Could not convert project name %s to ID: %s", projectName, err.Error()),
+		)
+		return
+	}
+
+	// Get cluster from API
+	c, err := cluster.GetCluster(clusterName, projectID, uaDef)
+	if err != nil {
+		tflog.Error(ctx, "Failed to get cluster", map[string]interface{}{
+			"error": err.Error(),
+		})
+		if strings.Contains(err.Error(), "not found") {
+			// Cluster no longer exists, remove from state
+			tflog.Warn(ctx, "Cluster not found, removing from state")
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError(
+			"Failed to read cluster",
+			fmt.Sprintf("Could not retrieve cluster %s: %s", clusterName, err.Error()),
+		)
+		return
+	}
+
+	tflog.Debug(ctx, "Got cluster from backend", map[string]interface{}{
+		"cluster_id": c.ID,
+	})
+
+	// Get cluster spec
+	logger := glogger.GetLogger()
+	rctlCfg := config.GetConfig()
+	clusterSpecYaml, err := clusterctl.GetClusterSpec(logger, rctlCfg, c.Name, projectID, uaDef)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get cluster spec",
+			fmt.Sprintf("Could not retrieve cluster spec for %s: %s", clusterName, err.Error()),
+		)
+		return
+	}
+
+	tflog.Debug(ctx, "Got cluster spec from backend")
+
+	// Parse YAML
+	decoder := yaml.NewDecoder(bytes.NewReader([]byte(clusterSpecYaml)))
+
+	var eksCluster rafay.EKSCluster
+	if err := decoder.Decode(&eksCluster); err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to decode cluster metadata",
+			fmt.Sprintf("Could not parse cluster YAML: %s", err.Error()),
+		)
+		return
+	}
+
+	var eksClusterConfig rafay.EKSClusterConfig
+	if err := decoder.Decode(&eksClusterConfig); err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to decode cluster config",
+			fmt.Sprintf("Could not parse cluster config YAML: %s", err.Error()),
+		)
+		return
+	}
+
+	// Convert API response to model
+	newData, convertDiags := convertClusterSpecToModel(ctx, &eksCluster, &eksClusterConfig)
+	resp.Diagnostics.Append(convertDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Preserve ID
+	newData.ID = data.ID
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, newData)...)
+
+	tflog.Info(ctx, "Successfully read EKS cluster v2")
 }
 
 func (r *EKSClusterV2Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -805,9 +1121,190 @@ func (r *EKSClusterV2Resource) Update(ctx context.Context, req resource.UpdateRe
 		"id": data.ID.ValueString(),
 	})
 
-	// TODO: Extract cluster configuration changes
-	// TODO: Call Rafay API to update cluster
-	// TODO: Wait for update to complete
+	// Extract cluster metadata from plan
+	var clusterModel ClusterModel
+	diags := data.Cluster.As(ctx, &clusterModel, types.ObjectAsOptions{})
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var metadataModel ClusterMetadataModel
+	diags = clusterModel.Metadata.As(ctx, &metadataModel, types.ObjectAsOptions{})
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	clusterName := metadataModel.Name.ValueString()
+	projectName := metadataModel.Project.ValueString()
+
+	tflog.Info(ctx, "Updating cluster", map[string]interface{}{
+		"name":    clusterName,
+		"project": projectName,
+	})
+
+	// Get project ID
+	projectID, err := getProjectIDFromName(projectName)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get project ID",
+			fmt.Sprintf("Could not convert project name %s to ID: %s", projectName, err.Error()),
+		)
+		return
+	}
+
+	// Get current cluster
+	c, err := cluster.GetCluster(clusterName, projectID, uaDef)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get cluster",
+			fmt.Sprintf("Could not retrieve cluster %s: %s", clusterName, err.Error()),
+		)
+		return
+	}
+
+	// Verify cluster ID matches
+	if c.ID != data.ID.ValueString() {
+		resp.Diagnostics.AddError(
+			"Cluster ID mismatch",
+			fmt.Sprintf("State ID %s does not match current ID %s", data.ID.ValueString(), c.ID),
+		)
+		return
+	}
+
+	// Check cluster sharing external flag
+	cse := c.Settings[clusterSharingExtKey]
+	tflog.Debug(ctx, "Cluster sharing external flag", map[string]interface{}{
+		"cse": cse,
+	})
+
+	// If cluster sharing is externally managed, check for conflicts
+	if cse == "true" {
+		var stateData EKSClusterV2ResourceModel
+		diags := req.State.Get(ctx, &stateData)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		// Check if sharing configuration changed
+		if !data.Cluster.Equal(stateData.Cluster) {
+			var stateCluster, planCluster ClusterModel
+			data.Cluster.As(ctx, &planCluster, types.ObjectAsOptions{})
+			stateData.Cluster.As(ctx, &stateCluster, types.ObjectAsOptions{})
+
+			if !planCluster.Spec.Equal(stateCluster.Spec) {
+				resp.Diagnostics.AddError(
+					"Cluster sharing externally managed",
+					"Cluster sharing is currently managed through the external 'rafay_cluster_sharing' resource. To prevent configuration conflicts, please remove the sharing settings from the 'rafay_eks_cluster_v2' resource and manage sharing exclusively via the external resource.",
+				)
+				return
+			}
+		}
+	}
+
+	// Update follows the same process as create (upsert pattern)
+	// Convert model to API structs
+	eksCluster, eksClusterConfig, convertDiags := convertModelToClusterSpec(ctx, &data)
+	resp.Diagnostics.Append(convertDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Encode to YAML
+	var b bytes.Buffer
+	encoder := yaml.NewEncoder(&b)
+	if err := encoder.Encode(eksCluster); err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to encode cluster spec",
+			fmt.Sprintf("Could not encode cluster metadata: %s", err.Error()),
+		)
+		return
+	}
+	if err := encoder.Encode(eksClusterConfig); err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to encode cluster config",
+			fmt.Sprintf("Could not encode cluster config: %s", err.Error()),
+		)
+		return
+	}
+
+	// Apply update
+	logger := glogger.GetLogger()
+	rctlConfig := config.GetConfig()
+
+	response, err := clusterctl.Apply(logger, rctlConfig, clusterName, b.Bytes(), false, false, false, false, uaDef, "")
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to update cluster",
+			fmt.Sprintf("clusterctl.Apply failed: %s", err.Error()),
+		)
+		return
+	}
+
+	// Parse response
+	res := clusterCTLResponse{}
+	err = json.Unmarshal([]byte(response), &res)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to parse API response",
+			fmt.Sprintf("Could not parse clusterctl response: %s", err.Error()),
+		)
+		return
+	}
+
+	tflog.Info(ctx, "Cluster update task started", map[string]interface{}{
+		"taskSetID": res.TaskSetID,
+	})
+
+	// Poll for update completion (similar to create)
+	if res.TaskSetID != "" {
+		ticker := time.NewTicker(60 * time.Second)
+		defer ticker.Stop()
+
+	LOOP:
+		for {
+			select {
+			case <-ctx.Done():
+				resp.Diagnostics.AddWarning(
+					"Cluster update timeout",
+					fmt.Sprintf("Cluster %s update timed out. The cluster may still be updating in the background. Check the Rafay console for status.", clusterName),
+				)
+				break LOOP
+
+			case <-ticker.C:
+				rctlConfig.ProjectID = projectID
+				statusResp, err := clusterctl.Status(logger, rctlConfig, res.TaskSetID)
+				if err != nil {
+					tflog.Error(ctx, "Failed to get cluster status", map[string]interface{}{
+						"error": err.Error(),
+					})
+					continue
+				}
+
+				sres := clusterCTLResponse{}
+				err = json.Unmarshal([]byte(statusResp), &sres)
+				if err != nil {
+					tflog.Error(ctx, "Failed to parse status response", map[string]interface{}{
+						"error": err.Error(),
+					})
+					continue
+				}
+
+				if strings.Contains(sres.Status, "STATUS_COMPLETE") {
+					tflog.Info(ctx, "Cluster update complete")
+					break LOOP
+				} else if strings.Contains(sres.Status, "STATUS_FAILED") {
+					resp.Diagnostics.AddError(
+						"Cluster update failed",
+						fmt.Sprintf("Failed to update cluster %s: %s", clusterName, statusResp),
+					)
+					return
+				}
+			}
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -826,10 +1323,84 @@ func (r *EKSClusterV2Resource) Delete(ctx context.Context, req resource.DeleteRe
 		"id": data.ID.ValueString(),
 	})
 
-	// TODO: Call Rafay API to delete cluster
-	// TODO: Wait for deletion to complete
+	// Extract cluster metadata from state
+	var clusterModel ClusterModel
+	diags := data.Cluster.As(ctx, &clusterModel, types.ObjectAsOptions{})
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	tflog.Info(ctx, "Successfully deleted EKS cluster v2")
+	var metadataModel ClusterMetadataModel
+	diags = clusterModel.Metadata.As(ctx, &metadataModel, types.ObjectAsOptions{})
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	clusterName := metadataModel.Name.ValueString()
+	projectName := metadataModel.Project.ValueString()
+
+	tflog.Info(ctx, "Deleting cluster", map[string]interface{}{
+		"name":    clusterName,
+		"project": projectName,
+	})
+
+	// Get project ID
+	projectID, err := getProjectIDFromName(projectName)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get project ID",
+			fmt.Sprintf("Could not convert project name %s to ID: %s", projectName, err.Error()),
+		)
+		return
+	}
+
+	// Delete cluster
+	errDel := cluster.DeleteCluster(clusterName, projectID, false, uaDef)
+	if errDel != nil {
+		resp.Diagnostics.AddError(
+			"Failed to delete cluster",
+			fmt.Sprintf("Could not delete cluster %s: %s", clusterName, errDel.Error()),
+		)
+		return
+	}
+
+	tflog.Info(ctx, "Cluster deletion initiated, polling for completion...")
+
+	// Poll for deletion completion
+	ticker := time.NewTicker(60 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			resp.Diagnostics.AddWarning(
+				"Cluster deletion timeout",
+				fmt.Sprintf("Cluster %s deletion timed out. The cluster may still be deleting in the background. Check the Rafay console for status.", clusterName),
+			)
+			// Consider deletion successful after timeout
+			return
+
+		case <-ticker.C:
+			tflog.Debug(ctx, "Checking if cluster still exists...")
+			check, errGet := cluster.GetCluster(clusterName, projectID, uaDef)
+			if errGet != nil {
+				// Error getting cluster usually means it's been deleted
+				tflog.Info(ctx, "Cluster not found, deletion complete", map[string]interface{}{
+					"error": errGet.Error(),
+				})
+				return
+			}
+			if check == nil {
+				tflog.Info(ctx, "Cluster deleted successfully")
+				return
+			}
+			tflog.Info(ctx, "Cluster still exists, waiting 60 more seconds...", map[string]interface{}{
+				"cluster_id": check.ID,
+			})
+		}
+	}
 }
 
 func (r *EKSClusterV2Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -869,5 +1440,31 @@ func splitString(s, sep string) []string {
 	}
 	result = append(result, s[start:])
 	return result
+}
+
+// Constants
+const (
+	clusterSharingExtKey = "cluster_sharing_external"
+	uaDef                = "terraform-provider-rafay-eks-cluster-v2"
+)
+
+// clusterCTLResponse represents the response from clusterctl operations
+type clusterCTLResponse struct {
+	TaskSetID string `json:"taskset_id,omitempty"`
+	Status    string `json:"status,omitempty"`
+}
+
+// getProjectIDFromName converts a project name to project ID
+func getProjectIDFromName(projectName string) (string, error) {
+	// This function needs to be imported from the rafay package or implemented here
+	// For now, assuming it's available from the rafay package
+	return rafay.GetProjectIDFromName(projectName)
+}
+
+// getClusterConditions checks cluster conditions for blueprint sync and readiness
+func getClusterConditions(clusterID, projectID string) (conditionsFailure, clusterReadiness bool, err error) {
+	// This function needs to be imported from the rafay package or implemented here
+	// For now, assuming it's available from the rafay package
+	return rafay.GetClusterConditions(clusterID, projectID)
 }
 

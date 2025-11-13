@@ -2,463 +2,348 @@ package resource_eks_cluster_v2
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
-	"github.com/RafaySystems/rctl/pkg/cluster"
+	"github.com/RafaySystems/terraform-provider-rafay/rafay"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// convertModelToClusterSpec converts the Terraform model to Rafay cluster specification
-func convertModelToClusterSpec(ctx context.Context, data *EKSClusterV2ResourceModel) (*cluster.Cluster, error) {
-	tflog.Debug(ctx, "Converting model to cluster spec")
-
-	clusterSpec := &cluster.Cluster{
-		APIVersion: "rafay.io/v1alpha5",
-		Kind:       "Cluster",
-	}
+// convertModelToClusterSpec converts the Terraform model to the API cluster spec
+func convertModelToClusterSpec(ctx context.Context, data *EKSClusterV2ResourceModel) (*rafay.EKSCluster, *rafay.EKSClusterConfig, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
 	// Extract cluster metadata
 	var clusterModel ClusterModel
-	diags := data.Cluster.As(ctx, &clusterModel, types.ObjectAsOptions{})
+	diags.Append(data.Cluster.As(ctx, &clusterModel, types.ObjectAsOptions{})...)
 	if diags.HasError() {
-		return nil, fmt.Errorf("failed to extract cluster model: %v", diags)
+		return nil, nil, diags
 	}
 
-	// Extract metadata
-	var metadata ClusterMetadataModel
-	diags = clusterModel.Metadata.As(ctx, &metadata, types.ObjectAsOptions{})
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to extract metadata: %v", diags)
+	// Build EKSCluster (first YAML document)
+	eksCluster := &rafay.EKSCluster{
+		Kind: clusterModel.Kind.ValueString(),
 	}
 
-	clusterSpec.Metadata = &cluster.Metadata{
-		Name:    metadata.Name.ValueString(),
-		Project: metadata.Project.ValueString(),
+	// Convert metadata
+	var metadataModel ClusterMetadataModel
+	diags.Append(clusterModel.Metadata.As(ctx, &metadataModel, types.ObjectAsOptions{})...)
+	if diags.HasError() {
+		return nil, nil, diags
+	}
+
+	eksCluster.Metadata = &rafay.EKSClusterMetadata{
+		Name:    metadataModel.Name.ValueString(),
+		Project: metadataModel.Project.ValueString(),
 	}
 
 	// Extract labels map
-	if !metadata.Labels.IsNull() && !metadata.Labels.IsUnknown() {
+	if !metadataModel.Labels.IsNull() && !metadataModel.Labels.IsUnknown() {
 		labels := make(map[string]string)
-		diags = metadata.Labels.ElementsAs(ctx, &labels, false)
+		diags = metadataModel.Labels.ElementsAs(ctx, &labels, false)
 		if diags.HasError() {
-			return nil, fmt.Errorf("failed to extract labels: %v", diags)
+			return nil, nil, diags
 		}
-		clusterSpec.Metadata.Labels = labels
+		eksCluster.Metadata.Labels = labels
 	}
 
-	// Extract spec
-	var spec ClusterSpecModel
-	diags = clusterModel.Spec.As(ctx, &spec, types.ObjectAsOptions{})
+	// Convert spec
+	var specModel ClusterSpecModel
+	diags.Append(clusterModel.Spec.As(ctx, &specModel, types.ObjectAsOptions{})...)
 	if diags.HasError() {
-		return nil, fmt.Errorf("failed to extract spec: %v", diags)
+		return nil, nil, diags
 	}
 
-	clusterSpec.Spec = &cluster.Spec{
-		Type:                   spec.Type.ValueString(),
-		Blueprint:              spec.Blueprint.ValueString(),
-		BlueprintVersion:       spec.BlueprintVersion.ValueString(),
-		CloudProvider:          spec.CloudProvider.ValueString(),
-		CrossAccountRoleArn:    spec.CrossAccountRoleArn.ValueString(),
-		CniProvider:            spec.CniProvider.ValueString(),
+	eksCluster.Spec = &rafay.EKSSpec{
+		Type:                specModel.Type.ValueString(),
+		Blueprint:           specModel.Blueprint.ValueString(),
+		BlueprintVersion:    specModel.BlueprintVersion.ValueString(),
+		CloudProvider:       specModel.CloudProvider.ValueString(),
+		CrossAccountRoleArn: specModel.CrossAccountRoleArn.ValueString(),
+		CniProvider:         specModel.CniProvider.ValueString(),
 	}
 
-	// Extract proxy config
-	if !spec.ProxyConfig.IsNull() && !spec.ProxyConfig.IsUnknown() {
+	// Convert CNI params
+	if !specModel.CniParams.IsNull() && !specModel.CniParams.IsUnknown() {
+		var cniParams CNIParamsModel
+		diags.Append(specModel.CniParams.As(ctx, &cniParams, types.ObjectAsOptions{})...)
+		if diags.HasError() {
+			return nil, nil, diags
+		}
+		eksCluster.Spec.CniParams = &rafay.CustomCni{
+			CustomCniCidr: cniParams.CustomCniCidr.ValueString(),
+		}
+	}
+
+	// Convert proxy config (map)
+	if !specModel.ProxyConfig.IsNull() && !specModel.ProxyConfig.IsUnknown() {
 		proxyConfig := make(map[string]string)
-		diags = spec.ProxyConfig.ElementsAs(ctx, &proxyConfig, false)
+		diags = specModel.ProxyConfig.ElementsAs(ctx, &proxyConfig, false)
 		if diags.HasError() {
-			return nil, fmt.Errorf("failed to extract proxy config: %v", diags)
+			return nil, nil, diags
 		}
-		clusterSpec.Spec.ProxyConfig = proxyConfig
-	}
-
-	// TODO: Extract additional nested configurations
-	// - CNI params
-	// - System components placement
-	// - Sharing
-
-	return clusterSpec, nil
-}
-
-// convertModelToClusterConfig converts the Terraform model to EKS cluster configuration
-func convertModelToClusterConfig(ctx context.Context, data *EKSClusterV2ResourceModel) (map[string]interface{}, error) {
-	tflog.Debug(ctx, "Converting model to cluster config")
-
-	var configModel ClusterConfigModel
-	diags := data.ClusterConfig.As(ctx, &configModel, types.ObjectAsOptions{})
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to extract cluster config: %v", diags)
-	}
-
-	config := make(map[string]interface{})
-	config["apiVersion"] = configModel.APIVersion.ValueString()
-	config["kind"] = configModel.Kind.ValueString()
-
-	// Extract metadata
-	var metadata map[string]interface{}
-	if !configModel.Metadata.IsNull() {
-		metadata = make(map[string]interface{})
-		// TODO: Extract metadata fields
-	}
-	config["metadata"] = metadata
-
-	// Extract VPC configuration
-	if !configModel.VPC.IsNull() && !configModel.VPC.IsUnknown() {
-		vpc, err := extractVPCConfig(ctx, configModel.VPC)
-		if err != nil {
-			return nil, fmt.Errorf("failed to extract VPC config: %w", err)
+		eksCluster.Spec.ProxyConfig = &rafay.ProxyConfig{
+			HttpProxy:  proxyConfig["http_proxy"],
+			HttpsProxy: proxyConfig["https_proxy"],
+			NoProxy:    proxyConfig["no_proxy"],
 		}
-		config["vpc"] = vpc
 	}
 
-	// Extract node groups (map-based)
-	if !configModel.NodeGroups.IsNull() && !configModel.NodeGroups.IsUnknown() {
-		nodeGroups, err := extractNodeGroupsMap(ctx, configModel.NodeGroups)
-		if err != nil {
-			return nil, fmt.Errorf("failed to extract node groups: %w", err)
-		}
-		config["nodeGroups"] = nodeGroups
-	}
-
-	// Extract managed node groups (map-based)
-	if !configModel.ManagedNodeGroups.IsNull() && !configModel.ManagedNodeGroups.IsUnknown() {
-		managedNodeGroups, err := extractManagedNodeGroupsMap(ctx, configModel.ManagedNodeGroups)
-		if err != nil {
-			return nil, fmt.Errorf("failed to extract managed node groups: %w", err)
-		}
-		config["managedNodeGroups"] = managedNodeGroups
-	}
-
-	return config, nil
-}
-
-// extractVPCConfig extracts VPC configuration from the model
-func extractVPCConfig(ctx context.Context, vpcObj types.Object) (map[string]interface{}, error) {
-	var vpc VPCModel
-	diags := vpcObj.As(ctx, &vpc, types.ObjectAsOptions{})
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to extract VPC model: %v", diags)
-	}
-
-	config := make(map[string]interface{})
-	
-	if !vpc.Region.IsNull() {
-		config["region"] = vpc.Region.ValueString()
-	}
-	if !vpc.CIDR.IsNull() {
-		config["cidr"] = vpc.CIDR.ValueString()
-	}
-
-	// Extract subnets (map-based)
-	if !vpc.Subnets.IsNull() && !vpc.Subnets.IsUnknown() {
-		subnets, err := extractSubnetsMap(ctx, vpc.Subnets)
-		if err != nil {
-			return nil, fmt.Errorf("failed to extract subnets: %w", err)
-		}
-		config["subnets"] = subnets
-	}
-
-	return config, nil
-}
-
-// extractSubnetsMap extracts subnet configuration from maps
-func extractSubnetsMap(ctx context.Context, subnetsObj types.Object) (map[string]interface{}, error) {
-	var subnets SubnetsModel
-	diags := subnetsObj.As(ctx, &subnets, types.ObjectAsOptions{})
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to extract subnets model: %v", diags)
-	}
-
-	config := make(map[string]interface{})
-
-	// Extract public subnets map
-	if !subnets.Public.IsNull() && !subnets.Public.IsUnknown() {
-		publicSubnets := make(map[string]interface{})
-		// Iterate through map elements
-		for key, value := range subnets.Public.Elements() {
-			subnetObj, ok := value.(types.Object)
-			if !ok {
-				continue
-			}
-			// Extract subnet details
-			subnetConfig := make(map[string]interface{})
-			// TODO: Extract subnet fields (id, cidr, az)
-			publicSubnets[key] = subnetConfig
-		}
-		config["public"] = publicSubnets
-	}
-
-	// Extract private subnets map
-	if !subnets.Private.IsNull() && !subnets.Private.IsUnknown() {
-		privateSubnets := make(map[string]interface{})
-		// Iterate through map elements
-		for key, value := range subnets.Private.Elements() {
-			subnetObj, ok := value.(types.Object)
-			if !ok {
-				continue
-			}
-			// Extract subnet details
-			subnetConfig := make(map[string]interface{})
-			// TODO: Extract subnet fields (id, cidr, az)
-			privateSubnets[key] = subnetConfig
-		}
-		config["private"] = privateSubnets
-	}
-
-	return config, nil
-}
-
-// extractNodeGroupsMap extracts self-managed node groups from a map
-func extractNodeGroupsMap(ctx context.Context, nodeGroupsMap types.Map) ([]map[string]interface{}, error) {
-	var nodeGroups []map[string]interface{}
-
-	for name, value := range nodeGroupsMap.Elements() {
-		nodeGroupObj, ok := value.(types.Object)
-		if !ok {
-			continue
-		}
-
-		var ng NodeGroupModel
-		diags := nodeGroupObj.As(ctx, &ng, types.ObjectAsOptions{})
+	// Convert system components placement
+	if !specModel.SystemComponentsPlacement.IsNull() && !specModel.SystemComponentsPlacement.IsUnknown() {
+		var scpModel SystemComponentsPlacementModel
+		diags.Append(specModel.SystemComponentsPlacement.As(ctx, &scpModel, types.ObjectAsOptions{})...)
 		if diags.HasError() {
-			return nil, fmt.Errorf("failed to extract node group %s: %v", name, diags)
+			return nil, nil, diags
 		}
 
-		ngConfig := make(map[string]interface{})
-		ngConfig["name"] = ng.Name.ValueString()
-		
-		if !ng.AMI.IsNull() {
-			ngConfig["ami"] = ng.AMI.ValueString()
-		}
-		if !ng.InstanceType.IsNull() {
-			ngConfig["instanceType"] = ng.InstanceType.ValueString()
-		}
-		if !ng.DesiredCapacity.IsNull() {
-			ngConfig["desiredCapacity"] = ng.DesiredCapacity.ValueInt64()
-		}
-		if !ng.MinSize.IsNull() {
-			ngConfig["minSize"] = ng.MinSize.ValueInt64()
-		}
-		if !ng.MaxSize.IsNull() {
-			ngConfig["maxSize"] = ng.MaxSize.ValueInt64()
-		}
-		if !ng.VolumeSize.IsNull() {
-			ngConfig["volumeSize"] = ng.VolumeSize.ValueInt64()
-		}
-		if !ng.VolumeType.IsNull() {
-			ngConfig["volumeType"] = ng.VolumeType.ValueString()
-		}
-		if !ng.PrivateNetworking.IsNull() {
-			ngConfig["privateNetworking"] = ng.PrivateNetworking.ValueBool()
-		}
+		eksCluster.Spec.SystemComponentsPlacement = &rafay.SystemComponentsPlacement{}
 
-		// Extract labels map
-		if !ng.Labels.IsNull() && !ng.Labels.IsUnknown() {
-			labels := make(map[string]string)
-			diags := ng.Labels.ElementsAs(ctx, &labels, false)
+		// Convert node selector (map)
+		if !scpModel.NodeSelector.IsNull() && !scpModel.NodeSelector.IsUnknown() {
+			nodeSelector := make(map[string]string)
+			diags = scpModel.NodeSelector.ElementsAs(ctx, &nodeSelector, false)
 			if diags.HasError() {
-				return nil, fmt.Errorf("failed to extract labels for node group %s: %v", name, diags)
+				return nil, nil, diags
 			}
-			ngConfig["labels"] = labels
+			eksCluster.Spec.SystemComponentsPlacement.NodeSelector = nodeSelector
 		}
 
-		// Extract tags map
-		if !ng.Tags.IsNull() && !ng.Tags.IsUnknown() {
-			tags := make(map[string]string)
-			diags := ng.Tags.ElementsAs(ctx, &tags, false)
+		// Convert tolerations (map to array for API)
+		if !scpModel.Tolerations.IsNull() && !scpModel.Tolerations.IsUnknown() {
+			tolerationsMap := make(map[string]types.Object)
+			diags = scpModel.Tolerations.ElementsAs(ctx, &tolerationsMap, false)
 			if diags.HasError() {
-				return nil, fmt.Errorf("failed to extract tags for node group %s: %v", name, diags)
+				return nil, nil, diags
 			}
-			ngConfig["tags"] = tags
-		}
 
-		// Extract taints map
-		if !ng.Taints.IsNull() && !ng.Taints.IsUnknown() {
-			taints, err := extractTaintsMap(ctx, ng.Taints)
-			if err != nil {
-				return nil, fmt.Errorf("failed to extract taints for node group %s: %w", name, err)
+			tolerations := make([]*rafay.Toleration, 0, len(tolerationsMap))
+			for _, tolerationObj := range tolerationsMap {
+				var toleration TolerationModel
+				diags.Append(tolerationObj.As(ctx, &toleration, types.ObjectAsOptions{})...)
+				if diags.HasError() {
+					return nil, nil, diags
+				}
+
+				tolerations = append(tolerations, &rafay.Toleration{
+					Key:      toleration.Key.ValueString(),
+					Operator: toleration.Operator.ValueString(),
+					Value:    toleration.Value.ValueString(),
+					Effect:   toleration.Effect.ValueString(),
+				})
 			}
-			ngConfig["taints"] = taints
+			eksCluster.Spec.SystemComponentsPlacement.Tolerations = tolerations
 		}
 
-		nodeGroups = append(nodeGroups, ngConfig)
-	}
+		// Convert daemonset tolerations (map to array for API)
+		if !scpModel.DaemonsetTolerations.IsNull() && !scpModel.DaemonsetTolerations.IsUnknown() {
+			dsTolerationsMap := make(map[string]types.Object)
+			diags = scpModel.DaemonsetTolerations.ElementsAs(ctx, &dsTolerationsMap, false)
+			if diags.HasError() {
+				return nil, nil, diags
+			}
 
-	return nodeGroups, nil
-}
+			dsTolerations := make([]*rafay.Toleration, 0, len(dsTolerationsMap))
+			for _, tolerationObj := range dsTolerationsMap {
+				var toleration TolerationModel
+				diags.Append(tolerationObj.As(ctx, &toleration, types.ObjectAsOptions{})...)
+				if diags.HasError() {
+					return nil, nil, diags
+				}
 
-// extractManagedNodeGroupsMap extracts EKS managed node groups from a map
-func extractManagedNodeGroupsMap(ctx context.Context, nodeGroupsMap types.Map) ([]map[string]interface{}, error) {
-	var nodeGroups []map[string]interface{}
-
-	for name, value := range nodeGroupsMap.Elements() {
-		nodeGroupObj, ok := value.(types.Object)
-		if !ok {
-			continue
+				dsTolerations = append(dsTolerations, &rafay.Toleration{
+					Key:      toleration.Key.ValueString(),
+					Operator: toleration.Operator.ValueString(),
+					Value:    toleration.Value.ValueString(),
+					Effect:   toleration.Effect.ValueString(),
+				})
+			}
+			eksCluster.Spec.SystemComponentsPlacement.DaemonsetTolerations = dsTolerations
 		}
 
-		// Extract managed node group configuration
-		ngConfig := make(map[string]interface{})
-		ngConfig["name"] = name
-
-		// TODO: Extract all managed node group fields
-
-		nodeGroups = append(nodeGroups, ngConfig)
+		// Convert daemonset node selector
+		if !scpModel.DaemonsetNodeSelector.IsNull() && !scpModel.DaemonsetNodeSelector.IsUnknown() {
+			dsNodeSelector := make(map[string]string)
+			diags = scpModel.DaemonsetNodeSelector.ElementsAs(ctx, &dsNodeSelector, false)
+			if diags.HasError() {
+				return nil, nil, diags
+			}
+			eksCluster.Spec.SystemComponentsPlacement.DaemonsetNodeSelector = dsNodeSelector
+		}
 	}
 
-	return nodeGroups, nil
-}
-
-// extractTaintsMap extracts taints from a map structure
-func extractTaintsMap(ctx context.Context, taintsMap types.Map) ([]map[string]interface{}, error) {
-	var taints []map[string]interface{}
-
-	for key, value := range taintsMap.Elements() {
-		taintObj, ok := value.(types.Object)
-		if !ok {
-			continue
+	// Convert sharing
+	if !specModel.Sharing.IsNull() && !specModel.Sharing.IsUnknown() {
+		var sharingModel SharingModel
+		diags.Append(specModel.Sharing.As(ctx, &sharingModel, types.ObjectAsOptions{})...)
+		if diags.HasError() {
+			return nil, nil, diags
 		}
 
-		taint := make(map[string]interface{})
-		taint["key"] = key
+		eksCluster.Spec.Sharing = &rafay.V1ClusterSharing{
+			Enabled: sharingModel.Enabled.ValueBool(),
+		}
 
-		// Extract taint value and effect
-		// TODO: Extract from taintObj
+		// Convert projects map to array for API
+		if !sharingModel.Projects.IsNull() && !sharingModel.Projects.IsUnknown() {
+			projectsMap := make(map[string]types.Object)
+			diags = sharingModel.Projects.ElementsAs(ctx, &projectsMap, false)
+			if diags.HasError() {
+				return nil, nil, diags
+			}
 
-		taints = append(taints, taint)
+			projects := make([]*rafay.SharingProject, 0, len(projectsMap))
+			for _, projectObj := range projectsMap {
+				var project ProjectModel
+				diags.Append(projectObj.As(ctx, &project, types.ObjectAsOptions{})...)
+				if diags.HasError() {
+					return nil, nil, diags
+				}
+
+				projects = append(projects, &rafay.SharingProject{
+					Name: project.Name.ValueString(),
+				})
+			}
+			eksCluster.Spec.Sharing.Projects = projects
+		}
 	}
 
-	return taints, nil
+	// Build EKSClusterConfig (second YAML document)
+	var clusterConfigModel ClusterConfigModel
+	diags.Append(data.ClusterConfig.As(ctx, &clusterConfigModel, types.ObjectAsOptions{})...)
+	if diags.HasError() {
+		return nil, nil, diags
+	}
+
+	eksClusterConfig := &rafay.EKSClusterConfig{
+		APIVersion: clusterConfigModel.APIVersion.ValueString(),
+		Kind:       clusterConfigModel.Kind.ValueString(),
+	}
+
+	// Convert cluster config metadata
+	var configMetadataModel ClusterConfigMetadataModel
+	diags.Append(clusterConfigModel.Metadata.As(ctx, &configMetadataModel, types.ObjectAsOptions{})...)
+	if diags.HasError() {
+		return nil, nil, diags
+	}
+
+	eksClusterConfig.Metadata = &rafay.EKSClusterConfigMetadata{
+		Name:    configMetadataModel.Name.ValueString(),
+		Region:  configMetadataModel.Region.ValueString(),
+		Version: configMetadataModel.Version.ValueString(),
+	}
+
+	// Extract tags map
+	if !configMetadataModel.Tags.IsNull() && !configMetadataModel.Tags.IsUnknown() {
+		tags := make(map[string]string)
+		diags = configMetadataModel.Tags.ElementsAs(ctx, &tags, false)
+		if diags.HasError() {
+			return nil, nil, diags
+		}
+		eksClusterConfig.Metadata.Tags = tags
+	}
+
+	tflog.Info(ctx, "Successfully converted model to cluster spec")
+	return eksCluster, eksClusterConfig, diags
 }
 
-// convertClusterSpecToModel converts Rafay cluster spec back to Terraform model
-func convertClusterSpecToModel(ctx context.Context, clusterSpec *cluster.Cluster, config map[string]interface{}) (*EKSClusterV2ResourceModel, diag.Diagnostics) {
+// convertClusterSpecToModel converts API cluster spec to the Terraform model
+func convertClusterSpecToModel(ctx context.Context, eksCluster *rafay.EKSCluster, eksClusterConfig *rafay.EKSClusterConfig) (*EKSClusterV2ResourceModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	
-	tflog.Debug(ctx, "Converting cluster spec to model")
-
 	model := &EKSClusterV2ResourceModel{}
 
-	// Set ID
-	if clusterSpec.Metadata != nil {
-		model.ID = types.StringValue(fmt.Sprintf("%s/%s", clusterSpec.Metadata.Project, clusterSpec.Metadata.Name))
+	// Convert cluster metadata
+	labels := types.MapNull(types.StringType)
+	if eksCluster.Metadata != nil && len(eksCluster.Metadata.Labels) > 0 {
+		labelsMap := make(map[string]attr.Value)
+		for k, v := range eksCluster.Metadata.Labels {
+			labelsMap[k] = types.StringValue(v)
+		}
+		var err error
+		labels, err = types.MapValue(types.StringType, labelsMap)
+		if err != nil {
+			diags.AddError("Failed to convert labels", err.Error())
+			return nil, diags
+		}
 	}
 
-	// TODO: Convert cluster spec to ClusterModel
-	// TODO: Convert config to ClusterConfigModel
-	// TODO: Set model.Cluster and model.ClusterConfig
+	metadataObj, metaDiags := types.ObjectValue(
+		map[string]attr.Type{
+			"name":    types.StringType,
+			"project": types.StringType,
+			"labels":  types.MapType{ElemType: types.StringType},
+		},
+		map[string]attr.Value{
+			"name":    types.StringValue(eksCluster.Metadata.Name),
+			"project": types.StringValue(eksCluster.Metadata.Project),
+			"labels":  labels,
+		},
+	)
+	diags.Append(metaDiags...)
 
+	// TODO: Convert spec (system components, sharing, etc.)
+	// For now, create a minimal spec object
+	specObj := types.ObjectNull(map[string]attr.Type{
+		"type":                       types.StringType,
+		"blueprint":                  types.StringType,
+		"blueprint_version":          types.StringType,
+		"cloud_provider":             types.StringType,
+		"cross_account_role_arn":     types.StringType,
+		"cni_provider":               types.StringType,
+		"cni_params":                 types.ObjectType{AttrTypes: map[string]attr.Type{}},
+		"proxy_config":               types.MapType{ElemType: types.StringType},
+		"system_components_placement": types.ObjectType{AttrTypes: map[string]attr.Type{}},
+		"sharing":                    types.ObjectType{AttrTypes: map[string]attr.Type{}},
+	})
+
+	clusterObj, clusterDiags := types.ObjectValue(
+		map[string]attr.Type{
+			"kind":     types.StringType,
+			"metadata": types.ObjectType{AttrTypes: map[string]attr.Type{}},
+			"spec":     types.ObjectType{AttrTypes: map[string]attr.Type{}},
+		},
+		map[string]attr.Value{
+			"kind":     types.StringValue(eksCluster.Kind),
+			"metadata": metadataObj,
+			"spec":     specObj,
+		},
+	)
+	diags.Append(clusterDiags...)
+
+	model.Cluster = clusterObj
+
+	// TODO: Convert cluster config
+	// For now, create a minimal cluster config object
+	model.ClusterConfig = types.ObjectNull(map[string]attr.Type{
+		"apiversion": types.StringType,
+		"kind":       types.StringType,
+		"metadata":   types.ObjectType{AttrTypes: map[string]attr.Type{}},
+		// Add other fields...
+	})
+
+	tflog.Info(ctx, "Successfully converted cluster spec to model")
 	return model, diags
 }
 
-// waitForClusterReady waits for the cluster to reach ready state
-func waitForClusterReady(ctx context.Context, clusterName, projectName string, timeout int) error {
-	tflog.Debug(ctx, "Waiting for cluster to be ready", map[string]interface{}{
-		"cluster": clusterName,
-		"project": projectName,
-		"timeout": timeout,
-	})
-
-	// TODO: Implement cluster status polling
-	// TODO: Check cluster health
-	// TODO: Handle timeout
-
-	return nil
+// TolerationModel represents a toleration
+type TolerationModel struct {
+	Key      types.String `tfsdk:"key"`
+	Operator types.String `tfsdk:"operator"`
+	Value    types.String `tfsdk:"value"`
+	Effect   types.String `tfsdk:"effect"`
 }
 
-// waitForClusterDeleted waits for the cluster to be deleted
-func waitForClusterDeleted(ctx context.Context, clusterName, projectName string, timeout int) error {
-	tflog.Debug(ctx, "Waiting for cluster to be deleted", map[string]interface{}{
-		"cluster": clusterName,
-		"project": projectName,
-		"timeout": timeout,
-	})
-
-	// TODO: Implement deletion status polling
-	// TODO: Handle timeout
-
-	return nil
+// ProjectModel represents a sharing project
+type ProjectModel struct {
+	Name types.String `tfsdk:"name"`
 }
 
-// getClusterStatus retrieves the current status of a cluster
-func getClusterStatus(ctx context.Context, clusterName, projectName string) (string, error) {
-	tflog.Debug(ctx, "Getting cluster status", map[string]interface{}{
-		"cluster": clusterName,
-		"project": projectName,
-	})
-
-	// TODO: Call Rafay API to get cluster status
-
-	return "READY", nil
+// ClusterConfigMetadataModel represents cluster config metadata
+type ClusterConfigMetadataModel struct {
+	Name    types.String `tfsdk:"name"`
+	Region  types.String `tfsdk:"region"`
+	Version types.String `tfsdk:"version"`
+	Tags    types.Map    `tfsdk:"tags"`
 }
-
-// createMapAttribute creates a MapAttribute from a map[string]string
-func createMapAttribute(ctx context.Context, data map[string]string) (types.Map, diag.Diagnostics) {
-	if data == nil || len(data) == 0 {
-		return types.MapNull(types.StringType), nil
-	}
-
-	elements := make(map[string]attr.Value)
-	for k, v := range data {
-		elements[k] = types.StringValue(v)
-	}
-
-	return types.MapValue(types.StringType, elements)
-}
-
-// createObjectAttribute creates an ObjectAttribute from a map
-func createObjectAttribute(ctx context.Context, attrTypes map[string]attr.Type, data map[string]interface{}) (types.Object, diag.Diagnostics) {
-	if data == nil || len(data) == 0 {
-		return types.ObjectNull(attrTypes), nil
-	}
-
-	elements := make(map[string]attr.Value)
-	
-	// Convert data map to attr.Value map based on types
-	for key, attrType := range attrTypes {
-		if value, ok := data[key]; ok {
-			// Convert based on type
-			switch attrType {
-			case types.StringType:
-				if strVal, ok := value.(string); ok {
-					elements[key] = types.StringValue(strVal)
-				}
-			case types.Int64Type:
-				if intVal, ok := value.(int64); ok {
-					elements[key] = types.Int64Value(intVal)
-				} else if intVal, ok := value.(int); ok {
-					elements[key] = types.Int64Value(int64(intVal))
-				}
-			case types.BoolType:
-				if boolVal, ok := value.(bool); ok {
-					elements[key] = types.BoolValue(boolVal)
-				}
-			}
-		}
-	}
-
-	return types.ObjectValue(attrTypes, elements)
-}
-
-// marshalJSON marshals data to JSON string for API calls
-func marshalJSON(data interface{}) (string, error) {
-	bytes, err := json.Marshal(data)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal data: %w", err)
-	}
-	return string(bytes), nil
-}
-
-// unmarshalJSON unmarshals JSON string to data structure
-func unmarshalJSON(jsonStr string, target interface{}) error {
-	err := json.Unmarshal([]byte(jsonStr), target)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal JSON: %w", err)
-	}
-	return nil
-}
-

@@ -540,7 +540,7 @@ func expandNamespaceSpec(p []interface{}) (*infrapb.NamespaceSpec, error) {
 			log.Println("expandNamespaceSpec Obj Memory ", obj.ResourceQuotas.Requests.Memory)
 		}
 	*/
-	log.Println("expandNamespaceSpec Obj", obj)
+	log.Println("expandNamespaceSpec Obj", &obj)
 	return &obj, nil
 }
 
@@ -740,7 +740,7 @@ func expandNamespaceResourceQuotas(p []interface{}) *infrapb.NamespaceResourceQu
 		obj.EphemeralStorageRequests = v
 	}
 
-	log.Println("expandNamespaceResourceQuotas obj ", obj)
+	log.Println("expandNamespaceResourceQuotas obj ", &obj)
 	return obj
 }
 

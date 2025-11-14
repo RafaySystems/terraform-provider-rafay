@@ -690,7 +690,7 @@ func flattenClusterOverride(d *schema.ResourceData, in *models.ClusterOverride, 
 		m.Labels = in.RafayMeta.Labels
 		m.Annotations = in.Annotations
 		m.Project = projectName
-		log.Println("flattenClusterOverride ", m)
+		log.Println("flattenClusterOverride ", &m)
 		err := d.Set("metadata", flattenMetaData(&m))
 		if err != nil {
 			return err

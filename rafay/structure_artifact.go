@@ -276,7 +276,7 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 	}
 
 	// XXX Debug
-	s1 := spew.Sprintf("%+v", obj)
+	s1 := spew.Sprintf("%+v", &obj)
 	log.Println("ExpandArtifact obj", s1)
 
 	return &obj, nil

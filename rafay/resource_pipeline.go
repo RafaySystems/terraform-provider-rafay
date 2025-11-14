@@ -1064,7 +1064,7 @@ func expandStageSpec(p []interface{}) ([]*gitopspb.StageSpec, error) {
 				var err error
 				obj.Config, err = expandStageSpecConfigInfraProvisioner(v)
 				log.Println("expandStageSpec got InfraProvisioner")
-				w1 := spew.Sprintf("%+v", obj)
+				w1 := spew.Sprintf("%+v", &obj)
 				log.Println("expandStageSpecConfigInfraProvisioner  ", w1)
 
 				if err != nil {
@@ -1077,7 +1077,7 @@ func expandStageSpec(p []interface{}) ([]*gitopspb.StageSpec, error) {
 		}
 
 		// XXX Debug
-		s1 := spew.Sprintf("%+v", obj)
+		s1 := spew.Sprintf("%+v", &obj)
 		log.Println("expandStageSpec obj", s1)
 
 		out[i] = &obj
@@ -1125,7 +1125,7 @@ func expandStageSpecPreConditions(p []interface{}) []*gitopspb.PreConditionSpec 
 		}
 
 		// XXX Debug
-		s := spew.Sprintf("%+v", obj)
+		s := spew.Sprintf("%+v", &obj)
 		log.Println("expandStageSpecPreConditions repoSpec", s)
 
 		out[i] = &obj

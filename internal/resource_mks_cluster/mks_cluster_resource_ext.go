@@ -62,7 +62,7 @@ func convertFromTfMap(tfMap types.Map) map[string]string {
 }
 
 func convertToTfMap(goMap map[string]string) types.Map {
-	if goMap == nil || len(goMap) == 0 {
+	if len(goMap) == 0 {
 		return types.MapNull(types.StringType)
 	}
 

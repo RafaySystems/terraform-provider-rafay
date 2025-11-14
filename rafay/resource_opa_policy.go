@@ -489,7 +489,7 @@ func flattenOPAPolicySpec(in *opapb.OPAPolicySpec, p []interface{}) ([]interface
 
 	obj["sharing"] = flattenSharingSpec(in.Sharing)
 
-	// if in.SyncObjects != nil && len(in.SyncObjects) > 0 {
+	// if len(in.SyncObjects) > 0 {
 	// 	v, ok := obj["sync_objects"].([]interface{})
 	// 	if !ok {
 	// 		v = []interface{}{}
@@ -497,7 +497,7 @@ func flattenOPAPolicySpec(in *opapb.OPAPolicySpec, p []interface{}) ([]interface
 	// 	obj["sync_objects"] = flattenSyncObjects(in.SyncObjects, v)
 	// }
 
-	// if in.ExcludedNamespaces != nil && len(in.ExcludedNamespaces) > 0 {
+	// if len(in.ExcludedNamespaces) > 0 {
 	// 	v, ok := obj["excluded_namespaces"].([]interface{})
 	// 	if !ok {
 	// 		v = []interface{}{}
@@ -505,7 +505,7 @@ func flattenOPAPolicySpec(in *opapb.OPAPolicySpec, p []interface{}) ([]interface
 	// 	obj["excluded_namespaces"] = flattenExcludedNamespaces(in.ExcludedNamespaces, v)
 	// }
 
-	if in.ConstraintList != nil && len(in.ConstraintList) > 0 {
+	if len(in.ConstraintList) > 0 {
 		v, ok := obj["constraintList"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -568,7 +568,7 @@ func flattenExcludedNamespaces(input []*opapb.ExcludedNamespaces, p []interface{
 			obj = p[i].(map[string]interface{})
 		}
 
-		if in.Namespaces != nil && len(in.Namespaces) > 0 {
+		if len(in.Namespaces) > 0 {
 			v, ok := obj["namespaces"].([]interface{})
 			if !ok {
 				v = []interface{}{}

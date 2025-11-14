@@ -117,7 +117,7 @@ var DefaultCmdOpts = CmdOpts{
 func Redact(items []string) func(text string) string {
 	return func(text string) string {
 		for _, item := range items {
-			text = strings.Replace(text, item, "******", -1)
+			text = strings.ReplaceAll(text, item, "******")
 		}
 		return text
 	}

@@ -184,7 +184,7 @@ func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interf
 	}
 
 	//	log.Println("flattenGKEV3Config len of prebootstrapcommands", len(in.PreBootstrapCommands))
-	if in.PreBootstrapCommands != nil && len(in.PreBootstrapCommands) > 0 {
+	if len(in.PreBootstrapCommands) > 0 {
 		//		log.Println("flattenGKEV3Config populating prebootstrapcommands")
 		obj["pre_bootstrap_commands"] = toArrayInterface(in.PreBootstrapCommands)
 	}
@@ -207,7 +207,7 @@ func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interf
 	}
 
 	// nodepools
-	if in.NodePools != nil && len(in.NodePools) > 0 {
+	if len(in.NodePools) > 0 {
 		v, ok := obj["node_pools"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -315,7 +315,7 @@ func flattenGKEV3DefaultNodeLocations(in *infrapb.GkeDefaultNodeLocation, p []in
 
 	obj["enabled"] = in.Enabled
 
-	if in.Zones != nil && len(in.Zones) > 0 {
+	if len(in.Zones) > 0 {
 		obj["zones"] = toArrayInterface(in.Zones)
 	}
 
@@ -410,7 +410,7 @@ func flattenGKEV3PrivateCluster(in *infrapb.GkePrivateCluster, p []interface{}) 
 	obj["enable_access_control_plane_global"] = in.EnableAccessControlPlaneGlobal
 	obj["disable_snat"] = in.DisableSNAT
 
-	if in.FirewallRules != nil && len(in.FirewallRules) > 0 {
+	if len(in.FirewallRules) > 0 {
 		v, ok := obj["firewall_rules"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -463,7 +463,7 @@ func flattenGKEV3Firewalls(in []*infrapb.FirewallRule, p []interface{}) []interf
 		obj["priority"] = j.Priority
 		obj["source_ranges"] = j.SourceRanges
 		obj["target_tags"] = j.TargetTags
-		if j.Rules != nil && len(j.Rules) > 0 {
+		if len(j.Rules) > 0 {
 			v, ok := obj["rules"].([]interface{})
 			if !ok {
 				v = []interface{}{}
@@ -488,7 +488,7 @@ func flattenGKEV3ControlPlaneAuthorizedNetwork(in *infrapb.GkeControlPlaneAuthor
 
 	obj["enabled"] = in.Enabled
 
-	if in.AuthorizedNetwork != nil && len(in.AuthorizedNetwork) > 0 {
+	if len(in.AuthorizedNetwork) > 0 {
 		v, ok := obj["authorized_network"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -549,12 +549,12 @@ func flattenGKEV3Features(in *infrapb.GkeFeatures, p []interface{}) []interface{
 	}
 
 	obj["enable_cloud_logging"] = in.EnableCloudLogging
-	if in.CloudLoggingComponents != nil && len(in.CloudLoggingComponents) > 0 {
+	if len(in.CloudLoggingComponents) > 0 {
 		obj["cloud_logging_components"] = toArrayInterface(in.CloudLoggingComponents)
 	}
 
 	obj["enable_cloud_monitoring"] = in.EnableCloudMonitoring
-	if in.CloudMonitoringComponents != nil && len(in.CloudMonitoringComponents) > 0 {
+	if len(in.CloudMonitoringComponents) > 0 {
 		obj["cloud_monitoring_components"] = toArrayInterface(in.CloudMonitoringComponents)
 	}
 
@@ -668,7 +668,7 @@ func flattenGKEV3NodeLocations(in *infrapb.GkeNodeLocation, p []interface{}) []i
 	}
 
 	obj["enabled"] = in.Enabled
-	if in.Zones != nil && len(in.Zones) > 0 {
+	if len(in.Zones) > 0 {
 		obj["zones"] = toArrayInterface(in.Zones)
 	}
 
@@ -712,7 +712,7 @@ func flattenGKEV3NodeMachineConfig(in *infrapb.GkeNodeMachineConfig, p []interfa
 		obj["reservation_affinity"] = flattenGKEV3NodeReservationAffinity(in.GetReservationAffinity(), v)
 	}
 
-	if in.Accelerators != nil && len(in.Accelerators) > 0 {
+	if len(in.Accelerators) > 0 {
 		v, ok := obj["accelerators"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -851,7 +851,7 @@ func flattenGKEV3NodeNetworking(in *infrapb.GkeNodeNetworking, p []interface{}) 
 
 	obj["max_pods_per_node"] = in.MaxPodsPerNode
 
-	if in.NetworkTags != nil && len(in.NetworkTags) > 0 {
+	if len(in.NetworkTags) > 0 {
 		obj["network_tags"] = toArrayInterface(in.NetworkTags)
 	}
 
@@ -882,7 +882,7 @@ func flattenGKEV3NodeMetadata(in *infrapb.GkeNodeMetadata, p []interface{}) []in
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.KubernetesLabels != nil && len(in.KubernetesLabels) > 0 {
+	if len(in.KubernetesLabels) > 0 {
 		v, ok := obj["kubernetes_labels"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -890,7 +890,7 @@ func flattenGKEV3NodeMetadata(in *infrapb.GkeNodeMetadata, p []interface{}) []in
 		obj["kubernetes_labels"] = flattenGKEV3KubernetesLabels(in.KubernetesLabels, v)
 	}
 
-	if in.NodeTaints != nil && len(in.NodeTaints) > 0 {
+	if len(in.NodeTaints) > 0 {
 		v, ok := obj["node_taints"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -898,7 +898,7 @@ func flattenGKEV3NodeMetadata(in *infrapb.GkeNodeMetadata, p []interface{}) []in
 		obj["node_taints"] = flattenGKEV3NodeTaints(in.NodeTaints, v)
 	}
 
-	if in.GceInstanceMetadata != nil && len(in.GceInstanceMetadata) > 0 {
+	if len(in.GceInstanceMetadata) > 0 {
 		v, ok := obj["gce_instance_metadata"].([]interface{})
 		if !ok {
 			v = []interface{}{}

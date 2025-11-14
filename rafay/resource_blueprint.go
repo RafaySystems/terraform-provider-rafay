@@ -1064,7 +1064,7 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["default_addons"] = flattenDefaultAddons(in.DefaultAddons, v)
 	}
 
-	if in.CustomAddons != nil && len(in.CustomAddons) > 0 {
+	if len(in.CustomAddons) > 0 {
 		v, ok := obj["custom_addons"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -1072,7 +1072,7 @@ func flattenBlueprintSpec(in *infrapb.BlueprintSpec, p []interface{}) ([]interfa
 		obj["custom_addons"] = flatteCustomAddons(in.CustomAddons, v)
 	}
 
-	if in.ComponentsCriticality != nil && len(in.ComponentsCriticality) > 0 {
+	if len(in.ComponentsCriticality) > 0 {
 		v, ok := obj["components_criticality"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -1467,7 +1467,7 @@ func flattenBlueprintPlacement(in *infrapb.BlueprintPlacement, p []interface{}) 
 		obj["auto_publish"] = in.AutoPublish
 	}
 
-	if in.FleetValues != nil && len(in.FleetValues) > 0 {
+	if len(in.FleetValues) > 0 {
 		obj["fleet_values"] = toArrayInterfaceSorted(in.FleetValues)
 	}
 	return []interface{}{obj}

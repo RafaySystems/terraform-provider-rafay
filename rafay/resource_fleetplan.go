@@ -524,7 +524,7 @@ func expandOperationWorkflow(v []interface{}) *infrapb.OperationWorkflowSpec {
 func expandOperations(v []interface{}) []*infrapb.OperationSpec {
 	var operations []*infrapb.OperationSpec
 
-	if v == nil || len(v) == 0 {
+	if len(v) == 0 {
 		return nil
 	}
 

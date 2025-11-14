@@ -286,7 +286,7 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
 				Summary:  "Failed to patch namespace",
-				Detail:   fmt.Sprintf("%s", nsStatus.Status.Reason),
+				Detail:   nsStatus.Status.Reason,
 			})
 			d.SetId(ns.Metadata.Name)
 			return diags

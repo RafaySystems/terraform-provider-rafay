@@ -166,7 +166,7 @@ func resourceAKSClusterSpecUpsert(ctx context.Context, d *schema.ResourceData, m
 	response := ""
 	if _, ok := cfgList["Cluster"]; ok {
 		response, errs = aksClusterSpecCTL(rctlCfg, cfgList["Cluster"], cfgList["ClusterConfig"], false)
-		if errs != nil && len(errs) > 0 {
+		if len(errs) > 0 {
 			s := ""
 			for index, err := range errs {
 				if index != 0 {

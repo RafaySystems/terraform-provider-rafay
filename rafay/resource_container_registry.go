@@ -304,12 +304,12 @@ func expandContainerRegistry(in *schema.ResourceData, call string) (*integration
 			projectFLag = false
 		}
 	}
-	if nameFlag != true && call != "read" { //need to verify name are not nill
+	if !nameFlag && call != "read" { //need to verify name are not nill
 		if call != "delete" {
 			return nil, fmt.Errorf("Name input field is empty")
 		}
 	}
-	if projectFLag != true && call != "read" { //need to verify project are not nill
+	if !projectFLag && call != "read" { //need to verify project are not nill
 		if call != "delete" {
 			return nil, fmt.Errorf("Project input field is empty")
 		}
@@ -410,7 +410,7 @@ func expandContainerRegistrySpec(p []interface{}, call string) (*integrationspb.
 			userPassFlag = false
 		}
 	}
-	if userPassFlag == true && call != "read" { //need to verify username and password are not nill
+	if userPassFlag && call != "read" { //need to verify username and password are not nill
 		if call != "delete" {
 			if crt.Credentials.Username == "" || crt.Credentials.Password == "" {
 				return nil, fmt.Errorf("Username or Password is empty")

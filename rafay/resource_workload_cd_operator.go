@@ -864,7 +864,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 	//wait for all the go routines to finish
 	cwg.Wait()
 
-	if workloadCDConfig.Status != nil && len(workloadCDConfig.Status) > 0 {
+	if len(workloadCDConfig.Status) > 0 {
 		log.Println("workloadCDConfig.Status", workloadCDConfig.Status)
 		v, ok := d.Get("workload_status").([]interface{})
 		if !ok {
@@ -885,7 +885,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		}
 	}
 
-	if workloadCDConfig.Decommissions != nil && len(workloadCDConfig.Decommissions) > 0 {
+	if len(workloadCDConfig.Decommissions) > 0 {
 		log.Println("workloadCDConfig.Decommissions", workloadCDConfig.Decommissions)
 		v, ok := d.Get("workload_decommissions").([]interface{})
 		if !ok {
@@ -907,7 +907,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		}
 	}
 
-	if workloadCDConfig.Upserts != nil && len(workloadCDConfig.Upserts) > 0 {
+	if len(workloadCDConfig.Upserts) > 0 {
 		log.Println("workloadCDConfig.Upserts", workloadCDConfig.Upserts)
 		v, ok := d.Get("workload_upserts").([]interface{})
 		if !ok {
@@ -956,7 +956,7 @@ func getProjectWorkloadList(ctx context.Context, pr *systempb.Project, gWorkload
 		return err
 	}
 	for _, w := range wList.Items {
-		for k, _ := range w.Metadata.Labels {
+		for k := range w.Metadata.Labels {
 			if k == "k8smgmt.io/helm-deployer-tfcd" {
 				log.Println("found operator deployed workload", w.Metadata.Name, "project", w.Metadata.Project, "namespace", w.Spec.Namespace)
 				tmpList.Items = append(tmpList.Items, w)

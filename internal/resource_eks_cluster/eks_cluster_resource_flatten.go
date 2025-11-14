@@ -3,6 +3,7 @@ package resource_eks_cluster
 import (
 	"context"
 	"log"
+	"os"
 	"reflect"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	jsoniter "github.com/json-iterator/go"
 )
@@ -355,7 +357,7 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		}
 	}
 
-	// node groups list or map?
+	// decide list or map for node groups? Order of preference is env variable, then state.
 	isNodeGroupsMap := false
 	if !state.NodeGroupsMap.IsNull() && !state.NodeGroupsMap.IsUnknown() &&
 		len(state.NodeGroupsMap.Elements()) > 0 {
@@ -368,6 +370,22 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		len(state.ManagedNodegroupsMap.Elements()) > 0 {
 		isManagedNodeGroupsMap = true
 	}
+
+	eksMigrateToMapEnvVar := os.Getenv("TF_RAFAY_EKS_MIGRATE_TO_MAP")
+	switch eksMigrateToMapEnvVar {
+	case "true":
+		isNodeGroupsMap = true
+		isManagedNodeGroupsMap = true
+	case "false":
+		isNodeGroupsMap = false
+		isManagedNodeGroupsMap = false
+	}
+
+	tflog.Debug(ctx, "EKS Cluster - FlattenEksCluster", map[string]any{
+		"isNodeGroupsMap":        isNodeGroupsMap,
+		"isManagedNodeGroupsMap": isManagedNodeGroupsMap,
+		"eksMigrateToMapEnvVar":  eksMigrateToMapEnvVar,
+	})
 
 	if in.APIVersion != "" {
 		v.Apiversion = types.StringValue(in.APIVersion)

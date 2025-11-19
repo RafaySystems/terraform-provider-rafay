@@ -148,12 +148,12 @@ func resourceAccessApiUpsert(ctx context.Context, d *schema.ResourceData, create
 
 	if len(api) > 0 {
 		if err := d.Set("apikey", api); err != nil {
-			return diag.FromErr(err)
+			log.Println("failed to set apikey error", err)
 		}
 	}
 	if len(secret) > 0 {
 		if err := d.Set("api_secret", secret); err != nil {
-			return diag.FromErr(err)
+			log.Println("failed to set api_secret error", err)
 		}
 	}
 
@@ -250,10 +250,10 @@ func flattenAccessApi(d *schema.ResourceData, in *models.UserResponse, api strin
 
 	if len(api) <= 0 {
 		if err := d.Set("apikey", "use 'terraform apply -replace=resource-name' to recreate"); err != nil {
-			return err
+			log.Println("failed to set apikey error", err)
 		}
 		if err := d.Set("api_secret", "use 'terraform apply -replace=resource-name' to recreate"); err != nil {
-			return err
+			log.Println("failed to set api_secret error", err)
 		}
 		return nil
 	}

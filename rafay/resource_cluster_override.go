@@ -299,8 +299,7 @@ func resourceClusterOverrideCreate(ctx context.Context, d *schema.ResourceData, 
 	if diags.HasError() && !create {
 		tflog := os.Getenv("TF_LOG")
 		if tflog == "TRACE" || tflog == "DEBUG" {
-			// Debug mode enabled - context value would be used by downstream debugging tools
-			_ = context.WithValue(ctx, "debug", "true")
+			ctx = context.WithValue(ctx, "debug", "true")
 		}
 		log.Printf("override create got error, perform cleanup")
 		or, err := expandOverride(d)
@@ -333,8 +332,7 @@ func resourceOverrideUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	log.Printf("override create starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
-		// Debug mode enabled - context value would be used by downstream debugging tools
-		_ = context.WithValue(ctx, "debug", "true")
+		ctx = context.WithValue(ctx, "debug", "true")
 	}
 
 	if d.State() != nil && d.State().ID != "" {
@@ -380,8 +378,7 @@ func resourceClusterOverrideDelete(ctx context.Context, d *schema.ResourceData, 
 	var diags diag.Diagnostics
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
-		// Debug mode enabled - context value would be used by downstream debugging tools
-		_ = context.WithValue(ctx, "debug", "true")
+		ctx = context.WithValue(ctx, "debug", "true")
 	}
 	log.Printf("override create got error, perform cleanup")
 	or, err := expandOverride(d)
@@ -410,8 +407,7 @@ func resourceClusterOverrideRead(ctx context.Context, d *schema.ResourceData, m 
 	log.Println("resourceClusterOverrideRead ")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
-		// Debug mode enabled - context value would be used by downstream debugging tools
-		_ = context.WithValue(ctx, "debug", "true")
+		ctx = context.WithValue(ctx, "debug", "true")
 	}
 	tfLocalState, err := expandOverride(d)
 	if err != nil {

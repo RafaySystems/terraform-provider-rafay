@@ -240,7 +240,7 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 			"projects_list": getProjectList(projs),
 		},
 	}); err != nil {
-		return diag.FromErr(err)
+		log.Println("failed to set sharing error", err)
 	}
 	d.SetId(clusterName)
 	return diags
@@ -342,7 +342,7 @@ func resourceClusterSharingSingleRead(ctx context.Context, d *schema.ResourceDat
 			"projects_list": getProjectList(projs),
 		},
 	}); err != nil {
-		return diag.FromErr(err)
+		log.Println("failed to set sharing error", err)
 	}
 	err = d.Set("clustername", clusterName)
 	if err != nil {

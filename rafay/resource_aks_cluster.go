@@ -2620,10 +2620,8 @@ func expandAKSManagedClusterAddonProfile(p []interface{}) *AKSManagedClusterAddo
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
 			log.Printf("warning: failed to unmarshal addon profile config: %v", err)
-		} else {
-			obj.Config = policyDoc
-			log.Println("addon profile config expanded correct")
 		}
+		obj.Config = policyDoc
 	}
 
 	return obj

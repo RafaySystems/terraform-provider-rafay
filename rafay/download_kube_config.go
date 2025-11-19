@@ -100,8 +100,7 @@ func downloadKubeConfigUtil(ctx context.Context, d *schema.ResourceData, m inter
 	log.Printf("download kube config starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
-		// Debug mode enabled - context value would be used by downstream debugging tools
-		_ = context.WithValue(ctx, "debug", "true")
+		ctx = context.WithValue(ctx, "debug", "true")
 	}
 	auth := config.GetConfig().GetAppAuthProfile()
 
@@ -201,8 +200,7 @@ func downloadKubeConfigDelete(ctx context.Context, d *schema.ResourceData, m int
 	var diags diag.Diagnostics
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
-		// Debug mode enabled - context value would be used by downstream debugging tools
-		_ = context.WithValue(ctx, "debug", "true")
+		ctx = context.WithValue(ctx, "debug", "true")
 	}
 	if err := os.Remove(d.Id()); err != nil {
 		diags = append(diags, diag.Diagnostic{

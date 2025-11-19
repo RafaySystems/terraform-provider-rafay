@@ -562,7 +562,7 @@ func expandClusterV3Blueprint(p []interface{}) *infrapb.BlueprintConfig {
 		obj.Version = v
 	}
 
-	log.Println("expandClusterV3Blueprint obj", &obj)
+	log.Println("expandClusterV3Blueprint obj", obj)
 	return &obj
 }
 
@@ -2365,7 +2365,7 @@ func expandAKSV3NodePoolUpgradeSettings(p []interface{}) *infrapb.Upgradesetting
 }
 
 // Sort AKS Nodepool
-type ByNodepoolNameV3 []*infrapb.Nodepool
+type ByNodepoolNameV3 []infrapb.Nodepool
 
 func (np ByNodepoolNameV3) Len() int      { return len(np) }
 func (np ByNodepoolNameV3) Swap(i, j int) { np[i], np[j] = np[j], np[i] }

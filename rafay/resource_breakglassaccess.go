@@ -73,7 +73,8 @@ func resourceBreakGlassAccessImport(d *schema.ResourceData, meta interface{}) ([
 
 func resourceBreakGlassAccessCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Println("break glass access create")
-	alreadyExists := breakGlassAccessExists(ctx, d)
+	var alreadyExists bool
+	alreadyExists = breakGlassAccessExists(ctx, d)
 
 	diags := resourceBreakGlassAccessUpsert(ctx, d, m)
 	if diags.HasError() && !alreadyExists {

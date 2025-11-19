@@ -130,18 +130,38 @@ LOOP:
 			switch jobStatus.GetJobStatus().GetStatus() {
 			case "skipped":
 				log.Printf("fleet plan: %s job: %s is skipped\n", fleetPlanName, fleetPlanJobName)
+				diags = append(diags, diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "FleetPlan Job Skipped",
+					Detail:   jobStatus.GetJobStatus().GetReason(),
+				})
 				break LOOP
 			case "fail":
 				log.Printf("fleet plan: %s job: %s has failed\n", fleetPlanName, fleetPlanJobName)
+				diags = append(diags, diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "FleetPlan Job Failed",
+					Detail:   jobStatus.GetJobStatus().GetReason(),
+				})
 				break LOOP
 			case "completed_with_failures":
 				log.Printf("fleet plan: %s job: %s is completed with failures\n", fleetPlanName, fleetPlanJobName)
-				break LOOP
-			case "success":
-				log.Printf("fleet plan: %s job: %s is successful\n", fleetPlanName, fleetPlanJobName)
+				diags = append(diags, diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "FleetPlan Job completed with failures",
+					Detail:   jobStatus.GetJobStatus().GetReason(),
+				})
 				break LOOP
 			case "cancelled":
 				log.Printf("fleet plan: %s job: %s is cancelled\n", fleetPlanName, fleetPlanJobName)
+				diags = append(diags, diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "FleetPlan Job Cancelled",
+					Detail:   jobStatus.GetJobStatus().GetReason(),
+				})
+				break LOOP
+			case "completed":
+				log.Printf("fleet plan: %s job: %s is successful\n", fleetPlanName, fleetPlanJobName)
 				break LOOP
 			default:
 				log.Printf("fleet plan: %s job: %s is still running\n", fleetPlanName, fleetPlanJobName)

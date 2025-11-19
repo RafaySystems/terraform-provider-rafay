@@ -139,6 +139,17 @@ func resourceClusterOverride() *schema.Resource {
 						Description: "override value",
 						Optional:    true,
 						Type:        schema.TypeString,
+						DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+							clean := func(s string) string {
+								s = strings.TrimSpace(s)
+								if strings.HasSuffix(s, "---") {
+									s = strings.TrimSuffix(s, "---")
+									s = strings.TrimSpace(s)
+								}
+								return s
+							}
+							return clean(old) == clean(new)
+						},
 					},
 					"value_repo_ref": &schema.Schema{
 						Description: "value repo ref",

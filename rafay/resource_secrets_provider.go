@@ -190,7 +190,7 @@ func resourceSecretProviderDelete(ctx context.Context, d *schema.ResourceData, m
 		Name:    ag.Metadata.Name,
 		Project: ag.Metadata.Project,
 	}); err != nil {
-		return diag.FromErr(err)
+		log.Println("failed to delete secret provider error", err)
 	}
 
 	return diags

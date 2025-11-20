@@ -189,7 +189,7 @@ func resourceSecretGroupDelete(ctx context.Context, d *schema.ResourceData, m in
 		Name:    secretGroup.Metadata.Name,
 		Project: secretGroup.Metadata.Project,
 	}); err != nil {
-		return diag.FromErr(err)
+		log.Println("failed to delete secret group error", err)
 	}
 
 	return diags

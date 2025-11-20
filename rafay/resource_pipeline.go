@@ -335,7 +335,6 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 			b, _ := json.Marshal(in)
 			if err := json.Unmarshal(b, &ct); err != nil {
 				log.Printf("warning: failed to unmarshal camelTriggers: %v", err)
-				return nil
 			}
 			log.Println("status pipeline:", string(b))
 
@@ -350,7 +349,6 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 			var obj = make(map[string]interface{})
 			if err := json.Unmarshal(b, &obj); err != nil {
 				log.Printf("warning: failed to unmarshal pipeline triggers: %v", err)
-				return nil
 			}
 			out = append(out, obj)
 
@@ -1971,77 +1969,97 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 	if in == nil {
 		return nil
 	}
+
+	retNil := true
 	obj := make(map[string]interface{})
 
 	if len(in.Config.Action.Action) > 0 {
 		obj["action"] = (in.Config.Action.Action)
+		retNil = false
 	}
 
 	if len(in.Config.Action.Version) > 0 {
 		obj["version"] = (in.Config.Action.Version)
+		retNil = false
 	}
 
 	if len(in.Config.Action.InputVars) > 0 {
+		retNil = false
 		v, ok := obj["input_vars"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
 		obj["input_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
 	} else {
+		retNil = false
 		obj["input_vars"] = nil
 	}
 
 	if in.Config.Action.TfVarsFilePath != nil {
 		obj["tf_vars_file_path"] = flattenCommonpbFile(in.Config.Action.TfVarsFilePath)
+		retNil = false
 	}
 
 	if len(in.Config.Action.EnvVars) > 0 {
+		retNil = false
 		v, ok := obj["input_vars"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
 		obj["env_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
 	} else {
+		retNil = false
 		obj["env_vars"] = nil
 	}
 
 	if len(in.Config.Action.BackendVars) > 0 {
+		retNil = false
 		v, ok := obj["backend_vars"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
 		obj["backend_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
 	} else {
+		retNil = false
 		obj["backend_vars"] = nil
 	}
 
 	if in.Config.Action.BackendFilePath != nil {
 		obj["backend_file_path"] = flattenCommonpbFile(in.Config.Action.BackendFilePath)
+		retNil = false
 	}
 
 	if in.Config.Action.Refresh {
 		obj["refresh"] = in.Config.Action.Refresh
+		retNil = false
 	}
 
 	if len(in.Config.Action.Targets) > 0 {
+		retNil = false
 		v, ok := obj["targets"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
 		obj["targets"] = flattenStageSpecConfigActionTargets(in.Config.Action.Targets, v)
 	} else {
+		retNil = false
 		obj["targets"] = nil
 	}
 
 	if in.Config.Action.Destroy {
 		obj["destroy"] = in.Config.Action.Destroy
+		retNil = false
 	}
 
 	if len(in.Config.Action.SecretGroups) > 0 {
 		obj["secret_groups"] = in.Config.Action.SecretGroups
+		retNil = false
 	}
 
-	// Always return the object - even if all fields are defaults
+	if retNil {
+		return nil
+	}
+
 	return []interface{}{obj}
 }
 

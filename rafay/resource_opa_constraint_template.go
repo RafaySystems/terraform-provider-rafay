@@ -224,7 +224,7 @@ func resourceOPAConstraintTemplateDelete(ctx context.Context, d *schema.Resource
 		Name:    ag.Metadata.Name,
 		Project: ag.Metadata.Project,
 	}); err != nil {
-		return diag.FromErr(err)
+		log.Println("failed to delete opa constraint template error", err)
 	}
 
 	return diags

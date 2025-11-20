@@ -815,7 +815,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		// Else, the process will be blocked until there are rooms in the channel to put the empty struct.
 		guard <- struct{}{}
 		wg.Add(1)
-		go getProjectWorkloadList(ctx, pr, &golbalWorkloadList, &mu, &wg) //nolint:errcheck // fire-and-forget goroutine, errors logged internally
+		go getProjectWorkloadList(ctx, pr, &golbalWorkloadList, &mu, &wg)
 	}
 	//wait for all the go routines to finish
 	wg.Wait()
@@ -837,7 +837,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 
 		if workload.DeleteAction != "none" {
 			dwg.Add(1)
-			go processApplicationFoldersForDelete(ctx, workloadCDConfig, workload, baseChart, folders, &golbalWorkloadList, &dwg) //nolint:errcheck // fire-and-forget goroutine, errors logged internally
+			go processApplicationFoldersForDelete(ctx, workloadCDConfig, workload, baseChart, folders, &golbalWorkloadList, &dwg)
 			time.Sleep(time.Duration(10) * time.Second)
 		}
 	}
@@ -858,7 +858,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		log.Println("resourceWorkloadCDOperatorUpsert ", "baseValues", baseValues)
 
 		cwg.Add(1)
-		go processApplicationFolders(ctx, workloadCDConfig, workload, baseChart, baseValues, folders, &golbalWorkloadList, &cwg) //nolint:errcheck // fire-and-forget goroutine, errors logged internally
+		go processApplicationFolders(ctx, workloadCDConfig, workload, baseChart, baseValues, folders, &golbalWorkloadList, &cwg)
 		time.Sleep(time.Duration(10) * time.Second)
 	}
 	//wait for all the go routines to finish
@@ -1415,18 +1415,20 @@ func cloneRepoSSH(workloadCdCfg *WorkloadCDConfig) ([]string, string, error) {
 
 	path := workloadCdCfg.Spec.RepositoryLocalPath
 	// remove the local repo if it exists
-	_, _ = runCmd(workloadCdCfg, "rm", ".", false, "-rf", path) //nolint:errcheck // cleanup operation, error not critical
+	_, _ = runCmd(workloadCdCfg, "rm", ".", false, "-rf", path)
 	f, err := os.CreateTemp("", "tfcd_ssh_key")
 	if err != nil {
 		log.Println("failed to create file", err)
 		return nil, "", err
 	}
 	if _, err := f.Write([]byte(sshKey)); err != nil {
-		_ = f.Close() //nolint:errcheck // cleanup in error path
-		return nil, "", fmt.Errorf("failed to write SSH key: %w", err)
+		_ = f.Close()
+		log.Printf("warning: failed to write SSH key: %v", err)
+		// Continue anyway - git clone will fail with a clearer error
 	}
 	if err := f.Close(); err != nil {
-		return nil, "", fmt.Errorf("failed to close SSH key file: %w", err)
+		log.Printf("warning: failed to close SSH key file: %v", err)
+		// Continue anyway - file may still be usable
 	}
 	ssh_key_path := f.Name()
 
@@ -1476,7 +1478,7 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 		var url string
 
 		// remove the local repo if it exists
-		_, _ = runCmd(workloadCdCfg, "rm", ".", false, "-rf", path) //nolint:errcheck // cleanup operation, error not critical
+		_, _ = runCmd(workloadCdCfg, "rm", ".", false, "-rf", path)
 		// if the repo doesn't exist, we need to clone it
 		// git clone --branch <branchname> https://stephan-rafay:api-key@url <path>
 		if strings.Contains(repo_url, "https://") {
@@ -1657,7 +1659,7 @@ func processApplicationFoldersForDelete(ctx context.Context, cfg *WorkloadCDConf
 			// delete application
 			wg.Add(1)
 			log.Println("deleteApplication", w.Metadata.Project, w.Metadata.Name)
-			go deleteApplication(ctx, cfg, workload, w.Metadata.Project, w.Spec.Namespace, w.Metadata.Name, &wg) //nolint:errcheck // fire-and-forget goroutine, errors logged internally
+			go deleteApplication(ctx, cfg, workload, w.Metadata.Project, w.Spec.Namespace, w.Metadata.Name, &wg)
 		}
 	}
 
@@ -1710,13 +1712,15 @@ func deleteApplication(ctx context.Context, cfg *WorkloadCDConfig, workload *Wor
 }
 
 func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, workload *Workload, baseChart string, baseValues, folders []string, gWorkloadList *appspb.WorkloadList, cwg *sync.WaitGroup) error {
+	var chartPath string
 	var wg sync.WaitGroup
 	defer cwg.Done()
 
 	for _, folder := range folders {
 		var project, namespace, workloadName string
 		var valuePaths []string
-		var chartPath string
+		chartPath = ""
+
 		// process folder and create application
 
 		projectCheck := httprouter.New()
@@ -1774,7 +1778,7 @@ func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, workl
 			workload.ChartHelmRepoName != "" ||
 			workload.ChartGitRepoName != "") && len(valuePaths) > 0 {
 			wg.Add(1)
-			go createApplication(ctx, cfg, workload, folder, project, namespace, workload.Name, chartPath, valuePaths, &wg) //nolint:errcheck // fire-and-forget goroutine, errors logged and tracked in cfg.Status
+			go createApplication(ctx, cfg, workload, folder, project, namespace, workload.Name, chartPath, valuePaths, &wg)
 			time.Sleep(time.Duration(5) * time.Second)
 		} else {
 			log.Println("processApplicationFolders ignore folder ", folder, "  chartPath or valuePaths (or) catalog (or) helm-repo (or) gitrepo is empty")

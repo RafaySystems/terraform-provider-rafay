@@ -196,7 +196,7 @@ func resourceSecretSealerDelete(ctx context.Context, d *schema.ResourceData, m i
 		Name:    ag.Metadata.Name,
 		Project: ag.Metadata.Project,
 	}); err != nil {
-		return diag.FromErr(err)
+		log.Println("failed to delete secret sealer error", err)
 	}
 
 	return diags

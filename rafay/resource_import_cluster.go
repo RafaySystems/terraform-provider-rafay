@@ -375,7 +375,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		values_path, _ = filepath.Abs(values_filename)
 		log.Printf("Saving values file to: %s", values_path)
 		if err := d.Set("values_path", values_path); err != nil {
-			return diag.FromErr(err)
+			log.Println("failed to set values_path error", err)
 		}
 	}
 	fv, err := os.Create(values_path)
@@ -393,7 +393,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err2)
 	}
 	if err := d.Set("values_data", values_file); err != nil {
-		return diag.FromErr(err)
+		log.Println("failed to set values_data error", err)
 	}
 
 	//then retrieve bootstrap yaml file, call GetBootstrapFile() -> make sure this function downloads the bootstrap file locally (i think the url request does)
@@ -411,7 +411,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		bootstrap_path, _ = filepath.Abs("bootstrap.yaml")
 		log.Printf("Saving bootstrap file to: %s", bootstrap_path)
 		if err := d.Set("bootstrap_path", bootstrap_path); err != nil {
-			return diag.FromErr(err)
+			log.Println("failed to set bootstrap_path error", err)
 		}
 	}
 	f, err := os.Create(bootstrap_path)
@@ -429,7 +429,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err2)
 	}
 	if err := d.Set("bootstrap_data", bootstrap_file); err != nil {
-		return diag.FromErr(err)
+		log.Println("failed to set bootstrap_data error", err)
 	}
 	//pass in bootstrap file path into exec command
 	// bootstrap_filepath, _ := filepath.Abs("bootstrap.yaml")

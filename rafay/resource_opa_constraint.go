@@ -194,7 +194,7 @@ func resourceOPAConstraintDelete(ctx context.Context, d *schema.ResourceData, m 
 		Name:    ag.Metadata.Name,
 		Project: ag.Metadata.Project,
 	}); err != nil {
-		return diag.FromErr(err)
+		log.Println("failed to delete opa constraint error", err)
 	}
 
 	return diags

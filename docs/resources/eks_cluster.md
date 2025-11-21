@@ -127,6 +127,125 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
 ---
 
+Basic EKS cluster with node group map
+
+Node group map based support is added in TF release v1.1.54 and later.
+
+```terraform
+resource "rafay_eks_cluster" "eks-cluster-1" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-cluster-1"
+      project = "terraform"
+    }
+    spec {
+      type           = "eks"
+      blueprint      = "default"
+      blueprint_version = "1.13.0"
+      cloud_provider = "eks-role"
+      cni_provider   = "aws-cni"
+      proxy_config   = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-cluster-1"
+      region  = "us-west-2"
+      version = "1.21"
+    }
+    iam {
+      with_oidc = true
+      service_accounts {
+        metadata {
+          name = "test-irsa"
+          namespace = "default"
+        }
+        attach_policy = <<EOF
+        {
+	  "Version": "2012-10-17",
+	  "Statement": [
+	    {
+	      "Effect": "Allow",
+	      "Action": "ec2:Describe*",
+	      "Resource": "*"
+	    },
+	    {
+	      "Effect": "Allow",
+	      "Action": "ec2:AttachVolume",
+	      "Resource": "*"
+	    },
+	    {  
+	      "Effect": "Allow",
+	      "Action": "ec2:DetachVolume",
+	      "Resource": "*"
+	    },
+	    {
+	      "Effect": "Allow",
+	      "Action": ["ec2:*"],
+	      "Resource": ["*"]
+    	    },
+	    {
+	      "Effect": "Allow",
+	      "Action": ["elasticloadbalancing:*"],
+	      "Resource": ["*"]
+	     }
+	   ]
+	}
+	EOF
+      }
+    }
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
+      }
+    }
+    node_groups_map = {
+      "ng-1" = {
+        ami_family = "AmazonLinux2"
+        iam = {
+          iam_node_group_with_addon_policies = {
+            image_builder = true
+            auto_scaler   = true
+          }
+        }
+        instance_type    = "m5.xlarge"
+        desired_capacity = 1
+        min_size         = 1
+        max_size         = 2
+        max_pods_per_node = 50
+        version          = "1.31"
+        volume_size      = 80
+        volume_type      = "gp3"
+        private_networking = true
+      }
+    }
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+
+    }
+    addons {
+      name = "coredns"
+      version = "latest"
+    }
+  }
+}
+```
+
+---
+
 Basic EKS cluster config with IPv6 as the IP family
 
 ```terraform
@@ -185,6 +304,84 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
       volume_size        = 80
       volume_type        = "gp3"
       version            = "1.31"
+    }
+
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+    }
+    addons {
+      name = "coredns"
+      version = "latest"
+    }
+  }
+}
+```
+
+---
+
+Basic EKS cluster config with IPv6 as the IP family and map-based managed node groups
+
+```terraform
+resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "ekscluster-basic-with-ipv6"
+      project = "defaultproject"
+    }
+    spec {
+      type              = "eks"
+      blueprint         = "minimal"
+      cloud_provider    = "aws"
+      cni_provider      = "aws-cni"
+      proxy_config      = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "ekscluster-basic-with-ipv6"
+      region  = "us-west-2"
+      version = "1.31"
+    }
+    kubernetes_network_config {
+      ip_family = "IPv6"
+    }
+    iam {
+     with_oidc = true
+    }
+
+    vpc {
+      cluster_endpoints {
+        private_access = true
+        public_access  = true
+      }
+    }
+    managed_nodegroups_map = {
+      "ng1" = {
+        instance_type      = "t3.medium"
+        desired_capacity   = 3
+        min_size           = 0
+        max_size           = 4
+        volume_size        = 80
+        volume_type        = "gp3"
+        version            = "1.31"
+      },
+      "ng2" = {
+        instance_type      = "t3.medium"
+        desired_capacity   = 2
+        min_size           = 0
+        max_size           = 3
+        volume_size        = 80
+        volume_type        = "gp3"
+        version            = "1.31"
+      }
     }
 
     addons {
@@ -826,8 +1023,12 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
     **Note**: At least `managed_nodegroups` or `node_groups` is required. You can add both.
 
+    **Note**: The `managed_nodegroups` and `managed_nodegroups_map` are mutually exclusive attributes. The `node_groups` and `node_groups_map` are mutually exclusive attributes.
+
 ***Optional***
-- `kubernetes_network_config` - (Block List) The cluster networking configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--kubernetes_network_config))
+- `managed_nodegroups_map` - (Map of Objects) The managed nodegroups map attributes of a cluster. (See [managed_node_groups schema](#nestedblock--cluster_config--managed_nodegroups) and migration doc for changes)
+- `node_groups_map` - (Map of Objects) The nodegroups map attributes of a cluster. (See [node_groups schema](#nestedblock--cluster_config--node_groups) and migration doc for changes)
+- `kubernetes_network_config_map` - (Map of Objects) The cluster networking configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--kubernetes_network_config))
 - `availability_zones` - (List of String) The availability zones (AZ) of a cluster.
 - `cloud_watch` - (Block List, Max: 1) CloudWatch configuration for control plane logging. (See [below for nested schema](#nestedblock--cluster_config--cloud_watch))
 - `fargate_profiles` - (Block List) The settings used to schedule a workload onto AWS Fargate. (See [below for nested schema](#nestedblock--cluster_config--fargate_profiles))

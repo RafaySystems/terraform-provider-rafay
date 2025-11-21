@@ -2622,6 +2622,7 @@ func expandAKSManagedClusterAddonProfile(p []interface{}) *AKSManagedClusterAddo
 			log.Printf("warning: failed to unmarshal addon profile config: %v", err)
 		}
 		obj.Config = policyDoc
+		log.Println("addon profile config expanded correct")
 	}
 
 	return obj

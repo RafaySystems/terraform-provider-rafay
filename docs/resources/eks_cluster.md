@@ -277,6 +277,9 @@ resource "rafay_eks_cluster" "eks-cluster-2" {
       volume_iops      = 3000
       volume_throughput = 125
       private_networking = true
+      node_repair_config = {
+        enabled = true
+      }
     }
   }
 }
@@ -1130,6 +1133,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `volume_encrypted` - (Boolean) Encrypts volumes attached to instances in the nodegroup. 
 - `volume_kms_key_id` - (String) The AWS KMS key used to encrypt data on the storage volume.
 - `volume_name` - (String) The name of the volume. 
+- `node_repair_config` - (Block List) Node repair configuration of the nodeGroup  (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--node_repair_config))
 
 <a id="nestedblock--cluster_config--managed_nodegroups--bottle_rocket"></a>
 ### Nested Schema for `cluster_config.managed_nodegroups.bottle_rocket`
@@ -1139,6 +1143,10 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `enable_admin_container` - (Boolean) Enables the Bottlerocket admin container.
 - `settings` - (String) settings for  Bottlerocket node group. Use `jsonencode()` to pass valid settings configuration in json format. 
 
+<a id="nestedblock--cluster_config--managed_nodegroups--node_repair_config"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.node_repair_config`
+
+- `enabled` - (Boolean) Enables Node repair for managed node group.
 
 
 <a id="nestedblock--cluster_config--managed_nodegroups--iam"></a>

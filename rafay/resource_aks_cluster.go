@@ -2618,7 +2618,9 @@ func expandAKSManagedClusterAddonProfile(p []interface{}) *AKSManagedClusterAddo
 	if v, ok := in["config"].(string); ok && len(v) > 0 {
 		var policyDoc map[string]interface{}
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		json2.Unmarshal([]byte(v), &policyDoc)
+		if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+			log.Printf("warning: failed to unmarshal addon profile config: %v", err)
+		}
 		obj.Config = policyDoc
 		log.Println("addon profile config expanded correct")
 	}
@@ -4178,7 +4180,7 @@ func flattenAKSClusterMetadata(in *AKSClusterMetadata, p []interface{}) []interf
 		obj["project"] = in.Project
 	}
 
-	if in.Labels != nil && len(in.Labels) > 0 {
+	if len(in.Labels) > 0 {
 		obj["labels"] = toMapInterface(in.Labels)
 	}
 
@@ -4329,7 +4331,7 @@ func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}, rawS
 	}
 
 	// @@@@@@@
-	if in.NodePools != nil && len(in.NodePools) > 0 {
+	if len(in.NodePools) > 0 {
 		v, ok := obj["node_pools"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -4341,7 +4343,7 @@ func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}, rawS
 		obj["node_pools"] = flattenAKSNodePool(in.NodePools, v, nRawState)
 	}
 
-	if in.MaintenanceConfigs != nil && len(in.MaintenanceConfigs) > 0 {
+	if len(in.MaintenanceConfigs) > 0 {
 		v, ok := obj["maintenance_configurations"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -4403,7 +4405,7 @@ func flattenAKSManagedCluster(in *AKSManagedCluster, p []interface{}) []interfac
 		obj["sku"] = flattenAKSManagedClusterSKU(in.SKU, v)
 	}
 
-	if in.Tags != nil && len(in.Tags) > 0 {
+	if len(in.Tags) > 0 {
 		obj["tags"] = in.Tags
 	}
 
@@ -4457,7 +4459,7 @@ func flattenAKSManagedClusterIdentity(in *AKSManagedClusterIdentity, p []interfa
 		obj["type"] = in.Type
 	}
 
-	if in.UserAssignedIdentities != nil && len(in.UserAssignedIdentities) > 0 {
+	if len(in.UserAssignedIdentities) > 0 {
 		//obj["user_assigned_identities"] = toMapInterface(in.UserAssignedIdentities)
 		obj["user_assigned_identities"] = toMapInterfaceObject(in.UserAssignedIdentities)
 	}
@@ -4484,7 +4486,7 @@ func flattenAKSManagedClusterProperties(in *AKSManagedClusterProperties, p []int
 		obj["aad_profile"] = flattenAKSManagedClusterAzureADProfile(in.AzureADProfile, v)
 	}
 	/*
-		if in.AddonProfiles != nil && len(in.AddonProfiles) > 0 {
+		if len(in.AddonProfiles) > 0 {
 			obj["addon_profiles"] = toMapInterface(in.AddonProfiles)
 		}*/
 	if in.AddonProfiles != nil {
@@ -4699,7 +4701,7 @@ func flattenAKSManagedClusterAddonProfile(in *AKSManagedClusterAddonProfile, p [
 
 	obj["enabled"] = in.Enabled
 
-	if in.Config != nil && len(in.Config) > 0 {
+	if len(in.Config) > 0 {
 		//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.Config)
@@ -4852,7 +4854,7 @@ func flattenAKSManagedClusterAzureADProfile(in *AKSManagedClusterAzureADProfile,
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.AdminGroupObjectIDs != nil && len(in.AdminGroupObjectIDs) > 0 {
+	if len(in.AdminGroupObjectIDs) > 0 {
 		obj["admin_group_object_ids"] = toArrayInterface(in.AdminGroupObjectIDs)
 	}
 
@@ -4889,7 +4891,7 @@ func flattenAKSManagedClusterAPIServerAccessProfile(in *AKSManagedClusterAPIServ
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.AuthorizedIPRanges != nil && len(in.AuthorizedIPRanges) > 0 {
+	if len(in.AuthorizedIPRanges) > 0 {
 		obj["authorized_ipr_ranges"] = toArrayInterface(in.AuthorizedIPRanges)
 	}
 
@@ -5063,7 +5065,7 @@ func flattenAKSManagedClusterHTTPProxyConfig(in *AKSManagedClusterHTTPProxyConfi
 		obj["https_proxy"] = in.HTTPSProxy
 	}
 
-	if in.NoProxy != nil && len(in.NoProxy) > 0 {
+	if len(in.NoProxy) > 0 {
 		obj["no_proxy"] = toArrayInterface(in.NoProxy)
 	}
 
@@ -5096,7 +5098,7 @@ func flattenAKSManagedClusterLinuxProfile(in *AKSManagedClusterLinuxProfile, p [
 		obj["ssh"] = flattenAKSManagedClusterSSHConfig(in.SSH, v)
 	}
 
-	if in.NoProxy != nil && len(in.NoProxy) > 0 {
+	if len(in.NoProxy) > 0 {
 		obj["no_proxy"] = toArrayInterface(in.NoProxy)
 	}
 
@@ -5117,7 +5119,7 @@ func flattenAKSManagedClusterSSHConfig(in *AKSManagedClusterSSHConfig, p []inter
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.PublicKeys != nil && len(in.PublicKeys) > 0 {
+	if len(in.PublicKeys) > 0 {
 		v, ok := obj["ssh"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -5230,7 +5232,7 @@ func flattenAKSManagedClusterNPLoadBalancerProfile(in *AKSManagedClusterNPLoadBa
 		obj["allocated_outbound_ports"] = *in.AllocatedOutboundPorts
 	}
 
-	if in.EffectiveOutboundIPs != nil && len(in.EffectiveOutboundIPs) > 0 {
+	if len(in.EffectiveOutboundIPs) > 0 {
 		v, ok := obj["effective_outbound_ips"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -5319,7 +5321,7 @@ func flattenAKSManagedClusterNPOutboundIPPrefixes(in *AKSManagedClusterNPOutboun
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.PublicIPPrefixes != nil && len(in.PublicIPPrefixes) > 0 {
+	if len(in.PublicIPPrefixes) > 0 {
 		v, ok := obj["public_ip_prefixes"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -5363,7 +5365,7 @@ func flattenAKSManagedClusterNPOutboundIPs(in *AKSManagedClusterNPOutboundIPs, p
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.PublicIPs != nil && len(in.PublicIPs) > 0 {
+	if len(in.PublicIPs) > 0 {
 		v, ok := obj["public_ips"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -5539,7 +5541,7 @@ func flattenAKSManagedClusterPIPUserAssignedIdentityExceptions(inp []*AKSManaged
 			obj["namespace"] = in.Namespace
 		}
 
-		if in.PodLabels != nil && len(in.PodLabels) > 0 {
+		if len(in.PodLabels) > 0 {
 			obj["pod_labels"] = toMapInterface(in.PodLabels)
 		}
 		out[i] = &obj
@@ -5649,7 +5651,7 @@ func flattenAKSManagedClusterPrivateLinkResources(in *AKSManagedClusterPrivateLi
 		obj["name"] = in.Name
 	}
 
-	if in.RequiredMembers != nil && len(in.RequiredMembers) > 0 {
+	if len(in.RequiredMembers) > 0 {
 		obj["required_members"] = toArrayInterface(in.RequiredMembers)
 	}
 
@@ -5724,7 +5726,7 @@ func flattenAKSManagedClusterAdditionalMetadataACRProfile(in *AKSManagedClusterA
 		obj["acr_name"] = in.ACRName
 	}
 
-	if in.Registries != nil && len(in.Registries) > 0 {
+	if len(in.Registries) > 0 {
 		v, ok := obj["registries"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -5813,7 +5815,7 @@ func flattenAKSMaintenanceConfigProperties(in *AKSMaintenanceConfigProperties, p
 		}
 		obj["maintenance_window"] = flattenAKSMaintenanceWindow(in.MaintenanceWindow, v)
 	}
-	if in.NotAllowedTime != nil && len(in.NotAllowedTime) > 0 {
+	if len(in.NotAllowedTime) > 0 {
 		v, ok := obj["not_allowed_time"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -5869,7 +5871,7 @@ func flattenAKSMCTimeInWeek(in []*AKSMaintenanceTimeInWeek, p []interface{}) []i
 			obj["day"] = elem.Day
 		}
 
-		if elem.HourSlots != nil && len(elem.HourSlots) > 0 {
+		if len(elem.HourSlots) > 0 {
 			obj["hour_slots"] = intArraytoInterfaceArray(elem.HourSlots)
 		}
 		out[i] = obj
@@ -5890,7 +5892,7 @@ func flattenAKSMaintenanceWindow(in *AKSMaintenanceWindow, p []interface{}) []in
 		obj["duration_hours"] = in.DurationHours
 	}
 
-	if in.NotAllowedDates != nil && len(in.NotAllowedDates) > 0 {
+	if len(in.NotAllowedDates) > 0 {
 		v, ok := obj["not_allowed_dates"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -6113,7 +6115,7 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}, ra
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.AvailabilityZones != nil && len(in.AvailabilityZones) > 0 {
+	if len(in.AvailabilityZones) > 0 {
 		obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
 	}
 
@@ -6173,7 +6175,7 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}, ra
 		obj["mode"] = in.Mode
 	}
 
-	if in.NodeLabels != nil && len(in.NodeLabels) > 0 {
+	if len(in.NodeLabels) > 0 {
 		obj["node_labels"] = toMapInterface(in.NodeLabels)
 	}
 
@@ -6181,7 +6183,7 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}, ra
 		obj["node_public_ip_prefix_id"] = in.NodePublicIPPrefixID
 	}
 
-	if in.NodeTaints != nil && len(in.NodeTaints) > 0 {
+	if len(in.NodeTaints) > 0 {
 		obj["node_taints"] = toArrayInterface(in.NodeTaints)
 	}
 
@@ -6227,7 +6229,7 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}, ra
 
 	obj["spot_max_price"] = in.SpotMaxPrice
 
-	if in.Tags != nil && len(in.Tags) > 0 {
+	if len(in.Tags) > 0 {
 		obj["tags"] = toMapInterface(in.Tags)
 	}
 
@@ -6264,7 +6266,7 @@ func flattenAKSNodePoolKubeletConfig(in *AKSNodePoolKubeletConfig, p []interface
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.AllowedUnsafeSysctls != nil && len(in.AllowedUnsafeSysctls) > 0 {
+	if len(in.AllowedUnsafeSysctls) > 0 {
 		obj["allowed_unsafe_sysctls"] = toArrayInterface(in.AllowedUnsafeSysctls)
 	}
 

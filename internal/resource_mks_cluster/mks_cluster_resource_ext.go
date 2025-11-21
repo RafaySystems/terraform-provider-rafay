@@ -62,7 +62,7 @@ func convertFromTfMap(tfMap types.Map) map[string]string {
 }
 
 func convertToTfMap(goMap map[string]string) types.Map {
-	if goMap == nil || len(goMap) == 0 {
+	if len(goMap) == 0 {
 		return types.MapNull(types.StringType)
 	}
 
@@ -481,7 +481,9 @@ func (v SharingValue) FromHub(ctx context.Context, hub *infrapb.Sharing) (basety
 	}
 
 	v.state = attr.ValueStateKnown
-	return v.ToObjectValue(ctx)
+	obj, d := v.ToObjectValue(ctx)
+	diags = append(diags, d...)
+	return obj, diags
 }
 
 func (v SystemComponentsPlacementValue) ToHub(ctx context.Context) (*infrapb.SystemComponentsPlacement, diag.Diagnostics) {

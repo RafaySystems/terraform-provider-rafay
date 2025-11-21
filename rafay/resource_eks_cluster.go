@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// go:embed resource_eks_cluster_description.md
+//go:embed resource_eks_cluster_description.md
 var resourceEKSClusterDescription string
 
 func resourceEKSCluster() *schema.Resource {
@@ -3552,9 +3552,12 @@ func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
 		var policyDoc map[string]interface{}
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		//json.Unmarshal(input, &data)
-		json2.Unmarshal([]byte(v), &policyDoc)
-		obj.Settings = policyDoc
-		log.Println("bottle rocket settings expanded correct")
+		if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+			log.Printf("warning: failed to unmarshal bottle rocket settings: %v", err)
+		} else {
+			obj.Settings = policyDoc
+			log.Println("bottle rocket settings expanded correct")
+		}
 	}
 	//docs dont have field skip endpoint creation but struct does
 	return obj
@@ -3670,9 +3673,12 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 	if v, ok := in["attach_policy_v2"].(string); ok && len(v) > 0 {
 		var policyDoc *InlineDocument
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		json2.Unmarshal([]byte(v), &policyDoc)
-		obj.AttachPolicy = policyDoc
-		//log.Println("attach policy expanded correct")
+		if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+			log.Printf("warning: failed to unmarshal attach policy: %v", err)
+		} else {
+			obj.AttachPolicy = policyDoc
+			//log.Println("attach policy expanded correct")
+		}
 	}
 
 	if v, ok := in["attach_policy_arns"].([]interface{}); ok && len(v) > 0 {
@@ -3729,24 +3735,33 @@ func expandStatement(p []interface{}) []InlineStatement {
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.Condition = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal condition policy: %v", err)
+			} else {
+				obj.Condition = policyDoc
+			}
 		}
 
 		if v, ok := in["principal"].(string); ok && len(v) > 0 {
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.Principal = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal principal policy: %v", err)
+			} else {
+				obj.Principal = policyDoc
+			}
 		}
 
 		if v, ok := in["not_principal"].(string); ok && len(v) > 0 {
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.NotPrincipal = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal not_principal policy: %v", err)
+			} else {
+				obj.NotPrincipal = policyDoc
+			}
 		}
 
 		out[i] = *obj
@@ -3948,8 +3963,11 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 			var policyDoc *InlineDocument
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.AttachPolicy = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal attach_policy_v2: %v", err)
+			} else {
+				obj.AttachPolicy = policyDoc
+			}
 			//log.Println("attach policy expanded correct")
 		}
 
@@ -4247,8 +4265,11 @@ func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAs
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.PermissionPolicy = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal permission_policy: %v", err)
+			} else {
+				obj.PermissionPolicy = policyDoc
+			}
 		}
 		if v, ok := in["permission_policy_arns"].([]interface{}); ok && len(v) > 0 {
 			obj.PermissionPolicyARNs = toArrayString(v)
@@ -4288,9 +4309,12 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.AttachPolicy = policyDoc
-			log.Println("attach policy expanded correct")
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal attach_policy: %v", err)
+			} else {
+				obj.AttachPolicy = policyDoc
+				log.Println("attach policy expanded correct")
+			}
 		}
 		if v, ok := in["attach_role_arn"].(string); ok && len(v) > 0 {
 			obj.AttachRoleARN = v
@@ -4600,7 +4624,7 @@ func flattenEKSClusterMetadata(in *EKSClusterMetadata, p []interface{}) ([]inter
 		obj["project"] = in.Project
 	}
 	log.Println("md 2")
-	if in.Labels != nil && len(in.Labels) > 0 {
+	if len(in.Labels) > 0 {
 		obj["labels"] = toMapInterface(in.Labels)
 		log.Println("saving metadata labels: ", in.Labels)
 	}
@@ -4840,7 +4864,7 @@ func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]
 		obj["version"] = in.Version
 	}
 
-	if in.Tags != nil && len(in.Tags) > 0 {
+	if len(in.Tags) > 0 {
 		obj["tags"] = toMapInterface(in.Tags)
 	}
 
@@ -5026,7 +5050,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		obj["fargate_profiles"] = ret10
 	}
 	//setting up flatten Availability Zones
-	if in.AvailabilityZones != nil && len(in.AvailabilityZones) > 0 {
+	if len(in.AvailabilityZones) > 0 {
 		obj["availability_zones"] = toArrayInterfaceSorted(in.AvailabilityZones)
 	}
 	//setting up flatten Cloud Watch
@@ -5167,10 +5191,10 @@ func flattenEKSAccessEntry(inp []*EKSAccessEntry, p []interface{}) ([]interface{
 			obj["kubernetes_username"] = in.KubernetesUsername
 		}
 
-		if in.KubernetesGroups != nil && len(in.KubernetesGroups) > 0 {
+		if len(in.KubernetesGroups) > 0 {
 			obj["kubernetes_groups"] = toArrayInterfaceSorted(in.KubernetesGroups)
 		}
-		if in.Tags != nil && len(in.Tags) > 0 {
+		if len(in.Tags) > 0 {
 			obj["tags"] = toMapInterface(in.Tags)
 		}
 		if in.AccessPolicies != nil {
@@ -5236,7 +5260,7 @@ func flattenEKSAccessScope(in *EKSAccessScope, p []interface{}) ([]interface{}, 
 		obj["type"] = in.Type
 	}
 
-	if in.Namespaces != nil && len(in.Namespaces) > 0 {
+	if len(in.Namespaces) > 0 {
 		obj["namespaces"] = toArrayInterfaceSorted(in.Namespaces)
 	}
 
@@ -5287,7 +5311,7 @@ func flattenEKSClusterIAM(in *EKSClusterIAM, rawState cty.Value, p []interface{}
 
 	obj["with_oidc"] = in.WithOIDC
 
-	if in.ServiceAccounts != nil && len(in.ServiceAccounts) > 0 {
+	if len(in.ServiceAccounts) > 0 {
 		v, ok := obj["service_accounts"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -5330,10 +5354,10 @@ func flattenIAMServiceAccountMetadata(in *EKSClusterIAMMeta, p []interface{}) []
 		obj["namespace"] = in.Namespace
 	}
 
-	if in.Labels != nil && len(in.Labels) > 0 {
+	if len(in.Labels) > 0 {
 		obj["labels"] = toMapInterface(in.Labels)
 	}
-	if in.Annotations != nil && len(in.Annotations) > 0 {
+	if len(in.Annotations) > 0 {
 		obj["annotations"] = toMapInterface(in.Annotations)
 	}
 
@@ -5349,10 +5373,10 @@ func flattenSingleIAMServiceAccount(in *EKSClusterIAMServiceAccount) map[string]
 		"well_known_policies": flattenIAMWellKnownPolicies(in.WellKnownPolicies, []interface{}{}),
 		"role_only":           in.RoleOnly,
 	}
-	if in.AttachPolicyARNs != nil && len(in.AttachPolicyARNs) > 0 {
+	if len(in.AttachPolicyARNs) > 0 {
 		obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
 	}
-	if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
+	if len(in.AttachPolicy) > 0 {
 		//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.AttachPolicy)
@@ -5374,7 +5398,7 @@ func flattenSingleIAMServiceAccount(in *EKSClusterIAMServiceAccount) map[string]
 		obj["role_name"] = in.RoleName
 	}
 
-	if in.Tags != nil && len(in.Tags) > 0 {
+	if len(in.Tags) > 0 {
 		obj["tags"] = toMapInterface(in.Tags)
 	}
 	return obj
@@ -5689,7 +5713,7 @@ func flattenEKSClusterVPC(in *EKSClusterVPC, p []interface{}) ([]interface{}, er
 	if len(in.ExtraCIDRs) > 0 {
 		obj["extra_cidrs"] = toArrayInterface(in.ExtraCIDRs)
 	}
-	if in.ExtraIPv6CIDRs != nil && len(in.ExtraIPv6CIDRs) > 0 {
+	if len(in.ExtraIPv6CIDRs) > 0 {
 		obj["extra_ipv6_cidrs"] = toArrayInterface(in.ExtraIPv6CIDRs)
 	}
 	if len(in.SharedNodeSecurityGroup) > 0 {
@@ -6417,7 +6441,7 @@ func flattenNodeGroupBottlerocket(in *NodeGroupBottlerocket, p []interface{}) []
 	}
 	obj["enable_admin_container"] = in.EnableAdminContainer
 
-	if in.Settings != nil && len(in.Settings) > 0 {
+	if len(in.Settings) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.Settings)
 		if err != nil {
@@ -6911,7 +6935,7 @@ func flattenIdentityMappings(in *EKSClusterIdentityMappings, p []interface{}) ([
 		return []interface{}{obj}, nil
 	}
 
-	if in.Arns != nil && len(in.Arns) > 0 {
+	if len(in.Arns) > 0 {
 		v, ok := obj["arns"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -6919,7 +6943,7 @@ func flattenIdentityMappings(in *EKSClusterIdentityMappings, p []interface{}) ([
 		obj["arns"] = flattenArnFields(in.Arns, v)
 	}
 
-	if in.Accounts != nil && len(in.Accounts) > 0 {
+	if len(in.Accounts) > 0 {
 		obj["accounts"] = in.Accounts
 	}
 

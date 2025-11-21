@@ -185,10 +185,12 @@ func resourceSecretGroupDelete(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	err = client.GitopsV3().SecretGroup().Delete(ctx, options.DeleteOptions{
+	if err := client.GitopsV3().SecretGroup().Delete(ctx, options.DeleteOptions{
 		Name:    secretGroup.Metadata.Name,
 		Project: secretGroup.Metadata.Project,
-	})
+	}); err != nil {
+		log.Println("failed to delete secret group error", err)
+	}
 
 	return diags
 }
@@ -304,7 +306,7 @@ func flattenSecretGroupSpec(in *gitopspb.SecretGroupSpec, p []interface{}) ([]in
 		obj["secrets"] = flattenCommonpbFile(in.Secret)
 	}
 
-	if in.Secrets != nil && len(in.Secrets) > 0 {
+	if len(in.Secrets) > 0 {
 		v, ok := obj["secrets"].([]interface{})
 		if !ok {
 			v = []interface{}{}

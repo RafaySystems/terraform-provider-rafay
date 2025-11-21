@@ -56,7 +56,7 @@ func flattenMetadataV3(in *commonpb.Metadata, p []interface{}) []interface{} {
 		obj["project"] = in.Project
 	}
 
-	if in.Labels != nil && len(in.Labels) > 0 {
+	if len(in.Labels) > 0 {
 		obj["labels"] = toMapInterface(in.Labels)
 	}
 
@@ -146,7 +146,7 @@ func flattenV3SystemComponentsPlacement(in *infrapb.SystemComponentsPlacement, p
 		obj = p[0].(map[string]interface{})
 	}
 
-	if in.NodeSelector != nil && len(in.NodeSelector) > 0 {
+	if len(in.NodeSelector) > 0 {
 		obj["node_selector"] = toMapInterface(in.NodeSelector)
 	}
 

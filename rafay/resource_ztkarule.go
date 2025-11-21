@@ -399,7 +399,7 @@ func flattenProjectSelector(in *systempb.ZTKAProjects, p []interface{}) []interf
 		obj["select_all"] = in.SelectAll
 	}
 
-	if in.MatchNames != nil && len(in.MatchNames) > 0 {
+	if len(in.MatchNames) > 0 {
 		obj["match_names"] = toArrayInterface(in.MatchNames)
 	}
 	return []interface{}{obj}
@@ -418,10 +418,10 @@ func flattenClusterSelector(in *systempb.ZTKAClusters, p []interface{}) []interf
 		obj["select_all"] = in.SelectAll
 	}
 
-	if in.MatchNames != nil && len(in.MatchNames) > 0 {
+	if len(in.MatchNames) > 0 {
 		obj["match_names"] = toArrayInterface(in.MatchNames)
 	}
-	if in.MatchLabels != nil && len(in.MatchLabels) > 0 {
+	if len(in.MatchLabels) > 0 {
 		obj["match_labels"] = toMapInterface(in.MatchLabels)
 	}
 	return []interface{}{obj}

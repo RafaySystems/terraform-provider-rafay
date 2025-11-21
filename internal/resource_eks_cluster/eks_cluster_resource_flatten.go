@@ -278,7 +278,7 @@ func (v *CniParamsValue) Flatten(ctx context.Context, in *rafay.CustomCni) diag.
 		v.CustomCniCidr = types.StringValue(in.CustomCniCidr)
 	}
 
-	customCniCrdSpec := types.ListNull(CustomCniCrdSpecValue{}.Type(ctx))
+	customCniCrdSpec := types.SetNull(CustomCniCrdSpecValue{}.Type(ctx))
 	if len(in.CustomCniCrdSpec) > 0 {
 		csElements := make([]attr.Value, 0, len(in.CustomCniCrdSpec))
 		for name, cniSpec := range in.CustomCniCrdSpec {
@@ -287,7 +287,7 @@ func (v *CniParamsValue) Flatten(ctx context.Context, in *rafay.CustomCni) diag.
 			diags = append(diags, d...)
 			csElements = append(csElements, cs)
 		}
-		customCniCrdSpec, d = types.ListValue(CustomCniCrdSpecValue{}.Type(ctx), csElements)
+		customCniCrdSpec, d = types.SetValue(CustomCniCrdSpecValue{}.Type(ctx), csElements)
 		diags = append(diags, d...)
 	}
 	v.CustomCniCrdSpec = customCniCrdSpec
@@ -301,7 +301,7 @@ func (v *CustomCniCrdSpecValue) Flatten(ctx context.Context, name string, in []r
 
 	v.Name = types.StringValue(name)
 
-	cniSpec := types.ListNull(CniSpecValue{}.Type(ctx))
+	cniSpec := types.SetNull(CniSpecValue{}.Type(ctx))
 	if len(in) > 0 {
 		specElements := make([]attr.Value, 0, len(in))
 		for _, spec := range in {
@@ -310,7 +310,7 @@ func (v *CustomCniCrdSpecValue) Flatten(ctx context.Context, name string, in []r
 			diags = append(diags, d...)
 			specElements = append(specElements, s)
 		}
-		cniSpec, d = types.ListValue(CniSpecValue{}.Type(ctx), specElements)
+		cniSpec, d = types.SetValue(CniSpecValue{}.Type(ctx), specElements)
 		diags = append(diags, d...)
 	}
 	v.CniSpec = cniSpec
@@ -326,13 +326,13 @@ func (v *CniSpecValue) Flatten(ctx context.Context, in rafay.CustomCniSpec) diag
 		v.Subnet = types.StringValue(in.Subnet)
 	}
 
-	securityGroups := types.ListNull(types.StringType)
+	securityGroups := types.SetNull(types.StringType)
 	if len(in.SecurityGroups) > 0 {
 		sgElements := make([]attr.Value, 0, len(in.SecurityGroups))
 		for _, sg := range in.SecurityGroups {
 			sgElements = append(sgElements, types.StringValue(sg))
 		}
-		securityGroups, d = types.ListValue(types.StringType, sgElements)
+		securityGroups, d = types.SetValue(types.StringType, sgElements)
 		diags = append(diags, d...)
 	}
 	v.SecurityGroups2 = securityGroups

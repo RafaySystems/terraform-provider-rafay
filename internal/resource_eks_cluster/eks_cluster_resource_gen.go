@@ -126,7 +126,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												},
 											},
 											Blocks: map[string]schema.Block{
-												"custom_cni_crd_spec": schema.ListNestedBlock{
+												"custom_cni_crd_spec": schema.SetNestedBlock{
 													NestedObject: schema.NestedBlockObject{
 														Attributes: map[string]schema.Attribute{
 															"name": schema.StringAttribute{
@@ -136,10 +136,10 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 															},
 														},
 														Blocks: map[string]schema.Block{
-															"cni_spec": schema.ListNestedBlock{
+															"cni_spec": schema.SetNestedBlock{
 																NestedObject: schema.NestedBlockObject{
 																	Attributes: map[string]schema.Attribute{
-																		"security_groups": schema.ListAttribute{
+																		"security_groups": schema.SetAttribute{
 																			ElementType:         types.StringType,
 																			Optional:            true,
 																			Description:         "The security groups associated with secondary ENIs for AWS EC2 nodes.",
@@ -715,6 +715,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										Default:  int64default.StaticInt64(0),
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -1407,6 +1409,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										Default:  int64default.StaticInt64(0),
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -2729,6 +2733,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										Default:  int64default.StaticInt64(0),
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -3382,6 +3388,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
+										Computed: true,
+										Default:  int64default.StaticInt64(0),
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -6263,12 +6271,12 @@ func (t CniParamsType) ValueFromObject(ctx context.Context, in basetypes.ObjectV
 		return nil, diags
 	}
 
-	customCniCrdSpecVal, ok := customCniCrdSpecAttribute.(basetypes.ListValue)
+	customCniCrdSpecVal, ok := customCniCrdSpecAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`custom_cni_crd_spec expected to be basetypes.ListValue, was: %T`, customCniCrdSpecAttribute))
+			fmt.Sprintf(`custom_cni_crd_spec expected to be basetypes.SetValue, was: %T`, customCniCrdSpecAttribute))
 	}
 
 	if diags.HasError() {
@@ -6373,12 +6381,12 @@ func NewCniParamsValue(attributeTypes map[string]attr.Type, attributes map[strin
 		return NewCniParamsValueUnknown(), diags
 	}
 
-	customCniCrdSpecVal, ok := customCniCrdSpecAttribute.(basetypes.ListValue)
+	customCniCrdSpecVal, ok := customCniCrdSpecAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`custom_cni_crd_spec expected to be basetypes.ListValue, was: %T`, customCniCrdSpecAttribute))
+			fmt.Sprintf(`custom_cni_crd_spec expected to be basetypes.SetValue, was: %T`, customCniCrdSpecAttribute))
 	}
 
 	if diags.HasError() {
@@ -6461,7 +6469,7 @@ var _ basetypes.ObjectValuable = CniParamsValue{}
 
 type CniParamsValue struct {
 	CustomCniCidr    basetypes.StringValue `tfsdk:"custom_cni_cidr"`
-	CustomCniCrdSpec basetypes.ListValue   `tfsdk:"custom_cni_crd_spec"`
+	CustomCniCrdSpec basetypes.SetValue    `tfsdk:"custom_cni_crd_spec"`
 	state            attr.ValueState
 }
 
@@ -6472,7 +6480,7 @@ func (v CniParamsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, er
 	var err error
 
 	attrTypes["custom_cni_cidr"] = basetypes.StringType{}.TerraformType(ctx)
-	attrTypes["custom_cni_crd_spec"] = basetypes.ListType{
+	attrTypes["custom_cni_crd_spec"] = basetypes.SetType{
 		ElemType: CustomCniCrdSpecValue{}.Type(ctx),
 	}.TerraformType(ctx)
 
@@ -6527,7 +6535,7 @@ func (v CniParamsValue) String() string {
 func (v CniParamsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	customCniCrdSpec := types.ListValueMust(
+	customCniCrdSpec := types.SetValueMust(
 		CustomCniCrdSpecType{
 			basetypes.ObjectType{
 				AttrTypes: CustomCniCrdSpecValue{}.AttributeTypes(ctx),
@@ -6537,7 +6545,7 @@ func (v CniParamsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValu
 	)
 
 	if v.CustomCniCrdSpec.IsNull() {
-		customCniCrdSpec = types.ListNull(
+		customCniCrdSpec = types.SetNull(
 			CustomCniCrdSpecType{
 				basetypes.ObjectType{
 					AttrTypes: CustomCniCrdSpecValue{}.AttributeTypes(ctx),
@@ -6547,7 +6555,7 @@ func (v CniParamsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValu
 	}
 
 	if v.CustomCniCrdSpec.IsUnknown() {
-		customCniCrdSpec = types.ListUnknown(
+		customCniCrdSpec = types.SetUnknown(
 			CustomCniCrdSpecType{
 				basetypes.ObjectType{
 					AttrTypes: CustomCniCrdSpecValue{}.AttributeTypes(ctx),
@@ -6558,7 +6566,7 @@ func (v CniParamsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValu
 
 	attributeTypes := map[string]attr.Type{
 		"custom_cni_cidr": basetypes.StringType{},
-		"custom_cni_crd_spec": basetypes.ListType{
+		"custom_cni_crd_spec": basetypes.SetType{
 			ElemType: CustomCniCrdSpecValue{}.Type(ctx),
 		},
 	}
@@ -6618,7 +6626,7 @@ func (v CniParamsValue) Type(ctx context.Context) attr.Type {
 func (v CniParamsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"custom_cni_cidr": basetypes.StringType{},
-		"custom_cni_crd_spec": basetypes.ListType{
+		"custom_cni_crd_spec": basetypes.SetType{
 			ElemType: CustomCniCrdSpecValue{}.Type(ctx),
 		},
 	}
@@ -6659,12 +6667,12 @@ func (t CustomCniCrdSpecType) ValueFromObject(ctx context.Context, in basetypes.
 		return nil, diags
 	}
 
-	cniSpecVal, ok := cniSpecAttribute.(basetypes.ListValue)
+	cniSpecVal, ok := cniSpecAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`cni_spec expected to be basetypes.ListValue, was: %T`, cniSpecAttribute))
+			fmt.Sprintf(`cni_spec expected to be basetypes.SetValue, was: %T`, cniSpecAttribute))
 	}
 
 	nameAttribute, ok := attributes["name"]
@@ -6769,12 +6777,12 @@ func NewCustomCniCrdSpecValue(attributeTypes map[string]attr.Type, attributes ma
 		return NewCustomCniCrdSpecValueUnknown(), diags
 	}
 
-	cniSpecVal, ok := cniSpecAttribute.(basetypes.ListValue)
+	cniSpecVal, ok := cniSpecAttribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`cni_spec expected to be basetypes.ListValue, was: %T`, cniSpecAttribute))
+			fmt.Sprintf(`cni_spec expected to be basetypes.SetValue, was: %T`, cniSpecAttribute))
 	}
 
 	nameAttribute, ok := attributes["name"]
@@ -6874,7 +6882,7 @@ func (t CustomCniCrdSpecType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = CustomCniCrdSpecValue{}
 
 type CustomCniCrdSpecValue struct {
-	CniSpec basetypes.ListValue   `tfsdk:"cni_spec"`
+	CniSpec basetypes.SetValue    `tfsdk:"cni_spec"`
 	Name    basetypes.StringValue `tfsdk:"name"`
 	state   attr.ValueState
 }
@@ -6885,7 +6893,7 @@ func (v CustomCniCrdSpecValue) ToTerraformValue(ctx context.Context) (tftypes.Va
 	var val tftypes.Value
 	var err error
 
-	attrTypes["cni_spec"] = basetypes.ListType{
+	attrTypes["cni_spec"] = basetypes.SetType{
 		ElemType: CniSpecValue{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["name"] = basetypes.StringType{}.TerraformType(ctx)
@@ -6941,7 +6949,7 @@ func (v CustomCniCrdSpecValue) String() string {
 func (v CustomCniCrdSpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	cniSpec := types.ListValueMust(
+	cniSpec := types.SetValueMust(
 		CniSpecType{
 			basetypes.ObjectType{
 				AttrTypes: CniSpecValue{}.AttributeTypes(ctx),
@@ -6951,7 +6959,7 @@ func (v CustomCniCrdSpecValue) ToObjectValue(ctx context.Context) (basetypes.Obj
 	)
 
 	if v.CniSpec.IsNull() {
-		cniSpec = types.ListNull(
+		cniSpec = types.SetNull(
 			CniSpecType{
 				basetypes.ObjectType{
 					AttrTypes: CniSpecValue{}.AttributeTypes(ctx),
@@ -6961,7 +6969,7 @@ func (v CustomCniCrdSpecValue) ToObjectValue(ctx context.Context) (basetypes.Obj
 	}
 
 	if v.CniSpec.IsUnknown() {
-		cniSpec = types.ListUnknown(
+		cniSpec = types.SetUnknown(
 			CniSpecType{
 				basetypes.ObjectType{
 					AttrTypes: CniSpecValue{}.AttributeTypes(ctx),
@@ -6971,7 +6979,7 @@ func (v CustomCniCrdSpecValue) ToObjectValue(ctx context.Context) (basetypes.Obj
 	}
 
 	attributeTypes := map[string]attr.Type{
-		"cni_spec": basetypes.ListType{
+		"cni_spec": basetypes.SetType{
 			ElemType: CniSpecValue{}.Type(ctx),
 		},
 		"name": basetypes.StringType{},
@@ -7031,7 +7039,7 @@ func (v CustomCniCrdSpecValue) Type(ctx context.Context) attr.Type {
 
 func (v CustomCniCrdSpecValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"cni_spec": basetypes.ListType{
+		"cni_spec": basetypes.SetType{
 			ElemType: CniSpecValue{}.Type(ctx),
 		},
 		"name": basetypes.StringType{},
@@ -7073,12 +7081,12 @@ func (t CniSpecType) ValueFromObject(ctx context.Context, in basetypes.ObjectVal
 		return nil, diags
 	}
 
-	securityGroups2Val, ok := securityGroups2Attribute.(basetypes.ListValue)
+	securityGroups2Val, ok := securityGroups2Attribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`security_groups2 expected to be basetypes.ListValue, was: %T`, securityGroups2Attribute))
+			fmt.Sprintf(`security_groups2 expected to be basetypes.SetValue, was: %T`, securityGroups2Attribute))
 	}
 
 	subnetAttribute, ok := attributes["subnet"]
@@ -7183,12 +7191,12 @@ func NewCniSpecValue(attributeTypes map[string]attr.Type, attributes map[string]
 		return NewCniSpecValueUnknown(), diags
 	}
 
-	securityGroups2Val, ok := securityGroups2Attribute.(basetypes.ListValue)
+	securityGroups2Val, ok := securityGroups2Attribute.(basetypes.SetValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`security_groups2 expected to be basetypes.ListValue, was: %T`, securityGroups2Attribute))
+			fmt.Sprintf(`security_groups2 expected to be basetypes.SetValue, was: %T`, securityGroups2Attribute))
 	}
 
 	subnetAttribute, ok := attributes["subnet"]
@@ -7288,7 +7296,7 @@ func (t CniSpecType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = CniSpecValue{}
 
 type CniSpecValue struct {
-	SecurityGroups2 basetypes.ListValue   `tfsdk:"security_groups"`
+	SecurityGroups2 basetypes.SetValue    `tfsdk:"security_groups"`
 	Subnet          basetypes.StringValue `tfsdk:"subnet"`
 	state           attr.ValueState
 }
@@ -7299,7 +7307,7 @@ func (v CniSpecValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 	var val tftypes.Value
 	var err error
 
-	attrTypes["security_groups"] = basetypes.ListType{
+	attrTypes["security_groups"] = basetypes.SetType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["subnet"] = basetypes.StringType{}.TerraformType(ctx)
@@ -7355,21 +7363,21 @@ func (v CniSpecValue) String() string {
 func (v CniSpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	var securityGroups2Val basetypes.ListValue
+	var securityGroups2Val basetypes.SetValue
 	switch {
 	case v.SecurityGroups2.IsUnknown():
-		securityGroups2Val = types.ListUnknown(types.StringType)
+		securityGroups2Val = types.SetUnknown(types.StringType)
 	case v.SecurityGroups2.IsNull():
-		securityGroups2Val = types.ListNull(types.StringType)
+		securityGroups2Val = types.SetNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		securityGroups2Val, d = types.ListValue(types.StringType, v.SecurityGroups2.Elements())
+		securityGroups2Val, d = types.SetValue(types.StringType, v.SecurityGroups2.Elements())
 		diags.Append(d...)
 	}
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
-			"security_groups": basetypes.ListType{
+			"security_groups": basetypes.SetType{
 				ElemType: types.StringType,
 			},
 			"subnet": basetypes.StringType{},
@@ -7377,7 +7385,7 @@ func (v CniSpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 	}
 
 	attributeTypes := map[string]attr.Type{
-		"security_groups": basetypes.ListType{
+		"security_groups": basetypes.SetType{
 			ElemType: types.StringType,
 		},
 		"subnet": basetypes.StringType{},
@@ -7437,7 +7445,7 @@ func (v CniSpecValue) Type(ctx context.Context) attr.Type {
 
 func (v CniSpecValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"security_groups": basetypes.ListType{
+		"security_groups": basetypes.SetType{
 			ElemType: types.StringType,
 		},
 		"subnet": basetypes.StringType{},

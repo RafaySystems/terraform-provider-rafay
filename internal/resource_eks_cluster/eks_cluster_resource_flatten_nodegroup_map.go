@@ -37,6 +37,13 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 	}
 	if in.MaxPodsPerNode != 0 {
 		v.MaxPodsPerNode = types.Int64Value(int64(in.MaxPodsPerNode))
+	} else {
+		// hack: API can not differenciate nil and zero value of max pods per node. This is to avoid unnecessary diffs.
+		if !state.IsNull() && !state.MaxPodsPerNode.IsNull() {
+			v.MaxPodsPerNode = state.MaxPodsPerNode
+		} else {
+			v.MaxPodsPerNode = types.Int64Value(int64(in.MaxPodsPerNode))
+		}
 	}
 	if in.MaxSize != nil {
 		v.MaxSize = types.Int64Value(int64(*in.MaxSize))

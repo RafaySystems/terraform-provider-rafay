@@ -152,7 +152,7 @@
                                                         "blocks": [
                                                             {
                                                                 "name": "custom_cni_crd_spec",
-                                                                "list_nested": {
+                                                                "set_nested": {
                                                                     "nested_object": {
                                                                         "attributes": [
                                                                             {
@@ -166,7 +166,7 @@
                                                                         "blocks": [
                                                                             {
                                                                                 "name": "cni_spec",
-                                                                                "list_nested": {
+                                                                                "set_nested": {
                                                                                     "nested_object": {
                                                                                         "attributes": [
                                                                                             {
@@ -179,7 +179,7 @@
                                                                                             },
                                                                                             {
                                                                                                 "name": "security_groups2",
-                                                                                                "list": {
+                                                                                                "set": {
                                                                                                     "computed_optional_required": "optional",
                                                                                                     "description": "The security groups associated with secondary ENIs for AWS EC2 nodes.",
                                                                                                     "element_type": {
@@ -512,7 +512,10 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"    
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 0
+                                                        } 
                                                     }
                                                 },
                                                 
@@ -1429,7 +1432,10 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"    
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 0
+                                                        }    
                                                     }
                                                 },
                                                 
@@ -2329,7 +2335,10 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"    
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 0
+                                                        } 
                                                     }
                                                 },
                                                 
@@ -4959,7 +4968,10 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "optional"    
+                                                        "computed_optional_required": "computed_optional",
+                                                        "default": {
+                                                            "static": 0
+                                                        }   
                                                     }
                                                 },
                                                 {

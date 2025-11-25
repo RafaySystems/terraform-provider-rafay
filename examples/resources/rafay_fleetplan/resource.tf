@@ -135,7 +135,6 @@ resource "rafay_fleetplan" "fp_environments" {
       projects {
         name = "project1"
       }
-      target_batch_size = 2
     }
     operation_workflow {
       operations {
@@ -151,7 +150,7 @@ resource "rafay_fleetplan" "fp_environments" {
           type        = "templateVersionUpdate"
           description = "update template version"
           environment_template_version_update_config {
-            version = "v1.1"
+            version = "draft"
           }
         }
       }
@@ -176,39 +175,13 @@ resource "rafay_fleetplan" "fp_environments" {
         }
       }
     }
-    schedules {
-      type = "recurring"
+    schedule {
+      type = "one-time"
       cadence {
-        cron_expression = "50 16 * * *"
+        schedule_at = "2025-11-25T15:45:32Z"
         cron_timezone = "Asia/Kolkata"
       }
-      opt_out_options {
-        allow_opt_out {
-          value = true
-        }
-        max_allowed_duration = "20m"
-        max_allowed_times = 5
-      }
-      opt_out {
-        duration = "300s"
-      }
     }
-    # schedules {
-    #   type = "one-time"
-    #   cadence {
-    #     time_to_live = "5m"
-    #   }
-    #   opt_out_options {
-    #     allow_opt_out {
-    #       value = true
-    #     }
-    #     max_allowed_duration = "20m"
-    #     max_allowed_times = 5
-    #   }
-    #   opt_out {
-    #     duration = "300s"
-    #   }
-    # }
   }
 }
 
@@ -219,43 +192,3 @@ resource "rafay_fleetplan_trigger" "fp_trigger" {
   project = rafay_fleetplan.fp_environments.metadata[0].project
   trigger_value = ""
 }
-
-data "rafay_fleetplan" "environment_fleetplan" {
-  depends_on = [ rafay_fleetplan.fp_environments ]
-
-  metadata {
-    project = rafay_fleetplan.fp_environments.metadata[0].project
-    name = rafay_fleetplan.fp_environments.metadata[0].name
-  }
-}
-
-data "rafay_fleetplan_jobs" "fleetplan_jobs" {
-  depends_on = [ rafay_fleetplan.fp_environments ]
-  fleetplan_name = rafay_fleetplan.fp_environments.metadata[0].name
-  project = rafay_fleetplan.fp_environments.metadata[0].project
-}
-
-data "rafay_fleetplan_job" "job1" {
-  depends_on = [ rafay_fleetplan.fp_environments, data.rafay_fleetplan_jobs.fleetplan_jobs ]
-  fleetplan_name = rafay_fleetplan.fp_environments.metadata[0].name
-  project = rafay_fleetplan.fp_environments.metadata[0].project
-  name = "1"
-}
-
-output "environment_fleetplan_spec" {
-  value = data.rafay_fleetplan.environment_fleetplan.spec
-}
-
-output "environment_fleetplan_meta" {
-  value = data.rafay_fleetplan.environment_fleetplan.metadata
-}
-
-output "fleetplan_jobs" {
-  value = data.rafay_fleetplan_jobs.fleetplan_jobs.jobs
-}
-
-output "fleetplan_job_status" {
-  value = data.rafay_fleetplan_job.job1.status
-}
-
-

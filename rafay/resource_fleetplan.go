@@ -12,6 +12,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb/timestamppb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
@@ -187,7 +188,7 @@ func flattenFleetPlanSpec(spec *infrapb.FleetPlanSpec) []interface{} {
 	obj["agents"] = flattenFleetPlanAgents(spec.Agents)
 
 	if spec.Fleet.Kind == ResourceTypeEnvironments {
-		obj["schedules"] = flattenSchedule(spec.Schedule)
+		obj["schedule"] = flattenSchedule(spec.Schedule)
 	}
 
 	return []interface{}{obj}
@@ -200,7 +201,10 @@ func flattenScheduleCadence(cadence *infrapb.ScheduleOptions) []interface{} {
 	obj := make(map[string]interface{})
 	obj["cron_expression"] = cadence.CronExpression
 	obj["cron_timezone"] = cadence.CronTimezone
-	obj["time_to_live"] = cadence.TimeToLive
+	if cadence.ScheduleAt != nil {
+		t := cadence.ScheduleAt.AsTime()
+		obj["schedule_at"] = t.Format(time.RFC3339)
+	}
 	return []interface{}{obj}
 }
 
@@ -584,7 +588,7 @@ func expandFleetPlanSpec(p []interface{}) (*infrapb.FleetPlanSpec, error) {
 	}
 
 	if obj.Fleet.Kind == ResourceTypeEnvironments {
-		if v, ok := in["schedules"].([]interface{}); ok && len(v) > 0 {
+		if v, ok := in["schedule"].([]interface{}); ok && len(v) > 0 {
 			obj.Schedule = expandFleetPlanSchedules(v)
 		}
 	}
@@ -662,8 +666,11 @@ func expandScheduleCadence(p []interface{}) *infrapb.ScheduleOptions {
 	if val, ok := v["cron_timezone"]; ok {
 		obj.CronTimezone = val.(string)
 	}
-	if val, ok := v["time_to_live"]; ok {
-		obj.TimeToLive = val.(string)
+	if val, ok := v["schedule_at"]; ok {
+		t, err := time.Parse(time.RFC3339, val.(string))
+		if err == nil {
+			obj.ScheduleAt = timestamppb.New(t)
+		}
 	}
 	return obj
 }

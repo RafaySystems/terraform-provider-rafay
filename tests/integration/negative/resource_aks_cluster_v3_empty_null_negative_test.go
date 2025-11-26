@@ -14,14 +14,6 @@ var externalProvidersNegAKSV3 = map[string]resource.ExternalProvider{
 	"rafay": {Source: "RafaySystems/rafay"},
 }
 
-// ----------------------------------------------------------------------------
-// NOTE ON EXPECTATIONS
-// - Setting a required attribute to `null` -> Terraform Core errors with
-//   "Missing required argument. The argument \"<path>\" is required"
-// - Setting it to "" (empty string) counts as present, so the plan proceeds.
-//   For those, we assert PlanOnly + ExpectNonEmptyPlan.
-// ----------------------------------------------------------------------------
-
 // ---------- metadata.name ----------
 
 // Empty string is treated as "present", so plan is non-empty.

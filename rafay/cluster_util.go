@@ -174,7 +174,7 @@ func flattenSystemComponentsPlacement(in *SystemComponentsPlacement, p []interfa
 	}
 	log.Println("got to flatten system comp:", in)
 	log.Println("node_selectopr type: ", reflect.TypeOf(in.NodeSelector))
-	if len(in.NodeSelector) > 0 {
+	if in.NodeSelector != nil && len(in.NodeSelector) > 0 {
 		obj["node_selector"] = toMapInterface(in.NodeSelector)
 	}
 	if in.Tolerations != nil {

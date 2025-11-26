@@ -422,7 +422,7 @@ func flattenClusterBlueprintStatusList(in *ClusterBlueprintStatus, p []interface
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.Workloads) > 0 {
+	if in.Workloads != nil && len(in.Workloads) > 0 {
 		v, ok := obj["addon_status_list"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -462,7 +462,7 @@ func flattenAddonStatus(input []ClusterBlueprintWorkloads, p []interface{}) []in
 			obj["publish_time"] = in.PublishedAt
 		}
 
-		if len(in.Conditions) > 0 {
+		if in.Conditions != nil && len(in.Conditions) > 0 {
 			v, ok := obj["conditions"].([]interface{})
 			if !ok {
 				v = []interface{}{}
@@ -509,7 +509,7 @@ func flattenAddonStatusConditions(input []ClusterBlueprintWorkloadConditions, p 
 
 		obj["max_retrycount"] = in.MaxRetry
 
-		if len(in.Components) > 0 {
+		if in.Components != nil && len(in.Components) > 0 {
 			v, ok := obj["components"].([]interface{})
 			if !ok {
 				v = []interface{}{}
@@ -543,7 +543,7 @@ func flattenAddonStatusConditionComps(input []ClusterBlueprintWorkloadConditions
 			obj["reason"] = in.Reason
 		}
 
-		if len(in.Failures) > 0 {
+		if in.Failures != nil && len(in.Failures) > 0 {
 			v, ok := obj["failures"].([]interface{})
 			if !ok {
 				v = []interface{}{}

@@ -328,7 +328,7 @@ func flattenCustomRoleSpec(in *systempb.CustomRoleSpec, p []interface{}) ([]inte
 		obj["base_role"] = in.BaseRole
 	}
 
-	if len(in.ZtkaPolicyList) > 0 {
+	if in.ZtkaPolicyList != nil && len(in.ZtkaPolicyList) > 0 {
 		v, ok := obj["ztka_policy_list"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -336,7 +336,7 @@ func flattenCustomRoleSpec(in *systempb.CustomRoleSpec, p []interface{}) ([]inte
 		obj["ztka_policy_list"] = flattenPolicyList(in.ZtkaPolicyList, v)
 	}
 
-	if len(in.AbacPolicyList) > 0 {
+	if in.AbacPolicyList != nil && len(in.AbacPolicyList) > 0 {
 		v, ok := obj["abac_policy_list"].([]interface{})
 		if !ok {
 			v = []interface{}{}

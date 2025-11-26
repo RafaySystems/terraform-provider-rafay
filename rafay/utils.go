@@ -244,7 +244,7 @@ func toMapBoolInterface(in map[string]bool) map[string]interface{} {
 
 func expandMetaData(p []interface{}) *commonpb.Metadata {
 	obj := &commonpb.Metadata{}
-	if len(p) == 0 || p[0] == nil {
+	if p == nil || len(p) == 0 || p[0] == nil {
 		return obj
 	}
 
@@ -1274,7 +1274,7 @@ func ResetImpersonateUser() {
 }
 
 func ReadMetaName(p []interface{}) string {
-	if len(p) == 0 || p[0] == nil {
+	if p == nil || len(p) == 0 || p[0] == nil {
 		return ""
 	}
 
@@ -1298,7 +1298,7 @@ func GetMetaName(in *schema.ResourceData) string {
 }
 
 func ReadMeta(p []interface{}) *commonpb.Metadata {
-	if len(p) == 0 || p[0] == nil {
+	if p == nil || len(p) == 0 || p[0] == nil {
 		return nil
 	}
 

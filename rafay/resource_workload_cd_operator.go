@@ -864,7 +864,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 	//wait for all the go routines to finish
 	cwg.Wait()
 
-	if len(workloadCDConfig.Status) > 0 {
+	if workloadCDConfig.Status != nil && len(workloadCDConfig.Status) > 0 {
 		log.Println("workloadCDConfig.Status", workloadCDConfig.Status)
 		v, ok := d.Get("workload_status").([]interface{})
 		if !ok {
@@ -885,7 +885,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		}
 	}
 
-	if len(workloadCDConfig.Decommissions) > 0 {
+	if workloadCDConfig.Decommissions != nil && len(workloadCDConfig.Decommissions) > 0 {
 		log.Println("workloadCDConfig.Decommissions", workloadCDConfig.Decommissions)
 		v, ok := d.Get("workload_decommissions").([]interface{})
 		if !ok {
@@ -907,7 +907,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		}
 	}
 
-	if len(workloadCDConfig.Upserts) > 0 {
+	if workloadCDConfig.Upserts != nil && len(workloadCDConfig.Upserts) > 0 {
 		log.Println("workloadCDConfig.Upserts", workloadCDConfig.Upserts)
 		v, ok := d.Get("workload_upserts").([]interface{})
 		if !ok {

@@ -1468,7 +1468,7 @@ func flattenPipelineSpec(in *gitopspb.PipelineSpec, p []interface{}) ([]interfac
 	}
 
 	// Stages    []*StageSpec          `protobuf:"bytes,1,rep,name=stages,proto3" json:"stages,omitempty"`
-	if len(in.Stages) > 0 {
+	if in.Stages != nil && len(in.Stages) > 0 {
 		v, ok := obj["stages"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -1477,7 +1477,7 @@ func flattenPipelineSpec(in *gitopspb.PipelineSpec, p []interface{}) ([]interfac
 	}
 
 	// Variables []*VariableSpec       `protobuf:"bytes,2,rep,name=variables,proto3" json:"variables,omitempty"`
-	if len(in.Variables) > 0 {
+	if in.Variables != nil && len(in.Variables) > 0 {
 		v, ok := obj["variables"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -1485,7 +1485,7 @@ func flattenPipelineSpec(in *gitopspb.PipelineSpec, p []interface{}) ([]interfac
 		obj["variables"] = flattenVariableSpec(in.Variables, v)
 	}
 	// Triggers  []*TriggerSpec        `protobuf:"bytes,3,rep,name=triggers,proto3" json:"triggers,omitempty"`
-	if len(in.Triggers) > 0 {
+	if in.Triggers != nil && len(in.Triggers) > 0 {
 		v, ok := obj["triggers"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -1969,7 +1969,6 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 	if in == nil {
 		return nil
 	}
-
 	retNil := true
 	obj := make(map[string]interface{})
 

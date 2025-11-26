@@ -306,7 +306,7 @@ func flattenSecretGroupSpec(in *gitopspb.SecretGroupSpec, p []interface{}) ([]in
 		obj["secrets"] = flattenCommonpbFile(in.Secret)
 	}
 
-	if len(in.Secrets) > 0 {
+	if in.Secrets != nil && len(in.Secrets) > 0 {
 		v, ok := obj["secrets"].([]interface{})
 		if !ok {
 			v = []interface{}{}

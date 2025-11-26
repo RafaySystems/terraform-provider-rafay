@@ -4588,7 +4588,7 @@ func flattenEKSClusterMetadata(in *EKSClusterMetadata, p []interface{}) ([]inter
 		obj["project"] = in.Project
 	}
 	log.Println("md 2")
-	if len(in.Labels) > 0 {
+	if in.Labels != nil && len(in.Labels) > 0 {
 		obj["labels"] = toMapInterface(in.Labels)
 		log.Println("saving metadata labels: ", in.Labels)
 	}
@@ -4828,7 +4828,7 @@ func flattenEKSConfigMetadata(in *EKSClusterConfigMetadata, p []interface{}) ([]
 		obj["version"] = in.Version
 	}
 
-	if len(in.Tags) > 0 {
+	if in.Tags != nil && len(in.Tags) > 0 {
 		obj["tags"] = toMapInterface(in.Tags)
 	}
 
@@ -5014,7 +5014,7 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		obj["fargate_profiles"] = ret10
 	}
 	//setting up flatten Availability Zones
-	if len(in.AvailabilityZones) > 0 {
+	if in.AvailabilityZones != nil && len(in.AvailabilityZones) > 0 {
 		obj["availability_zones"] = toArrayInterfaceSorted(in.AvailabilityZones)
 	}
 	//setting up flatten Cloud Watch
@@ -5155,10 +5155,10 @@ func flattenEKSAccessEntry(inp []*EKSAccessEntry, p []interface{}) ([]interface{
 			obj["kubernetes_username"] = in.KubernetesUsername
 		}
 
-		if len(in.KubernetesGroups) > 0 {
+		if in.KubernetesGroups != nil && len(in.KubernetesGroups) > 0 {
 			obj["kubernetes_groups"] = toArrayInterfaceSorted(in.KubernetesGroups)
 		}
-		if len(in.Tags) > 0 {
+		if in.Tags != nil && len(in.Tags) > 0 {
 			obj["tags"] = toMapInterface(in.Tags)
 		}
 		if in.AccessPolicies != nil {
@@ -5224,7 +5224,7 @@ func flattenEKSAccessScope(in *EKSAccessScope, p []interface{}) ([]interface{}, 
 		obj["type"] = in.Type
 	}
 
-	if len(in.Namespaces) > 0 {
+	if in.Namespaces != nil && len(in.Namespaces) > 0 {
 		obj["namespaces"] = toArrayInterfaceSorted(in.Namespaces)
 	}
 
@@ -5275,7 +5275,7 @@ func flattenEKSClusterIAM(in *EKSClusterIAM, rawState cty.Value, p []interface{}
 
 	obj["with_oidc"] = in.WithOIDC
 
-	if len(in.ServiceAccounts) > 0 {
+	if in.ServiceAccounts != nil && len(in.ServiceAccounts) > 0 {
 		v, ok := obj["service_accounts"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -5318,10 +5318,10 @@ func flattenIAMServiceAccountMetadata(in *EKSClusterIAMMeta, p []interface{}) []
 		obj["namespace"] = in.Namespace
 	}
 
-	if len(in.Labels) > 0 {
+	if in.Labels != nil && len(in.Labels) > 0 {
 		obj["labels"] = toMapInterface(in.Labels)
 	}
-	if len(in.Annotations) > 0 {
+	if in.Annotations != nil && len(in.Annotations) > 0 {
 		obj["annotations"] = toMapInterface(in.Annotations)
 	}
 
@@ -5337,10 +5337,10 @@ func flattenSingleIAMServiceAccount(in *EKSClusterIAMServiceAccount) map[string]
 		"well_known_policies": flattenIAMWellKnownPolicies(in.WellKnownPolicies, []interface{}{}),
 		"role_only":           in.RoleOnly,
 	}
-	if len(in.AttachPolicyARNs) > 0 {
+	if in.AttachPolicyARNs != nil && len(in.AttachPolicyARNs) > 0 {
 		obj["attach_policy_arns"] = toArrayInterface(in.AttachPolicyARNs)
 	}
-	if len(in.AttachPolicy) > 0 {
+	if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
 		//log.Println("type:", reflect.TypeOf(in.AttachPolicy))
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.AttachPolicy)
@@ -5362,7 +5362,7 @@ func flattenSingleIAMServiceAccount(in *EKSClusterIAMServiceAccount) map[string]
 		obj["role_name"] = in.RoleName
 	}
 
-	if len(in.Tags) > 0 {
+	if in.Tags != nil && len(in.Tags) > 0 {
 		obj["tags"] = toMapInterface(in.Tags)
 	}
 	return obj
@@ -5677,7 +5677,7 @@ func flattenEKSClusterVPC(in *EKSClusterVPC, p []interface{}) ([]interface{}, er
 	if len(in.ExtraCIDRs) > 0 {
 		obj["extra_cidrs"] = toArrayInterface(in.ExtraCIDRs)
 	}
-	if len(in.ExtraIPv6CIDRs) > 0 {
+	if in.ExtraIPv6CIDRs != nil && len(in.ExtraIPv6CIDRs) > 0 {
 		obj["extra_ipv6_cidrs"] = toArrayInterface(in.ExtraIPv6CIDRs)
 	}
 	if len(in.SharedNodeSecurityGroup) > 0 {
@@ -6405,7 +6405,7 @@ func flattenNodeGroupBottlerocket(in *NodeGroupBottlerocket, p []interface{}) []
 	}
 	obj["enable_admin_container"] = in.EnableAdminContainer
 
-	if len(in.Settings) > 0 {
+	if in.Settings != nil && len(in.Settings) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.Settings)
 		if err != nil {
@@ -6877,7 +6877,7 @@ func flattenIdentityMappings(in *EKSClusterIdentityMappings, p []interface{}) ([
 		return []interface{}{obj}, nil
 	}
 
-	if len(in.Arns) > 0 {
+	if in.Arns != nil && len(in.Arns) > 0 {
 		v, ok := obj["arns"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -6885,7 +6885,7 @@ func flattenIdentityMappings(in *EKSClusterIdentityMappings, p []interface{}) ([
 		obj["arns"] = flattenArnFields(in.Arns, v)
 	}
 
-	if len(in.Accounts) > 0 {
+	if in.Accounts != nil && len(in.Accounts) > 0 {
 		obj["accounts"] = in.Accounts
 	}
 

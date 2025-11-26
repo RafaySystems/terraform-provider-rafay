@@ -2546,7 +2546,7 @@ func flattenAKSV3ClusterConfigSpec(in *infrapb.AksV3Spec, p []interface{}) []int
 	}
 
 	// @@@@@@@
-	if len(in.NodePools) > 0 {
+	if in.NodePools != nil && len(in.NodePools) > 0 {
 		v, ok := obj["node_pools"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -2554,7 +2554,7 @@ func flattenAKSV3ClusterConfigSpec(in *infrapb.AksV3Spec, p []interface{}) []int
 		obj["node_pools"] = flattenAKSV3NodePool(in.NodePools, v)
 	}
 
-	if len(in.MaintenanceConfigurations) > 0 {
+	if in.MaintenanceConfigurations != nil && len(in.MaintenanceConfigurations) > 0 {
 		v, ok := obj["maintenance_configurations"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -2617,14 +2617,14 @@ func flattenAKSV3MaintenanceConfigProperties(in *infrapb.AKSMaintenanceConfigPro
 		}
 		obj["maintenance_window"] = flattenAKSV3MaintenanceWindow(in.MaintenanceWindow, v)
 	}
-	if len(in.NotAllowedTime) > 0 {
+	if in.NotAllowedTime != nil && len(in.NotAllowedTime) > 0 {
 		v, ok := obj["not_allowed_time"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
 		obj["not_allowed_time"] = flattenAKSV3MCTimeSpan(in.NotAllowedTime, v)
 	}
-	if len(in.TimeInWeek) > 0 {
+	if in.TimeInWeek != nil && len(in.TimeInWeek) > 0 {
 		v, ok := obj["time_in_week"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -2648,7 +2648,7 @@ func flattenAKSV3MCTimeInWeek(in []*infrapb.AKSMaintenanceTimeInWeek, p []interf
 			obj["day"] = elem.Day
 		}
 
-		if len(elem.HourSlots) > 0 {
+		if elem.HourSlots != nil && len(elem.HourSlots) > 0 {
 			arr := make([]int, len(elem.HourSlots))
 			for i, v := range elem.HourSlots {
 				arr[i] = int(v)
@@ -2696,7 +2696,7 @@ func flattenAKSV3MaintenanceWindow(in *infrapb.AKSMaintenanceWindow, p []interfa
 		obj["duration_hours"] = in.DurationHours
 	}
 
-	if len(in.NotAllowedDates) > 0 {
+	if in.NotAllowedDates != nil && len(in.NotAllowedDates) > 0 {
 		v, ok := obj["not_allowed_dates"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -2896,7 +2896,7 @@ func flattenAKSV3ManagedCluster(in *infrapb.Managedcluster, p []interface{}) []i
 		obj["sku"] = flattenAKSV3ManagedClusterSKU(in.Sku, v)
 	}
 
-	if len(in.Tags) > 0 {
+	if in.Tags != nil && len(in.Tags) > 0 {
 		obj["tags"] = toMapInterface(in.Tags)
 	}
 
@@ -3367,7 +3367,7 @@ func flattenAKSV3ManagedClusterAzureADProfile(in *infrapb.Aadprofile, p []interf
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.AdminGroupObjectIds) > 0 {
+	if in.AdminGroupObjectIds != nil && len(in.AdminGroupObjectIds) > 0 {
 		obj["admin_group_object_ids"] = toArrayInterface(in.AdminGroupObjectIds)
 	}
 
@@ -3404,7 +3404,7 @@ func flattenAKSV3ManagedClusterAPIServerAccessProfile(in *infrapb.Apiserveracces
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.AuthorizedIPRanges) > 0 {
+	if in.AuthorizedIPRanges != nil && len(in.AuthorizedIPRanges) > 0 {
 		obj["authorized_ipr_ranges"] = toArrayInterface(in.AuthorizedIPRanges)
 	}
 
@@ -3542,7 +3542,7 @@ func flattenAKSV3ManagedClusterHTTPProxyConfig(in *infrapb.Httpproxyconfig, p []
 		obj["https_proxy"] = in.HttpProxy
 	}
 
-	if len(in.NoProxy) > 0 {
+	if in.NoProxy != nil && len(in.NoProxy) > 0 {
 		obj["no_proxy"] = toArrayInterface(in.NoProxy)
 	}
 
@@ -3588,7 +3588,7 @@ func flattenAKSV3ManagedClusterSSHConfig(in *infrapb.Ssh, p []interface{}) []int
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.PublicKeys) > 0 {
+	if in.PublicKeys != nil && len(in.PublicKeys) > 0 {
 		v, ok := obj["ssh"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -3702,7 +3702,7 @@ func flattenAKSV3ManagedClusterNPLoadBalancerProfile(in *infrapb.Loadbalancerpro
 		obj["allocated_outbound_ports"] = in.AllocatedOutboundPorts
 	}
 
-	if len(in.EffectiveOutboundIPs) > 0 {
+	if in.EffectiveOutboundIPs != nil && len(in.EffectiveOutboundIPs) > 0 {
 		v, ok := obj["effective_outbound_ips"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -3792,7 +3792,7 @@ func flattenAKSV3ManagedClusterNPOutboundIPPrefixes(in *infrapb.Outboundipprefix
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.PublicIPPrefixes) > 0 {
+	if in.PublicIPPrefixes != nil && len(in.PublicIPPrefixes) > 0 {
 		v, ok := obj["public_ip_prefixes"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -3835,7 +3835,7 @@ func flattenAKSV3ManagedClusterNPOutboundIPs(in *infrapb.Outboundips, p []interf
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.PublicIPs) > 0 {
+	if in.PublicIPs != nil && len(in.PublicIPs) > 0 {
 		v, ok := obj["public_ips"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -4010,7 +4010,7 @@ func flattenAKSV3ManagedClusterPIPUserAssignedIdentityExceptions(inp []*infrapb.
 			obj["namespace"] = in.Namespace
 		}
 
-		if len(in.PodLabels) > 0 {
+		if in.PodLabels != nil && len(in.PodLabels) > 0 {
 			obj["pod_labels"] = toMapInterface(in.PodLabels)
 		}
 		out[i] = &obj
@@ -4039,7 +4039,7 @@ func flattenAKSV3ManagedClusterPrivateLinkResources(in []*infrapb.Privatelinkres
 			obj["name"] = in.Name
 		}
 
-		if len(in.RequiredMembers) > 0 {
+		if in.RequiredMembers != nil && len(in.RequiredMembers) > 0 {
 			obj["required_members"] = toArrayInterface(in.RequiredMembers)
 		}
 
@@ -4250,7 +4250,7 @@ func flattenAKSV3NodePoolProperties(in *infrapb.NodePoolProperties, p []interfac
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.AvailabilityZones) > 0 {
+	if in.AvailabilityZones != nil && len(in.AvailabilityZones) > 0 {
 		obj["availability_zones"] = toArrayInterface(in.AvailabilityZones)
 	}
 
@@ -4310,7 +4310,7 @@ func flattenAKSV3NodePoolProperties(in *infrapb.NodePoolProperties, p []interfac
 		obj["mode"] = in.Mode
 	}
 
-	if len(in.NodeLabels) > 0 {
+	if in.NodeLabels != nil && len(in.NodeLabels) > 0 {
 		obj["node_labels"] = toMapInterface(in.NodeLabels)
 	}
 
@@ -4318,7 +4318,7 @@ func flattenAKSV3NodePoolProperties(in *infrapb.NodePoolProperties, p []interfac
 		obj["node_public_ip_prefix_id"] = in.NodePublicIPPrefixID
 	}
 
-	if len(in.NodeTaints) > 0 {
+	if in.NodeTaints != nil && len(in.NodeTaints) > 0 {
 		obj["node_taints"] = toArrayInterface(in.NodeTaints)
 	}
 
@@ -4358,7 +4358,7 @@ func flattenAKSV3NodePoolProperties(in *infrapb.NodePoolProperties, p []interfac
 
 	obj["spot_max_price"] = in.SpotMaxPrice
 
-	if len(in.Tags) > 0 {
+	if in.Tags != nil && len(in.Tags) > 0 {
 		obj["tags"] = toMapInterface(in.Tags)
 	}
 
@@ -4395,7 +4395,7 @@ func flattenAKSV3NodePoolKubeletConfig(in *infrapb.Kubeletconfig, p []interface{
 		obj = p[0].(map[string]interface{})
 	}
 
-	if len(in.AllowedUnsafeSysctls) > 0 {
+	if in.AllowedUnsafeSysctls != nil && len(in.AllowedUnsafeSysctls) > 0 {
 		obj["allowed_unsafe_sysctls"] = toArrayInterface(in.AllowedUnsafeSysctls)
 	}
 

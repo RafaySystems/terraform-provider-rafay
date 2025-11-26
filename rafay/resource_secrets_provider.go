@@ -312,7 +312,7 @@ func flattenSecretProviderSpec(in *integrationspb.SecretProviderClassSpec, p []i
 		obj["artifact"] = ret
 	}
 
-	if len(in.Parameters) > 0 {
+	if in.Parameters != nil && len(in.Parameters) > 0 {
 		obj["parameters"] = toMapInterface(in.Parameters)
 	}
 

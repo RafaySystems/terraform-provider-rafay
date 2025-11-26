@@ -429,7 +429,7 @@ func flattenOPAInstallationProfileSpec(in *opapb.OPAProfileSpec, p []interface{}
 		obj["installation_params"] = flattenOpaProfileInstallationParams(in.InstallationParams, v)
 	}
 
-	if len(in.SyncObjects) > 0 {
+	if in.SyncObjects != nil && len(in.SyncObjects) > 0 {
 		v, ok := obj["sync_objects"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -437,7 +437,7 @@ func flattenOPAInstallationProfileSpec(in *opapb.OPAProfileSpec, p []interface{}
 		obj["sync_objects"] = flattenOpaProfileSyncObjects(in.SyncObjects, v)
 	}
 
-	if len(in.ExcludedNamespaces) > 0 {
+	if in.ExcludedNamespaces != nil && len(in.ExcludedNamespaces) > 0 {
 		v, ok := obj["excluded_namespaces"].([]interface{})
 		if !ok {
 			v = []interface{}{}
@@ -539,7 +539,7 @@ func flattenOpaProfileExcludedNamespaces(input []*opapb.ExcludedNamespaces, p []
 			obj = p[i].(map[string]interface{})
 		}
 
-		if len(in.Namespaces) > 0 {
+		if in.Namespaces != nil && len(in.Namespaces) > 0 {
 			v, ok := obj["namespaces"].([]interface{})
 			if !ok {
 				v = []interface{}{}

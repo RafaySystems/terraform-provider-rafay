@@ -66,24 +66,8 @@ func TestExpandScheduleCadence(p []interface{}) *infrapb.ScheduleOptions {
 	return expandScheduleCadence(p)
 }
 
-func TestExpandScheduleOptOut(p []interface{}) *infrapb.ScheduleOptOut {
-	return expandScheduleOptOut(p)
-}
-
-func TestExpandScheduleOptOutOptions(p []interface{}) *infrapb.ScheduleOptOutOptions {
-	return expandScheduleOptOutOptions(p)
-}
-
 func TestFlattenScheduleCadence(cadence *infrapb.ScheduleOptions) []interface{} {
 	return flattenScheduleCadence(cadence)
-}
-
-func TestFlattenScheduleOptOut(optOut *infrapb.ScheduleOptOut) []interface{} {
-	return flattenScheduleOptOut(optOut)
-}
-
-func TestFlattenScheduleOptOutOptions(optOutOptions *infrapb.ScheduleOptOutOptions) []interface{} {
-	return flattenScheduleOptOutOptions(optOutOptions)
 }
 
 func TestFlattenSchedule(schedule *infrapb.FleetSchedule) []interface{} {

@@ -350,7 +350,6 @@ func TestExpandFleetPlan(t *testing.T) {
 										"version": "v1.0.0",
 									},
 								},
-								"target_batch_size": 5,
 							},
 						},
 						"schedules": []interface{}{
@@ -362,7 +361,7 @@ func TestExpandFleetPlan(t *testing.T) {
 									map[string]interface{}{
 										"cron_expression": "0 2 * * *",
 										"cron_timezone":   "UTC",
-										"time_to_live":    "1h",
+										"schedule_at":     "2024-01-15T02:00:00Z",
 									},
 								},
 							},
@@ -456,7 +455,6 @@ func TestExpandFleetPlanSpec(t *testing.T) {
 									"version": "v1.0.0",
 								},
 							},
-							"target_batch_size": 5,
 						},
 					},
 					"schedules": []interface{}{
@@ -468,7 +466,7 @@ func TestExpandFleetPlanSpec(t *testing.T) {
 								map[string]interface{}{
 									"cron_expression": "0 2 * * *",
 									"cron_timezone":   "UTC",
-									"time_to_live":    "1h",
+									"schedule_at":     "2024-01-15T02:00:00Z",
 								},
 							},
 						},
@@ -556,11 +554,10 @@ func TestFlattenFleetPlanSpec(t *testing.T) {
 				map[string]interface{}{
 					"fleet": []interface{}{
 						map[string]interface{}{
-							"kind":              "environments",
-							"labels":            map[string]string{"env": "test"},
-							"projects":          []interface{}{},
-							"templates":         []interface{}{},
-							"target_batch_size": int32(0),
+							"kind":      "environments",
+							"labels":    map[string]string{"env": "test"},
+							"projects":  []interface{}{},
+							"templates": []interface{}{},
 						},
 					},
 					"operation_workflow": []interface{}{},
@@ -626,7 +623,6 @@ func TestExpandFleetSpec(t *testing.T) {
 							"version": "v1.0.0",
 						},
 					},
-					"target_batch_size": 5,
 				},
 			},
 			expected: &infrapb.FleetSpec{
@@ -815,13 +811,12 @@ func TestExpandScheduleCadence(t *testing.T) {
 				map[string]interface{}{
 					"cron_expression": "0 2 * * *",
 					"cron_timezone":   "UTC",
-					"time_to_live":    "1h",
+					"schedule_at":     "2024-01-15T02:00:00Z",
 				},
 			},
 			expected: &infrapb.ScheduleOptions{
 				CronExpression: "0 2 * * *",
 				CronTimezone:   "UTC",
-				TimeToLive:     "1h",
 			},
 		},
 		{
@@ -844,101 +839,14 @@ func TestExpandScheduleCadence(t *testing.T) {
 			} else {
 				assert.Equal(t, tt.expected.CronExpression, result.CronExpression)
 				assert.Equal(t, tt.expected.CronTimezone, result.CronTimezone)
-				assert.Equal(t, tt.expected.TimeToLive, result.TimeToLive)
+				if tt.expected.ScheduleAt != nil {
+					assert.NotNil(t, result.ScheduleAt)
+				}
 			}
 		})
 	}
 }
 
-func TestExpandScheduleOptOut(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    []interface{}
-		expected *infrapb.ScheduleOptOut
-	}{
-		{
-			name: "Valid opt out",
-			input: []interface{}{
-				map[string]interface{}{
-					"duration": "2h",
-				},
-			},
-			expected: &infrapb.ScheduleOptOut{
-				Duration: "2h",
-			},
-		},
-		{
-			name:     "Empty input",
-			input:    []interface{}{},
-			expected: nil,
-		},
-		{
-			name:     "Nil input",
-			input:    nil,
-			expected: nil,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := rafay.TestExpandScheduleOptOut(tt.input)
-			if tt.expected == nil {
-				assert.Nil(t, result)
-			} else {
-				assert.Equal(t, tt.expected.Duration, result.Duration)
-			}
-		})
-	}
-}
-
-func TestExpandScheduleOptOutOptions(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    []interface{}
-		expected *infrapb.ScheduleOptOutOptions
-	}{
-		{
-			name: "Valid opt out options",
-			input: []interface{}{
-				map[string]interface{}{
-					"allow_opt_out": []interface{}{
-						map[string]interface{}{
-							"value": true,
-						},
-					},
-					"max_allowed_duration": "4h",
-					"max_allowed_times":    3,
-				},
-			},
-			expected: &infrapb.ScheduleOptOutOptions{
-				MaxAllowedDuration: "4h",
-				MaxAllowedTimes:    3,
-			},
-		},
-		{
-			name:     "Empty input",
-			input:    []interface{}{},
-			expected: nil,
-		},
-		{
-			name:     "Nil input",
-			input:    nil,
-			expected: nil,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := rafay.TestExpandScheduleOptOutOptions(tt.input)
-			if tt.expected == nil {
-				assert.Nil(t, result)
-			} else {
-				assert.Equal(t, tt.expected.MaxAllowedDuration, result.MaxAllowedDuration)
-				assert.Equal(t, tt.expected.MaxAllowedTimes, result.MaxAllowedTimes)
-			}
-		})
-	}
-}
 
 func TestFlattenScheduleCadence(t *testing.T) {
 	tests := []struct {
@@ -951,13 +859,11 @@ func TestFlattenScheduleCadence(t *testing.T) {
 			input: &infrapb.ScheduleOptions{
 				CronExpression: "0 2 * * *",
 				CronTimezone:   "UTC",
-				TimeToLive:     "1h",
 			},
 			expected: []interface{}{
 				map[string]interface{}{
 					"cron_expression": "0 2 * * *",
 					"cron_timezone":   "UTC",
-					"time_to_live":    "1h",
 				},
 			},
 		},
@@ -976,73 +882,6 @@ func TestFlattenScheduleCadence(t *testing.T) {
 	}
 }
 
-func TestFlattenScheduleOptOut(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    *infrapb.ScheduleOptOut
-		expected []interface{}
-	}{
-		{
-			name: "Valid opt out",
-			input: &infrapb.ScheduleOptOut{
-				Duration: "2h",
-			},
-			expected: []interface{}{
-				map[string]interface{}{
-					"duration": "2h",
-				},
-			},
-		},
-		{
-			name:     "Nil input",
-			input:    nil,
-			expected: []interface{}{},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := rafay.TestFlattenScheduleOptOut(tt.input)
-			assert.Equal(t, tt.expected, result)
-		})
-	}
-}
-
-func TestFlattenScheduleOptOutOptions(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    *infrapb.ScheduleOptOutOptions
-		expected []interface{}
-	}{
-		{
-			name: "Valid opt out options",
-			input: &infrapb.ScheduleOptOutOptions{
-				MaxAllowedDuration: "4h",
-				MaxAllowedTimes:    3,
-			},
-			expected: []interface{}{
-				map[string]interface{}{
-					"allow_opt_out":        []interface{}(nil),
-					"max_allowed_duration": "4h",
-					"max_allowed_times":    int32(3),
-				},
-			},
-		},
-		{
-			name:     "Nil input",
-			input:    nil,
-			expected: []interface{}{},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := rafay.TestFlattenScheduleOptOutOptions(tt.input)
-			assert.Equal(t, tt.expected, result)
-		})
-	}
-}
-
 func TestFlattenSchedule(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -1056,10 +895,8 @@ func TestFlattenSchedule(t *testing.T) {
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					"type":            "maintenance",
-					"cadence":         []interface{}{},
-					"opt_out":         []interface{}{},
-					"opt_out_options": []interface{}{},
+					"type":    "maintenance",
+					"cadence": []interface{}{},
 				},
 			},
 		},
@@ -1107,15 +944,13 @@ func TestFlattenFleet(t *testing.T) {
 				Labels: map[string]string{
 					"env": "test",
 				},
-				TargetBatchSize: 5,
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					"kind":              "environments",
-					"labels":            map[string]string{"env": "test"},
-					"projects":          []interface{}{},
-					"templates":         []interface{}{},
-					"target_batch_size": int32(5),
+					"kind":      "environments",
+					"labels":    map[string]string{"env": "test"},
+					"projects":  []interface{}{},
+					"templates": []interface{}{},
 				},
 			},
 		},

@@ -23,7 +23,6 @@ The `rafay_fleetplan` resource supports two types of fleet operations:
 - Support environment template updates and blueprint modifications
 - Use labels to select target environments
 - Support scheduling for automated operations
-- Include batch processing with `target_batch_size`
 - Ideal for application deployment and environment management
 
 ## Scheduling (Environment Fleet Plans Only)
@@ -31,9 +30,7 @@ The `rafay_fleetplan` resource supports two types of fleet operations:
 When using `kind = "environments"`, you can define schedules to automate fleet plan execution:
 
 - **Cron-based scheduling**: Use standard cron expressions with timezone support
-- **Opt-out capabilities**: Allow environments to opt out of scheduled operations
-- **Batch processing**: Control how many environments are processed simultaneously
-- **Time-to-live**: Set maximum duration for scheduled operations
+- **One-time scheduling**: Set a specific time for scheduled operations
 
 
 
@@ -207,8 +204,6 @@ resource "rafay_fleetplan" "environment-fleetplan" {
                 name    = "monitoring-template"
                 version = "latest"
             }
-
-            target_batch_size = 3
         }
 
         operation_workflow {
@@ -232,26 +227,6 @@ resource "rafay_fleetplan" "environment-fleetplan" {
             cadence {
                 cron_expression = "0 2 * * 0"  # Every Sunday at 2 AM
                 cron_timezone   = "UTC"
-                time_to_live    = "2h"
-            }
-            opt_out {
-                duration = "24h"
-            }
-            opt_out_options {
-                allow_opt_out         = true
-                max_allowed_duration  = "48h"
-                max_allowed_times     = 2
-            }
-        }
-
-        schedules {
-            name        = "security-updates"
-            description = "Monthly security updates"
-            type        = "security"
-            cadence {
-                cron_expression = "0 1 1 * *"  # First day of every month at 1 AM
-                cron_timezone   = "UTC"
-                time_to_live    = "4h"
             }
         }
     }
@@ -327,7 +302,6 @@ resource "rafay_fleetplan" "environment-fleetplan" {
                 name    = "production-template"
                 version = "v1.2.0"
             }
-            target_batch_size = 3
         }
         operation_workflow {
             operations {
@@ -349,7 +323,6 @@ resource "rafay_fleetplan" "environment-fleetplan" {
             cadence {
                 cron_expression = "0 2 * * 0"  # Every Sunday at 2 AM
                 cron_timezone   = "UTC"
-                time_to_live    = "2h"
             }
         }
     }
@@ -999,7 +972,6 @@ If the runner type in the hooks configuration is set to agent, then this field i
 ***Optional (only available when kind is "environments")***
 
 - `templates` (Block List) **Only available when fleet kind is "environments"** - Specifies environment templates to be used (see [below for nested schema](#nestedblock--spec--fleet--templates))
-- `target_batch_size` (Number) **Only available when fleet kind is "environments"** - Specifies the number of environments to process in each batch during operations
 
 <a id="nestedblock--spec--fleet--projects"></a>
 ### Nested Schema for `spec.fleet.projects`
@@ -1028,8 +1000,6 @@ If the runner type in the hooks configuration is set to agent, then this field i
 ***Optional***
 
 - `description` (String) Description of the schedule.
-- `opt_out` (Block List, Max: 1) Defines opt-out configuration (see [below for nested schema](#nestedblock--spec--schedules--opt_out))
-- `opt_out_options` (Block List, Max: 1) Defines opt-out options (see [below for nested schema](#nestedblock--spec--schedules--opt_out_options))
 
 <a id="nestedblock--spec--schedules--cadence"></a>
 ### Nested Schema for `spec.schedules.cadence`
@@ -1041,37 +1011,19 @@ If the runner type in the hooks configuration is set to agent, then this field i
 
 ***Optional***
 
-- `time_to_live` (String) Maximum duration for the scheduled operation.
-
-<a id="nestedblock--spec--schedules--opt_out"></a>
-### Nested Schema for `spec.schedules.opt_out`
-
-***Required***
-
-- `duration` (String) Duration for which the schedule can be opted out.
-
-<a id="nestedblock--spec--schedules--opt_out_options"></a>
-### Nested Schema for `spec.schedules.opt_out_options`
-
-***Optional***
-
-- `allow_opt_out` (Boolean) Whether opt-out is allowed for this schedule.
-- `max_allowed_duration` (String) Maximum duration allowed for opt-out.
-- `max_allowed_times` (Number) Maximum number of times opt-out is allowed.
+- `schedule_at` (String) Specific timestamp for the scheduled operation in RFC3339 format (e.g., "2024-01-15T02:00:00Z").
 
 ## Important Notes
 
 ### Fleet Plan Limitations
 - **Name changes**: Changing the `metadata.name` after creation is not supported and will cause the resource to be recreated
-- **Environment-only features**: `schedules`, `templates`, and `target_batch_size` are only available when `fleet.kind = "environments"`
+- **Environment-only features**: `schedules` and `templates` are only available when `fleet.kind = "environments"`
 - **Agent requirements**: When using `runner.type = "agent"` in hooks, you must specify the `agents` block with the agent name
 
 ### Best Practices
 - Use descriptive names for fleet plans to identify their purpose
 - Test fleet plans on a small subset of targets before applying to production
 - Use appropriate labels to ensure fleet plans target the correct clusters or environments
-- Set reasonable `target_batch_size` values to avoid overwhelming your infrastructure
-- Use opt-out mechanisms for critical environments that may need to skip scheduled operations
 
 ### Error Handling
 - Fleet plan operations may show warnings if jobs cannot be executed immediately

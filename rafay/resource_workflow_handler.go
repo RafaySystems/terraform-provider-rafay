@@ -12,7 +12,6 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
-	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb/datatypes"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -793,8 +792,8 @@ func expandWorkflowHandlerFunctionConfig(p []any) *eaaspb.FunctionDriverConfig {
 		fdc.MemoryLimitMb = memoryLimitMb
 	}
 
-	if skipBuild, ok := in["skip_build"].(bool); ok {
-		fdc.SkipBuild = datatypes.NewBool(skipBuild)
+	if skipBuild, ok := in["skip_build"].([]any); ok {
+		fdc.SkipBuild = expandBoolValue(skipBuild)
 	}
 
 	if image, ok := in["image"].(string); ok && len(image) > 0 {

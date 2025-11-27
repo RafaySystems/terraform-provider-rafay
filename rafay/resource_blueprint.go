@@ -495,6 +495,10 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 		obj.EnableCsiSecretStore = v
 	}
 
+	if v, ok := in["disable_aws_node_termination_handler"].(bool); ok {
+		obj.DisableAwsNodeTerminationHandler = v
+	}
+
 	if v, ok := in["csi_secret_store_config"].([]interface{}); ok && len(v) > 0 {
 		obj.CsiSecretStoreConfig = expandCsiSecretStoreConfig(v)
 	}
@@ -1494,6 +1498,11 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 
 	if in.EnableLogging {
 		obj["enable_logging"] = in.EnableLogging
+		retNil = false
+	}
+
+	if in.DisableAwsNodeTerminationHandler {
+		obj["disable_aws_node_termination_handler"] = in.DisableAwsNodeTerminationHandler
 		retNil = false
 	}
 

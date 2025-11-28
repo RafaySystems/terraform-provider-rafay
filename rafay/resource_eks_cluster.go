@@ -2230,7 +2230,27 @@ func managedNodeGroupsConfigFields() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Kuberenetes version for the nodegroup",
 		},
+		"node_repair_config": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Node repair config of the node group",
+			Elem: &schema.Resource{
+				Schema: nodeRepairConfig(),
+			},
+		},
 	}
+	return s
+}
+
+func nodeRepairConfig() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Enable node repair for nodegroup",
+		},
+	}
+
 	return s
 }
 
@@ -3174,6 +3194,9 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		if v, ok := in["version"].(string); ok && len(v) > 0 {
 			obj.Version = v
 		}
+		if v, ok := in["node_repair_config"].([]interface{}); ok && len(v) > 0 {
+			obj.NodeRepairConfig = expandNodeGroupNodeRepairConfig(v)
+		}
 		//@@@TODO:
 		//struct has field ReleaseVersion
 		//also has internal field unowned -> will leave blank for now
@@ -3185,6 +3208,19 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 	}
 
 	return out
+}
+
+func expandNodeGroupNodeRepairConfig(p []interface{}) *NodeRepairConfig {
+	obj := &NodeRepairConfig{}
+
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = &v
+	}
+	return obj
 }
 
 // expand managed node group taints function (completed) (can i use this to expand taints in node group?)
@@ -6655,10 +6691,32 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 		if len(in.Version) > 0 {
 			obj["version"] = in.Version
 		}
+
+		if in.NodeRepairConfig != nil {
+			v, ok := obj["node_repair_config"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["node_repair_config"] = flattenNodeGroupNodeRepairConfig(in.NodeRepairConfig, v)
+		}
+
 		out[i] = &obj
 	}
 	return out, nil
 }
+
+func flattenNodeGroupNodeRepairConfig(in *NodeRepairConfig, p []interface{}) []interface{} {
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if in == nil {
+		return []interface{}{obj}
+	}
+	obj["enabled"] = in.Enabled
+	return []interface{}{obj}
+}
+
 func flattenNodeGroupTaint(inp []NodeGroupTaint, p []interface{}) []interface{} {
 	if inp == nil {
 		return nil

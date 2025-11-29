@@ -166,18 +166,26 @@ func resourceUserUpsert(ctx context.Context, d *schema.ResourceData, create bool
 	if create {
 		account, api, secret, err = commands.CreateUserTF(userName, groups, consoleAccessInputs, isGroup, isAPi, isConsole)
 		if len(api) > 0 {
-			d.Set("apikey", api)
+			if err := d.Set("apikey", api); err != nil {
+				log.Println("failed to set apikey error", err)
+			}
 		}
 		if len(secret) > 0 {
-			d.Set("api_secret", secret)
+			if err := d.Set("api_secret", secret); err != nil {
+				log.Println("failed to set api_secret error", err)
+			}
 		}
 	} else {
 		account, api, secret, err = commands.UpdateUserTF(userName, groups, consoleAccessInputs, isGroup, isAPi, isConsole)
 		if len(api) > 0 {
-			d.Set("apikey", api)
+			if err := d.Set("apikey", api); err != nil {
+				log.Println("failed to set apikey error", err)
+			}
 		}
 		if len(secret) > 0 {
-			d.Set("api_secret", secret)
+			if err := d.Set("api_secret", secret); err != nil {
+				log.Println("failed to set api_secret error", err)
+			}
 		}
 	}
 
@@ -362,7 +370,9 @@ func resourceUserDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 func resourceUserImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	d.SetId(d.Id())
-	d.Set("user_name", d.Id())
+	if err := d.Set("user_name", d.Id()); err != nil {
+		log.Println("failed to set user_name error", err)
+	}
 	log.Println("user_name", d.Id())
 	return []*schema.ResourceData{d}, nil
 }

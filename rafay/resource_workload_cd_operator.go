@@ -81,7 +81,7 @@ type Workload struct {
 	ChartGitRepoName   string            `json:"chartGitRepoName,omitempty"`   // the name of the git repo
 	ChartGitRepoBranch string            `json:"chartGitRepoBranch,omitempty"` // the branch of the git repo
 	ChartGitRepoPath   string            `json:"chartGitRepoPath,omitempty"`   // the path of the git repo
-	ChartCatalogName   string            `json:"chartGitRepoPath,omitempty"`   // the name of the catalog to source the chart
+	ChartCatalogName   string            `json:"chartCatalogName,omitempty"`   // the name of the catalog to source the chart
 }
 
 // The config spec for the WorkloadCD resource
@@ -781,7 +781,11 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 	if workloadCDConfig.Spec.Credentials != nil && workloadCDConfig.Spec.Credentials.PrivateKey != "" {
 		output, ssh_key_path, err = cloneRepoSSH(workloadCDConfig)
 		if ssh_key_path != "" {
-			defer os.Remove(ssh_key_path)
+			defer func() {
+				if err := os.Remove(ssh_key_path); err != nil {
+					log.Printf("warning: failed to remove SSH key file: %v", err)
+				}
+			}()
 		}
 	} else {
 		output, err = cloneRepo(workloadCDConfig)
@@ -876,7 +880,9 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		}
 	} else {
 		log.Println("Set workload_status nil")
-		d.Set("workload_status", nil)
+		if err := d.Set("workload_status", nil); err != nil {
+			log.Println("failed to set status to nil error ", err)
+		}
 	}
 
 	if workloadCDConfig.Decommissions != nil && len(workloadCDConfig.Decommissions) > 0 {
@@ -896,7 +902,9 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		log.Println("flattenWorkloadDecommisions returned ret", ret)
 	} else {
 		log.Println("Set workload_decommissions nil")
-		d.Set("workload_decommissions", nil)
+		if err := d.Set("workload_decommissions", nil); err != nil {
+			log.Println("failed to set decommissions to nil error ", err)
+		}
 	}
 
 	if workloadCDConfig.Upserts != nil && len(workloadCDConfig.Upserts) > 0 {
@@ -915,7 +923,9 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		}
 	} else {
 		log.Println("Set workload_upserts nil")
-		d.Set("workload_upserts", nil)
+		if err := d.Set("workload_upserts", nil); err != nil {
+			log.Println("failed to set upserts to nil error ", err)
+		}
 	}
 
 	d.SetId(workloadCDConfig.Metadata.Name)
@@ -946,7 +956,7 @@ func getProjectWorkloadList(ctx context.Context, pr *systempb.Project, gWorkload
 		return err
 	}
 	for _, w := range wList.Items {
-		for k, _ := range w.Metadata.Labels {
+		for k := range w.Metadata.Labels {
 			if k == "k8smgmt.io/helm-deployer-tfcd" {
 				log.Println("found operator deployed workload", w.Metadata.Name, "project", w.Metadata.Project, "namespace", w.Spec.Namespace)
 				tmpList.Items = append(tmpList.Items, w)
@@ -1405,14 +1415,21 @@ func cloneRepoSSH(workloadCdCfg *WorkloadCDConfig) ([]string, string, error) {
 
 	path := workloadCdCfg.Spec.RepositoryLocalPath
 	// remove the local repo if it exists
-	runCmd(workloadCdCfg, "rm", ".", false, "-rf", path)
+	_, _ = runCmd(workloadCdCfg, "rm", ".", false, "-rf", path)
 	f, err := os.CreateTemp("", "tfcd_ssh_key")
 	if err != nil {
 		log.Println("failed to create file", err)
 		return nil, "", err
 	}
-	f.Write([]byte(sshKey))
-	f.Close()
+	if _, err := f.Write([]byte(sshKey)); err != nil {
+		_ = f.Close()
+		log.Printf("warning: failed to write SSH key: %v", err)
+		// Continue anyway - git clone will fail with a clearer error
+	}
+	if err := f.Close(); err != nil {
+		log.Printf("warning: failed to close SSH key file: %v", err)
+		// Continue anyway - file may still be usable
+	}
 	ssh_key_path := f.Name()
 
 	time.Sleep(5 * time.Second)
@@ -1461,7 +1478,7 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 		var url string
 
 		// remove the local repo if it exists
-		runCmd(workloadCdCfg, "rm", ".", false, "-rf", path)
+		_, _ = runCmd(workloadCdCfg, "rm", ".", false, "-rf", path)
 		// if the repo doesn't exist, we need to clone it
 		// git clone --branch <branchname> https://stephan-rafay:api-key@url <path>
 		if strings.Contains(repo_url, "https://") {
@@ -1543,13 +1560,15 @@ func walkRepo(cfg *WorkloadCDConfig, wl *Workload) ([]string, []string, string, 
 		} else {
 			// check if the folder is a leaf
 			var isLeaf = true
-			filepath.Walk(path, func(path1 string, info1 os.FileInfo, err1 error) error {
+			if err := filepath.Walk(path, func(path1 string, info1 os.FileInfo, err1 error) error {
 				if path != path1 && info1.IsDir() {
 					isLeaf = false
 					return nil
 				}
 				return nil
-			})
+			}); err != nil {
+				log.Printf("warning: failed to walk directory %s: %v", path, err)
+			}
 			if isLeaf {
 				abs, err := filepath.Abs(path)
 				if err == nil {
@@ -1700,8 +1719,9 @@ func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, workl
 	for _, folder := range folders {
 		var project, namespace, workloadName string
 		var valuePaths []string
-		// process folder and create application
 		chartPath = ""
+
+		// process folder and create application
 
 		projectCheck := httprouter.New()
 		pattern := strings.TrimPrefix(strings.TrimSuffix(cfg.Spec.RepositoryLocalPath, "/"), ".") + workload.PathMatchPattern

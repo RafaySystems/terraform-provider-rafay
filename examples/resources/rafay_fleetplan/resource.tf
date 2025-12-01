@@ -1,4 +1,4 @@
-resource "rafay_fleetplan" "fp1" {
+resource "rafay_fleetplan" "fp_clusters" {
   metadata {
     name    = "fleetplan1"
     project = "defaultproject"
@@ -119,3 +119,76 @@ resource "rafay_fleetplan" "fp1" {
   }
 }
 
+resource "rafay_fleetplan" "fp_environments" {
+  metadata {
+    name    = "fleetplan-env"
+    project = "defaultproject"
+  }
+  spec {
+    fleet {
+      kind = "environments"
+
+      projects {
+        name = "defaultproject"
+      }
+
+      projects {
+        name = "project1"
+      }
+    }
+    operation_workflow {
+      operations {
+        name = "op1"
+        action {
+          type        = "resourceDeploy"
+          description = "deploy environment resources"
+        }
+      }
+      operations {
+        name = "op2"
+        action {
+          type        = "templateVersionUpdate"
+          description = "update template version"
+          environment_template_version_update_config {
+            version = "draft"
+          }
+        }
+      }
+      operations {
+        name = "op3"
+        action {
+          type        = "environmentVariableUpdate"
+          description = "update cluster blueprint"
+          environment_variable_update_config {
+            key = "Blueprint Name"
+            value = "minimal"
+            value_type = "text"
+          }
+          continue_on_failure = true
+        }
+      }
+      operations {
+        name = "op4"
+        action {
+          type        = "resourceDestroy"
+          description = "destroy environment resources"
+        }
+      }
+    }
+    schedule {
+      type = "one-time"
+      cadence {
+        schedule_at = "2025-11-25T15:45:32Z"
+        cron_timezone = "Asia/Kolkata"
+      }
+    }
+  }
+}
+
+resource "rafay_fleetplan_trigger" "fp_trigger" {
+  depends_on = [ rafay_fleetplan.fp_environments ]
+  
+  fleetplan_name = rafay_fleetplan.fp_environments.metadata[0].name
+  project = rafay_fleetplan.fp_environments.metadata[0].project
+  trigger_value = ""
+}

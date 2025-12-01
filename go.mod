@@ -236,7 +236,7 @@ replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
 
 	// github.com/RafaySystems/rafay-common => ../rafay-common
-	// github.com/RafaySystems/rctl => ../rctl
+	github.com/RafaySystems/rctl => ../rctl
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet
 	// github.com/getkin/kin-openapi => github.com/getkin/kin-openapi v0.120.0

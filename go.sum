@@ -24,10 +24,10 @@ github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8 h1:Pce
 github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8/go.mod h1:5mRn2xN25Y8mpObHyOwDB3OLudeuglzHTQX9IiNHxhM=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e h1:SrznY+xkaQ4BkX0HXGa0upur7RAtR6UsTsdMNEgBreY=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e/go.mod h1:vDR0S28Q+hwE/5wO0L/Ohn9CZwaI/o2QuPupJ2iLI7k=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251117124824-fc654718e125 h1:IxGs6/M+4609ku2vYUf3946HjCAf93w0WB4KuWiPdNg=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251117124824-fc654718e125/go.mod h1:1Fuy6VHo8zX2dw1xzFSIYr/PFHIDOHcBBZlaLkkj3ic=
-github.com/RafaySystems/rctl v1.29.1-0.20251124164110-e688dcc26fdd h1:SnfA/aH3BaH8970P8GFdYXBe55M2HPKhXrgQrk3zDVA=
-github.com/RafaySystems/rctl v1.29.1-0.20251124164110-e688dcc26fdd/go.mod h1:iuX8r3e2I2DG3mS764ic9wX8zHouYtbLfK9zt4SpVZI=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251128044303-09a09236c260 h1:/3Ru+OT3yU/LBVBxGSov7y4+9VrX41f2Z5kQiBC693A=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251128044303-09a09236c260/go.mod h1:gbNY4XLQKH6hc0Qsxp/tv1yPoKV6AJ8oS+xA1uSl9eY=
+github.com/RafaySystems/rctl v1.29.1-0.20251201102448-4decee4bf6d8 h1:6FfWuI7NYVDGjEMel3sI2QVcjOgAxoDm7kHzAYSjs30=
+github.com/RafaySystems/rctl v1.29.1-0.20251201102448-4decee4bf6d8/go.mod h1:XjTrjPCQEqbTct6dMhvdOLk2AY7TVEM0G8ru6y9yuro=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=
 github.com/RoaringBitmap/roaring v1.9.4/go.mod h1:6AXUsoIEzDTFFQCe1RbGA6uFONMhvejWj5rqITANK90=
 github.com/abhay-krishna/cluster-api v1.4.2-eksa.1 h1:mO+idOdh9Bpumgo41WJcrASPtJGSgmRxHNiwtUdUa+E=
@@ -125,8 +125,8 @@ github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S9k=
 github.com/fsnotify/fsnotify v1.9.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
-github.com/getkin/kin-openapi v0.123.0 h1:zIik0mRwFNLyvtXK274Q6ut+dPh6nlxBp0x7mNrPhs8=
-github.com/getkin/kin-openapi v0.123.0/go.mod h1:wb1aSZA/iWmorQP9KTAS/phLj/t17B5jT7+fS8ed9NM=
+github.com/getkin/kin-openapi v0.132.0 h1:3ISeLMsQzcb5v26yeJrBcdTCEQTag36ZjaGk7MIRUwk=
+github.com/getkin/kin-openapi v0.132.0/go.mod h1:3OlG51PCYNsPByuiMB0t4fjnNlIDnaEDsjiKUV8nL58=
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 h1:+zs/tPmkDkHx3U66DAb0lQFJrpS6731Oaa12ikc+DiI=
@@ -423,6 +423,10 @@ github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLA
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
+github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 h1:G7ERwszslrBzRxj//JalHPu/3yz+De2J+4aLtSRlHiY=
+github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037/go.mod h1:2bpvgLBZEtENV5scfDFEtB/5+1M4hkQhDQrccEJ/qGw=
+github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 h1:bQx3WeLcUWy+RletIKwUIt4x3t8n2SxavmoclizMb8c=
+github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90/go.mod h1:y5+oSEHCPT/DGrS++Wc/479ERge0zTFxaF8PbGKcg2o=
 github.com/oklog/run v1.0.0 h1:Ru7dDtJNOyC66gQ5dQmaCa0qIsAUFY3sFpK1Xk8igrw=
 github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQA=
 github.com/oklog/ulid v1.3.1 h1:EGfNDEx6MqHz8B3uNV6QAib1UR2Lm97sHi3ocA6ESJ4=

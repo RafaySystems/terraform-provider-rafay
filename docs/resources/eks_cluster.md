@@ -125,9 +125,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
 ---
 
-Basic EKS cluster with node group map
-
-Node group map based support is added in TF release v1.1.54 and later.
+Basic EKS cluster with node group map.
 
 ```terraform
 resource "rafay_eks_cluster" "eks-cluster-1" {

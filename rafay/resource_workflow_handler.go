@@ -12,7 +12,6 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
-	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb/datatypes"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/eaaspb"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -793,8 +792,8 @@ func expandWorkflowHandlerFunctionConfig(p []any) *eaaspb.FunctionDriverConfig {
 		fdc.MemoryLimitMb = memoryLimitMb
 	}
 
-	if skipBuild, ok := in["skip_build"].(bool); ok {
-		fdc.SkipBuild = datatypes.NewBool(skipBuild)
+	if skipBuild, ok := in["skip_build"].([]any); ok {
+		fdc.SkipBuild = expandBoolValue(skipBuild)
 	}
 
 	if image, ok := in["image"].(string); ok && len(image) > 0 {
@@ -815,6 +814,10 @@ func expandWorkflowHandlerFunctionConfig(p []any) *eaaspb.FunctionDriverConfig {
 
 	if imagePullCredentials, ok := in["image_pull_credentials"].([]any); ok && len(imagePullCredentials) > 0 {
 		fdc.ImagePullCredentials = expandImagePullCredentials(imagePullCredentials)
+	}
+
+	if inactivityTimeoutSeconds, ok := in["inactivity_timeout_seconds"].(int); ok {
+		fdc.InactivityTimeoutSeconds = int64(inactivityTimeoutSeconds)
 	}
 
 	return &fdc
@@ -1462,6 +1465,7 @@ func flattenWorkflowHandlerFunctionConfig(in *eaaspb.FunctionDriverConfig, p []a
 	obj["image"] = in.Image
 	obj["max_concurrency"] = in.MaxConcurrency
 	obj["num_replicas"] = in.NumReplicas
+	obj["inactivity_timeout_seconds"] = in.InactivityTimeoutSeconds
 
 	v, _ := obj["kube_options"].([]any)
 	obj["kube_options"] = flattenContainerKubeOptions(in.KubeOptions, v)

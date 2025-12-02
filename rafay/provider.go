@@ -55,7 +55,6 @@ func New(_ string) func() *schema.Provider {
 			ResourcesMap: map[string]*schema.Resource{
 				"rafay_project":                       resourceProject(),
 				"rafay_cloud_credential":              resourceCloudCredential(),
-				"rafay_eks_cluster":                   resourceEKSCluster(),
 				"rafay_eks_cluster_spec":              resourceEKSClusterSpec(),
 				"rafay_aks_cluster":                   resourceAKSCluster(),
 				"rafay_aks_cluster_v3":                resourceAKSClusterV3(),

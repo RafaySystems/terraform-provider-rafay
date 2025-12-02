@@ -1,8 +1,10 @@
-# Automated Changelog System - Implementation Summary
+# Changelog Generation System - Implementation Summary
 
 ## Overview
 
-This document lists all files created for the automated changelog system, their locations, and their purposes.
+This document lists all files created for the changelog generation system, their locations, and their purposes.
+
+**Note:** Due to branch protection rules, changelog generation is a manual process. The GitHub Actions workflow for automatic generation has been removed.
 
 ---
 
@@ -19,7 +21,7 @@ This document lists all files created for the automated changelog system, their 
 - Follows "Keep a Changelog" format
 - Master branch uses "Unreleased" section
 - Release branches have version sections (e.g., "## 1.2.0")
-- AI-generated entries are automatically added here
+- AI-generated entries are added manually via script execution
 
 ---
 
@@ -47,8 +49,8 @@ This document lists all files created for the automated changelog system, their 
 - Uses OpenAI GPT (gpt-4-turbo-preview) for intelligent categorization
 - Analyzes commits and generates user-friendly descriptions
 - Categorizes changes into: BREAKING CHANGES, FEATURES, ENHANCEMENTS, BUG FIXES, DEPRECATIONS, DOCUMENTATION
-- Integrates with deprecation scanner output
-- Updates CHANGELOG.md automatically
+- Integrates with deprecation scanner output (optional)
+- Updates CHANGELOG.md when script is run
 - Supports both master (Unreleased) and release branch versions
 
 **Usage**:
@@ -72,7 +74,7 @@ python3 scripts/generate-changelog.py \
 - Parses Go files looking for `Deprecated` field in schema definitions
 - Detects `DeprecationMessage` in resource/data source declarations
 - Outputs JSON with deprecation information
-- Automatically run by GitHub Actions on PR merge
+- Can be run manually and passed to changelog generator via `--deprecations-file`
 
 **Usage**:
 ```bash
@@ -137,29 +139,7 @@ bash scripts/update-unreleased.sh reset
 
 ### GitHub Actions Workflows (`.github/workflows/`)
 
-#### 1. `changelog-on-merge.yml`
-**Location**: `/.github/workflows/changelog-on-merge.yml`
 
-**Purpose**: Main automation workflow that updates CHANGELOG on PR merge
-
-**Triggers**: PR closed (merged=true) to `master` or `v*` branches
-
-**Steps**:
-1. Checkout repository with full history
-2. Set up Python and Go environments
-3. Build deprecation scanner
-4. Scan changed Go files for deprecations
-5. Determine target section (Unreleased vs version number)
-6. Generate changelog entries with AI
-7. Update CHANGELOG.md
-8. Commit and push changes
-9. Comment on PR with success/failure status
-
-**Key Features**:
-- Works on both master and release branches
-- Detects duplicates by PR number
-- Handles cherry-picked commits
-- Posts status comment on PR
 
 ---
 
@@ -396,11 +376,13 @@ go build scripts/scan-deprecations.go
 ```
 terraform-provider-rafay/
 ├── CHANGELOG.md                                      # Main changelog file
+├── .changelog/
+│   ├── README.md                                     # Manual generation instructions
+│   └── {PR_NUMBER}.txt                               # Individual PR fragments
 ├── .github/
 │   ├── changelog-config.json                        # AI configuration
 │   ├── PULL_REQUEST_TEMPLATE.md                     # Updated PR template
 │   └── workflows/
-│       ├── changelog-on-merge.yml                   # Main automation workflow
 │       ├── release.yml                              # Updated release workflow
 │       └── branch-cut.yaml                          # Updated branch cut workflow
 ├── scripts/
@@ -430,7 +412,7 @@ All tasks completed:
 
 - [x] Python changelog generator with AI
 - [x] Go deprecation scanner
-- [x] GitHub Actions workflow for PR merge
+- [x] Manual generation process (GitHub Actions workflow removed due to branch protection)
 - [x] Updated release workflow
 - [x] Updated branch cut workflow
 - [x] Configuration files
@@ -443,31 +425,35 @@ All tasks completed:
 
 ## Required Setup
 
-Before using the system, configure these GitHub Secrets:
+Before using the system:
 
-1. **`OPENAI_API_KEY`** - Your OpenAI API key (Required)
-2. **`GITHUB_TOKEN`** - Automatically provided by GitHub Actions
-3. **`JENKINS_PAT`** - For branch cut workflow (if using)
-4. **`RCTL_GO_MODULES_TOKEN`** - For private Go modules access
+1. **`OPENAI_API_KEY`** - Set in your environment or `.env` file (Required for local execution)
+2. **Python dependencies** - Install via `pip install -r scripts/requirements.txt`
+3. **Go** - Required for building the deprecation scanner (optional)
+
+For GitHub Actions workflows:
+- **`GITHUB_TOKEN`** - Automatically provided by GitHub Actions
+- **`JENKINS_PAT`** - For branch cut workflow (if using)
+- **`RCTL_GO_MODULES_TOKEN`** - For private Go modules access
 
 ---
 
 ## Next Steps
 
-1. **Add `OPENAI_API_KEY`** to GitHub repository secrets
-2. **Test locally** using the testing guide
-3. **Create a test PR** to verify the system works
-4. **Review the first generated changelog** entry
-5. **Share commit guidelines** with your team
-6. **Monitor the first few automated runs**
+1. **Set `OPENAI_API_KEY`** in your environment or `.env` file
+2. **Install dependencies**: `pip install -r scripts/requirements.txt`
+3. **Test locally** using the testing guide
+4. **After PR merge**, run the changelog generation script manually
+5. **Review the generated changelog** entries before committing
+6. **Share commit guidelines** with your team
 
 ---
 
 ## Benefits
 
-✅ **Zero Manual Work** - Automatic on every PR merge  
 ✅ **Professional Quality** - AI ensures consistent style  
-✅ **Never Miss Deprecations** - Automatic code scanning  
+✅ **Flexible Process** - Manual generation allows review before committing  
+✅ **Deprecation Detection** - Can scan for deprecation warnings  
 ✅ **Branch-Aware** - Works with your cherry-pick workflow  
 ✅ **Terraform Standards** - Follows AWS provider patterns  
 ✅ **User-Friendly** - Translates technical changes for users  
@@ -483,7 +469,5 @@ Before using the system, configure these GitHub Secrets:
 
 ---
 
-**Implementation Date**: January 2025  
+**Last Updated**: December 2025
 **System Version**: 1.0  
-**Status**: ✅ Complete and Ready for Deployment
-

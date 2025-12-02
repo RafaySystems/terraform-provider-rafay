@@ -1,25 +1,29 @@
-# Automated Changelog System
+# Changelog Generation System
 
 ## Overview
 
-The Rafay Terraform Provider uses an AI-powered automated changelog system that maintains the `CHANGELOG.md` file across master and release branches. This system ensures consistent, professional documentation of all changes following Terraform provider best practices.
+The Rafay Terraform Provider uses an AI-powered changelog generation system that maintains the `CHANGELOG.md` file across master and release branches. This system ensures consistent, professional documentation of all changes following Terraform provider best practices.
+
+**Note:** Due to branch protection rules, changelog generation is a manual process. After a PR is merged, run the changelog generation script to update the CHANGELOG.
 
 ## Key Features
 
 - **AI-Powered Categorization**: Uses OpenAI GPT models to intelligently categorize and describe changes
-- **Automatic Deprecation Detection**: Scans Go code for `Deprecated` and `DeprecationMessage` fields
+- **Deprecation Detection**: Scans Go code for `Deprecated` and `DeprecationMessage` fields
 - **Branch-Aware**: Handles both master branch (Unreleased) and release branches
 - **Cherry-Pick Support**: Works seamlessly with the existing cherry-pick workflow
-- **GitHub Release Integration**: Automatically generates GitHub Release Notes
+- **GitHub Release Integration**: Generates GitHub Release Notes from CHANGELOG
 
 ## How It Works
 
 ### 1. PR Merge to Master Branch
 
-When a PR is merged to the `master` branch:
+**Note:** Due to branch protection rules, changelog generation must be done manually after PR merge.
 
-1. **GitHub Action Triggers**: The `changelog-on-merge.yml` workflow activates
-2. **Deprecation Scanning**: Go code changes are scanned for deprecation warnings
+After a PR is merged to the `master` branch:
+
+1. **Manual Script Execution**: Run the changelog generation script (see [Manual Operations](#manual-operations))
+2. **Deprecation Scanning**: Go code changes are scanned for deprecation warnings (optional, via `--deprecations-file`)
 3. **Commit Analysis**: OpenAI GPT analyzes commit messages and changes
 4. **Categorization**: Changes are categorized into:
    - BREAKING CHANGES
@@ -30,13 +34,13 @@ When a PR is merged to the `master` branch:
    - DOCUMENTATION
 5. **Fragment Creation**: Entries are written to `.changelog/{PR_NUMBER}.txt`
 6. **CHANGELOG Update**: Entries are added to the "Unreleased" section in `CHANGELOG.md`
-7. **Auto-Commit**: Both the fragment file and CHANGELOG.md are committed and pushed back to master
+7. **Manual Commit**: Review, commit, and push the changes in a separate PR
 
 ### 2. PR Merge to Release Branch
 
 When a PR is cherry-picked and merged to a release branch (e.g., `v1.2.0`):
 
-- Same process as master, but entries are added to the version section (e.g., `## 1.2.0`)
+- Same manual process as master, but specify `--target-section` with the version number (e.g., `1.2.0`)
 - Duplicate detection prevents the same PR from appearing multiple times
 
 ### 3. Branch Cut Process
@@ -59,9 +63,11 @@ When a tag is created on a release branch:
 
 The system maintains individual changelog fragments in `.changelog/` for audit trail and traceability:
 
-**On PR Merge:**
+**On PR Merge (Manual Process):**
 ```
-PR #1131 merged
+PR #1131 created
+    ↓
+Run changelog generation script manually
     ↓
 Generate changelog entries
     ↓
@@ -69,7 +75,7 @@ Write to .changelog/1131.txt    ← Individual fragment
     ↓
 Update CHANGELOG.md Unreleased  ← Consolidated changelog
     ↓
-Commit both files
+Review and commit both files
 ```
 
 **Fragment File Example** (`.changelog/1131.txt`):
@@ -101,7 +107,6 @@ Commit both files
 - **`scripts/requirements.txt`** - Python dependencies
 
 #### GitHub Actions
-- **`.github/workflows/changelog-on-merge.yml`** - Main automation workflow
 - **`.github/workflows/release.yml`** - Release process with changelog integration
 - **`.github/workflows/branch-cut.yaml`** - Branch cut with CHANGELOG handling
 
@@ -199,10 +204,12 @@ The system uses OpenAI GPT with specific rules to categorize changes:
 
 ## Configuration
 
-### Environment Variables (GitHub Secrets)
+### Environment Variables
 
-Required:
-- `OPENAI_API_KEY` - For AI-powered changelog generation
+Required for local execution:
+- `OPENAI_API_KEY` - For AI-powered changelog generation (set in your environment or `.env` file)
+
+Optional (for GitHub Actions workflows):
 - `GITHUB_TOKEN` - Automatically provided by GitHub Actions
 - `JENKINS_PAT` - For branch cut workflow (if using Jenkins integration)
 - `RCTL_GO_MODULES_TOKEN` - For accessing private Go modules
@@ -221,10 +228,10 @@ Edit `.github/changelog-config.json` to customize:
 ### Changelog Not Updated
 
 **Check:**
-1. Was the PR actually merged (not just closed)?
-2. Check the GitHub Actions run for errors
-3. Verify `OPENAI_API_KEY` is set in repository secrets
-4. Check if PR has `skip-changelog` label
+1. Was the changelog generation script run manually after PR creation?
+2. Verify `OPENAI_API_KEY` is set in your environment or `.env` file
+3. Check that the script completed successfully
+4. Ensure you're running the script from the correct branch with the created PR
 
 ### Incorrect Categorization
 
@@ -244,14 +251,15 @@ The system detects duplicates by PR number. If you see duplicates:
 
 **Check:**
 1. Is the `Deprecated` or `DeprecationMessage` field correctly formatted in Go code?
-2. Check the deprecation scanner output in GitHub Actions logs
+2. Run the deprecation scanner manually: `go build scripts/scan-deprecations.go && ./scan-deprecations -path ./rafay -verbose`
 3. Verify Go file was actually changed in the PR
+4. If using `--deprecations-file`, ensure the file path is correct
 
 ## Manual Operations
 
-### Manually Trigger Changelog Generation
+### Generating Changelog After PR Creation
 
-You can test the changelog generator locally:
+**Note:** This is the standard process due to branch protection rules. After a PR is created, follow these steps:
 
 ```bash
 # Install dependencies
@@ -289,6 +297,10 @@ python3 scripts/generate-changelog.py \
 
 When `--pr-number` is NOT provided, only `CHANGELOG.md` is updated.
 
+**After running the script:**
+1. Review the generated entries in `.changelog/{PR_NUMBER}.txt` and `CHANGELOG.md`
+2. Commit the changes: `git add .changelog/ CHANGELOG.md`
+
 ### Manually Update Unreleased Section
 
 ```bash
@@ -309,10 +321,10 @@ bash scripts/extract-release-notes.sh 1.2.0 > release-notes.md
 ## Benefits
 
 1. **Consistency**: AI ensures uniform style and quality
-2. **No Manual Work**: Automatic on every PR merge
+2. **Flexible Process**: Manual generation allows review before committing
 3. **No Label Requirements**: Works with any commit style
-4. **Deprecation Tracking**: Never miss a deprecation warning
-5. **Branch Sync**: Handles master and release branches automatically
+4. **Deprecation Tracking**: Can scan for deprecation warnings
+5. **Branch-Aware**: Handles master and release branches with proper targeting
 6. **Professional Quality**: Follows Terraform AWS provider standards
 
 ## Maintenance

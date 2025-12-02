@@ -134,6 +134,7 @@ func (v ManagedNodegroupsValue) Expand(ctx context.Context) (*rafay.ManagedNodeG
 	if !v.AsgSuspendProcesses.IsNull() && !v.AsgSuspendProcesses.IsUnknown() {
 		asgSuspendList := make([]types.String, 0, len(v.AsgSuspendProcesses.Elements()))
 		d = v.AsgSuspendProcesses.ElementsAs(ctx, &asgSuspendList, false)
+		diags = append(diags, d...)
 		asgSuspend := make([]string, 0, len(asgSuspendList))
 		for _, p := range asgSuspendList {
 			asgSuspend = append(asgSuspend, getStringValue(p))
@@ -157,6 +158,7 @@ func (v ManagedNodegroupsValue) Expand(ctx context.Context) (*rafay.ManagedNodeG
 	if !v.PreBootstrapCommands.IsNull() && !v.PreBootstrapCommands.IsUnknown() {
 		preBootstrapList := make([]types.String, 0, len(v.PreBootstrapCommands.Elements()))
 		d = v.PreBootstrapCommands.ElementsAs(ctx, &preBootstrapList, false)
+		diags = append(diags, d...)
 		preBootstrap := make([]string, 0, len(preBootstrapList))
 		for _, cmd := range preBootstrapList {
 			preBootstrap = append(preBootstrap, getStringValue(cmd))
@@ -284,7 +286,10 @@ func (v Iam4Value) Expand(ctx context.Context) (*rafay.NodeGroupIAM, diag.Diagno
 	if !v.AttachPolicyV2.IsNull() && !v.AttachPolicyV2.IsUnknown() {
 		var policyDoc *rafay.InlineDocument
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		json2.Unmarshal([]byte(getStringValue(v.AttachPolicyV2)), &policyDoc)
+		err := json2.Unmarshal([]byte(getStringValue(v.AttachPolicyV2)), &policyDoc)
+		if err != nil {
+			diags.AddError("Invalid Attach Policy JSON", err.Error())
+		}
 		iam.AttachPolicy = policyDoc
 	}
 	if !v.InstanceProfileArn.IsNull() && !v.InstanceProfileArn.IsUnknown() {
@@ -503,7 +508,10 @@ func (v Statement4Value) Expand(ctx context.Context) (rafay.InlineStatement, dia
 	if !v.Principal.IsNull() && !v.Principal.IsUnknown() {
 		var policyDoc map[string]interface{}
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		json2.Unmarshal([]byte(getStringValue(v.Condition)), &policyDoc)
+		err := json2.Unmarshal([]byte(getStringValue(v.Condition)), &policyDoc)
+		if err != nil {
+			diags.AddError("Invalid Principal JSON", err.Error())
+		}
 		stmt.Principal = policyDoc
 	}
 
@@ -514,14 +522,20 @@ func (v Statement4Value) Expand(ctx context.Context) (rafay.InlineStatement, dia
 	if !v.NotPrincipal.IsNull() && !v.NotPrincipal.IsUnknown() {
 		var policyDoc map[string]interface{}
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		json2.Unmarshal([]byte(getStringValue(v.Condition)), &policyDoc)
+		err := json2.Unmarshal([]byte(getStringValue(v.Condition)), &policyDoc)
+		if err != nil {
+			diags.AddError("Invalid NotPrincipal JSON", err.Error())
+		}
 		stmt.NotPrincipal = policyDoc
 	}
 
 	if !v.Condition.IsNull() && !v.Condition.IsUnknown() {
 		var policyDoc map[string]interface{}
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		json2.Unmarshal([]byte(getStringValue(v.Condition)), &policyDoc)
+		err := json2.Unmarshal([]byte(getStringValue(v.Condition)), &policyDoc)
+		if err != nil {
+			diags.AddError("Invalid Condition JSON", err.Error())
+		}
 		stmt.Condition = policyDoc
 	}
 
@@ -623,7 +637,10 @@ func (v BottleRocket4Value) Expand(ctx context.Context) (*rafay.NodeGroupBottler
 	if !v.Settings.IsNull() && !v.Settings.IsUnknown() {
 		var policyDoc map[string]interface{}
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		json2.Unmarshal([]byte(getStringValue(v.Settings)), &policyDoc)
+		err := json2.Unmarshal([]byte(getStringValue(v.Settings)), &policyDoc)
+		if err != nil {
+			diags.AddError("Invalid Settings JSON", err.Error())
+		}
 		br.Settings = policyDoc
 	}
 

@@ -483,6 +483,7 @@ func (v *AttachPolicy6Value) Flatten(ctx context.Context, in *rafay.InlineDocume
 			tfStatements = append(tfStatements, tfStatementObj)
 		}
 		v.Statement6, d = types.SetValue(Statement6Value{}.Type(ctx), tfStatements)
+		diags = append(diags, d...)
 	} else {
 		v.Statement6 = types.SetNull(Statement6Value{}.Type(ctx))
 	}
@@ -622,7 +623,7 @@ func (v *BottleRocket6Value) Flatten(ctx context.Context, in *rafay.NodeGroupBot
 	if in.EnableAdminContainer != nil {
 		v.EnableAdminContainer = types.BoolPointerValue(in.EnableAdminContainer)
 	}
-	if in.Settings != nil && len(in.Settings) > 0 {
+	if len(in.Settings) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.Settings)
 		if err != nil {
@@ -726,7 +727,7 @@ func (v *KubeletExtraConfig6Value) Flatten(ctx context.Context, in *rafay.Kubele
 	if in == nil {
 		return diags
 	}
-	if in.KubeReserved != nil && len(in.KubeReserved) > 0 {
+	if len(in.KubeReserved) > 0 {
 		kr := map[string]attr.Value{}
 		for key, val := range in.KubeReserved {
 			kr[key] = types.StringValue(val)

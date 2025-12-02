@@ -358,14 +358,14 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	}
 
 	// decide list or map for node groups? Order of preference is env variable, then state.
-	isNodeGroupsMap := false
+	var isNodeGroupsMap bool
 	if !state.NodeGroupsMap.IsNull() && !state.NodeGroupsMap.IsUnknown() &&
 		len(state.NodeGroupsMap.Elements()) > 0 {
 		isNodeGroupsMap = true
 	}
 
 	// managed node groups list or map?
-	isManagedNodeGroupsMap := false
+	var isManagedNodeGroupsMap bool
 	if !state.ManagedNodegroupsMap.IsNull() && !state.ManagedNodegroupsMap.IsUnknown() &&
 		len(state.ManagedNodegroupsMap.Elements()) > 0 {
 		isManagedNodeGroupsMap = true
@@ -791,7 +791,7 @@ func (v *AccessEntriesValue) Flatten(ctx context.Context, in *rafay.EKSAccessEnt
 	}
 
 	kubernetesGroups := types.SetNull(types.StringType)
-	if in.KubernetesGroups != nil && len(in.KubernetesGroups) > 0 {
+	if len(in.KubernetesGroups) > 0 {
 		groups := []attr.Value{}
 		for _, group := range in.KubernetesGroups {
 			groups = append(groups, types.StringValue(group))
@@ -802,7 +802,7 @@ func (v *AccessEntriesValue) Flatten(ctx context.Context, in *rafay.EKSAccessEnt
 	v.KubernetesGroups = kubernetesGroups
 
 	tags := types.MapNull(types.StringType)
-	if in.Tags != nil && len(in.Tags) > 0 {
+	if len(in.Tags) > 0 {
 		tgs := make(map[string]attr.Value, len(in.Tags))
 		for key, val := range in.Tags {
 			tgs[key] = types.StringValue(val)
@@ -813,7 +813,7 @@ func (v *AccessEntriesValue) Flatten(ctx context.Context, in *rafay.EKSAccessEnt
 	v.Tags = tags
 
 	accessPolicies := types.SetNull(AccessPoliciesValue{}.Type(ctx))
-	if in.AccessPolicies != nil && len(in.AccessPolicies) > 0 {
+	if len(in.AccessPolicies) > 0 {
 		accessPoliciesList := []attr.Value{}
 		for _, accessPolicy := range in.AccessPolicies {
 			ap := NewAccessPoliciesValueNull()
@@ -885,7 +885,7 @@ func (v *IdentityMappingsValue) Flatten(ctx context.Context, in *rafay.EKSCluste
 	}
 
 	accounts := types.SetNull(types.StringType)
-	if in.Accounts != nil && len(in.Accounts) > 0 {
+	if len(in.Accounts) > 0 {
 		accountsList := []attr.Value{}
 		for _, account := range in.Accounts {
 			accountsList = append(accountsList, types.StringValue(account))
@@ -896,7 +896,7 @@ func (v *IdentityMappingsValue) Flatten(ctx context.Context, in *rafay.EKSCluste
 	v.Accounts = accounts
 
 	arns := types.SetNull(ArnsValue{}.Type(ctx))
-	if in.Arns != nil && len(in.Arns) > 0 {
+	if len(in.Arns) > 0 {
 		arnElements := []attr.Value{}
 		for _, arn := range in.Arns {
 			arnsValue := NewArnsValueNull()
@@ -1082,7 +1082,7 @@ func (v *SelectorsValue) Flatten(ctx context.Context, in rafay.FargateProfileSel
 	if in.Namespace != "" {
 		v.Namespace = types.StringValue(in.Namespace)
 	}
-	if in.Labels != nil && len(in.Labels) > 0 {
+	if len(in.Labels) > 0 {
 		labels := map[string]attr.Value{}
 		for key, val := range in.Labels {
 			labels[key] = types.StringValue(val)
@@ -1791,7 +1791,7 @@ func (v *ServiceAccountsValue) Flatten(ctx context.Context, in *rafay.EKSCluster
 	}
 	v.AttachPolicyArns2 = attachPolicyArns2
 
-	if in.AttachPolicy != nil && len(in.AttachPolicy) > 0 {
+	if len(in.AttachPolicy) > 0 {
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		jsonStr, err := json2.Marshal(in.AttachPolicy)
 		if err != nil {

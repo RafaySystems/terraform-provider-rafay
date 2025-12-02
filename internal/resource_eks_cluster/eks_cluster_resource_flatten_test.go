@@ -1,6 +1,7 @@
 package resource_eks_cluster
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -59,7 +60,7 @@ func TestFlattenMetadata(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			var v MetadataValue
-			diags := v.Flatten(nil, tc.in)
+			diags := v.Flatten(context.TODO(), tc.in)
 			if diags.HasError() {
 				t.Fatalf("unexpected diags: %v", diags)
 			}

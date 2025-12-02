@@ -87,7 +87,10 @@ func (v ClusterValue) Expand(ctx context.Context) (*rafay.EKSCluster, diag.Diagn
 	}
 
 	vMetadataList := make([]MetadataValue, 0, len(v.Metadata.Elements()))
-	diags = v.Metadata.ElementsAs(ctx, &vMetadataList, false)
+	d = v.Metadata.ElementsAs(ctx, &vMetadataList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vMetadataList) > 0 {
 		md := rafay.EKSClusterMetadata{}
 		cluster.Metadata = &md
@@ -96,7 +99,10 @@ func (v ClusterValue) Expand(ctx context.Context) (*rafay.EKSCluster, diag.Diagn
 	}
 
 	vSpecList := make([]SpecValue, 0, len(v.Spec.Elements()))
-	diags = v.Spec.ElementsAs(ctx, &vSpecList, false)
+	d = v.Spec.ElementsAs(ctx, &vSpecList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vSpecList) > 0 {
 		cluster.Spec, d = vSpecList[0].Expand(ctx)
 		diags = append(diags, d...)
@@ -500,7 +506,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// metadata2 block
 	vMetadata2List := make([]Metadata2Value, 0, len(v.Metadata2.Elements()))
-	diags = v.Metadata2.ElementsAs(ctx, &vMetadata2List, false)
+	d = v.Metadata2.ElementsAs(ctx, &vMetadata2List, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vMetadata2List) > 0 {
 		md, d := vMetadata2List[0].Expand(ctx)
 		diags = append(diags, d...)
@@ -509,7 +518,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// node_groups block (deprecated)
 	vNodeGroupsList := make([]NodeGroupsValue, 0, len(v.NodeGroups.Elements()))
-	diags = v.NodeGroups.ElementsAs(ctx, &vNodeGroupsList, false)
+	d = v.NodeGroups.ElementsAs(ctx, &vNodeGroupsList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	ngs := make([]*rafay.NodeGroup, 0, len(vNodeGroupsList))
 	for _, vng := range vNodeGroupsList {
 		ng, d := vng.Expand(ctx)
@@ -537,7 +549,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// managed_nodegroups block (deprecated)
 	vManagedNodeGroupsList := make([]ManagedNodegroupsValue, 0, len(v.ManagedNodegroups.Elements()))
-	diags = v.ManagedNodegroups.ElementsAs(ctx, &vManagedNodeGroupsList, false)
+	d = v.ManagedNodegroups.ElementsAs(ctx, &vManagedNodeGroupsList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	mngs := make([]*rafay.ManagedNodeGroup, 0, len(vManagedNodeGroupsList))
 	for _, mng := range vManagedNodeGroupsList {
 		mngObj, d := mng.Expand(ctx)
@@ -577,7 +592,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// kubernetes_network_config block
 	vKNCList := make([]KubernetesNetworkConfigValue, 0, len(v.KubernetesNetworkConfig.Elements()))
-	diags = v.KubernetesNetworkConfig.ElementsAs(ctx, &vKNCList, false)
+	d = v.KubernetesNetworkConfig.ElementsAs(ctx, &vKNCList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vKNCList) > 0 {
 		knc, d := vKNCList[0].Expand(ctx)
 		diags = append(diags, d...)
@@ -586,7 +604,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// iam3 block
 	vIAM3List := make([]Iam3Value, 0, len(v.Iam3.Elements()))
-	diags = v.Iam3.ElementsAs(ctx, &vIAM3List, false)
+	d = v.Iam3.ElementsAs(ctx, &vIAM3List, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vIAM3List) > 0 {
 		iam, d := vIAM3List[0].Expand(ctx)
 		diags = append(diags, d...)
@@ -595,7 +616,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// identity_providers block
 	vIdpList := make([]IdentityProvidersValue, 0, len(v.IdentityProviders.Elements()))
-	diags = v.IdentityProviders.ElementsAs(ctx, &vIdpList, false)
+	d = v.IdentityProviders.ElementsAs(ctx, &vIdpList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	idps := make([]*rafay.IdentityProvider, 0, len(vIdpList))
 	for _, idp := range vIdpList {
 		idpObj, d := idp.Expand(ctx)
@@ -608,7 +632,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// vpc block
 	vVpcList := make([]VpcValue, 0, len(v.Vpc.Elements()))
-	diags = v.Vpc.ElementsAs(ctx, &vVpcList, false)
+	d = v.Vpc.ElementsAs(ctx, &vVpcList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vVpcList) > 0 {
 		vpc, d := vVpcList[0].Expand(ctx)
 		diags = append(diags, d...)
@@ -617,7 +644,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// addons block
 	vAddonsList := make([]AddonsValue, 0, len(v.Addons.Elements()))
-	diags = v.Addons.ElementsAs(ctx, &vAddonsList, false)
+	d = v.Addons.ElementsAs(ctx, &vAddonsList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	addons := make([]*rafay.Addon, 0, len(vAddonsList))
 	for _, addon := range vAddonsList {
 		addonObj, d := addon.Expand(ctx)
@@ -630,7 +660,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// private_cluster block
 	vPrivateClusterList := make([]PrivateClusterValue, 0, len(v.PrivateCluster.Elements()))
-	diags = v.PrivateCluster.ElementsAs(ctx, &vPrivateClusterList, false)
+	d = v.PrivateCluster.ElementsAs(ctx, &vPrivateClusterList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vPrivateClusterList) > 0 {
 		pc, d := vPrivateClusterList[0].Expand(ctx)
 		diags = append(diags, d...)
@@ -639,7 +672,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// fargate_profiles block
 	vFargateProfilesList := make([]FargateProfilesValue, 0, len(v.FargateProfiles.Elements()))
-	diags = v.FargateProfiles.ElementsAs(ctx, &vFargateProfilesList, false)
+	d = v.FargateProfiles.ElementsAs(ctx, &vFargateProfilesList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	fps := make([]*rafay.FargateProfile, 0, len(vFargateProfilesList))
 	for _, fp := range vFargateProfilesList {
 		fpObj, d := fp.Expand(ctx)
@@ -652,7 +688,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// cloud_watch block
 	vCloudWatchList := make([]CloudWatchValue, 0, len(v.CloudWatch.Elements()))
-	diags = v.CloudWatch.ElementsAs(ctx, &vCloudWatchList, false)
+	d = v.CloudWatch.ElementsAs(ctx, &vCloudWatchList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vCloudWatchList) > 0 {
 		cw, d := vCloudWatchList[0].Expand(ctx)
 		diags = append(diags, d...)
@@ -661,7 +700,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// secrets_encryption block
 	vSecretsEncryptionList := make([]SecretsEncryptionValue, 0, len(v.SecretsEncryption.Elements()))
-	diags = v.SecretsEncryption.ElementsAs(ctx, &vSecretsEncryptionList, false)
+	d = v.SecretsEncryption.ElementsAs(ctx, &vSecretsEncryptionList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vSecretsEncryptionList) > 0 {
 		se, d := vSecretsEncryptionList[0].Expand(ctx)
 		diags = append(diags, d...)
@@ -670,7 +712,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// identity_mappings block
 	vIdentityMappingsList := make([]IdentityMappingsValue, 0, len(v.IdentityMappings.Elements()))
-	diags = v.IdentityMappings.ElementsAs(ctx, &vIdentityMappingsList, false)
+	d = v.IdentityMappings.ElementsAs(ctx, &vIdentityMappingsList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vIdentityMappingsList) > 0 {
 		im, d := vIdentityMappingsList[0].Expand(ctx)
 		diags = append(diags, d...)
@@ -679,7 +724,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// access_config block
 	vAccessConfigList := make([]AccessConfigValue, 0, len(v.AccessConfig.Elements()))
-	diags = v.AccessConfig.ElementsAs(ctx, &vAccessConfigList, false)
+	d = v.AccessConfig.ElementsAs(ctx, &vAccessConfigList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vAccessConfigList) > 0 {
 		ac, d := vAccessConfigList[0].Expand(ctx)
 		diags = append(diags, d...)
@@ -688,7 +736,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// addons_config block
 	vAddonsConfigList := make([]AddonsConfigValue, 0, len(v.AddonsConfig.Elements()))
-	diags = v.AddonsConfig.ElementsAs(ctx, &vAddonsConfigList, false)
+	d = v.AddonsConfig.ElementsAs(ctx, &vAddonsConfigList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vAddonsConfigList) > 0 {
 		acfg, d := vAddonsConfigList[0].Expand(ctx)
 		diags = append(diags, d...)
@@ -697,7 +748,10 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 
 	// auto_mode_config block
 	vAutoModeConfigList := make([]AutoModeConfigValue, 0, len(v.AutoModeConfig.Elements()))
-	diags = v.AutoModeConfig.ElementsAs(ctx, &vAutoModeConfigList, false)
+	d = v.AutoModeConfig.ElementsAs(ctx, &vAutoModeConfigList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
 	if len(vAutoModeConfigList) > 0 {
 		amc, d := vAutoModeConfigList[0].Expand(ctx)
 		diags = append(diags, d...)
@@ -871,7 +925,10 @@ func (v PodIdentityAssociationsValue) Expand(ctx context.Context) (*rafay.IAMPod
 		if policyStr != "" {
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-			json2.Unmarshal([]byte(policyStr), &policyDoc)
+			err := json2.Unmarshal([]byte(policyStr), &policyDoc)
+			if err != nil {
+				diags.AddError("Invalid Permission Policy JSON", err.Error())
+			}
 			pia.PermissionPolicy = policyDoc
 		}
 	}
@@ -1020,7 +1077,10 @@ func (v ServiceAccountsValue) Expand(ctx context.Context) (*rafay.EKSClusterIAMS
 		if policyStr != "" {
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-			json2.Unmarshal([]byte(policyStr), &policyDoc)
+			err := json2.Unmarshal([]byte(policyStr), &policyDoc)
+			if err != nil {
+				diags.AddError("Invalid Attach Policy JSON", err.Error())
+			}
 			sa.AttachPolicy = policyDoc
 		}
 	}
@@ -1456,7 +1516,10 @@ func (v AddonsValue) Expand(ctx context.Context) (*rafay.Addon, diag.Diagnostics
 	if !v.AttachPolicyV22.IsNull() && !v.AttachPolicyV22.IsUnknown() {
 		var policyDoc *rafay.InlineDocument
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		json2.Unmarshal([]byte(getStringValue(v.AttachPolicyV22)), &policyDoc)
+		err := json2.Unmarshal([]byte(getStringValue(v.AttachPolicyV22)), &policyDoc)
+		if err != nil {
+			diags.AddError("Invalid Attach Policy JSON", err.Error())
+		}
 		addon.AttachPolicy = policyDoc
 	}
 	if !v.PermissionsBoundary2.IsNull() && !v.PermissionsBoundary2.IsUnknown() {
@@ -1646,7 +1709,10 @@ func (v PodIdentityAssociations2Value) Expand(ctx context.Context) (*rafay.IAMPo
 	if !v.PermissionPolicy.IsNull() && !v.PermissionPolicy.IsUnknown() {
 		var policyDoc map[string]interface{}
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		json2.Unmarshal([]byte(getStringValue(v.PermissionPolicy)), &policyDoc)
+		err := json2.Unmarshal([]byte(getStringValue(v.PermissionPolicy)), &policyDoc)
+		if err != nil {
+			diags.AddError("Invalid Permission Policy JSON", err.Error())
+		}
 		pia.PermissionPolicy = policyDoc
 	}
 

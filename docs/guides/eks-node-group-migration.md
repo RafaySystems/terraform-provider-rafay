@@ -38,16 +38,7 @@ To take advantage of these improvements, the EKS cluster resource now supports a
 - Use `managed_nodegroups_map` for new configs
 - Existing setups still work, but migration is recommended
 
-> **Note:** These warnings do not impact functionality. Existing configurations will continue to work, but we recommend migrating to the new map-based format for better maintainability and to leverage the fixes.
-
-The EKS cluster resource in the Terraform provider has been updated with improvements that make node group configurations more stable. These enhancements include:
-
-This update introduces:
-
-* More consistent and predictable diff behavior  
-* Improved handling of nested structures  
-* A cleaner representation of node group data  
-* Enhanced support for long-term configuration management  
+> **Note:** These warnings do not impact functionality. Existing configurations will continue to work, but we recommend migrating to the new map-based format for better maintainability and to leverage the fixes. 
 
 To take advantage of these improvements, the provider now supports a map-based structure for node groups and managed node groups. This structure offers better clarity, simplifies future updates, and enables smoother lifecycle operations.
 

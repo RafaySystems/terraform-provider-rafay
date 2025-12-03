@@ -4,23 +4,19 @@
 
 The Rafay Terraform Provider uses an AI-powered changelog generation system that maintains the `CHANGELOG.md` file across master and release branches. This system ensures consistent, professional documentation of all changes following Terraform provider best practices.
 
-**Note:** Due to branch protection rules, changelog generation is a manual process. After a PR is merged, run the changelog generation script to update the CHANGELOG.
-
 ## Key Features
 
 - **AI-Powered Categorization**: Uses OpenAI GPT models to intelligently categorize and describe changes
 - **Deprecation Detection**: Scans Go code for `Deprecated` and `DeprecationMessage` fields
 - **Branch-Aware**: Handles both master branch (Unreleased) and release branches
-- **Cherry-Pick Support**: Works seamlessly with the existing cherry-pick workflow
-- **GitHub Release Integration**: Generates GitHub Release Notes from CHANGELOG
 
 ## How It Works
 
 ### 1. PR Merge to Master Branch
 
-**Note:** Due to branch protection rules, changelog generation must be done manually after PR merge.
+**Note:** Due to branch protection rules, changelog generation must be done manually prior to PR merge.
 
-After a PR is merged to the `master` branch:
+Before a PR is merged to the `master` branch:
 
 1. **Manual Script Execution**: Run the changelog generation script (see [Manual Operations](#manual-operations))
 2. **Deprecation Scanning**: Go code changes are scanned for deprecation warnings (optional, via `--deprecations-file`)
@@ -34,7 +30,7 @@ After a PR is merged to the `master` branch:
    - DOCUMENTATION
 5. **Fragment Creation**: Entries are written to `.changelog/{PR_NUMBER}.txt`
 6. **CHANGELOG Update**: Entries are added to the "Unreleased" section in `CHANGELOG.md`
-7. **Manual Commit**: Review, commit, and push the changes in a separate PR
+7. **Manual Commit**: Review, commit, and push the changes
 
 ### 2. PR Merge to Release Branch
 

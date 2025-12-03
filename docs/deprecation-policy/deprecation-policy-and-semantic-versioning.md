@@ -85,7 +85,7 @@ Based on HashiCorp Terraform recommended best practices ([Framework Deprecations
 
 ### Minimum Deprecation Periods
 
-Following HashiCorp and AWS provider standards:
+Following HashiCorp standards:
 
 - **Resources:** Minimum 6 months or 2 minor versions, whichever is longer
 - **Arguments/Attributes:** Minimum 3 months or 1 minor version, whichever is longer  
@@ -101,7 +101,7 @@ This section demonstrates how Go code deprecation warnings translate to user-fac
 
 ### Deprecation Message Best Practices
 
-Following HashiCorp's practitioner-focused messaging guidelines:
+Practitioner-focused messaging guidelines:
 
 **✅ GOOD Examples (Actionable and Clear):**
 - `"Configure metadata.project instead. This attribute will be removed in the next major version of the provider."`
@@ -143,7 +143,7 @@ Following HashiCorp's practitioner-focused messaging guidelines:
 
 ### Backward Compatibility Promise
 
-Following the [HashiCorp Terraform AWS Provider model](https://hashicorp.github.io/terraform-provider-aws/faq/), our backward compatibility policy is:
+As per the [HashiCorp Terraform AWS Provider model](https://hashicorp.github.io/terraform-provider-aws/faq/), our backward compatibility policy is:
 
 **Once a major release is published, will new features and fixes be backported to previous versions?**
 
@@ -234,7 +234,7 @@ v1.x (Previous) → END OF LIFE:
 
 ### CHANGELOG.md Integration
 
-Automated changelog generation via GitHub Actions with clear categorization:
+Manual changelog generation via GitHub Actions with clear categorization:
 
 - **BREAKING CHANGES:** Schema changes, resource removals, behavior changes requiring user action
 - **FEATURES:** New resources, data sources, and major functionality additions
@@ -246,7 +246,7 @@ Automated changelog generation via GitHub Actions with clear categorization:
 ### Changelog Format Example
 
 ```markdown
-## 2.0.0 (January 15, 2025)
+## 1.0.0 (January 15, 2024)
 
 BREAKING CHANGES:
 
@@ -273,7 +273,7 @@ BUG FIXES:
 
 DEPRECATIONS:
 
-* data-source/rafay_clusters: Deprecate in favor of type-specific data sources `rafay_eks_clusters` and `rafay_aks_clusters`. Will be removed in v3.0.0 ([#134](https://github.com/RafaySystems/terraform-provider-rafay/issues/134))
+* data-source/rafay_clusters: Deprecate in favor of type-specific data sources `rafay_eks_clusters` and `rafay_aks_clusters`. Will be removed in v2.0.0 ([#134](https://github.com/RafaySystems/terraform-provider-rafay/issues/134))
 ```
 
 ### User Notification Process
@@ -519,7 +519,7 @@ For non-security critical bugs requiring rapid action:
 - Automated testing of upgrade scenarios
 - Documentation review requirements
 
-## Summary: HashiCorp Deprecation Best Practices
+## Summary: Deprecation Best Practices
 
 This policy aligns with HashiCorp's core deprecation principles:
 
@@ -591,7 +591,4 @@ For questions about deprecations or migration assistance:
 ---
 
 **Document Version:** 1.0
-**Last Updated:** October 2025  
-**Change Summary:** Updated to align with HashiCorp Terraform Plugin Framework deprecation best practices
-
-This deprecation policy ensures predictable, user-friendly evolution of the Rafay Terraform Provider while maintaining stability and trust in production environments. It follows HashiCorp's recommended best practices for practitioner-focused communication, phased deprecation timelines, and multi-channel notification strategies.
+**Last Updated:** December 2025  

@@ -515,6 +515,6 @@ func expandClusterSharingSpec(p []interface{}) *commonpb.SharingSpec {
 		}
 	}
 
-	log.Println("expandClusterSharingSpec obj", obj)
+	log.Println("expandClusterSharingSpec obj", &obj)
 	return &obj
 }

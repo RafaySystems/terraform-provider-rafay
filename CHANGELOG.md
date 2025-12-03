@@ -2,21 +2,7 @@
 
 All notable changes to the Rafay Terraform Provider will be documented in this file.
 
-## Unreleased
-
-### BREAKING CHANGES
-
-### FEATURES
-
-### ENHANCEMENTS
-
-### BUG FIXES
-
-### DEPRECATIONS
-
-### DOCUMENTATION
-
-## 1.1.51 (October 15, 2024)
+## 1.1.51 (September 2025)
 
 ### FEATURES
 

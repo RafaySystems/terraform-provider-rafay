@@ -698,7 +698,7 @@ func expandResourceQuantityString(p []interface{}) *commonpb.ResourceQuantity {
 		log.Println("expandResourceQuantity CPU", obj.Cpu)
 	}
 
-	log.Println("expandResourceQuantity obj", obj)
+	log.Println("expandResourceQuantity obj", &obj)
 	return &obj
 }
 
@@ -787,7 +787,7 @@ func expandSharingSpec(p []interface{}) *commonpb.SharingSpec {
 		obj.Projects = expandProjectMeta(v.List())
 	}
 
-	log.Println("expandSharingSpec obj", obj)
+	log.Println("expandSharingSpec obj", &obj)
 	return &obj
 }
 
@@ -806,7 +806,7 @@ func expandSharingSpecV3(p []interface{}) *infrapb.Sharing {
 		obj.Projects = expandProjectMetaV3(v.List())
 	}
 
-	log.Println("expandSharingSpec obj", obj)
+	log.Println("expandSharingSpec obj", &obj)
 	return &obj
 }
 
@@ -1152,7 +1152,7 @@ func expandResourceQuantity1170(p []interface{}) *commonpb.ResourceQuantity {
 		log.Println("expandResourceQuantity1170 CPU", obj.Cpu)
 	}
 
-	log.Println("expandResourceQuantity1170 obj", obj)
+	log.Println("expandResourceQuantity1170 obj", &obj)
 	return &obj
 }
 
@@ -1221,7 +1221,9 @@ func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
 	obj := make(map[string]interface{})
 	if in.Memory != "" {
 		var m resource.QuantityValue
-		m.Set(in.GetMemory())
+		if err := m.Set(in.GetMemory()); err != nil {
+			log.Printf("warning: failed to set memory quantity: %v", err)
+		}
 		for i := 0; i < 10; i++ {
 			m.Add(m.Quantity)
 			//in.GetMemory().Add(*in.GetMemory())
@@ -1247,7 +1249,9 @@ func flattenResourceQuantity(in *commonpb.ResourceQuantity) []interface{} {
 
 	if in.Cpu != "" {
 		var cp resource.QuantityValue
-		cp.Set(in.GetCpu())
+		if err := cp.Set(in.GetCpu()); err != nil {
+			log.Printf("warning: failed to set CPU quantity: %v", err)
+		}
 		cp1 := cp
 		for i := 0; i < 999; i++ {
 			cp.Add(cp1.Quantity)

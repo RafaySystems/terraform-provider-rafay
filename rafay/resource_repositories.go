@@ -361,7 +361,7 @@ func expandRepositorySpec(p []interface{}) (*integrationspb.RepositorySpec, erro
 	}
 
 	// XXX Debug
-	s1 := spew.Sprintf("%+v", obj)
+	s1 := spew.Sprintf("%+v", &obj)
 	log.Println("expandRepositorySpec obj", s1)
 
 	return &obj, nil

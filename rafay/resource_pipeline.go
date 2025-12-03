@@ -333,7 +333,9 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 			var ct camelTriggers
 
 			b, _ := json.Marshal(in)
-			json.Unmarshal(b, &ct)
+			if err := json.Unmarshal(b, &ct); err != nil {
+				log.Printf("warning: failed to unmarshal camelTriggers: %v", err)
+			}
 			log.Println("status pipeline:", string(b))
 
 			var out []interface{}
@@ -345,7 +347,9 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 			b, _ = json.Marshal(st)
 			log.Println("status pipeline:", string(b))
 			var obj = make(map[string]interface{})
-			json.Unmarshal(b, &obj)
+			if err := json.Unmarshal(b, &obj); err != nil {
+				log.Printf("warning: failed to unmarshal pipeline triggers: %v", err)
+			}
 			out = append(out, obj)
 
 			log.Println("status pipeline:", []interface{}{out})
@@ -1058,7 +1062,7 @@ func expandStageSpec(p []interface{}) ([]*gitopspb.StageSpec, error) {
 				var err error
 				obj.Config, err = expandStageSpecConfigInfraProvisioner(v)
 				log.Println("expandStageSpec got InfraProvisioner")
-				w1 := spew.Sprintf("%+v", obj)
+				w1 := spew.Sprintf("%+v", &obj)
 				log.Println("expandStageSpecConfigInfraProvisioner  ", w1)
 
 				if err != nil {
@@ -1071,7 +1075,7 @@ func expandStageSpec(p []interface{}) ([]*gitopspb.StageSpec, error) {
 		}
 
 		// XXX Debug
-		s1 := spew.Sprintf("%+v", obj)
+		s1 := spew.Sprintf("%+v", &obj)
 		log.Println("expandStageSpec obj", s1)
 
 		out[i] = &obj
@@ -1119,7 +1123,7 @@ func expandStageSpecPreConditions(p []interface{}) []*gitopspb.PreConditionSpec 
 		}
 
 		// XXX Debug
-		s := spew.Sprintf("%+v", obj)
+		s := spew.Sprintf("%+v", &obj)
 		log.Println("expandStageSpecPreConditions repoSpec", s)
 
 		out[i] = &obj
@@ -1986,8 +1990,8 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 		}
 		obj["input_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
 	} else {
-		obj["input_vars"] = nil
 		retNil = false
+		obj["input_vars"] = nil
 	}
 
 	if in.Config.Action.TfVarsFilePath != nil {
@@ -2003,8 +2007,8 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 		}
 		obj["env_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
 	} else {
-		obj["env_vars"] = nil
 		retNil = false
+		obj["env_vars"] = nil
 	}
 
 	if len(in.Config.Action.BackendVars) > 0 {
@@ -2015,8 +2019,8 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 		}
 		obj["backend_vars"] = flattenStageSpecConfigActionKeyValue(in.Config.Action.InputVars, v)
 	} else {
-		obj["backend_vars"] = nil
 		retNil = false
+		obj["backend_vars"] = nil
 	}
 
 	if in.Config.Action.BackendFilePath != nil {
@@ -2037,8 +2041,8 @@ func flattenStageSpecAction(in *stageSpec) []interface{} {
 		}
 		obj["targets"] = flattenStageSpecConfigActionTargets(in.Config.Action.Targets, v)
 	} else {
-		obj["targets"] = nil
 		retNil = false
+		obj["targets"] = nil
 	}
 
 	if in.Config.Action.Destroy {

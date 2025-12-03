@@ -375,7 +375,9 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		values_filename := d.Get("clustername").(string) + "-values.yaml"
 		values_path, _ = filepath.Abs(values_filename)
 		log.Printf("Saving values file to: %s", values_path)
-		d.Set("values_path", values_path)
+		if err := d.Set("values_path", values_path); err != nil {
+			log.Println("failed to set values_path error", err)
+		}
 	}
 	fv, err := os.Create(values_path)
 
@@ -383,7 +385,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		log.Fatal(err)
 	}
 
-	defer fv.Close()
+	defer func() { _ = fv.Close() }()
 
 	_, err2 := fv.WriteString(values_file)
 
@@ -391,7 +393,9 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		log.Printf("values yaml file was not written correctly, error %s", err2.Error())
 		return diag.FromErr(err2)
 	}
-	d.Set("values_data", values_file)
+	if err := d.Set("values_data", values_file); err != nil {
+		log.Println("failed to set values_data error", err)
+	}
 
 	//then retrieve bootstrap yaml file, call GetBootstrapFile() -> make sure this function downloads the bootstrap file locally (i think the url request does)
 	bootstrap_file, err := cluster.GetBootstrapFile(d.Get("clustername").(string), project_id)
@@ -407,7 +411,9 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	} else {
 		bootstrap_path, _ = filepath.Abs("bootstrap.yaml")
 		log.Printf("Saving bootstrap file to: %s", bootstrap_path)
-		d.Set("bootstrap_path", bootstrap_path)
+		if err := d.Set("bootstrap_path", bootstrap_path); err != nil {
+			log.Println("failed to set bootstrap_path error", err)
+		}
 	}
 	f, err := os.Create(bootstrap_path)
 
@@ -415,7 +421,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		log.Fatal(err)
 	}
 
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	_, err2 = f.WriteString(bootstrap_file)
 
@@ -423,7 +429,9 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		log.Printf("bootstrap yaml file was not written correctly, error %s", err2.Error())
 		return diag.FromErr(err2)
 	}
-	d.Set("bootstrap_data", bootstrap_file)
+	if err := d.Set("bootstrap_data", bootstrap_file); err != nil {
+		log.Println("failed to set bootstrap_data error", err)
+	}
 	//pass in bootstrap file path into exec command
 	// bootstrap_filepath, _ := filepath.Abs("bootstrap.yaml")
 	//figure out how to apply bootstrap yaml file to created cluster STILL NEED TO COMPLETE

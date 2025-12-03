@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// go:embed resource_eks_cluster_description.md
+//go:embed resource_eks_cluster_description.md
 var resourceEKSClusterDescription string
 
 func resourceEKSCluster() *schema.Resource {
@@ -3552,9 +3552,12 @@ func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
 		var policyDoc map[string]interface{}
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		//json.Unmarshal(input, &data)
-		json2.Unmarshal([]byte(v), &policyDoc)
-		obj.Settings = policyDoc
-		log.Println("bottle rocket settings expanded correct")
+		if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+			log.Printf("warning: failed to unmarshal bottle rocket settings: %v", err)
+		} else {
+			obj.Settings = policyDoc
+			log.Println("bottle rocket settings expanded correct")
+		}
 	}
 	//docs dont have field skip endpoint creation but struct does
 	return obj
@@ -3670,9 +3673,12 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 	if v, ok := in["attach_policy_v2"].(string); ok && len(v) > 0 {
 		var policyDoc *InlineDocument
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		json2.Unmarshal([]byte(v), &policyDoc)
-		obj.AttachPolicy = policyDoc
-		//log.Println("attach policy expanded correct")
+		if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+			log.Printf("warning: failed to unmarshal attach policy: %v", err)
+		} else {
+			obj.AttachPolicy = policyDoc
+			//log.Println("attach policy expanded correct")
+		}
 	}
 
 	if v, ok := in["attach_policy_arns"].([]interface{}); ok && len(v) > 0 {
@@ -3729,24 +3735,33 @@ func expandStatement(p []interface{}) []InlineStatement {
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.Condition = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal condition policy: %v", err)
+			} else {
+				obj.Condition = policyDoc
+			}
 		}
 
 		if v, ok := in["principal"].(string); ok && len(v) > 0 {
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.Principal = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal principal policy: %v", err)
+			} else {
+				obj.Principal = policyDoc
+			}
 		}
 
 		if v, ok := in["not_principal"].(string); ok && len(v) > 0 {
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.NotPrincipal = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal not_principal policy: %v", err)
+			} else {
+				obj.NotPrincipal = policyDoc
+			}
 		}
 
 		out[i] = *obj
@@ -3948,8 +3963,11 @@ func expandAddons(p []interface{}) []*Addon { //checkhow to return a []*
 			var policyDoc *InlineDocument
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.AttachPolicy = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal attach_policy_v2: %v", err)
+			} else {
+				obj.AttachPolicy = policyDoc
+			}
 			//log.Println("attach policy expanded correct")
 		}
 
@@ -4247,8 +4265,11 @@ func expandIAMPodIdentityAssociationsConfig(p []interface{}) []*IAMPodIdentityAs
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.PermissionPolicy = policyDoc
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal permission_policy: %v", err)
+			} else {
+				obj.PermissionPolicy = policyDoc
+			}
 		}
 		if v, ok := in["permission_policy_arns"].([]interface{}); ok && len(v) > 0 {
 			obj.PermissionPolicyARNs = toArrayString(v)
@@ -4288,9 +4309,12 @@ func expandIAMServiceAccountsConfig(p []interface{}) []*EKSClusterIAMServiceAcco
 			var policyDoc map[string]interface{}
 			var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 			//json.Unmarshal(input, &data)
-			json2.Unmarshal([]byte(v), &policyDoc)
-			obj.AttachPolicy = policyDoc
-			log.Println("attach policy expanded correct")
+			if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
+				log.Printf("warning: failed to unmarshal attach_policy: %v", err)
+			} else {
+				obj.AttachPolicy = policyDoc
+				log.Println("attach policy expanded correct")
+			}
 		}
 		if v, ok := in["attach_role_arn"].(string); ok && len(v) > 0 {
 			obj.AttachRoleARN = v

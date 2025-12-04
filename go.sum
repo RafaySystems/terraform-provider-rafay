@@ -22,10 +22,10 @@ github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8 h1:Pce
 github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8/go.mod h1:5mRn2xN25Y8mpObHyOwDB3OLudeuglzHTQX9IiNHxhM=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e h1:SrznY+xkaQ4BkX0HXGa0upur7RAtR6UsTsdMNEgBreY=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e/go.mod h1:vDR0S28Q+hwE/5wO0L/Ohn9CZwaI/o2QuPupJ2iLI7k=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251103113511-05b1a32bbbc0 h1:8LKWepImU4h35JCxDZ17GGpuQ4oWJB8WY1D9IXMNl3o=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251103113511-05b1a32bbbc0/go.mod h1:NozE55WdAl4Td8+GMPxbRN/qI5tu8tkPBH/hj8aZqSE=
-github.com/RafaySystems/rctl v1.29.1-0.20251105214534-501a9e6c91c1 h1:Ay0PO/aJuFD6VNvNESuPRRyKZS1itdKbdk3z1bBEr6A=
-github.com/RafaySystems/rctl v1.29.1-0.20251105214534-501a9e6c91c1/go.mod h1:wkUnTFcFBbgivx61WxuKG53dOwbWpdYakiGiRhqQV9U=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251204072338-cec6d5d5064c h1:lhzHkP9o0pm00JD9jKMiGjwhyY/LPuQbYcMiMaPVx+A=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251204072338-cec6d5d5064c/go.mod h1:pTD2fcwZunDHvwxkXMWOF0YHaa0g+tmKRDKGUPeXcY8=
+github.com/RafaySystems/rctl v1.29.1-0.20251204082736-59516fe4f04c h1:2/BYArfpM6v2F1wGfDYfb7xRFPDVfltK52DXUQfSrb8=
+github.com/RafaySystems/rctl v1.29.1-0.20251204082736-59516fe4f04c/go.mod h1:K7uChTtjFKD7/nnBlLVYnAJ+t/m7QUlYMWF4qxi+rdc=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=
 github.com/RoaringBitmap/roaring v1.9.4/go.mod h1:6AXUsoIEzDTFFQCe1RbGA6uFONMhvejWj5rqITANK90=
 github.com/abhay-krishna/cluster-api v1.4.2-eksa.1 h1:mO+idOdh9Bpumgo41WJcrASPtJGSgmRxHNiwtUdUa+E=
@@ -789,8 +789,9 @@ sigs.k8s.io/controller-runtime v0.14.5 h1:6xaWFqzT5KuAQ9ufgUaj1G/+C4Y1GRkhrxl+BJ
 sigs.k8s.io/controller-runtime v0.14.5/go.mod h1:WqIdsAY6JBsjfc/CqO0CORmNtoCtE4S6qbPc9s68h+0=
 sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 h1:gBQPwqORJ8d8/YNZWEjoZs7npUVDpVXUUOFfW6CgAqE=
 sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8/go.mod h1:mdzfpAEoE6DHQEN0uh9ZbOCuHbLK5wOm7dK4ctXE9Tg=
-sigs.k8s.io/randfill v0.0.0-20250304075658-069ef1bbf016 h1:kXv6kKdoEtedwuqMmkqhbkgvYKeycVbC8+iPCP9j5kQ=
 sigs.k8s.io/randfill v0.0.0-20250304075658-069ef1bbf016/go.mod h1:XeLlZ/jmk4i1HRopwe7/aU3H5n1zNUcX6TM94b3QxOY=
+sigs.k8s.io/randfill v1.0.0 h1:JfjMILfT8A6RbawdsK2JXGBR5AQVfd+9TbzrlneTyrU=
+sigs.k8s.io/randfill v1.0.0/go.mod h1:XeLlZ/jmk4i1HRopwe7/aU3H5n1zNUcX6TM94b3QxOY=
 sigs.k8s.io/structured-merge-diff/v4 v4.7.0 h1:qPeWmscJcXP0snki5IYF79Z8xrl8ETFxgMd7wez1XkI=
 sigs.k8s.io/structured-merge-diff/v4 v4.7.0/go.mod h1:dDy58f92j70zLsuZVuUX5Wp9vtxXpaZnkPGWeqDfCps=
 sigs.k8s.io/yaml v1.4.0 h1:Mk1wCc2gy/F0THH0TAp1QYyJNzRm2KCLy3o5ASXVI5E=

@@ -32,6 +32,7 @@ resource "rafay_blueprint" "custom-blueprint" {
       enable_monitoring = true
       enable_vm         = false
       enable_csi_secret_store = true
+      disable_aws_node_termination_handler = true
       csi_secret_store_config {
         enable_secret_rotation = true
         sync_secrets = true
@@ -437,6 +438,7 @@ resource "rafay_blueprint" "cost-blueprint" {
 - `enable_kubeovn_chaning_cni` - (Boolean) If enabled, deploys custom kubeovn Cilium Chaning mode cni add-ons on the clusters. 
 - `enable_vm` - (Boolean) If enabled, VM operator (kubevirt) is installed on the cluster. 
 - `enable_csi_secret_store` - (Boolean) If enabled, Secrets Store CSI Driver Add-on is installed on the cluster. 
+- `disable_aws_node_termination_handler` - (Boolean) If enabled, AWS Node termination handler won't be installed on EKS cluster. It's for system blueprints except minimal. Values are either true/false here.
 - `csi_secret_store_config` - (Block List) The configuration for Secrets Store CSI Driver Add-on is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--csistore-config))
 - `monitoring` - (Block List) The configuration for monitoring the resource is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring))
 

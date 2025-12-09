@@ -264,9 +264,9 @@ resource "rafay_cluster_override" "override-with-addon-version" {
   }
 }
 
-resource "rafay_cluster_override" "override-with-addon-version-regex" {
+resource "rafay_cluster_override" "override-with-addon-semver-regex" {
   metadata {
-    name    = "override-with-addon-version-regex"
+    name    = "override-with-addon-semver-regex"
     project = "defaultproject"
     labels = {
       "rafay.dev/overrideScope" = "clusterLabels"
@@ -284,7 +284,7 @@ resource "rafay_cluster_override" "override-with-addon-version-regex" {
       }
     }
     resource_selector = "rafay.dev/name=nginx-yaml"
-    resource_version_regex = "v2"
+    resource_version_regex = "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
     type              = "ClusterOverrideTypeAddon"
     override_values   = <<-EOS
       apiVersion: apps/v1

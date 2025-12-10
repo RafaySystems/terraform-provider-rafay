@@ -1013,13 +1013,27 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `node_groups` - (Block List) The nodegroup attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--node_groups))
 - `vpc` - (Block List) The virtual private cloud which is the global subnet and all child subnets. (See [below for nested schema](#nestedblock--cluster_config--vpc))
 
-    **Note**: At least `managed_nodegroups` or `node_groups` is required. You can add both.
+<div style="border: 2px solid #448aff; background:#edf3ff; padding:12px; border-radius:6px; margin:12px 0;"> ✏️ <strong>Note</strong><br><br>
 
-    **Note**: The `managed_nodegroups` and `managed_nodegroups_map` are mutually exclusive attributes. The `node_groups` and `node_groups_map` are mutually exclusive attributes.
+At least <code>managed_nodegroups</code> or <code>node_groups</code> is required. You can add both.<br><br>
+
+The <code>managed_nodegroups</code> and <code>managed_nodegroups_map</code> are mutually exclusive attributes.<br><br>
+    
+The <code>node_groups</code> and <code>node_groups_map</code> are mutually exclusive attributes.<br><br>
+
+</div>
+
+<div style="border: 2px solid #448aff; background:#edf3ff; padding:12px; border-radius:6px; margin:12px 0;"> ✏️ <strong>Note</strong><br><br>
+
+Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster resource - Node group migration</a> guidelines page for migrating <code>node_groups</code>, <code>managed_nodegroups</code> to <code>node_groups_map</code>, <code>managed_nodegroups_map</code> respectively.<br><br>
+
+</div>
+
 
 ***Optional***
-- `managed_nodegroups_map` - (Map of Objects) The managed nodegroups map attributes of a cluster. (See [managed_node_groups schema](#nestedblock--cluster_config--managed_nodegroups) and migration doc for changes)
-- `node_groups_map` - (Map of Objects) The nodegroups map attributes of a cluster. (See [node_groups schema](#nestedblock--cluster_config--node_groups) and migration doc for changes)
+- `managed_nodegroups_map` - (Map of Objects) The managed nodegroups map attributes of a cluster. (See [managed_node_groups schema](#nestedblock--cluster_config--managed_nodegroups))
+- `node_groups_map` - (Map of Objects) The nodegroups map attributes of a cluster. (See [node_groups schema](#nestedblock--cluster_config--node_groups))
+
 - `kubernetes_network_config_map` - (Map of Objects) The cluster networking configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--kubernetes_network_config))
 - `availability_zones` - (List of String) The availability zones (AZ) of a cluster.
 - `cloud_watch` - (Block List, Max: 1) CloudWatch configuration for control plane logging. (See [below for nested schema](#nestedblock--cluster_config--cloud_watch))

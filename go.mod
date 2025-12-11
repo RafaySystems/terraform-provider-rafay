@@ -6,7 +6,7 @@ toolchain go1.24.8
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20240905053610-494a83a439f8
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251211052420-9d77a13ab889
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20251211092139-0134a5490b66
 	github.com/RafaySystems/rctl v1.29.1-0.20251211062720-34f535af3501
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible

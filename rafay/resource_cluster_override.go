@@ -104,6 +104,11 @@ func resourceClusterOverride() *schema.Resource {
 						Optional:    true,
 						Type:        schema.TypeString,
 					},
+					"resource_version_regex": &schema.Schema{
+						Description: "resource version regex",
+						Optional:    true,
+						Type:        schema.TypeString,
+					},
 					"type": &schema.Schema{
 						Description: "override type, accepted values are *ClusterOverrideTypeWorkload*, *ClusterOverrideTypeAddon* , *ClusterOverrideTypeWorkloadSetting*, *ClusterOverrideTypeAddonSetting* and *ClusterOverrideTypeClusterQuota*",
 						Optional:    true,
@@ -375,7 +380,7 @@ func resourceOverrideUpsert(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	err = clusteroverride.UpdateClusterOverride(or.Metadata.Name, projectId, or.Spec, status, true)
+	err = clusteroverride.UpdateClusterOverride(or.Metadata.Name, projectId, or.Spec, status, true, or.Metadata.Labels, or.Metadata.Annotations)
 	if err != nil {
 		log.Println("failed to create/update cluster override ", or.Metadata.Name, " error ", err)
 		return diag.FromErr(err)
@@ -493,6 +498,10 @@ func expandOverrideSpec(p []interface{}) (models.ClusterOverrideSpec, error) {
 
 	if v, ok := in["resource_selector"].(string); ok && len(v) > 0 {
 		obj.ResourceSelector = v
+	}
+
+	if v, ok := in["resource_version_regex"].(string); ok && len(v) > 0 {
+		obj.ResourceVersionRegex = v
 	}
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
@@ -742,6 +751,10 @@ func flattenOverrideSpecAndStatus(in models.ClusterOverrideSpec, inStatus models
 
 	if len(in.ResourceSelector) > 0 {
 		obj["resource_selector"] = in.ResourceSelector
+	}
+
+	if len(in.ResourceVersionRegex) > 0 {
+		obj["resource_version_regex"] = in.ResourceVersionRegex
 	}
 
 	if len(in.Type) > 0 {
@@ -1043,7 +1056,7 @@ func resourceClusterOverrideCreate1(ctx context.Context, d *schema.ResourceData,
 			log.Printf("Failed to get ClusterOverrideSpecFromYamlConfigSpec")
 		}
 		//create cluster override
-		err = clusteroverride.CreateClusterOverride(co.Metadata.Name, projectId, *spec)
+		err = clusteroverride.CreateClusterOverride(co.Metadata.Name, projectId, *spec, co.Metadata.Labels, co.Metadata.Annotations)
 		if err != nil {
 			log.Printf("Failed to create cluster override: %s\n", co.Metadata.Name)
 		} else {
@@ -1157,7 +1170,7 @@ func resourceClusterOverrideUpdate1(ctx context.Context, d *schema.ResourceData,
 		}
 
 		//update cluster
-		err = clusteroverride.UpdateClusterOverride(co.Metadata.Name, project_id, *spec, models.ClusterOverrideStatus{}, createIfNotPresent)
+		err = clusteroverride.UpdateClusterOverride(co.Metadata.Name, project_id, *spec, models.ClusterOverrideStatus{}, createIfNotPresent, co.Metadata.Labels, co.Metadata.Annotations)
 		if err != nil {
 			log.Printf("Failed to update cluster override: %s\n", co.Metadata.Name)
 			return diags

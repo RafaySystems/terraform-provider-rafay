@@ -156,6 +156,11 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 								MarkdownDescription: "Installer TTL Configuration",
 								Default:             int64default.StaticInt64(365),
 							},
+							"kubelet_configuration_overrides": schema.StringAttribute{
+								Optional:            true,
+								Description:         "cluster kubelet configuration overrides",
+								MarkdownDescription: "cluster kubelet configuration overrides",
+							},
 							"kubelet_extra_args": schema.MapAttribute{
 								ElementType:         types.StringType,
 								Optional:            true,
@@ -283,6 +288,11 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 											Optional:            true,
 											Description:         "Interface to be used on the node",
 											MarkdownDescription: "Interface to be used on the node",
+										},
+										"kubelet_configuration_overrides": schema.StringAttribute{
+											Optional:            true,
+											Description:         "node kubelet configuration overrides",
+											MarkdownDescription: "node kubelet configuration overrides",
 										},
 										"kubelet_extra_args": schema.MapAttribute{
 											ElementType:         types.StringType,
@@ -2457,6 +2467,24 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 			fmt.Sprintf(`installer_ttl expected to be basetypes.Int64Value, was: %T`, installerTtlAttribute))
 	}
 
+	kubeletConfigurationOverridesAttribute, ok := attributes["kubelet_configuration_overrides"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kubelet_configuration_overrides is missing from object`)
+
+		return nil, diags
+	}
+
+	kubeletConfigurationOverridesVal, ok := kubeletConfigurationOverridesAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kubelet_configuration_overrides expected to be basetypes.StringValue, was: %T`, kubeletConfigurationOverridesAttribute))
+	}
+
 	kubeletExtraArgsAttribute, ok := attributes["kubelet_extra_args"]
 
 	if !ok {
@@ -2588,19 +2616,20 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 	}
 
 	return ConfigValue{
-		AutoApproveNodes:      autoApproveNodesVal,
-		ClusterSsh:            clusterSshVal,
-		DedicatedControlPlane: dedicatedControlPlaneVal,
-		HighAvailability:      highAvailabilityVal,
-		InstallerTtl:          installerTtlVal,
-		KubeletExtraArgs:      kubeletExtraArgsVal,
-		KubernetesUpgrade:     kubernetesUpgradeVal,
-		KubernetesVersion:     kubernetesVersionVal,
-		Location:              locationVal,
-		Network:               networkVal,
-		Nodes:                 nodesVal,
-		PlatformVersion:       platformVersionVal,
-		state:                 attr.ValueStateKnown,
+		AutoApproveNodes:              autoApproveNodesVal,
+		ClusterSsh:                    clusterSshVal,
+		DedicatedControlPlane:         dedicatedControlPlaneVal,
+		HighAvailability:              highAvailabilityVal,
+		InstallerTtl:                  installerTtlVal,
+		KubeletConfigurationOverrides: kubeletConfigurationOverridesVal,
+		KubeletExtraArgs:              kubeletExtraArgsVal,
+		KubernetesUpgrade:             kubernetesUpgradeVal,
+		KubernetesVersion:             kubernetesVersionVal,
+		Location:                      locationVal,
+		Network:                       networkVal,
+		Nodes:                         nodesVal,
+		PlatformVersion:               platformVersionVal,
+		state:                         attr.ValueStateKnown,
 	}, diags
 }
 
@@ -2757,6 +2786,24 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 			fmt.Sprintf(`installer_ttl expected to be basetypes.Int64Value, was: %T`, installerTtlAttribute))
 	}
 
+	kubeletConfigurationOverridesAttribute, ok := attributes["kubelet_configuration_overrides"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kubelet_configuration_overrides is missing from object`)
+
+		return NewConfigValueUnknown(), diags
+	}
+
+	kubeletConfigurationOverridesVal, ok := kubeletConfigurationOverridesAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kubelet_configuration_overrides expected to be basetypes.StringValue, was: %T`, kubeletConfigurationOverridesAttribute))
+	}
+
 	kubeletExtraArgsAttribute, ok := attributes["kubelet_extra_args"]
 
 	if !ok {
@@ -2888,19 +2935,20 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 	}
 
 	return ConfigValue{
-		AutoApproveNodes:      autoApproveNodesVal,
-		ClusterSsh:            clusterSshVal,
-		DedicatedControlPlane: dedicatedControlPlaneVal,
-		HighAvailability:      highAvailabilityVal,
-		InstallerTtl:          installerTtlVal,
-		KubeletExtraArgs:      kubeletExtraArgsVal,
-		KubernetesUpgrade:     kubernetesUpgradeVal,
-		KubernetesVersion:     kubernetesVersionVal,
-		Location:              locationVal,
-		Network:               networkVal,
-		Nodes:                 nodesVal,
-		PlatformVersion:       platformVersionVal,
-		state:                 attr.ValueStateKnown,
+		AutoApproveNodes:              autoApproveNodesVal,
+		ClusterSsh:                    clusterSshVal,
+		DedicatedControlPlane:         dedicatedControlPlaneVal,
+		HighAvailability:              highAvailabilityVal,
+		InstallerTtl:                  installerTtlVal,
+		KubeletConfigurationOverrides: kubeletConfigurationOverridesVal,
+		KubeletExtraArgs:              kubeletExtraArgsVal,
+		KubernetesUpgrade:             kubernetesUpgradeVal,
+		KubernetesVersion:             kubernetesVersionVal,
+		Location:                      locationVal,
+		Network:                       networkVal,
+		Nodes:                         nodesVal,
+		PlatformVersion:               platformVersionVal,
+		state:                         attr.ValueStateKnown,
 	}, diags
 }
 
@@ -2972,23 +3020,24 @@ func (t ConfigType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = ConfigValue{}
 
 type ConfigValue struct {
-	AutoApproveNodes      basetypes.BoolValue   `tfsdk:"auto_approve_nodes"`
-	ClusterSsh            basetypes.ObjectValue `tfsdk:"cluster_ssh"`
-	DedicatedControlPlane basetypes.BoolValue   `tfsdk:"dedicated_control_plane"`
-	HighAvailability      basetypes.BoolValue   `tfsdk:"high_availability"`
-	InstallerTtl          basetypes.Int64Value  `tfsdk:"installer_ttl"`
-	KubeletExtraArgs      basetypes.MapValue    `tfsdk:"kubelet_extra_args"`
-	KubernetesUpgrade     basetypes.ObjectValue `tfsdk:"kubernetes_upgrade"`
-	KubernetesVersion     basetypes.StringValue `tfsdk:"kubernetes_version"`
-	Location              basetypes.StringValue `tfsdk:"location"`
-	Network               basetypes.ObjectValue `tfsdk:"network"`
-	Nodes                 basetypes.MapValue    `tfsdk:"nodes"`
-	PlatformVersion       basetypes.StringValue `tfsdk:"platform_version"`
-	state                 attr.ValueState
+	AutoApproveNodes              basetypes.BoolValue   `tfsdk:"auto_approve_nodes"`
+	ClusterSsh                    basetypes.ObjectValue `tfsdk:"cluster_ssh"`
+	DedicatedControlPlane         basetypes.BoolValue   `tfsdk:"dedicated_control_plane"`
+	HighAvailability              basetypes.BoolValue   `tfsdk:"high_availability"`
+	InstallerTtl                  basetypes.Int64Value  `tfsdk:"installer_ttl"`
+	KubeletConfigurationOverrides basetypes.StringValue `tfsdk:"kubelet_configuration_overrides"`
+	KubeletExtraArgs              basetypes.MapValue    `tfsdk:"kubelet_extra_args"`
+	KubernetesUpgrade             basetypes.ObjectValue `tfsdk:"kubernetes_upgrade"`
+	KubernetesVersion             basetypes.StringValue `tfsdk:"kubernetes_version"`
+	Location                      basetypes.StringValue `tfsdk:"location"`
+	Network                       basetypes.ObjectValue `tfsdk:"network"`
+	Nodes                         basetypes.MapValue    `tfsdk:"nodes"`
+	PlatformVersion               basetypes.StringValue `tfsdk:"platform_version"`
+	state                         attr.ValueState
 }
 
 func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 12)
+	attrTypes := make(map[string]tftypes.Type, 13)
 
 	var val tftypes.Value
 	var err error
@@ -3000,6 +3049,7 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 	attrTypes["dedicated_control_plane"] = basetypes.BoolType{}.TerraformType(ctx)
 	attrTypes["high_availability"] = basetypes.BoolType{}.TerraformType(ctx)
 	attrTypes["installer_ttl"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["kubelet_configuration_overrides"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["kubelet_extra_args"] = basetypes.MapType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
@@ -3020,7 +3070,7 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 12)
+		vals := make(map[string]tftypes.Value, 13)
 
 		val, err = v.AutoApproveNodes.ToTerraformValue(ctx)
 
@@ -3061,6 +3111,14 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 		}
 
 		vals["installer_ttl"] = val
+
+		val, err = v.KubeletConfigurationOverrides.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["kubelet_configuration_overrides"] = val
 
 		val, err = v.KubeletExtraArgs.ToTerraformValue(ctx)
 
@@ -3257,9 +3315,10 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"cluster_ssh": basetypes.ObjectType{
 				AttrTypes: ClusterSshValue{}.AttributeTypes(ctx),
 			},
-			"dedicated_control_plane": basetypes.BoolType{},
-			"high_availability":       basetypes.BoolType{},
-			"installer_ttl":           basetypes.Int64Type{},
+			"dedicated_control_plane":         basetypes.BoolType{},
+			"high_availability":               basetypes.BoolType{},
+			"installer_ttl":                   basetypes.Int64Type{},
+			"kubelet_configuration_overrides": basetypes.StringType{},
 			"kubelet_extra_args": basetypes.MapType{
 				ElemType: types.StringType,
 			},
@@ -3283,9 +3342,10 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		"cluster_ssh": basetypes.ObjectType{
 			AttrTypes: ClusterSshValue{}.AttributeTypes(ctx),
 		},
-		"dedicated_control_plane": basetypes.BoolType{},
-		"high_availability":       basetypes.BoolType{},
-		"installer_ttl":           basetypes.Int64Type{},
+		"dedicated_control_plane":         basetypes.BoolType{},
+		"high_availability":               basetypes.BoolType{},
+		"installer_ttl":                   basetypes.Int64Type{},
+		"kubelet_configuration_overrides": basetypes.StringType{},
 		"kubelet_extra_args": basetypes.MapType{
 			ElemType: types.StringType,
 		},
@@ -3314,18 +3374,19 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"auto_approve_nodes":      v.AutoApproveNodes,
-			"cluster_ssh":             clusterSsh,
-			"dedicated_control_plane": v.DedicatedControlPlane,
-			"high_availability":       v.HighAvailability,
-			"installer_ttl":           v.InstallerTtl,
-			"kubelet_extra_args":      kubeletExtraArgsVal,
-			"kubernetes_upgrade":      kubernetesUpgrade,
-			"kubernetes_version":      v.KubernetesVersion,
-			"location":                v.Location,
-			"network":                 network,
-			"nodes":                   nodes,
-			"platform_version":        v.PlatformVersion,
+			"auto_approve_nodes":              v.AutoApproveNodes,
+			"cluster_ssh":                     clusterSsh,
+			"dedicated_control_plane":         v.DedicatedControlPlane,
+			"high_availability":               v.HighAvailability,
+			"installer_ttl":                   v.InstallerTtl,
+			"kubelet_configuration_overrides": v.KubeletConfigurationOverrides,
+			"kubelet_extra_args":              kubeletExtraArgsVal,
+			"kubernetes_upgrade":              kubernetesUpgrade,
+			"kubernetes_version":              v.KubernetesVersion,
+			"location":                        v.Location,
+			"network":                         network,
+			"nodes":                           nodes,
+			"platform_version":                v.PlatformVersion,
 		})
 
 	return objVal, diags
@@ -3363,6 +3424,10 @@ func (v ConfigValue) Equal(o attr.Value) bool {
 	}
 
 	if !v.InstallerTtl.Equal(other.InstallerTtl) {
+		return false
+	}
+
+	if !v.KubeletConfigurationOverrides.Equal(other.KubeletConfigurationOverrides) {
 		return false
 	}
 
@@ -3411,9 +3476,10 @@ func (v ConfigValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"cluster_ssh": basetypes.ObjectType{
 			AttrTypes: ClusterSshValue{}.AttributeTypes(ctx),
 		},
-		"dedicated_control_plane": basetypes.BoolType{},
-		"high_availability":       basetypes.BoolType{},
-		"installer_ttl":           basetypes.Int64Type{},
+		"dedicated_control_plane":         basetypes.BoolType{},
+		"high_availability":               basetypes.BoolType{},
+		"installer_ttl":                   basetypes.Int64Type{},
+		"kubelet_configuration_overrides": basetypes.StringType{},
 		"kubelet_extra_args": basetypes.MapType{
 			ElemType: types.StringType,
 		},
@@ -6031,6 +6097,24 @@ func (t NodesType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue
 			fmt.Sprintf(`interface expected to be basetypes.StringValue, was: %T`, interfaceAttribute))
 	}
 
+	kubeletConfigurationOverridesAttribute, ok := attributes["kubelet_configuration_overrides"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kubelet_configuration_overrides is missing from object`)
+
+		return nil, diags
+	}
+
+	kubeletConfigurationOverridesVal, ok := kubeletConfigurationOverridesAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kubelet_configuration_overrides expected to be basetypes.StringValue, was: %T`, kubeletConfigurationOverridesAttribute))
+	}
+
 	kubeletExtraArgsAttribute, ok := attributes["kubelet_extra_args"]
 
 	if !ok {
@@ -6162,17 +6246,18 @@ func (t NodesType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue
 	}
 
 	return NodesValue{
-		Arch:             archVal,
-		Hostname:         hostnameVal,
-		Interface:        interfaceVal,
-		KubeletExtraArgs: kubeletExtraArgsVal,
-		Labels:           labelsVal,
-		OperatingSystem:  operatingSystemVal,
-		PrivateIp:        privateIpVal,
-		Roles:            rolesVal,
-		Ssh:              sshVal,
-		Taints:           taintsVal,
-		state:            attr.ValueStateKnown,
+		Arch:                          archVal,
+		Hostname:                      hostnameVal,
+		Interface:                     interfaceVal,
+		KubeletConfigurationOverrides: kubeletConfigurationOverridesVal,
+		KubeletExtraArgs:              kubeletExtraArgsVal,
+		Labels:                        labelsVal,
+		OperatingSystem:               operatingSystemVal,
+		PrivateIp:                     privateIpVal,
+		Roles:                         rolesVal,
+		Ssh:                           sshVal,
+		Taints:                        taintsVal,
+		state:                         attr.ValueStateKnown,
 	}, diags
 }
 
@@ -6293,6 +6378,24 @@ func NewNodesValue(attributeTypes map[string]attr.Type, attributes map[string]at
 			fmt.Sprintf(`interface expected to be basetypes.StringValue, was: %T`, interfaceAttribute))
 	}
 
+	kubeletConfigurationOverridesAttribute, ok := attributes["kubelet_configuration_overrides"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kubelet_configuration_overrides is missing from object`)
+
+		return NewNodesValueUnknown(), diags
+	}
+
+	kubeletConfigurationOverridesVal, ok := kubeletConfigurationOverridesAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kubelet_configuration_overrides expected to be basetypes.StringValue, was: %T`, kubeletConfigurationOverridesAttribute))
+	}
+
 	kubeletExtraArgsAttribute, ok := attributes["kubelet_extra_args"]
 
 	if !ok {
@@ -6424,17 +6527,18 @@ func NewNodesValue(attributeTypes map[string]attr.Type, attributes map[string]at
 	}
 
 	return NodesValue{
-		Arch:             archVal,
-		Hostname:         hostnameVal,
-		Interface:        interfaceVal,
-		KubeletExtraArgs: kubeletExtraArgsVal,
-		Labels:           labelsVal,
-		OperatingSystem:  operatingSystemVal,
-		PrivateIp:        privateIpVal,
-		Roles:            rolesVal,
-		Ssh:              sshVal,
-		Taints:           taintsVal,
-		state:            attr.ValueStateKnown,
+		Arch:                          archVal,
+		Hostname:                      hostnameVal,
+		Interface:                     interfaceVal,
+		KubeletConfigurationOverrides: kubeletConfigurationOverridesVal,
+		KubeletExtraArgs:              kubeletExtraArgsVal,
+		Labels:                        labelsVal,
+		OperatingSystem:               operatingSystemVal,
+		PrivateIp:                     privateIpVal,
+		Roles:                         rolesVal,
+		Ssh:                           sshVal,
+		Taints:                        taintsVal,
+		state:                         attr.ValueStateKnown,
 	}, diags
 }
 
@@ -6506,21 +6610,22 @@ func (t NodesType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = NodesValue{}
 
 type NodesValue struct {
-	Arch             basetypes.StringValue `tfsdk:"arch"`
-	Hostname         basetypes.StringValue `tfsdk:"hostname"`
-	Interface        basetypes.StringValue `tfsdk:"interface"`
-	KubeletExtraArgs basetypes.MapValue    `tfsdk:"kubelet_extra_args"`
-	Labels           basetypes.MapValue    `tfsdk:"labels"`
-	OperatingSystem  basetypes.StringValue `tfsdk:"operating_system"`
-	PrivateIp        basetypes.StringValue `tfsdk:"private_ip"`
-	Roles            basetypes.SetValue    `tfsdk:"roles"`
-	Ssh              basetypes.ObjectValue `tfsdk:"ssh"`
-	Taints           basetypes.SetValue    `tfsdk:"taints"`
-	state            attr.ValueState
+	Arch                          basetypes.StringValue `tfsdk:"arch"`
+	Hostname                      basetypes.StringValue `tfsdk:"hostname"`
+	Interface                     basetypes.StringValue `tfsdk:"interface"`
+	KubeletConfigurationOverrides basetypes.StringValue `tfsdk:"kubelet_configuration_overrides"`
+	KubeletExtraArgs              basetypes.MapValue    `tfsdk:"kubelet_extra_args"`
+	Labels                        basetypes.MapValue    `tfsdk:"labels"`
+	OperatingSystem               basetypes.StringValue `tfsdk:"operating_system"`
+	PrivateIp                     basetypes.StringValue `tfsdk:"private_ip"`
+	Roles                         basetypes.SetValue    `tfsdk:"roles"`
+	Ssh                           basetypes.ObjectValue `tfsdk:"ssh"`
+	Taints                        basetypes.SetValue    `tfsdk:"taints"`
+	state                         attr.ValueState
 }
 
 func (v NodesValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 10)
+	attrTypes := make(map[string]tftypes.Type, 11)
 
 	var val tftypes.Value
 	var err error
@@ -6528,6 +6633,7 @@ func (v NodesValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error)
 	attrTypes["arch"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["hostname"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["interface"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["kubelet_configuration_overrides"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["kubelet_extra_args"] = basetypes.MapType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
@@ -6550,7 +6656,7 @@ func (v NodesValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error)
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 10)
+		vals := make(map[string]tftypes.Value, 11)
 
 		val, err = v.Arch.ToTerraformValue(ctx)
 
@@ -6575,6 +6681,14 @@ func (v NodesValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error)
 		}
 
 		vals["interface"] = val
+
+		val, err = v.KubeletConfigurationOverrides.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["kubelet_configuration_overrides"] = val
 
 		val, err = v.KubeletExtraArgs.ToTerraformValue(ctx)
 
@@ -6725,9 +6839,10 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
-			"arch":      basetypes.StringType{},
-			"hostname":  basetypes.StringType{},
-			"interface": basetypes.StringType{},
+			"arch":                            basetypes.StringType{},
+			"hostname":                        basetypes.StringType{},
+			"interface":                       basetypes.StringType{},
+			"kubelet_configuration_overrides": basetypes.StringType{},
 			"kubelet_extra_args": basetypes.MapType{
 				ElemType: types.StringType,
 			},
@@ -6762,9 +6877,10 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
-			"arch":      basetypes.StringType{},
-			"hostname":  basetypes.StringType{},
-			"interface": basetypes.StringType{},
+			"arch":                            basetypes.StringType{},
+			"hostname":                        basetypes.StringType{},
+			"interface":                       basetypes.StringType{},
+			"kubelet_configuration_overrides": basetypes.StringType{},
 			"kubelet_extra_args": basetypes.MapType{
 				ElemType: types.StringType,
 			},
@@ -6799,9 +6915,10 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
-			"arch":      basetypes.StringType{},
-			"hostname":  basetypes.StringType{},
-			"interface": basetypes.StringType{},
+			"arch":                            basetypes.StringType{},
+			"hostname":                        basetypes.StringType{},
+			"interface":                       basetypes.StringType{},
+			"kubelet_configuration_overrides": basetypes.StringType{},
 			"kubelet_extra_args": basetypes.MapType{
 				ElemType: types.StringType,
 			},
@@ -6823,9 +6940,10 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 	}
 
 	attributeTypes := map[string]attr.Type{
-		"arch":      basetypes.StringType{},
-		"hostname":  basetypes.StringType{},
-		"interface": basetypes.StringType{},
+		"arch":                            basetypes.StringType{},
+		"hostname":                        basetypes.StringType{},
+		"interface":                       basetypes.StringType{},
+		"kubelet_configuration_overrides": basetypes.StringType{},
 		"kubelet_extra_args": basetypes.MapType{
 			ElemType: types.StringType,
 		},
@@ -6856,16 +6974,17 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"arch":               v.Arch,
-			"hostname":           v.Hostname,
-			"interface":          v.Interface,
-			"kubelet_extra_args": kubeletExtraArgsVal,
-			"labels":             labelsVal,
-			"operating_system":   v.OperatingSystem,
-			"private_ip":         v.PrivateIp,
-			"roles":              rolesVal,
-			"ssh":                ssh,
-			"taints":             taints,
+			"arch":                            v.Arch,
+			"hostname":                        v.Hostname,
+			"interface":                       v.Interface,
+			"kubelet_configuration_overrides": v.KubeletConfigurationOverrides,
+			"kubelet_extra_args":              kubeletExtraArgsVal,
+			"labels":                          labelsVal,
+			"operating_system":                v.OperatingSystem,
+			"private_ip":                      v.PrivateIp,
+			"roles":                           rolesVal,
+			"ssh":                             ssh,
+			"taints":                          taints,
 		})
 
 	return objVal, diags
@@ -6895,6 +7014,10 @@ func (v NodesValue) Equal(o attr.Value) bool {
 	}
 
 	if !v.Interface.Equal(other.Interface) {
+		return false
+	}
+
+	if !v.KubeletConfigurationOverrides.Equal(other.KubeletConfigurationOverrides) {
 		return false
 	}
 
@@ -6939,9 +7062,10 @@ func (v NodesValue) Type(ctx context.Context) attr.Type {
 
 func (v NodesValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"arch":      basetypes.StringType{},
-		"hostname":  basetypes.StringType{},
-		"interface": basetypes.StringType{},
+		"arch":                            basetypes.StringType{},
+		"hostname":                        basetypes.StringType{},
+		"interface":                       basetypes.StringType{},
+		"kubelet_configuration_overrides": basetypes.StringType{},
 		"kubelet_extra_args": basetypes.MapType{
 			ElemType: types.StringType,
 		},

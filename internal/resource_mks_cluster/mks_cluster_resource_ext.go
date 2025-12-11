@@ -639,6 +639,7 @@ func (v NodesValue) ToHub(ctx context.Context) (*infrapb.MksNode, diag.Diagnosti
 
 	hub.Labels = convertFromTfMap(v.Labels)
 	hub.KubeletExtraArgs = convertFromTfMap(v.KubeletExtraArgs)
+	hub.KubeletConfigurationOverrides = getStringValue(v.KubeletConfigurationOverrides)
 
 	for _, taint := range v.Taints.Elements() {
 		h, d := taint.(TaintsValue).ToHub(ctx)
@@ -683,6 +684,9 @@ func (v NodesValue) FromHub(ctx context.Context, hub *infrapb.MksNode) (NodesVal
 
 	v.Labels = convertToTfMap(hub.Labels)
 	v.KubeletExtraArgs = convertToTfMap(hub.KubeletExtraArgs)
+	if hub.KubeletConfigurationOverrides != "" {
+		v.KubeletConfigurationOverrides = types.StringValue(hub.KubeletConfigurationOverrides)
+	}
 
 	var tfTaints []attr.Value
 
@@ -736,6 +740,7 @@ func (v ConfigValue) ToHub(ctx context.Context) (*infrapb.MksV3ConfigObject, dia
 	hub.KubernetesVersion = getStringValue(v.KubernetesVersion)
 	hub.InstallerTtl = getInt64Value(v.InstallerTtl)
 	hub.KubeletExtraArgs = convertFromTfMap(v.KubeletExtraArgs)
+	hub.KubeletConfigurationOverrides = getStringValue(v.KubeletConfigurationOverrides)
 	hub.PlatformVersion = getStringValue(v.PlatformVersion)
 
 	var networkType NetworkType
@@ -797,7 +802,9 @@ func (v ConfigValue) FromHub(ctx context.Context, hub *infrapb.MksV3ConfigObject
 	v.InstallerTtl = types.Int64Value(hub.InstallerTtl)
 
 	v.KubeletExtraArgs = convertToTfMap(hub.KubeletExtraArgs)
-
+	if hub.KubeletConfigurationOverrides != "" {
+		v.KubeletConfigurationOverrides = types.StringValue(hub.KubeletConfigurationOverrides)
+	}
 	v.KubernetesVersion = types.StringValue(hub.KubernetesVersion)
 
 	network, d := NewNetworkValue(v.Network.AttributeTypes(ctx), v.Network.Attributes())

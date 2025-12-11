@@ -204,6 +204,13 @@
 												}
 											},
 											{
+												"name": "kubelet_configuration_overrides",
+												"string": {
+													"computed_optional_required": "optional",
+													"description": "cluster kubelet configuration overrides"
+												}
+											},
+											{
 												"name": "location",
 												"string": {
 													"computed_optional_required": "optional",
@@ -323,6 +330,13 @@
 																		"string": {}
 																	},
 																	"description": "node kubelet extra args"
+																}
+															},
+															{
+																"name": "kubelet_configuration_overrides",
+																"string": {
+																	"computed_optional_required": "optional",
+																	"description": "node kubelet configuration overrides"
 																}
 															},
 															{

@@ -339,6 +339,7 @@ You can change the current Kubernetes version under `spec.config.kubernetes_vers
 - `kubernetes_upgrade` (Attributes) Strategize the Kubernetes upgrade behaviour among the worker nodes (see [below for nested schema](#nestedatt--spec--config--kubernetes_upgrade))
 - `location` (String) The data center location where the cluster nodes will be launched
 - `platform_version` (String) Platform version that allows upgrading the cluster's internal components such as Cluster utils, Orchestration proxy, Orchestration agent, CRI, and etcd.
+- `kubelet_configuration_overrides` (String) Define advanced kubelet settings using YAML. These configurations are validated automatically and form the base kubelet behavior. Use this for structured, persistent settings.
 
 <a id="nestedatt--spec--config--network"></a>
 ### Nested Schema for `spec.config.network`
@@ -390,6 +391,7 @@ You can change the current Kubernetes version under `spec.config.kubernetes_vers
 - `kubelet_extra_args` (Map of String) Node kubelet extra args.
 - `ssh` (Attributes) Override SSH Config at the node level. This is usefull when nodes within cluster come up with different SSH configuration.(see [below for nested schema](#nestedatt--spec--config--nodes--ssh))
 - `taints` (Attributes Set) A node taint lets you mark a node so that the scheduler avoids or prevents using it for certain Pods. Node taints can be used with tolerations to ensure that Pods aren't scheduled onto inappropriate nodes  (see [below for nested schema](#nestedatt--spec--config--nodes--taints))
+- `kubelet_configuration_overrides` (String) Define advanced kubelet settings using YAML. These configurations are validated automatically and form the base kubelet behavior. Use this for structured, persistent settings.
 
 <a id="nestedatt--spec--config--nodes--ssh"></a>
 ### Nested Schema for `spec.config.nodes.ssh`

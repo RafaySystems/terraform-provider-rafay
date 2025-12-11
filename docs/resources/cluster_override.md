@@ -255,9 +255,9 @@ resource "rafay_cluster_override" "tfdemocluster-workload-setting-override" {
 Addon override matching with addon name and version
 
 ```terraform
-resource "rafay_cluster_override" "override-with-addon-version" {
+resource "rafay_cluster_override" "override-with-addon-semver-regex" {
   metadata {
-    name    = "override-with-addon-version"
+    name    = "override-with-addon-semver-regex"
     project = "defaultproject"
     labels = {
       "rafay.dev/overrideScope" = "clusterLabels"
@@ -275,6 +275,44 @@ resource "rafay_cluster_override" "override-with-addon-version" {
       }
     }
     resource_selector = "rafay.dev/name=nginx-addon,rafay.dev/version=v2"
+    type              = "ClusterOverrideTypeAddon"
+    override_values   = <<-EOS
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nginx
+      patch:
+      - op: replace
+        path: /spec/replicas
+        value: 6
+    EOS
+  }
+}
+```
+
+Addon override matching with addon name and version regex
+```
+resource "rafay_cluster_override" "override-with-addon-version-regex" {
+  metadata {
+    name    = "override-with-addon-version-regex"
+    project = "defaultproject"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "manifestsFile"
+    }
+  }
+  spec {
+    artifact_type    = "NativeYAML"
+    cluster_selector = "rafay.dev/clusterName in (cluster-1)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key   = "rafay.dev/clusterName"
+        value = "cluster-1"
+      }
+    }
+    resource_selector = "rafay.dev/name=nginx-yaml"
+    resource_version_regex = "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
     type              = "ClusterOverrideTypeAddon"
     override_values   = <<-EOS
       apiVersion: apps/v1
@@ -335,6 +373,7 @@ resource "rafay_cluster_override" "override-with-addon-version" {
 
 - `sharing` (Block List, Max: 1) cluster override sharing configuration (see [below for nested schema](#nestedblock--spec--sharing))
     Note: `ClusterOverrideTypeClusterQuota` override type cannot be shared.
+- `resource_version_regex` (String) The regex to match an addon version with 
 
 
 <a id="nestedblock--spec--cluster_placement"></a>

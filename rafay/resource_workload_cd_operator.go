@@ -2082,7 +2082,7 @@ func checkProject(ctx context.Context, project string) (string, []string, error)
 
 func deployWorkload(ctx context.Context, cfg *WorkloadCDConfig, workloadSpec, folder, version string) error {
 	// deploy the workload
-	h, err := hubYAMLCodec.Decode([]byte(workloadSpec))
+	h, err := hubYAMLCodec.Decode([]byte(workloadSpec), codec.DecodeOptions{})
 	if err != nil {
 		err = errors.Wrapf(err, "unable to decode spec")
 		log.Println("deployWorkload spec decode error", err)

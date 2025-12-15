@@ -10,6 +10,7 @@ import (
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	v3 "github.com/RafaySystems/rafay-common/pkg/hub/client/typed/infra/v3"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
@@ -25,6 +26,15 @@ const (
 	ClusterScoped   = "cluster-scoped"
 	NamespaceScoped = "namespace-scoped"
 )
+
+var getBlueprintClient = func() (v3.BlueprintClient, error) {
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	if err != nil {
+		return nil, err
+	}
+	return client.InfraV3().Blueprint(), nil
+}
 
 func resourceBluePrint() *schema.Resource {
 	return &schema.Resource{
@@ -92,13 +102,12 @@ func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m inte
 			log.Printf("blueprint expandBluePrint error")
 			return diags
 		}
-		auth := config.GetConfig().GetAppAuthProfile()
-		client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+		client, err := getBlueprintClient()
 		if err != nil {
 			return diags
 		}
 
-		err = client.InfraV3().Blueprint().Delete(ctx, options.DeleteOptions{
+		err = client.Delete(ctx, options.DeleteOptions{
 			Name:    bp.Metadata.Name,
 			Project: bp.Metadata.Project,
 		})
@@ -137,13 +146,12 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
-	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := getBlueprintClient()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = client.InfraV3().Blueprint().Apply(ctx, blueprint, options.ApplyOptions{})
+	err = client.Apply(ctx, blueprint, options.ApplyOptions{})
 	if err != nil {
 		// XXX Debug
 		n1 := spew.Sprintf("%+v", blueprint)
@@ -182,13 +190,12 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interf
 	// w1 := spew.Sprintf("%+v", tfBlueprintState)
 	// log.Println("resourceBluePrintRead tfBlueprintState", w1)
 
-	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := getBlueprintClient()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	bp, err := client.InfraV3().Blueprint().Get(ctx, options.GetOptions{
+	bp, err := client.Get(ctx, options.GetOptions{
 		//Name:    tfBlueprintState.Metadata.Name,
 		Name:    meta.Name,
 		Project: tfBlueprintState.Metadata.Project,
@@ -242,13 +249,12 @@ func resourceBluePrintDelete(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
-	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := getBlueprintClient()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = client.InfraV3().Blueprint().Delete(ctx, options.DeleteOptions{
+	err = client.Delete(ctx, options.DeleteOptions{
 		Name:    bp.Metadata.Name,
 		Project: bp.Metadata.Project,
 	})

@@ -283,10 +283,10 @@ resource "rafay_cluster_override" "override-with-addon-semver-regex" {
         value = "cluster-2"
       }
     }
-    resource_selector = "rafay.dev/name=nginx-yaml"
+    resource_selector      = "rafay.dev/name=nginx-yaml"
     resource_version_regex = "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
-    type              = "ClusterOverrideTypeAddon"
-    override_values   = <<-EOS
+    type                   = "ClusterOverrideTypeAddon"
+    override_values        = <<-EOS
       apiVersion: apps/v1
       kind: Deployment
       metadata:

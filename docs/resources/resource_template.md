@@ -3,7 +3,7 @@
 page_title: "rafay_resource_template Resource - terraform-provider-rafay"
 subcategory: ""
 description: |-
-  
+
 ---
 
 # rafay_resource_template (Resource)
@@ -409,6 +409,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--notification))
 
 <a id="nestedblock--spec--hooks--on_completion--options--approval"></a>
 ### Nested Schema for `spec.hooks.on_completion.options.approval`
@@ -452,6 +453,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--on_completion--options--notification"></a>
+
+### Nested Schema for `spec.hooks.on_completion.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--on_completion--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.on_completion.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--on_failure"></a>
 ### Nested Schema for `spec.hooks.on_failure`
@@ -488,6 +512,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--notification))
 
 <a id="nestedblock--spec--hooks--on_failure--options--approval"></a>
 ### Nested Schema for `spec.hooks.on_failure.options.approval`
@@ -531,6 +556,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--on_failure--options--notification"></a>
+
+### Nested Schema for `spec.hooks.on_failure.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--on_failure--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.on_failure.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--on_init"></a>
 ### Nested Schema for `spec.hooks.on_init`
@@ -567,6 +615,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--notification))
 
 <a id="nestedblock--spec--hooks--on_init--options--approval"></a>
 ### Nested Schema for `spec.hooks.on_init.options.approval`
@@ -610,6 +659,32 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--on_init--options--notification"></a>
+
+### Nested Schema for `spec.hooks.on_init.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--notification--email))
+- `microsoft_teams` (Block List, Max: 1) Specify the options for microsoft teams notifications (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--notification--microsoft_teams))
+- `slack` (Block List, Max: 1) Specify the options for slack notifications (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--notification--slack))
+- `type` (String) Specify the approval type
+- `webhook` (Block List, Max: 1) Specify the options for webhook notifications (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--notification--webhook))
+
+<a id="nestedblock--spec--hooks--on_init--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.on_init.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--on_success"></a>
 ### Nested Schema for `spec.hooks.on_success`
@@ -646,6 +721,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--notification))
 
 <a id="nestedblock--spec--hooks--on_success--options--approval"></a>
 ### Nested Schema for `spec.hooks.on_success.options.approval`
@@ -689,6 +765,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--on_success--options--notification"></a>
+
+### Nested Schema for `spec.hooks.on_success.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--on_success--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.on_success.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider"></a>
 ### Nested Schema for `spec.hooks.provider`
@@ -758,6 +857,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--apply--after--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--apply--after--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--apply--after--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--apply--after--options--notification))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--apply--after--options--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.apply.after.options.approval`
@@ -803,6 +903,30 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `success_condition` (String) Specify the success condition of the request
 
 
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--apply--after--options--notification"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.apply.after.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--apply--after--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--apply--after--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.apply.after.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
+
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--apply--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.apply.before`
 
@@ -838,6 +962,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--apply--before--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--apply--before--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--apply--before--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--apply--before--options--notification))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--apply--before--options--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.apply.before.options.approval`
@@ -881,8 +1006,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--apply--before--options--notification"></a>
 
+### Nested Schema for `spec.hooks.provider.terraform.deploy.apply.before.options.notification`
 
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--apply--before--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--apply--before--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.apply.before.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--init"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.init`
@@ -927,6 +1073,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--init--after--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--init--after--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--init--after--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--init--after--options--notification))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--init--after--options--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.init.after.options.approval`
@@ -971,8 +1118,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--init--after--options--notification"></a>
 
+### Nested Schema for `spec.hooks.provider.terraform.deploy.init.after.options.notification`
 
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--init--after--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--init--after--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.init.after.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--init--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.init.before`
@@ -1009,6 +1177,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--init--before--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--init--before--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--init--before--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--init--before--options--notification))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--init--before--options--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.init.before.options.approval`
@@ -1052,7 +1221,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--init--before--options--notification"></a>
 
+### Nested Schema for `spec.hooks.provider.terraform.deploy.init.before.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--init--before--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--init--before--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.init.before.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--output"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.output`
@@ -1097,6 +1288,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--output--after--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--output--after--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--output--after--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--output--after--options--notification))
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--output--after--options--approval"></a>
@@ -1142,6 +1334,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--output--after--options--notification"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.output.after.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--output--after--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--output--after--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.output.after.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--output--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.output.before`
@@ -1178,6 +1393,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--output--before--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--output--before--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--output--before--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--output--before--options--notification))
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--output--before--options--approval"></a>
@@ -1223,6 +1439,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--output--before--options--notification"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.output.before.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--output--before--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--output--before--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.output.before.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan`
@@ -1267,6 +1506,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--after--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--after--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--after--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--after--options--notification))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--after--options--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.after.options.approval`
@@ -1310,6 +1550,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--after--options--notification"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.after.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--after--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--after--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.after.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before`
@@ -1346,6 +1609,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options--notification))
 
 <a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.options.approval`
@@ -1389,6 +1653,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options--notification"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--deploy--plan--before--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.deploy.plan.before.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy`
@@ -1442,6 +1729,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--destroy--after--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--destroy--after--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--destroy--after--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--destroy--after--options--notification))
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--destroy--after--options--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.destroy.before.options.approval`
@@ -1485,7 +1773,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--destroy--destroy--after--options--notification"></a>
 
+### Nested Schema for `spec.hooks.provider.terraform.destroy.destroy.after.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--destroy--after--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--destroy--destroy--after--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.destroy.destroy.after.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--destroy--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.destroy.before`
@@ -1522,6 +1832,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--destroy--before--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--destroy--before--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--destroy--before--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--destroy--before--options--notification))
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--destroy--before--options--approval"></a>
@@ -1567,7 +1878,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--destroy--destroy--before--options--notification"></a>
 
+### Nested Schema for `spec.hooks.provider.terraform.destroy.destroy.before.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--destroy--before--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--destroy--destroy--before--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.destroy.destroy.before.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--init"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.init`
@@ -1612,6 +1945,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--init--after--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--init--after--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--init--after--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--init--after--options--notification))
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy-init--after--options--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.init.after.options.approval`
@@ -1656,7 +1990,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--destroy--init--after--options--notification"></a>
 
+### Nested Schema for `spec.hooks.provider.terraform.destroy.init.after.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--init--after--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--destroy--init--after--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.destroy.init.after.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--init--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.init.before`
@@ -1693,6 +2049,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--init--before--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--init--before--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--init--before--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--init--before--options--notification))
 
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--init--before--options--approval"></a>
@@ -1737,6 +2094,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--destroy--init--before--options--notification"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.destroy.init.before.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--init--before--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--destroy--init--before--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.destroy.init.before.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan`
@@ -1781,6 +2161,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--after--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--after--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--after--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--after--options--notification))
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--after--options--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.after.options.approval`
@@ -1824,6 +2205,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--after--options--notification"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.after.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--after--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--after--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.after.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before`
@@ -1860,6 +2264,7 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options--notification))
 
 <a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options--approval"></a>
 ### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.options.approval`
@@ -1904,6 +2309,29 @@ resource "rafay_resource_template" "aws-elasticache-rt-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options--notification"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--provider--terraform--destroy--plan--before--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.provider.terraform.destroy.plan.before.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--artifact_driver"></a>
 ### Nested Schema for `spec.artifact_driver`
@@ -2571,7 +2999,7 @@ Optional:
 - `refresh` (Block List, Max: 1) Skip checking for external changes to remote objects while creating the plan. This can potentially make planning faster, but at the expense of possibly planning against a stale record of the remote system state. (see [below for nested schema](#nestedblock--spec--provider_options--terraform--refresh))
 - `target_resources` (List of String) Limit the planning operation to only the given module, resource, or resource instance and all of its dependencies
 - `timeout_seconds` (Number) Timeout in seconds
-- `backend_type` (String) Specify the backend type, Supported types are `custom`, `system`, `terraform_cloud`  
+- `backend_type` (String) Specify the backend type, Supported types are `custom`, `system`, `terraform_cloud`
 - `var_files` (List of String) Load variable values from the given file, in addition to the default files terraform.tfvars and *.auto.tfvars. Use this option more than once to include more than one variables files
 - `version` (String) Terraform version
 - `volumes` (Block List) volumes to be mounted into the terraform driver (see [below for nested schema](#nestedblock--spec--provider_options--terraform--volumes))

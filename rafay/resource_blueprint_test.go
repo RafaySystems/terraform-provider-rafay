@@ -44,37 +44,46 @@ func (m *MockBlueprintClient) List(ctx context.Context, opts options.ListOptions
 	return nil, args.Error(1)
 }
 
-func TestResourceBlueprintCreate(t *testing.T) {
-	// Setup mock
+func TestResourceBlueprint(t *testing.T) {
+	// Setup shared mock
 	mockClient := new(MockBlueprintClient)
 
-	// Override the client getter
+	// Override the client getter globally for this test suite
 	oldGetBlueprintClient := getBlueprintClient
 	defer func() { getBlueprintClient = oldGetBlueprintClient }()
 	getBlueprintClient = func() (v3.BlueprintClient, error) {
 		return mockClient, nil
 	}
 
+	tests := []struct {
+		name string
+		run  func(*testing.T, *MockBlueprintClient)
+	}{
+		{"Create", testResourceBlueprintCreate},
+		{"Read", testResourceBlueprintRead},
+		{"Update", testResourceBlueprintUpdate},
+		{"Delete", testResourceBlueprintDelete},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.run(t, mockClient)
+			// Reset expectations after each test to ensure isolation
+			mockClient.ExpectedCalls = nil
+			mockClient.Calls = nil
+		})
+	}
+}
+
+func testResourceBlueprintCreate(t *testing.T, mockClient *MockBlueprintClient) {
 	// Setup expectations
 	mockClient.On("Apply", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-
-	// Check if already exists check - read call?
-	// In resourceBluePrintCreate:
-	// create := isBlueprintAlreadyExists(ctx, d)
-	//    -> resourceBluePrintRead
-	//       -> client.Get
-	// So we expect a Get call first which might return error/empty for "exists check" or we can mock it to return error 404
-
-	// Wait, isBlueprintAlreadyExists creates a NEW resourceData, so it might check if id is set?
-	// Let's check isBlueprintAlreadyExists impl if available or infer from usage.
-	// Usually it checks if ID is set. If we create a fresh ResourceData, ID is empty.
 
 	// Create Test Resource Data
 	resourceSchema := resourceBluePrint().Schema
 	resourceDataMap := map[string]interface{}{
 		"metadata": []interface{}{
 			map[string]interface{}{
-				"name":    "test-blueprint",
+				"name":    "test-blueprint-create",
 				"project": "test-project",
 			},
 		},
@@ -90,13 +99,7 @@ func TestResourceBlueprintCreate(t *testing.T) {
 		},
 	}
 	d := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-	d.SetId("") // New resource
-
-	// The code:
-	// create := isBlueprintAlreadyExists(ctx, d)
-	// diags := resourceBluePrintUpsert(ctx, d, m)
-
-	// We expect Apply to be called.
+	d.SetId("")
 
 	ctx := context.Background()
 	diags := resourceBluePrintCreate(ctx, d, nil)
@@ -105,18 +108,10 @@ func TestResourceBlueprintCreate(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
-func TestResourceBlueprintRead(t *testing.T) {
-	mockClient := new(MockBlueprintClient)
-
-	oldGetBlueprintClient := getBlueprintClient
-	defer func() { getBlueprintClient = oldGetBlueprintClient }()
-	getBlueprintClient = func() (v3.BlueprintClient, error) {
-		return mockClient, nil
-	}
-
+func testResourceBlueprintRead(t *testing.T, mockClient *MockBlueprintClient) {
 	expectedBP := &infrapb.Blueprint{
 		Metadata: &commonpb.Metadata{
-			Name:    "test-blueprint",
+			Name:    "test-blueprint-read",
 			Project: "test-project",
 		},
 		Spec: &infrapb.BlueprintSpec{
@@ -125,22 +120,20 @@ func TestResourceBlueprintRead(t *testing.T) {
 	}
 
 	mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
-		return opts.Name == "test-blueprint" && opts.Project == "test-project"
+		return opts.Name == "test-blueprint-read" && opts.Project == "test-project"
 	})).Return(expectedBP, nil)
 
 	resourceSchema := resourceBluePrint().Schema
 	resourceDataMap := map[string]interface{}{
 		"metadata": []interface{}{
 			map[string]interface{}{
-				"name":    "test-blueprint",
+				"name":    "test-blueprint-read",
 				"project": "test-project",
 			},
 		},
 	}
 	d := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-	d.SetId("test-blueprint")
-	// Wait, getMetaName uses ID if set? Or metadata name?
-	// In Read: Use GetMetaData(d) -> reads from config/schema
+	d.SetId("test-blueprint-read")
 
 	ctx := context.Background()
 	diags := resourceBluePrintRead(ctx, d, nil)
@@ -149,22 +142,14 @@ func TestResourceBlueprintRead(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
-func TestResourceBlueprintUpdate(t *testing.T) {
-	mockClient := new(MockBlueprintClient)
-
-	oldGetBlueprintClient := getBlueprintClient
-	defer func() { getBlueprintClient = oldGetBlueprintClient }()
-	getBlueprintClient = func() (v3.BlueprintClient, error) {
-		return mockClient, nil
-	}
-
+func testResourceBlueprintUpdate(t *testing.T, mockClient *MockBlueprintClient) {
 	mockClient.On("Apply", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	resourceSchema := resourceBluePrint().Schema
 	resourceDataMap := map[string]interface{}{
 		"metadata": []interface{}{
 			map[string]interface{}{
-				"name":    "test-blueprint",
+				"name":    "test-blueprint-update",
 				"project": "test-project",
 			},
 		},
@@ -175,7 +160,7 @@ func TestResourceBlueprintUpdate(t *testing.T) {
 		},
 	}
 	d := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-	d.SetId("test-blueprint")
+	d.SetId("test-blueprint-update")
 
 	ctx := context.Background()
 	diags := resourceBluePrintUpdate(ctx, d, nil)
@@ -184,30 +169,22 @@ func TestResourceBlueprintUpdate(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
-func TestResourceBlueprintDelete(t *testing.T) {
-	mockClient := new(MockBlueprintClient)
-
-	oldGetBlueprintClient := getBlueprintClient
-	defer func() { getBlueprintClient = oldGetBlueprintClient }()
-	getBlueprintClient = func() (v3.BlueprintClient, error) {
-		return mockClient, nil
-	}
-
+func testResourceBlueprintDelete(t *testing.T, mockClient *MockBlueprintClient) {
 	mockClient.On("Delete", mock.Anything, mock.MatchedBy(func(opts options.DeleteOptions) bool {
-		return opts.Name == "test-blueprint" && opts.Project == "test-project"
+		return opts.Name == "test-blueprint-delete" && opts.Project == "test-project"
 	})).Return(nil)
 
 	resourceSchema := resourceBluePrint().Schema
 	resourceDataMap := map[string]interface{}{
 		"metadata": []interface{}{
 			map[string]interface{}{
-				"name":    "test-blueprint",
+				"name":    "test-blueprint-delete",
 				"project": "test-project",
 			},
 		},
 	}
 	d := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-	d.SetId("test-blueprint")
+	d.SetId("test-blueprint-delete")
 
 	ctx := context.Background()
 	diags := resourceBluePrintDelete(ctx, d, nil)

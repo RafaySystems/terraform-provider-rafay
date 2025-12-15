@@ -403,6 +403,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--notification))
 
 <a id="nestedblock--spec--hooks--on_completion--options--approval"></a>
 ### Nested Schema for `spec.hooks.on_completion.options.approval`
@@ -446,6 +447,29 @@ resource "rafay_environment_template" "aws-et-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--on_completion--options--notification"></a>
+
+### Nested Schema for `spec.hooks.on_completion.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--on_completion--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--on_completion--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.on_completion.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--on_failure"></a>
 ### Nested Schema for `spec.hooks.on_failure`
@@ -481,6 +505,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--notification))
 
 <a id="nestedblock--spec--hooks--on_failure--options--approval"></a>
 ### Nested Schema for `spec.hooks.on_failure.options.approval`
@@ -525,6 +550,29 @@ resource "rafay_environment_template" "aws-et-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--on_failure--options--notification"></a>
+
+### Nested Schema for `spec.hooks.on_failure.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--on_failure--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--on_failure--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.on_failure.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--on_init"></a>
 ### Nested Schema for `spec.hooks.on_init`
@@ -560,6 +608,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--notification))
 
 <a id="nestedblock--spec--hooks--on_init--options--approval"></a>
 ### Nested Schema for `spec.hooks.on_init.options.approval`
@@ -604,6 +653,29 @@ resource "rafay_environment_template" "aws-et-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--on_init--options--notification"></a>
+
+### Nested Schema for `spec.hooks.on_init.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--on_init--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--on_init--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.on_init.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--hooks--on_success"></a>
 ### Nested Schema for `spec.hooks.on_success`
@@ -639,6 +711,7 @@ resource "rafay_environment_template" "aws-et-example" {
 - `approval` (Block List, Max: 1) Specify the approval options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--approval))
 - `container` (Block List, Max: 1) Specify the container options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--container))
 - `http` (Block List, Max: 1) Specify the http options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--http))
+- `notification` (Block List, Max: 1) Specify the notification options (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--notification))
 
 <a id="nestedblock--spec--hooks--on_success--options--approval"></a>
 ### Nested Schema for `spec.hooks.on_success.options.approval`
@@ -682,7 +755,29 @@ resource "rafay_environment_template" "aws-et-example" {
 - `method` (String) Specify the http method to be used
 - `success_condition` (String) Specify the success condition of the request
 
+<a id="nestedblock--spec--hooks--on_success--options--notification"></a>
 
+### Nested Schema for `spec.hooks.on_success.options.notification`
+
+***Optional***
+
+- `email` (Block List, Max: 1) Specify the options for email notifications (see [below for nested schema](#nestedblock--spec--hooks--on_success--options--notification--email))
+- `type` (String) Specify the approval type
+
+<a id="nestedblock--spec--hooks--on_success--options--notification--email"></a>
+
+### Nested Schema for `spec.hooks.on_success.options.notification.email`
+
+***Optional***
+
+- `bccs` (List of String) Specify the set of bcc addresses
+- `body` (String) Specify the body of the email
+- `ccs` (List of String) Specify the set of cc addresses
+- `receivers` (List of String) Specify the set of receivers to be notified
+- `sender` (String) Specify the sender of the email
+- `subject` (String) Specify the subject of the email
+- `use_default_bcc` (Boolean) Specify if the default bcc is to be used
+- `use_default_sender` (Boolean) Specify if the default sender is to be used
 
 <a id="nestedblock--spec--resources"></a>
 ### Nested Schema for `spec.resources`

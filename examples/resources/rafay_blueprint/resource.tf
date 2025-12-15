@@ -15,10 +15,10 @@ resource "rafay_blueprint" "blueprint" {
       enable_sync = true
     }
     default_addons {
-      enable_ingress          = true
-      enable_csi_secret_store = true
-      enable_monitoring       = true
-      enable_vm               = false
+      enable_ingress                       = true
+      enable_csi_secret_store              = true
+      enable_monitoring                    = true
+      enable_vm                            = false
       disable_aws_node_termination_handler = true
 
       csi_secret_store_config {

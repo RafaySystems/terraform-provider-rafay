@@ -141,9 +141,9 @@ resource "rafay_addon" "tfdemoaddon7" {
       type = "Kustomize"
       artifact {
         repository = "kustomize-repo"
-        revision = "master"
-        directory = "examples/multibases"
-        path = "production"
+        revision   = "master"
+        directory  = "examples/multibases"
+        path       = "production"
       }
     }
     sharing {

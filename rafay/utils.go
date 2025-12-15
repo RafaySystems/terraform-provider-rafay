@@ -1693,13 +1693,105 @@ func expandGithubPRApprovalOptions(p []interface{}) *eaaspb.GithubPullRequestApp
 	return ghao
 }
 
-func expandNotificationOptions(p []interface{}) *eaaspb.NotificationOptions {
+func expandNotificationOptions(p []any) *eaaspb.NotificationOptions {
 	no := &eaaspb.NotificationOptions{}
 	if len(p) == 0 || p[0] == nil {
 		return no
 	}
 
+	in := p[0].(map[string]any)
+
+	if t, ok := in["type"].(string); ok && len(t) > 0 {
+		no.Type = t
+	}
+
+	if e, ok := in["email"].([]any); ok && len(e) > 0 {
+		no.Email = expandEmailNotificationOptions(e)
+	}
+
+	if s, ok := in["slack"].([]any); ok && len(s) > 0 {
+		no.Slack = expandSlackNotificationOptions(s)
+	}
+
+	if mt, ok := in["microsoft_teams"].([]any); ok && len(mt) > 0 {
+		no.MicrosoftTeams = expandMicrosoftTeamsNotificationOptions(mt)
+	}
+
+	if w, ok := in["webhook"].([]any); ok && len(w) > 0 {
+		no.Webhook = expandWebhookNotificationOptions(w)
+	}
+
 	return no
+}
+
+func expandEmailNotificationOptions(e []any) *eaaspb.EmailNotificationOptions {
+	eno := &eaaspb.EmailNotificationOptions{}
+	if len(e) == 0 || e[0] == nil {
+		return eno
+	}
+
+	in := e[0].(map[string]any)
+
+	if s, ok := in["sender"].(string); ok && len(s) > 0 {
+		eno.Sender = s
+	}
+
+	if r, ok := in["receivers"].([]any); ok && len(r) > 0 {
+		eno.Receivers = toArrayString(r)
+	}
+
+	if cc, ok := in["ccs"].([]any); ok && len(cc) > 0 {
+		eno.Ccs = toArrayString(cc)
+	}
+
+	if bccs, ok := in["bccs"].([]any); ok && len(bccs) > 0 {
+		eno.Bccs = toArrayString(bccs)
+	}
+
+	if s, ok := in["subject"].(string); ok && len(s) > 0 {
+		eno.Subject = s
+	}
+
+	if b, ok := in["body"].(string); ok && len(b) > 0 {
+		eno.Body = b
+	}
+
+	if uds, ok := in["use_default_sender"].(bool); ok {
+		eno.UseDefaultSender = uds
+	}
+
+	if udb, ok := in["use_default_bcc"].(bool); ok {
+		eno.UseDefaultBcc = udb
+	}
+
+	return eno
+}
+
+func expandSlackNotificationOptions(s []any) *eaaspb.SlackNotificationOptions {
+	sno := &eaaspb.SlackNotificationOptions{}
+	if len(s) == 0 || s[0] == nil {
+		return sno
+	}
+
+	return sno
+}
+
+func expandMicrosoftTeamsNotificationOptions(mt []any) *eaaspb.MicrosoftTeamsNotificationOptions {
+	mto := &eaaspb.MicrosoftTeamsNotificationOptions{}
+	if len(mt) == 0 || mt[0] == nil {
+		return mto
+	}
+
+	return mto
+}
+
+func expandWebhookNotificationOptions(w []any) *eaaspb.WebhookNotificationOptions {
+	wno := &eaaspb.WebhookNotificationOptions{}
+	if len(w) == 0 || w[0] == nil {
+		return wno
+	}
+
+	return wno
 }
 
 func expandScriptOptions(p []interface{}) *eaaspb.ShellScriptOptions {
@@ -1867,7 +1959,8 @@ func flattenHookOptions(input *eaaspb.HookOptions, p []interface{}) []interface{
 	v, _ := obj["approval"].([]interface{})
 	obj["approval"] = flattenApprovalOptions(input.Approval, v)
 
-	obj["notification"] = flattenNotificationOptions(input.Notification)
+	v, _ = obj["notification"].([]any)
+	obj["notification"] = flattenNotificationOptions(input.Notification, v)
 
 	v, _ = obj["script"].([]interface{})
 	obj["script"] = flattenScriptOptions(input.Script, v)
@@ -1942,13 +2035,80 @@ func flattenGithubPRApprovalOptions(input *eaaspb.GithubPullRequestApprovalOptio
 	return []interface{}{obj}
 }
 
-func flattenNotificationOptions(input *eaaspb.NotificationOptions) []interface{} {
+func flattenNotificationOptions(input *eaaspb.NotificationOptions, p []any) []any {
 	if input == nil {
 		return nil
 	}
 
-	obj := map[string]interface{}{}
-	return []interface{}{obj}
+	obj := map[string]any{}
+	if len(p) > 0 && p[0] != nil {
+		obj = p[0].(map[string]any)
+	}
+
+	obj["type"] = input.Type
+
+	v, _ := obj["email"].([]any)
+	obj["email"] = flattenEmailNotificationOptions(input.Email, v)
+
+	v, _ = obj["slack"].([]any)
+	obj["slack"] = flattenSlackNotificationOptions(input.Slack, v)
+
+	v, _ = obj["microsoft_teams"].([]any)
+	obj["microsoft_teams"] = flattenMicrosoftTeamsNotificationOptions(input.MicrosoftTeams, v)
+
+	v, _ = obj["webhook"].([]any)
+	obj["webhook"] = flattenWebhookNotificationOptions(input.Webhook, v)
+
+	return []any{obj}
+}
+
+func flattenEmailNotificationOptions(input *eaaspb.EmailNotificationOptions, p []any) []any {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]any{}
+	if len(p) > 0 && p[0] != nil {
+		obj = p[0].(map[string]any)
+	}
+
+	obj["sender"] = input.Sender
+	obj["receivers"] = toArrayInterface(input.Receivers)
+	obj["ccs"] = toArrayInterface(input.Ccs)
+	obj["bccs"] = toArrayInterface(input.Bccs)
+	obj["subject"] = input.Subject
+	obj["body"] = input.Body
+	obj["use_default_sender"] = input.UseDefaultSender
+	obj["use_default_bcc"] = input.UseDefaultBcc
+
+	return []any{obj}
+}
+
+func flattenSlackNotificationOptions(input *eaaspb.SlackNotificationOptions, _ []any) []any {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]any{}
+	return []any{obj}
+}
+
+func flattenMicrosoftTeamsNotificationOptions(input *eaaspb.MicrosoftTeamsNotificationOptions, _ []any) []any {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]any{}
+	return []any{obj}
+}
+
+func flattenWebhookNotificationOptions(input *eaaspb.WebhookNotificationOptions, _ []any) []any {
+	if input == nil {
+		return nil
+	}
+
+	obj := map[string]any{}
+	return []any{obj}
 }
 
 func flattenScriptOptions(input *eaaspb.ShellScriptOptions, p []interface{}) []interface{} {

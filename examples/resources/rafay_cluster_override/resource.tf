@@ -263,3 +263,38 @@ resource "rafay_cluster_override" "override-with-addon-version" {
     EOS
   }
 }
+
+resource "rafay_cluster_override" "override-with-addon-semver-regex" {
+  metadata {
+    name    = "override-with-addon-semver-regex"
+    project = "defaultproject"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "manifestsFile"
+    }
+  }
+  spec {
+    artifact_type    = "NativeYAML"
+    cluster_selector = "rafay.dev/clusterName in (cluster-2)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key   = "rafay.dev/clusterName"
+        value = "cluster-2"
+      }
+    }
+    resource_selector = "rafay.dev/name=nginx-yaml"
+    resource_version_regex = "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+    type              = "ClusterOverrideTypeAddon"
+    override_values   = <<-EOS
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nginx
+      patch:
+      - op: replace
+        path: /spec/replicas
+        value: 6
+    EOS
+  }
+}

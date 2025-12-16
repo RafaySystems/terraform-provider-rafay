@@ -164,7 +164,7 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 	return diags
 }
 
-func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, _ interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	log.Println("resourceBlueprintRead ")

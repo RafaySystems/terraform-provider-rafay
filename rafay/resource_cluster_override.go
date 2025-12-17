@@ -25,6 +25,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+var (
+	deleteClusterOverrideFunc = clusteroverride.DeleteClusterOverride
+	getProjectIdByNameFunc    = config.GetProjectIdByName
+	updateClusterOverrideFunc = clusteroverride.UpdateClusterOverride
+	getClusterOverrideFunc    = clusteroverride.GetClusterOverride
+	getProjectNameByIdFunc    = config.GetProjectNameById
+)
+
 type clusterOverrideYamlConfig struct {
 	Kind       string                     `json:"kind,omitempty" yaml:"kind"`
 	ApiVersion string                     `json:"apiversion,omitempty" yaml:"apiVersion"`
@@ -324,12 +332,12 @@ func resourceClusterOverrideCreate(ctx context.Context, d *schema.ResourceData, 
 			return diags
 		}
 
-		projectId, err := config.GetProjectIdByName(or.Metadata.Project)
+		projectId, err := getProjectIdByNameFunc(or.Metadata.Project)
 		if err != nil {
 			return diags
 		}
 
-		err = clusteroverride.DeleteClusterOverride(or.Metadata.Name, projectId, or.Spec.Type)
+		err = deleteClusterOverrideFunc(or.Metadata.Name, projectId, or.Spec.Type)
 		if err != nil {
 			log.Println("failed to delete cluster override ", or.Metadata.Name)
 			return diags
@@ -365,7 +373,7 @@ func resourceOverrideUpsert(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	projectId, err := config.GetProjectIdByName(or.Metadata.Project)
+	projectId, err := getProjectIdByNameFunc(or.Metadata.Project)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -380,7 +388,7 @@ func resourceOverrideUpsert(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	err = clusteroverride.UpdateClusterOverride(or.Metadata.Name, projectId, or.Spec, status, true, or.Metadata.Labels, or.Metadata.Annotations)
+	err = updateClusterOverrideFunc(or.Metadata.Name, projectId, or.Spec, status, true, or.Metadata.Labels, or.Metadata.Annotations)
 	if err != nil {
 		log.Println("failed to create/update cluster override ", or.Metadata.Name, " error ", err)
 		return diag.FromErr(err)
@@ -403,12 +411,12 @@ func resourceClusterOverrideDelete(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 
-	projectId, err := config.GetProjectIdByName(or.Metadata.Project)
+	projectId, err := getProjectIdByNameFunc(or.Metadata.Project)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = clusteroverride.DeleteClusterOverride(or.Metadata.Name, projectId, or.Spec.Type)
+	err = deleteClusterOverrideFunc(or.Metadata.Name, projectId, or.Spec.Type)
 	if err != nil {
 		log.Println("failed to delete cluster override ", or.Metadata.Name)
 		return diag.FromErr(err)
@@ -434,11 +442,11 @@ func resourceClusterOverrideRead(ctx context.Context, d *schema.ResourceData, m 
 	// w1 := spew.Sprintf("%+v", tfLocalState)
 	// log.Println("resourceBluePrintRead tfLocalState", w1)
 
-	projectId, err := config.GetProjectIdByName(tfLocalState.Metadata.Project)
+	projectId, err := getProjectIdByNameFunc(tfLocalState.Metadata.Project)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	remoteOr, err := clusteroverride.GetClusterOverride(tfLocalState.Metadata.Name, projectId, tfLocalState.Spec.Type)
+	remoteOr, err := getClusterOverrideFunc(tfLocalState.Metadata.Name, projectId, tfLocalState.Spec.Type)
 	if err != nil {
 		log.Println("get cluster override failed: ", err)
 		if strings.Contains(err.Error(), "resource does not exist") {
@@ -806,7 +814,7 @@ func flattenOverrideSharingSpec(in models.ClusterOverrideStatus, shareMode, owne
 		return []interface{}{obj}
 	}
 	for _, p := range in.Projects {
-		projectName, err := config.GetProjectNameById(string(p.ProjectID))
+		projectName, err := getProjectNameByIdFunc(string(p.ProjectID))
 		if err != nil {
 			return nil
 		}
@@ -994,7 +1002,7 @@ func createClusterOverrideStatus(or *clusterOverrideYamlConfig, projectId string
 		} else {
 			or.Spec.ShareMode = configv2.CUSTOM.String()
 			for _, project := range or.Spec.Sharing.Projects {
-				shareprojectId, err := config.GetProjectIdByName(project.Name)
+				shareprojectId, err := getProjectIdByNameFunc(project.Name)
 				if err != nil {
 					return models.ClusterOverrideStatus{}, err
 				}
@@ -1281,11 +1289,11 @@ func isClusterOverrideAlreadyExists(d *schema.ResourceData) bool {
 		return false
 	}
 
-	projectId, err := config.GetProjectIdByName(tfLocalState.Metadata.Project)
+	projectId, err := getProjectIdByNameFunc(tfLocalState.Metadata.Project)
 	if err != nil {
 		return false
 	}
-	_, err = clusteroverride.GetClusterOverride(tfLocalState.Metadata.Name, projectId, tfLocalState.Spec.Type)
+	_, err = getClusterOverrideFunc(tfLocalState.Metadata.Name, projectId, tfLocalState.Spec.Type)
 	if err != nil {
 		return false
 	}

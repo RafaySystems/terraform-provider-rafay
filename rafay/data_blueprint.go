@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func dataBluePrint() *schema.Resource {
+func DataBluePrint() *schema.Resource {
 	s := copySchemaMap(resource.BlueprintSchema.Schema)
 	return &schema.Resource{
 		ReadContext: dataBluePrintRead,

@@ -66,7 +66,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_aks_cluster_spec":              resourceAKSClusterSpec(),
 				"rafay_gke_cluster":                   resourceGKEClusterV3(),
 				"rafay_addon":                         resourceAddon(),
-				"rafay_blueprint":                     resourceBluePrint(),
+				"rafay_blueprint":                     ResourceBluePrint(),
 				"rafay_import_cluster":                resourceImportCluster(),
 				"rafay_cluster_override":              resourceClusterOverride(),
 				"rafay_workload":                      resourceWorkload(),
@@ -132,7 +132,7 @@ func New(_ string) func() *schema.Provider {
 			DataSourcesMap: map[string]*schema.Resource{
 				"rafay_project":                  dataProject(),
 				"rafay_addon":                    dataAddon(),
-				"rafay_blueprint":                dataBluePrint(),
+				"rafay_blueprint":                DataBluePrint(),
 				"rafay_download_kubeconfig":      dataKubeConfig(),
 				"rafay_aks_cluster":              dataAKSCluster(),
 				"rafay_aks_cluster_v3":           dataAKSClusterV3(),

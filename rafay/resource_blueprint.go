@@ -37,15 +37,15 @@ var getBlueprintClient = func() (v3.BlueprintClient, error) {
 }
 
 func blueprintClient(m interface{}) (v3.BlueprintClient, error) {
-	if meta, ok := m.(*providerMeta); ok {
-		if meta.blueprintClientFactory != nil {
-			return meta.blueprintClientFactory()
+	if meta, ok := m.(*ProviderMeta); ok {
+		if meta.BlueprintClientFactory != nil {
+			return meta.BlueprintClientFactory()
 		}
 	}
 	return getBlueprintClient()
 }
 
-func resourceBluePrint() *schema.Resource {
+func ResourceBluePrint() *schema.Resource {
 	s := copySchemaMap(resource.BlueprintSchema.Schema)
 	return &schema.Resource{
 		CreateContext: resourceBluePrintCreate,
@@ -53,7 +53,7 @@ func resourceBluePrint() *schema.Resource {
 		UpdateContext: resourceBluePrintUpdate,
 		DeleteContext: resourceBluePrintDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceBluePrintImport,
+			State: ResourceBluePrintImport,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -67,7 +67,7 @@ func resourceBluePrint() *schema.Resource {
 	}
 }
 
-func resourceBluePrintImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func ResourceBluePrintImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	idParts := strings.SplitN(d.Id(), "/", 2)
 	log.Println("resourceBluePrintImport idParts:", idParts)
 	d_debug := spew.Sprintf("%+v", d)

@@ -1,4 +1,4 @@
-package rafay
+package rafay_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	v3 "github.com/RafaySystems/rafay-common/pkg/hub/client/typed/infra/v3"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
+	"github.com/RafaySystems/terraform-provider-rafay/rafay"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -54,23 +55,23 @@ func mustBlueprintFromJSON(t *testing.T, payload string) *infrapb.Blueprint {
 	return bp
 }
 
-func providerFactoriesWithMock(mockClient *MockBlueprintClient) map[string]func() (*schema.Provider, error) {
+func blueprintProviderFactoriesWithMock(mockClient *MockBlueprintClient) map[string]func() (*schema.Provider, error) {
 	return map[string]func() (*schema.Provider, error){
 		"rafay": func() (*schema.Provider, error) {
 			provider := &schema.Provider{
-				Schema: Schema(),
+				Schema: rafay.Schema(),
 				ResourcesMap: map[string]*schema.Resource{
-					"rafay_blueprint": resourceBluePrint(),
+					"rafay_blueprint": rafay.ResourceBluePrint(),
 				},
 				DataSourcesMap: map[string]*schema.Resource{
-					"rafay_blueprint": dataBluePrint(),
+					"rafay_blueprint": rafay.DataBluePrint(),
 				},
 				ConfigureContextFunc: func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-					pm := &providerMeta{}
-					pm.blueprintClientFactory = func() (v3.BlueprintClient, error) {
-						return mockClient, nil
-					}
-					return pm, nil
+					return &rafay.ProviderMeta{
+						BlueprintClientFactory: func() (v3.BlueprintClient, error) {
+							return mockClient, nil
+						},
+					}, nil
 				},
 			}
 			return provider, nil
@@ -87,7 +88,7 @@ func newBlueprintTestConfig() blueprintTestConfig {
 	mockClient := new(MockBlueprintClient)
 	return blueprintTestConfig{
 		mockClient:        mockClient,
-		providerFactories: providerFactoriesWithMock(mockClient),
+		providerFactories: blueprintProviderFactoriesWithMock(mockClient),
 	}
 }
 
@@ -398,7 +399,6 @@ func testResourceBlueprintReadComplexHCL(t *testing.T, cfg blueprintTestConfig) 
 	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
 		return opts.Name == "custom-blueprint" && opts.Project == "terraform"
 	})).Return(expectedBP, nil)
-
 	cfg.mockClient.On("Delete", mock.Anything, mock.Anything).Return(nil)
 
 	resource.UnitTest(t, resource.TestCase{

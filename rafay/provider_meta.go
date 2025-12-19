@@ -6,20 +6,20 @@ import (
 	v3 "github.com/RafaySystems/rafay-common/pkg/hub/client/typed/infra/v3"
 )
 
-type providerMeta struct {
+type ProviderMeta struct {
 	config                 *rctlconfig.Config
-	blueprintClientFactory blueprintClientFactory
+	BlueprintClientFactory BlueprintClientFactory
 }
 
-type blueprintClientFactory func() (v3.BlueprintClient, error)
+type BlueprintClientFactory func() (v3.BlueprintClient, error)
 
-func newProviderMeta(cfg *rctlconfig.Config) *providerMeta {
-	return &providerMeta{
+func newProviderMeta(cfg *rctlconfig.Config) *ProviderMeta {
+	return &ProviderMeta{
 		config: cfg,
 	}
 }
 
-func (p *providerMeta) Config() *rctlconfig.Config {
+func (p *ProviderMeta) Config() *rctlconfig.Config {
 	if p == nil {
 		return nil
 	}

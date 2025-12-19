@@ -231,6 +231,5 @@ func providerConfigure(ctx context.Context, rd *schema.ResourceData) (interface{
 		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
-	return rctlconfig.GetConfig(), diags
-
+	return newProviderMeta(rctlconfig.GetConfig()), diags
 }

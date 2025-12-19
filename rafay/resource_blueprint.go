@@ -36,6 +36,15 @@ var getBlueprintClient = func() (v3.BlueprintClient, error) {
 	return client.InfraV3().Blueprint(), nil
 }
 
+func blueprintClient(m interface{}) (v3.BlueprintClient, error) {
+	if meta, ok := m.(*providerMeta); ok {
+		if meta.blueprintClientFactory != nil {
+			return meta.blueprintClientFactory()
+		}
+	}
+	return getBlueprintClient()
+}
+
 func resourceBluePrint() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceBluePrintCreate,
@@ -102,7 +111,7 @@ func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m inte
 			log.Printf("blueprint expandBluePrint error")
 			return diags
 		}
-		client, err := getBlueprintClient()
+		client, err := blueprintClient(m)
 		if err != nil {
 			return diags
 		}
@@ -146,7 +155,7 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
-	client, err := getBlueprintClient()
+	client, err := blueprintClient(m)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -164,7 +173,7 @@ func resourceBluePrintUpsert(ctx context.Context, d *schema.ResourceData, m inte
 	return diags
 }
 
-func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, _ interface{}) diag.Diagnostics {
+func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	log.Println("resourceBlueprintRead ")
@@ -190,7 +199,7 @@ func resourceBluePrintRead(ctx context.Context, d *schema.ResourceData, _ interf
 	// w1 := spew.Sprintf("%+v", tfBlueprintState)
 	// log.Println("resourceBluePrintRead tfBlueprintState", w1)
 
-	client, err := getBlueprintClient()
+	client, err := blueprintClient(m)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -249,7 +258,7 @@ func resourceBluePrintDelete(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
-	client, err := getBlueprintClient()
+	client, err := blueprintClient(m)
 	if err != nil {
 		return diag.FromErr(err)
 	}

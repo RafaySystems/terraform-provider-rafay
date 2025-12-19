@@ -19,39 +19,43 @@ import (
 
 const TF_USER_AGENT = "terraform"
 
+func Schema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"provider_config_file": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc("RAFAY_PROVIDER_CONFIG", "~/.rafay/cli/config.json"),
+		},
+		"ignore_insecure_tls_error": {
+			Type:     schema.TypeBool,
+			Optional: true,
+		},
+		"api_key": {
+			Type:        schema.TypeString,
+			Description: "Rafay API key",
+			Optional:    true,
+			Sensitive:   true,
+			DefaultFunc: schema.EnvDefaultFunc("RCTL_API_KEY", nil),
+		},
+		"rest_endpoint": {
+			Type:        schema.TypeString,
+			Description: "Rafay API endpoint",
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc("RCTL_REST_ENDPOINT", nil),
+		},
+		"project": {
+			Type:        schema.TypeString,
+			Description: "Rafay project",
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc("RCTL_PROJECT", nil),
+		},
+	}
+}
+
 func New(_ string) func() *schema.Provider {
 	return func() *schema.Provider {
 		p := &schema.Provider{
-			Schema: map[string]*schema.Schema{
-				"provider_config_file": &schema.Schema{
-					Type:        schema.TypeString,
-					Optional:    true,
-					DefaultFunc: schema.EnvDefaultFunc("RAFAY_PROVIDER_CONFIG", "~/.rafay/cli/config.json"),
-				},
-				"ignore_insecure_tls_error": &schema.Schema{
-					Type:     schema.TypeBool,
-					Optional: true,
-				},
-				"api_key": &schema.Schema{
-					Type:        schema.TypeString,
-					Description: "Rafay API key",
-					Optional:    true,
-					Sensitive:   true,
-					DefaultFunc: schema.EnvDefaultFunc("RCTL_API_KEY", nil),
-				},
-				"rest_endpoint": &schema.Schema{
-					Type:        schema.TypeString,
-					Description: "Rafay API endpoint",
-					Optional:    true,
-					DefaultFunc: schema.EnvDefaultFunc("RCTL_REST_ENDPOINT", nil),
-				},
-				"project": &schema.Schema{
-					Type:        schema.TypeString,
-					Description: "Rafay project",
-					Optional:    true,
-					DefaultFunc: schema.EnvDefaultFunc("RCTL_PROJECT", nil),
-				},
-			},
+			Schema: Schema(),
 			ResourcesMap: map[string]*schema.Resource{
 				"rafay_project":                       resourceProject(),
 				"rafay_cloud_credential":              resourceCloudCredential(),

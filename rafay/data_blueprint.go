@@ -18,13 +18,14 @@ import (
 )
 
 func dataBluePrint() *schema.Resource {
+	s := copySchemaMap(resource.BlueprintSchema.Schema)
 	return &schema.Resource{
 		ReadContext: dataBluePrintRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute),
 		},
 		SchemaVersion: 1,
-		Schema:        resource.BlueprintSchema.Schema,
+		Schema:        s,
 	}
 }
 

@@ -46,6 +46,7 @@ func blueprintClient(m interface{}) (v3.BlueprintClient, error) {
 }
 
 func resourceBluePrint() *schema.Resource {
+	s := copySchemaMap(resource.BlueprintSchema.Schema)
 	return &schema.Resource{
 		CreateContext: resourceBluePrintCreate,
 		ReadContext:   resourceBluePrintRead,
@@ -62,7 +63,7 @@ func resourceBluePrint() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.BlueprintSchema.Schema,
+		Schema:        s,
 	}
 }
 

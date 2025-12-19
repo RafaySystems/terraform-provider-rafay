@@ -57,29 +57,44 @@ func mustBlueprintFromJSON(t *testing.T, payload string) *infrapb.Blueprint {
 func providerFactoriesWithMock(mockClient *MockBlueprintClient) map[string]func() (*schema.Provider, error) {
 	return map[string]func() (*schema.Provider, error){
 		"rafay": func() (*schema.Provider, error) {
-			provider := New("v1")()
-			provider.ResourcesMap = map[string]*schema.Resource{
-				"rafay_blueprint": resourceBluePrint(),
-			}
-			provider.DataSourcesMap = map[string]*schema.Resource{
-				"rafay_blueprint": dataBluePrint(),
-			}
-			provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-				pm := &providerMeta{}
-				pm.blueprintClientFactory = func() (v3.BlueprintClient, error) {
-					return mockClient, nil
-				}
-				return pm, nil
+			provider := &schema.Provider{
+				Schema: Schema(),
+				ResourcesMap: map[string]*schema.Resource{
+					"rafay_blueprint": resourceBluePrint(),
+				},
+				DataSourcesMap: map[string]*schema.Resource{
+					"rafay_blueprint": dataBluePrint(),
+				},
+				ConfigureContextFunc: func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+					pm := &providerMeta{}
+					pm.blueprintClientFactory = func() (v3.BlueprintClient, error) {
+						return mockClient, nil
+					}
+					return pm, nil
+				},
 			}
 			return provider, nil
 		},
 	}
 }
 
+type blueprintTestConfig struct {
+	mockClient        *MockBlueprintClient
+	providerFactories map[string]func() (*schema.Provider, error)
+}
+
+func newBlueprintTestConfig() blueprintTestConfig {
+	mockClient := new(MockBlueprintClient)
+	return blueprintTestConfig{
+		mockClient:        mockClient,
+		providerFactories: providerFactoriesWithMock(mockClient),
+	}
+}
+
 func TestResourceBlueprint(t *testing.T) {
 	tests := []struct {
 		name string
-		run  func(*testing.T, *MockBlueprintClient)
+		run  func(*testing.T, blueprintTestConfig)
 	}{
 		{"Create", testResourceBlueprintCreateHCL},
 		{"Read", testResourceBlueprintReadHCL},
@@ -89,16 +104,14 @@ func TestResourceBlueprint(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockClient := new(MockBlueprintClient)
-			tt.run(t, mockClient)
-			// Reset mock expectations and calls after each test
-			mockClient.ExpectedCalls = nil
-			mockClient.Calls = nil
+			t.Parallel()
+			tt := tt
+			tt.run(t, newBlueprintTestConfig())
 		})
 	}
 }
 
-func testResourceBlueprintCreateHCL(t *testing.T, mockClient *MockBlueprintClient) {
+func testResourceBlueprintCreateHCL(t *testing.T, cfg blueprintTestConfig) {
 	expectedBP := mustBlueprintFromJSON(t, `
 {
   "metadata": {
@@ -115,16 +128,16 @@ func testResourceBlueprintCreateHCL(t *testing.T, mockClient *MockBlueprintClien
 }
 `)
 
-	mockClient.On("Apply", mock.Anything, mock.MatchedBy(func(blueprint *infrapb.Blueprint) bool {
+	cfg.mockClient.On("Apply", mock.Anything, mock.MatchedBy(func(blueprint *infrapb.Blueprint) bool {
 		return blueprint.Metadata.Name == "test-blueprint-create" && blueprint.Metadata.Project == "test-project"
 	}), mock.Anything).Return(nil)
-	mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
+	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
 		return opts.Name == "test-blueprint-create" && opts.Project == "test-project"
 	})).Return(expectedBP, nil)
-	mockClient.On("Delete", mock.Anything, mock.Anything).Return(nil)
+	cfg.mockClient.On("Delete", mock.Anything, mock.Anything).Return(nil)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactoriesWithMock(mockClient),
+		ProviderFactories: cfg.providerFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -150,7 +163,7 @@ resource "rafay_blueprint" "tftest" {
 	})
 }
 
-func testResourceBlueprintReadHCL(t *testing.T, mockClient *MockBlueprintClient) {
+func testResourceBlueprintReadHCL(t *testing.T, cfg blueprintTestConfig) {
 	expectedBP := mustBlueprintFromJSON(t, `
 {
   "metadata": {
@@ -162,13 +175,13 @@ func testResourceBlueprintReadHCL(t *testing.T, mockClient *MockBlueprintClient)
   }
 }
 `)
-	mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
+	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
 		return opts.Name == "test-blueprint-read" && opts.Project == "test-project"
 	})).Return(expectedBP, nil)
-	mockClient.On("Delete", mock.Anything, mock.Anything).Return(nil)
+	cfg.mockClient.On("Delete", mock.Anything, mock.Anything).Return(nil)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactoriesWithMock(mockClient),
+		ProviderFactories: cfg.providerFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -193,7 +206,7 @@ resource "rafay_blueprint" "tftest" {
 	})
 }
 
-func testResourceBlueprintUpdateHCL(t *testing.T, mockClient *MockBlueprintClient) {
+func testResourceBlueprintUpdateHCL(t *testing.T, cfg blueprintTestConfig) {
 	expectedBPV1 := mustBlueprintFromJSON(t, `
 {
   "metadata": {
@@ -219,17 +232,17 @@ func testResourceBlueprintUpdateHCL(t *testing.T, mockClient *MockBlueprintClien
 }
 `)
 
-	mockClient.On("Apply", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
+	cfg.mockClient.On("Apply", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
 		return opts.Name == "test-blueprint-update" && opts.Project == "test-project"
 	})).Return(expectedBPV1, nil).Once()
-	mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
+	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
 		return opts.Name == "test-blueprint-update" && opts.Project == "test-project"
 	})).Return(expectedBPV2, nil)
-	mockClient.On("Delete", mock.Anything, mock.Anything).Return(nil)
+	cfg.mockClient.On("Delete", mock.Anything, mock.Anything).Return(nil)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactoriesWithMock(mockClient),
+		ProviderFactories: cfg.providerFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -267,7 +280,7 @@ resource "rafay_blueprint" "tftest" {
 	})
 }
 
-func testResourceBlueprintDeleteHCL(t *testing.T, mockClient *MockBlueprintClient) {
+func testResourceBlueprintDeleteHCL(t *testing.T, cfg blueprintTestConfig) {
 	expectedBP := mustBlueprintFromJSON(t, `
 {
   "metadata": {
@@ -281,16 +294,16 @@ func testResourceBlueprintDeleteHCL(t *testing.T, mockClient *MockBlueprintClien
 }
 `)
 
-	mockClient.On("Apply", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
+	cfg.mockClient.On("Apply", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
 		return opts.Name == "test-blueprint-delete" && opts.Project == "test-project"
 	})).Return(expectedBP, nil)
-	mockClient.On("Delete", mock.Anything, mock.MatchedBy(func(opts options.DeleteOptions) bool {
+	cfg.mockClient.On("Delete", mock.Anything, mock.MatchedBy(func(opts options.DeleteOptions) bool {
 		return opts.Name == "test-blueprint-delete" && opts.Project == "test-project"
 	})).Return(nil)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactoriesWithMock(mockClient),
+		ProviderFactories: cfg.providerFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -309,7 +322,7 @@ resource "rafay_blueprint" "tftest" {
 	})
 }
 
-func testResourceBlueprintReadComplexHCL(t *testing.T, mockClient *MockBlueprintClient) {
+func testResourceBlueprintReadComplexHCL(t *testing.T, cfg blueprintTestConfig) {
 	expectedBP := mustBlueprintFromJSON(t, `
 {
   "metadata": {
@@ -382,14 +395,14 @@ func testResourceBlueprintReadComplexHCL(t *testing.T, mockClient *MockBlueprint
 }
 `)
 
-	mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
+	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
 		return opts.Name == "custom-blueprint" && opts.Project == "terraform"
 	})).Return(expectedBP, nil)
 
-	mockClient.On("Delete", mock.Anything, mock.Anything).Return(nil)
+	cfg.mockClient.On("Delete", mock.Anything, mock.Anything).Return(nil)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactoriesWithMock(mockClient),
+		ProviderFactories: cfg.providerFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `

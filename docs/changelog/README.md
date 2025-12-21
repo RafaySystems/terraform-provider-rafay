@@ -10,21 +10,6 @@ This document lists all files created for the changelog generation system, their
 
 ## Files Created
 
-### Root Level
-
-#### `CHANGELOG.md`
-**Location**: `/CHANGELOG.md` (project root)
-
-**Purpose**: Main changelog file that documents all changes to the Terraform provider
-
-**Key Features**:
-- Follows "Keep a Changelog" format
-- Master branch uses "Unreleased" section
-- Release branches have version sections (e.g., "## 1.2.0")
-- AI-generated entries are added manually via script execution
-
----
-
 ### Scripts Directory (`/scripts/`)
 
 #### 1. `requirements.txt`
@@ -99,82 +84,6 @@ go build -o scan-deprecations scan-deprecations.go
 
 ---
 
-#### 4. `extract-release-notes.sh`
-**Location**: `/scripts/extract-release-notes.sh`
-
-**Purpose**: Extracts version-specific section from CHANGELOG.md for GitHub releases
-
-**Key Features**:
-- Extracts content between version headers
-- Used by GoReleaser to create GitHub Release Notes
-- Handles version numbers with or without 'v' prefix
-
-**Usage**:
-```bash
-bash scripts/extract-release-notes.sh 1.2.0 > release-notes.md
-```
-
----
-
-#### 5. `update-unreleased.sh`
-**Location**: `/scripts/update-unreleased.sh`
-
-**Purpose**: Manages transitions of the Unreleased section
-
-**Key Features**:
-- `rename` command: Converts "Unreleased" to version number with date
-- `reset` command: Creates new empty Unreleased section
-- Used during branch cut process
-
-**Usage**:
-```bash
-# Rename Unreleased to version (for release branches)
-bash scripts/update-unreleased.sh rename 1.2.0
-
-# Create new Unreleased section
-bash scripts/update-unreleased.sh reset
-```
-
----
-
-### GitHub Actions Workflows (`.github/workflows/`)
-
-
-
----
-
-#### 2. `release.yml` (Updated)
-**Location**: `/.github/workflows/release.yml`
-
-**Purpose**: Updated existing release workflow to integrate changelog
-
-**Added Steps**:
-- Extract release notes from CHANGELOG.md for the tagged version
-- Pass release notes to GoReleaser
-- Include full CHANGELOG.md in release artifacts
-
-**Key Change**:
-```yaml
---release-notes=release-notes.md
-```
-
----
-
-#### 3. `branch-cut.yaml` (Updated)
-**Location**: `/.github/workflows/branch-cut.yaml`
-
-**Purpose**: Updated existing branch cut workflow to handle CHANGELOG.md
-
-**Added Steps**:
-- After creating release branch, rename "Unreleased" to version number
-- Add version date
-- Commit CHANGELOG changes to release branch
-
-**Key Feature**:
-- Automatically prepares CHANGELOG for the new release branch
-
----
-
 ### GitHub Configuration (`.github/`)
 
 #### 1. `changelog-config.json`
@@ -201,50 +110,7 @@ bash scripts/update-unreleased.sh reset
 
 ---
 
-#### 2. `PULL_REQUEST_TEMPLATE.md` (Updated)
-**Location**: `/.github/PULL_REQUEST_TEMPLATE.md`
-
-**Purpose**: Updated PR template with changelog guidance
-
-**Added Section**:
-```markdown
-## Changelog (Automated)
-
-This PR will be automatically included in the CHANGELOG upon merge...
-```
-
----
-
 ### Documentation (`/docs/changelog/`)
-
-#### 1. `automated-system.md`
-**Location**: `/docs/changelog/automated-system.md`
-
-**Purpose**: Complete technical documentation of the automated changelog system
-
-**Contents**:
-- How the system works
-- System components and their interactions
-- CHANGELOG structure examples (master vs release)
-- AI categorization rules
-- Configuration details
-- Troubleshooting guide
-- Manual operation instructions
-- Benefits and maintenance
-
-**Sections**:
-- Overview
-- How It Works (4 main flows)
-- System Components
-- CHANGELOG Structure
-- AI Categorization Rules
-- Configuration
-- Troubleshooting
-- Manual Operations
-- Benefits
-- Maintenance
-
----
 
 #### 2. `commit-guidelines.md`
 **Location**: `/docs/changelog/commit-guidelines.md`
@@ -325,17 +191,6 @@ This PR will be automatically included in the CHANGELOG upon merge...
 - Includes them in DEPRECATIONS section
 - Never miss a deprecation warning
 
-### 3. Branch-Aware Operation
-- **Master Branch**: Adds to "Unreleased" section
-- **Release Branches**: Adds to version section (e.g., "1.2.0")
-- **Cherry-Picks**: Detects duplicates, adds only once
-
-### 4. GitHub Integration
-- Automatic PR comments with status
-- GitHub Release Notes generation
-- Works with existing workflows
-- No manual intervention needed
-
 ---
 
 ## 🚀 Quick Start
@@ -363,22 +218,14 @@ go build scripts/scan-deprecations.go
 ./scan-deprecations -path ./rafay -verbose
 ```
 
-### For Deployment
-
-1. Add `OPENAI_API_KEY` to GitHub repository secrets
-2. Workflows are already in place
-3. System activates on next PR merge
-
 ---
 
 ## File Structure Summary
 
 ```
 terraform-provider-rafay/
-├── CHANGELOG.md                                      # Main changelog file
 ├── .changelog/
 │   ├── README.md                                     # Manual generation instructions
-│   └── {PR_NUMBER}.txt                               # Individual PR fragments
 ├── .github/
 │   ├── changelog-config.json                        # AI configuration
 │   ├── PULL_REQUEST_TEMPLATE.md                     # Updated PR template
@@ -390,7 +237,7 @@ terraform-provider-rafay/
 │   ├── generate-changelog.py                        # AI changelog generator
 │   ├── scan-deprecations.go                         # Deprecation scanner
 │   ├── extract-release-notes.sh                     # Release notes extractor
-│   └── update-unreleased.sh                         # Unreleased section manager
+manager
 └── docs/
     └── changelog/
         ├── IMPLEMENTATION_SUMMARY.md                # This file
@@ -398,10 +245,6 @@ terraform-provider-rafay/
         ├── commit-guidelines.md                     # Commit best practices
         ├── testing-guide.md                         # Testing procedures
         └── changelog-guidelines.md                  # Quick reference
-
-Files Created:      15
-Lines of Code:      ~3,500
-Documentation:      ~2,000 lines
 ```
 
 ---
@@ -412,14 +255,10 @@ All tasks completed:
 
 - [x] Python changelog generator with AI
 - [x] Go deprecation scanner
-- [x] Manual generation process (GitHub Actions workflow removed due to branch protection)
-- [x] Updated release workflow
-- [x] Updated branch cut workflow
+- [x] Manual generation process
 - [x] Configuration files
 - [x] Helper bash scripts
-- [x] Initial CHANGELOG.md
 - [x] Updated PR template
-- [x] Comprehensive documentation (4 docs)
 
 ---
 

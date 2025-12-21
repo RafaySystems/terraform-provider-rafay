@@ -400,151 +400,38 @@ Generate ONLY the changelog entries (bullet points), grouped by category. Do not
                 categorized[current_category].append(line)
         
         return categorized
-    
-    def write_pr_changelog_fragment(self, entries: Dict[str, List[str]], 
-                                    pr_number: int,
-                                    changelog_dir: str = ".changelog") -> bool:
-        """Write PR-specific changelog fragment to .changelog/ directory."""
-        try:
-            # Create .changelog directory if it doesn't exist
-            os.makedirs(changelog_dir, exist_ok=True)
-            
-            # Build changelog fragment content
-            fragment_content = ""
-            for category in self.config['categories']:
-                if entries.get(category):
-                    fragment_content += f"### {category}\n\n"
-                    for entry in entries[category]:
-                        fragment_content += f"{entry}\n"
-                    fragment_content += "\n"
-            
-            if not fragment_content.strip():
-                print("No changelog entries to write.")
-                return False
-            
-            # Write to PR-specific file
-            fragment_path = os.path.join(changelog_dir, f"{pr_number}.txt")
-            with open(fragment_path, 'w') as f:
-                f.write(fragment_content)
-            
-            print(f"✓ Successfully wrote changelog fragment to {fragment_path}")
-            return True
-        
-        except Exception as e:
-            print(f"Error writing changelog fragment: {e}")
-            return False
-    
-    def update_changelog_file(self, entries: Dict[str, List[str]], 
-                             target_section: str = "Unreleased",
-                             changelog_path: str = "CHANGELOG.md") -> bool:
-        """Update CHANGELOG.md file with new entries."""
-        try:
-            # Read existing changelog
-            if os.path.exists(changelog_path):
-                with open(changelog_path, 'r') as f:
-                    content = f.read()
-            else:
-                content = self._create_initial_changelog()
-            
-            # Find the target section
-            if target_section == "Unreleased":
-                section_pattern = r'(## Unreleased\s*\n)'
-            else:
-                section_pattern = f'(## {re.escape(target_section)}\\s*\\n)'
-            
-            # Build new content for the section
-            new_section_content = ""
-            for category in self.config['categories']:
-                if entries.get(category):
-                    new_section_content += f"\n### {category}\n\n"
-                    for entry in entries[category]:
-                        new_section_content += f"{entry}\n"
-            
-            if not new_section_content.strip():
-                print("No changelog entries to add.")
-                return False
-            
-            # Insert new content after section header
-            match = re.search(section_pattern, content)
-            if match:
-                insert_pos = match.end()
-                content = content[:insert_pos] + new_section_content + content[insert_pos:]
-            else:
-                # Section not found, append at the beginning after header
-                header_end = content.find('\n## ')
-                if header_end == -1:
-                    content += f"\n## {target_section}\n{new_section_content}"
-                else:
-                    content = content[:header_end] + f"\n\n## {target_section}\n{new_section_content}" + content[header_end:]
-            
-            # Write updated changelog
-            with open(changelog_path, 'w') as f:
-                f.write(content)
-            
-            print(f"✓ Successfully updated {changelog_path}")
-            return True
-        
-        except Exception as e:
-            print(f"Error updating changelog file: {e}")
-            return False
-    
-    def _create_initial_changelog(self) -> str:
-        """Create initial CHANGELOG.md structure."""
-        return f"""# Changelog
-
-All notable changes to the Rafay Terraform Provider will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## Unreleased
-
-### BREAKING CHANGES
-
-### FEATURES
-
-### ENHANCEMENTS
-
-### BUG FIXES
-
-### DEPRECATIONS
-
-### DOCUMENTATION
-
----
-"""
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Generate changelog entries using AI')
-    parser.add_argument('--pr-number', type=int, help='Pull request number')
-    parser.add_argument('--pr-url', type=str, help='Pull request URL')
-    parser.add_argument('--base-ref', default='origin/master', help='Base git reference')
-    parser.add_argument('--head-ref', default='HEAD', help='Head git reference')
-    parser.add_argument('--target-section', default='Unreleased', help='Target changelog section')
-    parser.add_argument('--deprecations-file', help='Path to deprecations JSON file')
-    parser.add_argument('--changelog-path', default='CHANGELOG.md', help='Path to CHANGELOG.md')
-    parser.add_argument('--config', default='.github/changelog-config.json', help='Config file path')
-    parser.add_argument('--dry-run', action='store_true', help='Print output without updating file')
+    parser = argparse.ArgumentParser(
+        description='Generate changelog entries using AI (CLI output only - no files written)',
+        epilog='Note: This script outputs to stdout only and does not modify any files.'
+    )
+    parser.add_argument('--pr-number', type=int, help='Pull request number (for reference in output)')
+    parser.add_argument('--pr-url', type=str, help='Pull request URL (for reference in output)')
+    parser.add_argument('--base-ref', default='origin/master', help='Base git reference (default: origin/master)')
+    parser.add_argument('--head-ref', default='HEAD', help='Head git reference (default: HEAD)')
+    parser.add_argument('--deprecations-file', help='Path to deprecations JSON file (optional)')
+    parser.add_argument('--config', default='.github/changelog-config.json', help='Config file path (default: .github/changelog-config.json)')
     
     args = parser.parse_args()
     
     # Debug: Print received arguments
-    print("=" * 50)
-    print("DEBUG: Received Arguments")
-    print("=" * 50)
-    print(f"PR Number: {args.pr_number}")
-    print(f"PR URL: {args.pr_url}")
+    print("=" * 80)
+    print("CHANGELOG GENERATOR - CLI MODE (NO FILES MODIFIED)")
+    print("=" * 80)
+    print(f"PR Number: {args.pr_number or 'N/A'}")
+    print(f"PR URL: {args.pr_url or 'N/A'}")
     print(f"Base Ref: {args.base_ref}")
     print(f"Head Ref: {args.head_ref}")
-    print(f"Target Section: {args.target_section}")
-    print(f"Deprecations File: {args.deprecations_file}")
-    print("=" * 50)
+    print(f"Deprecations File: {args.deprecations_file or 'N/A'}")
+    print("=" * 80 + "\n")
 
     # Get API key from environment
     api_key = os.getenv('OPENAI_API_KEY')
     if not api_key:
         print("Error: OPENAI_API_KEY environment variable not set")
+        print("Please set it in your environment or create a .env file")
         sys.exit(1)
     
     # Initialize generator
@@ -562,7 +449,7 @@ def main():
         print("No commits found.")
         sys.exit(0)
     
-    print(f"Found {len(commits)} commit(s)")
+    print(f"Found {len(commits)} commit(s)\n")
     
     # Load deprecations if provided
     deprecations = []
@@ -570,10 +457,10 @@ def main():
         with open(args.deprecations_file, 'r') as f:
             dep_data = json.load(f)
             deprecations = dep_data.get('deprecations') or []
-        print(f"Loaded {len(deprecations)} deprecation(s)")
+        print(f"Loaded {len(deprecations)} deprecation(s)\n")
     
     # Generate changelog content
-    print("Generating changelog with AI...")
+    print("Generating changelog with AI...\n")
     content = generator.generate_changelog_content(
         commits, 
         deprecations,
@@ -584,36 +471,28 @@ def main():
     # Categorize entries
     categorized_entries = generator.categorize_entries(content)
     
-    # Print or update file
-    if args.dry_run:
-        print("\n=== Generated Changelog Entries ===\n")
-        for category, entries in categorized_entries.items():
-            if entries:
-                print(f"### {category}\n")
-                for entry in entries:
-                    print(entry)
-                print()
-    else:
-        # If PR number is provided, write both fragment and update main changelog
-        success = True
-        
-        if args.pr_number:
-            # Write PR-specific changelog fragment to .changelog/{PR_NUMBER}.txt
-            fragment_success = generator.write_pr_changelog_fragment(
-                categorized_entries,
-                pr_number=args.pr_number
-            )
-            success = success and fragment_success
-        
-        # Always update the main CHANGELOG.md
-        changelog_success = generator.update_changelog_file(
-            categorized_entries,
-            target_section=args.target_section,
-            changelog_path=args.changelog_path
-        )
-        success = success and changelog_success
-        
-        sys.exit(0 if success else 1)
+    # Output to CLI
+    print("\n" + "=" * 80)
+    print("GENERATED CHANGELOG ENTRIES")
+    print("=" * 80 + "\n")
+    
+    has_content = False
+    for category in generator.config['categories']:
+        entries = categorized_entries.get(category, [])
+        if entries:
+            has_content = True
+            print(f"### {category}\n")
+            for entry in entries:
+                print(entry)
+            print()
+    
+    if not has_content:
+        print("No changelog entries generated.\n")
+    
+    print("=" * 80)
+    print("END OF CHANGELOG ENTRIES")
+    print("=" * 80)
+    print("\nNote: No files were modified. Copy the above entries as needed.")
 
 
 if __name__ == '__main__':

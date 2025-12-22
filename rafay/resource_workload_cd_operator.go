@@ -81,7 +81,7 @@ type Workload struct {
 	ChartGitRepoName   string            `json:"chartGitRepoName,omitempty"`   // the name of the git repo
 	ChartGitRepoBranch string            `json:"chartGitRepoBranch,omitempty"` // the branch of the git repo
 	ChartGitRepoPath   string            `json:"chartGitRepoPath,omitempty"`   // the path of the git repo
-	ChartCatalogName   string            `json:"chartCatalogName,omitempty"`   // the name of the catalog to source the chart
+	ChartCatalogName   string            `json:"chartGitRepoPath,omitempty"`   // the name of the catalog to source the chart
 }
 
 // The config spec for the WorkloadCD resource
@@ -781,11 +781,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 	if workloadCDConfig.Spec.Credentials != nil && workloadCDConfig.Spec.Credentials.PrivateKey != "" {
 		output, ssh_key_path, err = cloneRepoSSH(workloadCDConfig)
 		if ssh_key_path != "" {
-			defer func() {
-				if err := os.Remove(ssh_key_path); err != nil {
-					log.Printf("warning: failed to remove SSH key file: %v", err)
-				}
-			}()
+			defer os.Remove(ssh_key_path)
 		}
 	} else {
 		output, err = cloneRepo(workloadCDConfig)
@@ -1421,15 +1417,8 @@ func cloneRepoSSH(workloadCdCfg *WorkloadCDConfig) ([]string, string, error) {
 		log.Println("failed to create file", err)
 		return nil, "", err
 	}
-	if _, err := f.Write([]byte(sshKey)); err != nil {
-		_ = f.Close()
-		log.Printf("warning: failed to write SSH key: %v", err)
-		// Continue anyway - git clone will fail with a clearer error
-	}
-	if err := f.Close(); err != nil {
-		log.Printf("warning: failed to close SSH key file: %v", err)
-		// Continue anyway - file may still be usable
-	}
+	f.Write([]byte(sshKey))
+	f.Close()
 	ssh_key_path := f.Name()
 
 	time.Sleep(5 * time.Second)
@@ -1560,15 +1549,13 @@ func walkRepo(cfg *WorkloadCDConfig, wl *Workload) ([]string, []string, string, 
 		} else {
 			// check if the folder is a leaf
 			var isLeaf = true
-			if err := filepath.Walk(path, func(path1 string, info1 os.FileInfo, err1 error) error {
+			filepath.Walk(path, func(path1 string, info1 os.FileInfo, err1 error) error {
 				if path != path1 && info1.IsDir() {
 					isLeaf = false
 					return nil
 				}
 				return nil
-			}); err != nil {
-				log.Printf("warning: failed to walk directory %s: %v", path, err)
-			}
+			})
 			if isLeaf {
 				abs, err := filepath.Abs(path)
 				if err == nil {

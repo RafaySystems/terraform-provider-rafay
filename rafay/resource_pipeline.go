@@ -333,9 +333,7 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 			var ct camelTriggers
 
 			b, _ := json.Marshal(in)
-			if err := json.Unmarshal(b, &ct); err != nil {
-				log.Printf("warning: failed to unmarshal camelTriggers: %v", err)
-			}
+			json.Unmarshal(b, &ct)
 			log.Println("status pipeline:", string(b))
 
 			var out []interface{}
@@ -347,9 +345,7 @@ func resourcePipelineUpsert(ctx context.Context, d *schema.ResourceData, m inter
 			b, _ = json.Marshal(st)
 			log.Println("status pipeline:", string(b))
 			var obj = make(map[string]interface{})
-			if err := json.Unmarshal(b, &obj); err != nil {
-				log.Printf("warning: failed to unmarshal pipeline triggers: %v", err)
-			}
+			json.Unmarshal(b, &obj)
 			out = append(out, obj)
 
 			log.Println("status pipeline:", []interface{}{out})

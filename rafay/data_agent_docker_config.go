@@ -146,27 +146,13 @@ func dataAgentDockerConfigRead(ctx context.Context, d *schema.ResourceData, m in
 		}
 	}
 
-	if err := d.Set("docker_compose", dockerCompose); err != nil {
-		log.Println("failed to set docker_compose error", err)
-	}
-	if err := d.Set("config", relayConfig); err != nil {
-		log.Println("failed to set config error", err)
-	}
-	if err := d.Set("agent_id_hash", agentId); err != nil {
-		log.Println("failed to set agent_id_hash error", err)
-	}
-	if err := d.Set("start_command", fmt.Sprintf("docker compose -f %s up -d", dockerComposeFilePath)); err != nil {
-		log.Println("failed to set start_command error", err)
-	}
-	if err := d.Set("stop_command", fmt.Sprintf("docker compose -f %s down", dockerComposeFilePath)); err != nil {
-		log.Println("failed to set stop_command error", err)
-	}
-	if err := d.Set("compose_file_name", dockerComposeFileName); err != nil {
-		log.Println("failed to set compose_file_name error", err)
-	}
-	if err := d.Set("config_file_name", relayConfigFileName); err != nil {
-		log.Println("failed to set config_file_name error", err)
-	}
+	d.Set("docker_compose", dockerCompose)
+	d.Set("config", relayConfig)
+	d.Set("agent_id_hash", agentId)
+	d.Set("start_command", fmt.Sprintf("docker compose -f %s up -d", dockerComposeFilePath))
+	d.Set("stop_command", fmt.Sprintf("docker compose -f %s down", dockerComposeFilePath))
+	d.Set("compose_file_name", dockerComposeFileName)
+	d.Set("config_file_name", relayConfigFileName)
 	d.SetId(fmt.Sprintf("%s-%s", projectName, agentName))
 
 	return diags
@@ -182,7 +168,7 @@ func getAgentId(projectId, agentName string) (string, error) {
 		return "", err
 	}
 
-	defer func() { _ = resp.Close() }()
+	defer resp.Close()
 
 	if resp.StatusCode != 200 {
 		log.Printf("failed to get agent id")
@@ -215,7 +201,7 @@ func getDockerCompose(projectId, agentName string) (string, error) {
 		return "", err
 	}
 
-	defer func() { _ = resp.Close() }()
+	defer resp.Close()
 
 	if resp.StatusCode != 200 {
 		log.Printf("failed to get docker compose")
@@ -235,7 +221,7 @@ func getRelayConfig(projectId, agentName string) (string, error) {
 		return "", err
 	}
 
-	defer func() { _ = resp.Close() }()
+	defer resp.Close()
 
 	if resp.StatusCode != 200 {
 		log.Printf("failed to get relay config")

@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//go:embed resource_eks_cluster_description.md
+// go:embed resource_eks_cluster_description.md
 var resourceEKSClusterDescription string
 
 func resourceEKSCluster() *schema.Resource {
@@ -3516,12 +3516,9 @@ func expandNodeGroupBottleRocket(p []interface{}) *NodeGroupBottlerocket {
 		var policyDoc map[string]interface{}
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
 		//json.Unmarshal(input, &data)
-		if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
-			log.Printf("warning: failed to unmarshal bottle rocket settings: %v", err)
-		} else {
-			obj.Settings = policyDoc
-			log.Println("bottle rocket settings expanded correct")
-		}
+		json2.Unmarshal([]byte(v), &policyDoc)
+		obj.Settings = policyDoc
+		log.Println("bottle rocket settings expanded correct")
 	}
 	//docs dont have field skip endpoint creation but struct does
 	return obj
@@ -3637,12 +3634,9 @@ func expandNodeGroupIam(p []interface{}) *NodeGroupIAM {
 	if v, ok := in["attach_policy_v2"].(string); ok && len(v) > 0 {
 		var policyDoc *InlineDocument
 		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
-		if err := json2.Unmarshal([]byte(v), &policyDoc); err != nil {
-			log.Printf("warning: failed to unmarshal attach policy: %v", err)
-		} else {
-			obj.AttachPolicy = policyDoc
-			//log.Println("attach policy expanded correct")
-		}
+		json2.Unmarshal([]byte(v), &policyDoc)
+		obj.AttachPolicy = policyDoc
+		//log.Println("attach policy expanded correct")
 	}
 
 	if v, ok := in["attach_policy_arns"].([]interface{}); ok && len(v) > 0 {

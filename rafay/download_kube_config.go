@@ -202,12 +202,6 @@ func downloadKubeConfigDelete(ctx context.Context, d *schema.ResourceData, m int
 	if tflog == "TRACE" || tflog == "DEBUG" {
 		ctx = context.WithValue(ctx, "debug", "true")
 	}
-	if err := os.Remove(d.Id()); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Warning,
-			Summary:  "Failed to remove kubeconfig file",
-			Detail:   err.Error(),
-		})
-	}
+	os.Remove(d.Id())
 	return diags
 }

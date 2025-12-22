@@ -384,7 +384,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		log.Fatal(err)
 	}
 
-	defer func() { _ = fv.Close() }()
+	defer fv.Close()
 
 	_, err2 := fv.WriteString(values_file)
 
@@ -420,7 +420,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 		log.Fatal(err)
 	}
 
-	defer func() { _ = f.Close() }()
+	defer fv.Close()
 
 	_, err2 = f.WriteString(bootstrap_file)
 

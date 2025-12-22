@@ -304,12 +304,12 @@ func expandContainerRegistry(in *schema.ResourceData, call string) (*integration
 			projectFLag = false
 		}
 	}
-	if !nameFlag && call != "read" { //need to verify name are not nill
+	if nameFlag != true && call != "read" { //need to verify name are not nill
 		if call != "delete" {
 			return nil, fmt.Errorf("Name input field is empty")
 		}
 	}
-	if !projectFLag && call != "read" { //need to verify project are not nill
+	if projectFLag != true && call != "read" { //need to verify project are not nill
 		if call != "delete" {
 			return nil, fmt.Errorf("Project input field is empty")
 		}
@@ -410,7 +410,7 @@ func expandContainerRegistrySpec(p []interface{}, call string) (*integrationspb.
 			userPassFlag = false
 		}
 	}
-	if userPassFlag && call != "read" { //need to verify username and password are not nill
+	if userPassFlag == true && call != "read" { //need to verify username and password are not nill
 		if call != "delete" {
 			if crt.Credentials.Username == "" || crt.Credentials.Password == "" {
 				return nil, fmt.Errorf("Username or Password is empty")
@@ -502,10 +502,7 @@ func flattenContainerRegistrySpec(in *integrationspb.ContainerRegistrySpec, p []
 	log.Println("flattenContainerRegistrySpec jsonBytes ", string(jsonBytes))
 
 	crt := ContainerRegistrySpecTranspose{}
-	if err := json.Unmarshal(jsonBytes, &crt); err != nil {
-		log.Printf("warning: failed to unmarshal container registry spec: %v", err)
-		// Continue with best-effort flattening using protobuf data
-	}
+	err = json.Unmarshal(jsonBytes, &crt)
 
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {

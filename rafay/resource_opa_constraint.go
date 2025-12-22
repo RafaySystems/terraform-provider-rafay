@@ -190,12 +190,10 @@ func resourceOPAConstraintDelete(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 
-	if err := client.OpaV3().OPAConstraint().Delete(ctx, options.DeleteOptions{
+	err = client.OpaV3().OPAConstraint().Delete(ctx, options.DeleteOptions{
 		Name:    ag.Metadata.Name,
 		Project: ag.Metadata.Project,
-	}); err != nil {
-		log.Println("failed to delete opa constraint error", err)
-	}
+	})
 
 	return diags
 }

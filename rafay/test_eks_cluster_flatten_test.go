@@ -849,7 +849,7 @@ func BenchmarkFlattenEKSCluster(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = flattenEKSCluster(input, p, rawState)
+		flattenEKSCluster(input, p, rawState)
 	}
 }
 
@@ -867,6 +867,6 @@ func BenchmarkFlattenEKSClusterMetadata(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = flattenEKSClusterMetadata(input, p)
+		flattenEKSClusterMetadata(input, p)
 	}
 }

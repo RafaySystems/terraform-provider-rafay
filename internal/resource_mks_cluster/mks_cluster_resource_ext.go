@@ -481,9 +481,7 @@ func (v SharingValue) FromHub(ctx context.Context, hub *infrapb.Sharing) (basety
 	}
 
 	v.state = attr.ValueStateKnown
-	obj, d := v.ToObjectValue(ctx)
-	diags = append(diags, d...)
-	return obj, diags
+	return v.ToObjectValue(ctx)
 }
 
 func (v SystemComponentsPlacementValue) ToHub(ctx context.Context) (*infrapb.SystemComponentsPlacement, diag.Diagnostics) {

@@ -876,9 +876,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		}
 	} else {
 		log.Println("Set workload_status nil")
-		if err := d.Set("workload_status", nil); err != nil {
-			log.Println("failed to set status to nil error ", err)
-		}
+		d.Set("workload_status", nil)
 	}
 
 	if workloadCDConfig.Decommissions != nil && len(workloadCDConfig.Decommissions) > 0 {
@@ -898,9 +896,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		log.Println("flattenWorkloadDecommisions returned ret", ret)
 	} else {
 		log.Println("Set workload_decommissions nil")
-		if err := d.Set("workload_decommissions", nil); err != nil {
-			log.Println("failed to set decommissions to nil error ", err)
-		}
+		d.Set("workload_decommissions", nil)
 	}
 
 	if workloadCDConfig.Upserts != nil && len(workloadCDConfig.Upserts) > 0 {
@@ -919,9 +915,7 @@ func resourceWorkloadCDOperatorUpsert(ctx context.Context, d *schema.ResourceDat
 		}
 	} else {
 		log.Println("Set workload_upserts nil")
-		if err := d.Set("workload_upserts", nil); err != nil {
-			log.Println("failed to set upserts to nil error ", err)
-		}
+		d.Set("workload_upserts", nil)
 	}
 
 	d.SetId(workloadCDConfig.Metadata.Name)
@@ -952,7 +946,7 @@ func getProjectWorkloadList(ctx context.Context, pr *systempb.Project, gWorkload
 		return err
 	}
 	for _, w := range wList.Items {
-		for k := range w.Metadata.Labels {
+		for k, _ := range w.Metadata.Labels {
 			if k == "k8smgmt.io/helm-deployer-tfcd" {
 				log.Println("found operator deployed workload", w.Metadata.Name, "project", w.Metadata.Project, "namespace", w.Spec.Namespace)
 				tmpList.Items = append(tmpList.Items, w)
@@ -1411,7 +1405,7 @@ func cloneRepoSSH(workloadCdCfg *WorkloadCDConfig) ([]string, string, error) {
 
 	path := workloadCdCfg.Spec.RepositoryLocalPath
 	// remove the local repo if it exists
-	_, _ = runCmd(workloadCdCfg, "rm", ".", false, "-rf", path)
+	runCmd(workloadCdCfg, "rm", ".", false, "-rf", path)
 	f, err := os.CreateTemp("", "tfcd_ssh_key")
 	if err != nil {
 		log.Println("failed to create file", err)
@@ -1467,7 +1461,7 @@ func cloneRepo(workloadCdCfg *WorkloadCDConfig) ([]string, error) {
 		var url string
 
 		// remove the local repo if it exists
-		_, _ = runCmd(workloadCdCfg, "rm", ".", false, "-rf", path)
+		runCmd(workloadCdCfg, "rm", ".", false, "-rf", path)
 		// if the repo doesn't exist, we need to clone it
 		// git clone --branch <branchname> https://stephan-rafay:api-key@url <path>
 		if strings.Contains(repo_url, "https://") {
@@ -1706,9 +1700,8 @@ func processApplicationFolders(ctx context.Context, cfg *WorkloadCDConfig, workl
 	for _, folder := range folders {
 		var project, namespace, workloadName string
 		var valuePaths []string
-		chartPath = ""
-
 		// process folder and create application
+		chartPath = ""
 
 		projectCheck := httprouter.New()
 		pattern := strings.TrimPrefix(strings.TrimSuffix(cfg.Spec.RepositoryLocalPath, "/"), ".") + workload.PathMatchPattern

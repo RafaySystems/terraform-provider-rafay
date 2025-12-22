@@ -698,7 +698,7 @@ func expandResourceQuantityString(p []interface{}) *commonpb.ResourceQuantity {
 		log.Println("expandResourceQuantity CPU", obj.Cpu)
 	}
 
-	log.Println("expandResourceQuantity obj", &obj)
+	log.Println("expandResourceQuantity obj", obj)
 	return &obj
 }
 
@@ -787,7 +787,7 @@ func expandSharingSpec(p []interface{}) *commonpb.SharingSpec {
 		obj.Projects = expandProjectMeta(v.List())
 	}
 
-	log.Println("expandSharingSpec obj", &obj)
+	log.Println("expandSharingSpec obj", obj)
 	return &obj
 }
 
@@ -806,7 +806,7 @@ func expandSharingSpecV3(p []interface{}) *infrapb.Sharing {
 		obj.Projects = expandProjectMetaV3(v.List())
 	}
 
-	log.Println("expandSharingSpec obj", &obj)
+	log.Println("expandSharingSpec obj", obj)
 	return &obj
 }
 
@@ -1152,7 +1152,7 @@ func expandResourceQuantity1170(p []interface{}) *commonpb.ResourceQuantity {
 		log.Println("expandResourceQuantity1170 CPU", obj.Cpu)
 	}
 
-	log.Println("expandResourceQuantity1170 obj", &obj)
+	log.Println("expandResourceQuantity1170 obj", obj)
 	return &obj
 }
 

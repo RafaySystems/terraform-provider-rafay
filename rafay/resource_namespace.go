@@ -286,7 +286,7 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Warning,
 				Summary:  "Failed to patch namespace",
-				Detail:   nsStatus.Status.Reason,
+				Detail:   fmt.Sprintf("%s", nsStatus.Status.Reason),
 			})
 			d.SetId(ns.Metadata.Name)
 			return diags
@@ -540,7 +540,7 @@ func expandNamespaceSpec(p []interface{}) (*infrapb.NamespaceSpec, error) {
 			log.Println("expandNamespaceSpec Obj Memory ", obj.ResourceQuotas.Requests.Memory)
 		}
 	*/
-	log.Println("expandNamespaceSpec Obj", &obj)
+	log.Println("expandNamespaceSpec Obj", obj)
 	return &obj, nil
 }
 
@@ -740,7 +740,7 @@ func expandNamespaceResourceQuotas(p []interface{}) *infrapb.NamespaceResourceQu
 		obj.EphemeralStorageRequests = v
 	}
 
-	log.Println("expandNamespaceResourceQuotas obj ", &obj)
+	log.Println("expandNamespaceResourceQuotas obj ", obj)
 	return obj
 }
 
@@ -1021,10 +1021,7 @@ func flattenNamespaceSpec(in *infrapb.NamespaceSpec, p []interface{}) ([]interfa
 	log.Println("flattenNamespaceSpec jsonBytes ", string(jsonBytes))
 
 	nsat := namespaceSpecTranspose{}
-	if err := json.Unmarshal(jsonBytes, &nsat); err != nil {
-		log.Printf("warning: failed to unmarshal namespace spec: %v", err)
-		// Continue with best-effort flattening using protobuf data
-	}
+	err = json.Unmarshal(jsonBytes, &nsat)
 
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {

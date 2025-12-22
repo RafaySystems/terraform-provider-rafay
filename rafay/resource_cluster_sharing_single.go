@@ -234,14 +234,12 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 		}
 	}
 
-	if err := d.Set("sharing", []interface{}{
+	d.Set("sharing", []interface{}{
 		map[string]interface{}{
 			"projectname":   addProject.Name,
 			"projects_list": getProjectList(projs),
 		},
-	}); err != nil {
-		log.Println("failed to set sharing error", err)
-	}
+	})
 	d.SetId(clusterName)
 	return diags
 }
@@ -336,14 +334,12 @@ func resourceClusterSharingSingleRead(ctx context.Context, d *schema.ResourceDat
 		addProject.Name = ""
 		addProject.Id = ""
 	}
-	if err := d.Set("sharing", []interface{}{
+	d.Set("sharing", []interface{}{
 		map[string]interface{}{
 			"projectname":   addProject.Name,
 			"projects_list": getProjectList(projs),
 		},
-	}); err != nil {
-		log.Println("failed to set sharing error", err)
-	}
+	})
 	err = d.Set("clustername", clusterName)
 	if err != nil {
 		return diag.FromErr(err)

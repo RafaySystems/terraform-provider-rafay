@@ -186,12 +186,10 @@ func resourceSecretProviderDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	if err := client.IntegrationsV3().SecretProviderClass().Delete(ctx, options.DeleteOptions{
+	err = client.IntegrationsV3().SecretProviderClass().Delete(ctx, options.DeleteOptions{
 		Name:    ag.Metadata.Name,
 		Project: ag.Metadata.Project,
-	}); err != nil {
-		log.Println("failed to delete secret provider error", err)
-	}
+	})
 
 	return diags
 }

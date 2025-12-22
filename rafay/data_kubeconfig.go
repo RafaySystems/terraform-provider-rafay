@@ -112,9 +112,7 @@ func dataKubeConfigUtil(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	yaml := string(decoded)
 
-	if err := d.Set("kubeconfig", yaml); err != nil {
-		log.Println("failed to set kubeconfig error", err)
-	}
+	d.Set("kubeconfig", yaml)
 
 	d.SetId("kubeconfig")
 	return diags

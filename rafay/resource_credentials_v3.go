@@ -482,10 +482,7 @@ func flattenCredentialsSpec(in *infrapb.CredentialsSpec, p []interface{}) ([]int
 	log.Println("flattenCredentialsSpec jsonBytes ", string(jsonBytes))
 
 	cst := credentialsSpecTranspose{}
-	if err := json.Unmarshal(jsonBytes, &cst); err != nil {
-		log.Printf("warning: failed to unmarshal credentials spec: %v", err)
-		// Continue with best-effort flattening using protobuf data
-	}
+	err = json.Unmarshal(jsonBytes, &cst)
 
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {

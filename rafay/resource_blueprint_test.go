@@ -2,6 +2,7 @@ package rafay_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
@@ -90,6 +91,87 @@ func newBlueprintTestConfig() blueprintTestConfig {
 		mockClient:        mockClient,
 		providerFactories: blueprintProviderFactoriesWithMock(mockClient),
 	}
+}
+
+func complexBlueprintConfig(memory string) string {
+	return fmt.Sprintf(`
+provider "rafay" {
+  ignore_insecure_tls_error = true
+  api_key                  = "test-api-key"
+  rest_endpoint            = "https://test-endpoint"
+  project                  = "terraform"
+}
+
+resource "rafay_blueprint" "blueprint" {
+  metadata {
+    name    = "custom-blueprint"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "1.16.0"
+    }
+    namespace_config {
+      sync_type   = "managed"
+      enable_sync = true
+    }
+    default_addons {
+      enable_ingress          = true
+      enable_csi_secret_store = true
+      enable_monitoring       = true
+      enable_vm               = false
+      disable_aws_node_termination_handler = true
+
+      csi_secret_store_config {
+        enable_secret_rotation = true
+        sync_secrets           = true
+        rotation_poll_interval = "2m"
+        providers {
+          aws = true
+        }
+      }
+      monitoring {
+        metrics_server {
+          enabled = true
+          discovery {
+            namespace = "rafay-system"
+          }
+        }
+        helm_exporter {
+          enabled = true
+        }
+        kube_state_metrics {
+          enabled = true
+        }
+        node_exporter {
+          enabled = true
+        }
+        prometheus_adapter {
+          enabled = true
+        }
+        resources {
+          limits {
+            memory = "%s"
+            cpu    = "100m"
+          }
+        }
+      }
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    drift_webhook {
+      enabled = true
+    }
+    placement {
+      auto_publish = false
+    }
+  }
+}
+`, memory)
 }
 
 func TestResourceBlueprint(t *testing.T) {
@@ -399,93 +481,20 @@ func testResourceBlueprintReadComplexHCL(t *testing.T, cfg blueprintTestConfig) 
 	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
 		return opts.Name == "custom-blueprint" && opts.Project == "terraform"
 	})).Return(expectedBP, nil)
+	cfg.mockClient.On("Apply", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	cfg.mockClient.On("Delete", mock.Anything, mock.Anything).Return(nil)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProviderFactories: cfg.providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
-provider "rafay" {
-  ignore_insecure_tls_error = true
-  api_key                  = "test-api-key"
-  rest_endpoint            = "https://test-endpoint"
-  project                  = "terraform"
-}
-
-resource "rafay_blueprint" "blueprint" {
-  metadata {
-    name    = "custom-blueprint"
-    project = "terraform"
-  }
-  spec {
-    version = "v0"
-    base {
-      name    = "default"
-      version = "1.16.0"
-    }
-    namespace_config {
-      sync_type   = "managed"
-      enable_sync = true
-    }
-    default_addons {
-      enable_ingress          = true
-      enable_csi_secret_store = true
-      enable_monitoring       = true
-      enable_vm               = false
-      disable_aws_node_termination_handler = true
-
-      csi_secret_store_config {
-        enable_secret_rotation = true
-        sync_secrets           = true
-        rotation_poll_interval = "2m"
-        providers {
-          aws = true
-        }
-      }
-      monitoring {
-        metrics_server {
-          enabled = true
-          discovery {
-            namespace = "rafay-system"
-          }
-        }
-        helm_exporter {
-          enabled = true
-        }
-        kube_state_metrics {
-          enabled = true
-        }
-        node_exporter {
-          enabled = true
-        }
-        prometheus_adapter {
-          enabled = true
-        }
-        resources {
-          limits {
-            memory = "200Mi"
-            cpu    = "100m"
-          }
-        }
-      }
-    }
-    drift {
-      action  = "Deny"
-      enabled = true
-    }
-    drift_webhook {
-      enabled = true
-    }
-    placement {
-      auto_publish = false
-    }
-  }
-}
-`,
-				ImportState:   true,
-				ResourceName:  "rafay_blueprint.blueprint",
-				ImportStateId: "custom-blueprint/terraform",
+				Config:             complexBlueprintConfig("200Mi"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config:       complexBlueprintConfig("300Mi"),
+				ResourceName: "rafay_blueprint.blueprint",
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("rafay_blueprint.blueprint", "metadata.0.name", "custom-blueprint"),
 					resource.TestCheckResourceAttr("rafay_blueprint.blueprint", "spec.0.version", "v0"),
@@ -495,6 +504,11 @@ resource "rafay_blueprint" "blueprint" {
 					resource.TestCheckResourceAttr("rafay_blueprint.blueprint", "spec.0.default_addons.0.monitoring.0.resources.0.limits.0.memory", "300Mi"),
 					resource.TestCheckResourceAttr("rafay_blueprint.blueprint", "spec.0.drift.0.action", "Deny"),
 				),
+			},
+			{
+				Config:             complexBlueprintConfig("300Mi"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})

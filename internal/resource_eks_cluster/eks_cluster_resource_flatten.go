@@ -1409,16 +1409,16 @@ func (v *AttachPolicy3Value) Flatten(ctx context.Context, in *rafay.InlineDocume
 		v.Id = types.StringValue(in.Id)
 	}
 
-	statement2 := types.SetNull(StatementValue{}.Type(ctx))
+	statement2 := types.SetNull(Statement2Value{}.Type(ctx))
 	if len(in.Statement) > 0 {
 		stms := []attr.Value{}
 		for _, stm := range in.Statement {
-			sv := NewStatementValueNull()
+			sv := NewStatement2ValueNull()
 			d = sv.Flatten(ctx, stm)
 			diags = append(diags, d...)
 			stms = append(stms, sv)
 		}
-		statement2, d = types.SetValue(StatementValue{}.Type(ctx), stms)
+		statement2, d = types.SetValue(Statement2Value{}.Type(ctx), stms)
 		diags = append(diags, d...)
 	}
 	v.Statement2 = statement2
@@ -1443,6 +1443,9 @@ func (v *Statement2Value) Flatten(ctx context.Context, in rafay.InlineStatement)
 		}
 		v.Action, d = types.SetValue(types.StringType, actEle)
 		diags = append(diags, d...)
+	} else {
+		v.Action, d = types.SetValue(types.StringType, nil)
+		diags = append(diags, d...)
 	}
 	if in.NotAction != nil && len(in.NotAction.([]interface{})) > 0 {
 		naEle := []attr.Value{}
@@ -1450,6 +1453,9 @@ func (v *Statement2Value) Flatten(ctx context.Context, in rafay.InlineStatement)
 			naEle = append(naEle, types.StringValue(na.(string)))
 		}
 		v.NotAction, d = types.SetValue(types.StringType, naEle)
+		diags = append(diags, d...)
+	} else {
+		v.NotAction, d = types.SetValue(types.StringType, nil)
 		diags = append(diags, d...)
 	}
 	if len(in.Resource.(string)) > 0 {
@@ -1461,6 +1467,9 @@ func (v *Statement2Value) Flatten(ctx context.Context, in rafay.InlineStatement)
 			nrEle = append(nrEle, types.StringValue(nr.(string)))
 		}
 		v.NotResource, d = types.SetValue(types.StringType, nrEle)
+		diags = append(diags, d...)
+	} else {
+		v.NotResource, d = types.SetValue(types.StringType, nil)
 		diags = append(diags, d...)
 	}
 

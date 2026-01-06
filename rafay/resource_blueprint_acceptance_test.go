@@ -2,21 +2,20 @@ package rafay_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
-	"github.com/RafaySystems/rctl/pkg/config"
-	"github.com/RafaySystems/rctl/pkg/context"
 	"github.com/RafaySystems/terraform-provider-rafay/rafay"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func blueprintConfig(memory string) string {
-	return fmt.Sprintf(`
+var (
+	customBlueprintWithMostConfigSet = fmt.Sprintf(`
 resource "rafay_blueprint" "blueprint" {
   metadata {
     name    = "custom-blueprint"
-    project = "defaultproject"
+    project = "%s"
   }
   spec {
     version = "v0"
@@ -64,7 +63,7 @@ resource "rafay_blueprint" "blueprint" {
         }
         resources {
           limits {
-            memory = "%s"
+            memory = "200Mi"
             cpu    = "100m"
           }
         }
@@ -82,8 +81,8 @@ resource "rafay_blueprint" "blueprint" {
     }
   }
 }
-`, memory)
-}
+`, os.Getenv("RCTL_PROJECT"))
+)
 
 func blueprintProviderFactory() map[string]func() (*schema.Provider, error) {
 	return map[string]func() (*schema.Provider, error){
@@ -104,13 +103,8 @@ func blueprintProviderFactory() map[string]func() (*schema.Provider, error) {
 }
 
 func TestResourceBlueprintAcceptance(t *testing.T) {
-	config.InitConfig(context.GetContext())
 	resource.Test(t, resource.TestCase{
 		ProviderFactories: blueprintProviderFactory(),
-		Steps: []resource.TestStep{
-			{
-				Config: blueprintConfig("200Mi"),
-			},
-		},
+		Steps:             []resource.TestStep{{Config: customBlueprintWithMostConfigSet}},
 	})
 }

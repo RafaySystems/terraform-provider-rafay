@@ -99,7 +99,7 @@ provider "rafay" {
   ignore_insecure_tls_error = true
   api_key                  = "test-api-key"
   rest_endpoint            = "https://test-endpoint"
-  project                  = "terraform"
+  project                  = "defaultproject"
 }
 
 resource "rafay_blueprint" "blueprint" {

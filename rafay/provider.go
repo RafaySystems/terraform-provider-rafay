@@ -156,7 +156,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_fleetplan_jobs":           dataFleetplanJobs(),
 				"rafay_fleetplan_job":            dataFleetplanJob(),
 			},
-			ConfigureContextFunc: providerConfigure,
+			ConfigureContextFunc: ProviderConfigure,
 		}
 
 		return p
@@ -175,7 +175,7 @@ func expandHomeDir(path string) (string, error) {
 	return filepath.Join(usr.HomeDir, path[1:]), nil
 }
 
-func providerConfigure(ctx context.Context, rd *schema.ResourceData) (interface{}, diag.Diagnostics) {
+func ProviderConfigure(ctx context.Context, rd *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	config_file := rd.Get("provider_config_file").(string)

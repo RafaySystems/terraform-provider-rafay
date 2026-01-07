@@ -54,35 +54,73 @@ uninstall:
 	rm -rf ~/.terraform.d/plugins/${TOFU_HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 
 test:
-	@echo "Running all tests (unit + integration)..."
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/...
+	@echo "=========================================="
+	@echo "Running ALL tests (comprehensive suite)"
+	@echo "=========================================="
+	@echo ""
+	@echo "[1/4] Running rafay package tests..."
+	@GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay
+	@echo ""
+	@echo "[2/4] Running framework tests (plan-only)..."
+	@TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=planonly ./tests/framework/...
+	@echo ""
+	@echo "[3/4] Running integration plan-only tests..."
+	@TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=planonly ./tests/integration/plan_only/...
+	@echo ""
+	@echo "[4/4] Running negative validation tests..."
+	@TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./tests/integration/negative/...
+	@echo ""
+	@echo "=========================================="
+	@echo "✓ All test suites completed!"
+	@echo "=========================================="
 
 test-cover:
-	@echo "Running all tests with coverage..."
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover ./rafay ./tests/...
+	@echo "=========================================="
+	@echo "Running ALL tests with coverage"
+	@echo "=========================================="
+	@echo ""
+	@echo "[1/4] Running rafay package tests with coverage..."
+	@GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover ./rafay
+	@echo ""
+	@echo "[2/4] Running framework tests with coverage..."
+	@TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover -tags=planonly ./tests/framework/...
+	@echo ""
+	@echo "[3/4] Running integration plan-only tests with coverage..."
+	@TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover -tags=planonly ./tests/integration/plan_only/...
+	@echo ""
+	@echo "[4/4] Running negative validation tests with coverage..."
+	@TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -cover ./tests/integration/negative/...
+	@echo ""
+	@echo "=========================================="
+	@echo "✓ All test suites with coverage completed!"
+	@echo "=========================================="
 
 # Specific test categories for targeted testing
-test-unit:
-	@echo "Running unit tests only..."
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay
+test-rafay:
+	@echo "Running rafay package tests only..."
+	@GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay
+
+test-framework:
+	@echo "Running framework tests only..."
+	@TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=planonly ./tests/framework/...
 
 test-integration:
 	@echo "Running integration tests only..."
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=integration ./tests/integration/...
+	@TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=planonly ./tests/integration/plan_only/...
 
-test-api:
-	@echo "Running tests that require real API credentials..."
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=integration ./tests/integration/acceptance/
+test-negative:
+	@echo "Running negative tests only..."
+	@TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./tests/integration/negative/...
 
 testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
 test-ci:
 	@echo "Running CI tests with acceptance tests enabled..."
-	TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/...
+	@TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/...
 
 # Updated .PHONY declarations for streamlined test commands
-.PHONY: test test-cover test-unit test-integration test-api test-ci
+.PHONY: test test-cover test-rafay test-framework test-integration test-negative test-ci
 
 fwgen:
 	bash internal/scripts/fwgen.sh

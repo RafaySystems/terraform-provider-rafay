@@ -15,14 +15,6 @@ var externalProvidersNegWI = map[string]resource.ExternalProvider{
 	"rafay": {Source: "RafaySystems/rafay"},
 }
 
-// ----------------------------------------------------------------------------
-// NOTE ON EXPECTATIONS
-// - Setting a required attribute to `null` -> Terraform Core errors with
-//   "Missing required argument. The argument \"<path>\" is required"
-// - Setting it to "" (empty string) counts as present, so the plan proceeds.
-//   For those, we assert PlanOnly + ExpectNonEmptyPlan.
-// ----------------------------------------------------------------------------
-
 // ---------- metadata.name ----------
 
 // Empty string is treated as "present", so plan is non-empty.
@@ -61,44 +53,6 @@ func TestAccNegAKSWorkloadIdentity_EmptyName_AllowsPlan(t *testing.T) {
 		},
 	})
 }
-
-// null is treated as missing; expect "Missing required argument".
-// COMMENTED OUT: spec.metadata.name is optional in the schema, not required
-// func TestAccNegAKSWorkloadIdentity_NullName_RequiredError(t *testing.T) {
-// 	t.Parallel()
-// 	resource.Test(t, resource.TestCase{
-// 		ExternalProviders: externalProvidersNegWI,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				PlanOnly: true,
-// 				Config: `
-// 					resource "rafay_aks_workload_identity" "test" {
-// 					  metadata {
-// 					    cluster_name = "test-cluster"
-// 					    project     = "default"
-// 					  }
-//
-// 					  spec {
-// 					    create_identity = true
-// 					    metadata {
-// 					      name           = null              # null
-// 					      resource_group = "test-rg"
-// 					    }
-// 					    service_accounts {
-// 					      create_account = true
-// 					      metadata {
-// 					        name      = "test-sa"
-// 					        namespace = "default"
-// 					      }
-// 					    }
-// 					  }
-// 					}
-// 				`,
-// 				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*spec.*metadata.*name.*is required`),
-// 			},
-// 		},
-// 	})
-// }
 
 // ---------- metadata.clustername ----------
 
@@ -290,44 +244,6 @@ func TestAccNegAKSWorkloadIdentity_EmptySpecName_AllowsPlan(t *testing.T) {
 		},
 	})
 }
-
-// null -> missing -> error.
-// COMMENTED OUT: spec.metadata.name is optional in the schema, not required
-// func TestAccNegAKSWorkloadIdentity_NullSpecName_RequiredError(t *testing.T) {
-// 	t.Parallel()
-// 	resource.Test(t, resource.TestCase{
-// 		ExternalProviders: externalProvidersNegWI,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				PlanOnly: true,
-// 				Config: `
-// 					resource "rafay_aks_workload_identity" "test" {
-// 					  metadata {
-// 					    cluster_name = "test-cluster"
-// 					    project     = "default"
-// 					  }
-//
-// 					  spec {
-// 					    create_identity = true
-// 					    metadata {
-// 					      name           = null              # null
-// 					      resource_group = "test-rg"
-// 					    }
-// 					    service_accounts {
-// 					      create_account = true
-// 					      metadata {
-// 					        name      = "test-sa"
-// 					        namespace = "default"
-// 					      }
-// 					    }
-// 					  }
-// 					}
-// 				`,
-// 				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*spec.*metadata.*name.*is required`),
-// 			},
-// 		},
-// 	})
-// }
 
 // ---------- invalid role scope ----------
 

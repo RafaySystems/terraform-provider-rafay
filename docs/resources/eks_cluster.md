@@ -45,38 +45,36 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
           name = "test-irsa"
           namespace = "default"
         }
-        attach_policy = <<EOF
-        {
-	  "Version": "2012-10-17",
-	  "Statement": [
-	    {
-	      "Effect": "Allow",
-	      "Action": "ec2:Describe*",
-	      "Resource": "*"
-	    },
-	    {
-	      "Effect": "Allow",
-	      "Action": "ec2:AttachVolume",
-	      "Resource": "*"
-	    },
-	    {  
-	      "Effect": "Allow",
-	      "Action": "ec2:DetachVolume",
-	      "Resource": "*"
-	    },
-	    {
-	      "Effect": "Allow",
-	      "Action": ["ec2:*"],
-	      "Resource": ["*"]
-    	    },
-	    {
-	      "Effect": "Allow",
-	      "Action": ["elasticloadbalancing:*"],
-	      "Resource": ["*"]
-	     }
-	   ]
-	}
-	EOF
+        attach_policy = jsonencode({
+	        "Version": "2012-10-17",
+	        "Statement": [
+	          {
+	            "Effect": "Allow",
+	            "Action": "ec2:Describe*",
+	            "Resource": "*"
+	          },
+	          {
+	            "Effect": "Allow",
+	            "Action": "ec2:AttachVolume",
+	            "Resource": "*"
+	          },
+	          {  
+	            "Effect": "Allow",
+	            "Action": "ec2:DetachVolume",
+	            "Resource": "*"
+	          },
+	          {
+	            "Effect": "Allow",
+	            "Action": ["ec2:*"],
+	            "Resource": ["*"]
+          	    },
+	          {
+	            "Effect": "Allow",
+	            "Action": ["elasticloadbalancing:*"],
+	            "Resource": ["*"]
+	           }
+	         ]
+	      })
       }
     }
     vpc {
@@ -107,6 +105,121 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
       volume_size      = 80
       volume_type      = "gp3"
       private_networking = true
+    }
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+
+    }
+    addons {
+      name = "coredns"
+      version = "latest"
+    }
+  }
+}
+```
+
+---
+
+Basic EKS cluster with node group map.
+
+```terraform
+resource "rafay_eks_cluster" "eks-cluster-1" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-cluster-1"
+      project = "terraform"
+    }
+    spec {
+      type           = "eks"
+      blueprint      = "default"
+      blueprint_version = "1.13.0"
+      cloud_provider = "eks-role"
+      cni_provider   = "aws-cni"
+      proxy_config   = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-cluster-1"
+      region  = "us-west-2"
+      version = "1.21"
+    }
+    iam {
+      with_oidc = true
+      service_accounts {
+        metadata {
+          name = "test-irsa"
+          namespace = "default"
+        }
+        attach_policy = jsonencode({
+	        "Version": "2012-10-17",
+	        "Statement": [
+	          {
+	            "Effect": "Allow",
+	            "Action": "ec2:Describe*",
+	            "Resource": "*"
+	          },
+	          {
+	            "Effect": "Allow",
+	            "Action": "ec2:AttachVolume",
+	            "Resource": "*"
+	          },
+	          {  
+	            "Effect": "Allow",
+	            "Action": "ec2:DetachVolume",
+	            "Resource": "*"
+	          },
+	          {
+	            "Effect": "Allow",
+	            "Action": ["ec2:*"],
+	            "Resource": ["*"]
+          	    },
+	          {
+	            "Effect": "Allow",
+	            "Action": ["elasticloadbalancing:*"],
+	            "Resource": ["*"]
+	           }
+	         ]
+	      })
+      }
+    }
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
+      }
+    }
+    node_groups_map = {
+      "ng-1" = {
+        ami_family = "AmazonLinux2"
+        iam = {
+          iam_node_group_with_addon_policies = {
+            image_builder = true
+            auto_scaler   = true
+          }
+        }
+        instance_type    = "m5.xlarge"
+        desired_capacity = 1
+        min_size         = 1
+        max_size         = 2
+        max_pods_per_node = 50
+        version          = "1.31"
+        volume_size      = 80
+        volume_type      = "gp3"
+        private_networking = true
+      }
     }
     addons {
       name = "vpc-cni"
@@ -205,6 +318,84 @@ resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
 
 ---
 
+Basic EKS cluster config with IPv6 as the IP family and map-based managed node groups
+
+```terraform
+resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "ekscluster-basic-with-ipv6"
+      project = "defaultproject"
+    }
+    spec {
+      type              = "eks"
+      blueprint         = "minimal"
+      cloud_provider    = "aws"
+      cni_provider      = "aws-cni"
+      proxy_config      = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "ekscluster-basic-with-ipv6"
+      region  = "us-west-2"
+      version = "1.31"
+    }
+    kubernetes_network_config {
+      ip_family = "IPv6"
+    }
+    iam {
+     with_oidc = true
+    }
+
+    vpc {
+      cluster_endpoints {
+        private_access = true
+        public_access  = true
+      }
+    }
+    managed_nodegroups_map = {
+      "ng1" = {
+        instance_type      = "t3.medium"
+        desired_capacity   = 3
+        min_size           = 0
+        max_size           = 4
+        volume_size        = 80
+        volume_type        = "gp3"
+        version            = "1.31"
+      },
+      "ng2" = {
+        instance_type      = "t3.medium"
+        desired_capacity   = 2
+        min_size           = 0
+        max_size           = 3
+        volume_size        = 80
+        volume_type        = "gp3"
+        version            = "1.31"
+      }
+    }
+
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+    }
+    addons {
+      name = "coredns"
+      version = "latest"
+    }
+  }
+}
+```
+
+---
+
 Advanced EKS cluster config with existing VPC & IAM.
 
 ```terraform
@@ -277,6 +468,9 @@ resource "rafay_eks_cluster" "eks-cluster-2" {
       volume_iops      = 3000
       volume_throughput = 125
       private_networking = true
+      node_repair_config = {
+        enabled = true
+      }
     }
   }
 }
@@ -645,38 +839,36 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
     }
     iam {
       service_accounts {
-        attach_policy = <<EOF
-        {
-	  "Version": "2012-10-17",
-	  "Statement": [
-	    {
-	      "Effect": "Allow",
-	      "Action": "ec2:Describe*",
-	      "Resource": "*"
-	    },
-	    {
-	      "Effect": "Allow",
-	      "Action": "ec2:AttachVolume",
-	      "Resource": "*"
-	    },
-	    {  
-	      "Effect": "Allow",
-	      "Action": "ec2:DetachVolume",
-	      "Resource": "*"
-	    },
-	    {
-	      "Effect": "Allow",
-	      "Action": ["ec2:*"],
-	      "Resource": ["*"]
-    	    },
-	    {
-	      "Effect": "Allow",
-	      "Action": ["elasticloadbalancing:*"],
-	      "Resource": ["*"]
-	     }
-	   ]
-	}
-	EOF
+        attach_policy = jsonencode({
+	        "Version": "2012-10-17",
+	        "Statement": [
+	          {
+	            "Effect": "Allow",
+	            "Action": "ec2:Describe*",
+	            "Resource": "*"
+	          },
+	          {
+	            "Effect": "Allow",
+	            "Action": "ec2:AttachVolume",
+	            "Resource": "*"
+	          },
+	          {  
+	            "Effect": "Allow",
+	            "Action": "ec2:DetachVolume",
+	            "Resource": "*"
+	          },
+	          {
+	            "Effect": "Allow",
+	            "Action": ["ec2:*"],
+	            "Resource": ["*"]
+          	    },
+	          {
+	            "Effect": "Allow",
+	            "Action": ["elasticloadbalancing:*"],
+	            "Resource": ["*"]
+	           }
+	         ]
+	      })
       }
     }
     vpc {
@@ -821,10 +1013,28 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `node_groups` - (Block List) The nodegroup attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--node_groups))
 - `vpc` - (Block List) The virtual private cloud which is the global subnet and all child subnets. (See [below for nested schema](#nestedblock--cluster_config--vpc))
 
-    **Note**: At least `managed_nodegroups` or `node_groups` is required. You can add both.
+<div style="border: 2px solid #448aff; background:#edf3ff; padding:12px; border-radius:6px; margin:12px 0;"> ✏️ <strong>Note</strong><br><br>
+
+At least <code>managed_nodegroups</code> or <code>node_groups</code> is required. You can add both.<br><br>
+
+The <code>managed_nodegroups</code> and <code>managed_nodegroups_map</code> are mutually exclusive attributes.<br><br>
+    
+The <code>node_groups</code> and <code>node_groups_map</code> are mutually exclusive attributes.<br><br>
+
+</div>
+
+<div style="border: 2px solid #448aff; background:#edf3ff; padding:12px; border-radius:6px; margin:12px 0;"> ✏️ <strong>Note</strong><br><br>
+
+Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster resource - Node group migration</a> guidelines page for migrating <code>node_groups</code>, <code>managed_nodegroups</code> to <code>node_groups_map</code>, <code>managed_nodegroups_map</code> respectively.<br><br>
+
+</div>
+
 
 ***Optional***
-- `kubernetes_network_config` - (Block List) The cluster networking configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--kubernetes_network_config))
+- `managed_nodegroups_map` - (Map of Objects) The managed nodegroups map attributes of a cluster. (See [managed_node_groups schema](#nestedblock--cluster_config--managed_nodegroups))
+- `node_groups_map` - (Map of Objects) The nodegroups map attributes of a cluster. (See [node_groups schema](#nestedblock--cluster_config--node_groups))
+
+- `kubernetes_network_config_map` - (Map of Objects) The cluster networking configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--kubernetes_network_config))
 - `availability_zones` - (List of String) The availability zones (AZ) of a cluster.
 - `cloud_watch` - (Block List, Max: 1) CloudWatch configuration for control plane logging. (See [below for nested schema](#nestedblock--cluster_config--cloud_watch))
 - `fargate_profiles` - (Block List) The settings used to schedule a workload onto AWS Fargate. (See [below for nested schema](#nestedblock--cluster_config--fargate_profiles))
@@ -1130,6 +1340,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `volume_encrypted` - (Boolean) Encrypts volumes attached to instances in the nodegroup. 
 - `volume_kms_key_id` - (String) The AWS KMS key used to encrypt data on the storage volume.
 - `volume_name` - (String) The name of the volume. 
+- `node_repair_config` - (Block List) Node repair configuration of the nodeGroup  (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--node_repair_config))
 
 <a id="nestedblock--cluster_config--managed_nodegroups--bottle_rocket"></a>
 ### Nested Schema for `cluster_config.managed_nodegroups.bottle_rocket`
@@ -1139,6 +1350,10 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `enable_admin_container` - (Boolean) Enables the Bottlerocket admin container.
 - `settings` - (String) settings for  Bottlerocket node group. Use `jsonencode()` to pass valid settings configuration in json format. 
 
+<a id="nestedblock--cluster_config--managed_nodegroups--node_repair_config"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.node_repair_config`
+
+- `enabled` - (Boolean) Enables Node repair for managed node group.
 
 
 <a id="nestedblock--cluster_config--managed_nodegroups--iam"></a>

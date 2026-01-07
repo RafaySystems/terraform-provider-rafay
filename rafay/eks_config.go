@@ -1212,7 +1212,14 @@ type ManagedNodeGroup struct {
 	// Internal fields
 
 	Unowned bool `yaml:"-"`
+
+	NodeRepairConfig *NodeRepairConfig `yaml:"nodeRepairConfig,omitempty"`
 }
+
+type NodeRepairConfig struct {
+	Enabled *bool `yaml:"enabled,omitempty"`
+}
+
 type LaunchTemplate struct {
 	// Launch template ID
 	// +required

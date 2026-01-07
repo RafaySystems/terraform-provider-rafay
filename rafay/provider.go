@@ -55,7 +55,6 @@ func New(_ string) func() *schema.Provider {
 			ResourcesMap: map[string]*schema.Resource{
 				"rafay_project":                       resourceProject(),
 				"rafay_cloud_credential":              resourceCloudCredential(),
-				"rafay_eks_cluster":                   resourceEKSCluster(),
 				"rafay_eks_cluster_spec":              resourceEKSClusterSpec(),
 				"rafay_aks_cluster":                   resourceAKSCluster(),
 				"rafay_aks_cluster_v3":                resourceAKSClusterV3(),
@@ -114,6 +113,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_environment_template":              resourceEnvironmentTemplate(),
 				"rafay_environment":                       resourceEnvironment(),
 				"rafay_fleetplan":                         resourceFleetPlan(),
+				"rafay_fleetplan_trigger":                 resourceFleetPlanTrigger(),
 				"rafay_chargeback_common_services_policy": resourceChargebackCommonServicesPolicy(),
 				"rafay_driver":                            resourceDriver(),
 				"rafay_workflow_handler":                  resourceWorkflowHandler(),
@@ -147,6 +147,10 @@ func New(_ string) func() *schema.Provider {
 				"rafay_credentials":              dataCloudCredentials(),
 				"rafay_credential":               dataCloudCredential(),
 				"rafay_agent_docker_config":      dataAgentDockerConfig(),
+				"rafay_fleetplans":               dataFleetplans(),
+				"rafay_fleetplan":                dataFleetplan(),
+				"rafay_fleetplan_jobs":           dataFleetplanJobs(),
+				"rafay_fleetplan_job":            dataFleetplanJob(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}

@@ -759,7 +759,9 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 
 Usage for attach_policy_v2
 
-The policy document can be assigned to the field attach_policy_v2. This takes the policy document in JSON string format. The field is applicable for `addons` and `nodegroup.iam`.
+  The policy document can be assigned to the field attach_policy_v2. This takes the policy document in JSON string format. The field is applicable for `addons` and `nodegroup.iam`.
+
+  To prevent unexpected diffs, the policy document provided to attach_policy_v2 must be wrapped in the `jsonencode()` function.
 
 ```terraform
 addons {
@@ -1195,7 +1197,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `service_account_role_arn` - (String) The Amazon Resource Name (ARN) of an existing IAM role to bind to the add-on's service account. The role must be assigned the IAM permissions required by the add-on. If you don't specify an existing IAM role, then the add-on uses the permissions assigned to the node IAM role. 
 - `attach_policy_arns` - (List of String) The list of ARNs of the IAM policies to attach to the addon's service account. 
 - `attach_policy` - (Block List, Max: 1) Holds a policy document to attach to the service account (Deprecated)
-- `attach_policy_v2` - (String)  Holds a policy document in json format to attach to the addon role
+- `attach_policy_v2` - (String)  Holds a policy document in json format to attach to the addon role. Wrap policy inside jsonencode() function.
 - `permissions_boundary` - (String) ARN of the permissions boundary to associate
 - `well_known_policies` - (Block List) Use to attach common IAM policies.
 - `tags` - (Map of String) The AWS tags for the service account.
@@ -1444,7 +1446,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `instance_role_arn` - (String) The instance role for the ARNs.
 - `instance_role_permission_boundary` - (String) The instance role permission boundary policy ARN for the nodegroup.
 - `attach_policy` - (Block List) Holds a policy document to attach to the nodegroup. (Deprecated)
-- `attach_policy_v2` - (String) Holds a policy document to attach to the nodegroup in json string format
+- `attach_policy_v2` - (String) Holds a policy document to attach to the nodegroup in json string format. Wrap policy inside jsonencode() function.
 
 
 

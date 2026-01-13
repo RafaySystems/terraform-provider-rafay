@@ -521,6 +521,11 @@ type AKSNodePoolProperties struct {
 	ProximityPlacementGroupID string                      `yaml:"proximityPlacementGroupID,omitempty"`
 	Tags                      map[string]string           `yaml:"tags,omitempty"`
 	VmSize                    string                      `yaml:"vmSize,omitempty"`
+	CreationData              *AKSNodePoolCreationData    `yaml:"creationData,omitempty"`
+}
+
+type AKSNodePoolCreationData struct {
+	SourceResourceId string `yaml:"sourceResourceId,omitempty"`
 }
 
 type AKSNodePoolUpgradeSettings struct {

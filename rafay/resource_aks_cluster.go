@@ -1764,6 +1764,25 @@ func clusterAKSNodePoolProperties() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "If this is not specified, a VNET and subnet will be generated and used. If no podSubnetID is specified, this applies to nodes and pods, otherwise it applies to just nodes.",
 		},
+		"creation_data": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "The creation data for the node pool VMSS when using a custom image.",
+			Elem: &schema.Resource{
+				Schema: clusterAKSNodePoolCreationData(),
+			},
+		},
+	}
+	return s
+}
+
+func clusterAKSNodePoolCreationData() map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"source_resource_id": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "The resource ID of the custom image to be used for the node pool VMSS.",
+		},
 	}
 	return s
 }
@@ -3894,6 +3913,10 @@ func expandAKSNodePoolProperties(p []interface{}, rawConfig cty.Value) *AKSNodeP
 		obj.VnetSubnetID = v
 	}
 
+	if v, ok := in["creation_data"].([]interface{}); ok && len(v) > 0 {
+		obj.CreationData = expandAKSNodePoolCreationData(v)
+	}
+
 	return obj
 }
 
@@ -4095,6 +4118,18 @@ func expandAKSNodePoolLinuxOsConfigSysctls(p []interface{}) *AKSNodePoolLinuxOsC
 		obj.VmVfsCachePressure = &v
 	}
 
+	return obj
+}
+
+func expandAKSNodePoolCreationData(p []interface{}) *AKSNodePoolCreationData {
+	obj := &AKSNodePoolCreationData{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["source_resource_id"].(string); ok && len(v) > 0 {
+		obj.SourceResourceId = v
+	}
 	return obj
 }
 
@@ -6251,6 +6286,14 @@ func flattenAKSNodePoolProperties(in *AKSNodePoolProperties, p []interface{}, ra
 		obj["vnet_subnet_id"] = in.VnetSubnetID
 	}
 
+	if in.CreationData != nil {
+		v, ok := obj["creation_data"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["creation_data"] = flattenAKSNodePoolCreationData(in.CreationData, v)
+	}
+
 	return []interface{}{obj}
 
 }
@@ -6402,6 +6445,23 @@ func flattenAKSNodePoolLinuxOsConfigSysctls(in *AKSNodePoolLinuxOsConfigSysctls,
 
 	return []interface{}{obj}
 
+}
+
+func flattenAKSNodePoolCreationData(in *AKSNodePoolCreationData, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.SourceResourceId) > 0 {
+		obj["source_resource_id"] = in.SourceResourceId
+	}
+
+	return []interface{}{obj}
 }
 
 func flattenAKSNodePoolUpgradeSettings(in *AKSNodePoolUpgradeSettings, p []interface{}) []interface{} {

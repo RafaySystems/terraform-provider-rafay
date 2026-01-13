@@ -2147,6 +2147,10 @@ func expandAKSV3NodePoolProperties(p []interface{}) *infrapb.NodePoolProperties 
 		obj.VnetSubnetID = v
 	}
 
+	if v, ok := in["creation_data"].([]interface{}); ok && len(v) > 0 {
+		obj.CreationData = expandAKSV3NodePoolCreationData(v)
+	}
+
 	return obj
 }
 
@@ -2348,6 +2352,18 @@ func expandAKSV3NodePoolLinuxOsConfigSysctls(p []interface{}) *infrapb.Sysctls {
 		obj.VmVfsCachePressure = int32(v)
 	}
 
+	return obj
+}
+
+func expandAKSV3NodePoolCreationData(p []interface{}) *infrapb.CreationData {
+	obj := &infrapb.CreationData{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["source_resource_id"].(string); ok && len(v) > 0 {
+		obj.SourceResourceId = v
+	}
 	return obj
 }
 
@@ -4382,6 +4398,14 @@ func flattenAKSV3NodePoolProperties(in *infrapb.NodePoolProperties, p []interfac
 		obj["vnet_subnet_id"] = in.VnetSubnetID
 	}
 
+	if in.CreationData != nil {
+		v, ok := obj["creation_data"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["creation_data"] = flattenAKSV3NodePoolCreationData(in.CreationData, v)
+	}
+
 	return []interface{}{obj}
 
 }
@@ -4532,6 +4556,22 @@ func flattenAKSV3NodePoolLinuxOsConfigSysctls(in *infrapb.Sysctls, p []interface
 
 	return []interface{}{obj}
 
+}
+
+func flattenAKSV3NodePoolCreationData(in *infrapb.CreationData, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.SourceResourceId) > 0 {
+		obj["source_resource_id"] = in.SourceResourceId
+	}
+
+	return []interface{}{obj}
 }
 
 func flattenAKSV3NodePoolUpgradeSettings(in *infrapb.Upgradesettings, p []interface{}) []interface{} {

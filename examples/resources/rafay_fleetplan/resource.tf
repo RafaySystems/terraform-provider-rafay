@@ -160,8 +160,8 @@ resource "rafay_fleetplan" "fp_environments" {
           type        = "environmentVariableUpdate"
           description = "update cluster blueprint"
           environment_variable_update_config {
-            key = "Blueprint Name"
-            value = "minimal"
+            key        = "Blueprint Name"
+            value      = "minimal"
             value_type = "text"
           }
           continue_on_failure = true
@@ -178,7 +178,7 @@ resource "rafay_fleetplan" "fp_environments" {
     schedule {
       type = "one-time"
       cadence {
-        schedule_at = "2025-11-25T15:45:32Z"
+        schedule_at   = "2025-11-25T15:45:32Z"
         cron_timezone = "Asia/Kolkata"
       }
     }
@@ -186,9 +186,9 @@ resource "rafay_fleetplan" "fp_environments" {
 }
 
 resource "rafay_fleetplan_trigger" "fp_trigger" {
-  depends_on = [ rafay_fleetplan.fp_environments ]
-  
+  depends_on = [rafay_fleetplan.fp_environments]
+
   fleetplan_name = rafay_fleetplan.fp_environments.metadata[0].name
-  project = rafay_fleetplan.fp_environments.metadata[0].project
-  trigger_value = ""
+  project        = rafay_fleetplan.fp_environments.metadata[0].project
+  trigger_value  = ""
 }

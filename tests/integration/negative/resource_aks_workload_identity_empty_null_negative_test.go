@@ -19,6 +19,7 @@ var externalProvidersNegWI = map[string]resource.ExternalProvider{
 
 // Empty string is treated as "present", so plan is non-empty.
 func TestAccNegAKSWorkloadIdentity_EmptyName_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegWI,
@@ -58,6 +59,7 @@ func TestAccNegAKSWorkloadIdentity_EmptyName_AllowsPlan(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegAKSWorkloadIdentity_EmptyClusterName_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegWI,
@@ -95,6 +97,7 @@ func TestAccNegAKSWorkloadIdentity_EmptyClusterName_AllowsPlan(t *testing.T) {
 
 // null -> missing -> error.
 func TestAccNegAKSWorkloadIdentity_NullClusterName_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegWI,
@@ -134,6 +137,7 @@ func TestAccNegAKSWorkloadIdentity_NullClusterName_RequiredError(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegAKSWorkloadIdentity_EmptyProject_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegWI,
@@ -171,6 +175,7 @@ func TestAccNegAKSWorkloadIdentity_EmptyProject_AllowsPlan(t *testing.T) {
 
 // null -> missing -> error.
 func TestAccNegAKSWorkloadIdentity_NullProject_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegWI,
@@ -210,6 +215,7 @@ func TestAccNegAKSWorkloadIdentity_NullProject_RequiredError(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegAKSWorkloadIdentity_EmptySpecName_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegWI,
@@ -248,6 +254,7 @@ func TestAccNegAKSWorkloadIdentity_EmptySpecName_AllowsPlan(t *testing.T) {
 // ---------- invalid role scope ----------
 
 func TestAccNegAKSWorkloadIdentity_InvalidRoleScope_Error(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegWI,
@@ -293,6 +300,7 @@ func TestAccNegAKSWorkloadIdentity_InvalidRoleScope_Error(t *testing.T) {
 // ---------- invalid service account namespace ----------
 
 func TestAccNegAKSWorkloadIdentity_InvalidServiceAccountNamespace_Error(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegWI,

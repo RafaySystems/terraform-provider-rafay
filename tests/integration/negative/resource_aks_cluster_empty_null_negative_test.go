@@ -19,6 +19,7 @@ var externalProvidersNegAKS = map[string]resource.ExternalProvider{
 
 // Empty string is treated as "present", so plan is non-empty.
 func TestAccNegAKSCluster_EmptyClusterName_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKS,
@@ -84,6 +85,7 @@ func TestAccNegAKSCluster_EmptyClusterName_AllowsPlan(t *testing.T) {
 
 // null is treated as missing; expect "Missing required argument".
 func TestAccNegAKSCluster_NullClusterName_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKS,
@@ -151,6 +153,7 @@ func TestAccNegAKSCluster_NullClusterName_RequiredError(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegAKSCluster_EmptyProject_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKS,
@@ -216,6 +219,7 @@ func TestAccNegAKSCluster_EmptyProject_AllowsPlan(t *testing.T) {
 
 // null -> missing -> error.
 func TestAccNegAKSCluster_NullProject_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKS,
@@ -283,6 +287,7 @@ func TestAccNegAKSCluster_NullProject_RequiredError(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegAKSCluster_EmptyCloudProvider_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKS,
@@ -348,6 +353,7 @@ func TestAccNegAKSCluster_EmptyCloudProvider_AllowsPlan(t *testing.T) {
 
 // null -> missing -> error.
 func TestAccNegAKSCluster_NullCloudProvider_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKS,
@@ -415,6 +421,7 @@ func TestAccNegAKSCluster_NullCloudProvider_RequiredError(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegAKSCluster_EmptyType_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKS,
@@ -480,6 +487,7 @@ func TestAccNegAKSCluster_EmptyType_AllowsPlan(t *testing.T) {
 
 // null -> missing -> error.
 func TestAccNegAKSCluster_NullType_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKS,
@@ -546,6 +554,7 @@ func TestAccNegAKSCluster_NullType_RequiredError(t *testing.T) {
 // ---------- invalid identity type ----------
 
 func TestAccNegAKSCluster_InvalidIdentityType_Error(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKS,
@@ -617,6 +626,7 @@ func TestAccNegAKSCluster_InvalidIdentityType_Error(t *testing.T) {
 // ---------- invalid network plugin ----------
 
 func TestAccNegAKSCluster_InvalidNetworkPlugin_Error(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKS,

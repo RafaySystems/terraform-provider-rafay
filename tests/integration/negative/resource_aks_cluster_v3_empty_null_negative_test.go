@@ -18,6 +18,7 @@ var externalProvidersNegAKSV3 = map[string]resource.ExternalProvider{
 
 // Empty string is treated as "present", so plan is non-empty.
 func TestAccNegAKSClusterV3_EmptyMetadataName_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSV3,
@@ -77,6 +78,7 @@ func TestAccNegAKSClusterV3_EmptyMetadataName_AllowsPlan(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegAKSClusterV3_EmptyProject_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSV3,
@@ -136,6 +138,7 @@ func TestAccNegAKSClusterV3_EmptyProject_AllowsPlan(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegAKSClusterV3_EmptySpecType_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSV3,
@@ -195,6 +198,7 @@ func TestAccNegAKSClusterV3_EmptySpecType_AllowsPlan(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegAKSClusterV3_EmptyCloudCredentials_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSV3,
@@ -253,6 +257,7 @@ func TestAccNegAKSClusterV3_EmptyCloudCredentials_AllowsPlan(t *testing.T) {
 // ---------- invalid node pool count ----------
 
 func TestAccNegAKSClusterV3_InvalidNodePoolCount_Error(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSV3,
@@ -321,6 +326,7 @@ func TestAccNegAKSClusterV3_InvalidNodePoolCount_Error(t *testing.T) {
 // ---------- invalid kubernetes version ----------
 
 func TestAccNegAKSClusterV3_InvalidKubernetesVersion_Error(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSV3,

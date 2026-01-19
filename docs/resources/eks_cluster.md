@@ -24,7 +24,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
     spec {
       type           = "eks"
       blueprint      = "default"
-      blueprint_version = "1.13.0"
+      blueprint_version = "Latest"
       cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
       proxy_config   = {}
@@ -409,7 +409,7 @@ resource "rafay_eks_cluster" "eks-cluster-2" {
     spec {
       type           = "eks"
       blueprint      = "default"
-      blueprint_version = "1.13.0"
+      blueprint_version = "Latest"
       cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
       proxy_config   = {}
@@ -491,7 +491,7 @@ resource "rafay_eks_cluster" "eks-cluster-3" {
     spec {
       type           = "eks"
       blueprint      = "default"
-      blueprint_version = "1.13.0"
+      blueprint_version = "Latest"
       cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
       cni_params {
@@ -798,7 +798,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
     spec {
       type           = "eks"
       blueprint      = "default"
-      blueprint_version = "1.13.0"
+      blueprint_version = "Latest"
       cloud_provider = "eks-role"
       cni_provider   = "aws-cni"
       proxy_config   = {}

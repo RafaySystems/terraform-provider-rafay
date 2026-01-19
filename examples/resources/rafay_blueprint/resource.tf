@@ -3,6 +3,10 @@ resource "rafay_blueprint" "blueprint" {
   metadata {
     name    = "custom-blueprint"
     project = "terraform"
+    annotations = {
+      "key1" = "value1"
+      "key2" = "value2"
+    }
   }
   spec {
     version = "v0"

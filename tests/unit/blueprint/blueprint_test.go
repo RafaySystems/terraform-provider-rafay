@@ -1,87 +1,23 @@
 package blueprint
 
 import (
+	"embed"
 	"fmt"
 	"testing"
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
+	"github.com/RafaySystems/terraform-provider-rafay/tests/helpers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/stretchr/testify/mock"
 )
 
-func complexBlueprintConfig(memory string) string {
-	return fmt.Sprintf(`
-resource "rafay_blueprint" "blueprint" {
-  metadata {
-    name    = "custom-blueprint"
-    project = "terraform"
-  }
-  spec {
-    version = "v0"
-    base {
-      name    = "default"
-      version = "1.16.0"
-    }
-    namespace_config {
-      sync_type   = "managed"
-      enable_sync = true
-    }
-    default_addons {
-      enable_ingress          = true
-      enable_csi_secret_store = true
-      enable_monitoring       = true
-      enable_vm               = false
-      disable_aws_node_termination_handler = true
+//go:embed testdata/*.tf
+var blueprintFixtures embed.FS
 
-      csi_secret_store_config {
-        enable_secret_rotation = true
-        sync_secrets           = true
-        rotation_poll_interval = "2m"
-        providers {
-          aws = true
-        }
-      }
-      monitoring {
-        metrics_server {
-          enabled = true
-          discovery {
-            namespace = "rafay-system"
-          }
-        }
-        helm_exporter {
-          enabled = true
-        }
-        kube_state_metrics {
-          enabled = true
-        }
-        node_exporter {
-          enabled = true
-        }
-        prometheus_adapter {
-          enabled = true
-        }
-        resources {
-          limits {
-            memory = "%s"
-            cpu    = "100m"
-          }
-        }
-      }
-    }
-    drift {
-      action  = "Deny"
-      enabled = true
-    }
-    drift_webhook {
-      enabled = true
-    }
-    placement {
-      auto_publish = false
-    }
-  }
-}
-`, memory)
+func complexBlueprintConfig(t *testing.T, memory string) string {
+	fixture := helpers.LoadFixture(t, blueprintFixtures, "testdata/complex_blueprint.tf")
+	return fmt.Sprintf(fixture, memory)
 }
 
 func TestResourceBlueprint(t *testing.T) {
@@ -133,20 +69,7 @@ func testResourceBlueprintCreateHCL(t *testing.T, cfg blueprintTestConfig) {
 		ProviderFactories: cfg.providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
-resource "rafay_blueprint" "tftest" {
-  metadata {
-    name    = "test-blueprint-create"
-    project = "test-project"
-  }
-  spec {
-    version = "v1"
-    default_addons {
-        enable_ingress = true
-    }
-  }
-}
-`,
+				Config: helpers.LoadFixture(t, blueprintFixtures, "testdata/create.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("rafay_blueprint.tftest", "metadata.0.name", "test-blueprint-create"),
 					resource.TestCheckResourceAttr("rafay_blueprint.tftest", "spec.0.version", "v1"),
@@ -177,17 +100,7 @@ func testResourceBlueprintReadHCL(t *testing.T, cfg blueprintTestConfig) {
 		ProviderFactories: cfg.providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
-resource "rafay_blueprint" "tftest" {
-  metadata {
-    name    = "test-blueprint-read"
-    project = "test-project"
-  }
-  spec {
-    version = "v1"
-  }
-}
-`,
+				Config:        helpers.LoadFixture(t, blueprintFixtures, "testdata/read.tf"),
 				ImportState:   true,
 				ResourceName:  "rafay_blueprint.tftest",
 				ImportStateId: "test-blueprint-read/test-project",
@@ -238,33 +151,13 @@ func testResourceBlueprintUpdateHCL(t *testing.T, cfg blueprintTestConfig) {
 		ProviderFactories: cfg.providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
-resource "rafay_blueprint" "tftest" {
-  metadata {
-    name    = "test-blueprint-update"
-    project = "test-project"
-  }
-  spec {
-    version = "v1"
-  }
-}
-`,
+				Config: helpers.LoadFixture(t, blueprintFixtures, "testdata/update_v1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("rafay_blueprint.tftest", "spec.0.version", "v1"),
 				),
 			},
 			{
-				Config: `
-resource "rafay_blueprint" "tftest" {
-  metadata {
-    name    = "test-blueprint-update"
-    project = "test-project"
-  }
-  spec {
-    version = "v2"
-  }
-}
-`,
+				Config: helpers.LoadFixture(t, blueprintFixtures, "testdata/update_v2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("rafay_blueprint.tftest", "spec.0.version", "v2"),
 				),
@@ -299,17 +192,7 @@ func testResourceBlueprintDeleteHCL(t *testing.T, cfg blueprintTestConfig) {
 		ProviderFactories: cfg.providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
-resource "rafay_blueprint" "tftest" {
-  metadata {
-    name    = "test-blueprint-delete"
-    project = "test-project"
-  }
-  spec {
-    version = "v1"
-  }
-}
-`,
+				Config: helpers.LoadFixture(t, blueprintFixtures, "testdata/delete.tf"),
 			},
 		},
 	})
@@ -398,12 +281,12 @@ func testResourceBlueprintReadComplexHCL(t *testing.T, cfg blueprintTestConfig) 
 		ProviderFactories: cfg.providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:             complexBlueprintConfig("200Mi"),
+				Config:             complexBlueprintConfig(t, "200Mi"),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 			{
-				Config:       complexBlueprintConfig("300Mi"),
+				Config:       complexBlueprintConfig(t, "300Mi"),
 				ResourceName: "rafay_blueprint.blueprint",
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("rafay_blueprint.blueprint", "metadata.0.name", "custom-blueprint"),
@@ -416,7 +299,7 @@ func testResourceBlueprintReadComplexHCL(t *testing.T, cfg blueprintTestConfig) 
 				),
 			},
 			{
-				Config:             complexBlueprintConfig("300Mi"),
+				Config:             complexBlueprintConfig(t, "300Mi"),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},

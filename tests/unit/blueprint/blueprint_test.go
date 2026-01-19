@@ -1,4 +1,4 @@
-package rafay_test
+package blueprint_test
 
 import (
 	"context"
@@ -95,13 +95,6 @@ func newBlueprintTestConfig() blueprintTestConfig {
 
 func complexBlueprintConfig(memory string) string {
 	return fmt.Sprintf(`
-provider "rafay" {
-  ignore_insecure_tls_error = true
-  api_key                  = "test-api-key"
-  rest_endpoint            = "https://test-endpoint"
-  project                  = "defaultproject"
-}
-
 resource "rafay_blueprint" "blueprint" {
   metadata {
     name    = "custom-blueprint"

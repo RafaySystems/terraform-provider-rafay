@@ -1,21 +1,7 @@
-package rafay_test
-
-import (
-	"fmt"
-	"os"
-	"testing"
-
-	"github.com/RafaySystems/terraform-provider-rafay/rafay"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-)
-
-var (
-	customBlueprintWithMostConfigSet = fmt.Sprintf(`
 resource "rafay_blueprint" "blueprint" {
   metadata {
     name    = "custom-blueprint"
-    project = "%s"
+    project = "defaultproject"
   }
   spec {
     version = "v0"
@@ -80,31 +66,4 @@ resource "rafay_blueprint" "blueprint" {
       auto_publish = false
     }
   }
-}
-`, os.Getenv("RCTL_PROJECT"))
-)
-
-func blueprintProviderFactory() map[string]func() (*schema.Provider, error) {
-	return map[string]func() (*schema.Provider, error){
-		"rafay": func() (*schema.Provider, error) {
-			provider := &schema.Provider{
-				Schema: rafay.Schema(),
-				ResourcesMap: map[string]*schema.Resource{
-					"rafay_blueprint": rafay.ResourceBluePrint(),
-				},
-				DataSourcesMap: map[string]*schema.Resource{
-					"rafay_blueprint": rafay.DataBluePrint(),
-				},
-				ConfigureContextFunc: rafay.ProviderConfigure,
-			}
-			return provider, nil
-		},
-	}
-}
-
-func TestResourceBlueprintAcceptance(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		ProviderFactories: blueprintProviderFactory(),
-		Steps:             []resource.TestStep{{Config: customBlueprintWithMostConfigSet}},
-	})
 }

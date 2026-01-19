@@ -4,15 +4,21 @@
 package framework
 
 import (
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
-// Todo: Figure out way to automate bringing up oci instance for testing
+// Minimal env so provider Configure() is happy in plan-only runs.
+func setDummyEnv(t *testing.T) {
+	_ = os.Setenv("RCTL_API_KEY", "dummy")
+	_ = os.Setenv("RCTL_REST_ENDPOINT", "console.example.dev")
+}
 
 func TestAccMksClusterResource(t *testing.T) {
+	setDummyEnv(t)
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testFwProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -30,10 +36,17 @@ func TestAccMksClusterResource(t *testing.T) {
 }
 
 // Helper function to return the initial configuration
-// Cluster Configuration: No Ha Dedeicated Control Plane with one worker node
+// Cluster Configuration: No HA Dedicated Control Plane with one worker node
 // Bring up OCI instances and provide the node details
 func testMksClusterResourceConfig() string {
 	return `
+provider "rafay" {
+  api_key       = "dummy"
+  rest_endpoint = "console.example.dev"
+  project       = "defaultproject"
+  ignore_insecure_tls_error = true
+}
+
 resource "rafay_mks_cluster" "mks-example-cluster" {
   api_version = "infra.k8smgmt.io/v3"
   kind        = "Cluster"
@@ -156,6 +169,13 @@ resource "rafay_mks_cluster" "mks-example-cluster" {
 // Update the kubernetes_version to v1.29.4
 func testMksClusterResourceConfigUpdated() string {
 	return `
+provider "rafay" {
+  api_key       = "dummy"
+  rest_endpoint = "console.example.dev"
+  project       = "defaultproject"
+  ignore_insecure_tls_error = true
+}
+
 resource "rafay_mks_cluster" "mks-example-cluster" {
   api_version = "infra.k8smgmt.io/v3"
   kind        = "Cluster"

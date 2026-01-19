@@ -744,6 +744,8 @@ func (v *StatementValue) Flatten(ctx context.Context, in rafay.InlineStatement) 
 		}
 		v.Action, d = types.SetValue(types.StringType, actEle)
 		diags = append(diags, d...)
+	} else {
+		v.Action = types.SetNull(types.StringType)
 	}
 	if in.NotAction != nil && len(in.NotAction.([]interface{})) > 0 {
 		naEle := []attr.Value{}
@@ -752,6 +754,8 @@ func (v *StatementValue) Flatten(ctx context.Context, in rafay.InlineStatement) 
 		}
 		v.NotAction, d = types.SetValue(types.StringType, naEle)
 		diags = append(diags, d...)
+	} else {
+		v.NotAction = types.SetNull(types.StringType)
 	}
 	if len(in.Resource.(string)) > 0 {
 		v.Resource = types.StringValue(in.Resource.(string))
@@ -763,6 +767,8 @@ func (v *StatementValue) Flatten(ctx context.Context, in rafay.InlineStatement) 
 		}
 		v.NotResource, d = types.SetValue(types.StringType, nrEle)
 		diags = append(diags, d...)
+	} else {
+		v.NotResource = types.SetNull(types.StringType)
 	}
 
 	if len(in.Condition) > 0 {

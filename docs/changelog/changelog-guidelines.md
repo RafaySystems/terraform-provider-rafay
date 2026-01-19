@@ -2,32 +2,35 @@
 
 ## Overview
 
-The Rafay Terraform Provider uses an **automated AI-powered changelog system** that generates and maintains the `CHANGELOG.md` file. This document provides a brief overview and links to detailed documentation.
+The Rafay Terraform Provider uses an **AI-powered changelog generation system** that generates and maintains the `CHANGELOG.md` file. This document provides a brief overview and links to detailed documentation.
+
+**Note:** Due to branch protection rules, changelog generation is a manual process that must be run after a PR is created.
 
 ## How It Works
 
-When you merge a PR:
-1. **Automatic Trigger**: GitHub Actions workflow activates
+After you create a PR:
+1. **Manual Script Execution**: Run the changelog generation script (see [Manual Generation](#manual-generation))
 2. **AI Analysis**: OpenAI GPT analyzes your commits and code changes
 3. **Smart Categorization**: Changes are categorized into BREAKING CHANGES, FEATURES, ENHANCEMENTS, BUG FIXES, DEPRECATIONS, and DOCUMENTATION
-4. **Deprecation Detection**: Go code is scanned for `Deprecated` and `DeprecationMessage` fields
-5. **CHANGELOG Update**: Entries are automatically added to CHANGELOG.md
-6. **Branch-Aware**: Works correctly on both master (Unreleased) and release branches
+4. **Deprecation Detection**: Go code can be scanned for `Deprecated` and `DeprecationMessage` fields (optional)
+5. **CHANGELOG Update**: Entries are written to `.changelog/{PR_NUMBER}.txt` and `CHANGELOG.md`
+6. **Review and Commit**: Review the generated entries and commit them
 
 ## Branch Strategy
 
 ### Master Branch
-- All PR merges to `master` add entries to the "Unreleased" section
+- After PR merges to `master`, manually generate changelog entries for the "Unreleased" section
 - Entries accumulate until a release branch is cut
 
 ### Release Branches  
 - When a release branch is cut (e.g., `v1.2.0`), the "Unreleased" section becomes the version section
-- Cherry-picked PRs to release branches are added to that version's section
+- After cherry-picking PRs to release branches, manually generate changelog entries for that version's section
+- Use `--target-section` to specify the version number (e.g., `1.2.0`)
 - Duplicate detection prevents the same PR from appearing twice
 
 ### Cherry-Picking Flow
-1. PR merges to master → Added to "Unreleased"
-2. PR cherry-picked to release branch → Added to version section (e.g., "1.2.0")
+1. PR merges to master → Manually generate changelog for "Unreleased" section
+2. PR cherry-picked to release branch → Manually generate changelog for version section (e.g., "1.2.0")
 3. System detects duplicate by PR number and skips if already present
 
 ## What You Need to Do
@@ -36,10 +39,12 @@ When you merge a PR:
 - Write clear, descriptive commit messages
 - Mention breaking changes explicitly in commit or PR description
 - Use conventional commit format if possible (feat:, fix:, etc.)
-- Add `skip-changelog` label for internal changes (tests, refactoring)
+- After PR creation, run the changelog generation script manually
+- Review generated entries before committing
+- Commit changelog changes
 
 ### ❌ Don't Do This
-- Don't manually edit CHANGELOG.md (it won't be overwritten, but automation is better)
+- Don't forget to generate changelog after PR creation
 - Don't worry about categorization (AI handles it)
 - Don't stress about perfect wording (AI makes it user-friendly)
 
@@ -80,18 +85,42 @@ breaking: Remove deprecated rafay_cluster resource
 
 ### 🔧 Configuration Files
 
-- `.github/workflows/changelog-on-merge.yml` - Main automation workflow
 - `.github/changelog-config.json` - AI and categorization configuration
 - `scripts/generate-changelog.py` - AI-powered changelog generator
 - `scripts/scan-deprecations.go` - Go code deprecation scanner
+- `.changelog/README.md` - Manual generation instructions
+
+## Manual Generation
+
+After a PR is merged, generate the changelog manually:
+
+```bash
+# Preview (dry run)
+python3 scripts/generate-changelog.py \
+  --pr-number 1131 \
+  --pr-url https://github.com/RafaySystems/terraform-provider-rafay/pull/1131 \
+  --base-ref origin/master \
+  --head-ref HEAD \
+  --dry-run
+
+# Generate and write files
+python3 scripts/generate-changelog.py \
+  --pr-number 1131 \
+  --pr-url https://github.com/RafaySystems/terraform-provider-rafay/pull/1131 \
+  --base-ref origin/master \
+  --head-ref HEAD
+```
+
+See [`.changelog/README.md`](../../.changelog/README.md) for detailed instructions.
 
 ## Troubleshooting
 
 ### Changelog Not Updated?
 
-1. Check GitHub Actions tab for workflow status
-2. Verify PR was merged (not just closed)
-3. Check if `skip-changelog` label was added
+1. Verify you ran the changelog generation script
+2. Check that `OPENAI_API_KEY` is set in your environment
+3. Ensure the script completed successfully
+4. Review the generated files before committing
 
 ### Incorrect Categorization?
 
@@ -102,15 +131,16 @@ breaking: Remove deprecated rafay_cluster resource
 ### Missing Deprecation?
 
 1. Verify `Deprecated` or `DeprecationMessage` is in Go code
-2. Check the deprecation scanner output in Actions logs
-3. Ensure the Go file was actually changed in the PR
+2. Run the deprecation scanner manually: `go build scripts/scan-deprecations.go && ./scan-deprecations -path ./rafay -verbose`
+3. Use `--deprecations-file` when running the changelog generator
+4. Ensure the Go file was actually changed in the PR
 
 ## Benefits
 
-✅ **No Manual Work** - Automatic on every PR merge  
 ✅ **Consistent Quality** - AI ensures professional style  
-✅ **Never Miss Deprecations** - Automatic code scanning  
-✅ **Branch Sync** - Works across master and release branches  
+✅ **Flexible Process** - Manual generation allows review before committing  
+✅ **Deprecation Detection** - Can scan for deprecation warnings  
+✅ **Branch-Aware** - Works across master and release branches  
 ✅ **Cherry-Pick Friendly** - Handles your existing workflow  
 
 ## Questions?
@@ -120,6 +150,5 @@ breaking: Remove deprecated rafay_cluster resource
 
 ---
 
-**System Status**: ✅ Active  
-**Last Updated**: October 2025  
+**Last Updated**: December 2025  
 **Version**: 1.0

@@ -15,18 +15,11 @@ var externalProvidersNeg = map[string]resource.ExternalProvider{
 	"rafay": {Source: "RafaySystems/rafay"},
 }
 
-// ----------------------------------------------------------------------------
-// NOTE ON EXPECTATIONS
-// - Setting a required attribute to `null` -> Terraform Core errors with
-//   "Missing required argument. The argument \"<path>\" is required"
-// - Setting it to "" (empty string) counts as present, so the plan proceeds.
-//   For those, we assert PlanOnly + ExpectNonEmptyPlan.
-// ----------------------------------------------------------------------------
-
 // ---------- cluster.metadata.name ----------
 
 // Empty string is treated as "present", so plan is non-empty.
 func TestAccNegEKSCluster_EmptyClusterName_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNeg,
@@ -67,6 +60,7 @@ func TestAccNegEKSCluster_EmptyClusterName_AllowsPlan(t *testing.T) {
 
 // null is treated as missing; expect "Missing required argument".
 func TestAccNegEKSCluster_NullClusterName_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNeg,
@@ -109,6 +103,7 @@ func TestAccNegEKSCluster_NullClusterName_RequiredError(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegEKSCluster_EmptyProject_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNeg,
@@ -151,6 +146,7 @@ func TestAccNegEKSCluster_EmptyProject_AllowsPlan(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegEKSCluster_EmptyCloudProvider_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNeg,
@@ -191,6 +187,7 @@ func TestAccNegEKSCluster_EmptyCloudProvider_AllowsPlan(t *testing.T) {
 
 // null -> missing -> required error.
 func TestAccNegEKSCluster_NullCloudProvider_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNeg,
@@ -233,6 +230,7 @@ func TestAccNegEKSCluster_NullCloudProvider_RequiredError(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegEKSCluster_EmptyRegion_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNeg,
@@ -273,6 +271,7 @@ func TestAccNegEKSCluster_EmptyRegion_AllowsPlan(t *testing.T) {
 
 // null -> missing -> required error.
 func TestAccNegEKSCluster_NullRegion_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNeg,
@@ -315,6 +314,7 @@ func TestAccNegEKSCluster_NullRegion_RequiredError(t *testing.T) {
 
 // Empty optional field -> plan proceeds.
 func TestAccNegEKSCluster_EmptyServiceCIDR_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNeg,
@@ -359,6 +359,7 @@ func TestAccNegEKSCluster_EmptyServiceCIDR_AllowsPlan(t *testing.T) {
 
 // Null optional field -> plan proceeds (defaults to IPv4).
 func TestAccNegEKSCluster_NullIPFamily_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNeg,
@@ -404,6 +405,7 @@ func TestAccNegEKSCluster_NullIPFamily_AllowsPlan(t *testing.T) {
 
 // Empty/omitted optional -> plan proceeds.
 func TestAccNegEKSCluster_EmptyAuthMode_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNeg,

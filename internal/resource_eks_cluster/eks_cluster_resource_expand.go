@@ -1597,7 +1597,7 @@ func (v AttachPolicy3Value) Expand(ctx context.Context) (*rafay.InlineDocument, 
 		policyDoc.Id = getStringValue(v.Id)
 	}
 	if !v.Statement2.IsNull() && !v.Statement2.IsUnknown() {
-		vStatement := make([]StatementValue, 0, len(v.Statement2.Elements()))
+		vStatement := make([]Statement2Value, 0, len(v.Statement2.Elements()))
 		d := v.Statement2.ElementsAs(ctx, &vStatement, false)
 		diags = append(diags, d...)
 		statements := make([]rafay.InlineStatement, 0, len(vStatement))
@@ -1612,6 +1612,97 @@ func (v AttachPolicy3Value) Expand(ctx context.Context) (*rafay.InlineDocument, 
 	}
 
 	return &policyDoc, diags
+}
+
+func (v Statement2Value) Expand(ctx context.Context) (rafay.InlineStatement, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var stmt rafay.InlineStatement
+
+	if v.IsNull() {
+		return rafay.InlineStatement{}, diags
+	}
+	// Map string fields
+	if !v.Effect.IsNull() && !v.Effect.IsUnknown() {
+		stmt.Effect = getStringValue(v.Effect)
+	}
+	if !v.Sid.IsNull() && !v.Sid.IsUnknown() {
+		stmt.Sid = getStringValue(v.Sid)
+	}
+
+	if !v.Action.IsNull() && !v.Action.IsUnknown() {
+		actsList := make([]types.String, 0, len(v.Action.Elements()))
+		d := v.Action.ElementsAs(ctx, &actsList, false)
+		diags = append(diags, d...)
+		if len(actsList) > 0 {
+			actionStrs := make([]string, 0, len(actsList))
+			for _, act := range actsList {
+				actionStrs = append(actionStrs, getStringValue(act))
+			}
+			stmt.Action = actionStrs
+		}
+	}
+
+	if !v.NotAction.IsNull() && !v.NotAction.IsUnknown() {
+		nactsList := make([]types.String, 0, len(v.NotAction.Elements()))
+		d := v.NotAction.ElementsAs(ctx, &nactsList, false)
+		diags = append(diags, d...)
+		if len(nactsList) > 0 {
+			notActionStrs := make([]string, 0, len(nactsList))
+			for _, act := range nactsList {
+				notActionStrs = append(notActionStrs, getStringValue(act))
+			}
+			stmt.NotAction = notActionStrs
+		}
+	}
+
+	if !v.NotResource.IsNull() && !v.NotResource.IsUnknown() {
+		nresList := make([]types.String, 0, len(v.NotResource.Elements()))
+		d := v.NotResource.ElementsAs(ctx, &nresList, false)
+		diags = append(diags, d...)
+		if len(nresList) > 0 {
+			notResourceStrs := make([]string, 0, len(nresList))
+			for _, res := range nresList {
+				notResourceStrs = append(notResourceStrs, getStringValue(res))
+			}
+			stmt.NotResource = notResourceStrs
+		}
+	}
+
+	if !v.Principal.IsNull() && !v.Principal.IsUnknown() {
+		var policyDoc map[string]interface{}
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		err := json2.Unmarshal([]byte(getStringValue(v.Condition)), &policyDoc)
+		if err != nil {
+			diags.AddError("Invalid Principal JSON", err.Error())
+		}
+		stmt.Principal = policyDoc
+	}
+
+	if !v.Resource.IsNull() && !v.Resource.IsUnknown() {
+		stmt.Resource = getStringValue(v.Resource)
+	}
+
+	if !v.NotPrincipal.IsNull() && !v.NotPrincipal.IsUnknown() {
+		var policyDoc map[string]interface{}
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		err := json2.Unmarshal([]byte(getStringValue(v.Condition)), &policyDoc)
+		if err != nil {
+			diags.AddError("Invalid NotPrincipal JSON", err.Error())
+		}
+		stmt.NotPrincipal = policyDoc
+	}
+
+	if !v.Condition.IsNull() && !v.Condition.IsUnknown() {
+		var policyDoc map[string]interface{}
+		var json2 = jsoniter.ConfigCompatibleWithStandardLibrary
+		err := json2.Unmarshal([]byte(getStringValue(v.Condition)), &policyDoc)
+		if err != nil {
+			diags.AddError("Invalid Condition JSON", err.Error())
+		}
+		stmt.Condition = policyDoc
+	}
+
+	return stmt, diags
 }
 
 func (v WellKnownPolicies3Value) Expand(ctx context.Context) (*rafay.WellKnownPolicies, diag.Diagnostics) {

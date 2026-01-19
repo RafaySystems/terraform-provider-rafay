@@ -15,18 +15,11 @@ var externalProvidersNegAKSSpec = map[string]resource.ExternalProvider{
 	"rafay": {Source: "RafaySystems/rafay"},
 }
 
-// ----------------------------------------------------------------------------
-// NOTE ON EXPECTATIONS
-// - Setting a required attribute to `null` -> Terraform Core errors with
-//   "Missing required argument. The argument \"<path>\" is required"
-// - Setting it to "" (empty string) counts as present, so the plan proceeds.
-//   For those, we assert PlanOnly + ExpectNonEmptyPlan.
-// ----------------------------------------------------------------------------
-
 // ---------- yamlfilepath ----------
 
 // Empty string is treated as "present", so plan is non-empty.
 func TestAccNegAKSClusterSpec_EmptyYamlFilePath_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSSpec,
@@ -49,6 +42,7 @@ func TestAccNegAKSClusterSpec_EmptyYamlFilePath_AllowsPlan(t *testing.T) {
 
 // null is treated as missing; expect "Missing required argument".
 func TestAccNegAKSClusterSpec_NullYamlFilePath_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSSpec,
@@ -73,6 +67,7 @@ func TestAccNegAKSClusterSpec_NullYamlFilePath_RequiredError(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegAKSClusterSpec_EmptyYamlFileVersion_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSSpec,
@@ -94,7 +89,10 @@ func TestAccNegAKSClusterSpec_EmptyYamlFileVersion_AllowsPlan(t *testing.T) {
 }
 
 // null -> missing -> error.
+// ---------- name ----------
+
 func TestAccNegAKSClusterSpec_NullYamlFileVersion_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSSpec,
@@ -115,10 +113,9 @@ func TestAccNegAKSClusterSpec_NullYamlFileVersion_RequiredError(t *testing.T) {
 	})
 }
 
-// ---------- name ----------
-
 // Empty string -> present -> plan proceeds.
 func TestAccNegAKSClusterSpec_EmptyName_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSSpec,
@@ -141,6 +138,7 @@ func TestAccNegAKSClusterSpec_EmptyName_AllowsPlan(t *testing.T) {
 
 // null -> missing -> error.
 func TestAccNegAKSClusterSpec_NullName_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSSpec,
@@ -165,6 +163,7 @@ func TestAccNegAKSClusterSpec_NullName_RequiredError(t *testing.T) {
 
 // Empty string -> present -> plan proceeds.
 func TestAccNegAKSClusterSpec_EmptyProjectName_AllowsPlan(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSSpec,
@@ -187,6 +186,7 @@ func TestAccNegAKSClusterSpec_EmptyProjectName_AllowsPlan(t *testing.T) {
 
 // null -> missing -> error.
 func TestAccNegAKSClusterSpec_NullProjectName_RequiredError(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSSpec,
@@ -210,6 +210,7 @@ func TestAccNegAKSClusterSpec_NullProjectName_RequiredError(t *testing.T) {
 // ---------- invalid yaml path ----------
 
 func TestAccNegAKSClusterSpec_InvalidYamlPath_Error(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSSpec,
@@ -234,6 +235,7 @@ func TestAccNegAKSClusterSpec_InvalidYamlPath_Error(t *testing.T) {
 // ---------- mismatched cluster name ----------
 
 func TestAccNegAKSClusterSpec_MismatchedClusterName_Error(t *testing.T) {
+	setDummyEnv(t)
 	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		ExternalProviders: externalProvidersNegAKSSpec,

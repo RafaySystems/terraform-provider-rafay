@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "name": "test-blueprint-create",
+    "project": "test-project"
+  },
+  "spec": {
+    "version": "v1",
+    "type": "custom",
+    "defaultAddons": {
+      "enableIngress": true
+    }
+  }
+}

@@ -12,12 +12,16 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-//go:embed testdata/*.tf
+//go:embed testdata/*
 var blueprintFixtures embed.FS
 
 func complexBlueprintConfig(t *testing.T, memory string) string {
 	fixture := helpers.LoadFixture(t, blueprintFixtures, "testdata/complex_blueprint.tf")
 	return fmt.Sprintf(fixture, memory)
+}
+
+func blueprintFixture(t *testing.T, fileName string) *infrapb.Blueprint {
+	return mustBlueprintFromJSON(t, helpers.LoadFixture(t, blueprintFixtures, fileName))
 }
 
 func TestResourceBlueprint(t *testing.T) {
@@ -41,21 +45,7 @@ func TestResourceBlueprint(t *testing.T) {
 }
 
 func testResourceBlueprintCreateHCL(t *testing.T, cfg blueprintTestConfig) {
-	expectedBP := mustBlueprintFromJSON(t, `
-{
-  "metadata": {
-    "name": "test-blueprint-create",
-    "project": "test-project"
-  },
-  "spec": {
-    "version": "v1",
-    "type": "custom",
-    "defaultAddons": {
-      "enableIngress": true
-    }
-  }
-}
-`)
+	expectedBP := blueprintFixture(t, "testdata/create_blueprint.json")
 
 	cfg.mockClient.On("Apply", mock.Anything, mock.MatchedBy(func(blueprint *infrapb.Blueprint) bool {
 		return blueprint.Metadata.Name == "test-blueprint-create" && blueprint.Metadata.Project == "test-project"
@@ -80,17 +70,7 @@ func testResourceBlueprintCreateHCL(t *testing.T, cfg blueprintTestConfig) {
 }
 
 func testResourceBlueprintReadHCL(t *testing.T, cfg blueprintTestConfig) {
-	expectedBP := mustBlueprintFromJSON(t, `
-{
-  "metadata": {
-    "name": "test-blueprint-read",
-    "project": "test-project"
-  },
-  "spec": {
-    "version": "v1"
-  }
-}
-`)
+	expectedBP := blueprintFixture(t, "testdata/read_blueprint.json")
 	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
 		return opts.Name == "test-blueprint-read" && opts.Project == "test-project"
 	})).Return(expectedBP, nil)
@@ -113,30 +93,8 @@ func testResourceBlueprintReadHCL(t *testing.T, cfg blueprintTestConfig) {
 }
 
 func testResourceBlueprintUpdateHCL(t *testing.T, cfg blueprintTestConfig) {
-	expectedBPV1 := mustBlueprintFromJSON(t, `
-{
-  "metadata": {
-    "name": "test-blueprint-update",
-    "project": "test-project"
-  },
-  "spec": {
-    "version": "v1",
-    "type": "custom"
-  }
-}
-`)
-	expectedBPV2 := mustBlueprintFromJSON(t, `
-{
-  "metadata": {
-    "name": "test-blueprint-update",
-    "project": "test-project"
-  },
-  "spec": {
-    "version": "v2",
-    "type": "custom"
-  }
-}
-`)
+	expectedBPV1 := blueprintFixture(t, "testdata/update_blueprint_v1.json")
+	expectedBPV2 := blueprintFixture(t, "testdata/update_blueprint_v2.json")
 
 	cfg.mockClient.On("Apply", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
@@ -167,18 +125,7 @@ func testResourceBlueprintUpdateHCL(t *testing.T, cfg blueprintTestConfig) {
 }
 
 func testResourceBlueprintDeleteHCL(t *testing.T, cfg blueprintTestConfig) {
-	expectedBP := mustBlueprintFromJSON(t, `
-{
-  "metadata": {
-    "name": "test-blueprint-delete",
-    "project": "test-project"
-  },
-  "spec": {
-    "version": "v1",
-    "type": "custom"
-  }
-}
-`)
+	expectedBP := blueprintFixture(t, "testdata/delete_blueprint.json")
 
 	cfg.mockClient.On("Apply", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
@@ -199,77 +146,7 @@ func testResourceBlueprintDeleteHCL(t *testing.T, cfg blueprintTestConfig) {
 }
 
 func testResourceBlueprintReadComplexHCL(t *testing.T, cfg blueprintTestConfig) {
-	expectedBP := mustBlueprintFromJSON(t, `
-{
-  "metadata": {
-    "name": "custom-blueprint",
-    "project": "terraform"
-  },
-  "spec": {
-    "version": "v0",
-    "type": "custom",
-    "base": {
-      "name": "default",
-      "version": "1.16.0"
-    },
-    "namespaceConfig": {
-      "syncType": "managed",
-      "enableSync": true
-    },
-    "defaultAddons": {
-      "enableIngress": true,
-      "enableCsiSecretStore": true,
-      "enableMonitoring": true,
-      "enableVM": false,
-      "disableAwsNodeTerminationHandler": true,
-      "csiSecretStoreConfig": {
-        "enableSecretRotation": true,
-        "syncSecrets": true,
-        "rotationPollInterval": "2m",
-        "providers": {
-          "aws": true
-        }
-      },
-      "monitoring": {
-        "metricsServer": {
-          "enabled": true,
-          "discovery": {
-            "namespace": "rafay-system"
-          }
-        },
-        "helmExporter": {
-          "enabled": true
-        },
-        "kubeStateMetrics": {
-          "enabled": true
-        },
-        "nodeExporter": {
-          "enabled": true
-        },
-        "prometheusAdapter": {
-          "enabled": true
-        },
-        "resources": {
-          "limits": {
-            "memory": "300Mi",
-            "cpu": "100m"
-          }
-        }
-      }
-    },
-    "drift": {
-      "action": "Deny",
-      "enabled": true
-    },
-    "driftWebhook": {
-      "enabled": true
-    },
-    "placement": {
-      "autoPublish": false
-    }
-  }
-}
-`)
+	expectedBP := blueprintFixture(t, "testdata/complex_blueprint.json")
 
 	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
 		return opts.Name == "custom-blueprint" && opts.Project == "terraform"

@@ -1,0 +1,10 @@
+{
+  "metadata": {
+    "name": "test-blueprint-delete",
+    "project": "test-project"
+  },
+  "spec": {
+    "version": "v1",
+    "type": "custom"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "metadata": {
+    "name": "custom-blueprint",
+    "project": "terraform"
+  },
+  "spec": {
+    "version": "v0",
+    "type": "custom",
+    "base": {
+      "name": "default",
+      "version": "1.16.0"
+    },
+    "namespaceConfig": {
+      "syncType": "managed",
+      "enableSync": true
+    },
+    "defaultAddons": {
+      "enableIngress": true,
+      "enableCsiSecretStore": true,
+      "enableMonitoring": true,
+      "enableVM": false,
+      "disableAwsNodeTerminationHandler": true,
+      "csiSecretStoreConfig": {
+        "enableSecretRotation": true,
+        "syncSecrets": true,
+        "rotationPollInterval": "2m",
+        "providers": {
+          "aws": true
+        }
+      },
+      "monitoring": {
+        "metricsServer": {
+          "enabled": true,
+          "discovery": {
+            "namespace": "rafay-system"
+          }
+        },
+        "helmExporter": {
+          "enabled": true
+        },
+        "kubeStateMetrics": {
+          "enabled": true
+        },
+        "nodeExporter": {
+          "enabled": true
+        },
+        "prometheusAdapter": {
+          "enabled": true
+        },
+        "resources": {
+          "limits": {
+            "memory": "300Mi",
+            "cpu": "100m"
+          }
+        }
+      }
+    },
+    "drift": {
+      "action": "Deny",
+      "enabled": true
+    },
+    "driftWebhook": {
+      "enabled": true
+    },
+    "placement": {
+      "autoPublish": false
+    }
+  }
+}

@@ -1,13 +1,13 @@
 resource "rafay_blueprint" "blueprint" {
   metadata {
-    name    = "custom-blueprint"
-    project = "defaultproject"
+    name    = "%s"
+    project = "%s"
   }
   spec {
     version = "v0"
     base {
       name    = "default"
-      version = "4.0.0"
+      version = "%s"
     }
     namespace_config {
       sync_type   = "managed"

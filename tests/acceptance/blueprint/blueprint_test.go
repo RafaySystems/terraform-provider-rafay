@@ -2,6 +2,7 @@ package blueprint_test
 
 import (
 	"embed"
+	"fmt"
 	"testing"
 
 	"github.com/RafaySystems/terraform-provider-rafay/rafay"
@@ -33,7 +34,7 @@ func blueprintProviderFactory() map[string]func() (*schema.Provider, error) {
 
 func TestResourceBlueprint(t *testing.T) {
 	configurations := []string{
-		helpers.LoadFixture(t, blueprintFixtures, "custom_blueprint_with_most_config.tf"),
+		fmt.Sprintf(helpers.LoadFixture(t, blueprintFixtures, "custom_blueprint_with_most_config.tf"), "test-blueprint-1", "defaultproject", "4.0.0"),
 	}
 
 	for _, configuration := range configurations {

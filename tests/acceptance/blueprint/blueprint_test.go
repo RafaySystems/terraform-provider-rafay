@@ -35,7 +35,7 @@ func blueprintProviderFactory() map[string]func() (*schema.Provider, error) {
 
 func TestResourceBlueprint(t *testing.T) {
 	configurations := []string{
-		fmt.Sprintf(helpers.LoadFixture(t, blueprintFixtures, "custom_blueprint_with_most_config.tf"), "test-blueprint-1", os.Getenv("RCTL_PROJECT"), os.Getenv("BASE_BLUEPRINT_VERSION")),
+		fmt.Sprintf(helpers.LoadFixture(t, blueprintFixtures, "testdata/custom_blueprint_with_most_config.tf"), "test-blueprint-1", os.Getenv("RCTL_PROJECT"), os.Getenv("BASE_BLUEPRINT_VERSION")),
 	}
 
 	for _, configuration := range configurations {

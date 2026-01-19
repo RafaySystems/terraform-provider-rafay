@@ -79,7 +79,7 @@ testacc:
 
 test-ci:
 	@echo "Running CI tests with acceptance tests enabled..."
-	TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/...
+	. internal/scripts/ci-env.sh && TF_ACC=1 GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay ./tests/...
 
 # Updated .PHONY declarations for streamlined test commands
 .PHONY: test test-cover test-unit test-integration test-api test-ci

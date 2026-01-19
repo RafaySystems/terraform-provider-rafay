@@ -29,11 +29,10 @@ func TestResourceBlueprint(t *testing.T) {
 		name string
 		run  func(*testing.T, blueprintTestConfig)
 	}{
-		{"Create", testResourceBlueprintCreateHCL},
-		{"Read", testResourceBlueprintReadHCL},
-		{"Update", testResourceBlueprintUpdateHCL},
-		{"Delete", testResourceBlueprintDeleteHCL},
-		{"ReadComplex", testResourceBlueprintReadComplexHCL},
+		{"create", testResourceBlueprintCreate},
+		{"update", testResourceBlueprintUpdate},
+		{"delete", testResourceBlueprintDelete},
+		{"read", testResourceBlueprintRead},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -44,14 +43,14 @@ func TestResourceBlueprint(t *testing.T) {
 	}
 }
 
-func testResourceBlueprintCreateHCL(t *testing.T, cfg blueprintTestConfig) {
-	expectedBP := blueprintFixture(t, "testdata/create_blueprint.json")
+func testResourceBlueprintCreate(t *testing.T, cfg blueprintTestConfig) {
+	expectedBP := blueprintFixture(t, "testdata/complex_blueprint.json")
 
 	cfg.mockClient.On("Apply", mock.Anything, mock.MatchedBy(func(blueprint *infrapb.Blueprint) bool {
-		return blueprint.Metadata.Name == "test-blueprint-create" && blueprint.Metadata.Project == "test-project"
+		return blueprint.Metadata.Name == "custom-blueprint" && blueprint.Metadata.Project == "terraform"
 	}), mock.Anything).Return(nil)
 	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
-		return opts.Name == "test-blueprint-create" && opts.Project == "test-project"
+		return opts.Name == "custom-blueprint" && opts.Project == "terraform"
 	})).Return(expectedBP, nil)
 	cfg.mockClient.On("Delete", mock.Anything, mock.Anything).Return(nil)
 
@@ -59,40 +58,17 @@ func testResourceBlueprintCreateHCL(t *testing.T, cfg blueprintTestConfig) {
 		ProviderFactories: cfg.providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: helpers.LoadFixture(t, blueprintFixtures, "testdata/create.tf"),
+				Config: complexBlueprintConfig(t, "300Mi"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("rafay_blueprint.tftest", "metadata.0.name", "test-blueprint-create"),
-					resource.TestCheckResourceAttr("rafay_blueprint.tftest", "spec.0.version", "v1"),
+					resource.TestCheckResourceAttr("rafay_blueprint.blueprint", "metadata.0.name", "custom-blueprint"),
+					resource.TestCheckResourceAttr("rafay_blueprint.blueprint", "spec.0.version", "v0"),
 				),
 			},
 		},
 	})
 }
 
-func testResourceBlueprintReadHCL(t *testing.T, cfg blueprintTestConfig) {
-	expectedBP := blueprintFixture(t, "testdata/read_blueprint.json")
-	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
-		return opts.Name == "test-blueprint-read" && opts.Project == "test-project"
-	})).Return(expectedBP, nil)
-	cfg.mockClient.On("Delete", mock.Anything, mock.Anything).Return(nil)
-
-	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: cfg.providerFactories,
-		Steps: []resource.TestStep{
-			{
-				Config:        helpers.LoadFixture(t, blueprintFixtures, "testdata/read.tf"),
-				ImportState:   true,
-				ResourceName:  "rafay_blueprint.tftest",
-				ImportStateId: "test-blueprint-read/test-project",
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("rafay_blueprint.tftest", "spec.0.version", "v1"),
-				),
-			},
-		},
-	})
-}
-
-func testResourceBlueprintUpdateHCL(t *testing.T, cfg blueprintTestConfig) {
+func testResourceBlueprintUpdate(t *testing.T, cfg blueprintTestConfig) {
 	expectedBPV1 := blueprintFixture(t, "testdata/update_blueprint_v1.json")
 	expectedBPV2 := blueprintFixture(t, "testdata/update_blueprint_v2.json")
 
@@ -124,7 +100,7 @@ func testResourceBlueprintUpdateHCL(t *testing.T, cfg blueprintTestConfig) {
 	})
 }
 
-func testResourceBlueprintDeleteHCL(t *testing.T, cfg blueprintTestConfig) {
+func testResourceBlueprintDelete(t *testing.T, cfg blueprintTestConfig) {
 	expectedBP := blueprintFixture(t, "testdata/delete_blueprint.json")
 
 	cfg.mockClient.On("Apply", mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -145,7 +121,7 @@ func testResourceBlueprintDeleteHCL(t *testing.T, cfg blueprintTestConfig) {
 	})
 }
 
-func testResourceBlueprintReadComplexHCL(t *testing.T, cfg blueprintTestConfig) {
+func testResourceBlueprintRead(t *testing.T, cfg blueprintTestConfig) {
 	expectedBP := blueprintFixture(t, "testdata/complex_blueprint.json")
 
 	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {

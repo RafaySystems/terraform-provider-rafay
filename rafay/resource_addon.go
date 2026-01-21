@@ -23,7 +23,8 @@ import (
 
 var showArtifactFlag bool = false
 
-func resourceAddon() *schema.Resource {
+func ResourceAddon() *schema.Resource {
+	s := copySchemaMap(resource.AddonSchema.Schema)
 	return &schema.Resource{
 		CreateContext: resourceAddonCreate,
 		ReadContext:   resourceAddonRead,
@@ -40,7 +41,7 @@ func resourceAddon() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.AddonSchema.Schema,
+		Schema:        s,
 	}
 }
 

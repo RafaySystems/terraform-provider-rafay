@@ -13,7 +13,7 @@ import (
 )
 
 //go:embed testdata/*.tf
-var blueprintFixtures embed.FS
+var fixtures embed.FS
 
 func blueprintProviderFactory() map[string]func() (*schema.Provider, error) {
 	return map[string]func() (*schema.Provider, error){
@@ -22,9 +22,11 @@ func blueprintProviderFactory() map[string]func() (*schema.Provider, error) {
 				Schema: rafay.Schema(),
 				ResourcesMap: map[string]*schema.Resource{
 					"rafay_blueprint": rafay.ResourceBluePrint(),
+					"rafay_addon":     rafay.ResourceAddon(),
 				},
 				DataSourcesMap: map[string]*schema.Resource{
 					"rafay_blueprint": rafay.DataBluePrint(),
+					"rafay_addon":     rafay.DataAddon(),
 				},
 				ConfigureContextFunc: rafay.ProviderConfigure,
 			}
@@ -34,14 +36,28 @@ func blueprintProviderFactory() map[string]func() (*schema.Provider, error) {
 }
 
 func TestResourceBlueprint(t *testing.T) {
-	configurations := []string{
-		fmt.Sprintf(helpers.LoadFixture(t, blueprintFixtures, "testdata/custom_blueprint_with_most_config.tf"), "test-blueprint-1", os.Getenv("RCTL_PROJECT"), os.Getenv("BASE_BLUEPRINT_VERSION")),
+	// to test more scenarios, add more configurations to this slice
+	configurations := []struct {
+		name   string
+		config string
+	}{
+		{
+			name:   "complex-blueprint-1",
+			config: fmt.Sprintf(helpers.LoadFixture(t, fixtures, "testdata/custom_blueprint_with_most_config.tf"), "complex-blueprint-1", os.Getenv("RCTL_PROJECT"), os.Getenv("BASE_BLUEPRINT_VERSION")),
+		},
+		{
+			name:   "blueprint-with-addons",
+			config: fmt.Sprintf(helpers.LoadFixture(t, fixtures, "testdata/blueprint_with_addons.tf"), os.Getenv("RCTL_PROJECT"), os.Getenv("RCTL_PROJECT"), os.Getenv("BASE_BLUEPRINT_VERSION")),
+		},
 	}
 
-	for _, configuration := range configurations {
-		resource.ParallelTest(t, resource.TestCase{
-			ProviderFactories: blueprintProviderFactory(),
-			Steps:             []resource.TestStep{{Config: configuration}},
+	for _, tc := range configurations {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			resource.ParallelTest(t, resource.TestCase{
+				ProviderFactories: blueprintProviderFactory(),
+				Steps:             []resource.TestStep{{Config: tc.config}},
+			})
 		})
 	}
 }

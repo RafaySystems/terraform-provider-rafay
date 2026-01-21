@@ -68,7 +68,7 @@ func resourceGroupAssociation() *schema.Resource {
 				AtLeastOneOf: []string{"custom_roles", "roles"},
 			},
 			"namespaces": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,

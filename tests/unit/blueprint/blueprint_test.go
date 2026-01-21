@@ -75,7 +75,7 @@ func testResourceBlueprintUpdate(t *testing.T, cfg blueprintTestConfig) {
 	cfg.mockClient.On("Apply", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
 		return opts.Name == "test-blueprint-update" && opts.Project == "test-project"
-	})).Return(expectedBPV1, nil).Once()
+	})).Return(expectedBPV1, nil).Twice()
 	cfg.mockClient.On("Get", mock.Anything, mock.MatchedBy(func(opts options.GetOptions) bool {
 		return opts.Name == "test-blueprint-update" && opts.Project == "test-project"
 	})).Return(expectedBPV2, nil)

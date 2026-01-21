@@ -97,7 +97,7 @@ func ResourceBluePrintImport(d *schema.ResourceData, meta interface{}) ([]*schem
 
 func resourceBluePrintCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	log.Printf("blueprint create starts")
-	create := isBlueprintAlreadyExists(ctx, d)
+	create := isBlueprintAlreadyExists(ctx, d, m)
 
 	diags := resourceBluePrintUpsert(ctx, d, m)
 
@@ -1927,20 +1927,20 @@ func flattenKubeAPIProxyNetwork(input []*infrapb.KubeAPIProxyNetwork, p []interf
 	return out
 }
 
-func isBlueprintAlreadyExists(ctx context.Context, d *schema.ResourceData) bool {
+func isBlueprintAlreadyExists(ctx context.Context, d *schema.ResourceData, m interface{}) bool {
 
 	bp, err := expandBluePrint(d)
 	if err != nil {
 		log.Printf("blueprint expandBluePrint error")
 		return false
 	}
-	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+
+	client, err := blueprintClient(m)
 	if err != nil {
 		return false
 	}
 
-	_, err = client.InfraV3().Blueprint().Get(ctx, options.GetOptions{
+	_, err = client.Get(ctx, options.GetOptions{
 		Name:    bp.Metadata.Name,
 		Project: bp.Metadata.Project,
 	})

@@ -81,7 +81,7 @@ Read-Only:
 - `installer_ttl` (Integer) By default, this setting allows ttl configuration for installer config. If not provided by default will set ttl to 365 days.
 - `kubelet_extra_args` (Map of String) Cluster kubelet extra args.
 - `platform_version` (String) Platform version that allows upgrading the cluster's internal components such as Cluster utils, Orchestration proxy, Orchestration agent, CRI, and etcd.
-- `kubelet_configuration_overrides` (String) Define advanced kubelet settings using YAML. These configurations are validated automatically and form the base kubelet behavior. Use this for structured, persistent settings.
+- `kubelet_configuration_overrides` (String) Advanced kubelet settings in YAML format (e.g evictionHard).
 - `location` (String) The data center location where the cluster nodes will be launched
 - `network` (Attributes) MKS Cluster Network Specification (see [below for nested schema](#nestedatt--spec--config--network))
 - `nodes` (Attributes Map) holds node configuration for the cluster (see [below for nested schema](#nestedatt--spec--config--nodes))
@@ -158,7 +158,7 @@ Read-Only:
 - `roles` (Set of String) Valid roles are: 'ControlPlane', 'Worker', 'Storage'
 - `ssh` (Attributes) MKS Node SSH definition (see [below for nested schema](#nestedatt--spec--config--nodes--ssh))
 - `taints` (Attributes Set) taints to be added to the node (see [below for nested schema](#nestedatt--spec--config--nodes--taints))
-- `kubelet_configuration_overrides` (String) Define advanced kubelet settings using YAML. These configurations are validated automatically and form the base kubelet behavior. Use this for structured, persistent settings.
+- `kubelet_configuration_overrides` (String) Advanced kubelet settings in YAML format (e.g evictionHard).
 
 <a id="nestedatt--spec--config--nodes--ssh"></a>
 ### Nested Schema for `spec.config.nodes.ssh`

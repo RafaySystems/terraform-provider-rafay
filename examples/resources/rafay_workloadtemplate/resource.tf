@@ -124,3 +124,29 @@ resource "rafay_workloadtemplate" "tftestworkloadtemplate6" {
     }
   }
 }
+
+
+# Create workloadtemplate of Helm package type from Helm repo
+resource "rafay_workloadtemplate" "tftestworkloadtemplate2" {
+  metadata {
+    name    = "tftestworkloadtemplate2"
+    project = "defaultproject"
+  }
+  spec {
+    artifact {
+      type = "Helm"
+      artifact {
+        repository    = "repository-name"
+        chart_name    = "chart-name"
+        chart_version = "chart-version"
+        values_ref {
+          repository = "repository-name"
+          revision   = "main"
+          values_paths {
+            name = "value/path/values.yaml"
+          }
+        }
+      }
+    }
+  }
+}

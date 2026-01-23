@@ -239,10 +239,28 @@ func (v *ManagedNodegroupsMapValue) Flatten(ctx context.Context, in *rafay.Manag
 	}
 
 	if len(in.Taints) > 0 {
+		stTaints := []Taints5Value{}
+		if !state.Taints5.IsNull() {
+			for _, sT := range state.Taints5.Elements() {
+				stTaints = append(stTaints, sT.(Taints5Value))
+			}
+		}
+
 		taintsList := []attr.Value{}
 		for _, val := range in.Taints {
+			k := val.Key
+			e := val.Effect
+			var stTaint Taints5Value
+			for _, stT := range stTaints {
+				if !stT.IsNull() && !stT.Key.IsNull() && !stT.Effect.IsNull() &&
+					getStringValue(stT.Key) == k && getStringValue(stT.Effect) == e {
+					stTaint = stT
+					break
+				}
+			}
+
 			taint := NewTaints5ValueNull()
-			d = taint.Flatten(ctx, val)
+			d = taint.Flatten(ctx, val, stTaint)
 			diags = append(diags, d...)
 			taintsList = append(taintsList, taint)
 		}
@@ -604,14 +622,20 @@ func (v *BottleRocket5Value) Flatten(ctx context.Context, in *rafay.NodeGroupBot
 	return diags
 }
 
-func (v *Taints5Value) Flatten(ctx context.Context, in rafay.NodeGroupTaint) diag.Diagnostics {
+func (v *Taints5Value) Flatten(ctx context.Context, in rafay.NodeGroupTaint, state Taints5Value) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if in.Key != "" {
 		v.Key = types.StringValue(in.Key)
 	}
+
 	if in.Value != "" {
 		v.Value = types.StringValue(in.Value)
+	} else {
+		// hack: API can not differenciate nil and zero value of Value field. This is to avoid unnecessary diffs.
+		if !state.IsNull() && !state.Value.IsNull() {
+			v.Value = state.Value
+		}
 	}
 	if in.Effect != "" {
 		v.Effect = types.StringValue(in.Effect)

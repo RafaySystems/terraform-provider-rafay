@@ -292,10 +292,28 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 
 	taints := types.SetNull(TaintsValue{}.Type(ctx))
 	if len(in.Taints) > 0 {
+		stTaints := []TaintsValue{}
+		if !state.Taints.IsNull() {
+			for _, sT := range state.Taints.Elements() {
+				stTaints = append(stTaints, sT.(TaintsValue))
+			}
+		}
+
 		taintsList := []attr.Value{}
 		for _, val := range in.Taints {
+			k := val.Key
+			e := val.Effect
+			var stTaint TaintsValue
+			for _, stT := range stTaints {
+				if !stT.IsNull() && !stT.Key.IsNull() && !stT.Effect.IsNull() &&
+					getStringValue(stT.Key) == k && getStringValue(stT.Effect) == e {
+					stTaint = stT
+					break
+				}
+			}
+
 			taint := NewTaintsValueNull()
-			d = taint.Flatten(ctx, val)
+			d = taint.Flatten(ctx, val, stTaint)
 			diags = append(diags, d...)
 			taintsList = append(taintsList, taint)
 		}
@@ -413,7 +431,7 @@ func (v *UpdateConfigValue) Flatten(ctx context.Context, in *rafay.NodeGroupUpda
 	return diags
 }
 
-func (v *TaintsValue) Flatten(ctx context.Context, in rafay.NodeGroupTaint) diag.Diagnostics {
+func (v *TaintsValue) Flatten(ctx context.Context, in rafay.NodeGroupTaint, state TaintsValue) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if in.Key != "" {
@@ -421,6 +439,11 @@ func (v *TaintsValue) Flatten(ctx context.Context, in rafay.NodeGroupTaint) diag
 	}
 	if in.Value != "" {
 		v.Value = types.StringValue(in.Value)
+	} else {
+		// hack: API can not differenciate nil and zero value of Value field. This is to avoid unnecessary diffs.
+		if !state.IsNull() && !state.Value.IsNull() {
+			v.Value = state.Value
+		}
 	}
 	if in.Effect != "" {
 		v.Effect = types.StringValue(in.Effect)

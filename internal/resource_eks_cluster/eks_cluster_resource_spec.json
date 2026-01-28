@@ -2163,6 +2163,22 @@
                                                                 }
                                                             ]
                                                     }
+                                                },
+                                                {
+                                                    "name": "node_repair_config5",
+                                                    "single_nested": {
+                                                        "computed_optional_required": "optional",
+                                                        "attributes": [
+                                                            {
+                                                                "name": "enabled",
+                                                                "bool": {
+                                                                    "computed_optional_required": "optional",
+                                                                    "description": "Enable node repair for nodegroup."
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                        
                                                 }
                                                 
                                             ]
@@ -4893,6 +4909,22 @@
                                                                         "element_type": {
                                                                             "string": {}
                                                                         }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                {
+                                                    "name": "node_repair_config4",
+                                                    "list_nested": {
+                                                        "nested_object": {
+                                                            "attributes": [
+                                                                {
+                                                                    "name": "enabled",
+                                                                    "bool": {
+                                                                        "description": "Enable node repair for nodegroup",
+                                                                        "computed_optional_required": "optional"
                                                                     }
                                                                 }
                                                             ]

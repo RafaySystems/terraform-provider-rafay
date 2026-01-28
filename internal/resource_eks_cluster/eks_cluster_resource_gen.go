@@ -728,6 +728,21 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Computed: true,
 										Default:  int64default.StaticInt64(0),
 									},
+									"node_repair_config": schema.SingleNestedAttribute{
+										Attributes: map[string]schema.Attribute{
+											"enabled": schema.BoolAttribute{
+												Optional:            true,
+												Description:         "Enable node repair for nodegroup.",
+												MarkdownDescription: "Enable node repair for nodegroup.",
+											},
+										},
+										CustomType: NodeRepairConfig5Type{
+											ObjectType: types.ObjectType{
+												AttrTypes: NodeRepairConfig5Value{}.AttributeTypes(ctx),
+											},
+										},
+										Optional: true,
+									},
 									"override_bootstrap_command": schema.StringAttribute{
 										Optional:            true,
 										Description:         "Override the vendor's bootstrapping script.",
@@ -3108,6 +3123,22 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											CustomType: LaunchTemplate4Type{
 												ObjectType: types.ObjectType{
 													AttrTypes: LaunchTemplate4Value{}.AttributeTypes(ctx),
+												},
+											},
+										},
+									},
+									"node_repair_config": schema.ListNestedBlock{
+										NestedObject: schema.NestedBlockObject{
+											Attributes: map[string]schema.Attribute{
+												"enabled": schema.BoolAttribute{
+													Optional:            true,
+													Description:         "Enable node repair for nodegroup",
+													MarkdownDescription: "Enable node repair for nodegroup",
+												},
+											},
+											CustomType: NodeRepairConfig4Type{
+												ObjectType: types.ObjectType{
+													AttrTypes: NodeRepairConfig4Value{}.AttributeTypes(ctx),
 												},
 											},
 										},
@@ -12785,6 +12816,24 @@ func (t ManagedNodegroupsMapType) ValueFromObject(ctx context.Context, in basety
 			fmt.Sprintf(`min_size expected to be basetypes.Int64Value, was: %T`, minSizeAttribute))
 	}
 
+	nodeRepairConfig5Attribute, ok := attributes["node_repair_config"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_repair_config5 is missing from object`)
+
+		return nil, diags
+	}
+
+	nodeRepairConfig5Val, ok := nodeRepairConfig5Attribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_repair_config5 expected to be basetypes.ObjectValue, was: %T`, nodeRepairConfig5Attribute))
+	}
+
 	overrideBootstrapCommandAttribute, ok := attributes["override_bootstrap_command"]
 
 	if !ok {
@@ -13154,6 +13203,7 @@ func (t ManagedNodegroupsMapType) ValueFromObject(ctx context.Context, in basety
 		MaxPodsPerNode:           maxPodsPerNodeVal,
 		MaxSize:                  maxSizeVal,
 		MinSize:                  minSizeVal,
+		NodeRepairConfig5:        nodeRepairConfig5Val,
 		OverrideBootstrapCommand: overrideBootstrapCommandVal,
 		Placement5:               placement5Val,
 		PreBootstrapCommands:     preBootstrapCommandsVal,
@@ -13636,6 +13686,24 @@ func NewManagedNodegroupsMapValue(attributeTypes map[string]attr.Type, attribute
 			fmt.Sprintf(`min_size expected to be basetypes.Int64Value, was: %T`, minSizeAttribute))
 	}
 
+	nodeRepairConfig5Attribute, ok := attributes["node_repair_config"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_repair_config5 is missing from object`)
+
+		return NewManagedNodegroupsMapValueUnknown(), diags
+	}
+
+	nodeRepairConfig5Val, ok := nodeRepairConfig5Attribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_repair_config5 expected to be basetypes.ObjectValue, was: %T`, nodeRepairConfig5Attribute))
+	}
+
 	overrideBootstrapCommandAttribute, ok := attributes["override_bootstrap_command"]
 
 	if !ok {
@@ -14005,6 +14073,7 @@ func NewManagedNodegroupsMapValue(attributeTypes map[string]attr.Type, attribute
 		MaxPodsPerNode:           maxPodsPerNodeVal,
 		MaxSize:                  maxSizeVal,
 		MinSize:                  minSizeVal,
+		NodeRepairConfig5:        nodeRepairConfig5Val,
 		OverrideBootstrapCommand: overrideBootstrapCommandVal,
 		Placement5:               placement5Val,
 		PreBootstrapCommands:     preBootstrapCommandsVal,
@@ -14118,6 +14187,7 @@ type ManagedNodegroupsMapValue struct {
 	MaxPodsPerNode           basetypes.Int64Value  `tfsdk:"max_pods_per_node"`
 	MaxSize                  basetypes.Int64Value  `tfsdk:"max_size"`
 	MinSize                  basetypes.Int64Value  `tfsdk:"min_size"`
+	NodeRepairConfig5        basetypes.ObjectValue `tfsdk:"node_repair_config"`
 	OverrideBootstrapCommand basetypes.StringValue `tfsdk:"override_bootstrap_command"`
 	Placement5               basetypes.ObjectValue `tfsdk:"placement"`
 	PreBootstrapCommands     basetypes.ListValue   `tfsdk:"pre_bootstrap_commands"`
@@ -14141,7 +14211,7 @@ type ManagedNodegroupsMapValue struct {
 }
 
 func (v ManagedNodegroupsMapValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 41)
+	attrTypes := make(map[string]tftypes.Type, 42)
 
 	var val tftypes.Value
 	var err error
@@ -14184,6 +14254,9 @@ func (v ManagedNodegroupsMapValue) ToTerraformValue(ctx context.Context) (tftype
 	attrTypes["max_pods_per_node"] = basetypes.Int64Type{}.TerraformType(ctx)
 	attrTypes["max_size"] = basetypes.Int64Type{}.TerraformType(ctx)
 	attrTypes["min_size"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["node_repair_config"] = basetypes.ObjectType{
+		AttrTypes: NodeRepairConfig5Value{}.AttributeTypes(ctx),
+	}.TerraformType(ctx)
 	attrTypes["override_bootstrap_command"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["placement"] = basetypes.ObjectType{
 		AttrTypes: Placement5Value{}.AttributeTypes(ctx),
@@ -14224,7 +14297,7 @@ func (v ManagedNodegroupsMapValue) ToTerraformValue(ctx context.Context) (tftype
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 41)
+		vals := make(map[string]tftypes.Value, 42)
 
 		val, err = v.Ami.ToTerraformValue(ctx)
 
@@ -14401,6 +14474,14 @@ func (v ManagedNodegroupsMapValue) ToTerraformValue(ctx context.Context) (tftype
 		}
 
 		vals["min_size"] = val
+
+		val, err = v.NodeRepairConfig5.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["node_repair_config"] = val
 
 		val, err = v.OverrideBootstrapCommand.ToTerraformValue(ctx)
 
@@ -14667,6 +14748,27 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 		)
 	}
 
+	var nodeRepairConfig5 basetypes.ObjectValue
+
+	if v.NodeRepairConfig5.IsNull() {
+		nodeRepairConfig5 = types.ObjectNull(
+			NodeRepairConfig5Value{}.AttributeTypes(ctx),
+		)
+	}
+
+	if v.NodeRepairConfig5.IsUnknown() {
+		nodeRepairConfig5 = types.ObjectUnknown(
+			NodeRepairConfig5Value{}.AttributeTypes(ctx),
+		)
+	}
+
+	if !v.NodeRepairConfig5.IsNull() && !v.NodeRepairConfig5.IsUnknown() {
+		nodeRepairConfig5 = types.ObjectValueMust(
+			NodeRepairConfig5Value{}.AttributeTypes(ctx),
+			v.NodeRepairConfig5.Attributes(),
+		)
+	}
+
 	var placement5 basetypes.ObjectValue
 
 	if v.Placement5.IsNull() {
@@ -14829,9 +14931,12 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 			"launch_template": basetypes.ObjectType{
 				AttrTypes: LaunchTemplate5Value{}.AttributeTypes(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"node_repair_config": basetypes.ObjectType{
+				AttrTypes: NodeRepairConfig5Value{}.AttributeTypes(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ObjectType{
 				AttrTypes: Placement5Value{}.AttributeTypes(ctx),
@@ -14919,9 +15024,12 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 			"launch_template": basetypes.ObjectType{
 				AttrTypes: LaunchTemplate5Value{}.AttributeTypes(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"node_repair_config": basetypes.ObjectType{
+				AttrTypes: NodeRepairConfig5Value{}.AttributeTypes(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ObjectType{
 				AttrTypes: Placement5Value{}.AttributeTypes(ctx),
@@ -15009,9 +15117,12 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 			"launch_template": basetypes.ObjectType{
 				AttrTypes: LaunchTemplate5Value{}.AttributeTypes(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"node_repair_config": basetypes.ObjectType{
+				AttrTypes: NodeRepairConfig5Value{}.AttributeTypes(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ObjectType{
 				AttrTypes: Placement5Value{}.AttributeTypes(ctx),
@@ -15099,9 +15210,12 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 			"launch_template": basetypes.ObjectType{
 				AttrTypes: LaunchTemplate5Value{}.AttributeTypes(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"node_repair_config": basetypes.ObjectType{
+				AttrTypes: NodeRepairConfig5Value{}.AttributeTypes(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ObjectType{
 				AttrTypes: Placement5Value{}.AttributeTypes(ctx),
@@ -15189,9 +15303,12 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 			"launch_template": basetypes.ObjectType{
 				AttrTypes: LaunchTemplate5Value{}.AttributeTypes(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"node_repair_config": basetypes.ObjectType{
+				AttrTypes: NodeRepairConfig5Value{}.AttributeTypes(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ObjectType{
 				AttrTypes: Placement5Value{}.AttributeTypes(ctx),
@@ -15279,9 +15396,12 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 			"launch_template": basetypes.ObjectType{
 				AttrTypes: LaunchTemplate5Value{}.AttributeTypes(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"node_repair_config": basetypes.ObjectType{
+				AttrTypes: NodeRepairConfig5Value{}.AttributeTypes(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ObjectType{
 				AttrTypes: Placement5Value{}.AttributeTypes(ctx),
@@ -15369,9 +15489,12 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 			"launch_template": basetypes.ObjectType{
 				AttrTypes: LaunchTemplate5Value{}.AttributeTypes(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"node_repair_config": basetypes.ObjectType{
+				AttrTypes: NodeRepairConfig5Value{}.AttributeTypes(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ObjectType{
 				AttrTypes: Placement5Value{}.AttributeTypes(ctx),
@@ -15446,9 +15569,12 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 		"launch_template": basetypes.ObjectType{
 			AttrTypes: LaunchTemplate5Value{}.AttributeTypes(ctx),
 		},
-		"max_pods_per_node":          basetypes.Int64Type{},
-		"max_size":                   basetypes.Int64Type{},
-		"min_size":                   basetypes.Int64Type{},
+		"max_pods_per_node": basetypes.Int64Type{},
+		"max_size":          basetypes.Int64Type{},
+		"min_size":          basetypes.Int64Type{},
+		"node_repair_config": basetypes.ObjectType{
+			AttrTypes: NodeRepairConfig5Value{}.AttributeTypes(ctx),
+		},
 		"override_bootstrap_command": basetypes.StringType{},
 		"placement": basetypes.ObjectType{
 			AttrTypes: Placement5Value{}.AttributeTypes(ctx),
@@ -15519,6 +15645,7 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 			"max_pods_per_node":          v.MaxPodsPerNode,
 			"max_size":                   v.MaxSize,
 			"min_size":                   v.MinSize,
+			"node_repair_config":         nodeRepairConfig5,
 			"override_bootstrap_command": v.OverrideBootstrapCommand,
 			"placement":                  placement5,
 			"pre_bootstrap_commands":     preBootstrapCommandsVal,
@@ -15646,6 +15773,10 @@ func (v ManagedNodegroupsMapValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.NodeRepairConfig5.Equal(other.NodeRepairConfig5) {
+		return false
+	}
+
 	if !v.OverrideBootstrapCommand.Equal(other.OverrideBootstrapCommand) {
 		return false
 	}
@@ -15770,9 +15901,12 @@ func (v ManagedNodegroupsMapValue) AttributeTypes(ctx context.Context) map[strin
 		"launch_template": basetypes.ObjectType{
 			AttrTypes: LaunchTemplate5Value{}.AttributeTypes(ctx),
 		},
-		"max_pods_per_node":          basetypes.Int64Type{},
-		"max_size":                   basetypes.Int64Type{},
-		"min_size":                   basetypes.Int64Type{},
+		"max_pods_per_node": basetypes.Int64Type{},
+		"max_size":          basetypes.Int64Type{},
+		"min_size":          basetypes.Int64Type{},
+		"node_repair_config": basetypes.ObjectType{
+			AttrTypes: NodeRepairConfig5Value{}.AttributeTypes(ctx),
+		},
 		"override_bootstrap_command": basetypes.StringType{},
 		"placement": basetypes.ObjectType{
 			AttrTypes: Placement5Value{}.AttributeTypes(ctx),
@@ -20131,6 +20265,330 @@ func (v LaunchTemplate5Value) AttributeTypes(ctx context.Context) map[string]att
 	return map[string]attr.Type{
 		"id":      basetypes.StringType{},
 		"version": basetypes.StringType{},
+	}
+}
+
+var _ basetypes.ObjectTypable = NodeRepairConfig5Type{}
+
+type NodeRepairConfig5Type struct {
+	basetypes.ObjectType
+}
+
+func (t NodeRepairConfig5Type) Equal(o attr.Type) bool {
+	other, ok := o.(NodeRepairConfig5Type)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t NodeRepairConfig5Type) String() string {
+	return "NodeRepairConfig5Type"
+}
+
+func (t NodeRepairConfig5Type) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	enabledAttribute, ok := attributes["enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`enabled is missing from object`)
+
+		return nil, diags
+	}
+
+	enabledVal, ok := enabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return NodeRepairConfig5Value{
+		Enabled: enabledVal,
+		state:   attr.ValueStateKnown,
+	}, diags
+}
+
+func NewNodeRepairConfig5ValueNull() NodeRepairConfig5Value {
+	return NodeRepairConfig5Value{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewNodeRepairConfig5ValueUnknown() NodeRepairConfig5Value {
+	return NodeRepairConfig5Value{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewNodeRepairConfig5Value(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (NodeRepairConfig5Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing NodeRepairConfig5Value Attribute Value",
+				"While creating a NodeRepairConfig5Value value, a missing attribute value was detected. "+
+					"A NodeRepairConfig5Value must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("NodeRepairConfig5Value Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid NodeRepairConfig5Value Attribute Type",
+				"While creating a NodeRepairConfig5Value value, an invalid attribute value was detected. "+
+					"A NodeRepairConfig5Value must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("NodeRepairConfig5Value Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("NodeRepairConfig5Value Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra NodeRepairConfig5Value Attribute Value",
+				"While creating a NodeRepairConfig5Value value, an extra attribute value was detected. "+
+					"A NodeRepairConfig5Value must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra NodeRepairConfig5Value Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewNodeRepairConfig5ValueUnknown(), diags
+	}
+
+	enabledAttribute, ok := attributes["enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`enabled is missing from object`)
+
+		return NewNodeRepairConfig5ValueUnknown(), diags
+	}
+
+	enabledVal, ok := enabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
+	}
+
+	if diags.HasError() {
+		return NewNodeRepairConfig5ValueUnknown(), diags
+	}
+
+	return NodeRepairConfig5Value{
+		Enabled: enabledVal,
+		state:   attr.ValueStateKnown,
+	}, diags
+}
+
+func NewNodeRepairConfig5ValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) NodeRepairConfig5Value {
+	object, diags := NewNodeRepairConfig5Value(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewNodeRepairConfig5ValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t NodeRepairConfig5Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewNodeRepairConfig5ValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewNodeRepairConfig5ValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewNodeRepairConfig5ValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewNodeRepairConfig5ValueMust(NodeRepairConfig5Value{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t NodeRepairConfig5Type) ValueType(ctx context.Context) attr.Value {
+	return NodeRepairConfig5Value{}
+}
+
+var _ basetypes.ObjectValuable = NodeRepairConfig5Value{}
+
+type NodeRepairConfig5Value struct {
+	Enabled basetypes.BoolValue `tfsdk:"enabled"`
+	state   attr.ValueState
+}
+
+func (v NodeRepairConfig5Value) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 1)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["enabled"] = basetypes.BoolType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 1)
+
+		val, err = v.Enabled.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["enabled"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v NodeRepairConfig5Value) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v NodeRepairConfig5Value) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v NodeRepairConfig5Value) String() string {
+	return "NodeRepairConfig5Value"
+}
+
+func (v NodeRepairConfig5Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"enabled": basetypes.BoolType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"enabled": v.Enabled,
+		})
+
+	return objVal, diags
+}
+
+func (v NodeRepairConfig5Value) Equal(o attr.Value) bool {
+	other, ok := o.(NodeRepairConfig5Value)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.Enabled.Equal(other.Enabled) {
+		return false
+	}
+
+	return true
+}
+
+func (v NodeRepairConfig5Value) Type(ctx context.Context) attr.Type {
+	return NodeRepairConfig5Type{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v NodeRepairConfig5Value) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"enabled": basetypes.BoolType{},
 	}
 }
 
@@ -50543,6 +51001,24 @@ func (t ManagedNodegroupsType) ValueFromObject(ctx context.Context, in basetypes
 			fmt.Sprintf(`name expected to be basetypes.StringValue, was: %T`, nameAttribute))
 	}
 
+	nodeRepairConfig4Attribute, ok := attributes["node_repair_config"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_repair_config4 is missing from object`)
+
+		return nil, diags
+	}
+
+	nodeRepairConfig4Val, ok := nodeRepairConfig4Attribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_repair_config4 expected to be basetypes.ListValue, was: %T`, nodeRepairConfig4Attribute))
+	}
+
 	overrideBootstrapCommandAttribute, ok := attributes["override_bootstrap_command"]
 
 	if !ok {
@@ -50913,6 +51389,7 @@ func (t ManagedNodegroupsType) ValueFromObject(ctx context.Context, in basetypes
 		MaxSize:                  maxSizeVal,
 		MinSize:                  minSizeVal,
 		Name:                     nameVal,
+		NodeRepairConfig4:        nodeRepairConfig4Val,
 		OverrideBootstrapCommand: overrideBootstrapCommandVal,
 		Placement4:               placement4Val,
 		PreBootstrapCommands:     preBootstrapCommandsVal,
@@ -51413,6 +51890,24 @@ func NewManagedNodegroupsValue(attributeTypes map[string]attr.Type, attributes m
 			fmt.Sprintf(`name expected to be basetypes.StringValue, was: %T`, nameAttribute))
 	}
 
+	nodeRepairConfig4Attribute, ok := attributes["node_repair_config"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_repair_config4 is missing from object`)
+
+		return NewManagedNodegroupsValueUnknown(), diags
+	}
+
+	nodeRepairConfig4Val, ok := nodeRepairConfig4Attribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_repair_config4 expected to be basetypes.ListValue, was: %T`, nodeRepairConfig4Attribute))
+	}
+
 	overrideBootstrapCommandAttribute, ok := attributes["override_bootstrap_command"]
 
 	if !ok {
@@ -51783,6 +52278,7 @@ func NewManagedNodegroupsValue(attributeTypes map[string]attr.Type, attributes m
 		MaxSize:                  maxSizeVal,
 		MinSize:                  minSizeVal,
 		Name:                     nameVal,
+		NodeRepairConfig4:        nodeRepairConfig4Val,
 		OverrideBootstrapCommand: overrideBootstrapCommandVal,
 		Placement4:               placement4Val,
 		PreBootstrapCommands:     preBootstrapCommandsVal,
@@ -51897,6 +52393,7 @@ type ManagedNodegroupsValue struct {
 	MaxSize                  basetypes.Int64Value  `tfsdk:"max_size"`
 	MinSize                  basetypes.Int64Value  `tfsdk:"min_size"`
 	Name                     basetypes.StringValue `tfsdk:"name"`
+	NodeRepairConfig4        basetypes.ListValue   `tfsdk:"node_repair_config"`
 	OverrideBootstrapCommand basetypes.StringValue `tfsdk:"override_bootstrap_command"`
 	Placement4               basetypes.ListValue   `tfsdk:"placement"`
 	PreBootstrapCommands     basetypes.ListValue   `tfsdk:"pre_bootstrap_commands"`
@@ -51920,7 +52417,7 @@ type ManagedNodegroupsValue struct {
 }
 
 func (v ManagedNodegroupsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 42)
+	attrTypes := make(map[string]tftypes.Type, 43)
 
 	var val tftypes.Value
 	var err error
@@ -51964,6 +52461,9 @@ func (v ManagedNodegroupsValue) ToTerraformValue(ctx context.Context) (tftypes.V
 	attrTypes["max_size"] = basetypes.Int64Type{}.TerraformType(ctx)
 	attrTypes["min_size"] = basetypes.Int64Type{}.TerraformType(ctx)
 	attrTypes["name"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["node_repair_config"] = basetypes.ListType{
+		ElemType: NodeRepairConfig4Value{}.Type(ctx),
+	}.TerraformType(ctx)
 	attrTypes["override_bootstrap_command"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["placement"] = basetypes.ListType{
 		ElemType: Placement4Value{}.Type(ctx),
@@ -52004,7 +52504,7 @@ func (v ManagedNodegroupsValue) ToTerraformValue(ctx context.Context) (tftypes.V
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 42)
+		vals := make(map[string]tftypes.Value, 43)
 
 		val, err = v.Ami.ToTerraformValue(ctx)
 
@@ -52189,6 +52689,14 @@ func (v ManagedNodegroupsValue) ToTerraformValue(ctx context.Context) (tftypes.V
 		}
 
 		vals["name"] = val
+
+		val, err = v.NodeRepairConfig4.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["node_repair_config"] = val
 
 		val, err = v.OverrideBootstrapCommand.ToTerraformValue(ctx)
 
@@ -52487,6 +52995,35 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 		)
 	}
 
+	nodeRepairConfig4 := types.ListValueMust(
+		NodeRepairConfig4Type{
+			basetypes.ObjectType{
+				AttrTypes: NodeRepairConfig4Value{}.AttributeTypes(ctx),
+			},
+		},
+		v.NodeRepairConfig4.Elements(),
+	)
+
+	if v.NodeRepairConfig4.IsNull() {
+		nodeRepairConfig4 = types.ListNull(
+			NodeRepairConfig4Type{
+				basetypes.ObjectType{
+					AttrTypes: NodeRepairConfig4Value{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	if v.NodeRepairConfig4.IsUnknown() {
+		nodeRepairConfig4 = types.ListUnknown(
+			NodeRepairConfig4Type{
+				basetypes.ObjectType{
+					AttrTypes: NodeRepairConfig4Value{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
 	placement4 := types.ListValueMust(
 		Placement4Type{
 			basetypes.ObjectType{
@@ -52681,10 +53218,13 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 			"launch_template": basetypes.ListType{
 				ElemType: LaunchTemplate4Value{}.Type(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
-			"name":                       basetypes.StringType{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"name":              basetypes.StringType{},
+			"node_repair_config": basetypes.ListType{
+				ElemType: NodeRepairConfig4Value{}.Type(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ListType{
 				ElemType: Placement4Value{}.Type(ctx),
@@ -52772,10 +53312,13 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 			"launch_template": basetypes.ListType{
 				ElemType: LaunchTemplate4Value{}.Type(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
-			"name":                       basetypes.StringType{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"name":              basetypes.StringType{},
+			"node_repair_config": basetypes.ListType{
+				ElemType: NodeRepairConfig4Value{}.Type(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ListType{
 				ElemType: Placement4Value{}.Type(ctx),
@@ -52863,10 +53406,13 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 			"launch_template": basetypes.ListType{
 				ElemType: LaunchTemplate4Value{}.Type(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
-			"name":                       basetypes.StringType{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"name":              basetypes.StringType{},
+			"node_repair_config": basetypes.ListType{
+				ElemType: NodeRepairConfig4Value{}.Type(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ListType{
 				ElemType: Placement4Value{}.Type(ctx),
@@ -52954,10 +53500,13 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 			"launch_template": basetypes.ListType{
 				ElemType: LaunchTemplate4Value{}.Type(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
-			"name":                       basetypes.StringType{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"name":              basetypes.StringType{},
+			"node_repair_config": basetypes.ListType{
+				ElemType: NodeRepairConfig4Value{}.Type(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ListType{
 				ElemType: Placement4Value{}.Type(ctx),
@@ -53045,10 +53594,13 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 			"launch_template": basetypes.ListType{
 				ElemType: LaunchTemplate4Value{}.Type(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
-			"name":                       basetypes.StringType{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"name":              basetypes.StringType{},
+			"node_repair_config": basetypes.ListType{
+				ElemType: NodeRepairConfig4Value{}.Type(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ListType{
 				ElemType: Placement4Value{}.Type(ctx),
@@ -53136,10 +53688,13 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 			"launch_template": basetypes.ListType{
 				ElemType: LaunchTemplate4Value{}.Type(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
-			"name":                       basetypes.StringType{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"name":              basetypes.StringType{},
+			"node_repair_config": basetypes.ListType{
+				ElemType: NodeRepairConfig4Value{}.Type(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ListType{
 				ElemType: Placement4Value{}.Type(ctx),
@@ -53227,10 +53782,13 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 			"launch_template": basetypes.ListType{
 				ElemType: LaunchTemplate4Value{}.Type(ctx),
 			},
-			"max_pods_per_node":          basetypes.Int64Type{},
-			"max_size":                   basetypes.Int64Type{},
-			"min_size":                   basetypes.Int64Type{},
-			"name":                       basetypes.StringType{},
+			"max_pods_per_node": basetypes.Int64Type{},
+			"max_size":          basetypes.Int64Type{},
+			"min_size":          basetypes.Int64Type{},
+			"name":              basetypes.StringType{},
+			"node_repair_config": basetypes.ListType{
+				ElemType: NodeRepairConfig4Value{}.Type(ctx),
+			},
 			"override_bootstrap_command": basetypes.StringType{},
 			"placement": basetypes.ListType{
 				ElemType: Placement4Value{}.Type(ctx),
@@ -53305,10 +53863,13 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 		"launch_template": basetypes.ListType{
 			ElemType: LaunchTemplate4Value{}.Type(ctx),
 		},
-		"max_pods_per_node":          basetypes.Int64Type{},
-		"max_size":                   basetypes.Int64Type{},
-		"min_size":                   basetypes.Int64Type{},
-		"name":                       basetypes.StringType{},
+		"max_pods_per_node": basetypes.Int64Type{},
+		"max_size":          basetypes.Int64Type{},
+		"min_size":          basetypes.Int64Type{},
+		"name":              basetypes.StringType{},
+		"node_repair_config": basetypes.ListType{
+			ElemType: NodeRepairConfig4Value{}.Type(ctx),
+		},
 		"override_bootstrap_command": basetypes.StringType{},
 		"placement": basetypes.ListType{
 			ElemType: Placement4Value{}.Type(ctx),
@@ -53380,6 +53941,7 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 			"max_size":                   v.MaxSize,
 			"min_size":                   v.MinSize,
 			"name":                       v.Name,
+			"node_repair_config":         nodeRepairConfig4,
 			"override_bootstrap_command": v.OverrideBootstrapCommand,
 			"placement":                  placement4,
 			"pre_bootstrap_commands":     preBootstrapCommandsVal,
@@ -53511,6 +54073,10 @@ func (v ManagedNodegroupsValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.NodeRepairConfig4.Equal(other.NodeRepairConfig4) {
+		return false
+	}
+
 	if !v.OverrideBootstrapCommand.Equal(other.OverrideBootstrapCommand) {
 		return false
 	}
@@ -53635,10 +54201,13 @@ func (v ManagedNodegroupsValue) AttributeTypes(ctx context.Context) map[string]a
 		"launch_template": basetypes.ListType{
 			ElemType: LaunchTemplate4Value{}.Type(ctx),
 		},
-		"max_pods_per_node":          basetypes.Int64Type{},
-		"max_size":                   basetypes.Int64Type{},
-		"min_size":                   basetypes.Int64Type{},
-		"name":                       basetypes.StringType{},
+		"max_pods_per_node": basetypes.Int64Type{},
+		"max_size":          basetypes.Int64Type{},
+		"min_size":          basetypes.Int64Type{},
+		"name":              basetypes.StringType{},
+		"node_repair_config": basetypes.ListType{
+			ElemType: NodeRepairConfig4Value{}.Type(ctx),
+		},
 		"override_bootstrap_command": basetypes.StringType{},
 		"placement": basetypes.ListType{
 			ElemType: Placement4Value{}.Type(ctx),
@@ -58013,6 +58582,330 @@ func (v LaunchTemplate4Value) AttributeTypes(ctx context.Context) map[string]att
 	return map[string]attr.Type{
 		"id":      basetypes.StringType{},
 		"version": basetypes.StringType{},
+	}
+}
+
+var _ basetypes.ObjectTypable = NodeRepairConfig4Type{}
+
+type NodeRepairConfig4Type struct {
+	basetypes.ObjectType
+}
+
+func (t NodeRepairConfig4Type) Equal(o attr.Type) bool {
+	other, ok := o.(NodeRepairConfig4Type)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t NodeRepairConfig4Type) String() string {
+	return "NodeRepairConfig4Type"
+}
+
+func (t NodeRepairConfig4Type) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	enabledAttribute, ok := attributes["enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`enabled is missing from object`)
+
+		return nil, diags
+	}
+
+	enabledVal, ok := enabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return NodeRepairConfig4Value{
+		Enabled: enabledVal,
+		state:   attr.ValueStateKnown,
+	}, diags
+}
+
+func NewNodeRepairConfig4ValueNull() NodeRepairConfig4Value {
+	return NodeRepairConfig4Value{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewNodeRepairConfig4ValueUnknown() NodeRepairConfig4Value {
+	return NodeRepairConfig4Value{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewNodeRepairConfig4Value(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (NodeRepairConfig4Value, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing NodeRepairConfig4Value Attribute Value",
+				"While creating a NodeRepairConfig4Value value, a missing attribute value was detected. "+
+					"A NodeRepairConfig4Value must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("NodeRepairConfig4Value Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid NodeRepairConfig4Value Attribute Type",
+				"While creating a NodeRepairConfig4Value value, an invalid attribute value was detected. "+
+					"A NodeRepairConfig4Value must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("NodeRepairConfig4Value Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("NodeRepairConfig4Value Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra NodeRepairConfig4Value Attribute Value",
+				"While creating a NodeRepairConfig4Value value, an extra attribute value was detected. "+
+					"A NodeRepairConfig4Value must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra NodeRepairConfig4Value Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewNodeRepairConfig4ValueUnknown(), diags
+	}
+
+	enabledAttribute, ok := attributes["enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`enabled is missing from object`)
+
+		return NewNodeRepairConfig4ValueUnknown(), diags
+	}
+
+	enabledVal, ok := enabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
+	}
+
+	if diags.HasError() {
+		return NewNodeRepairConfig4ValueUnknown(), diags
+	}
+
+	return NodeRepairConfig4Value{
+		Enabled: enabledVal,
+		state:   attr.ValueStateKnown,
+	}, diags
+}
+
+func NewNodeRepairConfig4ValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) NodeRepairConfig4Value {
+	object, diags := NewNodeRepairConfig4Value(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewNodeRepairConfig4ValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t NodeRepairConfig4Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewNodeRepairConfig4ValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewNodeRepairConfig4ValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewNodeRepairConfig4ValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewNodeRepairConfig4ValueMust(NodeRepairConfig4Value{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t NodeRepairConfig4Type) ValueType(ctx context.Context) attr.Value {
+	return NodeRepairConfig4Value{}
+}
+
+var _ basetypes.ObjectValuable = NodeRepairConfig4Value{}
+
+type NodeRepairConfig4Value struct {
+	Enabled basetypes.BoolValue `tfsdk:"enabled"`
+	state   attr.ValueState
+}
+
+func (v NodeRepairConfig4Value) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 1)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["enabled"] = basetypes.BoolType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 1)
+
+		val, err = v.Enabled.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["enabled"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v NodeRepairConfig4Value) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v NodeRepairConfig4Value) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v NodeRepairConfig4Value) String() string {
+	return "NodeRepairConfig4Value"
+}
+
+func (v NodeRepairConfig4Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"enabled": basetypes.BoolType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"enabled": v.Enabled,
+		})
+
+	return objVal, diags
+}
+
+func (v NodeRepairConfig4Value) Equal(o attr.Value) bool {
+	other, ok := o.(NodeRepairConfig4Value)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.Enabled.Equal(other.Enabled) {
+		return false
+	}
+
+	return true
+}
+
+func (v NodeRepairConfig4Value) Type(ctx context.Context) attr.Type {
+	return NodeRepairConfig4Type{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v NodeRepairConfig4Value) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"enabled": basetypes.BoolType{},
 	}
 }
 

@@ -19,39 +19,43 @@ import (
 
 const TF_USER_AGENT = "terraform"
 
+func Schema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"provider_config_file": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc("RAFAY_PROVIDER_CONFIG", "~/.rafay/cli/config.json"),
+		},
+		"ignore_insecure_tls_error": {
+			Type:     schema.TypeBool,
+			Optional: true,
+		},
+		"api_key": {
+			Type:        schema.TypeString,
+			Description: "Rafay API key",
+			Optional:    true,
+			Sensitive:   true,
+			DefaultFunc: schema.EnvDefaultFunc("RCTL_API_KEY", nil),
+		},
+		"rest_endpoint": {
+			Type:        schema.TypeString,
+			Description: "Rafay API endpoint",
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc("RCTL_REST_ENDPOINT", nil),
+		},
+		"project": {
+			Type:        schema.TypeString,
+			Description: "Rafay project",
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc("RCTL_PROJECT", nil),
+		},
+	}
+}
+
 func New(_ string) func() *schema.Provider {
 	return func() *schema.Provider {
 		p := &schema.Provider{
-			Schema: map[string]*schema.Schema{
-				"provider_config_file": &schema.Schema{
-					Type:        schema.TypeString,
-					Optional:    true,
-					DefaultFunc: schema.EnvDefaultFunc("RAFAY_PROVIDER_CONFIG", "~/.rafay/cli/config.json"),
-				},
-				"ignore_insecure_tls_error": &schema.Schema{
-					Type:     schema.TypeBool,
-					Optional: true,
-				},
-				"api_key": &schema.Schema{
-					Type:        schema.TypeString,
-					Description: "Rafay API key",
-					Optional:    true,
-					Sensitive:   true,
-					DefaultFunc: schema.EnvDefaultFunc("RCTL_API_KEY", nil),
-				},
-				"rest_endpoint": &schema.Schema{
-					Type:        schema.TypeString,
-					Description: "Rafay API endpoint",
-					Optional:    true,
-					DefaultFunc: schema.EnvDefaultFunc("RCTL_REST_ENDPOINT", nil),
-				},
-				"project": &schema.Schema{
-					Type:        schema.TypeString,
-					Description: "Rafay project",
-					Optional:    true,
-					DefaultFunc: schema.EnvDefaultFunc("RCTL_PROJECT", nil),
-				},
-			},
+			Schema: Schema(),
 			ResourcesMap: map[string]*schema.Resource{
 				"rafay_project":                       resourceProject(),
 				"rafay_cloud_credential":              resourceCloudCredential(),
@@ -61,8 +65,8 @@ func New(_ string) func() *schema.Provider {
 				"rafay_aks_workload_identity":         resourceAKSWorkloadIdentity(),
 				"rafay_aks_cluster_spec":              resourceAKSClusterSpec(),
 				"rafay_gke_cluster":                   resourceGKEClusterV3(),
-				"rafay_addon":                         resourceAddon(),
-				"rafay_blueprint":                     resourceBluePrint(),
+				"rafay_addon":                         ResourceAddon(),
+				"rafay_blueprint":                     ResourceBluePrint(),
 				"rafay_import_cluster":                resourceImportCluster(),
 				"rafay_cluster_override":              resourceClusterOverride(),
 				"rafay_workload":                      resourceWorkload(),
@@ -127,8 +131,8 @@ func New(_ string) func() *schema.Provider {
 			},
 			DataSourcesMap: map[string]*schema.Resource{
 				"rafay_project":                  dataProject(),
-				"rafay_addon":                    dataAddon(),
-				"rafay_blueprint":                dataBluePrint(),
+				"rafay_addon":                    DataAddon(),
+				"rafay_blueprint":                DataBluePrint(),
 				"rafay_download_kubeconfig":      dataKubeConfig(),
 				"rafay_aks_cluster":              dataAKSCluster(),
 				"rafay_aks_cluster_v3":           dataAKSClusterV3(),
@@ -152,7 +156,7 @@ func New(_ string) func() *schema.Provider {
 				"rafay_fleetplan_jobs":           dataFleetplanJobs(),
 				"rafay_fleetplan_job":            dataFleetplanJob(),
 			},
-			ConfigureContextFunc: providerConfigure,
+			ConfigureContextFunc: ProviderConfigure,
 		}
 
 		return p
@@ -171,7 +175,7 @@ func expandHomeDir(path string) (string, error) {
 	return filepath.Join(usr.HomeDir, path[1:]), nil
 }
 
-func providerConfigure(ctx context.Context, rd *schema.ResourceData) (interface{}, diag.Diagnostics) {
+func ProviderConfigure(ctx context.Context, rd *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	config_file := rd.Get("provider_config_file").(string)
@@ -231,6 +235,5 @@ func providerConfigure(ctx context.Context, rd *schema.ResourceData) (interface{
 		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
-	return rctlconfig.GetConfig(), diags
-
+	return newProviderMeta(rctlconfig.GetConfig()), diags
 }

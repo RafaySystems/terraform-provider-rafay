@@ -17,7 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func dataAddon() *schema.Resource {
+func DataAddon() *schema.Resource {
+	s := copySchemaMap(resource.AddonSchema.Schema)
 	return &schema.Resource{
 		ReadContext: dataAddonRead,
 		Timeouts: &schema.ResourceTimeout{
@@ -25,7 +26,7 @@ func dataAddon() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.AddonSchema.Schema,
+		Schema:        s,
 	}
 }
 

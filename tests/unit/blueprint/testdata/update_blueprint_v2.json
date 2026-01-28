@@ -1,0 +1,10 @@
+{
+  "metadata": {
+    "name": "test-blueprint-update",
+    "project": "test-project"
+  },
+  "spec": {
+    "version": "v2",
+    "type": "custom"
+  }
+}

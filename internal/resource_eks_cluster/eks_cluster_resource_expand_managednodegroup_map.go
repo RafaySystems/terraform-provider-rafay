@@ -275,6 +275,17 @@ func (v ManagedNodegroupsMapValue) Expand(ctx context.Context) (*rafay.ManagedNo
 		diags = append(diags, d...)
 	}
 
+	if !v.NodeRepairConfig5.IsNull() && !v.NodeRepairConfig5.IsUnknown() {
+		var nodeRepairConfigTypes NodeRepairConfig5Type
+		tfNodeRepairConfigValue, d := nodeRepairConfigTypes.ValueFromObject(ctx, v.NodeRepairConfig5)
+		if d.HasError() {
+			diags = append(diags, d...)
+			return &mng, diags
+		}
+		mng.NodeRepairConfig, d = tfNodeRepairConfigValue.(NodeRepairConfig5Value).Expand(ctx)
+		diags = append(diags, d...)
+	}
+
 	return &mng, diags
 }
 
@@ -723,4 +734,16 @@ func (v SecurityGroups5Value) Expand(ctx context.Context) (*rafay.NodeGroupSGs, 
 	}
 
 	return &sgs, diags
+}
+
+func (v NodeRepairConfig5Value) Expand(ctx context.Context) (*rafay.NodeRepairConfig, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var nrc rafay.NodeRepairConfig
+
+	if !v.Enabled.IsNull() && !v.Enabled.IsUnknown() {
+		enabled := getBoolValue(v.Enabled)
+		nrc.Enabled = &enabled
+	}
+
+	return &nrc, diags
 }

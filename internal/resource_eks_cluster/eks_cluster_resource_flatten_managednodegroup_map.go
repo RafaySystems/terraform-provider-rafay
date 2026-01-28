@@ -239,10 +239,28 @@ func (v *ManagedNodegroupsMapValue) Flatten(ctx context.Context, in *rafay.Manag
 	}
 
 	if len(in.Taints) > 0 {
+		stTaints := []Taints5Value{}
+		if !state.Taints5.IsNull() {
+			for _, sT := range state.Taints5.Elements() {
+				stTaints = append(stTaints, sT.(Taints5Value))
+			}
+		}
+
 		taintsList := []attr.Value{}
 		for _, val := range in.Taints {
+			k := val.Key
+			e := val.Effect
+			var stTaint Taints5Value
+			for _, stT := range stTaints {
+				if !stT.IsNull() && !stT.Key.IsNull() && !stT.Effect.IsNull() &&
+					getStringValue(stT.Key) == k && getStringValue(stT.Effect) == e {
+					stTaint = stT
+					break
+				}
+			}
+
 			taint := NewTaints5ValueNull()
-			d = taint.Flatten(ctx, val)
+			d = taint.Flatten(ctx, val, stTaint)
 			diags = append(diags, d...)
 			taintsList = append(taintsList, taint)
 		}
@@ -282,6 +300,17 @@ func (v *ManagedNodegroupsMapValue) Flatten(ctx context.Context, in *rafay.Manag
 		diags = append(diags, d...)
 	} else {
 		v.LaunchTemplate5, d = NewLaunchTemplate5ValueNull().ToObjectValue(ctx)
+		diags = append(diags, d...)
+	}
+
+	if in.NodeRepairConfig != nil {
+		nodeRepairConfig := NewNodeRepairConfig5ValueNull()
+		d = nodeRepairConfig.Flatten(ctx, in.NodeRepairConfig)
+		diags = append(diags, d...)
+		v.NodeRepairConfig5, d = nodeRepairConfig.ToObjectValue(ctx)
+		diags = append(diags, d...)
+	} else {
+		v.NodeRepairConfig5, d = NewNodeRepairConfig5ValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
 
@@ -604,14 +633,20 @@ func (v *BottleRocket5Value) Flatten(ctx context.Context, in *rafay.NodeGroupBot
 	return diags
 }
 
-func (v *Taints5Value) Flatten(ctx context.Context, in rafay.NodeGroupTaint) diag.Diagnostics {
+func (v *Taints5Value) Flatten(ctx context.Context, in rafay.NodeGroupTaint, state Taints5Value) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if in.Key != "" {
 		v.Key = types.StringValue(in.Key)
 	}
+
 	if in.Value != "" {
 		v.Value = types.StringValue(in.Value)
+	} else {
+		// hack: API can not differenciate nil and zero value of Value field. This is to avoid unnecessary diffs.
+		if !state.IsNull() && !state.Value.IsNull() {
+			v.Value = state.Value
+		}
 	}
 	if in.Effect != "" {
 		v.Effect = types.StringValue(in.Effect)
@@ -677,6 +712,20 @@ func (v *SecurityGroups5Value) Flatten(ctx context.Context, in *rafay.NodeGroupS
 		diags = append(diags, d...)
 	} else {
 		v.AttachIds = types.ListNull(types.StringType)
+	}
+
+	v.state = attr.ValueStateKnown
+	return diags
+}
+
+func (v *NodeRepairConfig5Value) Flatten(ctx context.Context, in *rafay.NodeRepairConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if in == nil {
+		return diags
+	}
+
+	if in.Enabled != nil {
+		v.Enabled = types.BoolPointerValue(in.Enabled)
 	}
 
 	v.state = attr.ValueStateKnown

@@ -303,6 +303,17 @@ func (v *ManagedNodegroupsMapValue) Flatten(ctx context.Context, in *rafay.Manag
 		diags = append(diags, d...)
 	}
 
+	if in.NodeRepairConfig != nil {
+		nodeRepairConfig := NewNodeRepairConfig5ValueNull()
+		d = nodeRepairConfig.Flatten(ctx, in.NodeRepairConfig)
+		diags = append(diags, d...)
+		v.NodeRepairConfig5, d = nodeRepairConfig.ToObjectValue(ctx)
+		diags = append(diags, d...)
+	} else {
+		v.NodeRepairConfig5, d = NewNodeRepairConfig5ValueNull().ToObjectValue(ctx)
+		diags = append(diags, d...)
+	}
+
 	v.state = attr.ValueStateKnown
 	return diags
 }
@@ -701,6 +712,20 @@ func (v *SecurityGroups5Value) Flatten(ctx context.Context, in *rafay.NodeGroupS
 		diags = append(diags, d...)
 	} else {
 		v.AttachIds = types.ListNull(types.StringType)
+	}
+
+	v.state = attr.ValueStateKnown
+	return diags
+}
+
+func (v *NodeRepairConfig5Value) Flatten(ctx context.Context, in *rafay.NodeRepairConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if in == nil {
+		return diags
+	}
+
+	if in.Enabled != nil {
+		v.Enabled = types.BoolPointerValue(in.Enabled)
 	}
 
 	v.state = attr.ValueStateKnown

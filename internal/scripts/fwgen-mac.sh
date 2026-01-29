@@ -66,6 +66,8 @@ sed -i '' 's/"taints4"/"taints"/g' internal/resource_eks_cluster/eks_cluster_res
 sed -i '' 's/"update_config4"/"update_config"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i '' 's/"launch_template4"/"launch_template"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i '' 's/"security_groups4"/"security_groups"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i '' 's/"node_repair_config4"/"node_repair_config"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+
 
 # managed node group map
 sed -i '' 's/"iam5"/"iam"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
@@ -80,6 +82,7 @@ sed -i '' 's/"taints5"/"taints"/g' internal/resource_eks_cluster/eks_cluster_res
 sed -i '' 's/"update_config5"/"update_config"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i '' 's/"launch_template5"/"launch_template"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i '' 's/"security_groups5"/"security_groups"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i '' 's/"node_repair_config5"/"node_repair_config"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 
 # node groups map
 sed -i '' 's/"iam6"/"iam"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go

@@ -362,7 +362,7 @@ node_groups_map = {
 
 ## Post-Migration Note: Proxy Config Diff
 
-After upgrading to the latest provider, a diff may appear during the next `terraform plan` if the configuration includes an empty `proxy_config {}` block:
+After upgrading to the latest provider, a diff may appear during the next `terraform plan` if the configuration includes an empty `proxy_config {}` block or `value = ""` attribute in taints:
 
 ```
 ~ cluster {
@@ -373,16 +373,35 @@ After upgrading to the latest provider, a diff may appear during the next `terra
 Plan: 0 to add, 1 to change, 0 to destroy.
 ```
 
+```
+~ "ng1" = {
+    ~ taints                     = [
+        - {
+            - effect = "NoExecute" -> null
+            - key    = "app" -> null
+          },
+        + {
+            + effect = "NoExecute"
+            + key    = "app"
+              # (1 unchanged attribute hidden)
+          },
+      ]
+      # (21 unchanged attributes hidden)
+  },
+  # (1 unchanged element hidden)
+```
+
 **How to Resolve It**
 
 Two options are available:
 
-1. **Remove the empty `proxy_config` block**: Delete the `proxy_config {}` entry if proxy configuration is not required.
+1. **Remove the empty block/attribute**: Delete the `proxy_config {}` entry if proxy configuration is not required. Remove `value = ""` from taints if not required.
 2. **Run `terraform apply` once**: This updates the backend state and prevents future diffs.
 
 <div style="border: 2px solid #448aff; background:#edf3ff; padding:12px; border-radius:6px; margin:12px 0;"> ✏️ <strong>Note</strong><br><br>
-An empty <code>proxy_config {}</code> behaves the same as removing it entirely.
+An empty <code>proxy_config {}</code> block and empty <code>value = ""</code> attribute behaves the same as removing it entirely.
 </div>
+
 
 
 ---

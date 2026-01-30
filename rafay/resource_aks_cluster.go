@@ -1107,6 +1107,11 @@ func clusterAKSManagedClusterNetworkProfile() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Network plugin mode used for building the Azure CNI. Valid values are 'overlay'",
 		},
+		"network_dataplane": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Network dataplane used in the Kubernetes cluster. Valid values are azure, cilium.",
+		},
 	}
 	return s
 }

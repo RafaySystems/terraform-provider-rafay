@@ -42,7 +42,23 @@ resource "rafay_mks_cluster" "mks-sample-cluster" {
         }
         pod_subnet     = "10.244.0.0/16"
         service_subnet = "10.96.0.0/12"
-      }
+      },
+      cluster_ssh = {
+        username         = "ubuntu"
+        port             = "22"
+        private_key_path = "/path/to/ssh/private_key"
+      },
+      kubelet_extra_args = {
+        "max-pods": "250"
+      },
+      kubelet_configuration_overrides = <<-EOF
+        maxPods: 150
+        evictionHard:
+          imagefs.available: "25%"
+          memory.available: "300Mi"
+          nodefs.available: "20%"
+          nodefs.inodesFree: "15%"
+        EOF
       nodes = {
         "hostname1" = {
           arch             = "amd64"
@@ -53,7 +69,18 @@ resource "rafay_mks_cluster" "mks-sample-cluster" {
           labels = {
             "app"   = "infra"
             "infra" = "true"
-          }
+          },
+          kubelet_extra_args = {
+            "max-pods": "600"
+          },
+          kubelet_configuration_overrides = <<-EOF
+              maxPods: 150
+              evictionHard:
+                imagefs.available: "25%"
+                memory.available: "300Mi"
+                nodefs.available: "20%"
+                nodefs.inodesFree: "15%"
+              EOF
         },
         "hostname2" = {
           arch             = "amd64"

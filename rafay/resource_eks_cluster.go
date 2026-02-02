@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -36,6 +37,7 @@ func resourceEKSCluster() *schema.Resource {
 		ReadContext:   resourceEKSClusterRead,
 		UpdateContext: resourceEKSClusterUpdate,
 		DeleteContext: resourceEKSClusterDelete,
+		CustomizeDiff: resourceEKSClusterCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(100 * time.Minute),
@@ -72,6 +74,25 @@ func resourceEKSCluster() *schema.Resource {
 		},
 		Description: resourceEKSClusterDescription,
 	}
+}
+
+func resourceEKSClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, m interface{}) error {
+	if err := canonicalizeNodeGroupListInDiff(d, "cluster_config.0.node_groups"); err != nil {
+		return err
+	}
+	if err := canonicalizeNodeGroupListInDiff(d, "cluster_config.0.managed_nodegroups"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func canonicalizeNodeGroupListInDiff(d *schema.ResourceDiff, path string) error {
+	v, ok := d.Get(path).([]interface{})
+	if !ok || len(v) == 0 {
+		return nil
+	}
+	sorted := sortInterfaceSliceByName(v)
+	return d.SetNew(path, sorted)
 }
 
 // schema input for cluster file
@@ -3052,14 +3073,20 @@ func expandFargateProfilesSelectors(p []interface{}) []FargateProfileSelector {
 }
 
 func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNodeGroup { //not completed have questions in comments
-	out := make([]*ManagedNodeGroup, len(p))
-	if len(p) == 0 || p[0] == nil {
+	sorted := sortInterfaceSliceByName(p)
+	out := make([]*ManagedNodeGroup, len(sorted))
+	if len(sorted) == 0 || sorted[0] == nil {
 		return out
 	}
+	rawConfigByName := indexRawValueByName(rawConfig)
 	log.Println("got to managed node group")
-	for i := range p {
+	for i := range sorted {
 		obj := &ManagedNodeGroup{}
-		in := p[i].(map[string]interface{})
+		in, ok := sorted[i].(map[string]interface{})
+		if !ok {
+			out[i] = obj
+			continue
+		}
 		// nRawConfig := rawConfig.AsValueSlice()[i]
 		if v, ok := in["name"].(string); ok && len(v) > 0 {
 			obj.Name = v
@@ -3113,9 +3140,11 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 			obj.AMI = v
 		}
 		if v, ok := in["security_groups"].([]interface{}); ok && len(v) > 0 {
-			var nRawConfig cty.Value
-			if !rawConfig.IsNull() && i < len(rawConfig.AsValueSlice()) {
-				nRawConfig = rawConfig.AsValueSlice()[i].GetAttr("security_groups")
+			nRawConfig := cty.NilVal
+			if obj.Name != "" {
+				if rawVal, ok := rawConfigByName[obj.Name]; ok && !rawVal.IsNull() && rawVal.IsKnown() {
+					nRawConfig = rawVal.GetAttr("security_groups")
+				}
 			}
 			obj.SecurityGroups = expandManagedNodeGroupSecurityGroups(v, nRawConfig)
 		}
@@ -3268,14 +3297,19 @@ func expandManagedNodeGroupLaunchTempelate(p []interface{}) *LaunchTemplate {
 }
 
 func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have questions in comments
-	out := make([]*NodeGroup, len(p))
+	sorted := sortInterfaceSliceByName(p)
+	out := make([]*NodeGroup, len(sorted))
 
-	if len(p) == 0 || p[0] == nil {
+	if len(sorted) == 0 || sorted[0] == nil {
 		return out
 	}
 
-	for i := range p {
-		in := p[i].(map[string]interface{})
+	for i := range sorted {
+		in, ok := sorted[i].(map[string]interface{})
+		if !ok {
+			out[i] = &NodeGroup{}
+			continue
+		}
 		obj := NodeGroup{}
 		log.Println("expand_nodegroups")
 		log.Println("ngs_yaml name: ", in["name"].(string))
@@ -6036,11 +6070,25 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 		return out
 	}
 
-	out := make([]interface{}, len(inp))
-	for i, in := range inp {
+	sorted := sortNodeGroupPointersByName(inp)
+	rawStateByName := indexRawValueByName(rawState)
+	existingByName := indexInterfaceSliceByName(p)
+	out := make([]interface{}, len(sorted))
+	for i, in := range sorted {
 		obj := map[string]interface{}{}
-		if i < len(p) && p[i] != nil {
+		nRawState := cty.NilVal
+		if in != nil && in.Name != "" {
+			if existing, ok := existingByName[in.Name]; ok {
+				obj = existing
+			}
+			if rawVal, ok := rawStateByName[in.Name]; ok && !rawVal.IsNull() && rawVal.IsKnown() {
+				nRawState = rawVal
+			}
+		} else if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
+			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
+				nRawState = rawState.AsValueSlice()[i]
+			}
 		}
 		if in == nil {
 			out[i] = &obj
@@ -6056,18 +6104,18 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 			obj["instance_type"] = in.InstanceType
 		}
 		if len(in.AvailabilityZones) > 0 {
-			var nRawState cty.Value
-			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
-				nRawState = rawState.AsValueSlice()[i].GetAttr("availability_zones")
+			listRawState := cty.NilVal
+			if !nRawState.IsNull() && nRawState.IsKnown() {
+				listRawState = nRawState.GetAttr("availability_zones")
 			}
-			obj["availability_zones"] = flattenListOfString(in.AvailabilityZones, nRawState)
+			obj["availability_zones"] = flattenListOfString(in.AvailabilityZones, listRawState)
 		}
 		if len(in.Subnets) > 0 {
-			var nRawState cty.Value
-			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
-				nRawState = rawState.AsValueSlice()[i].GetAttr("subnets")
+			listRawState := cty.NilVal
+			if !nRawState.IsNull() && nRawState.IsKnown() {
+				listRawState = nRawState.GetAttr("subnets")
 			}
-			obj["subnets"] = flattenListOfString(in.Subnets, nRawState)
+			obj["subnets"] = flattenListOfString(in.Subnets, listRawState)
 		}
 		if len(in.InstancePrefix) > 0 {
 			obj["instance_prefix"] = in.InstancePrefix
@@ -6100,11 +6148,11 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 			if !ok {
 				v = []interface{}{}
 			}
-			var nRawState cty.Value
-			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
-				nRawState = rawState.AsValueSlice()[i].GetAttr("iam")
+			iamRawState := cty.NilVal
+			if !nRawState.IsNull() && nRawState.IsKnown() {
+				iamRawState = nRawState.GetAttr("iam")
 			}
-			obj["iam"] = flattenNodeGroupIAM(in.IAM, nRawState, v)
+			obj["iam"] = flattenNodeGroupIAM(in.IAM, iamRawState, v)
 		}
 		if len(in.AMI) > 0 {
 			obj["ami"] = in.AMI
@@ -6532,11 +6580,25 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 		return out
 	}
 
-	out := make([]interface{}, len(inp))
-	for i, in := range inp {
+	sorted := sortManagedNodeGroupPointersByName(inp)
+	rawStateByName := indexRawValueByName(rawState)
+	existingByName := indexInterfaceSliceByName(p)
+	out := make([]interface{}, len(sorted))
+	for i, in := range sorted {
 		obj := map[string]interface{}{}
-		if i < len(p) && p[i] != nil {
+		nRawState := cty.NilVal
+		if in != nil && in.Name != "" {
+			if existing, ok := existingByName[in.Name]; ok {
+				obj = existing
+			}
+			if rawVal, ok := rawStateByName[in.Name]; ok && !rawVal.IsNull() && rawVal.IsKnown() {
+				nRawState = rawVal
+			}
+		} else if i < len(p) && p[i] != nil {
 			obj = p[i].(map[string]interface{})
+			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
+				nRawState = rawState.AsValueSlice()[i]
+			}
 		}
 		if in == nil {
 			out[i] = &obj
@@ -6552,18 +6614,18 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 			obj["instance_type"] = in.InstanceType
 		}
 		if len(in.AvailabilityZones) > 0 {
-			var nRawState cty.Value
-			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
-				nRawState = rawState.AsValueSlice()[i].GetAttr("availability_zones")
+			listRawState := cty.NilVal
+			if !nRawState.IsNull() && nRawState.IsKnown() {
+				listRawState = nRawState.GetAttr("availability_zones")
 			}
-			obj["availability_zones"] = flattenListOfString(in.AvailabilityZones, nRawState)
+			obj["availability_zones"] = flattenListOfString(in.AvailabilityZones, listRawState)
 		}
 		if len(in.Subnets) > 0 {
-			var nRawState cty.Value
-			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
-				nRawState = rawState.AsValueSlice()[i].GetAttr("subnets")
+			listRawState := cty.NilVal
+			if !nRawState.IsNull() && nRawState.IsKnown() {
+				listRawState = nRawState.GetAttr("subnets")
 			}
-			obj["subnets"] = flattenListOfString(in.Subnets, nRawState)
+			obj["subnets"] = flattenListOfString(in.Subnets, listRawState)
 		}
 		if len(in.InstancePrefix) > 0 {
 			obj["instance_prefix"] = in.InstancePrefix
@@ -6596,11 +6658,11 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 			if !ok {
 				v = []interface{}{}
 			}
-			var nRawState cty.Value
-			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
-				nRawState = rawState.AsValueSlice()[i].GetAttr("iam")
+			iamRawState := cty.NilVal
+			if !nRawState.IsNull() && nRawState.IsKnown() {
+				iamRawState = nRawState.GetAttr("iam")
 			}
-			obj["iam"] = flattenNodeGroupIAM(in.IAM, nRawState, v)
+			obj["iam"] = flattenNodeGroupIAM(in.IAM, iamRawState, v)
 		}
 		if len(in.AMI) > 0 {
 			obj["ami"] = in.AMI
@@ -7182,6 +7244,121 @@ func (np ByManagedNodeGroupName) Less(i, j int) bool {
 	} else {
 		return false
 	}
+}
+
+func sortInterfaceSliceByName(p []interface{}) []interface{} {
+	type namedEntry struct {
+		name  string
+		index int
+		val   interface{}
+	}
+	entries := make([]namedEntry, 0, len(p))
+	for i, v := range p {
+		name := ""
+		if obj, ok := v.(map[string]interface{}); ok {
+			if n, ok := obj["name"].(string); ok {
+				name = n
+			}
+		}
+		entries = append(entries, namedEntry{name: name, index: i, val: v})
+	}
+	sort.SliceStable(entries, func(i, j int) bool {
+		if entries[i].name == entries[j].name {
+			return entries[i].index < entries[j].index
+		}
+		return entries[i].name < entries[j].name
+	})
+	out := make([]interface{}, len(entries))
+	for i, e := range entries {
+		out[i] = e.val
+	}
+	return out
+}
+
+func indexInterfaceSliceByName(p []interface{}) map[string]map[string]interface{} {
+	index := make(map[string]map[string]interface{})
+	for _, v := range p {
+		obj, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		name, _ := obj["name"].(string)
+		if name == "" {
+			continue
+		}
+		if _, exists := index[name]; !exists {
+			index[name] = obj
+		}
+	}
+	return index
+}
+
+func indexRawValueByName(raw cty.Value) map[string]cty.Value {
+	index := make(map[string]cty.Value)
+	if raw.IsNull() || !raw.IsKnown() {
+		return index
+	}
+	for _, val := range raw.AsValueSlice() {
+		if val.IsNull() || !val.IsKnown() {
+			continue
+		}
+		nameVal := val.GetAttr("name")
+		if nameVal.IsNull() || !nameVal.IsKnown() {
+			continue
+		}
+		name := nameVal.AsString()
+		if name == "" {
+			continue
+		}
+		if _, exists := index[name]; !exists {
+			index[name] = val
+		}
+	}
+	return index
+}
+
+func sortNodeGroupPointersByName(inp []*NodeGroup) []*NodeGroup {
+	if len(inp) == 0 {
+		return inp
+	}
+	out := make([]*NodeGroup, 0, len(inp))
+	for _, ng := range inp {
+		out = append(out, ng)
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		left := ""
+		right := ""
+		if out[i] != nil {
+			left = out[i].Name
+		}
+		if out[j] != nil {
+			right = out[j].Name
+		}
+		return left < right
+	})
+	return out
+}
+
+func sortManagedNodeGroupPointersByName(inp []*ManagedNodeGroup) []*ManagedNodeGroup {
+	if len(inp) == 0 {
+		return inp
+	}
+	out := make([]*ManagedNodeGroup, 0, len(inp))
+	for _, ng := range inp {
+		out = append(out, ng)
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		left := ""
+		right := ""
+		if out[i] != nil {
+			left = out[i].Name
+		}
+		if out[j] != nil {
+			right = out[j].Name
+		}
+		return left < right
+	})
+	return out
 }
 
 func resourceEKSClusterImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {

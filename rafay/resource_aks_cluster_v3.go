@@ -1140,6 +1140,219 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.WindowsProfile = expandAKSManagedClusterV3WindowsProfile(v)
 	}
 
+	if v, ok := in["ingress_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.IngressProfile = expandAKSManagedClusterV3IngressProfile(v)
+	}
+
+	if v, ok := in["service_mesh_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.ServiceMeshProfile = expandAKSManagedClusterV3ServiceMeshProfile(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterV3IngressProfile(p []interface{}) *infrapb.IngressProfile {
+	obj := &infrapb.IngressProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["web_app_routing"].([]interface{}); ok && len(v) > 0 {
+		obj.WebAppRouting = expandAKSManagedClusterV3IngressProfileWebAppRouting(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterV3IngressProfileWebAppRouting(p []interface{}) *infrapb.WebAppRouting {
+	obj := &infrapb.WebAppRouting{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+
+	if v, ok := in["dns_zone_resource_ids"].([]interface{}); ok && len(v) > 0 {
+		obj.DnsZoneResourceIds = toArrayString(v)
+	}
+
+	if v, ok := in["identity"].([]interface{}); ok && len(v) > 0 {
+		obj.Identity = expandAKSManagedClusterV3IngressProfileIdentity(v)
+	}
+
+	if v, ok := in["nginx"].([]interface{}); ok && len(v) > 0 {
+		obj.Nginx = expandAKSManagedClusterV3IngressProfileNginx(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterV3IngressProfileIdentity(p []interface{}) *infrapb.UserAssignedIdentity {
+	obj := &infrapb.UserAssignedIdentity{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["client_id"].(string); ok && len(v) > 0 {
+		obj.ClientID = v
+	}
+	if v, ok := in["object_id"].(string); ok && len(v) > 0 {
+		obj.ObjectID = v
+	}
+	if v, ok := in["resource_id"].(string); ok && len(v) > 0 {
+		obj.ResourceID = v
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterV3IngressProfileNginx(p []interface{}) *infrapb.Nginx {
+	obj := &infrapb.Nginx{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["default_ingress_controller_type"].(string); ok && len(v) > 0 {
+		obj.DefaultIngressControllerType = v
+	}
+
+	return obj
+}
+
+// Service Mesh Profile expand helpers
+func expandAKSManagedClusterV3ServiceMeshProfile(p []interface{}) *infrapb.ServiceMeshProfile {
+	obj := &infrapb.ServiceMeshProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["mode"].(string); ok && len(v) > 0 {
+		obj.Mode = v
+	}
+
+	if v, ok := in["istio"].([]interface{}); ok && len(v) > 0 {
+		obj.Istio = expandAKSManagedClusterV3ServiceMeshIstio(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterV3ServiceMeshIstio(p []interface{}) *infrapb.IstioServiceMesh {
+	obj := &infrapb.IstioServiceMesh{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["certificate_authority"].([]interface{}); ok && len(v) > 0 {
+		obj.CertificateAuthority = expandAKSManagedClusterV3ServiceMeshIstioCertificateAuthority(v)
+	}
+
+	if v, ok := in["components"].([]interface{}); ok && len(v) > 0 {
+		obj.Components = expandAKSManagedClusterV3ServiceMeshIstioComponents(v)
+	}
+
+	if v, ok := in["revisions"].([]interface{}); ok && len(v) > 0 {
+		obj.Revisions = toArrayString(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterV3ServiceMeshIstioCertificateAuthority(p []interface{}) *infrapb.IstioCertificateAuthority {
+	obj := &infrapb.IstioCertificateAuthority{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["plugin"].([]interface{}); ok && len(v) > 0 {
+		obj.Plugin = expandAKSManagedClusterV3ServiceMeshIstioPluginCertificateAuthority(v)
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterV3ServiceMeshIstioPluginCertificateAuthority(p []interface{}) *infrapb.IstioPluginCertificateAuthority {
+	obj := &infrapb.IstioPluginCertificateAuthority{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["cert_chain_object_name"].(string); ok && len(v) > 0 {
+		obj.CertChainObjectName = v
+	}
+	if v, ok := in["cert_object_name"].(string); ok && len(v) > 0 {
+		obj.CertObjectName = v
+	}
+	if v, ok := in["key_object_name"].(string); ok && len(v) > 0 {
+		obj.KeyObjectName = v
+	}
+	if v, ok := in["key_vault_id"].(string); ok && len(v) > 0 {
+		obj.KeyVaultID = v
+	}
+	if v, ok := in["root_cert_object_name"].(string); ok && len(v) > 0 {
+		obj.RootCertObjectName = v
+	}
+
+	return obj
+}
+
+func expandAKSManagedClusterV3ServiceMeshIstioComponents(p []interface{}) *infrapb.IstioComponents {
+	obj := &infrapb.IstioComponents{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["egress_gateways"].([]interface{}); ok && len(v) > 0 {
+		for _, item := range v {
+			if item == nil {
+				continue
+			}
+			m := item.(map[string]interface{})
+			gw := &infrapb.IstioEgressGateway{}
+			if e, ok := m["enabled"].(bool); ok {
+				gw.Enabled = e
+			}
+			if s, ok := m["name"].(string); ok && len(s) > 0 {
+				gw.Name = s
+			}
+			if s, ok := m["gateway_configuration_name"].(string); ok && len(s) > 0 {
+				gw.GatewayConfigurationName = s
+			}
+			if s, ok := m["namespace"].(string); ok && len(s) > 0 {
+				gw.Namespace = s
+			}
+			obj.EgressGateways = append(obj.EgressGateways, gw)
+		}
+	}
+
+	if v, ok := in["ingress_gateways"].([]interface{}); ok && len(v) > 0 {
+		for _, item := range v {
+			if item == nil {
+				continue
+			}
+			m := item.(map[string]interface{})
+			gw := &infrapb.IstioIngressGateway{}
+			if e, ok := m["enabled"].(bool); ok {
+				gw.Enabled = e
+			}
+			if s, ok := m["mode"].(string); ok && len(s) > 0 {
+				gw.Mode = s
+			}
+			obj.IngressGateways = append(obj.IngressGateways, gw)
+		}
+	}
+
 	return obj
 }
 
@@ -2147,6 +2360,14 @@ func expandAKSV3NodePoolProperties(p []interface{}) *infrapb.NodePoolProperties 
 		obj.VnetSubnetID = v
 	}
 
+	if v, ok := in["node_image_version"].(string); ok && len(v) > 0 {
+		obj.NodeImageVersion = v
+	}
+
+	if v, ok := in["creation_data"].([]interface{}); ok && len(v) > 0 {
+		obj.CreationData = expandAKSV3NodePoolCreationData(v)
+	}
+
 	return obj
 }
 
@@ -2348,6 +2569,18 @@ func expandAKSV3NodePoolLinuxOsConfigSysctls(p []interface{}) *infrapb.Sysctls {
 		obj.VmVfsCachePressure = int32(v)
 	}
 
+	return obj
+}
+
+func expandAKSV3NodePoolCreationData(p []interface{}) *infrapb.CreationData {
+	obj := &infrapb.CreationData{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+	if v, ok := in["source_resource_id"].(string); ok && len(v) > 0 {
+		obj.SourceResourceId = v
+	}
 	return obj
 }
 
@@ -3149,6 +3382,22 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 		obj["windows_profile"] = flattenAKSV3ManagedClusterWindowsProfile(in.WindowsProfile, v)
 	}
 
+	if in.IngressProfile != nil {
+		v, ok := obj["ingress_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["ingress_profile"] = flattenAKSV3ManagedClusterIngressProfile(in.IngressProfile, v)
+	}
+
+	if in.ServiceMeshProfile != nil {
+		v, ok := obj["service_mesh_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["service_mesh_profile"] = flattenAKSV3ManagedClusterServiceMeshProfile(in.ServiceMeshProfile, v)
+	}
+
 	return []interface{}{obj}
 
 }
@@ -3356,6 +3605,276 @@ func flattenAKSV3ManagedClusterIngressApplicationGatewayProfileConfig(in *infrap
 	obj["watch_namespace"] = in.WatchNamespace
 
 	return []interface{}{obj}
+}
+
+// Ingress Profile flatten helpers
+func flattenAKSV3ManagedClusterIngressProfile(in *infrapb.IngressProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.WebAppRouting != nil {
+		v, ok := obj["web_app_routing"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["web_app_routing"] = flattenAKSV3ManagedClusterIngressProfileWebAppRouting(in.WebAppRouting, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterIngressProfileWebAppRouting(in *infrapb.WebAppRouting, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["enabled"] = in.Enabled
+
+	if in.DnsZoneResourceIds != nil && len(in.DnsZoneResourceIds) > 0 {
+		obj["dns_zone_resource_ids"] = toArrayInterface(in.DnsZoneResourceIds)
+	}
+
+	if in.Identity != nil {
+		v, ok := obj["identity"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["identity"] = flattenAKSV3ManagedClusterIngressProfileIdentity(in.Identity, v)
+	}
+
+	if in.Nginx != nil {
+		v, ok := obj["nginx"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["nginx"] = flattenAKSV3ManagedClusterIngressProfileNginx(in.Nginx, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterIngressProfileIdentity(in *infrapb.UserAssignedIdentity, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ClientID) > 0 {
+		obj["client_id"] = in.ClientID
+	}
+	if len(in.ObjectID) > 0 {
+		obj["object_id"] = in.ObjectID
+	}
+	if len(in.ResourceID) > 0 {
+		obj["resource_id"] = in.ResourceID
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterIngressProfileNginx(in *infrapb.Nginx, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.DefaultIngressControllerType) > 0 {
+		obj["default_ingress_controller_type"] = in.DefaultIngressControllerType
+	}
+
+	return []interface{}{obj}
+}
+
+// Service Mesh Profile flatten helpers
+func flattenAKSV3ManagedClusterServiceMeshProfile(in *infrapb.ServiceMeshProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Mode) > 0 {
+		obj["mode"] = in.Mode
+	}
+
+	if in.Istio != nil {
+		v, ok := obj["istio"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["istio"] = flattenAKSV3ManagedClusterServiceMeshIstio(in.Istio, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterServiceMeshIstio(in *infrapb.IstioServiceMesh, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.CertificateAuthority != nil {
+		v, ok := obj["certificate_authority"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["certificate_authority"] = flattenAKSV3ManagedClusterServiceMeshIstioCertificateAuthority(in.CertificateAuthority, v)
+	}
+
+	if in.Components != nil {
+		v, ok := obj["components"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["components"] = flattenAKSV3ManagedClusterServiceMeshIstioComponents(in.Components, v)
+	}
+
+	if in.Revisions != nil && len(in.Revisions) > 0 {
+		obj["revisions"] = toArrayInterface(in.Revisions)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterServiceMeshIstioCertificateAuthority(in *infrapb.IstioCertificateAuthority, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.Plugin != nil {
+		v, ok := obj["plugin"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["plugin"] = flattenAKSV3ManagedClusterServiceMeshIstioPluginCertificateAuthority(in.Plugin, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterServiceMeshIstioPluginCertificateAuthority(in *infrapb.IstioPluginCertificateAuthority, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.CertChainObjectName) > 0 {
+		obj["cert_chain_object_name"] = in.CertChainObjectName
+	}
+	if len(in.CertObjectName) > 0 {
+		obj["cert_object_name"] = in.CertObjectName
+	}
+	if len(in.KeyObjectName) > 0 {
+		obj["key_object_name"] = in.KeyObjectName
+	}
+	if len(in.KeyVaultID) > 0 {
+		obj["key_vault_id"] = in.KeyVaultID
+	}
+	if len(in.RootCertObjectName) > 0 {
+		obj["root_cert_object_name"] = in.RootCertObjectName
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterServiceMeshIstioComponents(in *infrapb.IstioComponents, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.EgressGateways != nil && len(in.EgressGateways) > 0 {
+		v, ok := obj["egress_gateways"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["egress_gateways"] = flattenAKSV3ManagedClusterServiceMeshIstioEgressGateways(in.EgressGateways, v)
+	}
+
+	if in.IngressGateways != nil && len(in.IngressGateways) > 0 {
+		v, ok := obj["ingress_gateways"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["ingress_gateways"] = flattenAKSV3ManagedClusterServiceMeshIstioIngressGateways(in.IngressGateways, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3ManagedClusterServiceMeshIstioEgressGateways(in []*infrapb.IstioEgressGateway, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, elem := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		obj["enabled"] = elem.Enabled
+		if len(elem.GatewayConfigurationName) > 0 {
+			obj["gateway_configuration_name"] = elem.GatewayConfigurationName
+		}
+		if len(elem.Name) > 0 {
+			obj["name"] = elem.Name
+		}
+		if len(elem.Namespace) > 0 {
+			obj["namespace"] = elem.Namespace
+		}
+		out[i] = obj
+	}
+	return out
+}
+
+func flattenAKSV3ManagedClusterServiceMeshIstioIngressGateways(in []*infrapb.IstioIngressGateway, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, elem := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+		obj["enabled"] = elem.Enabled
+		if len(elem.Mode) > 0 {
+			obj["mode"] = elem.Mode
+		}
+		out[i] = obj
+	}
+	return out
 }
 
 func flattenAKSV3ManagedClusterAzureADProfile(in *infrapb.Aadprofile, p []interface{}) []interface{} {
@@ -4382,6 +4901,18 @@ func flattenAKSV3NodePoolProperties(in *infrapb.NodePoolProperties, p []interfac
 		obj["vnet_subnet_id"] = in.VnetSubnetID
 	}
 
+	if len(in.NodeImageVersion) > 0 {
+		obj["node_image_version"] = in.NodeImageVersion
+	}
+
+	if in.CreationData != nil {
+		v, ok := obj["creation_data"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["creation_data"] = flattenAKSV3NodePoolCreationData(in.CreationData, v)
+	}
+
 	return []interface{}{obj}
 
 }
@@ -4532,6 +5063,22 @@ func flattenAKSV3NodePoolLinuxOsConfigSysctls(in *infrapb.Sysctls, p []interface
 
 	return []interface{}{obj}
 
+}
+
+func flattenAKSV3NodePoolCreationData(in *infrapb.CreationData, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.SourceResourceId) > 0 {
+		obj["source_resource_id"] = in.SourceResourceId
+	}
+
+	return []interface{}{obj}
 }
 
 func flattenAKSV3NodePoolUpgradeSettings(in *infrapb.Upgradesettings, p []interface{}) []interface{} {

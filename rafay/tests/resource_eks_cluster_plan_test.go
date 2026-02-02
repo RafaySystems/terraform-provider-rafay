@@ -1,7 +1,7 @@
 //go:build planonly
 // +build planonly
 
-package rafay_test
+package tests
 
 import (
 	"os"

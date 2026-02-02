@@ -195,12 +195,89 @@ func canonicalizeEKSClusterConfig(cfg *rafay.EKSClusterConfig) {
 		sort.SliceStable(cfg.NodeGroups, func(i, j int) bool {
 			return nodeGroupName(cfg.NodeGroups[i]) < nodeGroupName(cfg.NodeGroups[j])
 		})
+		for _, ng := range cfg.NodeGroups {
+			canonicalizeNodeGroup(ng)
+		}
 	}
 	if len(cfg.ManagedNodeGroups) > 0 {
 		sort.SliceStable(cfg.ManagedNodeGroups, func(i, j int) bool {
 			return managedNodeGroupName(cfg.ManagedNodeGroups[i]) < managedNodeGroupName(cfg.ManagedNodeGroups[j])
 		})
+		for _, ng := range cfg.ManagedNodeGroups {
+			canonicalizeManagedNodeGroup(ng)
+		}
 	}
+}
+
+func canonicalizeNodeGroup(ng *rafay.NodeGroup) {
+	if ng == nil {
+		return
+	}
+	sortStrings(ng.AvailabilityZones)
+	sortStrings(ng.Subnets)
+	sortStrings(ng.ASGSuspendProcesses)
+	sortStrings(ng.ClassicLoadBalancerNames)
+	sortStrings(ng.TargetGroupARNs)
+	sortNodeGroupTaints(ng.Taints)
+	if ng.SecurityGroups != nil {
+		sortStrings(ng.SecurityGroups.AttachIDs)
+	}
+	if ng.SSH != nil {
+		sortStrings(ng.SSH.SourceSecurityGroupIDs)
+	}
+	if ng.IAM != nil {
+		sortStrings(ng.IAM.AttachPolicyARNs)
+	}
+	if ng.InstancesDistribution != nil {
+		sortStrings(ng.InstancesDistribution.InstanceTypes)
+	}
+	if len(ng.ASGMetricsCollection) > 0 {
+		for i := range ng.ASGMetricsCollection {
+			sortStrings(ng.ASGMetricsCollection[i].Metrics)
+		}
+	}
+}
+
+func canonicalizeManagedNodeGroup(ng *rafay.ManagedNodeGroup) {
+	if ng == nil {
+		return
+	}
+	sortStrings(ng.AvailabilityZones)
+	sortStrings(ng.Subnets)
+	sortStrings(ng.InstanceTypes)
+	sortStrings(ng.ASGSuspendProcesses)
+	sortNodeGroupTaints(ng.Taints)
+	if ng.SecurityGroups != nil {
+		sortStrings(ng.SecurityGroups.AttachIDs)
+	}
+	if ng.SSH != nil {
+		sortStrings(ng.SSH.SourceSecurityGroupIDs)
+	}
+	if ng.IAM != nil {
+		sortStrings(ng.IAM.AttachPolicyARNs)
+	}
+}
+
+func sortStrings(in []string) {
+	if len(in) < 2 {
+		return
+	}
+	sort.Strings(in)
+}
+
+func sortNodeGroupTaints(in []rafay.NodeGroupTaint) {
+	if len(in) < 2 {
+		return
+	}
+	sort.SliceStable(in, func(i, j int) bool {
+		if in[i].Key != in[j].Key {
+			return in[i].Key < in[j].Key
+		}
+		if in[i].Effect != in[j].Effect {
+			return in[i].Effect < in[j].Effect
+		}
+		return in[i].Value < in[j].Value
+	})
 }
 
 func nodeGroupName(ng *rafay.NodeGroup) string {

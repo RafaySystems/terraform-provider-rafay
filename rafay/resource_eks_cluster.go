@@ -6169,47 +6169,6 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 	if inp == nil {
 		return nil
 	}
-	indexOf := func(item string, list []string) int {
-		for i, v := range list {
-			if v == item {
-				return i
-			}
-		}
-		return -1
-	}
-	findLocalOrder := func(rawState cty.Value) []string {
-		var order []string
-		if !rawState.IsNull() {
-			for _, val := range rawState.AsValueSlice() {
-				order = append(order, val.AsString())
-			}
-		}
-		return order
-	}
-	flattenListOfString := func(inp []string, rawState cty.Value) []interface{} {
-		out := make([]interface{}, 0)
-		localStateOrder := findLocalOrder(rawState)
-		remoteStateOrder := inp
-		remoteOnlyOrder := make([]string, 0)
-		for _, elem := range remoteStateOrder {
-			if indexOf(elem, localStateOrder) < 0 {
-				remoteOnlyOrder = append(remoteOnlyOrder, elem)
-			}
-		}
-		for _, elem := range localStateOrder {
-			if i := indexOf(elem, remoteStateOrder); i >= 0 {
-				out = append(out, elem)
-			} else if len(remoteOnlyOrder) > 0 {
-				out = append(out, remoteOnlyOrder[0])
-				remoteOnlyOrder = remoteOnlyOrder[1:]
-			}
-		}
-		for _, elem := range remoteOnlyOrder {
-			out = append(out, elem)
-		}
-		return out
-	}
-
 	sorted := sortNodeGroupPointersByName(inp)
 	rawStateByName := indexRawValueByName(rawState)
 	existingByName := indexInterfaceSliceByName(p)
@@ -6669,47 +6628,6 @@ func flattenNodeGroupUpdateConfig(in *NodeGroupUpdateConfig, p []interface{}) []
 func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Value, p []interface{}) ([]interface{}, error) {
 	if inp == nil {
 		return nil, fmt.Errorf("empty input for managedNodeGroup")
-	}
-
-	indexOf := func(item string, list []string) int {
-		for i, v := range list {
-			if v == item {
-				return i
-			}
-		}
-		return -1
-	}
-	findLocalOrder := func(rawState cty.Value) []string {
-		var order []string
-		if !rawState.IsNull() {
-			for _, val := range rawState.AsValueSlice() {
-				order = append(order, val.AsString())
-			}
-		}
-		return order
-	}
-	flattenListOfString := func(inp []string, rawState cty.Value) []interface{} {
-		out := make([]interface{}, 0)
-		localStateOrder := findLocalOrder(rawState)
-		remoteStateOrder := inp
-		remoteOnlyOrder := make([]string, 0)
-		for _, elem := range remoteStateOrder {
-			if indexOf(elem, localStateOrder) < 0 {
-				remoteOnlyOrder = append(remoteOnlyOrder, elem)
-			}
-		}
-		for _, elem := range localStateOrder {
-			if i := indexOf(elem, remoteStateOrder); i >= 0 {
-				out = append(out, elem)
-			} else if len(remoteOnlyOrder) > 0 {
-				out = append(out, remoteOnlyOrder[0])
-				remoteOnlyOrder = remoteOnlyOrder[1:]
-			}
-		}
-		for _, elem := range remoteOnlyOrder {
-			out = append(out, elem)
-		}
-		return out
 	}
 
 	sorted := sortManagedNodeGroupPointersByName(inp)

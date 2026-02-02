@@ -62,3 +62,19 @@ Sample configs for ordering scenarios:
 - `tests/eks-order-samples/managed-reorder.tf`
 - `tests/eks-order-samples/node-reorder.tf`
 - `tests/eks-order-samples/nested-reorder.tf`
+
+## Refresh Before Changes (Existing Clusters)
+
+For clusters already provisioned via Terraform (with ordered or unordered nodegroups),
+run a refresh before making new changes so state is normalized:
+
+```bash
+terraform apply -refresh=true
+```
+
+or:
+
+```bash
+terraform refresh
+terraform apply
+```

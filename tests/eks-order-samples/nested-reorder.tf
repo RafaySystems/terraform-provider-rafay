@@ -72,7 +72,9 @@ resource "rafay_eks_cluster" "nested_reorder" {
 
     node_groups {
       name           = "instance-ng"
-      instance_types = ["m6a.large", "m5a.large", "m7i.large"]
+      instances_distribution {
+        instance_types = ["m6a.large", "m5a.large", "m7i.large"]
+      }
     }
   }
 }

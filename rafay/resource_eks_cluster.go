@@ -83,6 +83,12 @@ func resourceEKSClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff
 	if err := canonicalizeNodeGroupListInDiff(d, "cluster_config.0.managed_nodegroups"); err != nil {
 		return err
 	}
+	if err := canonicalizeNodeGroupNestedListsInDiff(d, "cluster_config.0.node_groups"); err != nil {
+		return err
+	}
+	if err := canonicalizeNodeGroupNestedListsInDiff(d, "cluster_config.0.managed_nodegroups"); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -93,6 +99,107 @@ func canonicalizeNodeGroupListInDiff(d *schema.ResourceDiff, path string) error 
 	}
 	sorted := sortInterfaceSliceByName(v)
 	return d.SetNew(path, sorted)
+}
+
+func canonicalizeNodeGroupNestedListsInDiff(d *schema.ResourceDiff, path string) error {
+	v, ok := d.Get(path).([]interface{})
+	if !ok || len(v) == 0 {
+		return nil
+	}
+	out := make([]interface{}, len(v))
+	for i, item := range v {
+		obj, ok := item.(map[string]interface{})
+		if !ok || obj == nil {
+			out[i] = item
+			continue
+		}
+		obj = canonicalizeNodeGroupNestedLists(obj)
+		out[i] = obj
+	}
+	return d.SetNew(path, out)
+}
+
+func canonicalizeNodeGroupNestedLists(obj map[string]interface{}) map[string]interface{} {
+	if v, ok := obj["availability_zones"].([]interface{}); ok && len(v) > 0 {
+		obj["availability_zones"] = toArrayInterfaceSorted(toArrayString(v))
+	}
+	if v, ok := obj["subnets"].([]interface{}); ok && len(v) > 0 {
+		obj["subnets"] = toArrayInterfaceSorted(toArrayString(v))
+	}
+	if v, ok := obj["instance_types"].([]interface{}); ok && len(v) > 0 {
+		obj["instance_types"] = toArrayInterfaceSorted(toArrayString(v))
+	}
+	if v, ok := obj["asg_suspend_processes"].([]interface{}); ok && len(v) > 0 {
+		obj["asg_suspend_processes"] = toArrayInterfaceSorted(toArrayString(v))
+	}
+	if v, ok := obj["classic_load_balancer_names"].([]interface{}); ok && len(v) > 0 {
+		obj["classic_load_balancer_names"] = toArrayInterfaceSorted(toArrayString(v))
+	}
+	if v, ok := obj["target_group_arns"].([]interface{}); ok && len(v) > 0 {
+		obj["target_group_arns"] = toArrayInterfaceSorted(toArrayString(v))
+	}
+	if v, ok := obj["security_groups"].([]interface{}); ok && len(v) > 0 {
+		sgObj, ok := v[0].(map[string]interface{})
+		if ok && sgObj != nil {
+			if ids, ok := sgObj["attach_ids"].([]interface{}); ok && len(ids) > 0 {
+				sgObj["attach_ids"] = toArrayInterfaceSorted(toArrayString(ids))
+			}
+			v[0] = sgObj
+			obj["security_groups"] = v
+		}
+	}
+	if v, ok := obj["taints"].([]interface{}); ok && len(v) > 0 {
+		obj["taints"] = canonicalizeTaintsInDiff(v)
+	}
+	if v, ok := obj["instances_distribution"].([]interface{}); ok && len(v) > 0 {
+		if dist, ok := v[0].(map[string]interface{}); ok && dist != nil {
+			if types, ok := dist["instance_types"].([]interface{}); ok && len(types) > 0 {
+				dist["instance_types"] = toArrayInterfaceSorted(toArrayString(types))
+			}
+			v[0] = dist
+			obj["instances_distribution"] = v
+		}
+	}
+	return obj
+}
+
+func canonicalizeTaintsInDiff(p []interface{}) []interface{} {
+	type taintKey struct {
+		key    string
+		effect string
+		value  string
+		index  int
+		val    interface{}
+	}
+	out := make([]taintKey, 0, len(p))
+	for i, v := range p {
+		obj, ok := v.(map[string]interface{})
+		if !ok || obj == nil {
+			out = append(out, taintKey{index: i, val: v})
+			continue
+		}
+		tk, _ := obj["key"].(string)
+		te, _ := obj["effect"].(string)
+		tv, _ := obj["value"].(string)
+		out = append(out, taintKey{key: tk, effect: te, value: tv, index: i, val: v})
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].key != out[j].key {
+			return out[i].key < out[j].key
+		}
+		if out[i].effect != out[j].effect {
+			return out[i].effect < out[j].effect
+		}
+		if out[i].value != out[j].value {
+			return out[i].value < out[j].value
+		}
+		return out[i].index < out[j].index
+	})
+	res := make([]interface{}, len(out))
+	for i, v := range out {
+		res[i] = v.val
+	}
+	return res
 }
 
 // schema input for cluster file
@@ -3152,7 +3259,7 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 			obj.MaxPodsPerNode = &v
 		}
 		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
-			obj.ASGSuspendProcesses = toArrayString(v)
+			obj.ASGSuspendProcesses = toArrayStringSorted(v)
 		}
 		if v, ok := in["ebs_optimized"].(bool); ok {
 			obj.EBSOptimized = &v
@@ -3206,7 +3313,7 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 			obj.EnableDetailedMonitoring = &v
 		}
 		if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
-			obj.InstanceTypes = toArrayString(v)
+			obj.InstanceTypes = toArrayStringSorted(v)
 		}
 		if v, ok := in["spot"].(bool); ok {
 			obj.Spot = &v
@@ -3374,7 +3481,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 			obj.MaxPodsPerNode = v
 		}
 		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
-			obj.ASGSuspendProcesses = toArrayString(v)
+			obj.ASGSuspendProcesses = toArrayStringSorted(v)
 		}
 		if v, ok := in["ebs_optimized"].(bool); ok {
 			obj.EBSOptimized = &v
@@ -3438,10 +3545,10 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 			obj.CPUCredits = v
 		}
 		if v, ok := in["classic_load_balancer_names"].([]interface{}); ok && len(v) > 0 {
-			obj.ClassicLoadBalancerNames = toArrayString(v)
+			obj.ClassicLoadBalancerNames = toArrayStringSorted(v)
 		}
 		if v, ok := in["target_group_arns"].([]interface{}); ok && len(v) > 0 {
-			obj.TargetGroupARNs = toArrayString(v)
+			obj.TargetGroupARNs = toArrayStringSorted(v)
 		}
 		if v, ok := in["taints"].([]interface{}); ok && len(v) > 0 {
 			obj.Taints = expandManagedNodeGroupTaints(v)
@@ -3547,7 +3654,7 @@ func expandNodeGroupInstanceDistribution(p []interface{}) *NodeGroupInstancesDis
 	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["instance_types"].([]interface{}); ok && len(v) > 0 {
-		obj.InstanceTypes = toArrayString(v)
+		obj.InstanceTypes = toArrayStringSorted(v)
 	}
 	if v, ok := in["max_price"].(float64); ok {
 		obj.MaxPrice = &v
@@ -3641,7 +3748,7 @@ func expandNodeGroupSecurityGroups(p []interface{}) *NodeGroupSGs {
 	}
 	in := p[0].(map[string]interface{})
 	if v, ok := in["attach_ids"].([]interface{}); ok && len(v) > 0 {
-		obj.AttachIDs = toArrayString(v)
+		obj.AttachIDs = toArrayStringSorted(v)
 	}
 	if v, ok := in["with_shared"].(bool); ok {
 		obj.WithShared = &v
@@ -3664,7 +3771,7 @@ func expandManagedNodeGroupSecurityGroups(p []interface{}, rawConfig cty.Value) 
 	}
 
 	if v, ok := in["attach_ids"].([]interface{}); ok && len(v) > 0 {
-		obj.AttachIDs = toArrayString(v)
+		obj.AttachIDs = toArrayStringSorted(v)
 	}
 
 	var rawWithShared cty.Value
@@ -6166,7 +6273,11 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 		}
 		obj["max_pods_per_node"] = in.MaxPodsPerNode
 		if len(in.ASGSuspendProcesses) > 0 {
-			obj["asg_suspend_processes"] = toArrayInterface(in.ASGSuspendProcesses)
+			listRawState := cty.NilVal
+			if !nRawState.IsNull() && nRawState.IsKnown() {
+				listRawState = nRawState.GetAttr("asg_suspend_processes")
+			}
+			obj["asg_suspend_processes"] = flattenListOfString(in.ASGSuspendProcesses, listRawState)
 		}
 		obj["ebs_optimized"] = in.EBSOptimized
 		if len(in.VolumeType) > 0 {
@@ -6230,10 +6341,18 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 			obj["cpu_credits"] = in.CPUCredits
 		}
 		if len(in.ClassicLoadBalancerNames) > 0 {
-			obj["classic_load_balancer_names"] = toArrayInterface(in.ClassicLoadBalancerNames)
+			listRawState := cty.NilVal
+			if !nRawState.IsNull() && nRawState.IsKnown() {
+				listRawState = nRawState.GetAttr("classic_load_balancer_names")
+			}
+			obj["classic_load_balancer_names"] = flattenListOfString(in.ClassicLoadBalancerNames, listRawState)
 		}
 		if len(in.TargetGroupARNs) > 0 {
-			obj["target_group_arns"] = toArrayInterface(in.TargetGroupARNs)
+			listRawState := cty.NilVal
+			if !nRawState.IsNull() && nRawState.IsKnown() {
+				listRawState = nRawState.GetAttr("target_group_arns")
+			}
+			obj["target_group_arns"] = flattenListOfString(in.TargetGroupARNs, listRawState)
 		}
 		if in.Taints != nil {
 			v, ok := obj["taints"].([]interface{})
@@ -6418,7 +6537,7 @@ func flattenNodeGroupSecurityGroups(in *NodeGroupSGs, p []interface{}) []interfa
 		return []interface{}{obj}
 	}
 	if len(in.AttachIDs) > 0 {
-		obj["attach_ids"] = toArrayInterface(in.AttachIDs)
+		obj["attach_ids"] = toArrayInterfaceSorted(in.AttachIDs)
 	}
 	obj["with_shared"] = in.WithShared
 	obj["with_local"] = in.WithLocal
@@ -6486,7 +6605,7 @@ func flattenNodeGroupInstancesDistribution(in *NodeGroupInstancesDistribution, p
 		return []interface{}{obj}
 	}
 	if len(in.InstanceTypes) > 0 {
-		obj["instance_types"] = toArrayInterface(in.InstanceTypes)
+		obj["instance_types"] = toArrayInterfaceSorted(in.InstanceTypes)
 	}
 	obj["max_price"] = in.MaxPrice
 	obj["on_demand_base_capacity"] = in.OnDemandBaseCapacity
@@ -6676,7 +6795,11 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 		}
 		obj["max_pods_per_node"] = in.MaxPodsPerNode
 		if len(in.ASGSuspendProcesses) > 0 {
-			obj["asg_suspend_processes"] = toArrayInterface(in.ASGSuspendProcesses)
+			listRawState := cty.NilVal
+			if !nRawState.IsNull() && nRawState.IsKnown() {
+				listRawState = nRawState.GetAttr("asg_suspend_processes")
+			}
+			obj["asg_suspend_processes"] = flattenListOfString(in.ASGSuspendProcesses, listRawState)
 		}
 		obj["ebs_optimized"] = in.EBSOptimized
 		if len(in.VolumeType) > 0 {
@@ -6726,7 +6849,11 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 			obj["bottle_rocket"] = flattenNodeGroupBottlerocket(in.Bottlerocket, v)
 		}
 		if len(in.InstanceTypes) > 0 {
-			obj["instance_types"] = toArrayInterface(in.InstanceTypes)
+			listRawState := cty.NilVal
+			if !nRawState.IsNull() && nRawState.IsKnown() {
+				listRawState = nRawState.GetAttr("instance_types")
+			}
+			obj["instance_types"] = flattenListOfString(in.InstanceTypes, listRawState)
 		}
 		obj["spot"] = in.Spot
 		if in.Taints != nil {
@@ -6783,8 +6910,33 @@ func flattenNodeGroupTaint(inp []NodeGroupTaint, p []interface{}) []interface{} 
 	if inp == nil {
 		return nil
 	}
-	out := make([]interface{}, len(inp))
-	for i, in := range inp {
+	type taintEntry struct {
+		key    string
+		effect string
+		value  string
+		item   NodeGroupTaint
+	}
+	entries := make([]taintEntry, 0, len(inp))
+	for _, in := range inp {
+		entries = append(entries, taintEntry{
+			key:    in.Key,
+			effect: in.Effect,
+			value:  in.Value,
+			item:   in,
+		})
+	}
+	sort.SliceStable(entries, func(i, j int) bool {
+		if entries[i].key != entries[j].key {
+			return entries[i].key < entries[j].key
+		}
+		if entries[i].effect != entries[j].effect {
+			return entries[i].effect < entries[j].effect
+		}
+		return entries[i].value < entries[j].value
+	})
+	out := make([]interface{}, len(entries))
+	for i, entry := range entries {
+		in := entry.item
 		obj := map[string]interface{}{}
 		if len(in.Key) > 0 {
 			obj["key"] = in.Key

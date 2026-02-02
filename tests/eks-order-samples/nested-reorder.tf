@@ -22,6 +22,7 @@ resource "rafay_eks_cluster" "nested_reorder" {
     managed_nodegroups {
       name          = "taints-ng"
       instance_type = "m5.large"
+      asg_suspend_processes = ["Terminate", "Launch", "AZRebalance"]
       taints {
         key    = "b"
         effect = "NoSchedule"
@@ -50,6 +51,9 @@ resource "rafay_eks_cluster" "nested_reorder" {
     node_groups {
       name          = "taints-ng"
       instance_type = "m5.large"
+      asg_suspend_processes = ["Terminate", "Launch", "AZRebalance"]
+      classic_load_balancer_names = ["lb-3", "lb-1", "lb-2"]
+      target_group_arns = ["tg-3", "tg-1", "tg-2"]
       taints {
         key    = "b"
         effect = "NoSchedule"

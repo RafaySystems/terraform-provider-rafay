@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -36,6 +37,7 @@ func resourceEKSCluster() *schema.Resource {
 		ReadContext:   resourceEKSClusterRead,
 		UpdateContext: resourceEKSClusterUpdate,
 		DeleteContext: resourceEKSClusterDelete,
+		CustomizeDiff: customizeDiffSortNodeGroups,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(100 * time.Minute),
@@ -72,6 +74,121 @@ func resourceEKSCluster() *schema.Resource {
 		},
 		Description: resourceEKSClusterDescription,
 	}
+}
+// customizeDiffSortNodeGroups sorts nodegroups by name at plan time
+// This ensures Terraform doesn't see position-based diffs when nodegroups are reordered in HCL
+func customizeDiffSortNodeGroups(ctx context.Context, d *schema.ResourceDiff, m interface{}) error {
+	// Sort managed_nodegroups if they changed
+	if d.HasChange("cluster_config.0.managed_nodegroups") {
+		if err := sortNodeGroupsInDiff(d, "cluster_config.0.managed_nodegroups"); err != nil {
+			return fmt.Errorf("failed to sort managed_nodegroups: %w", err)
+		}
+	}
+
+	// Sort node_groups if they changed
+	if d.HasChange("cluster_config.0.node_groups") {
+		if err := sortNodeGroupsInDiff(d, "cluster_config.0.node_groups"); err != nil {
+			return fmt.Errorf("failed to sort node_groups: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// sortNodeGroupsInDiff sorts a list of nodegroups by name in the plan
+func sortNodeGroupsInDiff(d *schema.ResourceDiff, key string) error {
+	// Get the planned value
+	raw := d.Get(key)
+	if raw == nil {
+		return nil
+	}
+
+	list, ok := raw.([]interface{})
+	if !ok || len(list) == 0 {
+		return nil
+	}
+
+	// Create sortable slice with name and original object
+	type nodeGroupItem struct {
+		name string
+		obj  interface{}
+	}
+
+	items := make([]nodeGroupItem, 0, len(list))
+	
+	for _, item := range list {
+		ng, ok := item.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		name, ok := ng["name"].(string)
+		if !ok || name == "" {
+			// Skip items without names, but this shouldn't happen with schema validation
+			continue
+		}
+
+		items = append(items, nodeGroupItem{
+			name: name,
+			obj:  item,
+		})
+	}
+
+	// Sort by name alphabetically (stable sort preserves order of equal elements)
+	sort.SliceStable(items, func(i, j int) bool {
+		return items[i].name < items[j].name
+	})
+
+	// Rebuild sorted list
+	sorted := make([]interface{}, len(items))
+	for i, item := range items {
+		sorted[i] = item.obj
+	}
+
+	// Set the sorted value back into the diff
+	if err := d.SetNew(key, sorted); err != nil {
+		return fmt.Errorf("failed to set sorted nodegroups: %w", err)
+	}
+
+	return nil
+}
+
+// sortNodeGroupsByName sorts a list of nodegroups by name (helper for Read function)
+func sortNodeGroupsByName(list []interface{}) []interface{} {
+	if len(list) == 0 {
+		return list
+	}
+
+	type item struct {
+		name string
+		obj  interface{}
+	}
+
+	items := make([]item, 0, len(list))
+	for _, v := range list {
+		ng, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		name, ok := ng["name"].(string)
+		if !ok {
+			continue
+		}
+
+		items = append(items, item{name: name, obj: v})
+	}
+
+	sort.SliceStable(items, func(i, j int) bool {
+		return items[i].name < items[j].name
+	})
+
+	result := make([]interface{}, len(items))
+	for i, item := range items {
+		result[i] = item.obj
+	}
+
+	return result
 }
 
 // schema input for cluster file
@@ -3207,6 +3324,11 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		out[i] = obj
 	}
 
+	// Sort by name to ensure consistent ordering
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].Name < out[j].Name
+	})
+
 	return out
 }
 
@@ -3434,6 +3556,11 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		//check if this is how to build array of pointers
 		out[i] = &obj
 	}
+
+	// Sort by name to ensure consistent ordering
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].Name < out[j].Name
+	})
 
 	return out
 }
@@ -5010,6 +5137,14 @@ func flattenEKSClusterConfig(in *EKSClusterConfig, rawState cty.Value, p []inter
 		}
 		obj["managed_nodegroups"] = ret9
 		log.Println("flattend managed node group: ", obj["managed_nodegroups"], ret9)
+	}
+	// Sort managed_nodegroups by name to ensure consistent state
+	if mng, ok := obj["managed_nodegroups"].([]interface{}); ok && len(mng) > 0 {
+		obj["managed_nodegroups"] = sortNodeGroupsByName(mng)
+	}
+	log.Println("flattend managed node group: ", obj["managed_nodegroups"], ret9)
+	if ng, ok := obj["node_groups"].([]interface{}); ok && len(ng) > 0 {
+		obj["node_groups"] = sortNodeGroupsByName(ng)
 	}
 	//setting up flatten Fargate Profiles
 	var ret10 []interface{}

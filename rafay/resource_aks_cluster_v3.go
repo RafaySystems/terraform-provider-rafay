@@ -1183,6 +1183,10 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.ServiceMeshProfile = expandAKSManagedClusterV3ServiceMeshProfile(v)
 	}
 
+	if v, ok := in["node_provisioning_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.NodeProvisioningProfile = expandAKSManagedClusterV3NodeProvisioningProfile(v)
+	}
+
 	return obj
 }
 
@@ -1388,6 +1392,38 @@ func expandAKSManagedClusterV3ServiceMeshIstioComponents(p []interface{}) *infra
 		}
 	}
 
+	return obj
+}
+
+func expandAKSManagedClusterV3NodeProvisioningProfile(p []interface{}) *infrapb.NodeProvisioningProfile {
+	obj := &infrapb.NodeProvisioningProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["mode"].(string); ok && len(v) > 0 {
+		obj.Mode = v
+	}
+	if v, ok := in["default_node_pools"].(string); ok && len(v) > 0 {
+		obj.DefaultNodePools = v
+	}
+	return obj
+}
+
+func expandAKSManagedClusterV3NodeProvisioningProfile(p []interface{}) *infrapb.NodeProvisioningProfile {
+	obj := &infrapb.NodeProvisioningProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["mode"].(string); ok && len(v) > 0 {
+		obj.Mode = v
+	}
+	if v, ok := in["default_node_pools"].(string); ok && len(v) > 0 {
+		obj.DefaultNodePools = v
+	}
 	return obj
 }
 
@@ -3465,8 +3501,31 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 		obj["service_mesh_profile"] = flattenAKSV3ManagedClusterServiceMeshProfile(in.ServiceMeshProfile, v)
 	}
 
+	if in.NodeProvisioningProfile != nil {
+		v, ok := obj["node_provisioning_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["node_provisioning_profile"] = flattenAKSV3ManagedClusterNodeProvisioningProfile(in.NodeProvisioningProfile, v)
+	}
+
 	return []interface{}{obj}
 
+}
+
+func flattenAKSV3ManagedClusterNodeProvisioningProfile(in *infrapb.NodeProvisioningProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["mode"] = in.Mode
+	obj["default_node_pools"] = in.DefaultNodePools
+
+	return []interface{}{obj}
 }
 
 func flattenAKSV3ManagedClusterIdentityProfile(in *infrapb.ManagedClusterIdentityProfile, p []interface{}) []interface{} {

@@ -221,7 +221,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform3" {
       spec {
         resource_group_name = "rafay-resource"
         managed_cluster {
-          api_version = "2024-01-01"
+          api_version = "2025-10-01"
           sku {
             name = "Base"
             tier = "Free"
@@ -245,6 +245,10 @@ resource "rafay_aks_cluster_v3" "demo-terraform3" {
             aad_profile {
               managed           = true
               enable_azure_rbac = true
+            }
+           node_provisioning_profile {
+              mode               = "Manual"
+              default_node_pools = "None"
             }
           }
           type = "Microsoft.ContainerService/managedClusters"

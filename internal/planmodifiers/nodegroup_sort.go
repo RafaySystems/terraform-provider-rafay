@@ -52,9 +52,35 @@ func (m NodeGroupSortModifier) PlanModifyList(ctx context.Context, req planmodif
 		return
 	}
 
+	// If element counts differ, there are real additions/deletions - don't modify
+	if len(configElements) != len(stateElements) {
+		tflog.Debug(ctx, "NodeGroupSortModifier: Element counts differ, not modifying plan", map[string]interface{}{
+			"configCount": len(configElements),
+			"stateCount":  len(stateElements),
+		})
+		return
+	}
+
 	// Build maps by nodegroup name for both config and state
 	configByName := BuildNodeGroupMapFromList(ctx, configElements)
 	stateByName := BuildNodeGroupMapFromList(ctx, stateElements)
+
+	// Safety check: if we couldn't extract names for all elements, don't modify the plan
+	// This can happen if names are unknown (e.g., for newly created nodegroups)
+	if len(configByName) != len(configElements) {
+		tflog.Debug(ctx, "NodeGroupSortModifier: Could not extract all config nodegroup names, not modifying plan", map[string]interface{}{
+			"configElements": len(configElements),
+			"configByName":   len(configByName),
+		})
+		return
+	}
+	if len(stateByName) != len(stateElements) {
+		tflog.Debug(ctx, "NodeGroupSortModifier: Could not extract all state nodegroup names, not modifying plan", map[string]interface{}{
+			"stateElements": len(stateElements),
+			"stateByName":   len(stateByName),
+		})
+		return
+	}
 
 	tflog.Debug(ctx, "NodeGroupSortModifier: Built maps", map[string]interface{}{
 		"configCount": len(configByName),

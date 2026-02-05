@@ -289,9 +289,35 @@ func (r *eksClusterResource) modifyNodeGroupList(ctx context.Context, planList, 
 		return types.List{}, false
 	}
 
+	// If element counts differ, there are real additions/deletions - don't modify
+	if len(planElements) != len(stateElements) {
+		tflog.Debug(ctx, "ModifyPlan: Element counts differ, allowing diff", map[string]interface{}{
+			"planCount":  len(planElements),
+			"stateCount": len(stateElements),
+		})
+		return types.List{}, false
+	}
+
 	// Build maps by nodegroup name
 	planByName := buildNodeGroupMap(ctx, planElements)
 	stateByName := buildNodeGroupMap(ctx, stateElements)
+
+	// Safety check: if we couldn't extract names for all elements, don't modify the plan
+	// This can happen if names are unknown (e.g., for newly created nodegroups)
+	if len(planByName) != len(planElements) {
+		tflog.Debug(ctx, "ModifyPlan: Could not extract all plan nodegroup names (some may be unknown), allowing diff", map[string]interface{}{
+			"planElements": len(planElements),
+			"planByName":   len(planByName),
+		})
+		return types.List{}, false
+	}
+	if len(stateByName) != len(stateElements) {
+		tflog.Debug(ctx, "ModifyPlan: Could not extract all state nodegroup names, allowing diff", map[string]interface{}{
+			"stateElements": len(stateElements),
+			"stateByName":   len(stateByName),
+		})
+		return types.List{}, false
+	}
 
 	tflog.Debug(ctx, "ModifyPlan: Comparing nodegroups", map[string]interface{}{
 		"planCount":  len(planByName),

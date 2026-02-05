@@ -674,6 +674,42 @@ func TestRealistic_Scenario20_ComplexMixedOps(t *testing.T) {
 }
 
 // ============================================================================
+// SCENARIO 21: QE BUG FIX - DELETE FROM UI (state has fewer than config)
+// This tests the case where a nodegroup is deleted from the Rafay UI
+// but the Terraform config still has it. The plan should NOT be modified.
+// ============================================================================
+func TestRealistic_Scenario21_DeleteFromUI_StateLessThanConfig(t *testing.T) {
+	ctx := context.Background()
+	m := planmodifiers.NodeGroupSortModifier{}
+
+	// Config has 4 NGs: [ng-1, ng-3, ng-4, ng-2] - what user wants
+	// State has 3 NGs: [ng-1, ng-3, ng-2] - ng-4 was deleted from UI
+	configList := createRealisticNodeGroupList(t, ng(t, "ng-1"), ng(t, "ng-3"), ng(t, "ng-4"), ng(t, "ng-2"))
+	stateList := createRealisticNodeGroupList(t, ng(t, "ng-1"), ng(t, "ng-3"), ng(t, "ng-2"))
+
+	req := planmodifier.ListRequest{
+		ConfigValue: configList,
+		StateValue:  stateList,
+		PlanValue:   configList, // Plan starts as config
+	}
+	resp := &planmodifier.ListResponse{PlanValue: configList}
+
+	m.PlanModifyList(ctx, req, resp)
+
+	// CRITICAL: Plan should have 4 elements (from config), NOT 3 (from state)
+	// The ModifyPlan should NOT modify the plan when counts differ
+	result := runScenarioTest(t, 21, "QE Bug: Delete from UI",
+		"[ng-1, ng-3, ng-2] (3 NGs)", "[ng-1, ng-3, ng-4, ng-2] (4 NGs)",
+		resp, "Plan=Config (4 NGs)", 4)
+
+	if !result.passed {
+		t.Errorf("BUG: Expected plan to have 4 elements (matching config), got %d. "+
+			"ModifyPlan incorrectly returned state value when config != state count",
+			len(resp.PlanValue.Elements()))
+	}
+}
+
+// ============================================================================
 // OUTPUT HELPERS AND SUMMARY TABLE
 // ============================================================================
 

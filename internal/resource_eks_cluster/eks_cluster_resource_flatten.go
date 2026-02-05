@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/RafaySystems/terraform-provider-rafay/rafay"
@@ -417,6 +418,16 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 	} else {
 		v.Metadata2 = types.ListNull(Metadata2Value{}.Type(ctx))
 	}
+
+	// Sort node groups alphabetically by name for deterministic state ordering.
+	// This ensures Terraform's positional list comparison works correctly for
+	// additions, deletions, and reordering.
+	sort.Slice(in.NodeGroups, func(i, j int) bool {
+		return in.NodeGroups[i].Name < in.NodeGroups[j].Name
+	})
+	sort.Slice(in.ManagedNodeGroups, func(i, j int) bool {
+		return in.ManagedNodeGroups[i].Name < in.ManagedNodeGroups[j].Name
+	})
 
 	// node groups
 	if len(in.NodeGroups) > 0 {

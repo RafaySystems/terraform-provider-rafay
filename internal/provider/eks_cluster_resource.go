@@ -279,107 +279,57 @@ func (r *eksClusterResource) ModifyPlan(ctx context.Context, req resource.Modify
 	}
 }
 
-// modifyNodeGroupList reorders plan elements to match state ordering by name.
-// This ensures Terraform's positional list comparison sees the correct nodegroup
-// at each index, preventing false diffs from reordering.
-//
-// Strategy:
-//  1. Nodegroups present in both state and plan are placed first, in state order,
-//     using the plan's version (so real field changes are still detected).
-//  2. Nodegroups only in the plan (additions) are appended at the end.
-//  3. Nodegroups only in state (deletions) are naturally absent from the plan.
+// modifyNodeGroupList sorts plan nodegroups alphabetically by name.
+// The flatten/Read path also sorts state alphabetically, so both sides of
+// Terraform's positional list comparison use the same deterministic order.
+// This correctly handles additions, deletions, field changes, and reordering.
 func (r *eksClusterResource) modifyNodeGroupList(ctx context.Context, planList, stateList types.List, diags *diag.Diagnostics) (types.List, bool) {
 	planElements := planList.Elements()
-	stateElements := stateList.Elements()
 
-	if len(planElements) == 0 {
+	if len(planElements) <= 1 {
 		return types.List{}, false
 	}
 
-	// Build maps by nodegroup name
-	planByName := buildNodeGroupMap(ctx, planElements)
-	stateByName := buildNodeGroupMap(ctx, stateElements)
-
-	// Safety check: if we couldn't extract names for all elements, don't modify the plan.
-	// This can happen if names are unknown (e.g., for newly created nodegroups).
-	if len(planByName) != len(planElements) {
-		tflog.Debug(ctx, "ModifyPlan: Could not extract all plan nodegroup names (some may be unknown), skipping reorder", map[string]interface{}{
-			"planElements": len(planElements),
-			"planByName":   len(planByName),
-		})
-		return types.List{}, false
-	}
-	if len(stateByName) != len(stateElements) {
-		tflog.Debug(ctx, "ModifyPlan: Could not extract all state nodegroup names, skipping reorder", map[string]interface{}{
-			"stateElements": len(stateElements),
-			"stateByName":   len(stateByName),
-		})
-		return types.List{}, false
+	// Safety check: ensure we can extract names for all elements
+	for _, elem := range planElements {
+		if nodeGroupName(elem) == "" {
+			tflog.Debug(ctx, "ModifyPlan: Could not extract nodegroup name (may be unknown), skipping sort")
+			return types.List{}, false
+		}
 	}
 
-	tflog.Debug(ctx, "ModifyPlan: Comparing nodegroups", map[string]interface{}{
-		"planCount":  len(planByName),
-		"stateCount": len(stateByName),
-		"planNames":  getMapKeys(planByName),
-		"stateNames": getMapKeys(stateByName),
+	// Sort plan elements alphabetically by nodegroup name
+	sorted := make([]attr.Value, len(planElements))
+	copy(sorted, planElements)
+	sort.Slice(sorted, func(i, j int) bool {
+		return nodeGroupName(sorted[i]) < nodeGroupName(sorted[j])
 	})
 
-	// Build the reordered list:
-	// 1) Walk state order — for each state nodegroup that also exists in plan, emit plan's version
-	// 2) Append any plan-only nodegroups (additions) at the end
-	reordered := make([]attr.Value, 0, len(planElements))
-	usedFromPlan := make(map[string]bool)
-
-	for _, stateElem := range stateElements {
-		name := nodeGroupName(stateElem)
-		if name == "" {
-			continue
-		}
-		if planElem, exists := planByName[name]; exists {
-			reordered = append(reordered, planElem)
-			usedFromPlan[name] = true
-		}
-		// If not in plan, this is a deletion — skip it (it won't be in the plan list)
-	}
-
-	// Append new nodegroups (in plan but not in state), preserving their relative order
-	for _, planElem := range planElements {
-		name := nodeGroupName(planElem)
-		if name == "" {
-			continue
-		}
-		if !usedFromPlan[name] {
-			reordered = append(reordered, planElem)
+	// Check if sort actually changed the order
+	alreadySorted := true
+	for i := range sorted {
+		if nodeGroupName(sorted[i]) != nodeGroupName(planElements[i]) {
+			alreadySorted = false
+			break
 		}
 	}
 
-	// Check if reordering actually changed anything
-	orderChanged := false
-	if len(reordered) == len(planElements) {
-		for i, elem := range reordered {
-			if nodeGroupName(elem) != nodeGroupName(planElements[i]) {
-				orderChanged = true
-				break
-			}
-		}
-	}
-
-	if !orderChanged {
-		tflog.Debug(ctx, "ModifyPlan: Plan order already matches state order, no reorder needed")
+	if alreadySorted {
+		tflog.Debug(ctx, "ModifyPlan: Plan nodegroups already sorted alphabetically")
 		return types.List{}, false
 	}
 
-	reorderedList, listDiags := types.ListValue(planList.ElementType(ctx), reordered)
+	sortedList, listDiags := types.ListValue(planList.ElementType(ctx), sorted)
 	if listDiags.HasError() {
 		diags.Append(listDiags...)
 		return types.List{}, false
 	}
 
-	tflog.Info(ctx, "ModifyPlan: Reordered plan nodegroups to match state ordering", map[string]interface{}{
-		"originalOrder":  nodeGroupNames(planElements),
-		"reorderedOrder": nodeGroupNames(reordered),
+	tflog.Info(ctx, "ModifyPlan: Sorted plan nodegroups alphabetically", map[string]interface{}{
+		"originalOrder": nodeGroupNames(planElements),
+		"sortedOrder":   nodeGroupNames(sorted),
 	})
-	return reorderedList, true
+	return sortedList, true
 }
 
 // nodeGroupName extracts the name string from a nodegroup attr.Value
@@ -406,43 +356,6 @@ func nodeGroupNames(elements []attr.Value) []string {
 		names = append(names, nodeGroupName(elem))
 	}
 	return names
-}
-
-// buildNodeGroupMap creates a map from nodegroup name to its attr.Value
-func buildNodeGroupMap(ctx context.Context, elements []attr.Value) map[string]attr.Value {
-	result := make(map[string]attr.Value)
-
-	for _, elem := range elements {
-		obj, ok := elem.(types.Object)
-		if !ok {
-			continue
-		}
-
-		attrs := obj.Attributes()
-		nameAttr, exists := attrs["name"]
-		if !exists {
-			continue
-		}
-
-		nameStr, ok := nameAttr.(types.String)
-		if !ok || nameStr.IsNull() || nameStr.IsUnknown() {
-			continue
-		}
-
-		result[nameStr.ValueString()] = elem
-	}
-
-	return result
-}
-
-// getMapKeys returns the keys of a map as a sorted slice
-func getMapKeys(m map[string]attr.Value) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
 }
 
 func (r *eksClusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

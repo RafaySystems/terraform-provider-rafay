@@ -279,8 +279,15 @@ func (r *eksClusterResource) ModifyPlan(ctx context.Context, req resource.Modify
 	}
 }
 
-// modifyNodeGroupList compares nodegroup lists by name instead of index.
-// Returns (state value, true) if only ordering changed, (empty, false) otherwise.
+// modifyNodeGroupList reorders plan elements to match state ordering by name.
+// This ensures Terraform's positional list comparison sees the correct nodegroup
+// at each index, preventing false diffs from reordering.
+//
+// Strategy:
+//  1. Nodegroups present in both state and plan are placed first, in state order,
+//     using the plan's version (so real field changes are still detected).
+//  2. Nodegroups only in the plan (additions) are appended at the end.
+//  3. Nodegroups only in state (deletions) are naturally absent from the plan.
 func (r *eksClusterResource) modifyNodeGroupList(ctx context.Context, planList, stateList types.List, diags *diag.Diagnostics) (types.List, bool) {
 	planElements := planList.Elements()
 	stateElements := stateList.Elements()
@@ -289,30 +296,21 @@ func (r *eksClusterResource) modifyNodeGroupList(ctx context.Context, planList, 
 		return types.List{}, false
 	}
 
-	// If element counts differ, there are real additions/deletions - don't modify
-	if len(planElements) != len(stateElements) {
-		tflog.Debug(ctx, "ModifyPlan: Element counts differ, allowing diff", map[string]interface{}{
-			"planCount":  len(planElements),
-			"stateCount": len(stateElements),
-		})
-		return types.List{}, false
-	}
-
 	// Build maps by nodegroup name
 	planByName := buildNodeGroupMap(ctx, planElements)
 	stateByName := buildNodeGroupMap(ctx, stateElements)
 
-	// Safety check: if we couldn't extract names for all elements, don't modify the plan
-	// This can happen if names are unknown (e.g., for newly created nodegroups)
+	// Safety check: if we couldn't extract names for all elements, don't modify the plan.
+	// This can happen if names are unknown (e.g., for newly created nodegroups).
 	if len(planByName) != len(planElements) {
-		tflog.Debug(ctx, "ModifyPlan: Could not extract all plan nodegroup names (some may be unknown), allowing diff", map[string]interface{}{
+		tflog.Debug(ctx, "ModifyPlan: Could not extract all plan nodegroup names (some may be unknown), skipping reorder", map[string]interface{}{
 			"planElements": len(planElements),
 			"planByName":   len(planByName),
 		})
 		return types.List{}, false
 	}
 	if len(stateByName) != len(stateElements) {
-		tflog.Debug(ctx, "ModifyPlan: Could not extract all state nodegroup names, allowing diff", map[string]interface{}{
+		tflog.Debug(ctx, "ModifyPlan: Could not extract all state nodegroup names, skipping reorder", map[string]interface{}{
 			"stateElements": len(stateElements),
 			"stateByName":   len(stateByName),
 		})
@@ -326,20 +324,88 @@ func (r *eksClusterResource) modifyNodeGroupList(ctx context.Context, planList, 
 		"stateNames": getMapKeys(stateByName),
 	})
 
-	// Check if this is just a reorder (same names)
-	if !isReorderOnly(planByName, stateByName) {
-		tflog.Debug(ctx, "ModifyPlan: Not a reorder-only change, allowing diff")
+	// Build the reordered list:
+	// 1) Walk state order — for each state nodegroup that also exists in plan, emit plan's version
+	// 2) Append any plan-only nodegroups (additions) at the end
+	reordered := make([]attr.Value, 0, len(planElements))
+	usedFromPlan := make(map[string]bool)
+
+	for _, stateElem := range stateElements {
+		name := nodeGroupName(stateElem)
+		if name == "" {
+			continue
+		}
+		if planElem, exists := planByName[name]; exists {
+			reordered = append(reordered, planElem)
+			usedFromPlan[name] = true
+		}
+		// If not in plan, this is a deletion — skip it (it won't be in the plan list)
+	}
+
+	// Append new nodegroups (in plan but not in state), preserving their relative order
+	for _, planElem := range planElements {
+		name := nodeGroupName(planElem)
+		if name == "" {
+			continue
+		}
+		if !usedFromPlan[name] {
+			reordered = append(reordered, planElem)
+		}
+	}
+
+	// Check if reordering actually changed anything
+	orderChanged := false
+	if len(reordered) == len(planElements) {
+		for i, elem := range reordered {
+			if nodeGroupName(elem) != nodeGroupName(planElements[i]) {
+				orderChanged = true
+				break
+			}
+		}
+	}
+
+	if !orderChanged {
+		tflog.Debug(ctx, "ModifyPlan: Plan order already matches state order, no reorder needed")
 		return types.List{}, false
 	}
 
-	// Check if the content is the same (ignoring order)
-	if !nodeGroupsContentEqual(ctx, planByName, stateByName) {
-		tflog.Debug(ctx, "ModifyPlan: Content differs, allowing diff")
+	reorderedList, listDiags := types.ListValue(planList.ElementType(ctx), reordered)
+	if listDiags.HasError() {
+		diags.Append(listDiags...)
 		return types.List{}, false
 	}
 
-	tflog.Info(ctx, "ModifyPlan: Detected reorder-only change, suppressing diff by using state ordering")
-	return stateList, true
+	tflog.Info(ctx, "ModifyPlan: Reordered plan nodegroups to match state ordering", map[string]interface{}{
+		"originalOrder":  nodeGroupNames(planElements),
+		"reorderedOrder": nodeGroupNames(reordered),
+	})
+	return reorderedList, true
+}
+
+// nodeGroupName extracts the name string from a nodegroup attr.Value
+func nodeGroupName(v attr.Value) string {
+	obj, ok := v.(types.Object)
+	if !ok {
+		return ""
+	}
+	nameAttr, exists := obj.Attributes()["name"]
+	if !exists {
+		return ""
+	}
+	nameStr, ok := nameAttr.(types.String)
+	if !ok || nameStr.IsNull() || nameStr.IsUnknown() {
+		return ""
+	}
+	return nameStr.ValueString()
+}
+
+// nodeGroupNames returns the ordered list of names from a slice of nodegroup elements
+func nodeGroupNames(elements []attr.Value) []string {
+	names := make([]string, 0, len(elements))
+	for _, elem := range elements {
+		names = append(names, nodeGroupName(elem))
+	}
+	return names
 }
 
 // buildNodeGroupMap creates a map from nodegroup name to its attr.Value
@@ -367,127 +433,6 @@ func buildNodeGroupMap(ctx context.Context, elements []attr.Value) map[string]at
 	}
 
 	return result
-}
-
-// isReorderOnly checks if both maps have the same keys (nodegroup names)
-func isReorderOnly(planByName, stateByName map[string]attr.Value) bool {
-	if len(planByName) != len(stateByName) {
-		return false
-	}
-
-	for name := range planByName {
-		if _, exists := stateByName[name]; !exists {
-			return false
-		}
-	}
-
-	return true
-}
-
-// nodeGroupsContentEqual compares nodegroups by their essential fields
-func nodeGroupsContentEqual(ctx context.Context, planByName, stateByName map[string]attr.Value) bool {
-	for name, planElem := range planByName {
-		stateElem, exists := stateByName[name]
-		if !exists {
-			return false
-		}
-
-		if !nodeGroupFieldsEqual(ctx, planElem, stateElem) {
-			tflog.Debug(ctx, "ModifyPlan: Nodegroup content differs", map[string]interface{}{
-				"name": name,
-			})
-			return false
-		}
-	}
-
-	return true
-}
-
-// nodeGroupFieldsEqual compares essential fields of two nodegroup objects
-func nodeGroupFieldsEqual(ctx context.Context, planElem, stateElem attr.Value) bool {
-	planObj, ok1 := planElem.(types.Object)
-	stateObj, ok2 := stateElem.(types.Object)
-	if !ok1 || !ok2 {
-		return false
-	}
-
-	planAttrs := planObj.Attributes()
-	stateAttrs := stateObj.Attributes()
-
-	// Essential fields that define nodegroup identity and configuration
-	essentialFields := []string{
-		"name",
-		"ami",
-		"ami_family",
-		"instance_type",
-		"instance_types",
-		"desired_capacity",
-		"min_size",
-		"max_size",
-		"volume_size",
-		"volume_type",
-		"labels",
-		"tags",
-		"taints",
-		"subnets",
-		"availability_zones",
-		"private_networking",
-		"spot",
-		"capacity_type",
-	}
-
-	for _, field := range essentialFields {
-		planVal, planExists := planAttrs[field]
-		stateVal, stateExists := stateAttrs[field]
-
-		// Skip if field doesn't exist in either
-		if !planExists && !stateExists {
-			continue
-		}
-
-		// If plan doesn't specify, skip (use default)
-		if !planExists || isNullOrUnknown(planVal) {
-			continue
-		}
-
-		// Plan specifies but state doesn't have it
-		if !stateExists {
-			return false
-		}
-
-		// Compare values
-		if !attrValuesEqual(planVal, stateVal) {
-			tflog.Debug(ctx, "ModifyPlan: Field differs", map[string]interface{}{
-				"field":    field,
-				"planVal":  planVal.String(),
-				"stateVal": stateVal.String(),
-			})
-			return false
-		}
-	}
-
-	return true
-}
-
-// isNullOrUnknown checks if a value is null or unknown
-func isNullOrUnknown(v attr.Value) bool {
-	return v.IsNull() || v.IsUnknown()
-}
-
-// attrValuesEqual compares two attr.Values
-func attrValuesEqual(a, b attr.Value) bool {
-	if a.IsNull() && b.IsNull() {
-		return true
-	}
-	if a.IsNull() || b.IsNull() {
-		return false
-	}
-	if a.IsUnknown() || b.IsUnknown() {
-		return true // Unknown is compatible with anything
-	}
-
-	// String comparison works for most types
-	return a.String() == b.String()
 }
 
 // getMapKeys returns the keys of a map as a sorted slice

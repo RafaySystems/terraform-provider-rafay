@@ -210,20 +210,15 @@ func (r *eksClusterResource) ModifyPlan(ctx context.Context, req resource.Modify
 
 	tflog.Debug(ctx, "EKS Cluster ModifyPlan: Starting nodegroup ordering check")
 
-	var planData, stateData resource_eks_cluster.EksClusterModel
+	var planData resource_eks_cluster.EksClusterModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &planData)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Get cluster_config from plan and state
-	if planData.ClusterConfig.IsNull() || stateData.ClusterConfig.IsNull() {
+	// Get cluster_config from plan
+	if planData.ClusterConfig.IsNull() || planData.ClusterConfig.IsUnknown() {
 		return
 	}
 
@@ -237,86 +232,89 @@ func (r *eksClusterResource) ModifyPlan(ctx context.Context, req resource.Modify
 		return
 	}
 
-	stateCCList := make([]resource_eks_cluster.ClusterConfigValue, 0, len(stateData.ClusterConfig.Elements()))
-	d = stateData.ClusterConfig.ElementsAs(ctx, &stateCCList, false)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-	if len(stateCCList) == 0 {
-		return
-	}
-
 	planCC := planCCList[0]
-	stateCC := stateCCList[0]
 
 	// Process managed_nodegroups
-	if !planCC.ManagedNodegroups.IsNull() && !stateCC.ManagedNodegroups.IsNull() {
-		modifiedMNG, shouldModify := r.modifyNodeGroupList(ctx, planCC.ManagedNodegroups, stateCC.ManagedNodegroups, &resp.Diagnostics)
+	if !planCC.ManagedNodegroups.IsNull() && !planCC.ManagedNodegroups.IsUnknown() {
+		sortedMNG, ok := r.sortManagedNodegroups(ctx, planCC.ManagedNodegroups, &resp.Diagnostics)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		if shouldModify {
-			// Update the plan with the modified nodegroup list
+		if ok {
 			resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx,
 				path.Root("cluster_config").AtListIndex(0).AtName("managed_nodegroups"),
-				modifiedMNG)...)
+				sortedMNG)...)
 		}
 	}
 
 	// Process node_groups
-	if !planCC.NodeGroups.IsNull() && !stateCC.NodeGroups.IsNull() {
-		modifiedNG, shouldModify := r.modifyNodeGroupList(ctx, planCC.NodeGroups, stateCC.NodeGroups, &resp.Diagnostics)
+	if !planCC.NodeGroups.IsNull() && !planCC.NodeGroups.IsUnknown() {
+		sortedNG, ok := r.sortNodeGroups(ctx, planCC.NodeGroups, &resp.Diagnostics)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		if shouldModify {
-			// Update the plan with the modified nodegroup list
+		if ok {
 			resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx,
 				path.Root("cluster_config").AtListIndex(0).AtName("node_groups"),
-				modifiedNG)...)
+				sortedNG)...)
 		}
 	}
 }
 
-// modifyNodeGroupList sorts plan nodegroups alphabetically by name.
-// The flatten/Read path also sorts state alphabetically, so both sides of
-// Terraform's positional list comparison use the same deterministic order.
-// This correctly handles additions, deletions, field changes, and reordering.
-func (r *eksClusterResource) modifyNodeGroupList(ctx context.Context, planList, stateList types.List, diags *diag.Diagnostics) (types.List, bool) {
-	planElements := planList.Elements()
-
-	if len(planElements) <= 1 {
+// sortManagedNodegroups sorts plan managed_nodegroups alphabetically by name.
+// Uses ElementsAs to decode into typed ManagedNodegroupsValue slices for
+// reliable field access, avoiding tftypes conversion issues.
+func (r *eksClusterResource) sortManagedNodegroups(ctx context.Context, planList types.List, diags *diag.Diagnostics) (types.List, bool) {
+	var planMNGs []resource_eks_cluster.ManagedNodegroupsValue
+	d := planList.ElementsAs(ctx, &planMNGs, false)
+	if d.HasError() {
+		tflog.Debug(ctx, "ModifyPlan: Could not decode managed_nodegroups elements, skipping sort")
+		// Don't propagate - just skip sorting
 		return types.List{}, false
 	}
 
-	// Safety check: ensure we can extract names for all elements
-	for _, elem := range planElements {
-		if nodeGroupName(elem) == "" {
-			tflog.Debug(ctx, "ModifyPlan: Could not extract nodegroup name (may be unknown), skipping sort")
+	if len(planMNGs) <= 1 {
+		return types.List{}, false
+	}
+
+	// Verify all names are known
+	for _, mng := range planMNGs {
+		if mng.Name.IsNull() || mng.Name.IsUnknown() {
+			tflog.Debug(ctx, "ModifyPlan: managed_nodegroup has null/unknown name, skipping sort")
 			return types.List{}, false
 		}
 	}
 
-	// Sort plan elements alphabetically by nodegroup name
-	sorted := make([]attr.Value, len(planElements))
-	copy(sorted, planElements)
-	sort.Slice(sorted, func(i, j int) bool {
-		return nodeGroupName(sorted[i]) < nodeGroupName(sorted[j])
+	// Capture original order for logging
+	origNames := make([]string, len(planMNGs))
+	for i, mng := range planMNGs {
+		origNames[i] = mng.Name.ValueString()
+	}
+
+	// Sort alphabetically by name
+	sort.Slice(planMNGs, func(i, j int) bool {
+		return planMNGs[i].Name.ValueString() < planMNGs[j].Name.ValueString()
 	})
 
-	// Check if sort actually changed the order
+	// Check if order actually changed
 	alreadySorted := true
-	for i := range sorted {
-		if nodeGroupName(sorted[i]) != nodeGroupName(planElements[i]) {
+	sortedNames := make([]string, len(planMNGs))
+	for i, mng := range planMNGs {
+		sortedNames[i] = mng.Name.ValueString()
+		if sortedNames[i] != origNames[i] {
 			alreadySorted = false
-			break
 		}
 	}
 
 	if alreadySorted {
-		tflog.Debug(ctx, "ModifyPlan: Plan nodegroups already sorted alphabetically")
+		tflog.Debug(ctx, "ModifyPlan: managed_nodegroups already sorted alphabetically")
 		return types.List{}, false
+	}
+
+	// Convert back to []attr.Value
+	sorted := make([]attr.Value, len(planMNGs))
+	for i := range planMNGs {
+		sorted[i] = planMNGs[i]
 	}
 
 	sortedList, listDiags := types.ListValue(planList.ElementType(ctx), sorted)
@@ -325,37 +323,77 @@ func (r *eksClusterResource) modifyNodeGroupList(ctx context.Context, planList, 
 		return types.List{}, false
 	}
 
-	tflog.Info(ctx, "ModifyPlan: Sorted plan nodegroups alphabetically", map[string]interface{}{
-		"originalOrder": nodeGroupNames(planElements),
-		"sortedOrder":   nodeGroupNames(sorted),
+	tflog.Info(ctx, "ModifyPlan: Sorted managed_nodegroups alphabetically", map[string]interface{}{
+		"originalOrder": origNames,
+		"sortedOrder":   sortedNames,
 	})
 	return sortedList, true
 }
 
-// nodeGroupName extracts the name string from a nodegroup attr.Value
-func nodeGroupName(v attr.Value) string {
-	obj, ok := v.(types.Object)
-	if !ok {
-		return ""
+// sortNodeGroups sorts plan node_groups alphabetically by name.
+func (r *eksClusterResource) sortNodeGroups(ctx context.Context, planList types.List, diags *diag.Diagnostics) (types.List, bool) {
+	var planNGs []resource_eks_cluster.NodeGroupsValue
+	d := planList.ElementsAs(ctx, &planNGs, false)
+	if d.HasError() {
+		tflog.Debug(ctx, "ModifyPlan: Could not decode node_groups elements, skipping sort")
+		return types.List{}, false
 	}
-	nameAttr, exists := obj.Attributes()["name"]
-	if !exists {
-		return ""
-	}
-	nameStr, ok := nameAttr.(types.String)
-	if !ok || nameStr.IsNull() || nameStr.IsUnknown() {
-		return ""
-	}
-	return nameStr.ValueString()
-}
 
-// nodeGroupNames returns the ordered list of names from a slice of nodegroup elements
-func nodeGroupNames(elements []attr.Value) []string {
-	names := make([]string, 0, len(elements))
-	for _, elem := range elements {
-		names = append(names, nodeGroupName(elem))
+	if len(planNGs) <= 1 {
+		return types.List{}, false
 	}
-	return names
+
+	// Verify all names are known
+	for _, ng := range planNGs {
+		if ng.Name.IsNull() || ng.Name.IsUnknown() {
+			tflog.Debug(ctx, "ModifyPlan: node_group has null/unknown name, skipping sort")
+			return types.List{}, false
+		}
+	}
+
+	// Capture original order for logging
+	origNames := make([]string, len(planNGs))
+	for i, ng := range planNGs {
+		origNames[i] = ng.Name.ValueString()
+	}
+
+	// Sort alphabetically by name
+	sort.Slice(planNGs, func(i, j int) bool {
+		return planNGs[i].Name.ValueString() < planNGs[j].Name.ValueString()
+	})
+
+	// Check if order actually changed
+	alreadySorted := true
+	sortedNames := make([]string, len(planNGs))
+	for i, ng := range planNGs {
+		sortedNames[i] = ng.Name.ValueString()
+		if sortedNames[i] != origNames[i] {
+			alreadySorted = false
+		}
+	}
+
+	if alreadySorted {
+		tflog.Debug(ctx, "ModifyPlan: node_groups already sorted alphabetically")
+		return types.List{}, false
+	}
+
+	// Convert back to []attr.Value
+	sorted := make([]attr.Value, len(planNGs))
+	for i := range planNGs {
+		sorted[i] = planNGs[i]
+	}
+
+	sortedList, listDiags := types.ListValue(planList.ElementType(ctx), sorted)
+	if listDiags.HasError() {
+		diags.Append(listDiags...)
+		return types.List{}, false
+	}
+
+	tflog.Info(ctx, "ModifyPlan: Sorted node_groups alphabetically", map[string]interface{}{
+		"originalOrder": origNames,
+		"sortedOrder":   sortedNames,
+	})
+	return sortedList, true
 }
 
 func (r *eksClusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

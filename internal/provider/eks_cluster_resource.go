@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -26,6 +28,7 @@ import (
 )
 
 var _ resource.Resource = (*eksClusterResource)(nil)
+var _ resource.ResourceWithModifyPlan = (*eksClusterResource)(nil)
 
 func NewEksClusterResource() resource.Resource {
 	return &eksClusterResource{}
@@ -187,6 +190,288 @@ func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.Va
 		}
 	}
 
+}
+
+// ModifyPlan implements plan modification to prevent false diffs when nodegroups are reordered.
+// Terraform compares lists by index, so reordering nodegroups in HCL causes spurious diffs
+// where existing nodegroups appear to be "renamed" (e.g., index 0 changes from ng-1 to ng-0).
+// This method compares nodegroups by name instead of by index, suppressing diffs that are
+// purely due to ordering changes while still detecting real modifications.
+func (r *eksClusterResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip if this is a destroy operation
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// Skip if this is a new resource (no state)
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	tflog.Debug(ctx, "EKS Cluster ModifyPlan: Starting nodegroup ordering check")
+
+	var planData, stateData resource_eks_cluster.EksClusterModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &planData)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Get cluster_config from plan and state
+	if planData.ClusterConfig.IsNull() || stateData.ClusterConfig.IsNull() {
+		return
+	}
+
+	planCCList := make([]resource_eks_cluster.ClusterConfigValue, 0, len(planData.ClusterConfig.Elements()))
+	d := planData.ClusterConfig.ElementsAs(ctx, &planCCList, false)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+	if len(planCCList) == 0 {
+		return
+	}
+
+	stateCCList := make([]resource_eks_cluster.ClusterConfigValue, 0, len(stateData.ClusterConfig.Elements()))
+	d = stateData.ClusterConfig.ElementsAs(ctx, &stateCCList, false)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+	if len(stateCCList) == 0 {
+		return
+	}
+
+	planCC := planCCList[0]
+	stateCC := stateCCList[0]
+
+	// Process managed_nodegroups
+	if !planCC.ManagedNodegroups.IsNull() && !stateCC.ManagedNodegroups.IsNull() {
+		modifiedMNG, shouldModify := r.modifyNodeGroupList(ctx, planCC.ManagedNodegroups, stateCC.ManagedNodegroups, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if shouldModify {
+			// Update the plan with the modified nodegroup list
+			resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx,
+				path.Root("cluster_config").AtListIndex(0).AtName("managed_nodegroups"),
+				modifiedMNG)...)
+		}
+	}
+
+	// Process node_groups
+	if !planCC.NodeGroups.IsNull() && !stateCC.NodeGroups.IsNull() {
+		modifiedNG, shouldModify := r.modifyNodeGroupList(ctx, planCC.NodeGroups, stateCC.NodeGroups, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if shouldModify {
+			// Update the plan with the modified nodegroup list
+			resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx,
+				path.Root("cluster_config").AtListIndex(0).AtName("node_groups"),
+				modifiedNG)...)
+		}
+	}
+}
+
+// modifyNodeGroupList compares nodegroup lists by name instead of index.
+// Returns (state value, true) if only ordering changed, (empty, false) otherwise.
+func (r *eksClusterResource) modifyNodeGroupList(ctx context.Context, planList, stateList types.List, diags *diag.Diagnostics) (types.List, bool) {
+	planElements := planList.Elements()
+	stateElements := stateList.Elements()
+
+	if len(planElements) == 0 {
+		return types.List{}, false
+	}
+
+	// Build maps by nodegroup name
+	planByName := buildNodeGroupMap(ctx, planElements)
+	stateByName := buildNodeGroupMap(ctx, stateElements)
+
+	tflog.Debug(ctx, "ModifyPlan: Comparing nodegroups", map[string]interface{}{
+		"planCount":  len(planByName),
+		"stateCount": len(stateByName),
+		"planNames":  getMapKeys(planByName),
+		"stateNames": getMapKeys(stateByName),
+	})
+
+	// Check if this is just a reorder (same names)
+	if !isReorderOnly(planByName, stateByName) {
+		tflog.Debug(ctx, "ModifyPlan: Not a reorder-only change, allowing diff")
+		return types.List{}, false
+	}
+
+	// Check if the content is the same (ignoring order)
+	if !nodeGroupsContentEqual(ctx, planByName, stateByName) {
+		tflog.Debug(ctx, "ModifyPlan: Content differs, allowing diff")
+		return types.List{}, false
+	}
+
+	tflog.Info(ctx, "ModifyPlan: Detected reorder-only change, suppressing diff by using state ordering")
+	return stateList, true
+}
+
+// buildNodeGroupMap creates a map from nodegroup name to its attr.Value
+func buildNodeGroupMap(ctx context.Context, elements []attr.Value) map[string]attr.Value {
+	result := make(map[string]attr.Value)
+
+	for _, elem := range elements {
+		obj, ok := elem.(types.Object)
+		if !ok {
+			continue
+		}
+
+		attrs := obj.Attributes()
+		nameAttr, exists := attrs["name"]
+		if !exists {
+			continue
+		}
+
+		nameStr, ok := nameAttr.(types.String)
+		if !ok || nameStr.IsNull() || nameStr.IsUnknown() {
+			continue
+		}
+
+		result[nameStr.ValueString()] = elem
+	}
+
+	return result
+}
+
+// isReorderOnly checks if both maps have the same keys (nodegroup names)
+func isReorderOnly(planByName, stateByName map[string]attr.Value) bool {
+	if len(planByName) != len(stateByName) {
+		return false
+	}
+
+	for name := range planByName {
+		if _, exists := stateByName[name]; !exists {
+			return false
+		}
+	}
+
+	return true
+}
+
+// nodeGroupsContentEqual compares nodegroups by their essential fields
+func nodeGroupsContentEqual(ctx context.Context, planByName, stateByName map[string]attr.Value) bool {
+	for name, planElem := range planByName {
+		stateElem, exists := stateByName[name]
+		if !exists {
+			return false
+		}
+
+		if !nodeGroupFieldsEqual(ctx, planElem, stateElem) {
+			tflog.Debug(ctx, "ModifyPlan: Nodegroup content differs", map[string]interface{}{
+				"name": name,
+			})
+			return false
+		}
+	}
+
+	return true
+}
+
+// nodeGroupFieldsEqual compares essential fields of two nodegroup objects
+func nodeGroupFieldsEqual(ctx context.Context, planElem, stateElem attr.Value) bool {
+	planObj, ok1 := planElem.(types.Object)
+	stateObj, ok2 := stateElem.(types.Object)
+	if !ok1 || !ok2 {
+		return false
+	}
+
+	planAttrs := planObj.Attributes()
+	stateAttrs := stateObj.Attributes()
+
+	// Essential fields that define nodegroup identity and configuration
+	essentialFields := []string{
+		"name",
+		"ami",
+		"ami_family",
+		"instance_type",
+		"instance_types",
+		"desired_capacity",
+		"min_size",
+		"max_size",
+		"volume_size",
+		"volume_type",
+		"labels",
+		"tags",
+		"taints",
+		"subnets",
+		"availability_zones",
+		"private_networking",
+		"spot",
+		"capacity_type",
+	}
+
+	for _, field := range essentialFields {
+		planVal, planExists := planAttrs[field]
+		stateVal, stateExists := stateAttrs[field]
+
+		// Skip if field doesn't exist in either
+		if !planExists && !stateExists {
+			continue
+		}
+
+		// If plan doesn't specify, skip (use default)
+		if !planExists || isNullOrUnknown(planVal) {
+			continue
+		}
+
+		// Plan specifies but state doesn't have it
+		if !stateExists {
+			return false
+		}
+
+		// Compare values
+		if !attrValuesEqual(planVal, stateVal) {
+			tflog.Debug(ctx, "ModifyPlan: Field differs", map[string]interface{}{
+				"field":    field,
+				"planVal":  planVal.String(),
+				"stateVal": stateVal.String(),
+			})
+			return false
+		}
+	}
+
+	return true
+}
+
+// isNullOrUnknown checks if a value is null or unknown
+func isNullOrUnknown(v attr.Value) bool {
+	return v.IsNull() || v.IsUnknown()
+}
+
+// attrValuesEqual compares two attr.Values
+func attrValuesEqual(a, b attr.Value) bool {
+	if a.IsNull() && b.IsNull() {
+		return true
+	}
+	if a.IsNull() || b.IsNull() {
+		return false
+	}
+	if a.IsUnknown() || b.IsUnknown() {
+		return true // Unknown is compatible with anything
+	}
+
+	// String comparison works for most types
+	return a.String() == b.String()
+}
+
+// getMapKeys returns the keys of a map as a sorted slice
+func getMapKeys(m map[string]attr.Value) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 func (r *eksClusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

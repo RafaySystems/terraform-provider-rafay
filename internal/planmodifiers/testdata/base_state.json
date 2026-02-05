@@ -1,0 +1,91 @@
+{
+  "version": 4,
+  "terraform_version": "1.8.8",
+  "serial": 1,
+  "lineage": "test-lineage",
+  "outputs": {},
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "rafay_eks_cluster",
+      "name": "ekscluster-basic",
+      "provider": "provider[\"registry.terraform.io/rafaysystems/rafay\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "id": "test-cluster-id",
+            "cluster": [
+              {
+                "kind": "Cluster",
+                "metadata": [
+                  {
+                    "name": "test-eks-cluster",
+                    "project": "defaultproject"
+                  }
+                ],
+                "spec": [
+                  {
+                    "type": "eks",
+                    "blueprint": "default",
+                    "blueprint_version": "Latest",
+                    "cloud_provider": "test-provider",
+                    "cni_provider": "aws-cni"
+                  }
+                ]
+              }
+            ],
+            "cluster_config": [
+              {
+                "apiversion": "rafay.io/v1alpha5",
+                "kind": "ClusterConfig",
+                "metadata": [
+                  {
+                    "name": "test-eks-cluster",
+                    "region": "us-west-2",
+                    "version": "1.32"
+                  }
+                ],
+                "managed_nodegroups": [
+                  {
+                    "name": "ng-1",
+                    "ami_family": "AmazonLinux2",
+                    "instance_type": "t3.large",
+                    "desired_capacity": 2,
+                    "min_size": 1,
+                    "max_size": 2,
+                    "volume_size": 80,
+                    "volume_type": "gp3",
+                    "private_networking": true
+                  },
+                  {
+                    "name": "ng-2",
+                    "ami_family": "AmazonLinux2",
+                    "instance_type": "t3.large",
+                    "desired_capacity": 2,
+                    "min_size": 1,
+                    "max_size": 2,
+                    "volume_size": 80,
+                    "volume_type": "gp3",
+                    "private_networking": true
+                  },
+                  {
+                    "name": "ng-3",
+                    "ami_family": "AmazonLinux2",
+                    "instance_type": "t3.large",
+                    "desired_capacity": 2,
+                    "min_size": 1,
+                    "max_size": 2,
+                    "volume_size": 80,
+                    "volume_type": "gp3",
+                    "private_networking": true
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

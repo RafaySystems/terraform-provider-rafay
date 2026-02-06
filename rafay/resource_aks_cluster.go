@@ -5099,7 +5099,7 @@ func flattenAKSManagedClusterHTTPProxyConfig(in *AKSManagedClusterHTTPProxyConfi
 		obj["http_proxy"] = in.HTTPProxy
 	}
 
-	if len(in.HTTPProxy) > 0 {
+	if len(in.HTTPSProxy) > 0 {
 		obj["https_proxy"] = in.HTTPSProxy
 	}
 

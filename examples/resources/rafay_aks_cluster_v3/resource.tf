@@ -944,3 +944,112 @@ resource "rafay_aks_cluster_v3" "demo-tf-ingress-istio-setup" {
     }
   }
 }
+
+resource "rafay_aks_cluster_v3" "demo-terraform-proxy" {
+  metadata {
+    name    = "aks-v3-proxy-example"
+    project = "defaultproject"
+  }
+
+  spec {
+    type = "aks"
+
+    blueprint_config {
+      name = "default-aks"
+    }
+
+    # Rafay spec-level proxy config (bootstrap, agents) - no_proxy is comma-separated string
+    proxy_config {
+      http_proxy  = "http://10.225.0.10:443/"
+      https_proxy = "http://10.225.0.10:443/"
+      no_proxy    = "10.0.0.0/16,localhost,127.0.0.1,.svc,.cluster.local"
+    }
+
+    cloud_credentials = "aks-cred"
+
+    config {
+      kind = "aksClusterConfig"
+
+      metadata {
+        name = "aks-v3-proxy-example"
+      }
+
+      spec {
+        resource_group_name = "rafay-resource"
+
+        managed_cluster {
+          api_version = "2024-01-01"
+
+          sku {
+            name = "Base"
+            tier = "Free"
+          }
+
+          identity {
+            type = "SystemAssigned"
+          }
+
+          location = "centralindia"
+
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = false
+            }
+
+            dns_prefix         = "aks-v3-proxy-dns"
+            kubernetes_version = "1.29.0"
+
+            network_profile {
+              network_plugin    = "kubenet"
+              load_balancer_sku = "standard"
+            }
+
+            power_state {
+              code = "Running"
+            }
+
+            # AKS managed cluster HTTP proxy config - no_proxy is list of strings
+            http_proxy_config {
+              http_proxy  = "http://10.225.0.10:443/"
+              https_proxy = "http://10.225.0.10:443/"
+              no_proxy = [
+                "10.0.0.0/16",
+                "localhost",
+                "127.0.0.1",
+                ".svc",
+                ".cluster.local"
+              ]
+            }
+
+            auto_upgrade_profile {
+              upgrade_channel         = "none"
+              node_os_upgrade_channel = "None"
+            }
+          }
+
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+
+        node_pools {
+          api_version = "2024-01-01"
+          name        = "primary"
+
+          properties {
+            count                = 1
+            enable_auto_scaling  = true
+            max_count            = 1
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.29.0"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+          }
+
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+  }
+}

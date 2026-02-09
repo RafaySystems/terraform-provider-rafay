@@ -18,7 +18,7 @@ default: install
 build:
 	# bash internal/scripts/fwgen.sh # removed due to schema version update manually
 	export GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ${BINARY}
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore CGO_ENABLED=0 go build  -buildvcs=false  -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ${BINARY}
 	#go generate
 
 release:
@@ -46,6 +46,7 @@ zip:
 install: build
 	mkdir -p ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 	cp ${BINARY} ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
+
 	mkdir -p ~/.terraform.d/plugins/${TOFU_HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 	cp ${BINARY} ~/.terraform.d/plugins/${TOFU_HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 

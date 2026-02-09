@@ -17,6 +17,123 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+// sortNodeGroupsByConfigOrder sorts the API response nodegroups to match the
+// config order from the prior state. Nodegroups not in config are appended at
+// the end in alphabetical order.
+func sortNodeGroupsByConfigOrder(ctx context.Context, apiNodeGroups []*rafay.NodeGroup, stateNodeGroups types.List) {
+	if len(apiNodeGroups) <= 1 {
+		return
+	}
+
+	// Extract config order from state
+	configOrder := make(map[string]int)
+	if !stateNodeGroups.IsNull() && !stateNodeGroups.IsUnknown() {
+		var stateNGs []NodeGroupsValue
+		if d := stateNodeGroups.ElementsAs(ctx, &stateNGs, false); !d.HasError() {
+			for i, ng := range stateNGs {
+				if !ng.Name.IsNull() && !ng.Name.IsUnknown() {
+					configOrder[ng.Name.ValueString()] = i
+				}
+			}
+		}
+	}
+
+	// Sort: config order first, then new nodegroups alphabetically
+	sort.SliceStable(apiNodeGroups, func(i, j int) bool {
+		nameI := apiNodeGroups[i].Name
+		nameJ := apiNodeGroups[j].Name
+
+		posI, inConfigI := configOrder[nameI]
+		posJ, inConfigJ := configOrder[nameJ]
+
+		// Both in config: sort by config position
+		if inConfigI && inConfigJ {
+			return posI < posJ
+		}
+
+		// Only i in config: i comes first
+		if inConfigI {
+			return true
+		}
+
+		// Only j in config: j comes first
+		if inConfigJ {
+			return false
+		}
+
+		// Neither in config: sort alphabetically
+		return nameI < nameJ
+	})
+
+	tflog.Debug(ctx, "Sorted node_groups by config order", map[string]interface{}{
+		"sortedOrder": func() []string {
+			names := make([]string, len(apiNodeGroups))
+			for i, ng := range apiNodeGroups {
+				names[i] = ng.Name
+			}
+			return names
+		}(),
+	})
+}
+
+// sortManagedNodeGroupsByConfigOrder sorts the API response managed nodegroups
+// to match the config order from the prior state.
+func sortManagedNodeGroupsByConfigOrder(ctx context.Context, apiManagedNodeGroups []*rafay.ManagedNodeGroup, stateManagedNodeGroups types.List) {
+	if len(apiManagedNodeGroups) <= 1 {
+		return
+	}
+
+	// Extract config order from state
+	configOrder := make(map[string]int)
+	if !stateManagedNodeGroups.IsNull() && !stateManagedNodeGroups.IsUnknown() {
+		var stateMNGs []ManagedNodegroupsValue
+		if d := stateManagedNodeGroups.ElementsAs(ctx, &stateMNGs, false); !d.HasError() {
+			for i, mng := range stateMNGs {
+				if !mng.Name.IsNull() && !mng.Name.IsUnknown() {
+					configOrder[mng.Name.ValueString()] = i
+				}
+			}
+		}
+	}
+
+	// Sort: config order first, then new nodegroups alphabetically
+	sort.SliceStable(apiManagedNodeGroups, func(i, j int) bool {
+		nameI := apiManagedNodeGroups[i].Name
+		nameJ := apiManagedNodeGroups[j].Name
+
+		posI, inConfigI := configOrder[nameI]
+		posJ, inConfigJ := configOrder[nameJ]
+
+		// Both in config: sort by config position
+		if inConfigI && inConfigJ {
+			return posI < posJ
+		}
+
+		// Only i in config: i comes first
+		if inConfigI {
+			return true
+		}
+
+		// Only j in config: j comes first
+		if inConfigJ {
+			return false
+		}
+
+		// Neither in config: sort alphabetically
+		return nameI < nameJ
+	})
+
+	tflog.Debug(ctx, "Sorted managed_nodegroups by config order", map[string]interface{}{
+		"sortedOrder": func() []string {
+			names := make([]string, len(apiManagedNodeGroups))
+			for i, mng := range apiManagedNodeGroups {
+				names[i] = mng.Name
+			}
+			return names
+		}(),
+	})
+}
+
 func FlattenEksCluster(ctx context.Context, in rafay.EKSCluster, data *EksClusterModel) diag.Diagnostics {
 	var diags, d diag.Diagnostics
 
@@ -419,15 +536,11 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		v.Metadata2 = types.ListNull(Metadata2Value{}.Type(ctx))
 	}
 
-	// Sort node groups alphabetically by name for deterministic state ordering.
-	// This ensures Terraform's positional list comparison works correctly for
-	// additions, deletions, and reordering.
-	sort.Slice(in.NodeGroups, func(i, j int) bool {
-		return in.NodeGroups[i].Name < in.NodeGroups[j].Name
-	})
-	sort.Slice(in.ManagedNodeGroups, func(i, j int) bool {
-		return in.ManagedNodeGroups[i].Name < in.ManagedNodeGroups[j].Name
-	})
+	// Sort node groups to match the config order from prior state.
+	// This ensures that Terraform shows clean diffs when users reorder nodegroups
+	// in their config, and minimizes cascade diffs for additions/removals.
+	sortNodeGroupsByConfigOrder(ctx, in.NodeGroups, state.NodeGroups)
+	sortManagedNodeGroupsByConfigOrder(ctx, in.ManagedNodeGroups, state.ManagedNodegroups)
 
 	// node groups
 	if len(in.NodeGroups) > 0 {

@@ -1493,6 +1493,23 @@ func flattenBlueprintPlacement(in *infrapb.BlueprintPlacement, p []interface{}) 
 	return []interface{}{obj}
 }
 
+func flattenDisableAWSNTH(valueInDB bool, p []interface{}) string {
+
+	if len(p) == 0 || p[0] == nil {
+		return ""
+	}
+
+	obj, ok := p[0].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+
+	if v, ok := obj["disable_aws_node_termination_handler"].(bool); ok && v {
+		return "true"
+	}
+	return ""
+}
+
 func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
@@ -1518,8 +1535,11 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 	}
 
 	if in.DisableAwsNodeTerminationHandler {
-		obj["disable_aws_node_termination_handler"] = in.DisableAwsNodeTerminationHandler
-		retNil = false
+		response := flattenDisableAWSNTH(in.DisableAwsNodeTerminationHandler, p)
+		if response != "" {
+			obj["disable_aws_node_termination_handler"] = in.DisableAwsNodeTerminationHandler
+			retNil = false
+		}
 	}
 
 	if in.EnableMonitoring {

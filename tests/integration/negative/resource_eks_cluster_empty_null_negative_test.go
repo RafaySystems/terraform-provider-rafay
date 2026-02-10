@@ -93,7 +93,7 @@ func TestAccNegEKSCluster_NullClusterName_RequiredError(t *testing.T) {
 					  }
 					}
 				`,
-				ExpectError: regexp.MustCompile(`(?s)Required Attribute.*metadata.*name`),
+				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*"cluster\.0\.metadata\.0\.name" is required`),
 			},
 		},
 	})
@@ -220,7 +220,7 @@ func TestAccNegEKSCluster_NullCloudProvider_RequiredError(t *testing.T) {
 					  }
 					}
 				`,
-				ExpectError: regexp.MustCompile(`(?s)Required Attribute.*spec.*cloud_provider`),
+				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*"cluster\.0\.spec\.0\.cloud_provider" is required`),
 			},
 		},
 	})
@@ -304,7 +304,7 @@ func TestAccNegEKSCluster_NullRegion_RequiredError(t *testing.T) {
 					  }
 					}
 				`,
-				ExpectError: regexp.MustCompile(`(?s)Required Attribute.*metadata.*region`),
+				ExpectError: regexp.MustCompile(`(?s)Missing required argument.*"cluster_config\.0\.metadata\.0\.region" is required`),
 			},
 		},
 	})

@@ -422,7 +422,7 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `high_availability` (Boolean) Select this option for highly available control plane. Minimum three control plane nodes are required
 - `kubernetes_upgrade` (Attributes) Strategize the Kubernetes upgrade behaviour among the worker nodes (see [below for nested schema](#nestedatt--spec--config--kubernetes_upgrade))
 - `location` (String) The data center location where the cluster nodes will be launched
-- `platform_version` (String) Platform version that allows upgrading the cluster's internal components such as Cluster utils, Orchestration proxy, Orchestration agent, CRI, and etcd.
+- `platform_version` (String) Platform version that allows upgrading the cluster's internal components such as Cluster utils, Orchestration proxy, Orchestration agent, CRI, and etcd. Supported platform version values are 1.2.0 (latest), 1.1.0 (default), 1.0.0, 0.1.0.
 - `kubelet_configuration_overrides` (String) Advanced kubelet settings in YAML format (e.g evictionHard).
 
 <a id="nestedatt--spec--config--network"></a>

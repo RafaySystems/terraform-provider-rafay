@@ -1411,22 +1411,6 @@ func expandAKSManagedClusterV3NodeProvisioningProfile(p []interface{}) *infrapb.
 	return obj
 }
 
-func expandAKSManagedClusterV3NodeProvisioningProfile(p []interface{}) *infrapb.NodeProvisioningProfile {
-	obj := &infrapb.NodeProvisioningProfile{}
-	if len(p) == 0 || p[0] == nil {
-		return obj
-	}
-	in := p[0].(map[string]interface{})
-
-	if v, ok := in["mode"].(string); ok && len(v) > 0 {
-		obj.Mode = v
-	}
-	if v, ok := in["default_node_pools"].(string); ok && len(v) > 0 {
-		obj.DefaultNodePools = v
-	}
-	return obj
-}
-
 func expandAKSManagedClusterV3IdentityProfile(p []interface{}) *infrapb.ManagedClusterIdentityProfile {
 	obj := &infrapb.ManagedClusterIdentityProfile{}
 	if len(p) == 0 || p[0] == nil {

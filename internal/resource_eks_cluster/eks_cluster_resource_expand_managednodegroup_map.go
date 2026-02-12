@@ -744,6 +744,35 @@ func (v NodeRepairConfig5Value) Expand(ctx context.Context) (*rafay.NodeRepairCo
 		enabled := getBoolValue(v.Enabled)
 		nrc.Enabled = &enabled
 	}
+	if !v.MaxUnhealthyNodeThresholdPercentage.IsNull() && !v.MaxUnhealthyNodeThresholdPercentage.IsUnknown() {
+		pct := int(getInt64Value(v.MaxUnhealthyNodeThresholdPercentage))
+		nrc.MaxUnhealthyNodeThresholdPercentage = &pct
+	}
+	if !v.MaxUnhealthyNodeThresholdCount.IsNull() && !v.MaxUnhealthyNodeThresholdCount.IsUnknown() {
+		cnt := int(getInt64Value(v.MaxUnhealthyNodeThresholdCount))
+		nrc.MaxUnhealthyNodeThresholdCount = &cnt
+	}
+	if !v.MaxParallelNodesRepairedPercentage.IsNull() && !v.MaxParallelNodesRepairedPercentage.IsUnknown() {
+		pct := int(getInt64Value(v.MaxParallelNodesRepairedPercentage))
+		nrc.MaxParallelNodesRepairedPercentage = &pct
+	}
+	if !v.MaxParallelNodesRepairedCount.IsNull() && !v.MaxParallelNodesRepairedCount.IsUnknown() {
+		cnt := int(getInt64Value(v.MaxParallelNodesRepairedCount))
+		nrc.MaxParallelNodesRepairedCount = &cnt
+	}
+	if !v.NodeRepairConfigOverrides.IsNull() && !v.NodeRepairConfigOverrides.IsUnknown() {
+		overrideList := make([]NodeRepairConfigOverridesValue, 0, len(v.NodeRepairConfigOverrides.Elements()))
+		d := v.NodeRepairConfigOverrides.ElementsAs(ctx, &overrideList, false)
+		diags = append(diags, d...)
+		for _, ov := range overrideList {
+			nrc.NodeRepairConfigOverrides = append(nrc.NodeRepairConfigOverrides, rafay.NodeRepairConfigOverride{
+				NodeMonitoringCondition: getStringValue(ov.NodeMonitoringCondition),
+				NodeUnhealthyReason:     getStringValue(ov.NodeUnhealthyReason),
+				MinRepairWaitTimeMins:   int(getInt64Value(ov.MinRepairWaitTimeMins)),
+				RepairAction:            getStringValue(ov.RepairAction),
+			})
+		}
+	}
 
 	return &nrc, diags
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	jsoniter "github.com/json-iterator/go"
@@ -703,6 +704,26 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		v.AutoModeConfig = types.ListNull(AutoModeConfigValue{}.Type(ctx))
 	}
 
+	if in.ZonalShiftConfig != nil {
+		zonalShiftConfig := NewZonalShiftConfigValueNull()
+		d = zonalShiftConfig.Flatten(ctx, in.ZonalShiftConfig)
+		diags = append(diags, d...)
+		v.ZonalShiftConfig, d = types.ListValue(ZonalShiftConfigValue{}.Type(ctx), []attr.Value{zonalShiftConfig})
+		diags = append(diags, d...)
+	} else {
+		v.ZonalShiftConfig = types.ListNull(ZonalShiftConfigValue{}.Type(ctx))
+	}
+
+	if in.AutoZonalShiftConfig != nil {
+		autoZonalShiftConfig := NewAutoZonalShiftConfigValueNull()
+		d = autoZonalShiftConfig.Flatten(ctx, in.AutoZonalShiftConfig)
+		diags = append(diags, d...)
+		v.AutoZonalShiftConfig, d = types.ListValue(AutoZonalShiftConfigValue{}.Type(ctx), []attr.Value{autoZonalShiftConfig})
+		diags = append(diags, d...)
+	} else {
+		v.AutoZonalShiftConfig = types.ListNull(AutoZonalShiftConfigValue{}.Type(ctx))
+	}
+
 	v.state = attr.ValueStateKnown
 	return diags
 }
@@ -728,6 +749,46 @@ func (v *AutoModeConfigValue) Flatten(ctx context.Context, in *rafay.EKSAutoMode
 		diags = append(diags, d...)
 	}
 	v.NodePools = nodePools
+
+	return diags
+}
+
+func (v *ZonalShiftConfigValue) Flatten(ctx context.Context, in *rafay.ZonalShiftConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if in == nil {
+		return diags
+	}
+	v.Enabled = types.BoolValue(in.Enabled)
+	v.state = attr.ValueStateKnown
+	return diags
+}
+
+func (v *AutoZonalShiftConfigValue) Flatten(ctx context.Context, in *rafay.AutoZonalShiftConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if in == nil {
+		return diags
+	}
+	v.Enabled = types.BoolValue(in.Enabled)
+
+	listFromStrings := func(sl []string) basetypes.ListValue {
+		if len(sl) == 0 {
+			return types.ListNull(types.StringType)
+		}
+		elems := make([]attr.Value, 0, len(sl))
+		for _, s := range sl {
+			elems = append(elems, types.StringValue(s))
+		}
+		out, d := types.ListValue(types.StringType, elems)
+		diags = append(diags, d...)
+		return out
+	}
+
+	v.AllowedWindows = listFromStrings(in.AllowedWindows)
+	v.BlockedDates = listFromStrings(in.BlockedDates)
+	v.BlockedWindows = listFromStrings(in.BlockedWindows)
+	v.BlockingAlarms = listFromStrings(in.BlockingAlarms)
+	v.OutcomeAlarms = listFromStrings(in.OutcomeAlarms)
+	v.state = attr.ValueStateKnown
 
 	return diags
 }

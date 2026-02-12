@@ -2174,6 +2174,72 @@
                                                                     "computed_optional_required": "optional",
                                                                     "description": "Enable node repair for nodegroup."
                                                                 }
+                                                            },
+                                                            {
+                                                                "name": "max_unhealthy_node_threshold_percentage",
+                                                                "int64": {
+                                                                    "computed_optional_required": "optional",
+                                                                    "description": "Maximum percentage of unhealthy nodes allowed before node repair is triggered."
+                                                                }
+                                                            },
+                                                            {
+                                                                "name": "max_unhealthy_node_threshold_count",
+                                                                "int64": {
+                                                                    "computed_optional_required": "optional",
+                                                                    "description": "Maximum count of unhealthy nodes allowed before node repair is triggered."
+                                                                }
+                                                            },
+                                                            {
+                                                                "name": "max_parallel_nodes_repaired_percentage",
+                                                                "int64": {
+                                                                    "computed_optional_required": "optional",
+                                                                    "description": "Maximum percentage of nodes that can be repaired in parallel."
+                                                                }
+                                                            },
+                                                            {
+                                                                "name": "max_parallel_nodes_repaired_count",
+                                                                "int64": {
+                                                                    "computed_optional_required": "optional",
+                                                                    "description": "Maximum count of nodes that can be repaired in parallel."
+                                                                }
+                                                            },
+                                                            {
+                                                                "name": "node_repair_config_overrides",
+                                                                "list_nested": {
+                                                                    "computed_optional_required": "optional",
+                                                                    "nested_object": {
+                                                                        "attributes": [
+                                                                            {
+                                                                                "name": "node_monitoring_condition",
+                                                                                "string": {
+                                                                                    "computed_optional_required": "optional",
+                                                                                    "description": "The node monitoring condition for this override."
+                                                                                }
+                                                                            },
+                                                                            {
+                                                                                "name": "node_unhealthy_reason",
+                                                                                "string": {
+                                                                                    "computed_optional_required": "optional",
+                                                                                    "description": "The node unhealthy reason for this override."
+                                                                                }
+                                                                            },
+                                                                            {
+                                                                                "name": "min_repair_wait_time_mins",
+                                                                                "int64": {
+                                                                                    "computed_optional_required": "optional",
+                                                                                    "description": "Minimum wait time in minutes before repair action is taken."
+                                                                                }
+                                                                            },
+                                                                            {
+                                                                                "name": "repair_action",
+                                                                                "string": {
+                                                                                    "computed_optional_required": "optional",
+                                                                                    "description": "The repair action to take (e.g. replace, reboot)."
+                                                                                }
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                }
                                                             }
                                                         ]
                                                     }
@@ -4925,6 +4991,72 @@
                                                                         "description": "Enable node repair for nodegroup",
                                                                         "computed_optional_required": "optional"
                                                                     }
+                                                                },
+                                                                {
+                                                                    "name": "max_unhealthy_node_threshold_percentage",
+                                                                    "int64": {
+                                                                        "computed_optional_required": "optional",
+                                                                        "description": "Maximum percentage of unhealthy nodes allowed before node repair is triggered."
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "name": "max_unhealthy_node_threshold_count",
+                                                                    "int64": {
+                                                                        "computed_optional_required": "optional",
+                                                                        "description": "Maximum count of unhealthy nodes allowed before node repair is triggered."
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "name": "max_parallel_nodes_repaired_percentage",
+                                                                    "int64": {
+                                                                        "computed_optional_required": "optional",
+                                                                        "description": "Maximum percentage of nodes that can be repaired in parallel."
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "name": "max_parallel_nodes_repaired_count",
+                                                                    "int64": {
+                                                                        "computed_optional_required": "optional",
+                                                                        "description": "Maximum count of nodes that can be repaired in parallel."
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "name": "node_repair_config_overrides",
+                                                                    "list_nested": {
+                                                                        "computed_optional_required": "optional",
+                                                                        "nested_object": {
+                                                                            "attributes": [
+                                                                                {
+                                                                                    "name": "node_monitoring_condition",
+                                                                                    "string": {
+                                                                                        "computed_optional_required": "optional",
+                                                                                        "description": "The node monitoring condition for this override."
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "node_unhealthy_reason",
+                                                                                    "string": {
+                                                                                        "computed_optional_required": "optional",
+                                                                                        "description": "The node unhealthy reason for this override."
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "min_repair_wait_time_mins",
+                                                                                    "int64": {
+                                                                                        "computed_optional_required": "optional",
+                                                                                        "description": "Minimum wait time in minutes before repair action is taken."
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "name": "repair_action",
+                                                                                    "string": {
+                                                                                        "computed_optional_required": "optional",
+                                                                                        "description": "The repair action to take (e.g. replace, reboot)."
+                                                                                    }
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    }
                                                                 }
                                                             ]
                                                         }
@@ -5599,6 +5731,88 @@
                                                     "list": {
                                                         "computed_optional_required": "optional",
                                                         "description": "List of default nodepools (general-purpose,system).",
+                                                        "element_type": {
+                                                            "string": {}
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "zonal_shift_config",
+                                    "list_nested": {
+                                        "nested_object": {
+                                            "attributes": [
+                                                {
+                                                    "name": "enabled",
+                                                    "bool": {
+                                                        "computed_optional_required": "optional",
+                                                        "description": "Flag to enable or disable zonal shift."
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "auto_zonal_shift_config",
+                                    "list_nested": {
+                                        "nested_object": {
+                                            "attributes": [
+                                                {
+                                                    "name": "enabled",
+                                                    "bool": {
+                                                        "computed_optional_required": "optional",
+                                                        "description": "Flag to enable or disable auto zonal shift."
+                                                    }
+                                                },
+                                                {
+                                                    "name": "allowed_windows",
+                                                    "list": {
+                                                        "computed_optional_required": "optional",
+                                                        "description": "Allowed time windows for auto zonal shift.",
+                                                        "element_type": {
+                                                            "string": {}
+                                                        }
+                                                    }
+                                                },
+                                                {
+                                                    "name": "blocked_dates",
+                                                    "list": {
+                                                        "computed_optional_required": "optional",
+                                                        "description": "Blocked dates for auto zonal shift.",
+                                                        "element_type": {
+                                                            "string": {}
+                                                        }
+                                                    }
+                                                },
+                                                {
+                                                    "name": "blocked_windows",
+                                                    "list": {
+                                                        "computed_optional_required": "optional",
+                                                        "description": "Blocked time windows for auto zonal shift.",
+                                                        "element_type": {
+                                                            "string": {}
+                                                        }
+                                                    }
+                                                },
+                                                {
+                                                    "name": "blocking_alarms",
+                                                    "list": {
+                                                        "computed_optional_required": "optional",
+                                                        "description": "Alarms that block auto zonal shift.",
+                                                        "element_type": {
+                                                            "string": {}
+                                                        }
+                                                    }
+                                                },
+                                                {
+                                                    "name": "outcome_alarms",
+                                                    "list": {
+                                                        "computed_optional_required": "optional",
+                                                        "description": "Alarms for outcome of auto zonal shift.",
                                                         "element_type": {
                                                             "string": {}
                                                         }

@@ -78,3 +78,13 @@ sed -i 's/"taints6"/"taints"/g' internal/resource_eks_cluster/eks_cluster_resour
 sed -i 's/"update_config6"/"update_config"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i 's/"launch_template6"/"launch_template"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i 's/"security_groups6"/"security_groups"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+
+# Remove duplicate NodeRepairConfigOverrides type/value block (generated for both node_repair_config4 and node_repair_config5)
+awk '/var _ basetypes.ObjectTypable = NodeRepairConfigOverridesType\{\}\}/ { n++; if(n==2) skip=1 }
+skip { if (/var _ basetypes.ObjectTypable = Placement4Type\{\}\}/) { skip=0; print; } next }
+!skip { print }' internal/resource_eks_cluster/eks_cluster_resource_gen.go > internal/resource_eks_cluster/eks_cluster_resource_gen.go.tmp && \
+	mv internal/resource_eks_cluster/eks_cluster_resource_gen.go.tmp internal/resource_eks_cluster/eks_cluster_resource_gen.go
+
+# Add Version to schema if not already present (run once after codegen; re-run is idempotent)
+grep -q 'Version: 1' internal/resource_eks_cluster/eks_cluster_resource_gen.go || \
+	sed -i 's/return schema.Schema{$/return schema.Schema{\n\t\tVersion: 1,/' internal/resource_eks_cluster/eks_cluster_resource_gen.go

@@ -1,0 +1,55 @@
+2026-02-17T11:52:07.085+0530 [INFO]  Terraform version: 1.9.5
+2026-02-17T11:52:07.086+0530 [DEBUG] using github.com/hashicorp/go-tfe v1.58.0
+2026-02-17T11:52:07.086+0530 [DEBUG] using github.com/hashicorp/hcl/v2 v2.20.0
+2026-02-17T11:52:07.086+0530 [DEBUG] using github.com/hashicorp/terraform-svchost v0.1.1
+2026-02-17T11:52:07.086+0530 [DEBUG] using github.com/zclconf/go-cty v1.14.4
+2026-02-17T11:52:07.086+0530 [INFO]  Go runtime version: go1.22.5
+2026-02-17T11:52:07.086+0530 [INFO]  CLI args: []string{"terraform", "apply"}
+2026-02-17T11:52:07.086+0530 [TRACE] Stdout is a terminal of width 66
+2026-02-17T11:52:07.086+0530 [TRACE] Stderr is a terminal of width 66
+2026-02-17T11:52:07.086+0530 [TRACE] Stdin is a terminal
+2026-02-17T11:52:07.086+0530 [DEBUG] Attempting to open CLI config file: /Users/gopim/.terraformrc
+2026-02-17T11:52:07.087+0530 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
+2026-02-17T11:52:07.090+0530 [DEBUG] checking for credentials in "/Users/gopim/.terraform.d/plugins"
+2026-02-17T11:52:07.090+0530 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
+2026-02-17T11:52:07.090+0530 [DEBUG] will search for provider plugins in /Users/gopim/.terraform.d/plugins
+2026-02-17T11:52:07.095+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.opentofu.org/rafaysystems/rafay v1.1.28 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.opentofu.org/rafaysystems/rafay/1.1.28/darwin_arm64
+2026-02-17T11:52:07.104+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.opentofu.org/rafaysystems/rafay v1.1.33 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.opentofu.org/rafaysystems/rafay/1.1.33/darwin_arm64
+2026-02-17T11:52:07.106+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.opentofu.org/rafaysystems/rafay v1.1.52 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.opentofu.org/rafaysystems/rafay/1.1.52/darwin_arm64
+2026-02-17T11:52:07.107+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.opentofu.org/rafaysystems/rafay v1.1.522 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.opentofu.org/rafaysystems/rafay/1.1.522/darwin_arm64
+2026-02-17T11:52:07.108+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.opentofu.org/rafaysystems/rafay v1.1.59 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.opentofu.org/rafaysystems/rafay/1.1.59/darwin_arm64
+2026-02-17T11:52:07.109+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.opentofu.org/rafaysystems/rafay v1.1.88 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.opentofu.org/rafaysystems/rafay/1.1.88/darwin_arm64
+2026-02-17T11:52:07.110+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.opentofu.org/rafaysystems/rafay v1.1.88 for linux_amd64 at /Users/gopim/.terraform.d/plugins/registry.opentofu.org/rafaysystems/rafay/1.1.88/linux_amd64
+2026-02-17T11:52:07.112+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.opentofu.org/rafaysystems/rafay v1.1.99 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.opentofu.org/rafaysystems/rafay/1.1.99/darwin_arm64
+2026-02-17T11:52:07.114+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/hashicorp/template v2.10.0 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/hashicorp/template/2.10.0/darwin_arm64
+2026-02-17T11:52:07.121+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.1.28 for darwin_amd64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.1.28/darwin_amd64
+2026-02-17T11:52:07.122+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.1.28 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.1.28/darwin_arm64
+2026-02-17T11:52:07.124+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.1.29 for darwin_amd64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.1.29/darwin_amd64
+2026-02-17T11:52:07.124+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.1.29 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.1.29/darwin_arm64
+2026-02-17T11:52:07.126+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.1.30 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.1.30/darwin_arm64
+2026-02-17T11:52:07.128+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.1.31 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.1.31/darwin_arm64
+2026-02-17T11:52:07.129+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.1.45 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.1.45/darwin_arm64
+2026-02-17T11:52:07.131+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.1.49 for darwin_amd64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.1.49/darwin_amd64
+2026-02-17T11:52:07.132+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.1.49 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.1.49/darwin_arm64
+2026-02-17T11:52:07.132+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafay/rafay v1.1.50 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafay/rafay/1.1.50/darwin_arm64
+2026-02-17T11:52:07.134+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafaysystems/rafay v1.1.28 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafaysystems/rafay/1.1.28/darwin_arm64
+2026-02-17T11:52:07.135+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafaysystems/rafay v1.1.33 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafaysystems/rafay/1.1.33/darwin_arm64
+2026-02-17T11:52:07.135+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafaysystems/rafay v1.1.52 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafaysystems/rafay/1.1.52/darwin_arm64
+2026-02-17T11:52:07.136+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafaysystems/rafay v1.1.522 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafaysystems/rafay/1.1.522/darwin_arm64
+2026-02-17T11:52:07.137+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafaysystems/rafay v1.1.59 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafaysystems/rafay/1.1.59/darwin_arm64
+2026-02-17T11:52:07.138+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafaysystems/rafay v1.1.88 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafaysystems/rafay/1.1.88/darwin_arm64
+2026-02-17T11:52:07.138+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafaysystems/rafay v1.1.88 for linux_amd64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafaysystems/rafay/1.1.88/linux_amd64
+2026-02-17T11:52:07.140+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rafaysystems/rafay v1.1.99 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rafaysystems/rafay/1.1.99/darwin_arm64
+2026-02-17T11:52:07.143+0530 [TRACE] getproviders.SearchLocalDirectory: found registry.terraform.io/rauto/rafay v1.1.28 for darwin_arm64 at /Users/gopim/.terraform.d/plugins/registry.terraform.io/rauto/rafay/1.1.28/darwin_arm64
+2026-02-17T11:52:07.144+0530 [DEBUG] ignoring non-existing provider search directory /Users/gopim/Library/Application Support/io.terraform/plugins
+2026-02-17T11:52:07.144+0530 [DEBUG] ignoring non-existing provider search directory /Library/Application Support/io.terraform/plugins
+2026-02-17T11:52:07.144+0530 [INFO]  CLI command args: []string{"apply"}
+2026-02-17T11:52:07.147+0530 [TRACE] Meta.Backend: no config given or present on disk, so returning nil config
+2026-02-17T11:52:07.147+0530 [TRACE] Meta.Backend: backend has not previously been initialized in this working directory
+2026-02-17T11:52:07.147+0530 [TRACE] Meta.Backend: using default local state only (no backend configuration, and no existing initialized backend)
+2026-02-17T11:52:07.148+0530 [TRACE] Meta.Backend: instantiated backend of type <nil>
+2026-02-17T11:52:07.148+0530 [DEBUG] checking for provisioner in "."
+2026-02-17T11:52:07.205+0530 [DEBUG] checking for provisioner in "/opt/homebrew/bin"
+2026-02-17T11:52:07.207+0530 [DEBUG] checking for provisioner in "/Users/gopim/.terraform.d/plugins"
+2026-02-17T11:52:07.207+0530 [TRACE] Meta.Backend: backend <nil> does not support operations, so wrapping it in a local backend
+2026-02-17T11:52:07.208+0530 [INFO]  backend/local: starting Apply operation

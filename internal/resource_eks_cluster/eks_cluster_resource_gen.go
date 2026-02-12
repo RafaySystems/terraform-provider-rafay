@@ -5,8 +5,6 @@ package resource_eks_cluster
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -15,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -734,6 +733,58 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												Optional:            true,
 												Description:         "Enable node repair for nodegroup.",
 												MarkdownDescription: "Enable node repair for nodegroup.",
+											},
+											"max_parallel_nodes_repaired_count": schema.Int64Attribute{
+												Optional:            true,
+												Description:         "Maximum count of nodes that can be repaired in parallel.",
+												MarkdownDescription: "Maximum count of nodes that can be repaired in parallel.",
+											},
+											"max_parallel_nodes_repaired_percentage": schema.Int64Attribute{
+												Optional:            true,
+												Description:         "Maximum percentage of nodes that can be repaired in parallel.",
+												MarkdownDescription: "Maximum percentage of nodes that can be repaired in parallel.",
+											},
+											"max_unhealthy_node_threshold_count": schema.Int64Attribute{
+												Optional:            true,
+												Description:         "Maximum count of unhealthy nodes allowed before node repair is triggered.",
+												MarkdownDescription: "Maximum count of unhealthy nodes allowed before node repair is triggered.",
+											},
+											"max_unhealthy_node_threshold_percentage": schema.Int64Attribute{
+												Optional:            true,
+												Description:         "Maximum percentage of unhealthy nodes allowed before node repair is triggered.",
+												MarkdownDescription: "Maximum percentage of unhealthy nodes allowed before node repair is triggered.",
+											},
+											"node_repair_config_overrides": schema.ListNestedAttribute{
+												NestedObject: schema.NestedAttributeObject{
+													Attributes: map[string]schema.Attribute{
+														"min_repair_wait_time_mins": schema.Int64Attribute{
+															Optional:            true,
+															Description:         "Minimum wait time in minutes before repair action is taken.",
+															MarkdownDescription: "Minimum wait time in minutes before repair action is taken.",
+														},
+														"node_monitoring_condition": schema.StringAttribute{
+															Optional:            true,
+															Description:         "The node monitoring condition for this override.",
+															MarkdownDescription: "The node monitoring condition for this override.",
+														},
+														"node_unhealthy_reason": schema.StringAttribute{
+															Optional:            true,
+															Description:         "The node unhealthy reason for this override.",
+															MarkdownDescription: "The node unhealthy reason for this override.",
+														},
+														"repair_action": schema.StringAttribute{
+															Optional:            true,
+															Description:         "The repair action to take (e.g. replace, reboot).",
+															MarkdownDescription: "The repair action to take (e.g. replace, reboot).",
+														},
+													},
+													CustomType: NodeRepairConfigOverridesType{
+														ObjectType: types.ObjectType{
+															AttrTypes: NodeRepairConfigOverridesValue{}.AttributeTypes(ctx),
+														},
+													},
+												},
+												Optional: true,
 											},
 										},
 										CustomType: NodeRepairConfig5Type{
@@ -2148,6 +2199,52 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
+						"auto_zonal_shift_config": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"allowed_windows": schema.ListAttribute{
+										ElementType:         types.StringType,
+										Optional:            true,
+										Description:         "Allowed time windows for auto zonal shift.",
+										MarkdownDescription: "Allowed time windows for auto zonal shift.",
+									},
+									"blocked_dates": schema.ListAttribute{
+										ElementType:         types.StringType,
+										Optional:            true,
+										Description:         "Blocked dates for auto zonal shift.",
+										MarkdownDescription: "Blocked dates for auto zonal shift.",
+									},
+									"blocked_windows": schema.ListAttribute{
+										ElementType:         types.StringType,
+										Optional:            true,
+										Description:         "Blocked time windows for auto zonal shift.",
+										MarkdownDescription: "Blocked time windows for auto zonal shift.",
+									},
+									"blocking_alarms": schema.ListAttribute{
+										ElementType:         types.StringType,
+										Optional:            true,
+										Description:         "Alarms that block auto zonal shift.",
+										MarkdownDescription: "Alarms that block auto zonal shift.",
+									},
+									"enabled": schema.BoolAttribute{
+										Optional:            true,
+										Description:         "Flag to enable or disable auto zonal shift.",
+										MarkdownDescription: "Flag to enable or disable auto zonal shift.",
+									},
+									"outcome_alarms": schema.ListAttribute{
+										ElementType:         types.StringType,
+										Optional:            true,
+										Description:         "Alarms for outcome of auto zonal shift.",
+										MarkdownDescription: "Alarms for outcome of auto zonal shift.",
+									},
+								},
+								CustomType: AutoZonalShiftConfigType{
+									ObjectType: types.ObjectType{
+										AttrTypes: AutoZonalShiftConfigValue{}.AttributeTypes(ctx),
+									},
+								},
+							},
+						},
 						"cloud_watch": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Blocks: map[string]schema.Block{
@@ -3134,6 +3231,58 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 													Optional:            true,
 													Description:         "Enable node repair for nodegroup",
 													MarkdownDescription: "Enable node repair for nodegroup",
+												},
+												"max_parallel_nodes_repaired_count": schema.Int64Attribute{
+													Optional:            true,
+													Description:         "Maximum count of nodes that can be repaired in parallel.",
+													MarkdownDescription: "Maximum count of nodes that can be repaired in parallel.",
+												},
+												"max_parallel_nodes_repaired_percentage": schema.Int64Attribute{
+													Optional:            true,
+													Description:         "Maximum percentage of nodes that can be repaired in parallel.",
+													MarkdownDescription: "Maximum percentage of nodes that can be repaired in parallel.",
+												},
+												"max_unhealthy_node_threshold_count": schema.Int64Attribute{
+													Optional:            true,
+													Description:         "Maximum count of unhealthy nodes allowed before node repair is triggered.",
+													MarkdownDescription: "Maximum count of unhealthy nodes allowed before node repair is triggered.",
+												},
+												"max_unhealthy_node_threshold_percentage": schema.Int64Attribute{
+													Optional:            true,
+													Description:         "Maximum percentage of unhealthy nodes allowed before node repair is triggered.",
+													MarkdownDescription: "Maximum percentage of unhealthy nodes allowed before node repair is triggered.",
+												},
+												"node_repair_config_overrides": schema.ListNestedAttribute{
+													NestedObject: schema.NestedAttributeObject{
+														Attributes: map[string]schema.Attribute{
+															"min_repair_wait_time_mins": schema.Int64Attribute{
+																Optional:            true,
+																Description:         "Minimum wait time in minutes before repair action is taken.",
+																MarkdownDescription: "Minimum wait time in minutes before repair action is taken.",
+															},
+															"node_monitoring_condition": schema.StringAttribute{
+																Optional:            true,
+																Description:         "The node monitoring condition for this override.",
+																MarkdownDescription: "The node monitoring condition for this override.",
+															},
+															"node_unhealthy_reason": schema.StringAttribute{
+																Optional:            true,
+																Description:         "The node unhealthy reason for this override.",
+																MarkdownDescription: "The node unhealthy reason for this override.",
+															},
+															"repair_action": schema.StringAttribute{
+																Optional:            true,
+																Description:         "The repair action to take (e.g. replace, reboot).",
+																MarkdownDescription: "The repair action to take (e.g. replace, reboot).",
+															},
+														},
+														CustomType: NodeRepairConfigOverridesType{
+															ObjectType: types.ObjectType{
+																AttrTypes: NodeRepairConfigOverridesValue{}.AttributeTypes(ctx),
+															},
+														},
+													},
+													Optional: true,
 												},
 											},
 											CustomType: NodeRepairConfig4Type{
@@ -4271,6 +4420,22 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 								CustomType: VpcType{
 									ObjectType: types.ObjectType{
 										AttrTypes: VpcValue{}.AttributeTypes(ctx),
+									},
+								},
+							},
+						},
+						"zonal_shift_config": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"enabled": schema.BoolAttribute{
+										Optional:            true,
+										Description:         "Flag to enable or disable zonal shift.",
+										MarkdownDescription: "Flag to enable or disable zonal shift.",
+									},
+								},
+								CustomType: ZonalShiftConfigType{
+									ObjectType: types.ObjectType{
+										AttrTypes: ZonalShiftConfigValue{}.AttributeTypes(ctx),
 									},
 								},
 							},
@@ -7434,7 +7599,7 @@ func (v CniSpecValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 		attributeTypes,
 		map[string]attr.Value{
 			"security_groups": securityGroups2Val,
-			"subnet":          v.Subnet,
+			"subnet":           v.Subnet,
 		})
 
 	return objVal, diags
@@ -9122,7 +9287,7 @@ func (v DaemonsetOverrideValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 		attributeTypes,
 		map[string]attr.Value{
 			"node_selection_enabled": v.NodeSelectionEnabled,
-			"tolerations":            tolerations2,
+			"tolerations":           tolerations2,
 		})
 
 	return objVal, diags
@@ -10374,6 +10539,24 @@ func (t ClusterConfigType) ValueFromObject(ctx context.Context, in basetypes.Obj
 			fmt.Sprintf(`auto_mode_config expected to be basetypes.ListValue, was: %T`, autoModeConfigAttribute))
 	}
 
+	autoZonalShiftConfigAttribute, ok := attributes["auto_zonal_shift_config"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`auto_zonal_shift_config is missing from object`)
+
+		return nil, diags
+	}
+
+	autoZonalShiftConfigVal, ok := autoZonalShiftConfigAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`auto_zonal_shift_config expected to be basetypes.ListValue, was: %T`, autoZonalShiftConfigAttribute))
+	}
+
 	availabilityZonesAttribute, ok := attributes["availability_zones"]
 
 	if !ok {
@@ -10662,6 +10845,24 @@ func (t ClusterConfigType) ValueFromObject(ctx context.Context, in basetypes.Obj
 			fmt.Sprintf(`vpc expected to be basetypes.ListValue, was: %T`, vpcAttribute))
 	}
 
+	zonalShiftConfigAttribute, ok := attributes["zonal_shift_config"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`zonal_shift_config is missing from object`)
+
+		return nil, diags
+	}
+
+	zonalShiftConfigVal, ok := zonalShiftConfigAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`zonal_shift_config expected to be basetypes.ListValue, was: %T`, zonalShiftConfigAttribute))
+	}
+
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -10672,6 +10873,7 @@ func (t ClusterConfigType) ValueFromObject(ctx context.Context, in basetypes.Obj
 		AddonsConfig:            addonsConfigVal,
 		Apiversion:              apiversionVal,
 		AutoModeConfig:          autoModeConfigVal,
+		AutoZonalShiftConfig:    autoZonalShiftConfigVal,
 		AvailabilityZones:       availabilityZonesVal,
 		CloudWatch:              cloudWatchVal,
 		FargateProfiles:         fargateProfilesVal,
@@ -10688,6 +10890,7 @@ func (t ClusterConfigType) ValueFromObject(ctx context.Context, in basetypes.Obj
 		PrivateCluster:          privateClusterVal,
 		SecretsEncryption:       secretsEncryptionVal,
 		Vpc:                     vpcVal,
+		ZonalShiftConfig:        zonalShiftConfigVal,
 		state:                   attr.ValueStateKnown,
 	}, diags
 }
@@ -10845,6 +11048,24 @@ func NewClusterConfigValue(attributeTypes map[string]attr.Type, attributes map[s
 			fmt.Sprintf(`auto_mode_config expected to be basetypes.ListValue, was: %T`, autoModeConfigAttribute))
 	}
 
+	autoZonalShiftConfigAttribute, ok := attributes["auto_zonal_shift_config"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`auto_zonal_shift_config is missing from object`)
+
+		return NewClusterConfigValueUnknown(), diags
+	}
+
+	autoZonalShiftConfigVal, ok := autoZonalShiftConfigAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`auto_zonal_shift_config expected to be basetypes.ListValue, was: %T`, autoZonalShiftConfigAttribute))
+	}
+
 	availabilityZonesAttribute, ok := attributes["availability_zones"]
 
 	if !ok {
@@ -11133,6 +11354,24 @@ func NewClusterConfigValue(attributeTypes map[string]attr.Type, attributes map[s
 			fmt.Sprintf(`vpc expected to be basetypes.ListValue, was: %T`, vpcAttribute))
 	}
 
+	zonalShiftConfigAttribute, ok := attributes["zonal_shift_config"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`zonal_shift_config is missing from object`)
+
+		return NewClusterConfigValueUnknown(), diags
+	}
+
+	zonalShiftConfigVal, ok := zonalShiftConfigAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`zonal_shift_config expected to be basetypes.ListValue, was: %T`, zonalShiftConfigAttribute))
+	}
+
 	if diags.HasError() {
 		return NewClusterConfigValueUnknown(), diags
 	}
@@ -11143,6 +11382,7 @@ func NewClusterConfigValue(attributeTypes map[string]attr.Type, attributes map[s
 		AddonsConfig:            addonsConfigVal,
 		Apiversion:              apiversionVal,
 		AutoModeConfig:          autoModeConfigVal,
+		AutoZonalShiftConfig:    autoZonalShiftConfigVal,
 		AvailabilityZones:       availabilityZonesVal,
 		CloudWatch:              cloudWatchVal,
 		FargateProfiles:         fargateProfilesVal,
@@ -11159,6 +11399,7 @@ func NewClusterConfigValue(attributeTypes map[string]attr.Type, attributes map[s
 		PrivateCluster:          privateClusterVal,
 		SecretsEncryption:       secretsEncryptionVal,
 		Vpc:                     vpcVal,
+		ZonalShiftConfig:        zonalShiftConfigVal,
 		state:                   attr.ValueStateKnown,
 	}, diags
 }
@@ -11236,6 +11477,7 @@ type ClusterConfigValue struct {
 	AddonsConfig            basetypes.ListValue   `tfsdk:"addons_config"`
 	Apiversion              basetypes.StringValue `tfsdk:"apiversion"`
 	AutoModeConfig          basetypes.ListValue   `tfsdk:"auto_mode_config"`
+	AutoZonalShiftConfig    basetypes.ListValue   `tfsdk:"auto_zonal_shift_config"`
 	AvailabilityZones       basetypes.ListValue   `tfsdk:"availability_zones"`
 	CloudWatch              basetypes.ListValue   `tfsdk:"cloud_watch"`
 	FargateProfiles         basetypes.ListValue   `tfsdk:"fargate_profiles"`
@@ -11252,11 +11494,12 @@ type ClusterConfigValue struct {
 	PrivateCluster          basetypes.ListValue   `tfsdk:"private_cluster"`
 	SecretsEncryption       basetypes.ListValue   `tfsdk:"secrets_encryption"`
 	Vpc                     basetypes.ListValue   `tfsdk:"vpc"`
+	ZonalShiftConfig        basetypes.ListValue   `tfsdk:"zonal_shift_config"`
 	state                   attr.ValueState
 }
 
 func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 21)
+	attrTypes := make(map[string]tftypes.Type, 23)
 
 	var val tftypes.Value
 	var err error
@@ -11273,6 +11516,9 @@ func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 	attrTypes["apiversion"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["auto_mode_config"] = basetypes.ListType{
 		ElemType: AutoModeConfigValue{}.Type(ctx),
+	}.TerraformType(ctx)
+	attrTypes["auto_zonal_shift_config"] = basetypes.ListType{
+		ElemType: AutoZonalShiftConfigValue{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["availability_zones"] = basetypes.ListType{
 		ElemType: types.StringType,
@@ -11320,12 +11566,15 @@ func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 	attrTypes["vpc"] = basetypes.ListType{
 		ElemType: VpcValue{}.Type(ctx),
 	}.TerraformType(ctx)
+	attrTypes["zonal_shift_config"] = basetypes.ListType{
+		ElemType: ZonalShiftConfigValue{}.Type(ctx),
+	}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 21)
+		vals := make(map[string]tftypes.Value, 23)
 
 		val, err = v.AccessConfig.ToTerraformValue(ctx)
 
@@ -11366,6 +11615,14 @@ func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 		}
 
 		vals["auto_mode_config"] = val
+
+		val, err = v.AutoZonalShiftConfig.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["auto_zonal_shift_config"] = val
 
 		val, err = v.AvailabilityZones.ToTerraformValue(ctx)
 
@@ -11494,6 +11751,14 @@ func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 		}
 
 		vals["vpc"] = val
+
+		val, err = v.ZonalShiftConfig.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["zonal_shift_config"] = val
 
 		if err := tftypes.ValidateValue(objectType, vals); err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
@@ -11635,6 +11900,35 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			AutoModeConfigType{
 				basetypes.ObjectType{
 					AttrTypes: AutoModeConfigValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	autoZonalShiftConfig := types.ListValueMust(
+		AutoZonalShiftConfigType{
+			basetypes.ObjectType{
+				AttrTypes: AutoZonalShiftConfigValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.AutoZonalShiftConfig.Elements(),
+	)
+
+	if v.AutoZonalShiftConfig.IsNull() {
+		autoZonalShiftConfig = types.ListNull(
+			AutoZonalShiftConfigType{
+				basetypes.ObjectType{
+					AttrTypes: AutoZonalShiftConfigValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	if v.AutoZonalShiftConfig.IsUnknown() {
+		autoZonalShiftConfig = types.ListUnknown(
+			AutoZonalShiftConfigType{
+				basetypes.ObjectType{
+					AttrTypes: AutoZonalShiftConfigValue{}.AttributeTypes(ctx),
 				},
 			},
 		)
@@ -12046,6 +12340,35 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		)
 	}
 
+	zonalShiftConfig := types.ListValueMust(
+		ZonalShiftConfigType{
+			basetypes.ObjectType{
+				AttrTypes: ZonalShiftConfigValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.ZonalShiftConfig.Elements(),
+	)
+
+	if v.ZonalShiftConfig.IsNull() {
+		zonalShiftConfig = types.ListNull(
+			ZonalShiftConfigType{
+				basetypes.ObjectType{
+					AttrTypes: ZonalShiftConfigValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	if v.ZonalShiftConfig.IsUnknown() {
+		zonalShiftConfig = types.ListUnknown(
+			ZonalShiftConfigType{
+				basetypes.ObjectType{
+					AttrTypes: ZonalShiftConfigValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
 	var availabilityZonesVal basetypes.ListValue
 	switch {
 	case v.AvailabilityZones.IsUnknown():
@@ -12072,6 +12395,9 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"apiversion": basetypes.StringType{},
 			"auto_mode_config": basetypes.ListType{
 				ElemType: AutoModeConfigValue{}.Type(ctx),
+			},
+			"auto_zonal_shift_config": basetypes.ListType{
+				ElemType: AutoZonalShiftConfigValue{}.Type(ctx),
 			},
 			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
@@ -12119,6 +12445,9 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"vpc": basetypes.ListType{
 				ElemType: VpcValue{}.Type(ctx),
 			},
+			"zonal_shift_config": basetypes.ListType{
+				ElemType: ZonalShiftConfigValue{}.Type(ctx),
+			},
 		}), diags
 	}
 
@@ -12135,6 +12464,9 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		"apiversion": basetypes.StringType{},
 		"auto_mode_config": basetypes.ListType{
 			ElemType: AutoModeConfigValue{}.Type(ctx),
+		},
+		"auto_zonal_shift_config": basetypes.ListType{
+			ElemType: AutoZonalShiftConfigValue{}.Type(ctx),
 		},
 		"availability_zones": basetypes.ListType{
 			ElemType: types.StringType,
@@ -12182,6 +12514,9 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		"vpc": basetypes.ListType{
 			ElemType: VpcValue{}.Type(ctx),
 		},
+		"zonal_shift_config": basetypes.ListType{
+			ElemType: ZonalShiftConfigValue{}.Type(ctx),
+		},
 	}
 
 	if v.IsNull() {
@@ -12200,22 +12535,24 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"addons_config":             addonsConfig,
 			"apiversion":                v.Apiversion,
 			"auto_mode_config":          autoModeConfig,
+			"auto_zonal_shift_config":   autoZonalShiftConfig,
 			"availability_zones":        availabilityZonesVal,
 			"cloud_watch":               cloudWatch,
 			"fargate_profiles":          fargateProfiles,
-			"iam":                       iam3,
+			"iam":                      iam3,
 			"identity_mappings":         identityMappings,
 			"identity_providers":        identityProviders,
 			"kind":                      v.Kind,
 			"kubernetes_network_config": kubernetesNetworkConfig,
 			"managed_nodegroups":        managedNodegroups,
 			"managed_nodegroups_map":    managedNodegroupsMap,
-			"metadata":                  metadata2,
+			"metadata":                 metadata2,
 			"node_groups":               nodeGroups,
 			"node_groups_map":           nodeGroupsMap,
 			"private_cluster":           privateCluster,
 			"secrets_encryption":        secretsEncryption,
 			"vpc":                       vpc,
+			"zonal_shift_config":        zonalShiftConfig,
 		})
 
 	return objVal, diags
@@ -12253,6 +12590,10 @@ func (v ClusterConfigValue) Equal(o attr.Value) bool {
 	}
 
 	if !v.AutoModeConfig.Equal(other.AutoModeConfig) {
+		return false
+	}
+
+	if !v.AutoZonalShiftConfig.Equal(other.AutoZonalShiftConfig) {
 		return false
 	}
 
@@ -12320,6 +12661,10 @@ func (v ClusterConfigValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.ZonalShiftConfig.Equal(other.ZonalShiftConfig) {
+		return false
+	}
+
 	return true
 }
 
@@ -12345,6 +12690,9 @@ func (v ClusterConfigValue) AttributeTypes(ctx context.Context) map[string]attr.
 		"apiversion": basetypes.StringType{},
 		"auto_mode_config": basetypes.ListType{
 			ElemType: AutoModeConfigValue{}.Type(ctx),
+		},
+		"auto_zonal_shift_config": basetypes.ListType{
+			ElemType: AutoZonalShiftConfigValue{}.Type(ctx),
 		},
 		"availability_zones": basetypes.ListType{
 			ElemType: types.StringType,
@@ -12391,6 +12739,9 @@ func (v ClusterConfigValue) AttributeTypes(ctx context.Context) map[string]attr.
 		},
 		"vpc": basetypes.ListType{
 			ElemType: VpcValue{}.Type(ctx),
+		},
+		"zonal_shift_config": basetypes.ListType{
+			ElemType: ZonalShiftConfigValue{}.Type(ctx),
 		},
 	}
 }
@@ -15627,36 +15978,36 @@ func (v ManagedNodegroupsMapValue) ToObjectValue(ctx context.Context) (basetypes
 			"ami_family":                 v.AmiFamily,
 			"asg_suspend_processes":      asgSuspendProcessesVal,
 			"availability_zones":         availabilityZonesVal,
-			"bottle_rocket":              bottleRocket5,
+			"bottle_rocket":             bottleRocket5,
 			"desired_capacity":           v.DesiredCapacity,
 			"disable_imdsv1":             v.DisableImdsv1,
 			"disable_pods_imds":          v.DisablePodsImds,
 			"ebs_optimized":              v.EbsOptimized,
 			"efa_enabled":                v.EfaEnabled,
 			"enable_detailed_monitoring": v.EnableDetailedMonitoring,
-			"iam":                        iam5,
+			"iam":                       iam5,
 			"instance_name":              v.InstanceName,
 			"instance_prefix":            v.InstancePrefix,
-			"instance_selector":          instanceSelector5,
+			"instance_selector":         instanceSelector5,
 			"instance_type":              v.InstanceType,
 			"instance_types":             instanceTypesVal,
 			"labels":                     labelsVal,
-			"launch_template":            launchTemplate5,
+			"launch_template":           launchTemplate5,
 			"max_pods_per_node":          v.MaxPodsPerNode,
 			"max_size":                   v.MaxSize,
 			"min_size":                   v.MinSize,
-			"node_repair_config":         nodeRepairConfig5,
+			"node_repair_config":        nodeRepairConfig5,
 			"override_bootstrap_command": v.OverrideBootstrapCommand,
-			"placement":                  placement5,
+			"placement":                 placement5,
 			"pre_bootstrap_commands":     preBootstrapCommandsVal,
 			"private_networking":         v.PrivateNetworking,
-			"security_groups":            securityGroups5,
+			"security_groups":           securityGroups5,
 			"spot":                       v.Spot,
-			"ssh":                        ssh5,
+			"ssh":                       ssh5,
 			"subnets":                    subnetsVal,
 			"tags":                       tagsVal,
-			"taints":                     taints5,
-			"update_config":              updateConfig5,
+			"taints":                    taints5,
+			"update_config":             updateConfig5,
 			"version":                    v.Version,
 			"volume_encrypted":           v.VolumeEncrypted,
 			"volume_iops":                v.VolumeIops,
@@ -17035,13 +17386,13 @@ func (v Iam5Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		attributeTypes,
 		map[string]attr.Value{
 			"attach_policy":                      attachPolicy5,
-			"attach_policy_arns":                 attachPolicyArnsVal,
-			"attach_policy_v2":                   v.AttachPolicyV2,
+			"attach_policy_arns":                  attachPolicyArnsVal,
+			"attach_policy_v2":                    v.AttachPolicyV2,
 			"iam_node_group_with_addon_policies": iamNodeGroupWithAddonPolicies5,
-			"instance_profile_arn":               v.InstanceProfileArn,
-			"instance_role_arn":                  v.InstanceRoleArn,
-			"instance_role_name":                 v.InstanceRoleName,
-			"instance_role_permission_boundary":  v.InstanceRolePermissionBoundary,
+			"instance_profile_arn":                v.InstanceProfileArn,
+			"instance_role_arn":                   v.InstanceRoleArn,
+			"instance_role_name":                  v.InstanceRoleName,
+			"instance_role_permission_boundary":   v.InstanceRolePermissionBoundary,
 		})
 
 	return objVal, diags
@@ -17537,9 +17888,9 @@ func (v AttachPolicy5Value) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"id":        v.Id,
+			"id":         v.Id,
 			"statement": statement5,
-			"version":   v.Version,
+			"version":    v.Version,
 		})
 
 	return objVal, diags
@@ -20311,13 +20662,108 @@ func (t NodeRepairConfig5Type) ValueFromObject(ctx context.Context, in basetypes
 			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
 	}
 
+	maxParallelNodesRepairedCountAttribute, ok := attributes["max_parallel_nodes_repaired_count"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_parallel_nodes_repaired_count is missing from object`)
+
+		return nil, diags
+	}
+
+	maxParallelNodesRepairedCountVal, ok := maxParallelNodesRepairedCountAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_parallel_nodes_repaired_count expected to be basetypes.Int64Value, was: %T`, maxParallelNodesRepairedCountAttribute))
+	}
+
+	maxParallelNodesRepairedPercentageAttribute, ok := attributes["max_parallel_nodes_repaired_percentage"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_parallel_nodes_repaired_percentage is missing from object`)
+
+		return nil, diags
+	}
+
+	maxParallelNodesRepairedPercentageVal, ok := maxParallelNodesRepairedPercentageAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_parallel_nodes_repaired_percentage expected to be basetypes.Int64Value, was: %T`, maxParallelNodesRepairedPercentageAttribute))
+	}
+
+	maxUnhealthyNodeThresholdCountAttribute, ok := attributes["max_unhealthy_node_threshold_count"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_unhealthy_node_threshold_count is missing from object`)
+
+		return nil, diags
+	}
+
+	maxUnhealthyNodeThresholdCountVal, ok := maxUnhealthyNodeThresholdCountAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_unhealthy_node_threshold_count expected to be basetypes.Int64Value, was: %T`, maxUnhealthyNodeThresholdCountAttribute))
+	}
+
+	maxUnhealthyNodeThresholdPercentageAttribute, ok := attributes["max_unhealthy_node_threshold_percentage"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_unhealthy_node_threshold_percentage is missing from object`)
+
+		return nil, diags
+	}
+
+	maxUnhealthyNodeThresholdPercentageVal, ok := maxUnhealthyNodeThresholdPercentageAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_unhealthy_node_threshold_percentage expected to be basetypes.Int64Value, was: %T`, maxUnhealthyNodeThresholdPercentageAttribute))
+	}
+
+	nodeRepairConfigOverridesAttribute, ok := attributes["node_repair_config_overrides"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_repair_config_overrides is missing from object`)
+
+		return nil, diags
+	}
+
+	nodeRepairConfigOverridesVal, ok := nodeRepairConfigOverridesAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_repair_config_overrides expected to be basetypes.ListValue, was: %T`, nodeRepairConfigOverridesAttribute))
+	}
+
 	if diags.HasError() {
 		return nil, diags
 	}
 
 	return NodeRepairConfig5Value{
-		Enabled: enabledVal,
-		state:   attr.ValueStateKnown,
+		Enabled:                             enabledVal,
+		MaxParallelNodesRepairedCount:       maxParallelNodesRepairedCountVal,
+		MaxParallelNodesRepairedPercentage:  maxParallelNodesRepairedPercentageVal,
+		MaxUnhealthyNodeThresholdCount:      maxUnhealthyNodeThresholdCountVal,
+		MaxUnhealthyNodeThresholdPercentage: maxUnhealthyNodeThresholdPercentageVal,
+		NodeRepairConfigOverrides:           nodeRepairConfigOverridesVal,
+		state:                               attr.ValueStateKnown,
 	}, diags
 }
 
@@ -20402,13 +20848,108 @@ func NewNodeRepairConfig5Value(attributeTypes map[string]attr.Type, attributes m
 			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
 	}
 
+	maxParallelNodesRepairedCountAttribute, ok := attributes["max_parallel_nodes_repaired_count"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_parallel_nodes_repaired_count is missing from object`)
+
+		return NewNodeRepairConfig5ValueUnknown(), diags
+	}
+
+	maxParallelNodesRepairedCountVal, ok := maxParallelNodesRepairedCountAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_parallel_nodes_repaired_count expected to be basetypes.Int64Value, was: %T`, maxParallelNodesRepairedCountAttribute))
+	}
+
+	maxParallelNodesRepairedPercentageAttribute, ok := attributes["max_parallel_nodes_repaired_percentage"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_parallel_nodes_repaired_percentage is missing from object`)
+
+		return NewNodeRepairConfig5ValueUnknown(), diags
+	}
+
+	maxParallelNodesRepairedPercentageVal, ok := maxParallelNodesRepairedPercentageAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_parallel_nodes_repaired_percentage expected to be basetypes.Int64Value, was: %T`, maxParallelNodesRepairedPercentageAttribute))
+	}
+
+	maxUnhealthyNodeThresholdCountAttribute, ok := attributes["max_unhealthy_node_threshold_count"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_unhealthy_node_threshold_count is missing from object`)
+
+		return NewNodeRepairConfig5ValueUnknown(), diags
+	}
+
+	maxUnhealthyNodeThresholdCountVal, ok := maxUnhealthyNodeThresholdCountAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_unhealthy_node_threshold_count expected to be basetypes.Int64Value, was: %T`, maxUnhealthyNodeThresholdCountAttribute))
+	}
+
+	maxUnhealthyNodeThresholdPercentageAttribute, ok := attributes["max_unhealthy_node_threshold_percentage"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_unhealthy_node_threshold_percentage is missing from object`)
+
+		return NewNodeRepairConfig5ValueUnknown(), diags
+	}
+
+	maxUnhealthyNodeThresholdPercentageVal, ok := maxUnhealthyNodeThresholdPercentageAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_unhealthy_node_threshold_percentage expected to be basetypes.Int64Value, was: %T`, maxUnhealthyNodeThresholdPercentageAttribute))
+	}
+
+	nodeRepairConfigOverridesAttribute, ok := attributes["node_repair_config_overrides"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_repair_config_overrides is missing from object`)
+
+		return NewNodeRepairConfig5ValueUnknown(), diags
+	}
+
+	nodeRepairConfigOverridesVal, ok := nodeRepairConfigOverridesAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_repair_config_overrides expected to be basetypes.ListValue, was: %T`, nodeRepairConfigOverridesAttribute))
+	}
+
 	if diags.HasError() {
 		return NewNodeRepairConfig5ValueUnknown(), diags
 	}
 
 	return NodeRepairConfig5Value{
-		Enabled: enabledVal,
-		state:   attr.ValueStateKnown,
+		Enabled:                             enabledVal,
+		MaxParallelNodesRepairedCount:       maxParallelNodesRepairedCountVal,
+		MaxParallelNodesRepairedPercentage:  maxParallelNodesRepairedPercentageVal,
+		MaxUnhealthyNodeThresholdCount:      maxUnhealthyNodeThresholdCountVal,
+		MaxUnhealthyNodeThresholdPercentage: maxUnhealthyNodeThresholdPercentageVal,
+		NodeRepairConfigOverrides:           nodeRepairConfigOverridesVal,
+		state:                               attr.ValueStateKnown,
 	}, diags
 }
 
@@ -20480,23 +21021,35 @@ func (t NodeRepairConfig5Type) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = NodeRepairConfig5Value{}
 
 type NodeRepairConfig5Value struct {
-	Enabled basetypes.BoolValue `tfsdk:"enabled"`
-	state   attr.ValueState
+	Enabled                             basetypes.BoolValue  `tfsdk:"enabled"`
+	MaxParallelNodesRepairedCount       basetypes.Int64Value `tfsdk:"max_parallel_nodes_repaired_count"`
+	MaxParallelNodesRepairedPercentage  basetypes.Int64Value `tfsdk:"max_parallel_nodes_repaired_percentage"`
+	MaxUnhealthyNodeThresholdCount      basetypes.Int64Value `tfsdk:"max_unhealthy_node_threshold_count"`
+	MaxUnhealthyNodeThresholdPercentage basetypes.Int64Value `tfsdk:"max_unhealthy_node_threshold_percentage"`
+	NodeRepairConfigOverrides           basetypes.ListValue  `tfsdk:"node_repair_config_overrides"`
+	state                               attr.ValueState
 }
 
 func (v NodeRepairConfig5Value) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 1)
+	attrTypes := make(map[string]tftypes.Type, 6)
 
 	var val tftypes.Value
 	var err error
 
 	attrTypes["enabled"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["max_parallel_nodes_repaired_count"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["max_parallel_nodes_repaired_percentage"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["max_unhealthy_node_threshold_count"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["max_unhealthy_node_threshold_percentage"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["node_repair_config_overrides"] = basetypes.ListType{
+		ElemType: NodeRepairConfigOverridesValue{}.Type(ctx),
+	}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 1)
+		vals := make(map[string]tftypes.Value, 6)
 
 		val, err = v.Enabled.ToTerraformValue(ctx)
 
@@ -20505,6 +21058,46 @@ func (v NodeRepairConfig5Value) ToTerraformValue(ctx context.Context) (tftypes.V
 		}
 
 		vals["enabled"] = val
+
+		val, err = v.MaxParallelNodesRepairedCount.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["max_parallel_nodes_repaired_count"] = val
+
+		val, err = v.MaxParallelNodesRepairedPercentage.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["max_parallel_nodes_repaired_percentage"] = val
+
+		val, err = v.MaxUnhealthyNodeThresholdCount.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["max_unhealthy_node_threshold_count"] = val
+
+		val, err = v.MaxUnhealthyNodeThresholdPercentage.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["max_unhealthy_node_threshold_percentage"] = val
+
+		val, err = v.NodeRepairConfigOverrides.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["node_repair_config_overrides"] = val
 
 		if err := tftypes.ValidateValue(objectType, vals); err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
@@ -20535,8 +21128,44 @@ func (v NodeRepairConfig5Value) String() string {
 func (v NodeRepairConfig5Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
+	nodeRepairConfigOverrides := types.ListValueMust(
+		NodeRepairConfigOverridesType{
+			basetypes.ObjectType{
+				AttrTypes: NodeRepairConfigOverridesValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.NodeRepairConfigOverrides.Elements(),
+	)
+
+	if v.NodeRepairConfigOverrides.IsNull() {
+		nodeRepairConfigOverrides = types.ListNull(
+			NodeRepairConfigOverridesType{
+				basetypes.ObjectType{
+					AttrTypes: NodeRepairConfigOverridesValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	if v.NodeRepairConfigOverrides.IsUnknown() {
+		nodeRepairConfigOverrides = types.ListUnknown(
+			NodeRepairConfigOverridesType{
+				basetypes.ObjectType{
+					AttrTypes: NodeRepairConfigOverridesValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
 	attributeTypes := map[string]attr.Type{
-		"enabled": basetypes.BoolType{},
+		"enabled":                                 basetypes.BoolType{},
+		"max_parallel_nodes_repaired_count":       basetypes.Int64Type{},
+		"max_parallel_nodes_repaired_percentage":  basetypes.Int64Type{},
+		"max_unhealthy_node_threshold_count":      basetypes.Int64Type{},
+		"max_unhealthy_node_threshold_percentage": basetypes.Int64Type{},
+		"node_repair_config_overrides": basetypes.ListType{
+			ElemType: NodeRepairConfigOverridesValue{}.Type(ctx),
+		},
 	}
 
 	if v.IsNull() {
@@ -20550,7 +21179,12 @@ func (v NodeRepairConfig5Value) ToObjectValue(ctx context.Context) (basetypes.Ob
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"enabled": v.Enabled,
+			"enabled":                                 v.Enabled,
+			"max_parallel_nodes_repaired_count":       v.MaxParallelNodesRepairedCount,
+			"max_parallel_nodes_repaired_percentage":  v.MaxParallelNodesRepairedPercentage,
+			"max_unhealthy_node_threshold_count":      v.MaxUnhealthyNodeThresholdCount,
+			"max_unhealthy_node_threshold_percentage": v.MaxUnhealthyNodeThresholdPercentage,
+			"node_repair_config_overrides":            nodeRepairConfigOverrides,
 		})
 
 	return objVal, diags
@@ -20575,6 +21209,26 @@ func (v NodeRepairConfig5Value) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.MaxParallelNodesRepairedCount.Equal(other.MaxParallelNodesRepairedCount) {
+		return false
+	}
+
+	if !v.MaxParallelNodesRepairedPercentage.Equal(other.MaxParallelNodesRepairedPercentage) {
+		return false
+	}
+
+	if !v.MaxUnhealthyNodeThresholdCount.Equal(other.MaxUnhealthyNodeThresholdCount) {
+		return false
+	}
+
+	if !v.MaxUnhealthyNodeThresholdPercentage.Equal(other.MaxUnhealthyNodeThresholdPercentage) {
+		return false
+	}
+
+	if !v.NodeRepairConfigOverrides.Equal(other.NodeRepairConfigOverrides) {
+		return false
+	}
+
 	return true
 }
 
@@ -20588,7 +21242,503 @@ func (v NodeRepairConfig5Value) Type(ctx context.Context) attr.Type {
 
 func (v NodeRepairConfig5Value) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"enabled": basetypes.BoolType{},
+		"enabled":                                 basetypes.BoolType{},
+		"max_parallel_nodes_repaired_count":       basetypes.Int64Type{},
+		"max_parallel_nodes_repaired_percentage":  basetypes.Int64Type{},
+		"max_unhealthy_node_threshold_count":      basetypes.Int64Type{},
+		"max_unhealthy_node_threshold_percentage": basetypes.Int64Type{},
+		"node_repair_config_overrides": basetypes.ListType{
+			ElemType: NodeRepairConfigOverridesValue{}.Type(ctx),
+		},
+	}
+}
+
+var _ basetypes.ObjectTypable = NodeRepairConfigOverridesType{}
+
+type NodeRepairConfigOverridesType struct {
+	basetypes.ObjectType
+}
+
+func (t NodeRepairConfigOverridesType) Equal(o attr.Type) bool {
+	other, ok := o.(NodeRepairConfigOverridesType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t NodeRepairConfigOverridesType) String() string {
+	return "NodeRepairConfigOverridesType"
+}
+
+func (t NodeRepairConfigOverridesType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	minRepairWaitTimeMinsAttribute, ok := attributes["min_repair_wait_time_mins"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`min_repair_wait_time_mins is missing from object`)
+
+		return nil, diags
+	}
+
+	minRepairWaitTimeMinsVal, ok := minRepairWaitTimeMinsAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`min_repair_wait_time_mins expected to be basetypes.Int64Value, was: %T`, minRepairWaitTimeMinsAttribute))
+	}
+
+	nodeMonitoringConditionAttribute, ok := attributes["node_monitoring_condition"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_monitoring_condition is missing from object`)
+
+		return nil, diags
+	}
+
+	nodeMonitoringConditionVal, ok := nodeMonitoringConditionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_monitoring_condition expected to be basetypes.StringValue, was: %T`, nodeMonitoringConditionAttribute))
+	}
+
+	nodeUnhealthyReasonAttribute, ok := attributes["node_unhealthy_reason"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_unhealthy_reason is missing from object`)
+
+		return nil, diags
+	}
+
+	nodeUnhealthyReasonVal, ok := nodeUnhealthyReasonAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_unhealthy_reason expected to be basetypes.StringValue, was: %T`, nodeUnhealthyReasonAttribute))
+	}
+
+	repairActionAttribute, ok := attributes["repair_action"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`repair_action is missing from object`)
+
+		return nil, diags
+	}
+
+	repairActionVal, ok := repairActionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`repair_action expected to be basetypes.StringValue, was: %T`, repairActionAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return NodeRepairConfigOverridesValue{
+		MinRepairWaitTimeMins:   minRepairWaitTimeMinsVal,
+		NodeMonitoringCondition: nodeMonitoringConditionVal,
+		NodeUnhealthyReason:     nodeUnhealthyReasonVal,
+		RepairAction:            repairActionVal,
+		state:                   attr.ValueStateKnown,
+	}, diags
+}
+
+func NewNodeRepairConfigOverridesValueNull() NodeRepairConfigOverridesValue {
+	return NodeRepairConfigOverridesValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewNodeRepairConfigOverridesValueUnknown() NodeRepairConfigOverridesValue {
+	return NodeRepairConfigOverridesValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewNodeRepairConfigOverridesValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (NodeRepairConfigOverridesValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing NodeRepairConfigOverridesValue Attribute Value",
+				"While creating a NodeRepairConfigOverridesValue value, a missing attribute value was detected. "+
+					"A NodeRepairConfigOverridesValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("NodeRepairConfigOverridesValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid NodeRepairConfigOverridesValue Attribute Type",
+				"While creating a NodeRepairConfigOverridesValue value, an invalid attribute value was detected. "+
+					"A NodeRepairConfigOverridesValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("NodeRepairConfigOverridesValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("NodeRepairConfigOverridesValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra NodeRepairConfigOverridesValue Attribute Value",
+				"While creating a NodeRepairConfigOverridesValue value, an extra attribute value was detected. "+
+					"A NodeRepairConfigOverridesValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra NodeRepairConfigOverridesValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewNodeRepairConfigOverridesValueUnknown(), diags
+	}
+
+	minRepairWaitTimeMinsAttribute, ok := attributes["min_repair_wait_time_mins"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`min_repair_wait_time_mins is missing from object`)
+
+		return NewNodeRepairConfigOverridesValueUnknown(), diags
+	}
+
+	minRepairWaitTimeMinsVal, ok := minRepairWaitTimeMinsAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`min_repair_wait_time_mins expected to be basetypes.Int64Value, was: %T`, minRepairWaitTimeMinsAttribute))
+	}
+
+	nodeMonitoringConditionAttribute, ok := attributes["node_monitoring_condition"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_monitoring_condition is missing from object`)
+
+		return NewNodeRepairConfigOverridesValueUnknown(), diags
+	}
+
+	nodeMonitoringConditionVal, ok := nodeMonitoringConditionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_monitoring_condition expected to be basetypes.StringValue, was: %T`, nodeMonitoringConditionAttribute))
+	}
+
+	nodeUnhealthyReasonAttribute, ok := attributes["node_unhealthy_reason"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_unhealthy_reason is missing from object`)
+
+		return NewNodeRepairConfigOverridesValueUnknown(), diags
+	}
+
+	nodeUnhealthyReasonVal, ok := nodeUnhealthyReasonAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_unhealthy_reason expected to be basetypes.StringValue, was: %T`, nodeUnhealthyReasonAttribute))
+	}
+
+	repairActionAttribute, ok := attributes["repair_action"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`repair_action is missing from object`)
+
+		return NewNodeRepairConfigOverridesValueUnknown(), diags
+	}
+
+	repairActionVal, ok := repairActionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`repair_action expected to be basetypes.StringValue, was: %T`, repairActionAttribute))
+	}
+
+	if diags.HasError() {
+		return NewNodeRepairConfigOverridesValueUnknown(), diags
+	}
+
+	return NodeRepairConfigOverridesValue{
+		MinRepairWaitTimeMins:   minRepairWaitTimeMinsVal,
+		NodeMonitoringCondition: nodeMonitoringConditionVal,
+		NodeUnhealthyReason:     nodeUnhealthyReasonVal,
+		RepairAction:            repairActionVal,
+		state:                   attr.ValueStateKnown,
+	}, diags
+}
+
+func NewNodeRepairConfigOverridesValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) NodeRepairConfigOverridesValue {
+	object, diags := NewNodeRepairConfigOverridesValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewNodeRepairConfigOverridesValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t NodeRepairConfigOverridesType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewNodeRepairConfigOverridesValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewNodeRepairConfigOverridesValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewNodeRepairConfigOverridesValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewNodeRepairConfigOverridesValueMust(NodeRepairConfigOverridesValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t NodeRepairConfigOverridesType) ValueType(ctx context.Context) attr.Value {
+	return NodeRepairConfigOverridesValue{}
+}
+
+var _ basetypes.ObjectValuable = NodeRepairConfigOverridesValue{}
+
+type NodeRepairConfigOverridesValue struct {
+	MinRepairWaitTimeMins   basetypes.Int64Value  `tfsdk:"min_repair_wait_time_mins"`
+	NodeMonitoringCondition basetypes.StringValue `tfsdk:"node_monitoring_condition"`
+	NodeUnhealthyReason     basetypes.StringValue `tfsdk:"node_unhealthy_reason"`
+	RepairAction            basetypes.StringValue `tfsdk:"repair_action"`
+	state                   attr.ValueState
+}
+
+func (v NodeRepairConfigOverridesValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 4)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["min_repair_wait_time_mins"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["node_monitoring_condition"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["node_unhealthy_reason"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["repair_action"] = basetypes.StringType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 4)
+
+		val, err = v.MinRepairWaitTimeMins.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["min_repair_wait_time_mins"] = val
+
+		val, err = v.NodeMonitoringCondition.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["node_monitoring_condition"] = val
+
+		val, err = v.NodeUnhealthyReason.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["node_unhealthy_reason"] = val
+
+		val, err = v.RepairAction.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["repair_action"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v NodeRepairConfigOverridesValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v NodeRepairConfigOverridesValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v NodeRepairConfigOverridesValue) String() string {
+	return "NodeRepairConfigOverridesValue"
+}
+
+func (v NodeRepairConfigOverridesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"min_repair_wait_time_mins": basetypes.Int64Type{},
+		"node_monitoring_condition": basetypes.StringType{},
+		"node_unhealthy_reason":     basetypes.StringType{},
+		"repair_action":             basetypes.StringType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"min_repair_wait_time_mins": v.MinRepairWaitTimeMins,
+			"node_monitoring_condition": v.NodeMonitoringCondition,
+			"node_unhealthy_reason":     v.NodeUnhealthyReason,
+			"repair_action":             v.RepairAction,
+		})
+
+	return objVal, diags
+}
+
+func (v NodeRepairConfigOverridesValue) Equal(o attr.Value) bool {
+	other, ok := o.(NodeRepairConfigOverridesValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.MinRepairWaitTimeMins.Equal(other.MinRepairWaitTimeMins) {
+		return false
+	}
+
+	if !v.NodeMonitoringCondition.Equal(other.NodeMonitoringCondition) {
+		return false
+	}
+
+	if !v.NodeUnhealthyReason.Equal(other.NodeUnhealthyReason) {
+		return false
+	}
+
+	if !v.RepairAction.Equal(other.RepairAction) {
+		return false
+	}
+
+	return true
+}
+
+func (v NodeRepairConfigOverridesValue) Type(ctx context.Context) attr.Type {
+	return NodeRepairConfigOverridesType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v NodeRepairConfigOverridesValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"min_repair_wait_time_mins": basetypes.Int64Type{},
+		"node_monitoring_condition": basetypes.StringType{},
+		"node_unhealthy_reason":     basetypes.StringType{},
+		"repair_action":             basetypes.StringType{},
 	}
 }
 
@@ -26387,8 +27537,13 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"ami_family":                  v.AmiFamily,
 			"asg_metrics_collection6":     asgMetricsCollection6,
 			"asg_suspend_processes":       asgSuspendProcessesVal,
+<<<<<<< HEAD
 			"availability_zones":          availabilityZonesVal,
 			"bottle_rocket":               bottleRocket6,
+=======
+			"availability_zones2":         availabilityZones2Val,
+			"bottle_rocket":              bottleRocket6,
+>>>>>>> f5e3589 (RC-46070: Noderepair changs)
 			"classic_load_balancer_names": classicLoadBalancerNamesVal,
 			"cluster_dns":                 v.ClusterDns,
 			"cpu_credits":                 v.CpuCredits,
@@ -26398,29 +27553,34 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"ebs_optimized":               v.EbsOptimized,
 			"efa_enabled":                 v.EfaEnabled,
 			"enable_detailed_monitoring":  v.EnableDetailedMonitoring,
-			"iam":                         iam6,
+			"iam":                        iam6,
 			"instance_name":               v.InstanceName,
 			"instance_prefix":             v.InstancePrefix,
-			"instance_selector":           instanceSelector6,
+			"instance_selector":          instanceSelector6,
 			"instance_type":               v.InstanceType,
-			"instances_distribution":      instancesDistribution6,
+			"instances_distribution":     instancesDistribution6,
 			"kubelet_extra_config6":       kubeletExtraConfig6,
 			"labels":                      labelsVal,
 			"max_pods_per_node":           v.MaxPodsPerNode,
 			"max_size":                    v.MaxSize,
 			"min_size":                    v.MinSize,
 			"override_bootstrap_command":  v.OverrideBootstrapCommand,
-			"placement":                   placement6,
+			"placement":                  placement6,
 			"pre_bootstrap_commands":      preBootstrapCommandsVal,
 			"private_networking":          v.PrivateNetworking,
-			"security_groups":             securityGroups6,
-			"ssh":                         ssh6,
+			"security_groups":            securityGroups6,
+			"ssh":                        ssh6,
 			"subnet_cidr":                 v.SubnetCidr,
 			"subnets":                     subnetsVal,
+<<<<<<< HEAD
 			"tags":                        tagsVal,
 			"taints":                      taints6,
+=======
+			"tags2":                       tags2Val,
+			"taints":                     taints6,
+>>>>>>> f5e3589 (RC-46070: Noderepair changs)
 			"target_group_arns":           targetGroupArnsVal,
-			"update_config":               updateConfig6,
+			"update_config":              updateConfig6,
 			"version":                     v.Version,
 			"volume_encrypted":            v.VolumeEncrypted,
 			"volume_iops":                 v.VolumeIops,
@@ -28229,13 +29389,13 @@ func (v Iam6Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		attributeTypes,
 		map[string]attr.Value{
 			"attach_policy":                      attachPolicy6,
-			"attach_policy_arns":                 attachPolicyArnsVal,
-			"attach_policy_v2":                   v.AttachPolicyV2,
+			"attach_policy_arns":                  attachPolicyArnsVal,
+			"attach_policy_v2":                    v.AttachPolicyV2,
 			"iam_node_group_with_addon_policies": iamNodeGroupWithAddonPolicies6,
-			"instance_profile_arn":               v.InstanceProfileArn,
-			"instance_role_arn":                  v.InstanceRoleArn,
-			"instance_role_name":                 v.InstanceRoleName,
-			"instance_role_permission_boundary":  v.InstanceRolePermissionBoundary,
+			"instance_profile_arn":                v.InstanceProfileArn,
+			"instance_role_arn":                   v.InstanceRoleArn,
+			"instance_role_name":                  v.InstanceRoleName,
+			"instance_role_permission_boundary":   v.InstanceRolePermissionBoundary,
 		})
 
 	return objVal, diags
@@ -28731,9 +29891,9 @@ func (v AttachPolicy6Value) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"id":        v.Id,
+			"id":         v.Id,
 			"statement": statement6,
-			"version":   v.Version,
+			"version":    v.Version,
 		})
 
 	return objVal, diags
@@ -37535,9 +38695,9 @@ func (v AddonsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"attach_policy_arns": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"attach_policy_v2":     basetypes.StringType{},
-			"configuration_values": basetypes.StringType{},
-			"name":                 basetypes.StringType{},
+			"attach_policy_v2":    basetypes.StringType{},
+			"configuration_values":  basetypes.StringType{},
+			"name":                  basetypes.StringType{},
 			"permissions_boundary": basetypes.StringType{},
 			"pod_identity_associations": basetypes.SetType{
 				ElemType: PodIdentityAssociations2Value{}.Type(ctx),
@@ -37574,9 +38734,9 @@ func (v AddonsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"attach_policy_arns": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"attach_policy_v2":     basetypes.StringType{},
-			"configuration_values": basetypes.StringType{},
-			"name":                 basetypes.StringType{},
+			"attach_policy_v2":    basetypes.StringType{},
+			"configuration_values":  basetypes.StringType{},
+			"name":                  basetypes.StringType{},
 			"permissions_boundary": basetypes.StringType{},
 			"pod_identity_associations": basetypes.SetType{
 				ElemType: PodIdentityAssociations2Value{}.Type(ctx),
@@ -37600,9 +38760,9 @@ func (v AddonsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		"attach_policy_arns": basetypes.SetType{
 			ElemType: types.StringType,
 		},
-		"attach_policy_v2":     basetypes.StringType{},
-		"configuration_values": basetypes.StringType{},
-		"name":                 basetypes.StringType{},
+		"attach_policy_v2":    basetypes.StringType{},
+		"configuration_values":  basetypes.StringType{},
+		"name":                  basetypes.StringType{},
 		"permissions_boundary": basetypes.StringType{},
 		"pod_identity_associations": basetypes.SetType{
 			ElemType: PodIdentityAssociations2Value{}.Type(ctx),
@@ -37629,18 +38789,18 @@ func (v AddonsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"attach_policy":                         attachPolicy3,
-			"attach_policy_arns":                    attachPolicyArns3Val,
-			"attach_policy_v2":                      v.AttachPolicyV22,
+			"attach_policy":                        attachPolicy3,
+			"attach_policy_arns":                   attachPolicyArns3Val,
+			"attach_policy_v2":                    v.AttachPolicyV22,
 			"configuration_values":                  v.ConfigurationValues,
 			"name":                                  v.Name,
-			"permissions_boundary":                  v.PermissionsBoundary2,
-			"pod_identity_associations":             podIdentityAssociations2,
+			"permissions_boundary":                 v.PermissionsBoundary2,
+			"pod_identity_associations":            podIdentityAssociations2,
 			"service_account_role_arn":              v.ServiceAccountRoleArn,
-			"tags":                                  tags4Val,
+			"tags":                                 tags4Val,
 			"use_default_pod_identity_associations": v.UseDefaultPodIdentityAssociations,
 			"version":                               v.Version,
-			"well_known_policies":                   wellKnownPolicies3,
+			"well_known_policies":                  wellKnownPolicies3,
 		})
 
 	return objVal, diags
@@ -37728,9 +38888,9 @@ func (v AddonsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"attach_policy_arns": basetypes.SetType{
 			ElemType: types.StringType,
 		},
-		"attach_policy_v2":     basetypes.StringType{},
-		"configuration_values": basetypes.StringType{},
-		"name":                 basetypes.StringType{},
+		"attach_policy_v2":    basetypes.StringType{},
+		"configuration_values":  basetypes.StringType{},
+		"name":                  basetypes.StringType{},
 		"permissions_boundary": basetypes.StringType{},
 		"pod_identity_associations": basetypes.SetType{
 			ElemType: PodIdentityAssociations2Value{}.Type(ctx),
@@ -38160,9 +39320,9 @@ func (v AttachPolicy3Value) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"id":        v.Id,
+			"id":         v.Id,
 			"statement": statement2,
-			"version":   v.Version,
+			"version":    v.Version,
 		})
 
 	return objVal, diags
@@ -39933,7 +41093,7 @@ func (v PodIdentityAssociations2Value) ToObjectValue(ctx context.Context) (baset
 			"role_name":               v.RoleName,
 			"service_account_name":    v.ServiceAccountName,
 			"tags":                    tagsVal,
-			"well_known_policies":     wellKnownPolicies4,
+			"well_known_policies":    wellKnownPolicies4,
 		})
 
 	return objVal, diags
@@ -42172,6 +43332,800 @@ func (v AutoModeConfigValue) AttributeTypes(ctx context.Context) map[string]attr
 			ElemType: types.StringType,
 		},
 		"node_role_arn": basetypes.StringType{},
+	}
+}
+
+var _ basetypes.ObjectTypable = AutoZonalShiftConfigType{}
+
+type AutoZonalShiftConfigType struct {
+	basetypes.ObjectType
+}
+
+func (t AutoZonalShiftConfigType) Equal(o attr.Type) bool {
+	other, ok := o.(AutoZonalShiftConfigType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t AutoZonalShiftConfigType) String() string {
+	return "AutoZonalShiftConfigType"
+}
+
+func (t AutoZonalShiftConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	allowedWindowsAttribute, ok := attributes["allowed_windows"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`allowed_windows is missing from object`)
+
+		return nil, diags
+	}
+
+	allowedWindowsVal, ok := allowedWindowsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`allowed_windows expected to be basetypes.ListValue, was: %T`, allowedWindowsAttribute))
+	}
+
+	blockedDatesAttribute, ok := attributes["blocked_dates"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`blocked_dates is missing from object`)
+
+		return nil, diags
+	}
+
+	blockedDatesVal, ok := blockedDatesAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`blocked_dates expected to be basetypes.ListValue, was: %T`, blockedDatesAttribute))
+	}
+
+	blockedWindowsAttribute, ok := attributes["blocked_windows"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`blocked_windows is missing from object`)
+
+		return nil, diags
+	}
+
+	blockedWindowsVal, ok := blockedWindowsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`blocked_windows expected to be basetypes.ListValue, was: %T`, blockedWindowsAttribute))
+	}
+
+	blockingAlarmsAttribute, ok := attributes["blocking_alarms"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`blocking_alarms is missing from object`)
+
+		return nil, diags
+	}
+
+	blockingAlarmsVal, ok := blockingAlarmsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`blocking_alarms expected to be basetypes.ListValue, was: %T`, blockingAlarmsAttribute))
+	}
+
+	enabledAttribute, ok := attributes["enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`enabled is missing from object`)
+
+		return nil, diags
+	}
+
+	enabledVal, ok := enabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
+	}
+
+	outcomeAlarmsAttribute, ok := attributes["outcome_alarms"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`outcome_alarms is missing from object`)
+
+		return nil, diags
+	}
+
+	outcomeAlarmsVal, ok := outcomeAlarmsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`outcome_alarms expected to be basetypes.ListValue, was: %T`, outcomeAlarmsAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return AutoZonalShiftConfigValue{
+		AllowedWindows: allowedWindowsVal,
+		BlockedDates:   blockedDatesVal,
+		BlockedWindows: blockedWindowsVal,
+		BlockingAlarms: blockingAlarmsVal,
+		Enabled:        enabledVal,
+		OutcomeAlarms:  outcomeAlarmsVal,
+		state:          attr.ValueStateKnown,
+	}, diags
+}
+
+func NewAutoZonalShiftConfigValueNull() AutoZonalShiftConfigValue {
+	return AutoZonalShiftConfigValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewAutoZonalShiftConfigValueUnknown() AutoZonalShiftConfigValue {
+	return AutoZonalShiftConfigValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewAutoZonalShiftConfigValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (AutoZonalShiftConfigValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing AutoZonalShiftConfigValue Attribute Value",
+				"While creating a AutoZonalShiftConfigValue value, a missing attribute value was detected. "+
+					"A AutoZonalShiftConfigValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("AutoZonalShiftConfigValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid AutoZonalShiftConfigValue Attribute Type",
+				"While creating a AutoZonalShiftConfigValue value, an invalid attribute value was detected. "+
+					"A AutoZonalShiftConfigValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("AutoZonalShiftConfigValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("AutoZonalShiftConfigValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra AutoZonalShiftConfigValue Attribute Value",
+				"While creating a AutoZonalShiftConfigValue value, an extra attribute value was detected. "+
+					"A AutoZonalShiftConfigValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra AutoZonalShiftConfigValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewAutoZonalShiftConfigValueUnknown(), diags
+	}
+
+	allowedWindowsAttribute, ok := attributes["allowed_windows"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`allowed_windows is missing from object`)
+
+		return NewAutoZonalShiftConfigValueUnknown(), diags
+	}
+
+	allowedWindowsVal, ok := allowedWindowsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`allowed_windows expected to be basetypes.ListValue, was: %T`, allowedWindowsAttribute))
+	}
+
+	blockedDatesAttribute, ok := attributes["blocked_dates"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`blocked_dates is missing from object`)
+
+		return NewAutoZonalShiftConfigValueUnknown(), diags
+	}
+
+	blockedDatesVal, ok := blockedDatesAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`blocked_dates expected to be basetypes.ListValue, was: %T`, blockedDatesAttribute))
+	}
+
+	blockedWindowsAttribute, ok := attributes["blocked_windows"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`blocked_windows is missing from object`)
+
+		return NewAutoZonalShiftConfigValueUnknown(), diags
+	}
+
+	blockedWindowsVal, ok := blockedWindowsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`blocked_windows expected to be basetypes.ListValue, was: %T`, blockedWindowsAttribute))
+	}
+
+	blockingAlarmsAttribute, ok := attributes["blocking_alarms"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`blocking_alarms is missing from object`)
+
+		return NewAutoZonalShiftConfigValueUnknown(), diags
+	}
+
+	blockingAlarmsVal, ok := blockingAlarmsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`blocking_alarms expected to be basetypes.ListValue, was: %T`, blockingAlarmsAttribute))
+	}
+
+	enabledAttribute, ok := attributes["enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`enabled is missing from object`)
+
+		return NewAutoZonalShiftConfigValueUnknown(), diags
+	}
+
+	enabledVal, ok := enabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
+	}
+
+	outcomeAlarmsAttribute, ok := attributes["outcome_alarms"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`outcome_alarms is missing from object`)
+
+		return NewAutoZonalShiftConfigValueUnknown(), diags
+	}
+
+	outcomeAlarmsVal, ok := outcomeAlarmsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`outcome_alarms expected to be basetypes.ListValue, was: %T`, outcomeAlarmsAttribute))
+	}
+
+	if diags.HasError() {
+		return NewAutoZonalShiftConfigValueUnknown(), diags
+	}
+
+	return AutoZonalShiftConfigValue{
+		AllowedWindows: allowedWindowsVal,
+		BlockedDates:   blockedDatesVal,
+		BlockedWindows: blockedWindowsVal,
+		BlockingAlarms: blockingAlarmsVal,
+		Enabled:        enabledVal,
+		OutcomeAlarms:  outcomeAlarmsVal,
+		state:          attr.ValueStateKnown,
+	}, diags
+}
+
+func NewAutoZonalShiftConfigValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) AutoZonalShiftConfigValue {
+	object, diags := NewAutoZonalShiftConfigValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewAutoZonalShiftConfigValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t AutoZonalShiftConfigType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewAutoZonalShiftConfigValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewAutoZonalShiftConfigValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewAutoZonalShiftConfigValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewAutoZonalShiftConfigValueMust(AutoZonalShiftConfigValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t AutoZonalShiftConfigType) ValueType(ctx context.Context) attr.Value {
+	return AutoZonalShiftConfigValue{}
+}
+
+var _ basetypes.ObjectValuable = AutoZonalShiftConfigValue{}
+
+type AutoZonalShiftConfigValue struct {
+	AllowedWindows basetypes.ListValue `tfsdk:"allowed_windows"`
+	BlockedDates   basetypes.ListValue `tfsdk:"blocked_dates"`
+	BlockedWindows basetypes.ListValue `tfsdk:"blocked_windows"`
+	BlockingAlarms basetypes.ListValue `tfsdk:"blocking_alarms"`
+	Enabled        basetypes.BoolValue `tfsdk:"enabled"`
+	OutcomeAlarms  basetypes.ListValue `tfsdk:"outcome_alarms"`
+	state          attr.ValueState
+}
+
+func (v AutoZonalShiftConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 6)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["allowed_windows"] = basetypes.ListType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
+	attrTypes["blocked_dates"] = basetypes.ListType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
+	attrTypes["blocked_windows"] = basetypes.ListType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
+	attrTypes["blocking_alarms"] = basetypes.ListType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
+	attrTypes["enabled"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["outcome_alarms"] = basetypes.ListType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 6)
+
+		val, err = v.AllowedWindows.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["allowed_windows"] = val
+
+		val, err = v.BlockedDates.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["blocked_dates"] = val
+
+		val, err = v.BlockedWindows.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["blocked_windows"] = val
+
+		val, err = v.BlockingAlarms.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["blocking_alarms"] = val
+
+		val, err = v.Enabled.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["enabled"] = val
+
+		val, err = v.OutcomeAlarms.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["outcome_alarms"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v AutoZonalShiftConfigValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v AutoZonalShiftConfigValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v AutoZonalShiftConfigValue) String() string {
+	return "AutoZonalShiftConfigValue"
+}
+
+func (v AutoZonalShiftConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	var allowedWindowsVal basetypes.ListValue
+	switch {
+	case v.AllowedWindows.IsUnknown():
+		allowedWindowsVal = types.ListUnknown(types.StringType)
+	case v.AllowedWindows.IsNull():
+		allowedWindowsVal = types.ListNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		allowedWindowsVal, d = types.ListValue(types.StringType, v.AllowedWindows.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"allowed_windows": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocked_dates": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocked_windows": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocking_alarms": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"enabled": basetypes.BoolType{},
+			"outcome_alarms": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+		}), diags
+	}
+
+	var blockedDatesVal basetypes.ListValue
+	switch {
+	case v.BlockedDates.IsUnknown():
+		blockedDatesVal = types.ListUnknown(types.StringType)
+	case v.BlockedDates.IsNull():
+		blockedDatesVal = types.ListNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		blockedDatesVal, d = types.ListValue(types.StringType, v.BlockedDates.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"allowed_windows": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocked_dates": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocked_windows": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocking_alarms": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"enabled": basetypes.BoolType{},
+			"outcome_alarms": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+		}), diags
+	}
+
+	var blockedWindowsVal basetypes.ListValue
+	switch {
+	case v.BlockedWindows.IsUnknown():
+		blockedWindowsVal = types.ListUnknown(types.StringType)
+	case v.BlockedWindows.IsNull():
+		blockedWindowsVal = types.ListNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		blockedWindowsVal, d = types.ListValue(types.StringType, v.BlockedWindows.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"allowed_windows": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocked_dates": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocked_windows": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocking_alarms": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"enabled": basetypes.BoolType{},
+			"outcome_alarms": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+		}), diags
+	}
+
+	var blockingAlarmsVal basetypes.ListValue
+	switch {
+	case v.BlockingAlarms.IsUnknown():
+		blockingAlarmsVal = types.ListUnknown(types.StringType)
+	case v.BlockingAlarms.IsNull():
+		blockingAlarmsVal = types.ListNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		blockingAlarmsVal, d = types.ListValue(types.StringType, v.BlockingAlarms.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"allowed_windows": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocked_dates": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocked_windows": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocking_alarms": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"enabled": basetypes.BoolType{},
+			"outcome_alarms": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+		}), diags
+	}
+
+	var outcomeAlarmsVal basetypes.ListValue
+	switch {
+	case v.OutcomeAlarms.IsUnknown():
+		outcomeAlarmsVal = types.ListUnknown(types.StringType)
+	case v.OutcomeAlarms.IsNull():
+		outcomeAlarmsVal = types.ListNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		outcomeAlarmsVal, d = types.ListValue(types.StringType, v.OutcomeAlarms.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"allowed_windows": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocked_dates": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocked_windows": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"blocking_alarms": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"enabled": basetypes.BoolType{},
+			"outcome_alarms": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+		}), diags
+	}
+
+	attributeTypes := map[string]attr.Type{
+		"allowed_windows": basetypes.ListType{
+			ElemType: types.StringType,
+		},
+		"blocked_dates": basetypes.ListType{
+			ElemType: types.StringType,
+		},
+		"blocked_windows": basetypes.ListType{
+			ElemType: types.StringType,
+		},
+		"blocking_alarms": basetypes.ListType{
+			ElemType: types.StringType,
+		},
+		"enabled": basetypes.BoolType{},
+		"outcome_alarms": basetypes.ListType{
+			ElemType: types.StringType,
+		},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"allowed_windows": allowedWindowsVal,
+			"blocked_dates":   blockedDatesVal,
+			"blocked_windows": blockedWindowsVal,
+			"blocking_alarms": blockingAlarmsVal,
+			"enabled":         v.Enabled,
+			"outcome_alarms":  outcomeAlarmsVal,
+		})
+
+	return objVal, diags
+}
+
+func (v AutoZonalShiftConfigValue) Equal(o attr.Value) bool {
+	other, ok := o.(AutoZonalShiftConfigValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.AllowedWindows.Equal(other.AllowedWindows) {
+		return false
+	}
+
+	if !v.BlockedDates.Equal(other.BlockedDates) {
+		return false
+	}
+
+	if !v.BlockedWindows.Equal(other.BlockedWindows) {
+		return false
+	}
+
+	if !v.BlockingAlarms.Equal(other.BlockingAlarms) {
+		return false
+	}
+
+	if !v.Enabled.Equal(other.Enabled) {
+		return false
+	}
+
+	if !v.OutcomeAlarms.Equal(other.OutcomeAlarms) {
+		return false
+	}
+
+	return true
+}
+
+func (v AutoZonalShiftConfigValue) Type(ctx context.Context) attr.Type {
+	return AutoZonalShiftConfigType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v AutoZonalShiftConfigValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"allowed_windows": basetypes.ListType{
+			ElemType: types.StringType,
+		},
+		"blocked_dates": basetypes.ListType{
+			ElemType: types.StringType,
+		},
+		"blocked_windows": basetypes.ListType{
+			ElemType: types.StringType,
+		},
+		"blocking_alarms": basetypes.ListType{
+			ElemType: types.StringType,
+		},
+		"enabled": basetypes.BoolType{},
+		"outcome_alarms": basetypes.ListType{
+			ElemType: types.StringType,
+		},
 	}
 }
 
@@ -47320,15 +49274,15 @@ func (v ServiceAccountsValue) ToObjectValue(ctx context.Context) (basetypes.Obje
 		attributeTypes,
 		map[string]attr.Value{
 			"attach_policy":        v.AttachPolicy,
-			"attach_policy_arns":   attachPolicyArns2Val,
+			"attach_policy_arns":  attachPolicyArns2Val,
 			"attach_role_arn":      v.AttachRoleArn,
-			"metadata":             metadata3,
+			"metadata":            metadata3,
 			"permissions_boundary": v.PermissionsBoundary,
 			"role_name":            v.RoleName,
 			"role_only":            v.RoleOnly,
 			"status":               status,
-			"tags":                 tags3Val,
-			"well_known_policies":  wellKnownPolicies2,
+			"tags":                tags3Val,
+			"well_known_policies": wellKnownPolicies2,
 		})
 
 	return objVal, diags
@@ -53922,37 +55876,37 @@ func (v ManagedNodegroupsValue) ToObjectValue(ctx context.Context) (basetypes.Ob
 			"ami_family":                 v.AmiFamily,
 			"asg_suspend_processes":      asgSuspendProcessesVal,
 			"availability_zones":         availabilityZonesVal,
-			"bottle_rocket":              bottleRocket4,
+			"bottle_rocket":             bottleRocket4,
 			"desired_capacity":           v.DesiredCapacity,
 			"disable_imdsv1":             v.DisableImdsv1,
 			"disable_pods_imds":          v.DisablePodsImds,
 			"ebs_optimized":              v.EbsOptimized,
 			"efa_enabled":                v.EfaEnabled,
 			"enable_detailed_monitoring": v.EnableDetailedMonitoring,
-			"iam":                        iam4,
+			"iam":                       iam4,
 			"instance_name":              v.InstanceName,
 			"instance_prefix":            v.InstancePrefix,
-			"instance_selector":          instanceSelector4,
+			"instance_selector":         instanceSelector4,
 			"instance_type":              v.InstanceType,
 			"instance_types":             instanceTypesVal,
 			"labels":                     labelsVal,
-			"launch_template":            launchTemplate4,
+			"launch_template":           launchTemplate4,
 			"max_pods_per_node":          v.MaxPodsPerNode,
 			"max_size":                   v.MaxSize,
 			"min_size":                   v.MinSize,
 			"name":                       v.Name,
-			"node_repair_config":         nodeRepairConfig4,
+			"node_repair_config":        nodeRepairConfig4,
 			"override_bootstrap_command": v.OverrideBootstrapCommand,
-			"placement":                  placement4,
+			"placement":                 placement4,
 			"pre_bootstrap_commands":     preBootstrapCommandsVal,
 			"private_networking":         v.PrivateNetworking,
-			"security_groups":            securityGroups4,
+			"security_groups":           securityGroups4,
 			"spot":                       v.Spot,
-			"ssh":                        ssh4,
+			"ssh":                       ssh4,
 			"subnets":                    subnetsVal,
 			"tags":                       tagsVal,
-			"taints":                     taints4,
-			"update_config":              updateConfig4,
+			"taints":                    taints4,
+			"update_config":             updateConfig4,
 			"version":                    v.Version,
 			"volume_encrypted":           v.VolumeEncrypted,
 			"volume_iops":                v.VolumeIops,
@@ -55352,13 +57306,13 @@ func (v Iam4Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, di
 		attributeTypes,
 		map[string]attr.Value{
 			"attach_policy":                      attachPolicy4,
-			"attach_policy_arns":                 attachPolicyArnsVal,
-			"attach_policy_v2":                   v.AttachPolicyV2,
+			"attach_policy_arns":                  attachPolicyArnsVal,
+			"attach_policy_v2":                    v.AttachPolicyV2,
 			"iam_node_group_with_addon_policies": iamNodeGroupWithAddonPolicies4,
-			"instance_profile_arn":               v.InstanceProfileArn,
-			"instance_role_arn":                  v.InstanceRoleArn,
-			"instance_role_name":                 v.InstanceRoleName,
-			"instance_role_permission_boundary":  v.InstanceRolePermissionBoundary,
+			"instance_profile_arn":                v.InstanceProfileArn,
+			"instance_role_arn":                   v.InstanceRoleArn,
+			"instance_role_name":                  v.InstanceRoleName,
+			"instance_role_permission_boundary":   v.InstanceRolePermissionBoundary,
 		})
 
 	return objVal, diags
@@ -55854,9 +57808,9 @@ func (v AttachPolicy4Value) ToObjectValue(ctx context.Context) (basetypes.Object
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"id":        v.Id,
+			"id":         v.Id,
 			"statement": statement4,
-			"version":   v.Version,
+			"version":    v.Version,
 		})
 
 	return objVal, diags
@@ -58628,13 +60582,108 @@ func (t NodeRepairConfig4Type) ValueFromObject(ctx context.Context, in basetypes
 			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
 	}
 
+	maxParallelNodesRepairedCountAttribute, ok := attributes["max_parallel_nodes_repaired_count"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_parallel_nodes_repaired_count is missing from object`)
+
+		return nil, diags
+	}
+
+	maxParallelNodesRepairedCountVal, ok := maxParallelNodesRepairedCountAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_parallel_nodes_repaired_count expected to be basetypes.Int64Value, was: %T`, maxParallelNodesRepairedCountAttribute))
+	}
+
+	maxParallelNodesRepairedPercentageAttribute, ok := attributes["max_parallel_nodes_repaired_percentage"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_parallel_nodes_repaired_percentage is missing from object`)
+
+		return nil, diags
+	}
+
+	maxParallelNodesRepairedPercentageVal, ok := maxParallelNodesRepairedPercentageAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_parallel_nodes_repaired_percentage expected to be basetypes.Int64Value, was: %T`, maxParallelNodesRepairedPercentageAttribute))
+	}
+
+	maxUnhealthyNodeThresholdCountAttribute, ok := attributes["max_unhealthy_node_threshold_count"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_unhealthy_node_threshold_count is missing from object`)
+
+		return nil, diags
+	}
+
+	maxUnhealthyNodeThresholdCountVal, ok := maxUnhealthyNodeThresholdCountAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_unhealthy_node_threshold_count expected to be basetypes.Int64Value, was: %T`, maxUnhealthyNodeThresholdCountAttribute))
+	}
+
+	maxUnhealthyNodeThresholdPercentageAttribute, ok := attributes["max_unhealthy_node_threshold_percentage"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_unhealthy_node_threshold_percentage is missing from object`)
+
+		return nil, diags
+	}
+
+	maxUnhealthyNodeThresholdPercentageVal, ok := maxUnhealthyNodeThresholdPercentageAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_unhealthy_node_threshold_percentage expected to be basetypes.Int64Value, was: %T`, maxUnhealthyNodeThresholdPercentageAttribute))
+	}
+
+	nodeRepairConfigOverridesAttribute, ok := attributes["node_repair_config_overrides"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_repair_config_overrides is missing from object`)
+
+		return nil, diags
+	}
+
+	nodeRepairConfigOverridesVal, ok := nodeRepairConfigOverridesAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_repair_config_overrides expected to be basetypes.ListValue, was: %T`, nodeRepairConfigOverridesAttribute))
+	}
+
 	if diags.HasError() {
 		return nil, diags
 	}
 
 	return NodeRepairConfig4Value{
-		Enabled: enabledVal,
-		state:   attr.ValueStateKnown,
+		Enabled:                             enabledVal,
+		MaxParallelNodesRepairedCount:       maxParallelNodesRepairedCountVal,
+		MaxParallelNodesRepairedPercentage:  maxParallelNodesRepairedPercentageVal,
+		MaxUnhealthyNodeThresholdCount:      maxUnhealthyNodeThresholdCountVal,
+		MaxUnhealthyNodeThresholdPercentage: maxUnhealthyNodeThresholdPercentageVal,
+		NodeRepairConfigOverrides:           nodeRepairConfigOverridesVal,
+		state:                               attr.ValueStateKnown,
 	}, diags
 }
 
@@ -58719,13 +60768,108 @@ func NewNodeRepairConfig4Value(attributeTypes map[string]attr.Type, attributes m
 			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
 	}
 
+	maxParallelNodesRepairedCountAttribute, ok := attributes["max_parallel_nodes_repaired_count"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_parallel_nodes_repaired_count is missing from object`)
+
+		return NewNodeRepairConfig4ValueUnknown(), diags
+	}
+
+	maxParallelNodesRepairedCountVal, ok := maxParallelNodesRepairedCountAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_parallel_nodes_repaired_count expected to be basetypes.Int64Value, was: %T`, maxParallelNodesRepairedCountAttribute))
+	}
+
+	maxParallelNodesRepairedPercentageAttribute, ok := attributes["max_parallel_nodes_repaired_percentage"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_parallel_nodes_repaired_percentage is missing from object`)
+
+		return NewNodeRepairConfig4ValueUnknown(), diags
+	}
+
+	maxParallelNodesRepairedPercentageVal, ok := maxParallelNodesRepairedPercentageAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_parallel_nodes_repaired_percentage expected to be basetypes.Int64Value, was: %T`, maxParallelNodesRepairedPercentageAttribute))
+	}
+
+	maxUnhealthyNodeThresholdCountAttribute, ok := attributes["max_unhealthy_node_threshold_count"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_unhealthy_node_threshold_count is missing from object`)
+
+		return NewNodeRepairConfig4ValueUnknown(), diags
+	}
+
+	maxUnhealthyNodeThresholdCountVal, ok := maxUnhealthyNodeThresholdCountAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_unhealthy_node_threshold_count expected to be basetypes.Int64Value, was: %T`, maxUnhealthyNodeThresholdCountAttribute))
+	}
+
+	maxUnhealthyNodeThresholdPercentageAttribute, ok := attributes["max_unhealthy_node_threshold_percentage"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`max_unhealthy_node_threshold_percentage is missing from object`)
+
+		return NewNodeRepairConfig4ValueUnknown(), diags
+	}
+
+	maxUnhealthyNodeThresholdPercentageVal, ok := maxUnhealthyNodeThresholdPercentageAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`max_unhealthy_node_threshold_percentage expected to be basetypes.Int64Value, was: %T`, maxUnhealthyNodeThresholdPercentageAttribute))
+	}
+
+	nodeRepairConfigOverridesAttribute, ok := attributes["node_repair_config_overrides"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_repair_config_overrides is missing from object`)
+
+		return NewNodeRepairConfig4ValueUnknown(), diags
+	}
+
+	nodeRepairConfigOverridesVal, ok := nodeRepairConfigOverridesAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_repair_config_overrides expected to be basetypes.ListValue, was: %T`, nodeRepairConfigOverridesAttribute))
+	}
+
 	if diags.HasError() {
 		return NewNodeRepairConfig4ValueUnknown(), diags
 	}
 
 	return NodeRepairConfig4Value{
-		Enabled: enabledVal,
-		state:   attr.ValueStateKnown,
+		Enabled:                             enabledVal,
+		MaxParallelNodesRepairedCount:       maxParallelNodesRepairedCountVal,
+		MaxParallelNodesRepairedPercentage:  maxParallelNodesRepairedPercentageVal,
+		MaxUnhealthyNodeThresholdCount:      maxUnhealthyNodeThresholdCountVal,
+		MaxUnhealthyNodeThresholdPercentage: maxUnhealthyNodeThresholdPercentageVal,
+		NodeRepairConfigOverrides:           nodeRepairConfigOverridesVal,
+		state:                               attr.ValueStateKnown,
 	}, diags
 }
 
@@ -58797,23 +60941,35 @@ func (t NodeRepairConfig4Type) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = NodeRepairConfig4Value{}
 
 type NodeRepairConfig4Value struct {
-	Enabled basetypes.BoolValue `tfsdk:"enabled"`
-	state   attr.ValueState
+	Enabled                             basetypes.BoolValue  `tfsdk:"enabled"`
+	MaxParallelNodesRepairedCount       basetypes.Int64Value `tfsdk:"max_parallel_nodes_repaired_count"`
+	MaxParallelNodesRepairedPercentage  basetypes.Int64Value `tfsdk:"max_parallel_nodes_repaired_percentage"`
+	MaxUnhealthyNodeThresholdCount      basetypes.Int64Value `tfsdk:"max_unhealthy_node_threshold_count"`
+	MaxUnhealthyNodeThresholdPercentage basetypes.Int64Value `tfsdk:"max_unhealthy_node_threshold_percentage"`
+	NodeRepairConfigOverrides           basetypes.ListValue  `tfsdk:"node_repair_config_overrides"`
+	state                               attr.ValueState
 }
 
 func (v NodeRepairConfig4Value) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 1)
+	attrTypes := make(map[string]tftypes.Type, 6)
 
 	var val tftypes.Value
 	var err error
 
 	attrTypes["enabled"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["max_parallel_nodes_repaired_count"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["max_parallel_nodes_repaired_percentage"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["max_unhealthy_node_threshold_count"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["max_unhealthy_node_threshold_percentage"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["node_repair_config_overrides"] = basetypes.ListType{
+		ElemType: NodeRepairConfigOverridesValue{}.Type(ctx),
+	}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 1)
+		vals := make(map[string]tftypes.Value, 6)
 
 		val, err = v.Enabled.ToTerraformValue(ctx)
 
@@ -58822,6 +60978,46 @@ func (v NodeRepairConfig4Value) ToTerraformValue(ctx context.Context) (tftypes.V
 		}
 
 		vals["enabled"] = val
+
+		val, err = v.MaxParallelNodesRepairedCount.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["max_parallel_nodes_repaired_count"] = val
+
+		val, err = v.MaxParallelNodesRepairedPercentage.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["max_parallel_nodes_repaired_percentage"] = val
+
+		val, err = v.MaxUnhealthyNodeThresholdCount.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["max_unhealthy_node_threshold_count"] = val
+
+		val, err = v.MaxUnhealthyNodeThresholdPercentage.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["max_unhealthy_node_threshold_percentage"] = val
+
+		val, err = v.NodeRepairConfigOverrides.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["node_repair_config_overrides"] = val
 
 		if err := tftypes.ValidateValue(objectType, vals); err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
@@ -58852,8 +61048,44 @@ func (v NodeRepairConfig4Value) String() string {
 func (v NodeRepairConfig4Value) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
+	nodeRepairConfigOverrides := types.ListValueMust(
+		NodeRepairConfigOverridesType{
+			basetypes.ObjectType{
+				AttrTypes: NodeRepairConfigOverridesValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.NodeRepairConfigOverrides.Elements(),
+	)
+
+	if v.NodeRepairConfigOverrides.IsNull() {
+		nodeRepairConfigOverrides = types.ListNull(
+			NodeRepairConfigOverridesType{
+				basetypes.ObjectType{
+					AttrTypes: NodeRepairConfigOverridesValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	if v.NodeRepairConfigOverrides.IsUnknown() {
+		nodeRepairConfigOverrides = types.ListUnknown(
+			NodeRepairConfigOverridesType{
+				basetypes.ObjectType{
+					AttrTypes: NodeRepairConfigOverridesValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
 	attributeTypes := map[string]attr.Type{
-		"enabled": basetypes.BoolType{},
+		"enabled":                                 basetypes.BoolType{},
+		"max_parallel_nodes_repaired_count":       basetypes.Int64Type{},
+		"max_parallel_nodes_repaired_percentage":  basetypes.Int64Type{},
+		"max_unhealthy_node_threshold_count":      basetypes.Int64Type{},
+		"max_unhealthy_node_threshold_percentage": basetypes.Int64Type{},
+		"node_repair_config_overrides": basetypes.ListType{
+			ElemType: NodeRepairConfigOverridesValue{}.Type(ctx),
+		},
 	}
 
 	if v.IsNull() {
@@ -58867,7 +61099,12 @@ func (v NodeRepairConfig4Value) ToObjectValue(ctx context.Context) (basetypes.Ob
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"enabled": v.Enabled,
+			"enabled":                                 v.Enabled,
+			"max_parallel_nodes_repaired_count":       v.MaxParallelNodesRepairedCount,
+			"max_parallel_nodes_repaired_percentage":  v.MaxParallelNodesRepairedPercentage,
+			"max_unhealthy_node_threshold_count":      v.MaxUnhealthyNodeThresholdCount,
+			"max_unhealthy_node_threshold_percentage": v.MaxUnhealthyNodeThresholdPercentage,
+			"node_repair_config_overrides":            nodeRepairConfigOverrides,
 		})
 
 	return objVal, diags
@@ -58892,6 +61129,26 @@ func (v NodeRepairConfig4Value) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.MaxParallelNodesRepairedCount.Equal(other.MaxParallelNodesRepairedCount) {
+		return false
+	}
+
+	if !v.MaxParallelNodesRepairedPercentage.Equal(other.MaxParallelNodesRepairedPercentage) {
+		return false
+	}
+
+	if !v.MaxUnhealthyNodeThresholdCount.Equal(other.MaxUnhealthyNodeThresholdCount) {
+		return false
+	}
+
+	if !v.MaxUnhealthyNodeThresholdPercentage.Equal(other.MaxUnhealthyNodeThresholdPercentage) {
+		return false
+	}
+
+	if !v.NodeRepairConfigOverrides.Equal(other.NodeRepairConfigOverrides) {
+		return false
+	}
+
 	return true
 }
 
@@ -58905,7 +61162,503 @@ func (v NodeRepairConfig4Value) Type(ctx context.Context) attr.Type {
 
 func (v NodeRepairConfig4Value) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"enabled": basetypes.BoolType{},
+		"enabled":                                 basetypes.BoolType{},
+		"max_parallel_nodes_repaired_count":       basetypes.Int64Type{},
+		"max_parallel_nodes_repaired_percentage":  basetypes.Int64Type{},
+		"max_unhealthy_node_threshold_count":      basetypes.Int64Type{},
+		"max_unhealthy_node_threshold_percentage": basetypes.Int64Type{},
+		"node_repair_config_overrides": basetypes.ListType{
+			ElemType: NodeRepairConfigOverridesValue{}.Type(ctx),
+		},
+	}
+}
+
+var _ basetypes.ObjectTypable = NodeRepairConfigOverridesType{}
+
+type NodeRepairConfigOverridesType struct {
+	basetypes.ObjectType
+}
+
+func (t NodeRepairConfigOverridesType) Equal(o attr.Type) bool {
+	other, ok := o.(NodeRepairConfigOverridesType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t NodeRepairConfigOverridesType) String() string {
+	return "NodeRepairConfigOverridesType"
+}
+
+func (t NodeRepairConfigOverridesType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	minRepairWaitTimeMinsAttribute, ok := attributes["min_repair_wait_time_mins"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`min_repair_wait_time_mins is missing from object`)
+
+		return nil, diags
+	}
+
+	minRepairWaitTimeMinsVal, ok := minRepairWaitTimeMinsAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`min_repair_wait_time_mins expected to be basetypes.Int64Value, was: %T`, minRepairWaitTimeMinsAttribute))
+	}
+
+	nodeMonitoringConditionAttribute, ok := attributes["node_monitoring_condition"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_monitoring_condition is missing from object`)
+
+		return nil, diags
+	}
+
+	nodeMonitoringConditionVal, ok := nodeMonitoringConditionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_monitoring_condition expected to be basetypes.StringValue, was: %T`, nodeMonitoringConditionAttribute))
+	}
+
+	nodeUnhealthyReasonAttribute, ok := attributes["node_unhealthy_reason"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_unhealthy_reason is missing from object`)
+
+		return nil, diags
+	}
+
+	nodeUnhealthyReasonVal, ok := nodeUnhealthyReasonAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_unhealthy_reason expected to be basetypes.StringValue, was: %T`, nodeUnhealthyReasonAttribute))
+	}
+
+	repairActionAttribute, ok := attributes["repair_action"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`repair_action is missing from object`)
+
+		return nil, diags
+	}
+
+	repairActionVal, ok := repairActionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`repair_action expected to be basetypes.StringValue, was: %T`, repairActionAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return NodeRepairConfigOverridesValue{
+		MinRepairWaitTimeMins:   minRepairWaitTimeMinsVal,
+		NodeMonitoringCondition: nodeMonitoringConditionVal,
+		NodeUnhealthyReason:     nodeUnhealthyReasonVal,
+		RepairAction:            repairActionVal,
+		state:                   attr.ValueStateKnown,
+	}, diags
+}
+
+func NewNodeRepairConfigOverridesValueNull() NodeRepairConfigOverridesValue {
+	return NodeRepairConfigOverridesValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewNodeRepairConfigOverridesValueUnknown() NodeRepairConfigOverridesValue {
+	return NodeRepairConfigOverridesValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewNodeRepairConfigOverridesValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (NodeRepairConfigOverridesValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing NodeRepairConfigOverridesValue Attribute Value",
+				"While creating a NodeRepairConfigOverridesValue value, a missing attribute value was detected. "+
+					"A NodeRepairConfigOverridesValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("NodeRepairConfigOverridesValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid NodeRepairConfigOverridesValue Attribute Type",
+				"While creating a NodeRepairConfigOverridesValue value, an invalid attribute value was detected. "+
+					"A NodeRepairConfigOverridesValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("NodeRepairConfigOverridesValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("NodeRepairConfigOverridesValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra NodeRepairConfigOverridesValue Attribute Value",
+				"While creating a NodeRepairConfigOverridesValue value, an extra attribute value was detected. "+
+					"A NodeRepairConfigOverridesValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra NodeRepairConfigOverridesValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewNodeRepairConfigOverridesValueUnknown(), diags
+	}
+
+	minRepairWaitTimeMinsAttribute, ok := attributes["min_repair_wait_time_mins"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`min_repair_wait_time_mins is missing from object`)
+
+		return NewNodeRepairConfigOverridesValueUnknown(), diags
+	}
+
+	minRepairWaitTimeMinsVal, ok := minRepairWaitTimeMinsAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`min_repair_wait_time_mins expected to be basetypes.Int64Value, was: %T`, minRepairWaitTimeMinsAttribute))
+	}
+
+	nodeMonitoringConditionAttribute, ok := attributes["node_monitoring_condition"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_monitoring_condition is missing from object`)
+
+		return NewNodeRepairConfigOverridesValueUnknown(), diags
+	}
+
+	nodeMonitoringConditionVal, ok := nodeMonitoringConditionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_monitoring_condition expected to be basetypes.StringValue, was: %T`, nodeMonitoringConditionAttribute))
+	}
+
+	nodeUnhealthyReasonAttribute, ok := attributes["node_unhealthy_reason"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`node_unhealthy_reason is missing from object`)
+
+		return NewNodeRepairConfigOverridesValueUnknown(), diags
+	}
+
+	nodeUnhealthyReasonVal, ok := nodeUnhealthyReasonAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`node_unhealthy_reason expected to be basetypes.StringValue, was: %T`, nodeUnhealthyReasonAttribute))
+	}
+
+	repairActionAttribute, ok := attributes["repair_action"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`repair_action is missing from object`)
+
+		return NewNodeRepairConfigOverridesValueUnknown(), diags
+	}
+
+	repairActionVal, ok := repairActionAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`repair_action expected to be basetypes.StringValue, was: %T`, repairActionAttribute))
+	}
+
+	if diags.HasError() {
+		return NewNodeRepairConfigOverridesValueUnknown(), diags
+	}
+
+	return NodeRepairConfigOverridesValue{
+		MinRepairWaitTimeMins:   minRepairWaitTimeMinsVal,
+		NodeMonitoringCondition: nodeMonitoringConditionVal,
+		NodeUnhealthyReason:     nodeUnhealthyReasonVal,
+		RepairAction:            repairActionVal,
+		state:                   attr.ValueStateKnown,
+	}, diags
+}
+
+func NewNodeRepairConfigOverridesValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) NodeRepairConfigOverridesValue {
+	object, diags := NewNodeRepairConfigOverridesValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewNodeRepairConfigOverridesValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t NodeRepairConfigOverridesType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewNodeRepairConfigOverridesValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewNodeRepairConfigOverridesValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewNodeRepairConfigOverridesValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewNodeRepairConfigOverridesValueMust(NodeRepairConfigOverridesValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t NodeRepairConfigOverridesType) ValueType(ctx context.Context) attr.Value {
+	return NodeRepairConfigOverridesValue{}
+}
+
+var _ basetypes.ObjectValuable = NodeRepairConfigOverridesValue{}
+
+type NodeRepairConfigOverridesValue struct {
+	MinRepairWaitTimeMins   basetypes.Int64Value  `tfsdk:"min_repair_wait_time_mins"`
+	NodeMonitoringCondition basetypes.StringValue `tfsdk:"node_monitoring_condition"`
+	NodeUnhealthyReason     basetypes.StringValue `tfsdk:"node_unhealthy_reason"`
+	RepairAction            basetypes.StringValue `tfsdk:"repair_action"`
+	state                   attr.ValueState
+}
+
+func (v NodeRepairConfigOverridesValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 4)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["min_repair_wait_time_mins"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["node_monitoring_condition"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["node_unhealthy_reason"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["repair_action"] = basetypes.StringType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 4)
+
+		val, err = v.MinRepairWaitTimeMins.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["min_repair_wait_time_mins"] = val
+
+		val, err = v.NodeMonitoringCondition.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["node_monitoring_condition"] = val
+
+		val, err = v.NodeUnhealthyReason.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["node_unhealthy_reason"] = val
+
+		val, err = v.RepairAction.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["repair_action"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v NodeRepairConfigOverridesValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v NodeRepairConfigOverridesValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v NodeRepairConfigOverridesValue) String() string {
+	return "NodeRepairConfigOverridesValue"
+}
+
+func (v NodeRepairConfigOverridesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"min_repair_wait_time_mins": basetypes.Int64Type{},
+		"node_monitoring_condition": basetypes.StringType{},
+		"node_unhealthy_reason":     basetypes.StringType{},
+		"repair_action":             basetypes.StringType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"min_repair_wait_time_mins": v.MinRepairWaitTimeMins,
+			"node_monitoring_condition": v.NodeMonitoringCondition,
+			"node_unhealthy_reason":     v.NodeUnhealthyReason,
+			"repair_action":             v.RepairAction,
+		})
+
+	return objVal, diags
+}
+
+func (v NodeRepairConfigOverridesValue) Equal(o attr.Value) bool {
+	other, ok := o.(NodeRepairConfigOverridesValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.MinRepairWaitTimeMins.Equal(other.MinRepairWaitTimeMins) {
+		return false
+	}
+
+	if !v.NodeMonitoringCondition.Equal(other.NodeMonitoringCondition) {
+		return false
+	}
+
+	if !v.NodeUnhealthyReason.Equal(other.NodeUnhealthyReason) {
+		return false
+	}
+
+	if !v.RepairAction.Equal(other.RepairAction) {
+		return false
+	}
+
+	return true
+}
+
+func (v NodeRepairConfigOverridesValue) Type(ctx context.Context) attr.Type {
+	return NodeRepairConfigOverridesType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v NodeRepairConfigOverridesValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"min_repair_wait_time_mins": basetypes.Int64Type{},
+		"node_monitoring_condition": basetypes.StringType{},
+		"node_unhealthy_reason":     basetypes.StringType{},
+		"repair_action":             basetypes.StringType{},
 	}
 }
 
@@ -75719,7 +78472,7 @@ func (v VpcValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, dia
 			"public_access_cidrs":        publicAccessCidrsVal,
 			"security_group":             v.SecurityGroup,
 			"shared_node_security_group": v.SharedNodeSecurityGroup,
-			"subnets":                    subnets3,
+			"subnets":                   subnets3,
 		})
 
 	return objVal, diags
@@ -77965,6 +80718,330 @@ func (v PublicValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"cidr": basetypes.StringType{},
 		"id":   basetypes.StringType{},
 		"name": basetypes.StringType{},
+	}
+}
+
+var _ basetypes.ObjectTypable = ZonalShiftConfigType{}
+
+type ZonalShiftConfigType struct {
+	basetypes.ObjectType
+}
+
+func (t ZonalShiftConfigType) Equal(o attr.Type) bool {
+	other, ok := o.(ZonalShiftConfigType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t ZonalShiftConfigType) String() string {
+	return "ZonalShiftConfigType"
+}
+
+func (t ZonalShiftConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	enabledAttribute, ok := attributes["enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`enabled is missing from object`)
+
+		return nil, diags
+	}
+
+	enabledVal, ok := enabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return ZonalShiftConfigValue{
+		Enabled: enabledVal,
+		state:   attr.ValueStateKnown,
+	}, diags
+}
+
+func NewZonalShiftConfigValueNull() ZonalShiftConfigValue {
+	return ZonalShiftConfigValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewZonalShiftConfigValueUnknown() ZonalShiftConfigValue {
+	return ZonalShiftConfigValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewZonalShiftConfigValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (ZonalShiftConfigValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing ZonalShiftConfigValue Attribute Value",
+				"While creating a ZonalShiftConfigValue value, a missing attribute value was detected. "+
+					"A ZonalShiftConfigValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("ZonalShiftConfigValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid ZonalShiftConfigValue Attribute Type",
+				"While creating a ZonalShiftConfigValue value, an invalid attribute value was detected. "+
+					"A ZonalShiftConfigValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("ZonalShiftConfigValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("ZonalShiftConfigValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra ZonalShiftConfigValue Attribute Value",
+				"While creating a ZonalShiftConfigValue value, an extra attribute value was detected. "+
+					"A ZonalShiftConfigValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra ZonalShiftConfigValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewZonalShiftConfigValueUnknown(), diags
+	}
+
+	enabledAttribute, ok := attributes["enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`enabled is missing from object`)
+
+		return NewZonalShiftConfigValueUnknown(), diags
+	}
+
+	enabledVal, ok := enabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
+	}
+
+	if diags.HasError() {
+		return NewZonalShiftConfigValueUnknown(), diags
+	}
+
+	return ZonalShiftConfigValue{
+		Enabled: enabledVal,
+		state:   attr.ValueStateKnown,
+	}, diags
+}
+
+func NewZonalShiftConfigValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) ZonalShiftConfigValue {
+	object, diags := NewZonalShiftConfigValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewZonalShiftConfigValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t ZonalShiftConfigType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewZonalShiftConfigValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewZonalShiftConfigValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewZonalShiftConfigValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewZonalShiftConfigValueMust(ZonalShiftConfigValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t ZonalShiftConfigType) ValueType(ctx context.Context) attr.Value {
+	return ZonalShiftConfigValue{}
+}
+
+var _ basetypes.ObjectValuable = ZonalShiftConfigValue{}
+
+type ZonalShiftConfigValue struct {
+	Enabled basetypes.BoolValue `tfsdk:"enabled"`
+	state   attr.ValueState
+}
+
+func (v ZonalShiftConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 1)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["enabled"] = basetypes.BoolType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 1)
+
+		val, err = v.Enabled.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["enabled"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v ZonalShiftConfigValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v ZonalShiftConfigValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v ZonalShiftConfigValue) String() string {
+	return "ZonalShiftConfigValue"
+}
+
+func (v ZonalShiftConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"enabled": basetypes.BoolType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"enabled": v.Enabled,
+		})
+
+	return objVal, diags
+}
+
+func (v ZonalShiftConfigValue) Equal(o attr.Value) bool {
+	other, ok := o.(ZonalShiftConfigValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.Enabled.Equal(other.Enabled) {
+		return false
+	}
+
+	return true
+}
+
+func (v ZonalShiftConfigValue) Type(ctx context.Context) attr.Type {
+	return ZonalShiftConfigType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v ZonalShiftConfigValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"enabled": basetypes.BoolType{},
 	}
 }
 

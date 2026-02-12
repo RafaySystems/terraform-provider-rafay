@@ -585,6 +585,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
   Supported values are: `loadBalancer` and `userDefinedRouting`.
 - `pod_cidr` - (String) A CIDR notation IP range from which to assign pod IPs when kubenet is used.
 - `service_cidr` - (String) A CIDR notation IP range from which to assign service cluster IPs.
+- `network_dataplane` - (String) Network dataplane used in the Kubernetes cluster. Valid values are azure, cilium.
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--pod_identity_profile"></a>
 

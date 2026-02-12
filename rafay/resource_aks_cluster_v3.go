@@ -4057,8 +4057,8 @@ func flattenAKSV3ManagedClusterHTTPProxyConfig(in *infrapb.Httpproxyconfig, p []
 		obj["http_proxy"] = in.HttpProxy
 	}
 
-	if len(in.HttpProxy) > 0 {
-		obj["https_proxy"] = in.HttpProxy
+	if len(in.HttpsProxy) > 0 {
+		obj["https_proxy"] = in.HttpsProxy
 	}
 
 	if in.NoProxy != nil && len(in.NoProxy) > 0 {

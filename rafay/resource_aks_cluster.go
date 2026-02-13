@@ -148,6 +148,15 @@ func clusterAKSClusterSpec() map[string]*schema.Schema {
 			Required:    true,
 			Description: "Cloud credentials provider used to create and manage the cluster.",
 		},
+		"proxy_config": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "Proxy configuration for Rafay system components (bootstrap, agents). Use this if the infrastructure uses an outbound proxy.",
+			Elem: &schema.Resource{
+				Schema: clusterAKSClusterSpecProxyConfig(),
+			},
+		},
 		"system_components_placement": {
 			Type:        schema.TypeList,
 			Optional:    true,
@@ -193,6 +202,46 @@ func clusterAKSClusterSpec() map[string]*schema.Schema {
 		},
 	}
 	return s
+}
+
+func clusterAKSClusterSpecProxyConfig() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"http_proxy": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "HTTP proxy URL for outbound traffic.",
+		},
+		"https_proxy": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "HTTPS proxy URL for outbound traffic.",
+		},
+		"no_proxy": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Comma-separated list of hosts or CIDRs that should bypass the proxy (e.g., 10.0.0.0/16,localhost,127.0.0.1,.svc,.cluster.local).",
+		},
+		"enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Whether proxy is enabled for Rafay system components.",
+		},
+		"proxy_auth": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Proxy authentication (e.g., user:password).",
+		},
+		"bootstrap_ca": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "CA certificate for proxy TLS/bootstrap.",
+		},
+		"allow_insecure_bootstrap": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Allow insecure bootstrap when using proxy.",
+		},
+	}
 }
 
 func clusterAKSClusterConfig() map[string]*schema.Schema {
@@ -2338,6 +2387,44 @@ func expandAKSClusterSpec(p []interface{}, rawConfig cty.Value) *AKSClusterSpec 
 		obj.SystemComponentsPlacement = expandSystemComponentsPlacement(v)
 	}
 
+	if v, ok := in["proxy_config"].([]interface{}); ok && len(v) > 0 {
+		obj.ProxyConfig = expandAKSClusterSpecProxyConfig(v)
+	}
+
+	return obj
+}
+
+func expandAKSClusterSpecProxyConfig(p []interface{}) *AKSClusterSpecProxyConfig {
+	obj := &AKSClusterSpecProxyConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["http_proxy"].(string); ok && len(v) > 0 {
+		obj.HttpProxy = v
+	}
+	if v, ok := in["https_proxy"].(string); ok && len(v) > 0 {
+		obj.HttpsProxy = v
+	}
+	if v, ok := in["no_proxy"].(string); ok && len(v) > 0 {
+		obj.NoProxy = v
+	}
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+	if v, ok := in["proxy_auth"].(string); ok && len(v) > 0 {
+		obj.ProxyAuth = v
+	}
+	if v, ok := in["bootstrap_ca"].(string); ok && len(v) > 0 {
+		obj.BootstrapCA = v
+	}
+	if v, ok := in["allow_insecure_bootstrap"].(bool); ok {
+		obj.AllowInsecureBootstrap = v
+	}
+	if len(obj.HttpProxy) > 0 || len(obj.HttpsProxy) > 0 {
+		obj.Enabled = true
+	}
 	return obj
 }
 
@@ -4276,6 +4363,39 @@ func flattenAKSClusterSpec(in *AKSClusterSpec, p []interface{}, rawState cty.Val
 		obj["system_components_placement"] = flattenSystemComponentsPlacement(in.SystemComponentsPlacement, v)
 	}
 
+	if in.ProxyConfig != nil {
+		obj["proxy_config"] = flattenAKSClusterSpecProxyConfig(in.ProxyConfig)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSClusterSpecProxyConfig(in *AKSClusterSpecProxyConfig) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(in.HttpProxy) > 0 {
+		obj["http_proxy"] = in.HttpProxy
+	}
+	if len(in.HttpsProxy) > 0 {
+		obj["https_proxy"] = in.HttpsProxy
+	}
+	if len(in.NoProxy) > 0 {
+		obj["no_proxy"] = in.NoProxy
+	}
+	if !in.Enabled {
+		obj["enabled"] = in.Enabled
+	}
+	if len(in.ProxyAuth) > 0 {
+		obj["proxy_auth"] = in.ProxyAuth
+	}
+	if len(in.BootstrapCA) > 0 {
+		obj["bootstrap_ca"] = in.BootstrapCA
+	}
+	if in.AllowInsecureBootstrap {
+		obj["allow_insecure_bootstrap"] = in.AllowInsecureBootstrap
+	}
 	return []interface{}{obj}
 }
 

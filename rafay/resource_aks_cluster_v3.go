@@ -535,6 +535,10 @@ func expandClusterV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 		obj.SystemComponentsPlacement = expandV3SystemComponentsPlacement(v)
 	}
 
+	if v, ok := in["proxy_config"].([]interface{}); ok && len(v) > 0 {
+		obj.ProxyConfig = expandAKSV3SpecProxyConfig(v)
+	}
+
 	switch obj.Type {
 	case "aks":
 		if v, ok := in["config"].([]interface{}); ok && len(v) > 0 {
@@ -564,6 +568,37 @@ func expandClusterV3Blueprint(p []interface{}) *infrapb.BlueprintConfig {
 
 	log.Println("expandClusterV3Blueprint obj", obj)
 	return &obj
+}
+
+func expandAKSV3SpecProxyConfig(p []interface{}) *infrapb.ProxyConfig {
+	obj := &infrapb.ProxyConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["http_proxy"].(string); ok && len(v) > 0 {
+		obj.HttpProxy = v
+	}
+	if v, ok := in["https_proxy"].(string); ok && len(v) > 0 {
+		obj.HttpsProxy = v
+	}
+	if v, ok := in["no_proxy"].(string); ok && len(v) > 0 {
+		obj.NoProxy = v
+	}
+	if v, ok := in["enabled"].(bool); ok {
+		obj.Enabled = v
+	}
+	if v, ok := in["proxy_auth"].(string); ok && len(v) > 0 {
+		obj.ProxyAuth = v
+	}
+	if v, ok := in["bootstrap_ca"].(string); ok && len(v) > 0 {
+		obj.BootstrapCA = v
+	}
+	if v, ok := in["allow_insecure_bootstrap"].(bool); ok {
+		obj.AllowInsecureBootstrap = v
+	}
+	return obj
 }
 
 func expandAKSClusterV3Config(p []interface{}) *infrapb.ClusterSpec_Aks {
@@ -2466,6 +2501,41 @@ func flattenClusterV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{
 		obj["system_components_placement"] = flattenV3SystemComponentsPlacement(in.SystemComponentsPlacement, v)
 	}
 
+	if in.ProxyConfig != nil {
+		obj["proxy_config"] = flattenAKSV3SpecProxyConfig(in.ProxyConfig)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3SpecProxyConfig(in *infrapb.ProxyConfig) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(in.HttpProxy) > 0 {
+		obj["http_proxy"] = in.HttpProxy
+	}
+	if len(in.HttpsProxy) > 0 {
+		obj["https_proxy"] = in.HttpsProxy
+	}
+	if len(in.NoProxy) > 0 {
+		obj["no_proxy"] = in.NoProxy
+	}
+	// Only set enabled when false to avoid drift when config omits it (API often returns true)
+	if !in.Enabled {
+		obj["enabled"] = in.Enabled
+	}
+	if len(in.ProxyAuth) > 0 {
+		obj["proxy_auth"] = in.ProxyAuth
+	}
+	if len(in.BootstrapCA) > 0 {
+		obj["bootstrap_ca"] = in.BootstrapCA
+	}
+	// Only set when true to avoid drift when config omits it (default is false)
+	if in.AllowInsecureBootstrap {
+		obj["allow_insecure_bootstrap"] = in.AllowInsecureBootstrap
+	}
 	return []interface{}{obj}
 }
 

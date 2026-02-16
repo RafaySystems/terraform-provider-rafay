@@ -453,6 +453,106 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `service_principal_profile` - (Block List) Information about a service principal identity for the cluster to use for manipulating Azure APIs. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--service_principal_profile))
 - `auto_upgrade_profile` - (Block List) Configure Auto-Upgrade Profile to handle automatic k8s version upgrade and node os image upgrade. See [below for nested schema]
   (#nestedblock--spec--cluster_config--spec--managed_cluster--properties--auto_upgrade_profile)
+- `ingress_profile` - (Block List, Max: 1) The ingress profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile))
+- `service_mesh_profile` - (Block List, Max: 1) Configuration for the service mesh profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile))
+<!-- - `node_provisioning_profile` - (Block List, Max: 1) The node provisioning profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--node_provisioning_profile)) -->
+
+<!-- <a id="nestedblock--spec--config--spec--managed_cluster--properties--node_provisioning_profile"></a>
+### Nested Schema for `spec.config.spec.managed_cluster.properties.node_provisioning_profile`
+**_Optional_**
+
+- `mode` - (String) Node auto provisioning mode. Valid values are Auto, Manual.
+- `default_node_pools` - (String) The default node pool to use for the cluster. Valid values are Auto, None. -->
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.service_mesh_profile`
+
+**_Optional_**
+
+- `istio` - (Block List, Max: 1) Istio service mesh configuration. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile--istio))
+- `mode` - (String) The service mesh mode to be used.
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile--istio"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.service_mesh_profile.istio`
+
+**_Optional_**
+
+- `certificate_authority` - (Block List, Max: 1) Istio certificate authority configuration. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile--istio--certificate_authority))
+- `components` - (Block List, Max: 1) Istio components configuration. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile--istio--components))
+- `revisions` - (List of String) List of Istio control plane revisions.
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile--istio--certificate_authority"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.service_mesh_profile.istio.certificate_authority`
+
+**_Optional_**
+
+- `plugin` - (Block List, Max: 1) Istio plugin certificate authority configuration. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile--istio--certificate_authority--plugin))
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile--istio--certificate_authority--plugin"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.service_mesh_profile.istio.certificate_authority.plugin`
+
+**_Optional_**
+
+- `cert_chain_object_name` - (String) The name of the certificate chain object in Key Vault.
+- `cert_object_name` - (String) The name of the certificate object in Key Vault.
+- `key_object_name` - (String) The name of the key object in Key Vault.
+- `key_vault_id` - (String) The ID of the Key Vault.
+- `root_cert_object_name` - (String) The name of the root certificate object in Key Vault.
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile--istio--components"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.service_mesh_profile.istio.components`
+
+**_Optional_**
+
+- `egress_gateways` - (Block List) List of Istio egress gateway configurations. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile--istio--components--egress_gateways))
+- `ingress_gateways` - (Block List) List of Istio ingress gateway configurations. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile--istio--components--ingress_gateways))
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile--istio--components--egress_gateways"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.service_mesh_profile.istio.components.egress_gateways`
+
+**_Required_**
+
+- `enabled` - (Boolean) Whether the egress gateway is enabled.
+- `gateway_configuration_name` - (String) The name of the gateway configuration.
+- `name` - (String) The name of the egress gateway.
+- `namespace` - (String) The namespace of the egress gateway.
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile--istio--components--ingress_gateways"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.service_mesh_profile.istio.components.ingress_gateways`
+
+**_Required_**
+
+- `enabled` - (Boolean) Whether the ingress gateway is enabled.
+- `mode` - (String) Mode of the ingress gateway, e.g., 'External' or 'Internal'.
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.ingress_profile`
+
+* **web_app_routing** - (Optional, Block List, Max: 1) Configuration for web app routing. See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile--web_app_routing).
+
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile--web_app_routing"></a>
+
+### `web_app_routing`
+
+* **enabled** - (Optional) Whether web app routing is enabled. Defaults to `false`.
+* **dns_zone_resource_ids** - (Optional) A list of resource IDs of the DNS zones to be used for web app routing.
+* **nginx** - (Optional, Block List, Max: 1) Nginx ingress controller configuration. See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile--web_app_routing--nginx).
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile--web_app_routing--nginx"></a>
+
+### `nginx`
+
+**_Required_**
+* **default_ingress_controller_type** - The type of ingress controller to be used. Valid values are `None`, `Internal`, `External` and `AnnotationControlled`.
 
 <a id="nestedblock--spec--config--spec--managed_cluster--properties--http_proxy_config"></a>
 
@@ -810,6 +910,33 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `upgrade_settings` - (Block List) Settings for upgrading an agentpool. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties--upgrade_settings))
 - `vm_size` - (String) The AKS node pool VM size.
 - `vnet_subnet_id` - (String) If this is not specified, a VNET and subnet will be generated and used. If no `podSubnetID` is specified, this applies to nodes and pods, otherwise it applies to just nodes.
+- `node_image_version` - (String) The AKS node pool node image version.
+- `creation_data` - (Block List) The AKS node pool creation data. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties--creation_data))
+- `kubelet_config` - (Block List) The kubelet configuration for the node pool. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties--kubelet_config))
+
+
+<a id="nestedblock--spec--config--spec--node_pools--properties--kubelet_config"></a>
+### Nested Schema for `spec.config.spec.node_pools.properties.kubelet_config`
+**_Optional_**
+
+- `allowed_unsafe_sysctls` - (List of String) Allowed list of unsafe sysctls or unsafe sysctl patterns (ending in *).
+- `container_log_max_files` - (Integer) The maximum number of container log files that can be present for a container. The number must be ≥ 2.
+- `container_log_max_size_mb` - (Integer) The maximum size (e.g. 10Mi) of container log file before it is rotated.
+- `cpu_cfs_quota` - (Boolean) The default is true.
+- `cpu_cfs_quota_period` - (String) The default is 100ms. Valid values are a sequence of decimal numbers with an optional fraction and a unit suffix. For example: 300ms, 2h45m. Supported units are ns, us, ms, s, m, and h.
+- `cpu_manager_policy` - (String) The default is none. See Kubernetes CPU management policies for more information. Allowed values are none and static.
+- `fail_swap_on` - (Boolean) If set to true it will make the Kubelet fail to start if swap is enabled on the node.
+- `image_gc_high_threshold` - (Integer) To disable image garbage collection, set to 100. The default is 85%.
+- `image_gc_low_threshold` - (Integer) This cannot be set higher than imageGcHighThreshold. The default is 80%.
+- `pod_max_pids` - (Integer) The maximum number of processes per pod.
+- `topology_manager_policy` - (String) For more information see Kubernetes Topology Manager. The default is none. Allowed values are none, best-effort, restricted, and single-numa-node.
+
+
+<a id="nestedblock--spec--config--spec--node_pools--properties--creation_data"></a>
+### Nested Schema for `spec.config.spec.node_pools.properties.creation_data`
+**_Required_**
+- `source_resource_id` - (String) The source resource ID used for creating the node pool. This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{clusterName}/agentPools/{agentPoolName}`.
+
 
 <a id="nestedblock--spec--config--spec--node_pools--properties--upgrade_settings"></a>
 

@@ -2522,10 +2522,7 @@ func flattenAKSV3SpecProxyConfig(in *infrapb.ProxyConfig) []interface{} {
 	if len(in.NoProxy) > 0 {
 		obj["no_proxy"] = in.NoProxy
 	}
-	// Only set enabled when false to avoid drift when config omits it (API often returns true)
-	if !in.Enabled {
-		obj["enabled"] = in.Enabled
-	}
+	obj["enabled"] = in.Enabled
 	if len(in.ProxyAuth) > 0 {
 		obj["proxy_auth"] = in.ProxyAuth
 	}

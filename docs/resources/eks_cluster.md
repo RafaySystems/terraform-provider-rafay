@@ -957,6 +957,8 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 - `proxy_config` - (Map of String) The proxy configuration for the cluster. Use this if the infrastructure uses an outbound proxy. 
 - `cni_params` - (Block List) The container network interface (CNI) parameters. (See [below for nested schema](#nestedblock--cluster.spec--cni_params))
 - `cross_account_role_arn` - (String) ARN of target cross account role. Use this to create the cluster resource in the target role account.
+- `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A cluster can be shared with one or more projects. Note: If the resource is not shared, set enabled = false. (See [below for nested schema](#nestedblock--cluster--spec--sharing))
+- `system_components_placement` - (Block List, Max: 1) Configure tolerations and nodeSelector for Rafay system components. (See [below for nested schema](#nestedblock--cluster--spec--system_components_placement))
 
 <a id="nestedblock--cluster.spec--cni_params"></a>
 ### Nested Schema for `cluster.spec.cni_params` 
@@ -986,6 +988,57 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
 ***Optional***
 
 - `security_groups` - (List of String) The security groups that belong to the CNI. 
+
+
+<a id="nestedblock--cluster--spec--sharing--projects"></a>
+### Nested Schema for `cluster.spec.sharing.projects`
+
+***Required***
+
+- `name` - (String) The name of the project to share the resource.
+
+
+<a id="nestedblock--cluster--spec--system_components_placement"></a>
+### Nested Schema for `cluster.spec.system_components_placement`
+
+***Optional***
+
+- `node_selector` - (Map of String) Key-Value pairs insuring pods to be scheduled on desired nodes.
+- `daemonset_override` - (Block List) Allows users to override the default behaviour of DaemonSet for specific nodes, enabling the addition of additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--cluster--spec--system_components_placement--daemonset_override))
+- `tolerations` - (Block List) Enables the kuberenetes scheduler to schedule pods with matching taints. (See [below for nested schema](#nestedblock--cluster--spec--system_components_placement--tolerations))
+
+
+<a id="nestedblock--cluster--spec--system_components_placement--daemonset_override"></a>
+### Nested Schema for `cluster.spec.system_components_placement.daemonset_override`
+
+***Optional***
+
+- `node_selection_enabled` - (Boolean) enables node selection
+- `tolerations` - (Block List) Additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--cluster--spec--system_components_placement--daemonset_override--tolerations))
+
+
+<a id="nestedblock--cluster--spec--system_components_placement--daemonset_override--tolerations"></a>
+### Nested Schema for `cluster.spec.system_components_placement.daemonset_override.tolerations`
+
+***Optional***
+
+- `effect` - (String) indicates the taint effect to match
+- `key` - (String) the taint key that the toleration applies to
+- `operator` - (String) represents a key's relationship to the value
+- `toleration_seconds` - (Number) represents the period of time the toleration tolerates the taint
+- `value` - (String) the taint value the toleration matches to
+
+
+<a id="nestedblock--cluster--spec--system_components_placement--tolerations"></a>
+### Nested Schema for `cluster.spec.system_components_placement.tolerations`
+
+***Optional***
+
+- `effect` - (String) indicates the taint effect to match
+- `key` - (String) the taint key that the toleration applies to
+- `operator` - (String) represents a key's relationship to the value
+- `toleration_seconds` - (Number) represents the period of time the toleration tolerates the taint
+- `value` - (String) the taint value the toleration matches to
 
 
 <a id="nestedblock--cluster--metadata"></a>

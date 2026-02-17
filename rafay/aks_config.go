@@ -40,6 +40,17 @@ type AKSClusterMetadata struct {
 	Labels  map[string]string `yaml:"labels,omitempty,omitempty"`
 }
 
+// AKSClusterSpecProxyConfig is the spec-level proxy configuration for Rafay system components (bootstrap, agents).
+type AKSClusterSpecProxyConfig struct {
+	HttpProxy              string `yaml:"httpProxy,omitempty"`
+	HttpsProxy             string `yaml:"httpsProxy,omitempty"`
+	NoProxy                string `yaml:"noProxy,omitempty"`
+	Enabled                bool   `yaml:"enabled,omitempty"`
+	ProxyAuth              string `yaml:"proxyAuth,omitempty"`
+	BootstrapCA            string `yaml:"bootstrapCA,omitempty"`
+	AllowInsecureBootstrap bool   `yaml:"allowInsecureBootstrap,omitempty"`
+}
+
 type AKSClusterSpec struct {
 	Type                      string                     `yaml:"type,omitempty"`
 	Blueprint                 string                     `yaml:"blueprint,omitempty"`
@@ -48,6 +59,7 @@ type AKSClusterSpec struct {
 	AKSClusterConfig          *AKSClusterConfig          `yaml:"clusterConfig,omitempty"`
 	Sharing                   *V1ClusterSharing          `yaml:"sharing,omitempty"`
 	SystemComponentsPlacement *SystemComponentsPlacement `yaml:"systemComponentsPlacement,omitempty"`
+	ProxyConfig               *AKSClusterSpecProxyConfig `yaml:"proxyconfig,omitempty"`
 }
 
 type AzureRafayMetadata struct {

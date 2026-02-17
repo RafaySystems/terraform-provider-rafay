@@ -329,6 +329,17 @@ resource "rafay_aks_cluster" "demo-terraform" {
 **_Optional_**
 
 - `blueprint_config` - (String) The blueprint name and version used with the cluster. (See [below for nested schema](#nestedblock--spec--blueprint_config)).
+- `proxy_config` - (Block, Optional) Proxy configuration for Rafay system components (bootstrap, agents). Use this if the infrastructure uses an outbound proxy. (See [below for nested schema](#nestedblock--spec--proxy_config)).
+
+<a id="nestedblock--spec--proxy_config"></a>
+
+### Nested Schema for `spec.proxy_config`
+
+**_Optional_**
+
+- `http_proxy` - (String) HTTP proxy URL for outbound traffic.
+- `https_proxy` - (String) HTTPS proxy URL for outbound traffic.
+- `no_proxy` - (String) Comma-separated list of hosts or CIDRs that should bypass the proxy (e.g., `10.0.0.0/16,localhost,127.0.0.1,.svc,.cluster.local`).
 
 <a id="nestedblock--spec--system_components_placement"></a>
 
@@ -430,6 +441,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `dns_prefix` - (String) DNS prefix specified when creating the managed cluster. This cannot be updated once the Managed Cluster has been created.
 - `enable_rbac` - (boolean) Enable Kubernetes Role-Based Access Control.
 - `disable_local_accounts` - (boolean) If set to true, getting static credentials will be disabled for this cluster. This must only be used on Managed Clusters that are AAD enabled.
+- `http_proxy_config` - (Block List) HTTP proxy configuration for the AKS managed cluster. Configures proxy settings for control plane and node communication. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--http_proxy_config))
 - `identity_profile` - (Block List) Identities associated with the cluster. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster--properties--identity_profile))
 - `linux_profile` - (Block List) The configurations for linux profile. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--linux_profile))
 - `network_profile` - (Block List) Profile of the network configuration. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--network_profile))
@@ -541,6 +553,17 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 **_Required_**
 * **default_ingress_controller_type** - The type of ingress controller to be used. Valid values are `None`, `Internal`, `External` and `AnnotationControlled`.
+
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--http_proxy_config"></a>
+
+### Nested Schema for `spec.config.spec.managed_cluster.properties.http_proxy_config`
+
+**_Optional_**
+
+- `http_proxy` - (String) The HTTP proxy server endpoint to use.
+- `https_proxy` - (String) The HTTPS proxy server endpoint to use.
+- `no_proxy` - (List of String) The endpoints that should not go through the proxy. Each entry is a host, domain, or CIDR (e.g., `["10.0.0.0/16", "localhost", "127.0.0.1", ".svc", ".cluster.local"]`).
+- `trusted_ca` - (String) Path or contents of the CA certificate for the proxy, if using TLS inspection.
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster--properties--auto_upgrade_profile"></a>
 

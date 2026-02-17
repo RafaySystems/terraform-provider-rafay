@@ -797,3 +797,259 @@ resource "rafay_aks_workload_identity" "demo-terraform-wi" {
 
   depends_on = [rafay_aks_cluster_v3.demo-terraform-wi-cluster]
 }
+
+resource "rafay_aks_cluster_v3" "demo-tf-ingress-istio-setup" {
+  metadata {
+    name    = "aks-v3-tf-3"
+    project = "defaultproject"
+  }
+  spec {
+    type = "aks"
+    blueprint_config {
+      name = "default-aks"
+    }
+    cloud_credentials = "aks-cred"
+    config {
+      kind = "aksClusterConfig"
+      metadata {
+        name = "aks-v3-tf-3"
+      }
+      spec {
+        resource_group_name = "rafay-resource"
+        managed_cluster {
+          api_version = "2024-01-01"
+          sku {
+            name = "Base"
+            tier = "Free"
+          }
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          properties {
+            addon_profiles {
+              azure_keyvault_secrets_provider {
+                enabled = true
+                config {
+                  enable_secret_rotation = false
+                  rotation_poll_interval = "2m"
+                }
+              }
+            }
+            // Web App Routing Addon - Ingress Profile Support
+            ingress_profile {
+              web_app_routing {
+                enabled = true
+                dns_zone_resource_ids = [
+                  "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourceGroups/<resource_group_name>/providers/Microsoft.Network/dnszones/microsoftrafay.onmicrosoft.com"
+                ]
+                nginx {
+                  default_ingress_controller_type = "External"
+                }
+              }
+            }
+            // Istio - Service Mesh Profile Support
+            service_mesh_profile {
+              mode = "Istio"
+              istio {
+                components {
+                  ingress_gateways {
+                    enabled = true
+                    mode    = "Internal"
+                  }
+                  egress_gateways {
+                    enabled                    = false
+                    gateway_configuration_name = "<gateway-configuration-name>"
+                    name                       = "<name>"
+                    namespace                  = "<namespace>"
+                  }
+                }
+                certificate_authority {
+                  plugin {
+                    cert_chain_object_name = "cert-chain"
+                    cert_object_name       = "ca-cert"
+                    key_object_name        = "ca-key"
+                    key_vault_id           = "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourceGroups/<resource_group_name>/providers/Microsoft.KeyVault/vaults/<name>"
+                    root_cert_object_name  = "root-cert"
+                  }
+                }
+                revisions = [
+                  "asm-1-26"
+                ]
+              }
+            }
+            api_server_access_profile {
+              enable_private_cluster = false
+            }
+            dns_prefix         = "aks-v3-tf-3-2401202303-dns"
+            kubernetes_version = "1.33.5"
+            network_profile {
+              network_plugin    = "kubenet"
+              load_balancer_sku = "standard"
+            }
+            enable_rbac            = true
+            disable_local_accounts = true
+            aad_profile {
+              managed           = true
+              enable_azure_rbac = true
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          api_version = "2024-01-01"
+          name        = "primary"
+          properties {
+            count                = 1
+            enable_auto_scaling  = true
+            max_count            = 1
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.33.5"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_B4ms"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+        node_pools {
+          api_version = "2023-11-01"
+          name        = "secondary"
+          location    = "centralindia"
+          properties {
+            count               = 2
+            enable_auto_scaling = true
+            max_count           = 2
+            max_pods            = 40
+            min_count           = 2
+            // snapshot support
+            creation_data {
+              source_resource_id = "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourceGroups/<resource_group_name>/providers/Microsoft.ContainerService/snapshots/<name>"
+            }
+            // kubelet config support
+            kubelet_config {
+              container_log_max_files = 5
+              fail_swap_on            = "true"
+            }
+            mode                 = "System"
+            orchestrator_version = "1.33.5"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_B4ms"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+  }
+}
+
+resource "rafay_aks_cluster_v3" "demo-terraform-proxy" {
+  metadata {
+    name    = "aks-v3-proxy-example"
+    project = "defaultproject"
+  }
+
+  spec {
+    type = "aks"
+
+    blueprint_config {
+      name = "default-aks"
+    }
+
+    # Rafay spec-level proxy config (bootstrap, agents) - no_proxy is comma-separated string
+    proxy_config {
+      http_proxy  = "http://10.225.0.10:443/"
+      https_proxy = "http://10.225.0.10:443/"
+      no_proxy    = "10.0.0.0/16,localhost,127.0.0.1,.svc,.cluster.local"
+    }
+
+    cloud_credentials = "aks-cred"
+
+    config {
+      kind = "aksClusterConfig"
+
+      metadata {
+        name = "aks-v3-proxy-example"
+      }
+
+      spec {
+        resource_group_name = "rafay-resource"
+
+        managed_cluster {
+          api_version = "2024-01-01"
+
+          sku {
+            name = "Base"
+            tier = "Free"
+          }
+
+          identity {
+            type = "SystemAssigned"
+          }
+
+          location = "centralindia"
+
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = false
+            }
+
+            dns_prefix         = "aks-v3-proxy-dns"
+            kubernetes_version = "1.29.0"
+
+            network_profile {
+              network_plugin    = "kubenet"
+              load_balancer_sku = "standard"
+            }
+
+            power_state {
+              code = "Running"
+            }
+
+            # AKS managed cluster HTTP proxy config - no_proxy is list of strings
+            http_proxy_config {
+              http_proxy  = "http://10.225.0.10:443/"
+              https_proxy = "http://10.225.0.10:443/"
+              no_proxy = [
+                "10.0.0.0/16",
+                "localhost",
+                "127.0.0.1",
+                ".svc",
+                ".cluster.local"
+              ]
+            }
+
+            auto_upgrade_profile {
+              upgrade_channel         = "none"
+              node_os_upgrade_channel = "None"
+            }
+          }
+
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+
+        node_pools {
+          api_version = "2024-01-01"
+          name        = "primary"
+
+          properties {
+            count                = 1
+            enable_auto_scaling  = true
+            max_count            = 1
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.29.0"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+          }
+
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+  }
+}

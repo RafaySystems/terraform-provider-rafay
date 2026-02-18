@@ -280,6 +280,18 @@ func expandDriverConfig(p []any) *eaaspb.DriverConfig {
 		driverConfig.Http = expandWorkflowHandlerHttpConfig(v)
 	}
 
+	if v, ok := in["function"].([]any); ok && len(v) > 0 {
+		driverConfig.Function = expandWorkflowHandlerFunctionConfig(v)
+	}
+
+	if v, ok := in["polling_config"].([]any); ok && len(v) > 0 {
+		driverConfig.PollingConfig = expandPollingConfig(v)
+	}
+
+	if h, ok := in["timeout_seconds"].(int); ok {
+		driverConfig.TimeoutSeconds = int64(h)
+	}
+
 	return &driverConfig
 }
 

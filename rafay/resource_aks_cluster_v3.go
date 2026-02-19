@@ -363,7 +363,7 @@ LOOP:
 					log.Print("error converting project name to id")
 					return diag.Errorf("error converting project name to project ID")
 				}
-				aksStatus := uCluster.Status.Aks
+				// aksStatus := uCluster.Status.Aks
 				uClusterCommonStatus := uCluster.Status.CommonStatus
 				switch uClusterCommonStatus.ConditionStatus {
 				case commonpb.ConditionStatus_StatusSubmitted:
@@ -395,7 +395,7 @@ LOOP:
 					}
 				case commonpb.ConditionStatus_StatusFailed:
 					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
-					failureReasons, err := collectAKSV3UpsertErrors(aksStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
+					failureReasons, err := collectAKSV3UpsertErrors(uCluster.Status)
 					if err != nil {
 						return diag.FromErr(err)
 					}
@@ -453,27 +453,12 @@ LOOP:
 	return diags
 }
 
-func collectAKSV3UpsertErrors(nodepools []*infrapb.NodepoolStatus, lastProvisionFailureReason string, provisionStatus string) (string, error) {
-	// adding errors in AksUpsertErrorFormatter
-	collectedErrors := AksUpsertErrorFormatter{}
-	if strings.Contains(provisionStatus, "FAILED") {
-		collectedErrors.FailureReason = lastProvisionFailureReason
-	}
-	collectedErrors.Nodepools = []AksNodepoolsErrorFormatter{}
-	for _, ng := range nodepools {
-		if strings.Contains(ng.ProvisionStatus, "FAILED") {
-			collectedErrors.Nodepools = append(collectedErrors.Nodepools, AksNodepoolsErrorFormatter{
-				Name:          ng.Name,
-				FailureReason: ng.ProvisionStatusReason,
-			})
-		}
-	}
-	// Using MarshalIndent to indent the errors in json formatted bytes
-	collectedErrsFormattedBytes, err := json.MarshalIndent(collectedErrors, "", "    ")
+func collectAKSV3UpsertErrors(status *infrapb.ClusterStatus) (string, error) {
+	errBytes, err := json.MarshalIndent(status.LastTasksets[0].ErrorSummary, "", "  ")
 	if err != nil {
 		return "", err
 	}
-	collectErrs := strings.ReplaceAll(string(collectedErrsFormattedBytes), "\\n", "\n")
+	collectErrs := strings.ReplaceAll(string(errBytes), "\\n", "\n")
 	fmt.Println("After MarshalIndent: ", "collectedErrsFormattedBytes", collectErrs)
 
 	return "\n" + collectErrs, nil

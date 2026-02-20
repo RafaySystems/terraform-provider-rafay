@@ -20,12 +20,12 @@ github.com/ProtonMail/go-crypto v1.1.0-alpha.2 h1:bkyFVUP+ROOARdgCiJzNQo2V2kiB97
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2/go.mod h1:rA3QumHc/FZ8pAHreoekgiAbzpNsfQAosU5td4SnOrE=
 github.com/RafaySystems/eaas-playground/proto v0.0.0-20251008151511-bf1cf36fe5bd h1:50smMqzYlYN0e7bgVLGBIX7Y1V9fUE+yUhkCoQIVgD4=
 github.com/RafaySystems/eaas-playground/proto v0.0.0-20251008151511-bf1cf36fe5bd/go.mod h1:lAle7/tiVlakfiXdJKnsf6qNdLkoWS712T4pAXytSOQ=
-github.com/RafaySystems/edge-common v1.24.1-0.20260212070348-cebe2ecf6af1 h1:+NjVbNXhlTACGTvmq0AVsbTLuH1zsVGHfYEmCIOpPpo=
-github.com/RafaySystems/edge-common v1.24.1-0.20260212070348-cebe2ecf6af1/go.mod h1:tbd1Z34RfnJ3umcDjf478+dh7hJ66ict3wra7YbQmiA=
+github.com/RafaySystems/edge-common v1.24.1-0.20260220084457-b21592339936 h1:WB9cgqfqasD2i5dIdy+M83aEVCkp2a5mlqZebuKjc+U=
+github.com/RafaySystems/edge-common v1.24.1-0.20260220084457-b21592339936/go.mod h1:tbd1Z34RfnJ3umcDjf478+dh7hJ66ict3wra7YbQmiA=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e h1:SrznY+xkaQ4BkX0HXGa0upur7RAtR6UsTsdMNEgBreY=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e/go.mod h1:vDR0S28Q+hwE/5wO0L/Ohn9CZwaI/o2QuPupJ2iLI7k=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260216061535-571ee781d37a h1:N55u1g3INvuB/XmPVXeYBjX4WfDUOU285JpukmpiqSA=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260216061535-571ee781d37a/go.mod h1:gbNY4XLQKH6hc0Qsxp/tv1yPoKV6AJ8oS+xA1uSl9eY=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260220100252-f98dd6dbe086 h1:/R8NWQ6yKgpFPToyCE3vdsoRC8faoyMsSC22fDKla2I=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260220100252-f98dd6dbe086/go.mod h1:aPX+pK6/Me9+1Vw2vzBoQivd56ac134/Hn/XMw6LTQc=
 github.com/RafaySystems/rctl v1.29.1-0.20251223105806-82bdefd9f2be h1:J8aFJgB2guG+pyRmnRGA8yoPM08qBS/8juNGMoltb9U=
 github.com/RafaySystems/rctl v1.29.1-0.20251223105806-82bdefd9f2be/go.mod h1:Ja881zvwJU7FeufWgAYQdXhOTYhonzwOy81JBTLVXwQ=
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=

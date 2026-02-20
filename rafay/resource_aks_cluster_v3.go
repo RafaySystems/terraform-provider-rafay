@@ -363,7 +363,7 @@ LOOP:
 					log.Print("error converting project name to id")
 					return diag.Errorf("error converting project name to project ID")
 				}
-				aksStatus := uCluster.Status.Aks
+				// aksStatus := uCluster.Status.Aks
 				uClusterCommonStatus := uCluster.Status.CommonStatus
 				switch uClusterCommonStatus.ConditionStatus {
 				case commonpb.ConditionStatus_StatusSubmitted:
@@ -395,7 +395,7 @@ LOOP:
 					}
 				case commonpb.ConditionStatus_StatusFailed:
 					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
-					failureReasons, err := collectAKSV3UpsertErrors(aksStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
+					failureReasons, err := collectAKSV3UpsertErrors(uCluster.Status)
 					if err != nil {
 						return diag.FromErr(err)
 					}
@@ -453,27 +453,12 @@ LOOP:
 	return diags
 }
 
-func collectAKSV3UpsertErrors(nodepools []*infrapb.NodepoolStatus, lastProvisionFailureReason string, provisionStatus string) (string, error) {
-	// adding errors in AksUpsertErrorFormatter
-	collectedErrors := AksUpsertErrorFormatter{}
-	if strings.Contains(provisionStatus, "FAILED") {
-		collectedErrors.FailureReason = lastProvisionFailureReason
-	}
-	collectedErrors.Nodepools = []AksNodepoolsErrorFormatter{}
-	for _, ng := range nodepools {
-		if strings.Contains(ng.ProvisionStatus, "FAILED") {
-			collectedErrors.Nodepools = append(collectedErrors.Nodepools, AksNodepoolsErrorFormatter{
-				Name:          ng.Name,
-				FailureReason: ng.ProvisionStatusReason,
-			})
-		}
-	}
-	// Using MarshalIndent to indent the errors in json formatted bytes
-	collectedErrsFormattedBytes, err := json.MarshalIndent(collectedErrors, "", "    ")
+func collectAKSV3UpsertErrors(status *infrapb.ClusterStatus) (string, error) {
+	errBytes, err := json.MarshalIndent(status.LastTasksets[0].ErrorSummary, "", "  ")
 	if err != nil {
 		return "", err
 	}
-	collectErrs := strings.ReplaceAll(string(collectedErrsFormattedBytes), "\\n", "\n")
+	collectErrs := strings.ReplaceAll(string(errBytes), "\\n", "\n")
 	fmt.Println("After MarshalIndent: ", "collectedErrsFormattedBytes", collectErrs)
 
 	return "\n" + collectErrs, nil
@@ -1183,6 +1168,10 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.ServiceMeshProfile = expandAKSManagedClusterV3ServiceMeshProfile(v)
 	}
 
+	if v, ok := in["node_provisioning_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.NodeProvisioningProfile = expandAKSManagedClusterV3NodeProvisioningProfile(v)
+	}
+
 	return obj
 }
 
@@ -1388,6 +1377,22 @@ func expandAKSManagedClusterV3ServiceMeshIstioComponents(p []interface{}) *infra
 		}
 	}
 
+	return obj
+}
+
+func expandAKSManagedClusterV3NodeProvisioningProfile(p []interface{}) *infrapb.NodeProvisioningProfile {
+	obj := &infrapb.NodeProvisioningProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["mode"].(string); ok && len(v) > 0 {
+		obj.Mode = v
+	}
+	if v, ok := in["default_node_pools"].(string); ok && len(v) > 0 {
+		obj.DefaultNodePools = v
+	}
 	return obj
 }
 
@@ -3465,8 +3470,31 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 		obj["service_mesh_profile"] = flattenAKSV3ManagedClusterServiceMeshProfile(in.ServiceMeshProfile, v)
 	}
 
+	if in.NodeProvisioningProfile != nil {
+		v, ok := obj["node_provisioning_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["node_provisioning_profile"] = flattenAKSV3ManagedClusterNodeProvisioningProfile(in.NodeProvisioningProfile, v)
+	}
+
 	return []interface{}{obj}
 
+}
+
+func flattenAKSV3ManagedClusterNodeProvisioningProfile(in *infrapb.NodeProvisioningProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["mode"] = in.Mode
+	obj["default_node_pools"] = in.DefaultNodePools
+
+	return []interface{}{obj}
 }
 
 func flattenAKSV3ManagedClusterIdentityProfile(in *infrapb.ManagedClusterIdentityProfile, p []interface{}) []interface{} {

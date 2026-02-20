@@ -455,14 +455,14 @@ resource "rafay_aks_cluster" "demo-terraform" {
   (#nestedblock--spec--cluster_config--spec--managed_cluster--properties--auto_upgrade_profile)
 - `ingress_profile` - (Block List, Max: 1) The ingress profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile))
 - `service_mesh_profile` - (Block List, Max: 1) Configuration for the service mesh profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile))
-<!-- - `node_provisioning_profile` - (Block List, Max: 1) The node provisioning profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--node_provisioning_profile)) -->
+- `node_provisioning_profile` - (Block List, Max: 1) The node provisioning profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--node_provisioning_profile))
 
-<!-- <a id="nestedblock--spec--config--spec--managed_cluster--properties--node_provisioning_profile"></a>
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--node_provisioning_profile"></a>
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.node_provisioning_profile`
 **_Optional_**
 
 - `mode` - (String) Node auto provisioning mode. Valid values are Auto, Manual.
-- `default_node_pools` - (String) The default node pool to use for the cluster. Valid values are Auto, None. -->
+- `default_node_pools` - (String) The default node pool to use for the cluster. Valid values are Auto, None.
 
 <a id="nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile"></a>
 

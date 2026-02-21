@@ -776,6 +776,70 @@ func (v ConfigValue) ToHub(ctx context.Context) (*infrapb.MksV3ConfigObject, dia
 		diags = append(diags, d...)
 	}
 
+	if !v.ControlPlaneOverrides.IsNull() && !v.ControlPlaneOverrides.IsUnknown() {
+		var controlPlaneOverridesType ControlPlaneOverridesType
+		tfControlPlaneOverridesValue, d := controlPlaneOverridesType.ValueFromObject(ctx, v.ControlPlaneOverrides)
+		if d.HasError() {
+			diags = append(diags, d...)
+			return hub, diags
+		}
+		controlPlaneOverridesVal, ok := tfControlPlaneOverridesValue.(ControlPlaneOverridesValue)
+		if !ok {
+			diags.AddError(
+				"Type Assertion Error",
+				"Could not cast value to ControlPlaneOverridesValue in ConfigValue.ToHub",
+			)
+			return hub, diags
+		}
+		cpOverrides := &infrapb.ControlPlaneOverrides{}
+
+		// Handle kube_apiserver
+		if !controlPlaneOverridesVal.KubeApiserver.IsNull() && !controlPlaneOverridesVal.KubeApiserver.IsUnknown() {
+			var kubeAPIType KubeApiserverType
+			tfKubeApiValue, d := kubeAPIType.ValueFromObject(ctx, controlPlaneOverridesVal.KubeApiserver)
+			diags = append(diags, d...)
+			if kubeApiValue, ok := tfKubeApiValue.(KubeApiserverValue); ok {
+				cpOverrides.KubeApiserver = &infrapb.ControlPlaneOverridesOptions{
+					ExtraArgs:         convertFromTfMap(kubeApiValue.ExtraArgs),
+					ExtraVolumes:      getStringValue(kubeApiValue.ExtraVolumes),
+					ExtraVolumeMounts: getStringValue(kubeApiValue.ExtraVolumeMounts),
+				}
+			}
+		}
+
+		// Handle kube_controller_manager
+		if !controlPlaneOverridesVal.KubeControllerManager.IsNull() && !controlPlaneOverridesVal.KubeControllerManager.IsUnknown() {
+			var kubeControllerManagerType KubeControllerManagerType
+			tfKcmValue, d := kubeControllerManagerType.ValueFromObject(ctx, controlPlaneOverridesVal.KubeControllerManager)
+			diags = append(diags, d...)
+			if kcmValue, ok := tfKcmValue.(KubeControllerManagerValue); ok {
+				cpOverrides.KubeControllerManager = &infrapb.ControlPlaneOverridesOptions{
+					ExtraArgs:         convertFromTfMap(kcmValue.ExtraArgs),
+					ExtraVolumes:      getStringValue(kcmValue.ExtraVolumes),
+					ExtraVolumeMounts: getStringValue(kcmValue.ExtraVolumeMounts),
+				}
+			}
+		}
+
+		// Handle kube_scheduler
+		if !controlPlaneOverridesVal.KubeScheduler.IsNull() && !controlPlaneOverridesVal.KubeScheduler.IsUnknown() {
+			var kubeSchedulerType KubeSchedulerType
+			tfKubeSchedulerValue, d := kubeSchedulerType.ValueFromObject(ctx, controlPlaneOverridesVal.KubeScheduler)
+			diags = append(diags, d...)
+			if ksValue, ok := tfKubeSchedulerValue.(KubeSchedulerValue); ok {
+				cpOverrides.KubeScheduler = &infrapb.ControlPlaneOverridesOptions{
+					ExtraArgs:         convertFromTfMap(ksValue.ExtraArgs),
+					ExtraVolumes:      getStringValue(ksValue.ExtraVolumes),
+					ExtraVolumeMounts: getStringValue(ksValue.ExtraVolumeMounts),
+				}
+			}
+		}
+		hub.ControlPlaneOverrides = cpOverrides
+	} else {
+		v.ControlPlaneOverrides, d = NewControlPlaneOverridesValueNull().ToObjectValue(ctx)
+		diags = append(diags, d...)
+	}
+
 	return hub, diags
 
 }
@@ -853,8 +917,53 @@ func (v ConfigValue) FromHub(ctx context.Context, hub *infrapb.MksV3ConfigObject
 		diags = append(diags, d...)
 	}
 
+	// Implement control plane overrides logic
+	if hub.ControlPlaneOverrides != nil {
+		cpOverridesVal := NewControlPlaneOverridesValueNull()
+		// kube_apiserver
+		if hub.ControlPlaneOverrides.KubeApiserver != nil {
+			var kubeApiValue KubeApiserverValue
+			kubeApiValue.ExtraArgs = convertToTfMap(hub.ControlPlaneOverrides.KubeApiserver.ExtraArgs)
+			kubeApiValue.ExtraVolumes = types.StringValue(hub.ControlPlaneOverrides.KubeApiserver.ExtraVolumes)
+			kubeApiValue.ExtraVolumeMounts = types.StringValue(hub.ControlPlaneOverrides.KubeApiserver.ExtraVolumeMounts)
+			cpOverridesVal.KubeApiserver, d = kubeApiValue.ToObjectValue(ctx)
+			diags = append(diags, d...)
+		} else {
+			cpOverridesVal.KubeApiserver, d = NewKubeApiserverValueNull().ToObjectValue(ctx)
+			diags = append(diags, d...)
+		}
+		// kube_controller_manager
+		if hub.ControlPlaneOverrides.KubeControllerManager != nil {
+			var kcmValue KubeControllerManagerValue
+			kcmValue.ExtraArgs = convertToTfMap(hub.ControlPlaneOverrides.KubeControllerManager.ExtraArgs)
+			kcmValue.ExtraVolumes = types.StringValue(hub.ControlPlaneOverrides.KubeControllerManager.ExtraVolumes)
+			kcmValue.ExtraVolumeMounts = types.StringValue(hub.ControlPlaneOverrides.KubeControllerManager.ExtraVolumeMounts)
+			cpOverridesVal.KubeControllerManager, d = kcmValue.ToObjectValue(ctx)
+			diags = append(diags, d...)
+		} else {
+			cpOverridesVal.KubeControllerManager, d = NewKubeControllerManagerValueNull().ToObjectValue(ctx)
+			diags = append(diags, d...)
+		}
+		// kube_scheduler
+		if hub.ControlPlaneOverrides.KubeScheduler != nil {
+			var schedValue KubeSchedulerValue
+			schedValue.ExtraArgs = convertToTfMap(hub.ControlPlaneOverrides.KubeScheduler.ExtraArgs)
+			schedValue.ExtraVolumes = types.StringValue(hub.ControlPlaneOverrides.KubeScheduler.ExtraVolumes)
+			schedValue.ExtraVolumeMounts = types.StringValue(hub.ControlPlaneOverrides.KubeScheduler.ExtraVolumeMounts)
+			cpOverridesVal.KubeScheduler, d = schedValue.ToObjectValue(ctx)
+			diags = append(diags, d...)
+		} else {
+			cpOverridesVal.KubeScheduler, d = NewKubeSchedulerValueNull().ToObjectValue(ctx)
+			diags = append(diags, d...)
+		}
+		// Finalize control plane object value
+		v.ControlPlaneOverrides, d = cpOverridesVal.ToObjectValue(ctx)
+		diags = append(diags, d...)
+	} else {
+		v.ControlPlaneOverrides, d = NewControlPlaneOverridesValueNull().ToObjectValue(ctx)
+		diags = append(diags, d...)
+	}
 	v.state = attr.ValueStateKnown
-
 	obj, d := v.ToObjectValue(ctx)
 	diags = append(diags, d...)
 

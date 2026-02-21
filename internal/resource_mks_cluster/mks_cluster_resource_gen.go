@@ -139,6 +139,94 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Description:         "SSH config for all the nodes within the cluster",
 								MarkdownDescription: "SSH config for all the nodes within the cluster",
 							},
+							"control_plane_overrides": schema.SingleNestedAttribute{
+								Attributes: map[string]schema.Attribute{
+									"kube_apiserver": schema.SingleNestedAttribute{
+										Attributes: map[string]schema.Attribute{
+											"extra_args": schema.MapAttribute{
+												ElementType:         types.StringType,
+												Optional:            true,
+												Description:         "MKS Cluster kube_apiserver extra args",
+												MarkdownDescription: "MKS Cluster kube_apiserver extra args",
+											},
+											"extra_volume_mounts": schema.StringAttribute{
+												Optional:            true,
+												Description:         "MKS Cluster kube_apiserver extra volume mounts",
+												MarkdownDescription: "MKS Cluster kube_apiserver extra volume mounts",
+											},
+											"extra_volumes": schema.StringAttribute{
+												Optional:            true,
+												Description:         "MKS Cluster kube_apiserver extra volumes",
+												MarkdownDescription: "MKS Cluster kube_apiserver extra volumes",
+											},
+										},
+										CustomType: KubeApiserverType{
+											ObjectType: types.ObjectType{
+												AttrTypes: KubeApiserverValue{}.AttributeTypes(ctx),
+											},
+										},
+										Optional: true,
+									},
+									"kube_controller_manager": schema.SingleNestedAttribute{
+										Attributes: map[string]schema.Attribute{
+											"extra_args": schema.MapAttribute{
+												ElementType:         types.StringType,
+												Optional:            true,
+												Description:         "MKS Cluster kube_controller_manager extra args",
+												MarkdownDescription: "MKS Cluster kube_controller_manager extra args",
+											},
+											"extra_volume_mounts": schema.StringAttribute{
+												Optional:            true,
+												Description:         "MKS Cluster kube_controller_manager extra volume mounts",
+												MarkdownDescription: "MKS Cluster kube_controller_manager extra volume mounts",
+											},
+											"extra_volumes": schema.StringAttribute{
+												Optional:            true,
+												Description:         "MKS Cluster kube_controller_manager extra volumes",
+												MarkdownDescription: "MKS Cluster kube_controller_manager extra volumes",
+											},
+										},
+										CustomType: KubeControllerManagerType{
+											ObjectType: types.ObjectType{
+												AttrTypes: KubeControllerManagerValue{}.AttributeTypes(ctx),
+											},
+										},
+										Optional: true,
+									},
+									"kube_scheduler": schema.SingleNestedAttribute{
+										Attributes: map[string]schema.Attribute{
+											"extra_args": schema.MapAttribute{
+												ElementType: types.StringType,
+												Optional:    true,
+											},
+											"extra_volume_mounts": schema.StringAttribute{
+												Optional:            true,
+												Description:         "MKS Cluster kube_scheduler extra volume mounts",
+												MarkdownDescription: "MKS Cluster kube_scheduler extra volume mounts",
+											},
+											"extra_volumes": schema.StringAttribute{
+												Optional:            true,
+												Description:         "MKS Cluster kube_scheduler extra volumes",
+												MarkdownDescription: "MKS Cluster kube_scheduler extra volumes",
+											},
+										},
+										CustomType: KubeSchedulerType{
+											ObjectType: types.ObjectType{
+												AttrTypes: KubeSchedulerValue{}.AttributeTypes(ctx),
+											},
+										},
+										Optional: true,
+									},
+								},
+								CustomType: ControlPlaneOverridesType{
+									ObjectType: types.ObjectType{
+										AttrTypes: ControlPlaneOverridesValue{}.AttributeTypes(ctx),
+									},
+								},
+								Optional:            true,
+								Description:         "MKS Cluster control plane overrides",
+								MarkdownDescription: "MKS Cluster control plane overrides",
+							},
 							"dedicated_control_plane": schema.BoolAttribute{
 								Optional:            true,
 								Description:         "Select this option for preventing scheduling of user workloads on Control Plane nodes",
@@ -2413,6 +2501,24 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 			fmt.Sprintf(`cluster_ssh expected to be basetypes.ObjectValue, was: %T`, clusterSshAttribute))
 	}
 
+	controlPlaneOverridesAttribute, ok := attributes["control_plane_overrides"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`control_plane_overrides is missing from object`)
+
+		return nil, diags
+	}
+
+	controlPlaneOverridesVal, ok := controlPlaneOverridesAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`control_plane_overrides expected to be basetypes.ObjectValue, was: %T`, controlPlaneOverridesAttribute))
+	}
+
 	dedicatedControlPlaneAttribute, ok := attributes["dedicated_control_plane"]
 
 	if !ok {
@@ -2618,6 +2724,7 @@ func (t ConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 	return ConfigValue{
 		AutoApproveNodes:              autoApproveNodesVal,
 		ClusterSsh:                    clusterSshVal,
+		ControlPlaneOverrides:         controlPlaneOverridesVal,
 		DedicatedControlPlane:         dedicatedControlPlaneVal,
 		HighAvailability:              highAvailabilityVal,
 		InstallerTtl:                  installerTtlVal,
@@ -2732,6 +2839,24 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 			fmt.Sprintf(`cluster_ssh expected to be basetypes.ObjectValue, was: %T`, clusterSshAttribute))
 	}
 
+	controlPlaneOverridesAttribute, ok := attributes["control_plane_overrides"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`control_plane_overrides is missing from object`)
+
+		return NewConfigValueUnknown(), diags
+	}
+
+	controlPlaneOverridesVal, ok := controlPlaneOverridesAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`control_plane_overrides expected to be basetypes.ObjectValue, was: %T`, controlPlaneOverridesAttribute))
+	}
+
 	dedicatedControlPlaneAttribute, ok := attributes["dedicated_control_plane"]
 
 	if !ok {
@@ -2937,6 +3062,7 @@ func NewConfigValue(attributeTypes map[string]attr.Type, attributes map[string]a
 	return ConfigValue{
 		AutoApproveNodes:              autoApproveNodesVal,
 		ClusterSsh:                    clusterSshVal,
+		ControlPlaneOverrides:         controlPlaneOverridesVal,
 		DedicatedControlPlane:         dedicatedControlPlaneVal,
 		HighAvailability:              highAvailabilityVal,
 		InstallerTtl:                  installerTtlVal,
@@ -3022,6 +3148,7 @@ var _ basetypes.ObjectValuable = ConfigValue{}
 type ConfigValue struct {
 	AutoApproveNodes              basetypes.BoolValue   `tfsdk:"auto_approve_nodes"`
 	ClusterSsh                    basetypes.ObjectValue `tfsdk:"cluster_ssh"`
+	ControlPlaneOverrides         basetypes.ObjectValue `tfsdk:"control_plane_overrides"`
 	DedicatedControlPlane         basetypes.BoolValue   `tfsdk:"dedicated_control_plane"`
 	HighAvailability              basetypes.BoolValue   `tfsdk:"high_availability"`
 	InstallerTtl                  basetypes.Int64Value  `tfsdk:"installer_ttl"`
@@ -3037,7 +3164,7 @@ type ConfigValue struct {
 }
 
 func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 13)
+	attrTypes := make(map[string]tftypes.Type, 14)
 
 	var val tftypes.Value
 	var err error
@@ -3045,6 +3172,9 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 	attrTypes["auto_approve_nodes"] = basetypes.BoolType{}.TerraformType(ctx)
 	attrTypes["cluster_ssh"] = basetypes.ObjectType{
 		AttrTypes: ClusterSshValue{}.AttributeTypes(ctx),
+	}.TerraformType(ctx)
+	attrTypes["control_plane_overrides"] = basetypes.ObjectType{
+		AttrTypes: ControlPlaneOverridesValue{}.AttributeTypes(ctx),
 	}.TerraformType(ctx)
 	attrTypes["dedicated_control_plane"] = basetypes.BoolType{}.TerraformType(ctx)
 	attrTypes["high_availability"] = basetypes.BoolType{}.TerraformType(ctx)
@@ -3070,7 +3200,7 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 13)
+		vals := make(map[string]tftypes.Value, 14)
 
 		val, err = v.AutoApproveNodes.ToTerraformValue(ctx)
 
@@ -3087,6 +3217,14 @@ func (v ConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 		}
 
 		vals["cluster_ssh"] = val
+
+		val, err = v.ControlPlaneOverrides.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["control_plane_overrides"] = val
 
 		val, err = v.DedicatedControlPlane.ToTerraformValue(ctx)
 
@@ -3226,6 +3364,27 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		)
 	}
 
+	var controlPlaneOverrides basetypes.ObjectValue
+
+	if v.ControlPlaneOverrides.IsNull() {
+		controlPlaneOverrides = types.ObjectNull(
+			ControlPlaneOverridesValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if v.ControlPlaneOverrides.IsUnknown() {
+		controlPlaneOverrides = types.ObjectUnknown(
+			ControlPlaneOverridesValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if !v.ControlPlaneOverrides.IsNull() && !v.ControlPlaneOverrides.IsUnknown() {
+		controlPlaneOverrides = types.ObjectValueMust(
+			ControlPlaneOverridesValue{}.AttributeTypes(ctx),
+			v.ControlPlaneOverrides.Attributes(),
+		)
+	}
+
 	var kubernetesUpgrade basetypes.ObjectValue
 
 	if v.KubernetesUpgrade.IsNull() {
@@ -3315,6 +3474,9 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			"cluster_ssh": basetypes.ObjectType{
 				AttrTypes: ClusterSshValue{}.AttributeTypes(ctx),
 			},
+			"control_plane_overrides": basetypes.ObjectType{
+				AttrTypes: ControlPlaneOverridesValue{}.AttributeTypes(ctx),
+			},
 			"dedicated_control_plane":         basetypes.BoolType{},
 			"high_availability":               basetypes.BoolType{},
 			"installer_ttl":                   basetypes.Int64Type{},
@@ -3341,6 +3503,9 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		"auto_approve_nodes": basetypes.BoolType{},
 		"cluster_ssh": basetypes.ObjectType{
 			AttrTypes: ClusterSshValue{}.AttributeTypes(ctx),
+		},
+		"control_plane_overrides": basetypes.ObjectType{
+			AttrTypes: ControlPlaneOverridesValue{}.AttributeTypes(ctx),
 		},
 		"dedicated_control_plane":         basetypes.BoolType{},
 		"high_availability":               basetypes.BoolType{},
@@ -3376,6 +3541,7 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		map[string]attr.Value{
 			"auto_approve_nodes":              v.AutoApproveNodes,
 			"cluster_ssh":                     clusterSsh,
+			"control_plane_overrides":         controlPlaneOverrides,
 			"dedicated_control_plane":         v.DedicatedControlPlane,
 			"high_availability":               v.HighAvailability,
 			"installer_ttl":                   v.InstallerTtl,
@@ -3412,6 +3578,10 @@ func (v ConfigValue) Equal(o attr.Value) bool {
 	}
 
 	if !v.ClusterSsh.Equal(other.ClusterSsh) {
+		return false
+	}
+
+	if !v.ControlPlaneOverrides.Equal(other.ControlPlaneOverrides) {
 		return false
 	}
 
@@ -3475,6 +3645,9 @@ func (v ConfigValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"auto_approve_nodes": basetypes.BoolType{},
 		"cluster_ssh": basetypes.ObjectType{
 			AttrTypes: ClusterSshValue{}.AttributeTypes(ctx),
+		},
+		"control_plane_overrides": basetypes.ObjectType{
+			AttrTypes: ControlPlaneOverridesValue{}.AttributeTypes(ctx),
 		},
 		"dedicated_control_plane":         basetypes.BoolType{},
 		"high_availability":               basetypes.BoolType{},
@@ -3984,6 +4157,1907 @@ func (v ClusterSshValue) AttributeTypes(ctx context.Context) map[string]attr.Typ
 		"port":             basetypes.StringType{},
 		"private_key_path": basetypes.StringType{},
 		"username":         basetypes.StringType{},
+	}
+}
+
+var _ basetypes.ObjectTypable = ControlPlaneOverridesType{}
+
+type ControlPlaneOverridesType struct {
+	basetypes.ObjectType
+}
+
+func (t ControlPlaneOverridesType) Equal(o attr.Type) bool {
+	other, ok := o.(ControlPlaneOverridesType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t ControlPlaneOverridesType) String() string {
+	return "ControlPlaneOverridesType"
+}
+
+func (t ControlPlaneOverridesType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	kubeApiserverAttribute, ok := attributes["kube_apiserver"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kube_apiserver is missing from object`)
+
+		return nil, diags
+	}
+
+	kubeApiserverVal, ok := kubeApiserverAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kube_apiserver expected to be basetypes.ObjectValue, was: %T`, kubeApiserverAttribute))
+	}
+
+	kubeControllerManagerAttribute, ok := attributes["kube_controller_manager"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kube_controller_manager is missing from object`)
+
+		return nil, diags
+	}
+
+	kubeControllerManagerVal, ok := kubeControllerManagerAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kube_controller_manager expected to be basetypes.ObjectValue, was: %T`, kubeControllerManagerAttribute))
+	}
+
+	kubeSchedulerAttribute, ok := attributes["kube_scheduler"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kube_scheduler is missing from object`)
+
+		return nil, diags
+	}
+
+	kubeSchedulerVal, ok := kubeSchedulerAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kube_scheduler expected to be basetypes.ObjectValue, was: %T`, kubeSchedulerAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return ControlPlaneOverridesValue{
+		KubeApiserver:         kubeApiserverVal,
+		KubeControllerManager: kubeControllerManagerVal,
+		KubeScheduler:         kubeSchedulerVal,
+		state:                 attr.ValueStateKnown,
+	}, diags
+}
+
+func NewControlPlaneOverridesValueNull() ControlPlaneOverridesValue {
+	return ControlPlaneOverridesValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewControlPlaneOverridesValueUnknown() ControlPlaneOverridesValue {
+	return ControlPlaneOverridesValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewControlPlaneOverridesValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (ControlPlaneOverridesValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing ControlPlaneOverridesValue Attribute Value",
+				"While creating a ControlPlaneOverridesValue value, a missing attribute value was detected. "+
+					"A ControlPlaneOverridesValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("ControlPlaneOverridesValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid ControlPlaneOverridesValue Attribute Type",
+				"While creating a ControlPlaneOverridesValue value, an invalid attribute value was detected. "+
+					"A ControlPlaneOverridesValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("ControlPlaneOverridesValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("ControlPlaneOverridesValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra ControlPlaneOverridesValue Attribute Value",
+				"While creating a ControlPlaneOverridesValue value, an extra attribute value was detected. "+
+					"A ControlPlaneOverridesValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra ControlPlaneOverridesValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewControlPlaneOverridesValueUnknown(), diags
+	}
+
+	kubeApiserverAttribute, ok := attributes["kube_apiserver"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kube_apiserver is missing from object`)
+
+		return NewControlPlaneOverridesValueUnknown(), diags
+	}
+
+	kubeApiserverVal, ok := kubeApiserverAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kube_apiserver expected to be basetypes.ObjectValue, was: %T`, kubeApiserverAttribute))
+	}
+
+	kubeControllerManagerAttribute, ok := attributes["kube_controller_manager"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kube_controller_manager is missing from object`)
+
+		return NewControlPlaneOverridesValueUnknown(), diags
+	}
+
+	kubeControllerManagerVal, ok := kubeControllerManagerAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kube_controller_manager expected to be basetypes.ObjectValue, was: %T`, kubeControllerManagerAttribute))
+	}
+
+	kubeSchedulerAttribute, ok := attributes["kube_scheduler"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kube_scheduler is missing from object`)
+
+		return NewControlPlaneOverridesValueUnknown(), diags
+	}
+
+	kubeSchedulerVal, ok := kubeSchedulerAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kube_scheduler expected to be basetypes.ObjectValue, was: %T`, kubeSchedulerAttribute))
+	}
+
+	if diags.HasError() {
+		return NewControlPlaneOverridesValueUnknown(), diags
+	}
+
+	return ControlPlaneOverridesValue{
+		KubeApiserver:         kubeApiserverVal,
+		KubeControllerManager: kubeControllerManagerVal,
+		KubeScheduler:         kubeSchedulerVal,
+		state:                 attr.ValueStateKnown,
+	}, diags
+}
+
+func NewControlPlaneOverridesValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) ControlPlaneOverridesValue {
+	object, diags := NewControlPlaneOverridesValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewControlPlaneOverridesValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t ControlPlaneOverridesType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewControlPlaneOverridesValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewControlPlaneOverridesValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewControlPlaneOverridesValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewControlPlaneOverridesValueMust(ControlPlaneOverridesValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t ControlPlaneOverridesType) ValueType(ctx context.Context) attr.Value {
+	return ControlPlaneOverridesValue{}
+}
+
+var _ basetypes.ObjectValuable = ControlPlaneOverridesValue{}
+
+type ControlPlaneOverridesValue struct {
+	KubeApiserver         basetypes.ObjectValue `tfsdk:"kube_apiserver"`
+	KubeControllerManager basetypes.ObjectValue `tfsdk:"kube_controller_manager"`
+	KubeScheduler         basetypes.ObjectValue `tfsdk:"kube_scheduler"`
+	state                 attr.ValueState
+}
+
+func (v ControlPlaneOverridesValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 3)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["kube_apiserver"] = basetypes.ObjectType{
+		AttrTypes: KubeApiserverValue{}.AttributeTypes(ctx),
+	}.TerraformType(ctx)
+	attrTypes["kube_controller_manager"] = basetypes.ObjectType{
+		AttrTypes: KubeControllerManagerValue{}.AttributeTypes(ctx),
+	}.TerraformType(ctx)
+	attrTypes["kube_scheduler"] = basetypes.ObjectType{
+		AttrTypes: KubeSchedulerValue{}.AttributeTypes(ctx),
+	}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 3)
+
+		val, err = v.KubeApiserver.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["kube_apiserver"] = val
+
+		val, err = v.KubeControllerManager.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["kube_controller_manager"] = val
+
+		val, err = v.KubeScheduler.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["kube_scheduler"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v ControlPlaneOverridesValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v ControlPlaneOverridesValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v ControlPlaneOverridesValue) String() string {
+	return "ControlPlaneOverridesValue"
+}
+
+func (v ControlPlaneOverridesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	var kubeApiserver basetypes.ObjectValue
+
+	if v.KubeApiserver.IsNull() {
+		kubeApiserver = types.ObjectNull(
+			KubeApiserverValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if v.KubeApiserver.IsUnknown() {
+		kubeApiserver = types.ObjectUnknown(
+			KubeApiserverValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if !v.KubeApiserver.IsNull() && !v.KubeApiserver.IsUnknown() {
+		kubeApiserver = types.ObjectValueMust(
+			KubeApiserverValue{}.AttributeTypes(ctx),
+			v.KubeApiserver.Attributes(),
+		)
+	}
+
+	var kubeControllerManager basetypes.ObjectValue
+
+	if v.KubeControllerManager.IsNull() {
+		kubeControllerManager = types.ObjectNull(
+			KubeControllerManagerValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if v.KubeControllerManager.IsUnknown() {
+		kubeControllerManager = types.ObjectUnknown(
+			KubeControllerManagerValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if !v.KubeControllerManager.IsNull() && !v.KubeControllerManager.IsUnknown() {
+		kubeControllerManager = types.ObjectValueMust(
+			KubeControllerManagerValue{}.AttributeTypes(ctx),
+			v.KubeControllerManager.Attributes(),
+		)
+	}
+
+	var kubeScheduler basetypes.ObjectValue
+
+	if v.KubeScheduler.IsNull() {
+		kubeScheduler = types.ObjectNull(
+			KubeSchedulerValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if v.KubeScheduler.IsUnknown() {
+		kubeScheduler = types.ObjectUnknown(
+			KubeSchedulerValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if !v.KubeScheduler.IsNull() && !v.KubeScheduler.IsUnknown() {
+		kubeScheduler = types.ObjectValueMust(
+			KubeSchedulerValue{}.AttributeTypes(ctx),
+			v.KubeScheduler.Attributes(),
+		)
+	}
+
+	attributeTypes := map[string]attr.Type{
+		"kube_apiserver": basetypes.ObjectType{
+			AttrTypes: KubeApiserverValue{}.AttributeTypes(ctx),
+		},
+		"kube_controller_manager": basetypes.ObjectType{
+			AttrTypes: KubeControllerManagerValue{}.AttributeTypes(ctx),
+		},
+		"kube_scheduler": basetypes.ObjectType{
+			AttrTypes: KubeSchedulerValue{}.AttributeTypes(ctx),
+		},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"kube_apiserver":          kubeApiserver,
+			"kube_controller_manager": kubeControllerManager,
+			"kube_scheduler":          kubeScheduler,
+		})
+
+	return objVal, diags
+}
+
+func (v ControlPlaneOverridesValue) Equal(o attr.Value) bool {
+	other, ok := o.(ControlPlaneOverridesValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.KubeApiserver.Equal(other.KubeApiserver) {
+		return false
+	}
+
+	if !v.KubeControllerManager.Equal(other.KubeControllerManager) {
+		return false
+	}
+
+	if !v.KubeScheduler.Equal(other.KubeScheduler) {
+		return false
+	}
+
+	return true
+}
+
+func (v ControlPlaneOverridesValue) Type(ctx context.Context) attr.Type {
+	return ControlPlaneOverridesType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v ControlPlaneOverridesValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"kube_apiserver": basetypes.ObjectType{
+			AttrTypes: KubeApiserverValue{}.AttributeTypes(ctx),
+		},
+		"kube_controller_manager": basetypes.ObjectType{
+			AttrTypes: KubeControllerManagerValue{}.AttributeTypes(ctx),
+		},
+		"kube_scheduler": basetypes.ObjectType{
+			AttrTypes: KubeSchedulerValue{}.AttributeTypes(ctx),
+		},
+	}
+}
+
+var _ basetypes.ObjectTypable = KubeApiserverType{}
+
+type KubeApiserverType struct {
+	basetypes.ObjectType
+}
+
+func (t KubeApiserverType) Equal(o attr.Type) bool {
+	other, ok := o.(KubeApiserverType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t KubeApiserverType) String() string {
+	return "KubeApiserverType"
+}
+
+func (t KubeApiserverType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	extraArgsAttribute, ok := attributes["extra_args"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_args is missing from object`)
+
+		return nil, diags
+	}
+
+	extraArgsVal, ok := extraArgsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_args expected to be basetypes.MapValue, was: %T`, extraArgsAttribute))
+	}
+
+	extraVolumeMountsAttribute, ok := attributes["extra_volume_mounts"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_volume_mounts is missing from object`)
+
+		return nil, diags
+	}
+
+	extraVolumeMountsVal, ok := extraVolumeMountsAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_volume_mounts expected to be basetypes.StringValue, was: %T`, extraVolumeMountsAttribute))
+	}
+
+	extraVolumesAttribute, ok := attributes["extra_volumes"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_volumes is missing from object`)
+
+		return nil, diags
+	}
+
+	extraVolumesVal, ok := extraVolumesAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_volumes expected to be basetypes.StringValue, was: %T`, extraVolumesAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return KubeApiserverValue{
+		ExtraArgs:         extraArgsVal,
+		ExtraVolumeMounts: extraVolumeMountsVal,
+		ExtraVolumes:      extraVolumesVal,
+		state:             attr.ValueStateKnown,
+	}, diags
+}
+
+func NewKubeApiserverValueNull() KubeApiserverValue {
+	return KubeApiserverValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewKubeApiserverValueUnknown() KubeApiserverValue {
+	return KubeApiserverValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewKubeApiserverValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (KubeApiserverValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing KubeApiserverValue Attribute Value",
+				"While creating a KubeApiserverValue value, a missing attribute value was detected. "+
+					"A KubeApiserverValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("KubeApiserverValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid KubeApiserverValue Attribute Type",
+				"While creating a KubeApiserverValue value, an invalid attribute value was detected. "+
+					"A KubeApiserverValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("KubeApiserverValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("KubeApiserverValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra KubeApiserverValue Attribute Value",
+				"While creating a KubeApiserverValue value, an extra attribute value was detected. "+
+					"A KubeApiserverValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra KubeApiserverValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewKubeApiserverValueUnknown(), diags
+	}
+
+	extraArgsAttribute, ok := attributes["extra_args"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_args is missing from object`)
+
+		return NewKubeApiserverValueUnknown(), diags
+	}
+
+	extraArgsVal, ok := extraArgsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_args expected to be basetypes.MapValue, was: %T`, extraArgsAttribute))
+	}
+
+	extraVolumeMountsAttribute, ok := attributes["extra_volume_mounts"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_volume_mounts is missing from object`)
+
+		return NewKubeApiserverValueUnknown(), diags
+	}
+
+	extraVolumeMountsVal, ok := extraVolumeMountsAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_volume_mounts expected to be basetypes.StringValue, was: %T`, extraVolumeMountsAttribute))
+	}
+
+	extraVolumesAttribute, ok := attributes["extra_volumes"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_volumes is missing from object`)
+
+		return NewKubeApiserverValueUnknown(), diags
+	}
+
+	extraVolumesVal, ok := extraVolumesAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_volumes expected to be basetypes.StringValue, was: %T`, extraVolumesAttribute))
+	}
+
+	if diags.HasError() {
+		return NewKubeApiserverValueUnknown(), diags
+	}
+
+	return KubeApiserverValue{
+		ExtraArgs:         extraArgsVal,
+		ExtraVolumeMounts: extraVolumeMountsVal,
+		ExtraVolumes:      extraVolumesVal,
+		state:             attr.ValueStateKnown,
+	}, diags
+}
+
+func NewKubeApiserverValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) KubeApiserverValue {
+	object, diags := NewKubeApiserverValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewKubeApiserverValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t KubeApiserverType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewKubeApiserverValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewKubeApiserverValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewKubeApiserverValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewKubeApiserverValueMust(KubeApiserverValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t KubeApiserverType) ValueType(ctx context.Context) attr.Value {
+	return KubeApiserverValue{}
+}
+
+var _ basetypes.ObjectValuable = KubeApiserverValue{}
+
+type KubeApiserverValue struct {
+	ExtraArgs         basetypes.MapValue    `tfsdk:"extra_args"`
+	ExtraVolumeMounts basetypes.StringValue `tfsdk:"extra_volume_mounts"`
+	ExtraVolumes      basetypes.StringValue `tfsdk:"extra_volumes"`
+	state             attr.ValueState
+}
+
+func (v KubeApiserverValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 3)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["extra_args"] = basetypes.MapType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
+	attrTypes["extra_volume_mounts"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["extra_volumes"] = basetypes.StringType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 3)
+
+		val, err = v.ExtraArgs.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["extra_args"] = val
+
+		val, err = v.ExtraVolumeMounts.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["extra_volume_mounts"] = val
+
+		val, err = v.ExtraVolumes.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["extra_volumes"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v KubeApiserverValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v KubeApiserverValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v KubeApiserverValue) String() string {
+	return "KubeApiserverValue"
+}
+
+func (v KubeApiserverValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	var extraArgsVal basetypes.MapValue
+	switch {
+	case v.ExtraArgs.IsUnknown():
+		extraArgsVal = types.MapUnknown(types.StringType)
+	case v.ExtraArgs.IsNull():
+		extraArgsVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		extraArgsVal, d = types.MapValue(types.StringType, v.ExtraArgs.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"extra_args": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+			"extra_volume_mounts": basetypes.StringType{},
+			"extra_volumes":       basetypes.StringType{},
+		}), diags
+	}
+
+	attributeTypes := map[string]attr.Type{
+		"extra_args": basetypes.MapType{
+			ElemType: types.StringType,
+		},
+		"extra_volume_mounts": basetypes.StringType{},
+		"extra_volumes":       basetypes.StringType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"extra_args":          extraArgsVal,
+			"extra_volume_mounts": v.ExtraVolumeMounts,
+			"extra_volumes":       v.ExtraVolumes,
+		})
+
+	return objVal, diags
+}
+
+func (v KubeApiserverValue) Equal(o attr.Value) bool {
+	other, ok := o.(KubeApiserverValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.ExtraArgs.Equal(other.ExtraArgs) {
+		return false
+	}
+
+	if !v.ExtraVolumeMounts.Equal(other.ExtraVolumeMounts) {
+		return false
+	}
+
+	if !v.ExtraVolumes.Equal(other.ExtraVolumes) {
+		return false
+	}
+
+	return true
+}
+
+func (v KubeApiserverValue) Type(ctx context.Context) attr.Type {
+	return KubeApiserverType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v KubeApiserverValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"extra_args": basetypes.MapType{
+			ElemType: types.StringType,
+		},
+		"extra_volume_mounts": basetypes.StringType{},
+		"extra_volumes":       basetypes.StringType{},
+	}
+}
+
+var _ basetypes.ObjectTypable = KubeControllerManagerType{}
+
+type KubeControllerManagerType struct {
+	basetypes.ObjectType
+}
+
+func (t KubeControllerManagerType) Equal(o attr.Type) bool {
+	other, ok := o.(KubeControllerManagerType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t KubeControllerManagerType) String() string {
+	return "KubeControllerManagerType"
+}
+
+func (t KubeControllerManagerType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	extraArgsAttribute, ok := attributes["extra_args"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_args is missing from object`)
+
+		return nil, diags
+	}
+
+	extraArgsVal, ok := extraArgsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_args expected to be basetypes.MapValue, was: %T`, extraArgsAttribute))
+	}
+
+	extraVolumeMountsAttribute, ok := attributes["extra_volume_mounts"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_volume_mounts is missing from object`)
+
+		return nil, diags
+	}
+
+	extraVolumeMountsVal, ok := extraVolumeMountsAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_volume_mounts expected to be basetypes.StringValue, was: %T`, extraVolumeMountsAttribute))
+	}
+
+	extraVolumesAttribute, ok := attributes["extra_volumes"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_volumes is missing from object`)
+
+		return nil, diags
+	}
+
+	extraVolumesVal, ok := extraVolumesAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_volumes expected to be basetypes.StringValue, was: %T`, extraVolumesAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return KubeControllerManagerValue{
+		ExtraArgs:         extraArgsVal,
+		ExtraVolumeMounts: extraVolumeMountsVal,
+		ExtraVolumes:      extraVolumesVal,
+		state:             attr.ValueStateKnown,
+	}, diags
+}
+
+func NewKubeControllerManagerValueNull() KubeControllerManagerValue {
+	return KubeControllerManagerValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewKubeControllerManagerValueUnknown() KubeControllerManagerValue {
+	return KubeControllerManagerValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewKubeControllerManagerValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (KubeControllerManagerValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing KubeControllerManagerValue Attribute Value",
+				"While creating a KubeControllerManagerValue value, a missing attribute value was detected. "+
+					"A KubeControllerManagerValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("KubeControllerManagerValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid KubeControllerManagerValue Attribute Type",
+				"While creating a KubeControllerManagerValue value, an invalid attribute value was detected. "+
+					"A KubeControllerManagerValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("KubeControllerManagerValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("KubeControllerManagerValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra KubeControllerManagerValue Attribute Value",
+				"While creating a KubeControllerManagerValue value, an extra attribute value was detected. "+
+					"A KubeControllerManagerValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra KubeControllerManagerValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewKubeControllerManagerValueUnknown(), diags
+	}
+
+	extraArgsAttribute, ok := attributes["extra_args"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_args is missing from object`)
+
+		return NewKubeControllerManagerValueUnknown(), diags
+	}
+
+	extraArgsVal, ok := extraArgsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_args expected to be basetypes.MapValue, was: %T`, extraArgsAttribute))
+	}
+
+	extraVolumeMountsAttribute, ok := attributes["extra_volume_mounts"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_volume_mounts is missing from object`)
+
+		return NewKubeControllerManagerValueUnknown(), diags
+	}
+
+	extraVolumeMountsVal, ok := extraVolumeMountsAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_volume_mounts expected to be basetypes.StringValue, was: %T`, extraVolumeMountsAttribute))
+	}
+
+	extraVolumesAttribute, ok := attributes["extra_volumes"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_volumes is missing from object`)
+
+		return NewKubeControllerManagerValueUnknown(), diags
+	}
+
+	extraVolumesVal, ok := extraVolumesAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_volumes expected to be basetypes.StringValue, was: %T`, extraVolumesAttribute))
+	}
+
+	if diags.HasError() {
+		return NewKubeControllerManagerValueUnknown(), diags
+	}
+
+	return KubeControllerManagerValue{
+		ExtraArgs:         extraArgsVal,
+		ExtraVolumeMounts: extraVolumeMountsVal,
+		ExtraVolumes:      extraVolumesVal,
+		state:             attr.ValueStateKnown,
+	}, diags
+}
+
+func NewKubeControllerManagerValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) KubeControllerManagerValue {
+	object, diags := NewKubeControllerManagerValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewKubeControllerManagerValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t KubeControllerManagerType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewKubeControllerManagerValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewKubeControllerManagerValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewKubeControllerManagerValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewKubeControllerManagerValueMust(KubeControllerManagerValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t KubeControllerManagerType) ValueType(ctx context.Context) attr.Value {
+	return KubeControllerManagerValue{}
+}
+
+var _ basetypes.ObjectValuable = KubeControllerManagerValue{}
+
+type KubeControllerManagerValue struct {
+	ExtraArgs         basetypes.MapValue    `tfsdk:"extra_args"`
+	ExtraVolumeMounts basetypes.StringValue `tfsdk:"extra_volume_mounts"`
+	ExtraVolumes      basetypes.StringValue `tfsdk:"extra_volumes"`
+	state             attr.ValueState
+}
+
+func (v KubeControllerManagerValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 3)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["extra_args"] = basetypes.MapType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
+	attrTypes["extra_volume_mounts"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["extra_volumes"] = basetypes.StringType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 3)
+
+		val, err = v.ExtraArgs.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["extra_args"] = val
+
+		val, err = v.ExtraVolumeMounts.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["extra_volume_mounts"] = val
+
+		val, err = v.ExtraVolumes.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["extra_volumes"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v KubeControllerManagerValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v KubeControllerManagerValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v KubeControllerManagerValue) String() string {
+	return "KubeControllerManagerValue"
+}
+
+func (v KubeControllerManagerValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	var extraArgsVal basetypes.MapValue
+	switch {
+	case v.ExtraArgs.IsUnknown():
+		extraArgsVal = types.MapUnknown(types.StringType)
+	case v.ExtraArgs.IsNull():
+		extraArgsVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		extraArgsVal, d = types.MapValue(types.StringType, v.ExtraArgs.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"extra_args": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+			"extra_volume_mounts": basetypes.StringType{},
+			"extra_volumes":       basetypes.StringType{},
+		}), diags
+	}
+
+	attributeTypes := map[string]attr.Type{
+		"extra_args": basetypes.MapType{
+			ElemType: types.StringType,
+		},
+		"extra_volume_mounts": basetypes.StringType{},
+		"extra_volumes":       basetypes.StringType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"extra_args":          extraArgsVal,
+			"extra_volume_mounts": v.ExtraVolumeMounts,
+			"extra_volumes":       v.ExtraVolumes,
+		})
+
+	return objVal, diags
+}
+
+func (v KubeControllerManagerValue) Equal(o attr.Value) bool {
+	other, ok := o.(KubeControllerManagerValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.ExtraArgs.Equal(other.ExtraArgs) {
+		return false
+	}
+
+	if !v.ExtraVolumeMounts.Equal(other.ExtraVolumeMounts) {
+		return false
+	}
+
+	if !v.ExtraVolumes.Equal(other.ExtraVolumes) {
+		return false
+	}
+
+	return true
+}
+
+func (v KubeControllerManagerValue) Type(ctx context.Context) attr.Type {
+	return KubeControllerManagerType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v KubeControllerManagerValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"extra_args": basetypes.MapType{
+			ElemType: types.StringType,
+		},
+		"extra_volume_mounts": basetypes.StringType{},
+		"extra_volumes":       basetypes.StringType{},
+	}
+}
+
+var _ basetypes.ObjectTypable = KubeSchedulerType{}
+
+type KubeSchedulerType struct {
+	basetypes.ObjectType
+}
+
+func (t KubeSchedulerType) Equal(o attr.Type) bool {
+	other, ok := o.(KubeSchedulerType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t KubeSchedulerType) String() string {
+	return "KubeSchedulerType"
+}
+
+func (t KubeSchedulerType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	extraArgsAttribute, ok := attributes["extra_args"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_args is missing from object`)
+
+		return nil, diags
+	}
+
+	extraArgsVal, ok := extraArgsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_args expected to be basetypes.MapValue, was: %T`, extraArgsAttribute))
+	}
+
+	extraVolumeMountsAttribute, ok := attributes["extra_volume_mounts"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_volume_mounts is missing from object`)
+
+		return nil, diags
+	}
+
+	extraVolumeMountsVal, ok := extraVolumeMountsAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_volume_mounts expected to be basetypes.StringValue, was: %T`, extraVolumeMountsAttribute))
+	}
+
+	extraVolumesAttribute, ok := attributes["extra_volumes"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_volumes is missing from object`)
+
+		return nil, diags
+	}
+
+	extraVolumesVal, ok := extraVolumesAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_volumes expected to be basetypes.StringValue, was: %T`, extraVolumesAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return KubeSchedulerValue{
+		ExtraArgs:         extraArgsVal,
+		ExtraVolumeMounts: extraVolumeMountsVal,
+		ExtraVolumes:      extraVolumesVal,
+		state:             attr.ValueStateKnown,
+	}, diags
+}
+
+func NewKubeSchedulerValueNull() KubeSchedulerValue {
+	return KubeSchedulerValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewKubeSchedulerValueUnknown() KubeSchedulerValue {
+	return KubeSchedulerValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewKubeSchedulerValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (KubeSchedulerValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing KubeSchedulerValue Attribute Value",
+				"While creating a KubeSchedulerValue value, a missing attribute value was detected. "+
+					"A KubeSchedulerValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("KubeSchedulerValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid KubeSchedulerValue Attribute Type",
+				"While creating a KubeSchedulerValue value, an invalid attribute value was detected. "+
+					"A KubeSchedulerValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("KubeSchedulerValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("KubeSchedulerValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra KubeSchedulerValue Attribute Value",
+				"While creating a KubeSchedulerValue value, an extra attribute value was detected. "+
+					"A KubeSchedulerValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra KubeSchedulerValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewKubeSchedulerValueUnknown(), diags
+	}
+
+	extraArgsAttribute, ok := attributes["extra_args"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_args is missing from object`)
+
+		return NewKubeSchedulerValueUnknown(), diags
+	}
+
+	extraArgsVal, ok := extraArgsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_args expected to be basetypes.MapValue, was: %T`, extraArgsAttribute))
+	}
+
+	extraVolumeMountsAttribute, ok := attributes["extra_volume_mounts"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_volume_mounts is missing from object`)
+
+		return NewKubeSchedulerValueUnknown(), diags
+	}
+
+	extraVolumeMountsVal, ok := extraVolumeMountsAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_volume_mounts expected to be basetypes.StringValue, was: %T`, extraVolumeMountsAttribute))
+	}
+
+	extraVolumesAttribute, ok := attributes["extra_volumes"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`extra_volumes is missing from object`)
+
+		return NewKubeSchedulerValueUnknown(), diags
+	}
+
+	extraVolumesVal, ok := extraVolumesAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`extra_volumes expected to be basetypes.StringValue, was: %T`, extraVolumesAttribute))
+	}
+
+	if diags.HasError() {
+		return NewKubeSchedulerValueUnknown(), diags
+	}
+
+	return KubeSchedulerValue{
+		ExtraArgs:         extraArgsVal,
+		ExtraVolumeMounts: extraVolumeMountsVal,
+		ExtraVolumes:      extraVolumesVal,
+		state:             attr.ValueStateKnown,
+	}, diags
+}
+
+func NewKubeSchedulerValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) KubeSchedulerValue {
+	object, diags := NewKubeSchedulerValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewKubeSchedulerValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t KubeSchedulerType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewKubeSchedulerValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewKubeSchedulerValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewKubeSchedulerValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewKubeSchedulerValueMust(KubeSchedulerValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t KubeSchedulerType) ValueType(ctx context.Context) attr.Value {
+	return KubeSchedulerValue{}
+}
+
+var _ basetypes.ObjectValuable = KubeSchedulerValue{}
+
+type KubeSchedulerValue struct {
+	ExtraArgs         basetypes.MapValue    `tfsdk:"extra_args"`
+	ExtraVolumeMounts basetypes.StringValue `tfsdk:"extra_volume_mounts"`
+	ExtraVolumes      basetypes.StringValue `tfsdk:"extra_volumes"`
+	state             attr.ValueState
+}
+
+func (v KubeSchedulerValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 3)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["extra_args"] = basetypes.MapType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
+	attrTypes["extra_volume_mounts"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["extra_volumes"] = basetypes.StringType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 3)
+
+		val, err = v.ExtraArgs.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["extra_args"] = val
+
+		val, err = v.ExtraVolumeMounts.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["extra_volume_mounts"] = val
+
+		val, err = v.ExtraVolumes.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["extra_volumes"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v KubeSchedulerValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v KubeSchedulerValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v KubeSchedulerValue) String() string {
+	return "KubeSchedulerValue"
+}
+
+func (v KubeSchedulerValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	var extraArgsVal basetypes.MapValue
+	switch {
+	case v.ExtraArgs.IsUnknown():
+		extraArgsVal = types.MapUnknown(types.StringType)
+	case v.ExtraArgs.IsNull():
+		extraArgsVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		extraArgsVal, d = types.MapValue(types.StringType, v.ExtraArgs.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"extra_args": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+			"extra_volume_mounts": basetypes.StringType{},
+			"extra_volumes":       basetypes.StringType{},
+		}), diags
+	}
+
+	attributeTypes := map[string]attr.Type{
+		"extra_args": basetypes.MapType{
+			ElemType: types.StringType,
+		},
+		"extra_volume_mounts": basetypes.StringType{},
+		"extra_volumes":       basetypes.StringType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"extra_args":          extraArgsVal,
+			"extra_volume_mounts": v.ExtraVolumeMounts,
+			"extra_volumes":       v.ExtraVolumes,
+		})
+
+	return objVal, diags
+}
+
+func (v KubeSchedulerValue) Equal(o attr.Value) bool {
+	other, ok := o.(KubeSchedulerValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.ExtraArgs.Equal(other.ExtraArgs) {
+		return false
+	}
+
+	if !v.ExtraVolumeMounts.Equal(other.ExtraVolumeMounts) {
+		return false
+	}
+
+	if !v.ExtraVolumes.Equal(other.ExtraVolumes) {
+		return false
+	}
+
+	return true
+}
+
+func (v KubeSchedulerValue) Type(ctx context.Context) attr.Type {
+	return KubeSchedulerType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v KubeSchedulerValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"extra_args": basetypes.MapType{
+			ElemType: types.StringType,
+		},
+		"extra_volume_mounts": basetypes.StringType{},
+		"extra_volumes":       basetypes.StringType{},
 	}
 }
 

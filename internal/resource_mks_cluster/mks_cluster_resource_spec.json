@@ -211,6 +211,110 @@
 												}
 											},
 											{
+												"name": "control_plane_overrides",
+												"single_nested": {
+													"computed_optional_required": "optional",
+													"description": "MKS Cluster control plane overrides",
+													"attributes": [
+														{
+															"name": "kube_apiserver",
+															"single_nested": {
+																"computed_optional_required": "optional",
+																"attributes": [
+																	{
+																		"name": "extra_args",
+																		"map": {
+																			"computed_optional_required": "optional",
+																			"element_type": {
+																				"string": {}
+																			},
+																			"description": "MKS Cluster kube_apiserver extra args"
+																		}
+																	},
+																	{
+																		"name": "extra_volumes",
+																		"string": {
+																			"computed_optional_required": "optional",
+																			"description": "MKS Cluster kube_apiserver extra volumes"
+																		}
+																	},
+																	{
+																		"name": "extra_volume_mounts",
+																		"string": {
+																			"computed_optional_required": "optional",
+																			"description": "MKS Cluster kube_apiserver extra volume mounts"
+																		}
+																	}
+																]
+															}
+														},
+														{
+															"name": "kube_controller_manager",
+															"single_nested": {
+																"computed_optional_required": "optional",
+																"attributes": [
+																	{
+																		"name": "extra_args",
+																		"map": {
+																			"computed_optional_required": "optional",
+																			"element_type": {
+																				"string": {}
+																			},
+																			"description": "MKS Cluster kube_controller_manager extra args"
+																		}
+																	},
+																	{
+																		"name": "extra_volumes",
+																		"string": {
+																			"computed_optional_required": "optional",
+																			"description": "MKS Cluster kube_controller_manager extra volumes"
+																		}
+																	},
+																	{
+																		"name": "extra_volume_mounts",
+																		"string": {
+																			"computed_optional_required": "optional",
+																			"description": "MKS Cluster kube_controller_manager extra volume mounts"
+																		}
+																	}
+																]
+															}
+														},
+														{
+															"name": "kube_scheduler",
+															"single_nested": {
+																"computed_optional_required": "optional",
+																"attributes": [
+																	{
+																		"name": "extra_args",
+																		"map": {
+																			"computed_optional_required": "optional",
+																			"element_type": {
+																				"string": {}
+																			}
+																		}
+																	},
+																	{
+																		"name": "extra_volumes",
+																		"string": {
+																			"computed_optional_required": "optional",
+																			"description": "MKS Cluster kube_scheduler extra volumes"
+																		}
+																	},
+																	{
+																		"name": "extra_volume_mounts",
+																		"string": {
+																			"computed_optional_required": "optional",
+																			"description": "MKS Cluster kube_scheduler extra volume mounts"
+																		}
+																	}
+																]
+															}
+														}
+													]
+												}
+											},
+											{
 												"name": "location",
 												"string": {
 													"computed_optional_required": "optional",

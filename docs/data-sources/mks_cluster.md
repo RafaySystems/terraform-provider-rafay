@@ -82,6 +82,7 @@ Read-Only:
 - `kubelet_extra_args` (Map of String) Cluster kubelet extra args.
 - `platform_version` (String) Platform version that allows upgrading the cluster's internal components such as Cluster utils, Orchestration proxy, Orchestration agent, CRI, and etcd.
 - `kubelet_configuration_overrides` (String) Advanced kubelet settings in YAML format (e.g evictionHard).
+- `control_plane_overrides` (Attributes) Advanced control plane configuration such as extra args, extra volumes and extra volume mounts seetings.
 - `location` (String) The data center location where the cluster nodes will be launched
 - `network` (Attributes) MKS Cluster Network Specification (see [below for nested schema](#nestedatt--spec--config--network))
 - `nodes` (Attributes Map) holds node configuration for the cluster (see [below for nested schema](#nestedatt--spec--config--nodes))

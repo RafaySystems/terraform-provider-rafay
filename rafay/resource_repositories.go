@@ -467,6 +467,24 @@ func flattenRepoCredentials(in *repositorySpec, p []interface{}) []interface{} {
 	return []interface{}{obj}
 }
 
+// flattenCACertOptions returns the ca_cert block for state. It must always use the
+// existing value from state (p) or user-provided config—e.g. "name"—and must never
+// use controller-side data (in). This avoids overwriting state with server-generated
+// or different names.
+func flattenCACertOptions(in *commonpb.File, p []interface{}) []interface{} {
+	if in == nil || len(p) == 0 || p[0] == nil {
+		return nil
+	}
+
+	obj, ok := p[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	// Return only state/user data; do not set name or other fields from in (controller).
+	return []interface{}{obj}
+}
+
 func flattenRepoOptions(in *integrationspb.RepositoryOptions, p []interface{}) []interface{} {
 	if in == nil {
 		return nil
@@ -524,10 +542,14 @@ func flattenRepoOptions(in *integrationspb.RepositoryOptions, p []interface{}) [
 		retNel = false
 	}
 
-	// if in.CaCert != nil {
-	// 	obj["ca_cert"] = flattenCommonpbFile(in.CaCert)
-	// 	retNel = false
-	// }
+	if in.CaCert != nil {
+		var priorCaCert []interface{}
+		if v, ok := obj["ca_cert"].([]interface{}); ok {
+			priorCaCert = v
+		}
+		obj["ca_cert"] = flattenCACertOptions(in.CaCert, priorCaCert)
+		retNel = false
+	}
 
 	if retNel {
 		return nil

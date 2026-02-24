@@ -20,8 +20,8 @@ github.com/ProtonMail/go-crypto v1.1.0-alpha.2 h1:bkyFVUP+ROOARdgCiJzNQo2V2kiB97
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2/go.mod h1:rA3QumHc/FZ8pAHreoekgiAbzpNsfQAosU5td4SnOrE=
 github.com/RafaySystems/eaas-playground/proto v0.0.0-20251008151511-bf1cf36fe5bd h1:50smMqzYlYN0e7bgVLGBIX7Y1V9fUE+yUhkCoQIVgD4=
 github.com/RafaySystems/eaas-playground/proto v0.0.0-20251008151511-bf1cf36fe5bd/go.mod h1:lAle7/tiVlakfiXdJKnsf6qNdLkoWS712T4pAXytSOQ=
-github.com/RafaySystems/edge-common v1.24.1-0.20260217060826-5d14ce3468bb h1:8anR/rG1Esy9NNBJiaN7M0skF/6XbPNXEoCFJxfuZ88=
-github.com/RafaySystems/edge-common v1.24.1-0.20260217060826-5d14ce3468bb/go.mod h1:tbd1Z34RfnJ3umcDjf478+dh7hJ66ict3wra7YbQmiA=
+github.com/RafaySystems/edge-common v1.24.1-0.20260224030813-316a61fe7ada h1:3SbAmUwwp9XWJtNYWh7RgNgqcwmjnGyHF7L+8duZWtc=
+github.com/RafaySystems/edge-common v1.24.1-0.20260224030813-316a61fe7ada/go.mod h1:tbd1Z34RfnJ3umcDjf478+dh7hJ66ict3wra7YbQmiA=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e h1:SrznY+xkaQ4BkX0HXGa0upur7RAtR6UsTsdMNEgBreY=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e/go.mod h1:vDR0S28Q+hwE/5wO0L/Ohn9CZwaI/o2QuPupJ2iLI7k=
 github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260223061243-4275b1866249 h1:9rTe9UFUo38dssUqezoKrnHSYhPXdpOzKolewJMzckg=

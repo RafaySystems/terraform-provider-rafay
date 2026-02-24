@@ -779,6 +779,219 @@ func TestFlattenAKSMaintenanceConfigs(t *testing.T) {
 	}
 }
 
+// TestFlattenAKSBootstrapVmParams tests the flattenAKSBootstrapVmParams function (create-only; no Day 2)
+func TestFlattenAKSBootstrapVmParams(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    *AKSBootstrapVmParams
+		p        []interface{}
+		expected []interface{}
+	}{
+		{
+			name:     "nil input",
+			input:    nil,
+			p:        []interface{}{},
+			expected: nil,
+		},
+		{
+			name: "vm_size only",
+			input: &AKSBootstrapVmParams{
+				VMSize: "Standard_B2s",
+			},
+			p: []interface{}{},
+			expected: []interface{}{
+				map[string]interface{}{
+					"vm_size": "Standard_B2s",
+				},
+			},
+		},
+		{
+			name: "vm_size and image marketplace",
+			input: &AKSBootstrapVmParams{
+				VMSize: "Standard_B2s",
+				Image: &AKSBootstrapVmImageRef{
+					Publisher: "Canonical",
+					Offer:     "0001-com-ubuntu-server-jammy",
+					Sku:       "22_04-lts",
+					Version:   "latest",
+				},
+			},
+			p: []interface{}{},
+			expected: []interface{}{
+				map[string]interface{}{
+					"vm_size": "Standard_B2s",
+					"image": []interface{}{
+						map[string]interface{}{
+							"publisher": "Canonical",
+							"offer":     "0001-com-ubuntu-server-jammy",
+							"sku":       "22_04-lts",
+							"version":   "latest",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "image with id only",
+			input: &AKSBootstrapVmParams{
+				Image: &AKSBootstrapVmImageRef{
+					ID: "/subscriptions/xxx/resourceGroups/rg/providers/Microsoft.Compute/images/myimage",
+				},
+			},
+			p: []interface{}{},
+			expected: []interface{}{
+				map[string]interface{}{
+					"image": []interface{}{
+						map[string]interface{}{
+							"id": "/subscriptions/xxx/resourceGroups/rg/providers/Microsoft.Compute/images/myimage",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := flattenAKSBootstrapVmParams(tt.input, tt.p)
+			if tt.expected == nil {
+				assert.Nil(t, result)
+				return
+			}
+			require.NotNil(t, result)
+			assert.Len(t, result, 1)
+			resultMap := result[0].(map[string]interface{})
+			expectedMap := tt.expected[0].(map[string]interface{})
+			if expectedMap["vm_size"] != nil {
+				assert.Equal(t, expectedMap["vm_size"], resultMap["vm_size"])
+			}
+			if expectedMap["image"] != nil {
+				require.NotNil(t, resultMap["image"])
+				resultImg := resultMap["image"].([]interface{})[0].(map[string]interface{})
+				expectedImg := expectedMap["image"].([]interface{})[0].(map[string]interface{})
+				if expectedImg["id"] != nil {
+					assert.Equal(t, expectedImg["id"], resultImg["id"])
+				}
+				if expectedImg["publisher"] != nil {
+					assert.Equal(t, expectedImg["publisher"], resultImg["publisher"])
+					assert.Equal(t, expectedImg["offer"], resultImg["offer"])
+					assert.Equal(t, expectedImg["sku"], resultImg["sku"])
+					assert.Equal(t, expectedImg["version"], resultImg["version"])
+				}
+			}
+		})
+	}
+}
+
+// TestFlattenAKSBootstrapVmImage tests the flattenAKSBootstrapVmImage function
+func TestFlattenAKSBootstrapVmImage(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    *AKSBootstrapVmImageRef
+		p        []interface{}
+		expected []interface{}
+	}{
+		{
+			name:     "nil input",
+			input:    nil,
+			p:        []interface{}{},
+			expected: nil,
+		},
+		{
+			name: "id only",
+			input: &AKSBootstrapVmImageRef{
+				ID: "/subscriptions/xxx/resourceGroups/rg/providers/Microsoft.Compute/images/myimage",
+			},
+			p: []interface{}{},
+			expected: []interface{}{
+				map[string]interface{}{
+					"id": "/subscriptions/xxx/resourceGroups/rg/providers/Microsoft.Compute/images/myimage",
+				},
+			},
+		},
+		{
+			name: "marketplace fields",
+			input: &AKSBootstrapVmImageRef{
+				Publisher: "Canonical",
+				Offer:     "0001-com-ubuntu-server-jammy",
+				Sku:       "22_04-lts",
+				Version:   "latest",
+			},
+			p: []interface{}{},
+			expected: []interface{}{
+				map[string]interface{}{
+					"publisher": "Canonical",
+					"offer":     "0001-com-ubuntu-server-jammy",
+					"sku":       "22_04-lts",
+					"version":   "latest",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := flattenAKSBootstrapVmImage(tt.input, tt.p)
+			if tt.expected == nil {
+				assert.Nil(t, result)
+				return
+			}
+			require.NotNil(t, result)
+			assert.Len(t, result, 1)
+			resultMap := result[0].(map[string]interface{})
+			expectedMap := tt.expected[0].(map[string]interface{})
+			if expectedMap["id"] != nil {
+				assert.Equal(t, expectedMap["id"], resultMap["id"])
+			}
+			if expectedMap["publisher"] != nil {
+				assert.Equal(t, expectedMap["publisher"], resultMap["publisher"])
+				assert.Equal(t, expectedMap["offer"], resultMap["offer"])
+				assert.Equal(t, expectedMap["sku"], resultMap["sku"])
+				assert.Equal(t, expectedMap["version"], resultMap["version"])
+			}
+		})
+	}
+}
+
+// TestFlattenAKSClusterConfigSpecWithBootstrapVmParams ensures bootstrap_vm_params is flattened (used on create only; stripped on read for no Day 2)
+func TestFlattenAKSClusterConfigSpecWithBootstrapVmParams(t *testing.T) {
+	input := &AKSClusterConfigSpec{
+		SubscriptionID:    "12345678-1234-1234-1234-123456789012",
+		ResourceGroupName: "test-rg",
+		BootstrapVmParams: &AKSBootstrapVmParams{
+			VMSize: "Standard_B2s",
+			Image: &AKSBootstrapVmImageRef{
+				Publisher: "Canonical",
+				Offer:     "0001-com-ubuntu-server-jammy",
+				Sku:       "22_04-lts",
+				Version:   "latest",
+			},
+		},
+	}
+	p := []interface{}{}
+	rawState := cty.NullVal(cty.Object(map[string]cty.Type{}))
+
+	result := flattenAKSClusterConfigSpec(input, p, rawState)
+	require.NotNil(t, result)
+	assert.Len(t, result, 1)
+	specMap := result[0].(map[string]interface{})
+	assert.Equal(t, "12345678-1234-1234-1234-123456789012", specMap["subscription_id"])
+	assert.Equal(t, "test-rg", specMap["resource_group_name"])
+	require.NotNil(t, specMap["bootstrap_vm_params"])
+	bootstrapList := specMap["bootstrap_vm_params"].([]interface{})
+	assert.Len(t, bootstrapList, 1)
+	bootstrapMap := bootstrapList[0].(map[string]interface{})
+	assert.Equal(t, "Standard_B2s", bootstrapMap["vm_size"])
+	require.NotNil(t, bootstrapMap["image"])
+	imageList := bootstrapMap["image"].([]interface{})
+	assert.Len(t, imageList, 1)
+	imageMap := imageList[0].(map[string]interface{})
+	assert.Equal(t, "Canonical", imageMap["publisher"])
+	assert.Equal(t, "0001-com-ubuntu-server-jammy", imageMap["offer"])
+	assert.Equal(t, "22_04-lts", imageMap["sku"])
+	assert.Equal(t, "latest", imageMap["version"])
+}
+
 // Benchmark tests for AKS flatten functions
 func BenchmarkFlattenAKSClusterMetadata(b *testing.B) {
 	input := &AKSClusterMetadata{

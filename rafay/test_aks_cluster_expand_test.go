@@ -719,6 +719,230 @@ func TestExpandAKSMaintenanceConfigs(t *testing.T) {
 	}
 }
 
+// TestExpandAKSBootstrapVmParams tests the expandAKSBootstrapVmParams function (create-only; no Day 2)
+func TestExpandAKSBootstrapVmParams(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []interface{}
+		expected *AKSBootstrapVmParams
+	}{
+		{
+			name:     "empty input",
+			input:    []interface{}{},
+			expected: nil,
+		},
+		{
+			name: "nil first element",
+			input: []interface{}{
+				nil,
+			},
+			expected: nil,
+		},
+		{
+			name: "vm_size only",
+			input: []interface{}{
+				map[string]interface{}{
+					"vm_size": "Standard_B2s",
+				},
+			},
+			expected: &AKSBootstrapVmParams{
+				VMSize: "Standard_B2s",
+			},
+		},
+		{
+			name: "image with marketplace",
+			input: []interface{}{
+				map[string]interface{}{
+					"vm_size": "Standard_B2s",
+					"image": []interface{}{
+						map[string]interface{}{
+							"publisher": "Canonical",
+							"offer":     "0001-com-ubuntu-server-jammy",
+							"sku":       "22_04-lts",
+							"version":   "latest",
+						},
+					},
+				},
+			},
+			expected: &AKSBootstrapVmParams{
+				VMSize: "Standard_B2s",
+				Image: &AKSBootstrapVmImageRef{
+					Publisher: "Canonical",
+					Offer:     "0001-com-ubuntu-server-jammy",
+					Sku:       "22_04-lts",
+					Version:   "latest",
+				},
+			},
+		},
+		{
+			name: "image with id only (non-marketplace)",
+			input: []interface{}{
+				map[string]interface{}{
+					"image": []interface{}{
+						map[string]interface{}{
+							"id": "/subscriptions/xxx/resourceGroups/rg/providers/Microsoft.Compute/galleries/gal/images/img/versions/1.0.0",
+						},
+					},
+				},
+			},
+			expected: &AKSBootstrapVmParams{
+				Image: &AKSBootstrapVmImageRef{
+					ID: "/subscriptions/xxx/resourceGroups/rg/providers/Microsoft.Compute/galleries/gal/images/img/versions/1.0.0",
+				},
+			},
+		},
+		{
+			name: "empty vm_size and image returns nil",
+			input: []interface{}{
+				map[string]interface{}{},
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := expandAKSBootstrapVmParams(tt.input)
+			if tt.expected == nil {
+				assert.Nil(t, result)
+				return
+			}
+			require.NotNil(t, result)
+			assert.Equal(t, tt.expected.VMSize, result.VMSize)
+			if tt.expected.Image != nil {
+				require.NotNil(t, result.Image)
+				assert.Equal(t, tt.expected.Image.ID, result.Image.ID)
+				assert.Equal(t, tt.expected.Image.Publisher, result.Image.Publisher)
+				assert.Equal(t, tt.expected.Image.Offer, result.Image.Offer)
+				assert.Equal(t, tt.expected.Image.Sku, result.Image.Sku)
+				assert.Equal(t, tt.expected.Image.Version, result.Image.Version)
+			} else {
+				assert.Nil(t, result.Image)
+			}
+		})
+	}
+}
+
+// TestExpandAKSBootstrapVmImage tests the expandAKSBootstrapVmImage function
+func TestExpandAKSBootstrapVmImage(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []interface{}
+		expected *AKSBootstrapVmImageRef
+	}{
+		{
+			name:     "empty input",
+			input:    []interface{}{},
+			expected: nil,
+		},
+		{
+			name: "all fields empty returns nil",
+			input: []interface{}{
+				map[string]interface{}{},
+			},
+			expected: nil,
+		},
+		{
+			name: "id only",
+			input: []interface{}{
+				map[string]interface{}{
+					"id": "/subscriptions/xxx/resourceGroups/rg/providers/Microsoft.Compute/images/myimage",
+				},
+			},
+			expected: &AKSBootstrapVmImageRef{
+				ID: "/subscriptions/xxx/resourceGroups/rg/providers/Microsoft.Compute/images/myimage",
+			},
+		},
+		{
+			name: "marketplace fields",
+			input: []interface{}{
+				map[string]interface{}{
+					"publisher": "Canonical",
+					"offer":     "0001-com-ubuntu-server-jammy",
+					"sku":       "22_04-lts",
+					"version":   "latest",
+				},
+			},
+			expected: &AKSBootstrapVmImageRef{
+				Publisher: "Canonical",
+				Offer:     "0001-com-ubuntu-server-jammy",
+				Sku:       "22_04-lts",
+				Version:   "latest",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := expandAKSBootstrapVmImage(tt.input)
+			if tt.expected == nil {
+				assert.Nil(t, result)
+				return
+			}
+			require.NotNil(t, result)
+			assert.Equal(t, tt.expected.ID, result.ID)
+			assert.Equal(t, tt.expected.Publisher, result.Publisher)
+			assert.Equal(t, tt.expected.Offer, result.Offer)
+			assert.Equal(t, tt.expected.Sku, result.Sku)
+			assert.Equal(t, tt.expected.Version, result.Version)
+		})
+	}
+}
+
+// TestExpandAKSClusterConfigSpecWithBootstrapVmParams ensures bootstrap_vm_params is expanded and is create-only (no Day 2 stitching)
+func TestExpandAKSClusterConfigSpecWithBootstrapVmParams(t *testing.T) {
+	input := []interface{}{
+		map[string]interface{}{
+			"subscription_id":     "12345678-1234-1234-1234-123456789012",
+			"resource_group_name": "test-rg",
+			"bootstrap_vm_params": []interface{}{
+				map[string]interface{}{
+					"vm_size": "Standard_B2s",
+					"image": []interface{}{
+						map[string]interface{}{
+							"publisher": "Canonical",
+							"offer":     "0001-com-ubuntu-server-jammy",
+							"sku":       "22_04-lts",
+							"version":   "latest",
+						},
+					},
+				},
+			},
+		},
+	}
+	rawConfig := cty.ListVal([]cty.Value{
+		cty.ObjectVal(map[string]cty.Value{
+			"subscription_id":     cty.StringVal("12345678-1234-1234-1234-123456789012"),
+			"resource_group_name": cty.StringVal("test-rg"),
+			"bootstrap_vm_params": cty.ListVal([]cty.Value{
+				cty.ObjectVal(map[string]cty.Value{
+					"vm_size": cty.StringVal("Standard_B2s"),
+					"image": cty.ListVal([]cty.Value{
+						cty.ObjectVal(map[string]cty.Value{
+							"publisher": cty.StringVal("Canonical"),
+							"offer":     cty.StringVal("0001-com-ubuntu-server-jammy"),
+							"sku":       cty.StringVal("22_04-lts"),
+							"version":   cty.StringVal("latest"),
+						}),
+					}),
+				}),
+			}),
+		}),
+	})
+
+	result := expandAKSClusterConfigSpec(input, rawConfig)
+	require.NotNil(t, result)
+	assert.Equal(t, "12345678-1234-1234-1234-123456789012", result.SubscriptionID)
+	assert.Equal(t, "test-rg", result.ResourceGroupName)
+	require.NotNil(t, result.BootstrapVmParams)
+	assert.Equal(t, "Standard_B2s", result.BootstrapVmParams.VMSize)
+	require.NotNil(t, result.BootstrapVmParams.Image)
+	assert.Equal(t, "Canonical", result.BootstrapVmParams.Image.Publisher)
+	assert.Equal(t, "0001-com-ubuntu-server-jammy", result.BootstrapVmParams.Image.Offer)
+	assert.Equal(t, "22_04-lts", result.BootstrapVmParams.Image.Sku)
+	assert.Equal(t, "latest", result.BootstrapVmParams.Image.Version)
+}
+
 // Benchmark tests for AKS expand functions
 func BenchmarkExpandAKSClusterMetadata(b *testing.B) {
 	input := []interface{}{

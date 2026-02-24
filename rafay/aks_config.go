@@ -85,7 +85,25 @@ type AKSClusterConfigSpec struct {
 	NodePools          []*AKSNodePool           `yaml:"nodePools,omitempty"`
 	MaintenanceConfigs []*AKSMaintenanceConfig  `yaml:"maintenanceConfigurations,omitempty"`
 	WorkloadIdentities []*AzureWorkloadIdentity `yaml:"workloadIdentities,omitempty"`
+	BootstrapVmParams  *AKSBootstrapVmParams    `yaml:"bootstrapVmParams,omitempty"`
 	//Internal          *AKSRafayInternal  `yaml:"internal,omitempty"`
+}
+
+// AKSBootstrapVmParams holds optional bootstrap VM size and image for AKS cluster provisioning.
+// When omitted, defaults are used: VM size Standard_B1ms, Canonical Ubuntu Server Jammy 22.04 LTS.
+type AKSBootstrapVmParams struct {
+	VMSize string                   `yaml:"vmSize,omitempty"` // e.g. "Standard_B1ms"
+	Image  *AKSBootstrapVmImageRef   `yaml:"image,omitempty"`
+}
+
+// AKSBootstrapVmImageRef is the image reference for the bootstrap VM (Azure compute.StorageProfile.ImageReference).
+// Use ID for non-marketplace (Compute Gallery, custom image); or Publisher/Offer/Sku/Version for marketplace.
+type AKSBootstrapVmImageRef struct {
+	ID        string `yaml:"id,omitempty"`
+	Publisher string `yaml:"publisher,omitempty"`
+	Offer     string `yaml:"offer,omitempty"`
+	Sku       string `yaml:"sku,omitempty"`
+	Version   string `yaml:"version,omitempty"`
 }
 
 type AzureWorkloadIdentity struct {

@@ -66,6 +66,11 @@ test-unit:
 	@echo "Running unit tests only..."
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay
 
+# AKS bootstrap_vm_params unit tests (requires GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore)
+test-aks-bootstrap-vm:
+	@echo "Running AKS bootstrap_vm_params unit tests..."
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v ./rafay/ -run 'TestExpandAKSBootstrapVmParams|TestExpandAKSBootstrapVmImage|TestExpandAKSClusterConfigSpecWithBootstrapVmParams|TestFlattenAKSBootstrapVmParams|TestFlattenAKSBootstrapVmImage|TestFlattenAKSClusterConfigSpecWithBootstrapVmParams'
+
 test-integration:
 	@echo "Running integration tests only..."
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test -v -tags=integration ./tests/integration/...

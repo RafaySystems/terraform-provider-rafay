@@ -235,6 +235,9 @@ require (
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
 
+	// Local development: uncomment when working with edge-common / edge-factory in same parent dir
+	// github.com/RafaySystems/edge-common => ../edge-common
+	// github.com/RafaySystems/edge-factory => ../edge-factory
 	// github.com/RafaySystems/rafay-common => ../rafay-common
 	// github.com/RafaySystems/rctl => ../rctl
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay

@@ -324,8 +324,66 @@ func clusterAKSClusterConfigSpec() map[string]*schema.Schema {
 				Schema: clusterAKSMaintenanceConfig(),
 			},
 		},
+		"bootstrap_vm_params": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "Optional bootstrap VM size and image for AKS cluster provisioning. When omitted, defaults are used: VM size Standard_B1ms, Canonical Ubuntu Server Jammy 22.04 LTS.",
+			Elem: &schema.Resource{
+				Schema: clusterAKSBootstrapVmParams(),
+			},
+		},
 	}
 	return s
+}
+
+func clusterAKSBootstrapVmParams() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"vm_size": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Azure VM size for the bootstrap VM (e.g. Standard_B1ms).",
+		},
+		"image": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "Image reference for the bootstrap VM. Use id for non-marketplace (Compute Gallery, custom image), or publisher/offer/sku/version for marketplace.",
+			Elem: &schema.Resource{
+				Schema: clusterAKSBootstrapVmImage(),
+			},
+		},
+	}
+}
+
+func clusterAKSBootstrapVmImage() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Full Azure resource ID for non-marketplace image (Compute Gallery, custom image). Takes precedence when set.",
+		},
+		"publisher": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Marketplace image publisher (e.g. Canonical).",
+		},
+		"offer": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Marketplace image offer (e.g. 0001-com-ubuntu-server-jammy).",
+		},
+		"sku": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Marketplace image SKU (e.g. 22_04-lts).",
+		},
+		"version": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Marketplace image version (e.g. latest).",
+		},
+	}
 }
 
 func clusterAKSManagedCluster() map[string]*schema.Schema {
@@ -2475,6 +2533,55 @@ func expandAKSClusterConfigSpec(p []interface{}, rawConfig cty.Value) *AKSCluste
 		obj.MaintenanceConfigs = expandAKSMaintenanceConfigs(v)
 	}
 
+	if v, ok := in["bootstrap_vm_params"].([]interface{}); ok && len(v) > 0 {
+		obj.BootstrapVmParams = expandAKSBootstrapVmParams(v)
+	}
+
+	return obj
+}
+
+func expandAKSBootstrapVmParams(p []interface{}) *AKSBootstrapVmParams {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	in := p[0].(map[string]interface{})
+	obj := &AKSBootstrapVmParams{}
+	if v, ok := in["vm_size"].(string); ok && len(v) > 0 {
+		obj.VMSize = v
+	}
+	if v, ok := in["image"].([]interface{}); ok && len(v) > 0 {
+		obj.Image = expandAKSBootstrapVmImage(v)
+	}
+	if obj.VMSize == "" && obj.Image == nil {
+		return nil
+	}
+	return obj
+}
+
+func expandAKSBootstrapVmImage(p []interface{}) *AKSBootstrapVmImageRef {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	in := p[0].(map[string]interface{})
+	obj := &AKSBootstrapVmImageRef{}
+	if v, ok := in["id"].(string); ok && len(v) > 0 {
+		obj.ID = v
+	}
+	if v, ok := in["publisher"].(string); ok && len(v) > 0 {
+		obj.Publisher = v
+	}
+	if v, ok := in["offer"].(string); ok && len(v) > 0 {
+		obj.Offer = v
+	}
+	if v, ok := in["sku"].(string); ok && len(v) > 0 {
+		obj.Sku = v
+	}
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+	if obj.ID == "" && obj.Publisher == "" && obj.Offer == "" && obj.Sku == "" && obj.Version == "" {
+		return nil
+	}
 	return obj
 }
 
@@ -4474,8 +4581,63 @@ func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}, rawS
 		obj["maintenance_configurations"] = flattenAKSMaintenanceConfigs(in.MaintenanceConfigs, v)
 	}
 
+	if in.BootstrapVmParams != nil {
+		v, ok := obj["bootstrap_vm_params"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["bootstrap_vm_params"] = flattenAKSBootstrapVmParams(in.BootstrapVmParams, v)
+	}
+
 	return []interface{}{obj}
 
+}
+
+func flattenAKSBootstrapVmParams(in *AKSBootstrapVmParams, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if len(in.VMSize) > 0 {
+		obj["vm_size"] = in.VMSize
+	}
+	if in.Image != nil {
+		v, ok := obj["image"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["image"] = flattenAKSBootstrapVmImage(in.Image, v)
+	}
+	return []interface{}{obj}
+}
+
+func flattenAKSBootstrapVmImage(in *AKSBootstrapVmImageRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+	if len(in.ID) > 0 {
+		obj["id"] = in.ID
+	}
+	if len(in.Publisher) > 0 {
+		obj["publisher"] = in.Publisher
+	}
+	if len(in.Offer) > 0 {
+		obj["offer"] = in.Offer
+	}
+	if len(in.Sku) > 0 {
+		obj["sku"] = in.Sku
+	}
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+	return []interface{}{obj}
 }
 
 func flattenAKSManagedCluster(in *AKSManagedCluster, p []interface{}) []interface{} {
@@ -6858,6 +7020,12 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 
 		log.Println("Removing deployed workload identities from deployed cluster spec")
 		clusterSpec.Spec.AKSClusterConfig.Spec.WorkloadIdentities = nil
+	}
+
+	// BootstrapVmParams is create-only; not supported for Day 2 operations. Do not expose in state on read.
+	if clusterSpec.Spec.AKSClusterConfig.Spec.BootstrapVmParams != nil {
+		log.Println("Removing deployed bootstrap_vm_params from deployed cluster spec (create-only, no Day 2)")
+		clusterSpec.Spec.AKSClusterConfig.Spec.BootstrapVmParams = nil
 	}
 
 	// ============== Unfurl End =================

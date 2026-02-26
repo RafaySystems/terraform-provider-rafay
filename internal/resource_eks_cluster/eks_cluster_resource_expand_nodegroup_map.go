@@ -120,9 +120,9 @@ func (v NodeGroupsMapValue) Expand(ctx context.Context) (*rafay.NodeGroup, diag.
 		enableDM := getBoolValue(v.EnableDetailedMonitoring)
 		ng.EnableDetailedMonitoring = &enableDM
 	}
-	if !v.AvailabilityZones2.IsNull() && !v.AvailabilityZones2.IsUnknown() {
-		azList := make([]types.String, 0, len(v.AvailabilityZones2.Elements()))
-		d = v.AvailabilityZones2.ElementsAs(ctx, &azList, false)
+	if !v.AvailabilityZones.IsNull() && !v.AvailabilityZones.IsUnknown() {
+		azList := make([]types.String, 0, len(v.AvailabilityZones.Elements()))
+		d = v.AvailabilityZones.ElementsAs(ctx, &azList, false)
 		diags = append(diags, d...)
 		azs := make([]string, 0, len(azList))
 		for _, az := range azList {

@@ -600,7 +600,7 @@
                                                     }
                                                 },
                                                 {
-                                                    "name": "availability_zones2",
+                                                    "name": "availability_zones",
                                                     "list": {
                                                         "description": "Limit nodes to specific AZs",
                                                         "element_type": {

@@ -1005,7 +1005,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Description:         "List of autoscaling processes to suspend.",
 										MarkdownDescription: "List of autoscaling processes to suspend.",
 									},
-									"availability_zones2": schema.ListAttribute{
+									"availability_zones": schema.ListAttribute{
 										ElementType:         types.StringType,
 										Optional:            true,
 										Description:         "Limit nodes to specific AZs",
@@ -22862,22 +22862,22 @@ func (t NodeGroupsMapType) ValueFromObject(ctx context.Context, in basetypes.Obj
 			fmt.Sprintf(`asg_suspend_processes expected to be basetypes.ListValue, was: %T`, asgSuspendProcessesAttribute))
 	}
 
-	availabilityZones2Attribute, ok := attributes["availability_zones2"]
+	availabilityZonesAttribute, ok := attributes["availability_zones"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`availability_zones2 is missing from object`)
+			`availability_zones is missing from object`)
 
 		return nil, diags
 	}
 
-	availabilityZones2Val, ok := availabilityZones2Attribute.(basetypes.ListValue)
+	availabilityZonesVal, ok := availabilityZonesAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`availability_zones2 expected to be basetypes.ListValue, was: %T`, availabilityZones2Attribute))
+			fmt.Sprintf(`availability_zones expected to be basetypes.ListValue, was: %T`, availabilityZonesAttribute))
 	}
 
 	bottleRocket6Attribute, ok := attributes["bottle_rocket"]
@@ -23627,7 +23627,7 @@ func (t NodeGroupsMapType) ValueFromObject(ctx context.Context, in basetypes.Obj
 		AmiFamily:                amiFamilyVal,
 		AsgMetricsCollection6:    asgMetricsCollection6Val,
 		AsgSuspendProcesses:      asgSuspendProcessesVal,
-		AvailabilityZones2:       availabilityZones2Val,
+		AvailabilityZones:        availabilityZonesVal,
 		BottleRocket6:            bottleRocket6Val,
 		ClassicLoadBalancerNames: classicLoadBalancerNamesVal,
 		ClusterDns:               clusterDnsVal,
@@ -23808,22 +23808,22 @@ func NewNodeGroupsMapValue(attributeTypes map[string]attr.Type, attributes map[s
 			fmt.Sprintf(`asg_suspend_processes expected to be basetypes.ListValue, was: %T`, asgSuspendProcessesAttribute))
 	}
 
-	availabilityZones2Attribute, ok := attributes["availability_zones2"]
+	availabilityZonesAttribute, ok := attributes["availability_zones"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`availability_zones2 is missing from object`)
+			`availability_zones is missing from object`)
 
 		return NewNodeGroupsMapValueUnknown(), diags
 	}
 
-	availabilityZones2Val, ok := availabilityZones2Attribute.(basetypes.ListValue)
+	availabilityZonesVal, ok := availabilityZonesAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`availability_zones2 expected to be basetypes.ListValue, was: %T`, availabilityZones2Attribute))
+			fmt.Sprintf(`availability_zones expected to be basetypes.ListValue, was: %T`, availabilityZonesAttribute))
 	}
 
 	bottleRocket6Attribute, ok := attributes["bottle_rocket"]
@@ -24573,7 +24573,7 @@ func NewNodeGroupsMapValue(attributeTypes map[string]attr.Type, attributes map[s
 		AmiFamily:                amiFamilyVal,
 		AsgMetricsCollection6:    asgMetricsCollection6Val,
 		AsgSuspendProcesses:      asgSuspendProcessesVal,
-		AvailabilityZones2:       availabilityZones2Val,
+		AvailabilityZones:        availabilityZonesVal,
 		BottleRocket6:            bottleRocket6Val,
 		ClassicLoadBalancerNames: classicLoadBalancerNamesVal,
 		ClusterDns:               clusterDnsVal,
@@ -24691,7 +24691,7 @@ type NodeGroupsMapValue struct {
 	AmiFamily                basetypes.StringValue `tfsdk:"ami_family"`
 	AsgMetricsCollection6    basetypes.SetValue    `tfsdk:"asg_metrics_collection6"`
 	AsgSuspendProcesses      basetypes.ListValue   `tfsdk:"asg_suspend_processes"`
-	AvailabilityZones2       basetypes.ListValue   `tfsdk:"availability_zones2"`
+	AvailabilityZones        basetypes.ListValue   `tfsdk:"availability_zones"`
 	BottleRocket6            basetypes.ObjectValue `tfsdk:"bottle_rocket"`
 	ClassicLoadBalancerNames basetypes.ListValue   `tfsdk:"classic_load_balancer_names"`
 	ClusterDns               basetypes.StringValue `tfsdk:"cluster_dns"`
@@ -24750,7 +24750,7 @@ func (v NodeGroupsMapValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 	attrTypes["asg_suspend_processes"] = basetypes.ListType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
-	attrTypes["availability_zones2"] = basetypes.ListType{
+	attrTypes["availability_zones"] = basetypes.ListType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["bottle_rocket"] = basetypes.ObjectType{
@@ -24865,13 +24865,13 @@ func (v NodeGroupsMapValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 
 		vals["asg_suspend_processes"] = val
 
-		val, err = v.AvailabilityZones2.ToTerraformValue(ctx)
+		val, err = v.AvailabilityZones.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["availability_zones2"] = val
+		vals["availability_zones"] = val
 
 		val, err = v.BottleRocket6.ToTerraformValue(ctx)
 
@@ -25499,7 +25499,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ObjectType{
@@ -25578,15 +25578,15 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		}), diags
 	}
 
-	var availabilityZones2Val basetypes.ListValue
+	var availabilityZonesVal basetypes.ListValue
 	switch {
-	case v.AvailabilityZones2.IsUnknown():
-		availabilityZones2Val = types.ListUnknown(types.StringType)
-	case v.AvailabilityZones2.IsNull():
-		availabilityZones2Val = types.ListNull(types.StringType)
+	case v.AvailabilityZones.IsUnknown():
+		availabilityZonesVal = types.ListUnknown(types.StringType)
+	case v.AvailabilityZones.IsNull():
+		availabilityZonesVal = types.ListNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		availabilityZones2Val, d = types.ListValue(types.StringType, v.AvailabilityZones2.Elements())
+		availabilityZonesVal, d = types.ListValue(types.StringType, v.AvailabilityZones.Elements())
 		diags.Append(d...)
 	}
 
@@ -25600,7 +25600,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ObjectType{
@@ -25701,7 +25701,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ObjectType{
@@ -25802,7 +25802,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ObjectType{
@@ -25903,7 +25903,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ObjectType{
@@ -26004,7 +26004,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ObjectType{
@@ -26105,7 +26105,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ObjectType{
@@ -26206,7 +26206,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"asg_suspend_processes": basetypes.ListType{
 				ElemType: types.StringType,
 			},
-			"availability_zones2": basetypes.ListType{
+			"availability_zones": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 			"bottle_rocket": basetypes.ObjectType{
@@ -26294,7 +26294,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		"asg_suspend_processes": basetypes.ListType{
 			ElemType: types.StringType,
 		},
-		"availability_zones2": basetypes.ListType{
+		"availability_zones": basetypes.ListType{
 			ElemType: types.StringType,
 		},
 		"bottle_rocket": basetypes.ObjectType{
@@ -26387,7 +26387,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"ami_family":                  v.AmiFamily,
 			"asg_metrics_collection6":     asgMetricsCollection6,
 			"asg_suspend_processes":       asgSuspendProcessesVal,
-			"availability_zones2":         availabilityZones2Val,
+			"availability_zones":          availabilityZonesVal,
 			"bottle_rocket":               bottleRocket6,
 			"classic_load_balancer_names": classicLoadBalancerNamesVal,
 			"cluster_dns":                 v.ClusterDns,
@@ -26465,7 +26465,7 @@ func (v NodeGroupsMapValue) Equal(o attr.Value) bool {
 		return false
 	}
 
-	if !v.AvailabilityZones2.Equal(other.AvailabilityZones2) {
+	if !v.AvailabilityZones.Equal(other.AvailabilityZones) {
 		return false
 	}
 
@@ -26654,7 +26654,7 @@ func (v NodeGroupsMapValue) AttributeTypes(ctx context.Context) map[string]attr.
 		"asg_suspend_processes": basetypes.ListType{
 			ElemType: types.StringType,
 		},
-		"availability_zones2": basetypes.ListType{
+		"availability_zones": basetypes.ListType{
 			ElemType: types.StringType,
 		},
 		"bottle_rocket": basetypes.ObjectType{

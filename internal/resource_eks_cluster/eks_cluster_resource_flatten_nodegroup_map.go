@@ -191,7 +191,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		tagMap, d = types.MapValue(types.StringType, tag)
 		diags = append(diags, d...)
 	}
-	v.Tags2 = tagMap
+	v.Tags = tagMap
 
 	if in.AMI != "" {
 		v.Ami = types.StringValue(in.AMI)

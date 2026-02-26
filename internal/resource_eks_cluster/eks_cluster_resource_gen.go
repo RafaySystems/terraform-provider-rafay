@@ -1547,7 +1547,7 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Description:         "Limit nodes to specific subnets.",
 										MarkdownDescription: "Limit nodes to specific subnets.",
 									},
-									"tags2": schema.MapAttribute{
+									"tags": schema.MapAttribute{
 										ElementType:         types.StringType,
 										Optional:            true,
 										Description:         "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed).",
@@ -23402,22 +23402,22 @@ func (t NodeGroupsMapType) ValueFromObject(ctx context.Context, in basetypes.Obj
 			fmt.Sprintf(`subnets expected to be basetypes.SetValue, was: %T`, subnetsAttribute))
 	}
 
-	tags2Attribute, ok := attributes["tags2"]
+	tagsAttribute, ok := attributes["tags"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`tags2 is missing from object`)
+			`tags is missing from object`)
 
 		return nil, diags
 	}
 
-	tags2Val, ok := tags2Attribute.(basetypes.MapValue)
+	tagsVal, ok := tagsAttribute.(basetypes.MapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`tags2 expected to be basetypes.MapValue, was: %T`, tags2Attribute))
+			fmt.Sprintf(`tags expected to be basetypes.MapValue, was: %T`, tagsAttribute))
 	}
 
 	taints6Attribute, ok := attributes["taints"]
@@ -23657,7 +23657,7 @@ func (t NodeGroupsMapType) ValueFromObject(ctx context.Context, in basetypes.Obj
 		Ssh6:                     ssh6Val,
 		SubnetCidr:               subnetCidrVal,
 		Subnets:                  subnetsVal,
-		Tags2:                    tags2Val,
+		Tags:                     tagsVal,
 		Taints6:                  taints6Val,
 		TargetGroupArns:          targetGroupArnsVal,
 		UpdateConfig6:            updateConfig6Val,
@@ -24348,22 +24348,22 @@ func NewNodeGroupsMapValue(attributeTypes map[string]attr.Type, attributes map[s
 			fmt.Sprintf(`subnets expected to be basetypes.SetValue, was: %T`, subnetsAttribute))
 	}
 
-	tags2Attribute, ok := attributes["tags2"]
+	tagsAttribute, ok := attributes["tags"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`tags2 is missing from object`)
+			`tags is missing from object`)
 
 		return NewNodeGroupsMapValueUnknown(), diags
 	}
 
-	tags2Val, ok := tags2Attribute.(basetypes.MapValue)
+	tagsVal, ok := tagsAttribute.(basetypes.MapValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`tags2 expected to be basetypes.MapValue, was: %T`, tags2Attribute))
+			fmt.Sprintf(`tags expected to be basetypes.MapValue, was: %T`, tagsAttribute))
 	}
 
 	taints6Attribute, ok := attributes["taints"]
@@ -24603,7 +24603,7 @@ func NewNodeGroupsMapValue(attributeTypes map[string]attr.Type, attributes map[s
 		Ssh6:                     ssh6Val,
 		SubnetCidr:               subnetCidrVal,
 		Subnets:                  subnetsVal,
-		Tags2:                    tags2Val,
+		Tags:                     tagsVal,
 		Taints6:                  taints6Val,
 		TargetGroupArns:          targetGroupArnsVal,
 		UpdateConfig6:            updateConfig6Val,
@@ -24721,7 +24721,7 @@ type NodeGroupsMapValue struct {
 	Ssh6                     basetypes.ObjectValue `tfsdk:"ssh"`
 	SubnetCidr               basetypes.StringValue `tfsdk:"subnet_cidr"`
 	Subnets                  basetypes.SetValue    `tfsdk:"subnets"`
-	Tags2                    basetypes.MapValue    `tfsdk:"tags2"`
+	Tags                     basetypes.MapValue    `tfsdk:"tags"`
 	Taints6                  basetypes.SetValue    `tfsdk:"taints"`
 	TargetGroupArns          basetypes.ListValue   `tfsdk:"target_group_arns"`
 	UpdateConfig6            basetypes.ObjectValue `tfsdk:"update_config"`
@@ -24806,7 +24806,7 @@ func (v NodeGroupsMapValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 	attrTypes["subnets"] = basetypes.SetType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
-	attrTypes["tags2"] = basetypes.MapType{
+	attrTypes["tags"] = basetypes.MapType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["taints"] = basetypes.SetType{
@@ -25105,13 +25105,13 @@ func (v NodeGroupsMapValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 
 		vals["subnets"] = val
 
-		val, err = v.Tags2.ToTerraformValue(ctx)
+		val, err = v.Tags.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["tags2"] = val
+		vals["tags"] = val
 
 		val, err = v.Taints6.ToTerraformValue(ctx)
 
@@ -25555,7 +25555,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.SetType{
@@ -25656,7 +25656,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.SetType{
@@ -25757,7 +25757,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.SetType{
@@ -25858,7 +25858,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.SetType{
@@ -25959,7 +25959,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.SetType{
@@ -26060,7 +26060,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.SetType{
@@ -26083,15 +26083,15 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		}), diags
 	}
 
-	var tags2Val basetypes.MapValue
+	var tagsVal basetypes.MapValue
 	switch {
-	case v.Tags2.IsUnknown():
-		tags2Val = types.MapUnknown(types.StringType)
-	case v.Tags2.IsNull():
-		tags2Val = types.MapNull(types.StringType)
+	case v.Tags.IsUnknown():
+		tagsVal = types.MapUnknown(types.StringType)
+	case v.Tags.IsNull():
+		tagsVal = types.MapNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		tags2Val, d = types.MapValue(types.StringType, v.Tags2.Elements())
+		tagsVal, d = types.MapValue(types.StringType, v.Tags.Elements())
 		diags.Append(d...)
 	}
 
@@ -26161,7 +26161,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.SetType{
@@ -26262,7 +26262,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"subnets": basetypes.SetType{
 				ElemType: types.StringType,
 			},
-			"tags2": basetypes.MapType{
+			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
 			"taints": basetypes.SetType{
@@ -26350,7 +26350,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		"subnets": basetypes.SetType{
 			ElemType: types.StringType,
 		},
-		"tags2": basetypes.MapType{
+		"tags": basetypes.MapType{
 			ElemType: types.StringType,
 		},
 		"taints": basetypes.SetType{
@@ -26417,7 +26417,7 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"ssh":                         ssh6,
 			"subnet_cidr":                 v.SubnetCidr,
 			"subnets":                     subnetsVal,
-			"tags2":                       tags2Val,
+			"tags":                        tagsVal,
 			"taints":                      taints6,
 			"target_group_arns":           targetGroupArnsVal,
 			"update_config":               updateConfig6,
@@ -26585,7 +26585,7 @@ func (v NodeGroupsMapValue) Equal(o attr.Value) bool {
 		return false
 	}
 
-	if !v.Tags2.Equal(other.Tags2) {
+	if !v.Tags.Equal(other.Tags) {
 		return false
 	}
 
@@ -26710,7 +26710,7 @@ func (v NodeGroupsMapValue) AttributeTypes(ctx context.Context) map[string]attr.
 		"subnets": basetypes.SetType{
 			ElemType: types.StringType,
 		},
-		"tags2": basetypes.MapType{
+		"tags": basetypes.MapType{
 			ElemType: types.StringType,
 		},
 		"taints": basetypes.SetType{

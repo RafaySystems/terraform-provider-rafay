@@ -81,10 +81,10 @@ func (v NodeGroupsMapValue) Expand(ctx context.Context) (*rafay.NodeGroup, diag.
 			ng.Labels[k] = getStringValue(val)
 		}
 	}
-	if !v.Tags2.IsNull() && !v.Tags2.IsUnknown() {
-		ng.Tags = make(map[string]string, len(v.Tags2.Elements()))
-		vTags := make(map[string]types.String, len(v.Tags2.Elements()))
-		d = v.Tags2.ElementsAs(ctx, &vTags, false)
+	if !v.Tags.IsNull() && !v.Tags.IsUnknown() {
+		ng.Tags = make(map[string]string, len(v.Tags.Elements()))
+		vTags := make(map[string]types.String, len(v.Tags.Elements()))
+		d = v.Tags.ElementsAs(ctx, &vTags, false)
 		diags = append(diags, d...)
 		for k, val := range vTags {
 			ng.Tags[k] = getStringValue(val)

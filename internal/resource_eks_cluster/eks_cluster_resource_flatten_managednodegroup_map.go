@@ -727,6 +727,36 @@ func (v *NodeRepairConfig5Value) Flatten(ctx context.Context, in *rafay.NodeRepa
 	if in.Enabled != nil {
 		v.Enabled = types.BoolPointerValue(in.Enabled)
 	}
+	if in.MaxUnhealthyNodeThresholdPercentage != nil {
+		v.MaxUnhealthyNodeThresholdPercentage = types.Int64Value(int64(*in.MaxUnhealthyNodeThresholdPercentage))
+	}
+	if in.MaxUnhealthyNodeThresholdCount != nil {
+		v.MaxUnhealthyNodeThresholdCount = types.Int64Value(int64(*in.MaxUnhealthyNodeThresholdCount))
+	}
+	if in.MaxParallelNodesRepairedPercentage != nil {
+		v.MaxParallelNodesRepairedPercentage = types.Int64Value(int64(*in.MaxParallelNodesRepairedPercentage))
+	}
+	if in.MaxParallelNodesRepairedCount != nil {
+		v.MaxParallelNodesRepairedCount = types.Int64Value(int64(*in.MaxParallelNodesRepairedCount))
+	}
+	if len(in.NodeRepairConfigOverrides) > 0 {
+		elems := make([]attr.Value, 0, len(in.NodeRepairConfigOverrides))
+		for _, o := range in.NodeRepairConfigOverrides {
+			ov := NodeRepairConfigOverridesValue{
+				NodeMonitoringCondition: types.StringValue(o.NodeMonitoringCondition),
+				NodeUnhealthyReason:     types.StringValue(o.NodeUnhealthyReason),
+				MinRepairWaitTimeMins:   types.Int64Value(int64(o.MinRepairWaitTimeMins)),
+				RepairAction:            types.StringValue(o.RepairAction),
+				state:                   attr.ValueStateKnown,
+			}
+			elems = append(elems, ov)
+		}
+		var d diag.Diagnostics
+		v.NodeRepairConfigOverrides, d = types.ListValue(NodeRepairConfigOverridesValue{}.Type(ctx), elems)
+		diags = append(diags, d...)
+	} else {
+		v.NodeRepairConfigOverrides = types.ListNull(NodeRepairConfigOverridesValue{}.Type(ctx))
+	}
 
 	v.state = attr.ValueStateKnown
 	return diags

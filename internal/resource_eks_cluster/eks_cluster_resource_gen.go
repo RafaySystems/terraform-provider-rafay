@@ -27537,13 +27537,8 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"ami_family":                  v.AmiFamily,
 			"asg_metrics_collection6":     asgMetricsCollection6,
 			"asg_suspend_processes":       asgSuspendProcessesVal,
-<<<<<<< HEAD
 			"availability_zones":          availabilityZonesVal,
-			"bottle_rocket":               bottleRocket6,
-=======
-			"availability_zones2":         availabilityZones2Val,
 			"bottle_rocket":              bottleRocket6,
->>>>>>> f5e3589 (RC-46070: Noderepair changs)
 			"classic_load_balancer_names": classicLoadBalancerNamesVal,
 			"cluster_dns":                 v.ClusterDns,
 			"cpu_credits":                 v.CpuCredits,
@@ -27572,13 +27567,8 @@ func (v NodeGroupsMapValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"ssh":                        ssh6,
 			"subnet_cidr":                 v.SubnetCidr,
 			"subnets":                     subnetsVal,
-<<<<<<< HEAD
 			"tags":                        tagsVal,
-			"taints":                      taints6,
-=======
-			"tags2":                       tags2Val,
 			"taints":                     taints6,
->>>>>>> f5e3589 (RC-46070: Noderepair changs)
 			"target_group_arns":           targetGroupArnsVal,
 			"update_config":              updateConfig6,
 			"version":                     v.Version,

@@ -67,6 +67,7 @@ sed -i '' 's/"update_config4"/"update_config"/g' internal/resource_eks_cluster/e
 sed -i '' 's/"launch_template4"/"launch_template"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i '' 's/"security_groups4"/"security_groups"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i '' 's/"node_repair_config4"/"node_repair_config"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i '' 's/"node_repair_config_overrides4"/"node_repair_config_overrides"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 
 
 # managed node group map
@@ -83,6 +84,7 @@ sed -i '' 's/"update_config5"/"update_config"/g' internal/resource_eks_cluster/e
 sed -i '' 's/"launch_template5"/"launch_template"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i '' 's/"security_groups5"/"security_groups"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 sed -i '' 's/"node_repair_config5"/"node_repair_config"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
+sed -i '' 's/"node_repair_config_overrides5"/"node_repair_config_overrides"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 
 # node groups map
 sed -i '' 's/"iam6"/"iam"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
@@ -100,8 +102,9 @@ sed -i '' 's/"launch_template6"/"launch_template"/g' internal/resource_eks_clust
 sed -i '' 's/"security_groups6"/"security_groups"/g' internal/resource_eks_cluster/eks_cluster_resource_gen.go
 
 # Remove duplicate NodeRepairConfigOverrides type/value block (generated for both node_repair_config4 and node_repair_config5)
-awk '/var _ basetypes.ObjectTypable = NodeRepairConfigOverridesType\{\}\}/ { n++; if(n==2) { skip=1; next } }
-skip { if (/var _ basetypes.ObjectTypable = Placement4Type\{\}\}/) { skip=0; print; } next }
+# Use exact string match (not regex) for BSD awk on macOS
+awk '$0 == "var _ basetypes.ObjectTypable = NodeRepairConfigOverridesType{}" { n++; if(n==2) { skip=1; next } }
+skip { if ($0 == "var _ basetypes.ObjectTypable = Placement4Type{}") { skip=0; print; } next }
 !skip { print }' internal/resource_eks_cluster/eks_cluster_resource_gen.go > internal/resource_eks_cluster/eks_cluster_resource_gen.go.tmp && \
 	mv internal/resource_eks_cluster/eks_cluster_resource_gen.go.tmp internal/resource_eks_cluster/eks_cluster_resource_gen.go
 

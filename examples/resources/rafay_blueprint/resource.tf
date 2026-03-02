@@ -8,7 +8,7 @@ resource "rafay_blueprint" "blueprint" {
     version = "v0"
     base {
       name    = "default"
-      version = "1.16.0"
+      version = "4.1.0"
     }
     namespace_config {
       sync_type   = "managed"
@@ -77,7 +77,7 @@ resource "rafay_blueprint" "blueprint" {
     version = "v0"
     base {
       name    = "default"
-      version = "1.16.0"
+      version = "4.1.0"
     }
     default_addons {
       enable_ingress    = true
@@ -128,7 +128,7 @@ resource "rafay_blueprint" "blueprint" {
     version = "v0"
     base {
       name    = "default"
-      version = "1.16.0"
+      version = "4.1.0"
     }
     custom_addons {
       name    = "addon1"
@@ -205,7 +205,7 @@ resource "rafay_blueprint" "golden_base_blueprint" {
     version = "v0"
     base {
       name    = "default"
-      version = "1.16.0"
+      version = "4.1.0"
     }
     type = "golden"
     default_addons {
@@ -257,7 +257,7 @@ resource "rafay_blueprint" "cost-blueprint" {
     version = "v0"
     base {
       name    = "default"
-      version = "1.19.0"
+      version = "4.1.0"
     }
     default_addons {
       enable_ingress    = true

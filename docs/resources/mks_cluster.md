@@ -443,17 +443,6 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
           labels = {
             environment = "example"
           }
-          kubelet_extra_args = {
-            "max-pods": "600"
-          }
-          kubelet_configuration_overrides = <<-EOF
-              maxPods: 150
-              evictionHard:
-                imagefs.available: "25%"
-                memory.available: "300Mi"
-                nodefs.available: "20%"
-                nodefs.inodesFree: "15%"
-              EOF
           ssh = {
             ip_address = "192.168.1.100"
           }

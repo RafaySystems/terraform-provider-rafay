@@ -3,7 +3,6 @@
 page_title: "rafay_mks_cluster Resource - rafay"
 subcategory: ""
 description: |-
-  
 ---
 
 # rafay_mks_cluster (Resource)
@@ -11,6 +10,7 @@ description: |-
 ## Example usage
 
 ### Basic Single node Cluster
+
 ```terraform
 resource "rafay_mks_cluster" "mks-noha-converged-cluster" {
   api_version = "infra.k8smgmt.io/v3"
@@ -57,7 +57,6 @@ resource "rafay_mks_cluster" "mks-noha-converged-cluster" {
   }
 }
 ```
-
 
 ### Example HA cluster with Converged Control Plane nodes
 
@@ -135,10 +134,9 @@ resource "rafay_mks_cluster" "mks-ha-cluster" {
 }
 ```
 
-
 ### Example HA Cluster Having Dedicated Control Plane with System Component Placement
 
-In this example, the cluster is configured with both `spec.config.dedicated_control_plane` and  `spec.system_components_placement`, which means that control plane node are dedicated(no workloads will be placed) and Rafay managed add-ons are placed on nodes with matching `labels` and `taints`
+In this example, the cluster is configured with both `spec.config.dedicated_control_plane` and `spec.system_components_placement`, which means that control plane node are dedicated(no workloads will be placed) and Rafay managed add-ons are placed on nodes with matching `labels` and `taints`
 
 ```terraform
 resource "rafay_mks_cluster" "mks-ha-cluster-with-dedicated-cp" {
@@ -255,7 +253,6 @@ resource "rafay_mks_cluster" "mks-ha-cluster-with-dedicated-cp" {
 }
 ```
 
-
 ### To upgrade the cluster
 
 You can change the current Kubernetes version under `spec.config.kubernetes_version` to target supported version by Rafay and also customise the upgrade behaviour with `spec.config.kubernetes_upgrade`
@@ -344,8 +341,131 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 }
 ```
 
+### Example for Control plane overrides
+
+```terraform
+resource "rafay_mks_cluster" "mks-cluster-example" {
+  api_version = "infra.k8smgmt.io/v3"
+  kind        = "Cluster"
+
+  metadata = {
+    name    = "mks-cluster-example"
+    project = "terraform"
+  }
+
+  spec = {
+    blueprint = {
+      name = "minimal"
+    }
+    config = {
+      auto_approve_nodes      = true
+      dedicated_control_plane = false
+      kubernetes_version      = "v1.32.4"
+      installer_ttl           = 365
+
+      kubernetes_upgrade = {
+        strategy = "sequential"
+        params = {
+          worker_concurrency = "50%"
+        }
+      }
+      network = {
+        cni = {
+          name    = "Calico"
+          version = "3.26.1"
+        }
+        pod_subnet     = "10.244.0.0/16"
+        service_subnet = "10.96.0.0/12"
+      }
+      control_plane_overrides: {
+        kube_apiserver: {
+          extra_args: {
+            "profiling": "false",
+            "v": "2",
+            "feature-gates": "IPv6DualStack=true,CSIStorageCapacity=true,PodSecurity=true"
+          },
+          extra_volume_mounts: <<EOF
+            - name: safe-dir
+              mountPath: /tmp/safe-apiserver
+              readOnly: false
+            EOF,
+          extra_volumes: <<EOF
+            - name: safe-dir
+              emptyDir: {}
+            EOF
+        },
+        kube_controller_manager: {
+          extra_args: {
+            "profiling": "true",
+            "v": "5",
+            "feature-gates": "ExpandInUsePersistentVolumes=true,TTLAfterFinished=true"
+          },
+          extra_volume_mounts: <<EOF
+            - name: safe-dir
+              mountPath: /tmp/safe-controller
+              readOnly: false
+            EOF,
+          extra_volumes: <<EOF
+            - name: safe-dir
+              emptyDir: {}
+            EOF
+        },
+        kube_scheduler: {
+          extra_args: {
+            "profiling": "false",
+            "v": "3",
+            "feature-gates": "EndpointSlice=true,CSIStorageCapacity=true"
+          },
+          extra_volume_mounts: <<EOF
+            - name: safe-dir
+              mountPath: /tmp/safe-scheduler
+              readOnly: false
+            EOF,
+          extra_volumes: <<EOF
+            - name: safe-dir
+              emptyDir: {}
+            EOF
+        }
+      }
+      cluster_ssh = {
+        username         = "ubuntu"
+        port             = "22"
+        private_key_path = "/path/to/ssh/private_key"
+      }
+      nodes = {
+        "node-1" = {
+          arch             = "amd64"
+          hostname         = "node-1"
+          operating_system = "Ubuntu22.04"
+          private_ip       = "10.0.0.85"
+          roles            = ["ControlPlane", "Worker"]
+
+          labels = {
+            environment = "example"
+          }
+          kubelet_extra_args = {
+            "max-pods": "600"
+          }
+          kubelet_configuration_overrides = <<-EOF
+              maxPods: 150
+              evictionHard:
+                imagefs.available: "25%"
+                memory.available: "300Mi"
+                nodefs.available: "20%"
+                nodefs.inodesFree: "15%"
+              EOF
+          ssh = {
+            ip_address = "192.168.1.100"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 <!-- schema generated by tfplugindocs -->
+
 ## Schema
 
 **Required**
@@ -358,8 +478,8 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `api_version` (String) Api version for the cluster. Defaults to `infra.k8smgmt.io/v3`
 - `kind` (String) Kind. Defaults to `Cluster`
 
-
 <a id="nestedatt--metadata"></a>
+
 ### Nested Schema for `metadata`
 
 **Required**
@@ -368,42 +488,42 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `project` (String) The name of the Rafay project cluster will be created in
 
 **Optional**
+
 - `description` (String) Description for the cluster
 - `labels` (Map of String) Key-value pairs containing metadata and are used to identify cluster
 - `annotations` (Map of String) Annotations are extra non-identifying metadata associated with Cluster
 
-
 <a id="nestedatt--spec"></a>
+
 ### Nested Schema for `spec`
 
 **Required**
 
-- `blueprint` (Attributes) The blueprint to be used for this cluster.  (see [below for nested schema](#nestedatt--spec--blueprint))
+- `blueprint` (Attributes) The blueprint to be used for this cluster. (see [below for nested schema](#nestedatt--spec--blueprint))
 - `config` (Attributes) "Contains cluster configuration such as Kubernetes version, network configuration, etc. (see [below for nested schema](#nestedatt--spec--config))
-
 
 **Optional**
 
-- `cloud_credentials` (String) The SSH credentials to be used run  bootstrap cmds for node discovery. It's required if [spec.config.cluster_ssh](#nestedatt--spec--config--cluster_ssh) is not provided.
+- `cloud_credentials` (String) The SSH credentials to be used run bootstrap cmds for node discovery. It's required if [spec.config.cluster_ssh](#nestedatt--spec--config--cluster_ssh) is not provided.
 - `proxy` (Attributes) The proxy to be used for this cluster. (see [below for nested schema](#nestedatt--spec--proxy))
-- `sharing` (Attributes) Sharing spec to be used for sharing the cluster with projects  (see [below for nested schema](#nestedatt--spec--sharing))
+- `sharing` (Attributes) Sharing spec to be used for sharing the cluster with projects (see [below for nested schema](#nestedatt--spec--sharing))
 - `system_components_placement` (Attributes) Option to place Rafay Managed Add-ons and core components on Nodes with matching taints and labels. (see [below for nested schema](#nestedatt--spec--system_components_placement))
 - `type` (String) The cluster type. Defaults to `mks`
 
-
 <a id="nestedatt--spec--blueprint"></a>
+
 ### Nested Schema for `spec.blueprint`
 
 **Required**
 
-- `name` (String) Name of the blueprint 
+- `name` (String) Name of the blueprint
 
 **Optional**
 
 - `version` (String) Version of the blueprint
 
-
 <a id="nestedatt--spec--config"></a>
+
 ### Nested Schema for `spec.config`
 
 **Required**
@@ -426,6 +546,7 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `kubelet_configuration_overrides` (String) Advanced kubelet settings in YAML format (e.g evictionHard).
 
 <a id="nestedatt--spec--config--network"></a>
+
 ### Nested Schema for `spec.config.network`
 
 **Required**
@@ -439,6 +560,7 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `ipv6` (Attributes) Enable for Dual Stack support (see [below for nested schema](#nestedatt--spec--config--network--ipv6))
 
 <a id="nestedatt--spec--config--network--cni"></a>
+
 ### Nested Schema for `spec.config.network.cni`
 
 **Required**
@@ -446,8 +568,8 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `name` (String) The CNI plugin to be used in the cluster. Supported plugins are `Calico` or `Cilium`
 - `version` (String) Version of the CNI Plugin
 
-
 <a id="nestedatt--spec--config--network--ipv6"></a>
+
 ### Nested Schema for `spec.config.network.ipv6`
 
 **Optional**
@@ -455,9 +577,8 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `pod_subnet` (String) Pods will be assigned IPs within this IPV6 CIDR. For example: 2001:db8:42:0::/56
 - `service_subnet` (String) Kuberenetes Services will be assigned IPs within this CIDR. For ex: 2001:db8:42:1::/112
 
-
-
 <a id="nestedatt--spec--config--nodes"></a>
+
 ### Nested Schema for `spec.config.nodes`
 
 **Required**
@@ -474,10 +595,11 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `labels` (Map of String) Use Kubernetes labels to control how workloads are scheduled to your nodes.
 - `kubelet_extra_args` (Map of String) Node kubelet extra args.
 - `ssh` (Attributes) Override SSH Config at the node level. This is usefull when nodes within cluster come up with different SSH configuration.(see [below for nested schema](#nestedatt--spec--config--nodes--ssh))
-- `taints` (Attributes Set) A node taint lets you mark a node so that the scheduler avoids or prevents using it for certain Pods. Node taints can be used with tolerations to ensure that Pods aren't scheduled onto inappropriate nodes  (see [below for nested schema](#nestedatt--spec--config--nodes--taints))
+- `taints` (Attributes Set) A node taint lets you mark a node so that the scheduler avoids or prevents using it for certain Pods. Node taints can be used with tolerations to ensure that Pods aren't scheduled onto inappropriate nodes (see [below for nested schema](#nestedatt--spec--config--nodes--taints))
 - `kubelet_configuration_overrides` (String) Advanced kubelet settings in YAML format (e.g evictionHard).
 
 <a id="nestedatt--spec--config--nodes--ssh"></a>
+
 ### Nested Schema for `spec.config.nodes.ssh`
 
 **Optional**
@@ -488,8 +610,8 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `private_key_path` (String) Specify Path to SSH private key
 - `username` (String) SSH Username
 
-
 <a id="nestedatt--spec--config--nodes--taints"></a>
+
 ### Nested Schema for `spec.config.nodes.taints`
 
 **Required**
@@ -501,10 +623,8 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 
 - `value` (String) The taint value corresponding to the taint key
 
-
-
-
 <a id="nestedatt--spec--config--cluster_ssh"></a>
+
 ### Nested Schema for `spec.config.cluster_ssh`
 
 **Optional**
@@ -514,8 +634,8 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `private_key_path` (String) Provide local path to the private key
 - `username` (String) Provide the ssh username
 
-
 <a id="nestedatt--spec--config--kubernetes_upgrade"></a>
+
 ### Nested Schema for `spec.config.kubernetes_upgrade`
 
 **Required**
@@ -524,16 +644,15 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `strategy` (String) Kubernetes upgrade strategy for worker nodes and Valid options are: concurrent or sequential
 
 <a id="nestedatt--spec--config--kubernetes_upgrade--params"></a>
+
 ### Nested Schema for `spec.config.kubernetes_upgrade.params`
 
 **Required**
 
 - `worker_concurrency` (String) It can be number of worker nodes or percentage of worker nodes to be upgraded at the same time
 
-
-
-
 <a id="nestedatt--spec--proxy"></a>
+
 ### Nested Schema for `spec.proxy`
 
 **Required**
@@ -542,14 +661,15 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `http_proxy` (String) Configure proxy information with protocol, host and port information.
 
 **Optional**
+
 - `allow_insecure_bootstrap` (Boolean) Select this option if proxy is terminating/inspecting TLS traffic
 - `bootstrap_ca` (String) Root CA certificate of the proxy
 - `https_proxy` (String) Configure proxy information with protocol, host and port information.
 - `no_proxy` (String) Comma seperated list of hosts that need connectivity without proxy
 - `proxy_auth` (String)
 
-
 <a id="nestedatt--spec--sharing"></a>
+
 ### Nested Schema for `spec.sharing`
 
 **Required**
@@ -558,26 +678,25 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `projects` (Block List) The list of projects this resource is shared with. (see [below for nested schema](#nestedblock--spec--sharing--projects))
 
 <a id="nestedblock--spec--sharing--projects"></a>
+
 ### Nested Schema for `spec.sharing.projects`
 
 **Required**
 
 - `name` (String) The name of the project to share the resource.
 
-
-
 <a id="nestedatt--spec--system_components_placement"></a>
+
 ### Nested Schema for `spec.system_components_placement`
 
 **Optional**
+
 - `node_selector` (Map of String) Node selctors for pods that matches with node labels.
 - `tolerations` (Attributes Set) Corresponding tolerations to match with Node taints (see [below for nested schema](#nestedatt--spec--system_components_placement--tolerations))
 - `daemon_set_override` (Attributes) Enabling this allows to add additional tolerations for the Rafay daemon sets to match the taints available in the nodes. (see [below for nested schema](#nestedatt--spec--system_components_placement--daemon_set_override))
 
-
-
-
 <a id="nestedatt--spec--system_components_placement--tolerations"></a>
+
 ### Nested Schema for `spec.system_components_placement.tolerations`
 
 - `key` (String) The taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be `Exists`; this combination means to match all values and all keys.
@@ -586,16 +705,17 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `effect` (String) Effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
 - `toleration_seconds` (Number) TolerationSeconds represents the period of time the toleration (which must be of effect NoExecute) tolerates the taint
 
-
 <a id="nestedatt--spec--system_components_placement--daemon_set_override"></a>
+
 ### Nested Schema for `spec.system_components_placement.daemon_set_override`
 
 **Optional**
 
 - `daemon_set_tolerations` (Attributes Set) Tolerations for Rafay daemon sets (see [below for nested schema](#nestedatt--spec--system_components_placement--daemon_set_override--daemon_set_tolerations))
-- `node_selection_enabled` (Boolean) Enable to  place Rafay daemon sets on nodes with matching labels only.
+- `node_selection_enabled` (Boolean) Enable to place Rafay daemon sets on nodes with matching labels only.
 
 <a id="nestedatt--spec--system_components_placement--daemon_set_override--daemon_set_tolerations"></a>
+
 ### Nested Schema for `spec.system_components_placement.daemon_set_override.daemon_set_tolerations`
 
 **Optional**

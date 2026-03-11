@@ -1586,7 +1586,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 ***Required***
 
-- `ami_family` - (String) The AMI family. The supported values are: `AmazonLinux2` (default), `Ubuntu2004`, `Bottlerocket`, `WindowsServer2019CoreContainer`, `WindowsServer2019FullContainer`, and `WindowsServer2004CoreContainer`.
+- `ami_family` - (String) The AMI family. The supported values are: `AmazonLinux2`, `AmazonLinux2023` (default) , `Ubuntu2004`, `Ubuntu2404` , `UbuntuPro2404` , `Bottlerocket`, `WindowsServer2019CoreContainer`, `WindowsServer2019FullContainer`, and `WindowsServer2004CoreContainer`.
 - `desired_capacity` - (Number) The desired capacity of instances in the nodegroup.
 - `instance_type` - (String) The type of instances in the nodegroup. 
 - `max_size` - (Number) The maximum number of instances in the nodegroup. 

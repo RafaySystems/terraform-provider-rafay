@@ -4,7 +4,7 @@ go 1.24.13
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20260217060826-5d14ce3468bb
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260309085051-8dfe10ed003d
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260310044845-71f0152cee31
 	github.com/RafaySystems/rctl v1.29.1-0.20260227123823-e3d03fe5c379
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -30,7 +30,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/RafaySystems/eaas-playground/proto v0.0.0-20251008151511-bf1cf36fe5bd // indirect
 	github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e // indirect
-	github.com/RafaySystems/rafay-cost v0.0.0-20260304123825-a3839fddcba2 // indirect
+	github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -236,7 +236,7 @@ require (
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
 
-	// github.com/RafaySystems/rafay-common => ../rafay-common
+	github.com/RafaySystems/rafay-common => ../rafay-common
 	// github.com/RafaySystems/rctl => ../rctl
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet

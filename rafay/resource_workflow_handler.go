@@ -17,10 +17,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"google.golang.org/protobuf/types/known/structpb"
-	corev1 "k8s.io/api/core/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/api/core/v1"
 	k8sresource "k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func resourceWorkflowHandler() *schema.Resource {
@@ -150,7 +150,6 @@ func resourceWorkflowHandlerRead(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	return diags
-
 }
 
 func resourceWorkflowHandlerUpdate(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnostics {
@@ -189,7 +188,6 @@ func resourceWorkflowHandlerDelete(ctx context.Context, d *schema.ResourceData, 
 		Name:    cc.Metadata.Name,
 		Project: cc.Metadata.Project,
 	})
-
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -875,10 +873,10 @@ func expandFunctionHPAConfig(p []any) *eaaspb.FunctionHPAConfig {
 	if enabled, ok := in["enabled"].([]any); ok && len(enabled) > 0 {
 		hpa.Enabled = expandBoolValue(enabled)
 	}
-	if minReplicas, ok := in["min_replicas"].(int); ok {
+	if minReplicas, ok := in["min_replicas"].(int); ok && minReplicas >= 0 {
 		hpa.MinReplicas = uint32(minReplicas)
 	}
-	if maxReplicas, ok := in["max_replicas"].(int); ok {
+	if maxReplicas, ok := in["max_replicas"].(int); ok && maxReplicas >= 0 {
 		hpa.MaxReplicas = uint32(maxReplicas)
 	}
 	if resourceMetrics, ok := in["resource_metrics"].([]any); ok && len(resourceMetrics) > 0 {

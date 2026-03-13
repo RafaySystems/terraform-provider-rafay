@@ -189,9 +189,9 @@ func resourceGroupAssociationCreate(ctx context.Context, d *schema.ResourceData,
 	for i, raw := range rolesList {
 		roles[i] = raw.(string)
 	}
-	//convert namesapce interface to passable list for function
-	if d.Get("namespaces") != nil {
-		namespaceList := d.Get("namespaces").([]interface{})
+	//convert namesapce interface to passable list for function (TypeSet returns *schema.Set)
+	if v, ok := d.GetOk("namespaces"); ok && len(v.(*schema.Set).List()) > 0 {
+		namespaceList := v.(*schema.Set).List()
 		namespace = make([]string, len(namespaceList))
 		for i, raw := range namespaceList {
 			namespace[i] = raw.(string)
@@ -481,9 +481,9 @@ func resourceGroupAssociationUpdate(ctx context.Context, d *schema.ResourceData,
 	for i, raw := range rolesList {
 		roles[i] = raw.(string)
 	}
-	//convert namesapce interface to passable list for function
-	if d.Get("namespaces") != nil {
-		namespaceList := d.Get("namespaces").([]interface{})
+	//convert namesapce interface to passable list for function (TypeSet returns *schema.Set)
+	if v, ok := d.GetOk("namespaces"); ok && len(v.(*schema.Set).List()) > 0 {
+		namespaceList := v.(*schema.Set).List()
 		namespace = make([]string, len(namespaceList))
 		for i, raw := range namespaceList {
 			namespace[i] = raw.(string)

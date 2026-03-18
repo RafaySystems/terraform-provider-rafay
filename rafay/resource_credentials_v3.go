@@ -216,6 +216,11 @@ func resourceCredentialsRead(ctx context.Context, d *schema.ResourceData, m inte
 		Project: tfCredentialsState.Metadata.Project,
 	})
 	if err != nil {
+		if IsResourceNotFoundErr(err) {
+			log.Printf("cloud credentials v3 %q not found (removed from state for recreate): %v", tfCredentialsState.Metadata.Name, err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 
@@ -267,6 +272,10 @@ func resourceCredentialsDelete(ctx context.Context, d *schema.ResourceData, m in
 	})
 
 	if err != nil {
+		if IsResourceNotFoundErr(err) {
+			log.Printf("cloud credentials v3 %q already deleted, clearing state", cred.Metadata.Name)
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

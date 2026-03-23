@@ -3,9 +3,9 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.24.13
 
 require (
-	github.com/RafaySystems/edge-common v1.24.1-0.20260217060826-5d14ce3468bb
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260310071351-40391a118dba
-	github.com/RafaySystems/rctl v1.29.1-0.20260304072808-835c9c34f5e1
+	github.com/RafaySystems/edge-common v1.24.1-0.20260316102957-cb486c5feb1a
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260318043129-3bfe0b4b1992
+	github.com/RafaySystems/rctl v1.29.1-0.20260316153155-639426c355b7
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5
@@ -30,6 +30,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/RafaySystems/eaas-playground/proto v0.0.0-20251008151511-bf1cf36fe5bd // indirect
 	github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e // indirect
+	github.com/RafaySystems/rafay-cost v0.0.0-20260313051730-b0253d94ba2c // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -66,7 +67,7 @@ require (
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.54.0 // indirect
-	github.com/prometheus/procfs v0.15.1 // indirect
+	github.com/prometheus/procfs v0.16.1 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tchap/go-patricia/v2 v2.3.1 // indirect
@@ -79,8 +80,8 @@ require (
 	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/mod v0.21.0 // indirect
-	golang.org/x/tools v0.26.0 // indirect
+	golang.org/x/mod v0.24.0 // indirect
+	golang.org/x/tools v0.33.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	k8s.io/apiextensions-apiserver v0.30.1 // indirect

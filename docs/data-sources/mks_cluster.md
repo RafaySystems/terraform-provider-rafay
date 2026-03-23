@@ -160,6 +160,7 @@ Read-Only:
 - `ssh` (Attributes) MKS Node SSH definition (see [below for nested schema](#nestedatt--spec--config--nodes--ssh))
 - `taints` (Attributes Set) taints to be added to the node (see [below for nested schema](#nestedatt--spec--config--nodes--taints))
 - `kubelet_configuration_overrides` (String) Advanced kubelet settings in YAML format (e.g evictionHard).
+- `annotations` (Map of string) annotations to be added to the node
 
 <a id="nestedatt--spec--config--nodes--ssh"></a>
 ### Nested Schema for `spec.config.nodes.ssh`

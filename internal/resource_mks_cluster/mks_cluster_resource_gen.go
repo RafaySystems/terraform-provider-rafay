@@ -362,6 +362,12 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 							"nodes": schema.MapNestedAttribute{
 								NestedObject: schema.NestedAttributeObject{
 									Attributes: map[string]schema.Attribute{
+										"annotations": schema.MapAttribute{
+											ElementType:         types.StringType,
+											Optional:            true,
+											Description:         "annotations to be added to the node",
+											MarkdownDescription: "annotations to be added to the node",
+										},
 										"arch": schema.StringAttribute{
 											Required:            true,
 											Description:         "System Architecture of the node",
@@ -8117,6 +8123,24 @@ func (t NodesType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue
 
 	attributes := in.Attributes()
 
+	annotationsAttribute, ok := attributes["annotations"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`annotations is missing from object`)
+
+		return nil, diags
+	}
+
+	annotationsVal, ok := annotationsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`annotations expected to be basetypes.MapValue, was: %T`, annotationsAttribute))
+	}
+
 	archAttribute, ok := attributes["arch"]
 
 	if !ok {
@@ -8320,6 +8344,7 @@ func (t NodesType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue
 	}
 
 	return NodesValue{
+		Annotations:                   annotationsVal,
 		Arch:                          archVal,
 		Hostname:                      hostnameVal,
 		Interface:                     interfaceVal,
@@ -8398,6 +8423,24 @@ func NewNodesValue(attributeTypes map[string]attr.Type, attributes map[string]at
 		return NewNodesValueUnknown(), diags
 	}
 
+	annotationsAttribute, ok := attributes["annotations"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`annotations is missing from object`)
+
+		return NewNodesValueUnknown(), diags
+	}
+
+	annotationsVal, ok := annotationsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`annotations expected to be basetypes.MapValue, was: %T`, annotationsAttribute))
+	}
+
 	archAttribute, ok := attributes["arch"]
 
 	if !ok {
@@ -8601,6 +8644,7 @@ func NewNodesValue(attributeTypes map[string]attr.Type, attributes map[string]at
 	}
 
 	return NodesValue{
+		Annotations:                   annotationsVal,
 		Arch:                          archVal,
 		Hostname:                      hostnameVal,
 		Interface:                     interfaceVal,
@@ -8684,6 +8728,7 @@ func (t NodesType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = NodesValue{}
 
 type NodesValue struct {
+	Annotations                   basetypes.MapValue    `tfsdk:"annotations"`
 	Arch                          basetypes.StringValue `tfsdk:"arch"`
 	Hostname                      basetypes.StringValue `tfsdk:"hostname"`
 	Interface                     basetypes.StringValue `tfsdk:"interface"`
@@ -8699,11 +8744,14 @@ type NodesValue struct {
 }
 
 func (v NodesValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 11)
+	attrTypes := make(map[string]tftypes.Type, 12)
 
 	var val tftypes.Value
 	var err error
 
+	attrTypes["annotations"] = basetypes.MapType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
 	attrTypes["arch"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["hostname"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["interface"] = basetypes.StringType{}.TerraformType(ctx)
@@ -8730,7 +8778,15 @@ func (v NodesValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error)
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 11)
+		vals := make(map[string]tftypes.Value, 12)
+
+		val, err = v.Annotations.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["annotations"] = val
 
 		val, err = v.Arch.ToTerraformValue(ctx)
 
@@ -8899,6 +8955,47 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 		)
 	}
 
+	var annotationsVal basetypes.MapValue
+	switch {
+	case v.Annotations.IsUnknown():
+		annotationsVal = types.MapUnknown(types.StringType)
+	case v.Annotations.IsNull():
+		annotationsVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		annotationsVal, d = types.MapValue(types.StringType, v.Annotations.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"annotations": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+			"arch":                            basetypes.StringType{},
+			"hostname":                        basetypes.StringType{},
+			"interface":                       basetypes.StringType{},
+			"kubelet_configuration_overrides": basetypes.StringType{},
+			"kubelet_extra_args": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+			"labels": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+			"operating_system": basetypes.StringType{},
+			"private_ip":       basetypes.StringType{},
+			"roles": basetypes.SetType{
+				ElemType: types.StringType,
+			},
+			"ssh": basetypes.ObjectType{
+				AttrTypes: SshValue{}.AttributeTypes(ctx),
+			},
+			"taints": basetypes.SetType{
+				ElemType: TaintsValue{}.Type(ctx),
+			},
+		}), diags
+	}
+
 	var kubeletExtraArgsVal basetypes.MapValue
 	switch {
 	case v.KubeletExtraArgs.IsUnknown():
@@ -8913,6 +9010,9 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
+			"annotations": basetypes.MapType{
+				ElemType: types.StringType,
+			},
 			"arch":                            basetypes.StringType{},
 			"hostname":                        basetypes.StringType{},
 			"interface":                       basetypes.StringType{},
@@ -8951,6 +9051,9 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
+			"annotations": basetypes.MapType{
+				ElemType: types.StringType,
+			},
 			"arch":                            basetypes.StringType{},
 			"hostname":                        basetypes.StringType{},
 			"interface":                       basetypes.StringType{},
@@ -8989,6 +9092,9 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
+			"annotations": basetypes.MapType{
+				ElemType: types.StringType,
+			},
 			"arch":                            basetypes.StringType{},
 			"hostname":                        basetypes.StringType{},
 			"interface":                       basetypes.StringType{},
@@ -9014,6 +9120,9 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 	}
 
 	attributeTypes := map[string]attr.Type{
+		"annotations": basetypes.MapType{
+			ElemType: types.StringType,
+		},
 		"arch":                            basetypes.StringType{},
 		"hostname":                        basetypes.StringType{},
 		"interface":                       basetypes.StringType{},
@@ -9048,6 +9157,7 @@ func (v NodesValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
+			"annotations":                     annotationsVal,
 			"arch":                            v.Arch,
 			"hostname":                        v.Hostname,
 			"interface":                       v.Interface,
@@ -9077,6 +9187,10 @@ func (v NodesValue) Equal(o attr.Value) bool {
 
 	if v.state != attr.ValueStateKnown {
 		return true
+	}
+
+	if !v.Annotations.Equal(other.Annotations) {
+		return false
 	}
 
 	if !v.Arch.Equal(other.Arch) {
@@ -9136,6 +9250,9 @@ func (v NodesValue) Type(ctx context.Context) attr.Type {
 
 func (v NodesValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
+		"annotations": basetypes.MapType{
+			ElemType: types.StringType,
+		},
 		"arch":                            basetypes.StringType{},
 		"hostname":                        basetypes.StringType{},
 		"interface":                       basetypes.StringType{},

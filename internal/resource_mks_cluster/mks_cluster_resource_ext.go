@@ -640,6 +640,7 @@ func (v NodesValue) ToHub(ctx context.Context) (*infrapb.MksNode, diag.Diagnosti
 	hub.Labels = convertFromTfMap(v.Labels)
 	hub.KubeletExtraArgs = convertFromTfMap(v.KubeletExtraArgs)
 	hub.KubeletConfigurationOverrides = getStringValue(v.KubeletConfigurationOverrides)
+	hub.Annotations = convertFromTfMap(v.Annotations)
 
 	for _, taint := range v.Taints.Elements() {
 		h, d := taint.(TaintsValue).ToHub(ctx)
@@ -684,6 +685,7 @@ func (v NodesValue) FromHub(ctx context.Context, hub *infrapb.MksNode) (NodesVal
 
 	v.Labels = convertToTfMap(hub.Labels)
 	v.KubeletExtraArgs = convertToTfMap(hub.KubeletExtraArgs)
+	v.Annotations = convertToTfMap(hub.Annotations)
 	if hub.KubeletConfigurationOverrides != "" {
 		v.KubeletConfigurationOverrides = types.StringValue(hub.KubeletConfigurationOverrides)
 	}

@@ -468,6 +468,16 @@
 																}
 															},
 															{
+																"name": "annotations",
+																"map": {
+																	"computed_optional_required": "optional",
+																	"element_type": {
+																		"string": {}
+																	},
+																	"description": "annotations to be added to the node"
+																}
+															},
+															{
 																"name": "ssh",
 																"single_nested": {
 																	"computed_optional_required": "optional",

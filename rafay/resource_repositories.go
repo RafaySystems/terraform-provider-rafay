@@ -33,6 +33,8 @@ type repositorySpec struct {
 		Username   string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 		Password   string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 		PrivateKey string `protobuf:"bytes,1,opt,name=privateKey,proto3" json:"privateKey,omitempty"`
+		AppID      string `protobuf:"bytes,3,opt,name=appID,proto3" json:"appID,omitempty"`
+		InstallationID string `protobuf:"bytes,4,opt,name=installationID,proto3" json:"installationID,omitempty"`
 	} `json:"credentials,omitempty"`
 	Sharing *commonpb.SharingSpec `protobuf:"bytes,5,opt,name=sharing,proto3" json:"sharing,omitempty"`
 }
@@ -336,6 +338,12 @@ func expandRepositorySpec(p []interface{}) (*integrationspb.RepositorySpec, erro
 		if v, ok := inp["private_key"].(string); ok && len(v) > 0 {
 			repoSpec.Credentials.PrivateKey = v
 		}
+		if v, ok := inp["app_id"].(string); ok && len(v) > 0 {
+			repoSpec.Credentials.AppID = v
+		}
+		if v, ok := inp["installation_id"].(string); ok && len(v) > 0 {
+			repoSpec.Credentials.InstallationID = v
+		}
 	}
 
 	if v, ok := in["sharing"].([]interface{}); ok && len(v) > 0 {
@@ -462,6 +470,13 @@ func flattenRepoCredentials(in *repositorySpec, p []interface{}) []interface{} {
 
 	if len(in.Credentials.PrivateKey) > 0 {
 		obj["private_key"] = in.Credentials.PrivateKey
+	}
+
+	if len(in.Credentials.AppID) > 0 {
+		obj["app_id"] = in.Credentials.AppID
+	}
+	if len(in.Credentials.InstallationID) > 0 {
+		obj["installation_id"] = in.Credentials.InstallationID
 	}
 
 	return []interface{}{obj}

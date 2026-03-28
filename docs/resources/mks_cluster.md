@@ -69,6 +69,10 @@ resource "rafay_mks_cluster" "mks-ha-cluster" {
   metadata = {
     name    = "mks-ha-cluster"
     project = "terraform"
+    annotations = {
+      "app"   = "infra"
+      "infra" = "true"
+    }
   }
   spec = {
     blueprint = {
@@ -103,6 +107,10 @@ resource "rafay_mks_cluster" "mks-ha-cluster" {
           private_ip       = "10.12.25.233"
           roles            = ["ControlPlane", "Worker"]
           labels = {
+            "app"   = "infra"
+            "infra" = "true"
+          }
+          annotations = {
             "app"   = "infra"
             "infra" = "true"
           }
@@ -582,6 +590,7 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 
 - `interface` (String) Interface to be used on the node
 - `labels` (Map of String) Use Kubernetes labels to control how workloads are scheduled to your nodes.
+- `annotations` (Map of String) Annotations are extra non-identifying metadata associated with your nodes.
 - `kubelet_extra_args` (Map of String) Node kubelet extra args.
 - `ssh` (Attributes) Override SSH Config at the node level. This is usefull when nodes within cluster come up with different SSH configuration.(see [below for nested schema](#nestedatt--spec--config--nodes--ssh))
 - `taints` (Attributes Set) A node taint lets you mark a node so that the scheduler avoids or prevents using it for certain Pods. Node taints can be used with tolerations to ensure that Pods aren't scheduled onto inappropriate nodes (see [below for nested schema](#nestedatt--spec--config--nodes--taints))

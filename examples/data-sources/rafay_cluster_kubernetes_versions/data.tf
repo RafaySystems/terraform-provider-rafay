@@ -1,6 +1,6 @@
 data "rafay_cluster_kubernetes_versions" "versions" {
   cluster_type               = "mks"
-  project                    = "defaultproject"   
+  project                    = "defaultproject"
   cluster_name               = "test-cluster"
   include_deprecated_version = true
 }

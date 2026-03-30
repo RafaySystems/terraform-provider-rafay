@@ -357,6 +357,10 @@ func expandAgentSpec(p []interface{}) (*gitopspb.AgentSpec, error) {
 		obj.Config = expandAgentConfig(v)
 	}
 
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+
 	return obj, nil
 }
 
@@ -564,6 +568,10 @@ func flattenAgentSpec(in *gitopspb.AgentSpec, p []interface{}) ([]interface{}, e
 		v = []interface{}{}
 	}
 	obj["config"] = flattenAgentConfig(in.Config, v)
+
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
 
 	return []interface{}{obj}, nil
 }

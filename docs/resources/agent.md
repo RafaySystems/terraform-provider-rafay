@@ -284,8 +284,8 @@ resource "rafay_agent" "my-docker-agent" {
 
 - `active` - (Boolean) Enables the agent. 
 - `config` (Block List, Max: 1) exposes options to tweak agent configuration (see [below for nested schema](#nestedblock--spec--config))
-- `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A blueprint can be shared with one or more projects.  (See [below for nested schema](#nestedblock--spec--sharing))
-
+- `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A blueprint can be shared with one or more projects. (See [below for nested schema](#nestedblock--spec--sharing))
+- `version` (String) version of agent.
 
 <a id="nestedblock--spec--cluster"></a>
 ### Nested Schema for `spec.cluster`

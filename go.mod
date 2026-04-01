@@ -4,7 +4,7 @@ go 1.24.13
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20260316170605-1751dfe313d2
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260327113742-428602aef737
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260401105156-0a8413da35e3
 	github.com/RafaySystems/rctl v1.29.1-0.20260313070357-8dff68bfaa2b
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible

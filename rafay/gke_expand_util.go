@@ -447,6 +447,18 @@ func expandToV3GkeFeatures(p []interface{}) (*infrapb.GkeFeatures, error) {
 		obj.EnableImageStreaming = v
 	}
 
+	if v, ok := in["disable_horizontal_pod_autoscaling"].(bool); ok {
+		obj.DisableHorizontalPodAutoscaling = v
+	}
+
+	if v, ok := in["disable_http_load_balancing"].(bool); ok {
+		obj.DisableHttpLoadBalancing = v
+	}
+
+	if v, ok := in["enable_gcs_fuse_csi_driver"].(bool); ok {
+		obj.EnableGcsFuseCsiDriver = v
+	}
+
 	return obj, nil
 }
 

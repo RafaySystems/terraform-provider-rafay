@@ -47,3 +47,24 @@ resource "rafay_repositories" "tfdemorepository3" {
     endpoint = "https://charts.bitnami.com/bitnami"
   }
 }
+
+#github app  credentials example 
+resource "rafay_repositories" "tfdemorepository4" {
+  metadata {
+    name    = "tfdemorepository4"
+    project = "terraform"
+  }
+
+  spec {
+    type     = "Git"
+    endpoint = "https://github.com/test/apps.git"
+    credentials {
+      app_id          = "<github-app-id>"
+      installation_id = "<installation-id>"
+      private_key     = file("private-key.pem")
+    }
+    agents {
+      name = "gitops-agent"
+    }
+  }
+}

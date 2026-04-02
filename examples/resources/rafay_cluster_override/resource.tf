@@ -6,6 +6,10 @@ resource "rafay_cluster_override" "tfdemocluster-override1" {
       "rafay.dev/overrideScope" = "clusterLabels"
       "rafay.dev/overrideType"  = "valuesFile"
     }
+    annotations = {
+      "key1" = "value1"
+      "key2" = "value2"
+    }
   }
   spec {
     cluster_selector = "rafay.dev/clusterName in (cluster-1)"

@@ -758,7 +758,9 @@ func (v *ZonalShiftConfigValue) Flatten(ctx context.Context, in *rafay.ZonalShif
 	if in == nil {
 		return diags
 	}
-	v.Enabled = types.BoolValue(in.Enabled)
+	if in.Enabled != nil {
+		v.Enabled = types.BoolValue(*in.Enabled)
+	}
 	v.state = attr.ValueStateKnown
 	return diags
 }

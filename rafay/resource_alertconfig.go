@@ -12,6 +12,7 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/settingspb"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 
@@ -67,7 +68,6 @@ func resourceAlertConfigCreate(ctx context.Context, d *schema.ResourceData, m in
 	return diags
 }
 func resourceAlertConfigUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
 	log.Printf("alertconfig upsert starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
@@ -91,7 +91,7 @@ func resourceAlertConfigUpsert(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	d.SetId(ac.Metadata.Name)
-	return diags
+	return resourceAlertConfigRead(ctx, d, m)
 }
 
 func resourceAlertConfigRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -107,11 +107,6 @@ func resourceAlertConfigRead(ctx context.Context, d *schema.ResourceData, m inte
 		meta.Name = d.State().ID
 	}
 
-	tfAlertconfigState, err := expandAlertConfig(d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
@@ -121,7 +116,7 @@ func resourceAlertConfigRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	ac, err := client.SettingsV3().AlertConfiguration().Get(ctx, options.GetOptions{
 		Name:    meta.Name,
-		Project: tfAlertconfigState.Metadata.Project,
+		Project: meta.Project,
 	})
 	if err != nil {
 		log.Println("read get err")
@@ -212,6 +207,23 @@ func expandAlertConfigSpec(p []interface{}) (*settingspb.AlertConfigSpec, error)
 func flattenAlertConfig(d *schema.ResourceData, in *settingspb.AlertConfiguration) error {
 	if in == nil {
 		return nil
+	}
+
+	// Guard against nil metadata and preserve name/project from state when
+	// the API omits them, to prevent perpetual diffs.
+	if in.Metadata == nil {
+		in.Metadata = &commonpb.Metadata{}
+	}
+	existingMeta := GetMetaData(d)
+	if in.Metadata.Name == "" {
+		if d.Id() != "" {
+			in.Metadata.Name = d.Id()
+		} else if existingMeta != nil {
+			in.Metadata.Name = existingMeta.Name
+		}
+	}
+	if in.Metadata.Project == "" && existingMeta != nil {
+		in.Metadata.Project = existingMeta.Project
 	}
 
 	err := d.Set("metadata", flattenMetaData(in.Metadata))

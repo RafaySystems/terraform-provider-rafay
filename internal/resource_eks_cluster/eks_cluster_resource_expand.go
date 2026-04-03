@@ -2425,7 +2425,8 @@ func (v ZonalShiftConfigValue) Expand(ctx context.Context) (*rafay.ZonalShiftCon
 	}
 
 	if !v.Enabled.IsNull() && !v.Enabled.IsUnknown() {
-		zsc.Enabled = getBoolValue(v.Enabled)
+		b := getBoolValue(v.Enabled)
+		zsc.Enabled = &b
 	}
 
 	return &zsc, diags

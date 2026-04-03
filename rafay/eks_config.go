@@ -79,7 +79,7 @@ type EKSClusterConfig struct {
 }
 
 type ZonalShiftConfig struct {
-	Enabled bool `yaml:"enabled,omitempty"`
+	Enabled *bool `yaml:"enabled,omitempty"`
 }
 
 type AutoZonalShiftConfig struct {

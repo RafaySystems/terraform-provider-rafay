@@ -2441,7 +2441,8 @@ func (v AutoZonalShiftConfigValue) Expand(ctx context.Context) (*rafay.AutoZonal
 	}
 
 	if !v.Enabled.IsNull() && !v.Enabled.IsUnknown() {
-		azsc.Enabled = getBoolValue(v.Enabled)
+		b := getBoolValue(v.Enabled)
+		azsc.Enabled = &b
 	}
 
 	listFromListValue := func(lv basetypes.ListValue) []string {

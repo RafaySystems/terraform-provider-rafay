@@ -56,6 +56,32 @@ resource "rafay_repositories" "tfdemorepository2" {
 
 ---
 
+Example of a GitHub App credentials.
+
+```terraform
+#github app  credentials example 
+resource "rafay_repositories" "tfdemorepository4" {
+  metadata {
+    name    = "tfdemorepository4"
+    project = "terraform"
+  }
+  spec {
+    type     = "Git"
+    endpoint = "https://github.com/test/apps.git"
+    credentials {
+      app_id          = "<github-app-id>"
+      installation_id = "<installation-id>"
+      private_key     = file("private-key.pem")
+    }
+    agents {
+      name = "gitops-agent"
+    }
+  }
+}
+```
+
+---
+
 No credentials example
 
 ```terraform
@@ -125,6 +151,18 @@ resource "rafay_repositories" "tfdemorepository3" {
 - `password` - (String) The credentials password. Use with a username. Required when using the password/token authentication. 
 - `private_key` - (String) The credentials private key. Does not require a username or password. Required when using the SSH authentication. 
 - `username` - (String) The credentials username. Use with a password. 
+
+
+<a id="nestedblock--spec--credentials--github_app"></a>
+### Nested Schema for `spec.credentials` (GitHub App Authentication)
+
+Use this block when authenticating via a GitHub App instead of username/password or SSH.
+
+***Required***
+
+- `app_id` - (String) The GitHub App ID.
+- `installation_id` - (String) The GitHub App installation ID.
+- `private_key` - (String) The GitHub App private key. Use `file()` to load from a `.pem` file.
 
 
 <a id="nestedblock--spec--options"></a>

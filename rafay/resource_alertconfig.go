@@ -67,7 +67,6 @@ func resourceAlertConfigCreate(ctx context.Context, d *schema.ResourceData, m in
 	return diags
 }
 func resourceAlertConfigUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	//var diags diag.Diagnostics
 	log.Printf("alertconfig upsert starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {

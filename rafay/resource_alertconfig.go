@@ -12,7 +12,6 @@ import (
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
-	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/settingspb"
 	"github.com/RafaySystems/rctl/pkg/versioninfo"
 
@@ -68,6 +67,7 @@ func resourceAlertConfigCreate(ctx context.Context, d *schema.ResourceData, m in
 	return diags
 }
 func resourceAlertConfigUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	//var diags diag.Diagnostics
 	log.Printf("alertconfig upsert starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
@@ -107,6 +107,11 @@ func resourceAlertConfigRead(ctx context.Context, d *schema.ResourceData, m inte
 		meta.Name = d.State().ID
 	}
 
+	tfAlertconfigState, err := expandAlertConfig(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	auth := config.GetConfig().GetAppAuthProfile()
 	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
@@ -116,7 +121,7 @@ func resourceAlertConfigRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	ac, err := client.SettingsV3().AlertConfiguration().Get(ctx, options.GetOptions{
 		Name:    meta.Name,
-		Project: meta.Project,
+		Project: tfAlertconfigState.Metadata.Project,
 	})
 	if err != nil {
 		log.Println("read get err")
@@ -209,21 +214,16 @@ func flattenAlertConfig(d *schema.ResourceData, in *settingspb.AlertConfiguratio
 		return nil
 	}
 
-	// Guard against nil metadata and preserve name/project from state when
-	// the API omits them, to prevent perpetual diffs.
-	if in.Metadata == nil {
-		in.Metadata = &commonpb.Metadata{}
-	}
+	// Preserve metadata context (especially project/name) from current state/config
+	// when API read responses omit these fields.
 	existingMeta := GetMetaData(d)
-	if in.Metadata.Name == "" {
-		if d.Id() != "" {
-			in.Metadata.Name = d.Id()
-		} else if existingMeta != nil {
+	if in.Metadata != nil && existingMeta != nil {
+		if len(in.Metadata.Name) == 0 {
 			in.Metadata.Name = existingMeta.Name
 		}
-	}
-	if in.Metadata.Project == "" && existingMeta != nil {
-		in.Metadata.Project = existingMeta.Project
+		if len(in.Metadata.Project) == 0 {
+			in.Metadata.Project = existingMeta.Project
+		}
 	}
 
 	err := d.Set("metadata", flattenMetaData(in.Metadata))

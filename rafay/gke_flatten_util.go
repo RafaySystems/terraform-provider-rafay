@@ -564,6 +564,9 @@ func flattenGKEV3Features(in *infrapb.GkeFeatures, p []interface{}) []interface{
 	obj["enable_compute_engine_persistent_disk_csi_driver"] = in.EnableComputeEnginePersistentDiskCSIDriver
 	obj["enable_filestore_csi_driver"] = in.EnableFilestoreCSIDriver
 	obj["enable_image_streaming"] = in.EnableImageStreaming
+	obj["disable_horizontal_pod_autoscaling"] = in.DisableHorizontalPodAutoscaling
+	obj["disable_http_load_balancing"] = in.DisableHttpLoadBalancing
+	obj["enable_gcs_fuse_csi_driver"] = in.EnableGcsFuseCsiDriver
 
 	return []interface{}{obj}
 }

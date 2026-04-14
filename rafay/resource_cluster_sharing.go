@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
@@ -119,11 +120,17 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
 	if errGet != nil {
 		log.Printf("failed to get cluster info %s", errGet.Error())
+		if strings.Contains(errGet.Error(), "not found") {
+			log.Println("Cluster not found, clearing state")
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(errGet)
 	}
 	if clusterObj == nil {
 		log.Printf("failed to get cluster info")
-		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
+		d.SetId("")
+		return diags
 	}
 
 	cse := clusterObj.Settings[clusterSharingExtKey]
@@ -329,11 +336,17 @@ func resourceClusterSharingRead(ctx context.Context, d *schema.ResourceData, m i
 	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
 	if errGet != nil {
 		log.Printf("failed to get cluster info %s", errGet.Error())
+		if strings.Contains(errGet.Error(), "not found") {
+			log.Println("Cluster not found, clearing state")
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(errGet)
 	}
 	if clusterObj == nil {
 		log.Printf("failed to get cluster info")
-		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
+		d.SetId("")
+		return diags
 	}
 
 	log.Println("clusterObj share type", clusterObj.ShareMode)
@@ -474,11 +487,17 @@ func resourceClusterSharingDelete(ctx context.Context, d *schema.ResourceData, m
 	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
 	if errGet != nil {
 		log.Printf("failed to get cluster info %s", errGet.Error())
+		if strings.Contains(errGet.Error(), "not found") {
+			log.Println("Cluster not found, clearing state")
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(errGet)
 	}
 	if clusterObj == nil {
 		log.Printf("failed to get cluster info")
-		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
+		d.SetId("")
+		return diags
 	}
 
 	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, uaDef, "")

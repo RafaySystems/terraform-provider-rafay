@@ -98,4 +98,4 @@ resource "rafay_cluster_sharing" "demo-terraform-all" {
 
 ## Import
 
-This resource does not currently support `tofu import`. To track an existing cluster sharing configuration, recreate it using this resource.
+This resource does not currently support `import`. To track an existing cluster sharing configuration, recreate it using this resource.

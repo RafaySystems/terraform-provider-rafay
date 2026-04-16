@@ -183,6 +183,189 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
 
 ---
 
+# rafay_aks_cluster_v3 (with NAP, Istio, Ingress, Azure Policy, KeyVault, OMS Agent, User-Assigned Identity, Snapshot, Cilium)
+
+## Example Usage
+
+```terraform
+resource "rafay_aks_cluster_v3" "demo-terraform2" {
+  metadata {
+    name    = "aaks-jan-sj-master4"
+    project = "test"
+  }
+  spec {
+    type = "aks"
+    blueprint_config {
+      name = "minimal"
+      #version = "v2"
+    }
+    cloud_credentials = "test_azure2"
+    config {
+      kind = "aksClusterConfig"
+      metadata {
+        name = "aaks-jan-sj-master4"
+      }
+      spec {
+        resource_group_name = "test-rg"
+        managed_cluster {
+          api_version = "2025-10-01"
+          additional_metadata {
+            acr_profile {
+              registries {
+                acr_name            = "testfnfacr"
+                resource_group_name = "test-fnf-cluster-rg"
+              }
+            }
+          }
+          sku {
+            name = "Base"
+            tier = "Free"
+          }
+          identity {
+            type = "UserAssigned"
+            user_assigned_identities = {
+                "/subscriptions/aaaaaaaa/resourceGroups/test-fnf-cluster-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test-fnf-cluster-identity": "{}"
+            }
+          }
+          location = "centralindia"
+          tags = {
+            "email" = "test@rafay.co"
+            "env"   = "dev"
+          }
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = false
+            }
+            dns_prefix         = "aks-333-dns"
+            kubernetes_version = "1.32.3"
+            node_resource_group = "aaks-jan-sj-master4"
+            linux_profile  {
+              admin_username = "adminuser"
+              ssh {
+                public_keys {
+                  key_data = "ssh-rsa aa.../E= generated-by-azure"
+                }
+              }
+            }
+            network_profile {
+              network_plugin      = "azure"
+              load_balancer_sku   = "standard"
+              network_policy       = "cilium"
+              pod_cidr            = "10.244.0.0/16"
+              service_cidr        = "10.0.0.0/16"
+              dns_service_ip      = "10.0.0.10"
+              network_dataplane   = "cilium"
+            }
+            power_state {
+              code = "Running"
+            }
+            auto_upgrade_profile {
+              upgrade_channel         = "none"
+              node_os_upgrade_channel = "None"
+            }
+            oidc_issuer_profile {
+              enabled = true
+            }
+            security_profile {
+              workload_identity {
+                enabled = true
+              }
+            }
+            enable_rbac            = true
+            disable_local_accounts = true
+            aad_profile {
+              managed           = true
+              enable_azure_rbac = true
+            }
+            node_provisioning_profile {
+              mode               = "Auto"
+              default_node_pools = "Auto"
+            }
+            service_mesh_profile {
+              mode = "Istio"
+              istio {
+                components {
+                  ingress_gateways {
+                    enabled = true
+                    mode    = "Internal"
+                  }
+                }
+                revisions = [
+                  "asm-1-27"
+                ]
+              }
+            }
+            ingress_profile {
+              web_app_routing {
+                enabled = false
+                dns_zone_resource_ids = [
+                  "/subscriptions/aaaa/resourceGroups/test-rg/providers/Microsoft.Network/dnsZones/testzone.com"
+                ]
+                # nginx {
+                #   default_ingress_controller_type = "Internal"
+                # }
+              }
+            }
+            addon_profiles {
+              azure_policy {
+                enabled = true
+              }
+              azure_keyvault_secrets_provider {
+                enabled = true
+                config {
+                  enable_secret_rotation = true
+                  rotation_poll_interval = "2m"
+                }
+              }
+              oms_agent {
+                enabled = false
+                config {
+                  log_analytics_workspace_resource_id = "/subscriptions/aaaaaaaa/resourcegroups/defaultresourcegroup-cin/providers/microsoft.operationalinsights/workspaces/DefaultWorkspace-aaaaaaaa-CIN"
+                }
+              }
+            }
+            identity_profile {
+              kubelet_identity {
+                resource_id = "/subscriptions/aaaaaaaa/resourceGroups/test-fnf-cluster-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test-kubelet-identity"
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          api_version = "2023-07-01"
+          name        = "secs222"
+          location    = "centralindia"
+          properties {
+            count                = 2
+            #enable_auto_scaling  = true
+            #max_count            = 2
+            max_pods             = 110
+            #min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.32.3"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_B4ms"
+            #node_taints = ["app22=infr22a:PreferNoSchedule"]
+            kubelet_config {
+              container_log_max_files = 2
+            }
+            creation_data {
+              source_resource_id = "/subscriptions/aaaaaaaa/resourceGroups/test-rg/providers/Microsoft.ContainerService/snapshots/asdasd26jan"
+            }
+            vnet_subnet_id = "/subscriptions/aaaaaaaa/resourceGroups/test-fnf-nw-rg/providers/Microsoft.Network/virtualNetworks/test-fnf-vnet/subnets/default2"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
 # rafay_aks_cluster_v3 (Azure CNI Overlay with Workload Identity)
 
 ## Example Usage
@@ -411,7 +594,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 **_Required_**
 
-- `apiversion` - (String) The Azure resource managed cluster API version. The supported value is `2024-01-01`.
+- `apiversion` - (String) The Azure resource managed cluster API version. Newer versions are also supported (e.g., `2025-10-01`).
 - `location` - (String) The AKS cluster location.
 - `properties` - (Block List, Min: 1) The properties of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties))
 - `type` - (String) The supported value is `Microsoft.ContainerService/managedClusters`.
@@ -642,6 +825,8 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.addon_profiles.http_application_routing`
 
+> **Note:** The `http_application_routing` add-on can no longer be enabled on new clusters. Please use the Application Routing Add-on (`ingress_profile.web_app_routing`) instead. See [App Routing migration guide](https://aka.ms/app-routing-migration) for more information.
+
 **_Required_**
 
 - `enabled` - (Boolean) - Enable/Disable HTTP Application Routing.
@@ -736,11 +921,11 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 **_Required_**
 
-- `public_key` - (Block List) The list of SSH public keys used to authenticate with Linux-based VMs. A maximum of 1 key may be specified. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--linux_profile--ssh--public_key))
+- `public_keys` - (Block List) The list of SSH public keys used to authenticate with Linux-based VMs. A maximum of 1 key may be specified. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--linux_profile--ssh--public_keys))
 
-<a id="nestedblock--spec--config--spec--managed_cluster--properties--linux_profile--ssh--public_key"></a>
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--linux_profile--ssh--public_keys"></a>
 
-### Nested Schema for `spec.config.spec.managed_cluster.properties.linux_profile.ssh.public_key`
+### Nested Schema for `spec.config.spec.managed_cluster.properties.linux_profile.ssh.public_keys`
 
 **_Required_**
 
@@ -756,9 +941,12 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `docker_bridge_cidr` - (String) A CIDR notation IP range assigned to the Docker bridge network.
 - `load_balancer_sku` - (String) Supported values are: `standard` and `basic`.
 - `network_mode` - (String) This cannot be specified if `networkPlugin` is anything other than `azure`. The supported values are `transparent` and `bridge`.
-- `network_plugin` - (String) The network plugin used for building the Kubernetes network. Supported values are: `azure` and `kubenet`.
+- `network_plugin` - (String) The network plugin used for building the Kubernetes network. Supported values are: `azure`, `kubenet`, and `none`.
+
+  > **Note:** Use `none` for Bring Your Own CNI (BYOCNI) — this disables the built-in CNI plugin so you can install your own. See the [Rafay BYOCNI documentation](https://docs.rafay.co/clusters/aks/byo_cni/) for details.
 - `network_plugin_mode` - (String) The network plugin mode used for building the Kubernetes network. Supported values are: `overlay`.
-- `network_policy` - (String) The network policy used for building the Kubernetes network. Supported values are: `calico` and `azure`.
+- `network_dataplane` - (String) Network dataplane used in the Kubernetes cluster. Valid values are `azure`, `cilium`. Required when `network_policy` is set to `cilium`.
+- `network_policy` - (String) The network policy used for building the Kubernetes network. Supported values are: `azure`, `calico`, and `cilium`.
 - `outbound_type` - (String) The outbound/egress routing method.
   Supported values are: `loadBalancer` and `userDefinedRouting`.
 - `pod_cidr` - (String) A CIDR notation IP range from which to assign pod IPs when kubenet is used.
@@ -865,7 +1053,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 **_Required_**
 
-- `name` - (String) The name of a managed cluster SKU. The supported value is `Basic`.
+- `name` - (String) The name of a managed cluster SKU. The supported value is `Base`.
 - `tier` - (String) Supported values are: `Paid` and `Free`.
 
 <a id="nestedblock--spec--config--spec--node_pools"></a>
@@ -874,7 +1062,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 **_Required_**
 
-- `apiversion` - (String) The AKS node pool API version. The supported value is `2024-01-01`.
+- `apiversion` - (String) The AKS node pool API version. Newer versions are also supported (e.g., `2025-10-01`).
 - `location` - (String) The AKS node pool location.
 - `name` - (String) The AKS node pool name.
 - `properties` - (Block List, Min: 1) The AKS managed cluster properties. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties))

@@ -224,7 +224,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
           identity {
             type = "UserAssigned"
             user_assigned_identities = {
-                "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourceGroups/test-fnf-cluster-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test-fnf-cluster-identity": "{}"
+                "/subscriptions/aaaaaaaa/resourceGroups/test-fnf-cluster-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test-fnf-cluster-identity": "{}"
             }
           }
           location = "centralindia"
@@ -243,7 +243,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
               admin_username = "adminuser"
               ssh {
                 public_keys {
-                  key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCsNWPqLqjrIPLjO9CK4xhcrIPyk82wjB+BSWWUwVniSKHJjq3TmZnA1YKSaraGfJZfyQppK6AyqhxYw5l2SLHD896VyZw88p11qC2VBCKoQxn2fLOLJkRumCAclhC9mfMITyF/O5eLXzZEymts3SV160UAKvzPlqigzwdfxwPRDjawCRdKkoB/d1gbPu4qCaNm7B6pf6iG0TLIZXVWkX/GkPXZh40aBq/fU8ou2W87Ew3bK3AznXnN+t2k7t25sriz3sQUzpe7yaWUjnh5KUZ+fmuDsWpXj0cugorltYLFDKpoACKR99cQDoGcVS3RzYIFWLKto/0Ok4TVbL/5a2wrqfaxdJiLyTkzNeKDdd5/iQpSK+DN82iiONET4pHKI6zQ7/LcNzsAC7QrL7w+7F4VYqIqzKOfLpFNA4RjcUMCu/N6JK/kIHjW3cM2PTfZOBleZ7zfOfigTx2E7d+dTbC+ARjSbamJRwrnPFtumr4qVSsAm+H6Xn3YaqN4Tz05h/E= generated-by-azure"
+                  key_data = "ssh-rsa aa.../E= generated-by-azure"
                 }
               }
             }
@@ -299,7 +299,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
               web_app_routing {
                 enabled = false
                 dns_zone_resource_ids = [
-                  "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourceGroups/test-rg/providers/Microsoft.Network/dnsZones/testzone.com"
+                  "/subscriptions/aaaa/resourceGroups/test-rg/providers/Microsoft.Network/dnsZones/testzone.com"
                 ]
                 # nginx {
                 #   default_ingress_controller_type = "Internal"
@@ -320,13 +320,13 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
               oms_agent {
                 enabled = false
                 config {
-                  log_analytics_workspace_resource_id = "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourcegroups/defaultresourcegroup-cin/providers/microsoft.operationalinsights/workspaces/DefaultWorkspace-a2252eb2-7a25-432b-a5ec-e18eba6f26b1-CIN"
+                  log_analytics_workspace_resource_id = "/subscriptions/aaaaaaaa/resourcegroups/defaultresourcegroup-cin/providers/microsoft.operationalinsights/workspaces/DefaultWorkspace-aaaaaaaa-CIN"
                 }
               }
             }
             identity_profile {
               kubelet_identity {
-                resource_id = "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourceGroups/test-fnf-cluster-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test-kubelet-identity"
+                resource_id = "/subscriptions/aaaaaaaa/resourceGroups/test-fnf-cluster-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test-kubelet-identity"
               }
             }
           }
@@ -352,9 +352,9 @@ resource "rafay_aks_cluster_v3" "demo-terraform2" {
               container_log_max_files = 2
             }
             creation_data {
-              source_resource_id = "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourceGroups/test-rg/providers/Microsoft.ContainerService/snapshots/asdasd26jan"
+              source_resource_id = "/subscriptions/aaaaaaaa/resourceGroups/test-rg/providers/Microsoft.ContainerService/snapshots/asdasd26jan"
             }
-            vnet_subnet_id = "/subscriptions/a2252eb2-7a25-432b-a5ec-e18eba6f26b1/resourceGroups/test-fnf-nw-rg/providers/Microsoft.Network/virtualNetworks/test-fnf-vnet/subnets/default2"
+            vnet_subnet_id = "/subscriptions/aaaaaaaa/resourceGroups/test-fnf-nw-rg/providers/Microsoft.Network/virtualNetworks/test-fnf-vnet/subnets/default2"
           }
           type = "Microsoft.ContainerService/managedClusters/agentPools"
         }

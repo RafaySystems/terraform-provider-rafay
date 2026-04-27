@@ -2681,7 +2681,7 @@ func flattenAKSClusterV3(d *schema.ResourceData, in *infrapb.Cluster) error {
 
 	var ret2 []interface{}
 	if in.Spec != nil {
-		v, ok := obj["spec"].([]interface{})
+		v, ok := d.Get("spec").([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}

@@ -79,13 +79,28 @@ type AKSClusterConfigMetadata struct {
 }
 
 type AKSClusterConfigSpec struct {
-	SubscriptionID     string                   `yaml:"subscriptionId,omitempty"`
-	ResourceGroupName  string                   `yaml:"resourceGroupName,omitempty"`
-	ManagedCluster     *AKSManagedCluster       `yaml:"managedCluster,omitempty"`
-	NodePools          []*AKSNodePool           `yaml:"nodePools,omitempty"`
-	MaintenanceConfigs []*AKSMaintenanceConfig  `yaml:"maintenanceConfigurations,omitempty"`
-	WorkloadIdentities []*AzureWorkloadIdentity `yaml:"workloadIdentities,omitempty"`
+	SubscriptionID           string                   `yaml:"subscriptionId,omitempty"`
+	ResourceGroupName        string                   `yaml:"resourceGroupName,omitempty"`
+	ManagedCluster           *AKSManagedCluster       `yaml:"managedCluster,omitempty"`
+	NodePools                []*AKSNodePool           `yaml:"nodePools,omitempty"`
+	MaintenanceConfigs       []*AKSMaintenanceConfig  `yaml:"maintenanceConfigurations,omitempty"`
+	WorkloadIdentities       []*AzureWorkloadIdentity `yaml:"workloadIdentities,omitempty"`
+	BootstrapVMConfiguration *AKSBootstrapVMConfig    `yaml:"bootstrapVmParams,omitempty"`
 	//Internal          *AKSRafayInternal  `yaml:"internal,omitempty"`
+}
+
+type AKSBootstrapVMConfig struct {
+	VMSize string                  `yaml:"vmSize,omitempty"`
+	Image  *AKSBootstrapVMImageRef `yaml:"image,omitempty"`
+}
+
+type AKSBootstrapVMImageRef struct {
+	ID        string `yaml:"id,omitempty"`
+	Publisher string `yaml:"publisher,omitempty"`
+	Offer     string `yaml:"offer,omitempty"`
+	Sku       string `yaml:"sku,omitempty"`
+	Version   string `yaml:"version,omitempty"`
+	OsState   string `yaml:"osState,omitempty"`
 }
 
 type AzureWorkloadIdentity struct {

@@ -652,6 +652,57 @@ func expandAKSClusterV3ConfigSpec(p []interface{}) *infrapb.AksV3Spec {
 		obj.MaintenanceConfigurations = expandAKSV3MaintenanceConfigs(v)
 	}
 
+	if v, ok := in["bootstrap_vm_params"].([]interface{}); ok && len(v) > 0 {
+		obj.BootstrapVmParams = expandAKSV3BootstrapVMConfig(v)
+	}
+
+	return obj
+}
+
+func expandAKSV3BootstrapVMConfig(p []interface{}) *infrapb.AKSBootstrapVMConfig {
+	obj := &infrapb.AKSBootstrapVMConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["vm_size"].(string); ok && len(v) > 0 {
+		obj.VmSize = v
+	}
+
+	if v, ok := in["image"].([]interface{}); ok && len(v) > 0 {
+		obj.Image = expandAKSV3BootstrapVMImageRef(v)
+	}
+
+	return obj
+}
+
+func expandAKSV3BootstrapVMImageRef(p []interface{}) *infrapb.AKSBootstrapVMImageRef {
+	obj := &infrapb.AKSBootstrapVMImageRef{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["id"].(string); ok && len(v) > 0 {
+		obj.Id = v
+	}
+	if v, ok := in["publisher"].(string); ok && len(v) > 0 {
+		obj.Publisher = v
+	}
+	if v, ok := in["offer"].(string); ok && len(v) > 0 {
+		obj.Offer = v
+	}
+	if v, ok := in["sku"].(string); ok && len(v) > 0 {
+		obj.Sku = v
+	}
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+	if v, ok := in["os_state"].(string); ok && len(v) > 0 {
+		obj.OsState = v
+	}
+
 	return obj
 }
 
@@ -2867,8 +2918,71 @@ func flattenAKSV3ClusterConfigSpec(in *infrapb.AksV3Spec, p []interface{}) []int
 		obj["maintenance_configurations"] = flattenAKSV3MaintenanceConfigs(in.MaintenanceConfigurations, v)
 	}
 
+	if in.BootstrapVmParams != nil {
+		v, ok := obj["bootstrap_vm_params"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["bootstrap_vm_params"] = flattenAKSV3BootstrapVMConfig(in.BootstrapVmParams, v)
+	}
+
 	return []interface{}{obj}
 
+}
+
+func flattenAKSV3BootstrapVMConfig(in *infrapb.AKSBootstrapVMConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.VmSize) > 0 {
+		obj["vm_size"] = in.VmSize
+	}
+
+	if in.Image != nil {
+		v, ok := obj["image"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["image"] = flattenAKSV3BootstrapVMImageRef(in.Image, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3BootstrapVMImageRef(in *infrapb.AKSBootstrapVMImageRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Id) > 0 {
+		obj["id"] = in.Id
+	}
+	if len(in.Publisher) > 0 {
+		obj["publisher"] = in.Publisher
+	}
+	if len(in.Offer) > 0 {
+		obj["offer"] = in.Offer
+	}
+	if len(in.Sku) > 0 {
+		obj["sku"] = in.Sku
+	}
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+	if len(in.OsState) > 0 {
+		obj["os_state"] = in.OsState
+	}
+
+	return []interface{}{obj}
 }
 
 func flattenAKSV3MaintenanceConfigs(in []*infrapb.AKSMaintenanceConfig, p []interface{}) []interface{} {

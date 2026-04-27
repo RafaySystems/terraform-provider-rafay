@@ -152,7 +152,16 @@ resource "rafay_aks_cluster" "demo-terraform" {
         name = "demo-terraform"
       }
       spec {
-        resource_group_name = "testuser-terraform"
+        resource_group_name = "my-resource-group"
+
+        bootstrap_vm_params {
+          vm_size = "Standard_B4ms"
+          image {
+            id       = "/subscriptions/<subscription-id>/resourceGroups/<rg>/providers/Microsoft.Compute/galleries/<gallery>/images/<image-def>/versions/1.0.0"
+            os_state = "Generalized"
+          }
+        }
+
         managed_cluster {
           apiversion = "2023-11-01"
           identity {
@@ -344,9 +353,38 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 - `managed_cluster` - (Block List) The AKS managed cluster. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--managed_cluster))
 - `node_pools` - (Block List, Min: 1) The AKS node pool. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--node_pools))
-- `maintenance_configurations` - (Block List, Min: 0) The AKS Maintenance Configurations used to configure Auto-Upgrade Profile Schedule. (See [below for nested schema]
-  (#nestedblock--spec--cluster_config--spec--maintenance_configurations))
 - `resource_group_name` - (String) The AKS resource group for the cluster.
+
+**_Optional_**
+
+- `bootstrap_vm_params` - (Block List, Max: 1) Bootstrap VM configuration used when provisioning the cluster. Allows specifying a custom VM size and image (marketplace or non-marketplace) for the bootstrap node. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--bootstrap_vm_params))
+- `maintenance_configurations` - (Block List, Min: 0) The AKS Maintenance Configurations used to configure Auto-Upgrade Profile Schedule. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations))
+
+<a id="nestedblock--spec--cluster_config--spec--bootstrap_vm_params"></a>
+
+### Nested Schema for `spec.cluster_config.spec.bootstrap_vm_params`
+
+Configures the VM used to bootstrap the AKS cluster. Use this block to specify a custom VM size or a non-marketplace (custom gallery) image for the bootstrap node.
+
+**_Optional_**
+
+- `vm_size` - (String) The Azure VM size for the bootstrap VM (e.g. `Standard_B4ms`). If omitted, the provider default is used.
+- `image` - (Block List, Max: 1) The image reference for the bootstrap VM. Use exactly one of `id` (non-marketplace image) or `publisher`/`offer`/`sku`/`version` (marketplace image). (See [below for nested schema](#nestedblock--spec--cluster_config--spec--bootstrap_vm_params--image))
+
+<a id="nestedblock--spec--cluster_config--spec--bootstrap_vm_params--image"></a>
+
+### Nested Schema for `spec.cluster_config.spec.bootstrap_vm_params.image`
+
+Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Gallery image, or the `publisher`/`offer`/`sku`/`version` combination for a marketplace image.
+
+**_Optional_**
+
+- `id` - (String) The full Azure resource ID of a non-marketplace image (Azure Compute Gallery image version). When set, marketplace fields are ignored. This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/galleries/{galleryName}/images/{imageDefinition}/versions/{version}`.
+- `publisher` - (String) The publisher of the marketplace image (e.g. `center-for-internet-security-inc`).
+- `offer` - (String) The offer of the marketplace image (e.g. `cis-ubuntu`).
+- `sku` - (String) The SKU of the marketplace image (e.g. `cis-ubuntulinux2404-l1-gen2`).
+- `version` - (String) The version of the marketplace image (e.g. `latest`).
+- `os_state` - (String) The OS state of the image. Supported values are `Generalized` and `Specialized`.
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster"></a>
 

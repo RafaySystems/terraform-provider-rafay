@@ -324,8 +324,71 @@ func clusterAKSClusterConfigSpec() map[string]*schema.Schema {
 				Schema: clusterAKSMaintenanceConfig(),
 			},
 		},
+		"bootstrap_vm_params": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "Bootstrap VM configuration for the AKS cluster",
+			Elem: &schema.Resource{
+				Schema: clusterAKSBootstrapVMConfig(),
+			},
+		},
 	}
 	return s
+}
+
+func clusterAKSBootstrapVMConfig() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"vm_size": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The VM size for the bootstrap VM",
+		},
+		"image": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "Image reference for the bootstrap VM",
+			Elem: &schema.Resource{
+				Schema: clusterAKSBootstrapVMImageRef(),
+			},
+		},
+	}
+}
+
+func clusterAKSBootstrapVMImageRef() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Resource ID of the image",
+		},
+		"publisher": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Publisher of the image",
+		},
+		"offer": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Offer of the image",
+		},
+		"sku": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "SKU of the image",
+		},
+		"version": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Version of the image",
+		},
+		"os_state": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "OS state of the image (Generalized or Specialized)",
+		},
+	}
 }
 
 func clusterAKSManagedCluster() map[string]*schema.Schema {
@@ -2494,6 +2557,57 @@ func expandAKSClusterConfigSpec(p []interface{}, rawConfig cty.Value) *AKSCluste
 		obj.MaintenanceConfigs = expandAKSMaintenanceConfigs(v)
 	}
 
+	if v, ok := in["bootstrap_vm_params"].([]interface{}); ok && len(v) > 0 {
+		obj.BootstrapVMConfiguration = expandAKSBootstrapVMConfig(v)
+	}
+
+	return obj
+}
+
+func expandAKSBootstrapVMConfig(p []interface{}) *AKSBootstrapVMConfig {
+	obj := &AKSBootstrapVMConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["vm_size"].(string); ok && len(v) > 0 {
+		obj.VMSize = v
+	}
+
+	if v, ok := in["image"].([]interface{}); ok && len(v) > 0 {
+		obj.Image = expandAKSBootstrapVMImageRef(v)
+	}
+
+	return obj
+}
+
+func expandAKSBootstrapVMImageRef(p []interface{}) *AKSBootstrapVMImageRef {
+	obj := &AKSBootstrapVMImageRef{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["id"].(string); ok && len(v) > 0 {
+		obj.ID = v
+	}
+	if v, ok := in["publisher"].(string); ok && len(v) > 0 {
+		obj.Publisher = v
+	}
+	if v, ok := in["offer"].(string); ok && len(v) > 0 {
+		obj.Offer = v
+	}
+	if v, ok := in["sku"].(string); ok && len(v) > 0 {
+		obj.Sku = v
+	}
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+	if v, ok := in["os_state"].(string); ok && len(v) > 0 {
+		obj.OsState = v
+	}
+
 	return obj
 }
 
@@ -4509,8 +4623,71 @@ func flattenAKSClusterConfigSpec(in *AKSClusterConfigSpec, p []interface{}, rawS
 		obj["maintenance_configurations"] = flattenAKSMaintenanceConfigs(in.MaintenanceConfigs, v)
 	}
 
+	if in.BootstrapVMConfiguration != nil {
+		v, ok := obj["bootstrap_vm_params"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["bootstrap_vm_params"] = flattenAKSBootstrapVMConfig(in.BootstrapVMConfiguration, v)
+	}
+
 	return []interface{}{obj}
 
+}
+
+func flattenAKSBootstrapVMConfig(in *AKSBootstrapVMConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.VMSize) > 0 {
+		obj["vm_size"] = in.VMSize
+	}
+
+	if in.Image != nil {
+		v, ok := obj["image"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["image"] = flattenAKSBootstrapVMImageRef(in.Image, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSBootstrapVMImageRef(in *AKSBootstrapVMImageRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.ID) > 0 {
+		obj["id"] = in.ID
+	}
+	if len(in.Publisher) > 0 {
+		obj["publisher"] = in.Publisher
+	}
+	if len(in.Offer) > 0 {
+		obj["offer"] = in.Offer
+	}
+	if len(in.Sku) > 0 {
+		obj["sku"] = in.Sku
+	}
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+	if len(in.OsState) > 0 {
+		obj["os_state"] = in.OsState
+	}
+
+	return []interface{}{obj}
 }
 
 func flattenAKSManagedCluster(in *AKSManagedCluster, p []interface{}) []interface{} {

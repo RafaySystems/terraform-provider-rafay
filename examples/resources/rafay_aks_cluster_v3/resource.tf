@@ -16,6 +16,15 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
       }
       spec {
         resource_group_name = "rafay-resource"
+
+        bootstrap_vm_params {
+          vm_size = "Standard_B4ms"
+          image {
+            id       = "/subscriptions/<subscription-id>/resourceGroups/<rg>/providers/Microsoft.Compute/galleries/<gallery>/images/<image-def>/versions/1.0.0"
+            os_state = "Generalized"
+          }
+        }
+
         managed_cluster {
           api_version = "2024-01-01"
           sku {

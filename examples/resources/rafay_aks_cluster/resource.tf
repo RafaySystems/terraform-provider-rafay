@@ -17,6 +17,15 @@ resource "rafay_aks_cluster" "demo-terraform" {
       }
       spec {
         resource_group_name = "testuser-terraform"
+
+        bootstrap_vm_params {
+          vm_size = "Standard_B4ms"
+          image {
+            id       = "/subscriptions/<subscription-id>/resourceGroups/<rg>/providers/Microsoft.Compute/galleries/<gallery>/images/<image-def>/versions/1.0.0"
+            os_state = "Generalized"
+          }
+        }
+
         managed_cluster {
           apiversion = "2024-01-01"
           identity {

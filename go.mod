@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/terraform-plugin-framework v1.11.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.13.0
 	github.com/hashicorp/terraform-plugin-mux v0.16.0
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.34.0
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.0
 	github.com/hashicorp/terraform-plugin-testing v1.10.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/pkg/errors v0.9.1

@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-                image 'registry-proxy.dev.rafay-edge.net/golang:1.24.13'
+                image 'registry-proxy.dev.rafay-edge.net/golang:1.25.8'
                 args '-u root:sudo'
                 reuseNode false
                 label 'ec2-fleet-tf'

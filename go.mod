@@ -1,6 +1,6 @@
 module github.com/RafaySystems/terraform-provider-rafay
 
-go 1.24.13
+go 1.25.8
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20260316170605-1751dfe313d2

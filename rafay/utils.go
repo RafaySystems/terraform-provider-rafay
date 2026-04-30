@@ -587,16 +587,18 @@ func expandCommonpbFiles(p []interface{}) []*commonpb.File {
 }
 
 func expandFiles(p []interface{}) ([]*File, error) {
-	if len(p) == 0 || p[0] == nil {
-		return nil, fmt.Errorf("%s", "expandFiles empty input")
+	if len(p) == 0 {
+		return nil, nil
 	}
 
 	obj := make([]*File, len(p))
 	for i := range p {
 		of := File{}
-		in := p[i].(map[string]interface{})
-		if v, ok := in["name"].(string); ok && len(v) > 0 {
-			of.Name = v
+		if p[i] != nil {
+			in := p[i].(map[string]interface{})
+			if v, ok := in["name"].(string); ok && len(v) > 0 {
+				of.Name = v
+			}
 		}
 
 		if strings.HasPrefix(of.Name, "file://") {

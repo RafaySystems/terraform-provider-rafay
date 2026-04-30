@@ -152,10 +152,14 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 			}
 		}
 
-		if v, ok := in["values_paths"].([]interface{}); ok && len(v) > 0 {
-			at.Artifact.ValuesPaths, err = expandFiles(v)
-			if err != nil {
-				return nil, err
+		if v, ok := in["values_paths"].([]interface{}); ok {
+			if len(v) > 0 {
+				at.Artifact.ValuesPaths, err = expandFiles(v)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				at.Artifact.ValuesPaths = []*File{{}}
 			}
 			artfct = spew.Sprintf("%+v", at.Artifact.ValuesPaths)
 			log.Println("ExpandArtifact  at.Artifact.ValuesPaths ", artfct)
@@ -179,10 +183,14 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 					at.Artifact.ValuesRef.Revision = v
 				}
 
-				if v, ok := inVref["values_paths"].([]interface{}); ok && len(v) > 0 {
-					at.Artifact.ValuesRef.ValuesPaths, err = expandFiles(v)
-					if err != nil {
-						return nil, err
+				if v, ok := inVref["values_paths"].([]interface{}); ok {
+					if len(v) > 0 {
+						at.Artifact.ValuesRef.ValuesPaths, err = expandFiles(v)
+						if err != nil {
+							return nil, err
+						}
+					} else {
+						at.Artifact.ValuesRef.ValuesPaths = []*File{{}}
 					}
 					artfct = spew.Sprintf("%+v", at.Artifact.ValuesRef.ValuesPaths)
 					log.Println("at.Artifact.ValuesRef.ValuesPaths ", artfct)
@@ -309,6 +317,37 @@ func ExpandArtifactSpec(p []interface{}) (*commonpb.ArtifactSpec, error) {
 }
 
 // Flatten
+func priorHasValuesPathsBlock(prior map[string]interface{}, key string) bool {
+	if prior == nil {
+		return false
+	}
+	v, ok := prior[key]
+	if !ok || v == nil {
+		return false
+	}
+	list, ok := v.([]interface{})
+	if !ok {
+		return false
+	}
+	return len(list) > 0
+}
+
+func flattenValuesPathsForState(files []*File, priorHadBlock bool) []interface{} {
+	if files == nil {
+		return nil
+	}
+	hasNamed := false
+	for _, f := range files {
+		if f != nil && len(f.Name) > 0 {
+			hasNamed = true
+			break
+		}
+	}
+	if !hasNamed && !priorHadBlock {
+		return nil
+	}
+	return flattenFiles(files)
+}
 
 func flattenValuesRef(at *artifactTranspose, p []interface{}) []interface{} {
 	obj := map[string]interface{}{}
@@ -325,7 +364,15 @@ func flattenValuesRef(at *artifactTranspose, p []interface{}) []interface{} {
 	}
 
 	if at.Artifact.ValuesRef.ValuesPaths != nil {
-		obj["values_paths"] = flattenFiles(at.Artifact.ValuesRef.ValuesPaths)
+		flat := flattenValuesPathsForState(
+			at.Artifact.ValuesRef.ValuesPaths,
+			priorHasValuesPathsBlock(obj, "values_paths"),
+		)
+		if flat == nil {
+			delete(obj, "values_paths")
+		} else {
+			obj["values_paths"] = flat
+		}
 	}
 
 	return []interface{}{obj}
@@ -355,7 +402,15 @@ func FlattenArtifact(at *artifactTranspose, p []interface{}) ([]interface{}, err
 	}
 
 	if at.Artifact.ValuesPaths != nil {
-		obj["values_paths"] = flattenFiles(at.Artifact.ValuesPaths)
+		flat := flattenValuesPathsForState(
+			at.Artifact.ValuesPaths,
+			priorHasValuesPathsBlock(obj, "values_paths"),
+		)
+		if flat == nil {
+			delete(obj, "values_paths")
+		} else {
+			obj["values_paths"] = flat
+		}
 	}
 
 	if len(at.Artifact.Catalog) > 0 {

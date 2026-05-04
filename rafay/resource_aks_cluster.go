@@ -344,6 +344,11 @@ func clusterAKSBootstrapVMConfig() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "The VM size for the bootstrap VM",
 		},
+		"trusted_launch": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Enable Trusted Launch (SecureBoot + vTPM) for the bootstrap VM. Requires a Gen2 image.",
+		},
 		"image": {
 			Type:        schema.TypeList,
 			Optional:    true,
@@ -387,6 +392,11 @@ func clusterAKSBootstrapVMImageRef() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "OS state of the image (Generalized or Specialized)",
+		},
+		"os_family": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "OS family: 'ubuntu' (default) or 'rhel'. Controls which bootstrap script is used.",
 		},
 	}
 }
@@ -2574,7 +2584,9 @@ func expandAKSBootstrapVMConfig(p []interface{}) *AKSBootstrapVMConfig {
 	if v, ok := in["vm_size"].(string); ok && len(v) > 0 {
 		obj.VMSize = v
 	}
-
+	if v, ok := in["trusted_launch"].(bool); ok {
+		obj.TrustedLaunch = v
+	}
 	if v, ok := in["image"].([]interface{}); ok && len(v) > 0 {
 		obj.Image = expandAKSBootstrapVMImageRef(v)
 	}
@@ -2606,6 +2618,9 @@ func expandAKSBootstrapVMImageRef(p []interface{}) *AKSBootstrapVMImageRef {
 	}
 	if v, ok := in["os_state"].(string); ok && len(v) > 0 {
 		obj.OsState = v
+	}
+	if v, ok := in["os_family"].(string); ok && len(v) > 0 {
+		obj.OsFamily = v
 	}
 
 	return obj
@@ -4647,6 +4662,9 @@ func flattenAKSBootstrapVMConfig(in *AKSBootstrapVMConfig, p []interface{}) []in
 	if len(in.VMSize) > 0 {
 		obj["vm_size"] = in.VMSize
 	}
+	if in.TrustedLaunch {
+		obj["trusted_launch"] = in.TrustedLaunch
+	}
 
 	if in.Image != nil {
 		v, ok := obj["image"].([]interface{})
@@ -4685,6 +4703,9 @@ func flattenAKSBootstrapVMImageRef(in *AKSBootstrapVMImageRef, p []interface{}) 
 	}
 	if len(in.OsState) > 0 {
 		obj["os_state"] = in.OsState
+	}
+	if len(in.OsFamily) > 0 {
+		obj["os_family"] = in.OsFamily
 	}
 
 	return []interface{}{obj}

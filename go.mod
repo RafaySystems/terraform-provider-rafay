@@ -33,6 +33,7 @@ require (
 	github.com/RafaySystems/rafay-cost v0.0.0-20260313051730-b0253d94ba2c // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
+	github.com/avast/retry-go/v4 v4.6.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect

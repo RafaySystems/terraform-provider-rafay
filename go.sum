@@ -20,12 +20,10 @@ github.com/ProtonMail/go-crypto v1.1.0-alpha.2 h1:bkyFVUP+ROOARdgCiJzNQo2V2kiB97
 github.com/ProtonMail/go-crypto v1.1.0-alpha.2/go.mod h1:rA3QumHc/FZ8pAHreoekgiAbzpNsfQAosU5td4SnOrE=
 github.com/RafaySystems/eaas-playground/proto v0.0.0-20251008151511-bf1cf36fe5bd h1:50smMqzYlYN0e7bgVLGBIX7Y1V9fUE+yUhkCoQIVgD4=
 github.com/RafaySystems/eaas-playground/proto v0.0.0-20251008151511-bf1cf36fe5bd/go.mod h1:lAle7/tiVlakfiXdJKnsf6qNdLkoWS712T4pAXytSOQ=
-github.com/RafaySystems/edge-common v1.24.1-0.20260316170605-1751dfe313d2 h1:0pzAY0NNQYZsbBRowChJQm9b0tIOh+5YbDxNJOJZeC8=
-github.com/RafaySystems/edge-common v1.24.1-0.20260316170605-1751dfe313d2/go.mod h1:tbd1Z34RfnJ3umcDjf478+dh7hJ66ict3wra7YbQmiA=
+github.com/RafaySystems/edge-common v1.24.1-0.20260504071954-45f09519cd7c h1:b3j1pNzyaPfTWWEh/ESnpC+VoJySgPdfWNUCLu8t4Os=
+github.com/RafaySystems/edge-common v1.24.1-0.20260504071954-45f09519cd7c/go.mod h1:tbd1Z34RfnJ3umcDjf478+dh7hJ66ict3wra7YbQmiA=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e h1:SrznY+xkaQ4BkX0HXGa0upur7RAtR6UsTsdMNEgBreY=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e/go.mod h1:vDR0S28Q+hwE/5wO0L/Ohn9CZwaI/o2QuPupJ2iLI7k=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260413075109-adf72e80dfc7 h1:fyr6I8AUkZ3/g8EdtaImOVIy0jqmOyDV61X7wx2O6Ng=
-github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260413075109-adf72e80dfc7/go.mod h1:kHlQbiOuJti4D72s8s/fI6RhkzERnN8MHKyXKC8u2KY=
 github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d h1:NbCSh/ZDJj2g9jiiYxFV9hJB+qCqzCoayiVmWAnMrms=
 github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d/go.mod h1:SZ0uCQZvcnj9N3o7dFPrt2KnS7F6RELkFV1Py7fN5Jg=
 github.com/RafaySystems/rctl v1.29.1-0.20260427102033-bdb36fa0976a h1:Mt3cwR5IiPY6t8vx5XnyC3Yr+lBjspueAHJfh3aXELk=
@@ -46,6 +44,8 @@ github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0 h1:jfIu9sQUG6Ig
 github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0/go.mod h1:t2tdKJDJF9BV14lnkjHmOQgcvEKgtqs5a1N3LNdJhGE=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
+github.com/avast/retry-go/v4 v4.6.0 h1:K9xNA+KeB8HHc2aWFuLb25Offp+0iVRXEvFx8IinRJA=
+github.com/avast/retry-go/v4 v4.6.0/go.mod h1:gvWlPhBVsvBbLkVGDg/KwvBv0bEkCOLRRSHKIr2PyOE=
 github.com/aws/aws-sdk-go v1.53.21 h1:vAXk3mJQqveg1H3uZaUBaGXrKWa97hc9zBhudsDZugA=
 github.com/aws/aws-sdk-go v1.53.21/go.mod h1:LF8svs817+Nz+DmiMQKTO3ubZ/6IaTpq3TjupRn3Eqk=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=

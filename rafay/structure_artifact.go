@@ -57,6 +57,18 @@ type artifactTranspose struct {
 	} `json:"options,omitempty"`
 }
 
+// expandValuesPathsFromTF maps Terraform's values_paths block list to []*File.
+// When the key is present but the list is empty (user removed all blocks), it
+// returns a single sentinel empty File so the field is still emitted on the
+// JSON wire (omitempty on the slice would otherwise omit it and the backend
+// would keep the previous values_paths).
+func expandValuesPathsFromTF(v []interface{}) ([]*File, error) {
+	if len(v) > 0 {
+		return expandFiles(v)
+	}
+	return []*File{{}}, nil
+}
+
 // ExpandArtifact expands tf state to ArtifactSpec
 func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSpec, error) {
 	if len(ap) == 0 || ap[0] == nil {
@@ -153,13 +165,9 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 		}
 
 		if v, ok := in["values_paths"].([]interface{}); ok {
-			if len(v) > 0 {
-				at.Artifact.ValuesPaths, err = expandFiles(v)
-				if err != nil {
-					return nil, err
-				}
-			} else {
-				at.Artifact.ValuesPaths = []*File{{}}
+			at.Artifact.ValuesPaths, err = expandValuesPathsFromTF(v)
+			if err != nil {
+				return nil, err
 			}
 			artfct = spew.Sprintf("%+v", at.Artifact.ValuesPaths)
 			log.Println("ExpandArtifact  at.Artifact.ValuesPaths ", artfct)
@@ -184,13 +192,9 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 				}
 
 				if v, ok := inVref["values_paths"].([]interface{}); ok {
-					if len(v) > 0 {
-						at.Artifact.ValuesRef.ValuesPaths, err = expandFiles(v)
-						if err != nil {
-							return nil, err
-						}
-					} else {
-						at.Artifact.ValuesRef.ValuesPaths = []*File{{}}
+					at.Artifact.ValuesRef.ValuesPaths, err = expandValuesPathsFromTF(v)
+					if err != nil {
+						return nil, err
 					}
 					artfct = spew.Sprintf("%+v", at.Artifact.ValuesRef.ValuesPaths)
 					log.Println("at.Artifact.ValuesRef.ValuesPaths ", artfct)

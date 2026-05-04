@@ -759,6 +759,18 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 		clusterConfig.AutoModeConfig = amc
 	}
 
+	// delete_protection_config block
+	vDeleteProtectionConfigList := make([]DeleteProtectionConfigValue, 0, len(v.DeleteProtectionConfig.Elements()))
+	d = v.DeleteProtectionConfig.ElementsAs(ctx, &vDeleteProtectionConfigList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
+	if len(vDeleteProtectionConfigList) > 0 {
+		dpc, d := vDeleteProtectionConfigList[0].Expand(ctx)
+		diags = append(diags, d...)
+		clusterConfig.DeleteProtection = dpc
+	}
+
 	// zonal_shift_config block
 	vZonalShiftConfigList := make([]ZonalShiftConfigValue, 0, len(v.ZonalShiftConfig.Elements()))
 	d = v.ZonalShiftConfig.ElementsAs(ctx, &vZonalShiftConfigList, false)
@@ -2429,6 +2441,21 @@ func (v ZonalShiftConfigValue) Expand(ctx context.Context) (*rafay.ZonalShiftCon
 	}
 
 	return &zsc, diags
+}
+
+func (v DeleteProtectionConfigValue) Expand(ctx context.Context) (*rafay.DeleteProtectionConfig, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var dpc rafay.DeleteProtectionConfig
+
+	if v.IsNull() {
+		return &rafay.DeleteProtectionConfig{}, diags
+	}
+
+	if !v.Enabled.IsNull() && !v.Enabled.IsUnknown() {
+		dpc.Enabled = getBoolValue(v.Enabled)
+	}
+
+	return &dpc, diags
 }
 
 func (v AutoZonalShiftConfigValue) Expand(ctx context.Context) (*rafay.AutoZonalShiftConfig, diag.Diagnostics) {

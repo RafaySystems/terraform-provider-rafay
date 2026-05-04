@@ -4,7 +4,7 @@ go 1.24.13
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20260316170605-1751dfe313d2
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260413074518-2361af64bcd7
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260504145948-1c9e3cbc3517
 	github.com/RafaySystems/rctl v1.29.1-0.20260424134548-8c4a2b55116f
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -33,7 +33,6 @@ require (
 	github.com/RafaySystems/rafay-cost v0.0.0-20260313051730-b0253d94ba2c // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
-	github.com/avast/retry-go/v4 v4.6.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect

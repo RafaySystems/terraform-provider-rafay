@@ -2,6 +2,7 @@ package rafay
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/project"
+	"github.com/RafaySystems/rctl/pkg/rerror"
 	"github.com/RafaySystems/rctl/pkg/share"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -17,6 +19,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+// clusterSharingClusterNotFound reports whether err indicates the cluster no longer exists
+// (e.g. deleted outside Terraform). See rctl/pkg/cluster.GetCluster.
+func clusterSharingClusterNotFound(err error) bool {
+	var nf rerror.ResourceNotFound
+	return err != nil && errors.As(err, &nf)
+}
 
 func resourceClusterSharingSingle() *schema.Resource {
 	return &schema.Resource{
@@ -116,6 +125,14 @@ func resourceClusterSharingSingleUpsert(ctx context.Context, d *schema.ResourceD
 	}
 
 	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
+	if clusterSharingClusterNotFound(errGet) {
+		if create {
+			return diag.FromErr(errGet)
+		}
+		tflog.Warn(ctx, "cluster not found during update; removing resource from Terraform state", map[string]any{"cluster": clusterName})
+		d.SetId("")
+		return diags
+	}
 	if errGet != nil {
 		log.Printf("failed to get cluster info %s", errGet.Error())
 		return diag.FromErr(errGet)
@@ -274,6 +291,11 @@ func resourceClusterSharingSingleRead(ctx context.Context, d *schema.ResourceDat
 	}
 
 	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
+	if clusterSharingClusterNotFound(errGet) {
+		tflog.Warn(ctx, "cluster not found during read; removing resource from Terraform state", map[string]any{"cluster": clusterName})
+		d.SetId("")
+		return diags
+	}
 	if errGet != nil {
 		log.Printf("failed to get cluster info %s", errGet.Error())
 		return diag.FromErr(errGet)
@@ -377,6 +399,11 @@ func resourceClusterSharingSingleDelete(ctx context.Context, d *schema.ResourceD
 	}
 
 	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
+	if clusterSharingClusterNotFound(errGet) {
+		tflog.Warn(ctx, "cluster not found during delete; nothing to unshare", map[string]any{"cluster": clusterName})
+		d.SetId("")
+		return diags
+	}
 	if errGet != nil {
 		log.Printf("failed to get cluster info %s", errGet.Error())
 		return diag.FromErr(errGet)

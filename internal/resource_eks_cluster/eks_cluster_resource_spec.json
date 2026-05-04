@@ -5741,6 +5741,22 @@
                                     }
                                 },
                                 {
+                                    "name": "delete_protection_config",
+                                    "list_nested": {
+                                        "nested_object": {
+                                            "attributes": [
+                                                {
+                                                    "name": "enabled",
+                                                    "bool": {
+                                                        "computed_optional_required": "optional",
+                                                        "description": "Whether the EKS control plane has deletion protection enabled (AWS deletionProtection)."
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
                                     "name": "zonal_shift_config",
                                     "list_nested": {
                                         "nested_object": {

@@ -704,6 +704,16 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		v.AutoModeConfig = types.ListNull(AutoModeConfigValue{}.Type(ctx))
 	}
 
+	if in.DeleteProtection != nil {
+		deleteProtectionConfig := NewDeleteProtectionConfigValueNull()
+		d = deleteProtectionConfig.Flatten(ctx, in.DeleteProtection)
+		diags = append(diags, d...)
+		v.DeleteProtectionConfig, d = types.ListValue(DeleteProtectionConfigValue{}.Type(ctx), []attr.Value{deleteProtectionConfig})
+		diags = append(diags, d...)
+	} else {
+		v.DeleteProtectionConfig = types.ListNull(DeleteProtectionConfigValue{}.Type(ctx))
+	}
+
 	if in.ZonalShiftConfig != nil {
 		zonalShiftConfig := NewZonalShiftConfigValueNull()
 		d = zonalShiftConfig.Flatten(ctx, in.ZonalShiftConfig)
@@ -750,6 +760,16 @@ func (v *AutoModeConfigValue) Flatten(ctx context.Context, in *rafay.EKSAutoMode
 	}
 	v.NodePools = nodePools
 
+	return diags
+}
+
+func (v *DeleteProtectionConfigValue) Flatten(ctx context.Context, in *rafay.DeleteProtectionConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if in == nil {
+		return diags
+	}
+	v.Enabled = types.BoolValue(in.Enabled)
+	v.state = attr.ValueStateKnown
 	return diags
 }
 

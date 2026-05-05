@@ -549,13 +549,17 @@ func flattenGKEV3Features(in *infrapb.GkeFeatures, p []interface{}) []interface{
 	}
 
 	obj["enable_cloud_logging"] = in.EnableCloudLogging
-	if in.CloudLoggingComponents != nil && len(in.CloudLoggingComponents) > 0 {
+	if in.EnableCloudLogging && len(in.CloudLoggingComponents) > 0 {
 		obj["cloud_logging_components"] = toArrayInterface(in.CloudLoggingComponents)
+	} else if !in.EnableCloudLogging {
+		obj["cloud_logging_components"] = []interface{}{}
 	}
 
 	obj["enable_cloud_monitoring"] = in.EnableCloudMonitoring
-	if in.CloudMonitoringComponents != nil && len(in.CloudMonitoringComponents) > 0 {
+	if in.EnableCloudMonitoring && len(in.CloudMonitoringComponents) > 0 {
 		obj["cloud_monitoring_components"] = toArrayInterface(in.CloudMonitoringComponents)
+	} else if !in.EnableCloudMonitoring {
+		obj["cloud_monitoring_components"] = []interface{}{}
 	}
 
 	obj["enable_managed_service_prometheus"] = in.EnableManagedServicePrometheus

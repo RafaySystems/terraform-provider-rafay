@@ -407,20 +407,28 @@ func expandToV3GkeFeatures(p []interface{}) (*infrapb.GkeFeatures, error) {
 	obj := &infrapb.GkeFeatures{}
 	in := p[0].(map[string]interface{})
 
+	cloudLoggingEnabled := false
 	if v, ok := in["enable_cloud_logging"].(bool); ok {
 		obj.EnableCloudLogging = v
+		cloudLoggingEnabled = v
 	}
 
-	if v, ok := in["cloud_logging_components"].([]interface{}); ok && len(v) > 0 {
-		obj.CloudLoggingComponents = toArrayString(v)
+	if cloudLoggingEnabled {
+		if v, ok := in["cloud_logging_components"].([]interface{}); ok && len(v) > 0 {
+			obj.CloudLoggingComponents = toArrayString(v)
+		}
 	}
 
+	cloudMonitoringEnabled := false
 	if v, ok := in["enable_cloud_monitoring"].(bool); ok {
 		obj.EnableCloudMonitoring = v
+		cloudMonitoringEnabled = v
 	}
 
-	if v, ok := in["cloud_monitoring_components"].([]interface{}); ok && len(v) > 0 {
-		obj.CloudMonitoringComponents = toArrayString(v)
+	if cloudMonitoringEnabled {
+		if v, ok := in["cloud_monitoring_components"].([]interface{}); ok && len(v) > 0 {
+			obj.CloudMonitoringComponents = toArrayString(v)
+		}
 	}
 
 	if v, ok := in["enable_managed_service_prometheus"].(bool); ok {

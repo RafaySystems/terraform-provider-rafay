@@ -155,9 +155,11 @@ resource "rafay_aks_cluster" "demo-terraform" {
         resource_group_name = "my-resource-group"
 
         bootstrap_vm_params {
-          vm_size = "Standard_B4ms"
+          vm_size        = "Standard_B4ms"
+          trusted_launch = false
           image {
-            id       = "/subscriptions/<subscription-id>/resourceGroups/<rg>/providers/Microsoft.Compute/galleries/<gallery>/images/<image-def>/versions/1.0.0"
+            id        = "/subscriptions/aaaaaaaa/resourceGroups/test-rg/providers/Microsoft.Compute/galleries/testgallery/images/cis-rhel-94-trusted/versions/1.0.0"
+            os_family = "rhel"
             os_state = "Generalized"
           }
         }
@@ -369,6 +371,7 @@ Configures the VM used to bootstrap the AKS cluster. Use this block to specify a
 **_Optional_**
 
 - `vm_size` - (String) The Azure VM size for the bootstrap VM (e.g. `Standard_B4ms`). If omitted, the provider default is used.
+- `trusted_launch` - (Boolean) When `true`, enables Azure Trusted Launch (vTPM + Secure Boot) on the bootstrap VM. Defaults to `false`. The specified `image` must support Trusted Launch.
 - `image` - (Block List, Max: 1) The image reference for the bootstrap VM. Use exactly one of `id` (non-marketplace image) or `publisher`/`offer`/`sku`/`version` (marketplace image). (See [below for nested schema](#nestedblock--spec--cluster_config--spec--bootstrap_vm_params--image))
 
 <a id="nestedblock--spec--cluster_config--spec--bootstrap_vm_params--image"></a>
@@ -385,6 +388,7 @@ Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Ga
 - `sku` - (String) The SKU of the marketplace image (e.g. `cis-ubuntulinux2404-l1-gen2`).
 - `version` - (String) The version of the marketplace image (e.g. `latest`).
 - `os_state` - (String) The OS state of the image. Supported values are `Generalized` and `Specialized`.
+- `os_family` - (String) Controls which bootstrap script is applied to the VM. Accepted values: `ubuntu` (default) or `rhel`. Set to `rhel` when using any RHEL-based image (marketplace or custom gallery).
 
 <a id="nestedblock--spec--cluster_config--spec--managed_cluster"></a>
 

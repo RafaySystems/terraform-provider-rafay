@@ -669,7 +669,9 @@ func expandAKSV3BootstrapVMConfig(p []interface{}) *infrapb.AKSBootstrapVMConfig
 	if v, ok := in["vm_size"].(string); ok && len(v) > 0 {
 		obj.VmSize = v
 	}
-
+	if v, ok := in["trusted_launch"].(bool); ok {
+		obj.TrustedLaunch = v
+	}
 	if v, ok := in["image"].([]interface{}); ok && len(v) > 0 {
 		obj.Image = expandAKSV3BootstrapVMImageRef(v)
 	}
@@ -701,6 +703,9 @@ func expandAKSV3BootstrapVMImageRef(p []interface{}) *infrapb.AKSBootstrapVMImag
 	}
 	if v, ok := in["os_state"].(string); ok && len(v) > 0 {
 		obj.OsState = v
+	}
+	if v, ok := in["os_family"].(string); ok && len(v) > 0 {
+		obj.OsFamily = v
 	}
 
 	return obj
@@ -2942,6 +2947,7 @@ func flattenAKSV3BootstrapVMConfig(in *infrapb.AKSBootstrapVMConfig, p []interfa
 	if len(in.VmSize) > 0 {
 		obj["vm_size"] = in.VmSize
 	}
+	obj["trusted_launch"] = in.TrustedLaunch
 
 	if in.Image != nil {
 		v, ok := obj["image"].([]interface{})
@@ -2980,6 +2986,9 @@ func flattenAKSV3BootstrapVMImageRef(in *infrapb.AKSBootstrapVMImageRef, p []int
 	}
 	if len(in.OsState) > 0 {
 		obj["os_state"] = in.OsState
+	}
+	if len(in.OsFamily) > 0 {
+		obj["os_family"] = in.OsFamily
 	}
 
 	return []interface{}{obj}

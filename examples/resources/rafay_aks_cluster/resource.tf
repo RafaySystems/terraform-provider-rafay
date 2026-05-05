@@ -18,11 +18,13 @@ resource "rafay_aks_cluster" "demo-terraform" {
       spec {
         resource_group_name = "testuser-terraform"
 
+        # Custom gallery image (non-marketplace), RHEL-based with Trusted Launch
         bootstrap_vm_params {
-          vm_size = "Standard_B4ms"
+          vm_size        = "Standard_B4ms"
+          trusted_launch = true
           image {
-            id       = "/subscriptions/<subscription-id>/resourceGroups/<rg>/providers/Microsoft.Compute/galleries/<gallery>/images/<image-def>/versions/1.0.0"
-            os_state = "Generalized"
+            id        = "/subscriptions/<subscription-id>/resourceGroups/<rg>/providers/Microsoft.Compute/galleries/<gallery>/images/<image-def>/versions/1.0.0"
+            os_family = "rhel"
           }
         }
 
@@ -1080,5 +1082,80 @@ resource "rafay_aks_workload_identity" "demo-terraform-wi" {
   }
 
   depends_on = [rafay_aks_cluster.demo_terraform_wi_cluster]
+}
+
+# Bootstrap VM examples — marketplace RHEL image
+resource "rafay_aks_cluster" "demo-terraform-rhel-marketplace" {
+  apiversion = "rafay.io/v1alpha1"
+  kind       = "Cluster"
+  metadata {
+    name    = "demo-terraform-rhel-mp"
+    project = "terraform"
+  }
+  spec {
+    type          = "aks"
+    blueprint     = "default-aks"
+    cloudprovider = "testuser-azure"
+    cluster_config {
+      apiversion = "rafay.io/v1alpha1"
+      kind       = "aksClusterConfig"
+      metadata {
+        name = "demo-terraform-rhel-mp"
+      }
+      spec {
+        resource_group_name = "testuser-terraform"
+
+        # Marketplace RHEL image — use publisher/offer/sku/version + os_family = "rhel"
+        bootstrap_vm_params {
+          vm_size        = "Standard_B4ms"
+          trusted_launch = true
+          image {
+            publisher = "redhat"
+            offer     = "rhel-raw"
+            sku       = "94-gen2"
+            version   = "latest"
+            os_family = "rhel"
+          }
+        }
+
+        managed_cluster {
+          apiversion = "2024-01-01"
+          identity {
+            type = "SystemAssigned"
+          }
+          location = "centralindia"
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = true
+            }
+            dns_prefix         = "demo-terraform-rhel-mp-dns"
+            enable_rbac        = true
+            kubernetes_version = "1.29.0"
+            network_profile {
+              network_plugin = "kubenet"
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          apiversion = "2024-01-01"
+          name       = "primary"
+          properties {
+            count                = 1
+            enable_auto_scaling  = true
+            max_count            = 2
+            max_pods             = 40
+            min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.29.0"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_DS2_v2"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+  }
 }
 

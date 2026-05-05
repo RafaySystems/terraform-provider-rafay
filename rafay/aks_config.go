@@ -90,8 +90,9 @@ type AKSClusterConfigSpec struct {
 }
 
 type AKSBootstrapVMConfig struct {
-	VMSize string                  `yaml:"vmSize,omitempty"`
-	Image  *AKSBootstrapVMImageRef `yaml:"image,omitempty"`
+	VMSize        string                  `yaml:"vmSize,omitempty"`
+	Image         *AKSBootstrapVMImageRef `yaml:"image,omitempty"`
+	TrustedLaunch bool                    `yaml:"trustedLaunch,omitempty"`
 }
 
 type AKSBootstrapVMImageRef struct {
@@ -101,6 +102,7 @@ type AKSBootstrapVMImageRef struct {
 	Sku       string `yaml:"sku,omitempty"`
 	Version   string `yaml:"version,omitempty"`
 	OsState   string `yaml:"osState,omitempty"`
+	OsFamily  string `yaml:"osFamily,omitempty"`
 }
 
 type AzureWorkloadIdentity struct {

@@ -72,10 +72,15 @@ type EKSClusterConfig struct {
 	AccessConfig            *EKSClusterAccess           `yaml:"accessConfig,omitempty"`
 	AddonsConfig            *EKSAddonsConfig            `yaml:"addonsConfig,omitempty"`
 	AutoModeConfig          *EKSAutoModeConfig          `yaml:"autoModeConfig,omitempty"`
+	DeleteProtection        *DeleteProtectionConfig     `yaml:"deleteProtection,omitempty"`
 	ZonalShiftConfig        *ZonalShiftConfig           `yaml:"zonalShiftConfig,omitempty"`
 	AutoZonalShiftConfig    *AutoZonalShiftConfig       `yaml:"autoZonalShiftConfig,omitempty"`
 	//do i need this? not in docs
 	//Karpenter *Karpenter `yaml:"karpenter,omitempty"`
+}
+
+type DeleteProtectionConfig struct {
+	Enabled bool `yaml:"enabled,omitempty"`
 }
 
 type ZonalShiftConfig struct {

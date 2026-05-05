@@ -546,6 +546,10 @@ resource "rafay_eks_cluster" "eks_with_repair_and_zonal_shift" {
       }
     }
 
+    delete_protection_config {
+      enabled = true
+    }
+
     zonal_shift_config {
       enabled = true
     }
@@ -1195,6 +1199,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `access_config` - (Block List) Access Config controls how IAM principals can access this cluster. (See [below for nested schema](#nestedblock--cluster_config--access_config))
 - `addons_config` - (Block List)  support for managed addon related configurations. (See [below for nested schema](#nestedblock--cluster_config--addons_config))
 - `auto_mode_config` - (Block List) Configuration of EKS Auto Mode (See [below for nested schema](#nestedblock--cluster_config--auto_mode_config))
+- `delete_protection_config` - (Block List) Deletion protection for the cluster, corresponding to AWS EKS `deletionProtection`. (See [below for nested schema](#nestedblock--cluster_config--delete_protection_config))
 - `zonal_shift_config` - (Block List) Zonal shift configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--zonal_shift_config))
 - `auto_zonal_shift_config` - (Block List) Auto zonal shift configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--auto_zonal_shift_config))
 
@@ -1373,6 +1378,13 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 - `node_role_arn` - (String) Role arn to be inherited by the nodepools, pass if you created a role beforehand
 - `node_pools` - (List of Strings) Select any from general-purpose and system. By Default both will be created
+
+<a id="nestedblock--cluster_config--delete_protection_config"></a>
+### Nested Schema for `cluster_config.delete_protection_config`
+
+***Optional***
+
+- `enabled` - (Boolean) When `true`, the cluster cannot be deleted until deletion protection is turned off. This maps to AWS EKS [deletion protection](https://docs.aws.amazon.com/eks/latest/userguide/deletion-protection.html).
 
 <a id="nestedblock--cluster_config--zonal_shift_config"></a>
 ### Nested Schema for `cluster_config.zonal_shift_config`

@@ -2278,6 +2278,22 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
+						"delete_protection_config": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"enabled": schema.BoolAttribute{
+										Optional:            true,
+										Description:         "Whether the EKS control plane has deletion protection enabled (AWS deletionProtection).",
+										MarkdownDescription: "Whether the EKS control plane has deletion protection enabled (AWS deletionProtection).",
+									},
+								},
+								CustomType: DeleteProtectionConfigType{
+									ObjectType: types.ObjectType{
+										AttrTypes: DeleteProtectionConfigValue{}.AttributeTypes(ctx),
+									},
+								},
+							},
+						},
 						"fargate_profiles": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
@@ -10593,6 +10609,24 @@ func (t ClusterConfigType) ValueFromObject(ctx context.Context, in basetypes.Obj
 			fmt.Sprintf(`cloud_watch expected to be basetypes.ListValue, was: %T`, cloudWatchAttribute))
 	}
 
+	deleteProtectionConfigAttribute, ok := attributes["delete_protection_config"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`delete_protection_config is missing from object`)
+
+		return nil, diags
+	}
+
+	deleteProtectionConfigVal, ok := deleteProtectionConfigAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`delete_protection_config expected to be basetypes.ListValue, was: %T`, deleteProtectionConfigAttribute))
+	}
+
 	fargateProfilesAttribute, ok := attributes["fargate_profiles"]
 
 	if !ok {
@@ -10876,6 +10910,7 @@ func (t ClusterConfigType) ValueFromObject(ctx context.Context, in basetypes.Obj
 		AutoZonalShiftConfig:    autoZonalShiftConfigVal,
 		AvailabilityZones:       availabilityZonesVal,
 		CloudWatch:              cloudWatchVal,
+		DeleteProtectionConfig:  deleteProtectionConfigVal,
 		FargateProfiles:         fargateProfilesVal,
 		Iam3:                    iam3Val,
 		IdentityMappings:        identityMappingsVal,
@@ -11102,6 +11137,24 @@ func NewClusterConfigValue(attributeTypes map[string]attr.Type, attributes map[s
 			fmt.Sprintf(`cloud_watch expected to be basetypes.ListValue, was: %T`, cloudWatchAttribute))
 	}
 
+	deleteProtectionConfigAttribute, ok := attributes["delete_protection_config"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`delete_protection_config is missing from object`)
+
+		return NewClusterConfigValueUnknown(), diags
+	}
+
+	deleteProtectionConfigVal, ok := deleteProtectionConfigAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`delete_protection_config expected to be basetypes.ListValue, was: %T`, deleteProtectionConfigAttribute))
+	}
+
 	fargateProfilesAttribute, ok := attributes["fargate_profiles"]
 
 	if !ok {
@@ -11385,6 +11438,7 @@ func NewClusterConfigValue(attributeTypes map[string]attr.Type, attributes map[s
 		AutoZonalShiftConfig:    autoZonalShiftConfigVal,
 		AvailabilityZones:       availabilityZonesVal,
 		CloudWatch:              cloudWatchVal,
+		DeleteProtectionConfig:  deleteProtectionConfigVal,
 		FargateProfiles:         fargateProfilesVal,
 		Iam3:                    iam3Val,
 		IdentityMappings:        identityMappingsVal,
@@ -11480,6 +11534,7 @@ type ClusterConfigValue struct {
 	AutoZonalShiftConfig    basetypes.ListValue   `tfsdk:"auto_zonal_shift_config"`
 	AvailabilityZones       basetypes.ListValue   `tfsdk:"availability_zones"`
 	CloudWatch              basetypes.ListValue   `tfsdk:"cloud_watch"`
+	DeleteProtectionConfig  basetypes.ListValue   `tfsdk:"delete_protection_config"`
 	FargateProfiles         basetypes.ListValue   `tfsdk:"fargate_profiles"`
 	Iam3                    basetypes.ListValue   `tfsdk:"iam"`
 	IdentityMappings        basetypes.ListValue   `tfsdk:"identity_mappings"`
@@ -11499,7 +11554,7 @@ type ClusterConfigValue struct {
 }
 
 func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 23)
+	attrTypes := make(map[string]tftypes.Type, 24)
 
 	var val tftypes.Value
 	var err error
@@ -11525,6 +11580,9 @@ func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 	}.TerraformType(ctx)
 	attrTypes["cloud_watch"] = basetypes.ListType{
 		ElemType: CloudWatchValue{}.Type(ctx),
+	}.TerraformType(ctx)
+	attrTypes["delete_protection_config"] = basetypes.ListType{
+		ElemType: DeleteProtectionConfigValue{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["fargate_profiles"] = basetypes.ListType{
 		ElemType: FargateProfilesValue{}.Type(ctx),
@@ -11574,7 +11632,7 @@ func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 23)
+		vals := make(map[string]tftypes.Value, 24)
 
 		val, err = v.AccessConfig.ToTerraformValue(ctx)
 
@@ -11639,6 +11697,14 @@ func (v ClusterConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value
 		}
 
 		vals["cloud_watch"] = val
+
+		val, err = v.DeleteProtectionConfig.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["delete_protection_config"] = val
 
 		val, err = v.FargateProfiles.ToTerraformValue(ctx)
 
@@ -11958,6 +12024,35 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			CloudWatchType{
 				basetypes.ObjectType{
 					AttrTypes: CloudWatchValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	deleteProtectionConfig := types.ListValueMust(
+		DeleteProtectionConfigType{
+			basetypes.ObjectType{
+				AttrTypes: DeleteProtectionConfigValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.DeleteProtectionConfig.Elements(),
+	)
+
+	if v.DeleteProtectionConfig.IsNull() {
+		deleteProtectionConfig = types.ListNull(
+			DeleteProtectionConfigType{
+				basetypes.ObjectType{
+					AttrTypes: DeleteProtectionConfigValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	if v.DeleteProtectionConfig.IsUnknown() {
+		deleteProtectionConfig = types.ListUnknown(
+			DeleteProtectionConfigType{
+				basetypes.ObjectType{
+					AttrTypes: DeleteProtectionConfigValue{}.AttributeTypes(ctx),
 				},
 			},
 		)
@@ -12405,6 +12500,9 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"cloud_watch": basetypes.ListType{
 				ElemType: CloudWatchValue{}.Type(ctx),
 			},
+			"delete_protection_config": basetypes.ListType{
+				ElemType: DeleteProtectionConfigValue{}.Type(ctx),
+			},
 			"fargate_profiles": basetypes.ListType{
 				ElemType: FargateProfilesValue{}.Type(ctx),
 			},
@@ -12474,6 +12572,9 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 		"cloud_watch": basetypes.ListType{
 			ElemType: CloudWatchValue{}.Type(ctx),
 		},
+		"delete_protection_config": basetypes.ListType{
+			ElemType: DeleteProtectionConfigValue{}.Type(ctx),
+		},
 		"fargate_profiles": basetypes.ListType{
 			ElemType: FargateProfilesValue{}.Type(ctx),
 		},
@@ -12538,6 +12639,7 @@ func (v ClusterConfigValue) ToObjectValue(ctx context.Context) (basetypes.Object
 			"auto_zonal_shift_config":   autoZonalShiftConfig,
 			"availability_zones":        availabilityZonesVal,
 			"cloud_watch":               cloudWatch,
+			"delete_protection_config":  deleteProtectionConfig,
 			"fargate_profiles":          fargateProfiles,
 			"iam":                      iam3,
 			"identity_mappings":         identityMappings,
@@ -12602,6 +12704,10 @@ func (v ClusterConfigValue) Equal(o attr.Value) bool {
 	}
 
 	if !v.CloudWatch.Equal(other.CloudWatch) {
+		return false
+	}
+
+	if !v.DeleteProtectionConfig.Equal(other.DeleteProtectionConfig) {
 		return false
 	}
 
@@ -12699,6 +12805,9 @@ func (v ClusterConfigValue) AttributeTypes(ctx context.Context) map[string]attr.
 		},
 		"cloud_watch": basetypes.ListType{
 			ElemType: CloudWatchValue{}.Type(ctx),
+		},
+		"delete_protection_config": basetypes.ListType{
+			ElemType: DeleteProtectionConfigValue{}.Type(ctx),
 		},
 		"fargate_profiles": basetypes.ListType{
 			ElemType: FargateProfilesValue{}.Type(ctx),
@@ -44881,6 +44990,330 @@ func (v ClusterLoggingValue) AttributeTypes(ctx context.Context) map[string]attr
 			ElemType: types.StringType,
 		},
 		"log_retention_in_days": basetypes.Int64Type{},
+	}
+}
+
+var _ basetypes.ObjectTypable = DeleteProtectionConfigType{}
+
+type DeleteProtectionConfigType struct {
+	basetypes.ObjectType
+}
+
+func (t DeleteProtectionConfigType) Equal(o attr.Type) bool {
+	other, ok := o.(DeleteProtectionConfigType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t DeleteProtectionConfigType) String() string {
+	return "DeleteProtectionConfigType"
+}
+
+func (t DeleteProtectionConfigType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	enabledAttribute, ok := attributes["enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`enabled is missing from object`)
+
+		return nil, diags
+	}
+
+	enabledVal, ok := enabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return DeleteProtectionConfigValue{
+		Enabled: enabledVal,
+		state:   attr.ValueStateKnown,
+	}, diags
+}
+
+func NewDeleteProtectionConfigValueNull() DeleteProtectionConfigValue {
+	return DeleteProtectionConfigValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewDeleteProtectionConfigValueUnknown() DeleteProtectionConfigValue {
+	return DeleteProtectionConfigValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewDeleteProtectionConfigValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (DeleteProtectionConfigValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing DeleteProtectionConfigValue Attribute Value",
+				"While creating a DeleteProtectionConfigValue value, a missing attribute value was detected. "+
+					"A DeleteProtectionConfigValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("DeleteProtectionConfigValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid DeleteProtectionConfigValue Attribute Type",
+				"While creating a DeleteProtectionConfigValue value, an invalid attribute value was detected. "+
+					"A DeleteProtectionConfigValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("DeleteProtectionConfigValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("DeleteProtectionConfigValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra DeleteProtectionConfigValue Attribute Value",
+				"While creating a DeleteProtectionConfigValue value, an extra attribute value was detected. "+
+					"A DeleteProtectionConfigValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra DeleteProtectionConfigValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewDeleteProtectionConfigValueUnknown(), diags
+	}
+
+	enabledAttribute, ok := attributes["enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`enabled is missing from object`)
+
+		return NewDeleteProtectionConfigValueUnknown(), diags
+	}
+
+	enabledVal, ok := enabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
+	}
+
+	if diags.HasError() {
+		return NewDeleteProtectionConfigValueUnknown(), diags
+	}
+
+	return DeleteProtectionConfigValue{
+		Enabled: enabledVal,
+		state:   attr.ValueStateKnown,
+	}, diags
+}
+
+func NewDeleteProtectionConfigValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) DeleteProtectionConfigValue {
+	object, diags := NewDeleteProtectionConfigValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewDeleteProtectionConfigValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t DeleteProtectionConfigType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewDeleteProtectionConfigValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewDeleteProtectionConfigValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewDeleteProtectionConfigValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewDeleteProtectionConfigValueMust(DeleteProtectionConfigValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t DeleteProtectionConfigType) ValueType(ctx context.Context) attr.Value {
+	return DeleteProtectionConfigValue{}
+}
+
+var _ basetypes.ObjectValuable = DeleteProtectionConfigValue{}
+
+type DeleteProtectionConfigValue struct {
+	Enabled basetypes.BoolValue `tfsdk:"enabled"`
+	state   attr.ValueState
+}
+
+func (v DeleteProtectionConfigValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 1)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["enabled"] = basetypes.BoolType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 1)
+
+		val, err = v.Enabled.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["enabled"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v DeleteProtectionConfigValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v DeleteProtectionConfigValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v DeleteProtectionConfigValue) String() string {
+	return "DeleteProtectionConfigValue"
+}
+
+func (v DeleteProtectionConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"enabled": basetypes.BoolType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"enabled": v.Enabled,
+		})
+
+	return objVal, diags
+}
+
+func (v DeleteProtectionConfigValue) Equal(o attr.Value) bool {
+	other, ok := o.(DeleteProtectionConfigValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.Enabled.Equal(other.Enabled) {
+		return false
+	}
+
+	return true
+}
+
+func (v DeleteProtectionConfigValue) Type(ctx context.Context) attr.Type {
+	return DeleteProtectionConfigType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v DeleteProtectionConfigValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"enabled": basetypes.BoolType{},
 	}
 }
 

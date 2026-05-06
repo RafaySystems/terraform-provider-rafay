@@ -3854,6 +3854,16 @@
                                                         },
                                                         "computed_optional_required": "optional"
                                                     }
+                                                },
+                                                {
+                                                    "name": "control_plane_security_group_ids",
+                                                    "list": {
+                                                        "description": "List of additional security group IDs to attach to the EKS control plane.",
+                                                        "element_type": {
+                                                            "string": {}
+                                                        },
+                                                        "computed_optional_required": "optional"
+                                                    }
                                                 }
                                             ],
                                             "blocks": [

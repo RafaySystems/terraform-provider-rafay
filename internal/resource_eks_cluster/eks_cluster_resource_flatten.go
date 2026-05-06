@@ -1650,6 +1650,17 @@ func (v *VpcValue) Flatten(ctx context.Context, in *rafay.EKSClusterVPC) diag.Di
 	}
 	v.PublicAccessCidrs = publicAccessCidrs
 
+	controlPlaneSecurityGroupIds := types.ListNull(types.StringType)
+	if len(in.ControlPlaneSecurityGroupIDs) > 0 {
+		controlPlaneSecurityGroupIdsList := []attr.Value{}
+		for _, sgID := range in.ControlPlaneSecurityGroupIDs {
+			controlPlaneSecurityGroupIdsList = append(controlPlaneSecurityGroupIdsList, types.StringValue(sgID))
+		}
+		controlPlaneSecurityGroupIds, d = types.ListValue(types.StringType, controlPlaneSecurityGroupIdsList)
+		diags = append(diags, d...)
+	}
+	v.ControlPlaneSecurityGroupIds = controlPlaneSecurityGroupIds
+
 	if in.Subnets != nil {
 		subnets := NewSubnets3ValueNull()
 		d = subnets.Flatten(ctx, in.Subnets)

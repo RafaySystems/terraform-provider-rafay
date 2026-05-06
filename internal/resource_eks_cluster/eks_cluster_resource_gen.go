@@ -4254,6 +4254,12 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 										Description:         "CIDR range of the VPC.",
 										MarkdownDescription: "CIDR range of the VPC.",
 									},
+									"control_plane_security_group_ids": schema.ListAttribute{
+										ElementType:         types.StringType,
+										Optional:            true,
+										Description:         "List of additional security group IDs to attach to the EKS control plane.",
+										MarkdownDescription: "List of additional security group IDs to attach to the EKS control plane.",
+									},
 									"extra_cidrs": schema.ListAttribute{
 										ElementType:         types.StringType,
 										Optional:            true,
@@ -76880,6 +76886,24 @@ func (t VpcType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) 
 			fmt.Sprintf(`cluster_endpoints expected to be basetypes.ListValue, was: %T`, clusterEndpointsAttribute))
 	}
 
+	controlPlaneSecurityGroupIdsAttribute, ok := attributes["control_plane_security_group_ids"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`control_plane_security_group_ids is missing from object`)
+
+		return nil, diags
+	}
+
+	controlPlaneSecurityGroupIdsVal, ok := controlPlaneSecurityGroupIdsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`control_plane_security_group_ids expected to be basetypes.ListValue, was: %T`, controlPlaneSecurityGroupIdsAttribute))
+	}
+
 	extraCidrsAttribute, ok := attributes["extra_cidrs"]
 
 	if !ok {
@@ -77086,6 +77110,7 @@ func (t VpcType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) 
 		AutoAllocateIpv6:                   autoAllocateIpv6Val,
 		Cidr:                               cidrVal,
 		ClusterEndpoints:                   clusterEndpointsVal,
+		ControlPlaneSecurityGroupIds:       controlPlaneSecurityGroupIdsVal,
 		ExtraCidrs:                         extraCidrsVal,
 		ExtraIpv6Cidrs:                     extraIpv6CidrsVal,
 		Id:                                 idVal,
@@ -77218,6 +77243,24 @@ func NewVpcValue(attributeTypes map[string]attr.Type, attributes map[string]attr
 			fmt.Sprintf(`cluster_endpoints expected to be basetypes.ListValue, was: %T`, clusterEndpointsAttribute))
 	}
 
+	controlPlaneSecurityGroupIdsAttribute, ok := attributes["control_plane_security_group_ids"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`control_plane_security_group_ids is missing from object`)
+
+		return NewVpcValueUnknown(), diags
+	}
+
+	controlPlaneSecurityGroupIdsVal, ok := controlPlaneSecurityGroupIdsAttribute.(basetypes.ListValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`control_plane_security_group_ids expected to be basetypes.ListValue, was: %T`, controlPlaneSecurityGroupIdsAttribute))
+	}
+
 	extraCidrsAttribute, ok := attributes["extra_cidrs"]
 
 	if !ok {
@@ -77424,6 +77467,7 @@ func NewVpcValue(attributeTypes map[string]attr.Type, attributes map[string]attr
 		AutoAllocateIpv6:                   autoAllocateIpv6Val,
 		Cidr:                               cidrVal,
 		ClusterEndpoints:                   clusterEndpointsVal,
+		ControlPlaneSecurityGroupIds:       controlPlaneSecurityGroupIdsVal,
 		ExtraCidrs:                         extraCidrsVal,
 		ExtraIpv6Cidrs:                     extraIpv6CidrsVal,
 		Id:                                 idVal,
@@ -77510,6 +77554,7 @@ type VpcValue struct {
 	AutoAllocateIpv6                   basetypes.BoolValue   `tfsdk:"auto_allocate_ipv6"`
 	Cidr                               basetypes.StringValue `tfsdk:"cidr"`
 	ClusterEndpoints                   basetypes.ListValue   `tfsdk:"cluster_endpoints"`
+	ControlPlaneSecurityGroupIds       basetypes.ListValue   `tfsdk:"control_plane_security_group_ids"`
 	ExtraCidrs                         basetypes.ListValue   `tfsdk:"extra_cidrs"`
 	ExtraIpv6Cidrs                     basetypes.ListValue   `tfsdk:"extra_ipv6_cidrs"`
 	Id                                 basetypes.StringValue `tfsdk:"id"`
@@ -77525,7 +77570,7 @@ type VpcValue struct {
 }
 
 func (v VpcValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 14)
+	attrTypes := make(map[string]tftypes.Type, 15)
 
 	var val tftypes.Value
 	var err error
@@ -77534,6 +77579,9 @@ func (v VpcValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	attrTypes["cidr"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["cluster_endpoints"] = basetypes.ListType{
 		ElemType: ClusterEndpointsValue{}.Type(ctx),
+	}.TerraformType(ctx)
+	attrTypes["control_plane_security_group_ids"] = basetypes.ListType{
+		ElemType: types.StringType,
 	}.TerraformType(ctx)
 	attrTypes["extra_cidrs"] = basetypes.ListType{
 		ElemType: types.StringType,
@@ -77561,7 +77609,7 @@ func (v VpcValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 14)
+		vals := make(map[string]tftypes.Value, 15)
 
 		val, err = v.AutoAllocateIpv6.ToTerraformValue(ctx)
 
@@ -77586,6 +77634,14 @@ func (v VpcValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 		}
 
 		vals["cluster_endpoints"] = val
+
+		val, err = v.ControlPlaneSecurityGroupIds.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["control_plane_security_group_ids"] = val
 
 		val, err = v.ExtraCidrs.ToTerraformValue(ctx)
 
@@ -77791,6 +77847,52 @@ func (v VpcValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, dia
 		)
 	}
 
+	var controlPlaneSecurityGroupIdsVal basetypes.ListValue
+	switch {
+	case v.ControlPlaneSecurityGroupIds.IsUnknown():
+		controlPlaneSecurityGroupIdsVal = types.ListUnknown(types.StringType)
+	case v.ControlPlaneSecurityGroupIds.IsNull():
+		controlPlaneSecurityGroupIdsVal = types.ListNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		controlPlaneSecurityGroupIdsVal, d = types.ListValue(types.StringType, v.ControlPlaneSecurityGroupIds.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"auto_allocate_ipv6": basetypes.BoolType{},
+			"cidr":               basetypes.StringType{},
+			"cluster_endpoints": basetypes.ListType{
+				ElemType: ClusterEndpointsValue{}.Type(ctx),
+			},
+			"control_plane_security_group_ids": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"extra_cidrs": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"extra_ipv6_cidrs": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"id":        basetypes.StringType{},
+			"ipv6_cidr": basetypes.StringType{},
+			"ipv6_pool": basetypes.StringType{},
+			"manage_shared_node_security_group_rules": basetypes.BoolType{},
+			"nat": basetypes.ListType{
+				ElemType: NatValue{}.Type(ctx),
+			},
+			"public_access_cidrs": basetypes.ListType{
+				ElemType: types.StringType,
+			},
+			"security_group":             basetypes.StringType{},
+			"shared_node_security_group": basetypes.StringType{},
+			"subnets": basetypes.ListType{
+				ElemType: Subnets3Value{}.Type(ctx),
+			},
+		}), diags
+	}
+
 	var extraCidrsVal basetypes.ListValue
 	switch {
 	case v.ExtraCidrs.IsUnknown():
@@ -77809,6 +77911,9 @@ func (v VpcValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, dia
 			"cidr":               basetypes.StringType{},
 			"cluster_endpoints": basetypes.ListType{
 				ElemType: ClusterEndpointsValue{}.Type(ctx),
+			},
+			"control_plane_security_group_ids": basetypes.ListType{
+				ElemType: types.StringType,
 			},
 			"extra_cidrs": basetypes.ListType{
 				ElemType: types.StringType,
@@ -77853,6 +77958,9 @@ func (v VpcValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, dia
 			"cluster_endpoints": basetypes.ListType{
 				ElemType: ClusterEndpointsValue{}.Type(ctx),
 			},
+			"control_plane_security_group_ids": basetypes.ListType{
+				ElemType: types.StringType,
+			},
 			"extra_cidrs": basetypes.ListType{
 				ElemType: types.StringType,
 			},
@@ -77896,6 +78004,9 @@ func (v VpcValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, dia
 			"cluster_endpoints": basetypes.ListType{
 				ElemType: ClusterEndpointsValue{}.Type(ctx),
 			},
+			"control_plane_security_group_ids": basetypes.ListType{
+				ElemType: types.StringType,
+			},
 			"extra_cidrs": basetypes.ListType{
 				ElemType: types.StringType,
 			},
@@ -77925,6 +78036,9 @@ func (v VpcValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, dia
 		"cidr":               basetypes.StringType{},
 		"cluster_endpoints": basetypes.ListType{
 			ElemType: ClusterEndpointsValue{}.Type(ctx),
+		},
+		"control_plane_security_group_ids": basetypes.ListType{
+			ElemType: types.StringType,
 		},
 		"extra_cidrs": basetypes.ListType{
 			ElemType: types.StringType,
@@ -77960,14 +78074,15 @@ func (v VpcValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, dia
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"auto_allocate_ipv6": v.AutoAllocateIpv6,
-			"cidr":               v.Cidr,
-			"cluster_endpoints":  clusterEndpoints,
-			"extra_cidrs":        extraCidrsVal,
-			"extra_ipv6_cidrs":   extraIpv6CidrsVal,
-			"id":                 v.Id,
-			"ipv6_cidr":          v.Ipv6Cidr,
-			"ipv6_pool":          v.Ipv6Pool,
+			"auto_allocate_ipv6":               v.AutoAllocateIpv6,
+			"cidr":                             v.Cidr,
+			"cluster_endpoints":                clusterEndpoints,
+			"control_plane_security_group_ids": controlPlaneSecurityGroupIdsVal,
+			"extra_cidrs":                      extraCidrsVal,
+			"extra_ipv6_cidrs":                 extraIpv6CidrsVal,
+			"id":                               v.Id,
+			"ipv6_cidr":                        v.Ipv6Cidr,
+			"ipv6_pool":                        v.Ipv6Pool,
 			"manage_shared_node_security_group_rules": v.ManageSharedNodeSecurityGroupRules,
 			"nat":                        nat,
 			"public_access_cidrs":        publicAccessCidrsVal,
@@ -78003,6 +78118,10 @@ func (v VpcValue) Equal(o attr.Value) bool {
 	}
 
 	if !v.ClusterEndpoints.Equal(other.ClusterEndpoints) {
+		return false
+	}
+
+	if !v.ControlPlaneSecurityGroupIds.Equal(other.ControlPlaneSecurityGroupIds) {
 		return false
 	}
 
@@ -78067,6 +78186,9 @@ func (v VpcValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"cidr":               basetypes.StringType{},
 		"cluster_endpoints": basetypes.ListType{
 			ElemType: ClusterEndpointsValue{}.Type(ctx),
+		},
+		"control_plane_security_group_ids": basetypes.ListType{
+			ElemType: types.StringType,
 		},
 		"extra_cidrs": basetypes.ListType{
 			ElemType: types.StringType,

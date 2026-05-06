@@ -1357,6 +1357,18 @@ func (v VpcValue) Expand(ctx context.Context) (*rafay.EKSClusterVPC, diag.Diagno
 			vpc.PublicAccessCIDRs = publicAccessCidrs
 		}
 	}
+	if !v.ControlPlaneSecurityGroupIds.IsNull() && !v.ControlPlaneSecurityGroupIds.IsUnknown() {
+		controlPlaneSecurityGroupIdsList := make([]types.String, 0, len(v.ControlPlaneSecurityGroupIds.Elements()))
+		d := v.ControlPlaneSecurityGroupIds.ElementsAs(ctx, &controlPlaneSecurityGroupIdsList, false)
+		diags = append(diags, d...)
+		controlPlaneSecurityGroupIDs := make([]string, 0, len(controlPlaneSecurityGroupIdsList))
+		for _, sgID := range controlPlaneSecurityGroupIdsList {
+			controlPlaneSecurityGroupIDs = append(controlPlaneSecurityGroupIDs, getStringValue(sgID))
+		}
+		if len(controlPlaneSecurityGroupIDs) > 0 {
+			vpc.ControlPlaneSecurityGroupIDs = controlPlaneSecurityGroupIDs
+		}
+	}
 
 	if !v.Subnets3.IsNull() && !v.Subnets3.IsUnknown() {
 		vSubnets := make([]Subnets3Value, 0, len(v.Subnets3.Elements()))

@@ -83,6 +83,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
         private_access = true
         public_access  = false
       }
+      control_plane_security_group_ids = ["sg-xxxxxx", "sg-yyyyyy"]
       nat {
         gateway = "Single"
       }
@@ -1691,6 +1692,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 - `cidr` - (String) An IP address in CIDR notation. 
 - `cluster_endpoints` - (Block List) Use to manage access to the Kubernetes API server endpoints. (See [below for nested schema](#nestedblock--cluster_config--vpc--cluster_endpoints))
+- `control_plane_security_group_ids` - (List of String) Additional security groups to attach to the EKS control plane.
 - `nat` - (Block List) The NAT configuration. (See [below for nested schema](#nestedblock--cluster_config--vpc--nat))
 - `public_access_cidrs` - (List of String) Which CIDR blocks to allow access to public a Kubernetes API endpoints. 
 - `security_group` - (String) This is the `ControlPlaneSecurityGroup` for communication between control the plane and nodes.

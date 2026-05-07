@@ -425,6 +425,9 @@ type (
 		// k8s API endpoint
 		// +optional
 		PublicAccessCIDRs []string `yaml:"publicAccessCIDRs,omitempty"`
+		// ControlPlaneSecurityGroupIDs are additional SG IDs to attach to EKS control plane ENIs.
+		// +optional
+		ControlPlaneSecurityGroupIDs []string `yaml:"controlPlaneSecurityGroupIDs,omitempty"`
 	}
 	// TFClusterSubnets holds private and public subnets
 	TFClusterSubnets struct {

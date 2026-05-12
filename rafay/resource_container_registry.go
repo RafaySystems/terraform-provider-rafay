@@ -216,6 +216,12 @@ func resourceContainerRegistryRead(ctx context.Context, d *schema.ResourceData, 
 		Project: containerRegistry.Metadata.Project,
 	})
 	if err != nil {
+		log.Printf("resourceContainerRegistryRead get error %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceContainerRegistryRead: resource not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 	log.Println("read get 2")

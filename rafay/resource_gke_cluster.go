@@ -235,6 +235,12 @@ func resourceGKEClusterV3Read(ctx context.Context, d *schema.ResourceData, m int
 		Project: tfClusterState.Metadata.Project,
 	})
 	if err != nil {
+		log.Printf("resourceGKEClusterV3Read get cluster error %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceGKEClusterV3Read: cluster not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

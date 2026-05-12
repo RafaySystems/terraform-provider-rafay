@@ -167,6 +167,11 @@ func resourceZTKARuleRead(ctx context.Context, d *schema.ResourceData, m interfa
 	})
 	if err != nil {
 		log.Println("read get err")
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceZTKARuleRead: resource not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

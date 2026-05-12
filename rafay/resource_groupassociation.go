@@ -350,6 +350,12 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 	//retireve group by id, already created
 	resp, err := getGroupById(s[0])
 	if err != nil {
+		log.Printf("getGroupById, error %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("group association Read: group not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 	//check response from group id
@@ -368,6 +374,11 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 		resp, err = getProjectById(s[1])
 		if err != nil {
 			log.Printf("failed to get project ID, error %s", err.Error())
+			if IsResourceNotFoundErr(err) {
+				log.Println("group association Read: project not found, treating as drift", "error", err)
+				d.SetId("")
+				return diags
+			}
 			return diag.FromErr(err)
 		}
 		//parse response to retrieve only project name
@@ -388,6 +399,11 @@ func resourceGroupAssociationRead(ctx context.Context, d *schema.ResourceData, m
 		respRoles, err := groupassociation.GetProjectAssociatedWithGroup(g.Name)
 		if err != nil {
 			log.Printf("read group association failed to get group, error %s", err.Error())
+			if IsResourceNotFoundErr(err) {
+				log.Println("group association Read: association not found, treating as drift", "error", err)
+				d.SetId("")
+				return diags
+			}
 			return diag.FromErr(err)
 		} else {
 			var roleLst []string

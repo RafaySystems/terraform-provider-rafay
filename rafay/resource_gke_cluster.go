@@ -13,7 +13,6 @@ import (
 	dynamic "github.com/RafaySystems/rafay-common/pkg/hub/client/dynamic"
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
-	"github.com/RafaySystems/rafay-common/proto/types/common"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/cluster"
@@ -387,7 +386,7 @@ func collectGKEUpsertErrors(gkeStatus *infrapb.GkeStatus) (string, error) {
 	collectedErrors := GkeUpsertErrorFormatter{}
 
 	for _, c := range gkeStatus.Conditions {
-		if c.Status == common.Failed.String() {
+		if c.Status == "False" {
 			collectedErrors.Name = "Cluster"
 			collectedErrors.Type = c.Type
 			collectedErrors.FailureReason = c.Reason
@@ -396,7 +395,7 @@ func collectGKEUpsertErrors(gkeStatus *infrapb.GkeStatus) (string, error) {
 
 	for _, np := range gkeStatus.Nodepools {
 		for _, npc := range np.Conditions {
-			if npc.Status == common.Failed.String() {
+			if npc.Status == "False" {
 				collectedErrors.Name = "NodePool-" + np.Name
 				collectedErrors.Type = npc.Type
 				collectedErrors.FailureReason = npc.Reason

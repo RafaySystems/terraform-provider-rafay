@@ -322,6 +322,12 @@ func resourceEksPodIdentityRead(ctx context.Context, d *schema.ResourceData, m i
 	}
 	project_id, edge_id, err := getIdFromName(clusterName, projectName)
 	if err != nil {
+		log.Printf("resourceEksPodIdentityRead getIdFromName error %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceEksPodIdentityRead: cluster not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 
@@ -340,6 +346,12 @@ func resourceEksPodIdentityRead(ctx context.Context, d *schema.ResourceData, m i
 
 	response, err := auth.AuthAndRequest(uri, "GET", "")
 	if err != nil {
+		log.Printf("resourceEksPodIdentityRead get pod identity error %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceEksPodIdentityRead: pod identity not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

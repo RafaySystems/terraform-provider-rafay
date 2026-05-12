@@ -7103,6 +7103,11 @@ func resourceAKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	clusterSpec, err := getDeployedClusterSpec(ctx, d)
 	if err != nil {
 		log.Printf("error in get cluster spec %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceAKSClusterRead: cluster not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 
@@ -7154,11 +7159,6 @@ func getDeployedClusterSpec(ctx context.Context, d *schema.ResourceData) (*AKSCl
 	c, err := cluster.GetCluster(clusterName, projectId, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
-		if strings.Contains(err.Error(), "not found") {
-			log.Println("Resource Read ", "error", err)
-			d.SetId("")
-			return clusterSpec, fmt.Errorf("resource read failed, cluster not found. Error: %s", err.Error())
-		}
 		return clusterSpec, err
 	}
 

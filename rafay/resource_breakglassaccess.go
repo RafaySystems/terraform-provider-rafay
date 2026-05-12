@@ -186,6 +186,11 @@ func resourceBreakGlassAccessRead(ctx context.Context, d *schema.ResourceData, m
 	})
 	if err != nil {
 		log.Println("read get err")
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceBreakGlassAccessRead: resource not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

@@ -64,6 +64,12 @@ func resourceAKSClusterV3Read(ctx context.Context, d *schema.ResourceData, m int
 
 	deployedCluster, err := getDeployedClusterSpecV3(ctx, d)
 	if err != nil {
+		log.Printf("resourceAKSClusterV3Read get cluster error %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceAKSClusterV3Read: cluster not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

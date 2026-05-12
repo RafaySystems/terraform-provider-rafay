@@ -20,6 +20,7 @@ import (
 
 func resourceDriver() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.DriverSchema.Description,
 		CreateContext: resourceDriverCreate,
 		ReadContext:   resourceDriverRead,
 		UpdateContext: resourceDriverUpdate,

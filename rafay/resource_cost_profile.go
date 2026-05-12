@@ -23,6 +23,7 @@ import (
 
 func resourceCostProfile() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.CostProfileSchema.Description,
 		CreateContext: resourceCostProfileCreate,
 		ReadContext:   resourceCostProfileRead,
 		UpdateContext: resourceCostProfileUpdate,

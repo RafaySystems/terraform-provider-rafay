@@ -246,7 +246,7 @@ resource "rafay_aks_cluster_v3" "demo-terraform3" {
               managed           = true
               enable_azure_rbac = true
             }
-           node_provisioning_profile {
+            node_provisioning_profile {
               mode               = "Manual"
               default_node_pools = "None"
             }

@@ -23,6 +23,7 @@ import (
 
 func resourceCatalog() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.CatalogSchema.Description,
 		CreateContext: resourceCatalogCreate,
 		ReadContext:   resourceCatalogRead,
 		UpdateContext: resourceCatalogUpdate,

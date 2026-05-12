@@ -45,6 +45,7 @@ func resourceRepositories() *schema.Resource {
 		Type:        schema.TypeString,
 	}
 	return &schema.Resource{
+		Description:   resource.RepositorySchema.Description,
 		CreateContext: resourceRepositoriesCreate,
 		ReadContext:   resourceRepositoriesRead,
 		UpdateContext: resourceRepositoriesUpdate,

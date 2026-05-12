@@ -13,6 +13,7 @@ import (
 
 func dataGroup() *schema.Resource {
 	return &schema.Resource{
+		Description: "Reads a group and its details from the Rafay platform.",
 		ReadContext: dataGroupRead,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -22,13 +23,15 @@ func dataGroup() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "Name of the group to look up.",
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Description of the group.",
 			},
 		},
 	}

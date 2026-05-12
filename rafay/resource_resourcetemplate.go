@@ -20,6 +20,7 @@ import (
 
 func resourceResourceTemplate() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ResourceTemplateSchema.Description,
 		CreateContext: resourceTemplateCreate,
 		ReadContext:   resourceTemplateRead,
 		UpdateContext: resourceTemplateUpdate,

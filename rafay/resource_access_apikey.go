@@ -68,6 +68,7 @@ type UserProfile struct {
 
 func resourceAccessApikey() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages an API key for programmatic access to the Rafay platform.",
 		CreateContext: resourceAccessApiCreate,
 		ReadContext:   resourceAccessApiRead,
 		UpdateContext: resourceAccessApiUpdate,

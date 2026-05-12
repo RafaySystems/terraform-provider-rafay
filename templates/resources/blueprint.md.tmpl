@@ -1,0 +1,673 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Blueprints & Add-ons"
+description: |-
+  {{.Description}}
+---
+
+# {{.Name}} ({{.Type}})
+
+Blueprints are a way to group resources and policies as a package that can be rolled out across your organization. Use blueprints to help establish best practices. Share blueprints with others.
+
+
+## Example Usage
+Example of a custom blueprint resource.
+
+```terraform
+resource "rafay_blueprint" "custom-blueprint" {
+  metadata {
+    name    = "custom-blueprint"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    type    = "custom"
+    base {
+      name    = "default"
+      version = "4.1.0"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_monitoring = true
+      enable_vm         = false
+      enable_csi_secret_store = true
+      disable_aws_node_termination_handler = true
+      csi_secret_store_config {
+        enable_secret_rotation = true
+        sync_secrets = true
+        rotation_poll_interval = "2m"
+        providers {
+          aws = true
+        }
+      }
+      monitoring {
+        metrics_server {
+          enabled = true
+        }
+        helm_exporter {
+          enabled = true
+        }
+        kube_state_metrics {
+          enabled = true
+        }
+        node_exporter {
+          enabled = true
+        }
+        prometheus_adapter {
+          enabled = true
+        }
+        resources {
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
+        }
+      }
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    placement {
+      auto_publish = false
+    }
+    drift_webhook {
+      enabled = false
+    }
+  }
+}
+```
+
+---
+
+Example of a custom blueprint resource with customization enabled for monitoring add-on.
+
+
+```terraform
+resource "rafay_blueprint" "custom-blueprint" {
+  metadata {
+    name    = "custom-blueprint"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "4.1.0"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_monitoring = true
+      enable_vm         = false
+      monitoring {
+        metrics_server {
+          customization_enabled = true
+        }
+        helm_exporter {
+	  customization_enabled = true
+        }
+        kube_state_metrics {
+	  customization_enabled = true
+        }
+        node_exporter {
+	  customization_enabled = true
+        }
+        prometheus_adapter {
+	  customization_enabled = true
+        }
+        gpu_operator {
+	  customization_enabled = true
+        }
+        resources {
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
+        }
+      }
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    placement {
+      auto_publish = false
+    }
+  }
+}
+```
+
+---
+
+Example of a custom blueprint resource for fleet values of a cluster.
+
+```terraform
+resource "rafay_blueprint" "custom-blueprint-advanced" {
+  metadata {
+    name    = "custom-blueprint-advanced"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "4.1.0"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_monitoring = true
+      enable_vm         = false
+      monitoring {
+        metrics_server {
+          enabled = true
+        }
+        helm_exporter {
+          enabled = true
+        }
+        kube_state_metrics {
+          enabled = true
+        }
+        node_exporter {
+          enabled = true
+        }
+        prometheus_adapter {
+          enabled = true
+        }
+        resources {
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
+        }
+      }
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    placement {
+      auto_publish = true
+      fleet_values = ["value 1","value 2","value 3"]
+    }
+  }
+}
+```
+
+---
+
+Example of a custom blueprint resource with Rook-Ceph managed add-on and a custom add-on.
+
+```terraform
+resource "rafay_blueprint" "custom-blueprint-advanced2" {
+  metadata {
+    name    = "custom-blueprint-advanced2"
+    project = "terraform"
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "4.1.0"
+    }
+    custom_addons {
+      name = "addon1"
+      version = "v0"
+    }
+    custom_addons {
+      depends_on = ["addon1"]
+      name = "addon2"
+      version = "v0"
+    }
+    components_criticality {
+        name = "addon1"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_monitoring = true
+      enable_vm         = false
+      enable_rook_ceph = true
+      monitoring {
+        metrics_server {
+          enabled = true
+        }
+        helm_exporter {
+          enabled = true
+        }
+        kube_state_metrics {
+          enabled = true
+        }
+        node_exporter {
+          enabled = true
+        }
+        prometheus_adapter {
+          enabled = true
+        }
+        resources {
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
+        }
+      }
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    sharing {
+      enabled = true
+      projects {
+        name = "terraform"
+      }
+    }
+  }
+}
+# Example of a custom golden base blueprint resource.
+resource "rafay_blueprint" "custom-golden-blueprint" {
+  metadata {
+    name    = "custom-golden-blueprint"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "4.1.0"
+    }
+    type = "golden"
+    default_addons {
+      enable_ingress    = true
+      enable_monitoring = true
+      enable_vm         = false
+      monitoring {
+        metrics_server {
+          enabled = true
+          discovery {}
+        }
+        helm_exporter {
+          enabled = true
+        }
+        kube_state_metrics {
+          enabled = true
+        }
+        node_exporter {
+          enabled = true
+        }
+        prometheus_adapter {
+          enabled = true
+        }
+        resources {
+          limits {
+            cpu = "100m"
+            memory= "200Mi"
+          }
+        }
+      }
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    placement {
+      auto_publish = false
+    }
+  }
+}
+```
+
+---
+
+Example of a custom blueprint resource with cost profile.
+
+```terraform
+resource "rafay_blueprint" "cost-blueprint" {
+  metadata {
+    name    = "custom-cost-blueprint"
+    project = "terraform"
+  }
+  spec {
+    version = "v0"
+    base {
+      name    = "default"
+      version = "4.1.0"
+    }
+    default_addons {
+      enable_ingress    = true
+      enable_monitoring = true
+      enable_vm         = false
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+
+    cost_profile {
+        name = "tfdemocostprofile1"
+        version = "v0"
+    }
+
+  }
+}
+```
+
+<!-- schema generated by tfplugindocs -->
+## Argument Reference
+
+***Required***
+
+- `metadata` - (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata))
+- `spec` - (Block List, Max: 1) Defines the characteristics for the resource. This is the desired state for the resource. (See [below for nested schema](#nestedblock--spec))
+
+
+---
+
+<a id="nestedblock--metadata"></a>
+### Nested Schema for `metadata`
+
+***Required***
+
+- `name` - (String) The name of the resource. This must be unique to the organization.
+- `project` - (String) The Rafay project(s) the resource belongs to.
+
+---
+
+<a id="nestedblock--spec"></a>
+### Nested Schema for `spec`
+
+***Required***
+- `version` - (String) The blueprint version.
+
+***Optional***
+
+- `type` - (String) The type of blueprint. Valid values are `golden`, `custom`. Default is `custom`.
+- `custom_addons` - (Block List) A list of custom add-ons for the resource. (See [below for nested schema](#nestedblock--spec--custom_addons))
+- `components_criticality` - (Block list) A list of addons that are critical to determine the status of blueprint sync.(See [below for nested schema](#nestedblock--spec--components_criticality))
+- `default_addons` - (Block List) A list of default add-ons for the resource. (See [below for nested schema](#nestedblock--spec--default_addons))
+- `drift` - (Block List, Max: 1) Prevents configuration drift. Drift is a change to your live cluster that is different from the source of truth. (See [below for nested schema](#nestedblock--spec--drift))
+- `drift_webhook` - (Block List, Max: 1) Drift webhook configuration. (See [below for nested schema](#nestedblock--spec--drift_webhook))
+- `placement` - (Block List, Max: 1) Defines the cluster(s) where blueprint will be published. (See [below for nested schema](#nestedblock--spec--placement))
+- `private_kube_api_proxies` - (Block List) A private kubernetes API proxy network, used to provide kubectl access for your users. (See [below for nested schema](#nestedblock--spec--private_kube_api_proxies))
+- `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A blueprint can be shared with one or more projects.  (See [below for nested schema](#nestedblock--spec--sharing))
+    Note: If the resource is not shared, set enabled = false.
+- `base` (Block List, Max: 1) blueprint base (see [below for nested schema](#nestedblock--spec--base))
+- `namespace_config` (Block List, Max: 1) namespace config (see [below for nested schema](#nestedblock--spec--namespace_config))
+- `opa_policy` (Block List, Max: 1) opa policy and version details (see [below for nested schema](#nestedblock--spec--opa_policy))
+- `network_policy` (Block List, Max: 1) Network policy and version details (see [below for nested schema](#nestedblock--spec--network_policy))
+- `cost_profile` (Block List, Max: 1) Cost Profile and version details (see [below for nested schema](#nestedblock--spec--cost_profile))
+- `version_state` - (String) Represents the current state of the blueprint version (draft, active or disable).
+<a id="nestedblock--spec--base"></a>
+### Nested Schema for `spec.base`
+
+***Required***
+
+- `name` - (String) The name for the blueprint base. Supported values are: `default`, `minimal`, `default-openshift`, and `default-aks`.
+- `version` - (String) The version of the blueprint base. Example values are: `4.0.0`, `4.1.0`.
+
+
+<a id="nestedblock--spec--custom_addons"></a>
+### Nested Schema for `spec.custom_addons`
+
+***Required***
+
+- `name` - (String) The name of the blueprint add-on.
+- `version` - (String) The version of the blueprint add-on.
+
+***Optional***
+
+- `depends_on` - (List of String) A list of add-ons the current add-on depends on.
+
+<a id="nestedblock--spec--components_criticality"></a>
+### Nested Schema for `spec.components_criticality`
+
+***Required***
+
+- `name` - (String) The name of the addon that has to be critical.
+
+<a id="nestedblock--spec--default_addons"></a>
+### Nested Schema for `spec.default_addons`
+
+***Optional***
+
+- `enable_ingress` - (Boolean) If enabled, ingress is installed on the cluster.
+- `enable_monitoring` - (Boolean) If enabled, monitoring is installed on the cluster.
+- `enable_rook_ceph` - (Boolean) If enabled, run ceph inside a cluster.
+- `enable_cni` - (Boolean) If enabled, custom cni add-ons on the clusters. (deprecated)
+- `enable_cilium_cni` - (Boolean) If enabled, deploys custom cilium cni add-ons on the clusters.
+- `enable_calico_cni` - (Boolean) If enabled, deploys custom calico cni add-ons on the clusters.
+- `enable_kubeovn_cni` - (Boolean) If enabled, deploys custom kubeovn cni add-ons on the clusters.
+- `enable_kubeovn_chaning_cni` - (Boolean) If enabled, deploys custom kubeovn Cilium Chaning mode cni add-ons on the clusters.
+- `enable_vm` - (Boolean) If enabled, VM operator (kubevirt) is installed on the cluster.
+- `enable_csi_secret_store` - (Boolean) If enabled, Secrets Store CSI Driver Add-on is installed on the cluster.
+- `disable_aws_node_termination_handler` - (Boolean) If enabled, AWS Node termination handler won't be installed on EKS cluster. It's for system blueprints except minimal. Values are either true/false here.
+- `csi_secret_store_config` - (Block List) The configuration for Secrets Store CSI Driver Add-on is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--csistore-config))
+- `monitoring` - (Block List) The configuration for monitoring the resource is installed on the cluster. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring))
+
+
+<a id="nestedblock--spec--default_addons--monitoring"></a>
+### Nested Schema for `spec.default_addons.monitoring`
+
+***Optional***
+
+- `kube_state_metrics` - (Block List) A service that listens to the Kubernetes API server and generates metrics about the state of the objects. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--metrics))
+- `helm_exporter` - (Boolean) Exports helm release, chart, and version statistics in the Prometheus format.
+- `node_exporter` - (Boolean) Monitors the host system.
+- `prometheus_adapter` - (Boolean) Provides Kubernetes metrics APIs for Prometheus.
+- `metrics_server` - (Boolean) A scalable, efficient source of container resource metrics for Kubernetes built-in autoscaling pipelines.
+- `gpu_operator` (Block List) GPU Operator Configuration (see [below for nested schema](#nestedblock--spec--default_addons--monitoring--gpu_operator))
+- `resources` - (Block List) CPU and memory limits for the monitoring component (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources))
+
+<a id="nestedblock--spec--default_addons--monitoring--gpu_operator"></a>
+### Nested Schema for `spec.default_addons.monitoring.gpu_operator`
+
+Optional:
+
+- `customization_enabled` (Boolean) flag to specify if monitoring component customization is enabled
+- `discovery` (Block List) discovery configuration for monitoring component (see [below for nested schema](#nestedblock--spec--default_addons--monitoring--gpu_operator--discovery))
+
+<a id="nestedblock--spec--default_addons--monitoring--gpu_operator--discovery"></a>
+### Nested Schema for `spec.default_addons.monitoring.gpu_operator.discovery`
+
+Optional:
+
+- `labels` (Map of String) labels of the monitoring component
+- `namespace` (String) namespace of the monitoring component
+- `resource` (String) resource name of the monitoring component
+
+<a id="nestedblock--spec--default_addons--monitoring--metrics"></a>
+### Nested Schema for `spec.default_addons.monitoring.metrics`
+
+***Optional***
+
+- `discovery` - (Block List) The discovery configuration. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--metrics--discovery))
+- `enabled` - (Boolean) If enabled, the monitoring metrics add-on is enabled for the resource.
+- `customization_enabled` - (Boolean) If enabled, the monitoring metrics add-on customization is enabled for the resource.
+
+
+<a id="nestedblock--spec--default_addons--monitoring--metrics--discovery"></a>
+### Nested Schema for `spec.default_addons.monitoring.metrics.discovery`
+
+***Optional***
+
+- `labels` - (Block List) Label of the monitoring component.
+- `namespace` - (String) Namespace of the monitoring component.
+
+
+<a id="nestedblock--spec--default_addons--monitoring--resources"></a>
+### Nested Schema for `spec.default_addons.monitoring.resources`
+
+***Optional***
+
+- `limits` - (Block List) The maximum amount of resources available. (See [below for nested schema](#nestedblock--spec--default_addons--monitoring--resources--limits))
+
+
+<a id="nestedblock--spec--default_addons--monitoring--resources--limits"></a>
+### Nested Schema for `spec.default_addons.monitoring.resources.limits`
+
+***Optional***
+
+- `cpu` - (String) The CPU resource limit for the resource. The resource cannot use more than this limit. The CPU limit in millicpu, also known as millicores. 100m is 100 millicpu, which is 0.1 CPU cores.
+- `memory` - (String) The memory resource limit for the resource. The resource cannot use more than this limit.The memory limit in mebibytes. A megabyte is a close equivalent to a mebibyte.
+
+
+<a id="nestedblock--spec--default_addons--csistore-config"></a>
+### Nested Schema for `spec.default_addons.csi_secret_store_config`
+
+***Optional***
+
+- `enable_secret_rotation` - (Boolean) Enable Auto rotation of mounted contents and synced Kubernetes secret.
+- `sync_secrets` - (Boolean) Toggle Sync as Kubernetes Secret.
+- `rotation_poll_interval` - (String) Rotation poll interval can be customized when 'Enable Secret Rotation' setting is selected, the default being 2 min
+- `providers` - (Block List) Secret store CSI Driver Provider. Currently AWS is supported. Set "aws = true" in the config to select this provider
+
+<a id="nestedblock--spec--drift"></a>
+### Nested Schema for `spec.drift`
+
+***Required***
+
+- `action` - (String) If enabled, drift is enabled for resource.  Supported values are: `Deny` or `Notify`.
+- `enabled` - (Boolean) If enabled, drift reconciliation is enabled for resource.
+
+<a id="nestedblock--spec--drift_webhook"></a>
+### Nested Schema for `spec.drift_webhook`
+
+***Required***
+- `enabled` - (Boolean) If enabled, drift webhook is enabled for blueprint.
+
+<a id="nestedblock--spec--placement"></a>
+### Nested Schema for `spec.placement`
+
+***Required***
+
+- `auto_publish` - (Boolean) If enabled, automatically publish this blueprint version to a fleet of clusters.
+- `fleet_values` - (List of String) A list of fleet values.
+
+
+<a id="nestedblock--spec--private_kube_api_proxies"></a>
+### Nested Schema for `spec.private_kube_api_proxies`
+
+***Required***
+
+- `name` - (String) The name of the kubernetes proxy network.
+
+
+<a id="nestedblock--spec--sharing"></a>
+### Nested Schema for `spec.sharing`
+
+***Required***
+
+- `enabled` - (Boolean) Enable sharing for this resource.
+
+***Optional***
+
+ Note: Required when project sharing is enabled.
+
+- `projects` - (Block List) The list of projects this resource is shared with. (See [below for nested schema](#nestedblock--spec--sharing--projects))
+
+<a id="nestedblock--spec--sharing--projects"></a>
+### Nested Schema for `spec.sharing.projects`
+
+***Required***
+
+- `name` - (String) The names of the project to share the resource.
+
+ Note: To share a resource across all projects in an organisation, below spec can be used
+ ```
+     sharing {
+      enabled = true
+      projects {
+        name = "*"
+      }
+    }
+```
+
+
+<a id="nestedblock--spec--namespace_config"></a>
+### Nested Schema for `spec.namespace_config`
+
+***Required***
+
+- `enable_sync` (Boolean) flag to enable namespace sync
+- `sync_type` (String) indiactes if namespace sync can be Managed or Unmanaged
+
+
+<a id="nestedblock--spec--opa_policy"></a>
+### Nested Schema for `spec.opa_policy`
+
+***Required***
+
+- `opa_policy` (Block List, Max: 1) policy configuration (see [below for nested schema](#nestedblock--spec--opa_policy--opa_policy))
+- `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--opa_policy--profile))
+
+<a id="nestedblock--spec--opa_policy--opa_policy"></a>
+### Nested Schema for `spec.opa_policy.opa_policy`
+
+***Required***
+
+- `name` (String) name of the opa policy
+- `version` (String) version of the opa policy
+
+
+<a id="nestedblock--spec--opa_policy--profile"></a>
+### Nested Schema for `spec.opa_policy.profile`
+
+***Required***
+
+- `name` (String) name of the opa profile
+- `version` (String) version of the opa profile
+
+<a id="nestedblock--spec--network_policy"></a>
+### Nested Schema for `spec.network_policy`
+
+***Required***
+
+- `policies` (Block List) policy configuration (see [below for nested schema](#nestedblock--spec--network_policy--policies))
+- `profile` (Block List, Max: 1) profile configuration (see [below for nested schema](#nestedblock--spec--network_policy--profile))
+
+<a id="nestedblock--spec--network_policy--policies"></a>
+### Nested Schema for `spec.network_policy.policies`
+
+***Required***
+
+- `name` (String) name of the network policy
+- `version` (String) version of the network policy
+
+<a id="nestedblock--spec--network_policy--profile"></a>
+### Nested Schema for `spec.network_policy.profile`
+
+***Required***
+
+- `name` (String) name of the network profile
+- `version` (String) version of the network profile
+
+
+<a id="nestedblock--spec--cost_profile"></a>
+### Nested Schema for `spec.cost_profile`
+
+***Required***
+
+- `name` (String) name of the cost profile
+- `version` (String) version of the cost profile
+
+<a id="nestedblock--timeouts"></a>
+### Nested Schema for `timeouts`
+
+***Optional***
+
+- `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes.
+- `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes.
+- `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes.
+
+
+---
+
+## Attribute Reference
+
+- `id` - (String) The ID of the resource, generated by the system after you create the resource.
+
+{{- if .HasImport}}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{codefile "shell" .ImportFile}}
+{{- end}}

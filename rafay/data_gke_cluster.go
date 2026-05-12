@@ -17,6 +17,7 @@ import (
 
 func dataGKEClusterV3() *schema.Resource {
 	return &schema.Resource{
+		Description: "Reads a GKE cluster configuration from the Rafay platform.",
 		ReadContext: dataGKEClusterV3Read,
 
 		Timeouts: &schema.ResourceTimeout{

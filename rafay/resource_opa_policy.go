@@ -24,6 +24,7 @@ import (
 
 func resourceOPAPolicy() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.OPAPolicySchema.Description,
 		CreateContext: resourceOPAPolicyCreate,
 		ReadContext:   resourceOPAPolicyRead,
 		UpdateContext: resourceOPAPolicyUpdate,

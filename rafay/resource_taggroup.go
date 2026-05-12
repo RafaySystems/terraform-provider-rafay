@@ -23,6 +23,7 @@ import (
 
 func resourceTagGroup() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.TagGroupSchema.Description,
 		CreateContext: resourceTagGroupCreate,
 		ReadContext:   resourceTagGroupRead,
 		UpdateContext: resourceTagGroupUpdate,

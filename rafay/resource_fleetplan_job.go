@@ -19,6 +19,7 @@ import (
 
 func resourceFleetPlanTrigger() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Triggers a fleet plan job execution in the Rafay platform.",
 		CreateContext: createFleetPlanJob,
 		ReadContext:   readFleetPlanJob,
 		UpdateContext: updateFleetPlanJob,

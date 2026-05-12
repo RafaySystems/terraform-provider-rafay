@@ -31,6 +31,7 @@ import (
 
 func resourceAKSClusterV3() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ClusterSchema.Description,
 		CreateContext: resourceAKSClusterV3Create,
 		ReadContext:   resourceAKSClusterV3Read,
 		UpdateContext: resourceAKSClusterV3Update,

@@ -1,0 +1,465 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Blueprints & Add-ons"
+description: |-
+  {{.Description}}
+---
+
+# {{.Name}} ({{.Type}})
+
+A cluster override allows overriding values for add-ons in a cluster.
+
+## Example Usage
+
+Cluster overrides with inline values.
+
+```terraform
+resource "rafay_cluster_override" "tfdemocluster-override1" {
+  metadata {
+    name    = "tfdemocluster-override1"
+    project = "terraform"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "valuesFile"
+    }
+  }
+  spec {
+    cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key = "rafay.dev/clusterName"
+        value = "cluster-1"
+      }
+    }
+    resource_selector = "rafay.dev/name=override-addon"
+    type              = "ClusterOverrideTypeAddon"
+    sharing {
+      enabled = false
+    }
+    override_values   = <<-EOS
+    replicaCount: 1
+    image:
+      repository: nginx
+      pullPolicy: Always
+      tag: "1.19.8"
+    service:
+      type: ClusterIP
+      port: 8080
+    EOS
+  }
+}
+```
+
+---
+
+Cluster overrides with values from repository.
+
+```terraform
+resource "rafay_cluster_override" "tfdemocluster-override2" {
+  metadata {
+    name    = "tfdemocluster-override2"
+    project = "terraform"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "valuesFile"
+    }
+  }
+  spec {
+    cluster_selector  = "key in (value)"
+    cluster_placement {
+      placement_type = "ClusterLabels"
+      cluster_labels {
+        key = "key"
+        value = "value"
+      }
+    }
+    resource_selector = "rafay.dev/name=aws-lb-controller"
+    type              = "ClusterOverrideTypeAddon"
+    sharing {
+      enabled = true
+      projects {
+        name = "*"
+      }
+    }
+    value_repo_ref    = "git-repo-name"
+    values_repo_artifact_meta {
+      git_options {
+        revision = "main"
+        repo_artifact_files {
+          name          = "overrides.yaml"
+          relative_path = "yaml/overrides.yaml"
+          file_type     = "FileTypeNotSet"
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+Cluster overrides with YAML values.
+
+```terraform
+resource "rafay_cluster_override" "tfdemocluster-yamloverride1" {
+  metadata {
+    name    = "tfdemocluster-yamloverride1"
+    project = "terraform"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "manifestsFile"
+    }
+  }
+  spec {
+    artifact_type = "NativeYAML" // NativeYAML or GitRepoWithNativeYAML
+    cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key = "rafay.dev/clusterName"
+        value = "cluster-1"
+      }
+    }
+    resource_selector = "rafay.dev/name=override-addon"
+    type              = "ClusterOverrideTypeAddon"
+    sharing {
+      enabled = true
+      projects {
+        name = "defaultproject"
+      }
+      projects {
+        name = "project1"
+      }
+    }
+    override_values   = <<-EOS
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nginx
+      patch:
+      - op: replace
+        path: /spec/replica
+        value: 3
+    EOS
+  }
+}
+```
+
+---
+
+Cluster quota override type.
+
+```terraform
+resource "rafay_cluster_override" "tfdemocluster-clusterquotaoverride1" {
+  metadata {
+    name    = "tfdemocluster-clusterquotaoverride1"
+    project = "terraform"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "manifestsFile"
+    }
+  }
+  spec {
+    artifact_type = "NativeYAML" // NativeYAML or GitRepoWithNativeYAML
+    cluster_selector  = "rafay.dev/clusterName in (cluster-1)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key = "rafay.dev/clusterName"
+        value = "cluster-1"
+      }
+    }
+    resource_selector = "rafay.dev/system=true,rafay.dev/component=cluster-resource-quota"
+    type              = "ClusterOverrideTypeClusterQuota"
+    override_values   = <<-EOS
+      apiVersion: system.k8smgmt.io/v3
+      kind: Project
+      metadata:
+        name: terraform
+      patch:
+      - op: replace
+        path: /spec/clusterResourceQuota/pods
+        value: 10
+    EOS
+  }
+}
+```
+
+---
+
+Addon Setting Override Type
+
+```terraform
+resource "rafay_cluster_override" "tfdemocluster-addon-setting-override" {
+  metadata {
+    name    = "tfdemocluster-addon-setting-override"
+    project = "work"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "valuesFile"
+    }
+  }
+  spec {
+    cluster_selector  = "rafay.dev/clusterName in (dev)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key = "rafay.dev/clusterName"
+        value = "dev"
+      }
+    }
+    resource_selector = "rafay.dev/name=nginx"
+    type              = "ClusterOverrideTypeAddonSetting"
+    override_values   = <<-EOS
+    maxRetries: 4
+    EOS
+  }
+}
+```
+
+---
+
+Workload Setting Override Type
+
+```terraform
+resource "rafay_cluster_override" "tfdemocluster-workload-setting-override" {
+  metadata {
+    name    = "tfdemocluster-workload-setting-override"
+    project = "work"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "valuesFile"
+    }
+  }
+  spec {
+    cluster_selector  = "rafay.dev/clusterName in (dev)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key = "rafay.dev/clusterName"
+        value = "dev"
+      }
+    }
+    resource_selector = "rafay.dev/name=nginx-yaml-workload"
+    type              = "ClusterOverrideTypeWorkloadSetting"
+    override_values   = <<-EOS
+    maxRetries: 4
+    EOS
+  }
+```
+
+---
+
+Addon override matching with addon name and version
+
+```terraform
+resource "rafay_cluster_override" "override-with-addon-semver-regex" {
+  metadata {
+    name    = "override-with-addon-semver-regex"
+    project = "defaultproject"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "manifestsFile"
+    }
+  }
+  spec {
+    artifact_type    = "NativeYAML"
+    cluster_selector = "rafay.dev/clusterName in (cluster-1)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key   = "rafay.dev/clusterName"
+        value = "cluster-1"
+      }
+    }
+    resource_selector = "rafay.dev/name=nginx-addon,rafay.dev/version=v2"
+    type              = "ClusterOverrideTypeAddon"
+    override_values   = <<-EOS
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nginx
+      patch:
+      - op: replace
+        path: /spec/replicas
+        value: 6
+    EOS
+  }
+}
+```
+
+Addon override matching with addon name and version regex
+```
+resource "rafay_cluster_override" "override-with-addon-version-regex" {
+  metadata {
+    name    = "override-with-addon-version-regex"
+    project = "defaultproject"
+    labels = {
+      "rafay.dev/overrideScope" = "clusterLabels"
+      "rafay.dev/overrideType"  = "manifestsFile"
+    }
+  }
+  spec {
+    artifact_type    = "NativeYAML"
+    cluster_selector = "rafay.dev/clusterName in (cluster-1)"
+    cluster_placement {
+      placement_type = "ClusterSpecific"
+      cluster_labels {
+        key   = "rafay.dev/clusterName"
+        value = "cluster-1"
+      }
+    }
+    resource_selector = "rafay.dev/name=nginx-yaml"
+    resource_version_regex = "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+    type              = "ClusterOverrideTypeAddon"
+    override_values   = <<-EOS
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nginx
+      patch:
+      - op: replace
+        path: /spec/replicas
+        value: 6
+    EOS
+  }
+}
+```
+
+<!-- schema generated by tfplugindocs -->
+## Argument Reference
+
+***Required***
+
+- `metadata` - (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata))
+- `spec` - (Block List, Max: 1) Defines the characteristics for the resource. This is the desired state for the resource. (See [below for nested schema](#nestedblock--spec))
+
+***Optional***
+
+- `timeouts` - (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
+
+<a id="nestedblock--metadata"></a>
+### Nested Schema for `metadata`
+
+***Required***
+
+- `name` - (String) The name of the resource. This must be unique in your organization.
+- `project` - (String) The name of the project the override will be created in.
+- `labels` - (Map) A map of string keys and values for organizing and categorizing overrides.
+    Note: Same labels are required as shown in the examples.
+  - For YAML based "rafay.dev/overrideType" : "manifestsFile"
+  - For HELM based "rafay.dev/overrideType" : "valuesFile"
+
+<a id="nestedblock--spec"></a>
+### Nested Schema for `spec`
+
+***Required***
+
+- `artifact_type` - (string) Use only for YAML based overrides. If this is not used, then HELM is used. The default override type is HELM.
+- `cluster_placement` - (Block List, Max: 1) The placement specification of the override resource. (See [below for nested schema](#nestedblock--spec--cluster_placement))
+- `cluster_selector` - (String) The Kubernetes style label selector.
+- `override_values` - (String) Specify override values inline.
+- `resource_selector` - (String) Set the resource for the override.
+- `type` - (String) The override type. Supported value is: `ClusterOverrideTypeAddon`, `ClusterOverrideTypeWorkload`, `ClusterOverrideTypeAddonSetting`, `ClusterOverrideTypeWorkloadSetting` and `ClusterOverrideTypeClusterQuota`.
+    Note: `ClusterOverrideTypeClusterQuota` is a YAML based override and cannot be shared across projects.
+- `value_repo_ref` - (String) The repository name from where to fetch the override values.
+    Note: `override_values` or `value_repo_ref` is required.
+- `values_repo_artifact_meta` - (Block List, Max: 1) Repository information. (See [below for nested schema](#nestedblock--spec--values_repo_artifact_meta))
+    Note: This is required if `value_repo_ref` is used.
+
+***Optional***
+
+- `sharing` (Block List, Max: 1) cluster override sharing configuration (see [below for nested schema](#nestedblock--spec--sharing))
+    Note: `ClusterOverrideTypeClusterQuota` override type cannot be shared.
+- `resource_version_regex` (String) The regex to match an addon version with
+
+
+<a id="nestedblock--spec--cluster_placement"></a>
+### Nested Schema for `spec.cluster_placement`
+
+***Required***
+
+- `cluster_labels` - (Block List) A list of labels for the placement. (See [below for nested schema](#nestedblock--spec--cluster_placement--cluster_labels))
+- `placement_type` - (String) The placement type. The supported values are: `ClusterSpecific` and `ClusterLabels`.
+
+<a id="nestedblock--spec--cluster_placement--cluster_labels"></a>
+### Nested Schema for `spec.cluster_placement.cluster_labels`
+
+***Required***
+
+- `key` - (String) The key of the placement label.
+- `value` - (String) The value of the placement label.
+
+<a id="nestedblock--spec--values_repo_artifact_meta"></a>
+### Nested Schema for `spec.values_repo_artifact_meta`
+
+***Required***
+
+- `git_options` - (Block List) The Git options. (See [below for nested schema](#nestedblock--spec--values_repo_artifact_meta--git_options))
+
+<a id="nestedblock--spec--values_repo_artifact_meta--git_options"></a>
+### Nested Schema for `spec.values_repo_artifact_meta.git_options`
+
+***Required***
+
+- `repo_artifact_files` - (Block List) Information about the artifact files for the repository. (See [below for nested schema](#nestedblock--spec--values_repo_artifact_meta--git_options--repo_artifact_files))
+- `revision` - (String) The repository revision (Branch).
+
+<a id="nestedblock--spec--values_repo_artifact_meta--git_options--repo_artifact_files"></a>
+### Nested Schema for `spec.values_repo_artifact_meta.git_options.revision`
+
+***Required***
+
+- `file_type` - (String) The file type. Supported value is: `FileTypeNotSet`.
+- `name` - (String) The file name.
+- `relative_path` - (String) The relative path, including the filename in the repository.
+
+<a id="nestedblock--spec--sharing"></a>
+### Nested Schema for `spec.sharing`
+
+***Required***
+
+- `enabled` (Boolean) flag to specify if sharing is enabled for resource
+- `projects` (Block List) list of projects this resource is shared to (see [below for nested schema](#nestedblock--spec--sharing--projects))
+
+<a id="nestedblock--spec--sharing--projects"></a>
+### Nested Schema for `spec.sharing.projects`
+
+***Required***
+
+- `name` (String) name of the project
+
+Note: To share a resource across all projects in an organisation, below spec can be used
+ ```
+     sharing {
+      enabled = true
+      projects {
+        name = "*"
+      }
+    }
+```
+
+<a id="nestedblock--timeouts"></a>
+### Nested Schema for `timeouts`
+
+***Optional***
+
+- `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes.
+- `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes.
+- `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes.
+
+## Attribute Reference
+
+---
+
+- `id` - (String) The ID of the resource, generated by the system after you create the resource.
+
+{{- if .HasImport}}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{codefile "shell" .ImportFile}}
+{{- end}}

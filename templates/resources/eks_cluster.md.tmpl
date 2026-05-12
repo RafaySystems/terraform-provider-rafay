@@ -1,0 +1,1777 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Cluster Management"
+description: |-
+  {{.Description}}
+---
+
+# rafay_eks_cluster (Resource)
+
+Manage an AWS EKS cluster. 
+
+## Example Usage
+Basic EKS cluster
+
+```terraform
+resource "rafay_eks_cluster" "eks-cluster-1" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-cluster-1"
+      project = "terraform"
+    }
+    spec {
+      type           = "eks"
+      blueprint      = "default"
+      blueprint_version = "1.13.0"
+      cloud_provider = "eks-role"
+      cni_provider   = "aws-cni"
+      proxy_config   = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-cluster-1"
+      region  = "us-west-2"
+      version = "1.21"
+    }
+    iam {
+      with_oidc = true
+      service_accounts {
+        metadata {
+          name = "test-irsa"
+          namespace = "default"
+        }
+        attach_policy = jsonencode({
+	        "Version": "2012-10-17",
+	        "Statement": [
+	          {
+	            "Effect": "Allow",
+	            "Action": "ec2:Describe*",
+	            "Resource": "*"
+	          },
+	          {
+	            "Effect": "Allow",
+	            "Action": "ec2:AttachVolume",
+	            "Resource": "*"
+	          },
+	          {  
+	            "Effect": "Allow",
+	            "Action": "ec2:DetachVolume",
+	            "Resource": "*"
+	          },
+	          {
+	            "Effect": "Allow",
+	            "Action": ["ec2:*"],
+	            "Resource": ["*"]
+          	    },
+	          {
+	            "Effect": "Allow",
+	            "Action": ["elasticloadbalancing:*"],
+	            "Resource": ["*"]
+	           }
+	         ]
+	      })
+      }
+    }
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
+      }
+    }
+    node_groups {
+      name       = "ng-1"
+      ami_family = "AmazonLinux2"
+      iam {
+        iam_node_group_with_addon_policies {
+          image_builder = true
+          auto_scaler   = true
+        }
+      }
+      instance_type    = "m5.xlarge"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      version          = "1.31"
+      volume_size      = 80
+      volume_type      = "gp3"
+      private_networking = true
+    }
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+
+    }
+    addons {
+      name = "coredns"
+      version = "latest"
+    }
+  }
+}
+```
+
+---
+
+Basic EKS cluster with node group map.
+
+```terraform
+resource "rafay_eks_cluster" "eks-cluster-1" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-cluster-1"
+      project = "terraform"
+    }
+    spec {
+      type           = "eks"
+      blueprint      = "default"
+      blueprint_version = "1.13.0"
+      cloud_provider = "eks-role"
+      cni_provider   = "aws-cni"
+      proxy_config   = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-cluster-1"
+      region  = "us-west-2"
+      version = "1.21"
+    }
+    iam {
+      with_oidc = true
+      service_accounts {
+        metadata {
+          name = "test-irsa"
+          namespace = "default"
+        }
+        attach_policy = jsonencode({
+	        "Version": "2012-10-17",
+	        "Statement": [
+	          {
+	            "Effect": "Allow",
+	            "Action": "ec2:Describe*",
+	            "Resource": "*"
+	          },
+	          {
+	            "Effect": "Allow",
+	            "Action": "ec2:AttachVolume",
+	            "Resource": "*"
+	          },
+	          {  
+	            "Effect": "Allow",
+	            "Action": "ec2:DetachVolume",
+	            "Resource": "*"
+	          },
+	          {
+	            "Effect": "Allow",
+	            "Action": ["ec2:*"],
+	            "Resource": ["*"]
+          	    },
+	          {
+	            "Effect": "Allow",
+	            "Action": ["elasticloadbalancing:*"],
+	            "Resource": ["*"]
+	           }
+	         ]
+	      })
+      }
+    }
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
+      }
+    }
+    node_groups_map = {
+      "ng-1" = {
+        ami_family = "AmazonLinux2"
+        iam = {
+          iam_node_group_with_addon_policies = {
+            image_builder = true
+            auto_scaler   = true
+          }
+        }
+        instance_type    = "m5.xlarge"
+        desired_capacity = 1
+        min_size         = 1
+        max_size         = 2
+        max_pods_per_node = 50
+        version          = "1.31"
+        volume_size      = 80
+        volume_type      = "gp3"
+        private_networking = true
+      }
+    }
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+
+    }
+    addons {
+      name = "coredns"
+      version = "latest"
+    }
+  }
+}
+```
+
+---
+
+Basic EKS cluster config with IPv6 as the IP family
+
+```terraform
+resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "ekscluster-basic-with-ipv6"
+      project = "defaultproject"
+    }
+    spec {
+      type              = "eks"
+      blueprint         = "minimal"
+      cloud_provider    = "aws"
+      cni_provider      = "aws-cni"
+      proxy_config      = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "ekscluster-basic-with-ipv6"
+      region  = "us-west-2"
+      version = "1.31"
+    }
+    kubernetes_network_config {
+      ip_family = "IPv6"
+    }
+    iam {
+     with_oidc = true
+    }
+
+    vpc {
+      cluster_endpoints {
+        private_access = true
+        public_access  = true
+      }
+    }
+    managed_nodegroups {
+      name = "ng1"
+      instance_type      = "t3.medium"
+      desired_capacity   = 3
+      min_size           = 0
+      max_size           = 4
+      volume_size        = 80
+      volume_type        = "gp3"
+      version            = "1.31"
+    }
+    managed_nodegroups {
+      name = "ng2"
+      instance_type      = "t3.medium"
+      desired_capacity   = 2
+      min_size           = 0
+      max_size           = 3
+      volume_size        = 80
+      volume_type        = "gp3"
+      version            = "1.31"
+    }
+
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+    }
+    addons {
+      name = "coredns"
+      version = "latest"
+    }
+  }
+}
+```
+
+---
+
+Basic EKS cluster config with IPv6 as the IP family and map-based managed node groups
+
+```terraform
+resource "rafay_eks_cluster" "ekscluster-basic-with-ipv6" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "ekscluster-basic-with-ipv6"
+      project = "defaultproject"
+    }
+    spec {
+      type              = "eks"
+      blueprint         = "minimal"
+      cloud_provider    = "aws"
+      cni_provider      = "aws-cni"
+      proxy_config      = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "ekscluster-basic-with-ipv6"
+      region  = "us-west-2"
+      version = "1.31"
+    }
+    kubernetes_network_config {
+      ip_family = "IPv6"
+    }
+    iam {
+     with_oidc = true
+    }
+
+    vpc {
+      cluster_endpoints {
+        private_access = true
+        public_access  = true
+      }
+    }
+    managed_nodegroups_map = {
+      "ng1" = {
+        instance_type      = "t3.medium"
+        desired_capacity   = 3
+        min_size           = 0
+        max_size           = 4
+        volume_size        = 80
+        volume_type        = "gp3"
+        version            = "1.31"
+      },
+      "ng2" = {
+        instance_type      = "t3.medium"
+        desired_capacity   = 2
+        min_size           = 0
+        max_size           = 3
+        volume_size        = 80
+        volume_type        = "gp3"
+        version            = "1.31"
+      }
+    }
+
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+    }
+    addons {
+      name = "coredns"
+      version = "latest"
+    }
+  }
+}
+```
+
+---
+
+Advanced EKS cluster config with existing VPC & IAM.
+
+```terraform
+resource "rafay_eks_cluster" "eks-cluster-2" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-cluster-2"
+      project = "terraform"
+    }
+    spec {
+      type           = "eks"
+      blueprint      = "default"
+      blueprint_version = "1.13.0"
+      cloud_provider = "eks-role"
+      cni_provider   = "aws-cni"
+      proxy_config   = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-cluster-2"
+      region  = "us-west-2"
+      version = "1.31"
+    }
+    vpc {
+      subnets {
+        private {
+          name = "private-01"
+          id   = "private-subnet-id-0"
+        }
+        private {
+          name = "private-02"
+          id   = "private-subnet-id-0"
+        }
+        public {
+          name = "public-01"
+          id   = "public-subnet-id-0"
+        }
+        public {
+          name = "public-02"
+          id   = "public-subnet-id-0"
+        }
+      }
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+    }
+    managed_nodegroups {
+      name       = "managed-ng-1"
+      ami_family = "AmazonLinux2"
+      iam {
+        instance_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/role_name"
+      }
+      instance_type    = "m5.xlarge"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      security_groups {
+        attach_ids = ["sg-id-1", "sg-id-2"]
+      }
+      subnets = ["subnet-id-1", "subnet-id-2"]
+      version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      volume_iops      = 3000
+      volume_throughput = 125
+      private_networking = true
+      node_repair_config = {
+        enabled = true
+      }
+    }
+  }
+}
+```
+
+---
+
+EKS cluster with node repair, zonal shift, and auto zonal shift.
+
+```terraform
+resource "rafay_eks_cluster" "eks_with_repair_and_zonal_shift" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-repair-zonal-shift"
+      project = "terraform"
+    }
+    spec {
+      type              = "eks"
+      blueprint         = "default"
+      blueprint_version = "Latest"
+      cloud_provider    = "eks-role"
+      cni_provider      = "aws-cni"
+      proxy_config      = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-repair-zonal-shift"
+      region  = "us-west-2"
+      version = "1.32"
+    }
+    managed_nodegroups_map = {
+      "ng-with-repair" = {
+        ami_family         = "AmazonLinux2"
+        instance_type      = "t3.large"
+        desired_capacity   = 2
+        min_size           = 1
+        max_size           = 2
+        version            = "1.32"
+        volume_size        = 80
+        volume_type        = "gp3"
+        private_networking = true
+
+        node_repair_config = {
+          enabled                                 = true
+          max_unhealthy_node_threshold_percentage = 40
+          max_parallel_nodes_repaired_percentage  = 25
+
+          node_repair_config_overrides = [
+            {
+              node_monitoring_condition = "NodeNotReady"
+              node_unhealthy_reason     = "KubeletNotReady"
+              min_repair_wait_time_mins = 20
+              repair_action = "Replace"
+            },
+            {
+              node_monitoring_condition = "NodeNotReady"
+              node_unhealthy_reason     = "NetworkUnavailable"
+              min_repair_wait_time_mins = 10
+              repair_action = "Replace"
+            },
+            {
+              node_monitoring_condition = "NodeNotReady"
+              node_unhealthy_reason     = "MemoryPressure"
+              min_repair_wait_time_mins = 10
+              repair_action = "Replace"
+            }
+          ]
+        }
+      }
+    }
+
+    zonal_shift_config {
+      enabled = true
+    }
+
+    auto_zonal_shift_config {
+      enabled         = true
+      outcome_alarms  = ["arn:aws:cloudwatch:us-west-2:123456789012:alarm:outcome-alarm-name"]
+      blocking_alarms = ["arn:aws:cloudwatch:us-west-2:123456789012:alarm:blocking-alarm-name"]
+      allowed_windows = ["Sat:02:00-Sat:06:00"]
+    }
+
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
+      }
+    }
+  }
+}
+```
+
+---
+
+EKS config with custom CNI and identity mappings.
+
+```terraform
+resource "rafay_eks_cluster" "eks-cluster-3" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-cluster-3"
+      project = "terraform"
+    }
+    spec {
+      type           = "eks"
+      blueprint      = "default"
+      blueprint_version = "1.13.0"
+      cloud_provider = "eks-role"
+      cni_provider   = "aws-cni"
+      cni_params {
+        custom_cni_crd_spec {
+          name = "us-west-2a"
+          cni_spec {
+            security_groups = ["sg-xxxxxx", "sg-yyyyyy"]
+            subnet = "subnet-zzz"
+          }
+          cni_spec {
+            security_groups = ["sg-cccccc", "sg-dddddd"]
+            subnet = "subnet-kkk"
+          }
+        }
+        custom_cni_crd_spec {
+          name = "us-west-2b"
+          cni_spec {
+            security_groups = ["sg-aaaaaa", "sg-xxxxxx"]
+            subnet = "subnet-qqq"
+          }
+          cni_spec {
+            security_groups = ["sg-cccccc", "sg-dddddd"]
+            subnet = "subnet-www"
+          }
+        }
+      }
+      proxy_config   = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-cluster-1"
+      region  = "us-west-2"
+      version = "1.21"
+    }
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
+      }
+    }
+    identity_mappings{
+      arns {
+        arn = "arn:aws:iam::xxxxxxxxxxxx:user1/user1-access-role"
+        group = ["system:masters"]
+        username = "test1"
+      }
+      accounts = ["xxxxxxxxxxxx","yyyyyyyyyyyyy"]
+    }
+    node_groups {
+      name       = "ng-1"
+      ami_family = "AmazonLinux2"
+      iam {
+        iam_node_group_with_addon_policies {
+          image_builder = true
+          auto_scaler   = true
+        }
+      }
+      instance_type    = "m5.xlarge"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      private_networking = true
+    }
+  }
+}
+```
+
+---
+
+Basic EKS cluster with bottlerocket node
+
+```terraform
+resource "rafay_eks_cluster" "eks-cluster-1" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-cluster-bottlerocket-1"
+      project = "terraform"
+    }
+    spec {
+      type           = "eks"
+      blueprint      = "default"
+      cloud_provider = "eks-role"
+      cni_provider   = "aws-cni"
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-cluster-bottlerocket-1"
+      region  = "us-west-2"
+      version = "1.25"
+    }
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
+      }
+    }
+
+    managed_nodegroups {
+      name = "ng-1"
+      ami_family = "AmazonLinux2"
+      instance_type = "t3.medium"
+      desired_capacity = 1
+      min_size = 1
+      max_size = 2
+      version = "1.25"
+      volume_size = 80
+      volume_type = "gp3"
+    }
+
+    managed_nodegroups {
+      name = "ng-2"
+      instance_type      = "t3.medium"
+      desired_capacity   = 2
+      min_size           = 0
+      max_size           = 2
+      volume_size        = 80
+      volume_type        = "gp3"
+      version            = "1.25"
+      ami_family = "bottlerocket"
+      bottle_rocket {
+        enable_admin_container = true
+        settings = jsonencode(
+          {
+            "kubernetes" = {
+              "allowed-unsafe-sysctls" = ["net.ipv4.tcp_keepalive_time"]
+              "max-pods" = 72
+            }
+          }
+        )
+      }
+    }
+  }
+}
+```
+
+Basic EKS cluster with cross account role setup and managed addons with customisations
+
+```terraform
+resource "rafay_eks_cluster" "eks-cluster-1" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-cluster-1"
+      project = "terraform"
+    }
+    spec {
+      type           = "eks"
+      blueprint      = "default"
+      cloud_provider = "eks-role"
+      cross_account_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/cross-account-role"
+      cni_provider   = "aws-cni"
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-cluster-1"
+      region  = "us-west-2"
+      version = "1.28"
+    }
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
+      }
+    }
+
+    managed_nodegroups {
+      name = "ng-1"
+      ami_family = "AmazonLinux2"
+      instance_type = "t3.medium"
+      desired_capacity = 1
+      min_size = 1
+      max_size = 2
+      version = "1.25"
+      volume_size = 80
+      volume_type = "gp3"
+    }
+
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+      configuration_values = "{\"enableNetworkPolicy\":\"true\"}"
+      service_account_role_arn = "arn:aws:iam::account:role/AmazonEKSCNIAccess"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+      configuration_values = "{\"replicaCount\":3}"
+      attach_policy {
+        version = "2012-10-17"
+        statement {
+            effect = "Allow"
+            action = ["sts:AssumeRole"]
+            resource = "*"
+            condition = jsonencode(
+            {
+              StringEquals = {
+                "ec2:CreateAction" = [
+                  "CreateVolume",
+                  "CreateSnapshot"
+                ]
+              }
+            }
+            )
+        }
+    }
+    }
+    addons {
+      name = "coredns"
+      version = "v1.11.1-eksbuild.6"
+      attach_policy_v2 = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Effect   = "Allow"
+            NotAction   = "ec2:Describe*"
+            Resource = "*"
+            Condition = {
+              StringEquals = {
+                "username" : "johndoe"
+              }
+            }
+          }
+        ]
+      })
+    }
+
+    addons {
+      name = "aws-ebs-cs-driver"
+      version = "latest"
+
+      tags = {
+            "key" = "value"
+        }
+     }
+
+  }
+}
+```
+
+Usage for attach_policy_v2
+
+  The policy document can be assigned to the field attach_policy_v2. This takes the policy document in JSON string format. The field is applicable for `addons` and `nodegroup.iam`.
+
+  To prevent unexpected diffs, the policy document provided to attach_policy_v2 must be wrapped in the `jsonencode()` function.
+
+```terraform
+addons {
+  name = "coredns"
+  version = "latest"
+  attach_policy_v2 = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        NotAction   = "ec2:Describe*"
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "username" : "johndoe"
+          }
+        }
+      }
+    ]
+  })
+}
+```
+
+Basic EKS cluster with AccessEntry configured
+
+```terraform
+resource "rafay_eks_cluster" "eks-cluster-1" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-cluster-1"
+      project = "terraform"
+    }
+    spec {
+      type           = "eks"
+      blueprint      = "default"
+      blueprint_version = "1.13.0"
+      cloud_provider = "eks-role"
+      cni_provider   = "aws-cni"
+      proxy_config   = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-cluster-1"
+      region  = "us-west-2"
+      version = "1.21"
+    }
+    access_config {
+      authentication_mode = "API"
+      bootstrap_cluster_creator_admin_permissions = "true"
+      access_entries {
+        principal_arn = "arn:aws:iam::xxxxxxxxxxxx:user1/user1-access-role"
+        type         = "STANDARD"
+        access_policies {
+         policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
+          access_scope {
+            type = "cluster"
+          }
+        }
+      }
+      access_entries {
+        principal_arn = "arn:aws:iam::xxxxxxxxxxxx:user2/user1-access-role"
+        type         = "STANDARD"
+        access_policies {
+         policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope {
+            type = "cluster"
+          }
+        }
+        tags = {
+          "env" = "dev"
+        }
+      }
+    }
+    iam {
+      service_accounts {
+        attach_policy = jsonencode({
+	        "Version": "2012-10-17",
+	        "Statement": [
+	          {
+	            "Effect": "Allow",
+	            "Action": "ec2:Describe*",
+	            "Resource": "*"
+	          },
+	          {
+	            "Effect": "Allow",
+	            "Action": "ec2:AttachVolume",
+	            "Resource": "*"
+	          },
+	          {  
+	            "Effect": "Allow",
+	            "Action": "ec2:DetachVolume",
+	            "Resource": "*"
+	          },
+	          {
+	            "Effect": "Allow",
+	            "Action": ["ec2:*"],
+	            "Resource": ["*"]
+          	    },
+	          {
+	            "Effect": "Allow",
+	            "Action": ["elasticloadbalancing:*"],
+	            "Resource": ["*"]
+	           }
+	         ]
+	      })
+      }
+    }
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
+      }
+    }
+    node_groups {
+      name       = "ng-1"
+      ami_family = "AmazonLinux2"
+      iam {
+        iam_node_group_with_addon_policies {
+          image_builder = true
+          auto_scaler   = true
+        }
+      }
+      instance_type    = "m5.xlarge"
+      desired_capacity = 1
+      min_size         = 1
+      max_size         = 2
+      max_pods_per_node = 50
+      version          = "1.21"
+      volume_size      = 80
+      volume_type      = "gp3"
+      private_networking = true
+    }
+  }
+    addons {
+      name = "vpc-cni"
+      version = "latest"
+    }
+    addons {
+      name = "kube-proxy"
+      version = "latest"
+
+    }
+    addons {
+      name = "coredns"
+      version = "latest"
+    }
+}
+```
+
+
+<!-- schema generated by tfplugindocs -->
+## Argument Reference 
+
+***Required***
+
+- `cluster` - (Block List, Max: 1) The cluster YAML file. (See [below for nested schema](#nestedblock--cluster))
+- `cluster_config` - (Block List, Max: 1) The cluster config YAML file. (See [below for nested schema](#nestedblock--cluster_config))
+
+***Optional*** 
+
+- `timeouts` - (Block, Optional) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
+
+
+<a id="nestedblock--cluster"></a>
+### Nested Schema for `cluster`
+
+***Required***
+
+- `spec` - (Block List, Max: 1) The specification associated with the cluster, including cluster networking options. (See [below for nested schema](#nestedblock--cluster--spec))
+- `kind` - (String) The type of resource. The supported value is `Cluster`.
+- `metadata` -(Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--cluster--metadata))
+
+
+<a id="nestedblock--cluster--spec"></a>
+### Nested Schema for `cluster.spec`
+
+***Required***
+
+- `blueprint` - (String) The blueprint associated with the cluster. A blueprint defines the configuration and policy. Use blueprints to help standardize cluster configurations. 
+- `blueprint_version` - (String) The blueprint version associated with the cluster. 
+- `cloud_provider` - (String) The cloud credentials provider used to create and manage the cluster. 
+- `cni_provider` - (String) The container network interface (CNI) provider used to specify different network connectivity options for the cluster. 
+- `type` - (String) The cluster type. The supported value is `eks`. 
+
+***Optional***
+
+- `proxy_config` - (Map of String) The proxy configuration for the cluster. Use this if the infrastructure uses an outbound proxy. 
+- `cni_params` - (Block List) The container network interface (CNI) parameters. (See [below for nested schema](#nestedblock--cluster.spec--cni_params))
+- `cross_account_role_arn` - (String) ARN of target cross account role. Use this to create the cluster resource in the target role account.
+- `sharing` - (Block List, Max: 1) The sharing configuration for the resource. A cluster can be shared with one or more projects. Note: If the resource is not shared, set enabled = false. (See [below for nested schema](#nestedblock--cluster--spec--sharing))
+- `system_components_placement` - (Block List, Max: 1) Configure tolerations and nodeSelector for Rafay system components. (See [below for nested schema](#nestedblock--cluster--spec--system_components_placement))
+
+<a id="nestedblock--cluster.spec--cni_params"></a>
+### Nested Schema for `cluster.spec.cni_params` 
+
+***Required***
+
+- `custom_cni_cidr` - (String) Secondary IPv4 CIDR block for the VPC. This is required for the auto create CNI option. 
+- `custom_cni_crd_spec` - (Block List) The custom container network interface custom resource definition specification. This is required for an existing CNI option. (See [below for nested schema](#nestedblock--cluster.spec--cni_params--custom_cni_crd_spec))
+
+
+<a id="nestedblock--cluster.spec--cni_params--custom_cni_crd_spec"></a>
+### Nested Schema for `cluster.spec.cni_params.custom_cni_crd_spec`
+
+***Required***
+
+- `cni_spec` - (Block List) The container network interface specifications. (See [below for nested schema](#nestedblock--cluster.spec--cni_params--custom_cni_crd_spec--cni_spec))
+- `name` - (String) The name of the Availability Zone (AZ). 
+
+
+<a id="nestedblock--cluster.spec--cni_params--custom_cni_crd_spec--cni_spec"></a>
+### Nested Schema for `cluster.spec.cni_params.custom_cni_crd_spec.cni_spec`
+
+***Required***
+
+- `subnet` - (String) The subnet for the CNI. 
+
+***Optional***
+
+- `security_groups` - (List of String) The security groups that belong to the CNI. 
+
+
+<a id="nestedblock--cluster--spec--sharing--projects"></a>
+### Nested Schema for `cluster.spec.sharing.projects`
+
+***Required***
+
+- `name` - (String) The name of the project to share the resource.
+
+
+<a id="nestedblock--cluster--spec--system_components_placement"></a>
+### Nested Schema for `cluster.spec.system_components_placement`
+
+***Optional***
+
+- `node_selector` - (Map of String) Key-Value pairs insuring pods to be scheduled on desired nodes.
+- `daemonset_override` - (Block List) Allows users to override the default behaviour of DaemonSet for specific nodes, enabling the addition of additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--cluster--spec--system_components_placement--daemonset_override))
+- `tolerations` - (Block List) Enables the kuberenetes scheduler to schedule pods with matching taints. (See [below for nested schema](#nestedblock--cluster--spec--system_components_placement--tolerations))
+
+
+<a id="nestedblock--cluster--spec--system_components_placement--daemonset_override"></a>
+### Nested Schema for `cluster.spec.system_components_placement.daemonset_override`
+
+***Optional***
+
+- `node_selection_enabled` - (Boolean) enables node selection
+- `tolerations` - (Block List) Additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--cluster--spec--system_components_placement--daemonset_override--tolerations))
+
+
+<a id="nestedblock--cluster--spec--system_components_placement--daemonset_override--tolerations"></a>
+### Nested Schema for `cluster.spec.system_components_placement.daemonset_override.tolerations`
+
+***Optional***
+
+- `effect` - (String) indicates the taint effect to match
+- `key` - (String) the taint key that the toleration applies to
+- `operator` - (String) represents a key's relationship to the value
+- `toleration_seconds` - (Number) represents the period of time the toleration tolerates the taint
+- `value` - (String) the taint value the toleration matches to
+
+
+<a id="nestedblock--cluster--spec--system_components_placement--tolerations"></a>
+### Nested Schema for `cluster.spec.system_components_placement.tolerations`
+
+***Optional***
+
+- `effect` - (String) indicates the taint effect to match
+- `key` - (String) the taint key that the toleration applies to
+- `operator` - (String) represents a key's relationship to the value
+- `toleration_seconds` - (Number) represents the period of time the toleration tolerates the taint
+- `value` - (String) the taint value the toleration matches to
+
+
+<a id="nestedblock--cluster--metadata"></a>
+### Nested Schema for `cluster.metadata`
+
+***Required***
+
+- `name` - (String) The name of the EKS cluster. This must be unique in your organization. 
+- `project` - (String) The name of the Rafay project the cluster will be created in. 
+
+***Optional***
+
+- `labels` - (Map of String) The labels for the cluster. 
+
+
+<a id="nestedblock--cluster_config"></a>
+### Nested Schema for `cluster_config`
+
+***Required***
+
+- `apiversion` - (String) The API version. The supported value is `rafay.io/v1alpha5`. 
+- `kind` - (String) The type of resource. The supported value is `ClusterConfig`.
+- `managed_nodegroups` - (Block List) The managed nodegroup attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups))
+- `metadata` - (Block List, Max: 1) The general information for the cluster. (See [below for nested schema](#nestedblock--cluster_config--metadata))
+- `node_groups` - (Block List) The nodegroup attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--node_groups))
+- `vpc` - (Block List) The virtual private cloud which is the global subnet and all child subnets. (See [below for nested schema](#nestedblock--cluster_config--vpc))
+
+<div style="border: 2px solid #448aff; background:#edf3ff; padding:12px; border-radius:6px; margin:12px 0;"> ✏️ <strong>Note</strong><br><br>
+
+At least <code>managed_nodegroups</code> or <code>node_groups</code> is required. You can add both.<br><br>
+
+The <code>managed_nodegroups</code> and <code>managed_nodegroups_map</code> are mutually exclusive attributes.<br><br>
+    
+The <code>node_groups</code> and <code>node_groups_map</code> are mutually exclusive attributes.<br><br>
+
+</div>
+
+<div style="border: 2px solid #448aff; background:#edf3ff; padding:12px; border-radius:6px; margin:12px 0;"> ✏️ <strong>Note</strong><br><br>
+
+Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster resource - Node group migration</a> guidelines page for migrating <code>node_groups</code>, <code>managed_nodegroups</code> to <code>node_groups_map</code>, <code>managed_nodegroups_map</code> respectively.<br><br>
+
+</div>
+
+
+***Optional***
+- `managed_nodegroups_map` - (Map of Objects) The managed nodegroups map attributes of a cluster. (See [managed_node_groups schema](#nestedblock--cluster_config--managed_nodegroups))
+- `node_groups_map` - (Map of Objects) The nodegroups map attributes of a cluster. (See [node_groups schema](#nestedblock--cluster_config--node_groups))
+
+- `kubernetes_network_config_map` - (Map of Objects) The cluster networking configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--kubernetes_network_config))
+- `availability_zones` - (List of String) The availability zones (AZ) of a cluster.
+- `cloud_watch` - (Block List, Max: 1) CloudWatch configuration for control plane logging. (See [below for nested schema](#nestedblock--cluster_config--cloud_watch))
+- `fargate_profiles` - (Block List) The settings used to schedule a workload onto AWS Fargate. (See [below for nested schema](#nestedblock--cluster_config--fargate_profiles))
+- `iam` - (Block List) The AWS identity and access management (IAM) attributes of a cluster. (See [below for nested schema](#nestedblock--cluster_config--iam))
+- `secrets_encryption` - (Block List) The Amazon EKS secrets encryption feature. (See [below for nested schema](#nestedblock--cluster_config--secrets_encryption))
+- `addons` - (Block List) The list of EKS managed addons to include in the cluster.(See [below for nested schema](#nestedblock--cluster_config--addons))
+- `identity_mappings` - (Block List) Identity Mapping feature helps the users to create a static mapping between IAM Users and Roles, and Kubernetes RBAC groups.(See [below for nested schema](#nestedblock--cluster_config--identity_mappings))
+- `access_config` - (Block List) Access Config controls how IAM principals can access this cluster. (See [below for nested schema](#nestedblock--cluster_config--access_config))
+- `addons_config` - (Block List)  support for managed addon related configurations. (See [below for nested schema](#nestedblock--cluster_config--addons_config))
+- `auto_mode_config` - (Block List) Configuration of EKS Auto Mode (See [below for nested schema](#nestedblock--cluster_config--auto_mode_config))
+- `zonal_shift_config` - (Block List) Zonal shift configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--zonal_shift_config))
+- `auto_zonal_shift_config` - (Block List) Auto zonal shift configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--auto_zonal_shift_config))
+
+<a id="nestedblock--cluster_config--kubernetes_network_config"></a>
+### Nested Schema for `cluster_config.kubernetes_network_config`
+
+***Optional***
+
+- `ip_family` - (String) Valid variants are: `IPv4` defines an IP family of v4 to be used when creating a new VPC and cluster., `IPv6` defines an IP family of v6 to be used when creating a new VPC and cluster. 
+- `service_ipv4_cidr` - (String) The CIDR block to assign Kubernetes pod and service IP addresses from. 
+
+
+<a id="nestedblock--cluster_config--metadata"></a>
+### Nested Schema for `cluster_config.metadata`
+
+***Required***
+
+- `name` - (String) The name of the EKS cluster. 
+- `region` - (String) The AWS region hosting the EKS cluster. 
+- `version` - (String) The cluster version. The supported values are: `1.18`, `1.19`, `1.20` (default), and `1.21`.
+
+***Optional***
+
+- `tags` - (Map of String) The AWS resource tags created by the vendor. 
+
+<a id="nestedblock--cluster_config--cloud_watch"></a>
+### Nested Schema for `cluster_config.cloud_watch`
+
+***Required***
+
+- `cluster_logging` - (Block List, Max:1) The config parameters related to cluster logging.  (See [below for nested schema](#nestedblock--cluster_config--cloud_watch--cluster_logging))
+
+<a id="nestedblock--cluster_config--cloud_watch--cluster_logging"></a>
+### Nested Schema for `cluster_config.cloud_watch.cluster_logging`
+
+***Required***
+
+- `enable_types` - (List of string) Types of logging to enable. Supported values are: `api`, `audit`, `authenticator`, `controllerManager`, `scheduler`, `all` and `*`
+- `log_retention_in_days` - (Number) Sets the number of days to retain the logs for. Supported values are: `1`, `3`, `5`, `7`, `14`, `30`, `60`, `90`, `120`, `150`, `180`, `365`, `400`, `545`, `731`, `1827`, and `3653`
+
+<a id="nestedblock--cluster_config--fargate_profiles"></a>
+### Nested Schema for `cluster_config.fargate_profiles`
+
+***Required***
+
+- `name` - (String) The name of the Fargate profile. 
+- `selectors` - (Block List, Min: 1) Defines the rules for selecting the workload to schedule onto Fargate. (See [below for nested schema](#nestedblock--cluster_config--fargate_profiles--selectors))
+
+***Optional***
+
+- `status` - (String) The current status of the Fargate profile.
+- `tags` - (Map of String) Used to tag the AWS resources. 
+
+
+
+<a id="nestedblock--cluster_config--fargate_profiles--selectors"></a>
+### Nested Schema for `cluster_config.fargate_profiles.selectors`
+
+***Required***
+
+- `labels` - (Map of String) The Kubernetes label selectors used to select the workload.
+- `namespace` - (String) The Kubernetes namespace from which to select workload. 
+
+
+
+<a id="nestedblock--cluster_config--iam"></a>
+### Nested Schema for `cluster_config.iam`
+
+***Optional***
+
+- `service_accounts` - (Block List) The service accounts to create in the cluster. (See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts))
+- `service_role_permission_boundary` - (String) - The service role permission bounadary policy ARN of the cluster.
+- `service_role_arn` - (String) The service role ARN of the cluster. 
+- `with_oidc` - (Boolean) Enables the IAM OpenID connect (OIDC) provider as well as the IAM roles for service accounts (IRSA) for the Amazon CNI plugin. 
+- `pod_identity_associations` - (Block List) The pod identity associations to create in the cluster.  (See [below for nested schema](#nestedblock--cluster_config--iam--pod_identity_associations))
+
+
+
+<a id="nestedblock--cluster_config--iam--service_accounts"></a>
+### Nested Schema for `cluster_config.iam.service_accounts`
+
+***Required***
+
+- `attach_policy` - (String) Holds a policy document to attach to the service account in json string format.
+- `attach_policy_arns` - (List of String) The list of ARNs of the IAM policies to attach to the service account. 
+- `attach_role_arn` - (String) The ARN of the role to attach to the service account.
+- `metadata` -(Block List) Contains data that helps uniquely identify the service account.See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts--metadata))
+- `well_known_policies` - (Block List) Use to attach common IAM policies. (See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts--well_known_policies))
+    **Note**: At least `attach_policy`, `attach_policy_arns`, or `attach_role_arn` is required. 
+
+***Optional*** 
+- `tags` - (Map of String) The AWS tags for the service account.
+
+
+<a id="nestedblock--cluster_config--iam--service_accounts--metadata"></a>
+### Nested Schema for `cluster_config.iam.service_accounts.metadata`
+
+***Required***
+
+- `name` - (String) The name of the service account. 
+- `namespace` - (String) The namespace of the service account. 
+
+***Optional***
+
+- `annotations` - (Map of String) The annotations for the service account. 
+- `labels` - (Map of String) The classless inter-domain routing (CIDR) range from which ClusterIPs are assigned.
+
+<a id="nestedblock--cluster_config--iam--service_accounts--well_known_policies"></a>
+### Nested Schema for `cluster_config.iam.service_accounts.well_known_policies`
+
+***Optional***
+
+- `auto_scaler` - (Boolean) Enables the policy for cluster-autoscaler. 
+- `aws_load_balancer_controller` - (Boolean) Adds policies for using the aws-load-balancer-controller.
+- `cert_manager` - (Boolean) Adds certificate manager policies.
+- `ebs_csi_controller` - (Boolean) Adds policies for using the ebs-csi-controller. 
+- `efs_csi_controller` - (Boolean) Adds policies for using the efs-csi-controller.
+- `external_dns` - (Boolean) Adds external-dns policies for Amazon Route 53.
+- `image_builder` - (Boolean) Allow full Elastic Container Registry (ECR) access.
+
+<a id="nestedblock--cluster_config--iam--pod_idenity_associations"></a>
+### Nested Schema for `cluster_config.iam.pod_identity_associations`
+
+***Required***
+
+- `permission_policy` - (String) Holds a policy document to attach to the service account in json string format.
+- `permission_policy_arns` - (List of String) The list of ARNs of the IAM policies to attach to the service account. 
+- `role_arn` - (String) The ARN of the role to attach to the service account.
+- `permission_boundary_arn` - (String) ARN of the permissions boundary to associate
+- `namespace` - (String) The namespace of the service account. 
+- `service_account_name` - (String) The name of the service account
+    **Note**: At least `permission_policy`, `permission_policy_arns`, or `role_arn` is required. 
+
+***Optional*** 
+- `tags` - (Map of String) The AWS tags for the service account.
+- `create_service_account` - (Bool) Enable flag to create service account
+- `role_name` - (String) User defined name for role
+- `well_known_policies` - (Block List) Use to attach common IAM policies. (See [below for nested schema](#nestedblock--cluster_config--iam--service_accounts--well_known_policies))
+
+<a id="nestedblock--cluster_config--addons"></a>
+### Nested Schema for `cluster_config.addons`
+
+***Required***
+
+- `name` - (String) Name of the EKS add-on. The name must match one of the names supported by Rafay. Supported addons: `vpc-cni`, `kube-proxy`, `coredns`, `aws-ebs-csi-driver`, `adot`, `aws-guardduty-agent`, `aws-efs-csi-driver`,`snapshot-controller`,`amazon-cloudwatch-observability`,`aws-mountpoint-s3-csi-driver`
+- `version` - (String) The version of the EKS add-on. The version must match one of the supported versions.
+
+***Optional***
+
+- `service_account_role_arn` - (String) The Amazon Resource Name (ARN) of an existing IAM role to bind to the add-on's service account. The role must be assigned the IAM permissions required by the add-on. If you don't specify an existing IAM role, then the add-on uses the permissions assigned to the node IAM role. 
+- `attach_policy_arns` - (List of String) The list of ARNs of the IAM policies to attach to the addon's service account. 
+- `attach_policy` - (Block List, Max: 1) Holds a policy document to attach to the service account (Deprecated)
+- `attach_policy_v2` - (String)  Holds a policy document in json format to attach to the addon role. Wrap policy inside jsonencode() function.
+- `permissions_boundary` - (String) ARN of the permissions boundary to associate
+- `well_known_policies` - (Block List) Use to attach common IAM policies.
+- `tags` - (Map of String) The AWS tags for the service account.
+- `configuration_values` - (String) custom configuration values for addons with single JSON string.
+- `use_default_pod_identity_associations` - (Bool) Flag to enable pod identity association by default
+- `pod_identity_associations` - (Block List) Configure pod identity association for the addon (See [below for nested schema](#nestedblock--cluster_config--iam--pod_identity_associations))
+
+<a id="nestedblock--cluster_config--addons_config"></a>
+### Nested Schema for `cluster_config.addons_config`
+
+***Optional***
+
+- `auto_apply_pod_identity_associations` - (Bool) Flag to auto apply pod identity associations to all managed addons
+- `disable_ebs_csi_driver` - (Bool) Flag to disable the deployment of aws-ebs-csi-driver addon
+
+<a id="nestedblock--cluster_config--auto_mode_config"></a>
+### Nested Schema for `cluster_config.auto_mode_config`
+
+***Required***
+- `enabled` - (Bool) Set to true to enabled EKS Auto Mode
+
+***Optional***
+
+- `node_role_arn` - (String) Role arn to be inherited by the nodepools, pass if you created a role beforehand
+- `node_pools` - (List of Strings) Select any from general-purpose and system. By Default both will be created
+
+<a id="nestedblock--cluster_config--zonal_shift_config"></a>
+### Nested Schema for `cluster_config.zonal_shift_config`
+
+***Optional***
+
+- `enabled` - (Boolean) Flag to enable or disable zonal shift for the cluster.
+
+<a id="nestedblock--cluster_config--auto_zonal_shift_config"></a>
+### Nested Schema for `cluster_config.auto_zonal_shift_config`
+
+***Optional***
+
+- `enabled` - (Boolean) Flag to enable or disable auto zonal shift for the cluster.
+- `allowed_windows` - (List of String) Allowed time windows for auto zonal shift (e.g. `Sat:02:00-Sat:06:00`).
+- `blocked_dates` - (List of String) Blocked dates for auto zonal shift.
+- `blocked_windows` - (List of String) Blocked time windows for auto zonal shift.
+- `blocking_alarms` - (List of String) ARNs of CloudWatch alarms that block auto zonal shift when in alarm state.
+- `outcome_alarms` - (List of String) ARNs of CloudWatch alarms used to report the outcome of auto zonal shift.
+
+<a id="nestedblock--cluster_config--access_config"></a>
+### Nested Schema for `cluster_config.access_config`
+
+***Optional***
+
+- `authentication_mode` - (String) Configure which source the cluster will use for authenticated IAM principals. API or API_AND_CONFIG_MAP (default) or CONFIG_MAP
+
+- `bootstrap_cluster_creator_admin_permissions` - (Boolean) Choose whether the IAM principal creating the cluster has Kubernetes cluster administrator access
+
+- `access_entries` - (Block List) The list of access entries for the cluster. (See [below for nested schema](#nestedblock--cluster_config--access_config--access_entries)) 
+
+<a id="nestedblock--cluster_config--access_config--access_entries"></a>
+### Nested Schema for `cluster_config.access_config.access_entries`
+
+- `principal_arn` - (String) The IAM principal that you want to grant access to Kubernetes objects on your cluster.
+
+- `tags` - (Map of String) The AWS tags for the access entry.
+
+- `type` - (String) Valid values EC2_LINUX, EC2_WINDOWS, FARGATE_LINUX or STANDARD.
+
+- `kubernetes_username` - (String) Username to map to the principal ARN. Valid only when type is STANDARD.
+
+- `kubernetes_groups` - (List of String) Set of Kubernetes groups to map to the principal ARN. Valid only when type is STANDARD.
+
+- `access_policies` - (Block List) The set of policies to associate with an access entry. (See [below for nested schema](#nestedblock--cluster_config--access_config--access_entries--access_policies)) 
+
+<a id="nestedblock--cluster_config--access_config--access_entries--access_policies"></a>
+
+### Nested Schema for `cluster_config.access_config.access_entries.access_policies`
+
+- `policy_arn` - (String) The ARN of the policy to attach to the access entry
+
+- `access_scope` - (Block List) It defines the scope of an access policy. (See [below for nested schema](#nestedblock--cluster_config--access_config--access_entries--access_policies--access_scope))
+
+<a id="nestedblock--cluster_config--access_config--access_entries--access_policies--access_scope"></a>
+
+### Nested Schema for `cluster_config.access_config.access_entries.access_policies.access_scope`
+
+- `type` - (String) Valid values are namespace or cluster
+
+- `namespaces` - (List of String) Scope access to namespace(s)
+
+
+<a id="nestedblock--cluster_config--identity_mappings"></a>
+### Nested Schema for `cluster_config.identity_mappings`
+
+***Optional***
+
+- `arns` - (Block List) List of user/role identity mappings.(See [below for nested schema](#nestedblock--cluster_config--identity_mappings--arns)) 
+
+- `accounts` - (List of String) List of AWS accounts to access
+
+
+<a id="nestedblock--cluster_config--identity_mappings--arns"></a>
+### Nested Schema for `cluster_config.identity_mappings.arns`
+
+***Required***
+
+- `arn` - (String) The role/user ARN that needs access
+- `group` - (List of String) The Kubernetes groups to be associated with user/role
+- `username`- (String) Unique name of the mapping
+
+
+<a id="nestedblock--cluster_config--secrets_encryption"></a>
+### Nested Schema for `cluster_config.secrets_encryption`
+
+***Required***
+
+- `key_arn` - (String) KMS key ARN. 
+
+***Optional***
+
+- `encrypt_existing_secrets` - (Boolean) Set to false to disable encrypting existing secrets. Default is False.
+
+
+<a id="nestedblock--cluster_config--managed_nodegroups"></a>
+### Nested Schema for `cluster_config.managed_nodegroups`
+
+***Required***
+
+- `ami_family` - (String) The AMI family. The supported values are: `AmazonLinux2`, `AmazonLinux2023` (default) , `Ubuntu2004`, `Ubuntu2404` , `UbuntuPro2404` , `Bottlerocket`, `WindowsServer2019CoreContainer`, `WindowsServer2019FullContainer`, and `WindowsServer2004CoreContainer`.
+- `desired_capacity` - (Number) The desired capacity of instances in the nodegroup.
+- `instance_type` - (String) The type of instances in the nodegroup. 
+- `max_size` - (Number) The maximum number of instances in the nodegroup. 
+- `min_size` - (Number) The minimum number of instances in the nodegroup. 
+- `name` - (String) The name of the node group. 
+- `volume_iops` - (Number) IOPS of the volume. Value must be in the range of 3000-16000.
+- `volume_throughput`- (Number) Throughput of the volume. Value must be in the range of 125-1000.
+- `volume_size` - (Number) The size of the volume, in gigabytes. 
+- `volume_type` - (String) The volume type for volumes attached to instances in the nodegroup. The supported values are: 
+    - `gp2` - General purpose SSD
+    - `gp3` - (Default) General purpose SSD which can be optimized for high throughput  
+    - `io1` - Provisioned IOPS SSD 
+    - `sc1` - Cold HDD
+    - `st1` - Throughput Optimized HDD
+
+***Optional***
+
+- `ami` - (String) Specify custom AMIs. The supported values are: `auto-ssm`, `auto`, and `static`.
+- `availability_zones` - (List of String) Limit nodes to specific AZs. 
+- `bottle_rocket` - (Block List) Configures Bottlerocket nodegroup settings. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--bottle_rocket))
+- `disable_imdsv1` - (Boolean) The metadata service to use IMDSv2 tokens. The default value is `false`
+- `disable_pods_imds` - (Boolean) Blocks all IMDS requests from non host networking pods. The default value is `false`
+- `iam` - (Block List) Holds all IAM attributes of a NodeGroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--iam))
+- `instance_name` - (String) For instances in the nodegroup. 
+- `instance_types` - (List of String) Specifies a list of instance types.
+- `labels` - (Map of String) The labels on nodes in the nodegroup. 
+- `max_pods_per_node` - (Number) The maximum pods per node. 
+- `private_networking` - (Boolean) Enables private networking for nodegroup. 
+- `security_groups` - (Block List) Controls security groups for this nodegroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--security_groups))
+- `spot` - (Boolean) Creates a spot nodegroup. 
+- `ssh` - (Block List) Configures SSH access for this nodegroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--ssh))
+- `subnets` - (List of String) Limits the nodes to specific subnets. 
+- `tags` - (Map of Strings) Applied to the Autoscaling Group and to the EC2 instances (For self managed nodegroups) and the EKS Nodegroup resource and to the EC2 instances (For managed nodegroups). 
+- `taints` - (List) Taints to apply to the nodegroup. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--taints))
+- `volume_encrypted` - (Boolean) Encrypts volumes attached to instances in the nodegroup. 
+- `volume_kms_key_id` - (String) The AWS KMS key used to encrypt data on the storage volume.
+- `volume_name` - (String) The name of the volume. 
+- `node_repair_config` - (Block List) Node repair configuration of the nodeGroup  (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--node_repair_config))
+
+<a id="nestedblock--cluster_config--managed_nodegroups--bottle_rocket"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.bottle_rocket`
+
+***Optional***
+
+- `enable_admin_container` - (Boolean) Enables the Bottlerocket admin container.
+- `settings` - (String) settings for  Bottlerocket node group. Use `jsonencode()` to pass valid settings configuration in json format. 
+
+<a id="nestedblock--cluster_config--managed_nodegroups--node_repair_config"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.node_repair_config`
+
+***Optional***
+
+- `enabled` - (Boolean) Enables node repair for the managed node group.
+- `max_parallel_nodes_repaired_count` - (Number) Maximum count of nodes that can be repaired in parallel.
+- `max_parallel_nodes_repaired_percentage` - (Number) Maximum percentage of nodes that can be repaired in parallel.
+- `max_unhealthy_node_threshold_count` - (Number) Maximum count of unhealthy nodes allowed before node repair is triggered.
+- `max_unhealthy_node_threshold_percentage` - (Number) Maximum percentage of unhealthy nodes allowed before node repair is triggered.
+- `node_repair_config_overrides` - (List of Object) Per-condition overrides for node repair behavior. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--node_repair_config--node_repair_config_overrides))
+
+<a id="nestedblock--cluster_config--managed_nodegroups--node_repair_config--node_repair_config_overrides"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.node_repair_config.node_repair_config_overrides`
+
+***Optional***
+
+- `node_monitoring_condition` - (String) The node monitoring condition for this override (e.g. NodeNotReady).
+- `node_unhealthy_reason` - (String) The node unhealthy reason for this override (e.g. KubeletNotReady, NetworkUnavailable, MemoryPressure).
+- `min_repair_wait_time_mins` - (Number) Minimum wait time in minutes before repair action is taken.
+- `repair_action` - (String) The repair action to take (e.g. Replace, Reboot).
+
+
+<a id="nestedblock--cluster_config--managed_nodegroups--iam"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.iam`
+
+***Optional***
+
+- `iam_node_group_with_addon_policies` - (Block List) Contains all of the IAM attributes for a nodegroup. (See [below for nested schema](#nestedblock--cluster_config--node_groups--iam--iam_node_group_with_addon_policies))
+- `instance_profile_arn` - (String) The instance profile for the ARNs. 
+- `instance_role_arn` - (String) The instance role for the ARNs.
+- `instance_role_permission_boundary` - (String) The instance role permission boundary policy ARN for the nodegroup.
+
+
+<a id="nestedblock--cluster_config--managed_nodegroups--security_groups"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.security_groups`
+
+***Optional***
+
+- `attach_ids` - (List of String) Attaches additional security groups to the nodegroup.
+
+
+<a id="nestedblock--cluster_config--managed_nodegroups--ssh"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.ssh`
+
+***Optional***
+
+- `allow` - (Boolean) If set to `true`, the SSH configuration provided is used. Otherwise it is ignored. Only one of the PublicKeyPath, PublicKey, and PublicKeyName can be configured. 
+- `enable_ssm` - (Boolean) Enables the ability to SSH onto nodes using SSM.
+- `public_key_name` - (String) The public key name, in EC2, to be added to the nodes SSH keychain. If `allow` is `false`, this value is ignored.
+
+<a id="nestedblock--cluster_config--managed_nodegroups--taints"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.taint`
+
+***Optional***
+
+- `effect` - (String) The effect of the taint. Supported values are: `NoExecute`, `NoSchedule`, and `PreferNoSchedule`.
+- `key` - (String) The key for the key/value pair for the taint.
+- `value` - (String) The value for the key/value pair for the taint.
+
+<a id="nestedblock--cluster_config--node_groups"></a>
+### Nested Schema for `cluster_config.node_groups`
+
+***Required***
+
+- `ami_family` - (String) The AMI family. The supported values are: `AmazonLinux2`, `AmazonLinux2023` (default) , `Ubuntu2004`, `Ubuntu2404` , `UbuntuPro2404` , `Bottlerocket`, `WindowsServer2019CoreContainer`, `WindowsServer2019FullContainer`, and `WindowsServer2004CoreContainer`.
+- `desired_capacity` - (Number) The desired capacity of instances in the nodegroup.
+- `instance_type` - (String) The type of instances in the nodegroup. 
+- `max_size` - (Number) The maximum number of instances in the nodegroup. 
+- `min_size` - (Number) The minimum number of instances in the nodegroup. 
+- `name` - (String) The name of the node group. 
+- `volume_size` - (Number) The size of the volume, in gigabytes.
+- `volume_type` - (String) The volume type for volumes attached to instances in the nodegroup. The supported values are: 
+    - `gp2` - General purpose SSD
+    - `gp3` - (Default) General purpose SSD which can be optimized for high throughput  
+    - `io1` - Provisioned IOPS SSD 
+    - `sc1` - Cold HDD
+    - `st1` - Throughput Optimized HDD
+
+***Optional***
+
+- `ami` - (String) Specify custom AMIs. The supported values are: `auto-ssm`, `auto`, and `static`.
+- `availability_zones` - (List of String) Limit nodes to specific AZs. 
+- `disable_imdsv1` - (Boolean) The metadata service to use IMDSv2 tokens. The default value is `false`
+- `disable_pods_imds` - (Boolean) Blocks all IMDS requests from non host networking pods. The default value is `false`
+- `iam` - (Block List) Holds all IAM attributes of a nodegroup (See [below for nested schema](#nestedblock--cluster_config--node_groups--iam))
+- `instance_name` - (String) For instances in the nodegroup.
+- `instances_distribution` - (Block List) Holds the configuration for spot instances. (See [below for nested schema](#nestedblock--cluster_config--node_groups--instances_distribution))
+- `labels` - (Map of String) The labels on nodes in the nodegroup.
+- `max_pods_per_node` - (Number) The Maximum pods per node. 
+- `private_networking` - (Boolean) Enables private networking for the nodegroup.
+- `security_groups` - (Block List) Controls security groups for this nodegroup. (See [below for nested schema](#nestedblock--cluster_config--node_groups--security_groups))
+- `ssh` - (Block List) Configures SSH access for this nodegroup. (See [below for nested schema](#nestedblock--cluster_config--node_groups--ssh))
+- `subnets` - (List of String) Limit nodes to specific subnets.
+- `tags` - (Map of Strings) Applied to the Autoscaling Group and to the EC2 instances (For self managed nodegroups) and the EKS Nodegroup resource and to the EC2 instances (For managed nodegroups).
+- `version` - (String) The Kubernetes version for the nodegroup. 
+- `volume_encrypted` - (Boolean) Encrypts volumes attached to instances in the nodegroup.
+- `volume_kms_key_id` - (String) The AWS KMS key used to encrypt data on the storage volume.
+- `volume_name` - (String) The name of the volume. 
+
+
+<a id="nestedblock--cluster_config--node_groups--iam"></a>
+### Nested Schema for `cluster_config.node_groups.iam`
+
+***Optional***
+
+- `iam_node_group_with_addon_policies` - (Block List) Contains all of the IAM attributes for a nodegroup. (See [below for nested schema](#nestedblock--cluster_config--node_groups--iam--iam_node_group_with_addon_policies))
+- `instance_profile_arn` - (String) The instance profile for the ARNs. 
+- `instance_role_arn` - (String) The instance role for the ARNs.
+- `instance_role_permission_boundary` - (String) The instance role permission boundary policy ARN for the nodegroup.
+- `attach_policy` - (Block List) Holds a policy document to attach to the nodegroup. (Deprecated)
+- `attach_policy_v2` - (String) Holds a policy document to attach to the nodegroup in json string format. Wrap policy inside jsonencode() function.
+
+
+
+<a id="nestedblock--cluster_config--node_groups--iam--iam_node_group_with_addon_policies"></a>
+### Nested Schema for `cluster_config.node_groups.iam.iam_node_group_with_addon_policies`
+
+***Optional***
+
+- `alb_ingress` - (Boolean) Enables access to the application load balancing (ALB) Ingress controller.
+- `auto_scaler` - (Boolean) Enables the IAM policy for cluster-autoscaler. 
+- `cloud_watch` - (Boolean) Enables access to CloudWatch. 
+- `ebs` - (Boolean) Enables the new Elastic Block Store Container Storage Interface (EBS CSI) driver.
+- `efs` - (Boolean) Enables full access to the Amazon Elastic File System (EFS).
+- `external_dns` (Boolean) Adds the external-dns project policies for Route 53.
+- `image_builder` - (Boolean) Allows for full Elastic Container Registry (ECR) access. For example, this is useful for building a CI server that needs to push images to ECR.
+
+<a id="nestedblock--cluster_config--node_groups--instances_distribution"></a>
+### Nested Schema for `cluster_config.node_groups.instances_distribution`
+
+***Optional***
+
+- `capacity_rebalance` - (Boolean) Enable capacity rebalancing for spot instances.
+- `instance_types` - (List of String) Enable admin container
+- `max_price` - (Number) Maximum bid price in USD
+- `on_demand_base_capacity` - (Number) base number of on-demand instances (non-negative)
+- `on_demand_percentage_above_base_capacity` - (Number) Range [0-100]
+- `spot_allocation_strategy` - (String) allocation strategy for spot instances. Valid values are capacity-optimized and lowest-price
+- `spot_instance_pools` - (Number) Range [0-20]
+
+
+
+<a id="nestedblock--cluster_config--node_groups--security_groups"></a>
+### Nested Schema for `cluster_config.node_groups.security_groups`
+
+***Optional***
+
+- `attach_ids` - (List of String) Attaches additional security groups to the nodegroup.
+
+
+
+<a id="nestedblock--cluster_config--node_groups--ssh"></a>
+### Nested Schema for `cluster_config.node_groups.ssh`
+
+***Optional***
+
+- `allow` - (Boolean) If set to `true`, the SSH configuration provided is used. Otherwise it is ignored. Only one of the PublicKeyPath, PublicKey, and PublicKeyName can be configured. 
+- `enable_ssm` - (Boolean) Enables the ability to SSH onto nodes using SSM.
+- `public_key_name` - (String) The public key name, in EC2, to be added to the nodes SSH keychain. If `allow` is `false`, this value is ignored.
+
+
+
+<a id="nestedblock--cluster_config--vpc"></a>
+### Nested Schema for `cluster_config.vpc`
+
+***Optional***
+
+- `cidr` - (String) An IP address in CIDR notation. 
+- `cluster_endpoints` - (Block List) Use to manage access to the Kubernetes API server endpoints. (See [below for nested schema](#nestedblock--cluster_config--vpc--cluster_endpoints))
+- `nat` - (Block List) The NAT configuration. (See [below for nested schema](#nestedblock--cluster_config--vpc--nat))
+- `public_access_cidrs` - (List of String) Which CIDR blocks to allow access to public a Kubernetes API endpoints. 
+- `security_group` - (String) This is the `ControlPlaneSecurityGroup` for communication between control the plane and nodes.
+- `subnets` - (Block List) The subnets are keyed by AZ for convenience. (See [below for nested schema](#nestedblock--cluster_config--vpc--subnets))
+- `ipv6_cidr` - (String) Specify a range of IPv6 addresses in CIDR notation.
+- `ipv6_pool` - (String) Specify pool ID of the IPv6 address pool.
+
+
+
+<a id="nestedblock--cluster_config--vpc--cluster_endpoints"></a>
+### Nested Schema for `cluster_config.vpc.cluster_endpoints`
+
+***Optional***
+
+- `private_access` - (Boolean) Enables private access to the Kubernetes API server endpoints.
+- `public_access` - (Boolean) Enables public access to the Kubernetes API server endpoints.
+
+
+
+<a id="nestedblock--cluster_config--vpc--nat"></a>
+### Nested Schema for `cluster_config.vpc.nat`
+
+***Required***
+
+- `gateway` - (String) Use a network address translation (NAT) gateway to allow instances in a private subnet to connect to services outside the VPC, but not allow external services to initiate connections with those instances. The supported values are: 
+  - `HighlyAvailable` - Configures a highly available NAT gateway.
+  - `Single` - (Default) Configures a single NAT gateway.
+  - `Disable` - Disables the NAT.
+
+
+
+<a id="nestedblock--cluster_config--vpc--subnets"></a>
+### Nested Schema for `cluster_config.vpc.subnets`
+
+***Optional***
+
+- `private` - (Block List) Holds the subnet to AZ mappings. If the key is an AZ, that also becomes the name of the subnet. Otherwise use the key to refer to this subnet. (See [below for nested schema](#nestedblock--cluster_config--vpc--subnets--private))
+- `public` - (Block List) Holds the subnet to AZ mappings. If the key is an AZ, that also becomes the name of the subnet. Otherwise use the key to refer to this subnet. (See [below for nested schema](#nestedblock--cluster_config--vpc--subnets--public))
+
+
+
+<a id="nestedblock--cluster_config--vpc--subnets--private"></a>
+### Nested Schema for `cluster_config.vpc.subnets.private`
+
+***Required***
+
+- `id` - (String) The ID of the subnet. 
+- `name` - (String) The name of the subnet. 
+
+
+<a id="nestedblock--cluster_config--vpc--subnets--public"></a>
+### Nested Schema for `cluster_config.vpc.subnets.public`
+
+***Required***
+
+- `id` - (String) The ID of the subnet. 
+- `name` - (String) The name of the subnet. 
+
+
+<a id="nestedblock--timeouts"></a>
+### Nested Schema for `timeouts`
+
+***Optional***
+
+- `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes.
+- `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes.
+- `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes.
+
+---
+
+
+## Attribute Reference
+
+- `id` - (String) The ID of the resource, generated by the system after you create the resource.
+
+
+
+{{- if .HasImport}}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{codefile "shell" .ImportFile}}
+{{- end}}

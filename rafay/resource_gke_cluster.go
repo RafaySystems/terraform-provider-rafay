@@ -28,6 +28,7 @@ import (
 
 func resourceGKEClusterV3() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages a GKE (Google Kubernetes Engine) cluster lifecycle in the Rafay platform.",
 		CreateContext: resourceGKEClusterV3Create,
 		ReadContext:   resourceGKEClusterV3Read,
 		UpdateContext: resourceGKEClusterV3Update,

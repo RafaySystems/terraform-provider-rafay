@@ -20,6 +20,7 @@ import (
 
 func dataGroupAssociation() *schema.Resource {
 	return &schema.Resource{
+		Description: "Reads the association between a group and projects with roles in the Rafay platform.",
 		ReadContext: dataGroupAssociationRead,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -29,32 +30,37 @@ func dataGroupAssociation() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"group": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "Name of the group.",
 			},
 			"project": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "Name of the project the group is associated with.",
 			},
 			"roles": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "List of built-in roles assigned to the group for this project.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"custom_roles": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "List of custom roles assigned to the group for this project.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"namespaces": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "List of namespaces the group has access to within the project.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -62,18 +68,20 @@ func dataGroupAssociation() *schema.Resource {
 			"idp_user": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "IDP users vs Local users",
+				Description: "Whether users are IDP (identity provider) users vs local users.",
 			},
 			"add_users": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "List of usernames to add to the group.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"remove_users": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "List of usernames to remove from the group.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

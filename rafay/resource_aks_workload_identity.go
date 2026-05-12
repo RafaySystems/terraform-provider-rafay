@@ -26,6 +26,7 @@ const (
 
 func resourceAKSWorkloadIdentity() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.WorkloadIdentitySchema.Description,
 		CreateContext: resourceAKSWorkloadIdentityCreate,
 		ReadContext:   resourceAKSWorkloadIdentityRead,
 		UpdateContext: resourceAKSWorkloadIdentityUpdate,

@@ -14,6 +14,7 @@ import (
 
 func dataCloudCredentials() *schema.Resource {
 	return &schema.Resource{
+		Description: "Lists cloud credentials available in the Rafay platform.",
 		ReadContext: dataCloudCredentialsRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute),

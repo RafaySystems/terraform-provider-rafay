@@ -20,6 +20,7 @@ import (
 
 func resourceClusterSharingSingle() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages sharing of a single cluster to a specific project in the Rafay platform.",
 		CreateContext: resourceClusterSharingSingleCreate,
 		ReadContext:   resourceClusterSharingSingleRead,
 		UpdateContext: resourceClusterSharingSingleUpdate,

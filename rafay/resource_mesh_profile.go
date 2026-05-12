@@ -23,6 +23,7 @@ import (
 
 func resourceMeshProfile() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.MeshProfileSchema.Description,
 		CreateContext: resourceMeshProfileCreate,
 		ReadContext:   resourceMeshProfileRead,
 		UpdateContext: resourceMeshProfileUpdate,

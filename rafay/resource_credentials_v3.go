@@ -68,6 +68,7 @@ type AgentMeta struct {
 
 func resourceCredentials() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.CredentialsSchema.Description,
 		CreateContext: resourceCredentialsCreate,
 		ReadContext:   resourceCredentialsRead,
 		UpdateContext: resourceCredentialsUpdate,

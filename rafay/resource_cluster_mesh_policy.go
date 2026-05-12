@@ -24,6 +24,7 @@ import (
 
 func resourceClusterMeshPolicy() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ClusterMeshPolicySchema.Description,
 		CreateContext: resourceClusterMeshPolicyCreate,
 		ReadContext:   resourceClusterMeshPolicyRead,
 		UpdateContext: resourceClusterMeshPolicyUpdate,

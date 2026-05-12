@@ -32,6 +32,7 @@ const (
 
 func resourceCloudCredential() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages cloud credentials for connecting the Rafay platform to cloud providers such as AWS, Azure, and GCP.",
 		CreateContext: resourceCloudCredentialCreate,
 		ReadContext:   resourceCloudCredentialRead,
 		UpdateContext: resourceCloudCredentialUpdate,

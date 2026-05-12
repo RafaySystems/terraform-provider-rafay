@@ -20,6 +20,7 @@ import (
 
 func resourceConfigContext() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ConfigContextSchema.Description,
 		CreateContext: resourceConfigContextCreate,
 		ReadContext:   resourceConfigContextRead,
 		UpdateContext: resourceConfigContextUpdate,

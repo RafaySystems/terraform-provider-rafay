@@ -50,6 +50,7 @@ type ContainerRegistrySpecTranspose struct {
 
 func resourceContainerRegistry() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ContainerRegistrySchema.Description,
 		CreateContext: resourceContainerRegistryCreate,
 		ReadContext:   resourceContainerRegistryRead,
 		UpdateContext: resourceContainerRegistryUpdate,

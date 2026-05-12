@@ -53,6 +53,7 @@ type errorResponse struct {
 
 func resourceAKSCluster() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages an AKS (Azure Kubernetes Service) cluster lifecycle in the Rafay platform.",
 		CreateContext: resourceAKSClusterCreate,
 		ReadContext:   resourceAKSClusterRead,
 		UpdateContext: resourceAKSClusterUpdate,

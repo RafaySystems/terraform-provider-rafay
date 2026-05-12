@@ -26,6 +26,7 @@ var showArtifactFlag bool = false
 func ResourceAddon() *schema.Resource {
 	s := copySchemaMap(resource.AddonSchema.Schema)
 	return &schema.Resource{
+		Description:   resource.AddonSchema.Description,
 		CreateContext: resourceAddonCreate,
 		ReadContext:   resourceAddonRead,
 		UpdateContext: resourceAddonUpdate,

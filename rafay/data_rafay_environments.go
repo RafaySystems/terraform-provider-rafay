@@ -19,6 +19,7 @@ import (
 
 func dataRafayEnvironments() *schema.Resource {
 	return &schema.Resource{
+		Description: "Lists all environments in the Rafay platform.",
 		ReadContext: dataRafayEnvironmentRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute),

@@ -19,6 +19,7 @@ import (
 
 func dataFleetplanJob() *schema.Resource {
 	return &schema.Resource{
+		Description: "Reads a specific fleet plan job from the Rafay platform.",
 		ReadContext: dataFleetplanJobRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute),

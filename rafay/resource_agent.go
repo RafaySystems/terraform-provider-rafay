@@ -30,6 +30,7 @@ func resourceAgent() *schema.Resource {
 		Type:        schema.TypeString,
 	}
 	return &schema.Resource{
+		Description:   resource.AgentSchema.Description,
 		CreateContext: resourceAgentCreate,
 		ReadContext:   resourceAgentRead,
 		UpdateContext: resourceAgentUpdate,

@@ -24,6 +24,7 @@ import (
 
 func resourceGroupAssociation() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages the association between groups and projects with specific roles in the Rafay platform.",
 		CreateContext: resourceGroupAssociationCreate,
 		ReadContext:   resourceGroupAssociationRead,
 		UpdateContext: resourceGroupAssociationUpdate,

@@ -23,6 +23,7 @@ import (
 
 func resourceNamespaceMeshRule() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.NamespaceMeshRuleSchema.Description,
 		CreateContext: resourceNamespaceMeshRuleCreate,
 		ReadContext:   resourceNamespaceMeshRuleRead,
 		UpdateContext: resourceNamespaceMeshRuleUpdate,

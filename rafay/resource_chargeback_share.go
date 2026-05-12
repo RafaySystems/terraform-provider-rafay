@@ -22,6 +22,7 @@ import (
 
 func resourceChargebackShare() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ChargebackShareSchema.Description,
 		CreateContext: resourceChargebackShareCreate,
 		ReadContext:   resourceChargebackShareRead,
 		UpdateContext: resourceChargebackShareUpdate,

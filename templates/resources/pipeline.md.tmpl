@@ -1,0 +1,720 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "CI/CD & Automation"
+description: |-
+  {{.Description}}
+---
+
+# {{.Name}} ({{.Type}})
+
+Associates a pipeline with a project.
+
+## Example Usage
+
+Example of a pipeline with approval & workload deployment stage,
+
+```terraform
+resource "rafay_pipeline" "email-test" {
+  metadata {
+    name    = "email-test"
+    project = "terraform"
+  }
+  spec {
+    active = true
+    stages {
+      name = "email"
+      type = "Approval"
+      next {
+          name = "deploy-wk"
+      }
+      config {
+        approvers {
+          sso_user  = false
+          user_name = "username@email.com"
+        }
+        timeout = "2m0s"
+        type    = "Email"
+      }
+    }
+    stages {
+      name = "deploy-wk"
+      type = "DeployWorkload"
+      config {
+        use_revision_from_webhook_trigger_event = false
+        workload                                = "workload-name"
+      }
+    }
+    triggers {
+      type =  "Cron"
+      name = "trigger-name"
+      config {
+        cron_expression = "0 0 * * *"
+        repo {
+          provider = "Gitlab"
+          repository = "test1"
+          revision =  "main"
+          paths {
+              name = "project"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+Example of a pipeline with system-sync stage
+
+```terraform
+resource "rafay_pipeline" "sync-test" {
+  metadata {
+    name = "sync-test"
+    project = "terraform"
+  }
+  spec {
+    stages {
+      name =  "system-sync"
+      type = "SystemSync"
+      config  {
+        git_to_system_sync = true
+        included_resources {
+          name =  "Workload"
+        }
+        included_resources {
+          name =  "Namespace"
+        }
+        included_resources {
+          name =  "Pipeline"
+        }
+        excluded_resources {
+          name =  "Cluster"
+        }
+        source_repo {
+          repository = "test1"
+          revision =  "main"
+          path {
+             name = "project"
+          }
+        }
+        system_to_git_sync    = true
+        source_as_destination = true
+      }
+    }
+    triggers {
+      type =  "Webhook"
+      name = "trigger-name"
+      config {
+        repo {
+          provider = "AzureRepos"
+          repository = "test1"
+          revision =  "main"
+          paths {
+              name = "project"
+          }
+        }
+      }
+    }
+    sharing  {
+      enabled = true
+      projects {
+        name = "defaultproject"
+      }
+    }
+    active = true
+  }
+}
+```
+
+---
+
+Example of pipeline with worklaod template.
+
+```terraform
+resource "rafay_pipeline" "workload-test" {
+  metadata {
+    name = "workload-test"
+    project = "terraform"
+  }
+  spec {
+    active = true
+    stages {
+      name = "deploy-workload-template"
+      type = "DeployWorkloadTemplate"
+      config {
+        workload_template =  "workload_template_name"
+        namespace =  "main"
+        project_name      = "test-project"
+        workload_name     = "workload-nginx"
+        placement {
+          labels {
+            key = "rafay.dev/clusterName"
+            value = "CLUSTER_NAME"
+          }
+        }
+        use_revision_from_webhook_trigger_event = false
+        overrides {
+          type = "HelmValues"
+          template {
+            repository = "test1"
+            revision = "main"
+            paths {
+                name = "project1/overrides_values.yaml"
+            }
+          }
+          weight = 10
+        }
+        overrides {
+          type = "HelmValues"
+          template {
+              inline = "debug: {{ .currentStage.var1 }}"
+          }
+          weight = 20
+        }
+        overrides {
+          type = "HelmSetString"
+          template {
+              inline = "debug=override_values"
+          }
+          weight = 30
+        }
+      }
+      variables {
+          name = "var1"
+          type = "String"
+          value = "\"test\""
+      }
+    }
+    triggers {
+      type =  "Webhook"
+      name = "trigger-name"
+      config {
+        repo {
+          provider = "Github"
+          repository = "test1"
+          revision =  "main"
+          paths {
+              name = "project"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+Example of a pipeline with InfraProvisioner/Terraform stage.
+
+```terraform
+resource "rafay_pipeline" "infaprovisioner-test" {
+  metadata {
+    name = "infraprovisioner-test"
+    project = "cbre-stage-tf-0000"
+  }
+  spec {
+    active = true
+    stages {
+      name = "plan"
+      type = "InfraProvisioner"
+      next {
+        name = "apply"
+      }
+      config {
+        type        =  "Terraform"
+        provisioner =  "mks"
+        revision    =  "main"
+        agents {
+            name = "a1"
+        }
+        persist_working_directory = true
+        action {
+          action  = "Plan"
+          version = "1.0.0"
+          refresh = true
+          env_vars {
+            key   = "env1"
+            type  = "Plain"
+            value = "value1"
+          }
+        }
+      }
+    }
+    stages {
+      name = "apply"
+      type = "InfraProvisioner"
+      config {
+        type        =  "Terraform"
+        provisioner =  "mks"
+        revision    =  "main"
+        agents {
+            name = "a1"
+        }
+        working_directory = "plan"
+        action {
+          action = "Apply"
+          version = "1.0.0"
+          refresh = true
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+Example to run two stages (stage1 & stage2) in parrallel
+
+> Order of execution is decided by the `next` property. We can omit `next` to remove dependencies in between stages and run them in parrallel.
+
+```terraform
+resource "rafay_pipeline" "parallel-procesing-pipeline" {
+  metadata {
+    name        = "parallel-processing-pipeline"
+    project     = "terraform"
+  }
+  spec {
+    stages {
+      name = "stage1"
+      type = "DeployWorkload"
+      config {
+        workload = "workload1"
+      }
+    }
+    stages {
+      name = "stage2"
+      type = "DeployWorkload"
+      config {
+        workload = "workload2"
+      }
+    }
+  }
+}
+```
+
+<!-- schema generated by tfplugindocs -->
+
+## Argument Reference
+
+---
+
+**_Required_**
+
+- `metadata` (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata)).
+- `spec` (Block List, Max: 1) Defines the characteristics for the resource. This is the desired state for the resource. (See [below for nested schema](#nestedblock--spec)).
+
+**_Optional_**
+
+- `impersonate` (String) Impersonate a user.
+- `timeouts` (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts)).
+
+<a id="nestedblock--metadata"></a>
+
+### Nested Schema for `metadata`
+
+**_Required_**
+
+- `name` - (String) The name of the resource. This must be unique in your organization.
+- `project` - (String) The name of the Rafay project the pipeline will be associated with.
+
+<a id="nestedblock--spec"></a>
+
+### Nested Schema for `spec`
+
+**_Required_**
+
+- `stages` (Block List) The stages in the pipeline. (See [below for nested schema](#nestedblock--spec--stages)).
+
+**_Optional_**
+
+- `active` (Boolean) Enables the pipeline.
+- `sharing` (Block List, Max: 1) Pipeline sharing configuration. (See [below for nested schema](#nestedblock--spec--sharing)).
+- `triggers` (Block List) The triggers for the pipeline. (See [below for nested schema](#nestedblock--spec--triggers)).
+
+<a id="nestedblock--spec--stages"></a>
+
+### Nested Schema for `spec.stages`
+
+**_Required_**
+
+- `config` (Block List, Max: 1) The stage configuration. (See [below for nested schema](#nestedblock--spec--stages--config)).
+- `name` (String) The name of the pipeline stage.
+- `type` (String) The type of pipeline stage. Supported values are `Approval`, `DeployWorkload`, `DeployWorkloadTemplate`, `InfraProvisioner` and `SystemSync`
+- `next` (Block List) The name of stage to be executed after this stage. (See [below for nested schema](#nestedblock--spec--stages--next)).
+
+Note: `next` is required for multi stage pipeline.
+
+**_Optional_**
+
+- `variables` (Block List) The variables for the stage. (See [below for nested schema](#nestedblock--spec--stages--variables)).
+
+<a id="nestedblock--spec--stages--config"></a>
+
+### Nested Schema for `spec.stages.config`
+
+**_Required_**
+
+- `action` (Block List, Max: 1) The list of actions for the resource. (See [below for nested schema](#nestedblock--spec--stages--config--action)).
+- `provisioner` (String) The name of the infrastructure provisioner.
+- `approvers` (Block List) The list of approvers. (See [below for nested schema](#nestedblock--spec--stages--config--approvers)).
+- `git_to_system_sync` (Boolean) Enables synchronizing from the Git repository to the system.
+  (#nestedblock--spec--stages--config--placement)).
+- `source_repo` (Block List, Max: 1) The Git repository for syncing from Git to the system. (See [below for nested schema](#nestedblock--spec--stages--config--source_repo)).
+- `type` (String) The config type for supporred ations. Supported values are `Email` and `Terraform`
+- `workload` (String) The name of the workload.
+- `workload_template` (String) The name of the workload template.
+- `project_name` (String) Name of the project to deploy the workload in. Pipeline should be shared with the project being specified here.
+- `namespace` (String) The namespace the workload template should be deployed in.
+- `placement` (Block List, Max: 1) The placement for the workload template. (See [below for nested schema]
+
+**_Optional_**
+
+- `agents` (Block List) The list of agents to be used for provisioning. (See [below for nested schema](#nestedblock--spec--stages--config--agents)).
+- `working_directory` (String) The working directory for the provisioner.
+- `persist_working_directory` (Boolean) Enables persisting the working directory.
+- `revision` (String) The branch or tag for the Git repository used for the infrastructure provisioner.
+- `destination_repo` (Block List, Max: 1) The Git repository for syncing the system to Git. (See [below for nested schema](#nestedblock--spec--stages--config--destination_repo)).
+- `source_as_destination` (Boolean) Enables using the source repository as the destination repository.
+- `system_to_git_sync` (Boolean) Enables synchronizing from the system to the Git repository.
+- `excluded_resources` (Block List) The resources to exclude from syncing. (See [below for nested schema](#nestedblock--spec--stages--config--excluded_resources)).
+- `included_resources` (Block List) The resources to include for syncing. (See [below for nested schema](#nestedblock--spec--stages--config--included_resources)).
+- `timeout` (String) The timeout for the approval.
+- `use_revision_from_webhook_trigger_event` (Boolean) Enables deploying the workload using the revision received from the webhook trigger.
+- `workload_name` (String) Custom name to be given to the deployed workload. If left empty workload name will be automatically generated.
+- `overrides` (Block List) The overrides for the workload template. (See [below for nested schema](#nestedblock--spec--stages--config--overrides)).
+
+<a id="nestedblock--spec--stages--config--action"></a>
+
+### Nested Schema for `spec.stages.config.action`
+
+**_Required_**
+
+- `action` (String) The Terraform action. Supported values are `Plan`, `Apply` and `Destroy`
+
+**_Optional_**
+
+- `backend_file_path` (Block List, Max: 1) The backend file path. (See [below for nested schema](#nestedblock--spec--stages--config--action--backend_file_path)).
+- `backend_vars` (Block List) The backend variables. (See [below for nested schema](#nestedblock--spec--stages--config--action--backend_vars)).
+- `destroy` (Boolean) Enables destroying the resource.
+- `env_vars` (Block List) The list of environment variables. (See [below for nested schema](#nestedblock--spec--stages--config--action--env_vars)).
+- `input_vars` (Block List) The input variables for Terraform. (See [below for nested schema](#nestedblock--spec--stages--config--action--input_vars)).
+- `refresh` (Boolean) Enables refreshing the resource.
+- `secret_groups` (List of String) The list of pipeline secrets groups.
+- `targets` (Block List) The Terraform targets. (See [below for nested schema](#nestedblock--spec--stages--config--action--targets)).
+- `tf_vars_file_path` (Block List, Max: 1) The path to the Terraform variable file. (See [below for nested schema](#nestedblock--spec--stages--config--action--tf_vars_file_path)).
+- `version` (String) The Terraform version.
+
+<a id="nestedblock--spec--stages--config--action--backend_file_path"></a>
+
+### Nested Schema for `spec.stages.config.action.backend_file_path`
+
+**_Required_**
+
+- `name` (String) The relative path of the artifact.
+
+<a id="nestedblock--spec--stages--config--action--backend_vars"></a>
+
+### Nested Schema for `spec.stages.config.action.backend_vars`
+
+**_Required_**
+
+- `key` (String) The variable key.
+- `type` (String) The variable type. Supported values are `Plain` and `Secure`
+- `value` (String) The variable value.
+
+<a id="nestedblock--spec--stages--config--action--env_vars"></a>
+
+### Nested Schema for `spec.stages.config.action.env_vars`
+
+**_Required_**
+
+- `key` (String) The variable key.
+- `type` (String) The variable type. Supported values are `Plain` and `Secure`
+- `value` (String) The variable value.
+
+<a id="nestedblock--spec--stages--config--action--input_vars"></a>
+
+### Nested Schema for `spec.stages.config.action.input_vars`
+
+**_Required_**
+
+- `key` (String) The variable key.
+- `type` (String) The variable type. Supported values are `Plain` and `Secure`
+- `value` (String) The variable value.
+
+<a id="nestedblock--spec--stages--config--action--targets"></a>
+
+### Nested Schema for `spec.stages.config.action.targets`
+
+**_Required_**
+
+- `name` (String) The name of the Terraform target.
+
+<a id="nestedblock--spec--stages--config--action--tf_vars_file_path"></a>
+
+### Nested Schema for `spec.stages.config.action.tf_vars_file_path`
+
+**\*Required\*\***
+
+- `name` (String) The relative path of the artifact.
+
+<a id="nestedblock--spec--stages--config--agents"></a>
+
+### Nested Schema for `spec.stages.config.agents`
+
+**_Required_**
+
+- `name` (String) The name of the agent.
+
+<a id="nestedblock--spec--stages--config--approvers"></a>
+
+### Nested Schema for `spec.stages.config.approvers`
+
+**_Required_**
+
+- `user_name` (String) The user name of the approver.
+
+**_Optional_**
+
+- `sso_user` (Boolean) Enables specifying if the user is an SSO user.
+
+<a id="nestedblock--spec--stages--config--destination_repo"></a>
+
+### Nested Schema for `spec.stages.config.destination_repo`
+
+**_Required_**
+
+- `repository` (String) The name of the Git repository.
+- `revision` (String) The branch or tag in the Git repository.
+
+**_Optional_**
+
+- `path` (Block List, Max: 1) The relative folder path in the Git repo. (See [below for nested schema](#nestedblock--spec--stages--config--destination_repo--path)).
+
+<a id="nestedblock--spec--stages--config--destination_repo--path"></a>
+
+### Nested Schema for `spec.stages.config.destination_repo.path`
+
+**\*Required\*\***
+
+- `name` (String) The relative path of the artifact.
+
+<a id="nestedblock--spec--stages--config--excluded_resources"></a>
+
+### Nested Schema for `spec.stages.config.excluded_resources`
+
+**_Required_**
+
+- `name` (String) The name of the system sync resource. Supported values are `Blueprint`,`Workload`,`WorkloadTemplate`,`Override`,`Addon`,`Catalog`,`Namespace`,`Pipeline`,`InfraProvisioner`,`Agent`,`Repository`,`SecretSealer`,`SecretStore`,`OPAProfile`,`OPAConstraint`,`OPAConstraintTemplate`,`OPAPolicy`,`SecretProviderClass`,`NetworkPolicyProfile`,`ClusterNetworkPolicy`,`NamespaceNetworkPolicy`,`ClusterNetworkPolicyRule`,`NamespaceNetworkPolicyRule`,`MeshProfile`,`ClusterMeshPolicy`,`NamespaceMeshPolicy`,`ClusterMeshRule`,`NamespaceMeshRule` and `Cluster`.
+
+<a id="nestedblock--spec--stages--config--included_resources"></a>
+
+### Nested Schema for `spec.stages.config.included_resources`
+
+**_Required_**
+
+- `name` (String) The name of the system sync resource. Supported values are `Blueprint`,`Workload`,`WorkloadTemplate`,`Override`,`Addon`,`Catalog`,`Namespace`,`Pipeline`,`InfraProvisioner`,`Agent`,`Repository`,`SecretSealer`,`SecretStore`,`OPAProfile`,`OPAConstraint`,`OPAConstraintTemplate`,`OPAPolicy`,`SecretProviderClass`,`NetworkPolicyProfile`,`ClusterNetworkPolicy`,`NamespaceNetworkPolicy`,`ClusterNetworkPolicyRule`,`NamespaceNetworkPolicyRule`,`MeshProfile`,`ClusterMeshPolicy`,`NamespaceMeshPolicy`,`ClusterMeshRule`,`NamespaceMeshRule`,`Cluster` and `*`. Defaults to `*`
+
+Note: Same resource name can not be used for `included_resources` and `excluded_resources` in the same gitops pipeline.
+
+<a id="nestedblock--spec--stages--config--overrides"></a>
+
+### Nested Schema for `spec.stages.config.overrides`
+
+**_Required_**
+
+- `template` (Block List, Max: 1) The name of the override template. (See [below for nested schema](#nestedblock--spec--stages--config--overrides--template)).
+- `type` (String) The type of override template. Supportred values are `HelmValues` and `HelmSetString`
+
+**_Optional_**
+
+- `weight` (Number) The weight of the override. Overrides are applied low to high weight.
+
+<a id="nestedblock--spec--stages--config--overrides--template"></a>
+
+### Nested Schema for `spec.stages.config.overrides.template`
+
+**_Required_**
+
+- `inline` (String) The inline override template.
+
+Note: For override type `HelmSetSrting`, `inline` is required.
+
+- `paths` (Block List) The paths in the repository containing the override template. (See [below for nested schema](#nestedblock--spec--stages--config--overrides--template--paths)).
+- `repository` (String) The Git repository containing the override template.
+- `revision` (String) The branch or tag in the repository.
+
+Note: For override type `HelmValues`, `paths` `repository` `revision` are required.
+
+<a id="nestedblock--spec--stages--config--overrides--template--paths"></a>
+
+### Nested Schema for `spec.stages.config.overrides.template.paths`
+
+**_Required_**
+
+- `name` (String) The relative path of the artifact.
+
+<a id="nestedblock--spec--stages--config--placement"></a>
+
+### Nested Schema for `spec.stages.config.placement`
+
+**_Required_**
+
+- `labels` (Block List) The list of labels for the placement. (See [below for nested schema](#nestedblock--spec--stages--config--placement--labels)).
+
+<a id="nestedblock--spec--stages--config--placement--labels"></a>
+
+### Nested Schema for `spec.stages.config.placement.labels`
+
+**_Required_**
+
+- `key` (String) The key of the placement label.
+- `value` (String) The value of the placement label.
+
+<a id="nestedblock--spec--stages--config--source_repo"></a>
+
+### Nested Schema for `spec.stages.config.source_repo`
+
+**_Required_**
+
+- `repository` (String) The name of the Git repository.
+- `revision` (String) The branch or tag in the Git repository.
+
+**_Optional_**
+
+- `path` (Block List, Max: 1) The relative folder path in the Git repo. (See [below for nested schema](#nestedblock--spec--stages--config--source_repo--path)).
+
+<a id="nestedblock--spec--stages--config--source_repo--path"></a>
+
+### Nested Schema for `spec.stages.config.source_repo.path`
+
+**_Required_**
+
+- `name` (String) The relative path of the artifact.
+
+<a id="nestedblock--spec--stages--next"></a>
+
+### Nested Schema for `spec.stages.next`
+
+**_Required_**
+
+- `name` (String) The name of the next stage.
+
+<a id="nestedblock--spec--stages--variables"></a>
+
+### Nested Schema for `spec.stages.variables`
+
+**_Required_**
+
+- `name` (String) The name of the variable.
+- `type` (String) The type of the variable. Supported values are `String`, `Number`, `Boolean`, `Map`, `List`, `Time` and `Duration`
+- `value` (String) The value of the variable.
+
+<a id="nestedblock--spec--sharing"></a>
+
+### Nested Schema for `spec.sharing`
+
+**_Required_**
+
+- `enabled` (Boolean) Enables sharing for the resource.
+- `projects` (Block List) List of projects this resource is shared with. (See [below for nested schema](#nestedblock--spec--sharing--projects)).
+
+<a id="nestedblock--spec--sharing--projects"></a>
+
+### Nested Schema for `spec.sharing.projects`
+
+**_Required_**
+
+- `name` (String) The name of the project.
+
+<a id="nestedblock--spec--triggers"></a>
+
+### Nested Schema for `spec.triggers`
+
+**_Required_**
+
+- `config` (Block List, Max: 1) The configuration for the trigger. (See [below for nested schema](#nestedblock--spec--triggers--config)).
+- `name` (String) The name of the trigger.
+- `type` (String) The trigger type. Supported values are `Webhook` and `Cron`
+
+**_Optional_**
+
+- `variables` (Block List) The trigger scoped variables. (See [below for nested schema](#nestedblock--spec--triggers--variables)).
+
+<a id="nestedblock--spec--triggers--config"></a>
+
+### Nested Schema for `spec.triggers.config`
+
+**_Required_**
+
+- `cron_expression` (String) The cron expression for trigger.
+
+Note: For trigger type `Cron`, `cron_expression` is required.
+
+- `repo` (Block List, Max: 1) The repo for the trigger. (See [below for nested schema](#nestedblock--spec--triggers--config--repo)).
+
+<a id="nestedblock--spec--triggers--config--repo"></a>
+
+### Nested Schema for `spec.triggers.config.repo`
+
+**_Required_**
+
+- `provider` (String) The provider for the Git repo. Supported values are `Github`, `Gitlab`, `Bitbucket` and `AzureRepos`
+- `repository` (String) The name of the Git/Helm repository.
+- `revision` (String) The branch or tag in the Git repository to watch for changes.
+
+**_Optional_**
+
+- `chart_name` (String) The name of the chart in repo.
+- `chart_version` (String) The version of the chart in repo.
+
+Note: For triggers.config.repo.repository Helm, `chart_name` and `chart_version` are required.
+
+- `paths` (Block List) The paths in the Git repo to watch for changes. (See [below for nested schema](#nestedblock--spec--triggers--config--repo--paths)).
+
+<a id="nestedblock--spec--triggers--config--repo--paths"></a>
+
+### Nested Schema for `spec.triggers.config.repo.paths`
+
+**_Required_**
+
+- `name` (String) The relative path of the artifact.
+
+<a id="nestedblock--spec--triggers--variables"></a>
+
+### Nested Schema for `spec.triggers.variables`
+
+**_Required_**
+
+- `name` (String) The name of the variable.
+- `type` (String) The type of the variable. Supported values are `String`, `Number`, `Boolean`, `Map`, `List`, `Time` and `Duration`
+- `value` (String) The value of the variable.
+
+<a id="nestedblock--timeouts"></a>
+
+### Nested Schema for `timeouts`
+
+**_Optional_**
+
+- `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes.
+- `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes.
+- `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes.
+
+## Attribute Reference
+
+---
+
+- `id` - (String) The ID of the resource, generated by the system after you create the resource.
+- `status` - (Block List) This containts `webhook_url` and `webhook_secret` for the configured trigges in the pipeline. This can be configured in the repo for webhook.
+
+{{- if .HasImport}}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{codefile "shell" .ImportFile}}
+{{- end}}

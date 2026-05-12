@@ -19,6 +19,7 @@ import (
 
 func dataRafayNamespaces() *schema.Resource {
 	return &schema.Resource{
+		Description: "Lists all namespaces in the Rafay platform.",
 		ReadContext: dataRafayNamespaceRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute),

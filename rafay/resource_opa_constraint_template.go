@@ -24,6 +24,7 @@ import (
 
 func resourceOPAConstraintTemplate() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.OPAConstraintTemplateSchema.Description,
 		CreateContext: resourceOPAConstraintTemplateCreate,
 		ReadContext:   resourceOPAConstraintTemplateRead,
 		UpdateContext: resourceOPAConstraintTemplateUpdate,

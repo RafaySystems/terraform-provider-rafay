@@ -22,6 +22,7 @@ import (
 
 func resourceOrganizationAlertConfig() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.AlertConfigurationSchema.Description,
 		CreateContext: resourceOrganizationAlertConfigCreate,
 		ReadContext:   resourceOrganizationAlertConfigRead,
 		UpdateContext: resourceOrganizationAlertConfigUpdate,

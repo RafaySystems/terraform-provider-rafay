@@ -24,6 +24,7 @@ import (
 
 func resourceClusterNetworkPolicy() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ClusterNetworkPolicySchema.Description,
 		CreateContext: resourceClusterNetworkPolicyCreate,
 		ReadContext:   resourceClusterNetworkPolicyRead,
 		UpdateContext: resourceClusterNetworkPolicyUpdate,

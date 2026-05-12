@@ -23,6 +23,7 @@ import (
 
 func resourceClusterMeshRule() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ClusterMeshRuleSchema.Description,
 		CreateContext: resourceClusterMeshRuleCreate,
 		ReadContext:   resourceClusterMeshRuleRead,
 		UpdateContext: resourceClusterMeshRuleUpdate,

@@ -23,6 +23,7 @@ import (
 
 func resourceWorkflowHandler() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.WorkflowHandlerSchema.Description,
 		CreateContext: resourceWorkflowHandlerCreate,
 		ReadContext:   resourceWorkflowHandlerRead,
 		UpdateContext: resourceWorkflowHandlerUpdate,

@@ -54,6 +54,7 @@ func resourceNamespace() *schema.Resource {
 		Type:        schema.TypeString,
 	}
 	return &schema.Resource{
+		Description:   resource.NamespaceSchema.Description,
 		CreateContext: resourceNamespaceCreate,
 		ReadContext:   resourceNamespaceRead,
 		UpdateContext: resourceNamespaceUpdate,

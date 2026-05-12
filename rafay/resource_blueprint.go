@@ -48,6 +48,7 @@ func blueprintClient(m interface{}) (v3.BlueprintClient, error) {
 func ResourceBluePrint() *schema.Resource {
 	s := copySchemaMap(resource.BlueprintSchema.Schema)
 	return &schema.Resource{
+		Description:   resource.BlueprintSchema.Description,
 		CreateContext: resourceBluePrintCreate,
 		ReadContext:   resourceBluePrintRead,
 		UpdateContext: resourceBluePrintUpdate,

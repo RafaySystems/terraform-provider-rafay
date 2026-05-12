@@ -42,6 +42,7 @@ type infraProvisionerSpec struct {
 
 func resourceInfraProvisioner() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.InfraProvisionerSchema.Description,
 		CreateContext: resourceInfraProvisionerCreate,
 		ReadContext:   resourceInfraProvisionerRead,
 		UpdateContext: resourceInfraProvisionerUpdate,

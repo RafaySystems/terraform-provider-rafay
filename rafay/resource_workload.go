@@ -31,6 +31,7 @@ func resourceWorkload() *schema.Resource {
 		Type:        schema.TypeString,
 	}
 	return &schema.Resource{
+		Description:   resource.WorkloadSchema.Description,
 		CreateContext: resourceWorkloadCreate,
 		ReadContext:   resourceWorkloadRead,
 		UpdateContext: resourceWorkloadUpdate,

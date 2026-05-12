@@ -28,6 +28,7 @@ var FailOnExists bool = false
 
 func resourceProject() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ProjectSchema.Description,
 		CreateContext: resourceProjectCreate,
 		ReadContext:   resourceProjectRead,
 		UpdateContext: resourceProjectUpdate,

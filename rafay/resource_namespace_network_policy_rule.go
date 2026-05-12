@@ -24,6 +24,7 @@ import (
 
 func resourceNamespaceNetworkPolicyRule() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.NamespaceNetworkPolicyRuleSchema.Description,
 		CreateContext: resourceNamespaceNetworkPolicyRuleCreate,
 		ReadContext:   resourceNamespaceNetworkPolicyRuleRead,
 		UpdateContext: resourceNamespaceNetworkPolicyRuleUpdate,

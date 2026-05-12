@@ -18,6 +18,7 @@ import (
 
 func dataAKSClusterV3() *schema.Resource {
 	return &schema.Resource{
+		Description: resource.ClusterSchema.Description,
 		ReadContext: dataAKSClusterV3Read,
 
 		Timeouts: &schema.ResourceTimeout{

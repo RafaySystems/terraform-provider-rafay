@@ -16,6 +16,7 @@ import (
 
 func dataAgentDockerConfig() *schema.Resource {
 	return &schema.Resource{
+		Description: "Reads the Docker configuration for a Rafay agent.",
 		ReadContext: dataAgentDockerConfigRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute),
@@ -24,48 +25,59 @@ func dataAgentDockerConfig() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"project": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the Rafay project containing the agent.",
 			},
 			"agent_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the agent to retrieve Docker configuration for.",
 			},
 			"download_config_files": {
-				Type:     schema.TypeBool,
-				Required: true,
+				Type:        schema.TypeBool,
+				Required:    true,
+				Description: "Whether to download the configuration files to the local filesystem.",
 			},
 			"download_directory": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Directory path where configuration files will be downloaded. Defaults to the current directory.",
 			},
 			"docker_compose": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The Docker Compose file content for the agent.",
 			},
 			"config": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The relay configuration content for the agent.",
 			},
 			"agent_id_hash": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The hashed agent ID.",
 			},
 			"start_command": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The command to start the Docker agent.",
 			},
 			"stop_command": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The command to stop the Docker agent.",
 			},
 			"compose_file_name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The file name of the downloaded Docker Compose file.",
 			},
 			"config_file_name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The file name of the downloaded configuration file.",
 			},
 		},
 	}

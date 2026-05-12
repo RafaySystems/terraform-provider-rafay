@@ -23,6 +23,7 @@ import (
 
 func resourceBreakGlassAccess() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.BreakGlassAccessSchema.Description,
 		CreateContext: resourceBreakGlassAccessCreate,
 		ReadContext:   resourceBreakGlassAccessRead,
 		UpdateContext: resourceBreakGlassAccessUpdate,

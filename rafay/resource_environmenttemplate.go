@@ -22,6 +22,7 @@ import (
 
 func resourceEnvironmentTemplate() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.EnvironmentTemplateSchema.Description,
 		CreateContext: resourceEnvironmentTemplateCreate,
 		ReadContext:   resourceEnvironmentTemplateRead,
 		UpdateContext: resourceEnvironmentTemplateUpdate,

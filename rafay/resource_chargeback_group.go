@@ -22,6 +22,7 @@ import (
 
 func resourceChargebackGroup() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ChargebackGroupSchema.Description,
 		CreateContext: resourceChargebackGroupCreate,
 		ReadContext:   resourceChargebackGroupRead,
 		UpdateContext: resourceChargebackGroupUpdate,

@@ -18,6 +18,7 @@ import (
 
 func resourceGroup() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages a group in the Rafay platform for organizing users and controlling access.",
 		CreateContext: resourceGroupCreate,
 		ReadContext:   resourceGroupRead,
 		UpdateContext: resourceGroupUpdate,
@@ -35,13 +36,15 @@ func resourceGroup() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "Name of the group. Changing this forces creation of a new group.",
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Description of the group.",
 			},
 		},
 	}

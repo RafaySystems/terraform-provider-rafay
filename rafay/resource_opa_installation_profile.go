@@ -24,6 +24,7 @@ import (
 
 func resourceOPAInstallationProfile() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.OPAProfileSchema.Description,
 		CreateContext: resourceOPAInstallationProfileCreate,
 		ReadContext:   resourceOPAInstallationProfileRead,
 		UpdateContext: resourceOPAInstallationProfileUpdate,

@@ -23,6 +23,7 @@ import (
 
 func resourceSecretProvider() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.SecretProviderClassSchema.Description,
 		CreateContext: resourceSecretProviderCreate,
 		ReadContext:   resourceSecretProviderRead,
 		UpdateContext: resourceSecretProviderUpdate,

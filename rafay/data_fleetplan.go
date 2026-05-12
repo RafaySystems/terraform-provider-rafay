@@ -9,6 +9,7 @@ import (
 
 func dataFleetplan() *schema.Resource {
 	return &schema.Resource{
+		Description: resource.FleetPlanSchema.Description,
 		ReadContext: resourceFleetPlanRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute), // 10 minutes

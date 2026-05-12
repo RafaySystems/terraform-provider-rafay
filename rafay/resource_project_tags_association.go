@@ -23,6 +23,7 @@ import (
 
 func resourceProjectTagsAssociation() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ProjectTagsAssociationSchema.Description,
 		CreateContext: resourceProjectTagsAssociationCreate,
 		ReadContext:   resourceProjectTagsAssociationRead,
 		UpdateContext: resourceProjectTagsAssociationUpdate,

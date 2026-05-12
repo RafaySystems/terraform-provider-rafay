@@ -22,6 +22,7 @@ import (
 
 func resourceChargebackCommonServicesPolicy() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ChargebackCommonServicesPolicySchema.Description,
 		CreateContext: resourceChargebackCommonServicesPolicyCreate,
 		ReadContext:   resourceChargebackCommonServicesPolicyRead,
 		UpdateContext: resourceChargebackCommonServicesPolicyUpdate,

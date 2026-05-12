@@ -24,6 +24,7 @@ import (
 
 func resourceNamespaceMeshPolicy() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.NamespaceMeshPolicySchema.Description,
 		CreateContext: resourceNamespaceMeshPolicyCreate,
 		ReadContext:   resourceNamespaceMeshPolicyRead,
 		UpdateContext: resourceNamespaceMeshPolicyUpdate,

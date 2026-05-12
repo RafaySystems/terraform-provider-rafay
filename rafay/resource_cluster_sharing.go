@@ -22,6 +22,7 @@ import (
 
 func resourceClusterSharing() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages cluster sharing configuration, allowing clusters to be shared across multiple projects in the Rafay platform.",
 		CreateContext: resourceClusterSharingCreate,
 		ReadContext:   resourceClusterSharingRead,
 		UpdateContext: resourceClusterSharingUpdate,

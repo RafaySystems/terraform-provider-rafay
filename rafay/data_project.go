@@ -20,7 +20,7 @@ import (
 
 func dataProject() *schema.Resource {
 	return &schema.Resource{
-		Description: "The Project data source allows access to the Rafay Project resource",
+		Description: resource.ProjectSchema.Description,
 		ReadContext: dataProjectRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute),

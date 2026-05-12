@@ -20,6 +20,7 @@ import (
 
 func resourceStaticResource() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ResourceSchema.Description,
 		CreateContext: resourceStaticResourceCreate,
 		ReadContext:   resourceStaticResourceRead,
 		UpdateContext: resourceStaticResourceUpdate,

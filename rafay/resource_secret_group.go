@@ -23,6 +23,7 @@ import (
 
 func resourceSecretGroup() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.SecretGroupSchema.Description,
 		CreateContext: resourceSecretGroupCreate,
 		ReadContext:   resourceSecretGroupRead,
 		UpdateContext: resourceSecretGroupUpdate,

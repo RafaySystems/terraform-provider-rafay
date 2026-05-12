@@ -1,0 +1,329 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Namespaces"
+description: |-
+  {{.Description}}
+---
+
+# {{.Name}} ({{.Type}})
+
+Create a namespace resource.  Namespaces help different projects or teams share a Kubernetes cluster.
+
+## Example Usage
+
+---
+
+The following is a simple example that demonstrates the minimum data needed for creating a namespace.
+
+```terraform
+#Basic example for namespace
+resource "rafay_namespace" "tfdemonamespace" {
+  metadata {
+    name    = "tfdemonamespace"
+    project = "terraform"
+  }
+  spec {
+    drift {
+      enabled = false
+    }
+    placement {
+      labels {
+        key   = "rafay.dev/clusterName"
+        value = "tftestnamespace"
+      }
+    }
+  }
+}
+```
+
+---
+
+The following example demonstrates creating an advanced namespace, with limit ranges and resource quotas.
+
+```terraform
+#Namespace example with resource quotas & limit ranges
+resource "rafay_namespace" "cloudops" {
+	metadata {
+        name    = "cloudops"
+        project = "terraform"
+        labels = {
+            "env" = "prod"
+        }
+        annotations = {
+            "logging" = "enabled"
+        }
+    }
+    spec {
+        drift {
+            enabled = false
+        }
+        placement {
+            labels {
+            key   = "rafay.dev/clusterName"
+            value = "cluster_name"
+            }
+        }
+        resource_quotas {
+            config_maps = "10"
+            cpu_limits = "4000m"
+            memory_limits = "4096Mi"
+            cpu_requests = "2000m"
+            memory_requests = "2048Mi"
+            persistent_volume_claims = "2"
+            pods = "30"
+            replication_controllers = "5"
+            services = "10"
+            services_load_balancers = "10"
+            services_node_ports = "10"
+            storage_requests = "1Gi"
+            gpu_requests = "10"
+            gpu_limits = "10"
+            ephemeral_storage_limits = "250Mi"
+            ephemeral_storage_requests = "250Mi"
+        }
+
+        limit_range {
+            pod {
+                max {
+                    cpu  = "500m"
+                    memory = "128Mi"
+                }
+                min {
+                    cpu  = "250m"
+                    memory = "64Mi"
+                }
+                ratio {
+                    cpu    = 1
+                    memory = 1
+                }
+            }
+            container {
+                default {
+                    cpu  = "250m"
+                    memory = "64Mi"
+                }
+                default_request {
+                    cpu  = "250m"
+                    memory = "64Mi"
+                }
+
+                max {
+                    cpu  = "500m"
+                    memory = "128Mi"
+                }
+                min {
+                    cpu  = "250m"
+                    memory = "64Mi"
+                }
+                ratio {
+                    cpu    = 1
+                    memory = 1
+                }
+            }
+        }
+
+        network_policy_params {
+            network_policy_enabled = true
+            policies {
+                name    = "namespace_network_policy_name"
+                version = "v0"
+            }
+        }
+    }
+}
+
+```
+
+---
+
+
+## Argument Reference
+
+---
+***Required***
+- `metadata` - (Block List, Max: 1) Contains data that helps uniquely identify the resource. (See [below for nested schema](#nestedblock--metadata))
+- `spec` - (Block List, Max: 1) Defines the characteristics for the resource. This is the desired state for the resource. (See [below for nested schema](#nestedblock--spec))
+
+***Optional***
+
+- `timeouts` - (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. For create and update functions the timeout is set to 17 minutes and it is 10 minutes for delete and read. (See [below for nested schema](#nestedblock--timeouts))
+
+---
+
+<a id="nestedblock--metadata"></a>
+### Nested Schema for `metadata`
+
+***Required***
+- `name` - (String) The name of the resource. This must be unique in your organization.
+- `project` - (String) The name of the Rafay project the namespace will be created in.
+
+***Optional***
+- `annotations` - (Map) A key value map stored with the namespace that can be used to store metadata.
+- `labels` - (Map) A map of string keys and values for organizing and categorizing namespaces.
+
+
+---
+
+<a id="nestedblock--spec"></a>
+### Nested Schema for `spec`
+
+**Note**: `spec` cannot be an empty block.
+
+***Optional***
+
+- `drift` - (Block List, Max: 1) Prevents configuration drift. Drift is a change to your live cluster that is different from the source of truth.
+
+  **Note**: The only option is `false`. Drift configuration is currently not supported.
+
+- `limit_range` - (Block List, Max: 1) By default, containers can consume all available resources in a cluster. By setting limit ranges, containers can only consume as much CPU and memory that you set. (See [below for nested schema](#nestedblock--spec--limitrange))
+- `placement` - (Block List, Max: 1) Defines the cluster(s) where namespace will be created. (See [below for nested schema](#nestedblock--spec--placement))
+- `resource_quotas` - (Block List, Max: 1) Can limit the resource consumption per namespace. When multiple projects or teams need their own namespaces, the resource quota makes sure one namespace does not consume more than its fair share of the resources. (See [below for nested schema](#nestedblock--spec--resourcequotas))
+- `network_policy_params` (Block List, Max: 1) namespace network policy (see [below for nested schema](#nestedblock--spec--network_policy_params))
+
+
+<a id="nestedblock--spec--limitrange"></a>
+### Nested Schema for `spec.limit_range`
+
+***Optional***
+
+- `container` - (Block List, Max: 1) An image that contains the software and all of its dependencies. (See [below for nested schema](#nestedblock--spec--limitrange--container))
+- `pod` - (Block List, Max: 1) Represents a set of running containers on your cluster. (See [below for nested schema](#nestedblock--spec--limitrange--pod))
+
+    See the Kubernetes [Limit Ranges](https://kubernetes.io/docs/concepts/policy/limit-range/) documentation page for more information.
+
+<a id="nestedblock--spec--limitrange--container"></a>
+### Nested Schema for `spec.limit_range.container`
+
+***Optional***
+
+- `default` - (Block List, Max: 1) The default CPU and memory limit for a container, if not set in the pod spec file. (See [below for nested schema](#nestedblock--spec--limitrange--containermaxmin))
+- `default_request` - (Block List, Max: 1) The default CPU and memory request for a container, if not set in the pod spec file. (See [below for nested schema](#nestedblock--spec--limitrange--containermaxmin))
+- `max` - (Block List, Max: 1) The maximum amount of resources available to the container. (See [below for nested schema](#nestedblock--spec--limitrange--containermaxmin))
+- `min` - (Block List, Max: 1) The minimum amount of resources used by the container. (See [below for nested schema](#nestedblock--spec--limitrange--containermaxmin))
+- `ratio` - (Block List, Max: 1) The maximum limit-to-request ratio for the container. (See [below for nested schema](#nestedblock--spec--limitrange--containerratio))
+
+<a id="nestedblock--spec--limitrange--containermaxmin"></a>
+### Nested Schema for `spec.limit_range.container.default`, `spec.limit_range.container.default_request`, `spec.limit_range.container.max`, and `spec.limit_range.container.min`
+
+**Optional**
+
+- `cpu` - (String) The number of CPU threads.
+- `memory` - (String) The amount of memory, in gibibytes. A gigabyte is a close equivalent to a gibibyte.
+
+<a id="nestedblock--spec--limitrange--containerratio"></a>
+### Nested Schema for `spec.limit_range.container.ratio`
+
+***Optional***
+
+- `cpu` - (Float) The number of CPU threads.
+- `memory` - (Float) The amount of memory, in gibibytes. A gigabyte is a close equivalent to a gibibyte.
+
+<a id="nestedblock--spec--limitrange--pod"></a>
+### Nested Schema for `spec.limit_range.pod`
+
+***Optional***
+
+- `max` - (Block List, Max: 1) The maximum amount of resources available to the container. (See [below for nested schema](#nestedblock--spec--limitrange--podmaxmin))
+- `min` - (Block List, Max: 1) The minimum amount of resources used by the container. (See [below for nested schema](#nestedblock--spec--limitrange--podmaxmin))
+- `ratio` - (Block List, Max: 1) The maximum limit-to-request ratio for the container or pod. (See [below for nested schema](#nestedblock--spec--limitrange--podratio))
+
+<a id="nestedblock--spec--limitrange--podmaxmin"></a>
+### Nested Schema for `spec.limit_range.pod.max` and `spec.limit_range.pod.min`
+
+**Optional**
+
+- `cpu` - (String) The number of CPU threads.
+- `memory` - (String) The amount of memory, in gibibytes. A gigabyte is a close equivalent to a gibibyte.
+
+<a id="nestedblock--spec--limitrange--podratio"></a>
+### Nested Schema for `spec.limit_range.pod.ratio`
+
+***Optional***
+
+- `cpu` - (Float) The ratio between request and limit.
+- `memory` - (Float) The ratio between request and limit.
+
+<a id="nestedblock--spec--placement"></a>
+### Nested Schema for `spec.placement`
+
+***Optional***
+
+- `labels` - (Block List; Max: 1) A list of labels for the placement. (See [below for nested schema](#nestedblock--spec--placement--labels))
+
+
+
+<a id="nestedblock--spec--network_policy_params"></a>
+### Nested Schema for `spec.network_policy_params`
+
+Optional:
+
+- `network_policy_enabled` (Boolean) Network policy enabled flag
+- `policies` (Block List) name and version of namespace network policy (see [below for nested schema](#nestedblock--spec--network_policy_params--policies))
+
+<a id="nestedblock--spec--network_policy_params--policies"></a>
+### Nested Schema for `spec.network_policy_params.policies`
+
+Optional:
+
+- `name` (String) name of the resource
+- `version` (String) version of the resource
+
+
+<a id="nestedblock--spec--placement--labels"></a>
+### Nested Schema for `spec.placement.labels`
+
+***Optional***
+
+- `key` - (String) The key of the placement label.
+- `value` - (String) The value of the placement label.
+
+<a id="nestedblock--spec--resourcequotas"></a>
+### Nested Schema for `spec.resource_quotas`
+
+- `config_maps` - (String) The maximum number of configuration maps allowed in the cluster.
+- `cpu_limits` - (String) The maximum CPU resource.
+- `cpu_requests` - (String) The number of CPU threads.
+
+**Note**: For `cpu_limits` and `cpu_requests` specify units in millicores.
+- `memory_limits` - (String) The maximum memory resource.
+- `memory_requests` - (String) The amount of memory, in Mebibytes. A Megabyte is a close equivalent to a Mebibytes.
+
+**Note**: For `memory_limits` and `memory_requests` specify in multiples of 16 in Mebibyte (example 16Mi).
+- `persistent_volume_claims` - (String) The maximum number of persistent volume claims (PVC) allowed in the cluster.
+- `pods` - (String) The maximum number of pods allowed in the cluster.
+- `replication_controllers` - (String) The maximum number of replication controllers in the cluster.
+- `secrets` - (String) The maximum number of secrets in the cluster.
+- `services` - (String) The maximum number of services in the cluster.
+- `services_load_balancers` - (String) The number of load balancers.
+- `services_node_ports` - (String) The number of node ports.
+- `storage_requests` - (String) The size of the storage request in Gibibytes.
+- `gpu_limits` - (String) The maximum GPU resource.
+- `gpu_requests` - (String) The number of GPU requests.
+- `ephemeral_storage_limits` - (String) The maximum sum of all ephemeral storage limits from all pods in the namespace.
+- `ephemeral_storage_requests` - (String) The maximum sum of all ephemeral storage requests from all pods in the namespace.
+
+    See the Kubernetes [Resource Quotas](https://kubernetes.io/docs/concepts/policy/resource-quotas/) documentation page for more information.
+
+<a id="nestedblock--timeouts"></a>
+### Nested Schema for `timeouts`
+
+***Optional***
+- `create` - (String) Sets the timeout duration for creating a resource. The default timeout is 10 minutes.
+- `delete` - (String) Sets the timeout duration for deleting a resource. The default timeout is 10 minutes.
+- `update` - (String) Sets the timeout duration for updating a resource. The default timeout is 10 minutes.
+
+
+## Attribute Reference
+
+---
+
+- `id` - (String) The ID of the resource, generated by the system after you create the resource.
+
+{{- if .HasImport}}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{codefile "shell" .ImportFile}}
+{{- end}}

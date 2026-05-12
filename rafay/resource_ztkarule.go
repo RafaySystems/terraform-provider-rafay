@@ -26,6 +26,7 @@ var showZTKAArtifactFlag bool = false
 
 func resourceZTKARule() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ZTKARuleSchema.Description,
 		CreateContext: resourceZTKARuleCreate,
 		ReadContext:   resourceZTKARuleRead,
 		UpdateContext: resourceZTKARuleUpdate,

@@ -41,6 +41,7 @@ type clusterYamlConfig struct {
 
 func resourceAKSClusterSpec() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages an AKS cluster configuration specification in the Rafay platform.",
 		CreateContext: resourceAKSClusterSpecCreate,
 		ReadContext:   resourceAKSClusterSpecRead,
 		UpdateContext: resourceAKSClusterSpecUpdate,
@@ -55,29 +56,35 @@ func resourceAKSClusterSpec() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"yamlfilepath": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Path to the YAML file containing the AKS cluster specification.",
 			},
 			"yamlfileversion": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Version identifier for the YAML file. Changes to this value trigger an update.",
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the AKS cluster.",
 			},
 			"projectname": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the Rafay project for the cluster.",
 			},
 			"waitflag": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  1,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     1,
+				Description: "Flag to control whether to wait for cluster provisioning to complete.",
 			},
 			"checkdiff": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether to check for differences between the local YAML and the remote cluster configuration before applying.",
 			},
 		},
 	}

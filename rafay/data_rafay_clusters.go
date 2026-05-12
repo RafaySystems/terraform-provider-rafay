@@ -16,6 +16,7 @@ import (
 
 func dataRafayClusters() *schema.Resource {
 	return &schema.Resource{
+		Description: "Lists all clusters managed by the Rafay platform.",
 		ReadContext: dataRafayClusterRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute),

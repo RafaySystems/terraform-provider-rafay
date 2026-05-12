@@ -24,6 +24,7 @@ import (
 func resourceAgentPool() *schema.Resource {
 	modSchema := resource.AgentPoolSchema.Schema
 	return &schema.Resource{
+		Description:   "Manages an agent pool in the Rafay platform. Agent pools allow grouping agents for workload distribution.",
 		CreateContext: resourceAgentPoolCreate,
 		ReadContext:   resourceAgentPoolRead,
 		UpdateContext: resourceAgentPoolUpdate,

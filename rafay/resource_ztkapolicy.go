@@ -23,6 +23,7 @@ import (
 
 func resourceZTKAPolicy() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.ZTKAPolicySchema.Description,
 		CreateContext: resourceZTKAPolicyCreate,
 		ReadContext:   resourceZTKAPolicyRead,
 		UpdateContext: resourceZTKAPolicyUpdate,

@@ -29,6 +29,7 @@ const (
 
 func resourceFleetPlan() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.FleetPlanSchema.Description,
 		CreateContext: resourceFleetPlanCreate,
 		UpdateContext: resourceFleetPlanUpdate,
 		ReadContext:   resourceFleetPlanRead,

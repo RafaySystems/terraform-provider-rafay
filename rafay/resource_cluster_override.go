@@ -34,6 +34,7 @@ type clusterOverrideYamlConfig struct {
 
 func resourceClusterOverride() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages cluster-level overrides for blueprints in the Rafay platform.",
 		CreateContext: resourceClusterOverrideCreate,
 		ReadContext:   resourceClusterOverrideRead,
 		UpdateContext: resourceClusterOverrideUpdate,

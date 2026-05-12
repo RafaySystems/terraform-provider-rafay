@@ -23,6 +23,7 @@ import (
 
 func resourceTrigger() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages a trigger resource that can initiate actions such as cluster provisioning in the Rafay platform.",
 		CreateContext: resourceTriggerCreate,
 		ReadContext:   resourceTriggerRead,
 		UpdateContext: resourceTriggerUpdate,
@@ -37,12 +38,14 @@ func resourceTrigger() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"projectname": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the Rafay project in which to create the trigger.",
 			},
 			"trigger_filepath": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Path to the YAML file containing the trigger configuration.",
 			},
 		},
 	}

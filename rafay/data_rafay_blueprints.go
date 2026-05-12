@@ -15,6 +15,7 @@ import (
 
 func dataRafayBlueprints() *schema.Resource {
 	return &schema.Resource{
+		Description: "Lists all blueprints available in the Rafay platform.",
 		ReadContext: dataRafayBlueprintsRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute),

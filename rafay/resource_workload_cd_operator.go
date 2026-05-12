@@ -18,6 +18,7 @@ import (
 
 	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
 	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
+	"github.com/RafaySystems/rafay-common/pkg/hub/terraform/resource"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/appspb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/integrationspb"
@@ -615,6 +616,7 @@ var WorkloadCDRepositorySchema = &schema.Resource{
 func resourceWorkloadCDOperator() *schema.Resource {
 	modSchema := WorkloadCDRepositorySchema.Schema
 	return &schema.Resource{
+		Description:   resource.WorkloadTemplateSchema.Description,
 		CreateContext: resourceWorkloadCDOperatorCreate,
 		ReadContext:   resourceWorkloadCDOperatorRead,
 		UpdateContext: resourceWorkloadCDOperatorUpdate,

@@ -23,6 +23,7 @@ import (
 
 func resourceCustomRole() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.CustomRoleSchema.Description,
 		CreateContext: resourceCustomRoleCreate,
 		ReadContext:   resourceCustomRoleRead,
 		UpdateContext: resourceCustomRoleUpdate,

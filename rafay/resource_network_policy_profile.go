@@ -23,6 +23,7 @@ import (
 
 func resourceNetworkPolicyProfile() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.NetworkPolicyProfileSchema.Description,
 		CreateContext: resourceNetworkPolicyProfileCreate,
 		ReadContext:   resourceNetworkPolicyProfileRead,
 		UpdateContext: resourceNetworkPolicyProfileUpdate,

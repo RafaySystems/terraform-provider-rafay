@@ -24,6 +24,7 @@ import (
 
 func resourceSecretSealer() *schema.Resource {
 	return &schema.Resource{
+		Description:   resource.SecretSealerSchema.Description,
 		CreateContext: resourceSecretSealerCreate,
 		ReadContext:   resourceSecretSealerRead,
 		UpdateContext: resourceSecretSealerUpdate,

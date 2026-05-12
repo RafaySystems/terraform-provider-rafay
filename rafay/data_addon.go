@@ -20,6 +20,7 @@ import (
 func DataAddon() *schema.Resource {
 	s := copySchemaMap(resource.AddonSchema.Schema)
 	return &schema.Resource{
+		Description: resource.AddonSchema.Description,
 		ReadContext: dataAddonRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute),

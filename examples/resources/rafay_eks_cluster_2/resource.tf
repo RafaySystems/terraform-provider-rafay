@@ -22,7 +22,7 @@ resource "rafay_eks_cluster" "ekscluster_with_node_repair" {
       region  = "us-west-2"
       version = "1.32"
       tags = {
-        env = "dev"
+        env   = "dev"
         email = "gopi.mallela@rafay.co"
       }
     }
@@ -48,19 +48,19 @@ resource "rafay_eks_cluster" "ekscluster_with_node_repair" {
               node_monitoring_condition = "NodeNotReady"
               node_unhealthy_reason     = "KubeletNotReady"
               min_repair_wait_time_mins = 20
-              repair_action            = "Replace"
+              repair_action             = "Replace"
             },
             {
               node_monitoring_condition = "NodeNotReady"
               node_unhealthy_reason     = "NetworkUnavailable"
               min_repair_wait_time_mins = 10
-              repair_action            = "Replace"
+              repair_action             = "Replace"
             },
             {
               node_monitoring_condition = "NodeNotReady"
               node_unhealthy_reason     = "MemoryPressure"
               min_repair_wait_time_mins = 10
-              repair_action            = "Replace"
+              repair_action             = "Replace"
             }
           ]
         }
@@ -72,9 +72,9 @@ resource "rafay_eks_cluster" "ekscluster_with_node_repair" {
     }
 
     auto_zonal_shift_config {
-      enabled          = true
-      outcome_alarms   = ["arn:aws:cloudwatch:us-west-2:679196758854:alarm:harish-fmac-controller-database_connection"]
-      blocking_alarms  = ["arn:aws:cloudwatch:us-west-2:679196758854:alarm:harish-fmac-controller-database_connection"]
+      enabled         = true
+      outcome_alarms  = ["arn:aws:cloudwatch:us-west-2:679196758854:alarm:harish-fmac-controller-database_connection"]
+      blocking_alarms = ["arn:aws:cloudwatch:us-west-2:679196758854:alarm:harish-fmac-controller-database_connection"]
       # blocked_windows  = ["Sun:02:00-Sun:06:00"]
     }
 

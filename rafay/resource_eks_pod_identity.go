@@ -19,6 +19,7 @@ import (
 
 func resourceEKSPodIdentity() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Manages EKS Pod Identity associations for a cluster in the Rafay platform.",
 		CreateContext: resourceEksPodIdentityCreate,
 		ReadContext:   resourceEksPodIdentityRead,
 		UpdateContext: resourceEksPodIdentityUpdate,

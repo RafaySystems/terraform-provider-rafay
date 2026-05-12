@@ -16,6 +16,7 @@ import (
 
 func dataKubeConfig() *schema.Resource {
 	return &schema.Resource{
+		Description: "Retrieves a kubeconfig for accessing a cluster managed by the Rafay platform.",
 		ReadContext: dataKubeConfigRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(10 * time.Minute),
@@ -24,20 +25,24 @@ func dataKubeConfig() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"cluster": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Name of the cluster to download the kubeconfig for. Cannot be used with username.",
 			},
 			"namespace": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Default namespace to set in the kubeconfig. Cannot be used with username.",
 			},
 			"username": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Username to download the kubeconfig for. Cannot be used with cluster or namespace.",
 			},
 			"kubeconfig": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The downloaded kubeconfig content.",
 			},
 		},
 	}

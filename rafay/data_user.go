@@ -15,6 +15,7 @@ import (
 
 func dataUser() *schema.Resource {
 	return &schema.Resource{
+		Description: "Reads a user's details from the Rafay platform.",
 		ReadContext: dataUserRead,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -24,50 +25,59 @@ func dataUser() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"user_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The email address or username of the user to look up.",
 				//ForceNew: true,
 			},
 			"first_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "First name of the user.",
 			},
 			"last_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Last name of the user.",
 			},
 			"phone": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Phone number of the user.",
 			},
 			"generate_apikey": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether an API key has been generated for this user.",
 			},
 			"console_access": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether the user has console (UI) access.",
 			},
 			"groups": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "List of group names the user belongs to.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"apikey": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Computed:  true,
-				ForceNew:  true,
-				Sensitive: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				ForceNew:    true,
+				Sensitive:   true,
+				Description: "The API key for the user.",
 			},
 			"api_secret": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Computed:  true,
-				ForceNew:  true,
-				Sensitive: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				ForceNew:    true,
+				Sensitive:   true,
+				Description: "The API secret for the user.",
 			},
 		},
 	}

@@ -24,6 +24,7 @@ import (
 
 func dataAKSCluster() *schema.Resource {
 	return &schema.Resource{
+		Description: "Reads an AKS cluster configuration from the Rafay platform.",
 		ReadContext: dataAKSClusterRead,
 
 		Timeouts: &schema.ResourceTimeout{

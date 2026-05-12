@@ -68,6 +68,7 @@ func resourcePipeline() *schema.Resource {
 		Type:     schema.TypeList,
 	}
 	return &schema.Resource{
+		Description:   resource.PipelineSchema.Description,
 		CreateContext: resourcePipelineCreate,
 		ReadContext:   resourcePipelineRead,
 		UpdateContext: resourcePipelineUpdate,

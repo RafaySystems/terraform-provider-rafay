@@ -35,6 +35,7 @@ var (
 
 func resourceImportCluster() *schema.Resource {
 	return &schema.Resource{
+		Description:   "Imports an existing Kubernetes cluster into the Rafay platform for management.",
 		CreateContext: resourceImportClusterCreate,
 		ReadContext:   resourceImportClusterRead,
 		UpdateContext: resourceImportClusterUpdate,
@@ -49,37 +50,45 @@ func resourceImportCluster() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"clustername": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the cluster to import. Changing this is not supported.",
 			},
 			"projectname": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the Rafay project to import the cluster into.",
 			},
 			"blueprint": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the blueprint to apply to the imported cluster.",
 			},
 			"blueprint_version": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Version of the blueprint to apply. If not specified, the latest version is used.",
 			},
 			"location": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Location or region of the cluster.",
 			},
 			"kubeconfig_path": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Path to the kubeconfig file for the cluster being imported.",
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Description of the imported cluster.",
 			},
 			"bootstrap_path": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "File path where the bootstrap YAML will be written.",
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					// Suppress the diff if the value is still the same (or is computed to be the same)
 					// We suppress the diff because the value is expected to be computed and shouldn't change unexpectedly.
@@ -87,9 +96,10 @@ func resourceImportCluster() *schema.Resource {
 				},
 			},
 			"values_path": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "File path where the cluster values YAML will be written.",
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					// Suppress the diff if the value is still the same (or is computed to be the same)
 					// We suppress the diff because the value is expected to be computed and shouldn't change unexpectedly.
@@ -97,24 +107,28 @@ func resourceImportCluster() *schema.Resource {
 				},
 			},
 			"values_data": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The computed cluster values data content.",
 			},
 			"bootstrap_data": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The computed bootstrap data content for the cluster.",
 			},
 			"labels": {
-				Type:     schema.TypeMap,
-				Optional: true,
+				Type:        schema.TypeMap,
+				Optional:    true,
+				Description: "Key-value labels to apply to the cluster.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"kubernetes_provider": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "OTHER",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "OTHER",
+				Description: "The Kubernetes provider type. Valid values: AKS, EKS, GKE, OPENSHIFT, OTHER, RKE, EKSANYWHERE.",
 				ValidateDiagFunc: func(i interface{}, p cty.Path) diag.Diagnostics {
 					k8sProvider := i.(string)
 					if !slices.Contains(supportedK8sProviderList, k8sProvider) {
@@ -124,9 +138,10 @@ func resourceImportCluster() *schema.Resource {
 				},
 			},
 			"provision_environment": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "CLOUD",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "CLOUD",
+				Description: "The provisioning environment. Valid values: CLOUD, ONPREM.",
 				ValidateDiagFunc: func(i interface{}, p cty.Path) diag.Diagnostics {
 					provisionEnv := i.(string)
 					if !slices.Contains(supportedProvisionEnvList, provisionEnv) {
@@ -136,38 +151,46 @@ func resourceImportCluster() *schema.Resource {
 				},
 			},
 			"proxy_config": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Proxy configuration for the cluster.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"http_proxy": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "HTTP proxy URL.",
 						},
 						"https_proxy": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "HTTPS proxy URL.",
 						},
 						"no_proxy": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Comma-separated list of hosts that should bypass the proxy.",
 						},
 						"enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Whether proxy configuration is enabled.",
 						},
 						"proxy_auth": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Proxy authentication credentials.",
 						},
 						"allow_insecure_bootstrap": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: "Whether to allow insecure TLS connections during bootstrap.",
 						},
 						"bootstrap_ca": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "CA certificate for the bootstrap proxy connection.",
 						},
 					},
 				},

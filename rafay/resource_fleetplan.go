@@ -120,6 +120,12 @@ func resourceFleetPlanRead(ctx context.Context, d *schema.ResourceData, m interf
 	})
 
 	if err != nil {
+		log.Printf("resourceFleetPlanRead get error %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceFleetPlanRead: resource not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

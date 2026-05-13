@@ -124,6 +124,11 @@ func resourceAlertConfigRead(ctx context.Context, d *schema.ResourceData, m inte
 	})
 	if err != nil {
 		log.Println("read get err")
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceAlertConfigRead: resource not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

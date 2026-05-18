@@ -154,6 +154,7 @@ resource "rafay_driver" "driver" {
 ***Optional***
 
 - `container` (Block List, Max: 1) Specify the container driver config (see [below for nested schema](#nestedblock--spec--config--container))
+- `function` (Block List, Max: 1) Configure the function driver configuration (see [below for nested schema](#nestedblock--spec--config--function))
 - `http` (Block List, Max: 1) Specify the http driver config (see [below for nested schema](#nestedblock--spec--config--http))
 - `max_retry_count` (Number) Specify the max retry count
 - `success_condition` (String) Specify the success condition
@@ -285,6 +286,81 @@ resource "rafay_driver" "driver" {
 
 - `value` (Boolean)
 
+
+<a id="nestedblock--spec--config--function"></a>
+### Nested Schema for `spec.config.function`
+
+***Optional***
+
+- `resources` (Block List, Max: 1) Resource requirements for the function container. When unset=true, no requests/limits are applied (see [below for nested schema](#nestedblock--spec--config--function--resources))
+- `hpa` (Block List, Max: 1) Horizontal Pod Autoscaler configuration for the function deployment (see [below for nested schema](#nestedblock--spec--config--function--hpa))
+
+<a id="nestedblock--spec--config--function--resources"></a>
+### Nested Schema for `spec.config.function.resources`
+
+***Optional***
+
+- `requests` (Block List, Max: 1) Resource requests for the function container (see [below for nested schema](#nestedblock--spec--config--function--resources--requests))
+- `limits` (Block List, Max: 1) Resource limits for the function container (see [below for nested schema](#nestedblock--spec--config--function--resources--limits))
+- `unset` (Block List, Max: 1) When true, no CPU/memory requests and limits are applied (see [below for nested schema](#nestedblock--spec--config--function--resources--unset))
+
+<a id="nestedblock--spec--config--function--resources--requests"></a>
+### Nested Schema for `spec.config.function.resources.requests`
+
+***Optional***
+
+- `cpu` (String) Kubernetes quantity string for CPU (e.g. "500m", "1")
+- `memory` (String) Kubernetes quantity string for memory (e.g. "256Mi", "1Gi")
+
+<a id="nestedblock--spec--config--function--resources--limits"></a>
+### Nested Schema for `spec.config.function.resources.limits`
+
+***Optional***
+
+- `cpu` (String) Kubernetes quantity string for CPU (e.g. "500m", "1")
+- `memory` (String) Kubernetes quantity string for memory (e.g. "256Mi", "1Gi")
+
+<a id="nestedblock--spec--config--function--resources--unset"></a>
+### Nested Schema for `spec.config.function.resources.unset`
+
+***Optional***
+
+- `value` (Boolean)
+
+<a id="nestedblock--spec--config--function--hpa"></a>
+### Nested Schema for `spec.config.function.hpa`
+
+***Optional***
+
+- `enabled` (Block List, Max: 1) Enable HPA for the function deployment (see [below for nested schema](#nestedblock--spec--config--function--hpa--enabled))
+- `min_replicas` (Number) Minimum number of replicas for HPA
+- `max_replicas` (Number) Maximum number of replicas for HPA
+- `resource_metrics` (Block List) Resource metric sources (CPU/Memory) for autoscaling; each entry becomes a MetricSpec of type Resource (see [below for nested schema](#nestedblock--spec--config--function--hpa--resource_metrics))
+
+<a id="nestedblock--spec--config--function--hpa--enabled"></a>
+### Nested Schema for `spec.config.function.hpa.enabled`
+
+***Optional***
+
+- `value` (Boolean)
+
+<a id="nestedblock--spec--config--function--hpa--resource_metrics"></a>
+### Nested Schema for `spec.config.function.hpa.resource_metrics`
+
+***Optional***
+
+- `name` (String) Name of the resource (e.g. "cpu", "memory")
+- `target` (Block List, Max: 1) Target value for the metric (see [below for nested schema](#nestedblock--spec--config--function--hpa--resource_metrics--target))
+
+<a id="nestedblock--spec--config--function--hpa--resource_metrics--target"></a>
+### Nested Schema for `spec.config.function.hpa.resource_metrics.target`
+
+***Optional***
+
+- `type` (String) Metric target type: "Utilization", "Value", or "AverageValue"
+- `value` (String) Target value of the metric (Kubernetes quantity string, e.g. "500m")
+- `average_value` (String) Target average value of the metric across pods (Kubernetes quantity string)
+- `average_utilization` (Number) Target average utilization as a percentage of the requested resource (e.g. 80 for 80%)
 
 <a id="nestedblock--spec--config--http"></a>
 ### Nested Schema for `spec.config.http`

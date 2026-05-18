@@ -3,9 +3,11 @@ module github.com/RafaySystems/terraform-provider-rafay
 go 1.26.0
 
 require (
-	github.com/RafaySystems/edge-common v1.24.1-0.20260504071954-45f09519cd7c
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260504114855-b5e7498b2324
-	github.com/RafaySystems/rctl v1.29.1-0.20260427102033-bdb36fa0976a
+	github.com/RafaySystems/edge-common v1.24.1-0.20260210092640-f8449fb6a28f
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260504120334-ef77a6722b05
+	github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d // indirect
+	github.com/RafaySystems/rctl v1.29.1-0.20251223105806-82bdefd9f2be
+	github.com/avast/retry-go/v4 v4.6.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/goccy/go-yaml v1.9.5
@@ -28,12 +30,10 @@ require (
 	github.com/IBM/sarama v1.43.2 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
-	github.com/RafaySystems/eaas-playground/proto v0.0.0-20260428183122-53f4434cfab4 // indirect
+	github.com/RafaySystems/eaas-playground/proto v0.0.0-20260511084832-f8bfa682320b // indirect
 	github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e // indirect
-	github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
-	github.com/avast/retry-go/v4 v4.6.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
@@ -79,7 +79,7 @@ require (
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/metric v1.39.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.39.0 // indirect
-	go.yaml.in/yaml/v2 v2.4.2 // indirect
+	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	golang.org/x/mod v0.33.0 // indirect
 	golang.org/x/tools v0.42.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
@@ -94,7 +94,7 @@ require (
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
-	github.com/ProtonMail/go-crypto v1.1.3 // indirect
+	github.com/ProtonMail/go-crypto v1.1.0-alpha.2 // indirect
 	github.com/RoaringBitmap/roaring v1.9.4 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
@@ -139,7 +139,7 @@ require (
 	github.com/hashicorp/go-plugin v1.6.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
-	github.com/hashicorp/hc-install v0.9.1 // indirect
+	github.com/hashicorp/hc-install v0.8.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.22.0 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/terraform-exec v0.21.0 // indirect

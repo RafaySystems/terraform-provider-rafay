@@ -18,7 +18,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"google.golang.org/protobuf/types/known/structpb"
 	corev1 "k8s.io/api/core/v1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sresource "k8s.io/apimachinery/pkg/api/resource"
 )
 
 func resourceWorkflowHandler() *schema.Resource {
@@ -820,7 +822,132 @@ func expandWorkflowHandlerFunctionConfig(p []any) *eaaspb.FunctionDriverConfig {
 		fdc.InactivityTimeoutSeconds = int64(inactivityTimeoutSeconds)
 	}
 
+	if resources, ok := in["resources"].([]any); ok && len(resources) > 0 {
+		fdc.Resources = expandDriverResources(resources)
+	}
+
+	if hpa, ok := in["hpa"].([]any); ok && len(hpa) > 0 {
+		fdc.Hpa = expandFunctionHPAConfig(hpa)
+	}
+
 	return &fdc
+}
+
+func expandDriverResourceValues(p []any) *eaaspb.DriverResourceValues {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	in := p[0].(map[string]any)
+	drv := &eaaspb.DriverResourceValues{}
+	if cpu, ok := in["cpu"].(string); ok && len(cpu) > 0 {
+		drv.Cpu = cpu
+	}
+	if memory, ok := in["memory"].(string); ok && len(memory) > 0 {
+		drv.Memory = memory
+	}
+	return drv
+}
+
+func expandDriverResources(p []any) *eaaspb.DriverResources {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	in := p[0].(map[string]any)
+	dr := &eaaspb.DriverResources{}
+	if requests, ok := in["requests"].([]any); ok && len(requests) > 0 {
+		dr.Requests = expandDriverResourceValues(requests)
+	}
+	if limits, ok := in["limits"].([]any); ok && len(limits) > 0 {
+		dr.Limits = expandDriverResourceValues(limits)
+	}
+	if unset, ok := in["unset"].([]any); ok && len(unset) > 0 {
+		dr.Unset = expandBoolValue(unset)
+	}
+	return dr
+}
+
+func expandFunctionHPAConfig(p []any) *eaaspb.FunctionHPAConfig {
+	if len(p) == 0 || p[0] == nil {
+		return nil
+	}
+	in := p[0].(map[string]any)
+	hpa := &eaaspb.FunctionHPAConfig{}
+	if enabled, ok := in["enabled"].([]any); ok && len(enabled) > 0 {
+		hpa.Enabled = expandBoolValue(enabled)
+	}
+	if minReplicas, ok := in["min_replicas"].(int); ok {
+		hpa.MinReplicas = uint32(minReplicas)
+	}
+	if maxReplicas, ok := in["max_replicas"].(int); ok {
+		hpa.MaxReplicas = uint32(maxReplicas)
+	}
+	if resourceMetrics, ok := in["resource_metrics"].([]any); ok && len(resourceMetrics) > 0 {
+		hpa.ResourceMetrics = expandResourceMetrics(resourceMetrics)
+	}
+	return hpa
+}
+
+func expandMetricTarget(in map[string]any) *autoscalingv2.MetricTarget {
+	if in == nil {
+		return nil
+	}
+	mt := &autoscalingv2.MetricTarget{}
+	if t, ok := in["type"].(string); ok && len(t) > 0 {
+		mt.Type = autoscalingv2.MetricTargetType(t)
+	}
+	if v, ok := in["value"].(string); ok && len(v) > 0 {
+		q, err := k8sresource.ParseQuantity(v)
+		if err == nil {
+			mt.Value = &q
+		}
+	}
+	if av, ok := in["average_value"].(string); ok && len(av) > 0 {
+		q, err := k8sresource.ParseQuantity(av)
+		if err == nil {
+			mt.AverageValue = &q
+		}
+	}
+	if au, ok := in["average_utilization"].(int); ok {
+		au32 := int32(au)
+		mt.AverageUtilization = &au32
+	}
+	return mt
+}
+
+func expandResourceMetricSource(in map[string]any) *autoscalingv2.ResourceMetricSource {
+	if in == nil {
+		return nil
+	}
+	rms := &autoscalingv2.ResourceMetricSource{}
+	if name, ok := in["name"].(string); ok && len(name) > 0 {
+		rms.Name = corev1.ResourceName(name)
+	}
+	if target, ok := in["target"].([]any); ok && len(target) > 0 {
+		if tmap, ok := target[0].(map[string]any); ok {
+			if mt := expandMetricTarget(tmap); mt != nil {
+				rms.Target = *mt
+			}
+		}
+	}
+	return rms
+}
+
+func expandResourceMetrics(p []any) []*autoscalingv2.ResourceMetricSource {
+	if len(p) == 0 {
+		return nil
+	}
+	out := make([]*autoscalingv2.ResourceMetricSource, 0, len(p))
+	for i := range p {
+		if p[i] == nil {
+			continue
+		}
+		if m, ok := p[i].(map[string]any); ok {
+			if rms := expandResourceMetricSource(m); rms != nil {
+				out = append(out, rms)
+			}
+		}
+	}
+	return out
 }
 
 func expandWorkflowHandlerOutputs(p string) (*structpb.Struct, error) {
@@ -1473,7 +1600,99 @@ func flattenWorkflowHandlerFunctionConfig(in *eaaspb.FunctionDriverConfig, p []a
 	v, _ = obj["image_pull_credentials"].([]any)
 	obj["image_pull_credentials"] = flattenImagePullCredentials(in.ImagePullCredentials, v)
 
+	v, _ = obj["resources"].([]any)
+	obj["resources"] = flattenDriverResources(in.Resources, v)
+
+	v, _ = obj["hpa"].([]any)
+	obj["hpa"] = flattenFunctionHPAConfig(in.Hpa, v)
+
 	return []any{obj}
+}
+
+func flattenDriverResourceValues(in *eaaspb.DriverResourceValues, p []any) []any {
+	if in == nil {
+		return nil
+	}
+	obj := make(map[string]any)
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]any)
+	}
+	obj["cpu"] = in.Cpu
+	obj["memory"] = in.Memory
+	return []any{obj}
+}
+
+func flattenDriverResources(in *eaaspb.DriverResources, p []any) []any {
+	if in == nil {
+		return nil
+	}
+	obj := make(map[string]any)
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]any)
+	}
+	var v []any
+	v, _ = obj["requests"].([]any)
+	obj["requests"] = flattenDriverResourceValues(in.Requests, v)
+	v, _ = obj["limits"].([]any)
+	obj["limits"] = flattenDriverResourceValues(in.Limits, v)
+	obj["unset"] = flattenBoolValue(in.Unset)
+	return []any{obj}
+}
+
+func flattenFunctionHPAConfig(in *eaaspb.FunctionHPAConfig, p []any) []any {
+	if in == nil {
+		return nil
+	}
+	obj := make(map[string]any)
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]any)
+	}
+	obj["enabled"] = flattenBoolValue(in.Enabled)
+	obj["min_replicas"] = in.MinReplicas
+	obj["max_replicas"] = in.MaxReplicas
+	var v []any
+	v, _ = obj["resource_metrics"].([]any)
+	obj["resource_metrics"] = flattenResourceMetrics(in.ResourceMetrics, v)
+	return []any{obj}
+}
+
+func flattenMetricTarget(in *autoscalingv2.MetricTarget) map[string]any {
+	if in == nil {
+		return nil
+	}
+	obj := make(map[string]any)
+	obj["type"] = string(in.Type)
+	if in.Value != nil {
+		obj["value"] = in.Value.String()
+	}
+	if in.AverageValue != nil {
+		obj["average_value"] = in.AverageValue.String()
+	}
+	if in.AverageUtilization != nil {
+		obj["average_utilization"] = int(*in.AverageUtilization)
+	}
+	return obj
+}
+
+func flattenResourceMetricSource(in *autoscalingv2.ResourceMetricSource) map[string]any {
+	if in == nil {
+		return nil
+	}
+	obj := make(map[string]any)
+	obj["name"] = string(in.Name)
+	obj["target"] = []any{flattenMetricTarget(&in.Target)}
+	return obj
+}
+
+func flattenResourceMetrics(in []*autoscalingv2.ResourceMetricSource, p []any) []any {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make([]any, len(in))
+	for i, rms := range in {
+		out[i] = flattenResourceMetricSource(rms)
+	}
+	return out
 }
 
 func flattenContainerWorkflowHandlerVolumeOptions(input []*eaaspb.ContainerDriverVolumeOptions, p []any) []any {

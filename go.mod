@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20260504071954-45f09519cd7c
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260504114855-b5e7498b2324
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260504120334-ef77a6722b05
 	github.com/RafaySystems/rctl v1.29.1-0.20260427102033-bdb36fa0976a
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -28,7 +28,7 @@ require (
 	github.com/IBM/sarama v1.43.2 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
-	github.com/RafaySystems/eaas-playground/proto v0.0.0-20260428183122-53f4434cfab4 // indirect
+	github.com/RafaySystems/eaas-playground/proto v0.0.0-20260511074108-314c20b9b76e // indirect
 	github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e // indirect
 	github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
@@ -79,7 +79,7 @@ require (
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/metric v1.39.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.39.0 // indirect
-	go.yaml.in/yaml/v2 v2.4.2 // indirect
+	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	golang.org/x/mod v0.33.0 // indirect
 	golang.org/x/tools v0.42.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect

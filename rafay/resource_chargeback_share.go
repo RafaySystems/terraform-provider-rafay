@@ -151,6 +151,12 @@ func resourceChargebackShareRead(ctx context.Context, d *schema.ResourceData, m 
 		Project: tfChargebackShareState.Metadata.Project,
 	})
 	if err != nil {
+		log.Printf("resourceChargebackShareRead get error %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceChargebackShareRead: resource not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

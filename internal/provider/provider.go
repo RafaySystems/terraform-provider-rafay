@@ -176,6 +176,7 @@ func (p *RafayFwProvider) Configure(ctx context.Context, req provider.ConfigureR
 func (p *RafayFwProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewMksClusterDataSource,
+		NewClusterKubernetesVersionsDataSource,
 	}
 }
 

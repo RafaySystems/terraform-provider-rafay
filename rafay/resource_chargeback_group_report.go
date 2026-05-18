@@ -153,6 +153,12 @@ func resourceChargebackGroupReportRead(ctx context.Context, d *schema.ResourceDa
 		Project: tfChargebackGroupReportState.Metadata.Project,
 	})
 	if err != nil {
+		log.Printf("resourceChargebackGroupReportRead get error %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceChargebackGroupReportRead: resource not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

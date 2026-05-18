@@ -72,8 +72,28 @@ type EKSClusterConfig struct {
 	AccessConfig            *EKSClusterAccess           `yaml:"accessConfig,omitempty"`
 	AddonsConfig            *EKSAddonsConfig            `yaml:"addonsConfig,omitempty"`
 	AutoModeConfig          *EKSAutoModeConfig          `yaml:"autoModeConfig,omitempty"`
+	DeleteProtection        *DeleteProtectionConfig     `yaml:"deleteProtection,omitempty"`
+	ZonalShiftConfig        *ZonalShiftConfig           `yaml:"zonalShiftConfig,omitempty"`
+	AutoZonalShiftConfig    *AutoZonalShiftConfig       `yaml:"autoZonalShiftConfig,omitempty"`
 	//do i need this? not in docs
 	//Karpenter *Karpenter `yaml:"karpenter,omitempty"`
+}
+
+type DeleteProtectionConfig struct {
+	Enabled bool `yaml:"enabled,omitempty"`
+}
+
+type ZonalShiftConfig struct {
+	Enabled bool `yaml:"enabled,omitempty"`
+}
+
+type AutoZonalShiftConfig struct {
+	Enabled        bool     `yaml:"enabled,omitempty"`
+	AllowedWindows []string `yaml:"allowedWindows,omitempty"`
+	BlockedDates   []string `yaml:"blockedDates,omitempty"`
+	BlockedWindows []string `yaml:"blockedWindows,omitempty"`
+	BlockingAlarms []string `yaml:"blockingAlarms,omitempty"`
+	OutcomeAlarms  []string `yaml:"outcomeAlarms,omitempty"`
 }
 
 type EKSClusterAccess struct {
@@ -410,6 +430,9 @@ type (
 		// k8s API endpoint
 		// +optional
 		PublicAccessCIDRs []string `yaml:"publicAccessCIDRs,omitempty"`
+		// ControlPlaneSecurityGroupIDs are additional SG IDs to attach to EKS control plane ENIs.
+		// +optional
+		ControlPlaneSecurityGroupIDs []string `yaml:"controlPlaneSecurityGroupIDs,omitempty"`
 	}
 	// TFClusterSubnets holds private and public subnets
 	TFClusterSubnets struct {
@@ -1217,7 +1240,18 @@ type ManagedNodeGroup struct {
 }
 
 type NodeRepairConfig struct {
-	Enabled *bool `yaml:"enabled,omitempty"`
+	Enabled                             *bool                      `yaml:"enabled,omitempty"`
+	MaxUnhealthyNodeThresholdPercentage *int                       `yaml:"maxUnhealthyNodeThresholdPercentage,omitempty"`
+	MaxUnhealthyNodeThresholdCount      *int                       `yaml:"maxUnhealthyNodeThresholdCount,omitempty"`
+	MaxParallelNodesRepairedPercentage  *int                       `yaml:"maxParallelNodesRepairedPercentage,omitempty"`
+	MaxParallelNodesRepairedCount       *int                       `yaml:"maxParallelNodesRepairedCount,omitempty"`
+	NodeRepairConfigOverrides           []NodeRepairConfigOverride `yaml:"nodeRepairConfigOverrides,omitempty"`
+}
+type NodeRepairConfigOverride struct {
+	NodeMonitoringCondition string `yaml:"nodeMonitoringCondition,omitempty"`
+	NodeUnhealthyReason     string `yaml:"nodeUnhealthyReason,omitempty"`
+	MinRepairWaitTimeMins   int    `yaml:"minRepairWaitTimeMins,omitempty"`
+	RepairAction            string `yaml:"repairAction,omitempty"`
 }
 
 type LaunchTemplate struct {

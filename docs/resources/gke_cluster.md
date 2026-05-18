@@ -570,8 +570,8 @@ Optional:
 
 ***Optional***
 
-- `cloud_logging_components` (List of String) List of components for cloud logging. Values: "SYSTEM_COMPONENTS", "WORKLOADS".
-- `cloud_monitoring_components` (List of String) List of components for cloud monitoring. Values: "SYSTEM_COMPONENTS"
+- `cloud_logging_components` (List of String) List of components for cloud logging. Values: "SYSTEM_COMPONENTS", "WORKLOADS", "APISERVER", "CONTROLLER_MANAGER", "SCHEDULER", "KCP_HPA".
+- `cloud_monitoring_components` (List of String) List of components for cloud monitoring. Values: "SYSTEM_COMPONENTS",   "APISERVER", "SCHEDULER", "CONTROLLER_MANAGER", "STORAGE", "POD", "DEPLOYMENT", "STATEFULSET", "DAEMONSET", "HPA", "JOBSET", "CADVISOR", "KUBELET", "DCGM".
 - `enable_application_manager_beta` (Boolean) Application Manager is a GKE controller for managing the lifecycle of applications. It enables application delivery and updates following Kubernetes and GitOps best practices
 - `enable_backup_for_gke` (Boolean) Backup for GKE allows you to back up and restore workloads. There is no cost for enabling this feature, but you are charged for backups based on the size of the data and the number of pods you protect
 - `enable_cloud_logging` (Boolean) Logging collects logs emitted by your applications and by GKE infrastructure
@@ -579,6 +579,9 @@ Optional:
 - `enable_filestore_csi_driver` (Boolean) Enable to automatically deploy and manage the Filestore CSI Driver
 - `enable_image_streaming` (Boolean) Image streaming allows your workloads to initialize without waiting for the entire image to download
 - `enable_managed_service_prometheus` (Boolean) This option deploys managed collectors for Prometheus metrics within this cluster. These collectors must be configured using PodMonitoring resources. To enable Managed Service for Prometheus here, you'll need. Cluster version of 1.21.4-gke.300 or greater
+- `disableHttpLoadBalancing` (Boolean)  The HTTP Load Balancing add-on is required to use the Google Cloud Load Balancer with Kubernetes Ingress. If enabled, a controller will be installed to coordinate applying load balancing configuration changes to your GCP project. Enabled by default.
+- `disableHorizontalPodAutoscaling` (Boolean) Horizontal Pod Autoscaling feature increases or decreases the number of replica pods a replication controller has based on the resource usage of the existing pods. When enabled, it ensures that metrics are collected into Stackdriver Monitoring. Enabled by default.
+- `enableGcsFuseCsiDriver` (Boolean) Mounts Cloud Storage buckets as local volumes using the GCS Fuse CSI driver. Requires Workload Identity to be enabled.
 
 
 <a id="nestedblock--spec--config--node_pools"></a>

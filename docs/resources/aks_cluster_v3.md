@@ -183,6 +183,200 @@ resource "rafay_aks_cluster_v3" "demo-terraform" {
 
 ---
 
+# rafay_aks_cluster_v3 (with NAP, Istio, Ingress, Azure Policy, KeyVault, OMS Agent, User-Assigned Identity, Snapshot, Cilium)
+
+## Example Usage
+
+```terraform
+resource "rafay_aks_cluster_v3" "demo-terraform2" {
+  metadata {
+    name    = "aaks-jan-sj-master4"
+    project = "test"
+  }
+  spec {
+    type = "aks"
+    blueprint_config {
+      name = "minimal"
+      #version = "v2"
+    }
+    cloud_credentials = "test_azure2"
+    config {
+      kind = "aksClusterConfig"
+      metadata {
+        name = "aaks-jan-sj-master4"
+      }
+      spec {
+        resource_group_name = "test-rg"
+
+        bootstrap_vm_params {
+          vm_size        = "Standard_B4ms"
+          trusted_launch = false
+          image {
+            id        = "/subscriptions/aaaaaaaa/resourceGroups/test-rg/providers/Microsoft.Compute/galleries/testgallery/images/cis-rhel-94-trusted/versions/1.0.0"
+            os_family = "rhel"
+            os_state = "Generalized"
+          }
+        }
+
+        managed_cluster {
+          api_version = "2025-10-01"
+          additional_metadata {
+            acr_profile {
+              registries {
+                acr_name            = "testfnfacr"
+                resource_group_name = "test-fnf-cluster-rg"
+              }
+            }
+          }
+          sku {
+            name = "Base"
+            tier = "Free"
+          }
+          identity {
+            type = "UserAssigned"
+            user_assigned_identities = {
+                "/subscriptions/aaaaaaaa/resourceGroups/test-fnf-cluster-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test-fnf-cluster-identity": "{}"
+            }
+          }
+          location = "centralindia"
+          tags = {
+            "email" = "test@rafay.co"
+            "env"   = "dev"
+          }
+          properties {
+            api_server_access_profile {
+              enable_private_cluster = false
+            }
+            dns_prefix         = "aks-333-dns"
+            kubernetes_version = "1.32.3"
+            node_resource_group = "aaks-jan-sj-master4"
+            linux_profile  {
+              admin_username = "adminuser"
+              ssh {
+                public_keys {
+                  key_data = "ssh-rsa aa.../E= generated-by-azure"
+                }
+              }
+            }
+            network_profile {
+              network_plugin      = "azure"
+              load_balancer_sku   = "standard"
+              network_policy       = "cilium"
+              pod_cidr            = "10.244.0.0/16"
+              service_cidr        = "10.0.0.0/16"
+              dns_service_ip      = "10.0.0.10"
+              network_dataplane   = "cilium"
+            }
+            power_state {
+              code = "Running"
+            }
+            auto_upgrade_profile {
+              upgrade_channel         = "none"
+              node_os_upgrade_channel = "None"
+            }
+            oidc_issuer_profile {
+              enabled = true
+            }
+            security_profile {
+              workload_identity {
+                enabled = true
+              }
+            }
+            enable_rbac            = true
+            disable_local_accounts = true
+            aad_profile {
+              managed           = true
+              enable_azure_rbac = true
+            }
+            node_provisioning_profile {
+              mode               = "Auto"
+              default_node_pools = "Auto"
+            }
+            service_mesh_profile {
+              mode = "Istio"
+              istio {
+                components {
+                  ingress_gateways {
+                    enabled = true
+                    mode    = "Internal"
+                  }
+                }
+                revisions = [
+                  "asm-1-27"
+                ]
+              }
+            }
+            ingress_profile {
+              web_app_routing {
+                enabled = false
+                dns_zone_resource_ids = [
+                  "/subscriptions/aaaa/resourceGroups/test-rg/providers/Microsoft.Network/dnsZones/testzone.com"
+                ]
+                # nginx {
+                #   default_ingress_controller_type = "Internal"
+                # }
+              }
+            }
+            addon_profiles {
+              azure_policy {
+                enabled = true
+              }
+              azure_keyvault_secrets_provider {
+                enabled = true
+                config {
+                  enable_secret_rotation = true
+                  rotation_poll_interval = "2m"
+                }
+              }
+              oms_agent {
+                enabled = false
+                config {
+                  log_analytics_workspace_resource_id = "/subscriptions/aaaaaaaa/resourcegroups/defaultresourcegroup-cin/providers/microsoft.operationalinsights/workspaces/DefaultWorkspace-aaaaaaaa-CIN"
+                }
+              }
+            }
+            identity_profile {
+              kubelet_identity {
+                resource_id = "/subscriptions/aaaaaaaa/resourceGroups/test-fnf-cluster-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test-kubelet-identity"
+              }
+            }
+          }
+          type = "Microsoft.ContainerService/managedClusters"
+        }
+        node_pools {
+          api_version = "2023-07-01"
+          name        = "secs222"
+          location    = "centralindia"
+          properties {
+            count                = 2
+            #enable_auto_scaling  = true
+            #max_count            = 2
+            max_pods             = 110
+            #min_count            = 1
+            mode                 = "System"
+            orchestrator_version = "1.32.3"
+            os_type              = "Linux"
+            type                 = "VirtualMachineScaleSets"
+            vm_size              = "Standard_B4ms"
+            #node_taints = ["app22=infr22a:PreferNoSchedule"]
+            kubelet_config {
+              container_log_max_files = 2
+            }
+            creation_data {
+              source_resource_id = "/subscriptions/aaaaaaaa/resourceGroups/test-rg/providers/Microsoft.ContainerService/snapshots/asdasd26jan"
+            }
+            vnet_subnet_id = "/subscriptions/aaaaaaaa/resourceGroups/test-fnf-nw-rg/providers/Microsoft.Network/virtualNetworks/test-fnf-vnet/subnets/default2"
+          }
+          type = "Microsoft.ContainerService/managedClusters/agentPools"
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
 # rafay_aks_cluster_v3 (Azure CNI Overlay with Workload Identity)
 
 ## Example Usage
@@ -401,9 +595,40 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 - `managed_cluster` - (Block List) The AKS managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster))
 - `node_pools` - (Block List, Min: 1) The AKS node pool. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools))
-- `maintenance_configurations` - (Block List, Min: 0) The AKS Maintenance Configurations used to configure Auto-Upgrade Profile Schedule. (See [below for nested schema]
-  (#nestedblock--spec--cluster_config--spec--maintenance_configurations))
 - `resource_group_name` - (String) The AKS resource group for the cluster.
+
+**_Optional_**
+
+- `bootstrap_vm_params` - (Block List, Max: 1) Bootstrap VM configuration used when provisioning the cluster. Allows specifying a custom VM size and image (marketplace or non-marketplace) for the bootstrap node. (See [below for nested schema](#nestedblock--spec--config--spec--bootstrap_vm_params))
+- `maintenance_configurations` - (Block List, Min: 0) The AKS Maintenance Configurations used to configure Auto-Upgrade Profile Schedule. (See [below for nested schema](#nestedblock--spec--cluster_config--spec--maintenance_configurations))
+
+<a id="nestedblock--spec--config--spec--bootstrap_vm_params"></a>
+
+### Nested Schema for `spec.config.spec.bootstrap_vm_params`
+
+Configures the VM used to bootstrap the AKS cluster. Use this block to specify a custom VM size or a non-marketplace (custom gallery) image for the bootstrap node.
+
+**_Optional_**
+
+- `vm_size` - (String) The Azure VM size for the bootstrap VM (e.g. `Standard_B4ms`). If omitted, the provider default is used.
+- `trusted_launch` - (Boolean) When `true`, enables Azure Trusted Launch (vTPM + Secure Boot) on the bootstrap VM. Defaults to `false`. The specified `image` must support Trusted Launch.
+- `image` - (Block List, Max: 1) The image reference for the bootstrap VM. Use exactly one of `id` (non-marketplace image) or `publisher`/`offer`/`sku`/`version` (marketplace image). (See [below for nested schema](#nestedblock--spec--config--spec--bootstrap_vm_params--image))
+
+<a id="nestedblock--spec--config--spec--bootstrap_vm_params--image"></a>
+
+### Nested Schema for `spec.config.spec.bootstrap_vm_params.image`
+
+Specifies the image for the bootstrap VM. Use `id` for a custom Azure Compute Gallery image, or the `publisher`/`offer`/`sku`/`version` combination for a marketplace image.
+
+**_Optional_**
+
+- `id` - (String) The full Azure resource ID of a non-marketplace image (Azure Compute Gallery image version). When set, marketplace fields are ignored. This is of the form: `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/galleries/{galleryName}/images/{imageDefinition}/versions/{version}`.
+- `publisher` - (String) The publisher of the marketplace image (e.g. `center-for-internet-security-inc`).
+- `offer` - (String) The offer of the marketplace image (e.g. `cis-ubuntu`).
+- `sku` - (String) The SKU of the marketplace image (e.g. `cis-ubuntulinux2404-l1-gen2`).
+- `version` - (String) The version of the marketplace image (e.g. `latest`).
+- `os_state` - (String) The OS state of the image. Supported values are `Generalized` and `Specialized`.
+- `os_family` - (String) Controls which bootstrap script is applied to the VM. Accepted values: `ubuntu` (default) or `rhel`. Set to `rhel` when using any RHEL-based image (marketplace or custom gallery).
 
 <a id="nestedblock--spec--config--spec--managed_cluster"></a>
 
@@ -411,7 +636,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 **_Required_**
 
-- `apiversion` - (String) The Azure resource managed cluster API version. The supported value is `2024-01-01`.
+- `apiversion` - (String) The Azure resource managed cluster API version. Newer versions are also supported (e.g., `2025-10-01`).
 - `location` - (String) The AKS cluster location.
 - `properties` - (Block List, Min: 1) The properties of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties))
 - `type` - (String) The supported value is `Microsoft.ContainerService/managedClusters`.
@@ -455,14 +680,14 @@ resource "rafay_aks_cluster" "demo-terraform" {
   (#nestedblock--spec--cluster_config--spec--managed_cluster--properties--auto_upgrade_profile)
 - `ingress_profile` - (Block List, Max: 1) The ingress profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--ingress_profile))
 - `service_mesh_profile` - (Block List, Max: 1) Configuration for the service mesh profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile))
-<!-- - `node_provisioning_profile` - (Block List, Max: 1) The node provisioning profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--node_provisioning_profile)) -->
+- `node_provisioning_profile` - (Block List, Max: 1) The node provisioning profile of the managed cluster. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--node_provisioning_profile))
 
-<!-- <a id="nestedblock--spec--config--spec--managed_cluster--properties--node_provisioning_profile"></a>
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--node_provisioning_profile"></a>
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.node_provisioning_profile`
 **_Optional_**
 
 - `mode` - (String) Node auto provisioning mode. Valid values are Auto, Manual.
-- `default_node_pools` - (String) The default node pool to use for the cluster. Valid values are Auto, None. -->
+- `default_node_pools` - (String) The default node pool to use for the cluster. Valid values are Auto, None.
 
 <a id="nestedblock--spec--config--spec--managed_cluster--properties--service_mesh_profile"></a>
 
@@ -642,6 +867,8 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 ### Nested Schema for `spec.config.spec.managed_cluster.properties.addon_profiles.http_application_routing`
 
+> **Note:** The `http_application_routing` add-on can no longer be enabled on new clusters. Please use the Application Routing Add-on (`ingress_profile.web_app_routing`) instead. See [App Routing migration guide](https://aka.ms/app-routing-migration) for more information.
+
 **_Required_**
 
 - `enabled` - (Boolean) - Enable/Disable HTTP Application Routing.
@@ -736,11 +963,11 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 **_Required_**
 
-- `public_key` - (Block List) The list of SSH public keys used to authenticate with Linux-based VMs. A maximum of 1 key may be specified. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--linux_profile--ssh--public_key))
+- `public_keys` - (Block List) The list of SSH public keys used to authenticate with Linux-based VMs. A maximum of 1 key may be specified. (See [below for nested schema](#nestedblock--spec--config--spec--managed_cluster--properties--linux_profile--ssh--public_keys))
 
-<a id="nestedblock--spec--config--spec--managed_cluster--properties--linux_profile--ssh--public_key"></a>
+<a id="nestedblock--spec--config--spec--managed_cluster--properties--linux_profile--ssh--public_keys"></a>
 
-### Nested Schema for `spec.config.spec.managed_cluster.properties.linux_profile.ssh.public_key`
+### Nested Schema for `spec.config.spec.managed_cluster.properties.linux_profile.ssh.public_keys`
 
 **_Required_**
 
@@ -756,9 +983,12 @@ resource "rafay_aks_cluster" "demo-terraform" {
 - `docker_bridge_cidr` - (String) A CIDR notation IP range assigned to the Docker bridge network.
 - `load_balancer_sku` - (String) Supported values are: `standard` and `basic`.
 - `network_mode` - (String) This cannot be specified if `networkPlugin` is anything other than `azure`. The supported values are `transparent` and `bridge`.
-- `network_plugin` - (String) The network plugin used for building the Kubernetes network. Supported values are: `azure` and `kubenet`.
+- `network_plugin` - (String) The network plugin used for building the Kubernetes network. Supported values are: `azure`, `kubenet`, and `none`.
+
+  > **Note:** Use `none` for Bring Your Own CNI (BYOCNI) — this disables the built-in CNI plugin so you can install your own. See the [Rafay BYOCNI documentation](https://docs.rafay.co/clusters/aks/byo_cni/) for details.
 - `network_plugin_mode` - (String) The network plugin mode used for building the Kubernetes network. Supported values are: `overlay`.
-- `network_policy` - (String) The network policy used for building the Kubernetes network. Supported values are: `calico` and `azure`.
+- `network_dataplane` - (String) Network dataplane used in the Kubernetes cluster. Valid values are `azure`, `cilium`. Required when `network_policy` is set to `cilium`.
+- `network_policy` - (String) The network policy used for building the Kubernetes network. Supported values are: `azure`, `calico`, and `cilium`.
 - `outbound_type` - (String) The outbound/egress routing method.
   Supported values are: `loadBalancer` and `userDefinedRouting`.
 - `pod_cidr` - (String) A CIDR notation IP range from which to assign pod IPs when kubenet is used.
@@ -865,7 +1095,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 **_Required_**
 
-- `name` - (String) The name of a managed cluster SKU. The supported value is `Basic`.
+- `name` - (String) The name of a managed cluster SKU. The supported value is `Base`.
 - `tier` - (String) Supported values are: `Paid` and `Free`.
 
 <a id="nestedblock--spec--config--spec--node_pools"></a>
@@ -874,7 +1104,7 @@ resource "rafay_aks_cluster" "demo-terraform" {
 
 **_Required_**
 
-- `apiversion` - (String) The AKS node pool API version. The supported value is `2024-01-01`.
+- `apiversion` - (String) The AKS node pool API version. Newer versions are also supported (e.g., `2025-10-01`).
 - `location` - (String) The AKS node pool location.
 - `name` - (String) The AKS node pool name.
 - `properties` - (Block List, Min: 1) The AKS managed cluster properties. (See [below for nested schema](#nestedblock--spec--config--spec--node_pools--properties))

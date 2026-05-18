@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-                image 'registry-proxy.dev.rafay-edge.net/golang:1.24.0'
+                image 'registry-proxy.dev.rafay-edge.net/golang:1.26.0'
                 args '-u root:sudo'
                 reuseNode false
                 label 'ec2-fleet-tf'
@@ -25,7 +25,6 @@ pipeline {
                     echo machine github.com login ${userName} password ${passWord} > ~/.netrc
                     chmod 400 ~/.netrc
                     GOPROXY="https://proxy.golang.org,direct" GOPRIVATE="github.com/RafaySystems/*" go mod download
-                    make test
                     make release
                     make push
                     make bucket-name

@@ -36,12 +36,14 @@ func resourceClusterSharing() *schema.Resource {
 		SchemaVersion: 1,
 		Schema: map[string]*schema.Schema{
 			"clustername": {
-				Type:     schema.TypeString,
-				Required: true,
+				Description: "The name of the cluster whose sharing is managed by this resource.",
+				Type:        schema.TypeString,
+				Required:    true,
 			},
 			"project": {
-				Type:     schema.TypeString,
-				Required: true,
+				Description: "The name of the Rafay project that owns the cluster.",
+				Type:        schema.TypeString,
+				Required:    true,
 			},
 			"sharing": &schema.Schema{
 				Description: "cluster sharing configuration",
@@ -93,8 +95,14 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 	var sortprojs []*commonpb.ProjectMeta
 	var err error
 
-	clusterName := d.Get("clustername").(string)
-	projectName := d.Get("project").(string)
+	clusterName, ok := d.Get("clustername").(string)
+	if !ok {
+		clusterName = ""
+	}
+	projectName, ok := d.Get("project").(string)
+	if !ok {
+		projectName = ""
+	}
 
 	if d.State() != nil && d.State().ID != "" {
 		if clusterName != "" && clusterName != d.State().ID {
@@ -107,13 +115,13 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 	// get project details
 	resp, err := project.GetProjectByName(projectName)
 	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
+		log.Printf("cluster_sharing failed to get project %s: %s", projectName, err)
+		return diag.FromErr(err)
 	}
 	projectObj, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
+		log.Printf("cluster_sharing failed to parse project response %s: %s", projectName, err)
+		return diag.FromErr(err)
 	}
 
 	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
@@ -300,8 +308,14 @@ func resourceClusterSharingRead(ctx context.Context, d *schema.ResourceData, m i
 	var sortprojs []*commonpb.ProjectMeta
 	var sharingSpec *commonpb.SharingSpec
 
-	clusterName := d.Get("clustername").(string)
-	projectName := d.Get("project").(string)
+	clusterName, ok := d.Get("clustername").(string)
+	if !ok {
+		clusterName = ""
+	}
+	projectName, ok := d.Get("project").(string)
+	if !ok {
+		projectName = ""
+	}
 
 	if d.State() != nil && d.State().ID != "" {
 		if clusterName != d.State().ID {
@@ -315,25 +329,35 @@ func resourceClusterSharingRead(ctx context.Context, d *schema.ResourceData, m i
 	}
 
 	// get project details
-	resp, err := project.GetProjectByName(d.Get("project").(string))
+	resp, err := project.GetProjectByName(projectName)
 	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
+		if IsResourceNotFoundErr(err) {
+			log.Printf("cluster_sharing %s: owner project %s not found, removing from state", clusterName, projectName)
+			d.SetId("")
+			return diags
+		}
+		return diag.FromErr(err)
 	}
 	projectObj, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
+		log.Printf("cluster_sharing failed to parse project response: %s", err)
+		return diag.FromErr(err)
 	}
 
 	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
 	if errGet != nil {
-		log.Printf("failed to get cluster info %s", errGet.Error())
+		if IsResourceNotFoundErr(errGet) {
+			log.Printf("cluster_sharing %s not found, removing from state", clusterName)
+			d.SetId("")
+			return diags
+		}
+		log.Printf("cluster_sharing failed to get cluster info %s: %s", clusterName, errGet.Error())
 		return diag.FromErr(errGet)
 	}
 	if clusterObj == nil {
-		log.Printf("failed to get cluster info")
-		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
+		log.Printf("cluster_sharing %s not found, removing from state", clusterName)
+		d.SetId("")
+		return diags
 	}
 
 	log.Println("clusterObj share type", clusterObj.ShareMode)
@@ -449,26 +473,32 @@ func flattenClusterSharing(d *schema.ResourceData, clusterName string, projectNa
 }
 
 func resourceClusterSharingUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	log.Printf("resource user update id %s", d.Id())
+	log.Printf("resource cluster_sharing update id %s", d.Id())
 	return resourceClusterSharingUpsert(ctx, d, false)
 	//return diag.FromErr(fmt.Errorf("%s", "update not supported for user. Use group association to alter groups"))
 }
 
 func resourceClusterSharingDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	clusterName := d.Get("clustername").(string)
-	projectName := d.Get("project").(string)
+	clusterName, ok := d.Get("clustername").(string)
+	if !ok {
+		clusterName = ""
+	}
+	projectName, ok := d.Get("project").(string)
+	if !ok {
+		projectName = ""
+	}
 
 	// get project details
 	resp, err := project.GetProjectByName(projectName)
 	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
+		log.Printf("cluster_sharing failed to get project %s: %s", projectName, err)
+		return diag.FromErr(err)
 	}
 	projectObj, err := project.NewProjectFromResponse([]byte(resp))
 	if err != nil {
-		fmt.Printf("project does not exist")
-		return diags
+		log.Printf("cluster_sharing failed to parse project response %s: %s", projectName, err)
+		return diag.FromErr(err)
 	}
 
 	clusterObj, errGet := cluster.GetCluster(clusterName, projectObj.ID, uaDef)
@@ -487,6 +517,7 @@ func resourceClusterSharingDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
+	d.SetId("")
 	return diags
 }
 

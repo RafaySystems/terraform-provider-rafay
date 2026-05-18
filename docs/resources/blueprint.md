@@ -25,7 +25,7 @@ resource "rafay_blueprint" "custom-blueprint" {
     type    = "custom"
     base {
       name    = "default"
-      version = "1.16.0"
+      version = "4.1.0"
     }
     default_addons {
       enable_ingress    = true
@@ -94,7 +94,7 @@ resource "rafay_blueprint" "custom-blueprint" {
     version = "v0"
     base {
       name    = "default"
-      version = "1.16.0"
+      version = "4.1.0"
     }
     default_addons {
       enable_ingress    = true
@@ -152,7 +152,7 @@ resource "rafay_blueprint" "custom-blueprint-advanced" {
     version = "v0"
     base {
       name    = "default"
-      version = "1.16.0"
+      version = "4.1.0"
     }
     default_addons {
       enable_ingress    = true
@@ -207,7 +207,7 @@ resource "rafay_blueprint" "custom-blueprint-advanced2" {
     version = "v0"
     base {
       name    = "default"
-      version = "1.16.0"
+      version = "4.1.0"
     }
     custom_addons {
       name = "addon1"
@@ -272,7 +272,7 @@ resource "rafay_blueprint" "custom-golden-blueprint" {
     version = "v0"
     base {
       name    = "default"
-      version = "1.16.0"
+      version = "4.1.0"
     }
     type = "golden"
     default_addons {
@@ -329,7 +329,7 @@ resource "rafay_blueprint" "cost-blueprint" {
     version = "v0"
     base {
       name    = "default"
-      version = "1.19.0"
+      version = "4.1.0"
     }
     default_addons {
       enable_ingress    = true
@@ -401,7 +401,7 @@ resource "rafay_blueprint" "cost-blueprint" {
 ***Required***
 
 - `name` - (String) The name for the blueprint base. Supported values are: `default`, `minimal`, `default-openshift`, and `default-aks`.
-- `version` - (String) The version of the blueprint base. Example values are: `1.16.0`, `1.17.0`, and `1.18.0`.
+- `version` - (String) The version of the blueprint base. Example values are: `4.0.0`, `4.1.0`.
 
 
 <a id="nestedblock--spec--custom_addons"></a>

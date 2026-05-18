@@ -64,6 +64,12 @@ func resourceAKSClusterV3Read(ctx context.Context, d *schema.ResourceData, m int
 
 	deployedCluster, err := getDeployedClusterSpecV3(ctx, d)
 	if err != nil {
+		log.Printf("resourceAKSClusterV3Read get cluster error %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceAKSClusterV3Read: cluster not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 
@@ -363,7 +369,7 @@ LOOP:
 					log.Print("error converting project name to id")
 					return diag.Errorf("error converting project name to project ID")
 				}
-				aksStatus := uCluster.Status.Aks
+				// aksStatus := uCluster.Status.Aks
 				uClusterCommonStatus := uCluster.Status.CommonStatus
 				switch uClusterCommonStatus.ConditionStatus {
 				case commonpb.ConditionStatus_StatusSubmitted:
@@ -395,7 +401,7 @@ LOOP:
 					}
 				case commonpb.ConditionStatus_StatusFailed:
 					// log.Printf("Cluster operation failed for edgename: %s and projectname: %s with failure reason: %s", edgeName, projectName, uClusterCommonStatus.Reason)
-					failureReasons, err := collectAKSV3UpsertErrors(aksStatus.Nodepools, uCluster.Status.ProvisionStatusReason, uCluster.Status.ProvisionStatus)
+					failureReasons, err := collectAKSV3UpsertErrors(uCluster.Status)
 					if err != nil {
 						return diag.FromErr(err)
 					}
@@ -453,27 +459,12 @@ LOOP:
 	return diags
 }
 
-func collectAKSV3UpsertErrors(nodepools []*infrapb.NodepoolStatus, lastProvisionFailureReason string, provisionStatus string) (string, error) {
-	// adding errors in AksUpsertErrorFormatter
-	collectedErrors := AksUpsertErrorFormatter{}
-	if strings.Contains(provisionStatus, "FAILED") {
-		collectedErrors.FailureReason = lastProvisionFailureReason
-	}
-	collectedErrors.Nodepools = []AksNodepoolsErrorFormatter{}
-	for _, ng := range nodepools {
-		if strings.Contains(ng.ProvisionStatus, "FAILED") {
-			collectedErrors.Nodepools = append(collectedErrors.Nodepools, AksNodepoolsErrorFormatter{
-				Name:          ng.Name,
-				FailureReason: ng.ProvisionStatusReason,
-			})
-		}
-	}
-	// Using MarshalIndent to indent the errors in json formatted bytes
-	collectedErrsFormattedBytes, err := json.MarshalIndent(collectedErrors, "", "    ")
+func collectAKSV3UpsertErrors(status *infrapb.ClusterStatus) (string, error) {
+	errBytes, err := json.MarshalIndent(status.LastTasksets[0].ErrorSummary, "", "  ")
 	if err != nil {
 		return "", err
 	}
-	collectErrs := strings.ReplaceAll(string(collectedErrsFormattedBytes), "\\n", "\n")
+	collectErrs := strings.ReplaceAll(string(errBytes), "\\n", "\n")
 	fmt.Println("After MarshalIndent: ", "collectedErrsFormattedBytes", collectErrs)
 
 	return "\n" + collectErrs, nil
@@ -665,6 +656,62 @@ func expandAKSClusterV3ConfigSpec(p []interface{}) *infrapb.AksV3Spec {
 
 	if v, ok := in["maintenance_configurations"].([]interface{}); ok && len(v) > 0 {
 		obj.MaintenanceConfigurations = expandAKSV3MaintenanceConfigs(v)
+	}
+
+	if v, ok := in["bootstrap_vm_params"].([]interface{}); ok && len(v) > 0 {
+		obj.BootstrapVmParams = expandAKSV3BootstrapVMConfig(v)
+	}
+
+	return obj
+}
+
+func expandAKSV3BootstrapVMConfig(p []interface{}) *infrapb.AKSBootstrapVMConfig {
+	obj := &infrapb.AKSBootstrapVMConfig{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["vm_size"].(string); ok && len(v) > 0 {
+		obj.VmSize = v
+	}
+	if v, ok := in["trusted_launch"].(bool); ok {
+		obj.TrustedLaunch = v
+	}
+	if v, ok := in["image"].([]interface{}); ok && len(v) > 0 {
+		obj.Image = expandAKSV3BootstrapVMImageRef(v)
+	}
+
+	return obj
+}
+
+func expandAKSV3BootstrapVMImageRef(p []interface{}) *infrapb.AKSBootstrapVMImageRef {
+	obj := &infrapb.AKSBootstrapVMImageRef{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["id"].(string); ok && len(v) > 0 {
+		obj.Id = v
+	}
+	if v, ok := in["publisher"].(string); ok && len(v) > 0 {
+		obj.Publisher = v
+	}
+	if v, ok := in["offer"].(string); ok && len(v) > 0 {
+		obj.Offer = v
+	}
+	if v, ok := in["sku"].(string); ok && len(v) > 0 {
+		obj.Sku = v
+	}
+	if v, ok := in["version"].(string); ok && len(v) > 0 {
+		obj.Version = v
+	}
+	if v, ok := in["os_state"].(string); ok && len(v) > 0 {
+		obj.OsState = v
+	}
+	if v, ok := in["os_family"].(string); ok && len(v) > 0 {
+		obj.OsFamily = v
 	}
 
 	return obj
@@ -1183,6 +1230,10 @@ func expandAKSManagedClusterV3Properties(p []interface{}) *infrapb.ManagedCluste
 		obj.ServiceMeshProfile = expandAKSManagedClusterV3ServiceMeshProfile(v)
 	}
 
+	if v, ok := in["node_provisioning_profile"].([]interface{}); ok && len(v) > 0 {
+		obj.NodeProvisioningProfile = expandAKSManagedClusterV3NodeProvisioningProfile(v)
+	}
+
 	return obj
 }
 
@@ -1388,6 +1439,22 @@ func expandAKSManagedClusterV3ServiceMeshIstioComponents(p []interface{}) *infra
 		}
 	}
 
+	return obj
+}
+
+func expandAKSManagedClusterV3NodeProvisioningProfile(p []interface{}) *infrapb.NodeProvisioningProfile {
+	obj := &infrapb.NodeProvisioningProfile{}
+	if len(p) == 0 || p[0] == nil {
+		return obj
+	}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["mode"].(string); ok && len(v) > 0 {
+		obj.Mode = v
+	}
+	if v, ok := in["default_node_pools"].(string); ok && len(v) > 0 {
+		obj.DefaultNodePools = v
+	}
 	return obj
 }
 
@@ -2676,7 +2743,7 @@ func flattenAKSClusterV3(d *schema.ResourceData, in *infrapb.Cluster) error {
 
 	var ret2 []interface{}
 	if in.Spec != nil {
-		v, ok := obj["spec"].([]interface{})
+		v, ok := d.Get("spec").([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
@@ -2862,8 +2929,75 @@ func flattenAKSV3ClusterConfigSpec(in *infrapb.AksV3Spec, p []interface{}) []int
 		obj["maintenance_configurations"] = flattenAKSV3MaintenanceConfigs(in.MaintenanceConfigurations, v)
 	}
 
+	if in.BootstrapVmParams != nil {
+		v, ok := obj["bootstrap_vm_params"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["bootstrap_vm_params"] = flattenAKSV3BootstrapVMConfig(in.BootstrapVmParams, v)
+	}
+
 	return []interface{}{obj}
 
+}
+
+func flattenAKSV3BootstrapVMConfig(in *infrapb.AKSBootstrapVMConfig, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.VmSize) > 0 {
+		obj["vm_size"] = in.VmSize
+	}
+	obj["trusted_launch"] = in.TrustedLaunch
+
+	if in.Image != nil {
+		v, ok := obj["image"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["image"] = flattenAKSV3BootstrapVMImageRef(in.Image, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenAKSV3BootstrapVMImageRef(in *infrapb.AKSBootstrapVMImageRef, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Id) > 0 {
+		obj["id"] = in.Id
+	}
+	if len(in.Publisher) > 0 {
+		obj["publisher"] = in.Publisher
+	}
+	if len(in.Offer) > 0 {
+		obj["offer"] = in.Offer
+	}
+	if len(in.Sku) > 0 {
+		obj["sku"] = in.Sku
+	}
+	if len(in.Version) > 0 {
+		obj["version"] = in.Version
+	}
+	if len(in.OsState) > 0 {
+		obj["os_state"] = in.OsState
+	}
+	if len(in.OsFamily) > 0 {
+		obj["os_family"] = in.OsFamily
+	}
+
+	return []interface{}{obj}
 }
 
 func flattenAKSV3MaintenanceConfigs(in []*infrapb.AKSMaintenanceConfig, p []interface{}) []interface{} {
@@ -3465,8 +3599,31 @@ func flattenAKSV3ManagedClusterProperties(in *infrapb.ManagedClusterProperties, 
 		obj["service_mesh_profile"] = flattenAKSV3ManagedClusterServiceMeshProfile(in.ServiceMeshProfile, v)
 	}
 
+	if in.NodeProvisioningProfile != nil {
+		v, ok := obj["node_provisioning_profile"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["node_provisioning_profile"] = flattenAKSV3ManagedClusterNodeProvisioningProfile(in.NodeProvisioningProfile, v)
+	}
+
 	return []interface{}{obj}
 
+}
+
+func flattenAKSV3ManagedClusterNodeProvisioningProfile(in *infrapb.NodeProvisioningProfile, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	obj["mode"] = in.Mode
+	obj["default_node_pools"] = in.DefaultNodePools
+
+	return []interface{}{obj}
 }
 
 func flattenAKSV3ManagedClusterIdentityProfile(in *infrapb.ManagedClusterIdentityProfile, p []interface{}) []interface{} {

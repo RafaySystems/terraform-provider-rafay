@@ -142,16 +142,16 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		v.InstanceType = types.StringValue(in.InstanceType)
 	}
 
-	availabilityZones2 := types.ListNull(types.StringType)
+	availabilityZones := types.ListNull(types.StringType)
 	if len(in.AvailabilityZones) > 0 {
 		azElements := []attr.Value{}
 		for _, az := range in.AvailabilityZones {
 			azElements = append(azElements, types.StringValue(az))
 		}
-		availabilityZones2, d = types.ListValue(types.StringType, azElements)
+		availabilityZones, d = types.ListValue(types.StringType, azElements)
 		diags = append(diags, d...)
 	}
-	v.AvailabilityZones2 = availabilityZones2
+	v.AvailabilityZones = availabilityZones
 
 	subnets := types.SetNull(types.StringType)
 	if len(in.Subnets) > 0 {
@@ -191,7 +191,7 @@ func (v *NodeGroupsMapValue) Flatten(ctx context.Context, in *rafay.NodeGroup, s
 		tagMap, d = types.MapValue(types.StringType, tag)
 		diags = append(diags, d...)
 	}
-	v.Tags2 = tagMap
+	v.Tags = tagMap
 
 	if in.AMI != "" {
 		v.Ami = types.StringValue(in.AMI)

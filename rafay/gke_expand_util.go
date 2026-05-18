@@ -407,20 +407,28 @@ func expandToV3GkeFeatures(p []interface{}) (*infrapb.GkeFeatures, error) {
 	obj := &infrapb.GkeFeatures{}
 	in := p[0].(map[string]interface{})
 
+	cloudLoggingEnabled := false
 	if v, ok := in["enable_cloud_logging"].(bool); ok {
 		obj.EnableCloudLogging = v
+		cloudLoggingEnabled = v
 	}
 
-	if v, ok := in["cloud_logging_components"].([]interface{}); ok && len(v) > 0 {
-		obj.CloudLoggingComponents = toArrayString(v)
+	if cloudLoggingEnabled {
+		if v, ok := in["cloud_logging_components"].([]interface{}); ok && len(v) > 0 {
+			obj.CloudLoggingComponents = toArrayString(v)
+		}
 	}
 
+	cloudMonitoringEnabled := false
 	if v, ok := in["enable_cloud_monitoring"].(bool); ok {
 		obj.EnableCloudMonitoring = v
+		cloudMonitoringEnabled = v
 	}
 
-	if v, ok := in["cloud_monitoring_components"].([]interface{}); ok && len(v) > 0 {
-		obj.CloudMonitoringComponents = toArrayString(v)
+	if cloudMonitoringEnabled {
+		if v, ok := in["cloud_monitoring_components"].([]interface{}); ok && len(v) > 0 {
+			obj.CloudMonitoringComponents = toArrayString(v)
+		}
 	}
 
 	if v, ok := in["enable_managed_service_prometheus"].(bool); ok {
@@ -445,6 +453,18 @@ func expandToV3GkeFeatures(p []interface{}) (*infrapb.GkeFeatures, error) {
 
 	if v, ok := in["enable_image_streaming"].(bool); ok {
 		obj.EnableImageStreaming = v
+	}
+
+	if v, ok := in["disable_horizontal_pod_autoscaling"].(bool); ok {
+		obj.DisableHorizontalPodAutoscaling = v
+	}
+
+	if v, ok := in["disable_http_load_balancing"].(bool); ok {
+		obj.DisableHttpLoadBalancing = v
+	}
+
+	if v, ok := in["enable_gcs_fuse_csi_driver"].(bool); ok {
+		obj.EnableGcsFuseCsiDriver = v
 	}
 
 	return obj, nil

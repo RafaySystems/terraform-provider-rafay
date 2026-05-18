@@ -81,10 +81,10 @@ func (v NodeGroupsMapValue) Expand(ctx context.Context) (*rafay.NodeGroup, diag.
 			ng.Labels[k] = getStringValue(val)
 		}
 	}
-	if !v.Tags2.IsNull() && !v.Tags2.IsUnknown() {
-		ng.Tags = make(map[string]string, len(v.Tags2.Elements()))
-		vTags := make(map[string]types.String, len(v.Tags2.Elements()))
-		d = v.Tags2.ElementsAs(ctx, &vTags, false)
+	if !v.Tags.IsNull() && !v.Tags.IsUnknown() {
+		ng.Tags = make(map[string]string, len(v.Tags.Elements()))
+		vTags := make(map[string]types.String, len(v.Tags.Elements()))
+		d = v.Tags.ElementsAs(ctx, &vTags, false)
 		diags = append(diags, d...)
 		for k, val := range vTags {
 			ng.Tags[k] = getStringValue(val)
@@ -120,9 +120,9 @@ func (v NodeGroupsMapValue) Expand(ctx context.Context) (*rafay.NodeGroup, diag.
 		enableDM := getBoolValue(v.EnableDetailedMonitoring)
 		ng.EnableDetailedMonitoring = &enableDM
 	}
-	if !v.AvailabilityZones2.IsNull() && !v.AvailabilityZones2.IsUnknown() {
-		azList := make([]types.String, 0, len(v.AvailabilityZones2.Elements()))
-		d = v.AvailabilityZones2.ElementsAs(ctx, &azList, false)
+	if !v.AvailabilityZones.IsNull() && !v.AvailabilityZones.IsUnknown() {
+		azList := make([]types.String, 0, len(v.AvailabilityZones.Elements()))
+		d = v.AvailabilityZones.ElementsAs(ctx, &azList, false)
 		diags = append(diags, d...)
 		azs := make([]string, 0, len(azList))
 		for _, az := range azList {

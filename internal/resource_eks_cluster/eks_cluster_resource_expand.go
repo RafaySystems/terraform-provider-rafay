@@ -6,6 +6,7 @@ import (
 	"github.com/RafaySystems/terraform-provider-rafay/rafay"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -758,6 +759,42 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 		clusterConfig.AutoModeConfig = amc
 	}
 
+	// delete_protection_config block
+	vDeleteProtectionConfigList := make([]DeleteProtectionConfigValue, 0, len(v.DeleteProtectionConfig.Elements()))
+	d = v.DeleteProtectionConfig.ElementsAs(ctx, &vDeleteProtectionConfigList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
+	if len(vDeleteProtectionConfigList) > 0 {
+		dpc, d := vDeleteProtectionConfigList[0].Expand(ctx)
+		diags = append(diags, d...)
+		clusterConfig.DeleteProtection = dpc
+	}
+
+	// zonal_shift_config block
+	vZonalShiftConfigList := make([]ZonalShiftConfigValue, 0, len(v.ZonalShiftConfig.Elements()))
+	d = v.ZonalShiftConfig.ElementsAs(ctx, &vZonalShiftConfigList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
+	if len(vZonalShiftConfigList) > 0 {
+		zsc, d := vZonalShiftConfigList[0].Expand(ctx)
+		diags = append(diags, d...)
+		clusterConfig.ZonalShiftConfig = zsc
+	}
+
+	// auto_zonal_shift_config block
+	vAutoZonalShiftConfigList := make([]AutoZonalShiftConfigValue, 0, len(v.AutoZonalShiftConfig.Elements()))
+	d = v.AutoZonalShiftConfig.ElementsAs(ctx, &vAutoZonalShiftConfigList, false)
+	if d.HasError() {
+		diags = append(diags, d...)
+	}
+	if len(vAutoZonalShiftConfigList) > 0 {
+		azsc, d := vAutoZonalShiftConfigList[0].Expand(ctx)
+		diags = append(diags, d...)
+		clusterConfig.AutoZonalShiftConfig = azsc
+	}
+
 	return &clusterConfig, diags
 }
 
@@ -1330,6 +1367,18 @@ func (v VpcValue) Expand(ctx context.Context) (*rafay.EKSClusterVPC, diag.Diagno
 		}
 		if len(publicAccessCidrs) > 0 {
 			vpc.PublicAccessCIDRs = publicAccessCidrs
+		}
+	}
+	if !v.ControlPlaneSecurityGroupIds.IsNull() && !v.ControlPlaneSecurityGroupIds.IsUnknown() {
+		controlPlaneSecurityGroupIdsList := make([]types.String, 0, len(v.ControlPlaneSecurityGroupIds.Elements()))
+		d := v.ControlPlaneSecurityGroupIds.ElementsAs(ctx, &controlPlaneSecurityGroupIdsList, false)
+		diags = append(diags, d...)
+		controlPlaneSecurityGroupIDs := make([]string, 0, len(controlPlaneSecurityGroupIdsList))
+		for _, sgID := range controlPlaneSecurityGroupIdsList {
+			controlPlaneSecurityGroupIDs = append(controlPlaneSecurityGroupIDs, getStringValue(sgID))
+		}
+		if len(controlPlaneSecurityGroupIDs) > 0 {
+			vpc.ControlPlaneSecurityGroupIDs = controlPlaneSecurityGroupIDs
 		}
 	}
 
@@ -2389,4 +2438,69 @@ func (v AutoModeConfigValue) Expand(ctx context.Context) (*rafay.EKSAutoModeConf
 	}
 
 	return &amc, diags
+}
+
+func (v ZonalShiftConfigValue) Expand(ctx context.Context) (*rafay.ZonalShiftConfig, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var zsc rafay.ZonalShiftConfig
+
+	if v.IsNull() {
+		return &rafay.ZonalShiftConfig{}, diags
+	}
+
+	if !v.Enabled.IsNull() && !v.Enabled.IsUnknown() {
+		zsc.Enabled = getBoolValue(v.Enabled)
+	}
+
+	return &zsc, diags
+}
+
+func (v DeleteProtectionConfigValue) Expand(ctx context.Context) (*rafay.DeleteProtectionConfig, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var dpc rafay.DeleteProtectionConfig
+
+	if v.IsNull() {
+		return &rafay.DeleteProtectionConfig{}, diags
+	}
+
+	if !v.Enabled.IsNull() && !v.Enabled.IsUnknown() {
+		dpc.Enabled = getBoolValue(v.Enabled)
+	}
+
+	return &dpc, diags
+}
+
+func (v AutoZonalShiftConfigValue) Expand(ctx context.Context) (*rafay.AutoZonalShiftConfig, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
+	var azsc rafay.AutoZonalShiftConfig
+
+	if v.IsNull() {
+		return &rafay.AutoZonalShiftConfig{}, diags
+	}
+
+	if !v.Enabled.IsNull() && !v.Enabled.IsUnknown() {
+		azsc.Enabled = getBoolValue(v.Enabled)
+	}
+
+	listFromListValue := func(lv basetypes.ListValue) []string {
+		if lv.IsNull() || lv.IsUnknown() {
+			return nil
+		}
+		list := make([]types.String, 0, len(lv.Elements()))
+		d = lv.ElementsAs(ctx, &list, false)
+		diags = append(diags, d...)
+		out := make([]string, 0, len(list))
+		for _, s := range list {
+			out = append(out, getStringValue(s))
+		}
+		return out
+	}
+
+	azsc.AllowedWindows = listFromListValue(v.AllowedWindows)
+	azsc.BlockedDates = listFromListValue(v.BlockedDates)
+	azsc.BlockedWindows = listFromListValue(v.BlockedWindows)
+	azsc.BlockingAlarms = listFromListValue(v.BlockingAlarms)
+	azsc.OutcomeAlarms = listFromListValue(v.OutcomeAlarms)
+
+	return &azsc, diags
 }

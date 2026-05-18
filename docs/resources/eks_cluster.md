@@ -83,6 +83,7 @@ resource "rafay_eks_cluster" "eks-cluster-1" {
         private_access = true
         public_access  = false
       }
+      control_plane_security_group_ids = ["sg-xxxxxx", "sg-yyyyyy"]
       nat {
         gateway = "Single"
       }
@@ -470,6 +471,105 @@ resource "rafay_eks_cluster" "eks-cluster-2" {
       private_networking = true
       node_repair_config = {
         enabled = true
+      }
+    }
+  }
+}
+```
+
+---
+
+EKS cluster with node repair, zonal shift, and auto zonal shift.
+
+```terraform
+resource "rafay_eks_cluster" "eks_with_repair_and_zonal_shift" {
+  cluster {
+    kind = "Cluster"
+    metadata {
+      name    = "eks-repair-zonal-shift"
+      project = "terraform"
+    }
+    spec {
+      type              = "eks"
+      blueprint         = "default"
+      blueprint_version = "Latest"
+      cloud_provider    = "eks-role"
+      cni_provider      = "aws-cni"
+      proxy_config      = {}
+    }
+  }
+  cluster_config {
+    apiversion = "rafay.io/v1alpha5"
+    kind       = "ClusterConfig"
+    metadata {
+      name    = "eks-repair-zonal-shift"
+      region  = "us-west-2"
+      version = "1.32"
+    }
+    managed_nodegroups_map = {
+      "ng-with-repair" = {
+        ami_family         = "AmazonLinux2"
+        instance_type      = "t3.large"
+        desired_capacity   = 2
+        min_size           = 1
+        max_size           = 2
+        version            = "1.32"
+        volume_size        = 80
+        volume_type        = "gp3"
+        private_networking = true
+
+        node_repair_config = {
+          enabled                                 = true
+          max_unhealthy_node_threshold_percentage = 40
+          max_parallel_nodes_repaired_percentage  = 25
+
+          node_repair_config_overrides = [
+            {
+              node_monitoring_condition = "NodeNotReady"
+              node_unhealthy_reason     = "KubeletNotReady"
+              min_repair_wait_time_mins = 20
+              repair_action = "Replace"
+            },
+            {
+              node_monitoring_condition = "NodeNotReady"
+              node_unhealthy_reason     = "NetworkUnavailable"
+              min_repair_wait_time_mins = 10
+              repair_action = "Replace"
+            },
+            {
+              node_monitoring_condition = "NodeNotReady"
+              node_unhealthy_reason     = "MemoryPressure"
+              min_repair_wait_time_mins = 10
+              repair_action = "Replace"
+            }
+          ]
+        }
+      }
+    }
+
+    delete_protection_config {
+      enabled = true
+    }
+
+    zonal_shift_config {
+      enabled = true
+    }
+
+    auto_zonal_shift_config {
+      enabled         = true
+      outcome_alarms  = ["arn:aws:cloudwatch:us-west-2:123456789012:alarm:outcome-alarm-name"]
+      blocking_alarms = ["arn:aws:cloudwatch:us-west-2:123456789012:alarm:blocking-alarm-name"]
+      allowed_windows = ["Sat:02:00-Sat:06:00"]
+    }
+
+    vpc {
+      cidr = "192.168.0.0/16"
+      cluster_endpoints {
+        private_access = true
+        public_access  = false
+      }
+      nat {
+        gateway = "Single"
       }
     }
   }
@@ -1100,6 +1200,9 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `access_config` - (Block List) Access Config controls how IAM principals can access this cluster. (See [below for nested schema](#nestedblock--cluster_config--access_config))
 - `addons_config` - (Block List)  support for managed addon related configurations. (See [below for nested schema](#nestedblock--cluster_config--addons_config))
 - `auto_mode_config` - (Block List) Configuration of EKS Auto Mode (See [below for nested schema](#nestedblock--cluster_config--auto_mode_config))
+- `delete_protection_config` - (Block List) Deletion protection for the cluster, corresponding to AWS EKS `deletionProtection`. (See [below for nested schema](#nestedblock--cluster_config--delete_protection_config))
+- `zonal_shift_config` - (Block List) Zonal shift configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--zonal_shift_config))
+- `auto_zonal_shift_config` - (Block List) Auto zonal shift configuration for the cluster. (See [below for nested schema](#nestedblock--cluster_config--auto_zonal_shift_config))
 
 <a id="nestedblock--cluster_config--kubernetes_network_config"></a>
 ### Nested Schema for `cluster_config.kubernetes_network_config`
@@ -1277,6 +1380,32 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 - `node_role_arn` - (String) Role arn to be inherited by the nodepools, pass if you created a role beforehand
 - `node_pools` - (List of Strings) Select any from general-purpose and system. By Default both will be created
 
+<a id="nestedblock--cluster_config--delete_protection_config"></a>
+### Nested Schema for `cluster_config.delete_protection_config`
+
+***Optional***
+
+- `enabled` - (Boolean) When `true`, the cluster cannot be deleted until deletion protection is turned off. This maps to AWS EKS [deletion protection](https://docs.aws.amazon.com/eks/latest/userguide/deletion-protection.html).
+
+<a id="nestedblock--cluster_config--zonal_shift_config"></a>
+### Nested Schema for `cluster_config.zonal_shift_config`
+
+***Optional***
+
+- `enabled` - (Boolean) Flag to enable or disable zonal shift for the cluster.
+
+<a id="nestedblock--cluster_config--auto_zonal_shift_config"></a>
+### Nested Schema for `cluster_config.auto_zonal_shift_config`
+
+***Optional***
+
+- `enabled` - (Boolean) Flag to enable or disable auto zonal shift for the cluster.
+- `allowed_windows` - (List of String) Allowed time windows for auto zonal shift (e.g. `Sat:02:00-Sat:06:00`).
+- `blocked_dates` - (List of String) Blocked dates for auto zonal shift.
+- `blocked_windows` - (List of String) Blocked time windows for auto zonal shift.
+- `blocking_alarms` - (List of String) ARNs of CloudWatch alarms that block auto zonal shift when in alarm state.
+- `outcome_alarms` - (List of String) ARNs of CloudWatch alarms used to report the outcome of auto zonal shift.
+
 <a id="nestedblock--cluster_config--access_config"></a>
 ### Nested Schema for `cluster_config.access_config`
 
@@ -1357,7 +1486,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 ***Required***
 
-- `ami_family` - (String) The AMI family. The supported values are: `AmazonLinux2` (default), `Ubuntu2004`, `Bottlerocket`, `WindowsServer2019CoreContainer`, `WindowsServer2019FullContainer`, and `WindowsServer2004CoreContainer`.
+- `ami_family` - (String) The AMI family. The supported values are: `AmazonLinux2`, `AmazonLinux2023` (default) , `Ubuntu2004`, `Ubuntu2404` , `UbuntuPro2404` , `Bottlerocket`, `WindowsServer2019CoreContainer`, `WindowsServer2019FullContainer`, and `WindowsServer2004CoreContainer`.
 - `desired_capacity` - (Number) The desired capacity of instances in the nodegroup.
 - `instance_type` - (String) The type of instances in the nodegroup. 
 - `max_size` - (Number) The maximum number of instances in the nodegroup. 
@@ -1408,7 +1537,24 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 <a id="nestedblock--cluster_config--managed_nodegroups--node_repair_config"></a>
 ### Nested Schema for `cluster_config.managed_nodegroups.node_repair_config`
 
-- `enabled` - (Boolean) Enables Node repair for managed node group.
+***Optional***
+
+- `enabled` - (Boolean) Enables node repair for the managed node group.
+- `max_parallel_nodes_repaired_count` - (Number) Maximum count of nodes that can be repaired in parallel.
+- `max_parallel_nodes_repaired_percentage` - (Number) Maximum percentage of nodes that can be repaired in parallel.
+- `max_unhealthy_node_threshold_count` - (Number) Maximum count of unhealthy nodes allowed before node repair is triggered.
+- `max_unhealthy_node_threshold_percentage` - (Number) Maximum percentage of unhealthy nodes allowed before node repair is triggered.
+- `node_repair_config_overrides` - (List of Object) Per-condition overrides for node repair behavior. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--node_repair_config--node_repair_config_overrides))
+
+<a id="nestedblock--cluster_config--managed_nodegroups--node_repair_config--node_repair_config_overrides"></a>
+### Nested Schema for `cluster_config.managed_nodegroups.node_repair_config.node_repair_config_overrides`
+
+***Optional***
+
+- `node_monitoring_condition` - (String) The node monitoring condition for this override (e.g. NodeNotReady).
+- `node_unhealthy_reason` - (String) The node unhealthy reason for this override (e.g. KubeletNotReady, NetworkUnavailable, MemoryPressure).
+- `min_repair_wait_time_mins` - (Number) Minimum wait time in minutes before repair action is taken.
+- `repair_action` - (String) The repair action to take (e.g. Replace, Reboot).
 
 
 <a id="nestedblock--cluster_config--managed_nodegroups--iam"></a>
@@ -1453,7 +1599,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 ***Required***
 
-- `ami_family` - (String) The AMI family. The supported values are: `AmazonLinux2` (default), `Ubuntu2004`, `Bottlerocket`, `WindowsServer2019CoreContainer`, `WindowsServer2019FullContainer`, and `WindowsServer2004CoreContainer`.
+- `ami_family` - (String) The AMI family. The supported values are: `AmazonLinux2`, `AmazonLinux2023` (default) , `Ubuntu2004`, `Ubuntu2404` , `UbuntuPro2404` , `Bottlerocket`, `WindowsServer2019CoreContainer`, `WindowsServer2019FullContainer`, and `WindowsServer2004CoreContainer`.
 - `desired_capacity` - (Number) The desired capacity of instances in the nodegroup.
 - `instance_type` - (String) The type of instances in the nodegroup. 
 - `max_size` - (Number) The maximum number of instances in the nodegroup. 
@@ -1558,6 +1704,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 
 - `cidr` - (String) An IP address in CIDR notation. 
 - `cluster_endpoints` - (Block List) Use to manage access to the Kubernetes API server endpoints. (See [below for nested schema](#nestedblock--cluster_config--vpc--cluster_endpoints))
+- `control_plane_security_group_ids` - (List of String) Additional security groups to attach to the EKS control plane.
 - `nat` - (Block List) The NAT configuration. (See [below for nested schema](#nestedblock--cluster_config--vpc--nat))
 - `public_access_cidrs` - (List of String) Which CIDR blocks to allow access to public a Kubernetes API endpoints. 
 - `security_group` - (String) This is the `ControlPlaneSecurityGroup` for communication between control the plane and nodes.

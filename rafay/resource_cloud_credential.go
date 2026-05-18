@@ -157,10 +157,12 @@ func resourceCloudCredentialRead(ctx context.Context, d *schema.ResourceData, m 
 	c, err := cloudprovider.GetCloudProvider(d.Get("name").(string), project.ID)
 	if err != nil {
 		log.Printf("failed to get cloud provider %s", err.Error())
-		//return diag.FromErr(err)
-		if err := d.Set("name", c.Name); err != nil {
-			d.Set("name", "")
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceCloudCredentialRead: cloud provider not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
 		}
+		return diag.FromErr(err)
 	}
 	if err := d.Set("name", c.Name); err != nil {
 		log.Printf("get cloud credential set name error %s", err.Error())
@@ -429,6 +431,12 @@ func resourceCloudCredentialDelete(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		fmt.Printf("project does not exist")
 		return diags
+	}
+
+	_, err = cloudprovider.GetCloudProvider(d.Get("name").(string), project.ID)
+	if err != nil && strings.Contains(err.Error(), "does not exist") {
+		// if provider does not exist, consider it deleted and return no error
+		return nil
 	}
 
 	errDel := cloudprovider.DeleteCloudProvider(d.Get("name").(string), project.ID)

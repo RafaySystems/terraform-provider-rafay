@@ -67,7 +67,6 @@ func resourceAlertConfigCreate(ctx context.Context, d *schema.ResourceData, m in
 	return diags
 }
 func resourceAlertConfigUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
 	log.Printf("alertconfig upsert starts")
 	tflog := os.Getenv("TF_LOG")
 	if tflog == "TRACE" || tflog == "DEBUG" {
@@ -91,7 +90,7 @@ func resourceAlertConfigUpsert(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	d.SetId(ac.Metadata.Name)
-	return diags
+	return resourceAlertConfigRead(ctx, d, m)
 }
 
 func resourceAlertConfigRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -125,6 +124,11 @@ func resourceAlertConfigRead(ctx context.Context, d *schema.ResourceData, m inte
 	})
 	if err != nil {
 		log.Println("read get err")
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceAlertConfigRead: resource not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 
@@ -212,6 +216,18 @@ func expandAlertConfigSpec(p []interface{}) (*settingspb.AlertConfigSpec, error)
 func flattenAlertConfig(d *schema.ResourceData, in *settingspb.AlertConfiguration) error {
 	if in == nil {
 		return nil
+	}
+
+	// Preserve metadata context (especially project/name) from current state/config
+	// when API read responses omit these fields.
+	existingMeta := GetMetaData(d)
+	if in.Metadata != nil && existingMeta != nil {
+		if len(in.Metadata.Name) == 0 {
+			in.Metadata.Name = existingMeta.Name
+		}
+		if len(in.Metadata.Project) == 0 {
+			in.Metadata.Project = existingMeta.Project
+		}
 	}
 
 	err := d.Set("metadata", flattenMetaData(in.Metadata))

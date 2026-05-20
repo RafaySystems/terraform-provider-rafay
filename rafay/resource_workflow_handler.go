@@ -905,7 +905,8 @@ func expandMetricTarget(in map[string]any) *autoscalingv2.MetricTarget {
 			mt.AverageValue = &q
 		}
 	}
-	if au, ok := in["average_utilization"].(int); ok {
+	if au, ok := in["average_utilization"].(int); ok && au > 0 &&
+		mt.Type != autoscalingv2.AverageValueMetricType {
 		au32 := int32(au)
 		mt.AverageUtilization = &au32
 	}

@@ -28,12 +28,42 @@ import (
 	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
+// aksV3NoProxyDiff suppresses spurious diffs when no_proxy entries are
+// functionally identical but differ only in whitespace after commas
+// (e.g. "a,b" vs "a, b").
+func aksV3NoProxyDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	normalize := func(v string) string {
+		parts := strings.Split(v, ",")
+		for i, p := range parts {
+			parts[i] = strings.TrimSpace(p)
+		}
+		return strings.Join(parts, ",")
+	}
+	paths := []string{
+		"spec.0.proxy_config.0.no_proxy",
+		"spec.0.proxy.0.no_proxy",
+	}
+	for _, path := range paths {
+		if !d.HasChange(path) {
+			continue
+		}
+		old, newVal := d.GetChange(path)
+		if normalize(old.(string)) == normalize(newVal.(string)) {
+			if err := d.SetNew(path, old); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func resourceAKSClusterV3() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceAKSClusterV3Create,
 		ReadContext:   resourceAKSClusterV3Read,
 		UpdateContext: resourceAKSClusterV3Update,
 		DeleteContext: resourceAKSClusterV3Delete,
+		CustomizeDiff: aksV3NoProxyDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceAKSClusterV3Import,
 		},

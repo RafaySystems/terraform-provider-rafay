@@ -28,10 +28,7 @@ import (
 	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
-// aksV3NoProxyDiff suppresses spurious diffs when no_proxy entries are
-// functionally identical but differ only in whitespace after commas
-// (e.g. "a,b" vs "a, b").
-func aksV3NoProxyDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+func suppressNoProxyDiff(_, old, new string, _ *schema.ResourceData) bool {
 	normalize := func(v string) string {
 		parts := strings.Split(v, ",")
 		for i, p := range parts {
@@ -39,22 +36,35 @@ func aksV3NoProxyDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) 
 		}
 		return strings.Join(parts, ",")
 	}
-	paths := []string{
-		"spec.0.proxy_config.0.no_proxy",
-		"spec.0.proxy.0.no_proxy",
+	return normalize(old) == normalize(new)
+}
+
+// aksV3ClusterSchema injects DiffSuppressFunc onto no_proxy fields so that
+// whitespace-only differences (e.g. "a, b" vs "a,b") are not treated as drift.
+func aksV3ClusterSchema() map[string]*schema.Schema {
+	s := resource.ClusterSchema.Schema
+	spec, ok := s["spec"]
+	if !ok {
+		return s
 	}
-	for _, path := range paths {
-		if !d.HasChange(path) {
+	specResource, ok := spec.Elem.(*schema.Resource)
+	if !ok {
+		return s
+	}
+	for _, blockName := range []string{"proxy_config", "proxy"} {
+		block, ok := specResource.Schema[blockName]
+		if !ok {
 			continue
 		}
-		old, newVal := d.GetChange(path)
-		if normalize(old.(string)) == normalize(newVal.(string)) {
-			if err := d.SetNew(path, old); err != nil {
-				return err
-			}
+		blockResource, ok := block.Elem.(*schema.Resource)
+		if !ok {
+			continue
+		}
+		if noProxy, ok := blockResource.Schema["no_proxy"]; ok {
+			noProxy.DiffSuppressFunc = suppressNoProxyDiff
 		}
 	}
-	return nil
+	return s
 }
 
 func resourceAKSClusterV3() *schema.Resource {
@@ -63,7 +73,6 @@ func resourceAKSClusterV3() *schema.Resource {
 		ReadContext:   resourceAKSClusterV3Read,
 		UpdateContext: resourceAKSClusterV3Update,
 		DeleteContext: resourceAKSClusterV3Delete,
-		CustomizeDiff: aksV3NoProxyDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceAKSClusterV3Import,
 		},
@@ -75,7 +84,7 @@ func resourceAKSClusterV3() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.ClusterSchema.Schema,
+		Schema:        aksV3ClusterSchema(),
 	}
 }
 

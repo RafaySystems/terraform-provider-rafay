@@ -1440,6 +1440,10 @@ func expandVariableOverrideOptions(p []interface{}) *eaaspb.VariableOverrideOpti
 		override.RestrictedKeyValues = toMapString(rkv)
 	}
 
+	if ms, ok := in["multi_select"].(bool); ok {
+		override.MultiSelect = ms
+	}
+
 	return override
 }
 
@@ -1494,6 +1498,7 @@ func flattenVariableOverrideOptions(input *eaaspb.VariableOverrideOptions) []int
 		"selectors":             toArrayInterface(input.Selectors),
 		"display_overridden":    input.DisplayOverridden,
 		"restricted_key_values": toMapInterface(input.RestrictedKeyValues),
+		"multi_select":          input.MultiSelect,
 	}
 	return []interface{}{obj}
 }
@@ -2321,6 +2326,10 @@ func expandEnvVarOverrideOptions(p []interface{}) *eaaspb.EnvVarOverrideOptions 
 		override.RestrictedKeyValues = toMapString(vals)
 	}
 
+	if ms, ok := in["multi_select"].(bool); ok {
+		override.MultiSelect = ms
+	}
+
 	return override
 }
 
@@ -2366,6 +2375,7 @@ func flattenEnvVarOverrideOptions(input *eaaspb.EnvVarOverrideOptions) []interfa
 		"selectors":             toArrayInterface(input.Selectors),
 		"display_overridden":    input.DisplayOverridden,
 		"restricted_key_values": toMapInterface(input.RestrictedKeyValues),
+		"multi_select":          input.MultiSelect,
 	}
 	return []interface{}{obj}
 }

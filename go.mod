@@ -28,7 +28,7 @@ require (
 	github.com/IBM/sarama v1.43.2 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
-	github.com/RafaySystems/eaas-playground/proto v0.0.0-20260527140447-99daf9f2a0aa // indirect
+	github.com/RafaySystems/eaas-playground/proto v0.0.0-20260527184415-db9a27847a6f // indirect
 	github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e // indirect
 	github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect

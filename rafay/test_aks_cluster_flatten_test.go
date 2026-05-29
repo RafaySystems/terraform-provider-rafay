@@ -821,3 +821,52 @@ func BenchmarkFlattenAKSManagedCluster(b *testing.B) {
 		flattenAKSManagedCluster(input, p)
 	}
 }
+
+func TestSuppressNoProxyDiff(t *testing.T) {
+	tests := []struct {
+		name     string
+		old      string
+		new      string
+		suppress bool
+	}{
+		{"identical no spaces", "a,b,c", "a,b,c", true},
+		{"spaces after commas", "a,b,c", "a, b, c", true},
+		{"spaces before commas", "a ,b ,c", "a,b,c", true},
+		{"spaces both sides", "a , b , c", "a,b,c", true},
+		{"different values", "a,b,c", "a,b,d", false},
+		{"different length", "a,b", "a,b,c", false},
+		{"empty both", "", "", true},
+		{"empty old", "", "a,b", false},
+		{"empty new", "a,b", "", false},
+		{"single entry with space", "localhost", " localhost ", true},
+		{"real no_proxy with spaces", "10.0.0.0/16, localhost, 127.0.0.1", "10.0.0.0/16,localhost,127.0.0.1", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := suppressNoProxyDiff("", tt.old, tt.new, nil)
+			assert.Equal(t, tt.suppress, got)
+		})
+	}
+}
+
+func TestAksV3ClusterSchemaNoProxyDiffSuppressWired(t *testing.T) {
+	s := aksV3ClusterSchema()
+
+	spec, ok := s["spec"]
+	require.True(t, ok, "spec key missing from schema")
+	specResource, ok := spec.Elem.(*schema.Resource)
+	require.True(t, ok, "spec.Elem is not *schema.Resource")
+
+	for _, blockName := range []string{"proxy_config", "proxy"} {
+		block, ok := specResource.Schema[blockName]
+		if !ok {
+			continue
+		}
+		blockResource, ok := block.Elem.(*schema.Resource)
+		require.True(t, ok, "%s.Elem is not *schema.Resource", blockName)
+
+		noProxy, ok := blockResource.Schema["no_proxy"]
+		require.True(t, ok, "%s.no_proxy field missing", blockName)
+		assert.NotNil(t, noProxy.DiffSuppressFunc, "%s.no_proxy DiffSuppressFunc not set", blockName)
+	}
+}

@@ -22,10 +22,21 @@ The latest version of the Terraform provider introduces several enhancements, in
 
 To take advantage of these improvements, the EKS cluster resource now supports a new map-based node group structure (`node_groups_map`, `managed_nodegroups_map`).This format offers a more organized way to define node groups, reduces unnecessary diffs, and makes ongoing configuration updates smoother and more predictable.
 
-<div style="border: 2px solid #448aff; background:#edf3ff; padding:12px; border-radius:6px; margin:12px 0;"> ✏️ <strong>Note</strong><br><br>
-Migration to the map based structure is <strong>optional</strong>. Your existing list-based configuration will continue to work as is without requiring changes.<br><br>
+<div style="border: 2px solid #448aff; background:#edf3ff; padding:12px; border-radius:6px; margin:12px 0;"> ✏️ <strong>Automatic list handling (recommended)</strong><br><br>
+Starting with recent provider versions, you can keep using list blocks (<code>node_groups</code>, <code>managed_nodegroups</code>) in your Terraform configuration. The provider internally normalizes node groups by name so that:<br><br>
+<ul>
+<li>Reordering list blocks does <strong>not</strong> produce a plan diff</li>
+<li>Adding a node group shows only the new entry in the plan</li>
+<li>Computed <code>node_groups_map</code> / <code>managed_nodegroups_map</code> mirrors are maintained in state when you use lists, but do not need to appear in your configuration or plan output</li>
+</ul>
+No environment variable or HCL migration is required for this behavior.
+</div>
 
-However, if you want to <strong>avoid unnecessary diffs</strong> and take advantage of the <strong>improved stability and behavior</strong> introduced in the latest provider, we recommend updating to the map-based format.</div>
+<div style="border: 2px solid #448aff; background:#edf3ff; padding:12px; border-radius:6px; margin:12px 0;"> ✏️ <strong>Note</strong><br><br>
+Migration to the explicit map-based structure remains <strong>optional</strong>. Your existing list-based configuration continues to work without changes.<br><br>
+
+The map-based format (<code>node_groups_map</code>, <code>managed_nodegroups_map</code>) is still available if you prefer defining node groups as map attributes in HCL.
+</div>
 
 ---
 
@@ -56,7 +67,9 @@ To take advantage of these improvements, the provider now supports a map-based s
 
 ---
 
-## Migration Steps
+## Migration Steps (optional — explicit map format)
+
+The steps below are only needed if you choose to migrate HCL from list blocks to explicit map attributes. **If you keep list blocks, upgrade the provider and run plan/apply as usual — no migration workflow is required.**
 
 Follow the controlled workflow below to migrate node groups from list format to map format without triggering misleading diffs.
 

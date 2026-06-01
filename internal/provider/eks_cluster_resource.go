@@ -26,6 +26,7 @@ import (
 )
 
 var _ resource.Resource = (*eksClusterResource)(nil)
+var _ resource.ResourceWithModifyPlan = (*eksClusterResource)(nil)
 
 func NewEksClusterResource() resource.Resource {
 	return &eksClusterResource{}
@@ -38,7 +39,7 @@ func (r *eksClusterResource) Metadata(ctx context.Context, req resource.Metadata
 }
 
 func (r *eksClusterResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = resource_eks_cluster.EksClusterResourceSchema(ctx)
+	resp.Schema = resource_eks_cluster.EksClusterResourceSchemaPatched(ctx)
 }
 
 func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
@@ -75,6 +76,11 @@ func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.Va
 			"Invalid Configuration",
 			"Only one of 'managed_nodegroups' or 'managed_nodegroups_map' can be set at a time. Please remove one of them.",
 		)
+	}
+
+	resp.Diagnostics.Append(validateUniqueNodeGroupNames(ctx, cc)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Validate SSH settings for nodegroups
@@ -189,6 +195,84 @@ func (r *eksClusterResource) ValidateConfig(ctx context.Context, req resource.Va
 
 }
 
+func validateUniqueNodeGroupNames(ctx context.Context, cc resource_eks_cluster.ClusterConfigValue) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	vNodeGroupsList := make([]resource_eks_cluster.NodeGroupsValue, 0, len(cc.NodeGroups.Elements()))
+	if !cc.NodeGroups.IsNull() && !cc.NodeGroups.IsUnknown() {
+		if d := cc.NodeGroups.ElementsAs(ctx, &vNodeGroupsList, false); d.HasError() {
+			return append(diags, d...)
+		}
+	}
+	seen := map[string]bool{}
+	for _, ng := range vNodeGroupsList {
+		name := strings.ToLower(strings.TrimSpace(ng.Name.ValueString()))
+		if name == "" {
+			continue
+		}
+		if seen[name] {
+			diags.AddError(
+				"Invalid Configuration",
+				fmt.Sprintf("Duplicate node group name %q in node_groups. Each node group must have a unique name.", ng.Name.ValueString()),
+			)
+			return diags
+		}
+		seen[name] = true
+	}
+
+	vMngNodeGroupsList := make([]resource_eks_cluster.ManagedNodegroupsValue, 0, len(cc.ManagedNodegroups.Elements()))
+	if !cc.ManagedNodegroups.IsNull() && !cc.ManagedNodegroups.IsUnknown() {
+		if d := cc.ManagedNodegroups.ElementsAs(ctx, &vMngNodeGroupsList, false); d.HasError() {
+			return append(diags, d...)
+		}
+	}
+	seenMng := map[string]bool{}
+	for _, mng := range vMngNodeGroupsList {
+		name := strings.ToLower(strings.TrimSpace(mng.Name.ValueString()))
+		if name == "" {
+			continue
+		}
+		if seenMng[name] {
+			diags.AddError(
+				"Invalid Configuration",
+				fmt.Sprintf("Duplicate managed node group name %q in managed_nodegroups. Each managed node group must have a unique name.", mng.Name.ValueString()),
+			)
+			return diags
+		}
+		seenMng[name] = true
+	}
+
+	return diags
+}
+
+func (r *eksClusterResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	var config, state, plan resource_eks_cluster.EksClusterModel
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !req.State.Raw.IsNull() {
+		resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resource_eks_cluster.ModifyEksClusterNodeGroupPlan(ctx, &config, &state, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
+}
+
 func (r *eksClusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data resource_eks_cluster.EksClusterModel
 
@@ -219,7 +303,13 @@ func (r *eksClusterResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	newClusterConfig, d := resource_eks_cluster.ExpandEksClusterConfig(ctx, data)
+	var configModel resource_eks_cluster.EksClusterModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &configModel)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	newClusterConfig, d := resource_eks_cluster.ExpandEksClusterConfig(ctx, data, &configModel)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -703,7 +793,13 @@ func (r *eksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 		updatedCluster.Spec.Sharing = clusterSpec.Spec.Sharing
 	}
 
-	updatedClusterConfig, d := resource_eks_cluster.ExpandEksClusterConfig(ctx, data)
+	var configModel resource_eks_cluster.EksClusterModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &configModel)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	updatedClusterConfig, d := resource_eks_cluster.ExpandEksClusterConfig(ctx, data, &configModel)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return

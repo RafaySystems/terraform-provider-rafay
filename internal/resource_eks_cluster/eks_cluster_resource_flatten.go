@@ -358,29 +358,11 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		}
 	}
 
-	// decide list or map for node groups? Order of preference is env variable, then state.
-	var isNodeGroupsMap bool
-	if !state.NodeGroupsMap.IsNull() && !state.NodeGroupsMap.IsUnknown() &&
-		len(state.NodeGroupsMap.Elements()) > 0 {
-		isNodeGroupsMap = true
-	}
-
-	// managed node groups list or map?
-	var isManagedNodeGroupsMap bool
-	if !state.ManagedNodegroupsMap.IsNull() && !state.ManagedNodegroupsMap.IsUnknown() &&
-		len(state.ManagedNodegroupsMap.Elements()) > 0 {
-		isManagedNodeGroupsMap = true
-	}
+	// decide list or map for node groups based on which form is populated in state.
+	isNodeGroupsMap := isNodeGroupsMapMode(state)
+	isManagedNodeGroupsMap := isManagedNodeGroupsMapMode(state)
 
 	eksMigrateToMapEnvVar := os.Getenv("TF_RAFAY_EKS_MIGRATE_TO_MAP")
-	switch eksMigrateToMapEnvVar {
-	case "true":
-		isNodeGroupsMap = true
-		isManagedNodeGroupsMap = true
-	case "false":
-		isNodeGroupsMap = false
-		isManagedNodeGroupsMap = false
-	}
 
 	tflog.Debug(ctx, "EKS Cluster - FlattenEksCluster", map[string]any{
 		"isNodeGroupsMap":        isNodeGroupsMap,
@@ -421,6 +403,9 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 
 	// node groups
 	if len(in.NodeGroups) > 0 {
+		orderedNodeGroups, orderDiags := orderNodeGroupsFromState(ctx, in.NodeGroups, state.NodeGroups)
+		diags = append(diags, orderDiags...)
+
 		if isNodeGroupsMap {
 			stNgMaps := make(map[string]NodeGroupsMapValue, len(state.NodeGroupsMap.Elements()))
 			if !state.NodeGroupsMap.IsNull() {
@@ -429,7 +414,7 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 			}
 
 			nodegrp := map[string]attr.Value{}
-			for _, ng := range in.NodeGroups {
+			for _, ng := range orderedNodeGroups {
 				stNgMap := NodeGroupsMapValue{}
 				if _, ok := stNgMaps[ng.Name]; ok {
 					stNgMap = stNgMaps[ng.Name]
@@ -452,7 +437,9 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 			}
 
 			ngElements := []attr.Value{}
-			for _, ng := range in.NodeGroups {
+			apiNames := make(map[string]bool, len(orderedNodeGroups))
+			for _, ng := range orderedNodeGroups {
+				apiNames[normalizeNodeGroupName(ng.Name)] = true
 				stNg := NodeGroupsValue{}
 				for _, sng := range stNgs {
 					if strings.EqualFold(getStringValue(sng.Name), ng.Name) {
@@ -465,9 +452,12 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 				diags = append(diags, d...)
 				ngElements = append(ngElements, ngList)
 			}
+			ngElements = appendStateOnlyNodeGroupsListElements(ngElements, apiNames, stNgs)
 			v.NodeGroups, d = types.ListValue(NodeGroupsValue{}.Type(ctx), ngElements)
 			diags = append(diags, d...)
-			v.NodeGroupsMap = types.MapNull(NodeGroupsMapValue{}.Type(ctx))
+
+			v.NodeGroupsMap, d = buildNodeGroupsMapFromListElements(ctx, ngElements, state.NodeGroupsMap)
+			diags = append(diags, d...)
 		}
 	} else {
 		v.NodeGroups = types.ListNull(NodeGroupsValue{}.Type(ctx))
@@ -561,6 +551,9 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 
 	// managed node groups
 	if len(in.ManagedNodeGroups) > 0 {
+		orderedManagedNodeGroups, orderDiags := orderManagedNodeGroupsFromState(ctx, in.ManagedNodeGroups, state.ManagedNodegroups)
+		diags = append(diags, orderDiags...)
+
 		if isManagedNodeGroupsMap {
 			stMngMaps := make(map[string]ManagedNodegroupsMapValue, len(state.ManagedNodegroupsMap.Elements()))
 			if !state.ManagedNodegroupsMap.IsNull() {
@@ -569,7 +562,7 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 			}
 
 			managednodegrp := map[string]attr.Value{}
-			for _, mng := range in.ManagedNodeGroups {
+			for _, mng := range orderedManagedNodeGroups {
 				stMngMap := ManagedNodegroupsMapValue{}
 				if _, ok := stMngMaps[mng.Name]; ok {
 					stMngMap = stMngMaps[mng.Name]
@@ -591,7 +584,9 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 			}
 
 			mngElements := []attr.Value{}
-			for _, mng := range in.ManagedNodeGroups {
+			apiNames := make(map[string]bool, len(orderedManagedNodeGroups))
+			for _, mng := range orderedManagedNodeGroups {
+				apiNames[normalizeNodeGroupName(mng.Name)] = true
 				stMng := ManagedNodegroupsValue{}
 				for _, smng := range stMngs {
 					if strings.EqualFold(getStringValue(smng.Name), mng.Name) {
@@ -604,9 +599,12 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 				diags = append(diags, d...)
 				mngElements = append(mngElements, mngList)
 			}
+			mngElements = appendStateOnlyManagedNodeGroupsListElements(mngElements, apiNames, stMngs)
 			v.ManagedNodegroups, d = types.ListValue(ManagedNodegroupsValue{}.Type(ctx), mngElements)
 			diags = append(diags, d...)
-			v.ManagedNodegroupsMap = types.MapNull(ManagedNodegroupsMapValue{}.Type(ctx))
+
+			v.ManagedNodegroupsMap, d = buildManagedNodeGroupsMapFromListElements(ctx, mngElements, state.ManagedNodegroupsMap)
+			diags = append(diags, d...)
 		}
 	} else {
 		v.ManagedNodegroups = types.ListNull(ManagedNodegroupsValue{}.Type(ctx))

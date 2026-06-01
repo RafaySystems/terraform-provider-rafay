@@ -56,7 +56,7 @@ func ExpandEksCluster(ctx context.Context, v EksClusterModel) (*rafay.EKSCluster
 	return cluster, diags
 }
 
-func ExpandEksClusterConfig(ctx context.Context, v EksClusterModel) (*rafay.EKSClusterConfig, diag.Diagnostics) {
+func ExpandEksClusterConfig(ctx context.Context, v EksClusterModel, config *EksClusterModel) (*rafay.EKSClusterConfig, diag.Diagnostics) {
 	var diags, d diag.Diagnostics
 	var clusterConfig *rafay.EKSClusterConfig
 
@@ -64,10 +64,20 @@ func ExpandEksClusterConfig(ctx context.Context, v EksClusterModel) (*rafay.EKSC
 		return &rafay.EKSClusterConfig{}, diags
 	}
 
+	opts := clusterConfigExpandOpts{}
+	if config != nil && !config.ClusterConfig.IsNull() {
+		configCCList := make([]ClusterConfigValue, 0, len(config.ClusterConfig.Elements()))
+		if d := config.ClusterConfig.ElementsAs(ctx, &configCCList, false); d.HasError() {
+			diags = append(diags, d...)
+		} else if len(configCCList) > 0 {
+			opts = clusterConfigExpandOptsFromConfig(configCCList[0])
+		}
+	}
+
 	vClusterConfigList := make([]ClusterConfigValue, 0, len(v.ClusterConfig.Elements()))
-	diags = v.ClusterConfig.ElementsAs(ctx, &vClusterConfigList, false)
+	diags = append(diags, v.ClusterConfig.ElementsAs(ctx, &vClusterConfigList, false)...)
 	if len(vClusterConfigList) > 0 {
-		clusterConfig, d = vClusterConfigList[0].Expand(ctx)
+		clusterConfig, d = vClusterConfigList[0].Expand(ctx, opts)
 		diags = append(diags, d...)
 	}
 
@@ -490,7 +500,7 @@ func (v *TolerationsValue) Expand(ctx context.Context) (*rafay.Tolerations, diag
 
 // ClusterConfig Expand
 
-func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig, diag.Diagnostics) {
+func (v ClusterConfigValue) Expand(ctx context.Context, opts clusterConfigExpandOpts) (*rafay.EKSClusterConfig, diag.Diagnostics) {
 	var diags, d diag.Diagnostics
 	var clusterConfig rafay.EKSClusterConfig
 
@@ -517,66 +527,66 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 		clusterConfig.Metadata = md
 	}
 
-	// node_groups block (deprecated)
-	vNodeGroupsList := make([]NodeGroupsValue, 0, len(v.NodeGroups.Elements()))
-	d = v.NodeGroups.ElementsAs(ctx, &vNodeGroupsList, false)
-	if d.HasError() {
+	if opts.useNodeGroupsMap {
+		vngMap := make(map[string]NodeGroupsMapValue, len(v.NodeGroupsMap.Elements()))
+		d = v.NodeGroupsMap.ElementsAs(ctx, &vngMap, false)
 		diags = append(diags, d...)
-	}
-	ngs := make([]*rafay.NodeGroup, 0, len(vNodeGroupsList))
-	for _, vng := range vNodeGroupsList {
-		ng, d := vng.Expand(ctx)
-		diags = append(diags, d...)
-		ngs = append(ngs, ng)
-	}
-	if len(ngs) > 0 {
-		clusterConfig.NodeGroups = ngs
+		ngsMap := make([]*rafay.NodeGroup, 0, len(vngMap))
+		for ngName, ngMap := range vngMap {
+			ngObj, d := ngMap.Expand(ctx)
+			diags = append(diags, d...)
+			ngObj.Name = ngName
+			ngsMap = append(ngsMap, ngObj)
+		}
+		if len(ngsMap) > 0 {
+			clusterConfig.NodeGroups = ngsMap
+		}
+	} else {
+		vNodeGroupsList := make([]NodeGroupsValue, 0, len(v.NodeGroups.Elements()))
+		d = v.NodeGroups.ElementsAs(ctx, &vNodeGroupsList, false)
+		if d.HasError() {
+			diags = append(diags, d...)
+		}
+		ngs := make([]*rafay.NodeGroup, 0, len(vNodeGroupsList))
+		for _, vng := range vNodeGroupsList {
+			ng, d := vng.Expand(ctx)
+			diags = append(diags, d...)
+			ngs = append(ngs, ng)
+		}
+		if len(ngs) > 0 {
+			clusterConfig.NodeGroups = ngs
+		}
 	}
 
-	// node_groups_map block
-	vngMap := make(map[string]NodeGroupsMapValue, len(v.NodeGroupsMap.Elements()))
-	d = v.NodeGroupsMap.ElementsAs(ctx, &vngMap, false)
-	diags = append(diags, d...)
-	ngsMap := make([]*rafay.NodeGroup, 0, len(vngMap))
-	for ngName, ngMap := range vngMap {
-		ngObj, d := ngMap.Expand(ctx)
+	if opts.useManagedNodeGroupsMap {
+		vmngMap := make(map[string]ManagedNodegroupsMapValue, len(v.ManagedNodegroupsMap.Elements()))
+		d = v.ManagedNodegroupsMap.ElementsAs(ctx, &vmngMap, false)
 		diags = append(diags, d...)
-		ngObj.Name = ngName
-		ngsMap = append(ngsMap, ngObj)
-	}
-	if len(ngsMap) > 0 {
-		clusterConfig.NodeGroups = ngsMap
-	}
-
-	// managed_nodegroups block (deprecated)
-	vManagedNodeGroupsList := make([]ManagedNodegroupsValue, 0, len(v.ManagedNodegroups.Elements()))
-	d = v.ManagedNodegroups.ElementsAs(ctx, &vManagedNodeGroupsList, false)
-	if d.HasError() {
-		diags = append(diags, d...)
-	}
-	mngs := make([]*rafay.ManagedNodeGroup, 0, len(vManagedNodeGroupsList))
-	for _, mng := range vManagedNodeGroupsList {
-		mngObj, d := mng.Expand(ctx)
-		diags = append(diags, d...)
-		mngs = append(mngs, mngObj)
-	}
-	if len(mngs) > 0 {
-		clusterConfig.ManagedNodeGroups = mngs
-	}
-
-	// managed_nodegroups_map block
-	vmngMap := make(map[string]ManagedNodegroupsMapValue, len(v.ManagedNodegroupsMap.Elements()))
-	d = v.ManagedNodegroupsMap.ElementsAs(ctx, &vmngMap, false)
-	diags = append(diags, d...)
-	mngsMap := make([]*rafay.ManagedNodeGroup, 0, len(vmngMap))
-	for mngName, mngMap := range vmngMap {
-		mngObj, d := mngMap.Expand(ctx)
-		diags = append(diags, d...)
-		mngObj.Name = mngName
-		mngsMap = append(mngsMap, mngObj)
-	}
-	if len(mngsMap) > 0 {
-		clusterConfig.ManagedNodeGroups = mngsMap
+		mngsMap := make([]*rafay.ManagedNodeGroup, 0, len(vmngMap))
+		for mngName, mngMap := range vmngMap {
+			mngObj, d := mngMap.Expand(ctx)
+			diags = append(diags, d...)
+			mngObj.Name = mngName
+			mngsMap = append(mngsMap, mngObj)
+		}
+		if len(mngsMap) > 0 {
+			clusterConfig.ManagedNodeGroups = mngsMap
+		}
+	} else {
+		vManagedNodeGroupsList := make([]ManagedNodegroupsValue, 0, len(v.ManagedNodegroups.Elements()))
+		d = v.ManagedNodegroups.ElementsAs(ctx, &vManagedNodeGroupsList, false)
+		if d.HasError() {
+			diags = append(diags, d...)
+		}
+		mngs := make([]*rafay.ManagedNodeGroup, 0, len(vManagedNodeGroupsList))
+		for _, mng := range vManagedNodeGroupsList {
+			mngObj, d := mng.Expand(ctx)
+			diags = append(diags, d...)
+			mngs = append(mngs, mngObj)
+		}
+		if len(mngs) > 0 {
+			clusterConfig.ManagedNodeGroups = mngs
+		}
 	}
 
 	// availability_zones (list of strings)

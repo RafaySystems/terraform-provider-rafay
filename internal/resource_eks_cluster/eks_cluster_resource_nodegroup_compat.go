@@ -228,7 +228,11 @@ func normalizeNodeGroupsPlanList(ctx context.Context, configList, stateList base
 	}
 
 	if reorderOnly {
-		return stateList, diags
+		// Plan must match config element-by-element for non-computed attrs;
+		// returning stateList here violates that when state order != config
+		// order, producing a "Provider produced invalid plan" error. Return
+		// configList (same content by Equal check, guaranteed config order).
+		return configList, diags
 	}
 
 	return buildPlanListInConfigOrder(ctx, configElems, stateByName, NodeGroupsValue{}.Type(ctx))
@@ -504,7 +508,11 @@ func normalizeManagedNodeGroupsPlanList(ctx context.Context, configList, stateLi
 	}
 
 	if reorderOnly {
-		return stateList, diags
+		// Plan must match config element-by-element for non-computed attrs;
+		// returning stateList here violates that when state order != config
+		// order, producing a "Provider produced invalid plan" error. Return
+		// configList (same content by Equal check, guaranteed config order).
+		return configList, diags
 	}
 
 	return buildManagedPlanListInConfigOrder(ctx, configElems, stateByName)

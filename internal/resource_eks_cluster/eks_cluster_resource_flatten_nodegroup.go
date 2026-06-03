@@ -46,7 +46,7 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 		if !state.IsNull() && !state.MaxPodsPerNode.IsNull() {
 			v.MaxPodsPerNode = state.MaxPodsPerNode
 		} else {
-			v.MaxPodsPerNode = types.Int64Value(int64(in.MaxPodsPerNode))
+			v.MaxPodsPerNode = types.Int64Null()
 		}
 	}
 

@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20260504071954-45f09519cd7c
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260529105345-f3c25e14bb55
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260605071608-3a47bf9a6c2b
 	github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d // indirect
 	github.com/RafaySystems/rctl v1.29.1-0.20260427102033-bdb36fa0976a
 	github.com/avast/retry-go/v4 v4.6.0 // indirect
@@ -30,7 +30,7 @@ require (
 	github.com/IBM/sarama v1.43.2 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
-	github.com/RafaySystems/eaas-playground/proto v0.0.0-20260527140447-99daf9f2a0aa // indirect
+	github.com/RafaySystems/eaas-playground/proto v0.0.0-20260605071311-5e7735177c2b // indirect
 	github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect

@@ -1,10 +1,10 @@
 pipeline {
     agent {
         docker { 
-                image 'public.ecr.aws/bitnami/golang:1.23.4'
+                image 'registry-proxy.dev.rafay-edge.net/golang:1.26.0'
                 args '-u root:sudo'
                 reuseNode false
-                label 'ec2-fleet'
+                label 'ec2-fleet-tf'
             }
     }
     stages {

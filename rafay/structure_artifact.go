@@ -306,7 +306,11 @@ func ExpandArtifactSpec(p []interface{}) (*commonpb.ArtifactSpec, error) {
 
 	if v, ok := in["type"].(string); ok && len(v) > 0 {
 		artifactType := v
-		obj, err = ExpandArtifact(artifactType, p)
+		if artifactType == commonpb.ArtifactTypeHelm4 {
+			obj, err = ExpandHelm4Artifact(p)
+		} else {
+			obj, err = ExpandArtifact(artifactType, p)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -536,6 +540,37 @@ func FlattenArtifactSpec(dataResource bool, in *commonpb.ArtifactSpec, p []inter
 	if err != nil {
 		log.Println("FlattenArtifactSpec MarshalJSON error", err)
 		return nil, fmt.Errorf("%s %+v", "FlattenArtifactSpec MarshalJSON error", err)
+	}
+
+	if in.Type == commonpb.ArtifactTypeHelm4 {
+		at := helm4ArtifactTranspose{}
+		if err := json.Unmarshal(jsonBytes, &at); err != nil {
+			return nil, fmt.Errorf("%s %+v", "FlattenArtifactSpec helm4 json unmarshal error", err)
+		}
+
+		log.Println("FlattenArtifactSpec helm4 jsonBytes:", string(jsonBytes))
+		s1 := spew.Sprintf("%+v", at)
+		log.Println("FlattenArtifactSpec helm4 at", s1)
+
+		v, ok := obj["artifact"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		artfct, err := FlattenHelm4Artifact(&at, v)
+		if dataResource && err == nil {
+			obj["artifact"] = artfct
+		}
+
+		v, ok = obj["options"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		artfctOpts, err := FlattenHelm4ArtifactOptions(&at, v)
+		if dataResource && err == nil {
+			obj["options"] = artfctOpts
+		}
+
+		return []interface{}{obj}, nil
 	}
 
 	at := artifactTranspose{}

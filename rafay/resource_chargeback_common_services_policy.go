@@ -150,6 +150,12 @@ func resourceChargebackCommonServicesPolicyRead(ctx context.Context, d *schema.R
 		Project: tfChargebackCommonServicesPolicyState.Metadata.Project,
 	})
 	if err != nil {
+		log.Printf("resourceChargebackCommonServicesPolicyRead get error %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceChargebackCommonServicesPolicyRead: resource not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

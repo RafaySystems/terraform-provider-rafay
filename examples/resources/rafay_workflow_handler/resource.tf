@@ -113,3 +113,57 @@ resource "rafay_workflow_handler" "workflow_handler" {
     }
   }
 }
+
+# Example workflow handler with function driver, resources and HPA
+resource "rafay_workflow_handler" "workflow_handler_function" {
+  metadata {
+    name    = "${var.name}-function"
+    project = var.project
+  }
+  spec {
+    config {
+      type            = "function"
+      timeout_seconds = 100
+      max_retry_count = 3
+      function {
+        name         = "example-function"
+        image        = "my-registry.io/example-function:latest"
+        skip_build {
+          value = true
+        }
+        num_replicas = 2
+        resources {
+          requests {
+            cpu    = "500m"
+            memory = "256Mi"
+          }
+          limits {
+            cpu    = "1"
+            memory = "512Mi"
+          }
+        }
+        hpa {
+          enabled {
+            value = true
+          }
+          min_replicas = 1
+          max_replicas = 10
+          resource_metrics {
+            name = "cpu"
+            target {
+              type                 = "Utilization"
+              average_utilization  = 80
+            }
+          }
+          resource_metrics {
+            name = "memory"
+            target {
+              type          = "AverageValue"
+              average_value = "512Mi"
+            }
+          }
+        }
+      }
+    }
+  }
+}

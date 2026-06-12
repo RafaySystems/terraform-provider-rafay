@@ -6984,10 +6984,10 @@ func resourceEKSClusterRead(ctx context.Context, d *schema.ResourceData, m inter
 	c, err := cluster.GetCluster(clusterName, projectID, uaDef)
 	if err != nil {
 		log.Printf("error in get cluster %s", err.Error())
-		if strings.Contains(err.Error(), "not found") {
-			log.Println("Resource Read ", "error", err)
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceEKSClusterRead: cluster not found, treating as drift", "error", err)
 			d.SetId("")
-			return diag.FromErr(fmt.Errorf("resource read failed, cluster not found. Error: %s", err.Error()))
+			return diags
 		}
 		return diag.FromErr(err)
 	}

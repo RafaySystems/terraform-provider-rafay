@@ -264,6 +264,27 @@ func expandToV3GkeConfigObject(p []interface{}) (*infrapb.ClusterSpec_Gke, error
 		obj.Gke.ResourceLabels = toMapString(v)
 	}
 
+	// releaseChannel
+	if v, ok := in["release_channel"].([]interface{}); ok && len(v) > 0 {
+		obj.Gke.ReleaseChannel, err = expandToV3GkeReleaseChannel(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand gke release channel from schema : %w", err)
+		}
+	}
+
+	// maintenancePolicy
+	if v, ok := in["maintenance_policy"].([]interface{}); ok && len(v) > 0 {
+		obj.Gke.MaintenancePolicy, err = expandToV3GkeMaintenancePolicy(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand gke maintenance policy from schema : %w", err)
+		}
+	}
+
+	// validate: autoUpgrade must be enabled on all node pools when a release channel is set
+	if err := validateAutoUpgradeWithReleaseChannel(obj.Gke); err != nil {
+		return nil, err
+	}
+
 	return obj, nil
 }
 
@@ -407,20 +428,28 @@ func expandToV3GkeFeatures(p []interface{}) (*infrapb.GkeFeatures, error) {
 	obj := &infrapb.GkeFeatures{}
 	in := p[0].(map[string]interface{})
 
+	cloudLoggingEnabled := false
 	if v, ok := in["enable_cloud_logging"].(bool); ok {
 		obj.EnableCloudLogging = v
+		cloudLoggingEnabled = v
 	}
 
-	if v, ok := in["cloud_logging_components"].([]interface{}); ok && len(v) > 0 {
-		obj.CloudLoggingComponents = toArrayString(v)
+	if cloudLoggingEnabled {
+		if v, ok := in["cloud_logging_components"].([]interface{}); ok && len(v) > 0 {
+			obj.CloudLoggingComponents = toArrayString(v)
+		}
 	}
 
+	cloudMonitoringEnabled := false
 	if v, ok := in["enable_cloud_monitoring"].(bool); ok {
 		obj.EnableCloudMonitoring = v
+		cloudMonitoringEnabled = v
 	}
 
-	if v, ok := in["cloud_monitoring_components"].([]interface{}); ok && len(v) > 0 {
-		obj.CloudMonitoringComponents = toArrayString(v)
+	if cloudMonitoringEnabled {
+		if v, ok := in["cloud_monitoring_components"].([]interface{}); ok && len(v) > 0 {
+			obj.CloudMonitoringComponents = toArrayString(v)
+		}
 	}
 
 	if v, ok := in["enable_managed_service_prometheus"].(bool); ok {
@@ -1324,4 +1353,174 @@ func expandToV3GkeNodeTaints(p []interface{}) ([]*infrapb.GkeNodeTaint, error) {
 	}
 
 	return out, nil
+}
+
+// expandToV3GkeReleaseChannel
+func expandToV3GkeReleaseChannel(p []interface{}) (*infrapb.GkeReleaseChannel, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, nil
+	}
+
+	obj := &infrapb.GkeReleaseChannel{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["channel"].(string); ok && len(v) > 0 {
+		obj.Channel = v
+	}
+
+	return obj, nil
+}
+
+// expandToV3GkeMaintenancePolicy
+func expandToV3GkeMaintenancePolicy(p []interface{}) (*infrapb.GkeMaintenancePolicy, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, nil
+	}
+
+	obj := &infrapb.GkeMaintenancePolicy{}
+	in := p[0].(map[string]interface{})
+
+	var err error
+	if v, ok := in["daily_maintenance_window"].([]interface{}); ok && len(v) > 0 {
+		obj.DailyMaintenanceWindow, err = expandToV3GkeDailyMaintenanceWindow(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand gke daily maintenance window : %w", err)
+		}
+	}
+
+	if v, ok := in["recurring_window"].([]interface{}); ok && len(v) > 0 {
+		obj.RecurringWindow, err = expandToV3GkeRecurringWindow(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand gke recurring window : %w", err)
+		}
+	}
+
+	if v, ok := in["maintenance_exclusions"].([]interface{}); ok && len(v) > 0 {
+		obj.MaintenanceExclusions, err = expandToV3GkeMaintenanceExclusions(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand gke maintenance exclusions : %w", err)
+		}
+	}
+
+	return obj, nil
+}
+
+func expandToV3GkeDailyMaintenanceWindow(p []interface{}) (*infrapb.GkeDailyMaintenanceWindow, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, nil
+	}
+
+	obj := &infrapb.GkeDailyMaintenanceWindow{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["start_time"].(string); ok && len(v) > 0 {
+		obj.StartTime = v
+	}
+
+	return obj, nil
+}
+
+func expandToV3GkeRecurringWindow(p []interface{}) (*infrapb.GkeRecurringWindow, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, nil
+	}
+
+	obj := &infrapb.GkeRecurringWindow{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["start_time"].(string); ok && len(v) > 0 {
+		obj.StartTime = v
+	}
+
+	if v, ok := in["end_time"].(string); ok && len(v) > 0 {
+		obj.EndTime = v
+	}
+
+	if v, ok := in["recurrence"].(string); ok && len(v) > 0 {
+		obj.Recurrence = v
+	}
+
+	return obj, nil
+}
+
+func expandToV3GkeMaintenanceExclusions(p []interface{}) ([]*infrapb.GkeMaintenanceExclusion, error) {
+	if len(p) == 0 {
+		return nil, nil
+	}
+
+	out := make([]*infrapb.GkeMaintenanceExclusion, len(p))
+	for i := range p {
+		if p[i] == nil {
+			continue
+		}
+		obj := &infrapb.GkeMaintenanceExclusion{}
+		in := p[i].(map[string]interface{})
+
+		if v, ok := in["name"].(string); ok && len(v) > 0 {
+			obj.Name = v
+		}
+
+		if v, ok := in["start_time"].(string); ok && len(v) > 0 {
+			obj.StartTime = v
+		}
+
+		if v, ok := in["end_time"].(string); ok && len(v) > 0 {
+			obj.EndTime = v
+		}
+
+		if v, ok := in["exclusion_options"].([]interface{}); ok && len(v) > 0 {
+			var err error
+			obj.ExclusionOptions, err = expandToV3GkeMaintenanceExclusionOptions(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to expand gke maintenance exclusion options : %w", err)
+			}
+		}
+
+		out[i] = obj
+	}
+
+	return out, nil
+}
+
+func expandToV3GkeMaintenanceExclusionOptions(p []interface{}) (*infrapb.GkeMaintenanceExclusionOptions, error) {
+	if len(p) == 0 || p[0] == nil {
+		return nil, nil
+	}
+
+	obj := &infrapb.GkeMaintenanceExclusionOptions{}
+	in := p[0].(map[string]interface{})
+
+	if v, ok := in["scope"].(string); ok && len(v) > 0 {
+		obj.Scope = v
+	}
+
+	return obj, nil
+}
+
+// validateAutoUpgradeWithReleaseChannel ensures that when a release channel
+// (REGULAR, RAPID, STABLE, EXTENDED) is configured, every node pool has
+// management.auto_upgrade enabled. GKE enforces this constraint.
+func validateAutoUpgradeWithReleaseChannel(gke *infrapb.GkeV3ConfigObject) error {
+	if gke == nil || gke.ReleaseChannel == nil || gke.ReleaseChannel.Channel == "" {
+		return nil
+	}
+
+	channel := strings.ToUpper(gke.ReleaseChannel.Channel)
+	switch channel {
+	case "REGULAR", "RAPID", "STABLE", "EXTENDED":
+		// validation required
+	default:
+		return nil
+	}
+
+	for _, np := range gke.NodePools {
+		if np.Management == nil || !np.Management.AutoUpgrade {
+			return fmt.Errorf(
+				"node pool %q must have management.auto_upgrade enabled when release channel %q is set",
+				np.Name, gke.ReleaseChannel.Channel,
+			)
+		}
+	}
+
+	return nil
 }

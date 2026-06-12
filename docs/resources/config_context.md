@@ -178,6 +178,7 @@ resource "rafay_config_context" "config-context-example" {
 ***Optional***
 
 - `display_overridden` (Boolean) Display overridden values on UI
+- `multi_select` (Boolean) When true, allows selecting multiple keys/values from restricted options. Value field holds a JSON array of selected keys/values.
 - `restricted_key_values` (Map of String) If the override type is restricted_key_values, values it is restricted to
 - `restricted_values` (List of String) If the override type is restricted, values it is restricted to
 - `selectors` (List of String) Used to alias a variable and restrict the override scope

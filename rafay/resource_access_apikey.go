@@ -181,6 +181,11 @@ func resourceAccessApiRead(ctx context.Context, d *schema.ResourceData, m interf
 		ua, err := user.GetUser(userName)
 		if err != nil {
 			log.Printf("get user account, error %s", err.Error())
+			if IsResourceNotFoundErr(err) {
+				log.Println("resourceAccessApiRead: user not found, treating as drift", "error", err)
+				d.SetId("")
+				return diags
+			}
 			return diag.FromErr(err)
 		}
 		userAccount = *ua

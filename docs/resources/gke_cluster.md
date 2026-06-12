@@ -266,6 +266,80 @@ resource "rafay_gke_cluster" "gke-reservation-affinity-example" {
 }
 ```
 
+### Cluster with Release Channel and Maintenance Window
+
+```terraform
+resource "rafay_gke_cluster" "gke-release-channel-example" {
+  metadata {
+    name    = var.cluster_name
+    project = var.rafay_project_name
+  }
+  spec {
+    type = "gke"
+    blueprint {
+      name    = "minimal"
+      version = "latest"
+    }
+    cloud_credentials = var.rafay_cloud_credential_name
+    config {
+      gcp_project           = var.gcp_project
+      control_plane_version = "1.29"
+      location {
+        type = "zonal"
+        config {
+          zone = "us-central1-c"
+        }
+      }
+      network {
+        name                     = "default"
+        subnet_name              = "default"
+        enable_vpc_nativetraffic = "true"
+        max_pods_per_node        = 110
+        access {
+          type = "public"
+        }
+      }
+      features {
+        enable_compute_engine_persistent_disk_csi_driver = "true"
+        enable_cloud_logging                             = "true"
+        cloud_logging_components                         = ["SYSTEM_COMPONENTS", "WORKLOADS"]
+        enable_cloud_monitoring                          = "true"
+        cloud_monitoring_components                      = ["SYSTEM_COMPONENTS"]
+      }
+      release_channel {
+        channel = "STABLE"
+      }
+      maintenance_policy {
+        recurring_window {
+          start_time = "2026-01-03T09:00:00Z"
+          end_time   = "2026-01-03T17:00:00Z"
+          recurrence = "FREQ=WEEKLY;BYDAY=SA,SU"
+        }
+        maintenance_exclusions {
+          name       = "holiday-freeze"
+          start_time = "2026-12-15T00:00:00Z"
+          end_time   = "2027-01-05T00:00:00Z"
+          exclusion_options {
+            scope = "NO_UPGRADES"
+          }
+        }
+      }
+      node_pools {
+        name         = "default-nodepool"
+        node_version = "1.29"
+        size         = 3
+        machine_config {
+          machine_type   = "e2-standard-4"
+          image_type     = "COS_CONTAINERD"
+          boot_disk_type = "pd-standard"
+          boot_disk_size = 100
+        }
+      }
+    }
+  }
+}
+```
+
 ### Cluster having GPU nodes
 
 ```terraform
@@ -437,6 +511,81 @@ Optional:
 - `pre_bootstrap_commands` (List of String) Pre-bootstrap commands is a list of (one of more) commands that the user wants run on their target cluster. These commands will be run every time a node comes up, both during cluster creation and cluster/nodepool scale. Example: Node restart and node creation. Refer [preBootstrapCommands Guidelines on Rafay doc](https://docs.rafay.co/clusters/gke/preboot_commands/#prebootstrapcommands-guidelines) for usage. Special case: `${ROOT_DIR}` is used to refer root directory of nodes. However `${ROOT_DIR}` conflicts with Terraform's template syntax so you'd need to escape it by writting `$${ROOT_DIR}` instead.
 - `security` (Block List, Max: 1) Cluster security configuration. (see [below for nested schema](#nestedblock--spec--config--security))
 - `resource_labels` (Map of String) Use labels to manage resources in your organization and resource breakdown
+- `release_channel` (Block List, Max: 1) Release channel enrollment for the cluster. When enrolled, GKE automatically manages the cluster's Kubernetes version. (see [below for nested schema](#nestedblock--spec--config--release_channel))
+- `maintenance_policy` (Block List, Max: 1) Maintenance policy controls when GKE may perform automatic upgrades. (see [below for nested schema](#nestedblock--spec--config--maintenance_policy))
+
+
+<a id="nestedblock--spec--config--release_channel"></a>
+### Nested Schema for `spec.config.release_channel`
+
+***Optional***
+
+- `channel` (String) The release channel to enroll the cluster in. Allowed values: `RAPID`, `REGULAR`, `STABLE`, `EXTENDED`, `UNSPECIFIED`. When set, GKE automatically selects and manages the cluster's Kubernetes version based on the channel's cadence.
+
+| Channel | Behavior |
+|---|---|
+| `RAPID` | Earliest access to new minor versions; expect frequent upgrades. |
+| `REGULAR` | GKE default — auto-upgrade ~2–3 months after release. |
+| `STABLE` | Conservative cadence — ~2–3 months later than REGULAR. Recommended for production. |
+| `EXTENDED` | Long-term support versions; slowest cadence. |
+| `UNSPECIFIED` | Stops Rafay from managing channel enrollment (does not unenroll the cluster from GCP). |
+
+
+<a id="nestedblock--spec--config--maintenance_policy"></a>
+### Nested Schema for `spec.config.maintenance_policy`
+
+Defines when GKE is permitted to perform automatic upgrades. At most **one** of `daily_maintenance_window` or `recurring_window` may be configured.
+
+***Optional***
+
+- `daily_maintenance_window` (Block List, Max: 1) A fixed 4-hour daily window in which GKE may run maintenance. Mutually exclusive with `recurring_window`. (see [below for nested schema](#nestedblock--spec--config--maintenance_policy--daily_maintenance_window))
+- `recurring_window` (Block List, Max: 1) A flexible recurring window defined by RFC5545 recurrence rules. Mutually exclusive with `daily_maintenance_window`. (see [below for nested schema](#nestedblock--spec--config--maintenance_policy--recurring_window))
+- `maintenance_exclusions` (Block List, Max: 20) Time windows during which GKE will not perform automatic upgrades. Up to 20 exclusions per cluster. (see [below for nested schema](#nestedblock--spec--config--maintenance_policy--maintenance_exclusions))
+
+<a id="nestedblock--spec--config--maintenance_policy--daily_maintenance_window"></a>
+### Nested Schema for `spec.config.maintenance_policy.daily_maintenance_window`
+
+***Required***
+
+- `start_time` (String) Start time of the daily 4-hour maintenance window in `HH:MM` GMT format (e.g., `03:00` means 03:00–07:00 GMT daily). The duration is always 4 hours and cannot be customized.
+
+<a id="nestedblock--spec--config--maintenance_policy--recurring_window"></a>
+### Nested Schema for `spec.config.maintenance_policy.recurring_window`
+
+***Required***
+
+- `start_time` (String) Start time in RFC3339 Zulu format (e.g., `2026-01-03T09:00:00Z`).
+- `end_time` (String) End time in RFC3339 Zulu format (e.g., `2026-01-03T17:00:00Z`). Combined with `start_time`, defines the duration of each maintenance occurrence.
+- `recurrence` (String) An RFC5545 `RRULE` that defines the recurrence pattern. Examples:
+  - Weekends only: `FREQ=WEEKLY;BYDAY=SA,SU`
+  - Weekday overnights: `FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR`
+  - Every day: `FREQ=DAILY`
+
+<a id="nestedblock--spec--config--maintenance_policy--maintenance_exclusions"></a>
+### Nested Schema for `spec.config.maintenance_policy.maintenance_exclusions`
+
+***Required***
+
+- `name` (String) Unique identifier for this exclusion within the cluster (max 63 characters).
+- `start_time` (String) Start of the exclusion window in RFC3339 Zulu format (e.g., `2026-12-15T00:00:00Z`).
+- `end_time` (String) End of the exclusion window in RFC3339 Zulu format (e.g., `2027-01-05T00:00:00Z`).
+
+***Optional***
+
+- `exclusion_options` (Block List, Max: 1) Narrows the kinds of upgrades the exclusion blocks. (see [below for nested schema](#nestedblock--spec--config--maintenance_policy--maintenance_exclusions--exclusion_options))
+
+<a id="nestedblock--spec--config--maintenance_policy--maintenance_exclusions--exclusion_options"></a>
+### Nested Schema for `spec.config.maintenance_policy.maintenance_exclusions.exclusion_options`
+
+***Optional***
+
+- `scope` (String) Scope of the exclusion. If unset, the exclusion blocks all upgrades.
+
+| Scope | Behavior | Requires Release Channel |
+|---|---|---|
+| `NO_UPGRADES` | Blocks all upgrades (default). | No |
+| `NO_MINOR_UPGRADES` | Allows patch upgrades only. | Yes |
+| `NO_MINOR_OR_NODE_UPGRADES` | Blocks minor and node upgrades; patches OK. | Yes |
 
 
 <a id="nestedblock--spec--config--location"></a>

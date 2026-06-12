@@ -235,6 +235,22 @@ func flattenGKEV3Config(in *infrapb.GkeV3ConfigObject, p []interface{}) []interf
 		obj["resource_labels"] = toMapInterface(in.ResourceLabels)
 	}
 
+	if in.ReleaseChannel != nil {
+		v, ok := obj["release_channel"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["release_channel"] = flattenGKEV3ReleaseChannel(in.ReleaseChannel, v)
+	}
+
+	if in.MaintenancePolicy != nil {
+		v, ok := obj["maintenance_policy"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["maintenance_policy"] = flattenGKEV3MaintenancePolicy(in.MaintenancePolicy, v)
+	}
+
 	fmt.Printf("flattenGKEV3Config complete %+v\n", obj)
 
 	return []interface{}{obj}
@@ -549,13 +565,17 @@ func flattenGKEV3Features(in *infrapb.GkeFeatures, p []interface{}) []interface{
 	}
 
 	obj["enable_cloud_logging"] = in.EnableCloudLogging
-	if in.CloudLoggingComponents != nil && len(in.CloudLoggingComponents) > 0 {
+	if in.EnableCloudLogging && len(in.CloudLoggingComponents) > 0 {
 		obj["cloud_logging_components"] = toArrayInterface(in.CloudLoggingComponents)
+	} else if !in.EnableCloudLogging {
+		obj["cloud_logging_components"] = []interface{}{}
 	}
 
 	obj["enable_cloud_monitoring"] = in.EnableCloudMonitoring
-	if in.CloudMonitoringComponents != nil && len(in.CloudMonitoringComponents) > 0 {
+	if in.EnableCloudMonitoring && len(in.CloudMonitoringComponents) > 0 {
 		obj["cloud_monitoring_components"] = toArrayInterface(in.CloudMonitoringComponents)
+	} else if !in.EnableCloudMonitoring {
+		obj["cloud_monitoring_components"] = []interface{}{}
 	}
 
 	obj["enable_managed_service_prometheus"] = in.EnableManagedServicePrometheus
@@ -1041,6 +1061,152 @@ func flattenGKEV3NodeBlueGreenSettings(in *infrapb.GkeNodeBlueGreenSettings, p [
 	obj["batch_node_count"] = in.BatchNodeCount
 	obj["batch_soak_duration"] = in.BatchSoakDuration
 	obj["node_pool_soak_duration"] = in.NodePoolSoakDuration
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3ReleaseChannel(in *infrapb.GkeReleaseChannel, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Channel) > 0 {
+		obj["channel"] = in.Channel
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3MaintenancePolicy(in *infrapb.GkeMaintenancePolicy, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if in.DailyMaintenanceWindow != nil {
+		v, ok := obj["daily_maintenance_window"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["daily_maintenance_window"] = flattenGKEV3DailyMaintenanceWindow(in.DailyMaintenanceWindow, v)
+	}
+
+	if in.RecurringWindow != nil {
+		v, ok := obj["recurring_window"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["recurring_window"] = flattenGKEV3RecurringWindow(in.RecurringWindow, v)
+	}
+
+	if in.MaintenanceExclusions != nil && len(in.MaintenanceExclusions) > 0 {
+		v, ok := obj["maintenance_exclusions"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["maintenance_exclusions"] = flattenGKEV3MaintenanceExclusions(in.MaintenanceExclusions, v)
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3DailyMaintenanceWindow(in *infrapb.GkeDailyMaintenanceWindow, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.StartTime) > 0 {
+		obj["start_time"] = in.StartTime
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3RecurringWindow(in *infrapb.GkeRecurringWindow, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.StartTime) > 0 {
+		obj["start_time"] = in.StartTime
+	}
+
+	if len(in.EndTime) > 0 {
+		obj["end_time"] = in.EndTime
+	}
+
+	if len(in.Recurrence) > 0 {
+		obj["recurrence"] = in.Recurrence
+	}
+
+	return []interface{}{obj}
+}
+
+func flattenGKEV3MaintenanceExclusions(in []*infrapb.GkeMaintenanceExclusion, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]interface{}, len(in))
+	for i, excl := range in {
+		obj := map[string]interface{}{}
+		if i < len(p) && p[i] != nil {
+			obj = p[i].(map[string]interface{})
+		}
+
+		if len(excl.Name) > 0 {
+			obj["name"] = excl.Name
+		}
+
+		if len(excl.StartTime) > 0 {
+			obj["start_time"] = excl.StartTime
+		}
+
+		if len(excl.EndTime) > 0 {
+			obj["end_time"] = excl.EndTime
+		}
+
+		if excl.ExclusionOptions != nil {
+			v, ok := obj["exclusion_options"].([]interface{})
+			if !ok {
+				v = []interface{}{}
+			}
+			obj["exclusion_options"] = flattenGKEV3MaintenanceExclusionOptions(excl.ExclusionOptions, v)
+		}
+
+		out[i] = obj
+	}
+
+	return out
+}
+
+func flattenGKEV3MaintenanceExclusionOptions(in *infrapb.GkeMaintenanceExclusionOptions, p []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	obj := map[string]interface{}{}
+	if len(p) != 0 && p[0] != nil {
+		obj = p[0].(map[string]interface{})
+	}
+
+	if len(in.Scope) > 0 {
+		obj["scope"] = in.Scope
+	}
 
 	return []interface{}{obj}
 }

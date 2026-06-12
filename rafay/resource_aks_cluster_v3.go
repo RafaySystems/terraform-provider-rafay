@@ -21,13 +21,51 @@ import (
 	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/config"
-	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 )
+
+func suppressNoProxyDiff(_, old, new string, _ *schema.ResourceData) bool {
+	normalize := func(v string) string {
+		parts := strings.Split(v, ",")
+		for i, p := range parts {
+			parts[i] = strings.TrimSpace(p)
+		}
+		return strings.Join(parts, ",")
+	}
+	return normalize(old) == normalize(new)
+}
+
+// aksV3ClusterSchema injects DiffSuppressFunc onto no_proxy fields so that
+// whitespace-only differences (e.g. "a, b" vs "a,b") are not treated as drift.
+func aksV3ClusterSchema() map[string]*schema.Schema {
+	s := resource.ClusterSchema.Schema
+	spec, ok := s["spec"]
+	if !ok {
+		return s
+	}
+	specResource, ok := spec.Elem.(*schema.Resource)
+	if !ok {
+		return s
+	}
+	for _, blockName := range []string{"proxy_config", "proxy"} {
+		block, ok := specResource.Schema[blockName]
+		if !ok {
+			continue
+		}
+		blockResource, ok := block.Elem.(*schema.Resource)
+		if !ok {
+			continue
+		}
+		if noProxy, ok := blockResource.Schema["no_proxy"]; ok {
+			noProxy.DiffSuppressFunc = suppressNoProxyDiff
+		}
+	}
+	return s
+}
 
 func resourceAKSClusterV3() *schema.Resource {
 	return &schema.Resource{
@@ -46,7 +84,7 @@ func resourceAKSClusterV3() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		Schema:        resource.ClusterSchema.Schema,
+		Schema:        aksV3ClusterSchema(),
 	}
 }
 
@@ -64,6 +102,12 @@ func resourceAKSClusterV3Read(ctx context.Context, d *schema.ResourceData, m int
 
 	deployedCluster, err := getDeployedClusterSpecV3(ctx, d)
 	if err != nil {
+		log.Printf("resourceAKSClusterV3Read get cluster error %s", err.Error())
+		if IsResourceNotFoundErr(err) {
+			log.Println("resourceAKSClusterV3Read: cluster not found, treating as drift", "error", err)
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 
@@ -126,7 +170,7 @@ func getDeployedClusterSpecV3(ctx context.Context, d *schema.ResourceData) (*inf
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return deployedCluster, err
 	}
@@ -196,7 +240,7 @@ func resourceAKSClusterV3Delete(ctx context.Context, d *schema.ResourceData, m i
 	}
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -318,7 +362,7 @@ func resourceAKSClusterV3Upsert(ctx context.Context, d *schema.ResourceData, m i
 	log.Println(">>>>>> CLUSTER: ", desiredCluster)
 
 	auth := config.GetConfig().GetAppAuthProfile()
-	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent(), options.WithInsecureSkipVerify(auth.SkipServerCertValid))
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, TF_USER_AGENT, options.WithInsecureSkipVerify(auth.SkipServerCertValid))
 	if err != nil {
 		return diag.FromErr(err)
 	}

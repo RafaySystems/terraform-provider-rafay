@@ -561,13 +561,13 @@ func FlattenArtifactSpec(dataResource bool, in *commonpb.ArtifactSpec, p []inter
 			obj["artifact"] = artfct
 		}
 
-		v, ok = obj["helm4_options"].([]interface{})
+		v, ok = obj["options"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
 		artfctOpts, err := FlattenHelm4ArtifactOptions(&at, v)
 		if dataResource && err == nil {
-			obj["helm4_options"] = artfctOpts
+			obj["options"] = artfctOpts
 		}
 
 		return []interface{}{obj}, nil

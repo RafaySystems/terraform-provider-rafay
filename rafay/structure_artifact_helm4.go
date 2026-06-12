@@ -71,7 +71,7 @@ type helm4OptionsTranspose struct {
 }
 
 // ExpandHelm4Artifact builds an ArtifactSpec for type "Helm4". It mirrors
-// ExpandArtifact but reads the helm4_options block instead of options.
+// ExpandArtifact but reads the Helm4-specific fields from the options block.
 func ExpandHelm4Artifact(ap []interface{}) (*commonpb.ArtifactSpec, error) {
 	if len(ap) == 0 || ap[0] == nil {
 		return nil, fmt.Errorf("%s", "ExpandHelm4Artifact empty input")
@@ -135,7 +135,7 @@ func ExpandHelm4Artifact(ap []interface{}) (*commonpb.ArtifactSpec, error) {
 		}
 	}
 
-	if vp, ok := inp["helm4_options"].([]interface{}); ok && len(vp) > 0 && vp[0] != nil {
+	if vp, ok := inp["options"].([]interface{}); ok && len(vp) > 0 && vp[0] != nil {
 		in := vp[0].(map[string]interface{})
 		if v, ok := in["set"].([]interface{}); ok && len(v) > 0 {
 			for _, value := range v {
@@ -324,7 +324,7 @@ func flattenHelm4ValuesRef(at *helm4ArtifactTranspose, p []interface{}) []interf
 	return []interface{}{obj}
 }
 
-// FlattenHelm4ArtifactOptions populates the helm4_options block in TF state.
+// FlattenHelm4ArtifactOptions populates the options block in TF state.
 func FlattenHelm4ArtifactOptions(at *helm4ArtifactTranspose, p []interface{}) ([]interface{}, error) {
 	obj := map[string]interface{}{}
 	if len(p) != 0 && p[0] != nil {

@@ -4,10 +4,34 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/davecgh/go-spew/spew"
 )
+
+// Allowed values for the Helm4 strategy-style options. These mirror the
+// helm v4 contract (and the schema field descriptions) so that only valid
+// strategies reach the backend. Empty / unset is always allowed and means
+// "use the Helm default".
+var (
+	helm4WaitStrategyValues       = []string{"watcher", "legacy", "hookOnly"}
+	helm4DryRunStrategyValues     = []string{"none", "client", "server"}
+	helm4PostRenderStrategyValues = []string{"combined", "separate", "nohooks"}
+	helm4ServerSideApplyValues    = []string{"true", "false", "auto"}
+)
+
+// validateHelm4Option returns an error when value is not one of the allowed
+// values for the given option. The check is case-sensitive to match the helm
+// v4 contract (e.g. "hookOnly").
+func validateHelm4Option(field, value string, allowed []string) error {
+	for _, a := range allowed {
+		if value == a {
+			return nil
+		}
+	}
+	return fmt.Errorf("invalid value %q for option %q; valid values are: %s", value, field, strings.Join(allowed, ", "))
+}
 
 // helm4ArtifactTranspose mirrors the proto JSON shape emitted by
 // ArtifactSpec.MarshalJSON when Type == "Helm4". The artifact wire types
@@ -148,6 +172,9 @@ func ExpandHelm4Artifact(ap []interface{}) (*commonpb.ArtifactSpec, error) {
 			at.Options.Labels = toMapString(v)
 		}
 		if v, ok := in["wait_strategy"].(string); ok && len(v) > 0 {
+			if err := validateHelm4Option("wait_strategy", v, helm4WaitStrategyValues); err != nil {
+				return nil, err
+			}
 			at.Options.WaitStrategy = v
 		}
 		if v, ok := in["wait_for_jobs"].(bool); ok {
@@ -157,6 +184,9 @@ func ExpandHelm4Artifact(ap []interface{}) (*commonpb.ArtifactSpec, error) {
 			at.Options.Timeout = v
 		}
 		if v, ok := in["dry_run_strategy"].(string); ok && len(v) > 0 {
+			if err := validateHelm4Option("dry_run_strategy", v, helm4DryRunStrategyValues); err != nil {
+				return nil, err
+			}
 			at.Options.DryRunStrategy = v
 		}
 		if v, ok := in["hide_secret"].(bool); ok {
@@ -184,6 +214,9 @@ func ExpandHelm4Artifact(ap []interface{}) (*commonpb.ArtifactSpec, error) {
 			at.Options.DisableOpenAPIValidation = v
 		}
 		if v, ok := in["server_side_apply"].(string); ok && len(v) > 0 {
+			if err := validateHelm4Option("server_side_apply", v, helm4ServerSideApplyValues); err != nil {
+				return nil, err
+			}
 			at.Options.ServerSideApply = v
 		}
 		if v, ok := in["force_replace"].(bool); ok {
@@ -226,6 +259,9 @@ func ExpandHelm4Artifact(ap []interface{}) (*commonpb.ArtifactSpec, error) {
 			at.Options.EnableDns = v
 		}
 		if v, ok := in["post_render_strategy"].(string); ok && len(v) > 0 {
+			if err := validateHelm4Option("post_render_strategy", v, helm4PostRenderStrategyValues); err != nil {
+				return nil, err
+			}
 			at.Options.PostRenderStrategy = v
 		}
 	}

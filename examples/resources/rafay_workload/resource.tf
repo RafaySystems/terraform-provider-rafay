@@ -216,33 +216,35 @@
 #   }
 # }
 
-resource "rafay_workload" "tfdemoaddon-helm4-2" {
-    metadata {
-      name    = "tfdemoaddon-helm4-2"
-      project = "defaultproject"
-    }
-    spec {
-      namespace = "ns4"
-      version   = "v3.0"
 
-      placement {
-        selector = "rafay.dev/clusterName=kratos-rishabh-1"
-      }
+# Example Workload using helm4 options
+# resource "rafay_workload" "tfdemoaddon-helm4-2" {
+#     metadata {
+#       name    = "tfdemoaddon-helm4-2"
+#       project = "defaultproject"
+#     }
+#     spec {
+#       namespace = "ns4"
+#       version   = "v3.0"
 
-      artifact {
-        type = "Helm4"
-        artifact {
-          chart_path {
-            name = "file://./v3/my-pod-chart-0.1.0.tgz"
-          }
-        }
-        helm4_options {
-          max_history       = 10
-          server_side_apply = "auto"
-          timeout           = "5m0s"
-          wait_for_jobs     = true
-          wait_strategy     = "watcher"
-        }
-      }
-    }
-  }
+#       placement {
+#         selector = "rafay.dev/clusterName=kratos-rishabh-1"
+#       }
+
+#       artifact {
+#         type = "Helm4"
+#         artifact {
+#           chart_path {
+#             name = "file://./v3/my-pod-chart-0.1.0.tgz"
+#           }
+#         }
+#         options {
+#           max_history       = 10
+#           server_side_apply = "auto"
+#           timeout           = "5m0s"
+#           wait_for_jobs     = true
+#           wait_strategy     = "watcher"
+#         }
+#       }
+#     }
+#   }

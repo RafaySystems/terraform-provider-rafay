@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
 	"github.com/davecgh/go-spew/spew"
@@ -67,6 +68,25 @@ func expandTerraformValuesPathsBlocks(v []interface{}) ([]*File, error) {
 		return expandFiles(v)
 	}
 	return []*File{{}}, nil
+}
+
+// validateGitValuesPathNames rejects values_paths entries that carry an empty file
+// name. For a git-sourced reference the name is the relative path inside the
+// repository, so an empty path has no meaning. It is validated on the raw
+// configuration list (not the expanded files) so that an omitted block is left
+// alone while an explicitly written empty name fails fast.
+func validateGitValuesPathNames(valuesPaths []interface{}) error {
+	for _, item := range valuesPaths {
+		m, ok := item.(map[string]interface{})
+		if !ok || m == nil {
+			continue
+		}
+		name, _ := m["name"].(string)
+		if strings.TrimSpace(name) == "" {
+			return fmt.Errorf("empty names are not supported for git type values paths")
+		}
+	}
+	return nil
 }
 
 // ExpandArtifact expands tf state to ArtifactSpec
@@ -183,8 +203,10 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 				log.Println("expandValuesRef empty options")
 			} else {
 				inVref := v[0].(map[string]interface{})
+				gitSourced := false
 				if v, ok := inVref["repository"].(string); ok && len(v) > 0 {
 					at.Artifact.ValuesRef.Repository = v
+					gitSourced = true
 				}
 
 				if v, ok := inVref["revision"].(string); ok && len(v) > 0 {
@@ -192,6 +214,16 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 				}
 
 				if v, ok := readTerraformValuesPathsBlocks(inVref); ok {
+					// For a git-sourced values_ref the file name is the relative path
+					// inside the repository, so an explicitly configured empty name is
+					// not a valid fetch path and must be rejected rather than silently
+					// sent to the backend. An omitted values_paths block (empty list) is
+					// left untouched so the clear-on-update placeholder still works.
+					if gitSourced {
+						if err := validateGitValuesPathNames(v); err != nil {
+							return nil, err
+						}
+					}
 					at.Artifact.ValuesRef.ValuesPaths, err = expandTerraformValuesPathsBlocks(v)
 					if err != nil {
 						return nil, err

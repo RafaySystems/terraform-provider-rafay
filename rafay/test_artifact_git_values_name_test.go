@@ -1,8 +1,6 @@
 package rafay
 
-import (
-	"testing"
-)
+import "testing"
 
 // helper to build the ExpandArtifactSpec input for a Helm artifact whose
 // values_ref carries the given repository and values_paths entries.
@@ -26,28 +24,34 @@ func valuesRefSpecInput(repository string, valuesPaths []interface{}) []interfac
 	}
 }
 
-// RC-50217: a git-sourced values_ref must reject an explicitly configured empty
-// file name, while a populated name and an omitted block remain valid.
-func TestGitValuesRefEmptyName(t *testing.T) {
-	t.Run("git values_ref with empty name errors", func(t *testing.T) {
-		input := valuesRefSpecInput("my-git-repo", []interface{}{
-			map[string]interface{}{"name": ""},
+// RC-50217: a git-sourced values_ref must resolve to at least one usable values
+// path. The important case is the empty LIST: Terraform prunes an all-empty
+// `values_paths {}` block before it reaches the provider, so on create an empty
+// git path arrives as an empty list rather than as an entry with an empty name.
+// Asserting on the empty list reproduces that real pruned shape (the previous
+// test injected `{"name": ""}` directly, which never happens through Terraform
+// and so gave false confidence that create was covered).
+func TestGitValuesRefRequiresUsablePath(t *testing.T) {
+	mustError := func(label string, vp []interface{}) {
+		t.Run(label, func(t *testing.T) {
+			if _, err := ExpandArtifactSpec(valuesRefSpecInput("my-git-repo", vp)); err == nil {
+				t.Fatalf("expected error, got nil")
+			}
 		})
-		if _, err := ExpandArtifactSpec(input); err == nil {
-			t.Fatalf("expected error for empty git values path name, got nil")
-		}
+	}
+
+	// Pruned `values_paths {}` on create arrives as an empty list.
+	mustError("git values_ref with no usable path (pruned empty list)", []interface{}{})
+	// Explicit empty name survives on update (real path -> "").
+	mustError("git values_ref with empty name", []interface{}{
+		map[string]interface{}{"name": ""},
+	})
+	// Whitespace-only name is also not a usable path.
+	mustError("git values_ref with whitespace name", []interface{}{
+		map[string]interface{}{"name": "   "},
 	})
 
-	t.Run("git values_ref with whitespace name errors", func(t *testing.T) {
-		input := valuesRefSpecInput("my-git-repo", []interface{}{
-			map[string]interface{}{"name": "   "},
-		})
-		if _, err := ExpandArtifactSpec(input); err == nil {
-			t.Fatalf("expected error for whitespace git values path name, got nil")
-		}
-	})
-
-	t.Run("git values_ref with valid name is accepted", func(t *testing.T) {
+	t.Run("git values_ref with a valid path is accepted", func(t *testing.T) {
 		input := valuesRefSpecInput("my-git-repo", []interface{}{
 			map[string]interface{}{"name": "envs/prod/values.yaml"},
 		})
@@ -56,19 +60,16 @@ func TestGitValuesRefEmptyName(t *testing.T) {
 		}
 	})
 
-	t.Run("git values_ref with no values_paths block is accepted", func(t *testing.T) {
-		input := valuesRefSpecInput("my-git-repo", []interface{}{})
-		if _, err := ExpandArtifactSpec(input); err != nil {
-			t.Fatalf("expected no error when values_paths is omitted, got %v", err)
+	t.Run("non-git values_ref (no repository) is not validated", func(t *testing.T) {
+		// Not git-sourced: an empty/omitted path is allowed (it is the upload-type
+		// clear-on-update signal, not a git fetch path).
+		if _, err := ExpandArtifactSpec(valuesRefSpecInput("", []interface{}{})); err != nil {
+			t.Fatalf("expected no error when repository is unset (empty list), got %v", err)
 		}
-	})
-
-	t.Run("values_ref without repository does not trigger git validation", func(t *testing.T) {
-		input := valuesRefSpecInput("", []interface{}{
+		if _, err := ExpandArtifactSpec(valuesRefSpecInput("", []interface{}{
 			map[string]interface{}{"name": ""},
-		})
-		if _, err := ExpandArtifactSpec(input); err != nil {
-			t.Fatalf("expected no error when repository is unset (not git-sourced), got %v", err)
+		})); err != nil {
+			t.Fatalf("expected no error when repository is unset (empty name), got %v", err)
 		}
 	})
 }

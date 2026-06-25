@@ -70,12 +70,20 @@ func expandTerraformValuesPathsBlocks(v []interface{}) ([]*File, error) {
 	return []*File{{}}, nil
 }
 
-// validateGitValuesPathNames rejects values_paths entries that carry an empty file
-// name. For a git-sourced reference the name is the relative path inside the
-// repository, so an empty path has no meaning. It is validated on the raw
-// configuration list (not the expanded files) so that an omitted block is left
-// alone while an explicitly written empty name fails fast.
-func validateGitValuesPathNames(valuesPaths []interface{}) error {
+// validateGitValuesPaths enforces that a git-sourced values_ref resolves to at
+// least one usable values path. For a git reference the file name is the relative
+// path inside the repository, so an empty/blank name is not a valid fetch path
+// and a values_ref with no path has nothing to pull.
+//
+// It must be checked on the resolved set rather than only on surviving entries:
+// Terraform prunes an all-empty `values_paths {}` block before it reaches the
+// provider, so on create an empty git path arrives here as an empty list (no
+// entry with an empty name). Validating only the entries would let that case
+// slip through on create while still failing on update, which is why the empty
+// case was previously inconsistent. A pathless git values_ref is never valid, so
+// both an explicitly blank name and a resolved-empty list are rejected.
+func validateGitValuesPaths(valuesPaths []interface{}) error {
+	usable := 0
 	for _, item := range valuesPaths {
 		m, ok := item.(map[string]interface{})
 		if !ok || m == nil {
@@ -85,6 +93,10 @@ func validateGitValuesPathNames(valuesPaths []interface{}) error {
 		if strings.TrimSpace(name) == "" {
 			return fmt.Errorf("empty names are not supported for git type values paths")
 		}
+		usable++
+	}
+	if usable == 0 {
+		return fmt.Errorf("a git type values reference requires at least one values path")
 	}
 	return nil
 }
@@ -213,18 +225,18 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 					at.Artifact.ValuesRef.Revision = v
 				}
 
-				if v, ok := readTerraformValuesPathsBlocks(inVref); ok {
-					// For a git-sourced values_ref the file name is the relative path
-					// inside the repository, so an explicitly configured empty name is
-					// not a valid fetch path and must be rejected rather than silently
-					// sent to the backend. An omitted values_paths block (empty list) is
-					// left untouched so the clear-on-update placeholder still works.
-					if gitSourced {
-						if err := validateGitValuesPathNames(v); err != nil {
-							return nil, err
-						}
+				vpList, hasVP := readTerraformValuesPathsBlocks(inVref)
+				// For a git-sourced values_ref the file name is the relative path
+				// inside the repository. Validate before expanding (and regardless of
+				// whether the values_paths block survived Terraform's pruning) so an
+				// empty git path fails loudly on create just as it does on update.
+				if gitSourced {
+					if err := validateGitValuesPaths(vpList); err != nil {
+						return nil, err
 					}
-					at.Artifact.ValuesRef.ValuesPaths, err = expandTerraformValuesPathsBlocks(v)
+				}
+				if hasVP {
+					at.Artifact.ValuesRef.ValuesPaths, err = expandTerraformValuesPathsBlocks(vpList)
 					if err != nil {
 						return nil, err
 					}

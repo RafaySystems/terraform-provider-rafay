@@ -273,14 +273,14 @@ func expandAddon(in *schema.ResourceData) (*infrapb.Addon, error) {
 		obj.Spec = objSpec
 
 		// RC-50217: the expand layer emits an empty placeholder values path when
-		// no values file is configured, which acts as the clear-on-update signal.
-		// On create there is nothing to clear, so persisting it produces a phantom
-		// values file that fails blueprint sync with "no values file found". Drop
-		// the placeholder on create; on update it is retained so removing a
-		// previously configured values file still clears it on the backend.
-		if in.IsNewResource() {
-			dropPlaceholderValuesPaths(objSpec.Artifact)
-		}
+		// no values file is configured. The backend never accepts an empty-path
+		// values entry ("git/helm repository HelmValuesFile has an empty path; ...
+		// omit the entry if there is no file"), and on create it also produces a
+		// phantom values file that fails blueprint sync with "no values file
+		// found". Since the addon is written with full server-side Apply
+		// semantics, omitting the entry already clears any previously configured
+		// values file on update, so drop the placeholder unconditionally.
+		dropPlaceholderValuesPaths(objSpec.Artifact)
 	}
 
 	obj.ApiVersion = "infra.k8smgmt.io/v3"

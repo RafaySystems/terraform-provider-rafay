@@ -83,6 +83,7 @@ Read-Only:
 - `location` (String) The data center location where the cluster nodes will be launched
 - `network` (Attributes) MKS Cluster Network Specification (see [below for nested schema](#nestedatt--spec--config--network))
 - `nodes` (Attributes Map) holds node configuration for the cluster (see [below for nested schema](#nestedatt--spec--config--nodes))
+- `oidc_configuration` (Attributes) OIDC configuration for the MKS cluster (see [below for nested schema](#nestedatt--spec--config--oidc_configuration))
 
 <a id="nestedatt--spec--config--cluster_ssh"></a>
 ### Nested Schema for `spec.config.cluster_ssh`
@@ -179,6 +180,15 @@ Read-Only:
 - `value` (String)
 
 
+
+
+<a id="nestedatt--spec--config--oidc_configuration"></a>
+### Nested Schema for `spec.config.oidc_configuration`
+
+Read-Only:
+
+- `service_account_issuer` (String) End point for identifying this cluster as the issuer of service account OIDC tokens.
+- `api_audiences` (Map of String) Expected audience for service account tokens.
 
 
 <a id="nestedatt--spec--proxy"></a>

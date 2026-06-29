@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20260504071954-45f09519cd7c
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260528062417-26ed33769b74
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260629081658-aff80e613319
 	github.com/RafaySystems/rctl v1.29.1-0.20260427102033-bdb36fa0976a
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -236,7 +236,7 @@ require (
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.100.2
 
-	github.com/RafaySystems/rafay-common => ../rafay-common
+	// github.com/RafaySystems/rafay-common => ../rafay-common
 	// github.com/RafaySystems/rctl => ../rctl
 	// github.com/RafaySystems/terraform-provider-rafay/rafay => ../rafay
 	github.com/RafaySystems/terraform-provider-rafay/ipnet => ../ipnet

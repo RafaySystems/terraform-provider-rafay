@@ -24,6 +24,8 @@ github.com/RafaySystems/edge-common v1.24.1-0.20260504071954-45f09519cd7c h1:b3j
 github.com/RafaySystems/edge-common v1.24.1-0.20260504071954-45f09519cd7c/go.mod h1:tbd1Z34RfnJ3umcDjf478+dh7hJ66ict3wra7YbQmiA=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e h1:SrznY+xkaQ4BkX0HXGa0upur7RAtR6UsTsdMNEgBreY=
 github.com/RafaySystems/paas-common v0.0.0-20250519095800-e92646adcd6e/go.mod h1:vDR0S28Q+hwE/5wO0L/Ohn9CZwaI/o2QuPupJ2iLI7k=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260629081658-aff80e613319 h1:8NKWZcS+w7eC3mc8XluTqUPlaAZdg+Mb7a5/O37oV2I=
+github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260629081658-aff80e613319/go.mod h1:r0xo4vsilB9b3xhVopHe2D6WEAD0aR9NojaLT9XuAb0=
 github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d h1:NbCSh/ZDJj2g9jiiYxFV9hJB+qCqzCoayiVmWAnMrms=
 github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d/go.mod h1:SZ0uCQZvcnj9N3o7dFPrt2KnS7F6RELkFV1Py7fN5Jg=
 github.com/RafaySystems/rctl v1.29.1-0.20260427102033-bdb36fa0976a h1:Mt3cwR5IiPY6t8vx5XnyC3Yr+lBjspueAHJfh3aXELk=

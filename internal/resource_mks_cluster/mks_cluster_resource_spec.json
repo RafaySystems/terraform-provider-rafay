@@ -197,6 +197,32 @@
 												}
 											},
 											{
+												"name": "oidc_configuration",
+												"single_nested": {
+													"computed_optional_required": "optional",
+													"description": "OIDC configuration for MKS cluster",
+													"attributes": [
+														{
+															"name": "service_account_issuer",
+															"string": {
+																"computed_optional_required": "optional",
+																"description": "Service account issuer URL for OIDC"
+															}
+														},
+														{
+															"name": "api_audiences",
+															"set": {
+																"computed_optional_required": "optional",
+																"element_type": {
+																	"string": {}
+																},
+																"description": "API audiences for OIDC"
+															}
+														}
+													]
+												}
+											},
+											{
 												"name": "location",
 												"string": {
 													"computed_optional_required": "optional",

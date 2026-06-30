@@ -101,6 +101,30 @@ func validateGitValuesPaths(valuesPaths []interface{}) error {
 	return nil
 }
 
+// rejectBlankGitValuesPaths rejects any present values_paths entry whose name -
+// the repo-relative path for a git-sourced chart - is blank. Unlike
+// validateGitValuesPaths it does not require at least one entry: a git Helm
+// chart may legitimately omit values and fall back to the chart defaults, so an
+// empty (or Terraform-pruned) block is allowed and only a configured-but-blank
+// path is rejected. Note that Terraform prunes an all-empty `values_paths {}`
+// block on create down to an empty list, so a literal name="" on first create
+// arrives with no entries and is indistinguishable from an omitted block; this
+// catches blank names that survive (whitespace-only names, and empty names on
+// update of a previously-set path).
+func rejectBlankGitValuesPaths(valuesPaths []interface{}) error {
+	for _, item := range valuesPaths {
+		m, ok := item.(map[string]interface{})
+		if !ok || m == nil {
+			continue
+		}
+		name, _ := m["name"].(string)
+		if strings.TrimSpace(name) == "" {
+			return fmt.Errorf("empty names are not supported for git type values paths")
+		}
+	}
+	return nil
+}
+
 // ExpandArtifact expands tf state to ArtifactSpec
 func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSpec, error) {
 	if len(ap) == 0 || ap[0] == nil {
@@ -197,6 +221,17 @@ func ExpandArtifact(artifactType string, ap []interface{}) (*commonpb.ArtifactSp
 		}
 
 		if v, ok := readTerraformValuesPathsBlocks(in); ok {
+			// For a git-sourced Helm chart (HelmInGitRepo: a chart_path inside a
+			// git repository, identified by repository + chartPath) the
+			// values_paths names are repo-relative paths, so a blank name can never
+			// resolve to a real file. Reject it the way the git values_ref path
+			// does - but, unlike values_ref, allow the block to be empty since a git
+			// Helm chart may omit values and use the chart defaults.
+			if at.Artifact.Repository != "" && at.Artifact.ChartPath != nil {
+				if err := rejectBlankGitValuesPaths(v); err != nil {
+					return nil, err
+				}
+			}
 			at.Artifact.ValuesPaths, err = expandTerraformValuesPathsBlocks(v)
 			if err != nil {
 				return nil, err

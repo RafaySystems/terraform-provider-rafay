@@ -73,3 +73,65 @@ func TestGitValuesRefRequiresUsablePath(t *testing.T) {
 		}
 	})
 }
+
+// gitChartSpecInput builds a HelmInGitRepo artifact (chart_path inside a git
+// repository) with the given direct values_paths entries.
+func gitChartSpecInput(valuesPaths []interface{}) []interface{} {
+	artifact := map[string]interface{}{
+		"repository": "my-git-repo",
+		"revision":   "main",
+		"chart_path": []interface{}{
+			map[string]interface{}{"name": "charts/my-chart-0.1.0.tgz"},
+		},
+	}
+	if valuesPaths != nil {
+		artifact["values_paths"] = valuesPaths
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"type":     "Helm",
+			"artifact": []interface{}{artifact},
+		},
+	}
+}
+
+// RC-50217: a values_paths entry on a git-sourced Helm chart names a
+// repo-relative path, so a blank name is illegal and must be rejected instead of
+// silently applied. Values remain optional - an omitted/empty block is allowed.
+func TestGitChartValuesPathRejectsBlank(t *testing.T) {
+	mustError := func(label string, vp []interface{}) {
+		t.Run(label, func(t *testing.T) {
+			if _, err := ExpandArtifactSpec(gitChartSpecInput(vp)); err == nil {
+				t.Fatalf("expected error, got nil")
+			}
+		})
+	}
+	mustOK := func(label string, vp []interface{}) {
+		t.Run(label, func(t *testing.T) {
+			if _, err := ExpandArtifactSpec(gitChartSpecInput(vp)); err != nil {
+				t.Fatalf("expected no error, got %v", err)
+			}
+		})
+	}
+
+	// A configured-but-blank git values path is rejected (the case that
+	// survives Terraform pruning: explicit empty name on update, whitespace name).
+	mustError("git chart values_paths with empty name", []interface{}{
+		map[string]interface{}{"name": ""},
+	})
+	mustError("git chart values_paths with whitespace name", []interface{}{
+		map[string]interface{}{"name": "   "},
+	})
+	mustError("git chart values_paths with one good and one blank", []interface{}{
+		map[string]interface{}{"name": "values/prod.yaml"},
+		map[string]interface{}{"name": ""},
+	})
+
+	// Values are optional for a git chart: an omitted or pruned-empty block uses
+	// the chart defaults and must be accepted.
+	mustOK("git chart with a real values path", []interface{}{
+		map[string]interface{}{"name": "values/prod.yaml"},
+	})
+	mustOK("git chart with omitted values_paths", nil)
+	mustOK("git chart with pruned empty values_paths", []interface{}{})
+}

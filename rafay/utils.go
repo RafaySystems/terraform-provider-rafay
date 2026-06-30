@@ -612,8 +612,6 @@ func expandFiles(p []interface{}) ([]*File, error) {
 			} else {
 				of.Data = artifactData
 			}
-			//strip the scheme so the stored name/relPath is a clean path, not "file://..."
-			of.Name = strings.TrimPrefix(of.Name, "file://")
 		} else if strings.HasPrefix(of.Name, "temp://") {
 			//get full path of artifact
 			artifactFullPath := filepath.Join(filepath.Dir("."), of.Name[7:])

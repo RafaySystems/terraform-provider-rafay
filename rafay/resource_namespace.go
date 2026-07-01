@@ -244,7 +244,9 @@ func resourceNamespaceUpsert(ctx context.Context, d *schema.ResourceData, m inte
 	}
 	w1 := spew.Sprintf("%+v", ns)
 	log.Println("resourceNamespaceUpsert ns:", w1)
-	err = client.InfraV3().Namespace().Apply(ctx, ns, options.ApplyOptions{})
+	p := ns.Spec.GetPlacement()
+	unpublishNs := p == nil || (len(p.Labels) == 0 && p.Selector == "" && p.Environment == nil)
+	err = client.InfraV3().Namespace().Apply(ctx, ns, options.ApplyOptions{UnpublishNs: unpublishNs})
 	if err != nil {
 		// XXX Debug
 		// n1 := spew.Sprintf("%+v", ns)

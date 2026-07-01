@@ -22,6 +22,10 @@ resource "rafay_addon" "tfdemoaddon1" {
       env  = "dev"
       name = "app"
     }
+    annotations = {
+      "key1" = "value1"
+      "key2" = "value2"
+    }
   }
   spec {
     namespace = "tftestnamespace"
@@ -187,6 +191,7 @@ resource "rafay_addon" "tfdemoaddon6" {
 ***Optional***
 
 - `labels` - (Block) . Labels are key/value pairs that are attached to objects, such as pods. Labels are intended to be used to specify identifying attributes of objects that are meaningful and relevant to users.
+- `annotations` - (Map) A map of string keys and values to attach arbitrary, non-identifying metadata to objects for consumption by humans, tools, and libraries.
 ---
 
 <a id="nestedblock--spec"></a>

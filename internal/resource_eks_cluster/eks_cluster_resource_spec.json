@@ -466,10 +466,8 @@
                                                     "name": "enable_detailed_monitoring",
                                                     "bool": {
                                                         "description": "Enable EC2 detailed monitoring",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                     
                                                     }
                                                 },
                                                 {
@@ -512,10 +510,8 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 0
-                                                        } 
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 
@@ -523,50 +519,40 @@
                                                     "name": "disable_imdsv1",
                                                     "bool": {
                                                         "description": "Whether to disable IMDSv1 on the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
                                                     "name": "disable_pods_imds",
                                                     "bool": {
                                                         "description": "Whether to disable IMDS for pods in the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
                                                     "name": "efa_enabled",
                                                     "bool": {
                                                         "description": "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                        
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 3000
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                        
                                                     }
                                                 },
                                                 {
@@ -583,10 +569,8 @@
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 125
-                                                        }
+                                                        "computed_optional_required": "optional"
+        
                                                     }
                                                 },
                                                 {
@@ -674,10 +658,8 @@
                                                     "name": "ebs_optimized",
                                                     "bool": {
                                                         "description": "enables EBS optimization.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                      
                                                     }
                                                 },
                                                 {
@@ -691,10 +673,8 @@
                                                     "name": "volume_encrypted",
                                                     "bool": {
                                                         "description": "whether to encrypt volumes attached to instances in the nodegroup.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
@@ -1383,10 +1363,8 @@
                                                     "name": "enable_detailed_monitoring",
                                                     "bool": {
                                                         "description": "Enable EC2 detailed monitoring",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                     
                                                     }
                                                 },
                                                 {
@@ -1431,10 +1409,8 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 0
-                                                        }    
+                                                        "computed_optional_required": "optional"
+                                                         
                                                     }
                                                 },
                                                 
@@ -1442,50 +1418,40 @@
                                                     "name": "disable_imdsv1",
                                                     "bool": {
                                                         "description": "Whether to disable IMDSv1 on the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
                                                     "name": "disable_pods_imds",
                                                     "bool": {
                                                         "description": "Whether to disable IMDS for pods in the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
                                                     "name": "efa_enabled",
                                                     "bool": {
                                                         "description": "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                    
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 3000
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                      
                                                     }
                                                 },
                                                 {
@@ -1502,10 +1468,8 @@
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 125
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                      
                                                     }
                                                 },
                                                 {
@@ -1593,10 +1557,8 @@
                                                     "name": "ebs_optimized",
                                                     "bool": {
                                                         "description": "enables EBS optimization.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                        
                                                     }
                                                 },
                                                 {
@@ -1610,10 +1572,8 @@
                                                     "name": "volume_encrypted",
                                                     "bool": {
                                                         "description": "whether to encrypt volumes attached to instances in the nodegroup.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                      
                                                     }
                                                 },
                                                 {
@@ -1654,10 +1614,8 @@
                                                     "name": "spot",
                                                     "bool": {
                                                         "description": "Whether to use spot instances for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
@@ -2363,10 +2321,8 @@
                                                     "name": "enable_detailed_monitoring",
                                                     "bool": {
                                                         "description": "Enable EC2 detailed monitoring",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                      
                                                     }
                                                 },
                                                 {
@@ -2416,10 +2372,8 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 0
-                                                        } 
+                                                        "computed_optional_required": "optional"
+                                                      
                                                     }
                                                 },
                                                 
@@ -2427,50 +2381,40 @@
                                                     "name": "disable_imdsv1",
                                                     "bool": {
                                                         "description": "Whether to disable IMDSv1 on the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
                                                     "name": "disable_pods_imds",
                                                     "bool": {
                                                         "description": "Whether to disable IMDS for pods in the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                    
                                                     }
                                                 },
                                                 {
                                                     "name": "efa_enabled",
                                                     "bool": {
                                                         "description": "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                        
                                                     }
                                                 },
                                                 {
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 3000
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                      
                                                     }
                                                 },
                                                 {
@@ -2487,10 +2431,8 @@
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 125
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                      
                                                     }
                                                 },
                                                 {
@@ -2579,10 +2521,8 @@
                                                     "name": "ebs_optimized",
                                                     "bool": {
                                                         "description": "enables EBS optimization.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
@@ -2596,10 +2536,8 @@
                                                     "name": "volume_encrypted",
                                                     "bool": {
                                                         "description": "whether to encrypt volumes attached to instances in the nodegroup.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                        
                                                     }
                                                 },
                                                 {
@@ -3579,10 +3517,8 @@
                                                                     "name": "role_only",
                                                                     "bool": {
                                                                         "description": "Specify if only the IAM Service Account role should be created without creating/annotating the service account.",
-                                                                        "computed_optional_required": "computed_optional",
-                                                                        "default": {
-                                                                            "static": false
-                                                                        }
+                                                                        "computed_optional_required": "optional"
+                                                                       
                                                                     }
                                                                 },
                                                                 {
@@ -3839,10 +3775,8 @@
                                                     "name": "auto_allocate_ipv6",
                                                     "bool": {
                                                         "description": "AutoAllocateIPV6 requests an IPv6 CIDR block with /56 prefix for the VPC.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                        
                                                     }
                                                 },
                                                 {
@@ -4527,91 +4461,71 @@
                                                                         {
                                                                             "name": "alb_ingress",
                                                                             "bool": {
-                                                                                "computed_optional_required": "computed_optional",
-                                                                                "default": {
-                                                                                    "static": false
-                                                                                }
+                                                                                "computed_optional_required": "optional"
+                                                                               
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "app_mesh",
                                                                             "bool": {
-                                                                                "computed_optional_required": "computed_optional",
-                                                                                "default": {
-                                                                                    "static": false
-                                                                                }
+                                                                                "computed_optional_required": "optional"
+                                                                               
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "app_mesh_review",
                                                                             "bool": {
-                                                                                "computed_optional_required": "computed_optional",
-                                                                                "default": {
-                                                                                    "static": false
-                                                                                }
+                                                                                "computed_optional_required": "optional"
+                                                                               
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "cert_manager",
                                                                             "bool": {
-                                                                                "computed_optional_required": "computed_optional",
-                                                                                "default": {
-                                                                                    "static": false
-                                                                                }
+                                                                                "computed_optional_required": "optional"
+                                                                                
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "cloud_watch",
                                                                             "bool": {
-                                                                                "computed_optional_required": "computed_optional",
-                                                                                "default": {
-                                                                                    "static": false
-                                                                                }
+                                                                                "computed_optional_required": "optional"
+                                                                               
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "ebs",
                                                                             "bool": {
-                                                                                "computed_optional_required": "computed_optional",
-                                                                                "default": {
-                                                                                    "static": false
-                                                                                }
+                                                                                "computed_optional_required": "optional"
+                                                                               
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "efs",
                                                                             "bool": {
-                                                                                "computed_optional_required": "computed_optional",
-                                                                                "default": {
-                                                                                    "static": false
-                                                                                }
+                                                                                "computed_optional_required": "optional"
+                                                                               
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "external_dns",
                                                                             "bool": {
-                                                                                "computed_optional_required": "computed_optional",
-                                                                                "default": {
-                                                                                    "static": false
-                                                                                }
+                                                                                "computed_optional_required": "optional"
+                                                                               
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "fsx",
                                                                             "bool": {
-                                                                                "computed_optional_required": "computed_optional",
-                                                                                "default": {
-                                                                                    "static": false
-                                                                                }
+                                                                                "computed_optional_required": "optional"
+                                                                            
                                                                             }
                                                                         },
                                                                         {
                                                                             "name": "xray",
                                                                             "bool": {
-                                                                                "computed_optional_required": "computed_optional",
-                                                                                "default": {
-                                                                                    "static": false
-                                                                                }
+                                                                                "computed_optional_required": "optional"
+                                                                               
                                                                             }
                                                                         },
                                                                         {
@@ -5085,11 +4999,9 @@
                                                 {
                                                     "name": "enable_detailed_monitoring",
                                                     "bool": {
-                                                        "computed_optional_required": "computed_optional",
-                                                        "description": "Enable EC2 detailed monitoring",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional",
+                                                        "description": "Enable EC2 detailed monitoring"
+                                                       
                                                     }
                                                 },
                                                 {
@@ -5141,60 +5053,48 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 0
-                                                        }   
+                                                        "computed_optional_required": "optional"
+                                                        
                                                     }
                                                 },
                                                 {
                                                     "name": "disable_imdsv1",
                                                     "bool": {
                                                         "description": "Whether to disable IMDSv1 on the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
                                                     "name": "disable_pods_imds",
                                                     "bool": {
                                                         "description": "Whether to disable IMDS for pods in the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
                                                     "name": "efa_enabled",
                                                     "bool": {
                                                         "description": "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                        
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 3000
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                    
                                                     }
                                                 },
                                                 {
@@ -5211,10 +5111,8 @@
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 125
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                      
                                                     }
                                                 },
                                                 {
@@ -5302,10 +5200,8 @@
                                                     "name": "ebs_optimized",
                                                     "bool": {
                                                         "description": "enables EBS optimization.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
@@ -5319,10 +5215,8 @@
                                                     "name": "volume_encrypted",
                                                     "bool": {
                                                         "description": "whether to encrypt volumes attached to instances in the nodegroup.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                       
                                                     }
                                                 },
                                                 {
@@ -5363,10 +5257,8 @@
                                                     "name": "spot",
                                                     "bool": {
                                                         "description": "Whether to use spot instances for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
+                                                        
                                                     }
                                                 }
                                             ]

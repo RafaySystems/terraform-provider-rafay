@@ -694,14 +694,15 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		v.AddonsConfig = types.ListNull(AddonsConfigValue{}.Type(ctx))
 	}
 
-	if in.AutoModeConfig != nil {
+	if in.AutoModeConfig != nil && (in.AutoModeConfig.Enabled || in.AutoModeConfig.NodeRoleARN != "" || len(in.AutoModeConfig.NodePools) > 0) {
 		autoModeConfig := NewAutoModeConfigValueNull()
 		d = autoModeConfig.Flatten(ctx, in.AutoModeConfig)
 		diags = append(diags, d...)
 		v.AutoModeConfig, d = types.ListValue(AutoModeConfigValue{}.Type(ctx), []attr.Value{autoModeConfig})
 		diags = append(diags, d...)
 	} else {
-		v.AutoModeConfig = types.ListNull(AutoModeConfigValue{}.Type(ctx))
+		v.AutoModeConfig, d = types.ListValue(AutoModeConfigValue{}.Type(ctx), []attr.Value{})
+		diags = append(diags, d...)
 	}
 
 	if in.DeleteProtection != nil {

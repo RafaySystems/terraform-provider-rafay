@@ -227,29 +227,6 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Description:         "MKS Cluster control plane overrides",
 								MarkdownDescription: "MKS Cluster control plane overrides",
 							},
-							"oidc_configuration": schema.SingleNestedAttribute{
-								Attributes: map[string]schema.Attribute{
-									"api_audiences": schema.SetAttribute{
-										ElementType:         types.StringType,
-										Optional:            true,
-										Description:         "API audiences for OIDC",
-										MarkdownDescription: "API audiences for OIDC",
-									},
-									"service_account_issuer": schema.StringAttribute{
-										Optional:            true,
-										Description:         "Service account issuer URL for OIDC",
-										MarkdownDescription: "Service account issuer URL for OIDC",
-									},
-								},
-								CustomType: OidcConfigurationType{
-									ObjectType: types.ObjectType{
-										AttrTypes: OidcConfigurationValue{}.AttributeTypes(ctx),
-									},
-								},
-								Optional:            true,
-								Description:         "OIDC configuration for MKS cluster",
-								MarkdownDescription: "OIDC configuration for MKS cluster",
-							},
 							"dedicated_control_plane": schema.BoolAttribute{
 								Optional:            true,
 								Description:         "Select this option for preventing scheduling of user workloads on Control Plane nodes",
@@ -509,6 +486,29 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Required:            true,
 								Description:         "holds node configuration for the cluster",
 								MarkdownDescription: "holds node configuration for the cluster",
+							},
+							"oidc_configuration": schema.SingleNestedAttribute{
+								Attributes: map[string]schema.Attribute{
+									"api_audiences": schema.SetAttribute{
+										ElementType:         types.StringType,
+										Optional:            true,
+										Description:         "API audiences for OIDC",
+										MarkdownDescription: "API audiences for OIDC",
+									},
+									"service_account_issuer": schema.StringAttribute{
+										Optional:            true,
+										Description:         "Service account issuer URL for OIDC",
+										MarkdownDescription: "Service account issuer URL for OIDC",
+									},
+								},
+								CustomType: OidcConfigurationType{
+									ObjectType: types.ObjectType{
+										AttrTypes: OidcConfigurationValue{}.AttributeTypes(ctx),
+									},
+								},
+								Optional:            true,
+								Description:         "OIDC configuration for MKS cluster",
+								MarkdownDescription: "OIDC configuration for MKS cluster",
 							},
 							"platform_version": schema.StringAttribute{
 								Optional:            true,
@@ -3535,18 +3535,6 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		)
 	}
 
-	var kubeletExtraArgsVal basetypes.MapValue
-	switch {
-	case v.KubeletExtraArgs.IsUnknown():
-		kubeletExtraArgsVal = types.MapUnknown(types.StringType)
-	case v.KubeletExtraArgs.IsNull():
-		kubeletExtraArgsVal = types.MapNull(types.StringType)
-	default:
-		var d diag.Diagnostics
-		kubeletExtraArgsVal, d = types.MapValue(types.StringType, v.KubeletExtraArgs.Elements())
-		diags.Append(d...)
-	}
-
 	var oidcConfiguration basetypes.ObjectValue
 
 	if v.OidcConfiguration.IsNull() {
@@ -3566,6 +3554,18 @@ func (v ConfigValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 			OidcConfigurationValue{}.AttributeTypes(ctx),
 			v.OidcConfiguration.Attributes(),
 		)
+	}
+
+	var kubeletExtraArgsVal basetypes.MapValue
+	switch {
+	case v.KubeletExtraArgs.IsUnknown():
+		kubeletExtraArgsVal = types.MapUnknown(types.StringType)
+	case v.KubeletExtraArgs.IsNull():
+		kubeletExtraArgsVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		kubeletExtraArgsVal, d = types.MapValue(types.StringType, v.KubeletExtraArgs.Elements())
+		diags.Append(d...)
 	}
 
 	if diags.HasError() {
@@ -10363,6 +10363,412 @@ func (v TaintsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	}
 }
 
+var _ basetypes.ObjectTypable = OidcConfigurationType{}
+
+type OidcConfigurationType struct {
+	basetypes.ObjectType
+}
+
+func (t OidcConfigurationType) Equal(o attr.Type) bool {
+	other, ok := o.(OidcConfigurationType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t OidcConfigurationType) String() string {
+	return "OidcConfigurationType"
+}
+
+func (t OidcConfigurationType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	apiAudiencesAttribute, ok := attributes["api_audiences"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`api_audiences is missing from object`)
+
+		return nil, diags
+	}
+
+	apiAudiencesVal, ok := apiAudiencesAttribute.(basetypes.SetValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`api_audiences expected to be basetypes.SetValue, was: %T`, apiAudiencesAttribute))
+	}
+
+	serviceAccountIssuerAttribute, ok := attributes["service_account_issuer"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`service_account_issuer is missing from object`)
+
+		return nil, diags
+	}
+
+	serviceAccountIssuerVal, ok := serviceAccountIssuerAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`service_account_issuer expected to be basetypes.StringValue, was: %T`, serviceAccountIssuerAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return OidcConfigurationValue{
+		ApiAudiences:         apiAudiencesVal,
+		ServiceAccountIssuer: serviceAccountIssuerVal,
+		state:                attr.ValueStateKnown,
+	}, diags
+}
+
+func NewOidcConfigurationValueNull() OidcConfigurationValue {
+	return OidcConfigurationValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewOidcConfigurationValueUnknown() OidcConfigurationValue {
+	return OidcConfigurationValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewOidcConfigurationValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (OidcConfigurationValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing OidcConfigurationValue Attribute Value",
+				"While creating a OidcConfigurationValue value, a missing attribute value was detected. "+
+					"A OidcConfigurationValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("OidcConfigurationValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid OidcConfigurationValue Attribute Type",
+				"While creating a OidcConfigurationValue value, an invalid attribute value was detected. "+
+					"A OidcConfigurationValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("OidcConfigurationValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("OidcConfigurationValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra OidcConfigurationValue Attribute Value",
+				"While creating a OidcConfigurationValue value, an extra attribute value was detected. "+
+					"A OidcConfigurationValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra OidcConfigurationValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewOidcConfigurationValueUnknown(), diags
+	}
+
+	apiAudiencesAttribute, ok := attributes["api_audiences"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`api_audiences is missing from object`)
+
+		return NewOidcConfigurationValueUnknown(), diags
+	}
+
+	apiAudiencesVal, ok := apiAudiencesAttribute.(basetypes.SetValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`api_audiences expected to be basetypes.SetValue, was: %T`, apiAudiencesAttribute))
+	}
+
+	serviceAccountIssuerAttribute, ok := attributes["service_account_issuer"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`service_account_issuer is missing from object`)
+
+		return NewOidcConfigurationValueUnknown(), diags
+	}
+
+	serviceAccountIssuerVal, ok := serviceAccountIssuerAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`service_account_issuer expected to be basetypes.StringValue, was: %T`, serviceAccountIssuerAttribute))
+	}
+
+	if diags.HasError() {
+		return NewOidcConfigurationValueUnknown(), diags
+	}
+
+	return OidcConfigurationValue{
+		ApiAudiences:         apiAudiencesVal,
+		ServiceAccountIssuer: serviceAccountIssuerVal,
+		state:                attr.ValueStateKnown,
+	}, diags
+}
+
+func NewOidcConfigurationValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) OidcConfigurationValue {
+	object, diags := NewOidcConfigurationValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewOidcConfigurationValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t OidcConfigurationType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewOidcConfigurationValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewOidcConfigurationValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewOidcConfigurationValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewOidcConfigurationValueMust(OidcConfigurationValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t OidcConfigurationType) ValueType(ctx context.Context) attr.Value {
+	return OidcConfigurationValue{}
+}
+
+var _ basetypes.ObjectValuable = OidcConfigurationValue{}
+
+type OidcConfigurationValue struct {
+	ApiAudiences         basetypes.SetValue    `tfsdk:"api_audiences"`
+	ServiceAccountIssuer basetypes.StringValue `tfsdk:"service_account_issuer"`
+	state                attr.ValueState
+}
+
+func (v OidcConfigurationValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 2)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["api_audiences"] = basetypes.SetType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
+	attrTypes["service_account_issuer"] = basetypes.StringType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 2)
+
+		val, err = v.ApiAudiences.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["api_audiences"] = val
+
+		val, err = v.ServiceAccountIssuer.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["service_account_issuer"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v OidcConfigurationValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v OidcConfigurationValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v OidcConfigurationValue) String() string {
+	return "OidcConfigurationValue"
+}
+
+func (v OidcConfigurationValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	var apiAudiencesVal basetypes.SetValue
+	switch {
+	case v.ApiAudiences.IsUnknown():
+		apiAudiencesVal = types.SetUnknown(types.StringType)
+	case v.ApiAudiences.IsNull():
+		apiAudiencesVal = types.SetNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		apiAudiencesVal, d = types.SetValue(types.StringType, v.ApiAudiences.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"api_audiences": basetypes.SetType{
+				ElemType: types.StringType,
+			},
+			"service_account_issuer": basetypes.StringType{},
+		}), diags
+	}
+
+	attributeTypes := map[string]attr.Type{
+		"api_audiences": basetypes.SetType{
+			ElemType: types.StringType,
+		},
+		"service_account_issuer": basetypes.StringType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"api_audiences":          apiAudiencesVal,
+			"service_account_issuer": v.ServiceAccountIssuer,
+		})
+
+	return objVal, diags
+}
+
+func (v OidcConfigurationValue) Equal(o attr.Value) bool {
+	other, ok := o.(OidcConfigurationValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.ApiAudiences.Equal(other.ApiAudiences) {
+		return false
+	}
+
+	if !v.ServiceAccountIssuer.Equal(other.ServiceAccountIssuer) {
+		return false
+	}
+
+	return true
+}
+
+func (v OidcConfigurationValue) Type(ctx context.Context) attr.Type {
+	return OidcConfigurationType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v OidcConfigurationValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"api_audiences": basetypes.SetType{
+			ElemType: types.StringType,
+		},
+		"service_account_issuer": basetypes.StringType{},
+	}
+}
+
 var _ basetypes.ObjectTypable = ProxyType{}
 
 type ProxyType struct {
@@ -13782,399 +14188,5 @@ func (v TolerationsValue) AttributeTypes(ctx context.Context) map[string]attr.Ty
 		"operator":           basetypes.StringType{},
 		"toleration_seconds": basetypes.Int64Type{},
 		"value":              basetypes.StringType{},
-	}
-}
-
-var _ basetypes.ObjectTypable = OidcConfigurationType{}
-
-type OidcConfigurationType struct {
-	basetypes.ObjectType
-}
-
-func (t OidcConfigurationType) Equal(o attr.Type) bool {
-	other, ok := o.(OidcConfigurationType)
-
-	if !ok {
-		return false
-	}
-
-	return t.ObjectType.Equal(other.ObjectType)
-}
-
-func (t OidcConfigurationType) String() string {
-	return "OidcConfigurationType"
-}
-
-func (t OidcConfigurationType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	attributes := in.Attributes()
-
-	apiAudiencesAttribute, ok := attributes["api_audiences"]
-
-	if !ok {
-		diags.AddError(
-			"Attribute Missing",
-			`api_audiences is missing from object`)
-
-		return nil, diags
-	}
-
-	apiAudiencesVal, ok := apiAudiencesAttribute.(basetypes.SetValue)
-
-	if !ok {
-		diags.AddError(
-			"Attribute Wrong Type",
-			fmt.Sprintf(`api_audiences expected to be basetypes.SetValue, was: %T`, apiAudiencesAttribute))
-	}
-
-	serviceAccountIssuerAttribute, ok := attributes["service_account_issuer"]
-
-	if !ok {
-		diags.AddError(
-			"Attribute Missing",
-			`service_account_issuer is missing from object`)
-
-		return nil, diags
-	}
-
-	serviceAccountIssuerVal, ok := serviceAccountIssuerAttribute.(basetypes.StringValue)
-
-	if !ok {
-		diags.AddError(
-			"Attribute Wrong Type",
-			fmt.Sprintf(`service_account_issuer expected to be basetypes.StringValue, was: %T`, serviceAccountIssuerAttribute))
-	}
-
-	if diags.HasError() {
-		return nil, diags
-	}
-
-	return OidcConfigurationValue{
-		ApiAudiences:         apiAudiencesVal,
-		ServiceAccountIssuer: serviceAccountIssuerVal,
-		state:                attr.ValueStateKnown,
-	}, diags
-}
-
-func NewOidcConfigurationValueNull() OidcConfigurationValue {
-	return OidcConfigurationValue{
-		state: attr.ValueStateNull,
-	}
-}
-
-func NewOidcConfigurationValueUnknown() OidcConfigurationValue {
-	return OidcConfigurationValue{
-		state: attr.ValueStateUnknown,
-	}
-}
-
-func NewOidcConfigurationValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (OidcConfigurationValue, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
-	ctx := context.Background()
-
-	for name, attributeType := range attributeTypes {
-		attribute, ok := attributes[name]
-
-		if !ok {
-			diags.AddError(
-				"Missing OidcConfigurationValue Attribute Value",
-				"While creating a OidcConfigurationValue value, a missing attribute value was detected. "+
-					"A OidcConfigurationValue must contain values for all attributes, even if null or unknown. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("OidcConfigurationValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
-			)
-
-			continue
-		}
-
-		if !attributeType.Equal(attribute.Type(ctx)) {
-			diags.AddError(
-				"Invalid OidcConfigurationValue Attribute Type",
-				"While creating a OidcConfigurationValue value, an invalid attribute value was detected. "+
-					"A OidcConfigurationValue must use a matching attribute type for the value. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("OidcConfigurationValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
-					fmt.Sprintf("OidcConfigurationValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
-			)
-		}
-	}
-
-	for name := range attributes {
-		_, ok := attributeTypes[name]
-
-		if !ok {
-			diags.AddError(
-				"Extra OidcConfigurationValue Attribute Value",
-				"While creating a OidcConfigurationValue value, an extra attribute value was detected. "+
-					"A OidcConfigurationValue must not contain values beyond the expected attribute types. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("Extra OidcConfigurationValue Attribute Name: %s", name),
-			)
-		}
-	}
-
-	if diags.HasError() {
-		return NewOidcConfigurationValueUnknown(), diags
-	}
-
-	apiAudiencesAttribute, ok := attributes["api_audiences"]
-
-	if !ok {
-		diags.AddError(
-			"Attribute Missing",
-			`api_audiences is missing from object`)
-
-		return NewOidcConfigurationValueUnknown(), diags
-	}
-
-	apiAudiencesVal, ok := apiAudiencesAttribute.(basetypes.SetValue)
-
-	if !ok {
-		diags.AddError(
-			"Attribute Wrong Type",
-			fmt.Sprintf(`api_audiences expected to be basetypes.SetValue, was: %T`, apiAudiencesAttribute))
-	}
-
-	serviceAccountIssuerAttribute, ok := attributes["service_account_issuer"]
-
-	if !ok {
-		diags.AddError(
-			"Attribute Missing",
-			`service_account_issuer is missing from object`)
-
-		return NewOidcConfigurationValueUnknown(), diags
-	}
-
-	serviceAccountIssuerVal, ok := serviceAccountIssuerAttribute.(basetypes.StringValue)
-
-	if !ok {
-		diags.AddError(
-			"Attribute Wrong Type",
-			fmt.Sprintf(`service_account_issuer expected to be basetypes.StringValue, was: %T`, serviceAccountIssuerAttribute))
-	}
-
-	if diags.HasError() {
-		return NewOidcConfigurationValueUnknown(), diags
-	}
-
-	return OidcConfigurationValue{
-		ApiAudiences:         apiAudiencesVal,
-		ServiceAccountIssuer: serviceAccountIssuerVal,
-		state:                attr.ValueStateKnown,
-	}, diags
-}
-
-func NewOidcConfigurationValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) OidcConfigurationValue {
-	object, diags := NewOidcConfigurationValue(attributeTypes, attributes)
-
-	if diags.HasError() {
-		diagsStrings := make([]string, 0, len(diags))
-
-		for _, diagnostic := range diags {
-			diagsStrings = append(diagsStrings, fmt.Sprintf(
-				"%s | %s | %s",
-				diagnostic.Severity(),
-				diagnostic.Summary(),
-				diagnostic.Detail()))
-		}
-
-		panic("NewOidcConfigurationValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
-	}
-
-	return object
-}
-
-func (t OidcConfigurationType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	if in.Type() == nil {
-		return NewOidcConfigurationValueNull(), nil
-	}
-
-	if !in.Type().Equal(t.TerraformType(ctx)) {
-		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
-	}
-
-	if !in.IsKnown() {
-		return NewOidcConfigurationValueUnknown(), nil
-	}
-
-	if in.IsNull() {
-		return NewOidcConfigurationValueNull(), nil
-	}
-
-	attributes := map[string]attr.Value{}
-
-	val := map[string]tftypes.Value{}
-
-	err := in.As(&val)
-
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range val {
-		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
-
-		if err != nil {
-			return nil, err
-		}
-
-		attributes[k] = a
-	}
-
-	return NewOidcConfigurationValueMust(OidcConfigurationValue{}.AttributeTypes(ctx), attributes), nil
-}
-
-func (t OidcConfigurationType) ValueType(ctx context.Context) attr.Value {
-	return OidcConfigurationValue{}
-}
-
-var _ basetypes.ObjectValuable = OidcConfigurationValue{}
-
-type OidcConfigurationValue struct {
-	ApiAudiences         basetypes.SetValue    `tfsdk:"api_audiences"`
-	ServiceAccountIssuer basetypes.StringValue `tfsdk:"service_account_issuer"`
-	state                attr.ValueState
-}
-
-func (v OidcConfigurationValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 2)
-
-	var val tftypes.Value
-	var err error
-
-	attrTypes["api_audiences"] = basetypes.SetType{
-		ElemType: types.StringType,
-	}.TerraformType(ctx)
-	attrTypes["service_account_issuer"] = basetypes.StringType{}.TerraformType(ctx)
-
-	objectType := tftypes.Object{AttributeTypes: attrTypes}
-
-	switch v.state {
-	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 2)
-
-		val, err = v.ApiAudiences.ToTerraformValue(ctx)
-
-		if err != nil {
-			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
-		}
-
-		vals["api_audiences"] = val
-
-		val, err = v.ServiceAccountIssuer.ToTerraformValue(ctx)
-
-		if err != nil {
-			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
-		}
-
-		vals["service_account_issuer"] = val
-
-		if err := tftypes.ValidateValue(objectType, vals); err != nil {
-			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
-		}
-
-		return tftypes.NewValue(objectType, vals), nil
-	case attr.ValueStateNull:
-		return tftypes.NewValue(objectType, nil), nil
-	case attr.ValueStateUnknown:
-		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
-	default:
-		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
-	}
-}
-
-func (v OidcConfigurationValue) IsNull() bool {
-	return v.state == attr.ValueStateNull
-}
-
-func (v OidcConfigurationValue) IsUnknown() bool {
-	return v.state == attr.ValueStateUnknown
-}
-
-func (v OidcConfigurationValue) String() string {
-	return "OidcConfigurationValue"
-}
-
-func (v OidcConfigurationValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	apiAudiencesVal := types.SetValueMust(types.StringType, v.ApiAudiences.Elements())
-
-	if v.ApiAudiences.IsNull() {
-		apiAudiencesVal = types.SetNull(types.StringType)
-	}
-
-	if v.ApiAudiences.IsUnknown() {
-		apiAudiencesVal = types.SetUnknown(types.StringType)
-	}
-
-	attributeTypes := map[string]attr.Type{
-		"api_audiences": basetypes.SetType{
-			ElemType: types.StringType,
-		},
-		"service_account_issuer": basetypes.StringType{},
-	}
-
-	if v.IsNull() {
-		return types.ObjectNull(attributeTypes), diags
-	}
-
-	if v.IsUnknown() {
-		return types.ObjectUnknown(attributeTypes), diags
-	}
-
-	objVal, diags := types.ObjectValue(
-		attributeTypes,
-		map[string]attr.Value{
-			"api_audiences":          apiAudiencesVal,
-			"service_account_issuer": v.ServiceAccountIssuer,
-		})
-
-	return objVal, diags
-}
-
-func (v OidcConfigurationValue) Equal(o attr.Value) bool {
-	other, ok := o.(OidcConfigurationValue)
-
-	if !ok {
-		return false
-	}
-
-	if v.state != other.state {
-		return false
-	}
-
-	if v.state != attr.ValueStateKnown {
-		return true
-	}
-
-	if !v.ApiAudiences.Equal(other.ApiAudiences) {
-		return false
-	}
-
-	if !v.ServiceAccountIssuer.Equal(other.ServiceAccountIssuer) {
-		return false
-	}
-
-	return true
-}
-
-func (v OidcConfigurationValue) Type(ctx context.Context) attr.Type {
-	return OidcConfigurationType{
-		basetypes.ObjectType{
-			AttrTypes: v.AttributeTypes(ctx),
-		},
-	}
-}
-
-func (v OidcConfigurationValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
-	return map[string]attr.Type{
-		"api_audiences": basetypes.SetType{
-			ElemType: types.StringType,
-		},
-		"service_account_issuer": basetypes.StringType{},
 	}
 }

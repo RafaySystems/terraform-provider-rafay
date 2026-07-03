@@ -708,6 +708,11 @@ func (r *eksClusterResource) Update(ctx context.Context, req resource.UpdateRequ
 		resp.Diagnostics.Append(d...)
 		return
 	}
+	for i := range updatedClusterConfig.ManagedNodeGroups {
+		resource_eks_cluster.StripImmutableManagedNodeGroupFields(
+			updatedClusterConfig.ManagedNodeGroups[i],
+		)
+	}
 	tflog.Debug(ctx, "updated value", map[string]any{"updatedCluster": updatedCluster, "updatedClusterConfig": updatedClusterConfig})
 
 	// Call API to update EKS cluster

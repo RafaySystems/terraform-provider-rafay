@@ -409,38 +409,28 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"disable_imdsv1": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Whether to disable IMDSv1 on the node group.",
 										MarkdownDescription: "Whether to disable IMDSv1 on the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"disable_pods_imds": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Whether to disable IMDS for pods in the node group.",
 										MarkdownDescription: "Whether to disable IMDS for pods in the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"ebs_optimized": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "enables EBS optimization.",
 										MarkdownDescription: "enables EBS optimization.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"efa_enabled": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
 										MarkdownDescription: "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"enable_detailed_monitoring": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable EC2 detailed monitoring",
 										MarkdownDescription: "Enable EC2 detailed monitoring",
-										Default:             booldefault.StaticBool(false),
 									},
 									"iam": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -714,8 +704,6 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
-										Computed: true,
-										Default:  int64default.StaticInt64(0),
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -822,10 +810,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"security_groups": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -855,10 +841,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"spot": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Whether to use spot instances for the node group.",
 										MarkdownDescription: "Whether to use spot instances for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"ssh": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -962,17 +946,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_encrypted": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "whether to encrypt volumes attached to instances in the nodegroup.",
 										MarkdownDescription: "whether to encrypt volumes attached to instances in the nodegroup.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-										Default:             int64default.StaticInt64(3000),
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -993,10 +973,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-										Default:             int64default.StaticInt64(125),
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
@@ -1103,38 +1081,28 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"disable_imdsv1": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Whether to disable IMDSv1 on the node group.",
 										MarkdownDescription: "Whether to disable IMDSv1 on the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"disable_pods_imds": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Whether to disable IMDS for pods in the node group.",
 										MarkdownDescription: "Whether to disable IMDS for pods in the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"ebs_optimized": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "enables EBS optimization.",
 										MarkdownDescription: "enables EBS optimization.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"efa_enabled": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
 										MarkdownDescription: "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"enable_detailed_monitoring": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable EC2 detailed monitoring",
 										MarkdownDescription: "Enable EC2 detailed monitoring",
-										Default:             booldefault.StaticBool(false),
 									},
 									"iam": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -1475,8 +1443,6 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
-										Computed: true,
-										Default:  int64default.StaticInt64(0),
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -1516,10 +1482,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"security_groups": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -1664,17 +1628,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_encrypted": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "whether to encrypt volumes attached to instances in the nodegroup.",
 										MarkdownDescription: "whether to encrypt volumes attached to instances in the nodegroup.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-										Default:             int64default.StaticInt64(3000),
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -1695,10 +1655,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-										Default:             int64default.StaticInt64(125),
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
@@ -2542,10 +2500,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												},
 												"role_only": schema.BoolAttribute{
 													Optional:            true,
-													Computed:            true,
 													Description:         "Specify if only the IAM Service Account role should be created without creating/annotating the service account.",
 													MarkdownDescription: "Specify if only the IAM Service Account role should be created without creating/annotating the service account.",
-													Default:             booldefault.StaticBool(false),
 												},
 												"tags": schema.MapAttribute{
 													ElementType:         types.StringType,
@@ -2799,38 +2755,28 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"disable_imdsv1": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Whether to disable IMDSv1 on the node group.",
 										MarkdownDescription: "Whether to disable IMDSv1 on the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"disable_pods_imds": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Whether to disable IMDS for pods in the node group.",
 										MarkdownDescription: "Whether to disable IMDS for pods in the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"ebs_optimized": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "enables EBS optimization.",
 										MarkdownDescription: "enables EBS optimization.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"efa_enabled": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
 										MarkdownDescription: "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"enable_detailed_monitoring": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable EC2 detailed monitoring",
 										MarkdownDescription: "Enable EC2 detailed monitoring",
-										Default:             booldefault.StaticBool(false),
 									},
 									"instance_name": schema.StringAttribute{
 										Optional:            true,
@@ -2861,8 +2807,6 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
-										Computed: true,
-										Default:  int64default.StaticInt64(0),
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -2892,17 +2836,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"spot": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Whether to use spot instances for the node group.",
 										MarkdownDescription: "Whether to use spot instances for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"subnets": schema.SetAttribute{
 										ElementType:         types.StringType,
@@ -2923,17 +2863,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_encrypted": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "whether to encrypt volumes attached to instances in the nodegroup.",
 										MarkdownDescription: "whether to encrypt volumes attached to instances in the nodegroup.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-										Default:             int64default.StaticInt64(3000),
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -2954,10 +2890,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-										Default:             int64default.StaticInt64(125),
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
@@ -3112,18 +3046,12 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 														Attributes: map[string]schema.Attribute{
 															"alb_ingress": schema.BoolAttribute{
 																Optional: true,
-																Computed: true,
-																Default:  booldefault.StaticBool(false),
 															},
 															"app_mesh": schema.BoolAttribute{
 																Optional: true,
-																Computed: true,
-																Default:  booldefault.StaticBool(false),
 															},
 															"app_mesh_review": schema.BoolAttribute{
 																Optional: true,
-																Computed: true,
-																Default:  booldefault.StaticBool(false),
 															},
 															"auto_scaler": schema.BoolAttribute{
 																Optional: true,
@@ -3132,33 +3060,21 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 															},
 															"cert_manager": schema.BoolAttribute{
 																Optional: true,
-																Computed: true,
-																Default:  booldefault.StaticBool(false),
 															},
 															"cloud_watch": schema.BoolAttribute{
 																Optional: true,
-																Computed: true,
-																Default:  booldefault.StaticBool(false),
 															},
 															"ebs": schema.BoolAttribute{
 																Optional: true,
-																Computed: true,
-																Default:  booldefault.StaticBool(false),
 															},
 															"efs": schema.BoolAttribute{
 																Optional: true,
-																Computed: true,
-																Default:  booldefault.StaticBool(false),
 															},
 															"external_dns": schema.BoolAttribute{
 																Optional: true,
-																Computed: true,
-																Default:  booldefault.StaticBool(false),
 															},
 															"fsx": schema.BoolAttribute{
 																Optional: true,
-																Computed: true,
-																Default:  booldefault.StaticBool(false),
 															},
 															"image_builder": schema.BoolAttribute{
 																Optional: true,
@@ -3167,8 +3083,6 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 															},
 															"xray": schema.BoolAttribute{
 																Optional: true,
-																Computed: true,
-																Default:  booldefault.StaticBool(false),
 															},
 														},
 														CustomType: IamNodeGroupWithAddonPolicies4Type{
@@ -3528,38 +3442,28 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"disable_imdsv1": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Whether to disable IMDSv1 on the node group.",
 										MarkdownDescription: "Whether to disable IMDSv1 on the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"disable_pods_imds": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Whether to disable IMDS for pods in the node group.",
 										MarkdownDescription: "Whether to disable IMDS for pods in the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"ebs_optimized": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "enables EBS optimization.",
 										MarkdownDescription: "enables EBS optimization.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"efa_enabled": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
 										MarkdownDescription: "Creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"enable_detailed_monitoring": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable EC2 detailed monitoring",
 										MarkdownDescription: "Enable EC2 detailed monitoring",
-										Default:             booldefault.StaticBool(false),
 									},
 									"instance_name": schema.StringAttribute{
 										Optional:            true,
@@ -3584,8 +3488,6 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"max_pods_per_node": schema.Int64Attribute{
 										Optional: true,
-										Computed: true,
-										Default:  int64default.StaticInt64(0),
 									},
 									"max_size": schema.Int64Attribute{
 										Optional: true,
@@ -3615,10 +3517,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"subnet_cidr": schema.StringAttribute{
 										Optional:            true,
@@ -3650,17 +3550,13 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_encrypted": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "whether to encrypt volumes attached to instances in the nodegroup.",
 										MarkdownDescription: "whether to encrypt volumes attached to instances in the nodegroup.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"volume_iops": schema.Int64Attribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
 										MarkdownDescription: "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-										Default:             int64default.StaticInt64(3000),
 									},
 									"volume_kms_key_id": schema.StringAttribute{
 										Optional:            true,
@@ -3681,10 +3577,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"volume_throughput": schema.Int64Attribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
 										MarkdownDescription: "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-										Default:             int64default.StaticInt64(125),
 									},
 									"volume_type": schema.StringAttribute{
 										Optional:            true,
@@ -4260,10 +4154,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 								Attributes: map[string]schema.Attribute{
 									"auto_allocate_ipv6": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "AutoAllocateIPV6 requests an IPv6 CIDR block with /56 prefix for the VPC.",
 										MarkdownDescription: "AutoAllocateIPV6 requests an IPv6 CIDR block with /56 prefix for the VPC.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"cidr": schema.StringAttribute{
 										Optional:            true,

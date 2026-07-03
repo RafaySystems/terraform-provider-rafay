@@ -756,7 +756,9 @@ func (v ClusterConfigValue) Expand(ctx context.Context) (*rafay.EKSClusterConfig
 	if len(vAutoModeConfigList) > 0 {
 		amc, d := vAutoModeConfigList[0].Expand(ctx)
 		diags = append(diags, d...)
-		clusterConfig.AutoModeConfig = amc
+		if amc != nil && (amc.Enabled || amc.NodeRoleARN != "" || len(amc.NodePools) > 0) {
+			clusterConfig.AutoModeConfig = amc
+		}
 	}
 
 	// delete_protection_config block
@@ -2410,7 +2412,7 @@ func (v AutoModeConfigValue) Expand(ctx context.Context) (*rafay.EKSAutoModeConf
 	var amc rafay.EKSAutoModeConfig
 
 	if v.IsNull() {
-		return &rafay.EKSAutoModeConfig{}, diags
+		return nil, diags
 	}
 
 	// Map enabled field
@@ -2435,6 +2437,10 @@ func (v AutoModeConfigValue) Expand(ctx context.Context) (*rafay.EKSAutoModeConf
 		if len(nodePools) > 0 {
 			amc.NodePools = nodePools
 		}
+
+	}
+	if !amc.Enabled && amc.NodeRoleARN == "" && len(amc.NodePools) == 0 {
+		return nil, diags
 	}
 
 	return &amc, diags

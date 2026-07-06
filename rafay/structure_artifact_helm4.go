@@ -15,10 +15,9 @@ import (
 // strategies reach the backend. Empty / unset is always allowed and means
 // "use the Helm default".
 var (
-	helm4WaitStrategyValues       = []string{"watcher", "legacy", "hookOnly"}
-	helm4DryRunStrategyValues     = []string{"none", "client", "server"}
-	helm4PostRenderStrategyValues = []string{"combined", "separate", "nohooks"}
-	helm4ServerSideApplyValues    = []string{"true", "false", "auto"}
+	helm4WaitStrategyValues    = []string{"watcher", "legacy", "hookOnly"}
+	helm4DryRunStrategyValues  = []string{"none", "client", "server"}
+	helm4ServerSideApplyValues = []string{"true", "false", "auto"}
 )
 
 // validateHelm4Option returns an error when value is not one of the allowed
@@ -74,7 +73,6 @@ type helm4OptionsTranspose struct {
 	SubNotes                 bool              `json:"subNotes,omitempty"`
 	HideNotes                bool              `json:"hideNotes,omitempty"`
 	SkipCrds                 bool              `json:"skipCrds,omitempty"`
-	IncludeCrds              bool              `json:"includeCrds,omitempty"`
 	SkipSchemaValidation     bool              `json:"skipSchemaValidation,omitempty"`
 	DisableOpenAPIValidation bool              `json:"disableOpenAPIValidation,omitempty"`
 	ServerSideApply          string            `json:"serverSideApply,omitempty"`
@@ -91,7 +89,6 @@ type helm4OptionsTranspose struct {
 	Description              string            `json:"description,omitempty"`
 	DependencyUpdate         bool              `json:"dependencyUpdate,omitempty"`
 	EnableDns                bool              `json:"enableDns,omitempty"`
-	PostRenderStrategy       string            `json:"postRenderStrategy,omitempty"`
 }
 
 // ExpandHelm4Artifact builds an ArtifactSpec for type "Helm4". It mirrors
@@ -204,9 +201,6 @@ func ExpandHelm4Artifact(ap []interface{}) (*commonpb.ArtifactSpec, error) {
 		if v, ok := in["skip_crds"].(bool); ok {
 			at.Options.SkipCrds = v
 		}
-		if v, ok := in["include_crds"].(bool); ok {
-			at.Options.IncludeCrds = v
-		}
 		if v, ok := in["skip_schema_validation"].(bool); ok {
 			at.Options.SkipSchemaValidation = v
 		}
@@ -257,12 +251,6 @@ func ExpandHelm4Artifact(ap []interface{}) (*commonpb.ArtifactSpec, error) {
 		}
 		if v, ok := in["enable_dns"].(bool); ok {
 			at.Options.EnableDns = v
-		}
-		if v, ok := in["post_render_strategy"].(string); ok && len(v) > 0 {
-			if err := validateHelm4Option("post_render_strategy", v, helm4PostRenderStrategyValues); err != nil {
-				return nil, err
-			}
-			at.Options.PostRenderStrategy = v
 		}
 	}
 
@@ -388,7 +376,6 @@ func FlattenHelm4ArtifactOptions(at *helm4ArtifactTranspose, p []interface{}) ([
 	obj["sub_notes"] = at.Options.SubNotes
 	obj["hide_notes"] = at.Options.HideNotes
 	obj["skip_crds"] = at.Options.SkipCrds
-	obj["include_crds"] = at.Options.IncludeCrds
 	obj["skip_schema_validation"] = at.Options.SkipSchemaValidation
 	obj["disable_open_api_validation"] = at.Options.DisableOpenAPIValidation
 	if len(at.Options.ServerSideApply) > 0 {
@@ -409,9 +396,6 @@ func FlattenHelm4ArtifactOptions(at *helm4ArtifactTranspose, p []interface{}) ([
 	}
 	obj["dependency_update"] = at.Options.DependencyUpdate
 	obj["enable_dns"] = at.Options.EnableDns
-	if len(at.Options.PostRenderStrategy) > 0 {
-		obj["post_render_strategy"] = at.Options.PostRenderStrategy
-	}
 
 	return []interface{}{obj}, nil
 }

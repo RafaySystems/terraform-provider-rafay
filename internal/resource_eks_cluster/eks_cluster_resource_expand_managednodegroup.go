@@ -783,21 +783,6 @@ func (v NodeRepairConfig4Value) Expand(ctx context.Context) (*rafay.NodeRepairCo
 	return &nrc, diags
 }
 
-func RestoreImmutableManagedNodeGroupFieldsFromAPI(dst, src *rafay.ManagedNodeGroup) {
-	if dst == nil || src == nil {
-		return
-	}
-	dst.PrivateNetworking = src.PrivateNetworking
-	dst.VolumeIOPS = src.VolumeIOPS
-	dst.VolumeThroughput = src.VolumeThroughput
-	dst.DisableIMDSv1 = src.DisableIMDSv1
-	dst.DisablePodIMDS = src.DisablePodIMDS
-	dst.EFAEnabled = src.EFAEnabled
-	dst.EBSOptimized = src.EBSOptimized
-	dst.VolumeEncrypted = src.VolumeEncrypted
-	dst.MaxPodsPerNode = src.MaxPodsPerNode
-	dst.Spot = src.Spot
-}
 func StripImmutableManagedNodeGroupFields(mng *rafay.ManagedNodeGroup) {
 	if mng == nil {
 		return

@@ -516,6 +516,44 @@ func FlattenArtifactOptions(at *artifactTranspose, p []interface{}) ([]interface
 	return []interface{}{obj}, nil
 }
 
+// deepCopyList returns a deep copy of a TF state list so that flatten
+// helpers can build on prior state without mutating it in place.
+func deepCopyList(in []interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make([]interface{}, len(in))
+	for i, v := range in {
+		switch tv := v.(type) {
+		case map[string]interface{}:
+			out[i] = deepCopyMap(tv)
+		case []interface{}:
+			out[i] = deepCopyList(tv)
+		default:
+			out[i] = v
+		}
+	}
+	return out
+}
+
+func deepCopyMap(in map[string]interface{}) map[string]interface{} {
+	if in == nil {
+		return nil
+	}
+	out := make(map[string]interface{}, len(in))
+	for k, v := range in {
+		switch tv := v.(type) {
+		case map[string]interface{}:
+			out[k] = deepCopyMap(tv)
+		case []interface{}:
+			out[k] = deepCopyList(tv)
+		default:
+			out[k] = v
+		}
+	}
+	return out
+}
+
 // FlattenArtifactSpec ArtifactSpec to TF State
 func FlattenArtifactSpec(dataResource bool, in *commonpb.ArtifactSpec, p []interface{}) ([]interface{}, error) {
 	if in == nil {
@@ -552,11 +590,15 @@ func FlattenArtifactSpec(dataResource bool, in *commonpb.ArtifactSpec, p []inter
 		s1 := spew.Sprintf("%+v", at)
 		log.Println("FlattenArtifactSpec helm4 at", s1)
 
+		// Flatten on a deep copy of the prior state: the flatten helpers
+		// mutate the maps in place, and for a resource read (dataResource
+		// false) backend-normalized values (e.g. timeout "0s") must not
+		// leak into state the config never set.
 		v, ok := obj["artifact"].([]interface{})
 		if !ok {
 			v = []interface{}{}
 		}
-		artfct, err := FlattenHelm4Artifact(&at, v)
+		artfct, err := FlattenHelm4Artifact(&at, deepCopyList(v))
 		if dataResource && err == nil {
 			obj["artifact"] = artfct
 		}
@@ -565,7 +607,7 @@ func FlattenArtifactSpec(dataResource bool, in *commonpb.ArtifactSpec, p []inter
 		if !ok {
 			v = []interface{}{}
 		}
-		artfctOpts, err := FlattenHelm4ArtifactOptions(&at, v)
+		artfctOpts, err := FlattenHelm4ArtifactOptions(&at, deepCopyList(v))
 		if dataResource && err == nil {
 			obj["options"] = artfctOpts
 		}

@@ -366,7 +366,12 @@ func FlattenHelm4ArtifactOptions(at *helm4ArtifactTranspose, p []interface{}) ([
 	}
 	obj["wait_for_jobs"] = at.Options.WaitForJobs
 	if len(at.Options.Timeout) > 0 {
-		obj["timeout"] = at.Options.Timeout
+		// The backend normalizes an unset timeout to "0s"; writing that
+		// back when the config never set a timeout causes a perpetual
+		// "0s" -> null diff on every plan.
+		if prior, _ := obj["timeout"].(string); at.Options.Timeout != "0s" || prior != "" {
+			obj["timeout"] = at.Options.Timeout
+		}
 	}
 	if len(at.Options.DryRunStrategy) > 0 {
 		obj["dry_run_strategy"] = at.Options.DryRunStrategy

@@ -515,6 +515,10 @@ func expandDefaultAddons(p []interface{}) (*infrapb.DefaultAddons, error) {
 		obj.DisableAwsNodeTerminationHandler = v
 	}
 
+	if v, ok := in["enable_local_storage"].(bool); ok {
+		obj.EnableLocalStorage = v
+	}
+
 	if v, ok := in["csi_secret_store_config"].([]interface{}); ok && len(v) > 0 {
 		obj.CsiSecretStoreConfig = expandCsiSecretStoreConfig(v)
 	}
@@ -1580,6 +1584,11 @@ func flattenDefaultAddons(in *infrapb.DefaultAddons, p []interface{}) []interfac
 
 	if in.EnableVM {
 		obj["enable_vm"] = in.EnableVM
+		retNil = false
+	}
+
+	if in.EnableLocalStorage {
+		obj["enable_local_storage"] = in.EnableLocalStorage
 		retNil = false
 	}
 

@@ -341,6 +341,63 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 }
 ```
 
+### Example with OIDC Configuration
+
+```terraform
+resource "rafay_mks_cluster" "mks-cluster-with-oidc" {
+  api_version = "infra.k8smgmt.io/v3"
+  kind        = "Cluster"
+
+  metadata = {
+    name    = "mks-cluster-with-oidc"
+    project = "terraform"
+  }
+
+  spec = {
+    blueprint = {
+      name = "minimal"
+    }
+    config = {
+      auto_approve_nodes = true
+      kubernetes_version = "v1.32.4"
+      installer_ttl      = 365
+
+      network = {
+        cni = {
+          name    = "Calico"
+          version = "3.26.1"
+        }
+        pod_subnet     = "10.244.0.0/16"
+        service_subnet = "10.96.0.0/12"
+      }
+
+      oidc_configuration = {
+        service_account_issuer = "https://oidc.example.com"
+        api_audiences          = ["https://kubernetes.default.svc"]
+      }
+
+      cluster_ssh = {
+        username         = "ubuntu"
+        port             = "22"
+        private_key_path = "/path/to/ssh/private_key"
+      }
+      nodes = {
+        "node-1" = {
+          arch             = "amd64"
+          hostname         = "node-1"
+          operating_system = "Ubuntu22.04"
+          private_ip       = "10.0.0.85"
+          roles            = ["ControlPlane", "Worker"]
+          ssh = {
+            ip_address = "192.168.1.100"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 ### Example for Control plane overrides
 
 ```terraform
@@ -531,6 +588,7 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `high_availability` (Boolean) Select this option for highly available control plane. Minimum three control plane nodes are required
 - `kubernetes_upgrade` (Attributes) Strategize the Kubernetes upgrade behaviour among the worker nodes (see [below for nested schema](#nestedatt--spec--config--kubernetes_upgrade))
 - `location` (String) The data center location where the cluster nodes will be launched
+- `oidc_configuration` (Attributes) OIDC configuration for the MKS cluster service account issuer and API audiences (see [below for nested schema](#nestedatt--spec--config--oidc_configuration))
 - `platform_version` (String) Platform version that allows upgrading the cluster's internal components such as Cluster utils, Orchestration proxy, Orchestration agent, CRI, and etcd.
 - `kubelet_configuration_overrides` (String) Advanced kubelet settings in YAML format (e.g evictionHard).
 
@@ -639,6 +697,15 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 **Required**
 
 - `worker_concurrency` (String) It can be number of worker nodes or percentage of worker nodes to be upgraded at the same time
+
+<a id="nestedatt--spec--config--oidc_configuration"></a>
+
+### Nested Schema for `spec.config.oidc_configuration`
+
+**Optional**
+
+- `service_account_issuer` (String) End point for identifying this cluster as the issuer of service account OIDC tokens.
+- `api_audiences` (Map of String) Expected audience for service account tokens.
 
 <a id="nestedatt--spec--proxy"></a>
 

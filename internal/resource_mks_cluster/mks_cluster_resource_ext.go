@@ -730,6 +730,41 @@ func (v NodesValue) FromHub(ctx context.Context, hub *infrapb.MksNode) (NodesVal
 	return v, diags
 }
 
+func (v OidcConfigurationValue) ToHub(ctx context.Context) (*infrapb.OIDCConfiguration, diag.Diagnostics) {
+	hub := &infrapb.OIDCConfiguration{}
+
+	hub.ServiceAccountIssuer = getStringValue(v.ServiceAccountIssuer)
+
+	for _, audience := range v.ApiAudiences.Elements() {
+		hub.ApiAudiences = append(hub.ApiAudiences, getStringValue(audience.(types.String)))
+	}
+
+	return hub, nil
+}
+
+func (v OidcConfigurationValue) FromHub(ctx context.Context, hub *infrapb.OIDCConfiguration) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags, d diag.Diagnostics
+
+	if hub.ServiceAccountIssuer != "" {
+		v.ServiceAccountIssuer = types.StringValue(hub.ServiceAccountIssuer)
+	}
+
+	var tfAudiences []attr.Value
+	for _, audience := range hub.ApiAudiences {
+		tfAudiences = append(tfAudiences, types.StringValue(audience))
+	}
+
+	if len(tfAudiences) > 0 {
+		v.ApiAudiences, d = types.SetValue(types.StringType, tfAudiences)
+		diags = append(diags, d...)
+	} else {
+		v.ApiAudiences = types.SetNull(types.StringType)
+	}
+
+	v.state = attr.ValueStateKnown
+	return v.ToObjectValue(ctx)
+}
+
 func (v ConfigValue) ToHub(ctx context.Context) (*infrapb.MksV3ConfigObject, diag.Diagnostics) {
 	var diags, d diag.Diagnostics
 
@@ -839,6 +874,17 @@ func (v ConfigValue) ToHub(ctx context.Context) (*infrapb.MksV3ConfigObject, dia
 		hub.ControlPlaneOverrides = cpOverrides
 	} else {
 		v.ControlPlaneOverrides, d = NewControlPlaneOverridesValueNull().ToObjectValue(ctx)
+		diags = append(diags, d...)
+	}
+
+	if !v.OidcConfiguration.IsNull() && !v.OidcConfiguration.IsUnknown() {
+		var oidcType OidcConfigurationType
+		tfOidcValue, d := oidcType.ValueFromObject(ctx, v.OidcConfiguration)
+		if d.HasError() {
+			diags = append(diags, d...)
+			return hub, diags
+		}
+		hub.OidcConfiguration, d = tfOidcValue.(OidcConfigurationValue).ToHub(ctx)
 		diags = append(diags, d...)
 	}
 
@@ -965,6 +1011,20 @@ func (v ConfigValue) FromHub(ctx context.Context, hub *infrapb.MksV3ConfigObject
 		v.ControlPlaneOverrides, d = NewControlPlaneOverridesValueNull().ToObjectValue(ctx)
 		diags = append(diags, d...)
 	}
+
+	// Handle OIDC configuration
+	if hub.OidcConfiguration != nil {
+		tfOidc, d := NewOidcConfigurationValue(v.OidcConfiguration.AttributeTypes(ctx), v.OidcConfiguration.Attributes())
+		if d.HasError() {
+			tfOidc = NewOidcConfigurationValueNull()
+		}
+		v.OidcConfiguration, d = tfOidc.FromHub(ctx, hub.OidcConfiguration)
+		diags = append(diags, d...)
+	} else {
+		v.OidcConfiguration, d = NewOidcConfigurationValueNull().ToObjectValue(ctx)
+		diags = append(diags, d...)
+	}
+
 	v.state = attr.ValueStateKnown
 	obj, d := v.ToObjectValue(ctx)
 	diags = append(diags, d...)

@@ -86,5 +86,26 @@ resource "rafay_gke_cluster" "tf-example" {
         }
       }
     }
+    # system_components_placement {
+    #   node_selector = {
+    #     app       = "infra"
+    #     dedicated = "true"
+    #   }
+    #   tolerations {
+    #     effect   = "PreferNoSchedule"
+    #     key      = "app"
+    #     operator = "Equal"
+    #     value    = "infra"
+    #   }
+    #   daemonset_override {
+    #     node_selection_enabled = false
+    #     tolerations {
+    #       key      = "app"
+    #       value    = "infra"
+    #       effect   = "NoSchedule"
+    #       operator = "Equal"
+    #     }
+    #   }
+    # }
   }
 }

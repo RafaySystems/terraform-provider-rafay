@@ -112,6 +112,10 @@ func expandGKEClusterToV3Spec(p []interface{}) (*infrapb.ClusterSpec, error) {
 		}
 	}
 
+	if v, ok := in["system_components_placement"].([]interface{}); ok && len(v) > 0 {
+		obj.SystemComponentsPlacement = expandV3SystemComponentsPlacement(v)
+	}
+
 	return obj, nil
 }
 

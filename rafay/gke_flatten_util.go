@@ -114,6 +114,14 @@ func flattenGKEV3Spec(in *infrapb.ClusterSpec, p []interface{}) []interface{} {
 		obj["config"] = flattenGKEV3Config(in.GetGke(), v)
 	}
 
+	if in.SystemComponentsPlacement != nil {
+		v, ok := obj["system_components_placement"].([]interface{})
+		if !ok {
+			v = []interface{}{}
+		}
+		obj["system_components_placement"] = flattenV3SystemComponentsPlacement(in.SystemComponentsPlacement, v)
+	}
+
 	return []interface{}{obj}
 }
 

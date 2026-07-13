@@ -1,250 +1,248 @@
-# # Create workload of Helm package type by uploading files from local system 
-# resource "rafay_workload" "tftestworkload1" {
-#   metadata {
-#     name    = "tftestworkload1"
-#     project = "terraform"
-#   }
-#   spec {
-#     namespace = "test-workload1"
-#     version   = "v1"
-#     placement {
-#       selector = "rafay.dev/clusterName=cluster-1"
-#     }
-#     drift {
-#       action  = "Deny"
-#       enabled = true
-#     }
-#     artifact {
-#       type = "Helm"
-#       artifact {
-#         chart_path {
-#           name = "file://relative/path/to/some/chart.tgz"
-#         }
-#         values_paths {
-#           name = "file://relative/path/to/some/chart.yaml"
-#         }
-#       }
-#     }
-#   }
-# }
+# Create workload of Helm package type by uploading files from local system 
+resource "rafay_workload" "tftestworkload1" {
+  metadata {
+    name    = "tftestworkload1"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload1"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    artifact {
+      type = "Helm"
+      artifact {
+        chart_path {
+          name = "file://relative/path/to/some/chart.tgz"
+        }
+        values_paths {
+          name = "file://relative/path/to/some/chart.yaml"
+        }
+      }
+    }
+  }
+}
 
-# # Create workload of Helm package type from Helm repo
-# resource "rafay_workload" "tftestworkload2" {
-#   metadata {
-#     name    = "tftestworkload2"
-#     project = "terraform"
-#   }
-#   spec {
-#     namespace = "test-workload2"
-#     version   = "v1"
-#     placement {
-#       selector = "rafay.dev/clusterName=cluster-1"
-#     }
-#     artifact {
-#       type = "Helm"
-#       artifact {
-#         values_paths {
-#           name = "file://relative/path/to/some/chart/values.yaml"
-#         }
-#         repository    = "helm-repo-name"
-#         chart_name    = "chartname"
-#         chart_version = "versionID"
-#       }
-#     }
-#   }
-# }
+# Create workload of Helm package type from Helm repo
+resource "rafay_workload" "tftestworkload2" {
+  metadata {
+    name    = "tftestworkload2"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload2"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm"
+      artifact {
+        values_paths {
+          name = "file://relative/path/to/some/chart/values.yaml"
+        }
+        repository    = "helm-repo-name"
+        chart_name    = "chartname"
+        chart_version = "versionID"
+      }
+    }
+  }
+}
 
-# # Create workload of Helm package type from git repo
-# resource "rafay_workload" "tftestworkload3" {
-#   metadata {
-#     name    = "tftestworkload3"
-#     project = "terraform"
-#   }
-#   spec {
-#     namespace = "test-workload3"
-#     version   = "v1"
-#     placement {
-#       selector = "rafay.dev/clusterName=cluster-1"
-#     }
-#     artifact {
-#       type = "Helm"
-#       artifact {
-#         chart_path {
-#           name = "relative/path/to/some/chart.tgz"
-#         }
-#         repository = "git-user-repo-name"
-#         revision   = "branchname"
-#       }
-#     }
-#   }
-# }
+# Create workload of Helm package type from git repo
+resource "rafay_workload" "tftestworkload3" {
+  metadata {
+    name    = "tftestworkload3"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload3"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm"
+      artifact {
+        chart_path {
+          name = "relative/path/to/some/chart.tgz"
+        }
+        repository = "git-user-repo-name"
+        revision   = "branchname"
+      }
+    }
+  }
+}
 
-# # Create a workload of K8s type by uploading from local system 
-# resource "rafay_workload" "tftestworkload4" {
-#   metadata {
-#     name    = "tftestworkload4"
-#     project = "terraform"
-#   }
-#   spec {
-#     namespace = "test-workload4"
-#     version   = "v1"
-#     placement {
-#       selector = "rafay.dev/clusterName=cluster-1"
-#     }
-#     artifact {
-#       type = "Yaml"
-#       artifact {
-#         paths {
-#           name = "file://relative/path/to/some/chart.yaml"
-#         }
-#       }
-#     }
-#   }
-# }
+# Create a workload of K8s type by uploading from local system 
+resource "rafay_workload" "tftestworkload4" {
+  metadata {
+    name    = "tftestworkload4"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload4"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Yaml"
+      artifact {
+        paths {
+          name = "file://relative/path/to/some/chart.yaml"
+        }
+      }
+    }
+  }
+}
 
-# # Create workload of K8s Yaml type from git repo
-# resource "rafay_workload" "tftestworkload5" {
-#   metadata {
-#     name    = "tftestworkload5"
-#     project = "terraform"
-#   }
-#   spec {
-#     namespace = "test-workload5"
-#     version   = "v1"
-#     placement {
-#       selector = "rafay.dev/clusterName=cluster-1"
-#     }
-#     drift {
-#       action  = "Deny"
-#       enabled = true
-#     }
-#     artifact {
-#       type = "Yaml"
-#       artifact {
-#         paths {
-#           name = "yaml/workload.yaml"
-#         }
-#         repository = "release-check-ssh"
-#         revision   = "main"
-#       }
-#     }
-#   }
-# }
+# Create workload of K8s Yaml type from git repo
+resource "rafay_workload" "tftestworkload5" {
+  metadata {
+    name    = "tftestworkload5"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload5"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    drift {
+      action  = "Deny"
+      enabled = true
+    }
+    artifact {
+      type = "Yaml"
+      artifact {
+        paths {
+          name = "yaml/workload.yaml"
+        }
+        repository = "release-check-ssh"
+        revision   = "main"
+      }
+    }
+  }
+}
 
 
-# # Create Helm workload from Git repo. Chart & default values from one repo, override values from another repo
-# resource "rafay_workload" "tftestworkload6" {
-#   metadata {
-#     name    = "tftestworkload6"
-#     project = "terraform"
-#   }
-#   spec {
-#     namespace = "test-workload6"
-#     version   = "v1"
-#     placement {
-#       selector = "rafay.dev/clusterName=cluster-1"
-#     }
-#     artifact {
-#       type = "Helm"
-#       artifact {
-#         repository = "test-repo1"
-#         revision   = "main"
-#         chart_path {
-#           name = "chart/path/chart.tgz"
-#         }
-#         #default value from same repo as chart
-#         values_paths {
-#           name = "value/path/values.yaml"
-#         }
-#         #override value from another repo
-#         values_ref {
-#           repository = "test-repo2"
-#           revision   = "main"
-#           values_paths {
-#             name = "value/path/values.yaml"
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
+# Create Helm workload from Git repo. Chart & default values from one repo, override values from another repo
+resource "rafay_workload" "tftestworkload6" {
+  metadata {
+    name    = "tftestworkload6"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload6"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm"
+      artifact {
+        repository = "test-repo1"
+        revision   = "main"
+        chart_path {
+          name = "chart/path/chart.tgz"
+        }
+        #default value from same repo as chart
+        values_paths {
+          name = "value/path/values.yaml"
+        }
+        #override value from another repo
+        values_ref {
+          repository = "test-repo2"
+          revision   = "main"
+          values_paths {
+            name = "value/path/values.yaml"
+          }
+        }
+      }
+    }
+  }
+}
 
-# # Create a workload from catalog
-# resource "rafay_workload" "tftestworkload7" {
-#   metadata {
-#     name    = "tftestworkload7"
-#     project = "terraform"
-#   }
-#   spec {
-#     namespace = "test-workload7"
-#     version   = "v1"
-#     placement {
-#       selector = "rafay.dev/clusterName=cluster-1"
-#     }
-#     artifact {
-#       type = "Helm"
-#       artifact {
-#         catalog       = "catalogName"
-#         chart_name    = "chartName"
-#         chart_version = "chartVersion"
-#         values_paths {
-#           name = "file://relative/path/to/some/chart/values.yaml"
-#         }
-#       }
-#     }
-#   }
-# }
+# Create a workload from catalog
+resource "rafay_workload" "tftestworkload7" {
+  metadata {
+    name    = "tftestworkload7"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload7"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm"
+      artifact {
+        catalog       = "catalogName"
+        chart_name    = "chartName"
+        chart_version = "chartVersion"
+        values_paths {
+          name = "file://relative/path/to/some/chart/values.yaml"
+        }
+      }
+    }
+  }
+}
 
-# # Create a workload from web URL
-# resource "rafay_workload" "tftestworkload8" {
-#   metadata {
-#     name    = "tftestworkload8"
-#     project = "terraform"
-#   }
-#   spec {
-#     namespace = "test-workload5"
-#     version   = "v1"
-#     placement {
-#       selector = "rafay.dev/clusterName=cluster-1"
-#     }
-#     artifact {
-#       type = "Yaml"
-#       artifact {
-#         url = ["https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/application/nginx-app.yaml"]
-#       }
-#     }
-#   }
-# }
+# Create a workload from web URL
+resource "rafay_workload" "tftestworkload8" {
+  metadata {
+    name    = "tftestworkload8"
+    project = "terraform"
+  }
+  spec {
+    namespace = "test-workload5"
+    version   = "v1"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Yaml"
+      artifact {
+        url = ["https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/application/nginx-app.yaml"]
+      }
+    }
+  }
+}
 
 
 # Example Workload using helm4 options
-# resource "rafay_workload" "tfdemoaddon-helm4-2" {
-#     metadata {
-#       name    = "tfdemoaddon-helm4-2"
-#       project = "defaultproject"
-#     }
-#     spec {
-#       namespace = "ns4"
-#       version   = "v3.0"
-
-#       placement {
-#         selector = "rafay.dev/clusterName=kratos-rishabh-1"
-#       }
-
-#       artifact {
-#         type = "Helm4"
-#         artifact {
-#           chart_path {
-#             name = "file://./v3/my-pod-chart-0.1.0.tgz"
-#           }
-#         }
-#         options {
-#           max_history       = 10
-#           server_side_apply = "auto"
-#           timeout           = "5m0s"
-#           wait_for_jobs     = true
-#           wait_strategy     = "watcher"
-#         }
-#       }
-#     }
-#   }
+resource "rafay_workload" "tftestworkload9" {
+  metadata {
+    name    = "tftestworkload9"
+    project = "terraform"
+  }
+  spec {
+    namespace = "ns4"
+    version   = "v3.0"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        chart_path {
+          name = "relative/path/to/some/chart.tgz"
+        }
+      }
+      options {
+        max_history       = 10
+        server_side_apply = "auto"
+        timeout           = "5m0s"
+        wait_for_jobs     = true
+        wait_strategy     = "watcher"
+      }
+    }
+  }
+}

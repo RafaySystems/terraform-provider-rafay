@@ -410,6 +410,16 @@
 																"computed_optional_required": "required",
 																"description": "Kubernetes service subnet"
 															}
+														},
+														{
+															"name": "nameservers",
+															"map": {
+																"computed_optional_required": "optional",
+																"element_type": {
+																	"string": {}
+																},
+																"description": "cluster nameservers"
+															}
 														}
 													],
 													"description": "MKS Cluster Network Specification"

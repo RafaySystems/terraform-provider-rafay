@@ -292,6 +292,10 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
         }
         pod_subnet     = "10.244.0.0/16"
         service_subnet = "10.96.0.0/12"
+        nameservers = {
+          "1.1.1.1"
+          "2.2.2.2"
+        }
       }
       kubelet_extra_args = {
         "max-pods": "250"
@@ -602,9 +606,11 @@ resource "rafay_mks_cluster" "mks-cluster-example" {
 - `pod_subnet` (String) Pods will be assigned IPs within this CIDR. For example: 10.244.0.0/16.
 - `service_subnet` (String) Kuberenetes Services will be assigned IPs within this CIDR. For example: 10.244.0.0/16.
 
+
 **Optional**
 
 - `ipv6` (Attributes) Enable for Dual Stack support (see [below for nested schema](#nestedatt--spec--config--network--ipv6))
+- `nameservers` (Attributes Map) holds nameservers for the cluster
 
 <a id="nestedatt--spec--config--network--cni"></a>
 

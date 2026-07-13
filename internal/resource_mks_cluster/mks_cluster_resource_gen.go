@@ -339,6 +339,12 @@ func MksClusterResourceSchema(ctx context.Context) schema.Schema {
 										},
 										Optional: true,
 									},
+									"nameservers": schema.MapAttribute{
+										ElementType:         types.StringType,
+										Optional:            true,
+										Description:         "cluster nameservers",
+										MarkdownDescription: "cluster nameservers",
+									},
 									"pod_subnet": schema.StringAttribute{
 										Required:            true,
 										Description:         "Kubernetes pod subnet",
@@ -6858,6 +6864,24 @@ func (t NetworkType) ValueFromObject(ctx context.Context, in basetypes.ObjectVal
 			fmt.Sprintf(`ipv6 expected to be basetypes.ObjectValue, was: %T`, ipv6Attribute))
 	}
 
+	nameserversAttribute, ok := attributes["nameservers"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`nameservers is missing from object`)
+
+		return nil, diags
+	}
+
+	nameserversVal, ok := nameserversAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`nameservers expected to be basetypes.MapValue, was: %T`, nameserversAttribute))
+	}
+
 	podSubnetAttribute, ok := attributes["pod_subnet"]
 
 	if !ok {
@@ -6901,6 +6925,7 @@ func (t NetworkType) ValueFromObject(ctx context.Context, in basetypes.ObjectVal
 	return NetworkValue{
 		Cni:           cniVal,
 		Ipv6:          ipv6Val,
+		Nameservers:   nameserversVal,
 		PodSubnet:     podSubnetVal,
 		ServiceSubnet: serviceSubnetVal,
 		state:         attr.ValueStateKnown,
@@ -7006,6 +7031,24 @@ func NewNetworkValue(attributeTypes map[string]attr.Type, attributes map[string]
 			fmt.Sprintf(`ipv6 expected to be basetypes.ObjectValue, was: %T`, ipv6Attribute))
 	}
 
+	nameserversAttribute, ok := attributes["nameservers"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`nameservers is missing from object`)
+
+		return NewNetworkValueUnknown(), diags
+	}
+
+	nameserversVal, ok := nameserversAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`nameservers expected to be basetypes.MapValue, was: %T`, nameserversAttribute))
+	}
+
 	podSubnetAttribute, ok := attributes["pod_subnet"]
 
 	if !ok {
@@ -7049,6 +7092,7 @@ func NewNetworkValue(attributeTypes map[string]attr.Type, attributes map[string]
 	return NetworkValue{
 		Cni:           cniVal,
 		Ipv6:          ipv6Val,
+		Nameservers:   nameserversVal,
 		PodSubnet:     podSubnetVal,
 		ServiceSubnet: serviceSubnetVal,
 		state:         attr.ValueStateKnown,
@@ -7125,13 +7169,14 @@ var _ basetypes.ObjectValuable = NetworkValue{}
 type NetworkValue struct {
 	Cni           basetypes.ObjectValue `tfsdk:"cni"`
 	Ipv6          basetypes.ObjectValue `tfsdk:"ipv6"`
+	Nameservers   basetypes.MapValue    `tfsdk:"nameservers"`
 	PodSubnet     basetypes.StringValue `tfsdk:"pod_subnet"`
 	ServiceSubnet basetypes.StringValue `tfsdk:"service_subnet"`
 	state         attr.ValueState
 }
 
 func (v NetworkValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 4)
+	attrTypes := make(map[string]tftypes.Type, 5)
 
 	var val tftypes.Value
 	var err error
@@ -7142,6 +7187,9 @@ func (v NetworkValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 	attrTypes["ipv6"] = basetypes.ObjectType{
 		AttrTypes: Ipv6Value{}.AttributeTypes(ctx),
 	}.TerraformType(ctx)
+	attrTypes["nameservers"] = basetypes.MapType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
 	attrTypes["pod_subnet"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["service_subnet"] = basetypes.StringType{}.TerraformType(ctx)
 
@@ -7149,7 +7197,7 @@ func (v NetworkValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 4)
+		vals := make(map[string]tftypes.Value, 5)
 
 		val, err = v.Cni.ToTerraformValue(ctx)
 
@@ -7166,6 +7214,14 @@ func (v NetworkValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 		}
 
 		vals["ipv6"] = val
+
+		val, err = v.Nameservers.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["nameservers"] = val
 
 		val, err = v.PodSubnet.ToTerraformValue(ctx)
 
@@ -7254,12 +7310,43 @@ func (v NetworkValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 		)
 	}
 
+	var nameserversVal basetypes.MapValue
+	switch {
+	case v.Nameservers.IsUnknown():
+		nameserversVal = types.MapUnknown(types.StringType)
+	case v.Nameservers.IsNull():
+		nameserversVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		nameserversVal, d = types.MapValue(types.StringType, v.Nameservers.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"cni": basetypes.ObjectType{
+				AttrTypes: CniValue{}.AttributeTypes(ctx),
+			},
+			"ipv6": basetypes.ObjectType{
+				AttrTypes: Ipv6Value{}.AttributeTypes(ctx),
+			},
+			"nameservers": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+			"pod_subnet":     basetypes.StringType{},
+			"service_subnet": basetypes.StringType{},
+		}), diags
+	}
+
 	attributeTypes := map[string]attr.Type{
 		"cni": basetypes.ObjectType{
 			AttrTypes: CniValue{}.AttributeTypes(ctx),
 		},
 		"ipv6": basetypes.ObjectType{
 			AttrTypes: Ipv6Value{}.AttributeTypes(ctx),
+		},
+		"nameservers": basetypes.MapType{
+			ElemType: types.StringType,
 		},
 		"pod_subnet":     basetypes.StringType{},
 		"service_subnet": basetypes.StringType{},
@@ -7278,6 +7365,7 @@ func (v NetworkValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue,
 		map[string]attr.Value{
 			"cni":            cni,
 			"ipv6":           ipv6,
+			"nameservers":    nameserversVal,
 			"pod_subnet":     v.PodSubnet,
 			"service_subnet": v.ServiceSubnet,
 		})
@@ -7308,6 +7396,10 @@ func (v NetworkValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.Nameservers.Equal(other.Nameservers) {
+		return false
+	}
+
 	if !v.PodSubnet.Equal(other.PodSubnet) {
 		return false
 	}
@@ -7334,6 +7426,9 @@ func (v NetworkValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		},
 		"ipv6": basetypes.ObjectType{
 			AttrTypes: Ipv6Value{}.AttributeTypes(ctx),
+		},
+		"nameservers": basetypes.MapType{
+			ElemType: types.StringType,
 		},
 		"pod_subnet":     basetypes.StringType{},
 		"service_subnet": basetypes.StringType{},

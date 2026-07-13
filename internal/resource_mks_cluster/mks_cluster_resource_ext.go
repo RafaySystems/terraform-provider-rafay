@@ -180,6 +180,12 @@ func (v NetworkValue) ToHub(ctx context.Context) (*infrapb.MksClusterNetworking,
 	hub.PodSubnet = getStringValue(v.PodSubnet)
 	hub.ServiceSubnet = getStringValue(v.ServiceSubnet)
 
+	if !v.Nameservers.IsNull() && !v.Nameservers.IsUnknown() {
+		for _, val := range v.Nameservers.Elements() {
+			hub.Nameservers = append(hub.Nameservers, getStringValue(val.(types.String)))
+		}
+	}
+
 	if !v.Ipv6.IsNull() && !v.Ipv6.IsUnknown() {
 		// Handle IPv6
 		var ipv6Type Ipv6Type
@@ -208,6 +214,17 @@ func (v NetworkValue) FromHub(ctx context.Context, hub *infrapb.MksClusterNetwor
 
 	v.PodSubnet = types.StringValue(hub.PodSubnet)
 	v.ServiceSubnet = types.StringValue(hub.ServiceSubnet)
+
+	if len(hub.Nameservers) > 0 {
+		elements := make(map[string]attr.Value, len(hub.Nameservers))
+		for _, r := range hub.Nameservers {
+			elements[r] = types.StringValue(r)
+		}
+		v.Nameservers, d = types.MapValue(types.StringType, elements)
+		diags = append(diags, d...)
+	} else {
+		v.Nameservers = types.MapNull(types.StringType)
+	}
 
 	// Handle IPv6
 	if hub.Ipv6 != nil {

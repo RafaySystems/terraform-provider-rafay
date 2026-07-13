@@ -122,6 +122,7 @@ Read-Only:
 - `ipv6` (Attributes) (see [below for nested schema](#nestedatt--spec--config--network--ipv6))
 - `pod_subnet` (String) Kubernetes pod subnet
 - `service_subnet` (String) Kubernetes service subnet
+- `nameservers` (Attributes Map) holds nameservers for the cluster
 
 <a id="nestedatt--spec--config--network--cni"></a>
 ### Nested Schema for `spec.config.network.cni`

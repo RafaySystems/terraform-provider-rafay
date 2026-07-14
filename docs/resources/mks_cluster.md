@@ -257,15 +257,15 @@ resource "rafay_mks_cluster" "mks-ha-cluster-with-dedicated-cp" {
 
 You can change the current Kubernetes version under `spec.config.kubernetes_version` to target supported version by Rafay and also customise the upgrade behaviour with `spec.config.kubernetes_upgrade`
 
-### Example with OIDC Configuration
+### Example for kubelet Extra Args, kubelet Configuration overrides, oidc configurationa and nameservers.
 
 ```terraform
-resource "rafay_mks_cluster" "mks-cluster-with-oidc" {
+resource "rafay_mks_cluster" "mks-cluster-example" {
   api_version = "infra.k8smgmt.io/v3"
   kind        = "Cluster"
 
   metadata = {
-    name    = "mks-cluster-with-oidc"
+    name    = "mks-cluster-example"
     project = "terraform"
   }
 
@@ -274,10 +274,17 @@ resource "rafay_mks_cluster" "mks-cluster-with-oidc" {
       name = "minimal"
     }
     config = {
-      auto_approve_nodes = true
-      kubernetes_version = "v1.32.4"
-      installer_ttl      = 365
+      auto_approve_nodes      = true
+      dedicated_control_plane = false
+      kubernetes_version      = "v1.32.4"
+      installer_ttl           = 365
 
+      kubernetes_upgrade = {
+        strategy = "sequential"
+        params = {
+          worker_concurrency = "50%"
+        }
+      }
       network = {
         cni = {
           name    = "Calico"
@@ -285,13 +292,27 @@ resource "rafay_mks_cluster" "mks-cluster-with-oidc" {
         }
         pod_subnet     = "10.244.0.0/16"
         service_subnet = "10.96.0.0/12"
+        nameservers = {
+          "1.1.1.1"
+          "2.2.2.2"
+        }
       }
+      kubelet_extra_args = {
+        "max-pods": "250"
+      }
+      kubelet_configuration_overrides = <<-EOF
+        maxPods: 150
+        evictionHard:
+          imagefs.available: "25%"
+          memory.available: "300Mi"
+          nodefs.available: "20%"
+          nodefs.inodesFree: "15%"
+        EOF
 
       oidc_configuration = {
         service_account_issuer = "https://oidc.example.com"
         api_audiences          = ["https://kubernetes.default.svc"]
       }
-
       cluster_ssh = {
         username         = "ubuntu"
         port             = "22"
@@ -304,6 +325,21 @@ resource "rafay_mks_cluster" "mks-cluster-with-oidc" {
           operating_system = "Ubuntu22.04"
           private_ip       = "10.0.0.85"
           roles            = ["ControlPlane", "Worker"]
+
+          labels = {
+            environment = "example"
+          }
+          kubelet_extra_args = {
+            "max-pods": "600"
+          }
+          kubelet_configuration_overrides = <<-EOF
+              maxPods: 150
+              evictionHard:
+                imagefs.available: "25%"
+                memory.available: "300Mi"
+                nodefs.available: "20%"
+                nodefs.inodesFree: "15%"
+              EOF
           ssh = {
             ip_address = "192.168.1.100"
           }
@@ -403,9 +439,11 @@ resource "rafay_mks_cluster" "mks-cluster-with-oidc" {
 - `pod_subnet` (String) Pods will be assigned IPs within this CIDR. For example: 10.244.0.0/16.
 - `service_subnet` (String) Kuberenetes Services will be assigned IPs within this CIDR. For example: 10.244.0.0/16.
 
+
 **Optional**
 
 - `ipv6` (Attributes) Enable for Dual Stack support (see [below for nested schema](#nestedatt--spec--config--network--ipv6))
+- `nameservers` (Attributes Map) holds nameservers for the cluster
 
 <a id="nestedatt--spec--config--network--cni"></a>
 ### Nested Schema for `spec.config.network.cni`

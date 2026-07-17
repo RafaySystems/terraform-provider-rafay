@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	commonpb "github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // Allowed values for the Helm4 strategy-style options. These mirror the
@@ -103,12 +102,18 @@ func ExpandHelm4Artifact(ap []interface{}) (*commonpb.ArtifactSpec, error) {
 	at.Type = commonpb.ArtifactTypeHelm4
 	var err error
 
-	inp := ap[0].(map[string]interface{})
+	inp, ok := ap[0].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("%s", "ExpandHelm4Artifact input is not a map")
+	}
 	if vp, ok := inp["artifact"].([]interface{}); ok && len(vp) > 0 {
 		if vp[0] == nil {
 			return nil, fmt.Errorf("%s", "ExpandHelm4Artifact empty artifact")
 		}
-		in := vp[0].(map[string]interface{})
+		in, ok := vp[0].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("%s", "ExpandHelm4Artifact artifact is not a map")
+		}
 
 		if v, ok := in["catalog"].(string); ok && len(v) > 0 {
 			at.Artifact.Catalog = v
@@ -258,15 +263,11 @@ func ExpandHelm4Artifact(ap []interface{}) (*commonpb.ArtifactSpec, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("ExpandHelm4Artifact jsonSpec ", string(jsonSpec))
 
 	if err := obj.UnmarshalJSON(jsonSpec); err != nil {
 		log.Println("ExpandHelm4Artifact UnmarshalJSON error ", err)
 		return nil, err
 	}
-
-	s1 := spew.Sprintf("%+v", obj)
-	log.Println("ExpandHelm4Artifact obj", s1)
 
 	return &obj, nil
 }

@@ -215,3 +215,34 @@ resource "rafay_workload" "tftestworkload8" {
     }
   }
 }
+
+
+# Example Workload using helm4 options
+resource "rafay_workload" "tftestworkload9" {
+  metadata {
+    name    = "tftestworkload9"
+    project = "terraform"
+  }
+  spec {
+    namespace = "ns4"
+    version   = "v3.0"
+    placement {
+      selector = "rafay.dev/clusterName=cluster-1"
+    }
+    artifact {
+      type = "Helm4"
+      artifact {
+        chart_path {
+          name = "relative/path/to/some/chart.tgz"
+        }
+      }
+      options {
+        max_history       = 10
+        server_side_apply = "auto"
+        timeout           = "5m0s"
+        wait_for_jobs     = true
+        wait_strategy     = "watcher"
+      }
+    }
+  }
+}

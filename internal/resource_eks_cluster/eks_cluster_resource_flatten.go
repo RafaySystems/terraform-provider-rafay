@@ -694,7 +694,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		v.AddonsConfig = types.ListNull(AddonsConfigValue{}.Type(ctx))
 	}
 
-	if in.AutoModeConfig != nil {
+	//	if in.AutoModeConfig != nil {
+	if in.AutoModeConfig != nil && isAutoModeConfigPresent(in.AutoModeConfig) {
 		autoModeConfig := NewAutoModeConfigValueNull()
 		d = autoModeConfig.Flatten(ctx, in.AutoModeConfig)
 		diags = append(diags, d...)
@@ -759,7 +760,7 @@ func (v *AutoModeConfigValue) Flatten(ctx context.Context, in *rafay.EKSAutoMode
 		diags = append(diags, d...)
 	}
 	v.NodePools = nodePools
-
+	v.state = attr.ValueStateKnown
 	return diags
 }
 
@@ -1637,6 +1638,8 @@ func (v *VpcValue) Flatten(ctx context.Context, in *rafay.EKSClusterVPC) diag.Di
 	}
 	if in.AutoAllocateIPv6 != nil {
 		v.AutoAllocateIpv6 = types.BoolPointerValue(in.AutoAllocateIPv6)
+	} else {
+		v.AutoAllocateIpv6 = types.BoolValue(false)
 	}
 
 	publicAccessCidrs := types.ListNull(types.StringType)
@@ -1910,7 +1913,11 @@ func (v *ServiceAccountsValue) Flatten(ctx context.Context, in *rafay.EKSCluster
 	if in.RoleName != "" {
 		v.RoleName = types.StringValue(in.RoleName)
 	}
-	v.RoleOnly = types.BoolPointerValue(in.RoleOnly)
+	if in.RoleOnly != nil {
+		v.RoleOnly = types.BoolPointerValue(in.RoleOnly)
+	} else {
+		v.RoleOnly = types.BoolValue(false)
+	}
 
 	tagMap := types.MapNull(types.StringType)
 	if len(in.Tags) != 0 {
@@ -2385,4 +2392,12 @@ func (v *ProjectsValue) Flatten(ctx context.Context, in *rafay.V1ClusterSharingP
 
 	v.state = attr.ValueStateKnown
 	return diags
+}
+
+func isAutoModeConfigPresent(in *rafay.EKSAutoModeConfig) bool {
+	if in == nil {
+		return false
+	}
+	// only keep in state if something real is set
+	return in.Enabled || in.NodeRoleARN != "" || len(in.NodePools) > 0
 }

@@ -208,17 +208,51 @@ func triggerBlueprintSync(clusterName, projectName string, forceSync bool, bluep
 	return outcome, nil
 }
 
+// blueprintSyncConditionStatus reports the terminal state of the cluster's
+// ClusterBlueprintSync condition specifically. This is deliberately not
+// getClusterConditions/ClusterReady: that's a general cluster-readiness
+// signal meant for full cluster provisioning (used by the AKS/EKS
+// resources), and on a cluster that's already up and running — the normal
+// case here, since this resource resyncs an existing cluster rather than
+// creating one — ClusterReady is typically already Success and stays that
+// way regardless of whether the sync we just triggered succeeds or fails.
+// Watching ClusterBlueprintSync's own status is the only reliable way to
+// tell whether *this* sync actually completed.
+func blueprintSyncConditionStatus(edgeID, projectID string) (failed bool, succeeded bool, err error) {
+	c, err := cluster.GetClusterWithEdgeID(edgeID, projectID, uaDef)
+	if err != nil {
+		return false, false, err
+	}
+	for _, condition := range c.Cluster.Conditions {
+		if condition.Type != models.ClusterBlueprintSync {
+			continue
+		}
+		switch condition.Status {
+		case models.Failed:
+			return true, false, nil
+		case models.Success:
+			return false, true, nil
+		}
+	}
+	return false, false, nil
+}
+
 // pollBlueprintSync waits for a previously triggered blueprint sync to reach
-// a terminal (ready or failed) condition, or for ctx to time out.
+// a terminal (succeeded or failed) condition, or for ctx to time out. A
+// blueprint resync on an already-ready cluster can finish in a few seconds,
+// so this checks on a ~10-15s cadence rather than the 30s+ cadence used for
+// full cluster provisioning — the overall 20-minute Create/Update timeout
+// still bounds how long a genuinely slow sync gets to run.
 func pollBlueprintSync(ctx context.Context, edgeID, projectID, clusterName string) error {
-	// Allow the backend a moment to transition conditions before polling.
+	// Allow the backend a brief moment to transition conditions before the
+	// first check.
 	select {
 	case <-ctx.Done():
 		return fmt.Errorf("context cancelled before blueprint sync polling started")
-	case <-time.After(5 * time.Second):
+	case <-time.After(10 * time.Second):
 	}
 
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
 
 	for {
@@ -227,15 +261,15 @@ func pollBlueprintSync(ctx context.Context, edgeID, projectID, clusterName strin
 			return fmt.Errorf("blueprint sync timed out for cluster: %s", clusterName)
 		case <-ticker.C:
 			log.Printf("checking blueprint sync status for cluster: %s", clusterName)
-			failure, ready, err := getClusterConditions(edgeID, projectID)
+			failed, succeeded, err := blueprintSyncConditionStatus(edgeID, projectID)
 			if err != nil {
-				log.Printf("error checking cluster conditions for %s: %s — will retry", clusterName, err.Error())
+				log.Printf("error checking blueprint sync status for %s: %s — will retry", clusterName, err.Error())
 				continue
 			}
-			if failure {
+			if failed {
 				return fmt.Errorf("blueprint sync failed for cluster: %s", clusterName)
 			}
-			if ready {
+			if succeeded {
 				log.Printf("blueprint sync completed successfully for cluster: %s", clusterName)
 				return nil
 			}

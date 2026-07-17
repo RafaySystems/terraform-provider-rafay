@@ -481,7 +481,7 @@
                                                 {
                                                     "name": "instance_type",
                                                     "string": {
-                                                        "computed_optional_required": "required",
+                                                        "computed_optional_required": "optional",
                                                         "description": "The type of EC2 instance to use for the nodes in this group."
                                                     }
                                                 },
@@ -512,13 +512,10 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 0
-                                                        } 
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
-                                                
+                                              
                                                 {
                                                     "name": "disable_imdsv1",
                                                     "bool": {
@@ -563,30 +560,21 @@
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 3000
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 80
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 125
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
@@ -1142,19 +1130,13 @@
                                                                     "name": "on_demand_base_capacity",
                                                                     "int64": {
                                                                         "computed_optional_required": "computed_optional",
-                                                                        "description": "base number of on-demand instances (non-negative).",
-                                                                        "default": {
-                                                                            "static": 0
-                                                                        }
+                                                                        "description": "base number of on-demand instances (non-negative)."
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "on_demand_percentage_above_base_capacity",
                                                                     "int64": {
                                                                         "computed_optional_required": "computed_optional",
-                                                                        "default": {
-                                                                            "static": 100
-                                                                        },
                                                                         "description": "percentage of on-demand instances above base capacity (0-100)."
                                                                     }
                                                                 },
@@ -1162,9 +1144,6 @@
                                                                     "name": "spot_instance_pools",
                                                                     "int64": {
                                                                         "computed_optional_required": "computed_optional",
-                                                                        "default": {
-                                                                            "static": 2
-                                                                        },
                                                                         "description": "number of spot instance pools to use (1-20)."
                                                                     }
                                                                 },
@@ -1431,10 +1410,7 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 0
-                                                        }    
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 
@@ -1482,30 +1458,21 @@
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 3000
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 80
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 125
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
@@ -2385,7 +2352,7 @@
                                                 {
                                                     "name": "instance_type",
                                                     "string": {
-                                                        "computed_optional_required": "required",
+                                                        "computed_optional_required": "optional",
                                                         "description": "The type of EC2 instance to use for the nodes in this group."
                                                     }
                                                 },
@@ -2416,10 +2383,7 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 0
-                                                        } 
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 
@@ -2467,30 +2431,21 @@
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 3000
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 80
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 125
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
@@ -3065,19 +3020,13 @@
                                                                     "name": "on_demand_base_capacity",
                                                                     "int64": {
                                                                         "computed_optional_required": "computed_optional",
-                                                                        "description": "base number of on-demand instances (non-negative).",
-                                                                        "default": {
-                                                                            "static": 0
-                                                                        }
+                                                                        "description": "base number of on-demand instances (non-negative)."
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "on_demand_percentage_above_base_capacity",
                                                                     "int64": {
                                                                         "computed_optional_required": "computed_optional",
-                                                                        "default": {
-                                                                            "static": 100
-                                                                        },
                                                                         "description": "percentage of on-demand instances above base capacity (0-100)."
                                                                     }
                                                                 },
@@ -3085,9 +3034,6 @@
                                                                     "name": "spot_instance_pools",
                                                                     "int64": {
                                                                         "computed_optional_required": "computed_optional",
-                                                                        "default": {
-                                                                            "static": 2
-                                                                        },
                                                                         "description": "number of spot instance pools to use (1-20)."
                                                                     }
                                                                 },
@@ -5141,10 +5087,7 @@
                                                 {
                                                     "name": "max_pods_per_node",
                                                     "int64": {
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 0
-                                                        }   
+                                                        "computed_optional_required": "optional" 
                                                     }
                                                 },
                                                 {
@@ -5191,30 +5134,21 @@
                                                     "name": "volume_iops",
                                                     "int64": {
                                                         "description": "The number of IOPS to provision for the EBS volumes attached to the nodes in this group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 3000
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_size",
                                                     "int64": {
                                                         "description": "The size of the EBS volumes attached to the nodes in this group, in GiB.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 80
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
                                                     "name": "volume_throughput",
                                                     "int64": {
                                                         "description": "The throughput of the EBS volumes attached to the nodes in this group, in MiB/s.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": 125
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {

@@ -24,7 +24,7 @@
 # already in progress: false errors out, true restarts it. Pass
 # -var 'force_sync=true' when you need to override an in-progress sync.
 resource "rafay_blueprint_sync" "sync" {
-  cluster_name      = "krishna-jun18"
+  cluster_name      = "krishna-jul17"
   project           = "defaultproject"
   blueprint_name    = "fail-bp"
   blueprint_version = "v2"

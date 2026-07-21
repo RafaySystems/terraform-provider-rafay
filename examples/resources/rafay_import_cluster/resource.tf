@@ -22,6 +22,29 @@ resource "rafay_import_cluster" "import_cluster" {
     allow_insecure_bootstrap = false
     bootstrap_ca             = "<ca-certificate-data>"
   }
+
+  system_components_placement {
+    node_selector = {
+      app       = "infra"
+      dedicated = "true"
+    }
+    tolerations {
+      effect   = "PreferNoSchedule"
+      key      = "app"
+      operator = "Equal"
+      value    = "infra"
+    }
+
+    daemonset_override {
+      node_selection_enabled = false
+      tolerations {
+        key      = "app1dedicated"
+        value    = "true"
+        effect   = "NoSchedule"
+        operator = "Equal"
+      }
+    }
+  }
 }
 
 output "values_data" {

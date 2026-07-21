@@ -38,6 +38,29 @@ resource "rafay_import_cluster" "import_cluster" {
     allow_insecure_bootstrap = false
     bootstrap_ca = "<ca-certificate-data>"
   }
+
+  system_components_placement {
+    node_selector = {
+      app       = "infra"
+      dedicated = "true"
+    }
+    tolerations {
+      effect   = "PreferNoSchedule"
+      key      = "app"
+      operator = "Equal"
+      value    = "infra"
+    }
+
+    daemonset_override {
+      node_selection_enabled = false
+      tolerations {
+        key      = "app1dedicated"
+        value    = "true"
+        effect   = "NoSchedule"
+        operator = "Equal"
+      }
+    }
+  }
 }
 
 output "values_data" {
@@ -84,7 +107,36 @@ output "bootstrap_path" {
     - `proxy_auth` - (String, Optional) Proxy authentication string.
     - `allow_insecure_bootstrap` - (Boolean, Optional) Allow insecure bootstrap.
     - `bootstrap_ca` - (String, Optional) CA certificate for bootstrap.
+- `system_components_placement` - (Block List, Max: 1) Configure tolerations and nodeSelector for Rafay system components. (See [below for nested schema](#nestedblock--system_components_placement))
 - `timeouts` - (Block) Sets the duration of time the create, delete, and update functions are allowed to run. If the function takes longer than this, it is assumed the function has failed. The default is 10 minutes. (See [below for nested schema](#nestedblock--timeouts))
+
+<a id="nestedblock--system_components_placement"></a>
+### Nested Schema for `system_components_placement`
+
+***Optional***
+
+- `node_selector` - (Map of String) Key-value pairs ensuring pods are scheduled on desired nodes. Explore further in the [Kubernetes Documentation](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
+- `tolerations` - (Block List) Enables the kubernetes scheduler to schedule pods with matching taints. Explore further in the [Kubernetes Documentation](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) (See [below for nested schema](#nestedblock--system_components_placement--tolerations))
+- `daemonset_override` - (Block List) Allows users to override the default behaviour of DaemonSet for specific nodes, enabling the addition of additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--system_components_placement--daemonset_override))
+
+<a id="nestedblock--system_components_placement--tolerations"></a>
+### Nested Schema for `system_components_placement.tolerations`
+
+***Optional***
+
+- `key` - (String) The taint key that the toleration applies to.
+- `operator` - (String) Represents a key's relationship to the value.
+- `value` - (String) The taint value the toleration matches to.
+- `effect` - (String) Indicates the taint effect to match.
+- `toleration_seconds` - (Number) Represents the period of time the toleration tolerates the taint.
+
+<a id="nestedblock--system_components_placement--daemonset_override"></a>
+### Nested Schema for `system_components_placement.daemonset_override`
+
+***Optional***
+
+- `node_selection_enabled` - (Boolean) Enables node selection.
+- `tolerations` - (Block List) Additional tolerations for Daemonsets to match the taints available on the nodes. (See [below for nested schema](#nestedblock--system_components_placement--tolerations))
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

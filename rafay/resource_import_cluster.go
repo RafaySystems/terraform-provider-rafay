@@ -538,7 +538,8 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	fv, err := os.Create(values_path)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("failed to create values file at %s, error %s", values_path, err.Error())
+		return diag.FromErr(err)
 	}
 
 	defer fv.Close()
@@ -570,7 +571,8 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 	f, err := os.Create(bootstrap_path)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("failed to create bootstrap file at %s, error %s", bootstrap_path, err.Error())
+		return diag.FromErr(err)
 	}
 
 	defer f.Close()
@@ -644,14 +646,9 @@ func resourceImportClusterRead(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	// Set system_components_placement if present
-	// Note: SystemComponentsPlacement may be in cluster spec/configuration
-	// Try to get cluster with edge ID which may have more fields
-	c_with_edge, err := cluster.GetClusterWithEdgeID(c.ID, c.ProjectID, "")
-	if err == nil && c_with_edge != nil {
-		// Check if SystemComponentsPlacement is available in cluster_with_edge
-		// The exact field path may vary based on rctl package version
-		// For now, we'll skip reading it until the exact structure is confirmed
-		log.Printf("SystemComponentsPlacement read - implementation may vary based on rctl package version")
+	if err := d.Set("system_components_placement", flattenSystemComponentsPlacementImportCluster(c.SystemComponentsPlacement)); err != nil {
+		log.Printf("set system_components_placement error %s", err.Error())
+		return diag.FromErr(err)
 	}
 
 	return diags
@@ -696,15 +693,7 @@ func resourceImportClusterUpdate(ctx context.Context, d *schema.ResourceData, m 
 	cluster_resp.ProxyConfig = newProxyConfig
 
 	// update system_components_placement if provided
-	// NOTE: rctl's ClusterDetails/update model has no SystemComponentsPlacement field yet,
-	// so this cannot be sent to the update API until rctl adds it.
-	if d.HasChange("system_components_placement") {
-		scp := expandSystemComponentsPlacementImportCluster(d.Get("system_components_placement"))
-		if scp != nil {
-			log.Printf("Warning: SystemComponentsPlacement change detected but cannot be updated - implementation needed for import clusters")
-			// TODO: Implement SystemComponentsPlacement update via appropriate API endpoint
-		}
-	}
+	cluster_resp.SystemComponentsPlacement = expandSystemComponentsPlacementImportCluster(d.Get("system_components_placement"))
 	//update cluster to send updated cluster details to core
 	err = cluster.UpdateCluster(cluster_resp, uaDef)
 	if err != nil {

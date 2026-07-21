@@ -550,10 +550,7 @@
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
@@ -1129,21 +1126,21 @@
                                                                 {
                                                                     "name": "on_demand_base_capacity",
                                                                     "int64": {
-                                                                        "computed_optional_required": "computed_optional",
+                                                                        "computed_optional_required": "optional",
                                                                         "description": "base number of on-demand instances (non-negative)."
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "on_demand_percentage_above_base_capacity",
                                                                     "int64": {
-                                                                        "computed_optional_required": "computed_optional",
+                                                                        "computed_optional_required": "optional",
                                                                         "description": "percentage of on-demand instances above base capacity (0-100)."
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "spot_instance_pools",
                                                                     "int64": {
-                                                                        "computed_optional_required": "computed_optional",
+                                                                        "computed_optional_required": "optional",
                                                                         "description": "number of spot instance pools to use (1-20)."
                                                                     }
                                                                 },
@@ -1448,10 +1445,7 @@
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
@@ -2421,10 +2415,7 @@
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {
@@ -3019,21 +3010,21 @@
                                                                 {
                                                                     "name": "on_demand_base_capacity",
                                                                     "int64": {
-                                                                        "computed_optional_required": "computed_optional",
+                                                                        "computed_optional_required": "optional",
                                                                         "description": "base number of on-demand instances (non-negative)."
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "on_demand_percentage_above_base_capacity",
                                                                     "int64": {
-                                                                        "computed_optional_required": "computed_optional",
+                                                                        "computed_optional_required": "optional",
                                                                         "description": "percentage of on-demand instances above base capacity (0-100)."
                                                                     }
                                                                 },
                                                                 {
                                                                     "name": "spot_instance_pools",
                                                                     "int64": {
-                                                                        "computed_optional_required": "computed_optional",
+                                                                        "computed_optional_required": "optional",
                                                                         "description": "number of spot instance pools to use (1-20)."
                                                                     }
                                                                 },
@@ -5124,10 +5115,7 @@
                                                     "name": "private_networking",
                                                     "bool": {
                                                         "description": "Enable private networking for the node group.",
-                                                        "computed_optional_required": "computed_optional",
-                                                        "default": {
-                                                            "static": false
-                                                        }
+                                                        "computed_optional_required": "optional"
                                                     }
                                                 },
                                                 {

@@ -820,10 +820,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"security_groups": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -1388,13 +1386,11 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"on_demand_base_capacity": schema.Int64Attribute{
 												Optional:            true,
-												Computed:            true,
 												Description:         "base number of on-demand instances (non-negative).",
 												MarkdownDescription: "base number of on-demand instances (non-negative).",
 											},
 											"on_demand_percentage_above_base_capacity": schema.Int64Attribute{
 												Optional:            true,
-												Computed:            true,
 												Description:         "percentage of on-demand instances above base capacity (0-100).",
 												MarkdownDescription: "percentage of on-demand instances above base capacity (0-100).",
 											},
@@ -1405,7 +1401,6 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"spot_instance_pools": schema.Int64Attribute{
 												Optional:            true,
-												Computed:            true,
 												Description:         "number of spot instance pools to use (1-20).",
 												MarkdownDescription: "number of spot instance pools to use (1-20).",
 											},
@@ -1503,10 +1498,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"security_groups": schema.SingleNestedAttribute{
 										Attributes: map[string]schema.Attribute{
@@ -2871,10 +2864,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"spot": schema.BoolAttribute{
 										Optional:            true,
@@ -3586,10 +3577,8 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"private_networking": schema.BoolAttribute{
 										Optional:            true,
-										Computed:            true,
 										Description:         "Enable private networking for the node group.",
 										MarkdownDescription: "Enable private networking for the node group.",
-										Default:             booldefault.StaticBool(false),
 									},
 									"subnet_cidr": schema.StringAttribute{
 										Optional:            true,
@@ -3956,13 +3945,11 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												},
 												"on_demand_base_capacity": schema.Int64Attribute{
 													Optional:            true,
-													Computed:            true,
 													Description:         "base number of on-demand instances (non-negative).",
 													MarkdownDescription: "base number of on-demand instances (non-negative).",
 												},
 												"on_demand_percentage_above_base_capacity": schema.Int64Attribute{
 													Optional:            true,
-													Computed:            true,
 													Description:         "percentage of on-demand instances above base capacity (0-100).",
 													MarkdownDescription: "percentage of on-demand instances above base capacity (0-100).",
 												},
@@ -3973,7 +3960,6 @@ func EksClusterResourceSchema(ctx context.Context) schema.Schema {
 												},
 												"spot_instance_pools": schema.Int64Attribute{
 													Optional:            true,
-													Computed:            true,
 													Description:         "number of spot instance pools to use (1-20).",
 													MarkdownDescription: "number of spot instance pools to use (1-20).",
 												},

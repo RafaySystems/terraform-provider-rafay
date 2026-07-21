@@ -52,8 +52,6 @@ func (v *ManagedNodegroupsMapValue) Flatten(ctx context.Context, in *rafay.Manag
 	}
 	if in.PrivateNetworking != nil {
 		v.PrivateNetworking = types.BoolValue(*in.PrivateNetworking)
-	} else {
-		v.PrivateNetworking = types.BoolValue(false)
 	}
 	if in.Version != "" {
 		v.Version = types.StringValue(in.Version)

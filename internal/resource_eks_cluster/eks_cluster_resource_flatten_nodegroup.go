@@ -64,8 +64,6 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	}
 	if in.PrivateNetworking != nil {
 		v.PrivateNetworking = types.BoolPointerValue(in.PrivateNetworking)
-	} else {
-		v.PrivateNetworking = types.BoolValue(false)
 	}
 	if in.Version != "" {
 		v.Version = types.StringValue(in.Version)
@@ -638,9 +636,13 @@ func (v *SecurityGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroupSG
 
 	if in.WithShared != nil {
 		v.WithShared = types.BoolPointerValue(in.WithShared)
+	} else {
+		v.WithShared = types.BoolValue(true)
 	}
 	if in.WithLocal != nil {
 		v.WithLocal = types.BoolPointerValue(in.WithLocal)
+	} else {
+		v.WithLocal = types.BoolValue(true)
 	}
 
 	attachIds := types.ListNull(types.StringType)

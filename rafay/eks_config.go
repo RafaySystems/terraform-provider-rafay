@@ -599,7 +599,7 @@ type NodeGroup struct {
 	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
 	// for nodegroup
 	// +optional
-	PrivateNetworking *bool `yaml:"privateNetworking"`
+	PrivateNetworking *bool `yaml:"privateNetworking,omitempty"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
 	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
@@ -787,7 +787,7 @@ type NodeGroupBase struct {
 	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
 	// for nodegroup
 	// +optional
-	PrivateNetworking *bool `yaml:"privateNetworking"`
+	PrivateNetworking *bool `yaml:"privateNetworking,omitempty"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
 	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
@@ -1115,7 +1115,7 @@ type ManagedNodeGroup struct {
 	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
 	// for nodegroup
 	// +optional
-	PrivateNetworking *bool `yaml:"privateNetworking"`
+	PrivateNetworking *bool `yaml:"privateNetworking,omitempty"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
 	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional

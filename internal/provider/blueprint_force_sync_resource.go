@@ -18,22 +18,22 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var (
-	_ resource.Resource               = &BlueprintSyncResource{}
-	_ resource.ResourceWithModifyPlan = &BlueprintSyncResource{}
+	_ resource.Resource               = &BlueprintForceSyncResource{}
+	_ resource.ResourceWithModifyPlan = &BlueprintForceSyncResource{}
 )
 
-func NewBlueprintSyncResource() resource.Resource {
-	return &BlueprintSyncResource{}
+func NewBlueprintForceSyncResource() resource.Resource {
+	return &BlueprintForceSyncResource{}
 }
 
-// BlueprintSyncResource triggers a blueprint sync on a cluster, optionally
+// BlueprintForceSyncResource triggers a blueprint sync on a cluster, optionally
 // assigning a blueprint name/version to the cluster first. It talks to the
 // backend directly via rctl (like the legacy SDKv2 resource it replaces)
 // rather than through the typed hub client, so it needs no provider-configured
 // client.
-type BlueprintSyncResource struct{}
+type BlueprintForceSyncResource struct{}
 
-type BlueprintSyncModel struct {
+type BlueprintForceSyncModel struct {
 	ID               types.String `tfsdk:"id"`
 	ClusterName      types.String `tfsdk:"cluster_name"`
 	Project          types.String `tfsdk:"project"`
@@ -42,11 +42,11 @@ type BlueprintSyncModel struct {
 	ForceSync        types.Bool   `tfsdk:"force_sync"`
 }
 
-func (r *BlueprintSyncResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_blueprint_sync"
+func (r *BlueprintForceSyncResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_blueprint_force_sync"
 }
 
-func (r *BlueprintSyncResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *BlueprintForceSyncResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Triggers a blueprint sync on a cluster, optionally assigning a blueprint name/version first.",
 		Attributes: map[string]schema.Attribute{
@@ -101,7 +101,7 @@ func (r *BlueprintSyncResource) Schema(ctx context.Context, req resource.SchemaR
 // This never talks to the backend itself — it only shapes the diff that the
 // user reviews before approving `terraform apply`; the actual publish call
 // (with whatever force_sync is set to) only happens inside Create/Update.
-func (r *BlueprintSyncResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+func (r *BlueprintForceSyncResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	// Destroy plans have a null plan/config; nothing to force.
 	if req.Plan.Raw.IsNull() {
 		return
@@ -188,8 +188,15 @@ func triggerBlueprintSync(clusterName, projectName string, forceSync bool, bluep
 		clusterResp.ClusterBlueprintVersion = blueprintVersion
 		blueprintChanged = true
 	}
-	if blueprintChanged {
-		log.Printf("updating cluster %s blueprint to name=%q version=%q before sync", clusterName, clusterResp.ClusterBlueprint, clusterResp.ClusterBlueprintVersion)
+
+	// The publish call's own Metadata.ForceSync flag isn't sufficient on
+	// its own — the backend also expects the cluster's ForceBlueprintSync
+	// field set via UpdateCluster before a forced publish, or the publish
+	// call fails. So UpdateCluster must run whenever force_sync=true, not
+	// just when the requested blueprint name/version actually changed.
+	clusterResp.ForceBlueprintSync = forceSync
+	if blueprintChanged || forceSync {
+		log.Printf("updating cluster %s blueprint to name=%q version=%q force_blueprint_sync=%v before sync", clusterName, clusterResp.ClusterBlueprint, clusterResp.ClusterBlueprintVersion, forceSync)
 		if err := cluster.UpdateCluster(clusterResp, uaDef); err != nil {
 			// Update failed server-side: outcome keeps the pre-update
 			// observed values so the caller doesn't record the attempted
@@ -278,11 +285,11 @@ func pollBlueprintSync(ctx context.Context, edgeID, projectID, clusterName strin
 	}
 }
 
-func (r *BlueprintSyncResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *BlueprintForceSyncResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Minute)
 	defer cancel()
 
-	var plan BlueprintSyncModel
+	var plan BlueprintForceSyncModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -324,14 +331,14 @@ func (r *BlueprintSyncResource) Create(ctx context.Context, req resource.CreateR
 // effect, so `terraform plan`/refresh never talks to the backend — the sync
 // only runs inside Create/Update, which Terraform only calls after the user
 // approves `terraform apply`.
-func (r *BlueprintSyncResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *BlueprintForceSyncResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 }
 
-func (r *BlueprintSyncResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *BlueprintForceSyncResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Minute)
 	defer cancel()
 
-	var plan BlueprintSyncModel
+	var plan BlueprintForceSyncModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -367,7 +374,7 @@ func (r *BlueprintSyncResource) Update(ctx context.Context, req resource.UpdateR
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *BlueprintSyncResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *BlueprintForceSyncResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Removing from Terraform state only; blueprint sync cannot be "undone".
 	log.Println("blueprint_sync destroy: removing from Terraform state, no API call made")
 }

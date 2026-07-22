@@ -359,6 +359,9 @@ func flattenSystemComponentsPlacementImportCluster(in *models.ClusterSystemCompo
 	if in == nil {
 		return nil
 	}
+	if len(in.NodeSelector) == 0 && len(in.Tolerations) == 0 && in.DaemonSetOverride == nil {
+		return nil
+	}
 	obj := map[string]interface{}{}
 
 	if in.NodeSelector != nil && len(in.NodeSelector) > 0 {
@@ -468,10 +471,6 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 
 	// Expand system_components_placement
 	scp := expandSystemComponentsPlacementImportCluster(d.Get("system_components_placement"))
-	if scp == nil {
-		// Cases where no system components placement is provided
-		scp = &models.ClusterSystemComponentsPlacement{}
-	}
 
 	//create imported cluster
 	labels := map[string]string{}
@@ -480,7 +479,7 @@ func resourceImportClusterCreate(ctx context.Context, d *schema.ResourceData, m 
 			labels[k] = v.(string)
 		}
 	}
-	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string), d.Get("provision_environment").(string), d.Get("kubernetes_provider").(string), *proxyCfg, labels, *scp)
+	_, err = cluster.NewImportClusterWithProvisionParams(d.Get("clustername").(string), d.Get("blueprint").(string), d.Get("location").(string), project_id, d.Get("blueprint_version").(string), d.Get("provision_environment").(string), d.Get("kubernetes_provider").(string), *proxyCfg, labels, scp)
 	if err != nil {
 		log.Printf("create import cluster failed to create (check parameters passed in), error %s", err.Error())
 		return diag.FromErr(err)

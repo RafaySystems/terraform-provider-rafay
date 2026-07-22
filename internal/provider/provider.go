@@ -185,6 +185,7 @@ func (p *RafayFwProvider) Resources(ctx context.Context) []func() resource.Resou
 		// Register new resource here
 		NewMksClusterResource,
 		NewEksClusterResource,
+		NewBlueprintForceSyncResource,
 	}
 }
 

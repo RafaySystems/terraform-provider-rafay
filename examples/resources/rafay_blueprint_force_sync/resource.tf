@@ -1,32 +1,42 @@
-# Trigger a blueprint sync on a cluster and wait for it to complete.
-resource "rafay_blueprint_force_sync" "cluster1" {
-  cluster_name = "demo-cluster1"
-  project      = "defaultproject"
-}
+# # Trigger a blueprint sync on a cluster and wait for it to complete.
+# resource "rafay_blueprint_force_sync" "cluster1" {
+#   cluster_name = "demo-cluster1"
+#   project      = "defaultproject"
+# }
 
-resource "rafay_blueprint_force_sync" "cluster2" {
-  cluster_name = "demo-cluster2"
-  project      = "defaultproject"
-  force_sync   = true
-}
+# resource "rafay_blueprint_force_sync" "cluster2" {
+#   cluster_name = "demo-cluster2"
+#   project      = "defaultproject"
+#   force_sync   = true
+# }
 
-# Assign a blueprint name/version to the cluster before syncing. The cluster
-# is updated to use this blueprint first, then the sync is published.
-resource "rafay_blueprint_force_sync" "cluster3" {
-  cluster_name      = "demo-cluster3"
-  project           = "defaultproject"
-  blueprint_name    = "custom-bp"
-  blueprint_version = "v1"
-}
+# # Assign a blueprint name/version to the cluster before syncing. The cluster
+# # is updated to use this blueprint first, then the sync is published.
+# resource "rafay_blueprint_force_sync" "cluster3" {
+#   cluster_name      = "demo-cluster3"
+#   project           = "defaultproject"
+#   blueprint_name    = "custom-bp"
+#   blueprint_version = "v1"
+# }
 
-# Every `terraform apply` re-publishes the blueprint, same as clicking
-# "publish" in the UI. force_sync only controls what happens if a sync is
-# already in progress: false errors out, true restarts it. Pass
-# -var 'force_sync=true' when you need to override an in-progress sync.
-resource "rafay_blueprint_force_sync" "cluster4" {
-  cluster_name      = "demo-cluster4"
-  project           = "defaultproject"
-  blueprint_name    = "custom-bp"
-  blueprint_version = "v1"
-  force_sync        = var.force_sync
+# # Every `terraform apply` re-publishes the blueprint, same as clicking
+# # "publish" in the UI. force_sync only controls what happens if a sync is
+# # already in progress: false errors out, true restarts it. Pass
+# # -var 'force_sync=true' when you need to override an in-progress sync.
+# resource "rafay_blueprint_force_sync" "cluster4" {
+#   cluster_name      = "demo-cluster4"
+#   project           = "defaultproject"
+#   blueprint_name    = "custom-bp"
+#   blueprint_version = "v1"
+#   force_sync        = var.force_sync
+# }
+
+# Force-sync only a subset of addons. addons requires force_sync=true.
+resource "rafay_blueprint_force_sync" "three" {
+  cluster_name      = "three"
+  project           = "srikar"
+  blueprint_name    = "helmu-4"
+  blueprint_version = "v4"
+  force_sync        = true
+  # addons            = ["helmu-4", "rafay-prometheus"]
 }

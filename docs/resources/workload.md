@@ -18,6 +18,10 @@ resource "rafay_workload" "tftestworkload1" {
   metadata {
     name    = "tftestworkload1"
     project = "terraform"
+    annotations = {
+      "key1" = "value1"
+      "key2" = "value2"
+    }
   }
   spec {
     namespace = "test-workload1"
@@ -263,6 +267,10 @@ resource "rafay_workload" "tftestworkload7" {
 - `name` - (String) The name of the resource. This must be unique in your organization. 
 - `project` - (String) The name of the Rafay project the workload will be created in. 
 
+***Optional***
+
+- `annotations` - (Map) A map of string keys and values to attach arbitrary, non-identifying metadata to objects for consumption by humans, tools, and libraries.
+---
 
 <a id="nestedblock--spec"></a>
 ### Nested Schema for `spec`

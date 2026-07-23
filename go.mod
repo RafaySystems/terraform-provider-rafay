@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/RafaySystems/edge-common v1.24.1-0.20260504071954-45f09519cd7c
-	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260605071608-3a47bf9a6c2b
+	github.com/RafaySystems/rafay-common v1.29.1-rc2.0.20260713132630-c7b32ced3c82
 	github.com/RafaySystems/rafay-cost v0.0.0-20260310085247-167e350e062d // indirect
 	github.com/RafaySystems/rctl v1.29.1-0.20260427102033-bdb36fa0976a
 	github.com/avast/retry-go/v4 v4.6.0 // indirect

@@ -28,12 +28,18 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	}
 	if in.DisableIMDSv1 != nil {
 		v.DisableImdsv1 = types.BoolPointerValue(in.DisableIMDSv1)
+	} else {
+		v.DisableImdsv1 = types.BoolValue(false)
 	}
 	if in.DisablePodIMDS != nil {
 		v.DisablePodsImds = types.BoolPointerValue(in.DisablePodIMDS)
+	} else {
+		v.DisablePodsImds = types.BoolValue(false)
 	}
 	if in.EFAEnabled != nil {
 		v.EfaEnabled = types.BoolPointerValue(in.EFAEnabled)
+	} else {
+		v.EfaEnabled = types.BoolValue(false)
 	}
 	if in.InstanceType != "" {
 		v.InstanceType = types.StringValue(in.InstanceType)
@@ -79,6 +85,8 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	}
 	if in.EBSOptimized != nil {
 		v.EbsOptimized = types.BoolPointerValue(in.EBSOptimized)
+	} else {
+		v.EbsOptimized = types.BoolValue(false)
 	}
 
 	if in.VolumeName != "" {
@@ -86,6 +94,8 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	}
 	if in.VolumeEncrypted != nil {
 		v.VolumeEncrypted = types.BoolPointerValue(in.VolumeEncrypted)
+	} else {
+		v.VolumeEncrypted = types.BoolValue(false)
 	}
 	if in.VolumeKmsKeyID != "" {
 		v.VolumeKmsKeyId = types.StringValue(in.VolumeKmsKeyID)
@@ -143,6 +153,8 @@ func (v *NodeGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroup, stat
 	}
 	if in.EnableDetailedMonitoring != nil {
 		v.EnableDetailedMonitoring = types.BoolPointerValue(in.EnableDetailedMonitoring)
+	} else {
+		v.EnableDetailedMonitoring = types.BoolValue(false)
 	}
 	if in.InstanceType != "" {
 		v.InstanceType = types.StringValue(in.InstanceType)
@@ -510,6 +522,8 @@ func (v *InstancesDistributionValue) Flatten(ctx context.Context, in *rafay.Node
 	}
 	if in.CapacityRebalance != nil {
 		v.CapacityRebalance = types.BoolPointerValue(in.CapacityRebalance)
+	} else {
+		v.CapacityRebalance = types.BoolValue(false)
 	}
 
 	v.state = attr.ValueStateKnown
@@ -622,9 +636,13 @@ func (v *SecurityGroupsValue) Flatten(ctx context.Context, in *rafay.NodeGroupSG
 
 	if in.WithShared != nil {
 		v.WithShared = types.BoolPointerValue(in.WithShared)
+	} else {
+		v.WithShared = types.BoolValue(true)
 	}
 	if in.WithLocal != nil {
 		v.WithLocal = types.BoolPointerValue(in.WithLocal)
+	} else {
+		v.WithLocal = types.BoolValue(true)
 	}
 
 	attachIds := types.ListNull(types.StringType)
@@ -834,39 +852,63 @@ func (v *IamNodeGroupWithAddonPoliciesValue) Flatten(ctx context.Context, in *ra
 
 	if in.AWSLoadBalancerController != nil {
 		v.AlbIngress = types.BoolPointerValue(in.AWSLoadBalancerController)
+	} else {
+		v.AlbIngress = types.BoolValue(false)
 	}
 	if in.AppMesh != nil {
 		v.AppMesh = types.BoolPointerValue(in.AppMesh)
+	} else {
+		v.AppMesh = types.BoolValue(false)
 	}
 	if in.AppMeshPreview != nil {
 		v.AppMeshReview = types.BoolPointerValue(in.AppMeshPreview)
+	} else {
+		v.AppMeshReview = types.BoolValue(false)
 	}
 	if in.AutoScaler != nil {
 		v.AutoScaler = types.BoolPointerValue(in.AutoScaler)
+	} else {
+		v.AutoScaler = types.BoolValue(true)
 	}
 	if in.CertManager != nil {
 		v.CertManager = types.BoolPointerValue(in.CertManager)
+	} else {
+		v.CertManager = types.BoolValue(false)
 	}
 	if in.CloudWatch != nil {
 		v.CloudWatch = types.BoolPointerValue(in.CloudWatch)
+	} else {
+		v.CloudWatch = types.BoolValue(false)
 	}
 	if in.EBS != nil {
 		v.Ebs = types.BoolPointerValue(in.EBS)
+	} else {
+		v.Ebs = types.BoolValue(false)
 	}
 	if in.EFS != nil {
 		v.Efs = types.BoolPointerValue(in.EFS)
+	} else {
+		v.Efs = types.BoolValue(false)
 	}
 	if in.ExternalDNS != nil {
 		v.ExternalDns = types.BoolPointerValue(in.ExternalDNS)
+	} else {
+		v.ExternalDns = types.BoolValue(false)
 	}
 	if in.FSX != nil {
 		v.Fsx = types.BoolPointerValue(in.FSX)
+	} else {
+		v.Fsx = types.BoolValue(false)
 	}
 	if in.ImageBuilder != nil {
 		v.ImageBuilder = types.BoolPointerValue(in.ImageBuilder)
+	} else {
+		v.ImageBuilder = types.BoolValue(true)
 	}
 	if in.XRay != nil {
 		v.Xray = types.BoolPointerValue(in.XRay)
+	} else {
+		v.Xray = types.BoolValue(false)
 	}
 	v.state = attr.ValueStateKnown
 	return diags

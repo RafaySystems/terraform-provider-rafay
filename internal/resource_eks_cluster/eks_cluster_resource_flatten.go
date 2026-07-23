@@ -694,7 +694,8 @@ func (v *ClusterConfigValue) Flatten(ctx context.Context, in rafay.EKSClusterCon
 		v.AddonsConfig = types.ListNull(AddonsConfigValue{}.Type(ctx))
 	}
 
-	if in.AutoModeConfig != nil {
+	//	if in.AutoModeConfig != nil {
+	if in.AutoModeConfig != nil && isAutoModeConfigPresent(in.AutoModeConfig) {
 		autoModeConfig := NewAutoModeConfigValueNull()
 		d = autoModeConfig.Flatten(ctx, in.AutoModeConfig)
 		diags = append(diags, d...)
@@ -759,7 +760,7 @@ func (v *AutoModeConfigValue) Flatten(ctx context.Context, in *rafay.EKSAutoMode
 		diags = append(diags, d...)
 	}
 	v.NodePools = nodePools
-
+	v.state = attr.ValueStateKnown
 	return diags
 }
 
@@ -1186,9 +1187,13 @@ func (v *PrivateClusterValue) Flatten(ctx context.Context, in *rafay.PrivateClus
 
 	if in.Enabled != nil {
 		v.Enabled = types.BoolPointerValue(in.Enabled)
+	} else {
+		v.Enabled = types.BoolValue(false)
 	}
 	if in.SkipEndpointCreation != nil {
 		v.SkipEndpointCreation = types.BoolPointerValue(in.SkipEndpointCreation)
+	} else {
+		v.SkipEndpointCreation = types.BoolValue(false)
 	}
 	additionalEndpointServices := types.ListNull(types.StringType)
 	if len(in.AdditionalEndpointServices) > 0 {
@@ -1421,24 +1426,38 @@ func (v *WellKnownPolicies4Value) Flatten(ctx context.Context, in *rafay.WellKno
 
 	if in.ImageBuilder != nil {
 		v.ImageBuilder = types.BoolPointerValue(in.ImageBuilder)
+	} else {
+		v.ImageBuilder = types.BoolValue(false)
 	}
 	if in.AutoScaler != nil {
 		v.AutoScaler = types.BoolPointerValue(in.AutoScaler)
+	} else {
+		v.AutoScaler = types.BoolValue(false)
 	}
 	if in.AWSLoadBalancerController != nil {
 		v.AwsLoadBalancerController = types.BoolPointerValue(in.AWSLoadBalancerController)
+	} else {
+		v.AwsLoadBalancerController = types.BoolValue(false)
 	}
 	if in.ExternalDNS != nil {
 		v.ExternalDns = types.BoolPointerValue(in.ExternalDNS)
+	} else {
+		v.ExternalDns = types.BoolValue(false)
 	}
 	if in.CertManager != nil {
 		v.CertManager = types.BoolPointerValue(in.CertManager)
+	} else {
+		v.CertManager = types.BoolValue(false)
 	}
 	if in.EBSCSIController != nil {
 		v.EbsCsiController = types.BoolPointerValue(in.EBSCSIController)
+	} else {
+		v.EbsCsiController = types.BoolValue(false)
 	}
 	if in.EFSCSIController != nil {
 		v.EfsCsiController = types.BoolPointerValue(in.EFSCSIController)
+	} else {
+		v.EfsCsiController = types.BoolValue(false)
 	}
 
 	v.state = attr.ValueStateKnown
@@ -1453,24 +1472,38 @@ func (v *WellKnownPolicies3Value) Flatten(ctx context.Context, in *rafay.WellKno
 
 	if in.ImageBuilder != nil {
 		v.ImageBuilder = types.BoolPointerValue(in.ImageBuilder)
+	} else {
+		v.ImageBuilder = types.BoolValue(false)
 	}
 	if in.AutoScaler != nil {
 		v.AutoScaler = types.BoolPointerValue(in.AutoScaler)
+	} else {
+		v.AutoScaler = types.BoolValue(false)
 	}
 	if in.AWSLoadBalancerController != nil {
 		v.AwsLoadBalancerController = types.BoolPointerValue(in.AWSLoadBalancerController)
+	} else {
+		v.AwsLoadBalancerController = types.BoolValue(false)
 	}
 	if in.ExternalDNS != nil {
 		v.ExternalDns = types.BoolPointerValue(in.ExternalDNS)
+	} else {
+		v.ExternalDns = types.BoolValue(false)
 	}
 	if in.CertManager != nil {
 		v.CertManager = types.BoolPointerValue(in.CertManager)
+	} else {
+		v.CertManager = types.BoolValue(false)
 	}
 	if in.EBSCSIController != nil {
 		v.EbsCsiController = types.BoolPointerValue(in.EBSCSIController)
+	} else {
+		v.EbsCsiController = types.BoolValue(false)
 	}
 	if in.EFSCSIController != nil {
 		v.EfsCsiController = types.BoolPointerValue(in.EFSCSIController)
+	} else {
+		v.EfsCsiController = types.BoolValue(false)
 	}
 
 	v.state = attr.ValueStateKnown
@@ -1637,6 +1670,8 @@ func (v *VpcValue) Flatten(ctx context.Context, in *rafay.EKSClusterVPC) diag.Di
 	}
 	if in.AutoAllocateIPv6 != nil {
 		v.AutoAllocateIpv6 = types.BoolPointerValue(in.AutoAllocateIPv6)
+	} else {
+		v.AutoAllocateIpv6 = types.BoolValue(false)
 	}
 
 	publicAccessCidrs := types.ListNull(types.StringType)
@@ -1910,7 +1945,11 @@ func (v *ServiceAccountsValue) Flatten(ctx context.Context, in *rafay.EKSCluster
 	if in.RoleName != "" {
 		v.RoleName = types.StringValue(in.RoleName)
 	}
-	v.RoleOnly = types.BoolPointerValue(in.RoleOnly)
+	if in.RoleOnly != nil {
+		v.RoleOnly = types.BoolPointerValue(in.RoleOnly)
+	} else {
+		v.RoleOnly = types.BoolValue(false)
+	}
 
 	tagMap := types.MapNull(types.StringType)
 	if len(in.Tags) != 0 {
@@ -1979,24 +2018,38 @@ func (v *WellKnownPolicies2Value) Flatten(ctx context.Context, in *rafay.WellKno
 
 	if in.ImageBuilder != nil {
 		v.ImageBuilder = types.BoolPointerValue(in.ImageBuilder)
+	} else {
+		v.ImageBuilder = types.BoolValue(false)
 	}
 	if in.AutoScaler != nil {
 		v.AutoScaler = types.BoolPointerValue(in.AutoScaler)
+	} else {
+		v.AutoScaler = types.BoolValue(false)
 	}
 	if in.AWSLoadBalancerController != nil {
 		v.AwsLoadBalancerController = types.BoolPointerValue(in.AWSLoadBalancerController)
+	} else {
+		v.AwsLoadBalancerController = types.BoolValue(false)
 	}
 	if in.ExternalDNS != nil {
 		v.ExternalDns = types.BoolPointerValue(in.ExternalDNS)
+	} else {
+		v.ExternalDns = types.BoolValue(false)
 	}
 	if in.CertManager != nil {
 		v.CertManager = types.BoolPointerValue(in.CertManager)
+	} else {
+		v.CertManager = types.BoolValue(false)
 	}
 	if in.EBSCSIController != nil {
 		v.EbsCsiController = types.BoolPointerValue(in.EBSCSIController)
+	} else {
+		v.EbsCsiController = types.BoolValue(false)
 	}
 	if in.EFSCSIController != nil {
 		v.EfsCsiController = types.BoolPointerValue(in.EFSCSIController)
+	} else {
+		v.EfsCsiController = types.BoolValue(false)
 	}
 
 	v.state = attr.ValueStateKnown
@@ -2117,24 +2170,38 @@ func (v *WellKnownPoliciesValue) Flatten(ctx context.Context, in *rafay.WellKnow
 
 	if in.ImageBuilder != nil {
 		v.ImageBuilder = types.BoolPointerValue(in.ImageBuilder)
+	} else {
+		v.ImageBuilder = types.BoolValue(false)
 	}
 	if in.AutoScaler != nil {
 		v.AutoScaler = types.BoolPointerValue(in.AutoScaler)
+	} else {
+		v.AutoScaler = types.BoolValue(false)
 	}
 	if in.AWSLoadBalancerController != nil {
 		v.AwsLoadBalancerController = types.BoolPointerValue(in.AWSLoadBalancerController)
+	} else {
+		v.AwsLoadBalancerController = types.BoolValue(false)
 	}
 	if in.ExternalDNS != nil {
 		v.ExternalDns = types.BoolPointerValue(in.ExternalDNS)
+	} else {
+		v.ExternalDns = types.BoolValue(false)
 	}
 	if in.CertManager != nil {
 		v.CertManager = types.BoolPointerValue(in.CertManager)
+	} else {
+		v.CertManager = types.BoolValue(false)
 	}
 	if in.EBSCSIController != nil {
 		v.EbsCsiController = types.BoolPointerValue(in.EBSCSIController)
+	} else {
+		v.EbsCsiController = types.BoolValue(false)
 	}
 	if in.EFSCSIController != nil {
 		v.EfsCsiController = types.BoolPointerValue(in.EFSCSIController)
+	} else {
+		v.EfsCsiController = types.BoolValue(false)
 	}
 
 	v.state = attr.ValueStateKnown
@@ -2385,4 +2452,12 @@ func (v *ProjectsValue) Flatten(ctx context.Context, in *rafay.V1ClusterSharingP
 
 	v.state = attr.ValueStateKnown
 	return diags
+}
+
+func isAutoModeConfigPresent(in *rafay.EKSAutoModeConfig) bool {
+	if in == nil {
+		return false
+	}
+	// only keep in state if something real is set
+	return in.Enabled || in.NodeRoleARN != "" || len(in.NodePools) > 0
 }

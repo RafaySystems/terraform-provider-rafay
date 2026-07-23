@@ -271,11 +271,63 @@ func expandAddon(in *schema.ResourceData) (*infrapb.Addon, error) {
 		addOn := spew.Sprintf("%+v", objSpec)
 		log.Println("expandAddonSpec  ", addOn)
 		obj.Spec = objSpec
+
+		// RC-50217: the expand layer emits an empty placeholder values path when
+		// no values file is configured. The backend never accepts an empty-path
+		// values entry ("git/helm repository HelmValuesFile has an empty path; ...
+		// omit the entry if there is no file"), and on create it also produces a
+		// phantom values file that fails blueprint sync with "no values file
+		// found". Since the addon is written with full server-side Apply
+		// semantics, omitting the entry already clears any previously configured
+		// values file on update, so drop the placeholder unconditionally.
+		dropPlaceholderValuesPaths(objSpec.Artifact)
 	}
 
 	obj.ApiVersion = "infra.k8smgmt.io/v3"
 	obj.Kind = "Addon"
 	return obj, nil
+}
+
+// dropPlaceholderValuesPaths removes empty values-path entries (those without a
+// file name) from the helm artifact spec. See RC-50217.
+func dropPlaceholderValuesPaths(spec *commonpb.ArtifactSpec) {
+	if spec == nil {
+		return
+	}
+	switch a := spec.Artifact.(type) {
+	case *commonpb.ArtifactSpec_HelmInGitRepo:
+		if a.HelmInGitRepo != nil {
+			a.HelmInGitRepo.ValuesPaths = nonEmptyFiles(a.HelmInGitRepo.ValuesPaths)
+			if a.HelmInGitRepo.ValuesRef != nil {
+				a.HelmInGitRepo.ValuesRef.ValuesPaths = nonEmptyFiles(a.HelmInGitRepo.ValuesRef.ValuesPaths)
+			}
+		}
+	case *commonpb.ArtifactSpec_HelmInHelmRepo:
+		if a.HelmInHelmRepo != nil {
+			a.HelmInHelmRepo.ValuesPaths = nonEmptyFiles(a.HelmInHelmRepo.ValuesPaths)
+			if a.HelmInHelmRepo.ValuesRef != nil {
+				a.HelmInHelmRepo.ValuesRef.ValuesPaths = nonEmptyFiles(a.HelmInHelmRepo.ValuesRef.ValuesPaths)
+			}
+		}
+	case *commonpb.ArtifactSpec_HelmInCatalog:
+		if a.HelmInCatalog != nil {
+			a.HelmInCatalog.ValuesPaths = nonEmptyFiles(a.HelmInCatalog.ValuesPaths)
+			if a.HelmInCatalog.ValuesRef != nil {
+				a.HelmInCatalog.ValuesRef.ValuesPaths = nonEmptyFiles(a.HelmInCatalog.ValuesRef.ValuesPaths)
+			}
+		}
+	}
+}
+
+// nonEmptyFiles returns the files that carry a name, or nil if none do.
+func nonEmptyFiles(files []*commonpb.File) []*commonpb.File {
+	var out []*commonpb.File
+	for _, f := range files {
+		if f != nil && f.Name != "" {
+			out = append(out, f)
+		}
+	}
+	return out
 }
 
 func expandAddonSpec(p []interface{}) (*infrapb.AddonSpec, error) {

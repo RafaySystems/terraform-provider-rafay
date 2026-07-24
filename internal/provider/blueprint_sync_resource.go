@@ -464,6 +464,23 @@ func applyBlueprintSync(ctx context.Context, plan BlueprintForceSyncModel, force
 		return plan, diags
 	}
 
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+}
+
+// applyBlueprintSync triggers a sync, waits for completion, and returns the
+// plan model updated with the observed blueprint name/version and id.
+func applyBlueprintSync(ctx context.Context, plan BlueprintForceSyncModel, forceSync bool, addons []string) (BlueprintForceSyncModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	clusterName := plan.ClusterName.ValueString()
+	projectName := plan.Project.ValueString()
+
+	outcome, err := triggerBlueprintSync(clusterName, projectName, forceSync, plan.BlueprintName.ValueString(), plan.BlueprintVersion.ValueString(), addons)
+	if err != nil {
+		diags.AddError("Client Error", fmt.Sprintf("Unable to sync blueprint for cluster %q: %s", clusterName, err))
+		return plan, diags
+	}
+
 	partialSuccess, err := pollBlueprintSync(ctx, outcome.edgeID, outcome.projectID, clusterName)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Blueprint sync did not complete for cluster %q: %s", clusterName, err))

@@ -30,3 +30,12 @@ resource "rafay_blueprint_sync" "cluster4" {
   blueprint_version = "v1"
   force_sync        = var.force_sync
 }
+
+# Selective addon sync: only the listed addons are synced. Requires
+# force_sync=true (same rule as the rctl CLI --addons flag).
+resource "rafay_blueprint_sync" "cluster5" {
+  cluster_name = "demo-cluster5"
+  project      = "defaultproject"
+  force_sync   = true
+  addons       = ["addon1", "addon2"]
+}

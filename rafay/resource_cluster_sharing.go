@@ -596,7 +596,7 @@ func expandClusterSharingSpec(p []interface{}) *commonpb.SharingSpec {
 // legacy v2 AssignClusterToProjects path, which writes to a different backend.
 func isInfraV3ManagedCluster(clusterType string) bool {
 	ct := strings.ToLower(clusterType)
-	return ct == "gke" || ct == "azure-aks" || ct == "aws-eks"
+	return ct == "gke"
 }
 
 // sharingSpecToInfraV3 maps the rafay_cluster_sharing schema (all/projects) to infrapb.Sharing.

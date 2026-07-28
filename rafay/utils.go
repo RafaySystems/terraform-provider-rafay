@@ -796,7 +796,7 @@ func expandSharingSpec(p []interface{}) *commonpb.SharingSpec {
 func expandSharingSpecV3(p []interface{}) *infrapb.Sharing {
 	obj := infrapb.Sharing{}
 	if len(p) == 0 || p[0] == nil {
-		return &obj
+		return nil
 	}
 
 	in := p[0].(map[string]interface{})
@@ -1037,6 +1037,9 @@ func flattenSharingSpec(in *commonpb.SharingSpec) []interface{} {
 
 func flattenSharingSpecV3(in *infrapb.Sharing) []interface{} {
 	if in == nil {
+		return nil
+	}
+	if !in.Enabled && len(in.Projects) == 0 {
 		return nil
 	}
 

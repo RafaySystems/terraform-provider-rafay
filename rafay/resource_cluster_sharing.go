@@ -4,14 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/RafaySystems/rafay-common/pkg/hub/client/options"
+	typed "github.com/RafaySystems/rafay-common/pkg/hub/client/typed"
 	"github.com/RafaySystems/rafay-common/proto/types/hub/commonpb"
+	"github.com/RafaySystems/rafay-common/proto/types/hub/infrapb"
 	"github.com/RafaySystems/rctl/pkg/cluster"
 	"github.com/RafaySystems/rctl/pkg/config"
 	"github.com/RafaySystems/rctl/pkg/models"
 	"github.com/RafaySystems/rctl/pkg/project"
 	"github.com/RafaySystems/rctl/pkg/share"
+	"github.com/RafaySystems/rctl/pkg/versioninfo"
 	"github.com/davecgh/go-spew/spew"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -139,6 +144,19 @@ func resourceClusterSharingUpsert(ctx context.Context, d *schema.ResourceData, c
 	if cse == "false" {
 		// Cluster is using `spec.sharing` for sharing management.
 		return diag.Errorf("Detected conflicting cluster sharing configurations in both 'rafay_*_cluster' and 'rafay_cluster_sharing' resources. Please consolidate the sharing settings into a single resource to ensure consistent cluster sharing behavior.")
+	}
+
+	// For infra-apiserver managed clusters (GKE/AKS/EKS) route through the typed V3 client.
+	if isInfraV3ManagedCluster(clusterObj.ClusterType) {
+		var spec *commonpb.SharingSpec
+		if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
+			spec = expandClusterSharingSpec(v)
+		}
+		if diags := upsertClusterSharingInfraV3(ctx, clusterName, projectName, clusterObj.ID, projectObj.ID, spec); diags != nil {
+			return diags
+		}
+		d.SetId(clusterName)
+		return diags
 	}
 
 	if v, ok := d.Get("sharing").([]interface{}); ok && len(v) > 0 {
@@ -360,6 +378,20 @@ func resourceClusterSharingRead(ctx context.Context, d *schema.ResourceData, m i
 		return diags
 	}
 
+	// For infra-apiserver managed clusters read sharing via the typed V3 client.
+	if isInfraV3ManagedCluster(clusterObj.ClusterType) {
+		if diags := flattenClusterSharingInfraV3(ctx, d, clusterName, projectName); diags != nil {
+			return diags
+		}
+		if err2 := d.Set("clustername", clusterName); err2 != nil {
+			return diag.FromErr(err2)
+		}
+		if err2 := d.Set("project", projectName); err2 != nil {
+			return diag.FromErr(err2)
+		}
+		return diags
+	}
+
 	log.Println("clusterObj share type", clusterObj.ShareMode)
 	for _, p := range clusterObj.Projects {
 		if p.ProjectID == projectObj.ID {
@@ -511,6 +543,15 @@ func resourceClusterSharingDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(fmt.Errorf("failed to get cluster info"))
 	}
 
+	// For infra-apiserver managed clusters, unshare via the typed V3 client (nil sharing).
+	if isInfraV3ManagedCluster(clusterObj.ClusterType) {
+		if diags := upsertClusterSharingInfraV3(ctx, clusterName, projectName, clusterObj.ID, projectObj.ID, nil); diags != nil {
+			return diags
+		}
+		d.SetId("")
+		return diags
+	}
+
 	_, err = cluster.UnassignClusterFromProjects(clusterObj.ID, projectObj.ID, share.ShareModeAll, []string{}, uaDef, "")
 	if err != nil {
 		log.Printf("cluster share setting had all, but failed to unshare form all projects")
@@ -548,4 +589,141 @@ func expandClusterSharingSpec(p []interface{}) *commonpb.SharingSpec {
 
 	log.Println("expandClusterSharingSpec obj", obj)
 	return &obj
+}
+
+// isInfraV3ManagedCluster returns true for cluster types managed by infra-apiserver (GKE, AKS, EKS).
+// These clusters must have their sharing updated via InfraV3().Cluster().Apply() rather than the
+// legacy v2 AssignClusterToProjects path, which writes to a different backend.
+func isInfraV3ManagedCluster(clusterType string) bool {
+	ct := strings.ToLower(clusterType)
+	return ct == "gke" || ct == "azure-aks" || ct == "aws-eks"
+}
+
+// sharingSpecToInfraV3 maps the rafay_cluster_sharing schema (all/projects) to infrapb.Sharing.
+//   - all=true            → {Enabled:true, Projects:[{Name:"*"}]}  (wildcard = share to all)
+//   - all=false, [p1, p2] → {Enabled:true, Projects:[{Name:"p1"},{Name:"p2"}]}
+//   - nil / empty         → nil (triggers unshare path in infra-apiserver)
+func sharingSpecToInfraV3(spec *commonpb.SharingSpec) *infrapb.Sharing {
+	if spec == nil {
+		return nil
+	}
+	if spec.Enabled {
+		return &infrapb.Sharing{
+			Enabled:  true,
+			Projects: []*infrapb.Projects{{Name: "*"}},
+		}
+	}
+	if len(spec.Projects) > 0 {
+		projects := make([]*infrapb.Projects, 0, len(spec.Projects))
+		for _, p := range spec.Projects {
+			projects = append(projects, &infrapb.Projects{Name: p.Name})
+		}
+		return &infrapb.Sharing{
+			Enabled:  true,
+			Projects: projects,
+		}
+	}
+	return nil
+}
+
+// upsertClusterSharingInfraV3 applies sharing changes for infra-apiserver-managed clusters.
+// It does a Get → patch spec.Sharing → Apply via the typed V3 client, then also updates
+// the v1 cluster_sharing_external flag so rafay_gke_cluster / rafay_aks_cluster reads know
+// this cluster's sharing is managed externally and should not be touched.
+func upsertClusterSharingInfraV3(ctx context.Context, clusterName, projectName, clusterID, projectID string, sharingSpec *commonpb.SharingSpec) diag.Diagnostics {
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	ag, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+		Name:    clusterName,
+		Project: projectName,
+	})
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("cluster_sharing infraV3 get failed for %s: %w", clusterName, err))
+	}
+	ag.Spec.Sharing = sharingSpecToInfraV3(sharingSpec)
+	if err = client.InfraV3().Cluster().Apply(ctx, ag, options.ApplyOptions{}); err != nil {
+		return diag.FromErr(fmt.Errorf("cluster_sharing infraV3 apply failed for %s: %w", clusterName, err))
+	}
+
+	// Update v1 cluster_sharing_external flag.
+	if sharingSpec == nil {
+		// Clearing sharing: unset the flag.
+		cluster.UnassignClusterFromProjects(clusterID, projectID, share.ShareModeAll, []string{}, uaDef, "")
+	} else if sharingSpec.Enabled {
+		// all=true
+		cluster.AssignClusterToProjects(clusterID, projectID, share.ShareModeAll, []string{}, uaDef, clusterSharingExt)
+	} else {
+		// specific projects
+		var projectIDs []string
+		for _, p := range sharingSpec.Projects {
+			pID, e := config.GetProjectIdByName(p.Name)
+			if e == nil {
+				projectIDs = append(projectIDs, pID)
+			}
+		}
+		cluster.AssignClusterToProjects(clusterID, projectID, share.ShareModeCustom, projectIDs, uaDef, clusterSharingExt)
+	}
+	return nil
+}
+
+// flattenClusterSharingInfraV3 reads sharing from an infra-apiserver-managed cluster and
+// writes it into the resource data using the rafay_cluster_sharing schema (all/projects).
+func flattenClusterSharingInfraV3(ctx context.Context, d *schema.ResourceData, clusterName, projectName string) diag.Diagnostics {
+	auth := config.GetConfig().GetAppAuthProfile()
+	client, err := typed.NewClientWithUserAgent(auth.URL, auth.Key, versioninfo.GetUserAgent())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	ag, err := client.InfraV3().Cluster().Get(ctx, options.GetOptions{
+		Name:    clusterName,
+		Project: projectName,
+	})
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("cluster_sharing infraV3 read failed for %s: %w", clusterName, err))
+	}
+	s := ag.Spec.Sharing
+	if s == nil || !s.Enabled {
+		if err2 := d.Set("sharing", []interface{}{map[string]interface{}{
+			"all":      false,
+			"projects": []interface{}{},
+		}}); err2 != nil {
+			return diag.FromErr(err2)
+		}
+		return nil
+	}
+	// Enabled with no projects, or with wildcard "*", means share-all.
+	isAll := len(s.Projects) == 0
+	for _, p := range s.Projects {
+		if p.Name == "*" {
+			isAll = true
+			break
+		}
+	}
+	if isAll {
+		if err2 := d.Set("sharing", []interface{}{map[string]interface{}{
+			"all":      true,
+			"projects": []interface{}{},
+		}}); err2 != nil {
+			return diag.FromErr(err2)
+		}
+		return nil
+	}
+	// Specific projects
+	projList := make([]interface{}, 0, len(s.Projects))
+	for _, p := range s.Projects {
+		projList = append(projList, map[string]interface{}{
+			"name": p.Name,
+			"id":   "",
+		})
+	}
+	if err2 := d.Set("sharing", []interface{}{map[string]interface{}{
+		"all":      false,
+		"projects": projList,
+	}}); err2 != nil {
+		return diag.FromErr(err2)
+	}
+	return nil
 }

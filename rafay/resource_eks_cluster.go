@@ -3122,7 +3122,7 @@ func expandManagedNodeGroups(p []interface{}, rawConfig cty.Value) []*ManagedNod
 		if v, ok := in["max_pods_per_node"].(int); ok {
 			obj.MaxPodsPerNode = &v
 		}
-		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
+		if v, ok := in["asg_suspend_processes"].([]interface{}); ok && len(v) > 0 {
 			obj.ASGSuspendProcesses = toArrayString(v)
 		}
 		if v, ok := in["ebs_optimized"].(bool); ok {
@@ -3339,7 +3339,7 @@ func expandNodeGroups(p []interface{}) []*NodeGroup { //not completed have quest
 		if v, ok := in["max_pods_per_node"].(int); ok {
 			obj.MaxPodsPerNode = v
 		}
-		if v, ok := in["asg_suspend_process"].([]interface{}); ok && len(v) > 0 {
+		if v, ok := in["asg_suspend_processes"].([]interface{}); ok && len(v) > 0 {
 			obj.ASGSuspendProcesses = toArrayString(v)
 		}
 		if v, ok := in["ebs_optimized"].(bool); ok {
@@ -6118,7 +6118,11 @@ func flattenEKSClusterNodeGroups(inp []*NodeGroup, rawState cty.Value, p []inter
 		}
 		obj["max_pods_per_node"] = in.MaxPodsPerNode
 		if len(in.ASGSuspendProcesses) > 0 {
-			obj["asg_suspend_processes"] = toArrayInterface(in.ASGSuspendProcesses)
+			var nRawState cty.Value
+			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
+				nRawState = rawState.AsValueSlice()[i].GetAttr("asg_suspend_processes")
+			}
+			obj["asg_suspend_processes"] = flattenListOfString(in.ASGSuspendProcesses, nRawState)
 		}
 		obj["ebs_optimized"] = in.EBSOptimized
 		if len(in.VolumeType) > 0 {
@@ -6614,7 +6618,11 @@ func flattenEKSClusterManagedNodeGroups(inp []*ManagedNodeGroup, rawState cty.Va
 		}
 		obj["max_pods_per_node"] = in.MaxPodsPerNode
 		if len(in.ASGSuspendProcesses) > 0 {
-			obj["asg_suspend_processes"] = toArrayInterface(in.ASGSuspendProcesses)
+			var nRawState cty.Value
+			if !rawState.IsNull() && i < len(rawState.AsValueSlice()) {
+				nRawState = rawState.AsValueSlice()[i].GetAttr("asg_suspend_processes")
+			}
+			obj["asg_suspend_processes"] = flattenListOfString(in.ASGSuspendProcesses, nRawState)
 		}
 		obj["ebs_optimized"] = in.EBSOptimized
 		if len(in.VolumeType) > 0 {

@@ -216,6 +216,7 @@ resource "rafay_addon" "tfdemoaddon9" {
       }
       options {
         set               = ["replicaCount=3"]
+        set_string        = ["image.tag=1.2.3"]
         server_side_apply = "auto"
         dry_run_strategy  = "none"
         description       = "apache addon managed by terraform"
@@ -332,11 +333,11 @@ The following options apply when `type` is `Helm4`. All of them are optional.
 ***General***
 
 - `set` - (List of String) Pass custom helm values as `key=value` pairs.
+- `set_string` - (List of String) Pass custom helm values as `key=value` pairs, forcing the values to be treated as strings.
 - `labels` - (Map of String) Labels applied to the release metadata.
 - `description` - (String) Custom description for the release.
 - `timeout` - (String) Timeout for waiting for the resources to become ready (e.g. `5m0s`).
 - `max_history` - (Number) Limit the number of Helm release history revisions.
-- `dependency_update` - (Boolean) Update chart dependencies before packaging.
 - `enable_dns` - (Boolean) Enable DNS lookup for chart URLs.
 
 ***Wait behavior***

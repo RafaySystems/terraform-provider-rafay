@@ -62,6 +62,7 @@ type helm4ArtifactTranspose struct {
 // Field JSON tags must match the proto-generated tags in artifacts.pb.go.
 type helm4OptionsTranspose struct {
 	Set                      []string          `json:"set,omitempty"`
+	SetString                []string          `json:"setString,omitempty"`
 	Labels                   map[string]string `json:"labels,omitempty"`
 	WaitStrategy             string            `json:"waitStrategy,omitempty"`
 	WaitForJobs              bool              `json:"waitForJobs,omitempty"`
@@ -86,7 +87,6 @@ type helm4OptionsTranspose struct {
 	ReuseValues              bool              `json:"reuseValues,omitempty"`
 	ResetThenReuseValues     bool              `json:"resetThenReuseValues,omitempty"`
 	Description              string            `json:"description,omitempty"`
-	DependencyUpdate         bool              `json:"dependencyUpdate,omitempty"`
 	EnableDns                bool              `json:"enableDns,omitempty"`
 }
 
@@ -170,6 +170,13 @@ func ExpandHelm4Artifact(ap []interface{}) (*commonpb.ArtifactSpec, error) {
 				}
 			}
 		}
+		if v, ok := in["set_string"].([]interface{}); ok && len(v) > 0 {
+			for _, value := range v {
+				if value != nil && value.(string) != "" {
+					at.Options.SetString = append(at.Options.SetString, value.(string))
+				}
+			}
+		}
 		if v, ok := in["labels"].(map[string]interface{}); ok && len(v) > 0 {
 			at.Options.Labels = toMapString(v)
 		}
@@ -250,9 +257,6 @@ func ExpandHelm4Artifact(ap []interface{}) (*commonpb.ArtifactSpec, error) {
 		}
 		if v, ok := in["description"].(string); ok && len(v) > 0 {
 			at.Options.Description = v
-		}
-		if v, ok := in["dependency_update"].(bool); ok {
-			at.Options.DependencyUpdate = v
 		}
 		if v, ok := in["enable_dns"].(bool); ok {
 			at.Options.EnableDns = v
@@ -359,6 +363,9 @@ func FlattenHelm4ArtifactOptions(at *helm4ArtifactTranspose, p []interface{}) ([
 	if len(at.Options.Set) > 0 {
 		obj["set"] = toArrayInterface(at.Options.Set)
 	}
+	if len(at.Options.SetString) > 0 {
+		obj["set_string"] = toArrayInterface(at.Options.SetString)
+	}
 	if len(at.Options.Labels) > 0 {
 		obj["labels"] = toMapInterface(at.Options.Labels)
 	}
@@ -400,7 +407,6 @@ func FlattenHelm4ArtifactOptions(at *helm4ArtifactTranspose, p []interface{}) ([
 	if len(at.Options.Description) > 0 {
 		obj["description"] = at.Options.Description
 	}
-	obj["dependency_update"] = at.Options.DependencyUpdate
 	obj["enable_dns"] = at.Options.EnableDns
 
 	return []interface{}{obj}, nil

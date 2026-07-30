@@ -91,7 +91,7 @@ func (v *ManagedNodegroupsMapValue) Flatten(ctx context.Context, in *rafay.Manag
 
 	if len(in.ASGSuspendProcesses) > 0 {
 		aspElements := []attr.Value{}
-		for _, asp := range in.ASGSuspendProcesses {
+		for _, asp := range flattenStringListWithStateOrder(in.ASGSuspendProcesses, state.AsgSuspendProcesses) {
 			aspElements = append(aspElements, types.StringValue(asp))
 		}
 		v.AsgSuspendProcesses, d = types.ListValue(types.StringType, aspElements)

@@ -517,6 +517,7 @@ resource "rafay_eks_cluster" "eks_with_repair_and_zonal_shift" {
         volume_size        = 80
         volume_type        = "gp3"
         private_networking = true
+        asg_suspend_processes = ["InstanceRefresh", "AZRebalance"]
 
         node_repair_config = {
           enabled                                 = true
@@ -1505,6 +1506,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 ***Optional***
 
 - `ami` - (String) Specify custom AMIs. The supported values are: `auto-ssm`, `auto`, and `static`.
+- `asg_suspend_processes` - (List of String) List of Auto Scaling processes to suspend for the node group's Auto Scaling group. Suspending processes prevents Auto Scaling from interfering during stack updates or node group operations. Valid values are: `Launch`, `Terminate`, `AddToLoadBalancer`, `AlarmNotification`, `AZRebalance`, `HealthCheck`, `InstanceRefresh`, `ReplaceUnhealthy`, and `ScheduledActions`.
 - `availability_zones` - (List of String) Limit nodes to specific AZs. 
 - `bottle_rocket` - (Block List) Configures Bottlerocket nodegroup settings. (See [below for nested schema](#nestedblock--cluster_config--managed_nodegroups--bottle_rocket))
 - `disable_imdsv1` - (Boolean) The metadata service to use IMDSv2 tokens. The default value is `false`
@@ -1616,6 +1618,7 @@ Refere to <a href="../guides/eks-node-group-migration.md">Rafay EKS Cluster reso
 ***Optional***
 
 - `ami` - (String) Specify custom AMIs. The supported values are: `auto-ssm`, `auto`, and `static`.
+- `asg_suspend_processes` - (List of String) List of Auto Scaling processes to suspend for the node group's Auto Scaling group. Suspending processes prevents Auto Scaling from interfering during stack updates or node group operations. Valid values are: `Launch`, `Terminate`, `AddToLoadBalancer`, `AlarmNotification`, `AZRebalance`, `HealthCheck`, `InstanceRefresh`, `ReplaceUnhealthy`, and `ScheduledActions`.
 - `availability_zones` - (List of String) Limit nodes to specific AZs. 
 - `disable_imdsv1` - (Boolean) The metadata service to use IMDSv2 tokens. The default value is `false`
 - `disable_pods_imds` - (Boolean) Blocks all IMDS requests from non host networking pods. The default value is `false`

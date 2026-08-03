@@ -2426,13 +2426,18 @@ func (v *SharingValue) Flatten(ctx context.Context, in *rafay.V1ClusterSharing) 
 	if len(in.Projects) > 0 {
 		projectsList := make([]attr.Value, 0, len(in.Projects))
 		for _, p := range in.Projects {
+			if p == nil || p.Name == "" {
+				continue
+			}
 			proj := NewProjectsValueNull()
 			d = proj.Flatten(ctx, p)
 			diags = append(diags, d...)
 			projectsList = append(projectsList, proj)
 		}
-		projects, d = types.ListValue(ProjectsValue{}.Type(ctx), projectsList)
-		diags = append(diags, d...)
+		if len(projectsList) > 0 {
+			projects, d = types.ListValue(ProjectsValue{}.Type(ctx), projectsList)
+			diags = append(diags, d...)
+		}
 	}
 	v.Projects = projects
 
